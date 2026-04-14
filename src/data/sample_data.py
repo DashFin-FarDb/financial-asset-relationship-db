@@ -1,3 +1,5 @@
+"""Build sample asset graph data for local development and demos."""
+
 import logging
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -15,7 +17,14 @@ logger = logging.getLogger(__name__)
 
 
 def create_sample_database() -> AssetRelationshipGraph:
-    """Create expanded sample financial database with 15+ assets across all classes"""
+    """
+    Create an in-memory sample AssetRelationshipGraph populated with diversified financial assets and regulatory events.
+
+    Constructs a graph containing equities, corporate and government bonds, commodities, and currencies; registers several regulatory events that reference related assets; and builds inter-asset relationships to produce a connected sample dataset.
+
+    Returns:
+        AssetRelationshipGraph: Populated graph containing the sample assets, regulatory events, and their established relationships.
+    """
     try:
         logger.info("Creating expanded sample financial database")
         graph = AssetRelationshipGraph()
@@ -348,15 +357,46 @@ def create_sample_database() -> AssetRelationshipGraph:
             asset_count,
             relationship_count,
         )
-        logger.info(
-            "Asset classes covered: Equity (%s), Fixed Income (%s), " "Commodity (%s), Currency (%s)",
-            len([a for a in all_assets if a.asset_class == AssetClass.EQUITY]),
-            len([a for a in all_assets if a.asset_class == AssetClass.FIXED_INCOME]),
-            len([a for a in all_assets if a.asset_class == AssetClass.COMMODITY]),
-            len([a for a in all_assets if a.asset_class == AssetClass.CURRENCY]),
-        )
+        _log_asset_class_coverage(all_assets)
 
         return graph
     except Exception as e:
         logger.error("Failed to create sample database: %s", e)
         raise
+
+
+def _log_asset_class_coverage(all_assets: list[object]) -> None:
+    """
+    Log how many sample assets belong to each AssetClass to the module logger.
+
+    Counts Equity, Fixed Income, Commodity, and Currency by inspecting each item's
+    `asset_class` attribute and emits a single INFO-level log line with the four totals.
+
+    Parameters:
+        all_assets (list[object]): Sequence of asset instances; each should expose an
+            `asset_class` attribute whose value is a member of `AssetClass`.
+    """
+    logger.info(
+        "Asset classes covered: Equity (%s), Fixed Income (%s), Commodity (%s), Currency (%s)",
+        _count_assets_by_class(all_assets, AssetClass.EQUITY),
+        _count_assets_by_class(all_assets, AssetClass.FIXED_INCOME),
+        _count_assets_by_class(all_assets, AssetClass.COMMODITY),
+        _count_assets_by_class(all_assets, AssetClass.CURRENCY),
+    )
+
+
+def _count_assets_by_class(
+    all_assets: list[object],
+    asset_class: AssetClass,
+) -> int:
+    """
+    Count assets whose `asset_class` attribute equals the given AssetClass.
+
+    Parameters:
+        all_assets (list[object]): Sequence of asset-like objects; some items may not have an `asset_class` attribute.
+        asset_class (AssetClass): AssetClass value to match.
+
+    Returns:
+        int: Number of assets whose `asset_class` equals the provided `asset_class`.
+    """
+    return sum(1 for asset in all_assets if getattr(asset, "asset_class", None) == asset_class)

@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -61,6 +61,30 @@ class RelationshipRecord:
     bidirectional: bool
 
 
+@dataclass(frozen=True)
+class _RelationshipUpsertSpec:
+    """Input spec used to upsert relationship rows."""
+
+    source_id: str
+    target_id: str
+    rel_type: str
+    strength: float
+    bidirectional: bool
+
+
+class _BaseAssetKwargs(TypedDict):
+    """Shared kwargs accepted by all asset model constructors."""
+
+    id: str
+    symbol: str
+    name: str
+    asset_class: AssetClass
+    sector: str
+    price: float
+    market_cap: float | None
+    currency: str
+
+
 class AssetGraphRepository:
     """Data access layer for the asset relationship graph."""
 
@@ -72,10 +96,9 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
         """
-        Create or update the database record for an asset.
+        Create or update the persistent record for a domain Asset.
 
-        Maps fields from the provided domain `Asset` to the ORM representation and
-        stages the ORM instance on the repository session for persistence.
+        Maps fields from the given domain `Asset` onto an `AssetORM` (creating one if needed) and stages the ORM instance on the repository session for persistence.
 
         Parameters:
             asset (Asset): Domain asset to persist or update.
@@ -134,54 +157,160 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def add_or_update_relationship(
         self,
-        source_id: str,
-        target_id: str,
-        rel_type: str,
-        strength: float,
-        bidirectional: bool = False,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         """
-        Add or update a relationship between two assets.
+        Create or update an asset relationship and stage it on the repository session.
 
-        Strength must be numeric in the inclusive range [-1.0, 1.0].
-        Negative values represent negative correlations.
+        Accepts either a single _RelationshipUpsertSpec or explicit fields (source_id, target_id, rel_type, strength[, bidirectional=False]).
+        Strength must be a numeric value between -1.0 and 1.0 inclusive; boolean values are rejected.
 
-        Args:
-            source_id: The source asset identifier.
-            target_id: The target asset identifier.
-            rel_type: The relationship type.
-            strength: Relationship strength in [-1.0, 1.0].
-            bidirectional: Whether the relationship is bidirectional.
+        Parameters:
+            *args: Either a single `_RelationshipUpsertSpec` or positional fields:
+                (source_id, target_id, rel_type, strength[, bidirectional]).
+            **kwargs: When not passing a `_RelationshipUpsertSpec`, may include `bidirectional` as a keyword.
+        """
+        relationship_spec = self._build_relationship_upsert_spec(
+            *args,
+            **kwargs,
+        )
+        relationship = self._get_or_create_relationship_orm(relationship_spec)
+        self.session.add(relationship)
+
+    def _build_relationship_upsert_spec(
+        self,
+        *args: Any,
+        **kwargs: Any,
+    ) -> _RelationshipUpsertSpec:
+        """
+        Normalize input arguments for adding or updating an asset relationship into a _RelationshipUpsertSpec.
+
+        Accepts either a single _RelationshipUpsertSpec positional argument, or positional fields:
+        (source_id, target_id, rel_type, strength[, bidirectional]). Validates and normalizes
+        the strength to a float within [-1.0, 1.0], converts identifiers and rel_type to strings,
+        and converts bidirectional to a boolean.
+
+        Parameters:
+            *args: Either a single `_RelationshipUpsertSpec` or the explicit fields
+                `(source_id, target_id, rel_type, strength[, bidirectional])`.
+            **kwargs: May include `bidirectional` when explicit fields are provided; other
+                keyword arguments are not allowed.
+
+        Returns:
+            _RelationshipUpsertSpec: A frozen spec with `source_id`, `target_id`, and `rel_type`
+            as strings, `strength` as a float within [-1.0, 1.0], and `bidirectional` as a bool.
 
         Raises:
-            ValueError: If strength is not numeric or outside [-1.0, 1.0].
+            TypeError: If an unexpected combination of positional/keyword arguments is supplied
+                (including extra keywords or insufficient positional arguments).
         """
-        if isinstance(strength, bool) or not isinstance(strength, (int, float)):
+        if len(args) == 1 and isinstance(args[0], _RelationshipUpsertSpec):
+            if kwargs:
+                raise TypeError("Unexpected keyword arguments with spec argument")
+            spec = args[0]
+            normalized_strength = self._validate_relationship_strength(spec.strength)
+            return _RelationshipUpsertSpec(
+                source_id=spec.source_id,
+                target_id=spec.target_id,
+                rel_type=spec.rel_type,
+                strength=normalized_strength,
+                bidirectional=spec.bidirectional,
+            )
+
+        if len(args) < 4:
+            raise TypeError("Expected (source_id, target_id, rel_type, strength[, bidirectional])")
+
+        source_id = args[0]
+        target_id = args[1]
+        rel_type = args[2]
+        strength = args[3]
+        bidirectional = (
+            args[4]
+            if len(args) >= 5
+            else kwargs.pop(
+                "bidirectional",
+                False,
+            )
+        )
+        if kwargs:
+            raise TypeError(f"Unexpected keyword arguments: {', '.join(kwargs.keys())}")
+
+        normalized_strength = self._validate_relationship_strength(strength)
+        return _RelationshipUpsertSpec(
+            source_id=str(source_id),
+            target_id=str(target_id),
+            rel_type=str(rel_type),
+            strength=normalized_strength,
+            bidirectional=bool(bidirectional),
+        )
+
+    @staticmethod
+    def _validate_relationship_strength(strength: float) -> float:
+        """
+        Validate and normalize a relationship strength value.
+
+        Accepts a numeric strength in the range -1.0 to 1.0 (inclusive); boolean values are rejected.
+
+        Parameters:
+            strength (int | float): The value to validate and normalize.
+
+        Returns:
+            float: The validated strength converted to a float.
+
+        Raises:
+            ValueError: If `strength` is a boolean, not numeric, or outside the range [-1.0, 1.0].
+        """
+        if isinstance(strength, bool) or not isinstance(
+            strength,
+            (int, float),
+        ):
             raise ValueError("strength must be a numeric value between -1.0 and 1.0")
         if strength < -1.0 or strength > 1.0:
             raise ValueError("strength must be between -1.0 and 1.0 (inclusive)")
+        return float(strength)
 
+    def _get_or_create_relationship_orm(
+        self,
+        relationship_spec: _RelationshipUpsertSpec,
+    ) -> AssetRelationshipORM:
+        """
+        Obtain or construct an AssetRelationshipORM that corresponds to the provided upsert specification.
+
+        Parameters:
+            relationship_spec (_RelationshipUpsertSpec): Normalized relationship input containing
+                source_id, target_id, rel_type, strength, and bidirectional.
+
+        Returns:
+            AssetRelationshipORM: An existing ORM instance matching source, target, and relationship type
+            with its `strength` and `bidirectional` fields updated, or a new ORM instance populated
+            from the specification if no existing row was found.
+        """
         stmt = select(AssetRelationshipORM).where(
-            AssetRelationshipORM.source_asset_id == source_id,
-            AssetRelationshipORM.target_asset_id == target_id,
-            AssetRelationshipORM.relationship_type == rel_type,
+            AssetRelationshipORM.source_asset_id == relationship_spec.source_id,
+            AssetRelationshipORM.target_asset_id == relationship_spec.target_id,
+            AssetRelationshipORM.relationship_type == relationship_spec.rel_type,
         )
-        existing = self.session.execute(stmt).scalar_one_or_none()
-        if existing is None:
-            existing = AssetRelationshipORM(
-                source_asset_id=source_id,
-                target_asset_id=target_id,
-                relationship_type=rel_type,
-                strength=float(strength),
-                bidirectional=bidirectional,
+        relationship = self.session.execute(stmt).scalar_one_or_none()
+        if relationship is None:
+            return AssetRelationshipORM(
+                source_asset_id=relationship_spec.source_id,
+                target_asset_id=relationship_spec.target_id,
+                relationship_type=relationship_spec.rel_type,
+                strength=relationship_spec.strength,
+                bidirectional=relationship_spec.bidirectional,
             )
-        else:
-            existing.strength = float(strength)
-            existing.bidirectional = bidirectional
-        self.session.add(existing)
+        relationship.strength = relationship_spec.strength
+        relationship.bidirectional = relationship_spec.bidirectional
+        return relationship
 
     def list_relationships(self) -> List[RelationshipRecord]:
-        """Return all relationships from the database."""
+        """
+        List all asset relationships stored in the repository.
+
+        Returns:
+            List[RelationshipRecord]: A list of RelationshipRecord objects, each containing source_id, target_id, relationship_type, strength (float), and bidirectional (bool).
+        """
         result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
             RelationshipRecord(
@@ -201,15 +330,10 @@ class AssetGraphRepository:
         rel_type: str,
     ) -> Optional[RelationshipRecord]:
         """
-        Return a single relationship matching the given identifiers, if present.
-
-        Args:
-            source_id: The source asset identifier.
-            target_id: The target asset identifier.
-            rel_type: The relationship type to look up.
+        Return the relationship between two assets for the given relationship type.
 
         Returns:
-            A RelationshipRecord if a matching relationship exists, otherwise None.
+            `RelationshipRecord` if a matching relationship exists (with `strength` converted to a `float`), `None` otherwise.
         """
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
@@ -315,9 +439,17 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_asset_model(orm: AssetORM) -> Asset:
-        """Convert an AssetORM database object to an Asset domain model instance."""
+        """
+        Constructs a domain Asset instance (specific subclass when applicable) from an AssetORM row.
+
+        Parameters:
+            orm (AssetORM): The persisted ORM row to convert.
+
+        Returns:
+            Asset: A domain Asset. Returns an Equity, Bond, Commodity, or Currency instance when `orm.asset_class` indicates that class; otherwise returns a generic `Asset`.
+        """
         asset_class = AssetClass(orm.asset_class)
-        base_kwargs = {
+        base_kwargs: _BaseAssetKwargs = {
             "id": orm.id,
             "symbol": orm.symbol,
             "name": orm.name,
@@ -327,7 +459,6 @@ class AssetGraphRepository:
             "market_cap": orm.market_cap,
             "currency": orm.currency,
         }
-
         if asset_class == AssetClass.EQUITY:
             return Equity(
                 **base_kwargs,
@@ -363,7 +494,16 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
-        """Convert a RegulatoryEventORM row into a RegulatoryEvent domain model."""
+        """
+        Convert a RegulatoryEvent ORM row into a domain RegulatoryEvent model.
+
+        Extracts related asset IDs from orm.related_assets and constructs a RegulatoryEvent
+        with id, asset_id, event_type (mapped to RegulatoryActivity), date, description,
+        impact_score, and related_assets.
+
+        Returns:
+            RegulatoryEvent: Domain model built from the ORM row.
+        """
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(
             id=orm.id,

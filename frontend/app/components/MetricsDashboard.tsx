@@ -3,9 +3,9 @@
 import React from "react";
 import type { Metrics } from "../types/api";
 
-interface MetricsDashboardProps {
+type MetricsDashboardProps = Readonly<{
   metrics: Metrics;
-}
+}>;
 
 /**
  * Renders a responsive dashboard of six metric panels based on the provided metrics.

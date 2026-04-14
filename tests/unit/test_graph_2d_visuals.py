@@ -8,14 +8,18 @@ This module contains comprehensive unit tests for the graph_2d_visuals module in
 - Edge cases and error handling
 """
 
+from unittest.mock import Mock
+
 import plotly.graph_objects as go
 import pytest
 
 from src.visualizations.graph_2d_visuals import (
+    _asset_class_label,
     _create_2d_relationship_traces,
     _create_circular_layout,
     _create_grid_layout,
     _create_spring_layout_2d,
+    _is_relationship_filtered,
     visualize_2d_graph,
 )
 
@@ -293,6 +297,32 @@ class TestRelationshipTraces:
 
         # Assert
         assert isinstance(traces, list)
+
+
+@pytest.mark.unit
+class TestPureLogicHelpers:
+    """Test pure logic and formatting helper methods for 2D visuals."""
+
+    @staticmethod
+    def test_is_relationship_filtered():
+        """Test relationship visibility boolean logic."""
+        filters = {"same_sector": True, "correlation": False}
+
+        # Show all relationships overrides individual filters
+        assert _is_relationship_filtered("correlation", filters, show_all_relationships=True) is False
+        # Specific filter is False, so it IS filtered (hidden)
+        assert _is_relationship_filtered("correlation", filters, show_all_relationships=False) is True
+        # Specific filter is True, so it IS NOT filtered (visible)
+        assert _is_relationship_filtered("same_sector", filters, show_all_relationships=False) is False
+        # Missing filter defaults to not filtered (visible)
+        assert _is_relationship_filtered("unknown", filters, show_all_relationships=False) is False
+
+    @staticmethod
+    def test_asset_class_label():
+        """Test extraction of asset class label from different object structures."""
+        assert _asset_class_label(Mock(asset_class=Mock(value="Equity"))) == "Equity"
+        assert _asset_class_label(Mock(asset_class="Fixed Income")) == "Fixed Income"
+        assert _asset_class_label(Mock(spec=[])) == ""
 
     def test_create_2d_relationship_traces_show_all(self, populated_graph):
         """Test creating traces with show_all_relationships=True."""

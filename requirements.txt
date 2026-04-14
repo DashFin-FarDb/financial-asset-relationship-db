@@ -3,6 +3,7 @@
 
 gradio>=5.11.0,<6.0.0  # >=5.11.0 required for ACL bypass fix (CVE); <6.0.0 for FastAPI 0.127.0 compat
 Markdown>=3.4,<4.0
+bleach>=6.1.0
 curl-cffi>=0.7.0  # >=0.7.0 required; libcurl vulnerability in <=0.6.4
 requests>=2.32.2
 websockets>=13.0

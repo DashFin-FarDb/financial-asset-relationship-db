@@ -9,6 +9,7 @@ This module tests the Snyk workflow configuration (.github/workflows/snyk-infras
 - Permission settings
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -254,8 +255,8 @@ class TestSnykJobConfiguration:
         checkout_steps = [s for s in steps if "uses" in s and "checkout" in s["uses"]]
         assert len(checkout_steps) > 0
         checkout_action = checkout_steps[0]["uses"]
-        # Accept either @v4 tag or SHA pin (which is more secure)
-        assert "@v4" in checkout_action or "actions/checkout@" in checkout_action
+        # Accept either @v4 tag or a 40-hex-character SHA pin (more secure)
+        assert "@v4" in checkout_action or re.search(r"@[0-9a-f]{40}", checkout_action)
 
     def test_job_runs_snyk_action(self, snyk_job):
         """Test that job runs Snyk IaC action."""
@@ -339,8 +340,8 @@ class TestSnykJobConfiguration:
         steps = snyk_job["steps"]
         sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         sarif_action = sarif_steps[0]["uses"]
-        # Accept either @v4 tag or SHA pin (which is more secure)
-        assert "@v4" in sarif_action or "github/codeql-action/upload-sarif@" in sarif_action
+        # Accept either @v4 tag or a 40-hex-character SHA pin (more secure)
+        assert "@v4" in sarif_action or re.search(r"@[0-9a-f]{40}", sarif_action)
 
     def test_sarif_upload_has_file_input(self, snyk_job):
         """

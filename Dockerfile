@@ -1,7 +1,7 @@
-# Use Python 3.11 slim image for smaller size
-# Note: Python 3.11 chosen for optimal performance and size balance.
+# Use Python 3.12 slim image for smaller size
+# Note: Python 3.12 chosen for security and compatibility.
 # Application supports Python 3.8-3.12 (see pyproject.toml).
-FROM python:3.11-slim
+FROM python:3.12-slim-trixie
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -13,11 +13,12 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # Install system dependencies including curl for health checks
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    make \
+# and apply latest security fixes available in base repositories.
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     curl \
+    g++ \
+    gcc \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching

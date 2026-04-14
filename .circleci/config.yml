@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@4.0.1
+  codecov: codecov/codecov@4.2.0
 
 executors:
   python-executor:
@@ -137,7 +137,7 @@ jobs:
             - /home/circleci/.local/lib/python3.11/site-packages
       - run:
           name: Security check with safety
-          command: safety check --file requirements.txt --json --ignore 72086
+          command: safety check --file ~/project/requirements.txt --json --ignore 72086
       - run:
           name: Security check with bandit
           command: bandit -r src/ -ll -f json -o bandit-report.json
@@ -198,7 +198,6 @@ jobs:
             docker run --rm financial-asset-relationship-db:${CIRCLE_SHA1} python --version
 
 workflows:
-  version: 2
   build-and-test:
     jobs:
       # Backend workflow - run lint, test, and security in parallel

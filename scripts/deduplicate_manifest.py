@@ -25,15 +25,52 @@ from typing import Dict, List, Tuple
 HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")  # matches "## Title"
 
 
-def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
+def _extract_section_heading(line: str) -> str | None:
     """
-    Parse the manifest content into preamble and sections.
+    Return the text of a level-2 Markdown heading if the line is a top-level `##` heading.
 
     Returns:
-      (preamble, sections)
-        - preamble: content before the first ## heading
-        - sections: list of (heading, content) where content is the text between
-          this heading and the next ## heading
+        The heading text if the line contains a level-2 heading, `None` otherwise.
+    """
+    match = HEADING_RE.match(line)
+    if match is None:
+        return None
+    # Only treat level-2 headings as delimiters, not ###.
+    if line.lstrip().startswith("###"):
+        return None
+    return match.group(1)
+
+
+def _flush_current_section(
+    sections: List[Tuple[str, str]],
+    current_heading: str | None,
+    current_content: List[str],
+) -> None:
+    """
+    Append the current section (heading and its content) to `sections` if `current_heading` is present.
+
+    Parameters:
+        sections (List[Tuple[str, str]]): Mutable list of (heading, content) tuples to append to.
+        current_heading (str | None): The heading for the current section; if `None` nothing is appended.
+        current_content (List[str]): Lines comprising the section body; joined with newline characters to form the stored content.
+    """
+    if current_heading is None:
+        return
+    sections.append((current_heading, "\n".join(current_content)))
+
+
+def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
+    """
+    Parse the manifest into a preamble and a list of level-2 sections.
+
+    The function treats lines beginning with "## " (level-2 headings) as section delimiters and ignores deeper headings (e.g., "###"). Text before the first level-2 heading is returned as the preamble. Each section is represented as a (heading, content) tuple where `heading` is the heading text (without the leading "##") and `content` is the text that follows that heading up to, but not including, the next level-2 heading. Section order is preserved.
+    Parameters:
+        content (str): The full manifest text to parse.
+
+    Returns:
+        Tuple[str, List[Tuple[str, str]]]:
+            - preamble: The text preceding the first level-2 heading.
+            - sections: A list of (heading, content) tuples for each level-2 section in the manifest.
     """
     lines = content.splitlines()
 
@@ -45,30 +82,40 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     found_first_heading = False
 
     for line in lines:
-        m = HEADING_RE.match(line)
-        # Treat only level-2 headings as section delimiters, not ###.
-        if m and not line.lstrip().startswith("###"):
-            if not found_first_heading:
-                found_first_heading = True
-            else:
-                assert current_heading is not None
-                sections.append((current_heading, "\n".join(current_content)))
-            current_heading = m.group(1)
-            current_content = []
-        else:
-            if not found_first_heading:
-                preamble_lines.append(line)
-            else:
+        heading = _extract_section_heading(line)
+        if heading is None:
+            if found_first_heading:
                 current_content.append(line)
+            else:
+                preamble_lines.append(line)
+            continue
 
-    if found_first_heading and current_heading is not None:
-        sections.append((current_heading, "\n".join(current_content)))
+        if found_first_heading:
+            _flush_current_section(sections, current_heading, current_content)
+        else:
+            found_first_heading = True
+
+        current_heading = heading
+        current_content = []
+
+    if found_first_heading:
+        _flush_current_section(sections, current_heading, current_content)
 
     return "\n".join(preamble_lines), sections
 
 
-def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
-    """Remove duplicate headings, keeping only the last occurrence."""
+def deduplicate_sections(
+    sections: List[Tuple[str, str]],
+) -> List[Tuple[str, str]]:
+    """
+    Deduplicate section entries by keeping only the last occurrence of each heading.
+
+    Parameters:
+        sections (List[Tuple[str, str]]): Sequence of (heading, content) pairs representing sections in the manifest.
+
+    Returns:
+        List[Tuple[str, str]]: Sections with duplicate headings removed; for each heading, the last occurrence from the input is kept and returned in the original input order.
+    """
     seen: set[str] = set()
     out_reversed: List[Tuple[str, str]] = []
 
@@ -81,8 +128,22 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
     return list(reversed(out_reversed))
 
 
-def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
-    """Reconstruct the manifest content from preamble and sections."""
+def reconstruct_manifest(
+    preamble: str,
+    sections: List[Tuple[str, str]],
+) -> str:
+    """
+    Assembles manifest text from a preamble and an ordered list of level-2 sections.
+
+    Each section is rendered as a "## {heading}" header followed by its content. Sections (and the preamble, if present) are separated by a single blank line. If the resulting manifest is non-empty, it ends with a single trailing newline; otherwise an empty string is returned.
+
+    Parameters:
+        preamble (str): Text that appears before the first section; may be empty.
+        sections (List[Tuple[str, str]]): Ordered list of (heading, content) pairs for level-2 sections.
+
+    Returns:
+        str: The reconstructed manifest text.
+    """
     parts: List[str] = []
 
     if preamble:
@@ -99,39 +160,93 @@ def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
 
 
 def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
-    """Count occurrences of each heading in the given sections."""
+    """
+    Return a mapping of section headings to their occurrence counts.
+
+    Parameters:
+        sections (List[Tuple[str, str]]): Sequence of (heading, content) pairs from a parsed manifest.
+
+    Returns:
+        Dict[str, int]: Mapping where each key is a heading and the value is the number of times it appears.
+    """
     counts: Dict[str, int] = {}
     for heading, _ in sections:
         counts[heading] = counts.get(heading, 0) + 1
     return counts
 
 
+def _has_invalid_path_chars(user_value: str) -> bool:
+    """
+    Detect whether a path string contains NUL, newline, or carriage return characters.
+
+    Parameters:
+        user_value (str): The path string to inspect.
+
+    Returns:
+        bool: `True` if `user_value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), `False` otherwise.
+    """
+    forbidden_chars = ("\x00", "\n", "\r")
+    return any(char in user_value for char in forbidden_chars)
+
+
+def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Path]:
+    """
+    Compute and return the absolute base directory and the resolved candidate path obtained by interpreting the given user path relative to the base directory.
+
+    Parameters:
+        user_value (str): User-supplied filesystem path (may be relative).
+        base_dir (Path): Base directory to resolve against.
+
+    Returns:
+        tuple[Path, Path]: (base, resolved) where `base` is base_dir.resolve() and `resolved` is the absolute path of `base / user_value`.
+    """
+    base = base_dir.resolve()
+    resolved = (base / Path(user_value)).resolve()
+    return base, resolved
+
+
+def _is_within_base(base: Path, candidate: Path) -> bool:
+    """
+    Determine whether `candidate` is the same path as `base` or is located inside `base`.
+
+    Returns:
+        bool: `True` if `candidate` is the same path as `base` or a descendant of `base`, `False` otherwise.
+    """
+    return os.path.commonpath([str(base), str(candidate)]) == str(base)
+
+
 def safe_path(user_value: str, base_dir: Path) -> Path:
     # Basic input hardening (avoid multiline / NUL path tricks)
-    """Ensure the provided user_value is a safe relative path under base_dir.
-
-    This function performs several checks to validate the user_value as a  safe
-    path. It first checks for invalid characters and ensures that the  path is not
-    absolute. Then, it resolves the path against the base_dir  and verifies that
-    the resolved path does not escape the base directory.  If any of these
-    conditions are violated, a ValueError is raised.
     """
-    if "\x00" in user_value or "\n" in user_value or "\r" in user_value:
+    Validate and resolve a user-supplied relative path so it stays inside the given base directory.
+
+    Performs character checks, rejects absolute paths, resolves the value against `base_dir`, and ensures the resulting path does not escape `base_dir`.
+
+    Parameters:
+        user_value (str): User-provided path string to validate and resolve.
+        base_dir (Path): Base directory that `user_value` must remain inside.
+
+    Returns:
+        Path: Resolved path located inside `base_dir`.
+
+    Raises:
+        ValueError: If `user_value` contains invalid characters, is an absolute path, or resolves outside `base_dir`.
+    """
+    if _has_invalid_path_chars(user_value):
         raise ValueError("Invalid path characters")
 
-    p = Path(user_value)
+    candidate = Path(user_value)
 
     # Reject absolute paths outright
-    if p.is_absolute():
+    if candidate.is_absolute():
         raise ValueError("Absolute paths are not allowed")
 
     # Resolve against base_dir and normalize
-    base = base_dir.resolve()
-    resolved = (base / p).resolve()
+    base, resolved = _resolve_path_within_base(user_value, base_dir)
 
     # Enforce "must be inside base"
     # (use commonpath on strings for broad compatibility)
-    if os.path.commonpath([str(base), str(resolved)]) != str(base):
+    if not _is_within_base(base, resolved):
         raise ValueError("Path escapes allowed base directory")
 
     return resolved

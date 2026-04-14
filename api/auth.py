@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, TypedDict
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
-from passlib.context import CryptContext
+from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleSource]
 from pydantic import BaseModel
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
@@ -100,36 +100,65 @@ class UserRepository:
     @staticmethod
     def has_users() -> bool:
         """
-        Check whether any user credential records exist.
+        Determine whether any user credential records exist.
 
         Returns:
-            `True` if at least one user credential exists, `False` otherwise.
+            `true` if at least one user credential exists, `false` otherwise.
         """
         return fetch_value("SELECT 1 FROM user_credentials LIMIT 1") is not None
+
+    class UserProfile(TypedDict, total=False):
+        """Optional user profile fields for user upsert operations."""
+
+        user_email: str | None
+        user_full_name: str | None
+        is_disabled: bool
 
     @staticmethod
     def create_or_update_user(
         *,
         username: str,
         hashed_password: str,
-        user_email: Optional[str] = None,
-        user_full_name: Optional[str] = None,
-        is_disabled: bool = False,
+        user_profile: Optional["UserRepository.UserProfile"] = None,
+        **legacy_profile_fields: object,
     ) -> None:
         """
-        Create or update a user credential record in the repository.
+        Insert or update a user credential record in the user_credentials table.
 
-        Performs an upsert into the user_credentials table using the
-        provided fields so the record for `username` is inserted or
-        updated.
+        Performs an upsert for the given username using the provided hashed_password and optional profile data. Accepts a modern mapping via `user_profile` containing any of `user_email`, `user_full_name`, and `is_disabled`. Legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields` are accepted and override values from `user_profile` when provided. A `TypeError` is raised if any unexpected legacy keys are supplied. The `disabled` column is stored as `1` when `is_disabled` is truthy, otherwise `0`.
 
         Parameters:
-            username (str): Unique identifier for the user.
-            hashed_password (str): Password hash; must already be hashed.
-            user_email (Optional[str]): User email address, if available.
-            user_full_name (Optional[str]): User's full name, if available.
-            is_disabled (bool): Whether the user account is disabled (inactive).
+            user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
+            **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`, `is_disabled`) which override values in `user_profile` when present; unexpected keys cause a `TypeError`.
         """
+        profile = user_profile.copy() if user_profile is not None else {}
+
+        # Backward-compatible mapping for existing call sites using keyword fields.
+        if "user_email" in legacy_profile_fields:
+            profile["user_email"] = (
+                str(legacy_profile_fields["user_email"]) if legacy_profile_fields["user_email"] is not None else None
+            )
+        if "user_full_name" in legacy_profile_fields:
+            profile["user_full_name"] = (
+                str(legacy_profile_fields["user_full_name"])
+                if legacy_profile_fields["user_full_name"] is not None
+                else None
+            )
+        if "is_disabled" in legacy_profile_fields:
+            profile["is_disabled"] = bool(legacy_profile_fields["is_disabled"])
+
+        # Remove recognized legacy keys and error on any unexpected ones to avoid silent typos.
+        for _key in ("user_email", "user_full_name", "is_disabled"):
+            legacy_profile_fields.pop(_key, None)
+
+        if legacy_profile_fields:
+            unexpected_keys = ", ".join(sorted(legacy_profile_fields.keys()))
+            raise TypeError(f"Unexpected legacy profile field(s): {unexpected_keys}")
+
+        user_email = profile.get("user_email")
+        user_full_name = profile.get("user_full_name")
+        is_disabled = profile.get("is_disabled", False)
+
         execute(
             """
             INSERT INTO user_credentials (
@@ -185,13 +214,9 @@ def get_password_hash(password):
 
 def _seed_credentials_from_env(repository: UserRepository) -> None:
     """
-    Seed an administrative user from environment variables into the given repository.
+    Seed an administrative user into the repository from environment variables.
 
-    If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that user
-    in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME, and
-    ADMIN_DISABLED (interpreted as a truthy flag). The provided password is stored
-    hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, the repository is
-    not modified.
+    Reads ADMIN_USERNAME and ADMIN_PASSWORD; if both are present, hashes the password and upserts a user using optional ADMIN_EMAIL, ADMIN_FULL_NAME, and ADMIN_DISABLED (interpreted as a truthy flag). If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, the repository is not modified.
     """
     username = os.getenv("ADMIN_USERNAME")
     password = os.getenv("ADMIN_PASSWORD")
@@ -206,9 +231,11 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     repository.create_or_update_user(
         username=username,
         hashed_password=hashed_password,
-        user_email=admin_email,
-        user_full_name=admin_full_name,
-        is_disabled=admin_disabled,
+        user_profile={
+            "user_email": admin_email,
+            "user_full_name": admin_full_name,
+            "is_disabled": admin_disabled,
+        },
     )
 
 
@@ -291,55 +318,100 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """
-    Return the user represented by the provided JWT.
-
+    Retrieve the User identified by the JWT's subject.
 
     Returns:
-        User: The User model corresponding to the token's subject.
+        The User object for the token's subject.
 
     Raises:
-        HTTPException: 401 with detail "Token has expired" if the token has expired.
-        HTTPException: 401 with detail "Could not validate credentials"
-            if the token is invalid,
-            missing the subject, or no matching user is found.
+        HTTPException: 401 with detail "Token has expired" when the token has expired.
+        HTTPException: 401 with detail "Could not validate credentials" when the token is invalid, missing a subject, or no matching user is found.
     """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+    credentials_exception = _build_credentials_exception()
+    expired_exception = _build_expired_exception()
+    username = _decode_username_from_token(
+        token=token,
+        credentials_exception=credentials_exception,
+        expired_exception=expired_exception,
     )
-    expired_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Token has expired",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        # Explicitly specify algorithms parameter to prevent algorithm confusion attacks
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-    except ExpiredSignatureError as e:
-        raise expired_exception from e
-    except InvalidTokenError as e:
-        raise credentials_exception from e
-    user = get_user(token_data.username)
+    user = get_user(username)
     if user is None:
         raise credentials_exception
     return user
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+def _build_credentials_exception() -> HTTPException:
     """
-    Get the currently authenticated active user.
-
-    Raises:
-        HTTPException: 400 with detail "Inactive user" if the user's account is
-        disabled.
+    Build the HTTPException used when authentication credentials are invalid.
 
     Returns:
-        The authenticated user's public profile as a `User` instance.
+        HTTPException: 401 Unauthorized with detail "Could not validate credentials" and header "WWW-Authenticate: Bearer".
+    """
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def _build_expired_exception() -> HTTPException:
+    """
+    Create an HTTP 401 Unauthorized exception for an expired bearer token.
+
+    Returns:
+        HTTPException: An exception with status code 401, detail "Token has expired", and header
+        `WWW-Authenticate: Bearer`.
+    """
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Token has expired",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def _decode_username_from_token(
+    *,
+    token: str,
+    credentials_exception: HTTPException,
+    expired_exception: HTTPException,
+) -> str:
+    """
+    Extract the username stored in the token's `sub` claim and validate the token.
+
+    Parameters:
+        token (str): JWT access token expected to contain a `sub` claim.
+        credentials_exception (HTTPException): Exception to raise when the token is invalid or missing `sub`.
+        expired_exception (HTTPException): Exception to raise when the token has expired.
+
+    Returns:
+        username (str): The `sub` claim value from the token.
+
+    Raises:
+        HTTPException: `expired_exception` if the token has expired.
+        HTTPException: `credentials_exception` if the token is invalid or the `sub` claim is missing.
+    """
+    try:
+        # Explicitly specify algorithms parameter to prevent algorithm confusion attacks
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        return str(TokenData(username=username).username)
+    except ExpiredSignatureError as e:
+        raise expired_exception from e
+    except InvalidTokenError as e:
+        raise credentials_exception from e
+
+
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
+    """
+    Verify that the authenticated user's account is active.
+
+    Raises:
+        HTTPException: 400 with detail "Inactive user" if the user's account is disabled.
+
+    Returns:
+        User: The authenticated user's public profile.
     """
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")

@@ -20,3 +20,10 @@ ruff>=0.4.0,<1.0.0
 pre-commit>=3.0.0
 types-PyYAML>=6.0.12
 PyGithub>=2.1.1
+fastapi==0.127.0  # keep parity with runtime API dependency
+Markdown>=3.4,<4.0
+bleach>=6.1.0
+numpy>=1.24.0
+passlib[bcrypt]>=1.7.4
+types-passlib>=1.7.7
+slowapi>=0.1.4

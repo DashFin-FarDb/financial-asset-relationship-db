@@ -8,6 +8,14 @@ interface PaginatedAssetsResponse {
   per_page: number;
 }
 
+const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const hasNumberProperty = (
+  obj: Record<string, unknown>,
+  key: string,
+): boolean => typeof obj[key] === "number";
+
 /**
  * Type guard to check if a value is a PaginatedAssetsResponse.
  *
@@ -17,17 +25,15 @@ interface PaginatedAssetsResponse {
 const isPaginatedResponse = (
   value: unknown,
 ): value is PaginatedAssetsResponse => {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
   return (
-    typeof value === "object" &&
-    value !== null &&
-    "items" in value &&
-    "total" in value &&
-    "page" in value &&
-    "per_page" in value &&
-    Array.isArray((value as PaginatedAssetsResponse).items) &&
-    typeof (value as PaginatedAssetsResponse).total === "number" &&
-    typeof (value as PaginatedAssetsResponse).page === "number" &&
-    typeof (value as PaginatedAssetsResponse).per_page === "number"
+    Array.isArray(value.items) &&
+    hasNumberProperty(value, "total") &&
+    hasNumberProperty(value, "page") &&
+    hasNumberProperty(value, "per_page")
   );
 };
 
@@ -96,27 +102,37 @@ export const loadMetadata = async (
   }
 };
 
+type AssetFilterParams = {
+  asset_class: string;
+  sector: string;
+};
+
+type LoadAssetsOptions = {
+  page: number;
+  pageSize: number;
+  filter: AssetFilterParams;
+  setAssets: (next: Asset[]) => void;
+  setTotal: (next: number | null) => void;
+  setError: (next: string | null) => void;
+  querySummary?: string;
+};
+
 /**
  * Loads assets based on pagination and filter, sets assets, total, error and optional query summary.
  *
- * @param page - The current page number.
- * @param pageSize - The number of items per page.
- * @param filter - The filter object containing asset_class and sector.
- * @param setAssets - Callback to set the list of loaded assets.
- * @param setTotal - Callback to set the total number of assets.
- * @param setError - Callback to set error messages.
- * @param querySummary - Optional summary of the query.
+ * @param options - Configuration object for pagination, filters and state setters.
  * @returns A promise that resolves when assets are loaded.
  */
-export const loadAssets = async (
-  page: number,
-  pageSize: number,
-  filter: { asset_class: string; sector: string },
-  setAssets: (next: Asset[]) => void,
-  setTotal: (next: number | null) => void,
-  setError: (next: string | null) => void,
-  querySummary?: string,
-) => {
+export const loadAssets = async (options: LoadAssetsOptions) => {
+  const {
+    page,
+    pageSize,
+    filter,
+    setAssets,
+    setTotal,
+    setError,
+    querySummary,
+  } = options;
   setError(null);
 
   try {
@@ -146,8 +162,7 @@ export const loadAssets = async (
     console.error("Error loading assets:", error);
     setAssets([]);
     setTotal(null);
-    setError(
-      `Unable to load assets${querySummary ? ` for ${querySummary}` : ""}. Please try again.`,
-    );
+    const summarySuffix = querySummary ? ` for ${querySummary}` : "";
+    setError(`Unable to load assets${summarySuffix}. Please try again.`);
   }
 };

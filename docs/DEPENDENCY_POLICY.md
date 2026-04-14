@@ -142,6 +142,7 @@ flake8 --version
 pylint --version
 mypy --version
 black --version
+isort --version
 ruff --version
 ```
 

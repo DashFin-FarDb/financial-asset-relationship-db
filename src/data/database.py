@@ -34,6 +34,7 @@ def create_engine_from_url(url: str | None = None) -> Engine:
             in-memory SQLite database (contains ":memory:"), the engine is configured
             with connection arguments and a static pool appropriate for in-memory usage.
     """
+    is_explicit_url = url is not None and url != ""
     if url is None:
         resolved_url = os.getenv(ASSET_GRAPH_DATABASE_URL_ENV_VAR) or DEFAULT_DATABASE_URL
     elif url == "":
@@ -66,7 +67,17 @@ def create_engine_from_url(url: str | None = None) -> Engine:
 
 
 def create_session_factory(engine: Engine) -> sessionmaker[Session]:
-    """Create a configured session factory bound to the supplied engine."""
+    """
+    Create a SQLAlchemy session factory bound to the provided engine.
+
+    The factory produces Session objects with autocommit disabled, autoflush disabled, and SQLAlchemy 2.0 `future` behavior enabled.
+
+    Parameters:
+        engine (Engine): Engine to bind produced Session instances to.
+
+    Returns:
+        session_factory (sessionmaker[Session]): A configured sessionmaker that produces Session objects bound to `engine`.
+    """
     return sessionmaker(
         bind=engine,
         autocommit=False,
@@ -76,5 +87,12 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
 
 
 def init_db(engine: Engine) -> None:
-    """Initialise database schema if it has not been created."""
+    """
+    Create database tables for all ORM models declared on Base.metadata.
+
+    Creates any missing tables in the database referenced by the provided SQLAlchemy Engine.
+
+    Parameters:
+        engine (Engine): SQLAlchemy Engine connected to the target database where tables will be created.
+    """
     Base.metadata.create_all(engine)

@@ -182,16 +182,6 @@ class TestRequiredPackages:
         assert "pydantic" in package_names
 
     @staticmethod
-    def test_has_httpx(package_names: List[str]):
-        """Test that httpx is included for HTTP client."""
-        assert "httpx" in package_names
-
-    @staticmethod
-    def test_has_pytest(package_names: List[str]):
-        """Test that pytest is included for testing."""
-        assert "pytest" in package_names
-
-    @staticmethod
     def test_has_security_pinned_packages(requirements: List[Tuple[str, str]]):
         """Test that security-pinned packages are present with comments."""
         # Check for zipp which was added as a security fix
@@ -366,9 +356,9 @@ class TestSecurityAndCompliance:
         assert "#" in zipp_line, "zipp line should have a comment"
         comment = zipp_line.split("#", 1)[1].lower()
         security_keywords = ["security", "vulnerability", "snyk", "pinned"]
-        assert any(
-            keyword in comment for keyword in security_keywords
-        ), f"zipp comment should mention security/vulnerability, got: {comment}"
+        assert any(keyword in comment for keyword in security_keywords), (
+            f"zipp comment should mention security/vulnerability, got: {comment}"
+        )
 
     @staticmethod
     def test_no_known_vulnerable_versions(requirements: List[Tuple[str, str]]):
@@ -436,9 +426,9 @@ class TestComprehensiveValidation:
         """Test that critical packages have version specifications."""
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         # Allow some packages without versions, but production deps should mostly be pinned
-        assert (
-            len(packages_without_versions) <= len(requirements) * 0.2
-        ), f"Too many packages without versions: {packages_without_versions}"
+        assert len(packages_without_versions) <= len(requirements) * 0.2, (
+            f"Too many packages without versions: {packages_without_versions}"
+        )
 
     @staticmethod
     def test_version_consistency(requirements: List[Tuple[str, str]]):

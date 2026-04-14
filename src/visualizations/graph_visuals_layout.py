@@ -9,7 +9,7 @@ for financial asset network plots.
 
 from typing import Dict, List, Optional, Tuple
 
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 
 def _int_option(options: Dict[str, object], key: str, default: int) -> int:
@@ -41,29 +41,28 @@ def _generate_dynamic_title(
     base_title: str = "Financial Asset Network",
 ) -> str:
     """
-    Builds a title string summarizing the number of assets and relationships for the visualization.
+    Combine the base title with asset and relationship counts into a display title.
 
     Returns:
-        A title string formatted as "{base_title} - {num_assets} Assets, {num_relationships} Relationships".
+        str: Title formatted as "{base_title} - {num_assets} Assets, {num_relationships} Relationships".
     """
     return f"{base_title} - {num_assets} Assets, {num_relationships} Relationships"
 
 
-def _calculate_visible_relationships(relationship_traces: List[go.Scatter3d]) -> int:
+def _calculate_visible_relationships(
+    relationship_traces: List[go.Scatter3d],
+) -> int:
     """
-    Estimate the number of visible relationships from a list of 3D scatter traces.
+    Estimate the number of visible relationships represented by a list of 3D scatter traces.
 
     Parameters:
-        relationship_traces (List[go.Scatter3d]):
-            Scatter3d traces whose `x` coordinate arrays represent plotted
-            points; traces missing `x` are treated as having zero points.
+        relationship_traces (List[go.Scatter3d]): Scatter3d traces whose `x` coordinate arrays represent plotted points; traces missing `x` or with empty `x` are treated as having zero points.
 
     Returns:
-        visible_relationships (int):
-            Estimated number of visible relationships computed by summing all
-            points across traces and dividing the total by 3.
+        int: Estimated number of visible relationships, computed as the total plotted points across all traces divided by 3.
     """
-    return sum(len(getattr(t, "x", []) or []) for t in relationship_traces) // 3
+    total_points = sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces)
+    return total_points // 3
 
 
 def _prepare_layout_config(
@@ -73,29 +72,22 @@ def _prepare_layout_config(
     layout_options: Optional[Dict[str, object]] = None,
 ) -> Tuple[str, Dict[str, object]]:
     """
-    Create a dynamic title from the number of assets and visible relationships
-    and return it together with layout options.
-
-    Calculates the number of visible relationships from the provided 3D scatter
-    traces, generates a title by combining that count with the base title and
-    asset count, and returns the title along with the provided layout options
-    (or an empty dict if none were supplied).
+    Create a dynamic plot title using the asset count and estimated visible relationships, and return that title with layout options.
 
     Parameters:
-        num_assets (int): Number of assets to include in the title.
-        relationship_traces (List[go.Scatter3d]):
-            Scatter3d traces used to determine visible relationships.
-        base_title (str): Base string to prefix the generated title.
-        layout_options (Optional[Dict[str, object]]):
-            Optional layout configuration to return alongside the title.
+        relationship_traces: 3D scatter traces used to estimate visible relationships by counting their data points; traces with missing or empty `x` are treated as zero points.
+        base_title (str): Prefix for the generated title. Defaults to "Financial Asset Network".
+        layout_options (Optional[Dict[str, object]]): Layout configuration to return; an empty dict is returned if None.
 
     Returns:
-        Tuple[str, Dict[str, object]]:
-            A tuple containing the generated dynamic title and the layout
-            options dictionary (empty if none provided).
+        Tuple[str, Dict[str, object]]: The generated title (e.g., "Financial Asset Network - 10 Assets, 5 Relationships") and the layout options dictionary (empty dict if none provided).
     """
     num_relationships = _calculate_visible_relationships(relationship_traces)
-    dynamic_title = _generate_dynamic_title(num_assets, num_relationships, base_title)
+    dynamic_title = _generate_dynamic_title(
+        num_assets,
+        num_relationships,
+        base_title,
+    )
     return dynamic_title, layout_options or {}
 
 
@@ -104,10 +96,19 @@ def _configure_3d_layout(
     title: str,
     options: Optional[Dict[str, object]] = None,
 ) -> None:
-    """Apply 3D scene layout to *fig*.
+    """
+    Apply a 3D scene layout and visual defaults to a Plotly Figure.
 
-    Supported *options* keys: width, height, gridcolor, bgcolor,
-    legend_bgcolor, legend_bordercolor.
+    Parameters:
+        fig (go.Figure): Figure to update; modified in place.
+        title (str): Text to set as the figure title.
+        options (dict, optional): Layout overrides. Supported keys:
+            - width (int): Figure width in pixels. Default 1200.
+            - height (int): Figure height in pixels. Default 800.
+            - gridcolor (str): Color for axis grid lines. Default "rgba(200, 200, 200, 0.3)".
+            - bgcolor (str): 3D scene background color. Default "rgba(248, 248, 248, 0.95)".
+            - legend_bgcolor (str): Legend background color. Default "rgba(255, 255, 255, 0.8)".
+            - legend_bordercolor (str): Legend border color. Default "rgba(0, 0, 0, 0.3)".
     """
     opts = options or {}
     width = _int_option(opts, "width", 1200)
@@ -125,9 +126,21 @@ def _configure_3d_layout(
             "font": {"size": 16},
         },
         scene={
-            "xaxis": {"title": "Dimension 1", "showgrid": True, "gridcolor": gridcolor},
-            "yaxis": {"title": "Dimension 2", "showgrid": True, "gridcolor": gridcolor},
-            "zaxis": {"title": "Dimension 3", "showgrid": True, "gridcolor": gridcolor},
+            "xaxis": {
+                "title": "Dimension 1",
+                "showgrid": True,
+                "gridcolor": gridcolor,
+            },
+            "yaxis": {
+                "title": "Dimension 2",
+                "showgrid": True,
+                "gridcolor": gridcolor,
+            },
+            "zaxis": {
+                "title": "Dimension 3",
+                "showgrid": True,
+                "gridcolor": gridcolor,
+            },
             "bgcolor": bgcolor,
             "camera": {"eye": {"x": 1.5, "y": 1.5, "z": 1.5}},
         },

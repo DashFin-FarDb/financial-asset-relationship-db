@@ -1,12 +1,14 @@
 # src/reports/integration.py
 from __future__ import annotations
 
+import importlib
 from typing import Any, Callable, Literal
 
-import bleach
+import bleach  # type: ignore[import-untyped]
 import markdown
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.reports.schema_report import generate_schema_report
 
 # ---------------------------------------------------------------------------
 # Markdown → HTML transformation (sanitized)
@@ -60,19 +62,15 @@ _ALLOWED_PROTOCOLS: frozenset[str] = frozenset({"http", "https", "mailto"})
 
 def markdown_to_html(md: str) -> str:
     """
-    Render a Markdown-formatted string to sanitized HTML.
+    Convert Markdown to sanitized HTML for safe display.
 
-    Markdown rendering can emit raw HTML if the source contains it. We therefore
-    sanitize the resulting HTML to prevent script injection (XSS).
+    Renders the provided Markdown to HTML, sanitizes it using the module allowlists, and post-processes links to add safe attributes (e.g., `rel="nofollow noopener"`, `target="_blank"`) while avoiding linkification inside code blocks.
 
     Parameters:
-        md (str): Markdown content.
+        md (str): Markdown content to convert.
 
     Returns:
-        str: Sanitized HTML string rendered from the provided Markdown.
-
-    Raises:
-        ValueError: If Markdown rendering or sanitisation fails.
+        str: Sanitized HTML produced from the input Markdown.
     """
     rendered = markdown.markdown(
         md,
@@ -89,7 +87,19 @@ def markdown_to_html(md: str) -> str:
     )
 
     # Add rel="nofollow noopener" to links and open in new tab defensively.
-    def _add_noopener(attrs: dict, new: bool = False) -> dict:
+    def _add_noopener(attrs: dict, _new: bool = False) -> dict:
+        """
+        Ensure the 'rel' attribute in a bleach.linkify attribute mapping includes "noopener".
+
+        Modifies the provided attrs mapping in-place to append "noopener" to the (None, "rel") entry if it is not already present.
+
+        Parameters:
+            attrs (dict): Attribute mapping used by bleach.linkify (keys are typically tuples like (None, "rel")).
+            _new (bool): Ignored; present only to match bleach's callback signature.
+
+        Returns:
+            dict: The same attrs mapping with the (None, "rel") value updated to include "noopener".
+        """
         rel = attrs.get((None, "rel"), "")
         if "noopener" not in rel:
             attrs[(None, "rel")] = (rel + " noopener").strip()
@@ -111,21 +121,16 @@ def markdown_to_html(md: str) -> str:
 # Core generation interface
 # ---------------------------------------------------------------------------
 
-from src.reports.schema_report import generate_schema_report
-
 
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate a Markdown schema report for the provided graph.
+    Produce a Markdown schema report for an asset relationship graph.
 
     Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to report on.
+        graph (AssetRelationshipGraph): The asset relationship graph to generate the report from.
 
     Returns:
-        str: Markdown-formatted schema report.
-
-    Raises:
-        ValueError: Propagated from report generation if the graph is invalid.
+        str: The report rendered as Markdown.
     """
     return generate_schema_report(graph)
 
@@ -151,23 +156,20 @@ def generate_html_report(graph: AssetRelationshipGraph) -> str:
 ReportFormat = Literal["md", "html"]
 
 
-def export_report(graph: AssetRelationshipGraph, fmt: ReportFormat = "md") -> str:
+def export_report(graph: object, fmt: ReportFormat = "md") -> str:
     """
-    Export a schema report for `graph` in the requested format.
-
-    This provides a single integration point for API routes or other callers
-    that need either Markdown or HTML output.
+    Export a schema report for the provided asset relationship graph in Markdown or sanitized HTML.
 
     Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to report on.
-        fmt (Literal["md", "html"]): Output format.
+        graph (object): Must be an AssetRelationshipGraph; a TypeError is raised if a different type is passed.
+        fmt (ReportFormat): Output format, either "md" for Markdown or "html" for sanitized HTML; comparison is case-insensitive.
 
     Returns:
-        str: Report content in the requested format.
+        str: Report content formatted as requested.
 
     Raises:
         TypeError: If `graph` is not an AssetRelationshipGraph.
-        ValueError: If `fmt` is unsupported.
+        ValueError: If `fmt` is not "md" or "html".
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError(f"export_report() expected AssetRelationshipGraph, got {type(graph)!r}")
@@ -218,22 +220,21 @@ def attach_to_gradio_interface(
     html: bool = False,
 ) -> Any:
     """
-    Create and return a Gradio component pre-populated with a schema report.
+    Create a Gradio component that displays the current schema report.
 
     Parameters:
-        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument factory
-            returning the current graph.
-        html (bool): If True, returns a gr.HTML component; otherwise gr.Markdown.
+        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument callable that returns the current AssetRelationshipGraph.
+        html (bool): If True, produce an HTML-rendered component; otherwise produce a Markdown-rendered component.
 
     Returns:
-        Any: A gr.HTML or gr.Markdown Gradio component.
+        A gr.HTML component when html is True, otherwise a gr.Markdown component.
 
     Raises:
         RuntimeError: If Gradio is not installed.
     """
     try:
-        import gradio as gr
-    except ImportError as exc:  # pragma: no cover
+        gr = importlib.import_module("gradio")
+    except ModuleNotFoundError as exc:  # pragma: no cover
         raise RuntimeError("Gradio is not installed.") from exc
 
     report_fn = make_gradio_report_fn(graph_provider, html=html)

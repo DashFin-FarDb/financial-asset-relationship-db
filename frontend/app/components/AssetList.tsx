@@ -69,228 +69,132 @@ const SelectFilter = ({
   </div>
 );
 
+type AssetListStatusProps = Readonly<{
+  loading: boolean;
+  error: string | null;
+}>;
+
+type AssetListTableProps = Readonly<{
+  assets: Asset[];
+  loading: boolean;
+  error: string | null;
+}>;
+
+type AssetListController = {
+  assets: Asset[];
+  loading: boolean;
+  error: string | null;
+  filter: AssetFilter;
+  assetClasses: string[];
+  sectors: string[];
+  page: number;
+  pageSize: number;
+  totalPages: number | null;
+  canGoPrev: boolean;
+  canGoNext: boolean;
+  handleFilterChange: (
+    field: keyof AssetFilter,
+  ) => (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handlePageSizeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handlePrevClick: () => void;
+  handleNextClick: () => void;
+};
+
+const renderPageSizeOption = (size: number) => (
+  <option key={size} value={size}>
+    {size}
+  </option>
+);
+
 /**
- * Fetches and displays a list of assets with filtering and pagination.
+ * Displays a compact status line showing either a loading indicator or an error message, and renders nothing when neither applies.
  *
- * The AssetList component manages the state for assets, loading status, error handling, and pagination. It utilizes hooks to fetch asset metadata and assets based on the current filter and pagination settings. The component also updates the URL query parameters to reflect the current filter and pagination state, ensuring a seamless user experience.
- *
- * @returns {JSX.Element} The AssetList component.
+ * @param loading - Whether the list is currently loading
+ * @param error - The error message to display, or `null` when there is no error
+ * @returns A `<div>` containing `"Loading..."` or `"Error: <message>"`, or `null` when not loading and no error
  */
-export default function AssetList() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+function AssetListStatus({ loading, error }: AssetListStatusProps) {
+  const hasError = error !== null;
+  if (!loading && !hasError) {
+    return null;
+  }
 
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  return (
+    <div
+      role={hasError ? "alert" : "status"}
+      aria-live={hasError ? "assertive" : "polite"}
+      className={`px-6 py-3 text-sm ${
+        hasError ? "text-red-500" : "text-gray-500"
+      }`}
+    >
+      {hasError ? `Error: ${error}` : "Loading..."}
+    </div>
+}
 
-  const [filter, setFilter] = useState<AssetFilter>({
-    asset_class: "",
-    sector: "",
-  });
-  const [assetClasses, setAssetClasses] = useState<string[]>([]);
-  const [sectors, setSectors] = useState<string[]>([]);
-
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [total, setTotal] = useState<number | null>(null);
-
-  const totalPages = useMemo(() => {
-    if (!total || total <= 0) return null;
-    return Math.max(1, Math.ceil(total / pageSize));
-  }, [pageSize, total]);
-
-  const querySummary = useMemo(
-    () => buildQuerySummary(page, pageSize, filter),
-    [buildQuerySummary, filter, page, pageSize],
-  );
-
-  const updateQueryParams = useCallback(
-    (updates: Record<string, string | null>) => {
-      if (!pathname) return;
-
-      const params = new URLSearchParams(searchParams.toString());
-
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value === null || value === "") {
-          params.delete(key);
-        } else {
-          params.set(key, value);
-        }
-      });
-
-      const queryString = params.toString();
-      if (queryString !== searchParams.toString()) {
-        router.replace(`${pathname}${queryString ? `?${queryString}` : ""}`, {
-          scroll: false,
-        });
-      }
-    },
-    [pathname, router, searchParams],
-  );
-
-  const fetchMetadata = useCallback(() => {
-    loadMetadata(setAssetClasses, setSectors);
-  }, [loadMetadata, setAssetClasses, setSectors]);
-
-  useEffect(() => {
-    fetchMetadata();
-  }, [fetchMetadata]);
-
-  useEffect(() => {
-    const nextFilter: AssetFilter = {
-      asset_class: searchParams.get("asset_class") ?? "",
-      sector: searchParams.get("sector") ?? "",
-    };
-
-    const nextPage = parsePositiveInteger(searchParams.get("page"), 1);
-    const nextPageSize = parsePositiveInteger(
-      searchParams.get("per_page"),
-      DEFAULT_PAGE_SIZE,
+/**
+ * Render a responsive table of assets and show appropriate status rows for loading, error, or empty results.
+ *
+ * @param assets - The list of asset records to render as table rows.
+ * @param loading - When true, shows a single "Loading..." row instead of assets.
+ * @param error - When set, shows the error message in a single row instead of assets.
+ * @returns A table element containing asset rows, or a single-row status message when loading, error, or no assets.
+ */
+function AssetListTable({ assets, loading, error }: AssetListTableProps) {
+  let tableRows: React.ReactNode;
+  if (loading) {
+    tableRows = (
+      <tr>
+        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+          Loading...
+        </td>
+      </tr>
     );
-
-    setFilter((prev) =>
-      prev.asset_class === nextFilter.asset_class &&
-      prev.sector === nextFilter.sector
-        ? prev
-        : nextFilter,
+  } else if (error) {
+    tableRows = (
+      <tr>
+        <td colSpan={6} className="px-6 py-4 text-center text-red-600">
+          {error}
+        </td>
+      </tr>
     );
-
-    setPage((prev) => (prev === nextPage ? prev : nextPage));
-    setPageSize((prev) => (prev === nextPageSize ? prev : nextPageSize));
-  }, [parsePositiveInteger, searchParams]);
-
-  const fetchAssets = useCallback(async () => {
-    setLoading(true);
-    await loadAssets(
-      page,
-      pageSize,
-      filter,
-      setAssets,
-      setTotal,
-      setError,
-      querySummary,
+  } else if (assets.length === 0) {
+    tableRows = (
+      <tr>
+        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+          No assets found
+        </td>
+      </tr>
     );
-    setLoading(false);
-  }, [filter, loadAssets, page, pageSize, querySummary]);
+  } else {
+    tableRows = assets.map((asset) => (
+      <tr key={asset.id} className="hover:bg-gray-50">
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+          {asset.symbol}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {asset.name}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {asset.asset_class}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {asset.sector}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {typeof asset.price === "number"
+            ? `${asset.currency} ${asset.price.toFixed(2)}`
+            : "N/A"}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          {typeof asset.market_cap === "number"
+            ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
+            : "N/A"}
+        </td>
+      </tr>
+    ));
+  }
 
-  useEffect(() => {
-    void fetchAssets().catch((err) => {
-      setError(err instanceof Error ? err.message : "Failed to load assets");
-      setLoading(false);
-    });
-  }, [fetchAssets]);
-
-  /**
-   * Creates an event handler for changing a filter field.
-   * @param {keyof AssetFilter} field - The filter field to update.
-   * @returns {(e: React.ChangeEvent<HTMLSelectElement>) => void} Event handler for the change event.
-   */
-  const handleFilterChange =
-    (field: keyof AssetFilter) => (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const value = e.target.value;
-
-      setFilter((prev) => ({ ...prev, [field]: value }));
-      setPage(1);
-      updateQueryParams({ [field]: value || null, page: "1" });
-    };
-
-  /**
-   * Handles page size selection changes.
-   * @param {React.ChangeEvent<HTMLSelectElement>} e - The change event with the new page size.
-   * @returns {void}
-   */
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextSize = parsePositiveInteger(e.target.value, DEFAULT_PAGE_SIZE);
-
-    setPageSize(nextSize);
-    setPage(1);
-    updateQueryParams({ per_page: String(nextSize), page: "1" });
-  };
-
-  const goToPage = useCallback(
-    (requestedPage: number) => {
-      const boundedPage =
-        totalPages !== null
-          ? Math.min(Math.max(1, requestedPage), totalPages)
-          : Math.max(1, requestedPage);
-
-      if (boundedPage === page) return;
-
-      setPage(boundedPage);
-      updateQueryParams({ page: String(boundedPage) });
-    },
-    [page, totalPages, updateQueryParams],
-  );
-
-  const canGoPrev = page > 1 && !loading;
-  const canGoNext = totalPages !== null && page < totalPages && !loading;
-
-  const handlePrevClick = useCallback(() => {
-    goToPage(page - 1);
-  }, [goToPage, page]);
-
-  const handleNextClick = useCallback(() => {
-    goToPage(page + 1);
-  }, [goToPage, page]);
-
-  /**
-   * Renders an option element for the page size selector.
-   * @param {number} size - The page size to render as an option.
-   * @returns {JSX.Element} The rendered option element.
-   */
-  const renderPageSizeOption = (size: number) => (
-    <option key={size} value={size}>
-      {size}
-    </option>
-  );
-  // Extracted component to handle loading and error display
-  /**
-   * Renders the status of an asset list based on loading and error states.
-   *
-   * The component checks if the loading state is false and there is no error; if so, it returns null.
-   * If loading is true, it displays a loading message, otherwise, it shows an error message with the provided error string.
-   * The text color changes based on the loading state, indicating the current status visually.
-   *
-   * @param {Object} params - The parameters for the component.
-   * @param {boolean} params.loading - Indicates if the asset list is currently loading.
-   * @param {string | null} params.error - The error message to display if loading is complete and an error occurred.
-   */
-  const AssetListStatus = ({
-    loading: isLoading,
-    error: loadError,
-  }: {
-    loading: boolean;
-    error: string | null;
-  }) => {
-    const hasError = loadError !== null;
-
-    if (!isLoading && !hasError) {
-      return null;
-    }
-
-    return (
-      <div
-        className={`px-6 py-3 text-sm ${
-          hasError ? "text-red-500" : "text-gray-500"
-        }`}
-      >
-        {hasError ? `Error: ${loadError}` : "Loading..."}
-      </div>
-    );
-  };
-
-  // Extracted component to handle table display
-  const AssetListTable = ({
-    assets: tableAssets,
-    loading: isLoading,
-    error: loadError,
-  }: {
-    assets: Asset[];
-    loading: boolean;
-    error: string | null;
-  }) => (
+  return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
@@ -307,55 +211,421 @@ export default function AssetList() {
             )}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {isLoading ? (
-            <tr>
-              <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                Loading...
-              </td>
-            </tr>
-          ) : loadError ? (
-            <tr>
-              <td colSpan={6} className="px-6 py-4 text-center text-red-600">
-                {loadError}
-              </td>
-            </tr>
-          ) : tableAssets.length === 0 ? (
-            <tr>
-              <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                No assets found
-              </td>
-            </tr>
-          ) : (
-            tableAssets.map((asset) => (
-              <tr key={asset.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {asset.symbol}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {asset.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {asset.asset_class}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {asset.sector}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {asset.currency} {asset.price.toFixed(2)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {typeof asset.market_cap === "number"
-                    ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
-                    : "N/A"}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
+        <tbody className="bg-white divide-y divide-gray-200">{tableRows}</tbody>
       </table>
     </div>
   );
+}
+
+type SearchState = {
+  filter: AssetFilter;
+  page: number;
+  pageSize: number;
+};
+
+/**
+ * Compute the number of pages needed to display a given total of items at a specified page size.
+ *
+ * @param total - The total number of items; may be `null` when unknown.
+ * @param pageSize - Number of items per page.
+ * @returns The total number of pages (minimum 1) required to show `total` items at `pageSize`, or `null` if `total` is `null` or less than or equal to zero.
+ */
+function computeTotalPages(
+  total: number | null,
+  pageSize: number,
+): number | null {
+  if (!total || total <= 0) {
+    return null;
+  }
+  return Math.max(1, Math.ceil(total / pageSize));
+}
+
+/**
+ * Create a new URLSearchParams by applying key updates and removals to an existing set.
+ *
+ * @param currentParams - The source URLSearchParams to clone and modify.
+ * @param updates - A map of keys to new values; a value of `null` or `""` removes the key from the result.
+ * @returns The resulting URLSearchParams after applying the updates.
+ */
+function createUpdatedSearchParams(
+  currentParams: URLSearchParams,
+  updates: Record<string, string | null>,
+): URLSearchParams {
+  const params = new URLSearchParams(currentParams.toString());
+  Object.entries(updates).forEach(([key, value]) => {
+    if (value === null || value === "") {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+  });
+  return params;
+}
+
+/**
+ * Build a SearchState object from URL search parameters.
+ *
+ * @param searchParams - URLSearchParams to read `asset_class`, `sector`, `page`, and `per_page` from
+ * @returns The parsed SearchState with `filter` (asset_class, sector), `page` (>=1, default 1), and `pageSize` (>=1, default DEFAULT_PAGE_SIZE)
+ */
+function readSearchState(searchParams: URLSearchParams): SearchState {
+  return {
+    filter: {
+      asset_class: searchParams.get("asset_class") ?? "",
+      sector: searchParams.get("sector") ?? "",
+    },
+    page: parsePositiveInteger(searchParams.get("page"), 1),
+    pageSize: parsePositiveInteger(
+      searchParams.get("per_page"),
+      DEFAULT_PAGE_SIZE,
+    ),
+  };
+}
+
+type NavigationControls = {
+  canGoPrev: boolean;
+  canGoNext: boolean;
+  handleFilterChange: (
+    field: keyof AssetFilter,
+  ) => (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handlePageSizeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handlePrevClick: () => void;
+  handleNextClick: () => void;
+};
+
+type NavigationControlsParams = Readonly<{
+  pathname: string | null;
+  searchParams: URLSearchParams;
+  router: ReturnType<typeof useRouter>;
+  page: number;
+  totalPages: number | null;
+  loading: boolean;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  setPageSize: React.Dispatch<React.SetStateAction<number>>;
+  setFilter: React.Dispatch<React.SetStateAction<AssetFilter>>;
+}>;
+
+type AssetDataLoadingParams = Readonly<{
+  page: number;
+  pageSize: number;
+  filter: AssetFilter;
+  querySummary: string;
+  setAssets: React.Dispatch<React.SetStateAction<Asset[]>>;
+  setTotal: React.Dispatch<React.SetStateAction<number | null>>;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}>;
+
+type QueryUpdaterParams = Readonly<{
+  pathname: string | null;
+  searchParams: URLSearchParams;
+  router: ReturnType<typeof useRouter>;
+}>;
+
+/**
+ * Syncs local filter, page, and pageSize state from URL search parameters.
+ *
+ * Parses `asset_class`, `sector`, `page`, and `per_page` from `searchParams` and updates the provided state setters only when the parsed values differ from current state.
+ *
+ * @param searchParams - URLSearchParams to read `asset_class`, `sector`, `page`, and `per_page` from
+ * @param setFilter - State setter for the asset filter; set to the parsed filter when it differs from the current filter
+ * @param setPage - State setter for the current page; set to the parsed page when it differs from the current page
+ * @param setPageSize - State setter for the page size; set to the parsed page size (`per_page`) when it differs from the current page size
+ */
+function useSearchStateSync(
+  searchParams: URLSearchParams,
+  setFilter: React.Dispatch<React.SetStateAction<AssetFilter>>,
+  setPage: React.Dispatch<React.SetStateAction<number>>,
+  setPageSize: React.Dispatch<React.SetStateAction<number>>,
+) {
+  useEffect(() => {
+    const stateFromSearch = readSearchState(searchParams);
+    setFilter((prev) =>
+      prev.asset_class === stateFromSearch.filter.asset_class &&
+      prev.sector === stateFromSearch.filter.sector
+        ? prev
+        : stateFromSearch.filter,
+    );
+    setPage((prev) =>
+      prev === stateFromSearch.page ? prev : stateFromSearch.page,
+    );
+    setPageSize((prev) =>
+      prev === stateFromSearch.pageSize ? prev : stateFromSearch.pageSize,
+    );
+  }, [searchParams, setFilter, setPage, setPageSize]);
+}
+
+/**
+ * Fetches assets whenever page, pageSize, filter, or querySummary change and updates the provided state setters.
+ *
+ * Runs an effect that calls the shared asset-loading routine and ensures loading, result, and error state are updated to reflect the request lifecycle.
+ *
+ * @param page - Current page number to request
+ * @param pageSize - Number of items per page to request
+ * @param filter - Asset filter to apply (e.g., asset class and sector)
+ * @param querySummary - Precomputed string summary of the current query (used for logging or cache keys)
+ * @param setAssets - Setter invoked with the fetched asset list (`Asset[]`)
+ * @param setTotal - Setter invoked with the total number of matching assets (`number | null`)
+ * @param setError - Setter invoked with an error message or `null`
+ * @param setLoading - Setter invoked with loading state (`true` when request starts, `false` when it finishes)
+ */
+function useAssetDataLoading({
+  page,
+  pageSize,
+  filter,
+  querySummary,
+  setAssets,
+  setTotal,
+  setError,
+  setLoading,
+}: AssetDataLoadingParams) {
+  const fetchAssets = useCallback(async () => {
+    setLoading(true);
+    await loadAssets({
+      page,
+      pageSize,
+      filter,
+      setAssets,
+      setTotal,
+      setError,
+      querySummary,
+    });
+    setLoading(false);
+  }, [
+    filter,
+    page,
+    pageSize,
+    querySummary,
+    setAssets,
+    setError,
+    setLoading,
+    setTotal,
+  ]);
+
+  useEffect(() => {
+    void fetchAssets().catch((err) => {
+      setError(err instanceof Error ? err.message : "Failed to load assets");
+      setLoading(false);
+    });
+  }, [fetchAssets, setError, setLoading]);
+}
+
+/**
+ * Create a memoized callback that updates the URL query string via the router without causing page scroll.
+ *
+ * @param pathname - Base pathname to which the updated search string will be appended; if falsy the callback is a no-op.
+ * @param searchParams - Current URLSearchParams used as the baseline for applying updates.
+ * @param router - Router providing a `replace` method used to update the URL without scrolling.
+ * @returns A function that applies the provided updates (sets parameters to strings, removes parameters when `null`) and calls `router.replace` with the new pathname and query only when the resulting query string differs from the current one.
+ */
+function useQueryParamUpdater({
+  pathname,
+  searchParams,
+  router,
+}: QueryUpdaterParams) {
+  return useCallback(
+    (updates: Record<string, string | null>) => {
+      if (!pathname) return;
+      const params = createUpdatedSearchParams(searchParams, updates);
+      const queryString = params.toString();
+      if (queryString !== searchParams.toString()) {
+        const nextPath = queryString ? `${pathname}?${queryString}` : pathname;
+        router.replace(nextPath, { scroll: false });
+      }
+    },
+    [pathname, router, searchParams],
+  );
+}
+
+/**
+ * Create pagination and filter controls that update component state and keep URL query parameters in sync.
+ *
+ * @returns An object with:
+ * - `canGoPrev` - `true` if the current page is greater than 1 and not loading, `false` otherwise.
+ * - `canGoNext` - `true` if `totalPages` is known, the current page is less than `totalPages`, and not loading, `false` otherwise.
+ * - `handleFilterChange` - A change handler for a filter `<select>` which sets the given filter field, resets the page to 1, and updates the URL search params (removing the param when cleared).
+ * - `handlePageSizeChange` - A change handler for the page-size `<select>` which parses and sets a new page size, resets the page to 1, and updates the `per_page` and `page` URL params.
+ * - `handlePrevClick` - Navigates to the previous page (clamped to valid bounds) and updates the `page` URL param.
+ * - `handleNextClick` - Navigates to the next page (clamped to valid bounds) and updates the `page` URL param.
+ */
+function useNavigationControls({
+  pathname,
+  searchParams,
+  router,
+  page,
+  totalPages,
+  loading,
+  setPage,
+  setPageSize,
+  setFilter,
+}: NavigationControlsParams): NavigationControls {
+  const updateQueryParams = useQueryParamUpdater({
+    pathname,
+    searchParams,
+    router,
+  });
+
+  const handleFilterChange =
+    (field: keyof AssetFilter) => (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const value = e.target.value;
+      setFilter((prev) => ({ ...prev, [field]: value }));
+      setPage(1);
+      updateQueryParams({ [field]: value || null, page: "1" });
+    };
+
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextSize = parsePositiveInteger(e.target.value, DEFAULT_PAGE_SIZE);
+    setPageSize(nextSize);
+    setPage(1);
+    updateQueryParams({ per_page: String(nextSize), page: "1" });
+  };
+
+  const goToPage = useCallback(
+    (requestedPage: number) => {
+      const boundedPage =
+        totalPages === null
+          ? Math.max(1, requestedPage)
+          : Math.min(Math.max(1, requestedPage), totalPages);
+      if (boundedPage === page) return;
+      setPage(boundedPage);
+      updateQueryParams({ page: String(boundedPage) });
+    },
+    [page, totalPages, setPage, updateQueryParams],
+  );
+
+  const canGoPrev = page > 1 && !loading;
+  const canGoNext = totalPages !== null && page < totalPages && !loading;
+
+  const handlePrevClick = useCallback(() => {
+    goToPage(page - 1);
+  }, [goToPage, page]);
+
+  const handleNextClick = useCallback(() => {
+    goToPage(page + 1);
+  }, [goToPage, page]);
+
+  return {
+    canGoPrev,
+    canGoNext,
+    handleFilterChange,
+    handlePageSizeChange,
+    handlePrevClick,
+    handleNextClick,
+  };
+}
+
+/**
+ * Centralizes asset list state, metadata loading, URL synchronization, and navigation handlers for the asset list UI.
+ *
+ * @returns An AssetListController exposing current `assets`, `loading` and `error` state, active `filter` values, available metadata (`assetClasses`, `sectors`), pagination (`page`, `pageSize`, `totalPages`), navigation booleans (`canGoPrev`, `canGoNext`), and handler functions (`handleFilterChange`, `handlePageSizeChange`, `handlePrevClick`, `handleNextClick`).
+ */
+function useAssetListController(): AssetListController {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<AssetFilter>({
+    asset_class: "",
+    sector: "",
+  });
+  const [assetClasses, setAssetClasses] = useState<string[]>([]);
+  const [sectors, setSectors] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [total, setTotal] = useState<number | null>(null);
+
+  const totalPages = useMemo(
+    () => computeTotalPages(total, pageSize),
+    [pageSize, total],
+  );
+
+  const querySummary = useMemo(
+    () => buildQuerySummary(page, pageSize, filter),
+    [filter, page, pageSize],
+  );
+
+  useEffect(() => {
+    loadMetadata(setAssetClasses, setSectors);
+  }, []);
+
+  useSearchStateSync(searchParams, setFilter, setPage, setPageSize);
+  useAssetDataLoading({
+    page,
+    pageSize,
+    filter,
+    querySummary,
+    setAssets,
+    setTotal,
+    setError,
+    setLoading,
+  });
+
+  const {
+    canGoPrev,
+    canGoNext,
+    handleFilterChange,
+    handlePageSizeChange,
+    handlePrevClick,
+    handleNextClick,
+  } = useNavigationControls({
+    pathname,
+    searchParams,
+    router,
+    page,
+    totalPages,
+    loading,
+    setPage,
+    setPageSize,
+    setFilter,
+  });
+
+  return {
+    assets,
+    loading,
+    error,
+    filter,
+    assetClasses,
+    sectors,
+    page,
+    pageSize,
+    totalPages,
+    canGoPrev,
+    canGoNext,
+    handleFilterChange,
+    handlePageSizeChange,
+    handlePrevClick,
+    handleNextClick,
+  };
+}
+
+/**
+ * Renders the asset list UI with server-backed filtering and paginated navigation.
+ *
+ * Displays asset-class and sector filters, a status row, an asset table, and pagination controls including page navigation and page-size selection.
+ *
+ * @returns The rendered AssetList element.
+ */
+export default function AssetList() {
+  const {
+    assets,
+    loading,
+    error,
+    filter,
+    assetClasses,
+    sectors,
+    page,
+    pageSize,
+    totalPages,
+    canGoPrev,
+    canGoNext,
+    handleFilterChange,
+    handlePageSizeChange,
+    handlePrevClick,
+    handleNextClick,
+  } = useAssetListController();
 
   return (
     <div className="space-y-6">

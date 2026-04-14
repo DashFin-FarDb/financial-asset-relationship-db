@@ -24,6 +24,9 @@ from api.auth import (
     User,
     UserInDB,
     UserRepository,
+    _build_credentials_exception,
+    _build_expired_exception,
+    _decode_username_from_token,
     _is_truthy,
     _seed_credentials_from_env,
     authenticate_user,
@@ -306,3 +309,352 @@ class TestGetCurrentActiveUser:
 
         assert exc_info.value.status_code == 400
         assert exc_info.value.detail == "Inactive user"
+
+
+# ---------------------------------------------------------------------------
+# New helpers added in this PR
+# ---------------------------------------------------------------------------
+
+
+class TestBuildCredentialsException:
+    """Tests for _build_credentials_exception (new in this PR)."""
+
+    def test_returns_http_exception(self):
+        """Return value is an HTTPException instance."""
+        exc = _build_credentials_exception()
+        assert isinstance(exc, HTTPException)
+
+    def test_status_code_is_401(self):
+        """Status code must be 401 Unauthorized."""
+        exc = _build_credentials_exception()
+        assert exc.status_code == 401
+
+    def test_detail_message(self):
+        """Detail message must be 'Could not validate credentials'."""
+        exc = _build_credentials_exception()
+        assert exc.detail == "Could not validate credentials"
+
+    def test_www_authenticate_header(self):
+        """WWW-Authenticate header must be set to 'Bearer'."""
+        exc = _build_credentials_exception()
+        assert exc.headers is not None
+        assert exc.headers.get("WWW-Authenticate") == "Bearer"
+
+    def test_returns_new_instance_each_call(self):
+        """Each call returns a distinct HTTPException object."""
+        exc1 = _build_credentials_exception()
+        exc2 = _build_credentials_exception()
+        assert exc1 is not exc2
+
+
+class TestBuildExpiredException:
+    """Tests for _build_expired_exception (new in this PR)."""
+
+    def test_returns_http_exception(self):
+        """Return value is an HTTPException instance."""
+        exc = _build_expired_exception()
+        assert isinstance(exc, HTTPException)
+
+    def test_status_code_is_401(self):
+        """Status code must be 401 Unauthorized."""
+        exc = _build_expired_exception()
+        assert exc.status_code == 401
+
+    def test_detail_message(self):
+        """Detail message must be 'Token has expired'."""
+        exc = _build_expired_exception()
+        assert exc.detail == "Token has expired"
+
+    def test_www_authenticate_header(self):
+        """WWW-Authenticate header must be set to 'Bearer'."""
+        exc = _build_expired_exception()
+        assert exc.headers is not None
+        assert exc.headers.get("WWW-Authenticate") == "Bearer"
+
+    def test_detail_differs_from_credentials_exception(self):
+        """The expired exception has a different detail than the credentials exception."""
+        cred_exc = _build_credentials_exception()
+        exp_exc = _build_expired_exception()
+        assert cred_exc.detail != exp_exc.detail
+
+    def test_returns_new_instance_each_call(self):
+        """Each call returns a distinct HTTPException object."""
+        exc1 = _build_expired_exception()
+        exc2 = _build_expired_exception()
+        assert exc1 is not exc2
+
+
+class TestDecodeUsernameFromToken:
+    """Tests for _decode_username_from_token (new in this PR)."""
+
+    def _make_token(self, payload: dict) -> str:
+        """Encode a JWT using the module's SECRET_KEY and ALGORITHM."""
+        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+    def _make_exceptions(self):
+        """Create the two exception objects expected by _decode_username_from_token."""
+        cred_exc = _build_credentials_exception()
+        exp_exc = _build_expired_exception()
+        return cred_exc, exp_exc
+
+    def test_valid_token_returns_username(self):
+        """A valid token with a 'sub' claim returns that claim value."""
+        from datetime import datetime, timedelta, timezone
+
+        payload = {
+            "sub": "alice",
+            "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp(),
+        }
+        token = self._make_token(payload)
+        cred_exc, exp_exc = self._make_exceptions()
+
+        username = _decode_username_from_token(
+            token=token,
+            credentials_exception=cred_exc,
+            expired_exception=exp_exc,
+        )
+        assert username == "alice"
+
+    def test_missing_sub_raises_credentials_exception(self):
+        """A token without a 'sub' claim raises the credentials exception."""
+        from datetime import datetime, timedelta, timezone
+
+        payload = {"exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
+        token = self._make_token(payload)
+        cred_exc, exp_exc = self._make_exceptions()
+
+        with pytest.raises(HTTPException) as exc_info:
+            _decode_username_from_token(
+                token=token,
+                credentials_exception=cred_exc,
+                expired_exception=exp_exc,
+            )
+        assert exc_info.value.detail == "Could not validate credentials"
+
+    def test_expired_token_raises_expired_exception(self):
+        """An expired token raises the expired exception."""
+        from datetime import datetime, timedelta, timezone
+
+        payload = {
+            "sub": "bob",
+            "exp": (datetime.now(timezone.utc) - timedelta(minutes=10)).timestamp(),
+        }
+        token = self._make_token(payload)
+        cred_exc, exp_exc = self._make_exceptions()
+
+        with pytest.raises(HTTPException) as exc_info:
+            _decode_username_from_token(
+                token=token,
+                credentials_exception=cred_exc,
+                expired_exception=exp_exc,
+            )
+        assert exc_info.value.detail == "Token has expired"
+
+    def test_invalid_token_string_raises_credentials_exception(self):
+        """A completely invalid token string raises the credentials exception."""
+        cred_exc, exp_exc = self._make_exceptions()
+
+        with pytest.raises(HTTPException) as exc_info:
+            _decode_username_from_token(
+                token="not.a.valid.jwt",
+                credentials_exception=cred_exc,
+                expired_exception=exp_exc,
+            )
+        assert exc_info.value.detail == "Could not validate credentials"
+
+    def test_tampered_token_raises_credentials_exception(self):
+        """A token with an invalid signature raises the credentials exception."""
+        from datetime import datetime, timedelta, timezone
+
+        payload = {"sub": "eve", "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
+        token = jwt.encode(payload, "wrong-secret", algorithm=ALGORITHM)
+        cred_exc, exp_exc = self._make_exceptions()
+
+        with pytest.raises(HTTPException) as exc_info:
+            _decode_username_from_token(
+                token=token,
+                credentials_exception=cred_exc,
+                expired_exception=exp_exc,
+            )
+        assert exc_info.value.detail == "Could not validate credentials"
+
+    def test_return_type_is_string(self):
+        """The return value is always a plain str."""
+        from datetime import datetime, timedelta, timezone
+
+        payload = {"sub": "charlie", "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
+        token = self._make_token(payload)
+        cred_exc, exp_exc = self._make_exceptions()
+
+        result = _decode_username_from_token(token=token, credentials_exception=cred_exc, expired_exception=exp_exc)
+        assert isinstance(result, str)
+
+
+class TestCreateOrUpdateUserNewSignature:
+    """Tests for UserRepository.create_or_update_user new user_profile signature (this PR)."""
+
+    @patch("api.auth.execute")
+    def test_user_profile_dict_style(self, mock_execute):
+        """user_profile dict is accepted and mapped to execute call."""
+        repo = UserRepository()
+        repo.create_or_update_user(
+            username="alice",
+            hashed_password="hashed_pw",
+            user_profile={
+                "user_email": "alice@example.com",
+                "user_full_name": "Alice",
+                "is_disabled": False,
+            },
+        )
+        mock_execute.assert_called_once()
+        positional_args, _ = mock_execute.call_args
+        # execute("SQL", (username, email, full_name, hashed_password, disabled))
+        params = positional_args[1]
+        assert params[0] == "alice"
+        assert params[1] == "alice@example.com"
+        assert params[2] == "Alice"
+        assert params[4] == 0  # is_disabled=False → 0
+
+    @patch("api.auth.execute")
+    def test_user_profile_none_uses_defaults(self, mock_execute):
+        """Passing user_profile=None defaults to empty email, name, and not disabled."""
+        repo = UserRepository()
+        repo.create_or_update_user(
+            username="bob",
+            hashed_password="hpw",
+            user_profile=None,
+        )
+        mock_execute.assert_called_once()
+        positional_args, _ = mock_execute.call_args
+        params = positional_args[1]
+        assert params[0] == "bob"
+        assert params[1] is None  # email
+        assert params[2] is None  # full_name
+        assert params[4] == 0  # not disabled
+
+    @patch("api.auth.execute")
+    def test_legacy_fields_override_user_profile(self, mock_execute):
+        """Legacy keyword fields override values in user_profile when both are provided."""
+        repo = UserRepository()
+        repo.create_or_update_user(
+            username="carol",
+            hashed_password="hpw",
+            user_profile={
+                "user_email": "original@example.com",
+                "user_full_name": "Original",
+                "is_disabled": False,
+            },
+            user_email="override@example.com",
+            user_full_name="Override Name",
+            is_disabled=True,
+        )
+        mock_execute.assert_called_once()
+        positional_args, _ = mock_execute.call_args
+        params = positional_args[1]
+        assert params[1] == "override@example.com"
+        assert params[2] == "Override Name"
+        assert params[4] == 1  # is_disabled=True → 1
+
+    @patch("api.auth.execute")
+    def test_unexpected_legacy_key_raises_type_error(self, mock_execute):
+        """Unexpected keyword arguments raise a TypeError."""
+        repo = UserRepository()
+        with pytest.raises(TypeError, match="Unexpected legacy profile field"):
+            repo.create_or_update_user(
+                username="dave",
+                hashed_password="hpw",
+                unknown_field="oops",
+            )
+
+    @patch("api.auth.execute")
+    def test_legacy_none_email_stored_as_none(self, mock_execute):
+        """Passing user_email=None via legacy fields stores None in the database."""
+        repo = UserRepository()
+        repo.create_or_update_user(
+            username="erin",
+            hashed_password="hpw",
+            user_email=None,
+        )
+        mock_execute.assert_called_once()
+        positional_args, _ = mock_execute.call_args
+        params = positional_args[1]
+        assert params[1] is None
+
+    @patch("api.auth.execute")
+    def test_is_disabled_true_stores_one(self, mock_execute):
+        """is_disabled=True is stored as integer 1 in the disabled column."""
+        repo = UserRepository()
+        repo.create_or_update_user(
+            username="frank",
+            hashed_password="hpw",
+            user_profile={"is_disabled": True},
+        )
+        mock_execute.assert_called_once()
+        positional_args, _ = mock_execute.call_args
+        params = positional_args[1]
+        assert params[4] == 1
+
+    @patch("api.auth.execute")
+    def test_is_disabled_false_stores_zero(self, mock_execute):
+        """is_disabled=False is stored as integer 0 in the disabled column."""
+        repo = UserRepository()
+        repo.create_or_update_user(
+            username="grace",
+            hashed_password="hpw",
+            user_profile={"is_disabled": False},
+        )
+        mock_execute.assert_called_once()
+        positional_args, _ = mock_execute.call_args
+        params = positional_args[1]
+        assert params[4] == 0
+
+    @patch("api.auth.execute")
+    def test_multiple_unexpected_keys_listed_in_error(self, mock_execute):
+        """TypeError message includes all unexpected key names."""
+        repo = UserRepository()
+        with pytest.raises(TypeError) as exc_info:
+            repo.create_or_update_user(
+                username="harry",
+                hashed_password="hpw",
+                foo="bar",
+                baz="qux",
+            )
+        msg = str(exc_info.value)
+        assert "baz" in msg
+        assert "foo" in msg
+
+    @patch("api.auth.execute")
+    def test_no_profile_no_legacy_uses_all_defaults(self, mock_execute):
+        """Calling with only username and hashed_password uses all default profile values."""
+        repo = UserRepository()
+        repo.create_or_update_user(
+            username="ivan",
+            hashed_password="hpw",
+        )
+        mock_execute.assert_called_once()
+        positional_args, _ = mock_execute.call_args
+        params = positional_args[1]
+        assert params[0] == "ivan"
+        assert params[1] is None  # email default
+        assert params[2] is None  # full_name default
+        assert params[4] == 0  # disabled default
+
+
+class TestUserProfileTypedDict:
+    """Tests for UserRepository.UserProfile TypedDict (new in this PR)."""
+
+    def test_user_profile_is_accessible_as_nested_class(self):
+        """UserProfile is accessible as UserRepository.UserProfile."""
+        assert hasattr(UserRepository, "UserProfile")
+
+    def test_user_profile_has_expected_fields(self):
+        """UserProfile TypedDict has user_email, user_full_name, is_disabled annotations."""
+        annotations = UserRepository.UserProfile.__annotations__
+        assert "user_email" in annotations
+        assert "user_full_name" in annotations
+        assert "is_disabled" in annotations
+
+    def test_user_profile_total_false_makes_all_keys_optional(self):
+        """UserProfile is declared with total=False making all keys optional."""
+        # A TypedDict with total=False has __total__ attribute set to False.
+        assert UserRepository.UserProfile.__total__ is False

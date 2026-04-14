@@ -12,6 +12,7 @@ This test suite validates:
 - Security best practices
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -200,8 +201,10 @@ class TestBearerSteps:
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
         checkout_step = next((s for s in steps if "actions/checkout" in s.get("uses", "")), None)
         uses = checkout_step["uses"]
-        # Accept either @v4 tag or SHA pin (which is more secure)
-        assert "actions/checkout@v4" in uses or "actions/checkout@" in uses, "Checkout should use v4 or SHA pin"
+        # Accept either @v4 tag or a 40-hex-character SHA pin (more secure)
+        assert "actions/checkout@v4" in uses or re.search(
+            r"actions/checkout@[0-9a-f]{40}", uses
+        ), "Checkout should use v4 or SHA pin"
 
     @staticmethod
     def test_bearer_report_step_exists(bearer_workflow_content):
@@ -256,10 +259,10 @@ class TestBearerSteps:
             None,
         )
         uses = upload_step["uses"]
-        # Accept either @v3 tag or SHA pin (which is more secure)
-        assert (
-            "github/codeql-action/upload-sarif@v3" in uses or "github/codeql-action/upload-sarif@" in uses
-        ), "SARIF upload should use CodeQL action v3 or SHA pin"
+        # Accept either @v3 tag or 40-hex-char SHA pin (which is more secure)
+        is_v3 = "github/codeql-action/upload-sarif@v3" in uses
+        is_sha = bool(re.search(r"github/codeql-action/upload-sarif@[0-9a-f]{40}", uses))
+        assert is_v3 or is_sha, "SARIF upload should use CodeQL action v3 or a full commit SHA pin"
 
 
 class TestBearerActionConfiguration:

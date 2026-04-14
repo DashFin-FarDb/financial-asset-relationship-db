@@ -16,9 +16,14 @@ from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
+
+# pylint: disable=import-error
+from slowapi import (  # type: ignore[import-not-found]
+    Limiter,
+    _rate_limit_exceeded_handler,
+)
+from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
+from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
 from src.data.real_data_fetcher import RealDataFetcher
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -33,14 +38,31 @@ from .auth import (
     get_current_active_user,
 )
 
+# pylint: enable=import-error
+
+
 logger = logging.getLogger(__name__)
 
 # Type alias for the graph factory callable
 GraphFactory = Callable[[], AssetRelationshipGraph]
 
-# Module-level graph state
-graph: Optional[AssetRelationshipGraph] = None
-graph_factory: Optional[GraphFactory] = None
+
+class _GraphState:
+    """Mutable container for module-level graph state."""
+
+    def __init__(self) -> None:
+        """
+        Create an empty GraphState container holding optional runtime graph and factory.
+
+        Initializes:
+        - `graph`: the currently loaded AssetRelationshipGraph instance or `None` if not yet created.
+        - `graph_factory`: a callable to lazily construct the graph or `None` if not configured.
+        """
+        self.graph: Optional[AssetRelationshipGraph] = None
+        self.graph_factory: Optional[GraphFactory] = None
+
+
+graph_state = _GraphState()
 graph_lock = threading.Lock()
 
 # Asset class colour mapping for 3-D visualisation
@@ -58,72 +80,94 @@ _DEFAULT_COLOR = "#9c755f"
 
 def get_graph() -> AssetRelationshipGraph:
     """
-    Provide the global AssetRelationshipGraph, initialising it on first access if necessary.
+    Get the shared AssetRelationshipGraph, initializing it on first access.
+
+    Initializes the graph lazily in a thread-safe manner so a single shared instance is created for the module.
 
     Returns:
-        AssetRelationshipGraph: The global graph instance.
+        The shared AssetRelationshipGraph instance.
+
+    Raises:
+        RuntimeError: If the graph could not be initialized.
     """
-    global graph
-    if graph is None:
+    if graph_state.graph is None:
         with graph_lock:
-            if graph is None:
-                graph = _initialize_graph()
+            if graph_state.graph is None:
+                graph_state.graph = _initialize_graph()
                 logger.info("Graph initialized successfully")
-    return graph
+    if graph_state.graph is None:
+        raise RuntimeError("Graph failed to initialize")
+    return graph_state.graph
 
 
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
-    Set the module-level graph to the provided instance and clear any configured factory.
+    Set the module-level AssetRelationshipGraph and disable the configured graph factory.
 
-    Args:
-        graph_instance (AssetRelationshipGraph): Graph instance to use as the global graph.
+    Performs a thread-safe replacement of the shared graph and clears any existing graph factory so future lazy construction is disabled.
+
+    Parameters:
+        graph_instance (AssetRelationshipGraph): The AssetRelationshipGraph to install as the module-level graph.
     """
-    global graph, graph_factory
     with graph_lock:
-        graph = graph_instance
-        graph_factory = None
+        graph_state.graph = graph_instance
+        graph_state.graph_factory = None
 
 
 def set_graph_factory(factory: Optional[GraphFactory]) -> None:
     """
-    Configure a callable used to lazily construct the global AssetRelationshipGraph.
+    Configure a callable used to lazily construct the global
+    AssetRelationshipGraph.
 
-    Setting a factory also clears any existing graph instance so the next call to
-    :func:`get_graph` will invoke the factory. Pass ``None`` to disable the factory
-    and force re-initialisation via the default strategy on next access.
+    Setting a factory also clears any existing graph instance so the next call
+    to :func:`get_graph` will invoke the factory. Pass ``None`` to disable the
+    factory and force re-initialisation via the default strategy on next access.
 
     Args:
         factory (Optional[GraphFactory]): Zero-argument callable returning an
             :class:`~src.logic.asset_graph.AssetRelationshipGraph`, or ``None``
             to clear the factory.
     """
-    global graph, graph_factory
     with graph_lock:
-        graph_factory = factory
-        graph = None
+        graph_state.graph_factory = factory
+        graph_state.graph = None
 
 
 def reset_graph() -> None:
-    """Clear the global graph and factory so the graph is reinitialised on next access."""
+    """
+    Clears the shared graph instance and any configured graph factory, forcing the graph to be reinitialized on next access.
+    """
     set_graph_factory(None)
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
-    """Construct and return the asset relationship graph."""
-    if graph_factory is not None:
-        return graph_factory()
+    """
+    Initialize and return the shared AssetRelationshipGraph using the configured source.
+
+    Selects the graph source in this order: a configured graph factory; a cached real-data path specified by GRAPH_CACHE_PATH; the real-data fetcher when USE_REAL_DATA_FETCHER is enabled (using REAL_DATA_CACHE_PATH if present); otherwise the bundled sample dataset.
+
+    Returns:
+        AssetRelationshipGraph: The initialized asset relationship graph instance.
+    """
+    if graph_state.graph_factory is not None:
+        return graph_state.graph_factory()
 
     cache_path = os.getenv("GRAPH_CACHE_PATH")
     use_real_data = _should_use_real_data_fetcher()
 
     if cache_path:
-        fetcher = RealDataFetcher(cache_path=cache_path, enable_network=use_real_data)
+        fetcher = RealDataFetcher(
+            cache_path=cache_path,
+            enable_network=use_real_data,
+        )
         return fetcher.create_real_database()
 
     if use_real_data:
         cache_path_env = os.getenv("REAL_DATA_CACHE_PATH")
-        fetcher = RealDataFetcher(cache_path=cache_path_env, enable_network=True)
+        fetcher = RealDataFetcher(
+            cache_path=cache_path_env,
+            enable_network=True,
+        )
         return fetcher.create_real_database()
 
     from src.data.sample_data import create_sample_database
@@ -132,7 +176,14 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 
 def _should_use_real_data_fetcher() -> bool:
-    """Return True if the USE_REAL_DATA_FETCHER environment variable is set to a truthy value."""
+    """
+    Return whether the environment requests the real data fetcher.
+
+    Interprets the environment variable USE_REAL_DATA_FETCHER case-insensitively; the values "1", "true", "yes", or "on" (ignoring surrounding whitespace) are treated as true.
+
+    Returns:
+        bool: True if USE_REAL_DATA_FETCHER matches an accepted value, False otherwise.
+    """
     flag = os.getenv("USE_REAL_DATA_FETCHER", "false")
     return flag.strip().lower() in {"1", "true", "yes", "on"}
 
@@ -140,14 +191,12 @@ def _should_use_real_data_fetcher() -> bool:
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
     """
-    Manage the application lifespan by initialising the global graph on startup.
+    Ensure the shared asset relationship graph is initialized before application startup.
 
-    Initialises the global asset relationship graph before the application begins
-    handling requests; if initialisation fails the exception is re-raised to abort
-    startup.
+    If graph initialization fails, the original exception is re-raised to abort application startup. Yields control to FastAPI's lifespan manager for the running application; on shutdown the function logs application shutdown.
 
-    Args:
-        _fastapi_app (FastAPI): The FastAPI application instance (unused).
+    Raises:
+        Exception: Propagates any exception raised during graph initialization.
     """
     try:
         get_graph()
@@ -179,71 +228,151 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 ENV = os.getenv("ENV", "development").lower()
 
 
-def validate_origin(origin_url: str) -> bool:
+def _read_allowed_origins() -> List[str]:
     """
-    Determine whether an HTTP origin is permitted by the application's CORS rules.
+    Parse the ALLOWED_ORIGINS environment variable into a list of origin strings.
 
-    Checks the provided origin URL against a set of rules: explicitly allowed
-    origins from the environment, HTTPS origins with valid domains (including
-    internationalized domain names via IDNA encoding), Vercel preview hostnames,
-    and localhost/127.0.0.1 under environment-specific conditions.
-
-    The ``ENV`` environment variable is re-read on every call to support runtime
-    overrides (e.g., during tests).
-
-    Args:
-        origin_url (str): Origin URL to validate (e.g. ``"https://example.com"``,
-            ``"http://localhost:3000"``, or ``"https://münchen.de"``).
+    Reads the ALLOWED_ORIGINS environment variable, splits on commas, trims whitespace, and excludes empty entries.
 
     Returns:
-        bool: ``True`` if the origin is allowed, ``False`` otherwise.
+        List[str]: A list of trimmed origin strings (e.g., "https://example.com").
     """
-    # Re-read environment dynamically to support runtime overrides (e.g., during tests).
+    return [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin.strip()]
+
+
+def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
+    """
+    Allow HTTP localhost origins only in the development environment.
+
+    Parameters:
+        origin_url (str): Origin to validate (e.g., "http://localhost:3000" or "http://127.0.0.1").
+        current_env (str): Current environment string; allowance occurs only when this equals "development".
+
+    Returns:
+        True if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" with an optional port and `current_env` equals "development", `False` otherwise.
+    """
+    return current_env == "development" and bool(re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
+
+
+def _is_https_local(origin_url: str) -> bool:
+    """
+    Determine whether an origin URL represents HTTPS localhost (either localhost or 127.0.0.1), allowing an optional port.
+
+    Parameters:
+        origin_url (str): Origin string including scheme and host, optionally with port (e.g. "https://localhost:3000").
+
+    Returns:
+        True if the origin is "https://localhost" or "https://127.0.0.1" optionally followed by ":<port>", False otherwise.
+    """
+    return bool(re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
+
+
+def _is_vercel_preview(origin_url: str) -> bool:
+    """
+    Determine whether an origin URL is a Vercel preview deployment hostname.
+
+    Parameters:
+        origin_url (str): The full origin URL to test (including scheme, e.g. "https://foo.vercel.app").
+
+    Returns:
+        bool: `True` if `origin_url` matches the pattern `https://<name>.vercel.app`, `False` otherwise.
+    """
+    return bool(re.match(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$", origin_url))
+
+
+def _has_forbidden_origin_parts(parsed_origin: object) -> bool:
+    """
+    Check if a parsed origin contains disallowed URL components.
+
+    Parameters:
+        parsed_origin (object): A URL parse result (e.g., urllib.parse.ParseResult) whose attributes will be inspected.
+
+    Returns:
+        bool: `True` if any of `path`, `params`, `query`, `fragment`, `username`, or `password` are non-empty; `False` otherwise.
+    """
+    return any(
+        [
+            getattr(parsed_origin, "path", ""),
+            getattr(parsed_origin, "params", ""),
+            getattr(parsed_origin, "query", ""),
+            getattr(parsed_origin, "fragment", ""),
+            getattr(parsed_origin, "username", None),
+            getattr(parsed_origin, "password", None),
+        ]
+    )
+
+
+def _is_valid_https_domain(origin_url: str) -> bool:
+    """
+    Validate that an origin URL is a secure HTTPS origin with a single hostname (internationalized domain names allowed) and an optional port.
+
+    Rejects origins that contain path, params, query, fragment, username, or password.
+
+    Parameters:
+        origin_url (str): The origin URL to validate.
+
+    Returns:
+        True if the input starts with "https://", contains a hostname (IDN allowed), has no forbidden URL parts, and matches an allowed hostname with an optional port, False otherwise.
+    """
+    if not origin_url.startswith("https://"):
+        return False
+    try:
+        parsed = urlparse(origin_url)
+        if _has_forbidden_origin_parts(parsed):
+            return False
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        ascii_hostname = hostname.encode("idna").decode("ascii")
+        port_suffix = f":{parsed.port}" if parsed.port else ""
+        ascii_url = f"https://{ascii_hostname}{port_suffix}"
+        return bool(
+            re.match(
+                r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
+                r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
+                r"\.[a-zA-Z0-9\-]{2,}(:\d+)?$",
+                ascii_url,
+            )
+        )
+    except (ValueError, UnicodeError, AttributeError) as exc:
+        logger.debug("Failed to validate origin '%s': %s", origin_url, exc)
+        return False
+
+
+def validate_origin(origin_url: str) -> bool:
+    """
+    Determine whether a given HTTP origin is allowed by the application's CORS rules.
+
+    Validates the origin against configured allowed origins, local development allowances
+    (e.g., localhost or 127.0.0.1 when permitted), Vercel preview hostnames, and
+    valid HTTPS domains (including internationalized domains via IDNA encoding).
+    The ENV environment variable is re-read on each call to allow runtime overrides.
+
+    Parameters:
+        origin_url (str): Origin URL to validate (e.g. "https://example.com",
+            "http://localhost:3000", or "https://münchen.de").
+
+    Returns:
+        bool: `True` if the origin is allowed, `False` otherwise.
+    """
+    # Re-read environment dynamically to support runtime overrides
+    # (e.g., during tests).
     current_env = os.getenv("ENV", "development").lower()
 
-    env_allowed_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+    env_allowed_origins = _read_allowed_origins()
     if origin_url and origin_url in env_allowed_origins:
         return True
 
-    # Allow HTTP localhost only in development
-    if current_env == "development" and re.match(
-        r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
-        origin_url,
-    ):
+    if _is_http_local_in_dev(origin_url, current_env):
         return True
 
-    # Allow HTTPS localhost in any environment
-    if re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url):
+    if _is_https_local(origin_url):
         return True
 
-    # Allow Vercel preview deployment URLs (e.g. https://project-git-branch-user.vercel.app)
-    if re.match(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$", origin_url):
+    if _is_vercel_preview(origin_url):
         return True
 
-    # Allow valid HTTPS URLs with proper domains, including IDN (internationalized domain names)
-    if origin_url.startswith("https://"):
-        try:
-            parsed = urlparse(origin_url)
-            # Reject URLs with path, query, fragment, or credentials
-            if parsed.path or parsed.params or parsed.query or parsed.fragment or parsed.username or parsed.password:
-                return False
-            hostname = parsed.hostname
-            if hostname:
-                # Convert IDN to ASCII (IDNA encoding) for regex validation
-                ascii_hostname = hostname.encode("idna").decode("ascii")
-                port_suffix = f":{parsed.port}" if parsed.port else ""
-                ascii_url = f"https://{ascii_hostname}{port_suffix}"
-                if re.match(
-                    r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
-                    r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
-                    r"\.[a-zA-Z0-9\-]{2,}(:\d+)?$",
-                    ascii_url,
-                ):
-                    return True
-        except (ValueError, UnicodeError, AttributeError) as e:
-            logger.debug("Failed to validate origin '%s': %s", origin_url, e)
-
-    return False
+    return _is_valid_https_domain(origin_url)
 
 
 # Build the initial allowed origins list based on environment
@@ -283,21 +412,30 @@ app.add_middleware(
 )
 
 
-def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> NoReturn:
+def raise_asset_not_found(
+    asset_id: str,
+    resource_type: str = "Asset",
+) -> NoReturn:
     """
-    Raise an HTTP 404 exception for a missing resource.
+    Raise an HTTP 404 (Not Found) error for a missing resource.
 
-    Args:
-        asset_id (str): ID of the asset that was not found.
-        resource_type (str): Human-readable resource type label (default: ``"Asset"``).
+    Parameters:
+        asset_id (str): Identifier of the missing resource.
+        resource_type (str): Human-readable resource label (default: "Asset").
 
     Raises:
-        HTTPException: Always raised with status code 404.
+        HTTPException: with status code 404 and detail message "<resource_type> <asset_id> not found".
     """
-    raise HTTPException(status_code=404, detail=f"{resource_type} {asset_id} not found")
+    raise HTTPException(
+        status_code=404,
+        detail=f"{resource_type} {asset_id} not found",
+    )
 
 
-def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
+def serialize_asset(
+    asset: Any,
+    include_issuer: bool = False,
+) -> Dict[str, Any]:
     """
     Serialize an Asset object to a dictionary representation.
 
@@ -454,17 +592,19 @@ async def get_assets(
     sector: Optional[str] = None,
 ) -> List[AssetResponse]:
     """
-    Retrieve a list of assets, optionally filtered by asset class and/or sector.
+    Retrieve assets filtered by exact asset class and/or sector.
 
-    Args:
-        asset_class (Optional[str]): Filter by asset class value (e.g. ``"Equity"``).
-        sector (Optional[str]): Filter by sector name.
+    Filters apply exact string matching against asset.asset_class.value and asset.sector.
+
+    Parameters:
+        asset_class (Optional[str]): Exact asset class name to filter by (for example, "Equity").
+        sector (Optional[str]): Exact sector name to filter by.
 
     Returns:
-        List[AssetResponse]: Matching assets serialized as API responses.
+        List[AssetResponse]: API-formatted assets that match the provided filters.
 
     Raises:
-        HTTPException: 500 for unexpected errors.
+        HTTPException: If an unexpected error occurs while fetching assets (status code 500).
     """
     try:
         g = get_graph()
@@ -484,23 +624,28 @@ async def get_assets(
 @app.get("/api/assets/{asset_id}", response_model=AssetResponse)
 async def get_asset_detail(asset_id: str) -> AssetResponse:
     """
-    Retrieve detailed information for the asset identified by ``asset_id``.
+    Retrieve detailed information for the asset with the given identifier.
 
-    Args:
-        asset_id (str): Identifier of the asset whose details are requested.
+    Parameters:
+        asset_id (str): Identifier of the asset to retrieve.
 
     Returns:
-        AssetResponse: Detailed asset information including asset-specific attributes.
+        AssetResponse: Serialized asset details, including issuer identifier when available.
 
     Raises:
-        HTTPException: 404 if the asset is not found.
-        HTTPException: 500 for unexpected errors.
+        HTTPException: 404 if the asset with `asset_id` is not found.
+        HTTPException: 500 if an unexpected error occurs while retrieving the asset.
     """
     try:
         g = get_graph()
         if asset_id not in g.assets:
             raise_asset_not_found(asset_id)
-        return AssetResponse(**serialize_asset(g.assets[asset_id], include_issuer=True))
+        return AssetResponse(
+            **serialize_asset(
+                g.assets[asset_id],
+                include_issuer=True,
+            )
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -508,20 +653,23 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.get("/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse])
+@app.get(
+    "/api/assets/{asset_id}/relationships",
+    response_model=List[RelationshipResponse],
+)
 async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
     """
-    List outgoing relationships for the specified asset.
+    Get outgoing relationships for the given asset.
 
-    Args:
-        asset_id (str): Identifier of the asset whose outgoing relationships are requested.
+    Parameters:
+        asset_id (str): Asset identifier to retrieve outgoing relationships for.
 
     Returns:
-        List[RelationshipResponse]: Outgoing relationships with target ID, type, and strength.
+        List[RelationshipResponse]: Outgoing relationships; each entry contains `source_id`, `target_id`, `relationship_type`, and `strength`.
 
     Raises:
         HTTPException: 404 if the asset is not found.
-        HTTPException: 500 for unexpected errors.
+        HTTPException: 500 for unexpected internal errors.
     """
     try:
         g = get_graph()
@@ -534,7 +682,10 @@ async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
                 relationship_type=rel_type,
                 strength=strength,
             )
-            for target_id, rel_type, strength in g.relationships.get(asset_id, [])
+            for target_id, rel_type, strength in g.relationships.get(
+                asset_id,
+                [],
+            )
         ]
     except HTTPException:
         raise
@@ -567,14 +718,20 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 @app.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics() -> MetricsResponse:
     """
-    Return computed network metrics for the asset relationship graph.
+    Compute metrics summarizing the asset relationship network.
 
     Returns:
-        MetricsResponse: Total assets, relationships, asset-class distribution,
-        degree statistics, and network/relationship density.
+        MetricsResponse: Aggregated statistics including:
+            - total_assets: number of assets in the graph
+            - total_relationships: number of directed relationships
+            - asset_classes: mapping of asset class name to asset count
+            - avg_degree: average out-degree across assets
+            - max_degree: maximum out-degree of any asset
+            - network_density: density measure of the network
+            - relationship_density: same as `network_density` (provided for compatibility)
 
     Raises:
-        HTTPException: 500 for unexpected errors.
+        HTTPException: 500 with an error message if metric computation fails.
     """
     try:
         g = get_graph()
@@ -603,69 +760,135 @@ async def get_metrics() -> MetricsResponse:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
+def _calculate_node_degrees(g: AssetRelationshipGraph) -> Dict[str, int]:
+    """
+    Compute the out-degree (number of outgoing relationships) for each asset in the graph.
+
+    Parameters:
+        g (AssetRelationshipGraph): Graph to analyze.
+
+    Returns:
+        Dict[str, int]: Mapping from asset ID to its out-degree (number of outgoing relationships).
+    """
+    degree: Dict[str, int] = {asset_id: 0 for asset_id in g.assets.keys()}
+    for source_id, rels in g.relationships.items():
+        degree[source_id] = degree.get(source_id, 0) + len(rels)
+    return degree
+
+
+def _compute_fibonacci_position(
+    idx: int,
+    total_nodes: int,
+    golden_ratio: float,
+) -> tuple[float, float, float]:
+    """
+    Compute a 3D point on the unit sphere using a Fibonacci-lattice distribution.
+
+    Parameters:
+        idx (int): Zero-based index of the node within the range [0, total_nodes).
+        total_nodes (int): Total number of nodes to place on the sphere.
+        golden_ratio (float): Value controlling azimuthal spacing (typically the golden ratio).
+
+    Returns:
+        tuple[float, float, float]: (x, y, z) coordinates of the node on the unit sphere.
+    """
+    if total_nodes <= 1:
+        return 0.0, 0.0, 0.0
+    theta = math.acos(1 - 2 * (idx + 0.5) / total_nodes)
+    phi = 2 * math.pi * idx / golden_ratio
+    x = math.sin(theta) * math.cos(phi)
+    y = math.sin(theta) * math.sin(phi)
+    z = math.cos(theta)
+    return x, y, z
+
+
+def _build_visualization_nodes(
+    g: AssetRelationshipGraph,
+    asset_ids: List[str],
+) -> List[Dict[str, Any]]:
+    """
+    Construct visualization node dictionaries for the given assets in the graph.
+
+    Parameters:
+        g (AssetRelationshipGraph): Graph containing assets and relationships.
+        asset_ids (List[str]): Ordered list of asset IDs to include as nodes.
+
+    Returns:
+        List[Dict[str, Any]]: A list of node objects with keys:
+            - id: asset ID string
+            - symbol: asset symbol
+            - name: asset name
+            - asset_class: asset class name
+            - x, y, z: 3-D coordinates for visualization (floats)
+            - color: hex color string for the asset class
+            - size: visual node size (integer)
+    """
+    degree = _calculate_node_degrees(g)
+    total_nodes = len(asset_ids)
+    golden_ratio = (1 + math.sqrt(5)) / 2
+    nodes: List[Dict[str, Any]] = []
+    for idx, asset_id in enumerate(asset_ids):
+        asset = g.assets[asset_id]
+        x, y, z = _compute_fibonacci_position(idx, total_nodes, golden_ratio)
+        asset_class_val = asset.asset_class.value
+        nodes.append(
+            {
+                "id": asset_id,
+                "symbol": asset.symbol,
+                "name": asset.name,
+                "asset_class": asset_class_val,
+                "x": round(x, 6),
+                "y": round(y, 6),
+                "z": round(z, 6),
+                "color": _ASSET_CLASS_COLORS.get(asset_class_val, _DEFAULT_COLOR),
+                "size": max(5, min(20, 5 + degree.get(asset_id, 0) * 2)),
+            }
+        )
+    return nodes
+
+
+def _build_visualization_edges(g: AssetRelationshipGraph) -> List[Dict[str, Any]]:
+    """
+    Create a list of edge dictionaries for visualization extracted from the asset relationship graph.
+
+    Parameters:
+        g (AssetRelationshipGraph): Graph whose directed relationships will be converted into visualization edges.
+
+    Returns:
+        List[dict]: Each dictionary represents a directed relationship with keys:
+            `source` (source asset id),
+            `target` (target asset id),
+            `relationship_type` (relationship label),
+            `strength` (numeric relationship strength).
+    """
+    return [
+        {
+            "source": source_id,
+            "target": target_id,
+            "relationship_type": rel_type,
+            "strength": strength,
+        }
+        for source_id, rels in g.relationships.items()
+        for target_id, rel_type, strength in rels
+    ]
+
+
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
-    Retrieve graph nodes and edges formatted for 3-D visualisation.
-
-    Nodes are positioned using a Fibonacci-lattice sphere distribution, coloured
-    by asset class, and sized proportionally to their degree in the graph.
+    Produce visualization nodes and edges representing the current asset relationship graph.
 
     Returns:
-        VisualizationDataResponse: Nodes and edges ready for frontend rendering.
+        VisualizationDataResponse: Object with `nodes` (list of node dictionaries) and `edges` (list of edge dictionaries) suitable for frontend rendering.
 
     Raises:
-        HTTPException: 500 for unexpected errors.
+        HTTPException: With status code 500 if an unexpected error occurs while constructing the visualization data.
     """
     try:
         g = get_graph()
         asset_ids = list(g.assets.keys())
-        n = len(asset_ids)
-
-        # Pre-compute out-degree for each node (used for size scaling)
-        degree: Dict[str, int] = {aid: 0 for aid in asset_ids}
-        for source_id, rels in g.relationships.items():
-            degree[source_id] = degree.get(source_id, 0) + len(rels)
-
-        # Distribute nodes evenly on a sphere using the Fibonacci lattice
-        golden = (1 + math.sqrt(5)) / 2
-        nodes = []
-        for idx, asset_id in enumerate(asset_ids):
-            asset = g.assets[asset_id]
-            if n > 1:
-                theta = math.acos(1 - 2 * (idx + 0.5) / n)
-                phi = 2 * math.pi * idx / golden
-                x = math.sin(theta) * math.cos(phi)
-                y = math.sin(theta) * math.sin(phi)
-                z = math.cos(theta)
-            else:
-                x, y, z = 0.0, 0.0, 0.0
-
-            asset_class_val = asset.asset_class.value
-            nodes.append(
-                {
-                    "id": asset_id,
-                    "symbol": asset.symbol,
-                    "name": asset.name,
-                    "asset_class": asset_class_val,
-                    "x": round(x, 6),
-                    "y": round(y, 6),
-                    "z": round(z, 6),
-                    "color": _ASSET_CLASS_COLORS.get(asset_class_val, _DEFAULT_COLOR),
-                    "size": max(5, min(20, 5 + degree.get(asset_id, 0) * 2)),
-                }
-            )
-
-        edges = [
-            {
-                "source": source_id,
-                "target": target_id,
-                "relationship_type": rel_type,
-                "strength": strength,
-            }
-            for source_id, rels in g.relationships.items()
-            for target_id, rel_type, strength in rels
-        ]
+        nodes = _build_visualization_nodes(g, asset_ids)
+        edges = _build_visualization_edges(g)
 
         return VisualizationDataResponse(nodes=nodes, edges=edges)
     except Exception as e:

@@ -1,6 +1,8 @@
+"""Schema report generation utilities for asset relationship graphs."""
+
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.helpers import (
@@ -76,8 +78,12 @@ class SchemaReportGenerator:
 
     def _render_schema_overview(self) -> List[str]:
         """
-        Render the schema overview section listing entity types and
-        descriptions.
+        Return a Markdown "Schema Overview" section listing supported entity types.
+
+        The section includes an H2 heading, an "Entity Types" subsection, and one line per entity describing key attributes.
+
+        Returns:
+            List[str]: Markdown-formatted lines for the Schema Overview section.
         """
         return [
             "## Schema Overview",
@@ -86,7 +92,7 @@ class SchemaReportGenerator:
             "1. **Equity** - Stock instruments: P/E ratio, dividend yield, EPS",
             "2. **Bond** - Fixed income: yield, coupon, maturity, rating",
             "3. **Commodity** - Physical assets with delivery contracts",
-            "4. **Currency** - FX pairs or proxies with " "exchange-rate and monetary-policy links",
+            ("4. **Currency** - FX pairs or proxies with exchange-rate and monetary-policy links"),
             "5. **Regulatory Events** - Corporate actions and filings",
             "",
         ]
@@ -132,7 +138,17 @@ class SchemaReportGenerator:
         return lines
 
     def _render_top_relationships(self, metrics: Metrics) -> List[str]:
-        """Render the top relationships ranked by strength."""
+        """
+        Render the "Top Relationships" section as Markdown lines.
+
+        Parameters:
+            metrics (Metrics): Metrics mapping expected to contain a "top_relationships" entry;
+                each item should be an iterable of tuples (src, tgt, relationship_type, strength).
+
+        Returns:
+            List[str]: Markdown lines for the "## Top Relationships" section. If no relationships are present,
+                the list includes a single placeholder bullet "- No relationships recorded yet." followed by a blank line.
+        """
         top = _as_top_relationships(metrics.get("top_relationships"))
         lines = ["## Top Relationships", ""]
         if not top:
@@ -144,13 +160,22 @@ class SchemaReportGenerator:
         return lines
 
     def _render_business_rules(self) -> List[str]:
-        """Render the business rules and constraints section of the report."""
+        """
+        Render the "Business Rules & Constraints" report section as Markdown lines.
+
+        This section includes subsections for Cross-Asset Rules, Regulatory Rules, and Valuation Rules,
+        describing sector affinity, corporate bond linkage, currency exposure, event propagation,
+        impact scoring, and strength normalization.
+
+        Returns:
+            lines (List[str]): Ordered list of Markdown-formatted lines composing the section.
+        """
         return [
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
             "- **Sector Affinity**: Same-sector assets link at strength 0.7.",
-            ("- **Corporate Bond Linkage**: issuer_id match creates a " "directional link (strength 0.9)."),
+            ("- **Corporate Bond Linkage**: issuer_id match creates a directional link (strength 0.9)."),
             "- **Currency Exposure**: FX and central-bank policy effects included.",
             "",
             "### Regulatory Rules",
@@ -164,8 +189,19 @@ class SchemaReportGenerator:
         ]
 
     def _render_schema_optimization(self, metrics: Metrics) -> List[str]:
-        """Render recommendations and metrics for schema optimization based on
-        relationship density.
+        """
+        Render schema optimization section lines including a data quality score and a single recommendation determined by relationship density.
+
+        Parameters:
+            metrics (Dict[str, Any]): Metrics mapping; expected keys:
+                - "relationship_density": numeric value used to select the recommendation.
+                - "quality_score": numeric value formatted as a percentage in the output.
+
+        Returns:
+            List[str]: Markdown lines for the "Schema Optimization Metrics" section. The lines include a formatted data quality score and one recommendation chosen from:
+                - density > 30.0: "High connectivity - consider normalization."
+                - density > 10.0: "Well-balanced - suitable for most analytical use-cases."
+                - otherwise: "Sparse - consider enriching relationship definitions."
         """
         density = _as_float(metrics.get("relationship_density"))
         quality_score = _as_float(metrics.get("quality_score"))
@@ -189,12 +225,17 @@ class SchemaReportGenerator:
         return lines
 
     def _render_implementation_notes(self) -> List[str]:
-        """Render implementation notes including timestamp and normalization details."""
+        """
+        Render the "Implementation Notes" section.
+
+        Returns:
+            lines (List[str]): Markdown lines for the Implementation Notes section.
+        """
         return [
             "## Implementation Notes",
             "- ISO 8601 timestamps.",
             "- Strengths normalized to 0-1.",
             "- Impact scores normalized to -1 to +1.",
-            ("- Directionality varies by relationship type: " "some are bidirectional, others directional."),
+            ("- Directionality varies by relationship type: some are bidirectional, others directional."),
             "",
         ]

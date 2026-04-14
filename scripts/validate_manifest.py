@@ -16,7 +16,15 @@ from typing import Dict, List
 
 
 def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
-    """Return a mapping of level-2 headings to their line numbers."""
+    """
+    Collect level-2 Markdown headings and their 1-based line numbers.
+
+    Parameters:
+        lines (List[str]): Lines of a Markdown document in order; lines may include line endings.
+
+    Returns:
+        Dict[str, List[int]]: Mapping from each level-2 heading text (the text following '##') to a list of 1-based line numbers where that heading appears.
+    """
     occurrences: Dict[str, List[int]] = {}
 
     for line_num, line in enumerate(lines, start=1):
@@ -28,16 +36,34 @@ def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
     return occurrences
 
 
-def _report_duplicates(duplicates: Dict[str, List[int]], manifest_path: Path) -> int:
-    """Prints a report of duplicate headings found in the manifest."""
+def _report_duplicates(
+    duplicates: Dict[str, List[int]],
+    manifest_path: Path,
+) -> int:
+    """
+    Print a formatted MD024 violation report for duplicated level-2 headings to stderr.
+
+    Parameters:
+        duplicates (Dict[str, List[int]]): Mapping from duplicated heading text to the list of 1-based line numbers where each occurs.
+        manifest_path (Path): Path to the manifest file being validated.
+
+    Returns:
+        int: 1 to indicate a duplicate-heading validation failure.
+    """
     print(
         f"❌ MD024 violation: Duplicate headings found in {manifest_path}\n",
         file=sys.stderr,
     )
-    print(f"Found {len(duplicates)} heading(s) with duplicates:\n", file=sys.stderr)
+    print(
+        f"Found {len(duplicates)} heading(s) with duplicates:\n",
+        file=sys.stderr,
+    )
 
     for heading, line_nums in sorted(duplicates.items()):
-        print(f"  '{heading}' appears {len(line_nums)} times:", file=sys.stderr)
+        print(
+            f"  '{heading}' appears {len(line_nums)} times:",
+            file=sys.stderr,
+        )
         for line_num in line_nums:
             print(f"    - Line {line_num}", file=sys.stderr)
         print(file=sys.stderr)
@@ -50,15 +76,17 @@ def _report_duplicates(duplicates: Dict[str, List[int]], manifest_path: Path) ->
 
 
 def check_duplicate_headings(manifest_path: Path) -> int:
-    """def check_duplicate_headings(manifest_path: Path) -> int:
-    Check for duplicate level 2 headings in the manifest.  This function verifies
-    the existence of the specified manifest file  and ensures it matches the
-    expected path within the repository. It  reads the content of the manifest,
-    collects level 2 headings, and  checks for duplicates. If duplicates are found,
-    it reports them;  otherwise, it confirms that no duplicates exist.
+    """
+    Check that the repository's systemManifest.md contains no duplicate level-2 Markdown headings.
 
-    Args:
-        manifest_path: Path to the systemManifest.md file."""
+    Verifies that manifest_path resolves to the repository's .elastic-copilot/memory/systemManifest.md, reads the file, and detects duplicate level-2 headings (lines starting with "## " but not "### "). When duplicates are found or validation fails, a formatted report is written to stderr.
+
+    Parameters:
+        manifest_path (Path): Path to the systemManifest.md file to validate; must resolve to the repository's expected manifest location.
+
+    Returns:
+        int: Exit code where `0` indicates no duplicate level-2 headings were found, and `1` indicates a missing or unexpected path, a read/validation failure, or that duplicates were detected.
+    """
     if not manifest_path.exists():
         print(f"Error: {manifest_path} not found", file=sys.stderr)
         return 1
@@ -71,7 +99,7 @@ def check_duplicate_headings(manifest_path: Path) -> int:
     # Ensure we only ever read the expected manifest file within the repo.
     if manifest_path != expected_manifest_path:
         print(
-            f"Error: Refusing to read unexpected manifest path: {manifest_path}",
+            (f"Error: Refusing to read unexpected manifest path: {manifest_path}"),
             file=sys.stderr,
         )
         return 1
