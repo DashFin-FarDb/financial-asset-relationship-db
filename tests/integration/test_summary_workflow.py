@@ -19,28 +19,29 @@ from pathlib import Path
 import pytest
 import yaml
 
-SUMMARY_WORKFLOW_PATH = Path(".github/workflows/summary.yml")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SUMMARY_WORKFLOW_PATH = REPO_ROOT / ".github/workflows/summary.yml"
 
 
-@pytest.fixture(name="summary_workflow")
+`@pytest.fixture`(name="summary_workflow")
 def summary_workflow_fixture():
     """
-    Load and parse the repository's .github/workflows/summary.yml workflow file.
+    Load and parse the summary.yml GitHub Actions workflow file.
 
     Returns:
-        dict: Parsed YAML mapping representing the contents of SUMMARY_WORKFLOW_PATH.
+        dict: Parsed YAML content of .github/workflows/summary.yml.
     """
     with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
-@pytest.fixture(name="summary_workflow_raw")
+`@pytest.fixture`(name="summary_workflow_raw")
 def summary_workflow_raw_fixture():
     """
-    Raw text of the summary workflow file.
+    Return the raw text content of summary.yml.
 
     Returns:
-        str: Contents of `.github/workflows/summary.yml` as a raw string.
+        str: Raw file content as a string.
     """
     with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
         return f.read()
