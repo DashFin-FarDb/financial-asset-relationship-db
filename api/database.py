@@ -265,6 +265,12 @@ def get_connection() -> Iterator[sqlite3.Connection]:
         sqlite3.Connection: An open SQLite connection for the configured database.
     """
     connection = _connect()
+    is_memory = _is_memory_db()
+    try:
+        yield connection
+    finally:
+        if not is_memory:
+            connection.close()
 
 
 def _cleanup_memory_connection() -> None:

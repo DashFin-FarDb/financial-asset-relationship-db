@@ -19,6 +19,7 @@ from typing import Dict, List, Optional
 
 try:
     from github import Github, GithubException
+    from github.PullRequest import PullRequest
 except ImportError:
     print("Error: Required package 'PyGithub' not installed.", file=sys.stderr)
     print("Run: pip install PyGithub", file=sys.stderr)

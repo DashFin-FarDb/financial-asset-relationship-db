@@ -187,8 +187,15 @@ class TestWorkflowConsistency:
     def test_checkout_versions(self, all_steps: List[Step]) -> None:
         checkouts = [step["uses"] for step in all_steps if "uses" in step and "checkout" in step["uses"].lower()]
         if checkouts:
+            # Accept either @v4 tags or SHA pins (40-char hex) as valid pinned versions
             v4 = sum("@v4" in u for u in checkouts)
-            assert v4 >= len(checkouts) * 0.7
+            sha_pinned = sum(
+                len(u.split("@")[1]) == 40 and all(c in "0123456789abcdef" for c in u.split("@")[1])
+                for u in checkouts
+                if "@" in u
+            )
+            pinned = v4 + sha_pinned
+            assert pinned >= len(checkouts) * 0.7
 
     def test_permissions_declared(
         self,

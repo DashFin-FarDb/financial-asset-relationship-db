@@ -9,6 +9,7 @@ on:
       - ".github/workflows/dependency-check.yml"
       - "CONTRIBUTING.md"
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: ["main"]
     paths:
       - "requirements*.txt"

@@ -1,3 +1,4 @@
+# Debricked SCA workflow: scans for dependency vulnerabilities on push, PR, and manual dispatch.
 name: Debricked scan
 
 "on":
