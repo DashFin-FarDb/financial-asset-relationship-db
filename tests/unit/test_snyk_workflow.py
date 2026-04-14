@@ -9,9 +9,8 @@ This module tests the Snyk workflow configuration (.github/workflows/snyk-infras
 - Permission settings
 """
 
-from pathlib import Path
-
 import re
+from pathlib import Path
 
 import pytest
 import yaml
