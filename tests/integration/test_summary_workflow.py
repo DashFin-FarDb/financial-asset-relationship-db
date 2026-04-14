@@ -325,39 +325,43 @@ class TestCommentStep:
         run_script = comment_step.get("run", "")
         assert "ISSUE_NUMBER" in run_script, "The gh comment command must reference the ISSUE_NUMBER variable"
 
-    def test_comment_step_issue_number_is_unquoted_in_shell(self, comment_step):
+    def test_comment_step_issue_number_is_quoted_in_shell(self, comment_step):
         """
-        ISSUE_NUMBER is NOT double-quoted in the shell command after the PR.
+        ISSUE_NUMBER should remain double-quoted in the shell command.
 
-        Previously, "$ISSUE_NUMBER" was quoted to prevent word splitting.
-        The PR changed this to bare $ISSUE_NUMBER.
+        Quoting "$ISSUE_NUMBER" preserves the current workflow behavior and avoids
+        unsafe shell expansion patterns.
         """
         run_script = comment_step.get("run", "")
-        # Unquoted usage: $ISSUE_NUMBER not wrapped in double quotes
-        assert re.search(r"gh issue comment \$ISSUE_NUMBER", run_script), (
-            "After the PR, gh issue comment uses unquoted $ISSUE_NUMBER"
+        assert re.search(r'gh issue comment "\$ISSUE_NUMBER"', run_script), (
+            'gh issue comment should use quoted "$ISSUE_NUMBER"'
         )
 
-    def test_comment_step_response_is_inline_expression(self, summary_workflow_raw):
+    def test_comment_step_has_response_env_from_inference_output(self, comment_step):
         """
-        Verify the AI response is embedded inline in the workflow's shell command as a GitHub Actions expression.
+        Verify the AI response is passed through a RESPONSE environment variable.
 
-        Asserts the raw workflow text contains `steps.inference.outputs.response`, ensuring the response is referenced inline rather than passed through a `$RESPONSE` environment variable.
+        This keeps the workflow aligned with the current implementation and avoids
+        embedding raw model output directly into the shell command.
         """
-        assert "steps.inference.outputs.response" in summary_workflow_raw, (
-            "The response must be referenced via steps.inference.outputs.response"
+        env = comment_step.get("env", {})
+        assert "RESPONSE" in env, "Comment step must set RESPONSE env var"
+        response_value = env.get("RESPONSE", "")
+        assert "steps.inference.outputs.response" in response_value, (
+            "RESPONSE must be sourced from steps.inference.outputs.response"
         )
 
-    def test_comment_step_does_not_use_response_env_var_in_command(self, comment_step):
+    def test_comment_step_uses_response_env_var_in_command(self, comment_step):
         """
-        The run script must not use $RESPONSE to pass the AI response.
+        The run script should use the quoted RESPONSE env var for the --body argument.
 
-        The PR removed the RESPONSE env var from the command's --body argument;
-        the response is now embedded as a single-quoted expression.
+        Passing the AI response via "$RESPONSE" is safer than inlining the raw
+        expression directly into the shell command.
         """
         run_script = comment_step.get("run", "")
-        # The --body argument should not use the $RESPONSE env var
-        assert '--body "$RESPONSE"' not in run_script, "After the PR, --body should not use the $RESPONSE env var"
+        assert '--body "$RESPONSE"' in run_script, (
+            'The gh comment command should use --body "$RESPONSE"'
+        )
 
 
 class TestRemovedSanitizationShellLogic:
