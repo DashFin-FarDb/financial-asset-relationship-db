@@ -144,11 +144,19 @@ class TestSummaryWorkflowSteps:
 
     def test_sanitize_step_is_absent(self, summary_steps):
         """
-        Assert that no step name in the `summary` job contains the substring "sanitize" (case-insensitive).
+        Assert that the removed sanitize step is not present in the `summary` job.
+
+        This checks the specific historical step by exact name and id, without
+        banning unrelated future steps that may happen to include "sanitize" in
+        their names.
         """
-        step_names = [s.get("name", "") for s in summary_steps]
-        sanitize_step_found = any("sanitize" in name.lower() for name in step_names)
-        assert not sanitize_step_found, "The 'Sanitize issue inputs' step should not be present in summary.yml"
+        removed_step_present = any(
+            step.get("name") == "Sanitize issue inputs" or step.get("id") == "sanitize"
+            for step in summary_steps
+        )
+        assert not removed_step_present, (
+            "The removed 'Sanitize issue inputs' step (id 'sanitize') should not be present in summary.yml"
+        )
 
     def test_no_step_uses_sanitize_outputs(self, summary_steps):
         """
