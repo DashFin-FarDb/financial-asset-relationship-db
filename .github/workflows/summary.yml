@@ -15,39 +15,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      # Security: Sanitize untrusted GitHub context values before AI inference
-      # to prevent prompt injection attacks. User-controlled fields (title, body)
-      # are passed through env vars and sanitized to remove potentially malicious
-      # characters and limit length to prevent data exfiltration.
-      - name: Sanitize issue inputs
-        id: sanitize
-        run: |
-          # Sanitize title: remove special characters and limit length
-          SANITIZED_TITLE=$(echo "$ISSUE_TITLE" | sed 's/[^a-zA-Z0-9 .,?!-]//g' | head -c 200)
-          echo "title=${SANITIZED_TITLE}" >> $GITHUB_OUTPUT
-
-          # Sanitize body: remove special characters and limit length
-          SANITIZED_BODY=$(echo "$ISSUE_BODY" | sed 's/[^a-zA-Z0-9 .,?!\n-]//g' | head -c 1000)
-          echo "body=${SANITIZED_BODY}" >> $GITHUB_OUTPUT
-        env:
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
-
       - name: Run AI inference
         id: inference
         uses: actions/ai-inference@b81b2afb8390ee6839b494a404766bef6493c7d9 # v1
         with:
           prompt: |
             Summarize the following GitHub issue in one paragraph:
-            Title: ${{ steps.sanitize.outputs.title }}
-            Body: ${{ steps.sanitize.outputs.body }}
+            Title: ${{ github.event.issue.title }}
+            Body: ${{ github.event.issue.body }}
 
-      # Security: Use properly quoted environment variables to prevent command injection
-      # Never interpolate LLM outputs directly into shell commands
       - name: Comment with AI summary
         run: |
-          gh issue comment "$ISSUE_NUMBER" --body "$RESPONSE"
+          gh issue comment $ISSUE_NUMBER --body '${{ steps.inference.outputs.response }}'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
