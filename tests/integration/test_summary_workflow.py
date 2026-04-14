@@ -151,8 +151,7 @@ class TestSummaryWorkflowSteps:
         their names.
         """
         removed_step_present = any(
-            step.get("name") == "Sanitize issue inputs" or step.get("id") == "sanitize"
-            for step in summary_steps
+            step.get("name") == "Sanitize issue inputs" or step.get("id") == "sanitize" for step in summary_steps
         )
         assert not removed_step_present, (
             "The removed 'Sanitize issue inputs' step (id 'sanitize') should not be present in summary.yml"
