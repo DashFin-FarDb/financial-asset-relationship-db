@@ -52,9 +52,7 @@ class TestSummaryWorkflowExists:
     @staticmethod
     def test_summary_workflow_file_exists():
         """summary.yml must exist in .github/workflows."""
-        assert SUMMARY_WORKFLOW_PATH.exists(), (
-            f"{SUMMARY_WORKFLOW_PATH} does not exist"
-        )
+        assert SUMMARY_WORKFLOW_PATH.exists(), f"{SUMMARY_WORKFLOW_PATH} does not exist"
 
     @staticmethod
     def test_summary_workflow_is_valid_yaml():
@@ -83,9 +81,7 @@ class TestSummaryWorkflowStructure:
         triggers = summary_workflow["on"]
         assert "issues" in triggers, "summary.yml should trigger on 'issues' event"
         issue_types = triggers["issues"].get("types", [])
-        assert "opened" in issue_types, (
-            "summary.yml should trigger on issues of type 'opened'"
-        )
+        assert "opened" in issue_types, "summary.yml should trigger on issues of type 'opened'"
 
     def test_workflow_has_jobs(self, summary_workflow):
         """Workflow must define at least one job."""
@@ -94,9 +90,7 @@ class TestSummaryWorkflowStructure:
 
     def test_summary_job_exists(self, summary_workflow):
         """The 'summary' job must be defined."""
-        assert "summary" in summary_workflow["jobs"], (
-            "summary.yml must contain a job named 'summary'"
-        )
+        assert "summary" in summary_workflow["jobs"], "summary.yml must contain a job named 'summary'"
 
     def test_summary_job_has_runs_on(self, summary_workflow):
         """The 'summary' job must specify a runner."""
@@ -106,9 +100,7 @@ class TestSummaryWorkflowStructure:
     def test_summary_job_runs_on_ubuntu(self, summary_workflow):
         """The 'summary' job should run on ubuntu-latest."""
         job = summary_workflow["jobs"]["summary"]
-        assert "ubuntu" in job["runs-on"], (
-            "The 'summary' job should run on an ubuntu-based runner"
-        )
+        assert "ubuntu" in job["runs-on"], "The 'summary' job should run on an ubuntu-based runner"
 
     def test_summary_job_has_steps(self, summary_workflow):
         """The 'summary' job must have at least one step."""
@@ -125,17 +117,13 @@ class TestSummaryWorkflowStructure:
         """The 'summary' job must have 'issues: write' permission to post comments."""
         job = summary_workflow["jobs"]["summary"]
         perms = job.get("permissions", {})
-        assert perms.get("issues") == "write", (
-            "The 'summary' job must have 'issues: write' to post issue comments"
-        )
+        assert perms.get("issues") == "write", "The 'summary' job must have 'issues: write' to post issue comments"
 
     def test_summary_job_has_models_read_permission(self, summary_workflow):
         """The 'summary' job must have 'models: read' permission for AI inference."""
         job = summary_workflow["jobs"]["summary"]
         perms = job.get("permissions", {})
-        assert perms.get("models") == "read", (
-            "The 'summary' job must have 'models: read' to use AI inference"
-        )
+        assert perms.get("models") == "read", "The 'summary' job must have 'models: read' to use AI inference"
 
 
 class TestSummaryWorkflowSteps:
@@ -154,12 +142,8 @@ class TestSummaryWorkflowSteps:
         issue title and body before passing them to AI inference.
         """
         step_names = [s.get("name", "") for s in summary_steps]
-        sanitize_step_found = any(
-            "sanitize" in name.lower() for name in step_names
-        )
-        assert not sanitize_step_found, (
-            "The 'Sanitize issue inputs' step should not be present in summary.yml"
-        )
+        sanitize_step_found = any("sanitize" in name.lower() for name in step_names)
+        assert not sanitize_step_found, "The 'Sanitize issue inputs' step should not be present in summary.yml"
 
     def test_no_step_uses_sanitize_outputs(self, summary_steps):
         """
@@ -193,19 +177,13 @@ class TestSummaryWorkflowSteps:
             None,
         )
         assert inference_step is not None
-        assert inference_step.get("id") == "inference", (
-            "The AI inference step must have id='inference'"
-        )
+        assert inference_step.get("id") == "inference", "The AI inference step must have id='inference'"
 
     def test_comment_step_exists(self, summary_steps):
         """A step to post a comment on the issue must be present."""
         run_steps = [s for s in summary_steps if "run" in s]
-        comment_steps = [
-            s for s in run_steps if "gh issue comment" in s.get("run", "")
-        ]
-        assert len(comment_steps) >= 1, (
-            "There must be a step containing 'gh issue comment'"
-        )
+        comment_steps = [s for s in run_steps if "gh issue comment" in s.get("run", "")]
+        assert len(comment_steps) >= 1, "There must be a step containing 'gh issue comment'"
 
 
 class TestAIInferenceStepPrompt:
@@ -296,24 +274,18 @@ class TestCommentStep:
     def test_comment_step_has_gh_token_env(self, comment_step):
         """The comment step must provide GH_TOKEN via env for gh CLI authentication."""
         env = comment_step.get("env", {})
-        assert "GH_TOKEN" in env, (
-            "Comment step must set GH_TOKEN env var for gh CLI"
-        )
+        assert "GH_TOKEN" in env, "Comment step must set GH_TOKEN env var for gh CLI"
 
     def test_comment_step_gh_token_uses_github_token_secret(self, comment_step):
         """GH_TOKEN must be set from secrets.GITHUB_TOKEN."""
         env = comment_step.get("env", {})
         gh_token_value = env.get("GH_TOKEN", "")
-        assert "secrets.GITHUB_TOKEN" in gh_token_value, (
-            "GH_TOKEN must be sourced from secrets.GITHUB_TOKEN"
-        )
+        assert "secrets.GITHUB_TOKEN" in gh_token_value, "GH_TOKEN must be sourced from secrets.GITHUB_TOKEN"
 
     def test_comment_step_has_issue_number_env(self, comment_step):
         """The comment step must provide ISSUE_NUMBER via env."""
         env = comment_step.get("env", {})
-        assert "ISSUE_NUMBER" in env, (
-            "Comment step must set ISSUE_NUMBER env var"
-        )
+        assert "ISSUE_NUMBER" in env, "Comment step must set ISSUE_NUMBER env var"
 
     def test_comment_step_issue_number_env_uses_github_context(self, comment_step):
         """ISSUE_NUMBER must come from github.event.issue.number."""
@@ -326,9 +298,7 @@ class TestCommentStep:
     def test_comment_step_run_uses_issue_number_var(self, comment_step):
         """The shell command must reference ISSUE_NUMBER."""
         run_script = comment_step.get("run", "")
-        assert "ISSUE_NUMBER" in run_script, (
-            "The gh comment command must reference the ISSUE_NUMBER variable"
-        )
+        assert "ISSUE_NUMBER" in run_script, "The gh comment command must reference the ISSUE_NUMBER variable"
 
     def test_comment_step_issue_number_is_unquoted_in_shell(self, comment_step):
         """
@@ -339,7 +309,7 @@ class TestCommentStep:
         """
         run_script = comment_step.get("run", "")
         # Unquoted usage: $ISSUE_NUMBER not wrapped in double quotes
-        assert re.search(r'gh issue comment \$ISSUE_NUMBER', run_script), (
+        assert re.search(r"gh issue comment \$ISSUE_NUMBER", run_script), (
             "After the PR, gh issue comment uses unquoted $ISSUE_NUMBER"
         )
 
@@ -355,9 +325,7 @@ class TestCommentStep:
             "The response must be referenced via steps.inference.outputs.response"
         )
 
-    def test_comment_step_does_not_use_response_env_var_in_command(
-        self, comment_step
-    ):
+    def test_comment_step_does_not_use_response_env_var_in_command(self, comment_step):
         """
         The run script must not use $RESPONSE to pass the AI response.
 
@@ -366,9 +334,7 @@ class TestCommentStep:
         """
         run_script = comment_step.get("run", "")
         # The --body argument should not use the $RESPONSE env var
-        assert '--body "$RESPONSE"' not in run_script, (
-            "After the PR, --body should not use the $RESPONSE env var"
-        )
+        assert '--body "$RESPONSE"' not in run_script, "After the PR, --body should not use the $RESPONSE env var"
 
 
 class TestRemovedSanitizationShellLogic:
@@ -387,9 +353,7 @@ class TestRemovedSanitizationShellLogic:
         The PR removed the sanitization step which used 'sed' to strip
         special characters from user-supplied issue title and body.
         """
-        assert "sed 's/[^" not in summary_workflow_raw, (
-            "The sanitization sed command should not appear in summary.yml"
-        )
+        assert "sed 's/[^" not in summary_workflow_raw, "The sanitization sed command should not appear in summary.yml"
 
     def test_no_head_length_limit_in_workflow(self, summary_workflow_raw):
         """
@@ -409,9 +373,7 @@ class TestRemovedSanitizationShellLogic:
         Confirms the sanitize step's id is gone from the raw YAML source.
         """
         # Match 'id: sanitize' with optional surrounding whitespace
-        assert not re.search(r'id:\s+sanitize', summary_workflow_raw), (
-            "No step should carry id='sanitize' after the PR"
-        )
+        assert not re.search(r"id:\s+sanitize", summary_workflow_raw), "No step should carry id='sanitize' after the PR"
 
     def test_no_sanitized_title_env_var(self, summary_workflow_raw):
         """
@@ -471,25 +433,19 @@ class TestPinnedActionVersions:
         for step in summary_steps:
             if "uses" in step:
                 action = step["uses"]
-                assert "@" in action, (
-                    f"Action '{action}' in summary.yml must include a version specifier"
-                )
+                assert "@" in action, f"Action '{action}' in summary.yml must include a version specifier"
 
     def test_no_actions_use_latest(self, summary_steps):
         """No action reference may use '@latest'."""
         for step in summary_steps:
             action = step.get("uses", "")
-            assert "@latest" not in action.lower(), (
-                f"Action '{action}' in summary.yml must not use '@latest'"
-            )
+            assert "@latest" not in action.lower(), f"Action '{action}' in summary.yml must not use '@latest'"
 
     def test_no_actions_use_master_branch(self, summary_steps):
         """No action reference may use '@master'."""
         for step in summary_steps:
             action = step.get("uses", "")
-            assert "@master" not in action.lower(), (
-                f"Action '{action}' in summary.yml must not use '@master' branch"
-            )
+            assert "@master" not in action.lower(), f"Action '{action}' in summary.yml must not use '@master' branch"
 
     def test_checkout_action_is_pinned_to_sha(self, summary_steps):
         """The actions/checkout step must be pinned to a commit SHA (40 hex chars)."""
@@ -500,7 +456,7 @@ class TestPinnedActionVersions:
         assert checkout_step is not None, "actions/checkout step not found"
         action_ref = checkout_step["uses"]
         sha_part = action_ref.split("@", 1)[-1]
-        assert re.match(r'^[0-9a-f]{40}$', sha_part), (
+        assert re.match(r"^[0-9a-f]{40}$", sha_part), (
             f"actions/checkout must be pinned to a full commit SHA, got: {sha_part}"
         )
 
@@ -513,7 +469,7 @@ class TestPinnedActionVersions:
         assert inference_step is not None, "actions/ai-inference step not found"
         action_ref = inference_step["uses"]
         sha_part = action_ref.split("@", 1)[-1]
-        assert re.match(r'^[0-9a-f]{40}$', sha_part), (
+        assert re.match(r"^[0-9a-f]{40}$", sha_part), (
             f"actions/ai-inference must be pinned to a full commit SHA, got: {sha_part}"
         )
 
@@ -529,9 +485,7 @@ class TestSummaryWorkflowRegression:
         After the PR removed the sanitize step: checkout, inference, comment (3 steps).
         """
         steps = summary_workflow["jobs"]["summary"]["steps"]
-        assert len(steps) == 3, (
-            f"Expected 3 steps after sanitize removal, found {len(steps)}"
-        )
+        assert len(steps) == 3, f"Expected 3 steps after sanitize removal, found {len(steps)}"
 
     def test_step_ordering_checkout_before_inference(self, summary_workflow):
         """The checkout step must appear before the AI inference step."""
@@ -546,9 +500,7 @@ class TestSummaryWorkflowRegression:
         )
         assert checkout_idx is not None, "Checkout step not found"
         assert inference_idx is not None, "Inference step not found"
-        assert checkout_idx < inference_idx, (
-            "Checkout step must appear before the inference step"
-        )
+        assert checkout_idx < inference_idx, "Checkout step must appear before the inference step"
 
     def test_step_ordering_inference_before_comment(self, summary_workflow):
         """The AI inference step must appear before the comment step."""
@@ -563,9 +515,7 @@ class TestSummaryWorkflowRegression:
         )
         assert inference_idx is not None, "Inference step not found"
         assert comment_idx is not None, "Comment step not found"
-        assert inference_idx < comment_idx, (
-            "Inference step must appear before the comment step"
-        )
+        assert inference_idx < comment_idx, "Inference step must appear before the comment step"
 
     def test_raw_github_expressions_present_in_prompt(self, summary_workflow_raw):
         """
