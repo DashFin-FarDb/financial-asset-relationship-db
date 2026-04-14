@@ -1,11 +1,13 @@
 """
 Tests for the summary.yml GitHub Actions workflow security implementation.
 
-This module validates the structure and behavior of .github/workflows/summary.yml
-to ensure proper security controls are in place for handling untrusted user input.
+This module validates the structure and behavior of .github/workflows/summary.yml.
+Although this pull request was originally titled as a revert of a WIP prompt-injection
+fix, the implementation was subsequently updated to retain and improve the security
+controls. These tests lock in the current secure state of the workflow.
 
-Security requirements under test:
-- Present: "Sanitize issue inputs" step (sed-based sanitization of title/body)
+Security requirements enforced:
+- Required: "Sanitize issue inputs" step sanitizes title/body before AI inference
 - Required: "Run AI inference" uses sanitized outputs (steps.sanitize.outputs.*)
 - Required: "Comment with AI summary" passes the AI response via a quoted RESPONSE
   environment variable (--body "$RESPONSE") for safe shell handling.
@@ -460,7 +462,9 @@ class TestPinnedActionVersions:
         """
         Ensure the actions/checkout step is pinned to an exact 40-hex commit SHA.
 
-        Asserts that a step using `actions/checkout` exists in `summary_steps` and that its `uses` reference ends with a 40-character lowercase hex SHA (e.g., a full git commit SHA). Failure occurs if the step is missing or the ref is not a full SHA.
+        Asserts that a step using `actions/checkout` exists in `summary_steps` and
+        that its `uses` reference ends with a 40-character lowercase hex SHA.
+        Failure occurs if the step is missing or the ref is not a full SHA.
         """
         checkout_step = next(
             (s for s in summary_steps if "actions/checkout" in s.get("uses", "")),
