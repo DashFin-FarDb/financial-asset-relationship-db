@@ -17,12 +17,13 @@ from datetime import datetime, timezone
 from io import StringIO
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
-# Add the script directory to path so generate_status can be resolved
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
-
 import generate_status
 import pytest
 from github import GithubException
+
+# Add the script directory to path so generate_status can be resolved
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
+
 
 # --- Fixtures ---
 
@@ -1409,9 +1410,9 @@ def test_pull_request_type_accessible_in_module():
     """
     # If the module imported successfully (it was imported at the top of this
     # test file), PullRequest should be accessible in the module's globals.
-    assert hasattr(
-        generate_status, "PullRequest"
-    ), "generate_status module should expose PullRequest after importing it from github.PullRequest"
+    assert hasattr(generate_status, "PullRequest"), (
+        "generate_status module should expose PullRequest after importing it from github.PullRequest"
+    )
 
     # Also verify we can independently import the same symbol
     from github.PullRequest import PullRequest as PR
