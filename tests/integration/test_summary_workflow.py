@@ -376,9 +376,9 @@ class TestIssueContentIsIncludedInWorkflow:
         This validates required summary input while allowing implementation
         details such as sanitization, truncation, or intermediate variables.
         """
-        assert "github.event.issue.title" in summary_workflow_raw, (
-            "summary.yml should reference github.event.issue.title so the summary can include the issue title"
-        )
+        assert (
+            "github.event.issue.title" in summary_workflow_raw
+        ), "summary.yml should reference github.event.issue.title so the summary can include the issue title"
 
     def test_workflow_references_issue_body(self, summary_workflow_raw):
         """
@@ -387,9 +387,9 @@ class TestIssueContentIsIncludedInWorkflow:
         This validates required summary input while allowing implementation
         details such as sanitization, truncation, or intermediate variables.
         """
-        assert "github.event.issue.body" in summary_workflow_raw, (
-            "summary.yml should reference github.event.issue.body so the summary can include the issue body"
-        )
+        assert (
+            "github.event.issue.body" in summary_workflow_raw
+        ), "summary.yml should reference github.event.issue.body so the summary can include the issue body"
 
     def test_workflow_uses_issue_content_in_step_configuration(self, summary_workflow_raw):
         """
@@ -403,6 +403,8 @@ class TestIssueContentIsIncludedInWorkflow:
             r"github\.event\.issue\.(title|body)|(?:SANITIZED|ISSUE)_(?:TITLE|BODY)",
             summary_workflow_raw,
         ), "summary.yml should include issue title/body content in step configuration"
+
+
 class TestPinnedActionVersions:
     """Verify actions in summary.yml use pinned commit SHAs, not floating tags."""
 
