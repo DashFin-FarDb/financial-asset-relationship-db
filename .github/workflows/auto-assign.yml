@@ -5,7 +5,7 @@ on:
     types: [opened]
   pull_request:
     types: [opened]
-    branches: [main] 
+    branches: [main]
 
 permissions:
   contents: read
