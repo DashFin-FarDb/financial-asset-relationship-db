@@ -1,0 +1,602 @@
+"""
+Tests for the summary.yml GitHub Actions workflow changes.
+
+This module validates the structure and behavior of .github/workflows/summary.yml
+after the PR that removed the sanitization step and changed how the AI inference
+prompt and comment step handle user-controlled inputs.
+
+Changes under test:
+- Removed: "Sanitize issue inputs" step (sed-based sanitization of title/body)
+- Changed: "Run AI inference" now uses raw github.event.issue.title/body directly
+- Changed: "Comment with AI summary" now uses single-quoted interpolation for
+  the response instead of a quoted environment variable, and ISSUE_NUMBER is
+  no longer quoted in the shell command.
+"""
+
+import re
+from pathlib import Path
+
+import pytest
+import yaml
+
+SUMMARY_WORKFLOW_PATH = Path(".github/workflows/summary.yml")
+
+
+@pytest.fixture(name="summary_workflow")
+def summary_workflow_fixture():
+    """
+    Load and parse the summary.yml GitHub Actions workflow file.
+
+    Returns:
+        dict: Parsed YAML content of .github/workflows/summary.yml.
+    """
+    with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+@pytest.fixture(name="summary_workflow_raw")
+def summary_workflow_raw_fixture():
+    """
+    Return the raw text content of summary.yml.
+
+    Returns:
+        str: Raw file content as a string.
+    """
+    with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+class TestSummaryWorkflowExists:
+    """Verify the summary workflow file is present and valid YAML."""
+
+    @staticmethod
+    def test_summary_workflow_file_exists():
+        """summary.yml must exist in .github/workflows."""
+        assert SUMMARY_WORKFLOW_PATH.exists(), (
+            f"{SUMMARY_WORKFLOW_PATH} does not exist"
+        )
+
+    @staticmethod
+    def test_summary_workflow_is_valid_yaml():
+        """summary.yml must be parseable as valid YAML."""
+        with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+            try:
+                content = yaml.safe_load(f)
+            except yaml.YAMLError as exc:
+                pytest.fail(f"summary.yml contains invalid YAML: {exc}")
+        assert content is not None, "summary.yml must not be an empty document"
+
+
+class TestSummaryWorkflowStructure:
+    """Verify the top-level structure of summary.yml."""
+
+    def test_workflow_has_name(self, summary_workflow):
+        """Workflow must define a name field."""
+        assert "name" in summary_workflow, "summary.yml is missing 'name' field"
+
+    def test_workflow_has_on_trigger(self, summary_workflow):
+        """Workflow must define event triggers."""
+        assert "on" in summary_workflow, "summary.yml is missing 'on' trigger"
+
+    def test_workflow_triggers_on_issue_opened(self, summary_workflow):
+        """Workflow must trigger when an issue is opened."""
+        triggers = summary_workflow["on"]
+        assert "issues" in triggers, "summary.yml should trigger on 'issues' event"
+        issue_types = triggers["issues"].get("types", [])
+        assert "opened" in issue_types, (
+            "summary.yml should trigger on issues of type 'opened'"
+        )
+
+    def test_workflow_has_jobs(self, summary_workflow):
+        """Workflow must define at least one job."""
+        assert "jobs" in summary_workflow, "summary.yml is missing 'jobs'"
+        assert len(summary_workflow["jobs"]) > 0, "summary.yml must have at least one job"
+
+    def test_summary_job_exists(self, summary_workflow):
+        """The 'summary' job must be defined."""
+        assert "summary" in summary_workflow["jobs"], (
+            "summary.yml must contain a job named 'summary'"
+        )
+
+    def test_summary_job_has_runs_on(self, summary_workflow):
+        """The 'summary' job must specify a runner."""
+        job = summary_workflow["jobs"]["summary"]
+        assert "runs-on" in job, "The 'summary' job must specify 'runs-on'"
+
+    def test_summary_job_runs_on_ubuntu(self, summary_workflow):
+        """The 'summary' job should run on ubuntu-latest."""
+        job = summary_workflow["jobs"]["summary"]
+        assert "ubuntu" in job["runs-on"], (
+            "The 'summary' job should run on an ubuntu-based runner"
+        )
+
+    def test_summary_job_has_steps(self, summary_workflow):
+        """The 'summary' job must have at least one step."""
+        job = summary_workflow["jobs"]["summary"]
+        assert "steps" in job, "The 'summary' job must have steps"
+        assert len(job["steps"]) > 0, "The 'summary' job must have at least one step"
+
+    def test_summary_job_has_permissions(self, summary_workflow):
+        """The 'summary' job must declare permissions."""
+        job = summary_workflow["jobs"]["summary"]
+        assert "permissions" in job, "The 'summary' job must declare 'permissions'"
+
+    def test_summary_job_has_issues_write_permission(self, summary_workflow):
+        """The 'summary' job must have 'issues: write' permission to post comments."""
+        job = summary_workflow["jobs"]["summary"]
+        perms = job.get("permissions", {})
+        assert perms.get("issues") == "write", (
+            "The 'summary' job must have 'issues: write' to post issue comments"
+        )
+
+    def test_summary_job_has_models_read_permission(self, summary_workflow):
+        """The 'summary' job must have 'models: read' permission for AI inference."""
+        job = summary_workflow["jobs"]["summary"]
+        perms = job.get("permissions", {})
+        assert perms.get("models") == "read", (
+            "The 'summary' job must have 'models: read' to use AI inference"
+        )
+
+
+class TestSummaryWorkflowSteps:
+    """Verify the steps present in the summary workflow after the PR changes."""
+
+    @pytest.fixture(name="summary_steps")
+    def summary_steps_fixture(self, summary_workflow):
+        """Return the list of steps in the 'summary' job."""
+        return summary_workflow["jobs"]["summary"]["steps"]
+
+    def test_sanitize_step_is_absent(self, summary_steps):
+        """
+        The 'Sanitize issue inputs' step must NOT exist.
+
+        This step was removed by the PR, eliminating sanitization of user-controlled
+        issue title and body before passing them to AI inference.
+        """
+        step_names = [s.get("name", "") for s in summary_steps]
+        sanitize_step_found = any(
+            "sanitize" in name.lower() for name in step_names
+        )
+        assert not sanitize_step_found, (
+            "The 'Sanitize issue inputs' step should not be present in summary.yml"
+        )
+
+    def test_no_step_uses_sanitize_outputs(self, summary_steps):
+        """
+        No step should reference steps.sanitize.outputs.
+
+        After the PR, the sanitization step was removed, so no subsequent step
+        should reference its outputs.
+        """
+        for step in summary_steps:
+            step_str = yaml.dump(step)
+            assert "steps.sanitize.outputs" not in step_str, (
+                f"Step '{step.get('name', '?')}' references removed sanitize step outputs"
+            )
+
+    def test_checkout_step_exists(self, summary_steps):
+        """The checkout step must still be present."""
+        uses_values = [s.get("uses", "") for s in summary_steps]
+        checkout_present = any("actions/checkout" in u for u in uses_values)
+        assert checkout_present, "The 'actions/checkout' step must be present"
+
+    def test_ai_inference_step_exists(self, summary_steps):
+        """The AI inference step must be present."""
+        uses_values = [s.get("uses", "") for s in summary_steps]
+        inference_present = any("actions/ai-inference" in u for u in uses_values)
+        assert inference_present, "An 'actions/ai-inference' step must be present"
+
+    def test_ai_inference_step_has_id(self, summary_steps):
+        """The AI inference step must have id='inference' for output reference."""
+        inference_step = next(
+            (s for s in summary_steps if "actions/ai-inference" in s.get("uses", "")),
+            None,
+        )
+        assert inference_step is not None
+        assert inference_step.get("id") == "inference", (
+            "The AI inference step must have id='inference'"
+        )
+
+    def test_comment_step_exists(self, summary_steps):
+        """A step to post a comment on the issue must be present."""
+        run_steps = [s for s in summary_steps if "run" in s]
+        comment_steps = [
+            s for s in run_steps if "gh issue comment" in s.get("run", "")
+        ]
+        assert len(comment_steps) >= 1, (
+            "There must be a step containing 'gh issue comment'"
+        )
+
+
+class TestAIInferenceStepPrompt:
+    """Verify the AI inference step uses raw (unsanitized) GitHub context expressions."""
+
+    @pytest.fixture(name="inference_step")
+    def inference_step_fixture(self, summary_workflow):
+        """Return the AI inference step dict."""
+        steps = summary_workflow["jobs"]["summary"]["steps"]
+        step = next(
+            (s for s in steps if "actions/ai-inference" in s.get("uses", "")),
+            None,
+        )
+        assert step is not None, "actions/ai-inference step not found"
+        return step
+
+    def test_prompt_uses_raw_issue_title(self, inference_step):
+        """
+        The AI inference prompt must use raw github.event.issue.title directly.
+
+        After the PR, sanitized outputs are no longer used; the raw GitHub
+        context expression is embedded in the prompt.
+        """
+        prompt = inference_step.get("with", {}).get("prompt", "")
+        assert "github.event.issue.title" in prompt, (
+            "The inference prompt must reference github.event.issue.title directly"
+        )
+
+    def test_prompt_uses_raw_issue_body(self, inference_step):
+        """
+        The AI inference prompt must use raw github.event.issue.body directly.
+
+        After the PR, sanitized outputs are no longer used; the raw GitHub
+        context expression is embedded in the prompt.
+        """
+        prompt = inference_step.get("with", {}).get("prompt", "")
+        assert "github.event.issue.body" in prompt, (
+            "The inference prompt must reference github.event.issue.body directly"
+        )
+
+    def test_prompt_does_not_use_sanitized_title(self, inference_step):
+        """
+        The prompt must not reference steps.sanitize.outputs.title.
+
+        The sanitization step was removed; its outputs must not appear in the prompt.
+        """
+        prompt = inference_step.get("with", {}).get("prompt", "")
+        assert "steps.sanitize.outputs.title" not in prompt, (
+            "Inference prompt should not reference removed sanitize step title output"
+        )
+
+    def test_prompt_does_not_use_sanitized_body(self, inference_step):
+        """
+        The prompt must not reference steps.sanitize.outputs.body.
+
+        The sanitization step was removed; its outputs must not appear in the prompt.
+        """
+        prompt = inference_step.get("with", {}).get("prompt", "")
+        assert "steps.sanitize.outputs.body" not in prompt, (
+            "Inference prompt should not reference removed sanitize step body output"
+        )
+
+    def test_prompt_contains_title_label(self, inference_step):
+        """The prompt should include a 'Title:' label."""
+        prompt = inference_step.get("with", {}).get("prompt", "")
+        assert "Title:" in prompt, "The AI prompt should contain a 'Title:' label"
+
+    def test_prompt_contains_body_label(self, inference_step):
+        """The prompt should include a 'Body:' label."""
+        prompt = inference_step.get("with", {}).get("prompt", "")
+        assert "Body:" in prompt, "The AI prompt should contain a 'Body:' label"
+
+
+class TestCommentStep:
+    """Verify the 'Comment with AI summary' step structure after the PR changes."""
+
+    @pytest.fixture(name="comment_step")
+    def comment_step_fixture(self, summary_workflow):
+        """Return the step that posts the gh issue comment."""
+        steps = summary_workflow["jobs"]["summary"]["steps"]
+        step = next(
+            (s for s in steps if "gh issue comment" in s.get("run", "")),
+            None,
+        )
+        assert step is not None, "Comment step with 'gh issue comment' not found"
+        return step
+
+    def test_comment_step_has_gh_token_env(self, comment_step):
+        """The comment step must provide GH_TOKEN via env for gh CLI authentication."""
+        env = comment_step.get("env", {})
+        assert "GH_TOKEN" in env, (
+            "Comment step must set GH_TOKEN env var for gh CLI"
+        )
+
+    def test_comment_step_gh_token_uses_github_token_secret(self, comment_step):
+        """GH_TOKEN must be set from secrets.GITHUB_TOKEN."""
+        env = comment_step.get("env", {})
+        gh_token_value = env.get("GH_TOKEN", "")
+        assert "secrets.GITHUB_TOKEN" in gh_token_value, (
+            "GH_TOKEN must be sourced from secrets.GITHUB_TOKEN"
+        )
+
+    def test_comment_step_has_issue_number_env(self, comment_step):
+        """The comment step must provide ISSUE_NUMBER via env."""
+        env = comment_step.get("env", {})
+        assert "ISSUE_NUMBER" in env, (
+            "Comment step must set ISSUE_NUMBER env var"
+        )
+
+    def test_comment_step_issue_number_env_uses_github_context(self, comment_step):
+        """ISSUE_NUMBER must come from github.event.issue.number."""
+        env = comment_step.get("env", {})
+        issue_number_value = env.get("ISSUE_NUMBER", "")
+        assert "github.event.issue.number" in issue_number_value, (
+            "ISSUE_NUMBER must be sourced from github.event.issue.number"
+        )
+
+    def test_comment_step_run_uses_issue_number_var(self, comment_step):
+        """The shell command must reference ISSUE_NUMBER."""
+        run_script = comment_step.get("run", "")
+        assert "ISSUE_NUMBER" in run_script, (
+            "The gh comment command must reference the ISSUE_NUMBER variable"
+        )
+
+    def test_comment_step_issue_number_is_unquoted_in_shell(self, comment_step):
+        """
+        ISSUE_NUMBER is NOT double-quoted in the shell command after the PR.
+
+        Previously, "$ISSUE_NUMBER" was quoted to prevent word splitting.
+        The PR changed this to bare $ISSUE_NUMBER.
+        """
+        run_script = comment_step.get("run", "")
+        # Unquoted usage: $ISSUE_NUMBER not wrapped in double quotes
+        assert re.search(r'gh issue comment \$ISSUE_NUMBER', run_script), (
+            "After the PR, gh issue comment uses unquoted $ISSUE_NUMBER"
+        )
+
+    def test_comment_step_response_is_inline_expression(self, summary_workflow_raw):
+        """
+        The response is embedded directly in the shell command as a single-quoted
+        GitHub Actions expression rather than via a $RESPONSE env variable.
+
+        The PR changed from: --body "$RESPONSE"
+        to: --body '${{ steps.inference.outputs.response }}'
+        """
+        assert "steps.inference.outputs.response" in summary_workflow_raw, (
+            "The response must be referenced via steps.inference.outputs.response"
+        )
+
+    def test_comment_step_does_not_use_response_env_var_in_command(
+        self, comment_step
+    ):
+        """
+        The run script must not use $RESPONSE to pass the AI response.
+
+        The PR removed the RESPONSE env var from the command's --body argument;
+        the response is now embedded as a single-quoted expression.
+        """
+        run_script = comment_step.get("run", "")
+        # The --body argument should not use the $RESPONSE env var
+        assert '--body "$RESPONSE"' not in run_script, (
+            "After the PR, --body should not use the $RESPONSE env var"
+        )
+
+
+class TestRemovedSanitizationShellLogic:
+    """
+    Verify that the sanitization shell logic is entirely absent from the workflow.
+
+    These tests document the removal of the sed-based input sanitization that
+    previously guarded against prompt injection by stripping special characters
+    and limiting input length.
+    """
+
+    def test_no_sed_sanitization_in_workflow(self, summary_workflow_raw):
+        """
+        The workflow must not contain any sed-based sanitization commands.
+
+        The PR removed the sanitization step which used 'sed' to strip
+        special characters from user-supplied issue title and body.
+        """
+        assert "sed 's/[^" not in summary_workflow_raw, (
+            "The sanitization sed command should not appear in summary.yml"
+        )
+
+    def test_no_head_length_limit_in_workflow(self, summary_workflow_raw):
+        """
+        The workflow must not contain 'head -c' length-limiting commands.
+
+        The PR removed the length-limiting logic that capped the sanitized
+        title at 200 chars and body at 1000 chars.
+        """
+        assert "head -c" not in summary_workflow_raw, (
+            "The 'head -c' length-limiting command should not appear in summary.yml"
+        )
+
+    def test_no_sanitize_step_id_in_workflow(self, summary_workflow_raw):
+        """
+        There must be no step with id 'sanitize' in the workflow.
+
+        Confirms the sanitize step's id is gone from the raw YAML source.
+        """
+        # Match 'id: sanitize' with optional surrounding whitespace
+        assert not re.search(r'id:\s+sanitize', summary_workflow_raw), (
+            "No step should carry id='sanitize' after the PR"
+        )
+
+    def test_no_sanitized_title_env_var(self, summary_workflow_raw):
+        """
+        SANITIZED_TITLE shell variable must not appear in the workflow.
+
+        This variable was part of the removed sanitization step.
+        """
+        assert "SANITIZED_TITLE" not in summary_workflow_raw, (
+            "SANITIZED_TITLE should not appear in summary.yml after sanitize step removal"
+        )
+
+    def test_no_sanitized_body_env_var(self, summary_workflow_raw):
+        """
+        SANITIZED_BODY shell variable must not appear in the workflow.
+
+        This variable was part of the removed sanitization step.
+        """
+        assert "SANITIZED_BODY" not in summary_workflow_raw, (
+            "SANITIZED_BODY should not appear in summary.yml after sanitize step removal"
+        )
+
+    def test_issue_title_env_var_absent_from_sanitize_step(self, summary_workflow_raw):
+        """
+        The ISSUE_TITLE environment variable feeding the removed sanitize step
+        must not appear as a standalone sanitization input.
+
+        Note: The summary workflow may still reference github.event.issue.title
+        via GitHub Actions expressions; only the shell-level ISSUE_TITLE env
+        injection used by the old sanitize step is checked here.
+        """
+        # The old sanitize step declared 'ISSUE_TITLE: ${{ github.event.issue.title }}'
+        # inside its own env block. This pattern should be gone.
+        assert "ISSUE_TITLE:" not in summary_workflow_raw, (
+            "ISSUE_TITLE env var (from old sanitize step) should not appear in summary.yml"
+        )
+
+    def test_issue_body_env_var_absent_from_sanitize_step(self, summary_workflow_raw):
+        """
+        The ISSUE_BODY environment variable feeding the removed sanitize step
+        must not appear in summary.yml.
+        """
+        assert "ISSUE_BODY:" not in summary_workflow_raw, (
+            "ISSUE_BODY env var (from old sanitize step) should not appear in summary.yml"
+        )
+
+
+class TestPinnedActionVersions:
+    """Verify actions in summary.yml use pinned commit SHAs, not floating tags."""
+
+    @pytest.fixture(name="summary_steps")
+    def summary_steps_fixture(self, summary_workflow):
+        """Return the list of steps in the 'summary' job."""
+        return summary_workflow["jobs"]["summary"]["steps"]
+
+    def test_all_actions_specify_version(self, summary_steps):
+        """Every action reference must include a version specifier after '@'."""
+        for step in summary_steps:
+            if "uses" in step:
+                action = step["uses"]
+                assert "@" in action, (
+                    f"Action '{action}' in summary.yml must include a version specifier"
+                )
+
+    def test_no_actions_use_latest(self, summary_steps):
+        """No action reference may use '@latest'."""
+        for step in summary_steps:
+            action = step.get("uses", "")
+            assert "@latest" not in action.lower(), (
+                f"Action '{action}' in summary.yml must not use '@latest'"
+            )
+
+    def test_no_actions_use_master_branch(self, summary_steps):
+        """No action reference may use '@master'."""
+        for step in summary_steps:
+            action = step.get("uses", "")
+            assert "@master" not in action.lower(), (
+                f"Action '{action}' in summary.yml must not use '@master' branch"
+            )
+
+    def test_checkout_action_is_pinned_to_sha(self, summary_steps):
+        """The actions/checkout step must be pinned to a commit SHA (40 hex chars)."""
+        checkout_step = next(
+            (s for s in summary_steps if "actions/checkout" in s.get("uses", "")),
+            None,
+        )
+        assert checkout_step is not None, "actions/checkout step not found"
+        action_ref = checkout_step["uses"]
+        sha_part = action_ref.split("@", 1)[-1]
+        assert re.match(r'^[0-9a-f]{40}$', sha_part), (
+            f"actions/checkout must be pinned to a full commit SHA, got: {sha_part}"
+        )
+
+    def test_ai_inference_action_is_pinned_to_sha(self, summary_steps):
+        """The actions/ai-inference step must be pinned to a commit SHA (40 hex chars)."""
+        inference_step = next(
+            (s for s in summary_steps if "actions/ai-inference" in s.get("uses", "")),
+            None,
+        )
+        assert inference_step is not None, "actions/ai-inference step not found"
+        action_ref = inference_step["uses"]
+        sha_part = action_ref.split("@", 1)[-1]
+        assert re.match(r'^[0-9a-f]{40}$', sha_part), (
+            f"actions/ai-inference must be pinned to a full commit SHA, got: {sha_part}"
+        )
+
+
+class TestSummaryWorkflowRegression:
+    """Regression and boundary tests to strengthen confidence in the workflow state."""
+
+    def test_workflow_has_exactly_three_steps(self, summary_workflow):
+        """
+        The summary job must have exactly three steps after the PR.
+
+        Before: checkout, sanitize, inference, comment (4 steps).
+        After the PR removed the sanitize step: checkout, inference, comment (3 steps).
+        """
+        steps = summary_workflow["jobs"]["summary"]["steps"]
+        assert len(steps) == 3, (
+            f"Expected 3 steps after sanitize removal, found {len(steps)}"
+        )
+
+    def test_step_ordering_checkout_before_inference(self, summary_workflow):
+        """The checkout step must appear before the AI inference step."""
+        steps = summary_workflow["jobs"]["summary"]["steps"]
+        checkout_idx = next(
+            (i for i, s in enumerate(steps) if "actions/checkout" in s.get("uses", "")),
+            None,
+        )
+        inference_idx = next(
+            (i for i, s in enumerate(steps) if "actions/ai-inference" in s.get("uses", "")),
+            None,
+        )
+        assert checkout_idx is not None, "Checkout step not found"
+        assert inference_idx is not None, "Inference step not found"
+        assert checkout_idx < inference_idx, (
+            "Checkout step must appear before the inference step"
+        )
+
+    def test_step_ordering_inference_before_comment(self, summary_workflow):
+        """The AI inference step must appear before the comment step."""
+        steps = summary_workflow["jobs"]["summary"]["steps"]
+        inference_idx = next(
+            (i for i, s in enumerate(steps) if "actions/ai-inference" in s.get("uses", "")),
+            None,
+        )
+        comment_idx = next(
+            (i for i, s in enumerate(steps) if "gh issue comment" in s.get("run", "")),
+            None,
+        )
+        assert inference_idx is not None, "Inference step not found"
+        assert comment_idx is not None, "Comment step not found"
+        assert inference_idx < comment_idx, (
+            "Inference step must appear before the comment step"
+        )
+
+    def test_raw_github_expressions_present_in_prompt(self, summary_workflow_raw):
+        """
+        The raw YAML source must contain GitHub expression syntax for title and body
+        inside the prompt, confirming unsanitized values are passed to the AI.
+        """
+        assert "github.event.issue.title" in summary_workflow_raw, (
+            "Raw workflow YAML must reference github.event.issue.title in the prompt"
+        )
+        assert "github.event.issue.body" in summary_workflow_raw, (
+            "Raw workflow YAML must reference github.event.issue.body in the prompt"
+        )
+
+    def test_response_env_var_still_defined_in_comment_step(self, summary_workflow):
+        """
+        The RESPONSE env var may still be declared in the comment step env block
+        even if it is no longer used in the --body argument.
+
+        This is a boundary test: if it IS present, it does not affect the shell
+        command (which now embeds the expression directly). This test simply
+        documents the current state without asserting either presence or absence,
+        but validates that the run script does not use it for --body.
+        """
+        steps = summary_workflow["jobs"]["summary"]["steps"]
+        comment_step = next(
+            (s for s in steps if "gh issue comment" in s.get("run", "")),
+            None,
+        )
+        assert comment_step is not None
+        run_script = comment_step.get("run", "")
+        # The key assertion: --body must not use the $RESPONSE env var pattern
+        assert not re.search(r'--body\s+"\$RESPONSE"', run_script), (
+            "The --body argument must not use the $RESPONSE env var"
+        )
