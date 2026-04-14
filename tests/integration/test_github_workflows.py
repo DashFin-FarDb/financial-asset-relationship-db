@@ -219,15 +219,15 @@ class TestWorkflowStructure:
         jobs = config.get("jobs", {})
 
         for job_name, job_config in jobs.items():
-            assert (
-                "steps" in job_config or "uses" in job_config
-            ), f"Job '{job_name}' in {workflow_file.name} must have 'steps' or 'uses'"
+            assert "steps" in job_config or "uses" in job_config, (
+                f"Job '{job_name}' in {workflow_file.name} must have 'steps' or 'uses'"
+            )
 
             if "steps" in job_config:
                 assert job_config["steps"], f"Job '{job_name}' in {workflow_file.name} has empty 'steps'"
-                assert isinstance(
-                    job_config["steps"], list
-                ), f"Job '{job_name}' in {workflow_file.name} 'steps' must be a list"
+                assert isinstance(job_config["steps"], list), (
+                    f"Job '{job_name}' in {workflow_file.name} 'steps' must be a list"
+                )
 
 
 class TestWorkflowActions:
@@ -394,7 +394,7 @@ class TestPrAgentWorkflow:
         duplicate_names = [name for name in step_names if step_names.count(name) > 1]
 
         assert not duplicate_names, (
-            f"Found duplicate step names: {set(duplicate_names)}. " "Each step should have a unique name."
+            f"Found duplicate step names: {set(duplicate_names)}. Each step should have a unique name."
         )
 
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
@@ -576,9 +576,9 @@ class TestWorkflowEdgeCases:
         with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
-        assert (
-            "\t" not in content
-        ), f"Workflow {workflow_file.name} contains tab characters. YAML files should use spaces for indentation, not tabs."
+        assert "\t" not in content, (
+            f"Workflow {workflow_file.name} contains tab characters. YAML files should use spaces for indentation, not tabs."
+        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_consistent_indentation(self, workflow_file: Path):
@@ -641,9 +641,7 @@ class TestWorkflowPerformance:
 
         # This is informational, not a hard requirement
         if not has_cache:
-            print(
-                f"\nInfo: {workflow_file.name} doesn't use caching. " "Consider adding caching to improve performance."
-            )
+            print(f"\nInfo: {workflow_file.name} doesn't use caching. Consider adding caching to improve performance.")
 
 
 class TestPrAgentWorkflowAdvanced:
@@ -952,9 +950,9 @@ class TestAutoAssignWorkflow:
         assert isinstance(issues_config, dict), "issues trigger should be a dictionary"
         assert "types" in issues_config, "issues trigger should specify types"
         assert "opened" in issues_config["types"], "issues trigger should include 'opened' type"
-        assert issues_config["types"] == [
-            "opened"
-        ], "Issues should only trigger on 'opened' to avoid duplicate assignments"
+        assert issues_config["types"] == ["opened"], (
+            "Issues should only trigger on 'opened' to avoid duplicate assignments"
+        )
 
     def test_auto_assign_structure_triggers_on_pull_requests(self, auto_assign_workflow: Dict[str, Any]):
         """Test that auto-assign workflow triggers on pull request opened events."""
@@ -975,9 +973,9 @@ class TestAutoAssignWorkflow:
         workflow_perms = auto_assign_workflow.get("permissions")
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
         job_perms = run_job.get("permissions")
-        assert (
-            workflow_perms is not None or job_perms is not None
-        ), "Workflow should define permissions at workflow or job level"
+        assert workflow_perms is not None or job_perms is not None, (
+            "Workflow should define permissions at workflow or job level"
+        )
 
     def test_auto_assign_permissions_issues_write(self, auto_assign_workflow: Dict[str, Any]):
         """Test that the workflow has issues write permission."""
@@ -1025,9 +1023,9 @@ class TestAutoAssignWorkflow:
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
         job_perms = run_job.get("permissions")
         # Either workflow-level or job-level permissions are acceptable
-        assert (
-            workflow_perms is not None or job_perms is not None
-        ), "Permissions should be defined at workflow or job level"
+        assert workflow_perms is not None or job_perms is not None, (
+            "Permissions should be defined at workflow or job level"
+        )
 
     # Security tests
     def test_auto_assign_security_uses_github_token(self, auto_assign_workflow: Dict[str, Any]):
@@ -1040,9 +1038,9 @@ class TestAutoAssignWorkflow:
         assert "repo-token" in with_config, "Step should have 'repo-token' configuration"
         token = str(with_config["repo-token"])
         # Accept both secrets.GITHUB_TOKEN and github.token
-        assert (
-            "${{ secrets.GITHUB_TOKEN }}" in token or "${{ github.token }}" in token
-        ), "Should use secrets.GITHUB_TOKEN or github.token for authentication"
+        assert "${{ secrets.GITHUB_TOKEN }}" in token or "${{ github.token }}" in token, (
+            "Should use secrets.GITHUB_TOKEN or github.token for authentication"
+        )
 
     def test_auto_assign_security_no_hardcoded_secrets(self, auto_assign_workflow: Dict[str, Any]):
         """Test that no secrets are hardcoded in the workflow."""
@@ -1087,9 +1085,9 @@ class TestAutoAssignWorkflow:
         # Should follow semantic versioning or commit pinning
         is_semver = version.startswith("v") and any(c.isdigit() for c in version)
         is_commit_sha = len(version) >= 40 or len(version) == 7
-        assert (
-            is_semver or is_commit_sha
-        ), f"Action version '{version}' should follow semantic versioning or be a commit SHA"
+        assert is_semver or is_commit_sha, (
+            f"Action version '{version}' should follow semantic versioning or be a commit SHA"
+        )
 
     def test_auto_assign_security_no_deprecated_syntax(self, auto_assign_workflow: Dict[str, Any]):
         """Test that the workflow doesn't use deprecated GitHub Actions syntax."""
@@ -1167,9 +1165,9 @@ class TestAutoAssignWorkflow:
 
         # Check for no duplicates
         unique_assignees = set(assignee_list)
-        assert len(assignee_list) == len(
-            unique_assignees
-        ), f"Assignees should not contain duplicates. Found: {assignee_list}"
+        assert len(assignee_list) == len(unique_assignees), (
+            f"Assignees should not contain duplicates. Found: {assignee_list}"
+        )
 
     def test_auto_assign_configuration_num_assignees_valid(self, auto_assign_workflow: Dict[str, Any]):
         """Test that numOfAssignee is valid and matches assignees list."""
@@ -1195,9 +1193,9 @@ class TestAutoAssignWorkflow:
         # Verify it doesn't exceed available assignees
         assignees = str(with_config.get("assignees", ""))
         assignee_list = [a.strip() for a in assignees.split(",") if a.strip()]
-        assert num_assignees <= len(
-            assignee_list
-        ), f"numOfAssignee ({num_assignees}) should not exceed number of specified assignees ({len(assignee_list)})"
+        assert num_assignees <= len(assignee_list), (
+            f"numOfAssignee ({num_assignees}) should not exceed number of specified assignees ({len(assignee_list)})"
+        )
 
     def test_auto_assign_configuration_no_unexpected_fields(self, auto_assign_workflow: Dict[str, Any]):
         """Test that no unexpected configuration fields are present."""
@@ -1238,9 +1236,9 @@ class TestAutoAssignWorkflow:
         steps = run_job.get("steps", [])
         assert len(steps) > 0, "Job should have at least one step"
         step = steps[0]
-        assert "continue-on-error" not in step or not step.get(
-            "continue-on-error"
-        ), "Auto-assign should not continue on error"
+        assert "continue-on-error" not in step or not step.get("continue-on-error"), (
+            "Auto-assign should not continue on error"
+        )
 
 
 class TestAutoAssignWorkflowAdvanced:
@@ -1403,9 +1401,9 @@ class TestAutoAssignWorkflowAdvanced:
         assert name[0].isupper(), "Workflow name should start with capital letter"
         # Check it mentions the purpose
         name_lower = name.lower()
-        assert any(
-            word in name_lower for word in ["assign", "issue", "pr", "pull"]
-        ), "Workflow name should indicate auto-assignment purpose"
+        assert any(word in name_lower for word in ["assign", "issue", "pr", "pull"]), (
+            "Workflow name should indicate auto-assignment purpose"
+        )
 
     # Trigger Configuration
     def test_auto_assign_triggers_are_specific(self, auto_assign_workflow: Dict[str, Any]):
@@ -1460,7 +1458,9 @@ class TestAutoAssignWorkflowAdvanced:
         # Should only have issues, pull-requests, and optionally contents permissions
         allowed_perms = {"issues", "pull-requests", "contents"}
         actual_perms = set(permissions.keys())
-        assert actual_perms.issubset(allowed_perms), f"Should only have permissions from {allowed_perms}, got {actual_perms}"
+        assert actual_perms.issubset(allowed_perms), (
+            f"Should only have permissions from {allowed_perms}, got {actual_perms}"
+        )
 
     def test_auto_assign_uses_semantic_versioning(self, auto_assign_workflow: Dict[str, Any]):
         """Test that action version follows semantic versioning or commit SHA."""
@@ -1643,9 +1643,9 @@ class TestAutoAssignDocumentation:
         content = summary_file.read_text()
 
         # Should reference pozil/auto-assign-issue action
-        assert (
-            "pozil" in content.lower() or "auto-assign" in content.lower()
-        ), "Documentation should reference the auto-assign action"
+        assert "pozil" in content.lower() or "auto-assign" in content.lower(), (
+            "Documentation should reference the auto-assign action"
+        )
 
 
 class TestWorkflowTriggers:
@@ -1794,9 +1794,9 @@ class TestWorkflowJobConfiguration:
                 # Allow self-hosted and matrix variables
                 if "${{" in runner or "self-hosted" in runner:
                     continue
-                assert (
-                    runner in standard_runners
-                ), f"Job '{job_name}' in {workflow_file.name} uses non-standard runner: {runner}"
+                assert runner in standard_runners, (
+                    f"Job '{job_name}' in {workflow_file.name} uses non-standard runner: {runner}"
+                )
 
 
 class TestWorkflowStepConfiguration:
@@ -1820,7 +1820,7 @@ class TestWorkflowStepConfiguration:
                     working_dir = step["working-directory"]
                     # Should not use absolute paths
                     assert not working_dir.startswith("/"), (
-                        f"Step {idx} in job '{job_name}' of {workflow_file.name} " f"uses absolute path: {working_dir}"
+                        f"Step {idx} in job '{job_name}' of {workflow_file.name} uses absolute path: {working_dir}"
                     )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
@@ -1918,8 +1918,7 @@ class TestWorkflowEnvAndSecrets:
                     not in content[max(0, content.lower().find(pattern) - 50) : content.lower().find(pattern) + 50]
                 ):
                     pytest.skip(
-                        f"Workflow {workflow_file.name} may have hardcoded sensitive value. "
-                        "Manual review recommended."
+                        f"Workflow {workflow_file.name} may have hardcoded sensitive value. Manual review recommended."
                     )
 
 
@@ -1941,9 +1940,7 @@ class TestWorkflowComplexity:
 
         job_count = len(jobs)
         if job_count > 10:
-            print(
-                f"\nWarning: {workflow_file.name} has {job_count} jobs. " "Consider splitting into multiple workflows."
-            )
+            print(f"\nWarning: {workflow_file.name} has {job_count} jobs. Consider splitting into multiple workflows.")
 
         assert job_count <= 20, (
             f"Workflow {workflow_file.name} has {job_count} jobs (max 20). "
@@ -1965,10 +1962,7 @@ class TestWorkflowComplexity:
             step_count = len(steps)
 
             if step_count > 15:
-                print(
-                    f"\nInfo: Job '{job_name}' in {workflow_file.name} has "
-                    f"{step_count} steps. Consider refactoring."
-                )
+                print(f"\nInfo: Job '{job_name}' in {workflow_file.name} has {step_count} steps. Consider refactoring.")
 
             assert step_count <= 30, (
                 f"Job '{job_name}' in {workflow_file.name} has {step_count} steps (max 30). "
@@ -2055,7 +2049,7 @@ class TestWorkflowOutputsAndArtifacts:
             # Verify needed jobs exist
             for needed_job in needs:
                 assert needed_job in jobs, (
-                    f"Job '{job_name}' in {workflow_file.name} needs '{needed_job}' " "which doesn't exist"
+                    f"Job '{job_name}' in {workflow_file.name} needs '{needed_job}' which doesn't exist"
                 )
 
 
@@ -2090,7 +2084,7 @@ class TestWorkflowBestPractices:
 
         for job_name, job_config in jobs.items():
             if "timeout-minutes" not in job_config:
-                print(f"\nRecommendation: Job '{job_name}' in {workflow_file.name} " "doesn't specify timeout-minutes")
+                print(f"\nRecommendation: Job '{job_name}' in {workflow_file.name} doesn't specify timeout-minutes")
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_shell_explicitly_set(self, workflow_file: Path):
@@ -2154,9 +2148,9 @@ class TestWorkflowAdvancedSecurity:
                     # Check for dangerous eval/exec patterns
                     dangerous_patterns = ["eval ", "exec(", "``"]
                     for pattern in dangerous_patterns:
-                        assert (
-                            pattern not in str(run_cmd).lower()
-                        ), f"Dangerous pattern '{pattern}' in {workflow_file.name}, job {job_name}, step {idx}"
+                        assert pattern not in str(run_cmd).lower(), (
+                            f"Dangerous pattern '{pattern}' in {workflow_file.name}, job {job_name}, step {idx}"
+                        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_secrets_not_echoed_to_logs(self, workflow_file: Path):
@@ -2241,9 +2235,9 @@ class TestWorkflowAdvancedValidation:
                         _, version = uses.rsplit("@", 1)
                         # Should not use branch names
                         invalid_refs = ["main", "master", "latest", "develop"]
-                        assert (
-                            version.lower() not in invalid_refs
-                        ), f"Using unstable ref '{version}' in {workflow_file.name}"
+                        assert version.lower() not in invalid_refs, (
+                            f"Using unstable ref '{version}' in {workflow_file.name}"
+                        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_checkout_with_proper_ref_for_pr(self, workflow_file: Path):
@@ -2388,9 +2382,9 @@ class TestWorkflowComplexScenarios:
             if "secrets" in wf_call:
                 for secret_name, secret_def in wf_call["secrets"].items():
                     # Secrets should have required or description
-                    assert (
-                        "required" in secret_def or "description" in secret_def
-                    ), f"Secret '{secret_name}' should specify required or description"
+                    assert "required" in secret_def or "description" in secret_def, (
+                        f"Secret '{secret_name}' should specify required or description"
+                    )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_matrix_strategy_has_include_or_exclude_properly_formatted(self, workflow_file: Path):
@@ -2489,9 +2483,9 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
                         # Extract step ID references
                         refs = re.findall(r"steps\.(\w+)\.", output_str)
                         for ref in refs:
-                            assert (
-                                ref in step_ids
-                            ), f"Output '{output_name}' references undefined step '{ref}' in {workflow_file.name}"
+                            assert ref in step_ids, (
+                                f"Output '{output_name}' references undefined step '{ref}' in {workflow_file.name}"
+                            )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_artifacts_have_reasonable_retention(self, workflow_file: Path):
