@@ -22,11 +22,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SUMMARY_WORKFLOW_PATH = REPO_ROOT / ".github/workflows/summary.yml"
 
 
-`@pytest.fixture`(name="summary_workflow")
-
-
-
-
+@pytest.fixture(name="summary_workflow")
 def summary_workflow_fixture():
     """
     Load and parse the summary.yml GitHub Actions workflow file.
@@ -40,9 +36,7 @@ def summary_workflow_fixture():
 
 
 
-`@pytest.fixture`(name="summary_workflow_raw")
-
-
+@pytest.fixture(name="summary_workflow_raw")
 def summary_workflow_raw_fixture():
     """
     Return the raw text content of summary.yml.
