@@ -1011,9 +1011,9 @@ class TestAutoAssignWorkflow:
         assert required_perms.issubset(actual_perms), f"Should have at least {required_perms} permissions"
         # Allow optional 'contents: read' for checkout
         allowed_perms = {"issues", "pull-requests", "contents"}
-        assert actual_perms.issubset(allowed_perms), (
-            f"Should only have permissions from {allowed_perms}, got {actual_perms}"
-        )
+        assert actual_perms.issubset(
+            allowed_perms
+        ), f"Should only have permissions from {allowed_perms}, got {actual_perms}"
 
         # Ensure permissions are not overly broad
         for permission, value in permissions.items():
@@ -1460,7 +1460,9 @@ class TestAutoAssignWorkflowAdvanced:
         # Should only have issues, pull-requests, and optionally contents permissions
         allowed_perms = {"issues", "pull-requests", "contents"}
         actual_perms = set(permissions.keys())
-        assert actual_perms.issubset(allowed_perms), f"Should only have permissions from {allowed_perms}, got {actual_perms}"
+        assert actual_perms.issubset(
+            allowed_perms
+        ), f"Should only have permissions from {allowed_perms}, got {actual_perms}"
 
     def test_auto_assign_uses_semantic_versioning(self, auto_assign_workflow: Dict[str, Any]):
         """Test that action version follows semantic versioning or commit SHA."""

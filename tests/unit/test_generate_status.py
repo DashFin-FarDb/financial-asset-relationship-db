@@ -24,7 +24,6 @@ import generate_status
 import pytest
 from github import GithubException
 
-
 # --- Fixtures ---
 
 
