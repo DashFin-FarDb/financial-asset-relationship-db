@@ -216,10 +216,11 @@ def get_connection() -> Iterator[sqlite3.Connection]:
             for in-memory databases, it is kept open.
     """
     connection = _connect()
+    is_memory = _is_memory_db()
     try:
         yield connection
     finally:
-        if not _is_memory_db():
+        if not is_memory:
             connection.close()
 
 

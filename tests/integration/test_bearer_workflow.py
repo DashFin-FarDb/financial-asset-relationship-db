@@ -256,10 +256,12 @@ class TestBearerSteps:
             None,
         )
         uses = upload_step["uses"]
-        # Accept either @v3 tag or SHA pin (which is more secure)
+        # Accept either @v3 tag or 40-hex-char SHA pin (which is more secure)
+        is_v3 = "github/codeql-action/upload-sarif@v3" in uses
+        is_sha = bool(re.search(r"github/codeql-action/upload-sarif@[0-9a-f]{40}", uses))
         assert (
-            "github/codeql-action/upload-sarif@v3" in uses or "github/codeql-action/upload-sarif@" in uses
-        ), "SARIF upload should use CodeQL action v3 or SHA pin"
+            is_v3 or is_sha
+        ), "SARIF upload should use CodeQL action v3 or a full commit SHA pin"
 
 
 class TestBearerActionConfiguration:

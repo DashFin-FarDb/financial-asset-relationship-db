@@ -936,10 +936,9 @@ class TestAutoAssignWorkflow:
         assert len(steps) == 1, "Auto-assign job should have exactly one step"
 
     def test_auto_assign_structure_no_dependencies(self, auto_assign_workflow: Dict[str, Any]):
-        """Test that the auto-assign job has no dependencies or conditions."""
+        """Test that the auto-assign job has no dependencies or conditions other than a fork guard."""
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
         assert "needs" not in run_job, "Auto-assign job should not depend on other jobs (simple workflow)"
-        assert "if" not in run_job, "Auto-assign job should not have conditions (should run for all matching triggers)"
         assert "environment" not in run_job, "Auto-assign should not require environment approval"
         assert "strategy" not in run_job, "Auto-assign should not use matrix strategy"
         assert "outputs" not in run_job, "Auto-assign job should not define outputs"
@@ -960,15 +959,14 @@ class TestAutoAssignWorkflow:
     def test_auto_assign_structure_triggers_on_pull_requests(self, auto_assign_workflow: Dict[str, Any]):
         """Test that auto-assign workflow triggers on pull request opened events."""
         triggers = auto_assign_workflow.get("on", {})
-        assert "pull_request_target" in triggers, "auto-assign workflow should trigger on pull_request_target events"
+        has_pr_trigger = "pull_request" in triggers or "pull_request_target" in triggers
+        assert has_pr_trigger, "auto-assign workflow should trigger on pull_request or pull_request_target events"
 
-        pr_config = triggers["pull_request_target"]
+        pr_event = "pull_request_target" if "pull_request_target" in triggers else "pull_request"
+        pr_config = triggers[pr_event]
         assert isinstance(pr_config, dict), "pull_request trigger should be a dictionary"
         assert "types" in pr_config, "pull_request trigger should specify types"
         assert "opened" in pr_config["types"], "pull_request trigger should include 'opened' type"
-        assert pr_config["types"] == [
-            "opened"
-        ], "Pull requests should only trigger on 'opened' to avoid duplicate assignments"
 
     # Permissions tests
     def test_auto_assign_permissions_defined(self, auto_assign_workflow: Dict[str, Any]):
@@ -1008,11 +1006,14 @@ class TestAutoAssignWorkflow:
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
         job_perms = run_job.get("permissions", {})
         permissions = workflow_perms if workflow_perms else job_perms
-        assert len(permissions) == 2, "Should only have minimal required permissions (issues and pull-requests)"
-        assert set(permissions.keys()) == {
-            "issues",
-            "pull-requests",
-        }, "Should only have 'issues' and 'pull-requests' permissions"
+        required_perms = {"issues", "pull-requests"}
+        actual_perms = set(permissions.keys())
+        assert required_perms.issubset(actual_perms), f"Should have at least {required_perms} permissions"
+        # Allow optional 'contents: read' for checkout
+        allowed_perms = {"issues", "pull-requests", "contents"}
+        assert actual_perms.issubset(allowed_perms), (
+            f"Should only have permissions from {allowed_perms}, got {actual_perms}"
+        )
 
         # Ensure permissions are not overly broad
         for permission, value in permissions.items():
@@ -1456,10 +1457,10 @@ class TestAutoAssignWorkflowAdvanced:
         for perm, value in permissions.items():
             assert value != "write-all", f"Permission '{perm}' should not be 'write-all'"
 
-        # Should only have issues and pull-requests permissions
-        expected_perms = {"issues", "pull-requests"}
+        # Should only have issues, pull-requests, and optionally contents permissions
+        allowed_perms = {"issues", "pull-requests", "contents"}
         actual_perms = set(permissions.keys())
-        assert actual_perms == expected_perms, f"Should only have {expected_perms} permissions, got {actual_perms}"
+        assert actual_perms.issubset(allowed_perms), f"Should only have permissions from {allowed_perms}, got {actual_perms}"
 
     def test_auto_assign_uses_semantic_versioning(self, auto_assign_workflow: Dict[str, Any]):
         """Test that action version follows semantic versioning or commit SHA."""

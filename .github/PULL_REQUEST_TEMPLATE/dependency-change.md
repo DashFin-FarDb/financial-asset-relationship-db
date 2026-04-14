@@ -36,14 +36,6 @@ This PR does **not** do:
 
 - [ ] `python --version`
 - [ ] `pip --version`
-
-## Validation run locally
-
-- [ ] `python --version`
-- [ ] `pip --version`
-- [ ] `pip install -e .`
-- [ ] `pip check`
-- [ ] `pip check`
 - [ ] `pip install -e .`
 - [ ] `pip check`
 - [ ] `python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None))"`

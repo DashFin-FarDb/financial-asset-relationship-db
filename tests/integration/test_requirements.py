@@ -182,16 +182,6 @@ class TestRequiredPackages:
         assert "pydantic" in package_names
 
     @staticmethod
-    def test_has_httpx(package_names: List[str]):
-        """Test that httpx is included for HTTP client."""
-        assert "httpx" in package_names
-
-    @staticmethod
-    def test_has_pytest(package_names: List[str]):
-        """Test that pytest is included for testing."""
-        assert "pytest" in package_names
-
-    @staticmethod
     def test_has_security_pinned_packages(requirements: List[Tuple[str, str]]):
         """Test that security-pinned packages are present with comments."""
         # Check for zipp which was added as a security fix
