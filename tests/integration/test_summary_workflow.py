@@ -24,6 +24,8 @@ SUMMARY_WORKFLOW_PATH = REPO_ROOT / ".github/workflows/summary.yml"
 
 
 `@pytest.fixture`(name="summary_workflow")
+
+
 def summary_workflow_fixture():
     """
     Load and parse the summary.yml GitHub Actions workflow file.
@@ -36,6 +38,8 @@ def summary_workflow_fixture():
 
 
 `@pytest.fixture`(name="summary_workflow_raw")
+
+
 def summary_workflow_raw_fixture():
     """
     Return the raw text content of summary.yml.
@@ -404,8 +408,6 @@ class TestIssueContentIsIncludedInWorkflow:
             r"github\.event\.issue\.(title|body)|(?:SANITIZED|ISSUE)_(?:TITLE|BODY)",
             summary_workflow_raw,
         ), "summary.yml should include issue title/body content in step configuration"
-
-
 
 
 class TestPinnedActionVersions:
