@@ -159,11 +159,14 @@ download_cli() {
             wget -q -O "${bin_folder}/${remote_file}.sha256" "$checksum_url" || true
         fi
 
-        if [ -f "${bin_folder}/${remote_file}.sha256" ]; then
-            verify_checksum "${bin_folder}/${remote_file}" "${bin_folder}/${remote_file}.sha256"
-        else
-            fatal "Checksum file not found for ${remote_file}; aborting for safety."
-        fi
+# Download checksum with explicit error handling
+  if ! download "$checksum_url" "$bin_folder"; then
+      fatal "Failed to download checksum file for ${remote_file}"
+  fi
+  if [ ! -s "${bin_folder}/${remote_file}.sha256" ]; then
+      fatal "Checksum file is empty or missing for ${remote_file}"
+  fi
+  verify_checksum "${bin_folder}/${remote_file}" "${bin_folder}/${remote_file}.sha256"
 
         # Extract safely to a temp dir then move atomically
         tmp_extract_dir=$(mktemp -d "${bin_folder}/extract.XXXXXX")
