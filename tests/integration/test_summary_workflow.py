@@ -25,10 +25,10 @@ SUMMARY_WORKFLOW_PATH = Path(".github/workflows/summary.yml")
 @pytest.fixture(name="summary_workflow")
 def summary_workflow_fixture():
     """
-    Load and parse the summary.yml GitHub Actions workflow file.
-
+    Load and parse the repository's .github/workflows/summary.yml workflow file.
+    
     Returns:
-        dict: Parsed YAML content of .github/workflows/summary.yml.
+        dict: Parsed YAML mapping representing the contents of SUMMARY_WORKFLOW_PATH.
     """
     with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
@@ -37,10 +37,10 @@ def summary_workflow_fixture():
 @pytest.fixture(name="summary_workflow_raw")
 def summary_workflow_raw_fixture():
     """
-    Return the raw text content of summary.yml.
-
+    Raw text of the summary workflow file.
+    
     Returns:
-        str: Raw file content as a string.
+        str: Contents of `.github/workflows/summary.yml` as a raw string.
     """
     with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
         return f.read()
@@ -131,15 +131,20 @@ class TestSummaryWorkflowSteps:
 
     @pytest.fixture(name="summary_steps")
     def summary_steps_fixture(self, summary_workflow):
-        """Return the list of steps in the 'summary' job."""
+        """
+        Retrieve the steps defined in the 'summary' job of the parsed workflow.
+        
+        Parameters:
+            summary_workflow (dict): Parsed YAML mapping for the workflow.
+        
+        Returns:
+            steps (list): List of step mappings from `jobs.summary.steps`.
+        """
         return summary_workflow["jobs"]["summary"]["steps"]
 
     def test_sanitize_step_is_absent(self, summary_steps):
         """
-        The 'Sanitize issue inputs' step must NOT exist.
-
-        This step was removed by the PR, eliminating sanitization of user-controlled
-        issue title and body before passing them to AI inference.
+        Assert that no step name in the `summary` job contains the substring "sanitize" (case-insensitive).
         """
         step_names = [s.get("name", "") for s in summary_steps]
         sanitize_step_found = any("sanitize" in name.lower() for name in step_names)
@@ -147,10 +152,9 @@ class TestSummaryWorkflowSteps:
 
     def test_no_step_uses_sanitize_outputs(self, summary_steps):
         """
-        No step should reference steps.sanitize.outputs.
-
-        After the PR, the sanitization step was removed, so no subsequent step
-        should reference its outputs.
+        Ensure no step references `steps.sanitize.outputs`.
+        
+        Asserts that none of the provided steps contain the string "steps.sanitize.outputs".
         """
         for step in summary_steps:
             step_str = yaml.dump(step)
@@ -191,7 +195,18 @@ class TestAIInferenceStepPrompt:
 
     @pytest.fixture(name="inference_step")
     def inference_step_fixture(self, summary_workflow):
-        """Return the AI inference step dict."""
+        """
+        Finds and returns the `actions/ai-inference` step from the `summary` job.
+        
+        Parameters:
+            summary_workflow (dict): Parsed YAML mapping of the workflow (as returned by yaml.safe_load).
+        
+        Returns:
+            dict: The step dictionary for the `actions/ai-inference` step.
+        
+        Raises:
+            AssertionError: If no step using `actions/ai-inference` is found.
+        """
         steps = summary_workflow["jobs"]["summary"]["steps"]
         step = next(
             (s for s in steps if "actions/ai-inference" in s.get("uses", "")),
@@ -214,10 +229,9 @@ class TestAIInferenceStepPrompt:
 
     def test_prompt_uses_raw_issue_body(self, inference_step):
         """
-        The AI inference prompt must use raw github.event.issue.body directly.
-
-        After the PR, sanitized outputs are no longer used; the raw GitHub
-        context expression is embedded in the prompt.
+        Asserts the AI inference step's prompt contains the raw GitHub issue body expression.
+        
+        Verifies the `with.prompt` value for the `actions/ai-inference` step includes `github.event.issue.body`.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
         assert "github.event.issue.body" in prompt, (
@@ -226,9 +240,9 @@ class TestAIInferenceStepPrompt:
 
     def test_prompt_does_not_use_sanitized_title(self, inference_step):
         """
-        The prompt must not reference steps.sanitize.outputs.title.
-
-        The sanitization step was removed; its outputs must not appear in the prompt.
+        Ensure the inference `prompt` does not reference the removed sanitize step's `title` output.
+        
+        Asserts that the string `steps.sanitize.outputs.title` is not present in the `with.prompt` value of the inference step.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
         assert "steps.sanitize.outputs.title" not in prompt, (
@@ -262,7 +276,18 @@ class TestCommentStep:
 
     @pytest.fixture(name="comment_step")
     def comment_step_fixture(self, summary_workflow):
-        """Return the step that posts the gh issue comment."""
+        """
+        Locate the step that posts the GitHub issue comment.
+        
+        Parameters:
+        	summary_workflow (dict): Parsed workflow mapping (the result of yaml.safe_load on .github/workflows/summary.yml).
+        
+        Returns:
+        	step (dict): The step mapping whose `run` script contains `gh issue comment`.
+        
+        Raises:
+        	AssertionError: If no step with `gh issue comment` is found.
+        """
         steps = summary_workflow["jobs"]["summary"]["steps"]
         step = next(
             (s for s in steps if "gh issue comment" in s.get("run", "")),
@@ -315,11 +340,9 @@ class TestCommentStep:
 
     def test_comment_step_response_is_inline_expression(self, summary_workflow_raw):
         """
-        The response is embedded directly in the shell command as a single-quoted
-        GitHub Actions expression rather than via a $RESPONSE env variable.
-
-        The PR changed from: --body "$RESPONSE"
-        to: --body '${{ steps.inference.outputs.response }}'
+        Verify the AI response is embedded inline in the workflow's shell command as a GitHub Actions expression.
+        
+        Asserts the raw workflow text contains `steps.inference.outputs.response`, ensuring the response is referenced inline rather than passed through a `$RESPONSE` environment variable.
         """
         assert "steps.inference.outputs.response" in summary_workflow_raw, (
             "The response must be referenced via steps.inference.outputs.response"
@@ -348,19 +371,17 @@ class TestRemovedSanitizationShellLogic:
 
     def test_no_sed_sanitization_in_workflow(self, summary_workflow_raw):
         """
-        The workflow must not contain any sed-based sanitization commands.
-
-        The PR removed the sanitization step which used 'sed' to strip
-        special characters from user-supplied issue title and body.
+        Assert that the raw workflow YAML does not contain a sed-based sanitization command.
+        
+        This test checks for the absence of the specific sed pattern used to strip special characters (e.g., "sed 's/[^") in the workflow file.
         """
         assert "sed 's/[^" not in summary_workflow_raw, "The sanitization sed command should not appear in summary.yml"
 
     def test_no_head_length_limit_in_workflow(self, summary_workflow_raw):
         """
-        The workflow must not contain 'head -c' length-limiting commands.
-
-        The PR removed the length-limiting logic that capped the sanitized
-        title at 200 chars and body at 1000 chars.
+        Assert the raw workflow text does not contain the 'head -c' length-limiting command.
+        
+        Verifies that the workflow does not include shell-based character truncation logic.
         """
         assert "head -c" not in summary_workflow_raw, (
             "The 'head -c' length-limiting command should not appear in summary.yml"
@@ -377,9 +398,9 @@ class TestRemovedSanitizationShellLogic:
 
     def test_no_sanitized_title_env_var(self, summary_workflow_raw):
         """
-        SANITIZED_TITLE shell variable must not appear in the workflow.
-
-        This variable was part of the removed sanitization step.
+        Ensure the raw workflow text does not contain the literal `SANITIZED_TITLE` environment variable.
+        
+        Verifies that `SANITIZED_TITLE` does not appear in the contents of .github/workflows/summary.yml.
         """
         assert "SANITIZED_TITLE" not in summary_workflow_raw, (
             "SANITIZED_TITLE should not appear in summary.yml after sanitize step removal"
@@ -412,8 +433,9 @@ class TestRemovedSanitizationShellLogic:
 
     def test_issue_body_env_var_absent_from_sanitize_step(self, summary_workflow_raw):
         """
-        The ISSUE_BODY environment variable feeding the removed sanitize step
-        must not appear in summary.yml.
+        Verify the removed sanitize step does not define an `ISSUE_BODY` environment variable in the raw workflow YAML.
+        
+        This test fails if the literal string `ISSUE_BODY:` appears anywhere in the workflow file.
         """
         assert "ISSUE_BODY:" not in summary_workflow_raw, (
             "ISSUE_BODY env var (from old sanitize step) should not appear in summary.yml"
@@ -425,7 +447,15 @@ class TestPinnedActionVersions:
 
     @pytest.fixture(name="summary_steps")
     def summary_steps_fixture(self, summary_workflow):
-        """Return the list of steps in the 'summary' job."""
+        """
+        Retrieve the steps defined in the 'summary' job of the parsed workflow.
+        
+        Parameters:
+            summary_workflow (dict): Parsed YAML mapping for the workflow.
+        
+        Returns:
+            steps (list): List of step mappings from `jobs.summary.steps`.
+        """
         return summary_workflow["jobs"]["summary"]["steps"]
 
     def test_all_actions_specify_version(self, summary_steps):
@@ -442,13 +472,21 @@ class TestPinnedActionVersions:
             assert "@latest" not in action.lower(), f"Action '{action}' in summary.yml must not use '@latest'"
 
     def test_no_actions_use_master_branch(self, summary_steps):
-        """No action reference may use '@master'."""
+        """
+        Ensure no action references use the '@master' branch.
+        
+        Asserts that for every step in the summary job, the step's `uses` value does not contain `@master` (case-insensitive).
+        """
         for step in summary_steps:
             action = step.get("uses", "")
             assert "@master" not in action.lower(), f"Action '{action}' in summary.yml must not use '@master' branch"
 
     def test_checkout_action_is_pinned_to_sha(self, summary_steps):
-        """The actions/checkout step must be pinned to a commit SHA (40 hex chars)."""
+        """
+        Ensure the actions/checkout step is pinned to an exact 40-hex commit SHA.
+        
+        Asserts that a step using `actions/checkout` exists in `summary_steps` and that its `uses` reference ends with a 40-character lowercase hex SHA (e.g., a full git commit SHA). Failure occurs if the step is missing or the ref is not a full SHA.
+        """
         checkout_step = next(
             (s for s in summary_steps if "actions/checkout" in s.get("uses", "")),
             None,
@@ -479,10 +517,9 @@ class TestSummaryWorkflowRegression:
 
     def test_workflow_has_exactly_three_steps(self, summary_workflow):
         """
-        The summary job must have exactly three steps after the PR.
-
-        Before: checkout, sanitize, inference, comment (4 steps).
-        After the PR removed the sanitize step: checkout, inference, comment (3 steps).
+        Assert that the 'summary' job contains exactly three steps.
+        
+        This verifies the workflow no longer includes a sanitization step and is expected to have: checkout, inference, and comment.
         """
         steps = summary_workflow["jobs"]["summary"]["steps"]
         assert len(steps) == 3, f"Expected 3 steps after sanitize removal, found {len(steps)}"
