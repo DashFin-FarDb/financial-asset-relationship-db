@@ -86,28 +86,6 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
     )
 
 
-@contextmanager
-def session_scope(
-    session_factory: Callable[[], Session],
-) -> Generator[Session, None, None]:
-    """
-    Provide a context-managed database Session for use within a with-statement.
-
-    Yields a Session produced by the provided session_factory and scoped to the context manager.
-
-    Parameters:
-        session_factory (Callable[[], Session]): Callable that returns a new Session instance.
-
-    Returns:
-        session (Session): Session instance yielded while the context is active.
-    """
-    # Keep compatibility for callers importing session_scope from this module.
-    repository_session_scope = import_module("src.data.repository").session_scope
-
-    with repository_session_scope(session_factory) as session:
-        yield session
-
-
 def init_db(engine: Engine) -> None:
     """
     Create database tables for all ORM models declared on Base.metadata.

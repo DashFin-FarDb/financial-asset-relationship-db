@@ -14,6 +14,8 @@ This test suite validates:
 
 from pathlib import Path
 
+import re
+
 import pytest
 import yaml
 
@@ -200,8 +202,10 @@ class TestBearerSteps:
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
         checkout_step = next((s for s in steps if "actions/checkout" in s.get("uses", "")), None)
         uses = checkout_step["uses"]
-        # Accept either @v4 tag or SHA pin (which is more secure)
-        assert "actions/checkout@v4" in uses or "actions/checkout@" in uses, "Checkout should use v4 or SHA pin"
+        # Accept either @v4 tag or a 40-hex-character SHA pin (more secure)
+        assert "actions/checkout@v4" in uses or re.search(r"actions/checkout@[0-9a-f]{40}", uses), (
+            "Checkout should use v4 or SHA pin"
+        )
 
     @staticmethod
     def test_bearer_report_step_exists(bearer_workflow_content):

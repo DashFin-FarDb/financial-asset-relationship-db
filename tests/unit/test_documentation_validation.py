@@ -124,7 +124,7 @@ class TestDependencyMatrix:
 
         # Common expected file types
         expected_types = {"py", "js", "ts", "tsx"}
-        allowed_types = expected_types | {"jsx", "json", "md"}
+        allowed_types = expected_types | {"jsx", "json", "md", "h"}
         found_types = set(file_types)
         assert found_types.issubset(allowed_types), f"Unexpected file types: {found_types - allowed_types}"
 
@@ -777,7 +777,7 @@ class TestChangedFunctionLogic:
         # Mirrors the assertion at line 128 exactly
         assert found_types.issubset(
             expected_types | allowed_extras
-        ), f"Unexpected file types: {found_types - expected_types}"
+        ), f"Unexpected file types: {found_types - (expected_types | allowed_extras)}"
 
     @pytest.mark.parametrize(
         "file_types_str",

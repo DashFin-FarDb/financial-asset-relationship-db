@@ -167,6 +167,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     # ``file::memory:?cache=shared``.
     # The :memory: token must be the entire path component
     # (not part of a longer path).
+    parsed = urlparse(target)
     return parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query)
 
 
