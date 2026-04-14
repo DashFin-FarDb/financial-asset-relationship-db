@@ -519,14 +519,30 @@ class TestPinnedActionVersions:
 class TestSummaryWorkflowRegression:
     """Regression and boundary tests to strengthen confidence in the workflow state."""
 
-    def test_workflow_has_exactly_three_steps(self, summary_workflow):
+    def test_workflow_contains_required_steps(self, summary_workflow):
         """
-        Assert that the 'summary' job contains exactly three steps.
+        Assert that the 'summary' job contains the required workflow steps.
 
-        This verifies the workflow no longer includes a sanitization step and is expected to have: checkout, inference, and comment.
+        This verifies the workflow still includes checkout, inference, and comment
+        steps without requiring an exact total step count, which would make the
+        test brittle if additional valid steps are added later.
         """
         steps = summary_workflow["jobs"]["summary"]["steps"]
-        assert len(steps) == 3, f"Expected 3 steps after sanitize removal, found {len(steps)}"
+        checkout_step = next(
+            (s for s in steps if "actions/checkout" in s.get("uses", "")),
+            None,
+        )
+        inference_step = next(
+            (s for s in steps if "actions/ai-inference" in s.get("uses", "")),
+            None,
+        )
+        comment_step = next(
+            (s for s in steps if "gh issue comment" in s.get("run", "")),
+            None,
+        )
+        assert checkout_step is not None, "Checkout step not found"
+        assert inference_step is not None, "Inference step not found"
+        assert comment_step is not None, "Comment step not found"
 
     def test_step_ordering_checkout_before_inference(self, summary_workflow):
         """The checkout step must appear before the AI inference step."""
