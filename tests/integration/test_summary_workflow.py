@@ -8,9 +8,8 @@ prompt and comment step handle user-controlled inputs.
 Changes under test:
 - Removed: "Sanitize issue inputs" step (sed-based sanitization of title/body)
 - Changed: "Run AI inference" now uses raw github.event.issue.title/body directly
-- Changed: "Comment with AI summary" now uses single-quoted interpolation for
-  the response instead of a quoted environment variable, and ISSUE_NUMBER is
-  no longer quoted in the shell command.
+- Changed: "Comment with AI summary" passes the AI response via a quoted RESPONSE
+  environment variable (--body "$RESPONSE") for safe shell handling.
 """
 
 import re
@@ -552,15 +551,13 @@ class TestSummaryWorkflowRegression:
             "Raw workflow YAML must reference github.event.issue.body in the prompt"
         )
 
-    def test_response_env_var_still_defined_in_comment_step(self, summary_workflow):
+    def test_response_env_var_defined_and_used_in_comment_step(self, summary_workflow):
         """
-        The RESPONSE env var may still be declared in the comment step env block
-        even if it is no longer used in the --body argument.
+        Verify the RESPONSE env var is both declared and used safely via --body.
 
-        This is a boundary test: if it IS present, it does not affect the shell
-        command (which now embeds the expression directly). This test simply
-        documents the current state without asserting either presence or absence,
-        but validates that the run script does not use it for --body.
+        Passing the AI response through an env var and then referencing it as
+        "$RESPONSE" in the shell command is the secure pattern: it avoids
+        embedding raw model output directly into the shell command string.
         """
         steps = summary_workflow["jobs"]["summary"]["steps"]
         comment_step = next(
@@ -568,8 +565,9 @@ class TestSummaryWorkflowRegression:
             None,
         )
         assert comment_step is not None
+        env = comment_step.get("env", {})
+        assert "RESPONSE" in env, "Comment step must declare RESPONSE in env"
         run_script = comment_step.get("run", "")
-        # The key assertion: --body must not use the $RESPONSE env var pattern
-        assert not re.search(r'--body\s+"\$RESPONSE"', run_script), (
-            "The --body argument must not use the $RESPONSE env var"
+        assert re.search(r'--body\s+"\$RESPONSE"', run_script), (
+            'The --body argument should use the quoted "$RESPONSE" env var'
         )
