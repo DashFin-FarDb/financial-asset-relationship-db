@@ -158,9 +158,9 @@ class TestSummaryWorkflowSteps:
         """
         for step in summary_steps:
             step_str = yaml.dump(step)
-            assert "steps.sanitize.outputs" not in step_str, (
-                f"Step '{step.get('name', '?')}' references removed sanitize step outputs"
-            )
+            assert (
+                "steps.sanitize.outputs" not in step_str
+            ), f"Step '{step.get('name', '?')}' references removed sanitize step outputs"
 
     def test_checkout_step_exists(self, summary_steps):
         """The checkout step must still be present."""
@@ -223,9 +223,9 @@ class TestAIInferenceStepPrompt:
         context expression is embedded in the prompt.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
-        assert "github.event.issue.title" in prompt, (
-            "The inference prompt must reference github.event.issue.title directly"
-        )
+        assert (
+            "github.event.issue.title" in prompt
+        ), "The inference prompt must reference github.event.issue.title directly"
 
     def test_prompt_uses_raw_issue_body(self, inference_step):
         """
@@ -234,9 +234,9 @@ class TestAIInferenceStepPrompt:
         Verifies the `with.prompt` value for the `actions/ai-inference` step includes `github.event.issue.body`.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
-        assert "github.event.issue.body" in prompt, (
-            "The inference prompt must reference github.event.issue.body directly"
-        )
+        assert (
+            "github.event.issue.body" in prompt
+        ), "The inference prompt must reference github.event.issue.body directly"
 
     def test_prompt_does_not_use_sanitized_title(self, inference_step):
         """
@@ -245,9 +245,9 @@ class TestAIInferenceStepPrompt:
         Asserts that the string `steps.sanitize.outputs.title` is not present in the `with.prompt` value of the inference step.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
-        assert "steps.sanitize.outputs.title" not in prompt, (
-            "Inference prompt should not reference removed sanitize step title output"
-        )
+        assert (
+            "steps.sanitize.outputs.title" not in prompt
+        ), "Inference prompt should not reference removed sanitize step title output"
 
     def test_prompt_does_not_use_sanitized_body(self, inference_step):
         """
@@ -256,9 +256,9 @@ class TestAIInferenceStepPrompt:
         The sanitization step was removed; its outputs must not appear in the prompt.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
-        assert "steps.sanitize.outputs.body" not in prompt, (
-            "Inference prompt should not reference removed sanitize step body output"
-        )
+        assert (
+            "steps.sanitize.outputs.body" not in prompt
+        ), "Inference prompt should not reference removed sanitize step body output"
 
     def test_prompt_contains_title_label(self, inference_step):
         """The prompt should include a 'Title:' label."""
@@ -316,9 +316,9 @@ class TestCommentStep:
         """ISSUE_NUMBER must come from github.event.issue.number."""
         env = comment_step.get("env", {})
         issue_number_value = env.get("ISSUE_NUMBER", "")
-        assert "github.event.issue.number" in issue_number_value, (
-            "ISSUE_NUMBER must be sourced from github.event.issue.number"
-        )
+        assert (
+            "github.event.issue.number" in issue_number_value
+        ), "ISSUE_NUMBER must be sourced from github.event.issue.number"
 
     def test_comment_step_run_uses_issue_number_var(self, comment_step):
         """The shell command must reference ISSUE_NUMBER."""
@@ -333,9 +333,9 @@ class TestCommentStep:
         unsafe shell expansion patterns.
         """
         run_script = comment_step.get("run", "")
-        assert re.search(r'gh issue comment "\$ISSUE_NUMBER"', run_script), (
-            'gh issue comment should use quoted "$ISSUE_NUMBER"'
-        )
+        assert re.search(
+            r'gh issue comment "\$ISSUE_NUMBER"', run_script
+        ), 'gh issue comment should use quoted "$ISSUE_NUMBER"'
 
     def test_comment_step_has_response_env_from_inference_output(self, comment_step):
         """
@@ -347,9 +347,9 @@ class TestCommentStep:
         env = comment_step.get("env", {})
         assert "RESPONSE" in env, "Comment step must set RESPONSE env var"
         response_value = env.get("RESPONSE", "")
-        assert "steps.inference.outputs.response" in response_value, (
-            "RESPONSE must be sourced from steps.inference.outputs.response"
-        )
+        assert (
+            "steps.inference.outputs.response" in response_value
+        ), "RESPONSE must be sourced from steps.inference.outputs.response"
 
     def test_comment_step_uses_response_env_var_in_command(self, comment_step):
         """
@@ -376,9 +376,9 @@ class TestIssueContentIsIncludedInWorkflow:
         This validates required summary input while allowing implementation
         details such as sanitization, truncation, or intermediate variables.
         """
-        assert "github.event.issue.title" in summary_workflow_raw, (
-            "summary.yml should reference github.event.issue.title so the summary can include the issue title"
-        )
+        assert (
+            "github.event.issue.title" in summary_workflow_raw
+        ), "summary.yml should reference github.event.issue.title so the summary can include the issue title"
 
     def test_workflow_references_issue_body(self, summary_workflow_raw):
         """
@@ -387,9 +387,9 @@ class TestIssueContentIsIncludedInWorkflow:
         This validates required summary input while allowing implementation
         details such as sanitization, truncation, or intermediate variables.
         """
-        assert "github.event.issue.body" in summary_workflow_raw, (
-            "summary.yml should reference github.event.issue.body so the summary can include the issue body"
-        )
+        assert (
+            "github.event.issue.body" in summary_workflow_raw
+        ), "summary.yml should reference github.event.issue.body so the summary can include the issue body"
 
     def test_workflow_uses_issue_content_in_step_configuration(self, summary_workflow_raw):
         """
@@ -457,9 +457,9 @@ class TestPinnedActionVersions:
         assert checkout_step is not None, "actions/checkout step not found"
         action_ref = checkout_step["uses"]
         sha_part = action_ref.split("@", 1)[-1]
-        assert re.match(r"^[0-9a-f]{40}$", sha_part), (
-            f"actions/checkout must be pinned to a full commit SHA, got: {sha_part}"
-        )
+        assert re.match(
+            r"^[0-9a-f]{40}$", sha_part
+        ), f"actions/checkout must be pinned to a full commit SHA, got: {sha_part}"
 
     def test_ai_inference_action_is_pinned_to_sha(self, summary_steps):
         """The actions/ai-inference step must be pinned to a commit SHA (40 hex chars)."""
@@ -470,9 +470,9 @@ class TestPinnedActionVersions:
         assert inference_step is not None, "actions/ai-inference step not found"
         action_ref = inference_step["uses"]
         sha_part = action_ref.split("@", 1)[-1]
-        assert re.match(r"^[0-9a-f]{40}$", sha_part), (
-            f"actions/ai-inference must be pinned to a full commit SHA, got: {sha_part}"
-        )
+        assert re.match(
+            r"^[0-9a-f]{40}$", sha_part
+        ), f"actions/ai-inference must be pinned to a full commit SHA, got: {sha_part}"
 
 
 class TestSummaryWorkflowRegression:
@@ -538,12 +538,12 @@ class TestSummaryWorkflowRegression:
         The raw YAML source must contain GitHub expression syntax for title and body
         inside the prompt, confirming unsanitized values are passed to the AI.
         """
-        assert "github.event.issue.title" in summary_workflow_raw, (
-            "Raw workflow YAML must reference github.event.issue.title in the prompt"
-        )
-        assert "github.event.issue.body" in summary_workflow_raw, (
-            "Raw workflow YAML must reference github.event.issue.body in the prompt"
-        )
+        assert (
+            "github.event.issue.title" in summary_workflow_raw
+        ), "Raw workflow YAML must reference github.event.issue.title in the prompt"
+        assert (
+            "github.event.issue.body" in summary_workflow_raw
+        ), "Raw workflow YAML must reference github.event.issue.body in the prompt"
 
     def test_response_env_var_defined_and_used_in_comment_step(self, summary_workflow):
         """
@@ -562,6 +562,6 @@ class TestSummaryWorkflowRegression:
         env = comment_step.get("env", {})
         assert "RESPONSE" in env, "Comment step must declare RESPONSE in env"
         run_script = comment_step.get("run", "")
-        assert re.search(r'--body\s+"\$RESPONSE"', run_script), (
-            'The --body argument should use the quoted "$RESPONSE" env var'
-        )
+        assert re.search(
+            r'--body\s+"\$RESPONSE"', run_script
+        ), 'The --body argument should use the quoted "$RESPONSE" env var'
