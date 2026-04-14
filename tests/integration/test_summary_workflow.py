@@ -362,88 +362,47 @@ class TestCommentStep:
         assert '--body "$RESPONSE"' in run_script, 'The gh comment command should use --body "$RESPONSE"'
 
 
-class TestRemovedSanitizationShellLogic:
+class TestIssueContentIsIncludedInWorkflow:
     """
-    Verify that the sanitization shell logic is entirely absent from the workflow.
-
-    These tests document the removal of the sed-based input sanitization that
-    previously guarded against prompt injection by stripping special characters
-    and limiting input length.
+    Verify that the workflow still includes the issue title and body content
+    needed to generate a summary, without constraining whether sanitization or
+    other hardening steps are present.
     """
 
-    def test_no_sed_sanitization_in_workflow(self, summary_workflow_raw):
+    def test_workflow_references_issue_title(self, summary_workflow_raw):
         """
-        Assert that the raw workflow YAML does not contain a sed-based sanitization command.
+        Assert that the workflow references the GitHub issue title expression.
 
-        This test checks for the absence of the specific sed pattern used to strip special characters (e.g., "sed 's/[^") in the workflow file.
+        This validates required summary input while allowing implementation
+        details such as sanitization, truncation, or intermediate variables.
         """
-        assert "sed 's/[^" not in summary_workflow_raw, "The sanitization sed command should not appear in summary.yml"
+        assert "github.event.issue.title" in summary_workflow_raw, (
+            "summary.yml should reference github.event.issue.title so the summary can include the issue title"
+        )
 
-    def test_no_head_length_limit_in_workflow(self, summary_workflow_raw):
+    def test_workflow_references_issue_body(self, summary_workflow_raw):
         """
-        Assert the raw workflow text does not contain the 'head -c' length-limiting command.
+        Assert that the workflow references the GitHub issue body expression.
 
-        Verifies that the workflow does not include shell-based character truncation logic.
+        This validates required summary input while allowing implementation
+        details such as sanitization, truncation, or intermediate variables.
         """
-        assert (
-            "head -c" not in summary_workflow_raw
-        ), "The 'head -c' length-limiting command should not appear in summary.yml"
+        assert "github.event.issue.body" in summary_workflow_raw, (
+            "summary.yml should reference github.event.issue.body so the summary can include the issue body"
+        )
 
-    def test_no_sanitize_step_id_in_workflow(self, summary_workflow_raw):
+    def test_workflow_uses_issue_content_in_step_configuration(self, summary_workflow_raw):
         """
-        There must be no step with id 'sanitize' in the workflow.
+        Verify that issue content is wired into workflow step configuration.
 
-        Confirms the sanitize step's id is gone from the raw YAML source.
+        The workflow may pass issue title/body directly, via env variables, or
+        through sanitized intermediate variables. This test checks only that the
+        workflow is set up to use issue content, not how it hardens that data.
         """
-        # Match 'id: sanitize' with optional surrounding whitespace
-        assert not re.search(r"id:\s+sanitize", summary_workflow_raw), "No step should carry id='sanitize' after the PR"
-
-    def test_no_sanitized_title_env_var(self, summary_workflow_raw):
-        """
-        Ensure the raw workflow text does not contain the literal `SANITIZED_TITLE` environment variable.
-
-        Verifies that `SANITIZED_TITLE` does not appear in the contents of .github/workflows/summary.yml.
-        """
-        assert (
-            "SANITIZED_TITLE" not in summary_workflow_raw
-        ), "SANITIZED_TITLE should not appear in summary.yml after sanitize step removal"
-
-    def test_no_sanitized_body_env_var(self, summary_workflow_raw):
-        """
-        SANITIZED_BODY shell variable must not appear in the workflow.
-
-        This variable was part of the removed sanitization step.
-        """
-        assert (
-            "SANITIZED_BODY" not in summary_workflow_raw
-        ), "SANITIZED_BODY should not appear in summary.yml after sanitize step removal"
-
-    def test_issue_title_env_var_absent_from_sanitize_step(self, summary_workflow_raw):
-        """
-        The ISSUE_TITLE environment variable feeding the removed sanitize step
-        must not appear as a standalone sanitization input.
-
-        Note: The summary workflow may still reference github.event.issue.title
-        via GitHub Actions expressions; only the shell-level ISSUE_TITLE env
-        injection used by the old sanitize step is checked here.
-        """
-        # The old sanitize step declared 'ISSUE_TITLE: ${{ github.event.issue.title }}'
-        # inside its own env block. This pattern should be gone.
-        assert (
-            "ISSUE_TITLE:" not in summary_workflow_raw
-        ), "ISSUE_TITLE env var (from old sanitize step) should not appear in summary.yml"
-
-    def test_issue_body_env_var_absent_from_sanitize_step(self, summary_workflow_raw):
-        """
-        Verify the removed sanitize step does not define an `ISSUE_BODY` environment variable in the raw workflow YAML.
-
-        This test fails if the literal string `ISSUE_BODY:` appears anywhere in the workflow file.
-        """
-        assert (
-            "ISSUE_BODY:" not in summary_workflow_raw
-        ), "ISSUE_BODY env var (from old sanitize step) should not appear in summary.yml"
-
-
+        assert re.search(
+            r"github\.event\.issue\.(title|body)|(?:SANITIZED|ISSUE)_(?:TITLE|BODY)",
+            summary_workflow_raw,
+        ), "summary.yml should include issue title/body content in step configuration"
 class TestPinnedActionVersions:
     """Verify actions in summary.yml use pinned commit SHAs, not floating tags."""
 
