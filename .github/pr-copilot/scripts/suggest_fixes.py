@@ -358,7 +358,13 @@ def write_output(report: str) -> None:
             summary_path = os.path.realpath(gh_summary)
             runner_temp = os.environ.get("RUNNER_TEMP")
             if runner_temp:
-                pass
+                runner_temp_path = os.path.realpath(runner_temp)
+                if os.path.commonpath([summary_path, runner_temp_path]) != runner_temp_path:
+                    print(
+                        "Warning: Ignoring GITHUB_STEP_SUMMARY outside RUNNER_TEMP",
+                        file=sys.stderr,
+                    )
+                    return
             with open(summary_path, "a", encoding="utf-8") as f:
                 f.write(report)
         except (IOError, ValueError) as e:
