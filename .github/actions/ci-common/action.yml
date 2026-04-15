@@ -55,42 +55,78 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
-        CI_COMMON_INSTALL_CMD: ${{ inputs.install }}
+        SCRIPT_CONTENT: ${{ toJSON(inputs.install) }}
       run: |
         set -euo pipefail
+        # Write commands to a temporary script file to prevent injection
+        SCRIPT_FILE="$(mktemp)"
+        trap 'rm -f "$SCRIPT_FILE"' EXIT
+        # Decode JSON-encoded content using Python to prevent heredoc delimiter injection
+        if ! command -v python3 >/dev/null 2>&1; then
+          echo "Error: python3 is required but not found in PATH" >&2
+          exit 1
+        fi
+        printf '%s' "$SCRIPT_CONTENT" | python3 -c "import json, sys; sys.stdout.write(json.loads(sys.stdin.read()))" > "$SCRIPT_FILE" || {
+          echo "Error: Failed to decode script content" >&2
+          exit 1
+        }
         # Trim whitespace and exit early if the script body is effectively empty
-        if [[ -z "${CI_COMMON_INSTALL_CMD//[[:space:]]/}" ]]; then
+        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
         fi
-        # Execute the full install script body, preserving newlines and quoting
-        bash -euo pipefail -c "$CI_COMMON_INSTALL_CMD"
+        # Execute the script file with proper error handling
+        bash -euo pipefail "$SCRIPT_FILE"
 
     - name: Build
       if: ${{ inputs.build != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
-        CI_COMMON_BUILD_CMD: ${{ inputs.build }}
+        SCRIPT_CONTENT: ${{ toJSON(inputs.build) }}
       run: |
         set -euo pipefail
+        # Write commands to a temporary script file to prevent injection
+        SCRIPT_FILE="$(mktemp)"
+        trap 'rm -f "$SCRIPT_FILE"' EXIT
+        # Decode JSON-encoded content using Python to prevent heredoc delimiter injection
+        if ! command -v python3 >/dev/null 2>&1; then
+          echo "Error: python3 is required but not found in PATH" >&2
+          exit 1
+        fi
+        printf '%s' "$SCRIPT_CONTENT" | python3 -c "import json, sys; sys.stdout.write(json.loads(sys.stdin.read()))" > "$SCRIPT_FILE" || {
+          echo "Error: Failed to decode script content" >&2
+          exit 1
+        }
         # Trim whitespace and exit early if the script body is effectively empty
-        if [[ -z "${CI_COMMON_BUILD_CMD//[[:space:]]/}" ]]; then
+        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
         fi
-        # Execute the full build script body, preserving newlines and quoting
-        bash -euo pipefail -c "$CI_COMMON_BUILD_CMD"
+        # Execute the script file with proper error handling
+        bash -euo pipefail "$SCRIPT_FILE"
 
     - name: Test
       if: ${{ inputs.test != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
-        CI_COMMON_TEST_CMD: ${{ inputs.test }}
+        SCRIPT_CONTENT: ${{ toJSON(inputs.test) }}
       run: |
         set -euo pipefail
+        # Write commands to a temporary script file to prevent injection
+        SCRIPT_FILE="$(mktemp)"
+        trap 'rm -f "$SCRIPT_FILE"' EXIT
+        # Decode JSON-encoded content using Python to prevent heredoc delimiter injection
+        if ! command -v python3 >/dev/null 2>&1; then
+          echo "Error: python3 is required but not found in PATH" >&2
+          exit 1
+        fi
+        printf '%s' "$SCRIPT_CONTENT" | python3 -c "import json, sys; sys.stdout.write(json.loads(sys.stdin.read()))" > "$SCRIPT_FILE" || {
+          echo "Error: Failed to decode script content" >&2
+          exit 1
+        }
         # Trim whitespace and exit early if the script body is effectively empty
-        if [[ -z "${CI_COMMON_TEST_CMD//[[:space:]]/}" ]]; then
+        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
         fi
-        # Execute the full test script body, preserving newlines and quoting
-        bash -euo pipefail -c "$CI_COMMON_TEST_CMD"
+        # Execute the script file with proper error handling
+        bash -euo pipefail "$SCRIPT_FILE"
