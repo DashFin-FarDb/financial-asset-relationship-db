@@ -54,14 +54,15 @@ runs:
       if: ${{ inputs.install != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        SCRIPT_CONTENT: ${{ toJSON(inputs.install) }}
       run: |
         set -euo pipefail
         # Write commands to a temporary script file to prevent injection
         SCRIPT_FILE="$(mktemp)"
         trap 'rm -f "$SCRIPT_FILE"' EXIT
-        cat > "$SCRIPT_FILE" << 'EOF'
-        ${{ inputs.install }}
-        EOF
+        # Decode JSON-encoded content using Python to prevent heredoc delimiter injection
+        python3 -c "import json, sys; sys.stdout.write(json.loads(sys.stdin.read()))" <<< "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
         # Trim whitespace and exit early if the script body is effectively empty
         if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
@@ -73,14 +74,15 @@ runs:
       if: ${{ inputs.build != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        SCRIPT_CONTENT: ${{ toJSON(inputs.build) }}
       run: |
         set -euo pipefail
         # Write commands to a temporary script file to prevent injection
         SCRIPT_FILE="$(mktemp)"
         trap 'rm -f "$SCRIPT_FILE"' EXIT
-        cat > "$SCRIPT_FILE" << 'EOF'
-        ${{ inputs.build }}
-        EOF
+        # Decode JSON-encoded content using Python to prevent heredoc delimiter injection
+        python3 -c "import json, sys; sys.stdout.write(json.loads(sys.stdin.read()))" <<< "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
         # Trim whitespace and exit early if the script body is effectively empty
         if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
@@ -92,14 +94,15 @@ runs:
       if: ${{ inputs.test != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        SCRIPT_CONTENT: ${{ toJSON(inputs.test) }}
       run: |
         set -euo pipefail
         # Write commands to a temporary script file to prevent injection
         SCRIPT_FILE="$(mktemp)"
         trap 'rm -f "$SCRIPT_FILE"' EXIT
-        cat > "$SCRIPT_FILE" << 'EOF'
-        ${{ inputs.test }}
-        EOF
+        # Decode JSON-encoded content using Python to prevent heredoc delimiter injection
+        python3 -c "import json, sys; sys.stdout.write(json.loads(sys.stdin.read()))" <<< "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
         # Trim whitespace and exit early if the script body is effectively empty
         if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
