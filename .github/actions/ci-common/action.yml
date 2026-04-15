@@ -58,19 +58,16 @@ runs:
         set -euo pipefail
         # Write commands to a temporary script file to prevent injection
         SCRIPT_FILE="$(mktemp)"
+        trap 'rm -f "$SCRIPT_FILE"' EXIT
         cat > "$SCRIPT_FILE" << 'EOF'
         ${{ inputs.install }}
         EOF
         # Trim whitespace and exit early if the script body is effectively empty
-        if [[ -z "$(cat "$SCRIPT_FILE" | tr -d '[:space:]')" ]]; then
-          rm -f "$SCRIPT_FILE"
+        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
         fi
         # Execute the script file with proper error handling
         bash -euo pipefail "$SCRIPT_FILE"
-        EXIT_CODE=$?
-        rm -f "$SCRIPT_FILE"
-        exit $EXIT_CODE
 
     - name: Build
       if: ${{ inputs.build != '' }}
@@ -80,19 +77,16 @@ runs:
         set -euo pipefail
         # Write commands to a temporary script file to prevent injection
         SCRIPT_FILE="$(mktemp)"
+        trap 'rm -f "$SCRIPT_FILE"' EXIT
         cat > "$SCRIPT_FILE" << 'EOF'
         ${{ inputs.build }}
         EOF
         # Trim whitespace and exit early if the script body is effectively empty
-        if [[ -z "$(cat "$SCRIPT_FILE" | tr -d '[:space:]')" ]]; then
-          rm -f "$SCRIPT_FILE"
+        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
         fi
         # Execute the script file with proper error handling
         bash -euo pipefail "$SCRIPT_FILE"
-        EXIT_CODE=$?
-        rm -f "$SCRIPT_FILE"
-        exit $EXIT_CODE
 
     - name: Test
       if: ${{ inputs.test != '' }}
@@ -102,16 +96,13 @@ runs:
         set -euo pipefail
         # Write commands to a temporary script file to prevent injection
         SCRIPT_FILE="$(mktemp)"
+        trap 'rm -f "$SCRIPT_FILE"' EXIT
         cat > "$SCRIPT_FILE" << 'EOF'
         ${{ inputs.test }}
         EOF
         # Trim whitespace and exit early if the script body is effectively empty
-        if [[ -z "$(cat "$SCRIPT_FILE" | tr -d '[:space:]')" ]]; then
-          rm -f "$SCRIPT_FILE"
+        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
         fi
         # Execute the script file with proper error handling
         bash -euo pipefail "$SCRIPT_FILE"
-        EXIT_CODE=$?
-        rm -f "$SCRIPT_FILE"
-        exit $EXIT_CODE
