@@ -223,7 +223,14 @@ describe("AssetList Component", () => {
     const firstResponse = createDeferred<AssetsResponse>();
     const secondResponse = createDeferred<AssetsResponse>();
     const firstAssets = [mockAssets[0]];
-    const secondAssets = [mockAssets[1]];
+    const secondAssets = [
+      {
+        ...mockAssets[0],
+        id: `${mockAssets[0].id}-second`,
+        ticker: `${mockAssets[0].ticker}-SECOND`,
+        name: `${mockAssets[0].name} Second`,
+      },
+    ];
     const abortSignals: AbortSignal[] = [];
 
     mockedApi.getAssets.mockImplementation((_params, signal) => {
