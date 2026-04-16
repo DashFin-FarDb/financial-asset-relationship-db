@@ -93,11 +93,14 @@ describe("AssetList Component", () => {
     fireEvent.change(assetClassSelect, { target: { value: "EQUITY" } });
 
     await waitFor(() => {
-      expect(mockedApi.getAssets).toHaveBeenLastCalledWith({
-        asset_class: "EQUITY",
-        page: 1,
-        per_page: 20,
-      });
+      expect(mockedApi.getAssets).toHaveBeenLastCalledWith(
+        {
+          asset_class: "EQUITY",
+          page: 1,
+          per_page: 20,
+        },
+        expect.any(AbortSignal),
+      );
     });
   });
 
@@ -161,10 +164,13 @@ describe("AssetList Component", () => {
     fireEvent.click(nextButton);
 
     await waitFor(() => {
-      expect(mockedApi.getAssets).toHaveBeenLastCalledWith({
-        page: 2,
-        per_page: 20,
-      });
+      expect(mockedApi.getAssets).toHaveBeenLastCalledWith(
+        {
+          page: 2,
+          per_page: 20,
+        },
+        expect.any(AbortSignal),
+      );
     });
   });
 
@@ -180,13 +186,91 @@ describe("AssetList Component", () => {
     render(<AssetList />);
 
     await waitFor(() => {
-      expect(mockedApi.getAssets).toHaveBeenCalledWith({
-        asset_class: "EQUITY",
-        page: 3,
-        per_page: 50,
-      });
+      expect(mockedApi.getAssets).toHaveBeenCalledWith(
+        {
+          asset_class: "EQUITY",
+          page: 3,
+          per_page: 50,
+        },
+        expect.any(AbortSignal),
+      );
       expect(screen.getByDisplayValue("EQUITY")).toBeInTheDocument();
       expect(screen.getByText(/Page 3 of 3/)).toBeInTheDocument();
     });
+  });
+
+  it("should cancel stale requests when filter changes rapidly", async () => {
+    type AssetsResponse = {
+      items: typeof mockAssets;
+      total: number;
+      page: number;
+      per_page: number;
+    };
+
+    type Deferred<T> = {
+      promise: Promise<T>;
+      resolve: (value: T) => void;
+    };
+
+    const createDeferred = <T,>(): Deferred<T> => {
+      let resolve!: (value: T) => void;
+      const promise = new Promise<T>((res) => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    };
+
+    const firstResponse = createDeferred<AssetsResponse>();
+    const secondResponse = createDeferred<AssetsResponse>();
+    const firstAssets = [mockAssets[0]];
+    const secondAssets = [
+      {
+        ...mockAssets[0],
+        id: `${mockAssets[0].id}-second`,
+        symbol: `${mockAssets[0].symbol}-SECOND`,
+        name: `${mockAssets[0].name} Second`,
+      },
+    ];
+    const abortSignals: AbortSignal[] = [];
+
+    mockedApi.getAssets.mockImplementation((_params, signal) => {
+      abortSignals.push(signal);
+      return abortSignals.length === 1
+        ? firstResponse.promise
+        : secondResponse.promise;
+    });
+
+    render(<AssetList />);
+
+    const assetClassSelect = screen.getByLabelText(/Asset Class/i);
+    fireEvent.change(assetClassSelect, { target: { value: "EQUITY" } });
+
+    await waitFor(() => {
+      expect(mockedApi.getAssets).toHaveBeenCalledTimes(2);
+      expect(abortSignals[0]?.aborted).toBe(true);
+    });
+
+    secondResponse.resolve({
+      items: secondAssets,
+      total: secondAssets.length,
+      page: 1,
+      per_page: 20,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(secondAssets[0].symbol)).toBeInTheDocument();
+    });
+
+    firstResponse.resolve({
+      items: firstAssets,
+      total: firstAssets.length,
+      page: 1,
+      per_page: 20,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(secondAssets[0].symbol)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(firstAssets[0].symbol)).not.toBeInTheDocument();
   });
 });

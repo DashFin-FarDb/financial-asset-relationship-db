@@ -100,6 +100,12 @@ type AssetListController = {
   handleNextClick: () => void;
 };
 
+/**
+ * Renders a single `<option>` element for the page-size selector.
+ *
+ * @param size - The numeric page size value to display and set as the option's value.
+ * @returns An `<option>` element with `key` and `value` set to `size`.
+ */
 const renderPageSizeOption = (size: number) => (
   <option key={size} value={size}>
     {size}
@@ -129,6 +135,7 @@ function AssetListStatus({ loading, error }: AssetListStatusProps) {
     >
       {hasError ? `Error: ${error}` : "Loading..."}
     </div>
+  );
 }
 
 /**
@@ -356,18 +363,15 @@ function useSearchStateSync(
 }
 
 /**
- * Fetches assets whenever page, pageSize, filter, or querySummary change and updates the provided state setters.
+ * Trigger asset loading when pagination, page size, filter, or query summary changes and update the provided state setters.
  *
- * Runs an effect that calls the shared asset-loading routine and ensures loading, result, and error state are updated to reflect the request lifecycle.
+ * Runs an effect that requests assets for the given `page`, `pageSize`, and `filter`, then invokes the provided setters with the resulting assets list, total count, loading state, and any error message. In-flight requests are cancelled when inputs change.
  *
- * @param page - Current page number to request
- * @param pageSize - Number of items per page to request
- * @param filter - Asset filter to apply (e.g., asset class and sector)
- * @param querySummary - Precomputed string summary of the current query (used for logging or cache keys)
- * @param setAssets - Setter invoked with the fetched asset list (`Asset[]`)
- * @param setTotal - Setter invoked with the total number of matching assets (`number | null`)
- * @param setError - Setter invoked with an error message or `null`
- * @param setLoading - Setter invoked with loading state (`true` when request starts, `false` when it finishes)
+ * @param querySummary - A precomputed string representing the current query; changing this forces a reload
+ * @param setAssets - Called with the fetched `Asset[]` on success
+ * @param setTotal - Called with the total matching asset count (`number | null`) on success
+ * @param setError - Called with an error message (`string`) when a non-canceled error occurs, or `null` to clear errors
+ * @param setLoading - Called with `true` when a request starts and `false` when it finishes
  */
 function useAssetDataLoading({
   page,
@@ -379,18 +383,32 @@ function useAssetDataLoading({
   setError,
   setLoading,
 }: AssetDataLoadingParams) {
-  const fetchAssets = useCallback(async () => {
-    setLoading(true);
-    await loadAssets({
-      page,
-      pageSize,
-      filter,
-      setAssets,
-      setTotal,
-      setError,
-      querySummary,
-    });
-    setLoading(false);
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchAssets = async () => {
+      setLoading(true);
+      await loadAssets({
+        page,
+        pageSize,
+        filter,
+        setAssets,
+        setTotal,
+        setError,
+        querySummary,
+        signal: abortController.signal,
+      });
+      // Only update loading state if request wasn't aborted
+      if (!abortController.signal.aborted) {
+        setLoading(false);
+      }
+    };
+
+    void fetchAssets();
+
+    return () => {
+      abortController.abort();
+    };
   }, [
     filter,
     page,
@@ -401,13 +419,6 @@ function useAssetDataLoading({
     setLoading,
     setTotal,
   ]);
-
-  useEffect(() => {
-    void fetchAssets().catch((err) => {
-      setError(err instanceof Error ? err.message : "Failed to load assets");
-      setLoading(false);
-    });
-  }, [fetchAssets, setError, setLoading]);
 }
 
 /**
