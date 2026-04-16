@@ -472,10 +472,7 @@ class FormulaicAnalyzer:
                 "Debt": "Total Debt ($)",
                 "Cash": "Cash and Cash Equivalents ($)",
             },
-            example_calculation=(
-                "EV calculation requires debt and cash data "
-                "(not available in current dataset)"
-            ),
+            example_calculation=("EV calculation requires debt and cash data (not available in current dataset)"),
             category="Valuation",
             r_squared=0.95,
         )
@@ -702,10 +699,7 @@ class FormulaicAnalyzer:
                     continue
                 pair_key = "-".join(sorted((src_id, target_id)))
                 existing = correlation_matrix.get(pair_key)
-                if (
-                    existing is None
-                    or abs(strength_value) > abs(existing)
-                ):
+                if existing is None or abs(strength_value) > abs(existing):
                     correlation_matrix[pair_key] = strength_value
         return correlation_matrix
 
@@ -852,9 +846,7 @@ class FormulaicAnalyzer:
 
         for stats in sector_relationships.values():
             prices = stats.pop("_prices", [])
-            avg_price, price_range = (
-                FormulaicAnalyzer._summarize_sector_prices(prices)
-            )
+            avg_price, price_range = FormulaicAnalyzer._summarize_sector_prices(prices)
             stats["avg_price"] = avg_price
             stats["price_range"] = price_range
         return sector_relationships
@@ -907,9 +899,7 @@ class FormulaicAnalyzer:
         categories: Dict[str, int] = {}
         for formula in formulas:
             category = formula.category
-            categories[category] = (
-                categories.get(category, 0) + 1
-            )
+            categories[category] = categories.get(category, 0) + 1
         return categories
 
     def _generate_formula_summary(
