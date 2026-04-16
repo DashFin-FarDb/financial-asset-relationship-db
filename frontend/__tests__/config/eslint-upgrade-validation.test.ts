@@ -49,6 +49,79 @@ type PackageLock = {
   packages: Record<string, LockfilePackage>;
 };
 
+// Version constants
+const ESLINT_MAJOR = 8;
+const ESLINT_MINOR = 57;
+const ESLINT_PATCH = 1;
+const ESLINT_CONFIG_NEXT_OLD_MAJOR = 14;
+const ESLINT_CONFIG_NEXT_NEW_MAJOR = 15;
+const DEPRECATED_GLOB_MAJOR = 10;
+const NON_DEPRECATED_GLOB_MIN_MAJOR = 13;
+const FAST_GLOB_VERSION = "3.3.1";
+const MERGE2_VERSION = "1.4.1";
+const ESLINT_PLUGIN_REACT_HOOKS_VERSION = "5.1.0";
+const RUSHSTACK_ESLINT_PATCH_MIN_MAJOR = 1;
+const RUSHSTACK_ESLINT_PATCH_MIN_MINOR = 10;
+const RUSHSTACK_ESLINT_PATCH_MIN_PATCH = 3;
+const ESLINT_PLUGIN_IMPORT_MIN_MAJOR = 2;
+const ESLINT_PLUGIN_IMPORT_MIN_MINOR = 31;
+const ESLINT_PLUGIN_JSX_A11Y_MIN_MAJOR = 6;
+const ESLINT_PLUGIN_JSX_A11Y_MIN_MINOR = 10;
+const ESLINT_PLUGIN_REACT_MIN_MAJOR = 7;
+const ESLINT_PLUGIN_REACT_MIN_MINOR = 35;
+
+/**
+ * Parse a semantic version string into [major, minor, patch] numbers.
+ */
+const parseVersion = (version: string): [number, number, number] => {
+  const parts = version.split(".").map(Number);
+  return [parts[0] || 0, parts[1] || 0, parts[2] || 0];
+};
+
+/**
+ * Parse the major version from a package.json version range (e.g., "^8.57.1" → 8).
+ */
+const parseMajorFromRange = (range: string): number => {
+  return parseInt(range.replace(/^\^/, "").split(".")[0], 10);
+};
+
+/**
+ * Check if a version satisfies a minimum version requirement.
+ */
+const meetsMinimumVersion = (
+  version: string,
+  minMajor: number,
+  minMinor: number,
+  minPatch = 0,
+): boolean => {
+  const [major, minor, patch] = parseVersion(version);
+  if (major > minMajor) return true;
+  if (major < minMajor) return false;
+  if (minor > minMinor) return true;
+  if (minor < minMinor) return false;
+  return patch >= minPatch;
+};
+
+/**
+ * Check if a locked version satisfies a caret range from package.json.
+ * For a range like "^8.57.1", the locked version must have the same major
+ * and either a higher minor or the same minor with patch >= range patch.
+ */
+const satisfiesCaretRange = (
+  lockedVersion: string,
+  rangeVersion: string,
+): boolean => {
+  const [rangeMajor, rangeMinor, rangePatch] = parseVersion(
+    rangeVersion.replace(/^\^/, ""),
+  );
+  const [lockMajor, lockMinor, lockPatch] = parseVersion(lockedVersion);
+
+  if (lockMajor !== rangeMajor) return false;
+  if (lockMinor > rangeMinor) return true;
+  if (lockMinor < rangeMinor) return false;
+  return lockPatch >= rangePatch;
+};
+
 describe("ESLint and eslint-config-next Upgrade Validation", () => {
   const projectRoot = join(__dirname, "..", "..");
   const packageJsonPath = join(projectRoot, "package.json");
@@ -81,20 +154,16 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
 
     it("eslint major version should stay on 8", () => {
       const range = packageJson.devDependencies.eslint;
-      const major = parseInt(range.replace(/^\^/, "").split(".")[0]);
-      expect(major).toBe(8);
+      const major = parseMajorFromRange(range);
+      expect(major).toBe(ESLINT_MAJOR);
     });
 
     it("eslint should not be an older patch (< 8.57.1)", () => {
       const range = packageJson.devDependencies.eslint;
-      const [major, minor, patch] = range
-        .replace(/^\^/, "")
-        .split(".")
-        .map(Number);
-      // Must be exactly 8.57.1 or higher within this range declaration
-      expect(major === 8 && (minor > 57 || (minor === 57 && patch >= 1))).toBe(
-        true,
-      );
+      const cleanRange = range.replace(/^\^/, "");
+      expect(
+        meetsMinimumVersion(cleanRange, ESLINT_MAJOR, ESLINT_MINOR, ESLINT_PATCH),
+      ).toBe(true);
     });
   });
 
@@ -109,14 +178,14 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
 
     it("eslint-config-next should no longer be on version 14", () => {
       const range = packageJson.devDependencies["eslint-config-next"];
-      const major = parseInt(range.replace(/^\^/, "").split(".")[0]);
-      expect(major).not.toBe(14);
+      const major = parseMajorFromRange(range);
+      expect(major).not.toBe(ESLINT_CONFIG_NEXT_OLD_MAJOR);
     });
 
     it("eslint-config-next should be on major version 15", () => {
       const range = packageJson.devDependencies["eslint-config-next"];
-      const major = parseInt(range.replace(/^\^/, "").split(".")[0]);
-      expect(major).toBe(15);
+      const major = parseMajorFromRange(range);
+      expect(major).toBe(ESLINT_CONFIG_NEXT_NEW_MAJOR);
     });
 
     it("eslint-config-next range should use caret", () => {
@@ -164,8 +233,8 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
     it("eslint-config-next should no longer resolve to 14.x", () => {
       const version =
         packageLock.packages["node_modules/eslint-config-next"]?.version ?? "";
-      const major = parseInt(version.split(".")[0]);
-      expect(major).not.toBe(14);
+      const [major] = parseVersion(version);
+      expect(major).not.toBe(ESLINT_CONFIG_NEXT_OLD_MAJOR);
     });
 
     it("eslint-config-next peerDependencies should accept eslint ^9.0.0", () => {
@@ -228,7 +297,7 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
     it("eslint-plugin-react-hooks should resolve to 5.1.0", () => {
       expect(
         packageLock.packages["node_modules/eslint-plugin-react-hooks"]?.version,
-      ).toBe("5.1.0");
+      ).toBe(ESLINT_PLUGIN_REACT_HOOKS_VERSION);
     });
 
     it("eslint-plugin-react-hooks should no longer be on a canary version", () => {
@@ -254,10 +323,10 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
     it("if glob is present at the top level, it must not be the deprecated glob@10.x", () => {
       const globEntry = packageLock.packages["node_modules/glob"];
       if (globEntry) {
-        const major = parseInt((globEntry.version ?? "0").split(".")[0], 10);
-        expect(major).not.toBe(10);
+        const [major] = parseVersion(globEntry.version ?? "0");
+        expect(major).not.toBe(DEPRECATED_GLOB_MAJOR);
         // Should be the non-deprecated version (13+)
-        expect(major).toBeGreaterThanOrEqual(13);
+        expect(major).toBeGreaterThanOrEqual(NON_DEPRECATED_GLOB_MIN_MAJOR);
       }
     });
 
@@ -284,7 +353,7 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
 
     it("fast-glob locked version should be 3.3.1", () => {
       expect(packageLock.packages["node_modules/fast-glob"]?.version).toBe(
-        "3.3.1",
+        FAST_GLOB_VERSION,
       );
     });
 
@@ -316,7 +385,7 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
 
     it("merge2 locked version should be 1.4.1", () => {
       expect(packageLock.packages["node_modules/merge2"]?.version).toBe(
-        "1.4.1",
+        MERGE2_VERSION,
       );
     });
 
@@ -332,35 +401,54 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       const entry =
         packageLock.packages["node_modules/@rushstack/eslint-patch"];
       expect(entry).toBeDefined();
-      const [major, minor, patch] = (entry?.version ?? "0.0.0")
-        .split(".")
-        .map(Number);
+      const version = entry?.version ?? "0.0.0";
       expect(
-        major > 1 ||
-          (major === 1 && minor > 10) ||
-          (major === 1 && minor === 10 && patch >= 3),
+        meetsMinimumVersion(
+          version,
+          RUSHSTACK_ESLINT_PATCH_MIN_MAJOR,
+          RUSHSTACK_ESLINT_PATCH_MIN_MINOR,
+          RUSHSTACK_ESLINT_PATCH_MIN_PATCH,
+        ),
       ).toBe(true);
     });
 
     it("eslint-plugin-import should be present and at least 2.31.0", () => {
       const entry = packageLock.packages["node_modules/eslint-plugin-import"];
       expect(entry).toBeDefined();
-      const [major, minor] = (entry?.version ?? "0.0.0").split(".").map(Number);
-      expect(major > 2 || (major === 2 && minor >= 31)).toBe(true);
+      const version = entry?.version ?? "0.0.0";
+      expect(
+        meetsMinimumVersion(
+          version,
+          ESLINT_PLUGIN_IMPORT_MIN_MAJOR,
+          ESLINT_PLUGIN_IMPORT_MIN_MINOR,
+        ),
+      ).toBe(true);
     });
 
     it("eslint-plugin-jsx-a11y should be present and at least 6.10.0", () => {
       const entry = packageLock.packages["node_modules/eslint-plugin-jsx-a11y"];
       expect(entry).toBeDefined();
-      const [major, minor] = (entry?.version ?? "0.0.0").split(".").map(Number);
-      expect(major > 6 || (major === 6 && minor >= 10)).toBe(true);
+      const version = entry?.version ?? "0.0.0";
+      expect(
+        meetsMinimumVersion(
+          version,
+          ESLINT_PLUGIN_JSX_A11Y_MIN_MAJOR,
+          ESLINT_PLUGIN_JSX_A11Y_MIN_MINOR,
+        ),
+      ).toBe(true);
     });
 
     it("eslint-plugin-react should be present and at least 7.35.0", () => {
       const entry = packageLock.packages["node_modules/eslint-plugin-react"];
       expect(entry).toBeDefined();
-      const [major, minor] = (entry?.version ?? "0.0.0").split(".").map(Number);
-      expect(major > 7 || (major === 7 && minor >= 35)).toBe(true);
+      const version = entry?.version ?? "0.0.0";
+      expect(
+        meetsMinimumVersion(
+          version,
+          ESLINT_PLUGIN_REACT_MIN_MAJOR,
+          ESLINT_PLUGIN_REACT_MIN_MINOR,
+        ),
+      ).toBe(true);
     });
   });
 
@@ -368,28 +456,17 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
 
   describe("integration – package.json and lockfile in sync for changed deps", () => {
     it("eslint range in package.json should be satisfied by locked version", () => {
-      const range = packageJson.devDependencies.eslint; // e.g. "^8.57.1"
+      const range = packageJson.devDependencies.eslint;
       const locked = packageLock.packages["node_modules/eslint"]?.version ?? "";
-      const [rangeMajor, rangeMinor, rangePatch] = range
-        .replace(/^\^/, "")
-        .split(".")
-        .map(Number);
-      const [lockMajor, lockMinor, lockPatch] = locked.split(".").map(Number);
-
-      expect(lockMajor).toBe(rangeMajor);
-      if (lockMinor === rangeMinor) {
-        expect(lockPatch).toBeGreaterThanOrEqual(rangePatch);
-      } else {
-        expect(lockMinor).toBeGreaterThan(rangeMinor);
-      }
+      expect(satisfiesCaretRange(locked, range)).toBe(true);
     });
 
     it("eslint-config-next range in package.json should be satisfied by locked version", () => {
-      const range = packageJson.devDependencies["eslint-config-next"]; // "^15.0.0"
+      const range = packageJson.devDependencies["eslint-config-next"];
       const locked =
         packageLock.packages["node_modules/eslint-config-next"]?.version ?? "";
-      const rangeMajor = parseInt(range.replace(/^\^/, "").split(".")[0]);
-      const lockMajor = parseInt(locked.split(".")[0]);
+      const rangeMajor = parseMajorFromRange(range);
+      const [lockMajor] = parseVersion(locked);
 
       expect(lockMajor).toBe(rangeMajor);
     });
@@ -412,8 +489,8 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       );
       matchingPaths.forEach((p) => {
         const version = packageLock.packages[p]?.version ?? "";
-        const major = parseInt(version.split(".")[0], 10);
-        expect(major).toBeGreaterThanOrEqual(15);
+        const [major] = parseVersion(version);
+        expect(major).toBeGreaterThanOrEqual(ESLINT_CONFIG_NEXT_NEW_MAJOR);
       });
     });
 
@@ -425,8 +502,8 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       );
       matchingPaths.forEach((p) => {
         const version = packageLock.packages[p]?.version ?? "";
-        const major = parseInt(version.split(".")[0], 10);
-        expect(major).toBeGreaterThanOrEqual(15);
+        const [major] = parseVersion(version);
+        expect(major).toBeGreaterThanOrEqual(ESLINT_CONFIG_NEXT_NEW_MAJOR);
       });
     });
 
@@ -454,8 +531,8 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       );
       globPaths.forEach((p) => {
         const version = packageLock.packages[p]?.version ?? "";
-        const major = parseInt(version.split(".")[0], 10);
-        expect(major).not.toBe(10);
+        const [major] = parseVersion(version);
+        expect(major).not.toBe(DEPRECATED_GLOB_MAJOR);
       });
     });
   });
