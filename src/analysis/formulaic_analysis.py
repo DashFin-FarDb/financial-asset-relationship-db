@@ -4,13 +4,25 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Final, List
 
-from src.analysis.formulaic_examples import (calculate_beta_examples, calculate_commodity_currency_examples,
-                                             calculate_correlation_examples, calculate_dividend_examples,
-                                             calculate_exchange_rate_examples, calculate_market_cap_examples,
-                                             calculate_pb_examples, calculate_pe_examples,
-                                             calculate_portfolio_return_examples, calculate_sharpe_examples,
-                                             calculate_volatility_examples, calculate_ytm_examples, has_bonds,
-                                             has_commodities, has_currencies, has_dividend_stocks, has_equities)
+from src.analysis.formulaic_examples import (
+    calculate_beta_examples,
+    calculate_commodity_currency_examples,
+    calculate_correlation_examples,
+    calculate_dividend_examples,
+    calculate_exchange_rate_examples,
+    calculate_market_cap_examples,
+    calculate_pb_examples,
+    calculate_pe_examples,
+    calculate_portfolio_return_examples,
+    calculate_sharpe_examples,
+    calculate_volatility_examples,
+    calculate_ytm_examples,
+    has_bonds,
+    has_commodities,
+    has_currencies,
+    has_dividend_stocks,
+    has_equities,
+)
 from src.logic.asset_graph import AssetRelationshipGraph
 
 logger = logging.getLogger(__name__)
