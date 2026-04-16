@@ -1503,7 +1503,8 @@ class TestExtractFundamentalFormulasWithBonds:
         formulas = analyzer._extract_fundamental_formulas(graph)
         formula_names = [f.name for f in formulas]
         assert "Yield-to-Maturity" in formula_names
-        assert "Price-to-Earnings Ratio" not in formula_names
+        assert "Price-to-Earnings" not in formula_names
+        assert "Market Capitalization" not in formula_names
         assert "Market Capitalization" not in formula_names
 
     @staticmethod
