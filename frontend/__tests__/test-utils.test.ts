@@ -928,7 +928,6 @@ describe("test-utils Mock Data Validation", () => {
 
     describe("Relationship Graph Integrity", () => {
       it("should have all relationship source IDs exist in some asset list", () => {
-        const allAssetIds = new Set(mockAssets.map((a) => a.id));
         mockRelationships.forEach((rel) => {
           // Source should be a valid asset ID format, even if not in mockAssets
           expect(rel.source_id).toMatch(/^ASSET_\d+$/);
