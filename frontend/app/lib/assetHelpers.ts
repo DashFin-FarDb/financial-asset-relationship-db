@@ -8,9 +8,22 @@ interface PaginatedAssetsResponse {
   per_page: number;
 }
 
+/**
+ * Type guard to check if a value is a non-null object record.
+ *
+ * @param value - The value to test.
+ * @returns `true` if `value` is a non-null object, `false` otherwise.
+ */
 const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+/**
+ * Check whether an object has a property with a numeric value.
+ *
+ * @param obj - The object to inspect.
+ * @param key - The property name to look up.
+ * @returns `true` if `obj[key]` is of type `"number"`, `false` otherwise.
+ */
 const hasNumberProperty = (
   obj: Record<string, unknown>,
   key: string,

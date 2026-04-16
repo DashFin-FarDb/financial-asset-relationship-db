@@ -100,6 +100,12 @@ type AssetListController = {
   handleNextClick: () => void;
 };
 
+/**
+ * Renders a single `<option>` element for the page-size selector.
+ *
+ * @param size - The numeric page size value to display and set as the option's value.
+ * @returns An `<option>` element with `key` and `value` set to `size`.
+ */
 const renderPageSizeOption = (size: number) => (
   <option key={size} value={size}>
     {size}
