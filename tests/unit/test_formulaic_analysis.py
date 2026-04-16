@@ -1347,7 +1347,8 @@ class TestYieldToMaturityFormula:
         assert "ZERO" in formula.example_calculation
         assert "0.00%" in formula.example_calculation
 
-    def test_ytm_formula_example_with_two_bonds(self):
+    @staticmethod
+    def test_ytm_formula_example_with_two_bonds():
         """example_calculation shows up to two bonds separated by '; '."""
         graph = AssetRelationshipGraph()
         for i, (bid, sym, ytm) in enumerate(
@@ -1372,7 +1373,8 @@ class TestYieldToMaturityFormula:
         assert "BNDA" in formula.example_calculation
         assert "BNDB" in formula.example_calculation
 
-    def test_ytm_formula_example_capped_at_two_bonds(self):
+    @staticmethod
+    def test_ytm_formula_example_capped_at_two_bonds():
         """example_calculation includes at most two bond examples even with three bonds."""
         graph = AssetRelationshipGraph()
         for i in range(3):
@@ -1410,7 +1412,8 @@ class TestYieldToMaturityFormula:
 class TestExtractFundamentalFormulasWithBonds:
     """Additional tests for _extract_fundamental_formulas covering bond-related changes."""
 
-    def test_ytm_formula_not_included_without_bonds(self):
+    @staticmethod
+    def test_ytm_formula_not_included_without_bonds():
         """_extract_fundamental_formulas does not include YTM when the graph has no bonds."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1428,7 +1431,8 @@ class TestExtractFundamentalFormulasWithBonds:
         formula_names = [f.name for f in formulas]
         assert "Yield-to-Maturity" not in formula_names
 
-    def test_ytm_formula_included_with_bond(self):
+    @staticmethod
+    def test_ytm_formula_included_with_bond():
         """_extract_fundamental_formulas includes YTM when the graph contains a bond."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1447,7 +1451,8 @@ class TestExtractFundamentalFormulasWithBonds:
         formula_names = [f.name for f in formulas]
         assert "Yield-to-Maturity" in formula_names
 
-    def test_ytm_and_dividend_yield_both_present_when_applicable(self):
+    @staticmethod
+    def test_ytm_and_dividend_yield_both_present_when_applicable():
         """_extract_fundamental_formulas includes both YTM and Dividend Yield formulas
         when the graph has a bond and a dividend-paying stock."""
         analyzer = FormulaicAnalyzer()
@@ -1479,7 +1484,8 @@ class TestExtractFundamentalFormulasWithBonds:
         assert "Yield-to-Maturity" in formula_names
         assert "Dividend Yield" in formula_names
 
-    def test_ytm_present_but_no_equity_formulas_when_bond_only(self):
+    @staticmethod
+    def test_ytm_present_but_no_equity_formulas_when_bond_only():
         """_extract_fundamental_formulas omits P/E and Market Cap when there are no equities."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1500,7 +1506,8 @@ class TestExtractFundamentalFormulasWithBonds:
         assert "Price-to-Earnings Ratio" not in formula_names
         assert "Market Capitalization" not in formula_names
 
-    def test_bond_without_ytm_still_triggers_ytm_formula(self):
+    @staticmethod
+    def test_bond_without_ytm_still_triggers_ytm_formula():
         """has_bonds is True for a bond without a YTM value, so YTM formula is still added."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1519,7 +1526,8 @@ class TestExtractFundamentalFormulasWithBonds:
         formula_names = [f.name for f in formulas]
         assert "Yield-to-Maturity" in formula_names
 
-    def test_bond_without_ytm_uses_default_example_calculation(self):
+    @staticmethod
+    def test_bond_without_ytm_uses_default_example_calculation():
         """When a bond has no YTM, the YTM formula example_calculation is the default string."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1538,7 +1546,8 @@ class TestExtractFundamentalFormulasWithBonds:
         ytm_formula = next(f for f in formulas if f.name == "Yield-to-Maturity")
         assert ytm_formula.example_calculation == "Example: YTM ≈ 3.0%"
 
-    def test_empty_graph_produces_no_ytm_formula(self):
+    @staticmethod
+    def test_empty_graph_produces_no_ytm_formula():
         """_extract_fundamental_formulas on an empty graph does not include a YTM formula."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1551,7 +1560,8 @@ class TestExtractFundamentalFormulasWithBonds:
 class TestAnalyzeGraphWithBondsIntegration:
     """Integration tests for analyze_graph when bonds are present (PR regression coverage)."""
 
-    def test_ytm_formula_in_categories_dict(self):
+    @staticmethod
+    def test_ytm_formula_in_categories_dict():
         """analyze_graph includes 'Income' key in categories when bonds are present."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1569,7 +1579,8 @@ class TestAnalyzeGraphWithBondsIntegration:
         result = analyzer.analyze_graph(graph)
         assert "Income" in result["categories"]
 
-    def test_ytm_formula_count_increases_with_bond(self):
+    @staticmethod
+    def test_ytm_formula_count_increases_with_bond():
         """analyze_graph produces more formulas when a bond is added to an equity-only graph."""
         analyzer = FormulaicAnalyzer()
 
@@ -1612,7 +1623,8 @@ class TestAnalyzeGraphWithBondsIntegration:
 
         assert count_with_bond > count_without_bond
 
-    def test_ytm_formula_r_squared_in_summary(self):
+    @staticmethod
+    def test_ytm_formula_r_squared_in_summary():
         """avg_r_squared in summary accounts for the YTM formula's r_squared=0.0."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1632,7 +1644,8 @@ class TestAnalyzeGraphWithBondsIntegration:
         assert "avg_r_squared" in summary
         assert 0.0 <= summary["avg_r_squared"] <= 1.0
 
-    def test_bond_only_graph_formula_count_matches(self):
+    @staticmethod
+    def test_bond_only_graph_formula_count_matches():
         """formula_count equals len(formulas) for a bond-only graph."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1650,7 +1663,8 @@ class TestAnalyzeGraphWithBondsIntegration:
         result = analyzer.analyze_graph(graph)
         assert result["formula_count"] == len(result["formulas"])
 
-    def test_ytm_formula_has_nonempty_example_in_full_analysis(self):
+    @staticmethod
+    def test_ytm_formula_has_nonempty_example_in_full_analysis():
         """The YTM formula produced by analyze_graph has a non-empty example_calculation."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
