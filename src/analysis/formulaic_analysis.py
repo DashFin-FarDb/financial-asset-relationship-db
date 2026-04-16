@@ -249,7 +249,7 @@ class FormulaicAnalyzer:
 
         Returns:
             Formula: A Formula named "Dividend Yield" with expression "D / P",
-                LaTeX "\frac{D}{P}", variables `D` ("Dividend per share") and
+                LaTeX "\\frac{D}{P}", variables `D` ("Dividend per share") and
                 `P` ("Price per share"), category "Income", and `r_squared` 0.0.
         """
         return Formula(
