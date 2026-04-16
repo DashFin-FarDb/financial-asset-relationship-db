@@ -200,37 +200,70 @@ describe("AssetList Component", () => {
   });
 
   it("should cancel stale requests when filter changes rapidly", async () => {
-    let abortSignal: AbortSignal | undefined;
+    type AssetsResponse = {
+      items: typeof mockAssets;
+      total: number;
+      page: number;
+      per_page: number;
+    };
 
-    // Mock getAssets to capture the abort signal
-    mockedApi.getAssets.mockImplementation(async (params, signal) => {
-      abortSignal = signal;
-      // Simulate a slow request
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      return {
-        items: mockAssets,
-        total: mockAssets.length,
-        page: 1,
-        per_page: 20,
-      };
+    type Deferred<T> = {
+      promise: Promise<T>;
+      resolve: (value: T) => void;
+    };
+
+    const createDeferred = <T,>(): Deferred<T> => {
+      let resolve!: (value: T) => void;
+      const promise = new Promise<T>((res) => {
+        resolve = res;
+      });
+      return { promise, resolve };
+    };
+
+    const firstResponse = createDeferred<AssetsResponse>();
+    const secondResponse = createDeferred<AssetsResponse>();
+    const firstAssets = [mockAssets[0]];
+    const secondAssets = [mockAssets[1]];
+    const abortSignals: AbortSignal[] = [];
+
+    mockedApi.getAssets.mockImplementation((_params, signal) => {
+      abortSignals.push(signal);
+      return abortSignals.length === 1
+        ? firstResponse.promise
+        : secondResponse.promise;
     });
 
     render(<AssetList />);
 
-    // Wait for initial load to complete
-    await waitFor(() => {
-      expect(screen.getByText("AAPL")).toBeInTheDocument();
-    });
-
-    const firstSignal = abortSignal;
-
-    // Change filter rapidly - this should cancel the previous request
     const assetClassSelect = screen.getByLabelText(/Asset Class/i);
     fireEvent.change(assetClassSelect, { target: { value: "EQUITY" } });
 
-    // Verify the first request was aborted
     await waitFor(() => {
-      expect(firstSignal?.aborted).toBe(true);
+      expect(mockedApi.getAssets).toHaveBeenCalledTimes(2);
+      expect(abortSignals[0]?.aborted).toBe(true);
     });
+
+    secondResponse.resolve({
+      items: secondAssets,
+      total: secondAssets.length,
+      page: 1,
+      per_page: 20,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(secondAssets[0].ticker)).toBeInTheDocument();
+    });
+
+    firstResponse.resolve({
+      items: firstAssets,
+      total: firstAssets.length,
+      page: 1,
+      per_page: 20,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(secondAssets[0].ticker)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(firstAssets[0].ticker)).not.toBeInTheDocument();
   });
 });
