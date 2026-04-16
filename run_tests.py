@@ -9,7 +9,7 @@ import sys
 
 
 def _has_control_chars(value: str) -> bool:
-    """
+    r"""
     Determine whether the string contains any disallowed control characters: NUL, line feed, or carriage return.
 
     Parameters:
@@ -22,7 +22,7 @@ def _has_control_chars(value: str) -> bool:
 
 
 def _validate_pytest_args(args: list[str]) -> list[str]:
-    """
+    r"""
     Validate pytest command-line arguments by rejecting NUL, newline, or carriage-return characters.
 
     Parameters:

@@ -210,7 +210,7 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _price_to_earnings_formula(graph: AssetRelationshipGraph) -> Formula:
-        """
+        r"""
         Constructs a Formula representing the Price-to-Earnings (P/E) ratio.
 
         Parameters:
@@ -240,7 +240,7 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _dividend_yield_formula(graph: AssetRelationshipGraph) -> Formula:
-        """
+        r"""
         Construct a Formula representing the dividend yield (dividend per share divided by price per share).
 
         Parameters:
