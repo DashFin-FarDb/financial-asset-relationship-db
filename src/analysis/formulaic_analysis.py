@@ -4,25 +4,13 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Final, List
 
-from src.analysis.formulaic_examples import (
-    calculate_beta_examples,
-    calculate_commodity_currency_examples,
-    calculate_correlation_examples,
-    calculate_dividend_examples,
-    calculate_exchange_rate_examples,
-    calculate_market_cap_examples,
-    calculate_pb_examples,
-    calculate_pe_examples,
-    calculate_portfolio_return_examples,
-    calculate_sharpe_examples,
-    calculate_volatility_examples,
-    calculate_ytm_examples,
-    has_bonds,
-    has_commodities,
-    has_currencies,
-    has_dividend_stocks,
-    has_equities,
-)
+from src.analysis.formulaic_examples import (calculate_beta_examples, calculate_commodity_currency_examples,
+                                             calculate_correlation_examples, calculate_dividend_examples,
+                                             calculate_exchange_rate_examples, calculate_market_cap_examples,
+                                             calculate_pb_examples, calculate_pe_examples,
+                                             calculate_portfolio_return_examples, calculate_sharpe_examples,
+                                             calculate_volatility_examples, calculate_ytm_examples, has_bonds,
+                                             has_commodities, has_currencies, has_dividend_stocks, has_equities)
 from src.logic.asset_graph import AssetRelationshipGraph
 
 logger = logging.getLogger(__name__)
@@ -246,35 +234,40 @@ class FormulaicAnalyzer:
         """
         Constructs a Formula for bond yield-to-maturity (YTM).
 
+        YTM represents the total return anticipated on a bond if held until maturity,
+        accounting for all coupon payments and the difference between purchase price
+        and face value. In this system, YTM values are pre-computed and stored as
+        attributes on Bond assets.
+
+        The theoretical calculation involves solving for the discount rate (YTM) in the
+        present value equation: Price = Σ(C/(1+YTM)^t) + (F/(1+YTM)^n), where C is the
+        coupon payment, F is face value, and n is years to maturity. This typically
+        requires iterative numerical methods (e.g., Newton-Raphson) rather than a
+        closed-form approximation.
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to generate the example_calculation for the formula.
 
         Returns:
-            Formula: A Formula named "Yield-to-Maturity" with expression describing YTM calculation, category "Income", and r_squared set to 0.0.
+            Formula: A Formula named "Yield-to-Maturity" with YTM definition, example calculations
+                    from actual bond data, category "Income", and r_squared set to 0.0.
         """
-
-
-variables = {
-    "YTM": "Yield-to-maturity (approximate) as calculated from bond terms",
-    "C": "Annual coupon payment (used in approximation)",
-    "F": "Face value at maturity (used in approximation)",
-    "P": "Current bond price (used in approximation)",
-    "n": "Years to maturity (used in approximation)",
-},
-            name = "Yield-to-Maturity",
-            expression = "YTM = (C + (F - P) / n) / ((F + P) / 2)",
-            latex = r"YTM = \frac{C + \frac{F - P}{n}}{\frac{F + P}{2}}",
-            description = "Approximate yield-to-maturity for a bond, where C is annual coupon payment, F is face value, P is price, and n is years to maturity.",
-            variables = {
-                "YTM": "Yield-to-maturity (approximate)",
-                "C": "Annual coupon payment",
-                "F": "Face value at maturity",
-                "P": "Current bond price",
-                "n": "Years to maturity",
+        return Formula(
+            name="Yield-to-Maturity",
+            expression="YTM",
+            latex=r"YTM = \text{IRR}\left(\sum_{t=1}^{n} \frac{C}{(1+YTM)^t} + \frac{F}{(1+YTM)^n} = P\right)",
+            description="Total return anticipated on a bond if held until maturity, accounting for all coupon payments and the difference between current market price and face value. Calculated as the internal rate of return (IRR) that equates the present value of future cash flows to the current bond price.",
+            variables={
+                "YTM": "Yield-to-maturity (annualized rate of return)",
+                "C": "Periodic coupon payment",
+                "F": "Face value (par value) at maturity",
+                "P": "Current market price of the bond",
+                "n": "Number of periods until maturity",
+                "t": "Time period index",
             },
-            example_calculation = calculate_ytm_examples(graph),
-            category = "Income",
-            r_squared = 0.0,
+            example_calculation=calculate_ytm_examples(graph),
+            category="Income",
+            r_squared=0.0,
         )
 
     @staticmethod
