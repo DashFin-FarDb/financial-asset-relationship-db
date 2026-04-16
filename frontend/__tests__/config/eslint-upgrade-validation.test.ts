@@ -18,7 +18,7 @@
  * - eslint-plugin-react-hooks peerDependencies now accept eslint ^9.0.0
  */
 
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 type PackageJson = {
