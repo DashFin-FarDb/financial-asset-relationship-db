@@ -162,7 +162,12 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       const range = packageJson.devDependencies.eslint;
       const cleanRange = range.replace(/^\^/, "");
       expect(
-        meetsMinimumVersion(cleanRange, ESLINT_MAJOR, ESLINT_MINOR, ESLINT_PATCH),
+        meetsMinimumVersion(
+          cleanRange,
+          ESLINT_MAJOR,
+          ESLINT_MINOR,
+          ESLINT_PATCH,
+        ),
       ).toBe(true);
     });
   });
