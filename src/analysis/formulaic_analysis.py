@@ -252,7 +252,13 @@ class FormulaicAnalyzer:
         Returns:
             Formula: A Formula named "Yield-to-Maturity" with expression describing YTM calculation, category "Income", and r_squared set to 0.0.
         """
-        return Formula(
+variables={
+    "YTM": "Yield-to-maturity (approximate) as calculated from bond terms",
+    "C": "Annual coupon payment (used in approximation)",
+    "F": "Face value at maturity (used in approximation)",
+    "P": "Current bond price (used in approximation)",
+    "n": "Years to maturity (used in approximation)",
+},
             name="Yield-to-Maturity",
             expression="YTM = (C + (F - P) / n) / ((F + P) / 2)",
             latex=r"YTM = \frac{C + \frac{F - P}{n}}{\frac{F + P}{2}}",
