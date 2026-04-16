@@ -1350,10 +1350,12 @@ class TestYieldToMaturityFormula:
     def test_ytm_formula_example_with_two_bonds(self):
         """example_calculation shows up to two bonds separated by '; '."""
         graph = AssetRelationshipGraph()
-        for i, (bid, sym, ytm) in enumerate([
-            ("B1", "BNDA", 0.03),
-            ("B2", "BNDB", 0.06),
-        ]):
+        for i, (bid, sym, ytm) in enumerate(
+            [
+                ("B1", "BNDA", 0.03),
+                ("B2", "BNDB", 0.06),
+            ]
+        ):
             graph.add_asset(
                 Bond(
                     id=bid,
@@ -1676,9 +1678,7 @@ class TestAnalyzeGraphWithBondsIntegration:
             )
         )
         result = analyzer.analyze_graph(graph)
-        ytm_formula = next(
-            (f for f in result["formulas"] if f.name == "Yield-to-Maturity"), None
-        )
+        ytm_formula = next((f for f in result["formulas"] if f.name == "Yield-to-Maturity"), None)
         assert ytm_formula is not None
         assert ytm_formula.example_calculation  # non-empty
         assert "CORP1" in ytm_formula.example_calculation
