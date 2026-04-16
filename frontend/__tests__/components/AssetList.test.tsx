@@ -227,7 +227,7 @@ describe("AssetList Component", () => {
       {
         ...mockAssets[0],
         id: `${mockAssets[0].id}-second`,
-        ticker: `${mockAssets[0].ticker}-SECOND`,
+        symbol: `${mockAssets[0].symbol}-SECOND`,
         name: `${mockAssets[0].name} Second`,
       },
     ];
@@ -258,7 +258,7 @@ describe("AssetList Component", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(secondAssets[0].ticker)).toBeInTheDocument();
+      expect(screen.getByText(secondAssets[0].symbol)).toBeInTheDocument();
     });
 
     firstResponse.resolve({
@@ -269,8 +269,8 @@ describe("AssetList Component", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(secondAssets[0].ticker)).toBeInTheDocument();
+      expect(screen.getByText(secondAssets[0].symbol)).toBeInTheDocument();
     });
-    expect(screen.queryByText(firstAssets[0].ticker)).not.toBeInTheDocument();
+    expect(screen.queryByText(firstAssets[0].symbol)).not.toBeInTheDocument();
   });
 });

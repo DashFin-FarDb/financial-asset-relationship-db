@@ -153,6 +153,11 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
 
     const data = await api.getAssets(params, signal);
 
+    // Ignore results if request was aborted while in-flight
+    if (signal?.aborted) {
+      return;
+    }
+
     if (isPaginatedResponse(data)) {
       setAssets(data.items);
       setTotal(data.total);
@@ -161,8 +166,12 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
       setTotal(Array.isArray(data) ? data.length : null);
     }
   } catch (error) {
-    // Ignore aborted requests
-    if (error instanceof Error && error.name === "CanceledError") {
+    // Ignore aborted/canceled requests
+    if (
+      signal?.aborted ||
+      (error instanceof Error &&
+        (error.name === "CanceledError" || error.name === "AbortError"))
+    ) {
       return;
     }
     console.error("Error loading assets:", error);
