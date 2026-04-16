@@ -19,7 +19,7 @@
  */
 
 import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { join } from "node:path";
 
 type PackageJson = {
   devDependencies: Record<string, string>;
@@ -82,7 +82,7 @@ const parseVersion = (version: string): [number, number, number] => {
  * Parse the major version from a package.json version range (e.g., "^8.57.1" → 8).
  */
 const parseMajorFromRange = (range: string): number => {
-  return parseInt(range.replace(/^\^/, "").split(".")[0], 10);
+  return Number.parseInt(range.replace(/^\^/, "").split(".")[0], 10);
 };
 
 /**
