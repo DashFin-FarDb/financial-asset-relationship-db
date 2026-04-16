@@ -288,10 +288,7 @@ class FormulaicAnalyzer:
         return Formula(
             name="Yield-to-Maturity",
             expression="P = Σ C/(1+YTM)^t + F/(1+YTM)^n",
-            latex=(
-                r"P = \sum_{t=1}^{n} \frac{C}{(1+YTM)^t} "
-                r"+ \frac{F}{(1+YTM)^n}"
-            ),
+            latex=(r"P = \sum_{t=1}^{n} \frac{C}{(1+YTM)^t} " r"+ \frac{F}{(1+YTM)^n}"),
             description=(
                 "Total return anticipated on a bond if held until maturity, "
                 "accounting for all coupon payments and the difference between "
