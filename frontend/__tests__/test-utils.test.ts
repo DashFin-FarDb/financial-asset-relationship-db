@@ -267,11 +267,9 @@ describe("test-utils Mock Data Validation", () => {
       mockRelationships.forEach((rel) => {
         // At least one ID should be in mockAssets (some may reference ASSET_3, etc.)
         const sourceValid =
-          assetIds.has(rel.source_id) ||
-          rel.source_id.startsWith("ASSET_");
+          assetIds.has(rel.source_id) || rel.source_id.startsWith("ASSET_");
         const targetValid =
-          assetIds.has(rel.target_id) ||
-          rel.target_id.startsWith("ASSET_");
+          assetIds.has(rel.target_id) || rel.target_id.startsWith("ASSET_");
         expect(sourceValid).toBe(true);
         expect(targetValid).toBe(true);
       });
