@@ -357,19 +357,15 @@ function useSearchStateSync(
 }
 
 /**
- * Fetches assets whenever page, pageSize, filter, or querySummary change and updates the provided state setters.
+ * Trigger asset loading when pagination, page size, filter, or query summary changes and update the provided state setters.
  *
- * Runs an effect that calls the shared asset-loading routine and ensures loading, result, and error state are updated to reflect the request lifecycle.
- * Uses an AbortController to cancel stale requests when dependencies change.
+ * Runs an effect that requests assets for the given `page`, `pageSize`, and `filter`, then invokes the provided setters with the resulting assets list, total count, loading state, and any error message. In-flight requests are cancelled when inputs change.
  *
- * @param page - Current page number to request
- * @param pageSize - Number of items per page to request
- * @param filter - Asset filter to apply (e.g., asset class and sector)
- * @param querySummary - Precomputed string summary of the current query (used for logging or cache keys)
- * @param setAssets - Setter invoked with the fetched asset list (`Asset[]`)
- * @param setTotal - Setter invoked with the total number of matching assets (`number | null`)
- * @param setError - Setter invoked with an error message or `null`
- * @param setLoading - Setter invoked with loading state (`true` when request starts, `false` when it finishes)
+ * @param querySummary - A precomputed string representing the current query; changing this forces a reload
+ * @param setAssets - Called with the fetched `Asset[]` on success
+ * @param setTotal - Called with the total matching asset count (`number | null`) on success
+ * @param setError - Called with an error message (`string`) when a non-canceled error occurs, or `null` to clear errors
+ * @param setLoading - Called with `true` when a request starts and `false` when it finishes
  */
 function useAssetDataLoading({
   page,
