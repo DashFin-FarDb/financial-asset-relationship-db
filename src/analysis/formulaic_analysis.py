@@ -4,23 +4,13 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Final, List
 
-from src.analysis.formulaic_examples import (
-    calculate_beta_examples,
-    calculate_commodity_currency_examples,
-    calculate_correlation_examples,
-    calculate_dividend_examples,
-    calculate_exchange_rate_examples,
-    calculate_market_cap_examples,
-    calculate_pb_examples,
-    calculate_pe_examples,
-    calculate_portfolio_return_examples,
-    calculate_sharpe_examples,
-    calculate_volatility_examples,
-    has_commodities,
-    has_currencies,
-    has_dividend_stocks,
-    has_equities,
-)
+from src.analysis.formulaic_examples import (calculate_beta_examples, calculate_commodity_currency_examples,
+                                             calculate_correlation_examples, calculate_dividend_examples,
+                                             calculate_exchange_rate_examples, calculate_market_cap_examples,
+                                             calculate_pb_examples, calculate_pe_examples,
+                                             calculate_portfolio_return_examples, calculate_sharpe_examples,
+                                             calculate_volatility_examples, calculate_ytm_examples, has_bonds,
+                                             has_commodities, has_currencies, has_dividend_stocks, has_equities)
 from src.logic.asset_graph import AssetRelationshipGraph
 
 logger = logging.getLogger(__name__)
@@ -168,13 +158,8 @@ class FormulaicAnalyzer:
         if has_dividend_stocks(graph):
             formulas.append(self._dividend_yield_formula(graph))
 
-        # NOTE: Bond yield-to-maturity (YTM) approximation
-        # is not yet implemented.
-        # When bond instruments are present in the graph, detect bond nodes and
-        # compute approximate YTM using bond price, coupon rate,
-        # and time to maturity (e.g., via iterative solution of
-        # price = present value of cash flows).
-        # Add a Formula entry for YTM to the formulas list.
+        if has_bonds(graph):
+            formulas.append(self._yield_to_maturity_formula(graph))
         return formulas
 
     @staticmethod
@@ -240,6 +225,34 @@ class FormulaicAnalyzer:
                 "P": PRICE_PER_SHARE_LABEL,
             },
             example_calculation=calculate_dividend_examples(graph),
+            category="Income",
+            r_squared=0.0,
+        )
+
+    @staticmethod
+    def _yield_to_maturity_formula(graph: AssetRelationshipGraph) -> Formula:
+        """
+        Constructs a Formula for bond yield-to-maturity (YTM).
+
+        Parameters:
+            graph (AssetRelationshipGraph): Graph used to generate the example_calculation for the formula.
+
+        Returns:
+            Formula: A Formula named "Yield-to-Maturity" with expression describing YTM calculation, category "Income", and r_squared set to 0.0.
+        """
+        return Formula(
+            name="Yield-to-Maturity",
+            expression="YTM = (C + (F - P) / n) / ((F + P) / 2)",
+            latex=r"YTM = \frac{C + \frac{F - P}{n}}{\frac{F + P}{2}}",
+            description="Approximate yield-to-maturity for a bond, where C is annual coupon payment, F is face value, P is price, and n is years to maturity.",
+            variables={
+                "YTM": "Yield-to-maturity (approximate)",
+                "C": "Annual coupon payment",
+                "F": "Face value at maturity",
+                "P": "Current bond price",
+                "n": "Years to maturity",
+            },
+            example_calculation=calculate_ytm_examples(graph),
             category="Income",
             r_squared=0.0,
         )
