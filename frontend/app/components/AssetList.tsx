@@ -398,17 +398,7 @@ function useAssetDataLoading({
       }
     };
 
-    void fetchAssets().catch((err) => {
-      // Ignore aborted requests
-      if (err instanceof Error && err.name === "CanceledError") {
-        return;
-      }
-      // Only set error if request wasn't aborted
-      if (!abortController.signal.aborted) {
-        setError(err instanceof Error ? err.message : "Failed to load assets");
-        setLoading(false);
-      }
-    });
+    void fetchAssets();
 
     return () => {
       abortController.abort();
