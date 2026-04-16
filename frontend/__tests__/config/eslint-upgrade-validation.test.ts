@@ -460,5 +460,6 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
         const major = parseInt(version.split(".")[0], 10);
         expect(major).not.toBe(10);
       });
+    });
   });
 });

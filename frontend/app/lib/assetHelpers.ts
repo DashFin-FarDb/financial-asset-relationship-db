@@ -115,6 +115,7 @@ type LoadAssetsOptions = {
   setTotal: (next: number | null) => void;
   setError: (next: string | null) => void;
   querySummary?: string;
+  signal?: AbortSignal;
 };
 
 /**
@@ -132,6 +133,7 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
     setTotal,
     setError,
     querySummary,
+    signal,
   } = options;
   setError(null);
 
@@ -149,7 +151,7 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
     if (filter.asset_class) params.asset_class = filter.asset_class;
     if (filter.sector) params.sector = filter.sector;
 
-    const data = await api.getAssets(params);
+    const data = await api.getAssets(params, signal);
 
     if (isPaginatedResponse(data)) {
       setAssets(data.items);
@@ -159,6 +161,10 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
       setTotal(Array.isArray(data) ? data.length : null);
     }
   } catch (error) {
+    // Ignore aborted requests
+    if (error instanceof Error && error.name === "CanceledError") {
+      return;
+    }
     console.error("Error loading assets:", error);
     setAssets([]);
     setTotal(null);

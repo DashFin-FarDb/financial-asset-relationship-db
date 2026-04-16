@@ -129,6 +129,7 @@ function AssetListStatus({ loading, error }: AssetListStatusProps) {
     >
       {hasError ? `Error: ${error}` : "Loading..."}
     </div>
+  );
 }
 
 /**
@@ -359,6 +360,7 @@ function useSearchStateSync(
  * Fetches assets whenever page, pageSize, filter, or querySummary change and updates the provided state setters.
  *
  * Runs an effect that calls the shared asset-loading routine and ensures loading, result, and error state are updated to reflect the request lifecycle.
+ * Uses an AbortController to cancel stale requests when dependencies change.
  *
  * @param page - Current page number to request
  * @param pageSize - Number of items per page to request
@@ -379,18 +381,36 @@ function useAssetDataLoading({
   setError,
   setLoading,
 }: AssetDataLoadingParams) {
-  const fetchAssets = useCallback(async () => {
-    setLoading(true);
-    await loadAssets({
-      page,
-      pageSize,
-      filter,
-      setAssets,
-      setTotal,
-      setError,
-      querySummary,
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchAssets = async () => {
+      setLoading(true);
+      await loadAssets({
+        page,
+        pageSize,
+        filter,
+        setAssets,
+        setTotal,
+        setError,
+        querySummary,
+        signal: abortController.signal,
+      });
+      setLoading(false);
+    };
+
+    void fetchAssets().catch((err) => {
+      // Ignore aborted requests
+      if (err instanceof Error && err.name === "CanceledError") {
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Failed to load assets");
+      setLoading(false);
     });
-    setLoading(false);
+
+    return () => {
+      abortController.abort();
+    };
   }, [
     filter,
     page,
@@ -401,13 +421,6 @@ function useAssetDataLoading({
     setLoading,
     setTotal,
   ]);
-
-  useEffect(() => {
-    void fetchAssets().catch((err) => {
-      setError(err instanceof Error ? err.message : "Failed to load assets");
-      setLoading(false);
-    });
-  }, [fetchAssets, setError, setLoading]);
 }
 
 /**
