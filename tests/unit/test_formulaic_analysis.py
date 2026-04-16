@@ -1266,10 +1266,10 @@ class TestYieldToMaturityFormula:
         assert formula.name == "Yield-to-Maturity"
 
     def test_ytm_formula_expression(self):
-        """_yield_to_maturity_formula expression is 'YTM'."""
+        """_yield_to_maturity_formula expression contains YTM and the present value formula."""
         graph = self._make_bond_graph(yield_to_maturity=0.05)
         formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
-        assert formula.expression == "YTM"
+        assert formula.expression == "P = Σ C/(1+YTM)^t + F/(1+YTM)^n"
 
     def test_ytm_formula_category_is_income(self):
         """_yield_to_maturity_formula category is 'Income'."""
@@ -1283,11 +1283,11 @@ class TestYieldToMaturityFormula:
         formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
         assert abs(formula.r_squared - 0.0) < 1e-9
 
-    def test_ytm_formula_has_all_six_variables(self):
-        """_yield_to_maturity_formula variables dict contains all six expected keys."""
+    def test_ytm_formula_has_all_five_variables(self):
+        """_yield_to_maturity_formula variables dict contains all five expected keys."""
         graph = self._make_bond_graph(yield_to_maturity=0.03)
         formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
-        expected_keys = {"YTM", "C", "F", "P", "n", "t"}
+        expected_keys = {"YTM", "C", "F", "P", "n"}
         assert set(formula.variables.keys()) == expected_keys
 
     def test_ytm_formula_variable_descriptions_are_nonempty(self):
@@ -1297,11 +1297,11 @@ class TestYieldToMaturityFormula:
         for key, desc in formula.variables.items():
             assert isinstance(desc, str) and desc, f"Variable '{key}' has empty description"
 
-    def test_ytm_formula_latex_contains_irr(self):
-        """_yield_to_maturity_formula LaTeX string references IRR."""
+    def test_ytm_formula_latex_contains_sum(self):
+        """_yield_to_maturity_formula LaTeX string uses summation notation."""
         graph = self._make_bond_graph(yield_to_maturity=0.03)
         formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
-        assert "IRR" in formula.latex
+        assert r"\sum" in formula.latex
 
     def test_ytm_formula_latex_contains_frac(self):
         """_yield_to_maturity_formula LaTeX string uses \\frac notation."""
@@ -1331,8 +1331,8 @@ class TestYieldToMaturityFormula:
         """example_calculation shows YTM as a percentage with two decimal places."""
         graph = self._make_bond_graph(yield_to_maturity=0.045, symbol="MUNI")
         formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
-        # 0.045 * 100 ≈ 4.50%; allow for minor floating point formatting differences
-        assert any(pct in formula.example_calculation for pct in ("4.50%", "4.49%", "4.51%"))
+        # 0.045 * 100 = 4.50%; formatting is deterministic with .2f
+        assert "4.50%" in formula.example_calculation
 
     def test_ytm_formula_example_default_when_no_ytm_set(self):
         """example_calculation falls back to default string when bond has no YTM."""

@@ -281,9 +281,9 @@ class FormulaicAnalyzer:
 
         Returns:
             Formula: A `Formula` named "Yield-to-Maturity" with expression
-                `YTM`, variable descriptions for `YTM`, `C`, `F`, `P`, `n`, and
-                `t`, example calculations drawn from `graph`, category `"Income"`,
-                and `r_squared` set to `0.0`.
+                showing the present value equation, variable descriptions for
+                `YTM`, `C`, `F`, `P`, and `n`, example calculations drawn from
+                `graph`, category `"Income"`, and `r_squared` set to `0.0`.
         """
         return Formula(
             name="Yield-to-Maturity",
@@ -302,7 +302,6 @@ class FormulaicAnalyzer:
                 "F": "Face value (par value) at maturity",
                 "P": "Current market price of the bond",
                 "n": "Number of periods until maturity",
-                "t": "Time period index",
             },
             example_calculation=calculate_ytm_examples(graph),
             category="Income",
