@@ -189,4 +189,39 @@ describe("AssetList Component", () => {
       expect(screen.getByText(/Page 3 of 3/)).toBeInTheDocument();
     });
   });
+
+  it("should cancel stale requests when filter changes rapidly", async () => {
+    let abortSignal: AbortSignal | undefined;
+
+    // Mock getAssets to capture the abort signal
+    mockedApi.getAssets.mockImplementation(async (params, signal) => {
+      abortSignal = signal;
+      // Simulate a slow request
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      return {
+        items: mockAssets,
+        total: mockAssets.length,
+        page: 1,
+        per_page: 20,
+      };
+    });
+
+    render(<AssetList />);
+
+    // Wait for initial load to complete
+    await waitFor(() => {
+      expect(screen.getByText("AAPL")).toBeInTheDocument();
+    });
+
+    const firstSignal = abortSignal;
+
+    // Change filter rapidly - this should cancel the previous request
+    const assetClassSelect = screen.getByLabelText(/Asset Class/i);
+    fireEvent.change(assetClassSelect, { target: { value: "EQUITY" } });
+
+    // Verify the first request was aborted
+    await waitFor(() => {
+      expect(firstSignal?.aborted).toBe(true);
+    });
+  });
 });
