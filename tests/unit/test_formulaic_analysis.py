@@ -1281,7 +1281,7 @@ class TestYieldToMaturityFormula:
         """_yield_to_maturity_formula r_squared is 0.0."""
         graph = self._make_bond_graph(yield_to_maturity=0.03)
         formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
-        assert formula.r_squared == 0.0
+        assert abs(formula.r_squared - 0.0) < 1e-9
 
     def test_ytm_formula_has_all_six_variables(self):
         """_yield_to_maturity_formula variables dict contains all six expected keys."""
