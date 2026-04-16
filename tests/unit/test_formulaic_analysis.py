@@ -1237,3 +1237,448 @@ class TestIntegrationScenarios:
         assert "quality_score" in metrics
         assert isinstance(metrics["quality_score"], float)
         assert 0.0 <= metrics["quality_score"] <= 1.0
+
+
+@pytest.mark.unit
+class TestYieldToMaturityFormula:
+    """Test the _yield_to_maturity_formula static method added in this PR."""
+
+    @staticmethod
+    def _make_bond_graph(yield_to_maturity=None, symbol="TBOND"):
+        """Helper: return a graph containing one bond asset."""
+        graph = AssetRelationshipGraph()
+        bond = Bond(
+            id="BOND_TEST",
+            symbol=symbol,
+            name="Test Bond",
+            asset_class=AssetClass.FIXED_INCOME,
+            sector="Government",
+            price=100.0,
+            yield_to_maturity=yield_to_maturity,
+        )
+        graph.add_asset(bond)
+        return graph
+
+    def test_ytm_formula_name(self):
+        """_yield_to_maturity_formula returns a Formula named 'Yield-to-Maturity'."""
+        graph = self._make_bond_graph(yield_to_maturity=0.03)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert formula.name == "Yield-to-Maturity"
+
+    def test_ytm_formula_expression(self):
+        """_yield_to_maturity_formula expression is 'YTM'."""
+        graph = self._make_bond_graph(yield_to_maturity=0.05)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert formula.expression == "YTM"
+
+    def test_ytm_formula_category_is_income(self):
+        """_yield_to_maturity_formula category is 'Income'."""
+        graph = self._make_bond_graph(yield_to_maturity=0.04)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert formula.category == "Income"
+
+    def test_ytm_formula_r_squared_is_zero(self):
+        """_yield_to_maturity_formula r_squared is 0.0."""
+        graph = self._make_bond_graph(yield_to_maturity=0.03)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert formula.r_squared == 0.0
+
+    def test_ytm_formula_has_all_six_variables(self):
+        """_yield_to_maturity_formula variables dict contains all six expected keys."""
+        graph = self._make_bond_graph(yield_to_maturity=0.03)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        expected_keys = {"YTM", "C", "F", "P", "n", "t"}
+        assert set(formula.variables.keys()) == expected_keys
+
+    def test_ytm_formula_variable_descriptions_are_nonempty(self):
+        """All variable descriptions in the YTM formula are non-empty strings."""
+        graph = self._make_bond_graph(yield_to_maturity=0.03)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        for key, desc in formula.variables.items():
+            assert isinstance(desc, str) and desc, f"Variable '{key}' has empty description"
+
+    def test_ytm_formula_latex_contains_irr(self):
+        """_yield_to_maturity_formula LaTeX string references IRR."""
+        graph = self._make_bond_graph(yield_to_maturity=0.03)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert "IRR" in formula.latex
+
+    def test_ytm_formula_latex_contains_frac(self):
+        """_yield_to_maturity_formula LaTeX string uses \\frac notation."""
+        graph = self._make_bond_graph(yield_to_maturity=0.03)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert r"\frac" in formula.latex
+
+    def test_ytm_formula_description_mentions_irr(self):
+        """_yield_to_maturity_formula description mentions 'internal rate of return'."""
+        graph = self._make_bond_graph(yield_to_maturity=0.03)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert "internal rate of return" in formula.description.lower()
+
+    def test_ytm_formula_description_is_nonempty(self):
+        """_yield_to_maturity_formula description is a non-empty string."""
+        graph = self._make_bond_graph(yield_to_maturity=0.03)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert isinstance(formula.description, str) and formula.description
+
+    def test_ytm_formula_example_uses_bond_symbol(self):
+        """example_calculation includes the bond's symbol when YTM is set."""
+        graph = self._make_bond_graph(yield_to_maturity=0.05, symbol="CORP")
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert "CORP" in formula.example_calculation
+
+    def test_ytm_formula_example_percentage_format(self):
+        """example_calculation shows YTM as a percentage with two decimal places."""
+        graph = self._make_bond_graph(yield_to_maturity=0.045, symbol="MUNI")
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        # 0.045 * 100 = 4.50%
+        assert "4.50%" in formula.example_calculation
+
+    def test_ytm_formula_example_default_when_no_ytm_set(self):
+        """example_calculation falls back to default string when bond has no YTM."""
+        graph = self._make_bond_graph(yield_to_maturity=None)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert formula.example_calculation == "Example: YTM ≈ 3.0%"
+
+    def test_ytm_formula_example_zero_yield(self):
+        """example_calculation handles a zero YTM correctly (shows 0.00%)."""
+        graph = self._make_bond_graph(yield_to_maturity=0.0, symbol="ZERO")
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert "ZERO" in formula.example_calculation
+        assert "0.00%" in formula.example_calculation
+
+    def test_ytm_formula_example_with_two_bonds(self):
+        """example_calculation shows up to two bonds separated by '; '."""
+        graph = AssetRelationshipGraph()
+        for i, (bid, sym, ytm) in enumerate([
+            ("B1", "BNDA", 0.03),
+            ("B2", "BNDB", 0.06),
+        ]):
+            graph.add_asset(
+                Bond(
+                    id=bid,
+                    symbol=sym,
+                    name=f"Bond {i}",
+                    asset_class=AssetClass.FIXED_INCOME,
+                    sector="Government",
+                    price=100.0,
+                    yield_to_maturity=ytm,
+                )
+            )
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert "; " in formula.example_calculation
+        assert "BNDA" in formula.example_calculation
+        assert "BNDB" in formula.example_calculation
+
+    def test_ytm_formula_example_capped_at_two_bonds(self):
+        """example_calculation includes at most two bond examples even with three bonds."""
+        graph = AssetRelationshipGraph()
+        for i in range(3):
+            graph.add_asset(
+                Bond(
+                    id=f"BOND{i}",
+                    symbol=f"BND{i}",
+                    name=f"Bond {i}",
+                    asset_class=AssetClass.FIXED_INCOME,
+                    sector="Government",
+                    price=100.0,
+                    yield_to_maturity=0.03 + i * 0.01,
+                )
+            )
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        # At most two "; " separators means at most two examples
+        example_count = len(formula.example_calculation.split("; "))
+        assert example_count <= 2
+
+    def test_ytm_formula_all_required_fields_present(self):
+        """_yield_to_maturity_formula returns a Formula with all required fields populated."""
+        graph = self._make_bond_graph(yield_to_maturity=0.03)
+        formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
+        assert formula.name
+        assert formula.expression
+        assert formula.latex
+        assert formula.description
+        assert isinstance(formula.variables, dict) and formula.variables
+        assert formula.example_calculation is not None
+        assert formula.category
+        assert isinstance(formula.r_squared, float)
+
+
+@pytest.mark.unit
+class TestExtractFundamentalFormulasWithBonds:
+    """Additional tests for _extract_fundamental_formulas covering bond-related changes."""
+
+    @staticmethod
+    def test_ytm_formula_not_included_without_bonds():
+        """_extract_fundamental_formulas does not include YTM when the graph has no bonds."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+            pe_ratio=25.0,
+        )
+        graph.add_asset(equity)
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        formula_names = [f.name for f in formulas]
+        assert "Yield-to-Maturity" not in formula_names
+
+    @staticmethod
+    def test_ytm_formula_included_with_bond():
+        """_extract_fundamental_formulas includes YTM when the graph contains a bond."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Bond(
+                id="GOV",
+                symbol="GOV",
+                name="Gov Bond",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Government",
+                price=100.0,
+                yield_to_maturity=0.04,
+            )
+        )
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        formula_names = [f.name for f in formulas]
+        assert "Yield-to-Maturity" in formula_names
+
+    @staticmethod
+    def test_ytm_and_dividend_yield_both_present_when_applicable():
+        """_extract_fundamental_formulas includes both YTM and Dividend Yield formulas
+        when the graph has a bond and a dividend-paying stock."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Bond(
+                id="BOND",
+                symbol="BOND",
+                name="Test Bond",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Government",
+                price=100.0,
+                yield_to_maturity=0.03,
+            )
+        )
+        graph.add_asset(
+            Equity(
+                id="DIV",
+                symbol="DIV",
+                name="Dividend Stock",
+                asset_class=AssetClass.EQUITY,
+                sector="Utilities",
+                price=50.0,
+                dividend_yield=0.04,
+            )
+        )
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        formula_names = [f.name for f in formulas]
+        assert "Yield-to-Maturity" in formula_names
+        assert "Dividend Yield" in formula_names
+
+    @staticmethod
+    def test_ytm_present_but_no_equity_formulas_when_bond_only():
+        """_extract_fundamental_formulas omits P/E and Market Cap when there are no equities."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Bond(
+                id="BOND",
+                symbol="BOND",
+                name="Corporate Bond",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Corporate",
+                price=95.0,
+                yield_to_maturity=0.05,
+            )
+        )
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        formula_names = [f.name for f in formulas]
+        assert "Yield-to-Maturity" in formula_names
+        assert "Price-to-Earnings Ratio" not in formula_names
+        assert "Market Capitalization" not in formula_names
+
+    @staticmethod
+    def test_bond_without_ytm_still_triggers_ytm_formula():
+        """has_bonds is True for a bond without a YTM value, so YTM formula is still added."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Bond(
+                id="BOND_NO_YTM",
+                symbol="NOYTM",
+                name="Bond Without YTM",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Government",
+                price=100.0,
+                yield_to_maturity=None,
+            )
+        )
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        formula_names = [f.name for f in formulas]
+        assert "Yield-to-Maturity" in formula_names
+
+    @staticmethod
+    def test_bond_without_ytm_uses_default_example_calculation():
+        """When a bond has no YTM, the YTM formula example_calculation is the default string."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Bond(
+                id="BOND_NO_YTM",
+                symbol="NOYTM",
+                name="Bond Without YTM",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Government",
+                price=100.0,
+                yield_to_maturity=None,
+            )
+        )
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        ytm_formula = next(f for f in formulas if f.name == "Yield-to-Maturity")
+        assert ytm_formula.example_calculation == "Example: YTM ≈ 3.0%"
+
+    @staticmethod
+    def test_empty_graph_produces_no_ytm_formula():
+        """_extract_fundamental_formulas on an empty graph does not include a YTM formula."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        formulas = analyzer._extract_fundamental_formulas(graph)
+        formula_names = [f.name for f in formulas]
+        assert "Yield-to-Maturity" not in formula_names
+
+
+@pytest.mark.unit
+class TestAnalyzeGraphWithBondsIntegration:
+    """Integration tests for analyze_graph when bonds are present (PR regression coverage)."""
+
+    @staticmethod
+    def test_ytm_formula_in_categories_dict():
+        """analyze_graph includes 'Income' key in categories when bonds are present."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Bond(
+                id="B1",
+                symbol="B1",
+                name="Bond 1",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Government",
+                price=100.0,
+                yield_to_maturity=0.035,
+            )
+        )
+        result = analyzer.analyze_graph(graph)
+        assert "Income" in result["categories"]
+
+    @staticmethod
+    def test_ytm_formula_count_increases_with_bond():
+        """analyze_graph produces more formulas when a bond is added to an equity-only graph."""
+        analyzer = FormulaicAnalyzer()
+
+        equity_only_graph = AssetRelationshipGraph()
+        equity_only_graph.add_asset(
+            Equity(
+                id="AAPL",
+                symbol="AAPL",
+                name="Apple",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=150.0,
+            )
+        )
+        count_without_bond = analyzer.analyze_graph(equity_only_graph)["formula_count"]
+
+        graph_with_bond = AssetRelationshipGraph()
+        graph_with_bond.add_asset(
+            Equity(
+                id="AAPL",
+                symbol="AAPL",
+                name="Apple",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=150.0,
+            )
+        )
+        graph_with_bond.add_asset(
+            Bond(
+                id="BOND",
+                symbol="BOND",
+                name="Test Bond",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Government",
+                price=100.0,
+                yield_to_maturity=0.03,
+            )
+        )
+        count_with_bond = analyzer.analyze_graph(graph_with_bond)["formula_count"]
+
+        assert count_with_bond > count_without_bond
+
+    @staticmethod
+    def test_ytm_formula_r_squared_in_summary():
+        """avg_r_squared in summary accounts for the YTM formula's r_squared=0.0."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Bond(
+                id="B1",
+                symbol="B1",
+                name="Bond",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Government",
+                price=100.0,
+                yield_to_maturity=0.05,
+            )
+        )
+        result = analyzer.analyze_graph(graph)
+        summary = result["summary"]
+        assert "avg_r_squared" in summary
+        assert 0.0 <= summary["avg_r_squared"] <= 1.0
+
+    @staticmethod
+    def test_bond_only_graph_formula_count_matches():
+        """formula_count equals len(formulas) for a bond-only graph."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Bond(
+                id="BOND",
+                symbol="BOND",
+                name="Gov Bond",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Government",
+                price=100.0,
+                yield_to_maturity=0.03,
+            )
+        )
+        result = analyzer.analyze_graph(graph)
+        assert result["formula_count"] == len(result["formulas"])
+
+    @staticmethod
+    def test_ytm_formula_has_nonempty_example_in_full_analysis():
+        """The YTM formula produced by analyze_graph has a non-empty example_calculation."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Bond(
+                id="BOND",
+                symbol="CORP1",
+                name="Corp Bond",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Corporate",
+                price=98.0,
+                yield_to_maturity=0.062,
+            )
+        )
+        result = analyzer.analyze_graph(graph)
+        ytm_formula = next(
+            (f for f in result["formulas"] if f.name == "Yield-to-Maturity"), None
+        )
+        assert ytm_formula is not None
+        assert ytm_formula.example_calculation  # non-empty
+        assert "CORP1" in ytm_formula.example_calculation
