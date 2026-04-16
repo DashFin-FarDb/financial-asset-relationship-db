@@ -415,7 +415,6 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
         const major = parseInt(version.split(".")[0], 10);
         expect(major).toBeGreaterThanOrEqual(15);
       });
-      expect(major).toBeGreaterThanOrEqual(15);
     });
 
     it("@next/eslint-plugin-next 14.x must not be present in the lockfile", () => {
@@ -429,7 +428,6 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
         const major = parseInt(version.split(".")[0], 10);
         expect(major).toBeGreaterThanOrEqual(15);
       });
-      expect(major).toBeGreaterThanOrEqual(15);
     });
 
     it("eslint-plugin-react-hooks canary version must not be present", () => {
@@ -442,7 +440,6 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
         const version = packageLock.packages[p]?.version ?? "";
         expect(version).not.toMatch(/canary/);
       });
-      expect(version).not.toMatch(/canary/);
     });
 
     it("eslint 8.57.0 must not be the pinned version (must be at least 8.57.1)", () => {

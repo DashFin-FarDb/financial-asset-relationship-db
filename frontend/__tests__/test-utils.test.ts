@@ -34,7 +34,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have all required Asset properties", () => {
-      mockAssets.forEach((asset, index) => {
+      mockAssets.forEach((asset) => {
         expect(asset).toHaveProperty("id");
         expect(asset).toHaveProperty("symbol");
         expect(asset).toHaveProperty("name");

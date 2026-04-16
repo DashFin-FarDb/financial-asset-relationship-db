@@ -93,11 +93,14 @@ describe("AssetList Component", () => {
     fireEvent.change(assetClassSelect, { target: { value: "EQUITY" } });
 
     await waitFor(() => {
-      expect(mockedApi.getAssets).toHaveBeenLastCalledWith({
-        asset_class: "EQUITY",
-        page: 1,
-        per_page: 20,
-      });
+      expect(mockedApi.getAssets).toHaveBeenLastCalledWith(
+        {
+          asset_class: "EQUITY",
+          page: 1,
+          per_page: 20,
+        },
+        expect.any(AbortSignal),
+      );
     });
   });
 
@@ -161,10 +164,13 @@ describe("AssetList Component", () => {
     fireEvent.click(nextButton);
 
     await waitFor(() => {
-      expect(mockedApi.getAssets).toHaveBeenLastCalledWith({
-        page: 2,
-        per_page: 20,
-      });
+      expect(mockedApi.getAssets).toHaveBeenLastCalledWith(
+        {
+          page: 2,
+          per_page: 20,
+        },
+        expect.any(AbortSignal),
+      );
     });
   });
 
@@ -180,11 +186,14 @@ describe("AssetList Component", () => {
     render(<AssetList />);
 
     await waitFor(() => {
-      expect(mockedApi.getAssets).toHaveBeenCalledWith({
-        asset_class: "EQUITY",
-        page: 3,
-        per_page: 50,
-      });
+      expect(mockedApi.getAssets).toHaveBeenCalledWith(
+        {
+          asset_class: "EQUITY",
+          page: 3,
+          per_page: 50,
+        },
+        expect.any(AbortSignal),
+      );
       expect(screen.getByDisplayValue("EQUITY")).toBeInTheDocument();
       expect(screen.getByText(/Page 3 of 3/)).toBeInTheDocument();
     });

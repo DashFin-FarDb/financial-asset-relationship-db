@@ -392,7 +392,10 @@ function useAssetDataLoading({
         querySummary,
         signal: abortController.signal,
       });
-      setLoading(false);
+      // Only update loading state if request wasn't aborted
+      if (!abortController.signal.aborted) {
+        setLoading(false);
+      }
     };
 
     void fetchAssets().catch((err) => {
@@ -400,8 +403,11 @@ function useAssetDataLoading({
       if (err instanceof Error && err.name === "CanceledError") {
         return;
       }
-      setError(err instanceof Error ? err.message : "Failed to load assets");
-      setLoading(false);
+      // Only set error if request wasn't aborted
+      if (!abortController.signal.aborted) {
+        setError(err instanceof Error ? err.message : "Failed to load assets");
+        setLoading(false);
+      }
     });
 
     return () => {
