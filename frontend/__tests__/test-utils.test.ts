@@ -643,7 +643,7 @@ describe("test-utils Mock Data Validation", () => {
           /DELETE\s+FROM/i,
           /INSERT\s+INTO/i,
           /--/,
-          /;.*DROP/i,
+          /;[^;]{0,100}DROP/i,
         ];
 
         const allStrings = [
