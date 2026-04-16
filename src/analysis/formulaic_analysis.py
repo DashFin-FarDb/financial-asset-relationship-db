@@ -252,27 +252,29 @@ class FormulaicAnalyzer:
         Returns:
             Formula: A Formula named "Yield-to-Maturity" with expression describing YTM calculation, category "Income", and r_squared set to 0.0.
         """
-variables={
+
+
+variables = {
     "YTM": "Yield-to-maturity (approximate) as calculated from bond terms",
     "C": "Annual coupon payment (used in approximation)",
     "F": "Face value at maturity (used in approximation)",
     "P": "Current bond price (used in approximation)",
     "n": "Years to maturity (used in approximation)",
 },
-            name="Yield-to-Maturity",
-            expression="YTM = (C + (F - P) / n) / ((F + P) / 2)",
-            latex=r"YTM = \frac{C + \frac{F - P}{n}}{\frac{F + P}{2}}",
-            description="Approximate yield-to-maturity for a bond, where C is annual coupon payment, F is face value, P is price, and n is years to maturity.",
-            variables={
+            name = "Yield-to-Maturity",
+            expression = "YTM = (C + (F - P) / n) / ((F + P) / 2)",
+            latex = r"YTM = \frac{C + \frac{F - P}{n}}{\frac{F + P}{2}}",
+            description = "Approximate yield-to-maturity for a bond, where C is annual coupon payment, F is face value, P is price, and n is years to maturity.",
+            variables = {
                 "YTM": "Yield-to-maturity (approximate)",
                 "C": "Annual coupon payment",
                 "F": "Face value at maturity",
                 "P": "Current bond price",
                 "n": "Years to maturity",
             },
-            example_calculation=calculate_ytm_examples(graph),
-            category="Income",
-            r_squared=0.0,
+            example_calculation = calculate_ytm_examples(graph),
+            category = "Income",
+            r_squared = 0.0,
         )
 
     @staticmethod
