@@ -10,9 +10,11 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 See `.github/AUTOMATION_SCOPE_POLICY.md` and `docs/adr/0001-production-architecture.md` for full policy details.
 
 **All development work should prioritize the production architecture unless explicitly directed otherwise.**
+
 ## Mandatory branch/ref verification
 
 Before reviewing, editing, or summarizing repository state, always verify:
+
 - the current branch
 - the branch, commit, or PR referenced in the request
 - whether that branch has an open PR
