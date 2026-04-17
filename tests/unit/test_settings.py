@@ -262,10 +262,8 @@ class TestSettingsIntegration:
             "https://app.example.com",
             "https://api.example.com",
         }
-            "https://api.example.com",
-        }
 
-    @ patch.dict(
+    @patch.dict(
         os.environ,
         {
             "GRAPH_CACHE_PATH": "/var/cache/graph.json",
@@ -278,7 +276,7 @@ class TestSettingsIntegration:
         assert settings.graph_cache_path == "/var/cache/graph.json"
         assert settings.use_real_data_fetcher is True
 
-    @ patch.dict(
+    @patch.dict(
         os.environ,
         {
             "ASSET_GRAPH_DATABASE_URL": "postgresql://user:pass@localhost:5432/assets",
@@ -298,26 +296,26 @@ class TestSettingsIntegration:
 class TestSettingsEdgeCases:
     """Test edge cases in settings handling."""
 
-    @ patch.dict(os.environ, {"ENV": "  Development  "})
+    @patch.dict(os.environ, {"ENV": "  Development  "})
     def test_env_with_whitespace(self) -> None:
-        """Test that ENV with whitespace is handled (via .lower() only, not .strip())."""
+        """Test that ENV with whitespace is handled (via .strip().lower())."""
         settings = load_settings()
-        # .lower() is called but not .strip(), so whitespace remains
-        assert settings.env == "  development  "
+        # .strip().lower() is called, so whitespace is removed
+        assert settings.env == "development"
 
-    @ patch.dict(os.environ, {"ALLOWED_ORIGINS": "  ,  ,  "})
+    @patch.dict(os.environ, {"ALLOWED_ORIGINS": "  ,  ,  "})
     def test_allowed_origins_only_whitespace(self) -> None:
         """Test ALLOWED_ORIGINS with only whitespace and commas."""
         settings = load_settings()
         assert settings.allowed_origins == []
 
-    @ patch.dict(os.environ, {"USE_REAL_DATA_FETCHER": "TrUe"})
+    @patch.dict(os.environ, {"USE_REAL_DATA_FETCHER": "TrUe"})
     def test_use_real_data_fetcher_mixed_case(self) -> None:
         """Test USE_REAL_DATA_FETCHER with mixed case."""
         settings = load_settings()
         assert settings.use_real_data_fetcher is True
 
-    @ patch.dict(os.environ, {}, clear=True)
+    @patch.dict(os.environ, {}, clear=True)
     def test_missing_optional_vars(self) -> None:
         """Test that missing optional environment variables use defaults."""
         settings = load_settings()
@@ -337,12 +335,12 @@ class TestSettingsValidation:
     def test_settings_accepts_valid_types(self) -> None:
         """Test that Settings accepts valid types."""
         settings = Settings(
-            env = "staging",
-            allowed_origins_raw = "https://example.com",
-            graph_cache_path = "/path",
-            real_data_cache_path = "/path2",
-            use_real_data_fetcher = True,
-            asset_graph_database_url = "sqlite:///test.db",
+            env="staging",
+            allowed_origins_raw="https://example.com",
+            graph_cache_path="/path",
+            real_data_cache_path="/path2",
+            use_real_data_fetcher=True,
+            asset_graph_database_url="sqlite:///test.db",
         )
         assert settings.env == "staging"
 
