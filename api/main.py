@@ -16,27 +16,18 @@ from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-
 # pylint: disable=import-error
-from slowapi import (  # type: ignore[import-not-found]
-    Limiter,
-    _rate_limit_exceeded_handler,
-)
+from slowapi import Limiter, _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
+from src.config.settings import get_settings
 from src.data.real_data_fetcher import RealDataFetcher
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass
 
-from .auth import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    Token,
-    User,
-    authenticate_user,
-    create_access_token,
-    get_current_active_user,
-)
+from .auth import (ACCESS_TOKEN_EXPIRE_MINUTES, Token, User, authenticate_user, create_access_token,
+                   get_current_active_user)
 
 # pylint: enable=import-error
 
@@ -152,8 +143,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory()
 
-    cache_path = os.getenv("GRAPH_CACHE_PATH")
-    use_real_data = _should_use_real_data_fetcher()
+    settings = get_settings()
+    cache_path = settings.graph_cache_path
+    use_real_data = settings.use_real_data_fetcher
 
     if cache_path:
         fetcher = RealDataFetcher(
@@ -163,7 +155,7 @@ def _initialize_graph() -> AssetRelationshipGraph:
         return fetcher.create_real_database()
 
     if use_real_data:
-        cache_path_env = os.getenv("REAL_DATA_CACHE_PATH")
+        cache_path_env = settings.real_data_cache_path
         fetcher = RealDataFetcher(
             cache_path=cache_path_env,
             enable_network=True,
@@ -173,19 +165,6 @@ def _initialize_graph() -> AssetRelationshipGraph:
     from src.data.sample_data import create_sample_database
 
     return create_sample_database()
-
-
-def _should_use_real_data_fetcher() -> bool:
-    """
-    Return whether the environment requests the real data fetcher.
-
-    Interprets the environment variable USE_REAL_DATA_FETCHER case-insensitively; the values "1", "true", "yes", or "on" (ignoring surrounding whitespace) are treated as true.
-
-    Returns:
-        bool: True if USE_REAL_DATA_FETCHER matches an accepted value, False otherwise.
-    """
-    flag = os.getenv("USE_REAL_DATA_FETCHER", "false")
-    return flag.strip().lower() in {"1", "true", "yes", "on"}
 
 
 @asynccontextmanager
@@ -224,20 +203,19 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Determine environment (default to 'development' if not set)
-ENV = os.getenv("ENV", "development").lower()
+# Get settings instance for environment and CORS configuration
+_settings = get_settings()
+ENV = _settings.env
 
 
 def _read_allowed_origins() -> List[str]:
     """
-    Parse the ALLOWED_ORIGINS environment variable into a list of origin strings.
-
-    Reads the ALLOWED_ORIGINS environment variable, splits on commas, trims whitespace, and excludes empty entries.
+    Parse the ALLOWED_ORIGINS from settings into a list of origin strings.
 
     Returns:
         List[str]: A list of trimmed origin strings (e.g., "https://example.com").
     """
-    return [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin.strip()]
+    return get_settings().allowed_origins
 
 
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
@@ -346,7 +324,7 @@ def validate_origin(origin_url: str) -> bool:
     Validates the origin against configured allowed origins, local development allowances
     (e.g., localhost or 127.0.0.1 when permitted), Vercel preview hostnames, and
     valid HTTPS domains (including internationalized domains via IDNA encoding).
-    The ENV environment variable is re-read on each call to allow runtime overrides.
+    The ENV setting is re-read on each call to support runtime overrides.
 
     Parameters:
         origin_url (str): Origin URL to validate (e.g. "https://example.com",
@@ -355,11 +333,12 @@ def validate_origin(origin_url: str) -> bool:
     Returns:
         bool: `True` if the origin is allowed, `False` otherwise.
     """
-    # Re-read environment dynamically to support runtime overrides
+    # Re-read settings dynamically to support runtime overrides
     # (e.g., during tests).
-    current_env = os.getenv("ENV", "development").lower()
+    settings = get_settings()
+    current_env = settings.env
 
-    env_allowed_origins = _read_allowed_origins()
+    env_allowed_origins = settings.allowed_origins
     if origin_url and origin_url in env_allowed_origins:
         return True
 
@@ -394,10 +373,9 @@ else:
         ]
     )
 
-# Append any additional validated origins from the ALLOWED_ORIGINS environment variable
-if os.getenv("ALLOWED_ORIGINS"):
-    for _origin in os.getenv("ALLOWED_ORIGINS", "").split(","):
-        _origin = _origin.strip()
+# Append any additional validated origins from the ALLOWED_ORIGINS setting
+if _settings.allowed_origins_raw:
+    for _origin in _settings.allowed_origins:
         if validate_origin(_origin):
             allowed_origins.append(_origin)
         else:

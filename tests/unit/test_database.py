@@ -23,24 +23,10 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import StaticPool
 
-from api.database import (
-    _connect,
-    _get_database_url,
-    _is_memory_db,
-    _resolve_sqlite_path,
-    execute,
-    fetch_one,
-    fetch_value,
-    get_connection,
-)
-from src.data.database import (
-    DEFAULT_DATABASE_URL,
-    Base,
-    create_engine_from_url,
-    create_session_factory,
-    init_db,
-    session_scope,
-)
+from api.database import (_connect, _get_database_url, _is_memory_db, _resolve_sqlite_path, execute, fetch_one,
+                          fetch_value, get_connection)
+from src.data.database import (DEFAULT_DATABASE_URL, Base, create_engine_from_url, create_session_factory, init_db,
+                               session_scope)
 
 pytest.importorskip("sqlalchemy")
 
@@ -150,8 +136,11 @@ class TestEngineCreation:
 
     def test_create_engine_with_env_variable(self) -> None:
         """Environment variable should override default database URL."""
+        from src.config.settings import get_settings
+
         test_url = "sqlite:///env_test.db"
         with patch.dict(os.environ, {"ASSET_GRAPH_DATABASE_URL": test_url}):
+            get_settings.cache_clear()  # Clear cache to pick up new env vars
             env_engine = create_engine_from_url()
             assert "env_test.db" in str(env_engine.url)
 
@@ -389,8 +378,11 @@ class TestDefaultDatabaseURL:
 
     def test_env_override_works(self) -> None:
         """Environment variable should override default URL."""
+        from src.config.settings import get_settings
+
         custom_url = "postgresql://test:test@localhost/test"
         with patch.dict(os.environ, {"ASSET_GRAPH_DATABASE_URL": custom_url}):
+            get_settings.cache_clear()  # Clear cache to pick up new env vars
             override_engine = create_engine_from_url()
             assert "postgresql" in str(override_engine.url).lower()
 

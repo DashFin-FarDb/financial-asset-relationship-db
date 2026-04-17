@@ -25,14 +25,8 @@ from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
 
 import api.main as api_main
-from api.main import (
-    AssetResponse,
-    MetricsResponse,
-    RelationshipResponse,
-    VisualizationDataResponse,
-    app,
-    validate_origin,
-)
+from api.main import (AssetResponse, MetricsResponse, RelationshipResponse, VisualizationDataResponse, app,
+                      validate_origin)
 from src.data.real_data_fetcher import _save_to_cache
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -83,7 +77,10 @@ class TestValidateOrigin:
     @staticmethod
     def test_validate_origin_http_localhost_production() -> None:
         """HTTP localhost is rejected in production."""
+        from src.config.settings import get_settings
+
         with patch.dict(os.environ, {"ENV": "production"}):
+            get_settings.cache_clear()  # Clear cache to pick up new env vars
             assert not validate_origin("http://localhost:3000")
             assert not validate_origin("http://127.0.0.1:8000")
 
@@ -1241,38 +1238,54 @@ class TestRaiseAssetNotFound:
 
 @pytest.mark.unit
 class TestShouldUseRealDataFetcher:
-    """Test the _should_use_real_data_fetcher() helper function."""
+    """Test _parse_bool_env behavior through settings (replaces _should_use_real_data_fetcher)."""
 
     def test_should_use_real_data_fetcher_true_values(self, monkeypatch):
-        """_should_use_real_data_fetcher() should return True for truthy values."""
+        """Settings should parse true values correctly for use_real_data_fetcher."""
+        from src.config.settings import get_settings
+
         for value in ["1", "true", "True", "TRUE", "yes", "Yes", "YES", "on", "On", "ON"]:
             monkeypatch.setenv("USE_REAL_DATA_FETCHER", value)
-            assert api_main._should_use_real_data_fetcher() is True
+            get_settings.cache_clear()
+            assert get_settings().use_real_data_fetcher is True
 
     def test_should_use_real_data_fetcher_false_values(self, monkeypatch):
-        """_should_use_real_data_fetcher() should return False for falsy values."""
+        """Settings should parse false values correctly for use_real_data_fetcher."""
+        from src.config.settings import get_settings
+
         for value in ["0", "false", "False", "FALSE", "no", "No", "NO", "off", "Off", "OFF"]:
             monkeypatch.setenv("USE_REAL_DATA_FETCHER", value)
-            assert api_main._should_use_real_data_fetcher() is False
+            get_settings.cache_clear()
+            assert get_settings().use_real_data_fetcher is False
 
     def test_should_use_real_data_fetcher_default_false(self, monkeypatch):
-        """_should_use_real_data_fetcher() should default to False."""
+        """Settings should default use_real_data_fetcher to False."""
+        from src.config.settings import get_settings
+
         monkeypatch.delenv("USE_REAL_DATA_FETCHER", raising=False)
-        assert api_main._should_use_real_data_fetcher() is False
+        get_settings.cache_clear()
+        assert get_settings().use_real_data_fetcher is False
 
     def test_should_use_real_data_fetcher_whitespace_handling(self, monkeypatch):
-        """_should_use_real_data_fetcher() should handle whitespace."""
+        """Settings should handle whitespace in USE_REAL_DATA_FETCHER."""
+        from src.config.settings import get_settings
+
         monkeypatch.setenv("USE_REAL_DATA_FETCHER", "  true  ")
-        assert api_main._should_use_real_data_fetcher() is True
+        get_settings.cache_clear()
+        assert get_settings().use_real_data_fetcher is True
 
         monkeypatch.setenv("USE_REAL_DATA_FETCHER", "  false  ")
-        assert api_main._should_use_real_data_fetcher() is False
+        get_settings.cache_clear()
+        assert get_settings().use_real_data_fetcher is False
 
     def test_should_use_real_data_fetcher_invalid_values(self, monkeypatch):
-        """_should_use_real_data_fetcher() should return False for invalid values."""
+        """Settings should return False for invalid use_real_data_fetcher values."""
+        from src.config.settings import get_settings
+
         for value in ["invalid", "maybe", "2", ""]:
             monkeypatch.setenv("USE_REAL_DATA_FETCHER", value)
-            assert api_main._should_use_real_data_fetcher() is False
+            get_settings.cache_clear()
+            assert get_settings().use_real_data_fetcher is False
 
 
 @pytest.mark.unit
@@ -1281,7 +1294,10 @@ class TestValidateOriginAllowedOrigins:
 
     def test_validate_origin_explicit_allowed_origins(self, monkeypatch):
         """validate_origin() should allow origins from ALLOWED_ORIGINS env var."""
+        from src.config.settings import get_settings
+
         monkeypatch.setenv("ALLOWED_ORIGINS", "https://app.example.com,https://api.example.com")
+        get_settings.cache_clear()
 
         assert validate_origin("https://app.example.com") is True
         assert validate_origin("https://api.example.com") is True
@@ -1313,8 +1329,11 @@ class TestValidateOriginAllowedOrigins:
 
     def test_validate_origin_precedence_over_other_rules(self, monkeypatch):
         """validate_origin() should prioritize ALLOWED_ORIGINS."""
+        from src.config.settings import get_settings
+
         # Even invalid-looking URLs should be allowed if explicitly listed
         monkeypatch.setenv("ALLOWED_ORIGINS", "http://example.com")
+        get_settings.cache_clear()
 
         assert validate_origin("http://example.com") is True
 

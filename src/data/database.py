@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-import os
-
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from .base import Base
+from src.config.settings import get_settings
 
+from .base import Base
 # Canonical transaction helper lives in repository.py per tech spec.
 # Re-export here for backward compatibility with older imports.
 from .repository import session_scope  # noqa: F401, E402
@@ -25,8 +24,8 @@ def create_engine_from_url(url: str | None = None) -> Engine:
     Create a SQLAlchemy Engine configured for the asset relationship store database.
 
     Parameters:
-        url (str | None): Optional database URL. If None, uses ASSET_GRAPH_DATABASE_URL
-            environment variable, falling back to DEFAULT_DATABASE_URL. Empty string
+        url (str | None): Optional database URL. If None, uses the asset_graph_database_url
+            from settings, falling back to DEFAULT_DATABASE_URL. Empty string
             falls back to DEFAULT_DATABASE_URL.
 
     Returns:
@@ -36,7 +35,8 @@ def create_engine_from_url(url: str | None = None) -> Engine:
     """
     is_explicit_url = url is not None and url != ""
     if url is None:
-        resolved_url = os.getenv(ASSET_GRAPH_DATABASE_URL_ENV_VAR) or DEFAULT_DATABASE_URL
+        settings = get_settings()
+        resolved_url = settings.asset_graph_database_url or DEFAULT_DATABASE_URL
     elif url == "":
         resolved_url = DEFAULT_DATABASE_URL
     else:
