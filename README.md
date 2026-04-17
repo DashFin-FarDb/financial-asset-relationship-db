@@ -35,7 +35,7 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
 1. **Start the FastAPI backend:**
 
    ```bash
-   source .venv/bin/activate  # On Windows: .venv\\Scripts\\activate
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    pip install -r requirements.txt
    python -m uvicorn api.main:app --reload --port 8000
    ```
