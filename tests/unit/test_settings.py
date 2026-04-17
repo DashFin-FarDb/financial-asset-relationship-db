@@ -262,6 +262,8 @@ class TestSettingsIntegration:
             "https://app.example.com",
             "https://api.example.com",
         }
+            "https://api.example.com",
+        }
 
     @patch.dict(
         os.environ,
