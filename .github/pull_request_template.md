@@ -4,7 +4,7 @@
 
 ## Primary Objective
 
-<!-- State the single primary decision or change in this PR. See .github/AUTOMATION_SCOPE_POLICY.md -->
+<!-- State the single primary decision or change in this PR. See AUTOMATION_SCOPE_POLICY.md -->
 
 ## Type of Change
 
@@ -131,7 +131,7 @@ npm test
 - [ ] This PR makes one primary decision only (see Primary Objective section)
 - [ ] I have explicitly listed what is out of scope
 - [ ] I have not mixed unrelated concerns (e.g., dependency updates + feature additions)
-- [ ] This PR respects the production architecture (FastAPI + Next.js). See [.github/AUTOMATION_SCOPE_POLICY.md](AUTOMATION_SCOPE_POLICY.md)
+- [ ] This PR respects the production architecture (FastAPI + Next.js). See [Automation Scope Policy](AUTOMATION_SCOPE_POLICY.md)
 
 ## Additional Notes
 
@@ -141,7 +141,7 @@ npm test
 
 **For Reviewers**: Please ensure the branch is deleted after merging this PR to maintain repository hygiene.
 
-**Scope Review**: Verify that this PR adheres to the scope guardrails in [docs/PR_SCOPE_GUARDRAILS.md](../docs/PR_SCOPE_GUARDRAILS.md) and [.github/AUTOMATION_SCOPE_POLICY.md](AUTOMATION_SCOPE_POLICY.md).
+**Scope Review**: Verify that this PR adheres to the scope guardrails in [docs/PR_SCOPE_GUARDRAILS.md](../docs/PR_SCOPE_GUARDRAILS.md) and [Automation Scope Policy](AUTOMATION_SCOPE_POLICY.md).
 
 **Related Documentation**:
 
