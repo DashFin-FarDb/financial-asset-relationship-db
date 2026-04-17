@@ -11,6 +11,7 @@ from sqlalchemy.pool import StaticPool
 from src.config.settings import get_settings
 
 from .base import Base
+
 # Canonical transaction helper lives in repository.py per tech spec.
 # Re-export here for backward compatibility with older imports.
 from .repository import session_scope  # noqa: F401, E402

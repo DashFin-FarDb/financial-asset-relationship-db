@@ -16,6 +16,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
+
 # pylint: disable=import-error
 from slowapi import Limiter, _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
@@ -26,8 +27,14 @@ from src.data.real_data_fetcher import RealDataFetcher
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass
 
-from .auth import (ACCESS_TOKEN_EXPIRE_MINUTES, Token, User, authenticate_user, create_access_token,
-                   get_current_active_user)
+from .auth import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    Token,
+    User,
+    authenticate_user,
+    create_access_token,
+    get_current_active_user,
+)
 
 # pylint: enable=import-error
 
