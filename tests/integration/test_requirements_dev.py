@@ -296,3 +296,79 @@ def test_type_stubs_have_base_packages(
         if norm.startswith("types_"):
             base = norm.removeprefix("types_")
             assert base in lowered, f"Type stub package '{pkg}' has no corresponding base package"
+
+
+# -----------------------
+# PR-specific version bumps
+# -----------------------
+def test_numpy_minimum_version_is_1_26(
+    parsed_requirements: list[tuple[str, str]],
+) -> None:
+    """Verify numpy minimum version was bumped to >=1.26.0.
+
+    The PR raised the floor from >=1.24.0 to >=1.26.0 to pick up security
+    and compatibility fixes.  This test ensures the constraint is at least
+    1.26.0 and not an older floor.
+    """
+    numpy_specs = [ver for pkg, ver in parsed_requirements if _normalize_name_for_dupe_check(pkg) == "numpy"]
+    assert len(numpy_specs) == 1, "numpy should appear exactly once in requirements-dev.txt"
+
+    spec = numpy_specs[0]
+    assert ">=" in spec, f"numpy should use a >= minimum-version constraint, got: {spec!r}"
+
+    # Extract the minimum version value after ">="
+    min_ver_str = ""
+    for part in spec.split(","):
+        part = part.strip()
+        if part.startswith(">="):
+            min_ver_str = part[2:].strip()
+            break
+
+    assert min_ver_str, f"Could not parse minimum version from numpy spec {spec!r}"
+
+    # Parse as a tuple of ints for comparison
+    min_ver = tuple(int(x) for x in min_ver_str.split(".") if x.isdigit())
+    required_floor = (1, 26, 0)
+    assert min_ver >= required_floor, (
+        f"numpy minimum version should be >= 1.26.0 but got >={min_ver_str}"
+    )
+
+
+def test_types_pyyaml_minimum_version_is_6_0_12(
+    parsed_requirements: list[tuple[str, str]],
+) -> None:
+    """Verify types-PyYAML minimum version was bumped to >=6.0.12.
+
+    The PR tightened the constraint from >=6.0.0 to >=6.0.12 to align with
+    the updated stub release.
+    """
+    types_pyyaml_specs = [
+        ver
+        for pkg, ver in parsed_requirements
+        if _normalize_name_for_dupe_check(pkg) == "types_pyyaml"
+    ]
+    assert len(types_pyyaml_specs) == 1, "types-PyYAML should appear exactly once in requirements-dev.txt"
+
+    spec = types_pyyaml_specs[0]
+    assert ">=" in spec, f"types-PyYAML should use a >= minimum-version constraint, got: {spec!r}"
+
+    min_ver_str = ""
+    for part in spec.split(","):
+        part = part.strip()
+        if part.startswith(">="):
+            min_ver_str = part[2:].strip()
+            break
+
+    assert min_ver_str, f"Could not parse minimum version from types-PyYAML spec {spec!r}"
+
+    min_ver = tuple(int(x) for x in min_ver_str.split(".") if x.isdigit())
+    required_floor = (6, 0, 12)
+    assert min_ver >= required_floor, (
+        f"types-PyYAML minimum version should be >= 6.0.12 but got >={min_ver_str}"
+    )
+
+
+def test_numpy_is_present(package_names: list[str]) -> None:
+    """Ensure numpy is listed as a dev dependency."""
+    lowered = {_normalize_name_for_dupe_check(p) for p in package_names}
+    assert "numpy" in lowered, "numpy should be present in requirements-dev.txt"
