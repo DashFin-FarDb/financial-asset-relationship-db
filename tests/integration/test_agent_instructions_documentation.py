@@ -188,9 +188,9 @@ class TestCopilotInstructionsProductionArchitecture:
 
     def test_no_hardcoded_secrets(self, content: str) -> None:
         for pattern in [r"ghp_[a-zA-Z0-9]{36}", r"gho_[a-zA-Z0-9]{36}"]:
-            assert not re.search(
-                pattern, content
-            ), f".github/copilot-instructions.md must not contain hardcoded tokens (pattern: {pattern})"
+            assert not re.search(pattern, content), (
+                f".github/copilot-instructions.md must not contain hardcoded tokens (pattern: {pattern})"
+            )
 
     def test_code_blocks_are_balanced(self, content: str) -> None:
         """Triple-backtick fences must be balanced (even count)."""
@@ -222,9 +222,9 @@ class TestCopilotInstructionsProductionArchitecture:
         branch_pos = content.find("Mandatory branch/ref verification")
         assert decl_pos != -1, "Production Architecture Declaration section must exist"
         assert branch_pos != -1, "Mandatory branch/ref verification section must exist"
-        assert (
-            decl_pos < branch_pos
-        ), "Production Architecture Declaration must appear before Mandatory branch/ref verification"
+        assert decl_pos < branch_pos, (
+            "Production Architecture Declaration must appear before Mandatory branch/ref verification"
+        )
 
     def test_src_config_settings_in_integration_section(self, content: str) -> None:
         """Runtime configuration guidance belongs in Integration & external deps section."""
@@ -234,9 +234,9 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_pip_install_requirements_txt_present_in_both_paths(self, content: str) -> None:
         """Both production and non-production paths must run pip install -r requirements.txt."""
         occurrences = content.count("pip install -r requirements.txt")
-        assert (
-            occurrences >= 2
-        ), "requirements.txt install must appear in both production and non-production quick start paths"
+        assert occurrences >= 2, (
+            "requirements.txt install must appear in both production and non-production quick start paths"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -334,9 +334,9 @@ class TestAgentsMdProductionArchitecture:
         gradio_pos = content.find("Run the Gradio app")
         # Both should exist and the NON-PRODUCTION label for Gradio should be within 100 chars of its section
         gradio_run_pos = content.find("NON-PRODUCTION", gradio_pos)
-        assert (
-            gradio_run_pos != -1 and gradio_run_pos < gradio_pos + 100
-        ), "NON-PRODUCTION label must appear in the Gradio run section heading"
+        assert gradio_run_pos != -1 and gradio_run_pos < gradio_pos + 100, (
+            "NON-PRODUCTION label must appear in the Gradio run section heading"
+        )
 
     def test_docker_section_labeled_non_production(self, content: str) -> None:
         """Docker section must be labelled as NON-PRODUCTION."""
@@ -484,20 +484,20 @@ class TestAgentInstructionsConsistency:
             ("AGENTS.md", agents_content),
         ]:
             assert "Gradio" in content, f"{name} must reference Gradio"
-            assert (
-                "non-production" in content.lower() or "NON-PRODUCTION" in content
-            ), f"{name} must label Gradio as non-production"
+            assert "non-production" in content.lower() or "NON-PRODUCTION" in content, (
+                f"{name} must label Gradio as non-production"
+            )
 
     def test_both_files_reference_automation_scope_policy(self, copilot_content: str, agents_content: str) -> None:
-        assert (
-            "AUTOMATION_SCOPE_POLICY.md" in copilot_content
-        ), ".github/copilot-instructions.md must reference AUTOMATION_SCOPE_POLICY.md"
+        assert "AUTOMATION_SCOPE_POLICY.md" in copilot_content, (
+            ".github/copilot-instructions.md must reference AUTOMATION_SCOPE_POLICY.md"
+        )
         assert "AUTOMATION_SCOPE_POLICY.md" in agents_content, "AGENTS.md must reference AUTOMATION_SCOPE_POLICY.md"
 
     def test_both_files_reference_adr_0001(self, copilot_content: str, agents_content: str) -> None:
-        assert (
-            "0001-production-architecture.md" in copilot_content
-        ), ".github/copilot-instructions.md must reference ADR 0001"
+        assert "0001-production-architecture.md" in copilot_content, (
+            ".github/copilot-instructions.md must reference ADR 0001"
+        )
         assert "0001-production-architecture.md" in agents_content, "AGENTS.md must reference ADR 0001"
 
     def test_both_files_reference_src_config_settings_py(self, copilot_content: str, agents_content: str) -> None:
@@ -524,9 +524,9 @@ class TestAgentInstructionsConsistency:
             (".github/copilot-instructions.md", copilot_content),
             ("AGENTS.md", agents_content),
         ]:
-            assert (
-                "demo" in content.lower() or "testing" in content.lower()
-            ), f"{name} must describe Gradio as for demos/testing"
+            assert "demo" in content.lower() or "testing" in content.lower(), (
+                f"{name} must describe Gradio as for demos/testing"
+            )
 
     def test_both_files_reference_graph_lifecycle(self, copilot_content: str, agents_content: str) -> None:
         assert "graph_lifecycle" in copilot_content or "api/graph_lifecycle.py" in copilot_content
