@@ -37,9 +37,26 @@ def _parse_dev_extras(pyproject_path: Path) -> list[str]:
     except ImportError:
         pass
 
-    # Fallback: plain-text extraction of the dev = [...] block
+    # Fallback: plain-text extraction of the dev = [...] block.
+    # Avoid a single broad regex spanning the whole file with .*? + re.DOTALL,
+    # which is vulnerable to polynomial backtracking (ReDoS / Sonar S5852).
+    # Instead:
+    #   1. Locate the section with a plain string search (no regex, no backtracking).
+    #   2. Trim the text to that section only so the subsequent regex is bounded.
+    #   3. Use [^\]]* (no dot-all, no lazy quantifier) to match the array body;
+    #      package specifiers never contain a literal ']' so this is safe.
     content = pyproject_path.read_text(encoding="utf-8")
-    match = re.search(r"\[project\.optional-dependencies\].*?dev\s*=\s*\[(.*?)\]", content, re.DOTALL)
+    section_header = "[project.optional-dependencies]"
+    header_idx = content.find(section_header)
+    if header_idx == -1:
+        return []
+    # Trim to this section only: stop at the next TOML section heading.
+    section_body = content[header_idx + len(section_header):]
+    next_section = re.search(r"^\[", section_body, re.MULTILINE)
+    if next_section:
+        section_body = section_body[: next_section.start()]
+    # [^\]]* is a simple, non-backtracking character class — safe against ReDoS.
+    match = re.search(r"dev\s*=\s*\[([^\]]*)\]", section_body)
     if not match:
         return []
     block = match.group(1)
