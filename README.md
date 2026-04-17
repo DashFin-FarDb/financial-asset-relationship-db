@@ -160,6 +160,7 @@ The application follows a modern client-server architecture with a REST API back
 ### Key Components
 
 **Production Components:**
+
 - **`api/main.py`**: FastAPI REST API server with endpoints for assets, relationships, metrics, and visualization
 - **`frontend/`**: Next.js/React application with TypeScript, Tailwind CSS, and Plotly visualization components
 - **`src/logic/asset_graph.py`**: Core graph algorithms and relationship engine
@@ -169,6 +170,7 @@ The application follows a modern client-server architecture with a REST API back
 - **`src/reports/`**: Schema and business rules reporting
 
 **Non-Production Components:**
+
 - **`app.py`**: Gradio web interface for demos and internal testing (not for production deployment)
 
 ### Data Model

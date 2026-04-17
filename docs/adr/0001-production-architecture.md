@@ -83,6 +83,7 @@ The Gradio UI (`app.py`) is **demoted to non-production status** and will be mai
 ### Alternative 1: Keep Both as Equal Production Paths
 
 **Rejected because:**
+
 - Doubles maintenance burden
 - Creates deployment ambiguity
 - Splits security investment
@@ -92,6 +93,7 @@ The Gradio UI (`app.py`) is **demoted to non-production status** and will be mai
 ### Alternative 2: Delete Gradio Entirely
 
 **Rejected because:**
+
 - Gradio is still valuable for demos, testing, and rapid iteration
 - Complete removal would discard working code with legitimate use cases
 - Non-production status achieves the goal without code deletion
@@ -99,6 +101,7 @@ The Gradio UI (`app.py`) is **demoted to non-production status** and will be mai
 ### Alternative 3: Make Gradio the Production Path
 
 **Rejected because:**
+
 - Gradio lacks enterprise-grade authentication patterns
 - Less suitable for cloud-native deployment
 - Doesn't provide API contract clarity (OpenAPI/Swagger)

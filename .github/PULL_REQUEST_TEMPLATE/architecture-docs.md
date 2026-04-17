@@ -122,11 +122,13 @@
 ---
 
 **For Reviewers**:
+
 - Verify architectural consistency across all modified documents
 - Check that the scope is well-defined and respected
 - Ensure no runtime code changes are included
 
 **Related Documentation**:
+
 - [PR Scope Guardrails](../../docs/PR_SCOPE_GUARDRAILS.md)
 - [Automation Scope Policy](../AUTOMATION_SCOPE_POLICY.md)
 - [Contributing Guidelines](../../CONTRIBUTING.md)

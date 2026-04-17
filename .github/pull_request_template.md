@@ -144,6 +144,7 @@ npm test
 **Scope Review**: Verify that this PR adheres to the scope guardrails in [docs/PR_SCOPE_GUARDRAILS.md](../docs/PR_SCOPE_GUARDRAILS.md) and [.github/AUTOMATION_SCOPE_POLICY.md](AUTOMATION_SCOPE_POLICY.md).
 
 **Related Documentation**:
+
 - [Contributing Guidelines](../CONTRIBUTING.md)
 - [Branch Cleanup Guidelines](../BRANCH_CLEANUP_QUICK_REFERENCE.md)
 - [PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md)
