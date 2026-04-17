@@ -4,7 +4,7 @@
 
 This guide explains how to deploy the Financial Asset Relationship Database using the production-recommended FastAPI + Next.js stack on Vercel or other cloud platforms.
 
-**Note:** The Gradio UI (`app.py`) is available for demos and internal testing but is **not recommended for production deployment**. This guide focuses on the production architecture.
+**Note:** The Gradio UI (`app.py`) is available for demos, and internal testing, but is **not recommended for production deployment**. This guide focuses on the production architecture.
 
 ## Architecture Overview
 
