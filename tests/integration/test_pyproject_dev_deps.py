@@ -51,7 +51,7 @@ def _parse_dev_extras(pyproject_path: Path) -> list[str]:
     if header_idx == -1:
         return []
     # Trim to this section only: stop at the next TOML section heading.
-    section_body = content[header_idx + len(section_header):]
+    section_body = content[header_idx + len(section_header) :]
     next_section = re.search(r"^\[", section_body, re.MULTILINE)
     if next_section:
         section_body = section_body[: next_section.start()]
