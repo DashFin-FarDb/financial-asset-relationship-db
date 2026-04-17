@@ -43,21 +43,17 @@ pip install -r requirements.txt
 
 Install dev tooling:
 
-````pwsh
+```pwsh
 pip install -r requirements-dev.txt
+```
 
 (If you have GNU Make available, see “Makefile shortcuts” below.)
-
-### Run the Gradio app
-```pwsh
-python app.py
-````
 
 ### Run the FastAPI backend (for the Next.js frontend - PRODUCTION)
 
 Note: importing `api.main` imports `api.auth` and `api.database`, which **require env vars**.
 
-Minimum env vars (see `api/auth.py`, `api/database.py`, or use `src/config/settings.py`):
+Minimum env vars for startup (see `api/auth.py` and `api/database.py`; these are not currently provided via `src/config/settings.py`):
 
 - `DATABASE_URL` (SQLite URL; e.g. `sqlite:///./dev.db` or `sqlite:///:memory:`)
 - `SECRET_KEY` (JWT signing key)
@@ -97,12 +93,11 @@ These scripts create/activate `.venv`, install Python deps, and start:
 
 They do **not** set `DATABASE_URL` / `SECRET_KEY` / admin credentials, so set those before running.
 
-### Run the Gradio app (NON-PRODUCTION - demos/testing only)
+### Run the Gradio app (NON-PRODUCTION)
+
+For demos and internal testing only. Prefer the FastAPI backend + Next.js frontend run flow above.
 
 ```pwsh
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
 python app.py
 ```
 
@@ -236,18 +231,14 @@ FastAPI graph initialization in `api/main.py`:
 - `api/main.py`
   - REST endpoints used by the Next.js app:
     - `GET /api/assets`, `GET /api/assets/{asset_id}`, `GET /api/relationships`, `GET /api/metrics`, `GET /api/visualization`, etc.
-  - Assembles the FastAPI application with CORS, rate limiting, authentication, and routers.
-  - CORS rules depend on `ENV` + `ALLOWED_ORIGINS` (via settings) and include Vercel preview support.
+  - Assembles the FastAPI application, and the active endpoint implementations currently live in this file.
+  - CORS rules depend on `ENV` + `ALLOWED_ORIGINS` and include Vercel preview support.
   - Rate limiting via `slowapi`.
-- `api/routers/` — Modular REST API endpoints (assets.py, graph.py)
-- `api/models.py` — Pydantic response models for API
-- `api/cors_utils.py` — CORS origin validation
-- `api/graph_lifecycle.py` — Graph singleton management and initialization logic
 
 Configuration + persistence:
 
-- `src/config/settings.py` — Centralized typed runtime configuration (replaces scattered os.getenv calls)
-- `api/database.py` — SQLite connection management driven by `DATABASE_URL` (via settings).
+- `src/config/settings.py` — Centralized typed runtime configuration for the settings introduced so far. It does not yet replace all direct `os.getenv()` usage across the repository.
+- `api/database.py` — SQLite connection management driven by `DATABASE_URL`.
 - `api/auth.py` — JWT auth (`SECRET_KEY` required) and user seeding via `ADMIN_*` env vars.
 
 ### Next.js frontend
@@ -260,12 +251,12 @@ Configuration + persistence:
 
 - **Production architecture:** FastAPI + Next.js is the declared production stack. Prioritize work on this stack. See `.github/AUTOMATION_SCOPE_POLICY.md`.
 - **PR scope guardrails:** All PRs must include Primary Objective, In Scope, Out of Scope, Files Expected to Change, Validation Commands, and Merge Criteria.
-- **Runtime configuration:** Use `src/config/settings.py` and `get_settings()` instead of direct `os.getenv()` calls. Settings are cached; tests must call `get_settings.cache_clear()` when mutating env vars.
+- **Runtime configuration:** Use `src/config/settings.py` and `get_settings()` for the settings currently centralized there. Do not assume all existing env vars have been migrated yet.
 - **Plotting/visualization:** Standardized on **Plotly** (see `AI_RULES.md`).
 - When changing relationship semantics or graph-derived metrics, expect to update:
   - the graph engine (`src/logic/asset_graph.py`)
   - schema/metrics reporting (`src/reports/schema_report.py`)
-  - API response shapes (`api/models.py` and `api/routers/`)
+  - API response shapes and active endpoint behavior in `api/main.py`
   - frontend types/components (`frontend/app/types/*`, `frontend/app/components/*`)
 
 ## CI reference
