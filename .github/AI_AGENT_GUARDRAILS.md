@@ -71,3 +71,28 @@ Open a follow-up PR instead of continuing when:
 ## Validation expectations
 
 For dependency-related changes, the PR should report the relevant commands that were actually run, not generic placeholders.
+
+## Regex safety (Sonar S5852 / ReDoS)
+
+**Hard rule: do not use `re.DOTALL` together with lazy or greedy quantifiers (`.*`, `.*?`, `.+`, `.+?`) in a single pattern that spans unbounded input.**
+
+Such patterns are vulnerable to polynomial or exponential backtracking (ReDoS) and will be flagged by Sonar S5852 and Bandit.
+
+### Preferred alternatives
+
+| Instead of… | Use… |
+|---|---|
+| `re.search(r"header.*?body", text, re.DOTALL)` | `str.find("header")` to locate the start, then slice, then match `[^\]]*` or similar on the bounded slice |
+| `re.search(r"\[section\].*?\[key\]\s*=\s*\[(.*?)\]", text, re.DOTALL)` | Split on the section header with `str.find()`, trim to the next `[` header with a `re.search(r"^\[", …, re.MULTILINE)`, then run a simple character-class pattern (`[^\]]*`) on the bounded text |
+| Any `.*` / `.*?` with `re.DOTALL` across a whole file | Use `splitlines()` + state-machine iteration, or a proper TOML/JSON/YAML parser |
+
+### When `re.DOTALL` may be used
+
+Only when **all three** conditions hold:
+1. The input is provably short and bounded (e.g., a single line pulled from a known small config value, not a whole file).
+2. There is no ambiguity in the terminator — the pattern cannot match the terminator character inside the content (use a negated character class instead of `.`).
+3. The use is accompanied by an inline comment explaining why `re.DOTALL` is safe in that specific context.
+
+### Origin of this rule
+
+`re.DOTALL` + `.*?` spanning a whole file was used in `tests/integration/test_pyproject_dev_deps.py` (PR #1022, commit 6c94b98) and flagged as a ReDoS risk (Sonar S5852). It was replaced with a `str.find()` + bounded `[^\]]*` approach in commit b97073c. Do not reintroduce the broad-dotall pattern.
