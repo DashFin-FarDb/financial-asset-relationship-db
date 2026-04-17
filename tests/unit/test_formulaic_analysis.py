@@ -1544,7 +1544,8 @@ class TestExtractFundamentalFormulasWithBonds:
             )
         )
         formulas = analyzer._extract_fundamental_formulas(graph)
-        ytm_formula = next(f for f in formulas if f.name == "Yield-to-Maturity")
+        ytm_formula = next((f for f in formulas if f.name == "Yield-to-Maturity"), None)
+        assert ytm_formula is not None
         assert ytm_formula.example_calculation == "Example: YTM ≈ 3.0%"
 
     @staticmethod
