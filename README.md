@@ -25,7 +25,7 @@ For the modern web frontend with REST API:
 ./run-dev.sh
 
 # Windows
-run-dev.bat
+run-devat
 ```
 
 This will start both the FastAPI backend (port 8000) and Next.js frontend (port 3000).
@@ -39,6 +39,8 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
    pip install -r requirements.txt
    python -m uvicorn api.main:app --reload --port 8000
    ```
+
+   Depending on your local setup or deployment target, the backend may also require environment configuration. See [DEPLOYMENT.md](DEPLOYMENT.md) for runtime and deployment details.
 
 2. **Start the Next.js frontend (in a new terminal):**
 
