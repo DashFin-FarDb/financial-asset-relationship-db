@@ -87,7 +87,7 @@ See [docs/DEPENDENCY_POLICY.md](../docs/DEPENDENCY_POLICY.md) for detailed depen
 Dependency bots and automated updates must:
 
 1. Create focused PRs addressing one dependency decision at a time
-2. Not mix dependency updates with framework upgrades
+2. Do not mix dependency updates with framework upgrades
 3. Not change the dependency model itself without explicit approval
 4. Include security scan results for any version changes
 5. Respect the defined source-of-truth hierarchy
