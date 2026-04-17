@@ -25,7 +25,7 @@ For the modern web frontend with REST API:
 ./run-dev.sh
 
 # Windows
-run-devat
+run-dev.bat
 ```
 
 This will start both the FastAPI backend (port 8000) and Next.js frontend (port 3000).
