@@ -86,16 +86,10 @@ def test_types_pyyaml_minimum_version_is_6_0_12(dev_extras: list[str]) -> None:
 
     The PR bumped the constraint from >=6.0.0 to >=6.0.12.
     """
-    types_pyyaml_entry = next(
-        (dep for dep in dev_extras if dep.lower().startswith("types-pyyaml")), None
-    )
-    assert types_pyyaml_entry is not None, (
-        "types-PyYAML not found in pyproject.toml dev extras"
-    )
+    types_pyyaml_entry = next((dep for dep in dev_extras if dep.lower().startswith("types-pyyaml")), None)
+    assert types_pyyaml_entry is not None, "types-PyYAML not found in pyproject.toml dev extras"
 
-    assert ">=" in types_pyyaml_entry, (
-        f"types-PyYAML should use a >= constraint, got: {types_pyyaml_entry!r}"
-    )
+    assert ">=" in types_pyyaml_entry, f"types-PyYAML should use a >= constraint, got: {types_pyyaml_entry!r}"
 
     min_ver_str = ""
     for part in types_pyyaml_entry.split(","):
@@ -107,9 +101,7 @@ def test_types_pyyaml_minimum_version_is_6_0_12(dev_extras: list[str]) -> None:
             min_ver_str = part[2:].strip()
             break
 
-    assert min_ver_str, (
-        f"Could not parse minimum version from types-PyYAML entry: {types_pyyaml_entry!r}"
-    )
+    assert min_ver_str, f"Could not parse minimum version from types-PyYAML entry: {types_pyyaml_entry!r}"
 
     min_ver = tuple(int(x) for x in min_ver_str.split(".") if x.isdigit())
     required_floor = (6, 0, 12)
@@ -124,9 +116,7 @@ def test_types_pyyaml_old_floor_not_used(dev_extras: list[str]) -> None:
     After the PR the constraint should resolve to at least 6.0.12.  If the
     minimum version is exactly 6.0.0 the old (pre-PR) value was not updated.
     """
-    types_pyyaml_entry = next(
-        (dep for dep in dev_extras if dep.lower().startswith("types-pyyaml")), None
-    )
+    types_pyyaml_entry = next((dep for dep in dev_extras if dep.lower().startswith("types-pyyaml")), None)
     if types_pyyaml_entry is None:
         pytest.skip("types-PyYAML not found in dev extras")
 
@@ -142,15 +132,11 @@ def test_types_pyyaml_old_floor_not_used(dev_extras: list[str]) -> None:
 def test_dev_extras_include_pytest(dev_extras: list[str]) -> None:
     """Verify pytest is still listed in the dev extras."""
     lowered = [dep.lower() for dep in dev_extras]
-    assert any(dep.startswith("pytest") for dep in lowered), (
-        "pytest should be present in pyproject.toml dev extras"
-    )
+    assert any(dep.startswith("pytest") for dep in lowered), "pytest should be present in pyproject.toml dev extras"
 
 
 def test_dev_extras_all_have_version_constraints(dev_extras: list[str]) -> None:
     """Every dev extra should carry a version constraint (>=, ==, ~=, <=, or compound)."""
     operators = (">=", "==", "~=", "<=", ">", "<", "!=")
     missing = [dep for dep in dev_extras if not any(op in dep for op in operators)]
-    assert missing == [], (
-        f"Dev extras missing version constraints: {missing}"
-    )
+    assert missing == [], f"Dev extras missing version constraints: {missing}"

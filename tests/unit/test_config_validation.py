@@ -237,9 +237,9 @@ class TestPackageJson:
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
         semver_pattern = r"^\d+\.\d+\.\d+(-[\w.]+)?$"
-        assert re.match(
-            semver_pattern, version
-        ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
+        assert re.match(semver_pattern, version), (
+            f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
+        )
 
 
 @pytest.mark.unit
@@ -523,9 +523,9 @@ class TestRequirementsTxt:
 
         for req in requirements:
             if not req.startswith("-"):
-                assert any(
-                    op in req for op in [">=", "==", "~=", "<="]
-                ), f"Package should have version constraint: {req}"
+                assert any(op in req for op in [">=", "==", "~=", "<="]), (
+                    f"Package should have version constraint: {req}"
+                )
 
 
 @pytest.mark.unit
@@ -913,9 +913,7 @@ class TestGitignoreShellRedirectArtifacts:
     @staticmethod
     def test_gitignore_has_equals_star_glob(gitignore_lines: list[str]) -> None:
         """Verify that the broad `=*` shell-redirect pattern is present."""
-        assert "=*" in gitignore_lines, (
-            ".gitignore should contain `=*` to ignore files starting with `=`"
-        )
+        assert "=*" in gitignore_lines, ".gitignore should contain `=*` to ignore files starting with `=`"
 
     @staticmethod
     def test_gitignore_has_standalone_s_pattern(gitignore_lines: list[str]) -> None:
@@ -928,9 +926,7 @@ class TestGitignoreShellRedirectArtifacts:
     def test_gitignore_shell_redirect_comment_present(gitignore_lines: list[str]) -> None:
         """Verify the explanatory comment for shell-redirect artifacts is present."""
         comment_present = any("shell-redirect" in line for line in gitignore_lines)
-        assert comment_present, (
-            ".gitignore should contain a comment explaining the shell-redirect artifact patterns"
-        )
+        assert comment_present, ".gitignore should contain a comment explaining the shell-redirect artifact patterns"
 
     @staticmethod
     def test_gitignore_equals_star_broader_than_old_specific_entry(gitignore_lines: list[str]) -> None:
@@ -952,9 +948,7 @@ class TestGitignoreShellRedirectArtifacts:
         pattern = "=*"
         artifact_names = ["=2.8.0", "=1.0", "=3.14.159", "=0.1a2"]
         for name in artifact_names:
-            assert fnmatch.fnmatch(name, pattern), (
-                f"Pattern `{pattern}` should match accidental artifact file `{name}`"
-            )
+            assert fnmatch.fnmatch(name, pattern), f"Pattern `{pattern}` should match accidental artifact file `{name}`"
 
     @staticmethod
     def test_accidental_pip_artifact_file_deleted() -> None:

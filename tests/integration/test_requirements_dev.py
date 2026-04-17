@@ -329,9 +329,7 @@ def test_numpy_minimum_version_is_1_26(
     # Parse as a tuple of ints for comparison
     min_ver = tuple(int(x) for x in min_ver_str.split(".") if x.isdigit())
     required_floor = (1, 26, 0)
-    assert min_ver >= required_floor, (
-        f"numpy minimum version should be >= 1.26.0 but got >={min_ver_str}"
-    )
+    assert min_ver >= required_floor, f"numpy minimum version should be >= 1.26.0 but got >={min_ver_str}"
 
 
 def test_types_pyyaml_minimum_version_is_6_0_12(
@@ -343,9 +341,7 @@ def test_types_pyyaml_minimum_version_is_6_0_12(
     the updated stub release.
     """
     types_pyyaml_specs = [
-        ver
-        for pkg, ver in parsed_requirements
-        if _normalize_name_for_dupe_check(pkg) == "types_pyyaml"
+        ver for pkg, ver in parsed_requirements if _normalize_name_for_dupe_check(pkg) == "types_pyyaml"
     ]
     assert len(types_pyyaml_specs) == 1, "types-PyYAML should appear exactly once in requirements-dev.txt"
 
@@ -363,9 +359,7 @@ def test_types_pyyaml_minimum_version_is_6_0_12(
 
     min_ver = tuple(int(x) for x in min_ver_str.split(".") if x.isdigit())
     required_floor = (6, 0, 12)
-    assert min_ver >= required_floor, (
-        f"types-PyYAML minimum version should be >= 6.0.12 but got >={min_ver_str}"
-    )
+    assert min_ver >= required_floor, f"types-PyYAML minimum version should be >= 6.0.12 but got >={min_ver_str}"
 
 
 def test_numpy_is_present(package_names: list[str]) -> None:
