@@ -32,3 +32,4 @@ For the architectural decision rationale, see [docs/adr/0001-production-architec
 └─────────────────────────────────────┘
 
 ... (rest unchanged) ...
+```
