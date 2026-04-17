@@ -237,9 +237,9 @@ class TestPackageJson:
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
         semver_pattern = r"^\d+\.\d+\.\d+(-[\w.]+)?$"
-        assert re.match(
-            semver_pattern, version
-        ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
+        assert re.match(semver_pattern, version), (
+            f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
+        )
 
 
 @pytest.mark.unit
@@ -523,9 +523,9 @@ class TestRequirementsTxt:
 
         for req in requirements:
             if not req.startswith("-"):
-                assert any(
-                    op in req for op in [">=", "==", "~=", "<="]
-                ), f"Package should have version constraint: {req}"
+                assert any(op in req for op in [">=", "==", "~=", "<="]), (
+                    f"Package should have version constraint: {req}"
+                )
 
 
 @pytest.mark.unit
@@ -889,3 +889,79 @@ class TestConfigurationRobustness:
         # At least one should be present
         has_important = any(var in content for var in important_vars)
         assert has_important, "No important environment variables documented"
+
+
+@pytest.mark.unit
+class TestGitignoreShellRedirectArtifacts:
+    """Tests for the shell-redirect artifact ignore patterns added in this PR.
+
+    The PR replaced the specific `=2.8.0` entry with the broader `=*` glob so
+    that *any* file whose name starts with `=` (e.g. the result of an
+    unquoted `pip install pkg>=X.Y` redirect) is ignored.  The standalone `s`
+    entry covers output from `git branch >s`-style redirects.
+    """
+
+    @staticmethod
+    @pytest.fixture
+    def gitignore_lines() -> list[str]:
+        """Return all non-empty lines of .gitignore."""
+        gitignore_path = Path(".gitignore")
+        assert gitignore_path.exists(), ".gitignore not found"
+        with open(gitignore_path) as f:
+            return [line.rstrip("\n") for line in f]
+
+    @staticmethod
+    def test_gitignore_has_equals_star_glob(gitignore_lines: list[str]) -> None:
+        """Verify that the broad `=*` shell-redirect pattern is present."""
+        assert "=*" in gitignore_lines, ".gitignore should contain `=*` to ignore files starting with `=`"
+
+    @staticmethod
+    def test_gitignore_has_standalone_s_pattern(gitignore_lines: list[str]) -> None:
+        """Verify that the standalone `s` pattern is present (covers `git branch >s`)."""
+        assert "s" in gitignore_lines, (
+            ".gitignore should contain the standalone `s` entry to ignore accidental redirect files"
+        )
+
+    @staticmethod
+    def test_gitignore_shell_redirect_comment_present(gitignore_lines: list[str]) -> None:
+        """Verify the explanatory comment for shell-redirect artifacts is present."""
+        comment_present = any("shell-redirect" in line for line in gitignore_lines)
+        assert comment_present, ".gitignore should contain a comment explaining the shell-redirect artifact patterns"
+
+    @staticmethod
+    def test_gitignore_equals_star_broader_than_old_specific_entry(gitignore_lines: list[str]) -> None:
+        """Regression: `=*` is used instead of the old specific `=2.8.0` entry."""
+        assert "=2.8.0" not in gitignore_lines, (
+            "The old specific `=2.8.0` entry should have been replaced by the broader `=*` glob"
+        )
+        assert "=*" in gitignore_lines, "`=*` should be present as the replacement pattern"
+
+    @staticmethod
+    def test_equals_glob_matches_versioned_artifact_names() -> None:
+        """Unit-level: confirm that the `=*` glob pattern semantically covers version artifacts.
+
+        Uses fnmatch (the library underlying gitignore glob matching) to verify
+        that `=*` matches filenames like `=2.8.0`, `=1.0`, and `=3.14.159`.
+        """
+        import fnmatch
+
+        pattern = "=*"
+        artifact_names = ["=2.8.0", "=1.0", "=3.14.159", "=0.1a2"]
+        for name in artifact_names:
+            assert fnmatch.fnmatch(name, pattern), f"Pattern `{pattern}` should match accidental artifact file `{name}`"
+
+    @staticmethod
+    def test_accidental_pip_artifact_file_deleted() -> None:
+        """Verify the previously-committed accidental pip output file `=2.8.0` no longer exists."""
+        artifact_path = Path("=2.8.0")
+        assert not artifact_path.exists(), (
+            "The accidental pip output file `=2.8.0` should have been deleted from the repository"
+        )
+
+    @staticmethod
+    def test_accidental_git_branch_artifact_file_deleted() -> None:
+        """Verify the previously-committed accidental `git branch` output file `s` no longer exists."""
+        artifact_path = Path("s")
+        assert not artifact_path.exists(), (
+            "The accidental `git branch` output file `s` should have been deleted from the repository"
+        )
