@@ -413,9 +413,7 @@ class TestAgentsMdProductionArchitecture:
 
     def test_no_hardcoded_secrets(self, content: str) -> None:
         for pattern in [r"ghp_[a-zA-Z0-9]{36}", r"gho_[a-zA-Z0-9]{36}"]:
-            assert not re.search(pattern, content), (
-                f"AGENTS.md must not contain hardcoded tokens (pattern: {pattern})"
-            )
+            assert not re.search(pattern, content), f"AGENTS.md must not contain hardcoded tokens (pattern: {pattern})"
 
     def test_api_models_py_describes_pydantic_response_models(self, content: str) -> None:
         """The api/models.py entry must describe Pydantic response models."""
@@ -440,9 +438,7 @@ class TestAgentsMdProductionArchitecture:
         orient_pos = content.find("## Quick orientation")
         assert decl_pos != -1
         assert orient_pos != -1
-        assert decl_pos < orient_pos, (
-            "Production Architecture Declaration must appear before Quick orientation"
-        )
+        assert decl_pos < orient_pos, "Production Architecture Declaration must appear before Quick orientation"
 
     def test_no_old_do_not_assume_work_is_merged_text(self, content: str) -> None:
         """Old branch verification content must not appear after replacement."""
@@ -474,9 +470,7 @@ class TestAgentInstructionsConsistency:
     def agents_content(self) -> str:
         return _load(AGENTS_MD)
 
-    def test_both_files_declare_fastapi_nextjs_as_production(
-        self, copilot_content: str, agents_content: str
-    ) -> None:
+    def test_both_files_declare_fastapi_nextjs_as_production(self, copilot_content: str, agents_content: str) -> None:
         for name, content in [
             (".github/copilot-instructions.md", copilot_content),
             ("AGENTS.md", agents_content),
@@ -484,9 +478,7 @@ class TestAgentInstructionsConsistency:
             assert "FastAPI" in content, f"{name} must reference FastAPI"
             assert "Next.js" in content, f"{name} must reference Next.js"
 
-    def test_both_files_declare_gradio_as_non_production(
-        self, copilot_content: str, agents_content: str
-    ) -> None:
+    def test_both_files_declare_gradio_as_non_production(self, copilot_content: str, agents_content: str) -> None:
         for name, content in [
             (".github/copilot-instructions.md", copilot_content),
             ("AGENTS.md", agents_content),
@@ -496,41 +488,27 @@ class TestAgentInstructionsConsistency:
                 f"{name} must label Gradio as non-production"
             )
 
-    def test_both_files_reference_automation_scope_policy(
-        self, copilot_content: str, agents_content: str
-    ) -> None:
+    def test_both_files_reference_automation_scope_policy(self, copilot_content: str, agents_content: str) -> None:
         assert "AUTOMATION_SCOPE_POLICY.md" in copilot_content, (
             ".github/copilot-instructions.md must reference AUTOMATION_SCOPE_POLICY.md"
         )
-        assert "AUTOMATION_SCOPE_POLICY.md" in agents_content, (
-            "AGENTS.md must reference AUTOMATION_SCOPE_POLICY.md"
-        )
+        assert "AUTOMATION_SCOPE_POLICY.md" in agents_content, "AGENTS.md must reference AUTOMATION_SCOPE_POLICY.md"
 
-    def test_both_files_reference_adr_0001(
-        self, copilot_content: str, agents_content: str
-    ) -> None:
+    def test_both_files_reference_adr_0001(self, copilot_content: str, agents_content: str) -> None:
         assert "0001-production-architecture.md" in copilot_content, (
             ".github/copilot-instructions.md must reference ADR 0001"
         )
-        assert "0001-production-architecture.md" in agents_content, (
-            "AGENTS.md must reference ADR 0001"
-        )
+        assert "0001-production-architecture.md" in agents_content, "AGENTS.md must reference ADR 0001"
 
-    def test_both_files_reference_src_config_settings_py(
-        self, copilot_content: str, agents_content: str
-    ) -> None:
+    def test_both_files_reference_src_config_settings_py(self, copilot_content: str, agents_content: str) -> None:
         assert "src/config/settings.py" in copilot_content
         assert "src/config/settings.py" in agents_content
 
-    def test_both_files_mention_api_models_py(
-        self, copilot_content: str, agents_content: str
-    ) -> None:
+    def test_both_files_mention_api_models_py(self, copilot_content: str, agents_content: str) -> None:
         assert "api/models.py" in copilot_content
         assert "api/models.py" in agents_content
 
-    def test_both_files_mention_api_routers(
-        self, copilot_content: str, agents_content: str
-    ) -> None:
+    def test_both_files_mention_api_routers(self, copilot_content: str, agents_content: str) -> None:
         assert "api/routers/" in copilot_content
         assert "api/routers/" in agents_content
 
@@ -540,9 +518,7 @@ class TestAgentInstructionsConsistency:
         assert "prioritize the production architecture" in copilot_content.lower()
         assert "prioritize the production architecture" in agents_content.lower()
 
-    def test_both_files_present_gradio_as_demos_or_testing(
-        self, copilot_content: str, agents_content: str
-    ) -> None:
+    def test_both_files_present_gradio_as_demos_or_testing(self, copilot_content: str, agents_content: str) -> None:
         """Both files must present Gradio as suitable only for demos/testing."""
         for name, content in [
             (".github/copilot-instructions.md", copilot_content),
@@ -552,15 +528,11 @@ class TestAgentInstructionsConsistency:
                 f"{name} must describe Gradio as for demos/testing"
             )
 
-    def test_both_files_reference_graph_lifecycle(
-        self, copilot_content: str, agents_content: str
-    ) -> None:
+    def test_both_files_reference_graph_lifecycle(self, copilot_content: str, agents_content: str) -> None:
         assert "graph_lifecycle" in copilot_content or "api/graph_lifecycle.py" in copilot_content
         assert "graph_lifecycle" in agents_content or "api/graph_lifecycle.py" in agents_content
 
-    def test_copilot_instructions_has_env_var_guidelines_not_in_agents(
-        self, copilot_content: str
-    ) -> None:
+    def test_copilot_instructions_has_env_var_guidelines_not_in_agents(self, copilot_content: str) -> None:
         """copilot-instructions.md adds detailed env var guidelines absent from AGENTS.md."""
         # The step-by-step env var guidelines appear in copilot-instructions.md
         assert "When adding environment variables" in copilot_content
