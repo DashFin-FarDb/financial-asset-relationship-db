@@ -258,8 +258,10 @@ class TestSettingsIntegration:
         settings = get_settings()
         assert settings.env == "production"
         assert len(settings.allowed_origins) == 2
-        assert "https://app.example.com" in settings.allowed_origins
-        assert "https://api.example.com" in settings.allowed_origins
+        assert set(settings.allowed_origins) == {
+            "https://app.example.com",
+            "https://api.example.com",
+        }
 
     @patch.dict(
         os.environ,
