@@ -16,6 +16,8 @@ from src.analysis.formulaic_examples import (
     calculate_portfolio_return_examples,
     calculate_sharpe_examples,
     calculate_volatility_examples,
+    calculate_ytm_examples,
+    has_bonds,
     has_commodities,
     has_currencies,
     has_dividend_stocks,
@@ -65,28 +67,35 @@ class FormulaicAnalyzer:
 
     def __init__(self) -> None:
         """
-        Prepare a FormulaicAnalyzer with an empty formulas list.
+        Initialize a FormulaicAnalyzer and set up internal storage for formulas.
 
-        Initializes internal state by creating self.formulas as an empty list for collecting Formula objects discovered during graph analysis.
+        Creates self.formulas as an empty list to hold Formula objects discovered during graph analysis.
         """
         self.formulas: List[Formula] = []
 
     def analyze_graph(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
         """
-        Produce a collection of financial formulas and empirical relationship data derived from an AssetRelationshipGraph.
+        Produce a collection of financial formulas and empirical relationship data
+        derived from an AssetRelationshipGraph.
 
-        Orchestrates collection of formula groups and computation of empirical relationship metrics, then assembles the final analysis payload.
+        Orchestrates collection of formula groups and computation of empirical
+        relationship metrics, then assembles the final analysis payload.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph of assets and their relationships used to detect asset types, select applicable formula templates, and compute empirical metrics.
+            graph (AssetRelationshipGraph): Graph of assets and their relationships
+                used to detect asset types, select applicable formula templates,
+                and compute empirical metrics.
 
         Returns:
             result (dict): Analysis payload with keys:
                 - "formulas" (List[Formula]): Generated Formula objects describing relationships and metrics.
-                - "empirical_relationships" (Dict[str, Any]): Empirical data derived from the graph (e.g., correlation matrix, strongest correlations, asset-class and sector relationships).
+                - "empirical_relationships" (Dict[str, Any]): Empirical data derived
+                  from the graph (e.g., correlation matrix, strongest correlations,
+                  asset-class and sector relationships).
                 - "formula_count" (int): Total number of formulas generated.
                 - "categories" (Dict[str, int]): Counts of formulas grouped by category.
-                - "summary" (Dict[str, Any]): High-level summary metrics and insights about the generated formulas and empirical relationships.
+                - "summary" (Dict[str, Any]): High-level summary metrics and insights
+                  about the generated formulas and empirical relationships.
         """
         logger.info("Starting formulaic analysis of asset relationships")
         all_formulas = self._collect_formula_groups(graph)
@@ -125,11 +134,15 @@ class FormulaicAnalyzer:
         empirical_relationships: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
-        Assembles the consolidated analysis payload containing formulas, empirical relationships, and computed metadata.
+        Assembles the consolidated analysis payload containing formulas,
+        empirical relationships, and computed metadata.
 
         Parameters:
-            all_formulas (List[Formula]): Discovered Formula objects to include in the payload.
-            empirical_relationships (Dict[str, Any]): Empirical data derived from the graph (e.g., correlation matrix, strongest correlations, asset/sector summaries).
+            all_formulas (List[Formula]): Discovered Formula objects to include
+                in the payload.
+            empirical_relationships (Dict[str, Any]): Empirical data derived from
+                the graph (e.g., correlation matrix, strongest correlations,
+                asset/sector summaries).
 
         Returns:
             Dict[str, Any]: Analysis mapping with keys:
@@ -137,7 +150,8 @@ class FormulaicAnalyzer:
                 - "empirical_relationships": the provided empirical relationships dict,
                 - "formula_count": total number of formulas,
                 - "categories": mapping of category name to formula count,
-                - "summary": summary metrics and insights computed from the formulas and empirical data.
+                - "summary": summary metrics and insights computed from the
+                  formulas and empirical data.
         """
         return {
             "formulas": all_formulas,
@@ -155,26 +169,26 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> List[Formula]:
         """
-        Assembles fundamental valuation and income Formula objects applicable to the assets in the provided graph.
+        Assembles fundamental valuation and income Formula objects applicable
+        to the assets in the provided graph.
 
         Parameters:
-            graph (AssetRelationshipGraph): Asset relationship graph used to determine which fundamental formulas apply (e.g., presence of equities or dividend-paying stocks).
+            graph (AssetRelationshipGraph): Asset relationship graph used to
+                determine which fundamental formulas apply (e.g., presence of
+                equities or dividend-paying stocks).
 
         Returns:
-            List[Formula]: A list of applicable fundamental Formula objects (for example: equity fundamentals and dividend yield when dividend-paying stocks are present).
+            List[Formula]: A list of applicable fundamental Formula objects
+                (for example: equity fundamentals and dividend yield when
+                dividend-paying stocks are present).
         """
         formulas: list[Formula] = []
         formulas.extend(self._equity_fundamental_formulas(graph))
         if has_dividend_stocks(graph):
             formulas.append(self._dividend_yield_formula(graph))
 
-        # NOTE: Bond yield-to-maturity (YTM) approximation
-        # is not yet implemented.
-        # When bond instruments are present in the graph, detect bond nodes and
-        # compute approximate YTM using bond price, coupon rate,
-        # and time to maturity (e.g., via iterative solution of
-        # price = present value of cash flows).
-        # Add a Formula entry for YTM to the formulas list.
+        if has_bonds(graph):
+            formulas.append(self._yield_to_maturity_formula(graph))
         return formulas
 
     @staticmethod
@@ -182,10 +196,11 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> list[Formula]:
         """
-        Return fundamental equity formulas when the graph contains equities.
+        Provide equity fundamental formulas when the graph contains equities.
 
         Returns:
-            list[Formula]: Price-to-Earnings and Market Capitalization formulas when the graph contains equities, otherwise an empty list.
+            list[Formula]: P/E and Market Capitalization formulas if the graph
+                contains equities, otherwise an empty list.
         """
         if not has_equities(graph):
             return []
@@ -200,10 +215,15 @@ class FormulaicAnalyzer:
         Constructs a Formula representing the Price-to-Earnings (P/E) ratio.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph used to produce the example calculation for the formula.
+            graph (AssetRelationshipGraph): Graph used to produce the example
+                calculation for the formula.
 
         Returns:
-            Formula: A Formula for "Price-to-Earnings" with expression "P / E", LaTeX "\\frac{P}{E}", variables `P` mapped to "Price per share" and `E` mapped to "Earnings per share (EPS)", category "Valuation", and an example calculation derived from the provided graph.
+            Formula: A Formula for "Price-to-Earnings" with expression "P / E",
+                LaTeX "\\frac{P}{E}", variables `P` mapped to "Price per share"
+                and `E` mapped to "Earnings per share (EPS)", category
+                "Valuation", and an example calculation derived from the provided
+                graph.
         """
         return Formula(
             name="Price-to-Earnings",
@@ -222,13 +242,16 @@ class FormulaicAnalyzer:
     @staticmethod
     def _dividend_yield_formula(graph: AssetRelationshipGraph) -> Formula:
         """
-        Constructs a Formula for dividend yield (dividend per share divided by price per share).
+        Construct a Formula representing the dividend yield (dividend per share divided by price per share).
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph used to generate the example_calculation for the formula.
+            graph (AssetRelationshipGraph): Graph used to generate the example
+                calculation for the formula.
 
         Returns:
-            Formula: A Formula named "Dividend Yield" with expression `D / P`, LaTeX `\frac{D}{P}`, variables `D` ("Dividend per share") and `P` ("Price per share"), category "Income", and `r_squared` 0.0.
+            Formula: A Formula named "Dividend Yield" with expression "D / P",
+                LaTeX "\\frac{D}{P}", variables `D` ("Dividend per share") and
+                `P` ("Price per share"), category "Income", and `r_squared` 0.0.
         """
         return Formula(
             name="Dividend Yield",
@@ -245,17 +268,63 @@ class FormulaicAnalyzer:
         )
 
     @staticmethod
+    def _yield_to_maturity_formula(graph: AssetRelationshipGraph) -> Formula:
+        """
+        Represent the yield-to-maturity relationship for bonds.
+
+        Provides a Formula describing yield-to-maturity (YTM) — the annualized
+        rate that equates a bond's current price with the present value of its
+        future coupon payments and principal — and attaches example calculations
+        derived from the supplied graph's bond data.
+
+        Parameters:
+            graph (AssetRelationshipGraph): Graph used to generate example calculations from bond assets.
+
+        Returns:
+            Formula: A `Formula` named "Yield-to-Maturity" with expression
+                showing the present value equation, variable descriptions for
+                `YTM`, `C`, `F`, `P`, and `n`, example calculations drawn from
+                `graph`, category `"Income"`, and `r_squared` set to `0.0`.
+        """
+        return Formula(
+            name="Yield-to-Maturity",
+            expression="P = Σ C/(1+YTM)^t + F/(1+YTM)^n",
+            latex=(r"P = \sum_{t=1}^{n} \frac{C}{(1+YTM)^t} + \frac{F}{(1+YTM)^n}"),
+            description=(
+                "Total return anticipated on a bond if held until maturity, "
+                "accounting for all coupon payments and the difference between "
+                "current market price and face value. Calculated as the internal "
+                "rate of return (IRR) that equates the present value of future "
+                "cash flows to the current bond price."
+            ),
+            variables={
+                "YTM": "Yield-to-maturity (annualized rate of return)",
+                "C": "Periodic coupon payment",
+                "F": "Face value (par value) at maturity",
+                "P": "Current market price of the bond",
+                "n": "Number of periods until maturity",
+            },
+            example_calculation=calculate_ytm_examples(graph),
+            category="Income",
+            r_squared=0.0,
+        )
+
+    @staticmethod
     def _market_capitalization_formula(
         graph: AssetRelationshipGraph,
     ) -> Formula:
         """
-        Constructs a Formula representing market capitalization (Price × Shares Outstanding).
+        Create a Formula describing market capitalization (Price × Shares Outstanding).
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph used to derive the formula's example_calculation and contextual metadata.
+            graph: AssetRelationshipGraph used to generate the
+                `example_calculation` and contextual metadata for the returned
+                Formula.
 
         Returns:
-            Formula: A Formula for market capitalization whose example_calculation is generated from the provided graph, with category "Valuation" and r_squared set to 0.0.
+            Formula: A market capitalization Formula (expression
+                "Price × Shares Outstanding") categorized as "Valuation" with
+                `r_squared` set to 0.0.
         """
         return Formula(
             name="Market Capitalization",
@@ -276,12 +345,16 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> List[Formula]:
         """
-        Collects standard formulas describing asset beta (systematic risk) and the Pearson correlation coefficient.
+        Collects standard formulas describing asset beta (systematic risk) and
+        the Pearson correlation coefficient.
 
-        Each Formula includes variable descriptions, an example calculation derived from the provided graph, a category label, and an r_squared estimate indicating expected explanatory strength.
+        Each Formula includes variable descriptions, an example calculation
+        derived from the provided graph, a category label, and an r_squared
+        estimate indicating expected explanatory strength.
 
         Returns:
-            List[Formula]: Two Formula objects: `Beta (Systematic Risk)` and `Correlation Coefficient`.
+            List[Formula]: Two Formula objects: `Beta (Systematic Risk)` and
+                `Correlation Coefficient`.
         """
         formulas = []
 
@@ -329,15 +402,19 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> List[Formula]:
         """
-        Collect valuation formulas applicable to the provided asset relationship graph.
+        Collect valuation formulas applicable to the provided asset
+        relationship graph.
 
-        Includes price-to-book when equities are present and always includes an enterprise value formula.
+        Includes price-to-book when equities are present and always includes
+        an enterprise value formula.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph of assets and relationships used to determine applicable valuation formulas.
+            graph (AssetRelationshipGraph): Graph of assets and relationships
+                used to determine applicable valuation formulas.
 
         Returns:
-            List[Formula]: Valuation Formula objects relevant to the graph (e.g., Price-to-Book, Enterprise Value).
+            List[Formula]: Valuation Formula objects relevant to the graph
+                (e.g., Price-to-Book, Enterprise Value).
         """
         formulas: List[Formula] = []
         if has_equities(graph):
@@ -348,13 +425,15 @@ class FormulaicAnalyzer:
     @staticmethod
     def _price_to_book_formula(graph: AssetRelationshipGraph) -> Formula:
         """
-        Constructs a Formula representing the Price-to-Book (P/B) ratio.
+        Constructs a Formula describing the Price-to-Book (P/B) ratio.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph used to generate the formula's example calculation.
+            graph (AssetRelationshipGraph): Graph used to generate the example calculation for the formula.
 
         Returns:
-            Formula: A Formula for P/B with its expression, LaTeX, variable metadata, an example calculation derived from `graph`, category "Valuation", and `r_squared` set to 0.88.
+            Formula: A Formula for the P/B ratio including expression, LaTeX,
+                variable metadata, an example calculation derived from `graph`,
+                category "Valuation", and `r_squared` set to 0.88.
         """
         return Formula(
             name="Price-to-Book Ratio",
@@ -374,10 +453,13 @@ class FormulaicAnalyzer:
     @staticmethod
     def _enterprise_value_formula() -> Formula:
         """
-        Create a Formula object representing Enterprise Value (EV = Market_Cap + Total_Debt - Cash).
+        Constructs a Formula representing Enterprise Value (EV = Market_Cap + Total_Debt - Cash).
 
         Returns:
-            Formula: Metadata for the Enterprise Value formula, including expression, LaTeX, variable descriptions for EV, Market_Cap, Debt, and Cash, an example_calculation noting debt/cash data is unavailable, category "Valuation", and r_squared set to 0.95.
+            Formula: Metadata for the Enterprise Value formula including
+                variable descriptions for `EV`, `Market_Cap`, `Debt`, and `Cash`,
+                an `example_calculation` noting debt/cash data is unavailable,
+                category `"Valuation"`, and `r_squared` set to `0.95`.
         """
         return Formula(
             name="Enterprise Value",
@@ -400,13 +482,19 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> List[Formula]:
         """
-        Assemble formula definitions for common risk–return metrics.
+        Assemble risk–return metric formulas with example calculations derived from the provided asset graph.
+
+        Populates a list containing the Sharpe Ratio and Volatility (standard
+        deviation), each including expression, LaTeX, variables,
+        example_calculation (computed from `graph`), category, and an
+        `r_squared` estimate.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph used to populate example calculations and contextual values for each formula.
+            graph (AssetRelationshipGraph): Graph used to generate example
+                calculations and contextual values for each formula.
 
         Returns:
-            List[Formula]: A list of Formula objects (e.g., Sharpe Ratio and volatility) with expression, LaTeX, variables, example_calculation, category, and r_squared populated.
+            List[Formula]: List containing the Sharpe Ratio and Volatility formulas with populated metadata.
         """
         formulas = []
 
@@ -453,13 +541,16 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> List[Formula]:
         """
-        Builds portfolio-theory Formula objects based on the provided asset relationship graph.
+        Builds portfolio-theory Formula objects based on the provided asset
+        relationship graph.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph used to derive example calculations and populate formula metadata.
+            graph (AssetRelationshipGraph): Graph used to derive example
+                calculations and populate formula metadata.
 
         Returns:
-            List[Formula]: Formula objects representing portfolio-theory relationships (currently includes the Portfolio Expected Return).
+            List[Formula]: Formula objects representing portfolio-theory
+                relationships (currently includes the Portfolio Expected Return).
         """
         formulas = []
 
@@ -489,12 +580,19 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> List[Formula]:
         """
-        Constructs Formula objects representing detected cross-asset relationships present in the asset graph.
+        Create Formula objects that describe cross-asset relationships
+        discovered in the asset graph.
 
-        Adds a triangular-arbitrage exchange-rate formula when currency assets are present, and adds a commodity–currency inverse-relationship formula when both commodity and currency assets are present.
+        This inspects the graph for currency and commodity assets and produces zero or more formulas representing:
+        - triangular arbitrage exchange-rate relationships when currency assets exist, and
+        - an inverse commodity–currency relationship when both commodity and currency assets are present.
+
+        Parameters:
+            graph (AssetRelationshipGraph): The asset relationship graph to inspect for relevant asset types.
 
         Returns:
-            List[Formula]: A list of Formula objects for detected cross-asset relationships; empty if none are found.
+            List[Formula]: A list of cross-asset Formula objects; an empty list
+                if no relevant relationships are detected.
         """
         formulas = []
 
@@ -540,17 +638,25 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> Dict[str, Any]:
         """
-        Generate empirical relationship data derived from an AssetRelationshipGraph.
+        Generate empirical relationship data derived from an
+        AssetRelationshipGraph.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph of assets and relationships used to compute empirical statistics.
+            graph (AssetRelationshipGraph): Graph of assets and relationships
+                used to compute empirical statistics.
 
         Returns:
             dict: Payload containing empirical data with keys:
-                - correlation_matrix (Dict[str, float]): Pairwise relationship strengths keyed by "srcId-targetId".
-                - strongest_correlations (List[Dict[str, Any]]): Top correlations with metadata (pair, asset1, asset2, correlation, strength).
-                - asset_class_relationships (Dict[str, Dict[str, Any]]): Aggregated statistics per asset class (asset_count, avg_price, total_value).
-                - sector_relationships (Dict[str, Dict[str, Any]]): Aggregated statistics per sector (asset_count, avg_price, price_range).
+                - correlation_matrix (Dict[str, float]): Pairwise relationship
+                  strengths keyed by "srcId-targetId".
+                - strongest_correlations (List[Dict[str, Any]]): Top
+                  correlations with metadata (pair, asset1, asset2,
+                  correlation, strength).
+                - asset_class_relationships (Dict[str, Dict[str, Any]]):
+                  Aggregated statistics per asset class (asset_count, avg_price,
+                  total_value).
+                - sector_relationships (Dict[str, Dict[str, Any]]): Aggregated
+                  statistics per sector (asset_count, avg_price, price_range).
         """
         correlation_matrix = FormulaicAnalyzer._build_correlation_matrix(graph)
         strongest_correlations = FormulaicAnalyzer._build_strongest_correlations(correlation_matrix)
@@ -568,10 +674,13 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> Dict[str, float]:
         """
-        Construct a mapping of asset-pair keys to the strongest numeric relationship strength observed between them.
+        Construct a mapping of asset-pair keys to the strongest numeric
+        relationship strength observed between them.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph whose relationships are iterated to extract numeric strength values. Each relationship entry is expected to contain (target_id, type, strength).
+            graph (AssetRelationshipGraph): Graph whose relationships are
+                iterated to extract numeric strength values. Each relationship
+                entry is expected to contain (target_id, type, strength).
 
         Returns:
             Dict[str, float]: Mapping where each key is a canonical "assetA-assetB"
@@ -599,23 +708,25 @@ class FormulaicAnalyzer:
         correlation_matrix: Dict[str, float],
     ) -> List[Dict[str, Any]]:
         """
-        Return the top correlation pairs from a correlation matrix, ranked by absolute correlation.
+        Selects up to ten strongest asset correlation pairs from a correlation
+        matrix, ranked by absolute correlation.
 
-        Parses keys of the form "assetA-assetB", filters out invalid correlations (absolute value > 1.0), assigns a strength label, and returns up to 10 entries sorted by descending absolute correlation.
+        Parses keys of the form "assetA-assetB", ignores entries with absolute
+        correlation greater than 1.0, and labels each remaining pair as "Strong"
+        (abs > 0.7), "Moderate" (abs > 0.4), or "Weak" (otherwise).
 
         Parameters:
-            correlation_matrix (Dict[str, float]): Mapping with keys "assetA-assetB" and numeric correlation values.
+            correlation_matrix (Dict[str, float]): Mapping with keys
+                "assetA-assetB" and numeric correlation values.
 
         Returns:
-            List[Dict[str, Any]]: Up to 10 dictionaries with keys:
+            List[Dict[str, Any]]: Up to 10 dictionaries sorted by descending
+                absolute correlation. Each dictionary contains:
                 - "pair": string "assetA-assetB"
                 - "asset1": first asset id
                 - "asset2": second asset id
                 - "correlation": numeric correlation value
-                - "strength": one of "Strong" (abs > 0.7), "Moderate" (abs > 0.4), or "Weak" (otherwise)
-
-        Notes:
-            Entries with absolute correlation greater than 1.0 are excluded as invalid.
+                - "strength": one of "Strong", "Moderate", or "Weak"
         """
         strongest_correlations: List[Dict[str, Any]] = []
         for pair_key, corr in correlation_matrix.items():
@@ -697,16 +808,23 @@ class FormulaicAnalyzer:
         """
         Builds statistics for each sector represented in the asset graph.
 
-        Iterates assets in the provided graph, ignoring assets without a sector, and aggregates per-sector metrics: the number of assets (`asset_count`), the average asset price as a float (`avg_price`), and a human-readable price range string formatted as "$min.xx - $max.xx" (`price_range`).
+        Iterates assets in the provided graph, ignoring assets without a
+        sector, and aggregates per-sector metrics: the number of assets
+        (`asset_count`), the average asset price as a float (`avg_price`), and
+        a human-readable price range string formatted as "$min.xx - $max.xx"
+        (`price_range`).
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph containing assets to aggregate by sector.
+            graph (AssetRelationshipGraph): Graph containing assets to
+                aggregate by sector.
 
         Returns:
-            Dict[str, Dict[str, Any]]: Mapping from sector name to a dictionary with keys:
+            Dict[str, Dict[str, Any]]: Mapping from sector name to a
+                dictionary with keys:
                 - `asset_count` (int): Number of assets assigned to the sector.
                 - `avg_price` (float): Average price of assets in the sector.
-                - `price_range` (str): Formatted min-to-max price range, e.g. "$1.00 - $5.00".
+                - `price_range` (str): Formatted min-to-max price range,
+                  e.g. "$1.00 - $5.00".
         """
         sector_relationships: Dict[str, Dict[str, Any]] = {}
         for asset in graph.assets.values():
@@ -736,13 +854,13 @@ class FormulaicAnalyzer:
     @staticmethod
     def _summarize_sector_prices(prices: List[float]) -> tuple[float, str]:
         """
-        Compute the average price and a formatted price range for a list of sector prices.
-
-        Parameters:
-            prices (List[float]): Asset prices in USD for the sector.
+        Compute the average price for a sector and a human-readable price range.
 
         Returns:
-            tuple[float, str]: (avg_price, price_range) where avg_price is the arithmetic mean of `prices` (0.0 if `prices` is empty) and price_range is a formatted string "$min - $max" with two decimal places ("$0.00 - $0.00" if `prices` is empty).
+            tuple[float, str]: `avg_price` is the arithmetic mean of `prices`
+                (0.0 if empty). `price_range` is a string formatted as
+                "$min - $max" with two decimal places (defaults to
+                "$0.00 - $0.00" if `prices` is empty).
         """
         if not prices:
             return 0.0, "$0.00 - $0.00"
@@ -790,15 +908,20 @@ class FormulaicAnalyzer:
         empirical_relationships: Dict,
     ) -> Dict[str, Any]:
         """
-        Summarizes analyzed formulas and key empirical relationship metrics.
+        Produce an aggregated summary of the provided formulas and empirical relationship metrics.
 
         Returns:
-            summary (dict): Aggregated summary containing:
-                total_formulas (int): Number of formulas analyzed.
-                avg_r_squared (float): Average of `r_squared` values across the provided formulas (0.0 if none).
-                formula_categories (dict): Mapping from category name to count of formulas in that category.
-                empirical_data_points (int): Number of entries in `empirical_relationships["correlation_matrix"]` (0 if missing).
-                key_insights (list[str]): Short human-readable insight strings derived from the formulas and empirical data.
+            summary (dict): Aggregated summary with the following keys:
+                total_formulas (int): Number of formulas in `formulas`.
+                avg_r_squared (float): Mean of numeric `r_squared` values across
+                    `formulas` (0.0 if no formulas).
+                formula_categories (dict): Mapping from category name to count
+                    of formulas in that category.
+                empirical_data_points (int): Number of entries in
+                    `empirical_relationships["correlation_matrix"]` (0 if
+                    missing).
+                key_insights (list[str]): Short human-readable insight strings
+                    derived from the formulas and empirical data.
         """
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(empirical_relationships)
 
