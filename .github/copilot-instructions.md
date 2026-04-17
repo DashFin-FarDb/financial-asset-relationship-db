@@ -12,6 +12,15 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python app.py
 ```
+- **FastAPI backend** (for Next.js frontend): Note that importing `api.main` pulls in `api.auth` and `api.database`, which require environment variables.
+  - Minimum env vars for startup:
+    - `DATABASE_URL` (e.g., `sqlite:///./dev.db` or `sqlite:///:memory:`)
+    - `SECRET_KEY` (JWT signing key)
+  - Set these before running:
+    ```pwsh
+    python -m uvicorn api.main:app --reload --port 8000
+    ```
+  - See `AGENTS.md` for full setup details including optional admin credentials.
 - There is also a `package.json` — check `package.json` for node scripts before running `npm install` / `npm run <script>`.
 
 Key files & responsibilities
