@@ -25,6 +25,7 @@ from slowapi import (  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
+from src.config.settings import get_settings
 from src.data.real_data_fetcher import RealDataFetcher
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass
@@ -142,9 +143,9 @@ def reset_graph() -> None:
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Initialize and return the shared AssetRelationshipGraph using the configured source.
+    Create the shared AssetRelationshipGraph from the configured data source.
 
-    Selects the graph source in this order: a configured graph factory; a cached real-data path specified by GRAPH_CACHE_PATH; the real-data fetcher when USE_REAL_DATA_FETCHER is enabled (using REAL_DATA_CACHE_PATH if present); otherwise the bundled sample dataset.
+    Chooses the source in this precedence order: a configured graph factory, a cached real-data path, the real-data fetcher (when enabled), and finally the bundled sample dataset.
 
     Returns:
         AssetRelationshipGraph: The initialized asset relationship graph instance.
@@ -152,8 +153,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory()
 
-    cache_path = os.getenv("GRAPH_CACHE_PATH")
-    use_real_data = _should_use_real_data_fetcher()
+    settings = get_settings()
+    cache_path = settings.graph_cache_path
+    use_real_data = settings.use_real_data_fetcher
 
     if cache_path:
         fetcher = RealDataFetcher(
@@ -163,7 +165,7 @@ def _initialize_graph() -> AssetRelationshipGraph:
         return fetcher.create_real_database()
 
     if use_real_data:
-        cache_path_env = os.getenv("REAL_DATA_CACHE_PATH")
+        cache_path_env = settings.real_data_cache_path
         fetcher = RealDataFetcher(
             cache_path=cache_path_env,
             enable_network=True,
@@ -175,25 +177,12 @@ def _initialize_graph() -> AssetRelationshipGraph:
     return create_sample_database()
 
 
-def _should_use_real_data_fetcher() -> bool:
-    """
-    Return whether the environment requests the real data fetcher.
-
-    Interprets the environment variable USE_REAL_DATA_FETCHER case-insensitively; the values "1", "true", "yes", or "on" (ignoring surrounding whitespace) are treated as true.
-
-    Returns:
-        bool: True if USE_REAL_DATA_FETCHER matches an accepted value, False otherwise.
-    """
-    flag = os.getenv("USE_REAL_DATA_FETCHER", "false")
-    return flag.strip().lower() in {"1", "true", "yes", "on"}
-
-
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
     """
     Ensure the shared asset relationship graph is initialized before application startup.
 
-    If graph initialization fails, the original exception is re-raised to abort application startup. Yields control to FastAPI's lifespan manager for the running application; on shutdown the function logs application shutdown.
+    If graph initialization fails, re-raises the original exception to abort application startup.
 
     Raises:
         Exception: Propagates any exception raised during graph initialization.
@@ -224,32 +213,31 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Determine environment (default to 'development' if not set)
-ENV = os.getenv("ENV", "development").lower()
+# Get settings instance for environment and CORS configuration
+_settings = get_settings()
+ENV = _settings.env
 
 
 def _read_allowed_origins() -> List[str]:
     """
-    Parse the ALLOWED_ORIGINS environment variable into a list of origin strings.
-
-    Reads the ALLOWED_ORIGINS environment variable, splits on commas, trims whitespace, and excludes empty entries.
+    Parse the ALLOWED_ORIGINS from settings into a list of origin strings.
 
     Returns:
         List[str]: A list of trimmed origin strings (e.g., "https://example.com").
     """
-    return [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin.strip()]
+    return get_settings().allowed_origins
 
 
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     """
-    Allow HTTP localhost origins only in the development environment.
+    Allow HTTP localhost origins only when running in the development environment.
 
     Parameters:
         origin_url (str): Origin to validate (e.g., "http://localhost:3000" or "http://127.0.0.1").
         current_env (str): Current environment string; allowance occurs only when this equals "development".
 
     Returns:
-        True if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" with an optional port and `current_env` equals "development", `False` otherwise.
+        `true` if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" with an optional `:port` and `current_env` equals "development", `false` otherwise.
     """
     return current_env == "development" and bool(re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
 
@@ -341,12 +329,13 @@ def _is_valid_https_domain(origin_url: str) -> bool:
 
 def validate_origin(origin_url: str) -> bool:
     """
-    Determine whether a given HTTP origin is allowed by the application's CORS rules.
+    Check whether an origin URL is permitted by the application's CORS policy.
 
-    Validates the origin against configured allowed origins, local development allowances
-    (e.g., localhost or 127.0.0.1 when permitted), Vercel preview hostnames, and
-    valid HTTPS domains (including internationalized domains via IDNA encoding).
-    The ENV environment variable is re-read on each call to allow runtime overrides.
+    Re-reads runtime settings and permits origins that are either listed in the configured
+    allowed origins, local development HTTP hosts (localhost or 127.0.0.1 when the
+    environment is development), local HTTPS hosts, Vercel preview hostnames
+    (https://<name>.vercel.app), or otherwise valid HTTPS hostnames (including
+    internationalized domain names via IDNA).
 
     Parameters:
         origin_url (str): Origin URL to validate (e.g. "https://example.com",
@@ -355,11 +344,12 @@ def validate_origin(origin_url: str) -> bool:
     Returns:
         bool: `True` if the origin is allowed, `False` otherwise.
     """
-    # Re-read environment dynamically to support runtime overrides
+    # Re-read settings dynamically to support runtime overrides
     # (e.g., during tests).
-    current_env = os.getenv("ENV", "development").lower()
+    settings = get_settings()
+    current_env = settings.env
 
-    env_allowed_origins = _read_allowed_origins()
+    env_allowed_origins = settings.allowed_origins
     if origin_url and origin_url in env_allowed_origins:
         return True
 
@@ -394,10 +384,9 @@ else:
         ]
     )
 
-# Append any additional validated origins from the ALLOWED_ORIGINS environment variable
-if os.getenv("ALLOWED_ORIGINS"):
-    for _origin in os.getenv("ALLOWED_ORIGINS", "").split(","):
-        _origin = _origin.strip()
+# Append any additional validated origins from the ALLOWED_ORIGINS setting
+if _settings.allowed_origins_raw:
+    for _origin in _settings.allowed_origins:
         if validate_origin(_origin):
             allowed_origins.append(_origin)
         else:
