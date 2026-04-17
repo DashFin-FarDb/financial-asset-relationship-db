@@ -143,10 +143,10 @@ def reset_graph() -> None:
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Initialize and return the shared AssetRelationshipGraph using the configured source.
-
-    Selects the graph source in this order: a configured graph factory; a cached real-data path specified by GRAPH_CACHE_PATH; the real-data fetcher when USE_REAL_DATA_FETCHER is enabled (using REAL_DATA_CACHE_PATH if present); otherwise the bundled sample dataset.
-
+    Create the shared AssetRelationshipGraph from the configured data source.
+    
+    Chooses the source in this precedence order: a configured graph factory, a cached real-data path, the real-data fetcher (when enabled), and finally the bundled sample dataset.
+    
     Returns:
         AssetRelationshipGraph: The initialized asset relationship graph instance.
     """
@@ -181,9 +181,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
 async def lifespan(_fastapi_app: FastAPI):
     """
     Ensure the shared asset relationship graph is initialized before application startup.
-
-    If graph initialization fails, the original exception is re-raised to abort application startup. Yields control to FastAPI's lifespan manager for the running application; on shutdown the function logs application shutdown.
-
+    
+    If graph initialization fails, re-raises the original exception to abort application startup.
+    
     Raises:
         Exception: Propagates any exception raised during graph initialization.
     """
@@ -230,14 +230,14 @@ def _read_allowed_origins() -> List[str]:
 
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     """
-    Allow HTTP localhost origins only in the development environment.
-
+    Allow HTTP localhost origins only when running in the development environment.
+    
     Parameters:
         origin_url (str): Origin to validate (e.g., "http://localhost:3000" or "http://127.0.0.1").
         current_env (str): Current environment string; allowance occurs only when this equals "development".
-
+    
     Returns:
-        True if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" with an optional port and `current_env` equals "development", `False` otherwise.
+        `true` if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" with an optional `:port` and `current_env` equals "development", `false` otherwise.
     """
     return current_env == "development" and bool(re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
 
@@ -329,17 +329,18 @@ def _is_valid_https_domain(origin_url: str) -> bool:
 
 def validate_origin(origin_url: str) -> bool:
     """
-    Determine whether a given HTTP origin is allowed by the application's CORS rules.
-
-    Validates the origin against configured allowed origins, local development allowances
-    (e.g., localhost or 127.0.0.1 when permitted), Vercel preview hostnames, and
-    valid HTTPS domains (including internationalized domains via IDNA encoding).
-    The ENV setting is re-read on each call to support runtime overrides.
-
+    Check whether an origin URL is permitted by the application's CORS policy.
+    
+    Re-reads runtime settings and permits origins that are either listed in the configured
+    allowed origins, local development HTTP hosts (localhost or 127.0.0.1 when the
+    environment is development), local HTTPS hosts, Vercel preview hostnames
+    (https://<name>.vercel.app), or otherwise valid HTTPS hostnames (including
+    internationalized domain names via IDNA).
+    
     Parameters:
         origin_url (str): Origin URL to validate (e.g. "https://example.com",
             "http://localhost:3000", or "https://münchen.de").
-
+    
     Returns:
         bool: `True` if the origin is allowed, `False` otherwise.
     """

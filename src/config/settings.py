@@ -76,10 +76,12 @@ class Settings(BaseModel):
     @property
     def allowed_origins(self) -> list[str]:
         """
-        Parse and return the allowed CORS origins as a list.
-
+        Return the configured CORS allowed origins as a list of trimmed, non-empty strings.
+        
+        If `allowed_origins_raw` is empty, returns an empty list; otherwise the raw value is parsed by splitting on commas, trimming whitespace, and excluding empty entries.
+        
         Returns:
-            list[str]: Parsed list of allowed origin strings.
+            list[str]: Parsed allowed origin strings.
         """
         if not self.allowed_origins_raw:
             return []
@@ -89,13 +91,14 @@ class Settings(BaseModel):
 def load_settings() -> Settings:
     """
     Load runtime settings from environment variables.
-
-    This function reads environment variables and constructs a Settings object.
-    It is used directly where fresh env reads are required and indirectly by
-    get_settings() for cached startup/module-level access.
-
+    
+    Creates a Settings instance populated from these environment variables:
+    ENV (default "development", stripped and lowercased), ALLOWED_ORIGINS,
+    GRAPH_CACHE_PATH, REAL_DATA_CACHE_PATH, USE_REAL_DATA_FETCHER (parsed as a
+    boolean), and ASSET_GRAPH_DATABASE_URL.
+    
     Returns:
-        Settings: Loaded and validated settings object.
+        settings (Settings): Constructed and validated Settings object.
     """
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
