@@ -245,7 +245,8 @@ class FormulaicAnalyzer:
         Construct a Formula representing the dividend yield (dividend per share divided by price per share).
 
         Parameters:
-            graph: AssetRelationshipGraph used to generate the example calculation for the formula.
+            graph (AssetRelationshipGraph): Graph used to generate the example
+                calculation for the formula.
 
         Returns:
             Formula: A Formula named "Dividend Yield" with expression "D / P",
