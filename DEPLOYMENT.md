@@ -17,7 +17,7 @@ The production application consists of two main components:
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - Node.js 18+ and npm
 - Virtual environment (recommended for Python)
 
