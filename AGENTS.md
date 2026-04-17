@@ -2,6 +2,18 @@
 
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
+## Mandatory branch/ref verification
+
+Before reviewing, editing, or summarizing repository state, always verify:
+- the current branch
+- the branch, commit, or PR referenced in the request
+- whether that branch has an open PR
+- whether it differs from `main`
+
+Do not assume work is merged or complete based on a clean working tree.
+
+If branch/ref identity is unclear, stop and verify before proceeding.
+
 ## Quick orientation
 This repo contains a Python “asset relationship graph” core, exposed via two UIs:
 
