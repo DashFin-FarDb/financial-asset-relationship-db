@@ -9,10 +9,55 @@ A comprehensive 3D visualization system for interconnected financial assets acro
 ### Prerequisites
 
 - Python 3.10+
-- Node.js 18+ (for Next.js frontend)
+- Node.js 18+ (for production frontend)
 - Virtual environment (recommended)
 
-### Option 1: Gradio UI (Original)
+### Production Setup: Next.js Frontend + FastAPI Backend
+
+**This is the recommended production path for deployment and development.**
+
+For the modern web frontend with REST API:
+
+**Quick Start (Both Servers):**
+
+```bash
+# Linux/Mac
+./run-dev.sh
+
+# Windows
+run-dev.bat
+```
+
+This will start both the FastAPI backend (port 8000) and Next.js frontend (port 3000).
+
+**Manual Setup:**
+
+1. **Start the FastAPI backend:**
+
+   ```bash
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   python -m uvicorn api.main:app --reload --port 8000
+   ```
+
+2. **Start the Next.js frontend (in a new terminal):**
+
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+3. **Access the application:**
+   - Frontend: `http://localhost:3000`
+   - Backend API: `http://localhost:8000`
+   - API Documentation: `http://localhost:8000/docs`
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and Vercel integration.
+
+### Demo/Internal UI: Gradio (Non-Production)
+
+The Gradio UI (`app.py`) is available for demos, internal testing, and rapid prototyping. It is **not recommended for production deployment**.
 
 1. **Clone the repository**
 
@@ -54,50 +99,11 @@ A comprehensive 3D visualization system for interconnected financial assets acro
 
 The application will launch in your browser automatically at `http://localhost:7860`.
 
-### Option 2: Next.js Frontend + FastAPI Backend (New)
-
-For the modern web frontend with REST API:
-
-**Quick Start (Both Servers):**
-
-```bash
-# Linux/Mac
-./run-dev.sh
-
-# Windows
-run-dev.bat
-```
-
-This will start both the FastAPI backend (port 8000) and Next.js frontend (port 3000).
-
-**Manual Setup:**
-
-1. **Start the FastAPI backend:**
-
-   ```bash
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   pip install -r requirements.txt
-   python -m uvicorn api.main:app --reload --port 8000
-   ```
-
-2. **Start the Next.js frontend (in a new terminal):**
-
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-3. **Access the application:**
-   - Frontend: `http://localhost:3000`
-   - Backend API: `http://localhost:8000`
-   - API Documentation: `http://localhost:8000/docs`
-
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and Vercel integration.
+**Note:** The Gradio UI provides direct access to the core graph engine but lacks the scalability, authentication, and deployment features of the production FastAPI + Next.js stack.
 
 ### 🐳 Docker Installation (Alternative)
 
-For containerized deployment:
+For containerized deployment of the Gradio demo:
 
 1. **Using Docker Compose (recommended)**
 
@@ -147,14 +153,23 @@ See [DOCKER.md](DOCKER.md) for detailed Docker deployment guide.
 
 ## 🏗️ Architecture
 
+**Production Architecture:** FastAPI backend + Next.js frontend
+
+The application follows a modern client-server architecture with a REST API backend and a React-based frontend. See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed diagrams and [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architecture.md) for the architectural decision record.
+
 ### Key Components
 
-- **`app.py`**: Gradio web interface and event handlers
+**Production Components:**
+- **`api/main.py`**: FastAPI REST API server with endpoints for assets, relationships, metrics, and visualization
+- **`frontend/`**: Next.js/React application with TypeScript, Tailwind CSS, and Plotly visualization components
 - **`src/logic/asset_graph.py`**: Core graph algorithms and relationship engine
 - **`src/models/financial_models.py`**: Domain model dataclasses and enums
 - **`src/data/sample_data.py`**: Sample dataset creation
 - **`src/visualizations/`**: Plotly-based charts and 3D graphs
 - **`src/reports/`**: Schema and business rules reporting
+
+**Non-Production Components:**
+- **`app.py`**: Gradio web interface for demos and internal testing (not for production deployment)
 
 ### Data Model
 

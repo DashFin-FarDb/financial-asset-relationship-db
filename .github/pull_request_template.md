@@ -2,6 +2,10 @@
 
 <!-- Provide a brief description of the changes in this PR -->
 
+## Primary Objective
+
+<!-- State the single primary decision or change in this PR. See .github/AUTOMATION_SCOPE_POLICY.md -->
+
 ## Type of Change
 
 - [ ] Bug fix (non-breaking change which fixes an issue)
@@ -18,6 +22,32 @@
 <!-- Link to related issues using #issue_number -->
 
 Closes #
+
+## Scope
+
+### In Scope
+
+<!-- List what this PR does. Be specific. -->
+
+-
+-
+-
+
+### Out of Scope
+
+<!-- List what this PR explicitly does NOT do. This prevents scope creep. -->
+
+-
+-
+-
+
+### Files Expected to Change
+
+<!-- List the files you expect to modify and why they belong in the same PR -->
+
+-
+-
+-
 
 ## Changes Made
 
@@ -43,6 +73,22 @@ Closes #
 pytest
 npm test
 ```
+
+## Validation Commands
+
+<!-- List the specific commands you ran to validate this PR -->
+
+```bash
+# Add validation commands here
+```
+
+## Merge Criteria
+
+<!-- Define the specific conditions that must be met for this PR to be merged -->
+
+- [ ]
+- [ ]
+- [ ]
 
 ## Screenshots (if applicable)
 
@@ -80,6 +126,13 @@ npm test
 - [ ] This branch has a descriptive name
 - [ ] This PR has been open for less than 2 weeks
 
+### Scope Compliance
+
+- [ ] This PR makes one primary decision only (see Primary Objective section)
+- [ ] I have explicitly listed what is out of scope
+- [ ] I have not mixed unrelated concerns (e.g., dependency updates + feature additions)
+- [ ] This PR respects the production architecture (FastAPI + Next.js). See [.github/AUTOMATION_SCOPE_POLICY.md](AUTOMATION_SCOPE_POLICY.md)
+
 ## Additional Notes
 
 <!-- Add any additional notes or context about the PR -->
@@ -88,6 +141,10 @@ npm test
 
 **For Reviewers**: Please ensure the branch is deleted after merging this PR to maintain repository hygiene.
 
+**Scope Review**: Verify that this PR adheres to the scope guardrails in [docs/PR_SCOPE_GUARDRAILS.md](../docs/PR_SCOPE_GUARDRAILS.md) and [.github/AUTOMATION_SCOPE_POLICY.md](AUTOMATION_SCOPE_POLICY.md).
+
 **Related Documentation**:
 - [Contributing Guidelines](../CONTRIBUTING.md)
 - [Branch Cleanup Guidelines](../BRANCH_CLEANUP_QUICK_REFERENCE.md)
+- [PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md)
+- [Automation Scope Policy](.github/AUTOMATION_SCOPE_POLICY.md)
