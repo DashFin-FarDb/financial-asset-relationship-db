@@ -2,11 +2,20 @@
 
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
-## Quick orientation
-This repo contains a Python “asset relationship graph” core, exposed via two UIs:
+## IMPORTANT: Production Architecture Declaration
 
-- **Gradio UI (Python-only)**: `app.py` (default `http://localhost:7860`) calls the graph/visualization code directly.
-- **Web app**: **Next.js** in `frontend/` (default `http://localhost:3000`) talks to a **FastAPI** backend in `api/` (default `http://localhost:8000`).
+**Production:** FastAPI backend (api/) + Next.js frontend (frontend/)
+**Non-Production:** Gradio UI (app.py) for demos and internal testing
+
+See `.github/AUTOMATION_SCOPE_POLICY.md` and `docs/adr/0001-production-architecture.md` for full policy details.
+
+**All development work should prioritize the production architecture unless explicitly directed otherwise.**
+
+## Quick orientation
+This repo contains a Python "asset relationship graph" core, exposed via two UIs:
+
+- **FastAPI + Next.js (PRODUCTION)**: FastAPI backend in `api/` (default `http://localhost:8000`) with Next.js frontend in `frontend/` (default `http://localhost:3000`).
+- **Gradio UI (NON-PRODUCTION)**: `app.py` (default `http://localhost:7860`) calls the graph/visualization code directly. For demos and testing only.
 
 ## Common commands
 
@@ -28,10 +37,10 @@ pip install -r requirements-dev.txt
 python app.py
 ```
 
-### Run the FastAPI backend (for the Next.js frontend)
+### Run the FastAPI backend (for the Next.js frontend - PRODUCTION)
 Note: importing `api.main` imports `api.auth` and `api.database`, which **require env vars**.
 
-Minimum env vars (see `api/auth.py`, `api/database.py`):
+Minimum env vars (see `api/auth.py`, `api/database.py`, or use `src/config/settings.py`):
 - `DATABASE_URL` (SQLite URL; e.g. `sqlite:///./dev.db` or `sqlite:///:memory:`)
 - `SECRET_KEY` (JWT signing key)
 - Either pre-populated user credentials in the DB, or seed via:
@@ -44,7 +53,7 @@ Start the API:
 python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-### Run the Next.js frontend
+### Run the Next.js frontend (PRODUCTION)
 ```pwsh
 cd frontend
 npm install
@@ -55,7 +64,7 @@ Frontend env vars:
 - `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:8000` in `frontend/app/lib/api.ts`; see `.env.example`)
 - `NEXT_PUBLIC_MAX_NODES`, `NEXT_PUBLIC_MAX_EDGES` (optional limits; see `frontend/app/components/NetworkVisualization.tsx`)
 
-### Run both API + frontend together
+### Run both API + frontend together (PRODUCTION)
 - Windows: `run-dev.bat`
 - macOS/Linux: `./run-dev.sh`
 
@@ -64,6 +73,14 @@ These scripts create/activate `.venv`, install Python deps, and start:
 - Next.js on `3000`
 
 They do **not** set `DATABASE_URL` / `SECRET_KEY` / admin credentials, so set those before running.
+
+### Run the Gradio app (NON-PRODUCTION - demos/testing only)
+```pwsh
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python app.py
+```
 
 ### Tests
 Python (pytest is configured in `pyproject.toml`):
@@ -130,10 +147,11 @@ make type-check
 make check
 ```
 
-### Docker (Gradio app)
+### Docker (Gradio app - NON-PRODUCTION)
 ```sh
 docker-compose up --build
 ```
+Note: Docker configuration currently references Gradio. Aligning deployment artifacts with production architecture is deferred work per ADR 0001.
 
 ## High-level architecture
 
@@ -166,24 +184,28 @@ FastAPI graph initialization in `api/main.py`:
   - `GRAPH_CACHE_PATH`
   - `REAL_DATA_CACHE_PATH`
 
-### Gradio UI
+### Gradio UI (Non-Production)
 - `app.py`
   - Builds/holds an `AssetRelationshipGraph` instance and renders tabs for visualization/metrics/schema/explorer.
   - Uses `src/visualizations/*` for Plotly figures and `src/reports/schema_report.py` for schema text.
+  - **For demos and internal testing only. Not the production deployment path.**
 
 ### FastAPI backend
 - `api/main.py`
   - REST endpoints used by the Next.js app:
     - `GET /api/assets`, `GET /api/assets/{asset_id}`, `GET /api/relationships`, `GET /api/metrics`, `GET /api/visualization`, etc.
-  - Owns the module-level singleton graph and its initialization logic (`get_graph()` / `_initialize_graph()`).
-  - CORS rules depend on `ENV` + `ALLOWED_ORIGINS` and include Vercel preview support.
+  - Assembles the FastAPI application with CORS, rate limiting, authentication, and routers.
+  - CORS rules depend on `ENV` + `ALLOWED_ORIGINS` (via settings) and include Vercel preview support.
   - Rate limiting via `slowapi`.
+- `api/routers/` — Modular REST API endpoints (assets.py, graph.py)
+- `api/models.py` — Pydantic response models for API
+- `api/cors_utils.py` — CORS origin validation
+- `api/graph_lifecycle.py` — Graph singleton management and initialization logic
 
-Authentication + persistence:
-- `api/database.py`
-  - SQLite connection management driven by `DATABASE_URL`.
-- `api/auth.py`
-  - JWT auth (`SECRET_KEY` required) and user seeding via `ADMIN_*` env vars.
+Configuration + persistence:
+- `src/config/settings.py` — Centralized typed runtime configuration (replaces scattered os.getenv calls)
+- `api/database.py` — SQLite connection management driven by `DATABASE_URL` (via settings).
+- `api/auth.py` — JWT auth (`SECRET_KEY` required) and user seeding via `ADMIN_*` env vars.
 
 ### Next.js frontend
 - `frontend/app/page.tsx`: top-level tabbed UI (Visualization / Metrics / Assets) that loads data from the API.
@@ -191,11 +213,15 @@ Authentication + persistence:
 - `frontend/app/components/*`: presentation and Plotly rendering (client-side only for Plotly).
 
 ## Repo-specific conventions to keep in mind
-- Plotting/visualization is standardized on **Plotly** (see `AI_RULES.md`).
+- **Production architecture:** FastAPI + Next.js is the declared production stack. Prioritize work on this stack. See `.github/AUTOMATION_SCOPE_POLICY.md`.
+- **PR scope guardrails:** All PRs must include Primary Objective, In Scope, Out of Scope, Files Expected to Change, Validation Commands, and Merge Criteria.
+- **Runtime configuration:** Use `src/config/settings.py` and `get_settings()` instead of direct `os.getenv()` calls. Settings are cached; tests must call `get_settings.cache_clear()` when mutating env vars.
+- **Plotting/visualization:** Standardized on **Plotly** (see `AI_RULES.md`).
 - When changing relationship semantics or graph-derived metrics, expect to update:
   - the graph engine (`src/logic/asset_graph.py`)
   - schema/metrics reporting (`src/reports/schema_report.py`)
-  - API response shapes (`api/main.py`) and frontend types/components (`frontend/app/types/*`, `frontend/app/components/*`)
+  - API response shapes (`api/models.py` and `api/routers/`)
+  - frontend types/components (`frontend/app/types/*`, `frontend/app/components/*`)
 
 ## CI reference
 CircleCI (`.circleci/config.yml`) runs:

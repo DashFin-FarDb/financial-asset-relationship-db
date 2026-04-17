@@ -1,27 +1,70 @@
 <!-- .github/copilot-instructions.md - guidance for AI coding agents -->
 # Copilot instructions — DB1 Financial Asset Relationship App
 
+## IMPORTANT: Production Architecture Declaration
+
+**Production:** FastAPI backend + Next.js frontend
+**Non-Production:** Gradio UI (`app.py`) for demos and internal testing
+
+See [AUTOMATION_SCOPE_POLICY.md](AUTOMATION_SCOPE_POLICY.md) and [docs/adr/0001-production-architecture.md](../docs/adr/0001-production-architecture.md) for full policy details.
+
+**All development work should prioritize the production architecture unless explicitly directed otherwise.**
+
 Purpose
 - Short, actionable guidance to help AI coding agents be productive in this repo.
 
 Quick start (what to run)
-- Entry point: `app.py` (Gradio UI). Launch locally with a Python environment; Gradio opens a browser UI.
+
+**Production path (recommended for development):**
+- Entry point: FastAPI backend + Next.js frontend
 - Typical local steps (PowerShell):
 ```pwsh
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m uvicorn api.main:app --reload --port 8000
+# In separate terminal:
+cd frontend
+npm install
+npm run dev
+```
+
+**Non-production path (demos/testing only):**
+- Entry point: `app.py` (Gradio UI)
+- Typical local steps (PowerShell):
+```pwsh
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 python app.py
 ```
-- There is also a `package.json` — check `package.json` for node scripts before running `npm install` / `npm run <script>`.
 
 Key files & responsibilities
-- `app.py` — Gradio interface wiring, event handlers, and UI tabs (3D graph, metrics, schema, explorer).
+
+**Production stack:**
+- `api/main.py` — FastAPI application entry point with CORS, rate limiting, and routers
+- `api/routers/` — REST API endpoint modules (assets, graph)
+- `api/models.py` — Pydantic response models for API
+- `api/cors_utils.py` — CORS origin validation
+- `api/graph_lifecycle.py` — Graph singleton management
+- `frontend/app/page.tsx` — Next.js main UI page
+- `frontend/app/lib/api.ts` — API client for backend communication
+- `frontend/app/components/` — React components for UI
+- `src/config/settings.py` — Centralized typed runtime configuration
+
+**Core domain logic (shared by both UIs):**
 - `src/logic/asset_graph.py` — Core graph model and algorithms. Main API: `AssetRelationshipGraph.add_asset`, `add_relationship`, `add_regulatory_event`, `build_relationships`, `calculate_metrics`, `get_3d_visualization_data`.
 - `src/models/financial_models.py` — Domain dataclasses (Asset, Equity, Bond, Commodity, Currency, RegulatoryEvent) and enums (AssetClass, RegulatoryActivity).
-- `src/data/sample_data.py` — `create_sample_database()` provides a canonical in-memory dataset used by the UI.
-- `src/visualizations/graph_visuals.py` and `src/visualizations/metric_visuals.py` — produce Plotly figures and metric outputs consumed by Gradio.
+- `src/data/sample_data.py` — `create_sample_database()` provides a canonical in-memory dataset.
+- `src/visualizations/` — Plotly figure generation
+
+**Non-production (Gradio UI - demos/testing only):**
+- `app.py` — Gradio interface wiring, event handlers, and UI tabs (3D graph, metrics, schema, explorer).
 - `src/reports/schema_report.py` — derives human-readable schema & rules from `AssetRelationshipGraph.calculate_metrics()`.
-- `requirements.txt` — Python dependencies (Gradio, Plotly, NumPy).
+
+**Dependencies:**
+- `requirements.txt` — Python dependencies (FastAPI, Gradio, Plotly, NumPy, Pydantic)
+- `package.json` — Frontend dependencies (Next.js, React, TypeScript)
 
 Project conventions and concrete patterns
 - Domain model: use Python `@dataclass` objects in `financial_models.py`. New asset types should extend `Asset` and follow the same fields.
@@ -32,17 +75,25 @@ Project conventions and concrete patterns
 - Directionality: some relations are bidirectional (e.g., `same_sector`, `income_comparison`) and others are directional (`corporate_bond_to_equity`). Follow existing naming when adding new types.
 
 Integration & external deps
-- UI: Gradio (see imports in `app.py`) and Plotly for visuals (`graph_visuals.py`). Expect these dependencies in the Python environment.
-- The app currently boots with an in-memory sample dataset (`create_sample_database`) — for DB persistence, implement new storage layer.
-- Node tooling: `package.json` present for optional scripts, but core app is Python-only.
+- **Production UI:** Next.js + React frontend with Plotly for visualizations. FastAPI backend with Pydantic validation.
+- **Non-production UI:** Gradio for demos/testing.
+- **Runtime configuration:** Use `src/config/settings.py` and `get_settings()` instead of direct `os.getenv()` calls.
+- **Graph initialization:** Boots with in-memory sample dataset (`create_sample_database`) by default. Real data fetcher available via environment configuration.
 
 Editing guidelines for AI agents (concrete steps)
+- **ALL PRs must follow scope guardrails:** Include Primary Objective, In Scope, Out of Scope, Files Expected to Change, Validation Commands, and Merge Criteria. See [AUTOMATION_SCOPE_POLICY.md](AUTOMATION_SCOPE_POLICY.md).
+- **Prioritize production architecture:** Changes to FastAPI + Next.js stack take precedence over Gradio UI changes.
 - When changing relationship logic:
  1. Modify `_find_relationships` in `src/logic/asset_graph.py` and add unit tests mirroring sample assets in `src/data/sample_data.py`.
- 2. Update `schema_report.py` if the set of relationship types or metrics changes so the report stays consistent.
- 3. If adding a new asset field, update the dataclass in `src/models/financial_models.py` and all sample data in `src/data/sample_data.py`.
-- When changing visualization output shapes, update `visualize_3d_graph` (Plotly traces) and the Gradio outputs in `app.py` to match the new return types.
-- Keep changes minimal per PR: small, focused commits (one logical change per PR). Include a short note in PR description about any changes that touch visualization layout, relationship semantics, or persistence.
+ 2. Update API response models in `api/models.py` if metrics or data shapes change.
+ 3. Update frontend TypeScript types in `frontend/app/types/` if API responses change.
+ 4. If adding a new asset field, update the dataclass in `src/models/financial_models.py` and all sample data in `src/data/sample_data.py`.
+- When adding environment variables:
+ 1. Add them to `src/config/settings.py` Settings model.
+ 2. Use `get_settings()` to access them, never direct `os.getenv()` calls.
+ 3. In tests that modify env vars, call `get_settings.cache_clear()` before reading settings.
+- When changing API endpoints: Update both `api/routers/` modules and corresponding frontend API client calls in `frontend/app/lib/api.ts`.
+- Keep changes minimal per PR: small, focused commits (one logical change per PR).
 
 Examples to reference in code
 - Add a relationship: see `AssetRelationshipGraph.add_relationship(source_id, target_id, rel_type, strength, bidirectional=False)`.
