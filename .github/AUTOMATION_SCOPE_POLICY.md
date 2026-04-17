@@ -19,6 +19,8 @@ This policy is authoritative for all automated contributions to the repository, 
 - Linters and formatters running in CI/CD
 - Auto-merge bots and PR automation
 
+If older agent instruction files or historical tooling assumptions conflict with this policy, this policy and the active ADRs take precedence until those older instructions are updated.
+
 ## Core Principle
 
 **Automated tools may review scope but may not redefine it.**
@@ -37,7 +39,7 @@ Automation should work within the repository's declared architecture and policy 
 
 **Non-Production:** Gradio UI (`app.py`) for demos and internal testing
 
-See [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architecture.md) for the full architectural decision record.
+See [docs/adr/0001-production-architecture.md](../docs/adr/0001-production-architecture.md) for the full architectural decision record.
 
 ### Rules for Automated Changes
 
@@ -48,7 +50,7 @@ See [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architec
 
 ## PR Scope Boundaries
 
-Automated tools creating or modifying pull requests must adhere to scope guardrails defined in [docs/PR_SCOPE_GUARDRAILS.md](docs/PR_SCOPE_GUARDRAILS.md).
+Automated tools creating or modifying pull requests must adhere to scope guardrails defined in [docs/PR_SCOPE_GUARDRAILS.md](../docs/PR_SCOPE_GUARDRAILS.md).
 
 ### Required PR Sections
 
@@ -78,7 +80,7 @@ Automated tools must not:
 - **Development dependencies**: `requirements-dev.txt` is authoritative
 - **Project metadata**: `pyproject.toml` mirrors the intent of the above files
 
-See [docs/DEPENDENCY_POLICY.md](docs/DEPENDENCY_POLICY.md) for detailed dependency rules.
+See [docs/DEPENDENCY_POLICY.md](../docs/DEPENDENCY_POLICY.md) for detailed dependency rules.
 
 ### Automated Dependency Updates
 
@@ -215,11 +217,11 @@ Repository maintainers will:
 
 ## Related Documents
 
-- [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architecture.md): Production architecture decision
-- [docs/PR_SCOPE_GUARDRAILS.md](docs/PR_SCOPE_GUARDRAILS.md): PR scope guidelines
-- [docs/DEPENDENCY_POLICY.md](docs/DEPENDENCY_POLICY.md): Dependency management rules
-- [CONTRIBUTING.md](../CONTRIBUTING.md): General contribution guidelines
-- [README.md](../README.md): Project overview and architecture summary
+- [Production architecture ADR](../docs/adr/0001-production-architecture.md)
+- [PR scope guardrails](../docs/PR_SCOPE_GUARDRAILS.md)
+- [Dependency policy](../docs/DEPENDENCY_POLICY.md)
+- [Contributing guidelines](../CONTRIBUTING.md)
+- [Project overview](../README.md)
 
 ## Version
 
