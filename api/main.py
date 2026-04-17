@@ -18,8 +18,14 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from api.auth import (ACCESS_TOKEN_EXPIRE_MINUTES, Token, User, authenticate_user, create_access_token,
-                      get_current_active_user)
+from api.auth import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    Token,
+    User,
+    authenticate_user,
+    create_access_token,
+    get_current_active_user,
+)
 from api.cors_utils import validate_origin
 from api.graph_lifecycle import get_graph, reset_graph, set_graph, set_graph_factory
 from api.models import AssetResponse, MetricsResponse, RelationshipResponse, VisualizationDataResponse
