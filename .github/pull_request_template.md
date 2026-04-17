@@ -131,6 +131,7 @@ npm test
 - [ ] This PR makes one primary decision only (see Primary Objective section)
 - [ ] I have explicitly listed what is out of scope
 - [ ] I have not mixed unrelated concerns (e.g., dependency updates + feature additions)
+- [ ] If this PR introduces cached configuration, I have checked whether it changes runtime semantics versus fresh reads
 - [ ] This PR respects the production architecture (FastAPI + Next.js). See [Automation Scope Policy](AUTOMATION_SCOPE_POLICY.md)
 
 ## Additional Notes
