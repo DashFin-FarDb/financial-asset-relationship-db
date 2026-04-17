@@ -1505,7 +1505,6 @@ class TestExtractFundamentalFormulasWithBonds:
         assert "Yield-to-Maturity" in formula_names
         assert "Price-to-Earnings" not in formula_names
         assert "Market Capitalization" not in formula_names
-        assert "Market Capitalization" not in formula_names
 
     @staticmethod
     def test_bond_without_ytm_still_triggers_ytm_formula():
