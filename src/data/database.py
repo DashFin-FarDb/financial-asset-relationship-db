@@ -23,15 +23,15 @@ ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 def create_engine_from_url(url: str | None = None) -> Engine:
     """
     Resolve a database URL and create a SQLAlchemy Engine configured for the asset relationship store.
-    
+
     If `url` is None the function reads `settings.asset_graph_database_url` and falls back to DEFAULT_DATABASE_URL when unset; if `url` is an empty string it uses DEFAULT_DATABASE_URL; otherwise the provided `url` is used. For an SQLite in-memory database (database == ":memory:" or query param `mode=memory`) the returned engine is configured with `connect_args={"check_same_thread": False}` and `poolclass=StaticPool` to support in-memory usage.
-    
+
     Parameters:
         url (str | None): Optional database URL to use; None selects the value from settings, empty string forces the default file-based SQLite URL.
-    
+
     Returns:
         Engine: A SQLAlchemy Engine for the resolved URL. For SQLite in-memory URLs the engine is returned with connection arguments and a static pool suitable for in-memory operation.
-    
+
     Raises:
         ArgumentError: If `url` is provided explicitly but cannot be parsed as a valid SQLAlchemy URL.
     """

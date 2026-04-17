@@ -144,9 +144,9 @@ def reset_graph() -> None:
 def _initialize_graph() -> AssetRelationshipGraph:
     """
     Create the shared AssetRelationshipGraph from the configured data source.
-    
+
     Chooses the source in this precedence order: a configured graph factory, a cached real-data path, the real-data fetcher (when enabled), and finally the bundled sample dataset.
-    
+
     Returns:
         AssetRelationshipGraph: The initialized asset relationship graph instance.
     """
@@ -181,9 +181,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
 async def lifespan(_fastapi_app: FastAPI):
     """
     Ensure the shared asset relationship graph is initialized before application startup.
-    
+
     If graph initialization fails, re-raises the original exception to abort application startup.
-    
+
     Raises:
         Exception: Propagates any exception raised during graph initialization.
     """
@@ -231,11 +231,11 @@ def _read_allowed_origins() -> List[str]:
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     """
     Allow HTTP localhost origins only when running in the development environment.
-    
+
     Parameters:
         origin_url (str): Origin to validate (e.g., "http://localhost:3000" or "http://127.0.0.1").
         current_env (str): Current environment string; allowance occurs only when this equals "development".
-    
+
     Returns:
         `true` if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" with an optional `:port` and `current_env` equals "development", `false` otherwise.
     """
@@ -330,17 +330,17 @@ def _is_valid_https_domain(origin_url: str) -> bool:
 def validate_origin(origin_url: str) -> bool:
     """
     Check whether an origin URL is permitted by the application's CORS policy.
-    
+
     Re-reads runtime settings and permits origins that are either listed in the configured
     allowed origins, local development HTTP hosts (localhost or 127.0.0.1 when the
     environment is development), local HTTPS hosts, Vercel preview hostnames
     (https://<name>.vercel.app), or otherwise valid HTTPS hostnames (including
     internationalized domain names via IDNA).
-    
+
     Parameters:
         origin_url (str): Origin URL to validate (e.g. "https://example.com",
             "http://localhost:3000", or "https://münchen.de").
-    
+
     Returns:
         bool: `True` if the origin is allowed, `False` otherwise.
     """
