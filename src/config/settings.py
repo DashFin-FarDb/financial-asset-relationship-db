@@ -1,7 +1,9 @@
-"""Centralized typed settings layer for runtime environment configuration.
+"""Centralized typed settings layer for selected runtime configuration.
 
-This module provides a single source of truth for all runtime configuration,
-replacing direct os.getenv calls throughout the application.
+This module provides a typed settings interface for the runtime configuration
+centralized by this PR, specifically environment mode, CORS allowlist input,
+graph cache settings, real-data fetcher settings, and database URL resolution.
+It does not yet replace all direct environment reads across the repository.
 """
 
 from __future__ import annotations
@@ -48,10 +50,11 @@ def _parse_csv_env(value: str) -> list[str]:
 
 class Settings(BaseModel):
     """
-    Runtime configuration settings for the application.
+    Runtime configuration settings centralized by this PR.
 
-    All settings are loaded from environment variables and cached at module load.
-    This provides a typed, validated interface to runtime configuration.
+    Settings are loaded from environment variables and exposed through a typed,
+    immutable model. The cached accessor provides consistent config for startup
+    and module-level initialization paths.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -88,13 +91,14 @@ def load_settings() -> Settings:
     Load runtime settings from environment variables.
 
     This function reads environment variables and constructs a Settings object.
-    It is called by get_settings() which provides caching.
+    It is used directly where fresh env reads are required and indirectly by
+    get_settings() for cached startup/module-level access.
 
     Returns:
         Settings: Loaded and validated settings object.
     """
     return Settings(
-        env=os.getenv("ENV", "development").lower(),
+        env=os.getenv("ENV", "development").strip().lower(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
@@ -108,10 +112,10 @@ def get_settings() -> Settings:
     """
     Get the cached runtime settings instance.
 
-    Settings are loaded once and cached for the lifetime of the application.
-    This ensures consistent configuration across all modules.
+    Settings are loaded once and cached for the lifetime of the process unless
+    the cache is explicitly cleared.
 
     Returns:
-        Settings: The singleton settings instance.
+        Settings: The cached settings instance.
     """
     return load_settings()
