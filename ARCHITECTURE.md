@@ -1,5 +1,11 @@
 # Architecture Overview
 
+**Production Architecture:** FastAPI backend + Next.js frontend
+
+This document describes the system architecture for the Financial Asset Relationship Database. The production architecture uses a FastAPI REST API backend with a Next.js/React frontend. The Gradio UI (`app.py`) remains available for demos and internal use, but it is **not the production path**.
+
+For the architectural decision rationale, see [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architecture.md).
+
 ## System Architecture
 
 ```
@@ -22,31 +28,25 @@
               │                                 │
               │ Direct Function Calls          │ HTTP REST API
               │                                 │
-┌─────────────▼─────────────────────────────────▼──────────────────────┐
-│                          API Layer                                    │
-├───────────────────────────────────────────────────────────────────────┤
-│             │                                                         │
-│             │                  ┌────────────────────────────┐        │
-│             │                  │  FastAPI Backend           │        │
-│             │                  │  (Port 8000)               │        │
-│             │                  │                            │        │
-│             │                  │  Endpoints:                │        │
-│             │                  │  - /api/assets             │        │
-│             │                  │  - /api/metrics            │        │
-│             │                  │  - /api/visualization      │        │
-│             │                  │  - /api/relationships      │        │
-│             │                  │  - /api/health             │        │
-│             │                  │                            │        │
-│             │                  └────────────┬───────────────┘        │
-│             │                               │                        │
-└─────────────┼───────────────────────────────┼────────────────────────┘
-              │                               │
-              │                               │ Function Calls
-              │                               │
-┌─────────────▼───────────────────────────────▼────────────────────────┐
-│                      Core Business Logic Layer                        │
-├───────────────────────────────────────────────────────────────────────┤
-│                                                                        │
+┌─────────────▼────────────────┐   ┌────────────▼─────────────────────┐
+│  Core Business Logic Layer   │   │           API Layer              │
+├──────────────────────────────┤   ├──────────────────────────────────┤
+│  Gradio calls the graph and  │   │  FastAPI Backend (Port 8000)     │
+│  visualization stack         │   │  Endpoints:                      │
+│  directly; it does not flow  │   │  - /api/assets                   │
+│  through the FastAPI layer.  │   │  - /api/metrics                  │
+└─────────────┬────────────────┘   │  - /api/visualization            │
+              │                    │  - /api/relationships            │
+              │                    │  - /api/health                   │
+              │                    └────────────┬─────────────────────┘
+              │                                 │
+              └───────────────┬─────────────────┘
+                              │ Function Calls
+                              │
+┌─────────────────────────────▼──────────────────────────────────────┐
+│                      Core Business Logic Layer                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │  AssetRelationshipGraph (src/logic/asset_graph.py)           │   │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │   │
@@ -55,14 +55,14 @@
 │  │  │ get_metrics()│  │ find_rel()   │  │ get_3d_viz() │       │   │
 │  │  └──────────────┘  └──────────────┘  └──────────────┘       │   │
 │  └──────────────────────────────────────────────────────────────┘   │
-│                                                                        │
+│                                                                     │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  Visualization Layer (src/visualizations/)                    │   │
+│  │  Visualization Layer (src/visualizations/)                   │   │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │   │
 │  │  │ graph_visuals│  │ metric_vis   │  │ formulaic    │       │   │
 │  │  └──────────────┘  └──────────────┘  └──────────────┘       │   │
 │  └──────────────────────────────────────────────────────────────┘   │
-│                                                                        │
+│                                                                     │
 └─────────────┬──────────────────────────────────────────────────────┘
               │
 ┌─────────────▼──────────────────────────────────────────────────────┐
@@ -183,7 +183,7 @@ Gradio Interface Update
 │ FastAPI       │ REST API Framework  │
 │ Uvicorn       │ ASGI Server         │
 │ Pydantic      │ Data Validation     │
-│ Python 3.8+   │ Runtime             │
+│ Python 3.10+  │ Runtime             │
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐

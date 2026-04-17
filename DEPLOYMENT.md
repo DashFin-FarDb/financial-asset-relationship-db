@@ -1,10 +1,14 @@
-# Deployment Guide - Vercel Next.js Integration
+# Deployment Guide - Production Architecture
 
-This guide explains how to deploy the Financial Asset Relationship Database with a Next.js frontend on Vercel.
+**Production Architecture:** FastAPI backend + Next.js frontend
+
+This guide explains how to deploy the Financial Asset Relationship Database using the production-recommended FastAPI + Next.js stack on Vercel or other cloud platforms.
+
+**Note:** The Gradio UI (`app.py`) is available for demos, and internal testing, but is **not recommended for production deployment**. This guide focuses on the production architecture.
 
 ## Architecture Overview
 
-The application now consists of two main components:
+The production application consists of two main components:
 
 1. **Backend API** (`/api`): FastAPI server that provides REST endpoints for the asset relationship graph
 2. **Frontend** (`/frontend`): Next.js application with React components for visualization
@@ -13,11 +17,11 @@ The application now consists of two main components:
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - Node.js 18+ and npm
 - Virtual environment (recommended for Python)
 
-### Backend Setup
+### Backend Setup (FastAPI - Production)
 
 1. **Create and activate Python virtual environment:**
 
@@ -83,7 +87,20 @@ With both servers running:
 
 The frontend automatically connects to the backend API on port 8000.
 
-## Vercel Deployment
+### Alternative: Gradio Demo (Non-Production)
+
+For local testing and demos, you can run the Gradio UI instead:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
+
+The Gradio demo will be available at `http://localhost:7860`. **This is not recommended for production deployment.**
+
+## Vercel Deployment (Production)
 
 ### Option 1: Deploy via Vercel CLI
 
