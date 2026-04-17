@@ -148,4 +148,4 @@ npm test
 - [Contributing Guidelines](../CONTRIBUTING.md)
 - [Branch Cleanup Guidelines](../BRANCH_CLEANUP_QUICK_REFERENCE.md)
 - [PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md)
-- [Automation Scope Policy](.github/AUTOMATION_SCOPE_POLICY.md)
+- [Automation Scope Policy](AUTOMATION_SCOPE_POLICY.md)
