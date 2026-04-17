@@ -78,6 +78,10 @@ The Gradio UI (`app.py`) is **demoted to non-production status** and will be mai
 1. **No Code Deletion**: Gradio code remains in the repository for demos and testing
 2. **No Runtime Changes**: This ADR is a documentation and policy change, not a code refactor
 
+## Current Deployment Reality
+
+While FastAPI + Next.js is the declared production architecture, some existing development and container-based workflows (e.g., Docker configurations) may still reference the Gradio runtime. Aligning all deployment artifacts with the production architecture is explicitly deferred follow-up work.
+
 ## Alternatives Considered
 
 ### Alternative 1: Keep Both as Equal Production Paths
@@ -129,6 +133,7 @@ The following are **explicitly out of scope** for this ADR and may be addressed 
 4. Canonical staging and production deployment paths
 5. Enhanced authentication and authorization
 6. API rate limiting and caching strategies
+7. Migration of container and deployment artifacts away from Gradio defaults
 
 ## References
 
@@ -144,4 +149,4 @@ The following are **explicitly out of scope** for this ADR and may be addressed 
 
 ## Review and Approval
 
-This ADR was created as part of PR #[TBD] to establish clear architectural direction for the repository.
+This ADR was created as part of PR #1023 to establish clear architectural direction for the repository.
