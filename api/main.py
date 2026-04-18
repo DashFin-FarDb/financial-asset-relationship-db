@@ -25,6 +25,7 @@ from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
 from src.config.settings import get_settings
+from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass
 
 from .auth import (
