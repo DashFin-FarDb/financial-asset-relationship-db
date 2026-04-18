@@ -45,6 +45,7 @@ def _lines_outside_code_fences(lines: List[str]) -> List[str]:
             outside.append(line)
     return outside
 
+
 # ---------------------------------------------------------------------------
 # .github/copilot-instructions.md
 # ---------------------------------------------------------------------------
