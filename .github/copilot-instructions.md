@@ -9,6 +9,7 @@ Purpose
 ## Mandatory branch/ref verification
 
 Before reviewing, editing, or summarizing work, first verify:
+
 - which branch you are on
 - which branch, commit, or PR the user is referring to
 - whether that branch has an open PR
