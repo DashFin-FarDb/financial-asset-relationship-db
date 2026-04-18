@@ -75,7 +75,6 @@
 - [ ] No runtime code changes are included
 - [ ] All cross-references are updated
 - [ ] Changes align with existing architectural boundaries
-- [ ] Changes align with existing architectural boundaries
 
 ## Related Documents
 
@@ -107,6 +106,7 @@
 - [ ] I have explicitly listed what is out of scope
 - [ ] I have not mixed architectural changes with code changes
 - [ ] No runtime behavior changes are included
+- [ ] I have verified the branch, base branch, and referenced PR/commit/ref context before concluding merge status or PR necessity
 
 ### Completeness
 
