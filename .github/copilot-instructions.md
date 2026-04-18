@@ -6,6 +6,18 @@ Purpose
 
 - Short, actionable guidance to help AI coding agents be productive in this repo.
 
+## Mandatory branch/ref verification
+
+Before reviewing, editing, or summarizing work, first verify:
+- which branch you are on
+- which branch, commit, or PR the user is referring to
+- whether that branch has an open PR
+- whether it differs from `main`
+
+Do not infer merge status, PR status, or completion from local working-tree state alone.
+
+If branch or ref identity is uncertain, stop and verify before proceeding.
+
 Quick start (what to run)
 
 - Entry point: `app.py` (Gradio UI). Launch locally with a Python environment; Gradio opens a browser UI.

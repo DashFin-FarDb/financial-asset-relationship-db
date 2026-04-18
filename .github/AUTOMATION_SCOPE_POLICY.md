@@ -31,6 +31,28 @@ Automation should work within the repository's declared architecture and policy 
 2. Request human review
 3. Wait for explicit permission before implementing changes that broaden scope
 
+## Mandatory Branch and Ref Verification
+
+Before making claims about merge status, whether a PR is needed, whether work already exists, or whether a branch is clean or complete, an automated tool must verify repository state against the exact ref under discussion.
+
+### Required verification steps
+
+The tool must verify all of the following before analyzing or editing:
+
+1. the current working branch name
+2. the target/base branch
+3. the specific branch, PR number, commit SHA, or compare URL referenced by the user
+4. whether an open PR exists for that branch
+5. whether the referenced branch differs from `main` (or the stated target branch)
+
+### Enforcement rule
+
+A clean working tree is **not** sufficient evidence that work has been merged or that no PR is required.
+
+If the user references a specific branch, PR, commit SHA, or compare URL, the tool must inspect that exact ref before concluding anything.
+
+If branch/ref identity is uncertain, stop and verify before editing, advising, or summarizing repository state.
+
 ## Production Architecture Boundary
 
 ### Declared Production Architecture
@@ -225,7 +247,7 @@ Repository maintainers will:
 
 ## Version
 
-- **Version**: 1.0
+- **Version**: 1.1
 - **Effective Date**: 2026-04-17
 - **Last Updated**: 2026-04-17
 - **Next Review**: 2026-07-17 (3 months)
