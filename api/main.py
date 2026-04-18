@@ -38,6 +38,7 @@ from .auth import (
 )
 from .graph_lifecycle import _initialize_graph as _lifecycle_initialize_graph
 from .graph_lifecycle import get_graph as _get_graph
+from .graph_lifecycle import reset_graph as _reset_graph
 from .graph_lifecycle import set_graph as _set_graph
 from .graph_lifecycle import set_graph_factory as _set_graph_factory
 
