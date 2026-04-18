@@ -35,7 +35,7 @@ from .auth import (
     create_access_token,
     get_current_active_user,
 )
-from .graph_lifecycle import get_graph
+from .graph_lifecycle import get_graph, reset_graph, set_graph, set_graph_factory
 
 # pylint: enable=import-error
 
