@@ -28,13 +28,13 @@ AGENTS_MD = REPO_ROOT / "AGENTS.md"
 def _load(path: Path) -> str:
     """
     Load and return the UTF-8 text contents of the file at the given path.
-    
+
     Parameters:
         path (Path): Filesystem path to the file to read.
-    
+
     Returns:
         str: The file contents decoded as UTF-8.
-    
+
     Raises:
         AssertionError: If the file does not exist.
     """
@@ -45,7 +45,7 @@ def _load(path: Path) -> str:
 def _lines(content: str) -> List[str]:
     """
     Split the given text into a list of lines.
-    
+
     Returns:
         A list of strings, each element is a line from `content` split at line boundaries (no trailing newline characters).
     """
@@ -65,7 +65,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def content(self) -> str:
         """
         Load and return the contents of the repository's .github/copilot-instructions.md file.
-        
+
         Returns:
             str: The UTF-8 text content of .github/copilot-instructions.md.
         """
@@ -75,10 +75,10 @@ class TestCopilotInstructionsProductionArchitecture:
     def lines(self, content: str) -> List[str]:
         """
         Split the given text into a list of lines.
-        
+
         Parameters:
             content (str): The text to split.
-        
+
         Returns:
             List[str]: A list of lines obtained from the input text.
         """
@@ -87,7 +87,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_file_exists(self) -> None:
         """
         Assert that the repository contains a regular file at .github/copilot-instructions.md.
-        
+
         Raises:
             AssertionError: If the file does not exist or is not a regular file.
         """
@@ -116,7 +116,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_references_automation_scope_policy(self, content: str) -> None:
         """
         Assert that the document content references the repository's automation scope policy.
-        
+
         Parameters:
             content (str): Text content of the file under test; must include "AUTOMATION_SCOPE_POLICY.md".
         """
@@ -125,7 +125,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_references_adr_0001(self, content: str) -> None:
         """
         Asserts the document content references the production architecture ADR `0001-production-architecture.md`.
-        
+
         Parameters:
             content (str): Full text content of the documentation file to check.
         """
@@ -134,7 +134,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_all_development_should_prioritize_production_architecture(self, content: str) -> None:
         """
         Assert the documentation explicitly prioritizes the production architecture.
-        
+
         Parameters:
             content (str): The document text to search for the required phrase.
         """
@@ -147,7 +147,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_production_quick_start_mentions_uvicorn(self, content: str) -> None:
         """
         Check that the production quick-start includes the FastAPI startup invocation.
-        
+
         Asserts that the content contains "uvicorn" and the ASGI application reference "api.main:app".
         """
         assert "uvicorn" in content
@@ -160,9 +160,9 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_has_non_production_quick_start_path(self, content: str) -> None:
         """
         Ensure the quick-start section documents the non-production Gradio path.
-        
+
         Checks that the provided markdown `content` contains the phrase "Non-production path" (case-insensitive).
-        
+
         Parameters:
             content (str): Full text of the markdown file to inspect.
         """
@@ -175,10 +175,10 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_production_stack_lists_api_main_py(self, content: str) -> None:
         """
         Check that the production backend entrypoint file "api/main.py" is referenced in the given document content.
-        
+
         Parameters:
             content (str): The document text to inspect.
-        
+
         Raises:
             AssertionError: If "api/main.py" is not present in content.
         """
@@ -187,7 +187,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_production_stack_lists_api_routers(self, content: str) -> None:
         """
         Verify the documentation content references the API routers path "api/routers/".
-        
+
         Parameters:
             content (str): The documentation file content to check.
         """
@@ -196,7 +196,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_production_stack_lists_api_models_py(self, content: str) -> None:
         """
         Verify the documentation includes a reference to `api/models.py`.
-        
+
         Parameters:
             content (str): The markdown file content to inspect for the architecture reference.
         """
@@ -217,10 +217,10 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_production_stack_lists_src_config_settings_py(self, content: str) -> None:
         """
         Check that the production architecture documentation references `src/config/settings.py`.
-        
+
         Parameters:
             content (str): The full text of the documentation file to inspect.
-        
+
         Raises:
             AssertionError: If the string `src/config/settings.py` is not found in `content`.
         """
@@ -229,7 +229,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_runtime_configuration_mandates_get_settings(self, content: str) -> None:
         """
         Verify the integration/runtime guidance mentions both `get_settings()` and `os.getenv()`.
-        
+
         Asserts that the provided document content contains the substring "get_settings()" and the substring "os.getenv()".
         """
         assert "get_settings()" in content
@@ -253,9 +253,9 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_env_var_guidelines_reference_settings_model(self, content: str) -> None:
         """
         Ensure environment variable guidance points to the project's Settings model.
-        
+
         Checks that the documentation content references the settings module path and the `Settings` identifier.
-        
+
         Parameters:
             content (str): Text content of the documentation file to check.
         """
@@ -289,9 +289,9 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
         """
         Asserts that every Markdown heading line uses a space after the leading `#` characters.
-        
+
         Checks each line that begins with `#` to ensure there is a space following the leading 1–6 `#` characters; raises an AssertionError identifying the offending line if a heading is not formatted correctly.
-        
+
         Parameters:
             lines (List[str]): Lines of the Markdown file to validate.
         """
@@ -302,7 +302,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_file_is_utf8_clean(self) -> None:
         """
         Check that the Copilot instructions file contains no UTF-8 replacement characters.
-        
+
         Asserts the file is UTF-8 clean by ensuring the Unicode replacement character ("�") does not appear in the file content.
         """
         content = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
@@ -311,9 +311,9 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_no_hardcoded_secrets(self, content: str) -> None:
         """
         Asserts the given file content does not contain hardcoded GitHub token-like secrets.
-        
+
         Scans the content for occurrences matching the `ghp_` or `gho_` token patterns and fails the test if any are found.
-        
+
         Parameters:
             content (str): The file content to scan for hardcoded token patterns.
         """
@@ -325,7 +325,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_code_blocks_are_balanced(self, content: str) -> None:
         """
         Ensure the content contains an even number of exact triple-backtick code fences.
-        
+
         Counts only code fence markers made of exactly three backticks (ignores longer backtick groups)
         and asserts the total number of such triple-backtick groups is even.
         """
@@ -340,7 +340,7 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_agent_triggers_section_is_present(self, content: str) -> None:
         """
         Verify the 'Agent Triggers' section exists in the provided document content.
-        
+
         Parameters:
             content (str): Full text of the file to inspect.
         """
@@ -349,10 +349,10 @@ class TestCopilotInstructionsProductionArchitecture:
     def test_copilot_fix_trigger_present(self, content: str) -> None:
         """
         Check that the Copilot "fix this" trigger string is present in the provided file content.
-        
+
         Parameters:
             content (str): The text content of the file to inspect.
-        
+
         Raises:
             AssertionError: If the trigger string "@copilot fix this" is not found.
         """
@@ -401,7 +401,7 @@ class TestAgentsMdProductionArchitecture:
     def content(self) -> str:
         """
         Return the contents of the repository's AGENTS.md file.
-        
+
         Returns:
             content (str): UTF-8 decoded text of AGENTS.md.
         """
@@ -411,10 +411,10 @@ class TestAgentsMdProductionArchitecture:
     def lines(self, content: str) -> List[str]:
         """
         Split the given text into a list of lines.
-        
+
         Parameters:
             content (str): The text to split.
-        
+
         Returns:
             List[str]: A list of lines obtained from the input text.
         """
@@ -423,7 +423,7 @@ class TestAgentsMdProductionArchitecture:
     def test_file_exists(self) -> None:
         """
         Verify AGENTS.md exists at the repository root and is a regular file.
-        
+
         Raises:
             AssertionError: If AGENTS.md does not exist or is not a file.
         """
@@ -450,7 +450,7 @@ class TestAgentsMdProductionArchitecture:
     def test_references_automation_scope_policy(self, content: str) -> None:
         """
         Assert that the document content references the repository's automation scope policy.
-        
+
         Parameters:
             content (str): Text content of the file under test; must include "AUTOMATION_SCOPE_POLICY.md".
         """
@@ -459,7 +459,7 @@ class TestAgentsMdProductionArchitecture:
     def test_references_adr_0001(self, content: str) -> None:
         """
         Asserts the document content references the production architecture ADR `0001-production-architecture.md`.
-        
+
         Parameters:
             content (str): Full text content of the documentation file to check.
         """
@@ -468,7 +468,7 @@ class TestAgentsMdProductionArchitecture:
     def test_all_development_should_prioritize_production_architecture(self, content: str) -> None:
         """
         Assert the documentation explicitly prioritizes the production architecture.
-        
+
         Parameters:
             content (str): The document text to search for the required phrase.
         """
@@ -481,9 +481,9 @@ class TestAgentsMdProductionArchitecture:
     def test_quick_orientation_labels_fastapi_nextjs_as_production(self, content: str) -> None:
         """
         Verify the "## Quick orientation" section of the document labels FastAPI and Next.js as PRODUCTION.
-        
+
         Parameters:
-        	content (str): The full text of the AGENTS.md file to inspect.
+                content (str): The full text of the AGENTS.md file to inspect.
         """
         orientation_section = content.split("## Quick orientation")[1].split("##")[0]
         assert "PRODUCTION" in orientation_section
@@ -520,7 +520,7 @@ class TestAgentsMdProductionArchitecture:
     def test_gradio_run_section_labeled_non_production(self, content: str) -> None:
         """
         Ensure the 'Run the Gradio app' section is labeled 'NON-PRODUCTION' near its header.
-        
+
         Asserts that the document contains the 'Run the Gradio app' heading and that a 'NON-PRODUCTION' label appears within 100 characters of that heading.
         """
         assert "Run the Gradio app" in content
@@ -564,7 +564,7 @@ class TestAgentsMdProductionArchitecture:
     def test_architecture_lists_src_config_settings_py(self, content: str) -> None:
         """
         Asserts that the provided documentation content references the repository settings module at `src/config/settings.py`.
-        
+
         Parameters:
             content (str): The text content of a documentation file to inspect.
         """
@@ -586,10 +586,10 @@ class TestAgentsMdProductionArchitecture:
     def test_conventions_mention_pr_scope_guardrails(self, content: str) -> None:
         """
         Verify that the "Repo-specific conventions" section references PR scope guardrails.
-        
+
         Parameters:
             content (str): Full text content of the markdown file (used to extract the "Repo-specific conventions" section).
-        
+
         Raises:
             AssertionError: If the "Repo-specific conventions" section does not contain either the exact phrase "PR scope guardrails" or a case-insensitive occurrence of "scope guardrails".
         """
@@ -614,7 +614,7 @@ class TestAgentsMdProductionArchitecture:
     def test_nextjs_port_3000_mentioned(self, content: str) -> None:
         """
         Asserts the documentation content mentions port 3000 for the Next.js frontend.
-        
+
         Parameters:
             content (str): The markdown file content to search.
         """
@@ -626,9 +626,9 @@ class TestAgentsMdProductionArchitecture:
     def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
         """
         Asserts that every Markdown heading line uses a space after the leading `#` characters.
-        
+
         Checks each line that begins with `#` to ensure there is a space following the leading 1–6 `#` characters; raises an AssertionError identifying the offending line if a heading is not formatted correctly.
-        
+
         Parameters:
             lines (List[str]): Lines of the Markdown file to validate.
         """
@@ -643,10 +643,10 @@ class TestAgentsMdProductionArchitecture:
     def test_no_hardcoded_secrets(self, content: str) -> None:
         """
         Check that the provided file content does not contain hardcoded GitHub token patterns.
-        
+
         Parameters:
             content (str): The text content of the file to scan.
-        
+
         Raises:
             AssertionError: If a hardcoded token matching `ghp_[A-Za-z0-9]{36}` or `gho_[A-Za-z0-9]{36}` is found.
         """
@@ -661,9 +661,9 @@ class TestAgentsMdProductionArchitecture:
     def test_env_vars_section_lists_database_url(self, content: str) -> None:
         """
         Verify the document includes DATABASE_URL in its environment variables section.
-        
+
         Asserts that the provided file content contains the literal "DATABASE_URL".
-        
+
         Parameters:
             content (str): Full text of the document to inspect.
         """
@@ -712,7 +712,7 @@ class TestAgentInstructionsConsistency:
     def copilot_content(self) -> str:
         """
         Load and return the repository's .github/copilot-instructions.md content.
-        
+
         Returns:
             content (str): The file contents decoded as UTF-8.
         """
@@ -722,7 +722,7 @@ class TestAgentInstructionsConsistency:
     def agents_content(self) -> str:
         """
         Load the repository's AGENTS.md and return its text.
-        
+
         Returns:
             content (str): UTF-8-decoded contents of AGENTS.md
         """
@@ -731,7 +731,7 @@ class TestAgentInstructionsConsistency:
     def test_both_files_declare_fastapi_nextjs_as_production(self, copilot_content: str, agents_content: str) -> None:
         """
         Assert that both the Copilot instructions and AGENTS.md content reference the production stack components FastAPI and Next.js.
-        
+
         Parameters:
             copilot_content (str): The full text content of .github/copilot-instructions.md.
             agents_content (str): The full text content of AGENTS.md.
@@ -746,7 +746,7 @@ class TestAgentInstructionsConsistency:
     def test_both_files_declare_gradio_as_non_production(self, copilot_content: str, agents_content: str) -> None:
         """
         Assert that both `.github/copilot-instructions.md` and `AGENTS.md` reference Gradio and label it as non-production.
-        
+
         Parameters:
             copilot_content (str): Content of `.github/copilot-instructions.md`.
             agents_content (str): Content of `AGENTS.md`.
@@ -769,11 +769,11 @@ class TestAgentInstructionsConsistency:
     def test_both_files_reference_adr_0001(self, copilot_content: str, agents_content: str) -> None:
         """
         Verify that both Copilot instructions and AGENTS documentation reference the ADR for production architecture (0001).
-        
+
         Parameters:
             copilot_content (str): Text content of .github/copilot-instructions.md.
             agents_content (str): Text content of AGENTS.md.
-        
+
         Notes:
             The test fails if either file does not contain "0001-production-architecture.md".
         """
@@ -789,7 +789,7 @@ class TestAgentInstructionsConsistency:
     def test_both_files_mention_api_models_py(self, copilot_content: str, agents_content: str) -> None:
         """
         Verify that both `.github/copilot-instructions.md` and `AGENTS.md` mention the repository's `api/models.py` file.
-        
+
         Parameters:
             copilot_content (str): Full text content of `.github/copilot-instructions.md`.
             agents_content (str): Full text content of `AGENTS.md`.
@@ -806,9 +806,9 @@ class TestAgentInstructionsConsistency:
     ) -> None:
         """
         Asserts that both Copilot instructions and AGENTS.md emphasize prioritizing the production architecture.
-        
+
         Performs a case-insensitive check that the exact phrase "prioritize the production architecture" appears in each provided file content.
-        
+
         Parameters:
             copilot_content (str): Full text content of `.github/copilot-instructions.md`.
             agents_content (str): Full text content of `AGENTS.md`.
