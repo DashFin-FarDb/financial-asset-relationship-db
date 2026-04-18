@@ -36,17 +36,18 @@ from .auth import (
     create_access_token,
     get_current_active_user,
 )
-from .graph_lifecycle import get_graph as _get_graph
 from .graph_lifecycle import _initialize_graph as _lifecycle_initialize_graph
+from .graph_lifecycle import get_graph as _get_graph
+from .graph_lifecycle import set_graph as _set_graph
+from .graph_lifecycle import set_graph_factory as _set_graph_factory
+
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """Return a freshly initialized asset relationship graph."""
     return _lifecycle_initialize_graph()
-from .graph_lifecycle import set_graph as _set_graph
-from .graph_lifecycle import set_graph_factory as _set_graph_factory
+
 
 # pylint: enable=import-error
-
 
 logger = logging.getLogger(__name__)
 
