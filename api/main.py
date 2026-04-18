@@ -8,7 +8,7 @@ import os
 import re
 from contextlib import asynccontextmanager
 from datetime import timedelta
-from typing import Any, Dict, List, NoReturn, Optional
+from typing import Any, Callable, Dict, List, NoReturn, Optional
 from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -57,10 +57,8 @@ def set_graph(graph: AssetRelationshipGraph) -> None:
     _set_graph(graph)
 
 
-from typing import Callable
-from src.logic.asset_graph import AssetRelationshipGraph
-
 GraphFactory = Callable[[], AssetRelationshipGraph]
+
 
 def set_graph_factory(factory: Optional[GraphFactory]) -> None:
     """Set the factory used to build the shared asset relationship graph."""
