@@ -6,10 +6,9 @@ import logging
 import math
 import os
 import re
-import threading
 from contextlib import asynccontextmanager
 from datetime import timedelta
-from typing import Any, Callable, Dict, List, NoReturn, Optional
+from typing import Any, Dict, List, NoReturn, Optional
 from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -26,8 +25,6 @@ from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
 from src.config.settings import get_settings
-from src.data.real_data_fetcher import RealDataFetcher
-from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass
 
 from .auth import (
@@ -38,33 +35,12 @@ from .auth import (
     create_access_token,
     get_current_active_user,
 )
+from .graph_lifecycle import get_graph, reset_graph, set_graph, set_graph_factory
 
 # pylint: enable=import-error
 
 
 logger = logging.getLogger(__name__)
-
-# Type alias for the graph factory callable
-GraphFactory = Callable[[], AssetRelationshipGraph]
-
-
-class _GraphState:
-    """Mutable container for module-level graph state."""
-
-    def __init__(self) -> None:
-        """
-        Create an empty GraphState container holding optional runtime graph and factory.
-
-        Initializes:
-        - `graph`: the currently loaded AssetRelationshipGraph instance or `None` if not yet created.
-        - `graph_factory`: a callable to lazily construct the graph or `None` if not configured.
-        """
-        self.graph: Optional[AssetRelationshipGraph] = None
-        self.graph_factory: Optional[GraphFactory] = None
-
-
-graph_state = _GraphState()
-graph_lock = threading.Lock()
 
 # Asset class colour mapping for 3-D visualisation
 _ASSET_CLASS_COLORS: Dict[str, str] = {
@@ -77,104 +53,6 @@ _ASSET_CLASS_COLORS: Dict[str, str] = {
     "Alternative": "#b07aa1",
 }
 _DEFAULT_COLOR = "#9c755f"
-
-
-def get_graph() -> AssetRelationshipGraph:
-    """
-    Get the shared AssetRelationshipGraph, initializing it on first access.
-
-    Initializes the graph lazily in a thread-safe manner so a single shared instance is created for the module.
-
-    Returns:
-        The shared AssetRelationshipGraph instance.
-
-    Raises:
-        RuntimeError: If the graph could not be initialized.
-    """
-    if graph_state.graph is None:
-        with graph_lock:
-            if graph_state.graph is None:
-                graph_state.graph = _initialize_graph()
-                logger.info("Graph initialized successfully")
-    if graph_state.graph is None:
-        raise RuntimeError("Graph failed to initialize")
-    return graph_state.graph
-
-
-def set_graph(graph_instance: AssetRelationshipGraph) -> None:
-    """
-    Set the module-level AssetRelationshipGraph and disable the configured graph factory.
-
-    Performs a thread-safe replacement of the shared graph and clears any existing graph factory so future lazy construction is disabled.
-
-    Parameters:
-        graph_instance (AssetRelationshipGraph): The AssetRelationshipGraph to install as the module-level graph.
-    """
-    with graph_lock:
-        graph_state.graph = graph_instance
-        graph_state.graph_factory = None
-
-
-def set_graph_factory(factory: Optional[GraphFactory]) -> None:
-    """
-    Configure a callable used to lazily construct the global
-    AssetRelationshipGraph.
-
-    Setting a factory also clears any existing graph instance so the next call
-    to :func:`get_graph` will invoke the factory. Pass ``None`` to disable the
-    factory and force re-initialisation via the default strategy on next access.
-
-    Args:
-        factory (Optional[GraphFactory]): Zero-argument callable returning an
-            :class:`~src.logic.asset_graph.AssetRelationshipGraph`, or ``None``
-            to clear the factory.
-    """
-    with graph_lock:
-        graph_state.graph_factory = factory
-        graph_state.graph = None
-
-
-def reset_graph() -> None:
-    """
-    Clears the shared graph instance and any configured graph factory, forcing the graph to be reinitialized on next access.
-    """
-    set_graph_factory(None)
-
-
-def _initialize_graph() -> AssetRelationshipGraph:
-    """
-    Create the shared AssetRelationshipGraph from the configured data source.
-
-    Chooses the source in this precedence order: a configured graph factory, a cached real-data path, the real-data fetcher (when enabled), and finally the bundled sample dataset.
-
-    Returns:
-        AssetRelationshipGraph: The initialized asset relationship graph instance.
-    """
-    if graph_state.graph_factory is not None:
-        return graph_state.graph_factory()
-
-    settings = get_settings()
-    cache_path = settings.graph_cache_path
-    use_real_data = settings.use_real_data_fetcher
-
-    if cache_path:
-        fetcher = RealDataFetcher(
-            cache_path=cache_path,
-            enable_network=use_real_data,
-        )
-        return fetcher.create_real_database()
-
-    if use_real_data:
-        cache_path_env = settings.real_data_cache_path
-        fetcher = RealDataFetcher(
-            cache_path=cache_path_env,
-            enable_network=True,
-        )
-        return fetcher.create_real_database()
-
-    from src.data.sample_data import create_sample_database
-
-    return create_sample_database()
 
 
 @asynccontextmanager
