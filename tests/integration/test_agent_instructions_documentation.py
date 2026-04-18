@@ -402,7 +402,9 @@ class TestAgentInstructionsConsistency:
         assert "src/config/settings.py" in copilot_content
         assert "src/config/settings.py" in agents_content
 
-    def test_both_files_agree_prioritize_production_architecture(self, copilot_content: str, agents_content: str) -> None:
+    def test_both_files_agree_prioritize_production_architecture(
+        self, copilot_content: str, agents_content: str
+    ) -> None:
         assert "prioritize the production architecture" in copilot_content.lower()
         assert "prioritize the production architecture" in agents_content.lower()
 
