@@ -171,7 +171,7 @@ class TestCopilotInstructionsProductionArchitecture:
             )
 
     def test_code_blocks_are_balanced(self, content: str) -> None:
-        fence_count = len(re.findall(r"(?<![`])```(?!`)", content))
+        fence_count = len(re.findall(r"(?<!`)```(?!`)", content))
         assert fence_count % 2 == 0, f"Unbalanced code fences: {fence_count} triple-backtick groups"
 
     def test_pwsh_code_blocks_present_for_quick_start(self, content: str) -> None:
