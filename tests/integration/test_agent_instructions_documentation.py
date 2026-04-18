@@ -34,6 +34,17 @@ def _lines(content: str) -> List[str]:
     return content.splitlines()
 
 
+def _lines_outside_code_fences(lines: List[str]) -> List[str]:
+    outside: List[str] = []
+    in_fence = False
+    for line in lines:
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            outside.append(line)
+    return outside
+
 # ---------------------------------------------------------------------------
 # .github/copilot-instructions.md
 # ---------------------------------------------------------------------------
@@ -144,7 +155,7 @@ class TestCopilotInstructionsProductionArchitecture:
         assert "Gradio" in content
 
     def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
-        for line in lines:
+        for line in _lines_outside_code_fences(lines):
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
 
@@ -316,7 +327,7 @@ class TestAgentsMdProductionArchitecture:
         assert "uvicorn api.main:app" in content
 
     def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
-        for line in lines:
+        for line in _lines_outside_code_fences(lines):
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
 
