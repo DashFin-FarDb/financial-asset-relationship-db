@@ -57,7 +57,12 @@ def set_graph(graph: AssetRelationshipGraph) -> None:
     _set_graph(graph)
 
 
-def set_graph_factory(factory: Any) -> None:
+from typing import Callable
+from src.logic.asset_graph import AssetRelationshipGraph
+
+GraphFactory = Callable[[], AssetRelationshipGraph]
+
+def set_graph_factory(factory: Optional[GraphFactory]) -> None:
     """Set the factory used to build the shared asset relationship graph."""
     _set_graph_factory(factory)
 
