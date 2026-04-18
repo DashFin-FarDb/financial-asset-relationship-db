@@ -36,12 +36,10 @@ from .auth import (
     create_access_token,
     get_current_active_user,
 )
-from .graph_lifecycle import (
-    get_graph as _get_graph,
-    reset_graph as _reset_graph,
-    set_graph as _set_graph,
-    set_graph_factory as _set_graph_factory,
-)
+from .graph_lifecycle import get_graph as _get_graph
+from .graph_lifecycle import reset_graph as _reset_graph
+from .graph_lifecycle import set_graph as _set_graph
+from .graph_lifecycle import set_graph_factory as _set_graph_factory
 
 # pylint: enable=import-error
 
@@ -67,6 +65,8 @@ def set_graph_factory(factory: Any) -> None:
 def reset_graph() -> None:
     """Reset the shared asset relationship graph state."""
     _reset_graph()
+
+
 # Asset class colour mapping for 3-D visualisation
 _ASSET_CLASS_COLORS: Dict[str, str] = {
     "Equity": "#4e79a7",
