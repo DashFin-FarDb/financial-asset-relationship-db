@@ -317,7 +317,18 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
             # Ensure trailing newline for clean CLI output.
             sys.stdout.write(formatted + ("\n" if not formatted.endswith("\n") else ""))
     except Exception as exc:  # noqa: BLE001
-        logger.exception("Failed to generate schema report.")
+        # Write full traceback to the log file only; do not echo it to stderr.
+        file_handler.handle(
+            logger.makeRecord(
+                logger.name,
+                logging.ERROR,
+                __file__,
+                0,
+                "Failed to generate schema report.",
+                (),
+                sys.exc_info(),
+            )
+        )
         raise CLIError("Report generation failed. Check logs for details.") from exc
 
 
