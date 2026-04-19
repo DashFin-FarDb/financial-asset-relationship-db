@@ -89,7 +89,7 @@ class TestPRAgentConfigChanges:
     def test_max_execution_time_declared(self, config_data: Dict[str, Any]):
         """
         Assert that the PR agent configuration declares a `limits.max_execution_time` value.
-        
+
         Parameters:
             config_data (Dict[str, Any]): Parsed PR agent configuration mapping.
         """
@@ -99,9 +99,9 @@ class TestPRAgentConfigChanges:
     def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
         """
         Validate that the configuration preserves required quality settings for supported languages.
-        
+
         Asserts that the top-level "quality" section includes "python" and "typescript", and that under "quality.python" a "linter" is declared and "test_runner" equals "pytest".
-        
+
         Parameters:
             config_data (Dict[str, Any]): Parsed YAML mapping of the PR agent configuration.
         """
@@ -164,9 +164,9 @@ class TestWorkflowSimplifications:
     def test_label_workflow_simplified(self, workflows_dir: Path):
         """
         Ensure the label workflow file exists and omits configuration-check markers.
-        
+
         Checks that `.github/workflows/label.yml` is present, does not contain the substring "check-config" (case-insensitive), and does not contain the exact text "labeler.yml not found".
-        
+
         Parameters:
             workflows_dir (Path): Path to the `.github/workflows` directory.
         """
@@ -209,7 +209,7 @@ class TestRetainedFilesState:
     def repo_root(self) -> Path:
         """
         Get the repository root directory (three levels above this file).
-        
+
         Returns:
             Path pointing to the repository root directory.
         """
@@ -326,7 +326,7 @@ class TestGitignoreChanges:
     def test_codacy_instructions_ignored(gitignore_path: Path):
         """
         Assert that the repository .gitignore contains "codacy.instructions.md".
-        
+
         Parameters:
             gitignore_path (Path): Path to the .gitignore file to check.
         """
@@ -352,7 +352,7 @@ class TestGitignoreChanges:
     def test_standard_ignores_present(gitignore_path: Path):
         """
         Assert that the repository `.gitignore` contains common ignore patterns.
-        
+
         Checks that each of the following patterns is present in the file: "__pycache__", ".pytest_cache", "node_modules", and ".coverage".
         """
         with open(gitignore_path, "r") as f:
@@ -387,9 +387,9 @@ class TestCodacyInstructionsChanges:
     def test_codacy_instructions_simplified(codacy_instructions_path: Path):
         """
         Verify the Codacy instructions are simplified and do not include problematic repository-specific or prescriptive phrases.
-        
+
         If the instructions file is missing the test is skipped. If present, the test fails when the file contains both "git remote -v" and "unless really necessary".
-        
+
         Parameters:
             codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
         """

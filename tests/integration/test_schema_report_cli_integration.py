@@ -32,13 +32,13 @@ def _cli_path() -> Path:
 def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
     """
     Execute the CLI script with SCHEMA_REPORT_LOG redirected to a temporary log file and capture its output.
-    
+
     The environment variable SCHEMA_REPORT_LOG is set to a log file named "schema_report_cli.log" inside the provided tmp_path so tests do not write logs into the repository tree.
-    
+
     Parameters:
         tmp_path (Path): Directory in which the temporary log file will be created.
         *args (str): Arguments to pass to the CLI script.
-    
+
     Returns:
         subprocess.CompletedProcess[str]: The completed process containing the exit code, captured stdout, and captured stderr.
     """
