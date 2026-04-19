@@ -29,18 +29,26 @@ def _cli_path() -> Path:
     return _repo_root() / ".github" / "scripts" / "schema_report_cli.py"
 
 
-def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
+def _run_cli(
+    tmp_path: Path,
+    *args: str,
+    check: bool = True,
+) -> subprocess.CompletedProcess[str]:
     """
-    Execute the CLI script with SCHEMA_REPORT_LOG redirected to a temporary log file and capture its output.
+    Execute the CLI script with SCHEMA_REPORT_LOG redirected to a temporary log file.
 
-    The environment variable SCHEMA_REPORT_LOG is set to a log file named "schema_report_cli.log" inside the provided tmp_path so tests do not write logs into the repository tree.
+    The environment variable SCHEMA_REPORT_LOG is set to a log file named
+    "schema_report_cli.log" inside the provided tmp_path so tests do not write
+    logs into the repository tree.
 
     Parameters:
         tmp_path (Path): Directory in which the temporary log file will be created.
         *args (str): Arguments to pass to the CLI script.
+        check (bool): Whether to ask subprocess.run to raise on non-zero exit.
 
     Returns:
-        subprocess.CompletedProcess[str]: The completed process containing the exit code, captured stdout, and captured stderr.
+        subprocess.CompletedProcess[str]: The completed process containing the
+        exit code, captured stdout, and captured stderr.
     """
     env = os.environ.copy()
     env["SCHEMA_REPORT_LOG"] = str(tmp_path / "schema_report_cli.log")
@@ -51,7 +59,7 @@ def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
         text=True,
         cwd=str(_repo_root()),
         env=env,
-        check=False,
+        check=check,
     )
 
 
