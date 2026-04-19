@@ -111,7 +111,7 @@ jobs:
       - codecov/upload:
           file: coverage.xml
       - store_test_results:
-          path: test-results
+          path: test-results/pytest
       - store_artifacts:
           path: htmlcov
           destination: coverage-report
