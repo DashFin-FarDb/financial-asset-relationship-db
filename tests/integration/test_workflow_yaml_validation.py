@@ -76,32 +76,35 @@ class TestWorkflowYAMLValidation:
                 pytest.fail(f"Workflow file not found: {workflow_file}")
 
     def test_pr_agent_workflow_simplified_correctly(self):
-        """
-        Validate the pr-agent GitHub Actions workflow is simplified: it removes chunking references and includes Python setup plus test execution.
+    """
+    Validate the pr-agent GitHub Actions workflow is simplified: it removes
+    chunking references and includes Python setup plus concrete test execution.
+    """
+    path = self.WORKFLOW_DIR / "pr-agent.yml"
+    with open(path, "r") as f:
+        content = f.read()
 
-        Asserts that pr-agent.yml (case-insensitive) does not contain "context_chunker" or "chunking", contains "python" to indicate Python setup, and contains at least one test-execution marker: "pytest", "uv run pytest", "python -m pytest", "run tests", or "name: test".
-        """
-        path = self.WORKFLOW_DIR / "pr-agent.yml"
-        with open(path, "r") as f:
-            content = f.read()
+    content_lower = content.lower()
 
-        content_lower = content.lower()
+    # SHOULD NOT contain removed complexity
+    assert "context_chunker" not in content_lower, (
+        "PR agent workflow still references context_chunker"
+    )
+    assert "chunking" not in content_lower, (
+        "PR agent workflow still has chunking logic"
+    )
 
-        # Should NOT contain chunking references
-        assert "context_chunker" not in content_lower, "PR agent workflow still references context chunker"
-        assert "chunking" not in content_lower, "PR agent workflow still has chunking logic"
-
-        # SHOULD contain essential functionality
-        assert "python" in content_lower, "PR agent workflow missing Python setup"
-        assert any(
-            marker in content_lower
-            for marker in (
-                "pytest",
-                "uv run pytest",
-                "python -m pytest",
-                "run tests",
-            )
-        ), "PR agent workflow missing test execution"
+    # SHOULD contain essential functionality
+    assert "python" in content_lower, "PR agent workflow missing Python setup"
+    assert any(
+        marker in content_lower
+        for marker in (
+            "uv run pytest",
+            "python -m pytest",
+            "run: pytest",
+            "run: python -m pytest",
+        )
+    ), "PR agent workflow missing concrete pytest execution"
 
 
 class TestRequirementsDevChanges:
