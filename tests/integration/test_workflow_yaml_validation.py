@@ -65,9 +65,9 @@ class TestWorkflowYAMLValidation:
                     # PyYAML parses the unquoted `on` trigger key as the boolean True;
                     # accept both the string "on" and the boolean True for that key.
                     if key == "on":
-                        assert "on" in workflow or True in workflow, (
-                            f"Workflow {workflow_file} missing required trigger key: on"
-                        )
+                        assert (
+                            "on" in workflow or True in workflow
+                        ), f"Workflow {workflow_file} missing required trigger key: on"
                     else:
                         assert key in workflow, f"Workflow {workflow_file} missing required key: {key}"
             except yaml.YAMLError as e:
