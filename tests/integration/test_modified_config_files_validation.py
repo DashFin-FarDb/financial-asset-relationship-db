@@ -64,9 +64,7 @@ class TestPRAgentConfigChanges:
         intentionally kept) rather than only re-checking the version string.
         """
         assert "agent" in config_data
-        assert "context" in config_data["agent"], (
-            "agent.context block should be present in pr-agent-config.yml"
-        )
+        assert "context" in config_data["agent"], "agent.context block should be present in pr-agent-config.yml"
 
     def test_limits_section_present(self, config_data: Dict[str, Any]):
         """
@@ -76,9 +74,7 @@ class TestPRAgentConfigChanges:
         code can safely iterate or look up configuration values.
         """
         limits = config_data.get("limits")
-        assert isinstance(limits, dict) and limits, (
-            "limits section should be a non-empty mapping in config"
-        )
+        assert isinstance(limits, dict) and limits, "limits section should be a non-empty mapping in config"
 
     def test_basic_sections_present(self, config_data: Dict[str, Any]):
         """
