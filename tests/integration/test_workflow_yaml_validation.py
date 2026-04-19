@@ -97,7 +97,16 @@ class TestWorkflowYAMLValidation:
 
         # SHOULD contain essential functionality
         assert "python" in content_lower, "PR agent workflow missing Python setup"
-        assert "pytest" in content_lower or "test" in content_lower, "PR agent workflow missing test execution"
+        assert any(
+            marker in content_lower
+            for marker in (
+                "pytest",
+                "uv run pytest",
+                "python -m pytest",
+                "run tests",
+                "name: test",
+            )
+        ), "PR agent workflow missing test execution"
 
 
 class TestRequirementsDevChanges:
