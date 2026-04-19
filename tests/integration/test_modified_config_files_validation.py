@@ -262,9 +262,9 @@ class TestRetainedFilesState:
                 content = f.read()
 
             for script_ref in local_scripts_not_in_ci:
-                assert (
-                    script_ref not in content
-                ), f"{workflow_file.name} references a script not expected to be called from CI: {script_ref}"
+                assert script_ref not in content, (
+                    f"{workflow_file.name} references a script not expected to be called from CI: {script_ref}"
+                )
 
 
 class TestRequirementsDevChanges:
@@ -401,9 +401,9 @@ class TestCodacyInstructionsChanges:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
-        assert (
-            "git remote -v" not in content and "unless really necessary" not in content
-        ), "Codacy instructions should be simplified"
+        assert "git remote -v" not in content and "unless really necessary" not in content, (
+            "Codacy instructions should be simplified"
+        )
 
     @staticmethod
     def test_codacy_critical_rules_present(codacy_instructions_path: Path):
