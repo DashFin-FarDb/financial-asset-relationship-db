@@ -273,7 +273,7 @@ class TestPackageConsistency:
     @staticmethod
     def test_package_names_valid(package_names: List[str]):
         """Test that package names follow valid naming conventions."""
-        valid_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
+        valid_name_pattern = re.compile(r"^[a-zA-Z0-9_.-]+$")
 
         invalid_names = [pkg for pkg in package_names if not valid_name_pattern.match(pkg)]
         assert len(invalid_names) == 0, f"Invalid package names: {invalid_names}"
