@@ -127,6 +127,7 @@ class TestCLIInputValidation:
             tmp_path,
             "--fmt",
             "invalid",
+            check=False,
         )
         # argparse will typically exit with code 2 on invalid choice
         assert result.returncode != 0
@@ -158,6 +159,7 @@ class TestCLIErrorHandling:
             tmp_path,
             "--output",
             "/invalid/path/report.md",
+            check=False,
         )
         assert result.returncode != 0
 
@@ -332,6 +334,7 @@ class TestCLILogging:
             tmp_path,
             "--output",
             "/invalid/path/report.md",
+            check=False,
         )
         assert result.returncode != 0
 

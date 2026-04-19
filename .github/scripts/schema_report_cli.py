@@ -375,7 +375,8 @@ def main() -> int:
         return 130
 
     except (IOError, OSError, RuntimeError, TypeError, ValueError):
-        logger.exception("Unexpected error occurred.")
+        # Route full traceback to the log file only; stderr stays clean.
+        _file_logger.exception("Unexpected error occurred.")
         print(
             "Error: An unexpected error occurred. " + "Please check the logs for details.",
             file=sys.stderr,
