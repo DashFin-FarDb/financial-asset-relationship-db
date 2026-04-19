@@ -161,7 +161,7 @@ class TestCLIErrorHandling:
         - Print a user-facing cancellation message
         - Exit with code 130
         """
-        pytest.skip("KeyboardInterrupt behaviour is documented but not exercised " "in this integration test.")
+        pytest.skip("KeyboardInterrupt behaviour is documented but not exercised in this integration test.")
 
     def test_help_message_available(self, tmp_path: Path) -> None:
         """Help message should be available and well-formed."""
