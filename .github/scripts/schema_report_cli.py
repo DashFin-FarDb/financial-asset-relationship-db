@@ -60,26 +60,41 @@ except OSError:
     LOG_PATH = Path(tempfile.gettempdir()) / LOG_FILE_NAME
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
+FILE_FORMATTER = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+STREAM_FORMATTER = logging.Formatter("%(levelname)s: %(message)s")
+
+
+def _reset_logger_handlers(target_logger: logging.Logger) -> None:
+    """Close and remove existing handlers so reloads do not duplicate them."""
+    for handler in list(target_logger.handlers):
+        target_logger.removeHandler(handler)
+        try:
+            handler.close()
+        except OSError:
+            pass
+
+
 file_handler = logging.FileHandler(LOG_PATH)
 file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_formatter)
+file_handler.setFormatter(FILE_FORMATTER)
 
 stream_handler = logging.StreamHandler(sys.stderr)
-stream_formatter = logging.Formatter("%(levelname)s: %(message)s")
-stream_handler.setFormatter(stream_formatter)
+stream_handler.setFormatter(STREAM_FORMATTER)
 
 logger = logging.getLogger(__name__)
+_reset_logger_handlers(logger)
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 logger.setLevel(logging.INFO)  # Default; adjusted in main().
+logger.propagate = False
 
 # Dedicated file-only logger: no stream handler, propagate=False.
 # Use this when full tracebacks must land in the log file but must not reach stderr.
-_file_logger = logging.getLogger(__name__ + ".file")
-_file_logger.addHandler(file_handler)
-_file_logger.propagate = False
-_file_logger.setLevel(logging.DEBUG)
+FILE_LOGGER = logging.getLogger(__name__ + ".file")
+_reset_logger_handlers(FILE_LOGGER)
+FILE_LOGGER.addHandler(file_handler)
+FILE_LOGGER.setLevel(logging.DEBUG)
+FILE_LOGGER.propagate = False
 
 # ---------------------------------------------------------------------------
 # CLI types and errors
