@@ -55,16 +55,18 @@ class TestPRAgentConfigChanges:
         assert "version" in config_data["agent"]
         assert config_data["agent"]["version"] == "1.0.0"
 
-    def test_context_config_version_declared(self, config_data: Dict[str, Any]):
+    def test_context_config_declared(self, config_data: Dict[str, Any]):
         """
-        Assert that the agent configuration retains its context/chunking block at v1.0.0.
+        Assert that the agent configuration retains its context/chunking block.
 
-        This test is distinct from test_version_is_correct: it validates that the
-        ``agent.context`` sub-section is present (i.e., context/chunking settings were
-        intentionally kept) rather than only re-checking the version string.
+        This is intentionally distinct from test_version_is_correct: it validates the
+        presence of the ``agent.context`` sub-section rather than re-checking the
+        version string.
         """
         assert "agent" in config_data
-        assert "context" in config_data["agent"], "agent.context block should be present in pr-agent-config.yml"
+        assert "context" in config_data["agent"], (
+            "agent.context block should be present in pr-agent-config.yml"
+        )
 
     def test_limits_section_present(self, config_data: Dict[str, Any]):
         """
@@ -90,13 +92,16 @@ class TestPRAgentConfigChanges:
 
     def test_max_execution_time_declared(self, config_data: Dict[str, Any]):
         """
-        Assert that the PR agent configuration declares a `limits.max_execution_time` value.
+        Assert that the PR agent configuration declares a usable execution timeout.
 
         Parameters:
             config_data (Dict[str, Any]): Parsed PR agent configuration mapping.
         """
         limits = config_data.get("limits", {})
-        assert "max_execution_time" in limits, "limits.max_execution_time should be declared"
+        max_execution_time = limits.get("max_execution_time")
+        assert isinstance(max_execution_time, int) and max_execution_time > 0, (
+            "limits.max_execution_time should be a positive integer"
+        )
 
     def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
         """
@@ -199,9 +204,13 @@ class TestWorkflowSimplifications:
         issue_msg = first_interaction_step["with"].get("issue-message", "")
         pr_msg = first_interaction_step["with"].get("pr-message", "")
 
-        # Messages must be non-empty
-        assert len(issue_msg) > 0, "Issue message must not be empty"
-        assert len(pr_msg) > 0, "PR message must not be empty"
+        # Messages must be non-empty and not whitespace-only.
+        assert isinstance(issue_msg, str) and issue_msg.strip(), (
+            "Issue message must not be empty"
+        )
+        assert isinstance(pr_msg, str) and pr_msg.strip(), (
+            "PR message must not be empty"
+        )
 
 
 class TestRetainedFilesState:
