@@ -381,20 +381,18 @@ class TestAgentsMdProductionArchitecture:
         assert decl_pos < orient_pos
 
     def test_branch_ref_section_advises_not_to_assume_merged(self, content: str) -> None:
-        # The Mandatory branch/ref verification section intentionally preserves guidance
-        # that agents should not assume work is merged; verify the section is intact.
         """
-        Validates that the "Mandatory branch/ref verification" section advises not to assume merged work.
-
-        Checks the provided document content for the "## Mandatory branch/ref verification" section and asserts it contains guidance to "do not assume" and either "clean working tree" or "local working-tree state alone".
-
-        Parameters:
-            content (str): Full text of the markdown document to inspect.
+        Validate that the branch/ref verification section warns against assuming work
+        is merged based only on local working-tree state.
         """
         branch_section = content.split("## Mandatory branch/ref verification")[1].split("##")[0]
         branch_section_lower = branch_section.lower()
         assert "do not assume" in branch_section_lower
-        assert "clean working tree" in branch_section_lower or "local working-tree state alone" in branch_section_lower
+        assert re.search(r"\bmerg(?:e|ed|ing)\b", branch_section_lower)
+        assert (
+            "clean working tree" in branch_section_lower
+            or "local working-tree state alone" in branch_section_lower
+        )
 
     def test_branch_ref_section_advises_stop_and_verify(self, content: str) -> None:
         # The Mandatory branch/ref verification section intentionally instructs agents
