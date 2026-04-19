@@ -55,14 +55,14 @@ class TestPRAgentConfigChanges:
         assert "version" in config_data["agent"]
         assert config_data["agent"]["version"] == "1.0.0"
 
-    def test_no_context_chunking_config(self, config_data: Dict[str, Any]):
+    def test_context_config_version_declared(self, config_data: Dict[str, Any]):
         """Verify context configuration state is consistent with the current agent version."""
         # The pr-agent-config.yml retains its context/chunking settings at v1.0.0;
         # this test validates the version is declared rather than asserting absence of context config.
         assert "agent" in config_data
         assert config_data["agent"]["version"] == "1.0.0"
 
-    def test_no_fallback_strategies(self, config_data: Dict[str, Any]):
+    def test_limits_section_present(self, config_data: Dict[str, Any]):
         """
         Verify the PR Agent configuration limits section is present.
 
@@ -84,7 +84,7 @@ class TestPRAgentConfigChanges:
         for section in required_sections:
             assert section in config_data, f"Required section '{section}' missing from config"
 
-    def test_no_complex_token_management(self, config_data: Dict[str, Any]):
+    def test_max_execution_time_declared(self, config_data: Dict[str, Any]):
         """
         Check that the PR agent configuration has a limits section with max_execution_time.
 

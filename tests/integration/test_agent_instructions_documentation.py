@@ -361,13 +361,13 @@ class TestAgentsMdProductionArchitecture:
         # The Mandatory branch/ref verification section intentionally preserves guidance
         # that agents should not assume work is merged; verify the section is intact.
         branch_section = content.split("## Mandatory branch/ref verification")[1].split("##")[0]
-        assert "not" in branch_section.lower() or "clean working tree" in branch_section.lower()
+        assert "do not assume" in branch_section.lower() or "clean working tree" in branch_section.lower()
 
     def test_branch_ref_section_advises_stop_and_verify(self, content: str) -> None:
         # The Mandatory branch/ref verification section intentionally instructs agents
         # to stop and verify when branch/ref identity is unclear.
         branch_section = content.split("## Mandatory branch/ref verification")[1].split("##")[0]
-        assert "verify" in branch_section.lower() or "stop" in branch_section.lower()
+        assert "stop and verify" in branch_section.lower() or "unclear" in branch_section.lower()
 
     def test_gradio_section_dedicated_label_demos_testing_only(self, content: str) -> None:
         assert "demos" in content.lower() and "testing" in content.lower()
