@@ -87,12 +87,8 @@ class TestWorkflowYAMLValidation:
         content_lower = content.lower()
 
         # SHOULD NOT contain removed complexity
-        assert "context_chunker" not in content_lower, (
-            "PR agent workflow still references context_chunker"
-        )
-        assert "chunking" not in content_lower, (
-            "PR agent workflow still has chunking logic"
-        )
+        assert "context_chunker" not in content_lower, "PR agent workflow still references context_chunker"
+        assert "chunking" not in content_lower, "PR agent workflow still has chunking logic"
 
         # SHOULD contain essential functionality
         assert "python" in content_lower, "PR agent workflow missing Python setup"
