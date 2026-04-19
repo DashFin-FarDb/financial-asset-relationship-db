@@ -340,7 +340,7 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
             sys.stdout.write(formatted + ("\n" if not formatted.endswith("\n") else ""))
     except Exception as exc:  # noqa: BLE001
         # Route full traceback to the log file only; stderr stays clean.
-        _file_logger.exception("Failed to generate schema report.")
+        FILE_LOGGER.exception("Failed to generate schema report.")
         raise CLIError("Report generation failed. Check logs for details.") from exc
 
 
@@ -391,7 +391,7 @@ def main() -> int:
 
     except (IOError, OSError, RuntimeError, TypeError, ValueError):
         # Route full traceback to the log file only; stderr stays clean.
-        _file_logger.exception("Unexpected error occurred.")
+        FILE_LOGGER.exception("Unexpected error occurred.")
         print(
             "Error: An unexpected error occurred. " + "Please check the logs for details.",
             file=sys.stderr,
