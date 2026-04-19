@@ -78,7 +78,7 @@ class TestWorkflowYAMLValidation:
     def test_pr_agent_workflow_simplified_correctly(self):
         """
         Ensure the pr-agent GitHub Actions workflow no longer references chunking and contains
-        expected simplified functionality (Python setup, linting, and test execution).
+        expected simplified functionality (Python setup and test execution).
 
         Checks:
         - No case-insensitive references to "context_chunker" or "chunking".

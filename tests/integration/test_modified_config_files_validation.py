@@ -199,8 +199,8 @@ class TestWorkflowSimplifications:
         assert len(pr_msg) > 0, "PR message must not be empty"
 
 
-class TestDeletedFilesImpact:
-    """Validate that deleted files are no longer referenced."""
+class TestRetainedFilesState:
+    """Validate that intentionally-retained files are present and not referenced as deleted."""
 
     @pytest.fixture
     def repo_root(self) -> Path:
@@ -245,11 +245,11 @@ class TestDeletedFilesImpact:
         vscode_file = repo_root / ".vscode" / "settings.json"
         assert vscode_file.exists(), ".vscode/settings.json is expected to be present"
 
-    def test_no_references_to_deleted_files(self, repo_root: Path):
-        """Verify no references to deleted files in workflow files."""
+    def test_workflow_files_do_not_reference_retained_scripts(self, repo_root: Path):
+        """Verify that workflow files do not reference scripts that are retained locally but not called from CI."""
         workflows_dir = repo_root / ".github" / "workflows"
 
-        deleted_refs = [
+        scripts_not_invoked_from_ci = [
             "context_chunker.py",
             "labeler.yml",
             ".github/scripts/README.md",
@@ -259,8 +259,10 @@ class TestDeletedFilesImpact:
             with open(workflow_file, "r") as f:
                 content = f.read()
 
-            for deleted_ref in deleted_refs:
-                assert deleted_ref not in content, f"{workflow_file.name} still references deleted file: {deleted_ref}"
+            for script_ref in scripts_not_invoked_from_ci:
+                assert script_ref not in content, (
+                    f"{workflow_file.name} references a script not expected to be called from CI: {script_ref}"
+                )
 
 
 class TestRequirementsDevChanges:
