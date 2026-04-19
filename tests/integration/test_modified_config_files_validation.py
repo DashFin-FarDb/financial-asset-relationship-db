@@ -56,7 +56,9 @@ class TestPRAgentConfigChanges:
         assert config_data["agent"]["version"] == "1.0.0"
 
     def test_context_config_version_declared(self, config_data: Dict[str, Any]):
-        """Verify context configuration state is consistent with the current agent version."""
+        """
+        Assert that the agent version declared in the parsed PR agent config is "1.0.0".
+        """
         # The pr-agent-config.yml retains its context/chunking settings at v1.0.0;
         # this test validates the version is declared rather than asserting absence of context config.
         assert "agent" in config_data
@@ -86,26 +88,22 @@ class TestPRAgentConfigChanges:
 
     def test_max_execution_time_declared(self, config_data: Dict[str, Any]):
         """
-        Check that the PR agent configuration has a limits section with max_execution_time.
-
-        The current configuration may include chunking/token settings; this test validates
-        that the limits section declares a max_execution_time value.
-
+        Assert that the PR agent configuration declares a `limits.max_execution_time` value.
+        
         Parameters:
-            config_data (Dict[str, Any]): Parsed PR agent configuration data.
+            config_data (Dict[str, Any]): Parsed PR agent configuration mapping.
         """
         limits = config_data.get("limits", {})
         assert "max_execution_time" in limits, "limits.max_execution_time should be declared"
 
     def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
         """
-        Validate that the configuration preserves required quality settings for supported languages and Python tooling.
-
+        Validate that the configuration preserves required quality settings for supported languages.
+        
+        Asserts that the top-level "quality" section includes "python" and "typescript", and that under "quality.python" a "linter" is declared and "test_runner" equals "pytest".
+        
         Parameters:
-            config_data (Dict[str, Any]): Parsed YAML configuration for the PR agent.
-
-        Details:
-            Asserts that the top-level `quality` section contains `python` and `typescript`, and that the Python quality configuration includes a `linter` and a `test_runner` set to `pytest`.
+            config_data (Dict[str, Any]): Parsed YAML mapping of the PR agent configuration.
         """
         assert "quality" in config_data
         assert "python" in config_data["quality"]
@@ -165,9 +163,12 @@ class TestWorkflowSimplifications:
 
     def test_label_workflow_simplified(self, workflows_dir: Path):
         """
-        Validate that the label workflow uses a simplified configuration.
-
-        Asserts that .github/workflows/label.yml exists and does not contain the substring 'check-config' (case-insensitive) nor the exact text 'labeler.yml not found'.
+        Ensure the label workflow file exists and omits configuration-check markers.
+        
+        Checks that `.github/workflows/label.yml` is present, does not contain the substring "check-config" (case-insensitive), and does not contain the exact text "labeler.yml not found".
+        
+        Parameters:
+            workflows_dir (Path): Path to the `.github/workflows` directory.
         """
         workflow_file = workflows_dir / "label.yml"
         assert workflow_file.exists()
@@ -180,7 +181,9 @@ class TestWorkflowSimplifications:
         assert "labeler.yml not found" not in content
 
     def test_greetings_workflow_has_messages(self, workflows_dir: Path):
-        """Verify greetings workflow defines issue and PR messages."""
+        """
+        Ensure the greetings workflow contains a step referencing "first-interaction" and that both `issue-message` and `pr-message` in that step are non-empty.
+        """
         workflow_file = workflows_dir / "greetings.yml"
         assert workflow_file.exists()
 
@@ -205,10 +208,10 @@ class TestRetainedFilesState:
     @pytest.fixture
     def repo_root(self) -> Path:
         """
-        Locate the repository root directory.
-
+        Get the repository root directory (three levels above this file).
+        
         Returns:
-            Path: The Path pointing to the repository root directory.
+            Path pointing to the repository root directory.
         """
         return Path(__file__).parent.parent.parent
 
@@ -223,9 +226,7 @@ class TestRetainedFilesState:
 
     def test_context_chunker_present(self, repo_root: Path):
         """
-        Assert that .github/scripts/context_chunker.py exists in the repository.
-
-        This file is intentionally retained; the test reflects the current repo state.
+        Check that .github/scripts/context_chunker.py is present in the repository.
         """
         chunker_file = repo_root / ".github" / "scripts" / "context_chunker.py"
         assert chunker_file.exists(), "context_chunker.py is expected to be present"
@@ -324,9 +325,10 @@ class TestGitignoreChanges:
     @staticmethod
     def test_codacy_instructions_ignored(gitignore_path: Path):
         """
-        Verify .gitignore includes 'codacy.instructions.md'.
-
-        Checks the repository .gitignore content for the presence of the filename 'codacy.instructions.md' and fails the test if it is missing.
+        Assert that the repository .gitignore contains "codacy.instructions.md".
+        
+        Parameters:
+            gitignore_path (Path): Path to the .gitignore file to check.
         """
         with open(gitignore_path, "r") as f:
             content = f.read()
@@ -348,7 +350,11 @@ class TestGitignoreChanges:
 
     @staticmethod
     def test_standard_ignores_present(gitignore_path: Path):
-        """Verify standard ignore patterns are present."""
+        """
+        Assert that the repository `.gitignore` contains common ignore patterns.
+        
+        Checks that each of the following patterns is present in the file: "__pycache__", ".pytest_cache", "node_modules", and ".coverage".
+        """
         with open(gitignore_path, "r") as f:
             content = f.read()
 
@@ -380,12 +386,12 @@ class TestCodacyInstructionsChanges:
     @staticmethod
     def test_codacy_instructions_simplified(codacy_instructions_path: Path):
         """
-        Check that the Codacy instructions have been simplified and do not include repository-specific or prescriptive phrases.
-
-        Skips the test if the file does not exist. Fails if the file contains either 'git remote -v' or 'unless really necessary'.
-
+        Verify the Codacy instructions are simplified and do not include problematic repository-specific or prescriptive phrases.
+        
+        If the instructions file is missing the test is skipped. If present, the test fails when the file contains both "git remote -v" and "unless really necessary".
+        
         Parameters:
-                codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
+            codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
         """
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")

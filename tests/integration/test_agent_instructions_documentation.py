@@ -197,10 +197,24 @@ class TestCopilotInstructionsProductionArchitecture:
         assert decl_pos < branch_pos
 
     def test_src_config_settings_in_integration_section(self, content: str) -> None:
+        """
+        Asserts the "Integration & external deps" section references the runtime settings module or accessor.
+        
+        Checks that the text under the "Integration & external deps" header contains either `src/config/settings.py` or `get_settings()`.
+        
+        Parameters:
+            content (str): Full text of the markdown file being tested.
+        """
         integration_block = content.split("Integration & external deps")[1].split("##")[0]
         assert "src/config/settings.py" in integration_block or "get_settings()" in integration_block
 
     def test_pip_install_requirements_txt_present_in_both_paths(self, content: str) -> None:
+        """
+        Asserts that the repository documentation contains the `pip install -r requirements.txt` install command in at least two places.
+        
+        Parameters:
+            content (str): The full text content of the file under test.
+        """
         occurrences = content.count("pip install -r requirements.txt")
         assert occurrences >= 2
 
@@ -351,6 +365,15 @@ class TestAgentsMdProductionArchitecture:
         assert "run-dev.sh" in content
 
     def test_production_declaration_section_appears_at_top(self, content: str) -> None:
+        """
+        Asserts that the "IMPORTANT: Production Architecture Declaration" header appears before the "## Quick orientation" section in the provided document.
+        
+        Parameters:
+            content (str): Full text of the markdown file to inspect.
+        
+        Raises:
+            AssertionError: If either header is missing or the production declaration does not appear before the quick orientation section.
+        """
         decl_pos = content.find("IMPORTANT: Production Architecture Declaration")
         orient_pos = content.find("## Quick orientation")
         assert decl_pos != -1
@@ -360,6 +383,14 @@ class TestAgentsMdProductionArchitecture:
     def test_branch_ref_section_advises_not_to_assume_merged(self, content: str) -> None:
         # The Mandatory branch/ref verification section intentionally preserves guidance
         # that agents should not assume work is merged; verify the section is intact.
+        """
+        Validates that the "Mandatory branch/ref verification" section advises not to assume merged work.
+        
+        Checks the provided document content for the "## Mandatory branch/ref verification" section and asserts it contains guidance to "do not assume" and either "clean working tree" or "local working-tree state alone".
+        
+        Parameters:
+            content (str): Full text of the markdown document to inspect.
+        """
         branch_section = content.split("## Mandatory branch/ref verification")[1].split("##")[0]
         branch_section_lower = branch_section.lower()
         assert "do not assume" in branch_section_lower
@@ -372,6 +403,12 @@ class TestAgentsMdProductionArchitecture:
         assert "stop and verify" in branch_section.lower()
 
     def test_gradio_section_dedicated_label_demos_testing_only(self, content: str) -> None:
+        """
+        Asserts the Gradio section is labeled for both demos and testing.
+        
+        Parameters:
+            content (str): Full text of the markdown file to verify; the test checks that both "demos" and "testing" appear (case-insensitive).
+        """
         assert "demos" in content.lower() and "testing" in content.lower()
 
 

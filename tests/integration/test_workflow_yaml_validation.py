@@ -77,13 +77,9 @@ class TestWorkflowYAMLValidation:
 
     def test_pr_agent_workflow_simplified_correctly(self):
         """
-        Ensure the pr-agent GitHub Actions workflow no longer references chunking and contains
-        expected simplified functionality (Python setup and test execution).
-
-        Checks:
-        - No case-insensitive references to "context_chunker" or "chunking".
-        - Contains "python" (case-insensitive) indicating Python setup.
-        - Contains "pytest" or "test" indicating test execution is present.
+        Validate the pr-agent GitHub Actions workflow is simplified: it removes chunking references and includes Python setup plus test execution.
+        
+        Asserts that pr-agent.yml (case-insensitive) does not contain "context_chunker" or "chunking", contains "python" to indicate Python setup, and contains at least one test-execution marker: "pytest", "uv run pytest", "python -m pytest", "run tests", or "name: test".
         """
         path = self.WORKFLOW_DIR / "pr-agent.yml"
         with open(path, "r") as f:
