@@ -166,9 +166,9 @@ class TestCopilotInstructionsProductionArchitecture:
 
     def test_no_hardcoded_secrets(self, content: str) -> None:
         for pattern in [r"ghp_[a-zA-Z0-9]{36}", r"gho_[a-zA-Z0-9]{36}"]:
-            assert not re.search(
-                pattern, content
-            ), f".github/copilot-instructions.md must not contain hardcoded tokens (pattern: {pattern})"
+            assert not re.search(pattern, content), (
+                f".github/copilot-instructions.md must not contain hardcoded tokens (pattern: {pattern})"
+            )
 
     def test_code_blocks_are_balanced(self, content: str) -> None:
         fence_count = len(re.findall(r"(?<!`)```(?!`)", content))
@@ -404,9 +404,9 @@ class TestAgentInstructionsConsistency:
             ("AGENTS.md", agents_content),
         ]:
             assert "Gradio" in content, f"{name} must reference Gradio"
-            assert (
-                "non-production" in content.lower() or "NON-PRODUCTION" in content
-            ), f"{name} must label Gradio as non-production"
+            assert "non-production" in content.lower() or "NON-PRODUCTION" in content, (
+                f"{name} must label Gradio as non-production"
+            )
 
     def test_both_files_reference_automation_scope_policy(self, copilot_content: str, agents_content: str) -> None:
         assert "AUTOMATION_SCOPE_POLICY.md" in copilot_content
@@ -431,9 +431,9 @@ class TestAgentInstructionsConsistency:
             (".github/copilot-instructions.md", copilot_content),
             ("AGENTS.md", agents_content),
         ]:
-            assert (
-                "demo" in content.lower() or "testing" in content.lower()
-            ), f"{name} must describe Gradio as for demos/testing"
+            assert "demo" in content.lower() or "testing" in content.lower(), (
+                f"{name} must describe Gradio as for demos/testing"
+            )
 
     def test_agents_md_has_ci_reference_section(self, agents_content: str) -> None:
         assert "## CI reference" in agents_content
