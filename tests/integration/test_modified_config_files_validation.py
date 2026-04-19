@@ -389,7 +389,7 @@ class TestCodacyInstructionsChanges:
         """
         Verify the Codacy instructions are simplified and do not include problematic repository-specific or prescriptive phrases.
 
-        If the instructions file is missing the test is skipped. If present, the test fails when the file contains both "git remote -v" and "unless really necessary".
+        If the instructions file is missing the test is skipped. If present, the test fails when the file contains either "git remote -v" or "unless really necessary".
 
         Parameters:
             codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
