@@ -64,9 +64,7 @@ class TestPRAgentConfigChanges:
         version string.
         """
         assert "agent" in config_data
-        assert "context" in config_data["agent"], (
-            "agent.context block should be present in pr-agent-config.yml"
-        )
+        assert "context" in config_data["agent"], "agent.context block should be present in pr-agent-config.yml"
 
     def test_limits_section_present(self, config_data: Dict[str, Any]):
         """
@@ -205,12 +203,8 @@ class TestWorkflowSimplifications:
         pr_msg = first_interaction_step["with"].get("pr-message", "")
 
         # Messages must be non-empty and not whitespace-only.
-        assert isinstance(issue_msg, str) and issue_msg.strip(), (
-            "Issue message must not be empty"
-        )
-        assert isinstance(pr_msg, str) and pr_msg.strip(), (
-            "PR message must not be empty"
-        )
+        assert isinstance(issue_msg, str) and issue_msg.strip(), "Issue message must not be empty"
+        assert isinstance(pr_msg, str) and pr_msg.strip(), "PR message must not be empty"
 
 
 class TestRetainedFilesState:
