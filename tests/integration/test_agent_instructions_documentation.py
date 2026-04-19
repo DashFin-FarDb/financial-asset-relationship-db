@@ -363,10 +363,7 @@ class TestAgentsMdProductionArchitecture:
         branch_section = content.split("## Mandatory branch/ref verification")[1].split("##")[0]
         branch_section_lower = branch_section.lower()
         assert "do not assume" in branch_section_lower
-        assert (
-            "clean working tree" in branch_section_lower
-            or "local working-tree state alone" in branch_section_lower
-        )
+        assert "clean working tree" in branch_section_lower or "local working-tree state alone" in branch_section_lower
 
     def test_branch_ref_section_advises_stop_and_verify(self, content: str) -> None:
         # The Mandatory branch/ref verification section intentionally instructs agents
