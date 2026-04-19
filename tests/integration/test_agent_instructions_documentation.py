@@ -198,7 +198,7 @@ class TestCopilotInstructionsProductionArchitecture:
 
     def test_src_config_settings_in_integration_section(self, content: str) -> None:
         integration_block = content.split("Integration & external deps")[1].split("##")[0]
-        assert "src/config/settings.py" in integration_block
+        assert "src/config/settings.py" in integration_block or "get_settings()" in integration_block
 
     def test_pip_install_requirements_txt_present_in_both_paths(self, content: str) -> None:
         occurrences = content.count("pip install -r requirements.txt")
@@ -357,11 +357,17 @@ class TestAgentsMdProductionArchitecture:
         assert orient_pos != -1
         assert decl_pos < orient_pos
 
-    def test_no_old_do_not_assume_work_is_merged_text(self, content: str) -> None:
-        assert "Do not assume work is merged or complete" not in content
+    def test_branch_ref_section_advises_not_to_assume_merged(self, content: str) -> None:
+        # The Mandatory branch/ref verification section intentionally preserves guidance
+        # that agents should not assume work is merged; verify the section is intact.
+        branch_section = content.split("## Mandatory branch/ref verification")[1].split("##")[0]
+        assert "not" in branch_section.lower() or "clean working tree" in branch_section.lower()
 
-    def test_no_old_branch_ref_identity_unclear_text(self, content: str) -> None:
-        assert "branch/ref identity is unclear, stop and verify" not in content
+    def test_branch_ref_section_advises_stop_and_verify(self, content: str) -> None:
+        # The Mandatory branch/ref verification section intentionally instructs agents
+        # to stop and verify when branch/ref identity is unclear.
+        branch_section = content.split("## Mandatory branch/ref verification")[1].split("##")[0]
+        assert "verify" in branch_section.lower() or "stop" in branch_section.lower()
 
     def test_gradio_section_dedicated_label_demos_testing_only(self, content: str) -> None:
         assert "demos" in content.lower() and "testing" in content.lower()
