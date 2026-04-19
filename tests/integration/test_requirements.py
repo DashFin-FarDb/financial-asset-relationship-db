@@ -279,7 +279,8 @@ class TestPackageConsistency:
             package_names (List[str]): Package name strings extracted from the parsed requirements file.
 
         Raises:
-            AssertionError: If any package name contains characters outside the class `[a-zA-Z0-9_.-]`; the message lists invalid names.
+            AssertionError: If any package name contains characters outside the
+                class `[a-zA-Z0-9_.-]`; the message lists the invalid names.
         """
         valid_name_pattern = re.compile(r"^[a-zA-Z0-9_.-]+$")
 
