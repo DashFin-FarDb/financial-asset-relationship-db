@@ -74,6 +74,13 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 logger.setLevel(logging.INFO)  # Default; adjusted in main().
 
+# Dedicated file-only logger: no stream handler, propagate=False.
+# Use this when full tracebacks must land in the log file but must not reach stderr.
+_file_logger = logging.getLogger(__name__ + ".file")
+_file_logger.addHandler(file_handler)
+_file_logger.propagate = False
+_file_logger.setLevel(logging.DEBUG)
+
 # ---------------------------------------------------------------------------
 # CLI types and errors
 # ---------------------------------------------------------------------------
@@ -317,18 +324,8 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
             # Ensure trailing newline for clean CLI output.
             sys.stdout.write(formatted + ("\n" if not formatted.endswith("\n") else ""))
     except Exception as exc:  # noqa: BLE001
-        # Write full traceback to the log file only; do not echo it to stderr.
-        file_handler.handle(
-            logger.makeRecord(
-                logger.name,
-                logging.ERROR,
-                __file__,
-                0,
-                "Failed to generate schema report.",
-                (),
-                sys.exc_info(),
-            )
-        )
+        # Route full traceback to the log file only; stderr stays clean.
+        _file_logger.exception("Failed to generate schema report.")
         raise CLIError("Report generation failed. Check logs for details.") from exc
 
 

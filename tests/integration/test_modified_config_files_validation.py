@@ -57,22 +57,28 @@ class TestPRAgentConfigChanges:
 
     def test_context_config_version_declared(self, config_data: Dict[str, Any]):
         """
-        Assert that the agent version declared in the parsed PR agent config is "1.0.0".
+        Assert that the agent configuration retains its context/chunking block at v1.0.0.
+
+        This test is distinct from test_version_is_correct: it validates that the
+        ``agent.context`` sub-section is present (i.e., context/chunking settings were
+        intentionally kept) rather than only re-checking the version string.
         """
-        # The pr-agent-config.yml retains its context/chunking settings at v1.0.0;
-        # this test validates the version is declared rather than asserting absence of context config.
         assert "agent" in config_data
-        assert config_data["agent"]["version"] == "1.0.0"
+        assert "context" in config_data["agent"], (
+            "agent.context block should be present in pr-agent-config.yml"
+        )
 
     def test_limits_section_present(self, config_data: Dict[str, Any]):
         """
-        Verify the PR Agent configuration limits section is present.
+        Verify the PR Agent configuration limits section is present and is a non-empty mapping.
 
-        The fallback key is part of the current configuration; this test validates
-        the limits section is accessible.
+        The limits section is required to be a dict with at least one key so that downstream
+        code can safely iterate or look up configuration values.
         """
         limits = config_data.get("limits")
-        assert limits is not None, "limits section should be present in config"
+        assert isinstance(limits, dict) and limits, (
+            "limits section should be a non-empty mapping in config"
+        )
 
     def test_basic_sections_present(self, config_data: Dict[str, Any]):
         """
@@ -247,20 +253,19 @@ class TestRetainedFilesState:
         assert vscode_file.exists(), ".vscode/settings.json is expected to be present"
 
     def test_workflow_files_do_not_reference_retained_scripts(self, repo_root: Path):
-        """Verify that workflow files do not reference scripts that are retained locally but not called from CI."""
+        """Verify that workflow files do not reference context_chunker.py, which is retained locally but not called from CI."""
         workflows_dir = repo_root / ".github" / "workflows"
 
-        scripts_not_invoked_from_ci = [
+        # Only the Python script retained locally but not invoked from any workflow.
+        local_scripts_not_in_ci = [
             "context_chunker.py",
-            "labeler.yml",
-            ".github/scripts/README.md",
         ]
 
-        for workflow_file in workflows_dir.glob("*.yml"):
+        for workflow_file in list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml")):
             with open(workflow_file, "r") as f:
                 content = f.read()
 
-            for script_ref in scripts_not_invoked_from_ci:
+            for script_ref in local_scripts_not_in_ci:
                 assert script_ref not in content, (
                     f"{workflow_file.name} references a script not expected to be called from CI: {script_ref}"
                 )
@@ -400,7 +405,7 @@ class TestCodacyInstructionsChanges:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
-        assert "git remote -v" not in content or "unless really necessary" not in content, (
+        assert "git remote -v" not in content and "unless really necessary" not in content, (
             "Codacy instructions should be simplified"
         )
 

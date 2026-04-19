@@ -100,7 +100,6 @@ class TestWorkflowYAMLValidation:
                 "uv run pytest",
                 "python -m pytest",
                 "run tests",
-                "name: test",
             )
         ), "PR agent workflow missing test execution"
 
