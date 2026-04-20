@@ -178,8 +178,6 @@ class _DatabaseConnectionManager:
     new connections for file-backed databases. Thread-safe for in-memory usage.
     """
 
-    LEGACY_CONNECTION = None
-
     def __init__(self, database_path: str):
         """
         Create a connection manager for the given resolved SQLite database path.
@@ -208,8 +206,6 @@ class _DatabaseConnectionManager:
                         uri=self._database_path.startswith("file:"),
                     )
                     self._memory_connection.row_factory = sqlite3.Row
-                    global _MEMORY_CONNECTION
-                    _MEMORY_CONNECTION = self._memory_connection
                 connection = self._memory_connection
                 if connection is None:
                     raise RuntimeError("Expected an initialized in-memory connection but found None.")
@@ -223,9 +219,6 @@ class _DatabaseConnectionManager:
             uri=self._database_path.startswith("file:"),
         )
         connection.row_factory = sqlite3.Row
-
-        # Backwards-compatible reference
-        _DatabaseConnectionManager.LEGACY_CONNECTION = connection
 
         return connection
 
@@ -248,9 +241,27 @@ def _connect() -> sqlite3.Connection:
     """
     Return a SQLite connection for the configured database path.
 
+    For in-memory databases (as determined by the current ``DATABASE_PATH``) the
+    module-level shared connection is returned, creating it on the first call
+    under a lock.  For file-backed databases ``_db_manager.connect()`` is called,
+    which creates a new connection each time.
+
     Returns:
-        sqlite3.Connection: Connection to DATABASE_PATH — a shared persistent connection for in-memory databases, or a new connection instance for file-backed databases.
+        sqlite3.Connection: A shared persistent connection for in-memory databases,
+        or a new connection instance for file-backed databases.
     """
+    global _MEMORY_CONNECTION
+    if _is_memory_db():
+        with _MEMORY_CONNECTION_LOCK:
+            if _MEMORY_CONNECTION is None:
+                _MEMORY_CONNECTION = sqlite3.connect(
+                    DATABASE_PATH,
+                    detect_types=sqlite3.PARSE_DECLTYPES,
+                    check_same_thread=False,
+                    uri=DATABASE_PATH.startswith("file:"),
+                )
+                _MEMORY_CONNECTION.row_factory = sqlite3.Row
+        return _MEMORY_CONNECTION
     return _db_manager.connect()
 
 
@@ -279,20 +290,14 @@ def _cleanup_memory_connection() -> None:
 
     Closes and clears the cached shared in-memory connection; no action is taken when no shared connection is initialized. This does not affect file-backed connections.
     """
-    _db_manager.close_shared_connection()
+    global _MEMORY_CONNECTION
+    with _MEMORY_CONNECTION_LOCK:
+        if _MEMORY_CONNECTION is not None:
+            _MEMORY_CONNECTION.close()
+            _MEMORY_CONNECTION = None
 
 
-_close_shared_memory_connection = _cleanup_memory_connection
-
-# Ensure cleanup is registered only once even if this module code is
-# duplicated/imported oddly.
-_ATEXIT_DB_CLOSE_REGISTERED = globals().get(
-    "_ATEXIT_DB_CLOSE_REGISTERED",
-    False,
-)
-if not _ATEXIT_DB_CLOSE_REGISTERED:
-    atexit.register(_close_shared_memory_connection)
-    globals()["_ATEXIT_DB_CLOSE_REGISTERED"] = True
+atexit.register(_cleanup_memory_connection)
 
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:

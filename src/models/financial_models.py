@@ -26,6 +26,9 @@ class RegulatoryActivity(Enum):
     BOND_ISSUANCE = "Bond Issuance"
     ACQUISITION = "Acquisition"
     BANKRUPTCY = "Bankruptcy"
+    REGULATORY_FILING = "Regulatory Filing"
+    LEGAL_PROCEEDING = "Legal Proceeding"
+    COMPLIANCE_UPDATE = "Compliance Update"
 
 
 @dataclass
