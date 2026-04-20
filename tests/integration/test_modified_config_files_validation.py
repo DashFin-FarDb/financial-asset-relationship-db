@@ -64,7 +64,11 @@ class TestPRAgentConfigChanges:
         version string.
         """
         assert "agent" in config_data
-        assert "context" in config_data["agent"], "agent.context block should be present in pr-agent-config.yml"
+        context = config_data["agent"].get("context")
+        assert isinstance(context, dict) and context, (
+            "agent.context block should be a non-empty mapping in pr-agent-config.yml"
+        )
+        assert "chunking" in context, "agent.context should include a chunking subsection"
 
     def test_limits_section_present(self, config_data: Dict[str, Any]):
         """

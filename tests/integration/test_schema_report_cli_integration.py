@@ -339,7 +339,7 @@ class TestCLILogging:
         assert result.returncode != 0
 
         log_file = tmp_path / "schema_report_cli.log"
-        if log_file.exists():
-            log_content = log_file.read_text(encoding="utf-8")
-            # We expect at least one error or exception-level record
-            assert "ERROR" in log_content or "CRITICAL" in log_content
+        assert log_file.exists(), "Log file should be created even on error"
+        log_content = log_file.read_text(encoding="utf-8")
+        # We expect at least one error or exception-level record
+        assert "ERROR" in log_content or "CRITICAL" in log_content
