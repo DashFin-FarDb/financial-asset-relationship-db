@@ -319,7 +319,9 @@ def _cleanup_memory_connection() -> None:
     _db_manager.close_shared_connection()
 
 
-atexit.register(_cleanup_memory_connection)
+if not globals().get("_MEMORY_CONNECTION_CLEANUP_REGISTERED", False):
+    atexit.register(_cleanup_memory_connection)
+    _MEMORY_CONNECTION_CLEANUP_REGISTERED = True
 
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:
