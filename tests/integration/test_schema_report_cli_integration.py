@@ -29,12 +29,26 @@ def _cli_path() -> Path:
     return _repo_root() / ".github" / "scripts" / "schema_report_cli.py"
 
 
-def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
+def _run_cli(
+    tmp_path: Path,
+    *args: str,
+    check: bool = True,
+) -> subprocess.CompletedProcess[str]:
     """
-    Run the CLI script via subprocess with a temp log location.
+    Execute the CLI script with SCHEMA_REPORT_LOG redirected to a temporary log file.
 
-    SCHEMA_REPORT_LOG is forced to tmp_path so tests do not write logs
-    into the repository tree.
+    The environment variable SCHEMA_REPORT_LOG is set to a log file named
+    "schema_report_cli.log" inside the provided tmp_path so tests do not write
+    logs into the repository tree.
+
+    Parameters:
+        tmp_path (Path): Directory in which the temporary log file will be created.
+        *args (str): Arguments to pass to the CLI script.
+        check (bool): Whether to ask subprocess.run to raise on non-zero exit.
+
+    Returns:
+        subprocess.CompletedProcess[str]: The completed process containing the
+        exit code, captured stdout, and captured stderr.
     """
     env = os.environ.copy()
     env["SCHEMA_REPORT_LOG"] = str(tmp_path / "schema_report_cli.log")
@@ -45,7 +59,7 @@ def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
         text=True,
         cwd=str(_repo_root()),
         env=env,
-        check=True,
+        check=check,
     )
 
 
@@ -113,6 +127,7 @@ class TestCLIInputValidation:
             tmp_path,
             "--fmt",
             "invalid",
+            check=False,
         )
         # argparse will typically exit with code 2 on invalid choice
         assert result.returncode != 0
@@ -144,6 +159,7 @@ class TestCLIErrorHandling:
             tmp_path,
             "--output",
             "/invalid/path/report.md",
+            check=False,
         )
         assert result.returncode != 0
 
@@ -161,7 +177,7 @@ class TestCLIErrorHandling:
         - Print a user-facing cancellation message
         - Exit with code 130
         """
-        pytest.skip("KeyboardInterrupt behaviour is documented but not exercised " "in this integration test.")
+        pytest.skip("KeyboardInterrupt behaviour is documented but not exercised in this integration test.")
 
     def test_help_message_available(self, tmp_path: Path) -> None:
         """Help message should be available and well-formed."""
@@ -318,11 +334,12 @@ class TestCLILogging:
             tmp_path,
             "--output",
             "/invalid/path/report.md",
+            check=False,
         )
         assert result.returncode != 0
 
         log_file = tmp_path / "schema_report_cli.log"
-        if log_file.exists():
-            log_content = log_file.read_text(encoding="utf-8")
-            # We expect at least one error or exception-level record
-            assert "ERROR" in log_content or "CRITICAL" in log_content
+        assert log_file.exists(), "Log file should be created even on error"
+        log_content = log_file.read_text(encoding="utf-8")
+        # We expect at least one error or exception-level record
+        assert "ERROR" in log_content or "CRITICAL" in log_content
