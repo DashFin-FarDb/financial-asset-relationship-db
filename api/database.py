@@ -317,7 +317,7 @@ def _cleanup_memory_connection() -> None:
     global _MEMORY_CONNECTION
     with _MEMORY_CONNECTION_LOCK:
         module_connection = _MEMORY_CONNECTION
-        manager_connection = getattr(_db_manager, "_shared_connection", None)
+        manager_connection = getattr(_db_manager, "_memory_connection", None)
         _MEMORY_CONNECTION = None
 
     module_close_error: sqlite3.Error | None = None
