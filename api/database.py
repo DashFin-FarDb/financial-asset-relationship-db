@@ -334,9 +334,7 @@ def _cleanup_memory_connection() -> None:
             raise module_close_error
 
 
-if not globals().get("_MEMORY_CONNECTION_CLEANUP_REGISTERED", False):
-    atexit.register(_cleanup_memory_connection)
-    _MEMORY_CONNECTION_CLEANUP_REGISTERED = True
+atexit.register(_cleanup_memory_connection)
 
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:
