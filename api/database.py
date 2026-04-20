@@ -261,7 +261,7 @@ def _connect() -> sqlite3.Connection:
                     uri=DATABASE_PATH.startswith("file:"),
                 )
                 _MEMORY_CONNECTION.row_factory = sqlite3.Row
-        return _MEMORY_CONNECTION
+            return _MEMORY_CONNECTION
     return _db_manager.connect()
 
 
