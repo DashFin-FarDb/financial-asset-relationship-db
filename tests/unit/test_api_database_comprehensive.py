@@ -172,3 +172,234 @@ class TestGetConnection:
             assert conn == mock_conn
 
         mock_conn.close.assert_not_called()
+
+
+class TestDatabaseConnectionManagerLegacyRemoval:
+    """Tests verifying that LEGACY_CONNECTION was removed from _DatabaseConnectionManager."""
+
+    def test_legacy_connection_class_attribute_does_not_exist(self):
+        """LEGACY_CONNECTION class attribute must not exist on the manager after the PR change."""
+        from api.database import _DatabaseConnectionManager
+
+        assert not hasattr(
+            _DatabaseConnectionManager, "LEGACY_CONNECTION"
+        ), "LEGACY_CONNECTION class attribute should have been removed"
+
+    def test_file_connection_does_not_set_legacy_connection(self, tmp_path):
+        """Connecting to a file-backed database must not set any LEGACY_CONNECTION attribute."""
+        import api.database
+        from api.database import _DatabaseConnectionManager
+
+        db_path = str(tmp_path / "test_legacy.db")
+        manager = _DatabaseConnectionManager(db_path)
+        conn = manager.connect()
+        try:
+            assert not hasattr(
+                _DatabaseConnectionManager, "LEGACY_CONNECTION"
+            ), "File connect() must not create LEGACY_CONNECTION"
+            assert not hasattr(
+                manager, "LEGACY_CONNECTION"
+            ), "File connect() must not set LEGACY_CONNECTION on instance"
+        finally:
+            conn.close()
+
+
+class TestConnectModuleLevelCaching:
+    """Tests for the module-level _MEMORY_CONNECTION caching in _connect()."""
+
+    def test_connect_caches_memory_connection_in_module_global(self):
+        """_connect() must store the connection in the module-level _MEMORY_CONNECTION for in-memory DBs."""
+        import api.database
+        from api.database import _DatabaseConnectionManager, _connect
+
+        temp_manager = _DatabaseConnectionManager(":memory:")
+        saved_module_conn = api.database._MEMORY_CONNECTION
+        api.database._MEMORY_CONNECTION = None
+        try:
+            with patch.object(api.database, "_db_manager", temp_manager):
+                with patch.object(api.database, "_is_memory_db", return_value=True):
+                    conn = _connect()
+                    assert api.database._MEMORY_CONNECTION is conn, (
+                        "_MEMORY_CONNECTION global must be set to the returned connection"
+                    )
+        finally:
+            api.database._MEMORY_CONNECTION = saved_module_conn
+            if temp_manager._memory_connection is not None:
+                temp_manager._memory_connection.close()
+                temp_manager._memory_connection = None
+
+    def test_connect_returns_same_memory_connection_on_repeated_calls(self):
+        """Second call to _connect() for in-memory DB must return the cached connection."""
+        import api.database
+        from api.database import _DatabaseConnectionManager, _connect
+
+        temp_manager = _DatabaseConnectionManager(":memory:")
+        saved_module_conn = api.database._MEMORY_CONNECTION
+        api.database._MEMORY_CONNECTION = None
+        try:
+            with patch.object(api.database, "_db_manager", temp_manager):
+                with patch.object(api.database, "_is_memory_db", return_value=True):
+                    conn1 = _connect()
+                    conn2 = _connect()
+                    assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
+        finally:
+            api.database._MEMORY_CONNECTION = saved_module_conn
+            if temp_manager._memory_connection is not None:
+                temp_manager._memory_connection.close()
+                temp_manager._memory_connection = None
+
+    def test_connect_does_not_cache_file_connection(self):
+        """_connect() must not touch _MEMORY_CONNECTION when the DB is file-backed."""
+        import api.database
+        from api.database import _connect
+
+        mock_conn = MagicMock(spec=sqlite3.Connection)
+        mock_manager = MagicMock()
+        mock_manager.connect.return_value = mock_conn
+
+        saved_module_conn = api.database._MEMORY_CONNECTION
+        api.database._MEMORY_CONNECTION = None
+        try:
+            with patch.object(api.database, "_db_manager", mock_manager):
+                with patch.object(api.database, "_is_memory_db", return_value=False):
+                    _connect()
+                    assert api.database._MEMORY_CONNECTION is None, (
+                        "_MEMORY_CONNECTION must remain None for file-backed databases"
+                    )
+        finally:
+            api.database._MEMORY_CONNECTION = saved_module_conn
+
+
+class TestCleanupMemoryConnection:
+    """Tests for the refactored _cleanup_memory_connection() function."""
+
+    def test_cleanup_clears_module_level_memory_connection(self):
+        """_cleanup_memory_connection() must set module-level _MEMORY_CONNECTION to None."""
+        import api.database
+        from api.database import _cleanup_memory_connection
+
+        mock_conn = MagicMock(spec=sqlite3.Connection)
+        saved = api.database._MEMORY_CONNECTION
+        api.database._MEMORY_CONNECTION = mock_conn
+        try:
+            with patch.object(api.database._db_manager, "close_shared_connection"):
+                _cleanup_memory_connection()
+            assert api.database._MEMORY_CONNECTION is None
+        finally:
+            api.database._MEMORY_CONNECTION = saved
+
+    def test_cleanup_closes_module_connection_when_distinct_from_manager(self):
+        """When module and manager hold different connections, the module one must be closed."""
+        import api.database
+        from api.database import _cleanup_memory_connection
+
+        module_conn = MagicMock(spec=sqlite3.Connection)
+        manager_conn = MagicMock(spec=sqlite3.Connection)
+
+        saved = api.database._MEMORY_CONNECTION
+        api.database._MEMORY_CONNECTION = module_conn
+        try:
+            with patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True):
+                with patch.object(api.database._db_manager, "close_shared_connection"):
+                    _cleanup_memory_connection()
+            module_conn.close.assert_called_once()
+        finally:
+            api.database._MEMORY_CONNECTION = saved
+
+    def test_cleanup_does_not_double_close_when_connections_are_same(self):
+        """When module-level and manager connections are identical, only one close must occur."""
+        import api.database
+        from api.database import _cleanup_memory_connection
+
+        shared_conn = MagicMock(spec=sqlite3.Connection)
+
+        saved = api.database._MEMORY_CONNECTION
+        api.database._MEMORY_CONNECTION = shared_conn
+        try:
+            # Patch _memory_connection on the real _db_manager instance
+            original_mc = api.database._db_manager._memory_connection
+            api.database._db_manager._memory_connection = shared_conn
+            try:
+                with patch.object(api.database._db_manager, "close_shared_connection"):
+                    _cleanup_memory_connection()
+                # The module-level branch skips close because they are the same object
+                shared_conn.close.assert_not_called()
+            finally:
+                api.database._db_manager._memory_connection = original_mc
+        finally:
+            api.database._MEMORY_CONNECTION = saved
+
+    def test_cleanup_is_idempotent(self):
+        """Calling _cleanup_memory_connection() multiple times must not raise."""
+        import api.database
+        from api.database import _cleanup_memory_connection
+
+        saved = api.database._MEMORY_CONNECTION
+        api.database._MEMORY_CONNECTION = None
+        try:
+            with patch.object(api.database._db_manager, "close_shared_connection"):
+                _cleanup_memory_connection()
+                _cleanup_memory_connection()
+        finally:
+            api.database._MEMORY_CONNECTION = saved
+
+    def test_cleanup_always_calls_manager_close_shared_connection(self):
+        """_cleanup_memory_connection() must always delegate to the manager's close_shared_connection."""
+        import api.database
+        from api.database import _cleanup_memory_connection
+
+        saved = api.database._MEMORY_CONNECTION
+        api.database._MEMORY_CONNECTION = None
+        try:
+            with patch.object(
+                api.database._db_manager, "close_shared_connection"
+            ) as mock_close:
+                _cleanup_memory_connection()
+            mock_close.assert_called_once()
+        finally:
+            api.database._MEMORY_CONNECTION = saved
+
+    def test_cleanup_propagates_module_connection_close_error(self):
+        """If closing the module-level connection raises, the error must propagate after manager cleanup."""
+        import api.database
+        from api.database import _cleanup_memory_connection
+
+        module_conn = MagicMock(spec=sqlite3.Connection)
+        module_conn.close.side_effect = sqlite3.Error("forced close error")
+        manager_conn = MagicMock(spec=sqlite3.Connection)
+
+        saved = api.database._MEMORY_CONNECTION
+        api.database._MEMORY_CONNECTION = module_conn
+        try:
+            with patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True):
+                with patch.object(api.database._db_manager, "close_shared_connection"):
+                    with pytest.raises(sqlite3.Error, match="forced close error"):
+                        _cleanup_memory_connection()
+        finally:
+            api.database._MEMORY_CONNECTION = saved
+
+
+class TestAtexitRegistration:
+    """Tests related to atexit registration changes."""
+
+    def test_cleanup_memory_connection_is_callable(self):
+        """_cleanup_memory_connection must be a plain callable (no alias wrapping)."""
+        from api.database import _cleanup_memory_connection
+
+        assert callable(_cleanup_memory_connection)
+
+    def test_close_shared_memory_connection_alias_removed(self):
+        """The _close_shared_memory_connection alias must no longer exist in the module."""
+        import api.database
+
+        assert not hasattr(
+            api.database, "_close_shared_memory_connection"
+        ), "_close_shared_memory_connection alias should have been removed"
+
+    def test_atexit_db_close_registered_flag_removed(self):
+        """The _ATEXIT_DB_CLOSE_REGISTERED module-level flag must no longer exist."""
+        import api.database
+
+        assert not hasattr(
+            api.database, "_ATEXIT_DB_CLOSE_REGISTERED"
+        ), "_ATEXIT_DB_CLOSE_REGISTERED guard variable should have been removed"

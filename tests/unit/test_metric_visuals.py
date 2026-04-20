@@ -327,3 +327,110 @@ class TestVisualizeMetrics:
         bar_trace = fig3.data[0]
         assert len(bar_trace.x) == 50, "Should include all 50 events"
         assert len(bar_trace.y) == 50, "Should have 50 impact scores"
+
+    @staticmethod
+    def test_regulatory_events_colors_are_list_type(empty_graph, sample_equity):
+        """Test that the marker colors for regulatory events are stored as a list (not inline generator)."""
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
+
+        empty_graph.add_asset(sample_equity)
+
+        event = RegulatoryEvent(
+            id="COLOR_LIST_EVT",
+            asset_id="TEST_AAPL",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-03-01",
+            description="Color list test",
+            impact_score=0.5,
+            related_assets=[],
+        )
+        empty_graph.add_regulatory_event(event)
+
+        _, _, fig3 = visualize_metrics(empty_graph)
+        bar_trace = fig3.data[0]
+        colors = bar_trace.marker.color
+
+        # The implementation pre-computes a list; it must be subscriptable and have the right length
+        assert isinstance(colors, (list, tuple)), "Colors must be a list or tuple"
+        assert len(colors) == 1, "Should have exactly one color for one event"
+        assert colors[0] == "green", "Positive impact score should yield green"
+
+    @staticmethod
+    def test_regulatory_events_colors_negative_impact_is_red(empty_graph, sample_equity):
+        """Test that a negative impact score produces a red color entry in the pre-computed colors list."""
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
+
+        empty_graph.add_asset(sample_equity)
+
+        event = RegulatoryEvent(
+            id="RED_COLOR_EVT",
+            asset_id="TEST_AAPL",
+            event_type=RegulatoryActivity.LEGAL_PROCEEDING,
+            date="2024-04-01",
+            description="Negative impact event",
+            impact_score=-0.3,
+            related_assets=[],
+        )
+        empty_graph.add_regulatory_event(event)
+
+        _, _, fig3 = visualize_metrics(empty_graph)
+        bar_trace = fig3.data[0]
+        colors = bar_trace.marker.color
+
+        assert isinstance(colors, (list, tuple)), "Colors must be a list or tuple"
+        assert len(colors) == 1, "Should have exactly one color for one event"
+        assert colors[0] == "red", "Negative impact score should yield red"
+
+    @staticmethod
+    def test_regulatory_events_colors_zero_impact_is_red(empty_graph, sample_equity):
+        """Test that zero impact score (not > 0) produces a red color (boundary for color logic)."""
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
+
+        empty_graph.add_asset(sample_equity)
+
+        event = RegulatoryEvent(
+            id="ZERO_COLOR_EVT",
+            asset_id="TEST_AAPL",
+            event_type=RegulatoryActivity.COMPLIANCE_UPDATE,
+            date="2024-05-01",
+            description="Zero impact event",
+            impact_score=0.0,
+            related_assets=[],
+        )
+        empty_graph.add_regulatory_event(event)
+
+        _, _, fig3 = visualize_metrics(empty_graph)
+        bar_trace = fig3.data[0]
+        colors = bar_trace.marker.color
+
+        assert isinstance(colors, (list, tuple)), "Colors must be a list or tuple"
+        assert colors[0] == "red", "Zero impact score (not > 0) should yield red"
+
+    @staticmethod
+    def test_regulatory_events_colors_count_matches_events(empty_graph, sample_equity):
+        """Test that the number of color entries exactly matches the number of events."""
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
+
+        empty_graph.add_asset(sample_equity)
+
+        for i, (score, month) in enumerate([(0.5, "01"), (-0.2, "02"), (0.9, "03"), (-0.8, "04")]):
+            event = RegulatoryEvent(
+                id=f"COLOR_COUNT_EVT_{i}",
+                asset_id="TEST_AAPL",
+                event_type=RegulatoryActivity.EARNINGS_REPORT,
+                date=f"2024-{month}-10",
+                description=f"Color count test event {i}",
+                impact_score=score,
+                related_assets=[],
+            )
+            empty_graph.add_regulatory_event(event)
+
+        _, _, fig3 = visualize_metrics(empty_graph)
+        bar_trace = fig3.data[0]
+        colors = bar_trace.marker.color
+
+        assert len(colors) == 4, "Colors list length must equal the number of events"
+        assert colors[0] == "green"
+        assert colors[1] == "red"
+        assert colors[2] == "green"
+        assert colors[3] == "red"
