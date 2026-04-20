@@ -71,7 +71,7 @@ def _reset_logger_handlers(target_logger: logging.Logger) -> None:
         try:
             handler.close()
         except OSError as exc:
-            logger.debug("Ignoring handler close error during logger reset: %s", exc)
+            target_logger.debug("Ignoring handler close error during logger reset: %s", exc)
 
 
 file_handler = logging.FileHandler(LOG_PATH)
