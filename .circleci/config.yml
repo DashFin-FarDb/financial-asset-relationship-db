@@ -112,7 +112,6 @@ jobs:
           file: coverage.xml
       - store_test_results:
           path: test-results/pytest
-          when: always
       - store_artifacts:
           path: htmlcov
           destination: coverage-report
