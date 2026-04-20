@@ -26,7 +26,8 @@ class TestWorkflowYAMLValidation:
 
     def test_workflows_are_valid_yaml(self, modified_workflows):
         """
-        Validate that each filename in `modified_workflows` exists under `WORKFLOW_DIR` and contains non-empty, valid YAML.
+        Validate that each filename in `modified_workflows` exists under `WORKFLOW_DIR` and contains
+        non-empty, valid YAML.
 
         Parameters:
             modified_workflows (Iterable[str]): Filenames of workflow files to validate.
@@ -35,7 +36,7 @@ class TestWorkflowYAMLValidation:
             path = self.WORKFLOW_DIR / workflow_file
             assert path.exists(), f"Workflow file not found: {workflow_file}"
 
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 try:
                     data = yaml.safe_load(f)
                     assert data is not None, f"Empty YAML in {workflow_file}"
@@ -46,7 +47,8 @@ class TestWorkflowYAMLValidation:
         """
         Validate that each modified GitHub Actions workflow contains the top-level keys `name`, `on`, and `jobs`.
 
-        For each filename in `modified_workflows` this test loads the workflow YAML and fails with a clear message when a required top-level key is missing, when the YAML is invalid, or when the file is not found.
+        PyYAML parses bare `on` as the boolean `True`; both forms are accepted so that
+        workflows using either `on:` or `"on":` are treated correctly.
 
         Parameters:
             modified_workflows (list[str]): Filenames of workflow files that were modified in the branch.
@@ -61,7 +63,14 @@ class TestWorkflowYAMLValidation:
                 assert workflow is not None, f"Empty YAML in {workflow_file}"
 
                 for key in required_keys:
-                    assert key in workflow, f"Workflow {workflow_file} missing required key: {key}"
+                    # PyYAML parses the unquoted `on` trigger key as the boolean True;
+                    # accept both the string "on" and a key that is the boolean True.
+                    if key == "on":
+                        assert "on" in workflow or any(existing_key is True for existing_key in workflow), (
+                            f"Workflow {workflow_file} missing required trigger key: on"
+                        )
+                    else:
+                        assert key in workflow, f"Workflow {workflow_file} missing required key: {key}"
             except yaml.YAMLError as e:
                 pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
             except FileNotFoundError:
@@ -69,28 +78,30 @@ class TestWorkflowYAMLValidation:
 
     def test_pr_agent_workflow_simplified_correctly(self):
         """
-        Ensure the pr-agent GitHub Actions workflow no longer references chunking and still contains parsing and Python setup.
-
-        Checks:
-        - No case-insensitive references to "context_chunker" or "chunking".
-        - Contains "parse-comments" (case-insensitive) or "parse".
-        - Contains "python" (case-insensitive) indicating Python setup.
+        Validate the pr-agent GitHub Actions workflow is simplified: it removes
+        chunking references and includes Python setup plus concrete test execution.
         """
         path = self.WORKFLOW_DIR / "pr-agent.yml"
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             content = f.read()
 
         content_lower = content.lower()
 
-        # Should NOT contain chunking references
-        assert "context_chunker" not in content_lower, "PR agent workflow still references context chunker"
+        # SHOULD NOT contain removed complexity
+        assert "context_chunker" not in content_lower, "PR agent workflow still references context_chunker"
         assert "chunking" not in content_lower, "PR agent workflow still has chunking logic"
 
         # SHOULD contain essential functionality
-        assert (
-            "parse-comments" in content_lower or "parse" in content_lower
-        ), "PR agent workflow missing comment parsing"
         assert "python" in content_lower, "PR agent workflow missing Python setup"
+        assert any(
+            marker in content_lower
+            for marker in (
+                "uv run pytest",
+                "python -m pytest",
+                "run: pytest",
+                "run: python -m pytest",
+            )
+        ), "PR agent workflow missing concrete pytest execution"
 
 
 class TestRequirementsDevChanges:

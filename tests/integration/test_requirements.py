@@ -272,8 +272,17 @@ class TestPackageConsistency:
 
     @staticmethod
     def test_package_names_valid(package_names: List[str]):
-        """Test that package names follow valid naming conventions."""
-        valid_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
+        """
+        Assert that each package name contains only letters, digits, underscores, hyphens, or dots.
+
+        Parameters:
+            package_names (List[str]): Package name strings extracted from the parsed requirements file.
+
+        Raises:
+            AssertionError: If any package name contains characters outside the
+                class `[a-zA-Z0-9_.-]`; the message lists the invalid names.
+        """
+        valid_name_pattern = re.compile(r"^[a-zA-Z0-9_.-]+$")
 
         invalid_names = [pkg for pkg in package_names if not valid_name_pattern.match(pkg)]
         assert len(invalid_names) == 0, f"Invalid package names: {invalid_names}"

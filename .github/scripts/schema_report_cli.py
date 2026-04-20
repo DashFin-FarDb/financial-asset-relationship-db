@@ -60,19 +60,41 @@ except OSError:
     LOG_PATH = Path(tempfile.gettempdir()) / LOG_FILE_NAME
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
+FILE_FORMATTER = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+STREAM_FORMATTER = logging.Formatter("%(levelname)s: %(message)s")
+
+
+def _reset_logger_handlers(target_logger: logging.Logger) -> None:
+    """Close and remove existing handlers so reloads do not duplicate them."""
+    for handler in list(target_logger.handlers):
+        target_logger.removeHandler(handler)
+        try:
+            handler.close()
+        except OSError as exc:
+            target_logger.debug("Ignoring handler close error during logger reset: %s", exc)
+
+
 file_handler = logging.FileHandler(LOG_PATH)
 file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_formatter)
+file_handler.setFormatter(FILE_FORMATTER)
 
 stream_handler = logging.StreamHandler(sys.stderr)
-stream_formatter = logging.Formatter("%(levelname)s: %(message)s")
-stream_handler.setFormatter(stream_formatter)
+stream_handler.setFormatter(STREAM_FORMATTER)
 
 logger = logging.getLogger(__name__)
+_reset_logger_handlers(logger)
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 logger.setLevel(logging.INFO)  # Default; adjusted in main().
+logger.propagate = False
+
+# Dedicated file-only logger: no stream handler, propagate=False.
+# Use this when full tracebacks must land in the log file but must not reach stderr.
+FILE_LOGGER = logging.getLogger(__name__ + ".file")
+_reset_logger_handlers(FILE_LOGGER)
+FILE_LOGGER.addHandler(file_handler)
+FILE_LOGGER.setLevel(logging.DEBUG)
+FILE_LOGGER.propagate = False
 
 # ---------------------------------------------------------------------------
 # CLI types and errors
@@ -110,7 +132,8 @@ def parse_arguments() -> argparse.Namespace:
     """
     Parse command-line arguments for the schema report CLI.
 
-    Parses the --fmt (markdown|text|json), --output/-o (Path or None), and --verbose/-v options and returns the resulting namespace.
+    Parses the --fmt (markdown|text|json), --output/-o (Path or None), and --verbose/-v options
+    and returns the resulting namespace.
 
     Returns:
         argparse.Namespace: Namespace with attributes `fmt` (str), `output` (Path | None), and `verbose` (bool).
@@ -148,7 +171,9 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
     """
     Convert Markdown to a simple plain-text representation.
 
-    Strips common leading Markdown markers from each line (e.g., '#', '-', '*') and preserves line breaks. This is a lightweight transformation and does not perform full Markdown parsing; complex constructs (tables, code fences, nested lists) may not be handled correctly.
+    Strips common leading Markdown markers from each line (e.g., '#', '-', '*') and preserves
+    line breaks. This is a lightweight transformation and does not perform full Markdown parsing;
+    complex constructs (tables, code fences, nested lists) may not be handled correctly.
 
     Parameters:
         markdown (str): Markdown text to convert.
@@ -203,7 +228,8 @@ def parse_output_format(value: str) -> OutputFormat | None:
         value (str): Format name; accepted values are "markdown", "text", or "json".
 
     Returns:
-        OutputFormat | None: The corresponding OutputFormat on success; `None` if the input is invalid (an error message is printed to stderr).
+        OutputFormat | None: The corresponding OutputFormat on success; `None` if the input is
+        invalid (an error message is printed to stderr).
     """
     try:
         output_format = OutputFormat(value)
@@ -222,7 +248,8 @@ def cleanup_partial_output(temp_path: Path | None) -> None:
     """
     Remove a partially written temporary file if one exists.
 
-    If `temp_path` is `None` this function does nothing. If the path exists the file is deleted; errors during removal are suppressed and only logged.
+    If `temp_path` is `None` this function does nothing. If the path exists the file is deleted;
+    errors during removal are suppressed and only logged.
 
     Parameters:
         temp_path (Path | None): Path to the temporary file to remove, or `None` to indicate no file.
@@ -250,7 +277,8 @@ def format_report_content(fmt: OutputFormat, report: str) -> str:
         report (str): Report content in Markdown.
 
     Returns:
-        str: Report formatted for the chosen output (Markdown unchanged, plain text for TEXT, JSON-wrapped string for JSON).
+        str: Report formatted for the chosen output (Markdown unchanged, plain text for TEXT,
+        JSON-wrapped string for JSON).
 
     Raises:
         ValueError: If `fmt` is not a supported OutputFormat.
@@ -268,7 +296,10 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
     """
     Atomically write text data to the given path.
 
-    Ensures the target directory exists, writes `data` to a temporary file in the same directory, flushes and syncs the file to disk, and then atomically replaces the target path with the temporary file. If an error occurs during writing or replacement, any partial temporary file is removed and the original exception is re-raised.
+    Ensures the target directory exists, writes `data` to a temporary file in the same directory,
+    flushes and syncs the file to disk, and then atomically replaces the target path with the
+    temporary file. If an error occurs during writing or replacement, any partial temporary file
+    is removed and the original exception is re-raised.
 
     Parameters:
         path (Path): Destination file path to write.
@@ -317,7 +348,8 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
             # Ensure trailing newline for clean CLI output.
             sys.stdout.write(formatted + ("\n" if not formatted.endswith("\n") else ""))
     except Exception as exc:  # noqa: BLE001
-        logger.exception("Failed to generate schema report.")
+        # Route full traceback to the log file only; stderr stays clean.
+        FILE_LOGGER.exception("Failed to generate schema report.")
         raise CLIError("Report generation failed. Check logs for details.") from exc
 
 
@@ -330,7 +362,9 @@ def main() -> int:
     """
     Execute the CLI: parse arguments, configure logging, generate the schema report, and return an exit code.
 
-    Parses command-line arguments, adjusts logging based on the verbose flag, validates the requested output format, generates and emits or writes the formatted report, and maps common failure modes to user-facing exit codes.
+    Parses command-line arguments, adjusts logging based on the verbose flag, validates the
+    requested output format, generates and emits or writes the formatted report, and maps common
+    failure modes to user-facing exit codes.
 
     Returns:
         int: Exit code — 0 on success; 1 on validation or unexpected errors; 130 if cancelled by the user.
@@ -366,8 +400,9 @@ def main() -> int:
         print("\nOperation cancelled.", file=sys.stderr)
         return 130
 
-    except (IOError, OSError, RuntimeError, TypeError, ValueError):
-        logger.exception("Unexpected error occurred.")
+    except Exception:  # noqa: BLE001
+        # Catch-all safety net: route full traceback to log file only; stderr stays clean.
+        FILE_LOGGER.exception("Unexpected error occurred.")
         print(
             "Error: An unexpected error occurred. " + "Please check the logs for details.",
             file=sys.stderr,

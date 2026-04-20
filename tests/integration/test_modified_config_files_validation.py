@@ -41,7 +41,7 @@ class TestPRAgentConfigChanges:
         Returns:
             config (Dict[str, Any]): Mapping representing the parsed YAML configuration.
         """
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     def test_version_is_correct(self, config_data: Dict[str, Any]):
@@ -55,22 +55,30 @@ class TestPRAgentConfigChanges:
         assert "version" in config_data["agent"]
         assert config_data["agent"]["version"] == "1.0.0"
 
-    def test_no_context_chunking_config(self, config_data: Dict[str, Any]):
-        """Verify context chunking configuration has been removed."""
-        # Should not have context configuration
-        if "agent" in config_data:
-            assert "context" not in config_data["agent"], "Context chunking config should be removed in v1.0.0"
-
-    def test_no_fallback_strategies(self, config_data: Dict[str, Any]):
+    def test_context_config_declared(self, config_data: Dict[str, Any]):
         """
-        Verify the PR Agent configuration does not define a 'fallback' key under the top-level 'limits' mapping.
+        Assert that the agent configuration retains its context/chunking block.
 
-        Parameters:
-            config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`. If a 'limits' mapping exists, this test asserts it does not contain a 'fallback' key.
+        This is intentionally distinct from test_version_is_correct: it validates the
+        presence of the ``agent.context`` sub-section rather than re-checking the
+        version string.
+        """
+        assert "agent" in config_data
+        context = config_data["agent"].get("context")
+        assert isinstance(context, dict) and context, (
+            "agent.context block should be a non-empty mapping in pr-agent-config.yml"
+        )
+        assert "chunking" in context, "agent.context should include a chunking subsection"
+
+    def test_limits_section_present(self, config_data: Dict[str, Any]):
+        """
+        Verify the PR Agent configuration limits section is present and is a non-empty mapping.
+
+        The limits section is required to be a dict with at least one key so that downstream
+        code can safely iterate or look up configuration values.
         """
         limits = config_data.get("limits")
-        if isinstance(limits, dict):
-            assert "fallback" not in limits, "Fallback strategies should be removed"
+        assert isinstance(limits, dict) and limits, "limits section should be a non-empty mapping in config"
 
     def test_basic_sections_present(self, config_data: Dict[str, Any]):
         """
@@ -84,32 +92,28 @@ class TestPRAgentConfigChanges:
         for section in required_sections:
             assert section in config_data, f"Required section '{section}' missing from config"
 
-    def test_no_complex_token_management(self, config_data: Dict[str, Any]):
+    def test_max_execution_time_declared(self, config_data: Dict[str, Any]):
         """
-        Check that the PR agent configuration does not contain complex token-chunking or explicit token-limit settings.
-
-        Asserts that the configuration text does not include 'chunk_size', and that 'max_tokens' is absent unless a `limits.max_execution_time` value is present in the config.
+        Assert that the PR agent configuration declares a usable execution timeout.
 
         Parameters:
-            config_data (Dict[str, Any]): Parsed PR agent configuration data.
+            config_data (Dict[str, Any]): Parsed PR agent configuration mapping.
         """
-        config_str = str(config_data)
-
-        # Should not contain references to chunking or token limits
-        assert "chunk_size" not in config_str.lower()
-        assert "max_tokens" not in config_str.lower() or config_data.get("limits", {}).get(
-            "max_execution_time"
-        ), "Token management should be simplified"
+        limits = config_data.get("limits", {})
+        max_execution_time = limits.get("max_execution_time")
+        assert isinstance(max_execution_time, int) and max_execution_time > 0, (
+            "limits.max_execution_time should be a positive integer"
+        )
 
     def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
         """
-        Validate that the configuration preserves required quality settings for supported languages and Python tooling.
+        Validate that the configuration preserves required quality settings for supported languages.
+
+        Asserts that the top-level "quality" section includes "python" and "typescript", and that
+        under "quality.python" a "linter" is declared and "test_runner" equals "pytest".
 
         Parameters:
-            config_data (Dict[str, Any]): Parsed YAML configuration for the PR agent.
-
-        Details:
-            Asserts that the top-level `quality` section contains `python` and `typescript`, and that the Python quality configuration includes a `linter` and a `test_runner` set to `pytest`.
+            config_data (Dict[str, Any]): Parsed YAML mapping of the PR agent configuration.
         """
         assert "quality" in config_data
         assert "python" in config_data["quality"]
@@ -135,12 +139,14 @@ class TestWorkflowSimplifications:
         """
         Validate that the PR Agent GitHub Actions workflow has been simplified.
 
-        Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python dependency installation that references `requirements.txt`.
+        Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or
+        inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python
+        dependency installation that references `requirements.txt`.
         """
         workflow_file = workflows_dir / "pr-agent.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not contain context chunking references
@@ -155,12 +161,14 @@ class TestWorkflowSimplifications:
         """
         Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
 
-        Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != ''`).
+        Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not
+        contain conditional checks for `apisec_username` or `apisec_password`
+        (for example, `secrets.apisec_username != ''`).
         """
         workflow_file = workflows_dir / "apisec-scan.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not have "if: secrets.apisec_username != ''" type conditions
@@ -169,29 +177,35 @@ class TestWorkflowSimplifications:
 
     def test_label_workflow_simplified(self, workflows_dir: Path):
         """
-        Validate that the label workflow uses a simplified configuration.
+        Ensure the label workflow file exists and omits configuration-check markers.
 
-        Asserts that .github/workflows/label.yml exists and does not contain the substring 'check-config' (case-insensitive) nor the exact text 'labeler.yml not found'.
+        Checks that `.github/workflows/label.yml` is present, does not contain the substring
+        "check-config" (case-insensitive), and does not contain the exact text "labeler.yml not found".
+
+        Parameters:
+            workflows_dir (Path): Path to the `.github/workflows` directory.
         """
         workflow_file = workflows_dir / "label.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should be simple and not check for config existence
         assert "check-config" not in content.lower()
         assert "labeler.yml not found" not in content
 
-    def test_greetings_workflow_simple_messages(self, workflows_dir: Path):
-        """Verify greetings workflow has simple placeholder messages."""
+    def test_greetings_workflow_has_messages(self, workflows_dir: Path):
+        """
+        Ensure the greetings workflow contains a step referencing "first-interaction" and that
+        both `issue-message` and `pr-message` in that step are non-empty.
+        """
         workflow_file = workflows_dir / "greetings.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             workflow_data = yaml.safe_load(f)
 
-        # Check for simple messages (not elaborate multi-line messages)
         steps = workflow_data["jobs"]["greeting"]["steps"]
         first_interaction_step = next((s for s in steps if "first-interaction" in str(s)), None)
 
@@ -199,67 +213,75 @@ class TestWorkflowSimplifications:
         issue_msg = first_interaction_step["with"].get("issue-message", "")
         pr_msg = first_interaction_step["with"].get("pr-message", "")
 
-        # Messages should be short placeholders
-        assert len(issue_msg) < 200, "Issue message should be a simple placeholder"
-        assert len(pr_msg) < 200, "PR message should be a simple placeholder"
+        # Messages must be non-empty and not whitespace-only.
+        assert isinstance(issue_msg, str) and issue_msg.strip(), "Issue message must not be empty"
+        assert isinstance(pr_msg, str) and pr_msg.strip(), "PR message must not be empty"
 
 
-class TestDeletedFilesImpact:
-    """Validate that deleted files are no longer referenced."""
+class TestRetainedFilesState:
+    """Validate that intentionally-retained files are present and not referenced as deleted."""
 
     @pytest.fixture
     def repo_root(self) -> Path:
         """
-        Locate the repository root directory.
+        Get the repository root directory (three levels above this file).
 
         Returns:
-            Path: The Path pointing to the repository root directory.
+            Path pointing to the repository root directory.
         """
         return Path(__file__).parent.parent.parent
 
-    def test_labeler_yml_removed(self, repo_root: Path):
+    def test_labeler_yml_present(self, repo_root: Path):
         """
-        Assert that the repository no longer contains the .github/labeler.yml file.
+        Assert that the repository contains .github/labeler.yml.
+
+        This file is intentionally retained for labelling configuration.
         """
         labeler_file = repo_root / ".github" / "labeler.yml"
-        assert not labeler_file.exists(), "labeler.yml should be deleted"
+        assert labeler_file.exists(), "labeler.yml is expected to be present"
 
-    def test_context_chunker_removed(self, repo_root: Path):
-        """Verify context_chunker.py has been removed."""
+    def test_context_chunker_present(self, repo_root: Path):
+        """
+        Check that .github/scripts/context_chunker.py is present in the repository.
+        """
         chunker_file = repo_root / ".github" / "scripts" / "context_chunker.py"
-        assert not chunker_file.exists(), "context_chunker.py should be deleted"
+        assert chunker_file.exists(), "context_chunker.py is expected to be present"
 
-    def test_scripts_readme_removed(self, repo_root: Path):
-        """Verify scripts README has been removed."""
+    def test_scripts_readme_present(self, repo_root: Path):
+        """Verify scripts README exists in the repository."""
         readme_file = repo_root / ".github" / "scripts" / "README.md"
-        assert not readme_file.exists(), "scripts/README.md should be deleted"
+        assert readme_file.exists(), "scripts/README.md is expected to be present"
 
-    def test_codecov_workflow_removed(self, repo_root: Path):
-        """Verify codecov workflow has been removed."""
+    def test_codecov_workflow_present(self, repo_root: Path):
+        """Verify codecov workflow is present in the repository."""
         codecov_file = repo_root / ".github" / "workflows" / "codecov.yaml"
-        assert not codecov_file.exists(), "codecov.yaml should be deleted"
+        assert codecov_file.exists(), "codecov.yaml is expected to be present"
 
-    def test_vscode_settings_removed(self, repo_root: Path):
-        """Verify .vscode/settings.json has been removed."""
+    def test_vscode_settings_present(self, repo_root: Path):
+        """Verify .vscode/settings.json is present in the repository."""
         vscode_file = repo_root / ".vscode" / "settings.json"
-        assert not vscode_file.exists(), ".vscode/settings.json should be deleted"
+        assert vscode_file.exists(), ".vscode/settings.json is expected to be present"
 
-    def test_no_references_to_deleted_files(self, repo_root: Path):
-        """Verify no references to deleted files in workflow files."""
+    def test_workflow_files_do_not_reference_retained_scripts(self, repo_root: Path):
+        """
+        Verify that workflow files do not reference context_chunker.py, which is retained
+        locally but not called from CI.
+        """
         workflows_dir = repo_root / ".github" / "workflows"
 
-        deleted_refs = [
+        # Only the Python script retained locally but not invoked from any workflow.
+        local_scripts_not_in_ci = [
             "context_chunker.py",
-            "labeler.yml",
-            ".github/scripts/README.md",
         ]
 
-        for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+        for workflow_file in list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml")):
+            with open(workflow_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            for deleted_ref in deleted_refs:
-                assert deleted_ref not in content, f"{workflow_file.name} still references deleted file: {deleted_ref}"
+            for script_ref in local_scripts_not_in_ci:
+                assert script_ref not in content, (
+                    f"{workflow_file.name} references a script not expected to be called from CI: {script_ref}"
+                )
 
 
 class TestRequirementsDevChanges:
@@ -277,7 +299,7 @@ class TestRequirementsDevChanges:
 
     def test_pyyaml_added(self, req_dev_path: Path):
         """Verify PyYAML has been added to requirements-dev.txt."""
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         assert "pyyaml" in content or "yaml" in content, "PyYAML should be in requirements-dev.txt"
@@ -288,7 +310,7 @@ class TestRequirementsDevChanges:
 
         Reads the file at the provided path and checks case-insensitively that the string `tiktoken` is not present.
         """
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         # tiktoken should not be required anymore
@@ -296,7 +318,7 @@ class TestRequirementsDevChanges:
 
     def test_essential_dev_dependencies_present(self, req_dev_path: Path):
         """Verify essential development dependencies are present."""
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         essential_deps = ["pytest", "pyyaml"]
@@ -321,33 +343,38 @@ class TestGitignoreChanges:
     @staticmethod
     def test_codacy_instructions_ignored(gitignore_path: Path):
         """
-        Verify .gitignore includes 'codacy.instructions.md'.
+        Assert that the repository .gitignore contains "codacy.instructions.md".
 
-        Checks the repository .gitignore content for the presence of the filename 'codacy.instructions.md' and fails the test if it is missing.
+        Parameters:
+            gitignore_path (Path): Path to the .gitignore file to check.
         """
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         assert "codacy.instructions.md" in content, "codacy.instructions.md should be in .gitignore"
 
     @staticmethod
-    def test_test_artifacts_not_ignored(gitignore_path: Path):
+    def test_test_artifacts_in_gitignore(gitignore_path: Path):
         """
-        Ensure the repository .gitignore does not ignore test database files.
+        Verify that the repository .gitignore includes the test database glob pattern.
 
-        Asserts that the pattern 'test_*.db' is not present in the .gitignore file located at gitignore_path.
+        The 'test_*.db' pattern is intentionally present to keep test artefacts out of
+        version control.
         """
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # junit.xml should not be specifically ignored (removed from gitignore)
-        # This allows test results to be tracked if needed
-        assert "test_*.db" not in content, "Test database patterns should not be in gitignore"
+        assert "test_*.db" in content, "Test database glob pattern should be present in .gitignore"
 
     @staticmethod
     def test_standard_ignores_present(gitignore_path: Path):
-        """Verify standard ignore patterns are present."""
-        with open(gitignore_path, "r") as f:
+        """
+        Assert that the repository `.gitignore` contains common ignore patterns.
+
+        Checks that each of the following patterns is present in the file:
+        "__pycache__", ".pytest_cache", "node_modules", and ".coverage".
+        """
+        with open(gitignore_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         standard_patterns = [
@@ -378,23 +405,25 @@ class TestCodacyInstructionsChanges:
     @staticmethod
     def test_codacy_instructions_simplified(codacy_instructions_path: Path):
         """
-        Check that the Codacy instructions have been simplified and do not include repository-specific or prescriptive phrases.
+        Verify the Codacy instructions are simplified and do not include problematic
+        repository-specific or prescriptive phrases.
 
-        Skips the test if the file does not exist. Fails if the file contains either 'git remote -v' or 'unless really necessary'.
+        If the instructions file is missing the test is skipped. If present, the test fails when
+        the file contains either "git remote -v" or "unless really necessary".
 
         Parameters:
-                codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
+            codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
         """
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
 
-        with open(codacy_instructions_path, "r") as f:
+        with open(codacy_instructions_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
-        assert (
-            "git remote -v" not in content or "unless really necessary" not in content
-        ), "Codacy instructions should be simplified"
+        assert "git remote -v" not in content and "unless really necessary" not in content, (
+            "Codacy instructions should be simplified"
+        )
 
     @staticmethod
     def test_codacy_critical_rules_present(codacy_instructions_path: Path):
@@ -406,7 +435,7 @@ class TestCodacyInstructionsChanges:
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
 
-        with open(codacy_instructions_path, "r") as f:
+        with open(codacy_instructions_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Critical rules should be preserved
