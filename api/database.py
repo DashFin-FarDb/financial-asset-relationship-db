@@ -194,9 +194,15 @@ class _DatabaseConnectionManager:
         """
         Create a connection manager for the given resolved SQLite database path.
 
+        The manager owns connection creation and lifecycle for both in-memory and
+        file-backed databases. For shared-connection behaviour (i.e. in-memory
+        databases), callers should use the module-level ``_connect()`` function,
+        which caches the connection returned by this manager and ensures a single
+        shared instance is used across all callers.
+
         Parameters:
-            database_path (str): Resolved SQLite path that determines connection strategy — a
-                filesystem path, the literal ":memory:", or a URI-style memory path (e.g.
+            database_path (str): Resolved SQLite path — a filesystem path, the
+                literal ":memory:", or a URI-style memory path (e.g.
                 "file::memory:?cache=shared").
         """
         self._database_path = database_path
@@ -260,8 +266,9 @@ def _connect() -> sqlite3.Connection:
 
     For in-memory databases (as determined by the current ``DATABASE_PATH``) the
     module-level shared connection is returned, creating it on the first call
-    under a lock.  For file-backed databases ``_db_manager.connect()`` is called,
-    which creates a new connection each time.
+    under a lock by delegating to ``_db_manager.connect()``.  For file-backed
+    databases ``_db_manager.connect()`` is called directly, which creates a new
+    connection each time.
 
     Returns:
         sqlite3.Connection: A shared persistent connection for in-memory databases,
@@ -271,13 +278,7 @@ def _connect() -> sqlite3.Connection:
     if _is_memory_db():
         with _MEMORY_CONNECTION_LOCK:
             if _MEMORY_CONNECTION is None:
-                _MEMORY_CONNECTION = sqlite3.connect(
-                    DATABASE_PATH,
-                    detect_types=sqlite3.PARSE_DECLTYPES,
-                    check_same_thread=False,
-                    uri=DATABASE_PATH.startswith("file:"),
-                )
-                _MEMORY_CONNECTION.row_factory = sqlite3.Row
+                _MEMORY_CONNECTION = _db_manager.connect()
             return _MEMORY_CONNECTION
     return _db_manager.connect()
 
