@@ -259,8 +259,10 @@ class TestRetainedFilesState:
         assert vscode_file.exists(), ".vscode/settings.json is expected to be present"
 
     def test_workflow_files_do_not_reference_retained_scripts(self, repo_root: Path):
-        """Verify that workflow files do not reference context_chunker.py, which is retained
-        locally but not called from CI."""
+        """
+        Verify that workflow files do not reference context_chunker.py, which is retained
+        locally but not called from CI.
+        """
         workflows_dir = repo_root / ".github" / "workflows"
 
         # Only the Python script retained locally but not invoked from any workflow.
