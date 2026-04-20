@@ -305,16 +305,18 @@ def get_connection() -> Iterator[sqlite3.Connection]:
 
 def _cleanup_memory_connection() -> None:
     """
-    Close the module's shared in-memory SQLite connection if one exists.
+    Close any shared in-memory SQLite connections cached by this module.
 
-    Closes and clears the cached shared in-memory connection; no action is taken when no
-    shared connection is initialized. This does not affect file-backed connections.
+    Closes and clears the module-level shared in-memory connection and also asks the database
+    manager to close its own shared in-memory connection, if present. Safe to call multiple times.
     """
     global _MEMORY_CONNECTION
     with _MEMORY_CONNECTION_LOCK:
         if _MEMORY_CONNECTION is not None:
             _MEMORY_CONNECTION.close()
             _MEMORY_CONNECTION = None
+
+    _db_manager.close_shared_connection()
 
 
 atexit.register(_cleanup_memory_connection)
