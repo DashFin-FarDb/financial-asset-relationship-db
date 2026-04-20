@@ -98,6 +98,7 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
     names = [f"{e.asset_id}: {e.event_type.value}" for e in sorted_events]
     impacts = [e.impact_score for e in sorted_events]
     fig = go.Figure()
+    colors = ["green" if x > 0 else "red" for x in impacts]
     fig.add_trace(
         go.Bar(
             x=dates,
@@ -105,7 +106,7 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
             name="Impact Score",
             text=names,
             textposition="outside",
-            marker_color=["green" if x > 0 else "red" for x in impacts],
+            marker_color=colors,
         )
     )
     _apply_regulatory_events_layout(fig)

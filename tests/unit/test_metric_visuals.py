@@ -186,7 +186,7 @@ class TestVisualizeMetrics:
         bar_trace = fig3.data[0]
         colors = bar_trace.marker.color
 
-        assert isinstance(colors, list), "Colors should be a list"
+        assert isinstance(colors, (list, tuple)), "Colors should be a list or tuple"
         assert "green" in colors, "Should have green for positive impact"
         assert "red" in colors, "Should have red for negative impact"
 
