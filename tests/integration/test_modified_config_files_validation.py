@@ -41,7 +41,7 @@ class TestPRAgentConfigChanges:
         Returns:
             config (Dict[str, Any]): Mapping representing the parsed YAML configuration.
         """
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     def test_version_is_correct(self, config_data: Dict[str, Any]):
@@ -105,7 +105,8 @@ class TestPRAgentConfigChanges:
         """
         Validate that the configuration preserves required quality settings for supported languages.
 
-        Asserts that the top-level "quality" section includes "python" and "typescript", and that under "quality.python" a "linter" is declared and "test_runner" equals "pytest".
+        Asserts that the top-level "quality" section includes "python" and "typescript", and that
+        under "quality.python" a "linter" is declared and "test_runner" equals "pytest".
 
         Parameters:
             config_data (Dict[str, Any]): Parsed YAML mapping of the PR agent configuration.
@@ -134,12 +135,14 @@ class TestWorkflowSimplifications:
         """
         Validate that the PR Agent GitHub Actions workflow has been simplified.
 
-        Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python dependency installation that references `requirements.txt`.
+        Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or
+        inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python
+        dependency installation that references `requirements.txt`.
         """
         workflow_file = workflows_dir / "pr-agent.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not contain context chunking references
@@ -154,12 +157,14 @@ class TestWorkflowSimplifications:
         """
         Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
 
-        Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != ''`).
+        Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not
+        contain conditional checks for `apisec_username` or `apisec_password`
+        (for example, `secrets.apisec_username != ''`).
         """
         workflow_file = workflows_dir / "apisec-scan.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not have "if: secrets.apisec_username != ''" type conditions
@@ -170,7 +175,8 @@ class TestWorkflowSimplifications:
         """
         Ensure the label workflow file exists and omits configuration-check markers.
 
-        Checks that `.github/workflows/label.yml` is present, does not contain the substring "check-config" (case-insensitive), and does not contain the exact text "labeler.yml not found".
+        Checks that `.github/workflows/label.yml` is present, does not contain the substring
+        "check-config" (case-insensitive), and does not contain the exact text "labeler.yml not found".
 
         Parameters:
             workflows_dir (Path): Path to the `.github/workflows` directory.
@@ -178,7 +184,7 @@ class TestWorkflowSimplifications:
         workflow_file = workflows_dir / "label.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should be simple and not check for config existence
@@ -187,12 +193,13 @@ class TestWorkflowSimplifications:
 
     def test_greetings_workflow_has_messages(self, workflows_dir: Path):
         """
-        Ensure the greetings workflow contains a step referencing "first-interaction" and that both `issue-message` and `pr-message` in that step are non-empty.
+        Ensure the greetings workflow contains a step referencing "first-interaction" and that
+        both `issue-message` and `pr-message` in that step are non-empty.
         """
         workflow_file = workflows_dir / "greetings.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             workflow_data = yaml.safe_load(f)
 
         steps = workflow_data["jobs"]["greeting"]["steps"]
@@ -252,7 +259,8 @@ class TestRetainedFilesState:
         assert vscode_file.exists(), ".vscode/settings.json is expected to be present"
 
     def test_workflow_files_do_not_reference_retained_scripts(self, repo_root: Path):
-        """Verify that workflow files do not reference context_chunker.py, which is retained locally but not called from CI."""
+        """Verify that workflow files do not reference context_chunker.py, which is retained
+        locally but not called from CI."""
         workflows_dir = repo_root / ".github" / "workflows"
 
         # Only the Python script retained locally but not invoked from any workflow.
@@ -261,7 +269,7 @@ class TestRetainedFilesState:
         ]
 
         for workflow_file in list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml")):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             for script_ref in local_scripts_not_in_ci:
@@ -285,7 +293,7 @@ class TestRequirementsDevChanges:
 
     def test_pyyaml_added(self, req_dev_path: Path):
         """Verify PyYAML has been added to requirements-dev.txt."""
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         assert "pyyaml" in content or "yaml" in content, "PyYAML should be in requirements-dev.txt"
@@ -296,7 +304,7 @@ class TestRequirementsDevChanges:
 
         Reads the file at the provided path and checks case-insensitively that the string `tiktoken` is not present.
         """
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         # tiktoken should not be required anymore
@@ -304,7 +312,7 @@ class TestRequirementsDevChanges:
 
     def test_essential_dev_dependencies_present(self, req_dev_path: Path):
         """Verify essential development dependencies are present."""
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         essential_deps = ["pytest", "pyyaml"]
@@ -334,7 +342,7 @@ class TestGitignoreChanges:
         Parameters:
             gitignore_path (Path): Path to the .gitignore file to check.
         """
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         assert "codacy.instructions.md" in content, "codacy.instructions.md should be in .gitignore"
@@ -347,7 +355,7 @@ class TestGitignoreChanges:
         The 'test_*.db' pattern is intentionally present to keep test artefacts out of
         version control.
         """
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         assert "test_*.db" in content, "Test database glob pattern should be present in .gitignore"
@@ -357,9 +365,10 @@ class TestGitignoreChanges:
         """
         Assert that the repository `.gitignore` contains common ignore patterns.
 
-        Checks that each of the following patterns is present in the file: "__pycache__", ".pytest_cache", "node_modules", and ".coverage".
+        Checks that each of the following patterns is present in the file:
+        "__pycache__", ".pytest_cache", "node_modules", and ".coverage".
         """
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         standard_patterns = [
@@ -390,9 +399,11 @@ class TestCodacyInstructionsChanges:
     @staticmethod
     def test_codacy_instructions_simplified(codacy_instructions_path: Path):
         """
-        Verify the Codacy instructions are simplified and do not include problematic repository-specific or prescriptive phrases.
+        Verify the Codacy instructions are simplified and do not include problematic
+        repository-specific or prescriptive phrases.
 
-        If the instructions file is missing the test is skipped. If present, the test fails when the file contains either "git remote -v" or "unless really necessary".
+        If the instructions file is missing the test is skipped. If present, the test fails when
+        the file contains either "git remote -v" or "unless really necessary".
 
         Parameters:
             codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
@@ -400,7 +411,7 @@ class TestCodacyInstructionsChanges:
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
 
-        with open(codacy_instructions_path, "r") as f:
+        with open(codacy_instructions_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
@@ -418,7 +429,7 @@ class TestCodacyInstructionsChanges:
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
 
-        with open(codacy_instructions_path, "r") as f:
+        with open(codacy_instructions_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Critical rules should be preserved

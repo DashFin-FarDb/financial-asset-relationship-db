@@ -26,7 +26,8 @@ class TestWorkflowYAMLValidation:
 
     def test_workflows_are_valid_yaml(self, modified_workflows):
         """
-        Validate that each filename in `modified_workflows` exists under `WORKFLOW_DIR` and contains non-empty, valid YAML.
+        Validate that each filename in `modified_workflows` exists under `WORKFLOW_DIR` and contains
+        non-empty, valid YAML.
 
         Parameters:
             modified_workflows (Iterable[str]): Filenames of workflow files to validate.
@@ -35,7 +36,7 @@ class TestWorkflowYAMLValidation:
             path = self.WORKFLOW_DIR / workflow_file
             assert path.exists(), f"Workflow file not found: {workflow_file}"
 
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 try:
                     data = yaml.safe_load(f)
                     assert data is not None, f"Empty YAML in {workflow_file}"
@@ -81,7 +82,7 @@ class TestWorkflowYAMLValidation:
         chunking references and includes Python setup plus concrete test execution.
         """
         path = self.WORKFLOW_DIR / "pr-agent.yml"
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             content = f.read()
 
         content_lower = content.lower()
