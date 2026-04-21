@@ -64,7 +64,7 @@ def _resolve_uri_style_memory_path(
 ) -> str | None:
     """
     Return a URI-style SQLite in-memory path extracted from a URL path component.
-    
+
     If `path` represents a URI-style in-memory database (after removing leading
     slashes and beginning with `file:` and containing `:memory:`), return the
     normalized URI string. If `query` is non-empty, append it prefixed with `?`.
@@ -74,7 +74,7 @@ def _resolve_uri_style_memory_path(
             `file:` URI indicating an in-memory database.
         query (str): Raw query string (without a leading '?') to append when
             present.
-    
+
     Returns:
         str | None: The normalized URI-style memory path with `?{query}` appended
             if `query` is non-empty, or `None` if `path` is not a URI-style memory
@@ -114,17 +114,17 @@ def _resolve_file_path(path: str) -> str:
 def _resolve_sqlite_path(url: str) -> str:
     """
     Resolve a SQLite URL to a filesystem path or in-memory indicator.
-    
+
     Accept SQLite URLs with schemes like `sqlite:///relative.db`,
     `sqlite:////absolute/path.db`, and `sqlite:///:memory:`.
     Percent-encodings in the URL path are decoded before resolution.
     For in-memory URLs (`:memory:` or `/:memory:`), return the literal string
     `":memory:"`. URI-style memory databases like
     `sqlite:///file::memory:?cache=shared` are returned as-is.
-    
+
     Parameters:
         url (str): SQLite URL to resolve.
-    
+
     Returns:
         str: Filesystem path for file-based URLs, the literal string `":memory:"`
             for standard in-memory databases, or the original URI-style memory path.
@@ -387,9 +387,9 @@ atexit.register(_cleanup_memory_connection)
 def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
     Execute a SQL write statement and commit the transaction.
-    
+
     Use the module's managed SQLite connection.
-    
+
     Parameters:
         query (str): SQL statement to execute.
         parameters (tuple | list | None): Sequence of values to bind to the
