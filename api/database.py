@@ -267,13 +267,26 @@ def _close_memory_connection_cache() -> None:
     manager = _MEMORY_CONNECTION_MANAGER
     connection = _MEMORY_CONNECTION
 
-    if manager is not None:
-        manager.close_shared_connection()
-    elif connection is not None:
-        connection.close()
-
     _MEMORY_CONNECTION = None
     _MEMORY_CONNECTION_MANAGER = None
+
+    errors: list[sqlite3.Error] = []
+
+    manager_connection = getattr(manager, "_memory_connection", None)
+    if manager is not None:
+        try:
+            manager.close_shared_connection()
+        except sqlite3.Error as exc:
+            errors.append(exc)
+
+    if connection is not None and connection is not manager_connection:
+        try:
+            connection.close()
+        except sqlite3.Error as exc:
+            errors.append(exc)
+
+    if errors:
+        raise errors[0]
 
 
 def _connect() -> sqlite3.Connection:
@@ -358,33 +371,35 @@ def _cleanup_memory_connection() -> None:
 
     Clear the module-level shared in-memory connection reference, close that
     connection when it is distinct from the database manager's cached shared
-    connection, and ask the database manager to close its own shared
-    connection, if present. This avoids double-closing when both caches
-    reference the same SQLite connection. Safe to call multiple times.
+    connection, and close the manager's own shared connection, if present.
+    This avoids double-closing when both caches reference the same SQLite
+    connection. Safe to call multiple times.
     """
     global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
+
+    errors: list[sqlite3.Error] = []
     with _MEMORY_CONNECTION_LOCK:
         module_connection = _MEMORY_CONNECTION
-        manager_connection = getattr(_db_manager, "_memory_connection", None)
+        manager = _MEMORY_CONNECTION_MANAGER or _db_manager
+        manager_connection = getattr(manager, "_memory_connection", None)
+
         _MEMORY_CONNECTION = None
         _MEMORY_CONNECTION_MANAGER = None
 
-    errors: list[sqlite3.Error] = []
+        if module_connection is not None and module_connection is not manager_connection:
+            try:
+                module_connection.close()
+            except sqlite3.Error as exc:
+                errors.append(exc)
 
-    if module_connection is not None and module_connection is not manager_connection:
-        try:
-            module_connection.close()
-        except sqlite3.Error as exc:
-            errors.append(exc)
-
-    try:
-        _db_manager.close_shared_connection()
-    except sqlite3.Error as exc:
-        errors.append(exc)
+        if manager_connection is not None:
+            try:
+                manager.close_shared_connection()
+            except sqlite3.Error as exc:
+                errors.append(exc)
 
     if errors:
         raise errors[0]
-
 
 atexit.register(_cleanup_memory_connection)
 
