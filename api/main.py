@@ -21,6 +21,13 @@ from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
+# Backward compatibility re-exports for response models
+from .api_models import (  # noqa: F401
+    AssetResponse,
+    MetricsResponse,
+    RelationshipResponse,
+    VisualizationDataResponse,
+)
 from .auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
@@ -35,6 +42,11 @@ from .graph_lifecycle import get_graph as _get_graph
 from .graph_lifecycle import reset_graph as _reset_graph
 from .graph_lifecycle import set_graph as _set_graph
 from .graph_lifecycle import set_graph_factory as _set_graph_factory
+# Backward compatibility re-exports for helper functions
+from .router_helpers import (  # noqa: F401
+    raise_asset_not_found,
+    serialize_asset,
+)
 from .routers.assets import router as assets_router
 from .routers.metrics import router as metrics_router
 from .routers.relationships import router as relationships_router
