@@ -42,9 +42,7 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
         g = get_graph()
         if asset_id not in g.assets:
             raise_asset_not_found(asset_id)
-        return AssetResponse(
-            **serialize_asset(g.assets[asset_id], include_issuer=True)
-        )
+        return AssetResponse(**serialize_asset(g.assets[asset_id], include_issuer=True))
     except HTTPException:
         raise
     except Exception as e:
