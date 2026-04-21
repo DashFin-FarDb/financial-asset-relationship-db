@@ -63,21 +63,22 @@ def _resolve_uri_style_memory_path(
     query: str,
 ) -> str | None:
     """
-    Detects and returns a URI-style SQLite in-memory path (e.g. "file::memory:") extracted
-    from a URL path component.
-
-    If `path` represents a URI-style in-memory database (after removing leading slashes and
-    beginning with `file:` and containing `:memory:`), returns the normalized URI string; if
-    `query` is non-empty it is appended prefixed with `?`.
+    Return a URI-style SQLite in-memory path extracted from a URL path component.
+    
+    If `path` represents a URI-style in-memory database (after removing leading
+    slashes and beginning with `file:` and containing `:memory:`), return the
+    normalized URI string. If `query` is non-empty, append it prefixed with `?`.
 
     Parameters:
-        path (str): URL path component that may include leading slashes and a `file:` URI
-            indicating an in-memory database.
-        query (str): Raw query string (without a leading '?') to append when present.
-
+        path (str): URL path component that may include leading slashes and a
+            `file:` URI indicating an in-memory database.
+        query (str): Raw query string (without a leading '?') to append when
+            present.
+    
     Returns:
-        str | None: The normalized URI-style memory path with `?{query}` appended if `query` is
-            non-empty, or `None` if `path` is not a URI-style memory database.
+        str | None: The normalized URI-style memory path with `?{query}` appended
+            if `query` is non-empty, or `None` if `path` is not a URI-style memory
+            database.
     """
     if not path.lstrip("/").startswith("file:") or ":memory:" not in path:
         return None
@@ -112,24 +113,21 @@ def _resolve_file_path(path: str) -> str:
 
 def _resolve_sqlite_path(url: str) -> str:
     """
-    Resolve a SQLite URL to either a filesystem path or the special
-    in-memory indicator.
-
-    Accepts SQLite URLs with schemes like `sqlite:///relative.db`,
+    Resolve a SQLite URL to a filesystem path or in-memory indicator.
+    
+    Accept SQLite URLs with schemes like `sqlite:///relative.db`,
     `sqlite:////absolute/path.db`, and `sqlite:///:memory:`.
     Percent-encodings in the URL path are decoded before resolution.
-    For in-memory URLs (`:memory:` or `/:memory:`)
-    the literal string `":memory:"` is returned.
-    URI-style memory databases like `sqlite:///file::memory:?cache=shared`
-    are returned as-is.
-
+    For in-memory URLs (`:memory:` or `/:memory:`), return the literal string
+    `":memory:"`. URI-style memory databases like
+    `sqlite:///file::memory:?cache=shared` are returned as-is.
+    
     Parameters:
         url (str): SQLite URL to resolve.
-
+    
     Returns:
-        str: Filesystem path for file-based URLs,
-             or the literal string `":memory:"` for in-memory databases,
-             or the original path for URI-style memory databases.
+        str: Filesystem path for file-based URLs, the literal string `":memory:"`
+            for standard in-memory databases, or the original URI-style memory path.
     """
     parsed = urlparse(url)
     if parsed.scheme != "sqlite":
@@ -388,14 +386,14 @@ atexit.register(_cleanup_memory_connection)
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
-    Execute a SQL write statement and commit the transaction using the module's
-    managed SQLite connection.
-
+    Execute a SQL write statement and commit the transaction.
+    
+    Use the module's managed SQLite connection.
+    
     Parameters:
         query (str): SQL statement to execute.
-        parameters (tuple | list | None): Sequence of values to bind to
-            the statement;
-            use `None` or an empty sequence if there are no parameters.
+        parameters (tuple | list | None): Sequence of values to bind to the
+            statement; use `None` or an empty sequence if there are no parameters.
     """
     with get_connection() as connection:
         connection.execute(query, parameters or ())
