@@ -364,19 +364,19 @@ class TestRegulatoryActivityNewValues:
 
     @staticmethod
     def test_regulatory_activity_includes_compatibility_members():
-    """RegulatoryActivity should expose compatibility members used by tests."""
-    assert RegulatoryActivity.REGULATORY_FILING.value == "Regulatory Filing"
-    assert RegulatoryActivity.LEGAL_PROCEEDING.value == "Legal Proceeding"
-    assert RegulatoryActivity.COMPLIANCE_UPDATE.value == "Compliance Update"
-
-    expected_members = {
-        "SEC_FILING",
-        "EARNINGS_REPORT",
-        "MERGER_ACQUISITION",
-        "DIVIDEND_ANNOUNCEMENT",
-        "REGULATORY_CHANGE",
-        "REGULATORY_FILING",
-        "LEGAL_PROCEEDING",
-        "COMPLIANCE_UPDATE",
-    }
-    assert expected_members.issubset(RegulatoryActivity.__members__)
+        """RegulatoryActivity should expose compatibility members used by tests."""
+        assert RegulatoryActivity.REGULATORY_FILING.value == "Regulatory Filing"
+        assert RegulatoryActivity.LEGAL_PROCEEDING.value == "Legal Proceeding"
+        assert RegulatoryActivity.COMPLIANCE_UPDATE.value == "Compliance Update"
+    
+        expected_members = {
+            "SEC_FILING",
+            "EARNINGS_REPORT",
+            "MERGER_ACQUISITION",
+            "DIVIDEND_ANNOUNCEMENT",
+            "REGULATORY_CHANGE",
+            "REGULATORY_FILING",
+            "LEGAL_PROCEEDING",
+            "COMPLIANCE_UPDATE",
+        }
+        assert expected_members.issubset(RegulatoryActivity.__members__)
