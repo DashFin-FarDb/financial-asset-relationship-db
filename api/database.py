@@ -265,21 +265,12 @@ _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
 _DB_MANAGER_PATH: str = DATABASE_PATH
 
 
-def _connect() -> sqlite3.Connection:
-    """
-    Return a SQLite connection for the configured database path.
-
-    For in-memory databases (as determined by the current ``DATABASE_PATH``) the
-    module-level shared connection is returned, creating it on the first call
-    under a lock by delegating to ``_db_manager.connect()``.
-
-    If ``DATABASE_PATH`` has been changed since ``_db_manager`` was last built
 def _close_memory_connection_cache() -> None:
-    """Close and clear the cached shared in -memory connection, if present."""
+    """Close and clear the module-level cached shared in-memory connection, if present."""
     global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
 
-    connection = _MEMORY_CONNECTION
     manager = _MEMORY_CONNECTION_MANAGER
+    connection = _MEMORY_CONNECTION
 
     if manager is not None:
         manager.close_shared_connection()
@@ -292,16 +283,23 @@ def _close_memory_connection_cache() -> None:
 
 def _connect() -> sqlite3.Connection:
     """
+    Return a SQLite connection for the configured database path.
+
+    For in-memory databases (as determined by the current ``DATABASE_PATH``) the
+    module-level shared connection is returned, creating it on the first call
+    under a lock by delegating to ``_db_manager.connect()``.
+
+    If ``DATABASE_PATH`` has been changed since ``_db_manager`` was last built
     (e.g. patched by tests), or if ``_db_manager`` itself has been replaced by
     patching, the stale cache and manager are discarded and a fresh manager is
     created for the current ``DATABASE_PATH`` before obtaining a connection.
 
-    For file - backed databases ``_db_manager.connect()`` is called directly,
+    For file-backed databases ``_db_manager.connect()`` is called directly,
     which creates a new connection each time.
 
     Returns:
-        sqlite3.Connection: A shared persistent connection for in -memory databases,
-        or a new connection instance for file - backed databases.
+        sqlite3.Connection: A shared persistent connection for in-memory databases,
+        or a new connection instance for file-backed databases.
     """
     global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER, _db_manager, _DB_MANAGER_PATH
     if _is_memory_db():
@@ -336,10 +334,10 @@ def _connect() -> sqlite3.Connection:
 @contextmanager
 def get_connection() -> Iterator[sqlite3.Connection]:
     """
-    Yield a context - managed SQLite connection for the configured database.
+    Yield a context-managed SQLite connection for the configured database.
 
-    For file - backed databases the yielded connection is closed when the context exits. For
-    in -memory databases a shared persistent connection is yielded and remains open across calls
+    For file-backed databases the yielded connection is closed when the context exits. For
+    in-memory databases a shared persistent connection is yielded and remains open across calls
     (the context does not close it).
 
     Returns:
@@ -356,12 +354,12 @@ def get_connection() -> Iterator[sqlite3.Connection]:
 
 def _cleanup_memory_connection() -> None:
     """
-    Close any shared in -memory SQLite connections cached by this module.
+    Close any shared in-memory SQLite connections cached by this module.
 
-    Clears the module - level shared in -memory connection reference, closes that
+    Clears the module-level shared in-memory connection reference, closes that
     connection when it is distinct from the database manager's cached shared
     connection, and asks the database manager to close its own shared
-    connection, if present. This avoids double - closing when both caches
+    connection, if present. This avoids double-closing when both caches
     reference the same SQLite connection. Safe to call multiple times.
     """
     global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
@@ -394,8 +392,8 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
     managed SQLite connection.
 
     Parameters:
-        query(str): SQL statement to execute.
-        parameters(tuple | list | None): Sequence of values to bind to
+        query (str): SQL statement to execute.
+        parameters (tuple | list | None): Sequence of values to bind to
             the statement;
             use `None` or an empty sequence if there are no parameters.
     """
@@ -409,8 +407,8 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
     Retrieve the first row produced by an SQL query.
 
     Parameters:
-        query(str): SQL statement to execute.
-        parameters(tuple | list | None): Optional sequence of parameters
+        query (str): SQL statement to execute.
+        parameters (tuple | list | None): Optional sequence of parameters
             to bind into the query.
 
     Returns:
@@ -426,14 +424,15 @@ def fetch_value(query: str, parameters: tuple | list | None = None) -> object | 
     """
     Return the first column value from the first row of a query result.
 
-    If the query returns no rows, returns `None`. For any non - string indexable row
-    (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, or a mock with ``__getitem__``), attempts to return ``row[0]``.  Returns ``None`` when the row
-    is empty(i.e. ``row[0]`` raises ``IndexError``), and returns the row object
-    unchanged only when indexing is not supported(``TypeError``).
+    If the query returns no rows, returns `None`. For any non-string indexable row
+    (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, or a mock with ``__getitem__``),
+    attempts to return ``row[0]``. Returns ``None`` when the row
+    is empty (i.e. ``row[0]`` raises ``IndexError``), and returns the row object
+    unchanged only when indexing is not supported (``TypeError``).
 
     Parameters:
-        query(str): SQL query to execute; may include parameter placeholders.
-        parameters(tuple | list | None): Sequence of parameters for the query placeholders.
+        query (str): SQL query to execute; may include parameter placeholders.
+        parameters (tuple | list | None): Sequence of parameters for the query placeholders.
 
     Returns:
         The first column value from the first row, or `None` if no row is returned.
