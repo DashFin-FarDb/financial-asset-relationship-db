@@ -237,9 +237,9 @@ class TestPackageJson:
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
         semver_pattern = r"^\d+\.\d+\.\d+(-[\w.]+)?$"
-        assert re.match(semver_pattern, version), (
-            f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
-        )
+        assert re.match(
+            semver_pattern, version
+        ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
 
 
 @pytest.mark.unit
@@ -523,9 +523,9 @@ class TestRequirementsTxt:
 
         for req in requirements:
             if not req.startswith("-"):
-                assert any(op in req for op in [">=", "==", "~=", "<="]), (
-                    f"Package should have version constraint: {req}"
-                )
+                assert any(
+                    op in req for op in [">=", "==", "~=", "<="]
+                ), f"Package should have version constraint: {req}"
 
 
 @pytest.mark.unit
@@ -918,9 +918,9 @@ class TestGitignoreShellRedirectArtifacts:
     @staticmethod
     def test_gitignore_has_standalone_s_pattern(gitignore_lines: list[str]) -> None:
         """Verify that the standalone `s` pattern is present (covers `git branch >s`)."""
-        assert "s" in gitignore_lines, (
-            ".gitignore should contain the standalone `s` entry to ignore accidental redirect files"
-        )
+        assert (
+            "s" in gitignore_lines
+        ), ".gitignore should contain the standalone `s` entry to ignore accidental redirect files"
 
     @staticmethod
     def test_gitignore_shell_redirect_comment_present(gitignore_lines: list[str]) -> None:
@@ -931,9 +931,9 @@ class TestGitignoreShellRedirectArtifacts:
     @staticmethod
     def test_gitignore_equals_star_broader_than_old_specific_entry(gitignore_lines: list[str]) -> None:
         """Regression: `=*` is used instead of the old specific `=2.8.0` entry."""
-        assert "=2.8.0" not in gitignore_lines, (
-            "The old specific `=2.8.0` entry should have been replaced by the broader `=*` glob"
-        )
+        assert (
+            "=2.8.0" not in gitignore_lines
+        ), "The old specific `=2.8.0` entry should have been replaced by the broader `=*` glob"
         assert "=*" in gitignore_lines, "`=*` should be present as the replacement pattern"
 
     @staticmethod
@@ -954,14 +954,14 @@ class TestGitignoreShellRedirectArtifacts:
     def test_accidental_pip_artifact_file_deleted() -> None:
         """Verify the previously-committed accidental pip output file `=2.8.0` no longer exists."""
         artifact_path = Path("=2.8.0")
-        assert not artifact_path.exists(), (
-            "The accidental pip output file `=2.8.0` should have been deleted from the repository"
-        )
+        assert (
+            not artifact_path.exists()
+        ), "The accidental pip output file `=2.8.0` should have been deleted from the repository"
 
     @staticmethod
     def test_accidental_git_branch_artifact_file_deleted() -> None:
         """Verify the previously-committed accidental `git branch` output file `s` no longer exists."""
         artifact_path = Path("s")
-        assert not artifact_path.exists(), (
-            "The accidental `git branch` output file `s` should have been deleted from the repository"
-        )
+        assert (
+            not artifact_path.exists()
+        ), "The accidental `git branch` output file `s` should have been deleted from the repository"
