@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from src.models.financial_models import AssetClass
 
-from ..main import get_graph, logger
+from ..router_helpers import get_graph, logger
 
 router = APIRouter()
 

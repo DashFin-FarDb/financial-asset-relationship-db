@@ -5,10 +5,10 @@ from fastapi import APIRouter, HTTPException
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
-from ..main import (
+from ..api_models import VisualizationDataResponse
+from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
-    VisualizationDataResponse,
     get_graph,
     logger,
 )

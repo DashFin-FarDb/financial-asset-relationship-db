@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from ..main import MetricsResponse, get_graph, logger
+from ..api_models import MetricsResponse
+from ..router_helpers import get_graph, logger
 
 router = APIRouter()
 

@@ -2,12 +2,8 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException
 
-from ..main import (
-    RelationshipResponse,
-    get_graph,
-    logger,
-    raise_asset_not_found,
-)
+from ..api_models import RelationshipResponse
+from ..router_helpers import get_graph, logger, raise_asset_not_found
 
 router = APIRouter()
 

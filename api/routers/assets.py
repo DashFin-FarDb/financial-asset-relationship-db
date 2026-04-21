@@ -2,8 +2,8 @@ from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
 
-from ..main import (
-    AssetResponse,
+from ..api_models import AssetResponse
+from ..router_helpers import (
     get_graph,
     logger,
     raise_asset_not_found,
