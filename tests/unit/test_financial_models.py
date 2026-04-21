@@ -368,7 +368,7 @@ class TestRegulatoryActivityNewValues:
         assert RegulatoryActivity.REGULATORY_FILING.value == "Regulatory Filing"
         assert RegulatoryActivity.LEGAL_PROCEEDING.value == "Legal Proceeding"
         assert RegulatoryActivity.COMPLIANCE_UPDATE.value == "Compliance Update"
-    
+
         expected_members = {
             "SEC_FILING",
             "EARNINGS_REPORT",
