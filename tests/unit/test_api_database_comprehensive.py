@@ -360,7 +360,6 @@ class TestCleanupMemoryConnection:
     def test_cleanup_propagates_module_connection_close_error(self):
         """If closing the module-level connection raises, the error must propagate after manager cleanup."""
         import api.database
-        from api.database import _cleanup_memory_connection
 
         module_conn = MagicMock(spec=sqlite3.Connection)
         module_conn.close.side_effect = sqlite3.Error("forced close error")
@@ -372,7 +371,7 @@ class TestCleanupMemoryConnection:
             with patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True):
                 with patch.object(api.database._db_manager, "close_shared_connection"):
                     with pytest.raises(sqlite3.Error, match="forced close error"):
-                        _cleanup_memory_connection()
+                        api.database._cleanup_memory_connection()
         finally:
             api.database._MEMORY_CONNECTION = saved
 
@@ -382,9 +381,9 @@ class TestAtexitRegistration:
 
     def test_cleanup_memory_connection_is_callable(self):
         """_cleanup_memory_connection must be a plain callable (no alias wrapping)."""
-        from api.database import _cleanup_memory_connection
+        import api.database
 
-        assert callable(_cleanup_memory_connection)
+        assert callable(api.database._cleanup_memory_connection)
 
     def test_close_shared_memory_connection_alias_removed(self):
         """The _close_shared_memory_connection alias must no longer exist in the module."""
