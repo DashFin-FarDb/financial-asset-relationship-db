@@ -371,7 +371,7 @@ def _cleanup_memory_connection() -> None:
 
     Clear the module-level shared in-memory connection reference, close that
     connection when it is distinct from the database manager's cached shared
-    connection, and close the manager's own shared connection, if present.
+    connection, and always invoke the manager's shared-connection cleanup.
     This avoids double-closing when both caches reference the same SQLite
     connection. Safe to call multiple times.
     """
@@ -392,15 +392,13 @@ def _cleanup_memory_connection() -> None:
             except sqlite3.Error as exc:
                 errors.append(exc)
 
-        if manager_connection is not None:
-            try:
-                manager.close_shared_connection()
-            except sqlite3.Error as exc:
-                errors.append(exc)
+        try:
+            manager.close_shared_connection()
+        except sqlite3.Error as exc:
+            errors.append(exc)
 
     if errors:
         raise errors[0]
-
 
 atexit.register(_cleanup_memory_connection)
 
