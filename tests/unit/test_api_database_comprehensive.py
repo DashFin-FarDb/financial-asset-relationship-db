@@ -187,7 +187,6 @@ class TestDatabaseConnectionManagerLegacyRemoval:
 
     def test_file_connection_does_not_set_legacy_connection(self, tmp_path):
         """Connecting to a file-backed database must not set any LEGACY_CONNECTION attribute."""
-        import api.database
         from api.database import _DatabaseConnectionManager
 
         db_path = str(tmp_path / "test_legacy.db")
