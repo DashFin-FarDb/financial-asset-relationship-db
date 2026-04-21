@@ -32,4 +32,8 @@ async def get_metrics() -> MetricsResponse:
         )
     except Exception as e:
         logger.exception("Error getting metrics:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
+        
