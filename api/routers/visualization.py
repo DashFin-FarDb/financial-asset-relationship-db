@@ -1,15 +1,16 @@
 import math
-from fastapi import APIRouter, HTTPException
 from typing import Any, Dict, List
+
+from fastapi import APIRouter, HTTPException
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
 from ..main import (
+    _ASSET_CLASS_COLORS,
+    _DEFAULT_COLOR,
     VisualizationDataResponse,
     get_graph,
     logger,
-    _ASSET_CLASS_COLORS,
-    _DEFAULT_COLOR,
 )
 
 router = APIRouter()

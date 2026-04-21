@@ -284,5 +284,3 @@ async def read_users_me(
 ) -> User:
     """Retrieve the currently authenticated user."""
     return current_user
-
-
