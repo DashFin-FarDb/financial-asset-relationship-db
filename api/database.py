@@ -259,6 +259,10 @@ class _DatabaseConnectionManager:
 
 
 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
+# Tracks the DATABASE_PATH that _db_manager was built for. When tests (or
+# any other caller) patch DATABASE_PATH at runtime, _connect() detects the
+# mismatch and rebuilds _db_manager for the new path before delegating.
+_DB_MANAGER_PATH: str = DATABASE_PATH
 
 
 def _connect() -> sqlite3.Connection:
@@ -267,27 +271,50 @@ def _connect() -> sqlite3.Connection:
 
     For in-memory databases (as determined by the current ``DATABASE_PATH``) the
     module-level shared connection is returned, creating it on the first call
-    under a lock by delegating to ``_db_manager.connect()``.  If the module-level
-    ``_db_manager`` has been replaced since the cached connection was created (for
-    example, by test patching), the stale cache is discarded and a fresh connection
-    is obtained from the new manager.  For file-backed databases
-    ``_db_manager.connect()`` is called directly, which creates a new connection
-    each time.
+    under a lock by delegating to ``_db_manager.connect()``.
+
+    If ``DATABASE_PATH`` has been changed since ``_db_manager`` was last built
+    (e.g. patched by tests), or if ``_db_manager`` itself has been replaced by
+    patching, the stale cache and manager are discarded and a fresh manager is
+    created for the current ``DATABASE_PATH`` before obtaining a connection.
+
+    For file-backed databases ``_db_manager.connect()`` is called directly,
+    which creates a new connection each time.
 
     Returns:
         sqlite3.Connection: A shared persistent connection for in-memory databases,
         or a new connection instance for file-backed databases.
     """
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
+    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER, _db_manager, _DB_MANAGER_PATH
     if _is_memory_db():
         with _MEMORY_CONNECTION_LOCK:
-            if _MEMORY_CONNECTION is not None and _MEMORY_CONNECTION_MANAGER is not _db_manager:
+            if DATABASE_PATH != _DB_MANAGER_PATH:
+                # DATABASE_PATH was patched to a new value: rebuild the manager
+                # for the new path and clear the connection cache.
+                _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
+                _DB_MANAGER_PATH = DATABASE_PATH
+                _MEMORY_CONNECTION = None
+                _MEMORY_CONNECTION_MANAGER = None
+            elif _MEMORY_CONNECTION_MANAGER is not _db_manager:
+                # _db_manager was replaced directly (e.g. by patch.object) while
+                # DATABASE_PATH stayed the same: clear the connection cache so the
+                # new manager is used on the next call.
                 _MEMORY_CONNECTION = None
                 _MEMORY_CONNECTION_MANAGER = None
             if _MEMORY_CONNECTION is None:
                 _MEMORY_CONNECTION = _db_manager.connect()
                 _MEMORY_CONNECTION_MANAGER = _db_manager
             return _MEMORY_CONNECTION
+    # File-backed path: rebuild the manager when DATABASE_PATH has changed.
+    # Uses double-checked locking to avoid redundant lock acquisition on the
+    # common path where the path is unchanged.
+    if DATABASE_PATH != _DB_MANAGER_PATH:
+        with _MEMORY_CONNECTION_LOCK:
+            if DATABASE_PATH != _DB_MANAGER_PATH:
+                _MEMORY_CONNECTION = None
+                _MEMORY_CONNECTION_MANAGER = None
+                _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
+                _DB_MANAGER_PATH = DATABASE_PATH
     return _db_manager.connect()
 
 
