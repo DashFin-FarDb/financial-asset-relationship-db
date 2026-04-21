@@ -36,4 +36,3 @@ async def get_metrics() -> MetricsResponse:
             status_code=500,
             detail="An internal error occurred. Please try again later.",
         ) from e
-        
