@@ -5,14 +5,11 @@ from __future__ import annotations
 import logging
 import math
 import os
-import re
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import Any, Callable, Dict, List, NoReturn, Optional
-from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
@@ -24,7 +21,6 @@ from slowapi import (  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
-from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass
 
@@ -36,6 +32,7 @@ from .auth import (
     create_access_token,
     get_current_active_user,
 )
+from .cors_policy import configure_cors, validate_origin  # noqa: F401
 from .graph_lifecycle import _initialize_graph as _lifecycle_initialize_graph
 from .graph_lifecycle import get_graph as _get_graph
 from .graph_lifecycle import reset_graph as _reset_graph
@@ -125,192 +122,8 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Get settings instance for environment and CORS configuration
-_settings = get_settings()
-ENV = _settings.env
-
-
-def _read_allowed_origins() -> List[str]:
-    """
-    Parse the ALLOWED_ORIGINS from settings into a list of origin strings.
-
-    Returns:
-        List[str]: A list of trimmed origin strings (e.g., "https://example.com").
-    """
-    return get_settings().allowed_origins
-
-
-def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
-    """
-    Allow HTTP localhost origins only when running in the development environment.
-
-    Parameters:
-        origin_url (str): Origin to validate (e.g., "http://localhost:3000" or "http://127.0.0.1").
-        current_env (str): Current environment string; allowance occurs only when this equals "development".
-
-    Returns:
-        `true` if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" with an optional `:port` and `current_env` equals "development", `false` otherwise.
-    """
-    return current_env == "development" and bool(re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
-
-
-def _is_https_local(origin_url: str) -> bool:
-    """
-    Determine whether an origin URL represents HTTPS localhost (either localhost or 127.0.0.1), allowing an optional port.
-
-    Parameters:
-        origin_url (str): Origin string including scheme and host, optionally with port (e.g. "https://localhost:3000").
-
-    Returns:
-        True if the origin is "https://localhost" or "https://127.0.0.1" optionally followed by ":<port>", False otherwise.
-    """
-    return bool(re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
-
-
-def _is_vercel_preview(origin_url: str) -> bool:
-    """
-    Determine whether an origin URL is a Vercel preview deployment hostname.
-
-    Parameters:
-        origin_url (str): The full origin URL to test (including scheme, e.g. "https://foo.vercel.app").
-
-    Returns:
-        bool: `True` if `origin_url` matches the pattern `https://<name>.vercel.app`, `False` otherwise.
-    """
-    return bool(re.match(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$", origin_url))
-
-
-def _has_forbidden_origin_parts(parsed_origin: object) -> bool:
-    """
-    Check if a parsed origin contains disallowed URL components.
-
-    Parameters:
-        parsed_origin (object): A URL parse result (e.g., urllib.parse.ParseResult) whose attributes will be inspected.
-
-    Returns:
-        bool: `True` if any of `path`, `params`, `query`, `fragment`, `username`, or `password` are non-empty; `False` otherwise.
-    """
-    return any(
-        [
-            getattr(parsed_origin, "path", ""),
-            getattr(parsed_origin, "params", ""),
-            getattr(parsed_origin, "query", ""),
-            getattr(parsed_origin, "fragment", ""),
-            getattr(parsed_origin, "username", None),
-            getattr(parsed_origin, "password", None),
-        ]
-    )
-
-
-def _is_valid_https_domain(origin_url: str) -> bool:
-    """
-    Validate that an origin URL is a secure HTTPS origin with a single hostname (internationalized domain names allowed) and an optional port.
-
-    Rejects origins that contain path, params, query, fragment, username, or password.
-
-    Parameters:
-        origin_url (str): The origin URL to validate.
-
-    Returns:
-        True if the input starts with "https://", contains a hostname (IDN allowed), has no forbidden URL parts, and matches an allowed hostname with an optional port, False otherwise.
-    """
-    if not origin_url.startswith("https://"):
-        return False
-    try:
-        parsed = urlparse(origin_url)
-        if _has_forbidden_origin_parts(parsed):
-            return False
-        hostname = parsed.hostname
-        if not hostname:
-            return False
-        ascii_hostname = hostname.encode("idna").decode("ascii")
-        port_suffix = f":{parsed.port}" if parsed.port else ""
-        ascii_url = f"https://{ascii_hostname}{port_suffix}"
-        return bool(
-            re.match(
-                r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
-                r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
-                r"\.[a-zA-Z0-9\-]{2,}(:\d+)?$",
-                ascii_url,
-            )
-        )
-    except (ValueError, UnicodeError, AttributeError) as exc:
-        logger.debug("Failed to validate origin '%s': %s", origin_url, exc)
-        return False
-
-
-def validate_origin(origin_url: str) -> bool:
-    """
-    Check whether an origin URL is permitted by the application's CORS policy.
-
-    Re-reads runtime settings and permits origins that are either listed in the configured
-    allowed origins, local development HTTP hosts (localhost or 127.0.0.1 when the
-    environment is development), local HTTPS hosts, Vercel preview hostnames
-    (https://<name>.vercel.app), or otherwise valid HTTPS hostnames (including
-    internationalized domain names via IDNA).
-
-    Parameters:
-        origin_url (str): Origin URL to validate (e.g. "https://example.com",
-            "http://localhost:3000", or "https://münchen.de").
-
-    Returns:
-        bool: `True` if the origin is allowed, `False` otherwise.
-    """
-    # Re-read settings dynamically to support runtime overrides
-    # (e.g., during tests).
-    settings = get_settings()
-    current_env = settings.env
-
-    env_allowed_origins = settings.allowed_origins
-    if origin_url and origin_url in env_allowed_origins:
-        return True
-
-    if _is_http_local_in_dev(origin_url, current_env):
-        return True
-
-    if _is_https_local(origin_url):
-        return True
-
-    if _is_vercel_preview(origin_url):
-        return True
-
-    return _is_valid_https_domain(origin_url)
-
-
-# Build the initial allowed origins list based on environment
-allowed_origins: List[str] = []
-if ENV == "development":
-    allowed_origins.extend(
-        [
-            "http://localhost:3000",
-            "http://localhost:7860",
-            "https://localhost:3000",
-            "https://localhost:7860",
-        ]
-    )
-else:
-    allowed_origins.extend(
-        [
-            "https://localhost:3000",
-            "https://localhost:7860",
-        ]
-    )
-
-# Append any additional validated origins from the ALLOWED_ORIGINS setting
-if _settings.allowed_origins_raw:
-    for _origin in _settings.allowed_origins:
-        if validate_origin(_origin):
-            allowed_origins.append(_origin)
-        else:
-            logger.warning("Skipping invalid CORS origin: %s", _origin)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
-)
+# Configure CORS via extracted policy
+configure_cors(app)
 
 
 def raise_asset_not_found(
