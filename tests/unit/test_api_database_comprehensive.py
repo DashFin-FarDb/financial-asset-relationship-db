@@ -334,27 +334,25 @@ class TestCleanupMemoryConnection:
     def test_cleanup_is_idempotent(self):
         """Calling _cleanup_memory_connection() multiple times must not raise."""
         import api.database
-        from api.database import _cleanup_memory_connection
 
         saved = api.database._MEMORY_CONNECTION
         api.database._MEMORY_CONNECTION = None
         try:
             with patch.object(api.database._db_manager, "close_shared_connection"):
-                _cleanup_memory_connection()
-                _cleanup_memory_connection()
+                api.database._cleanup_memory_connection()
+                api.database._cleanup_memory_connection()
         finally:
             api.database._MEMORY_CONNECTION = saved
 
     def test_cleanup_always_calls_manager_close_shared_connection(self):
         """_cleanup_memory_connection() must always delegate to the manager's close_shared_connection."""
         import api.database
-        from api.database import _cleanup_memory_connection
 
         saved = api.database._MEMORY_CONNECTION
         api.database._MEMORY_CONNECTION = None
         try:
             with patch.object(api.database._db_manager, "close_shared_connection") as mock_close:
-                _cleanup_memory_connection()
+                api.database._cleanup_memory_connection()
             mock_close.assert_called_once()
         finally:
             api.database._MEMORY_CONNECTION = saved
