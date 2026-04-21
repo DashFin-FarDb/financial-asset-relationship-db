@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     """Allow HTTP localhost origins only in development."""
-    return current_env == "development" and bool(re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
+    return current_env == "development" and bool(
+        re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url)
+    )
 
 
 def _is_https_local(origin_url: str) -> bool:
@@ -70,24 +72,28 @@ def _is_valid_https_domain(origin_url: str) -> bool:
         return False
 
 
+def _is_supported_origin_format(origin_url: str, current_env: str) -> bool:
+    """Return whether an origin string matches supported CORS origin formats."""
+    return (
+        _is_http_local_in_dev(origin_url, current_env)
+        or _is_https_local(origin_url)
+        or _is_vercel_preview(origin_url)
+        or _is_valid_https_domain(origin_url)
+    )
+
+
 def validate_origin(origin_url: str) -> bool:
     """Return whether the origin is allowed by the current CORS policy."""
+    if not origin_url:
+        return False
+
     settings = get_settings()
     current_env = settings.env
 
-    if origin_url and origin_url in settings.allowed_origins:
+    if origin_url in settings.allowed_origins:
         return True
 
-    if _is_http_local_in_dev(origin_url, current_env):
-        return True
-
-    if _is_https_local(origin_url):
-        return True
-
-    if _is_vercel_preview(origin_url):
-        return True
-
-    return _is_valid_https_domain(origin_url)
+    return _is_supported_origin_format(origin_url, current_env)
 
 
 def build_allowed_origins() -> list[str]:
@@ -112,12 +118,12 @@ def build_allowed_origins() -> list[str]:
             ]
         )
 
-    if settings.allowed_origins_raw:
-        for origin in settings.allowed_origins:
-            if validate_origin(origin):
-                allowed_origins.append(origin)
-            else:
-                logger.warning("Skipping invalid CORS origin: %s", origin)
+    configured_origins = settings.allowed_origins
+    for origin in configured_origins:
+        if _is_supported_origin_format(origin, settings.env):
+            allowed_origins.append(origin)
+        else:
+            logger.warning("Skipping invalid CORS origin: %s", origin)
 
     return allowed_origins
 
