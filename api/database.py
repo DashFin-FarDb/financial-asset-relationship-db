@@ -274,6 +274,24 @@ def _connect() -> sqlite3.Connection:
     under a lock by delegating to ``_db_manager.connect()``.
 
     If ``DATABASE_PATH`` has been changed since ``_db_manager`` was last built
+def _close_memory_connection_cache() -> None:
+    """Close and clear the cached shared in-memory connection, if present."""
+    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
+
+    connection = _MEMORY_CONNECTION
+    manager = _MEMORY_CONNECTION_MANAGER
+
+    if manager is not None:
+        manager.close_shared_connection()
+    elif connection is not None:
+        connection.close()
+
+    _MEMORY_CONNECTION = None
+    _MEMORY_CONNECTION_MANAGER = None
+
+
+def _connect() -> sqlite3.Connection:
+    """
     (e.g. patched by tests), or if ``_db_manager`` itself has been replaced by
     patching, the stale cache and manager are discarded and a fresh manager is
     created for the current ``DATABASE_PATH`` before obtaining a connection.
@@ -289,18 +307,16 @@ def _connect() -> sqlite3.Connection:
     if _is_memory_db():
         with _MEMORY_CONNECTION_LOCK:
             if DATABASE_PATH != _DB_MANAGER_PATH:
-                # DATABASE_PATH was patched to a new value: rebuild the manager
-                # for the new path and clear the connection cache.
+                # DATABASE_PATH was patched to a new value: close any stale shared
+                # connection, then rebuild the manager for the new path.
+                _close_memory_connection_cache()
                 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
                 _DB_MANAGER_PATH = DATABASE_PATH
-                _MEMORY_CONNECTION = None
-                _MEMORY_CONNECTION_MANAGER = None
             elif _MEMORY_CONNECTION_MANAGER is not _db_manager:
                 # _db_manager was replaced directly (e.g. by patch.object) while
-                # DATABASE_PATH stayed the same: clear the connection cache so the
-                # new manager is used on the next call.
-                _MEMORY_CONNECTION = None
-                _MEMORY_CONNECTION_MANAGER = None
+                # DATABASE_PATH stayed the same: close the stale shared connection
+                # so the new manager is used on the next call.
+                _close_memory_connection_cache()
             if _MEMORY_CONNECTION is None:
                 _MEMORY_CONNECTION = _db_manager.connect()
                 _MEMORY_CONNECTION_MANAGER = _db_manager
@@ -311,8 +327,7 @@ def _connect() -> sqlite3.Connection:
     if DATABASE_PATH != _DB_MANAGER_PATH:
         with _MEMORY_CONNECTION_LOCK:
             if DATABASE_PATH != _DB_MANAGER_PATH:
-                _MEMORY_CONNECTION = None
-                _MEMORY_CONNECTION_MANAGER = None
+                _close_memory_connection_cache()
                 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
                 _DB_MANAGER_PATH = DATABASE_PATH
     return _db_manager.connect()
