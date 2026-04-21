@@ -65,7 +65,7 @@ def _is_valid_https_domain(origin_url: str) -> bool:
                 ascii_url,
             )
         )
-    except (ValueError, UnicodeError) as exc:
+    except ValueError as exc:
         logger.debug("Failed to validate origin '%s': %s", origin_url, exc)
         return False
 
