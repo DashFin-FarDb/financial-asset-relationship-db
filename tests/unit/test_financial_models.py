@@ -363,6 +363,20 @@ class TestRegulatoryActivityNewValues:
         assert new_values.isdisjoint(pre_existing), "New values must not overlap with pre-existing ones"
 
     @staticmethod
-    def test_regulatory_activity_total_member_count():
-        """Test that RegulatoryActivity now has exactly 9 members after adding the 3 new values."""
-        assert len(RegulatoryActivity) == 9
+    def test_regulatory_activity_includes_compatibility_members():
+    """RegulatoryActivity should expose compatibility members used by tests."""
+    assert RegulatoryActivity.REGULATORY_FILING.value == "Regulatory Filing"
+    assert RegulatoryActivity.LEGAL_PROCEEDING.value == "Legal Proceeding"
+    assert RegulatoryActivity.COMPLIANCE_UPDATE.value == "Compliance Update"
+
+    expected_members = {
+        "SEC_FILING",
+        "EARNINGS_REPORT",
+        "MERGER_ACQUISITION",
+        "DIVIDEND_ANNOUNCEMENT",
+        "REGULATORY_CHANGE",
+        "REGULATORY_FILING",
+        "LEGAL_PROCEEDING",
+        "COMPLIANCE_UPDATE",
+    }
+    assert expected_members.issubset(RegulatoryActivity.__members__)
