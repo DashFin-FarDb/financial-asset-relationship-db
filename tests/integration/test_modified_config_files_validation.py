@@ -65,9 +65,9 @@ class TestPRAgentConfigChanges:
         """
         assert "agent" in config_data
         context = config_data["agent"].get("context")
-        assert (
-            isinstance(context, dict) and context
-        ), "agent.context block should be a non-empty mapping in pr-agent-config.yml"
+        assert isinstance(context, dict) and context, (
+            "agent.context block should be a non-empty mapping in pr-agent-config.yml"
+        )
         assert "chunking" in context, "agent.context should include a chunking subsection"
 
     def test_limits_section_present(self, config_data: Dict[str, Any]):
@@ -101,9 +101,9 @@ class TestPRAgentConfigChanges:
         """
         limits = config_data.get("limits", {})
         max_execution_time = limits.get("max_execution_time")
-        assert (
-            isinstance(max_execution_time, int) and max_execution_time > 0
-        ), "limits.max_execution_time should be a positive integer"
+        assert isinstance(max_execution_time, int) and max_execution_time > 0, (
+            "limits.max_execution_time should be a positive integer"
+        )
 
     def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
         """
@@ -279,9 +279,9 @@ class TestRetainedFilesState:
                 content = f.read()
 
             for script_ref in local_scripts_not_in_ci:
-                assert (
-                    script_ref not in content
-                ), f"{workflow_file.name} references a script not expected to be called from CI: {script_ref}"
+                assert script_ref not in content, (
+                    f"{workflow_file.name} references a script not expected to be called from CI: {script_ref}"
+                )
 
 
 class TestRequirementsDevChanges:
@@ -421,9 +421,9 @@ class TestCodacyInstructionsChanges:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
-        assert (
-            "git remote -v" not in content and "unless really necessary" not in content
-        ), "Codacy instructions should be simplified"
+        assert "git remote -v" not in content and "unless really necessary" not in content, (
+            "Codacy instructions should be simplified"
+        )
 
     @staticmethod
     def test_codacy_critical_rules_present(codacy_instructions_path: Path):
