@@ -89,4 +89,8 @@ async def get_visualization_data() -> VisualizationDataResponse:
         return VisualizationDataResponse(nodes=nodes, edges=edges)
     except Exception as e:
         logger.exception("Error getting visualization data:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
+        
