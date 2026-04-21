@@ -30,7 +30,10 @@ async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
         raise
     except Exception as e:
         logger.exception("Error getting asset relationships:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 @router.get("/api/relationships", response_model=List[RelationshipResponse])
@@ -49,4 +52,7 @@ async def get_all_relationships() -> List[RelationshipResponse]:
         ]
     except Exception as e:
         logger.exception("Error getting all relationships:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
