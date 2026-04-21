@@ -32,7 +32,7 @@ from .auth import (
     create_access_token,
     get_current_active_user,
 )
-from .cors_policy import configure_cors
+from .cors_policy import configure_cors, validate_origin  # noqa: F401
 from .graph_lifecycle import _initialize_graph as _lifecycle_initialize_graph
 from .graph_lifecycle import get_graph as _get_graph
 from .graph_lifecycle import reset_graph as _reset_graph
