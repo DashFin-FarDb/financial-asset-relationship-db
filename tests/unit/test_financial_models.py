@@ -265,3 +265,119 @@ class TestRegulatoryEvent:
             impact_score=1.0,
         )
         assert event.impact_score == pytest.approx(1.0)
+
+
+@pytest.mark.unit
+class TestRegulatoryActivityNewValues:
+    """Test cases for newly added RegulatoryActivity enum members."""
+
+    @staticmethod
+    def test_regulatory_filing_value():
+        """Test that REGULATORY_FILING has the correct string value."""
+        assert RegulatoryActivity.REGULATORY_FILING.value == "Regulatory Filing"
+
+    @staticmethod
+    def test_legal_proceeding_value():
+        """Test that LEGAL_PROCEEDING has the correct string value."""
+        assert RegulatoryActivity.LEGAL_PROCEEDING.value == "Legal Proceeding"
+
+    @staticmethod
+    def test_compliance_update_value():
+        """Test that COMPLIANCE_UPDATE has the correct string value."""
+        assert RegulatoryActivity.COMPLIANCE_UPDATE.value == "Compliance Update"
+
+    @staticmethod
+    def test_regulatory_filing_is_member():
+        """Test that REGULATORY_FILING is a member of RegulatoryActivity."""
+        assert RegulatoryActivity.REGULATORY_FILING in RegulatoryActivity
+
+    @staticmethod
+    def test_legal_proceeding_is_member():
+        """Test that LEGAL_PROCEEDING is a member of RegulatoryActivity."""
+        assert RegulatoryActivity.LEGAL_PROCEEDING in RegulatoryActivity
+
+    @staticmethod
+    def test_compliance_update_is_member():
+        """Test that COMPLIANCE_UPDATE is a member of RegulatoryActivity."""
+        assert RegulatoryActivity.COMPLIANCE_UPDATE in RegulatoryActivity
+
+    @staticmethod
+    def test_regulatory_filing_usable_as_event_type():
+        """Test REGULATORY_FILING can be used as a RegulatoryEvent event_type."""
+        event = RegulatoryEvent(
+            id="REG_EVT_001",
+            asset_id="ASSET_001",
+            event_type=RegulatoryActivity.REGULATORY_FILING,
+            date="2024-06-01",
+            description="Annual regulatory filing submission",
+            impact_score=0.2,
+        )
+        assert event.event_type == RegulatoryActivity.REGULATORY_FILING
+        assert event.event_type.value == "Regulatory Filing"
+
+    @staticmethod
+    def test_legal_proceeding_usable_as_event_type():
+        """Test LEGAL_PROCEEDING can be used as a RegulatoryEvent event_type."""
+        event = RegulatoryEvent(
+            id="LEGAL_EVT_001",
+            asset_id="ASSET_001",
+            event_type=RegulatoryActivity.LEGAL_PROCEEDING,
+            date="2024-07-15",
+            description="Class action lawsuit filed",
+            impact_score=-0.7,
+        )
+        assert event.event_type == RegulatoryActivity.LEGAL_PROCEEDING
+        assert event.event_type.value == "Legal Proceeding"
+
+    @staticmethod
+    def test_compliance_update_usable_as_event_type():
+        """Test COMPLIANCE_UPDATE can be used as a RegulatoryEvent event_type."""
+        event = RegulatoryEvent(
+            id="COMP_EVT_001",
+            asset_id="ASSET_002",
+            event_type=RegulatoryActivity.COMPLIANCE_UPDATE,
+            date="2024-08-20",
+            description="Policy compliance update issued",
+            impact_score=0.1,
+        )
+        assert event.event_type == RegulatoryActivity.COMPLIANCE_UPDATE
+        assert event.event_type.value == "Compliance Update"
+
+    @staticmethod
+    def test_new_values_are_distinct():
+        """Test that the three new enum values are distinct from each other and from pre-existing ones."""
+        new_values = {
+            RegulatoryActivity.REGULATORY_FILING,
+            RegulatoryActivity.LEGAL_PROCEEDING,
+            RegulatoryActivity.COMPLIANCE_UPDATE,
+        }
+        assert len(new_values) == 3, "Each new enum member must be distinct"
+        pre_existing = {
+            RegulatoryActivity.EARNINGS_REPORT,
+            RegulatoryActivity.SEC_FILING,
+            RegulatoryActivity.DIVIDEND_ANNOUNCEMENT,
+            RegulatoryActivity.BOND_ISSUANCE,
+            RegulatoryActivity.ACQUISITION,
+            RegulatoryActivity.BANKRUPTCY,
+        }
+        assert new_values.isdisjoint(pre_existing), "New values must not overlap with pre-existing ones"
+
+    @staticmethod
+    def test_regulatory_activity_includes_compatibility_members():
+        """RegulatoryActivity should expose compatibility members used by tests."""
+        assert RegulatoryActivity.REGULATORY_FILING.value == "Regulatory Filing"
+        assert RegulatoryActivity.LEGAL_PROCEEDING.value == "Legal Proceeding"
+        assert RegulatoryActivity.COMPLIANCE_UPDATE.value == "Compliance Update"
+
+        expected_members = {
+            "SEC_FILING",
+            "EARNINGS_REPORT",
+            "ACQUISITION",
+            "DIVIDEND_ANNOUNCEMENT",
+            "BOND_ISSUANCE",
+            "BANKRUPTCY",
+            "REGULATORY_FILING",
+            "LEGAL_PROCEEDING",
+            "COMPLIANCE_UPDATE",
+        }
+        assert expected_members.issubset(RegulatoryActivity.__members__)
