@@ -372,9 +372,10 @@ class TestRegulatoryActivityNewValues:
         expected_members = {
             "SEC_FILING",
             "EARNINGS_REPORT",
-            "MERGER_ACQUISITION",
+            "ACQUISITION",
             "DIVIDEND_ANNOUNCEMENT",
-            "REGULATORY_CHANGE",
+            "BOND_ISSUANCE",
+            "BANKRUPTCY",
             "REGULATORY_FILING",
             "LEGAL_PROCEEDING",
             "COMPLIANCE_UPDATE",
