@@ -209,15 +209,14 @@ class TestConnectModuleLevelCaching:
     def test_connect_caches_memory_connection_in_module_global(self):
         """_connect() must store the connection in the module-level _MEMORY_CONNECTION for in-memory DBs."""
         import api.database
-        from api.database import _connect, _DatabaseConnectionManager
 
-        temp_manager = _DatabaseConnectionManager(":memory:")
+        temp_manager = api.database._DatabaseConnectionManager(":memory:")
         saved_module_conn = api.database._MEMORY_CONNECTION
         api.database._MEMORY_CONNECTION = None
         try:
             with patch.object(api.database, "_db_manager", temp_manager):
                 with patch.object(api.database, "_is_memory_db", return_value=True):
-                    conn = _connect()
+                    conn = api.database._connect()
                     assert api.database._MEMORY_CONNECTION is conn, (
                         "_MEMORY_CONNECTION global must be set to the returned connection"
                     )
@@ -230,16 +229,15 @@ class TestConnectModuleLevelCaching:
     def test_connect_returns_same_memory_connection_on_repeated_calls(self):
         """Second call to _connect() for in-memory DB must return the cached connection."""
         import api.database
-        from api.database import _connect, _DatabaseConnectionManager
 
-        temp_manager = _DatabaseConnectionManager(":memory:")
+        temp_manager = api.database._DatabaseConnectionManager(":memory:")
         saved_module_conn = api.database._MEMORY_CONNECTION
         api.database._MEMORY_CONNECTION = None
         try:
             with patch.object(api.database, "_db_manager", temp_manager):
                 with patch.object(api.database, "_is_memory_db", return_value=True):
-                    conn1 = _connect()
-                    conn2 = _connect()
+                    conn1 = api.database._connect()
+                    conn2 = api.database._connect()
                     assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
@@ -250,7 +248,6 @@ class TestConnectModuleLevelCaching:
     def test_connect_does_not_cache_file_connection(self):
         """_connect() must not touch _MEMORY_CONNECTION when the DB is file-backed."""
         import api.database
-        from api.database import _connect
 
         mock_conn = MagicMock(spec=sqlite3.Connection)
         mock_manager = MagicMock()
@@ -261,7 +258,7 @@ class TestConnectModuleLevelCaching:
         try:
             with patch.object(api.database, "_db_manager", mock_manager):
                 with patch.object(api.database, "_is_memory_db", return_value=False):
-                    _connect()
+                    api.database._connect()
                     assert api.database._MEMORY_CONNECTION is None, (
                         "_MEMORY_CONNECTION must remain None for file-backed databases"
                     )
