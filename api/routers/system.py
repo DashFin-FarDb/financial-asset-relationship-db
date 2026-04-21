@@ -52,4 +52,3 @@ async def get_sectors() -> Dict[str, List[str]]:
             status_code=500,
             detail="An internal error occurred. Please try again later.",
         ) from e
-        

@@ -93,4 +93,3 @@ async def get_visualization_data() -> VisualizationDataResponse:
             status_code=500,
             detail="An internal error occurred. Please try again later.",
         ) from e
-        
