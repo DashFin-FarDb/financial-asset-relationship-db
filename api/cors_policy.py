@@ -16,9 +16,7 @@ logger = logging.getLogger(__name__)
 
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     """Allow HTTP localhost origins only in development."""
-    return current_env == "development" and bool(
-        re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url)
-    )
+    return current_env == "development" and bool(re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
 
 
 def _is_https_local(origin_url: str) -> bool:
