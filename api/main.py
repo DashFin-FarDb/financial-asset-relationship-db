@@ -474,4 +474,158 @@ async def get_metrics() -> MetricsResponse:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-# (rest unchanged...)
+def _calculate_node_degrees(g: AssetRelationshipGraph) -> Dict[str, int]:
+    """
+    Compute the out-degree (number of outgoing relationships) for each asset in the graph.
+
+    Parameters:
+        g (AssetRelationshipGraph): Graph to analyze.
+
+    Returns:
+        Dict[str, int]: Mapping from asset ID to its out-degree (number of outgoing relationships).
+    """
+    degree: Dict[str, int] = {asset_id: 0 for asset_id in g.assets.keys()}
+    for source_id, rels in g.relationships.items():
+        degree[source_id] = degree.get(source_id, 0) + len(rels)
+    return degree
+
+
+def _compute_fibonacci_position(
+    idx: int,
+    total_nodes: int,
+    golden_ratio: float,
+) -> tuple[float, float, float]:
+    """
+    Compute a 3D point on the unit sphere using a Fibonacci-lattice distribution.
+
+    Parameters:
+        idx (int): Zero-based index of the node within the range [0, total_nodes).
+        total_nodes (int): Total number of nodes to place on the sphere.
+        golden_ratio (float): Value controlling azimuthal spacing (typically the golden ratio).
+
+    Returns:
+        tuple[float, float, float]: (x, y, z) coordinates of the node on the unit sphere.
+    """
+    if total_nodes <= 1:
+        return 0.0, 0.0, 0.0
+    theta = math.acos(1 - 2 * (idx + 0.5) / total_nodes)
+    phi = 2 * math.pi * idx / golden_ratio
+    x = math.sin(theta) * math.cos(phi)
+    y = math.sin(theta) * math.sin(phi)
+    z = math.cos(theta)
+    return x, y, z
+
+
+def _build_visualization_nodes(
+    g: AssetRelationshipGraph,
+    asset_ids: List[str],
+) -> List[Dict[str, Any]]:
+    """
+    Construct visualization node dictionaries for the given assets in the graph.
+
+    Parameters:
+        g (AssetRelationshipGraph): Graph containing assets and relationships.
+        asset_ids (List[str]): Ordered list of asset IDs to include as nodes.
+
+    Returns:
+        List[Dict[str, Any]]: A list of node objects with keys:
+            - id: asset ID string
+            - symbol: asset symbol
+            - name: asset name
+            - asset_class: asset class name
+            - x, y, z: 3-D coordinates for visualization (floats)
+            - color: hex color string for the asset class
+            - size: visual node size (integer)
+    """
+    degree = _calculate_node_degrees(g)
+    total_nodes = len(asset_ids)
+    golden_ratio = (1 + math.sqrt(5)) / 2
+    nodes: List[Dict[str, Any]] = []
+    for idx, asset_id in enumerate(asset_ids):
+        asset = g.assets[asset_id]
+        x, y, z = _compute_fibonacci_position(idx, total_nodes, golden_ratio)
+        asset_class_val = asset.asset_class.value
+        nodes.append(
+            {
+                "id": asset_id,
+                "symbol": asset.symbol,
+                "name": asset.name,
+                "asset_class": asset_class_val,
+                "x": round(x, 6),
+                "y": round(y, 6),
+                "z": round(z, 6),
+                "color": _ASSET_CLASS_COLORS.get(asset_class_val, _DEFAULT_COLOR),
+                "size": max(5, min(20, 5 + degree.get(asset_id, 0) * 2)),
+            }
+        )
+    return nodes
+
+
+def _build_visualization_edges(g: AssetRelationshipGraph) -> List[Dict[str, Any]]:
+    """
+    Create a list of edge dictionaries for visualization extracted from the asset relationship graph.
+
+    Parameters:
+        g (AssetRelationshipGraph): Graph whose directed relationships will be converted into visualization edges.
+
+    Returns:
+        List[dict]: Each dictionary represents a directed relationship with keys:
+            `source` (source asset id),
+            `target` (target asset id),
+            `relationship_type` (relationship label),
+            `strength` (numeric relationship strength).
+    """
+    return [
+        {
+            "source": source_id,
+            "target": target_id,
+            "relationship_type": rel_type,
+            "strength": strength,
+        }
+        for source_id, rels in g.relationships.items()
+        for target_id, rel_type, strength in rels
+    ]
+
+
+@app.get("/api/visualization", response_model=VisualizationDataResponse)
+async def get_visualization_data() -> VisualizationDataResponse:
+    """
+    Produce visualization nodes and edges representing the current asset relationship graph.
+
+    Returns:
+        VisualizationDataResponse: Object with `nodes` (list of node dictionaries) and `edges` (list of edge dictionaries) suitable for frontend rendering.
+
+    Raises:
+        HTTPException: With status code 500 if an unexpected error occurs while constructing the visualization data.
+    """
+    try:
+        g = get_graph()
+        asset_ids = list(g.assets.keys())
+        nodes = _build_visualization_nodes(g, asset_ids)
+        edges = _build_visualization_edges(g)
+
+        return VisualizationDataResponse(nodes=nodes, edges=edges)
+    except Exception as e:
+        logger.exception("Error getting visualization data:")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@app.get("/api/asset-classes")
+async def get_asset_classes() -> Dict[str, List[str]]:
+    """Return all AssetClass enum values sorted alphabetically."""
+    try:
+        return {"asset_classes": sorted(ac.value for ac in AssetClass)}
+    except Exception as e:
+        logger.exception("Error getting asset classes:")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@app.get("/api/sectors")
+async def get_sectors() -> Dict[str, List[str]]:
+    """Return distinct sorted sector values from the graph."""
+    try:
+        g = get_graph()
+        return {"sectors": sorted({a.sector for a in g.assets.values() if a.sector})}
+    except Exception as e:
+        logger.exception("Error getting sectors:")
+        raise HTTPException(status_code=500, detail=str(e)) from e
