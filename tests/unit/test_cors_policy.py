@@ -20,7 +20,6 @@ from api.cors_policy import (
     validate_origin,
 )
 
-
 # ---------------------------------------------------------------------------
 # _is_http_local_in_dev
 # ---------------------------------------------------------------------------
@@ -560,6 +559,7 @@ class TestConfigureCors:
     def test_adds_cors_middleware_to_app(monkeypatch: pytest.MonkeyPatch) -> None:
         """configure_cors() should add CORSMiddleware to the FastAPI app."""
         from fastapi import FastAPI
+
         from src.config.settings import get_settings
 
         monkeypatch.setenv("ENV", "production")
@@ -578,6 +578,7 @@ class TestConfigureCors:
         """The middleware added must be CORSMiddleware."""
         from fastapi import FastAPI
         from fastapi.middleware.cors import CORSMiddleware
+
         from src.config.settings import get_settings
 
         monkeypatch.setenv("ENV", "production")
@@ -600,6 +601,7 @@ class TestConfigureCors:
     @staticmethod
     def test_middleware_allows_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
         from fastapi import FastAPI
+
         from src.config.settings import get_settings
 
         monkeypatch.setenv("ENV", "production")
@@ -621,6 +623,7 @@ class TestConfigureCors:
     @staticmethod
     def test_middleware_includes_required_methods(monkeypatch: pytest.MonkeyPatch) -> None:
         from fastapi import FastAPI
+
         from src.config.settings import get_settings
 
         monkeypatch.setenv("ENV", "production")
@@ -644,6 +647,7 @@ class TestConfigureCors:
     @staticmethod
     def test_middleware_includes_required_headers(monkeypatch: pytest.MonkeyPatch) -> None:
         from fastapi import FastAPI
+
         from src.config.settings import get_settings
 
         monkeypatch.setenv("ENV", "production")
@@ -668,6 +672,7 @@ class TestConfigureCors:
     def test_configure_cors_called_once(monkeypatch: pytest.MonkeyPatch) -> None:
         """configure_cors must call add_middleware exactly once."""
         from fastapi import FastAPI
+
         from src.config.settings import get_settings
 
         monkeypatch.setenv("ENV", "production")
