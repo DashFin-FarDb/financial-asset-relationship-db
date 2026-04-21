@@ -401,6 +401,7 @@ def _cleanup_memory_connection() -> None:
     if errors:
         raise errors[0]
 
+
 atexit.register(_cleanup_memory_connection)
 
 
