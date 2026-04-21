@@ -323,15 +323,9 @@ def _connect() -> sqlite3.Connection:
     # File-backed path: rebuild the manager when DATABASE_PATH has changed.
     # Only rebuild when _db_manager is a real manager (not a test mock) and its
     # path no longer matches DATABASE_PATH. Uses double-checked locking.
-    if (
-        isinstance(_db_manager, _DatabaseConnectionManager)
-        and _db_manager._database_path != DATABASE_PATH
-    ):
+    if isinstance(_db_manager, _DatabaseConnectionManager) and _db_manager._database_path != DATABASE_PATH:
         with _MEMORY_CONNECTION_LOCK:
-            if (
-                isinstance(_db_manager, _DatabaseConnectionManager)
-                and _db_manager._database_path != DATABASE_PATH
-            ):
+            if isinstance(_db_manager, _DatabaseConnectionManager) and _db_manager._database_path != DATABASE_PATH:
                 _close_memory_connection_cache()
                 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
     return _db_manager.connect()
