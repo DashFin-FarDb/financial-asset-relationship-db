@@ -29,7 +29,10 @@ async def get_assets(
             assets.append(AssetResponse(**serialize_asset(asset)))
     except Exception as e:
         logger.exception("Error getting assets:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
     return assets
 
 
@@ -39,9 +42,14 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
         g = get_graph()
         if asset_id not in g.assets:
             raise_asset_not_found(asset_id)
-        return AssetResponse(**serialize_asset(g.assets[asset_id], include_issuer=True))
+        return AssetResponse(
+            **serialize_asset(g.assets[asset_id], include_issuer=True)
+        )
     except HTTPException:
         raise
     except Exception as e:
         logger.exception("Error getting asset detail:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
