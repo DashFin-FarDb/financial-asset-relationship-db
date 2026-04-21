@@ -212,7 +212,9 @@ class TestConnectModuleLevelCaching:
 
         temp_manager = api.database._DatabaseConnectionManager(":memory:")
         saved_module_conn = api.database._MEMORY_CONNECTION
+        saved_module_conn_manager = api.database._MEMORY_CONNECTION_MANAGER
         api.database._MEMORY_CONNECTION = None
+        api.database._MEMORY_CONNECTION_MANAGER = None
         try:
             with patch.object(api.database, "_db_manager", temp_manager):
                 with patch.object(api.database, "_is_memory_db", return_value=True):
@@ -222,6 +224,7 @@ class TestConnectModuleLevelCaching:
                     )
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
+            api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
             if temp_manager._memory_connection is not None:
                 temp_manager._memory_connection.close()
                 temp_manager._memory_connection = None
@@ -232,7 +235,9 @@ class TestConnectModuleLevelCaching:
 
         temp_manager = api.database._DatabaseConnectionManager(":memory:")
         saved_module_conn = api.database._MEMORY_CONNECTION
+        saved_module_conn_manager = api.database._MEMORY_CONNECTION_MANAGER
         api.database._MEMORY_CONNECTION = None
+        api.database._MEMORY_CONNECTION_MANAGER = None
         try:
             with patch.object(api.database, "_db_manager", temp_manager):
                 with patch.object(api.database, "_is_memory_db", return_value=True):
@@ -241,6 +246,7 @@ class TestConnectModuleLevelCaching:
                     assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
+            api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
             if temp_manager._memory_connection is not None:
                 temp_manager._memory_connection.close()
                 temp_manager._memory_connection = None
@@ -254,7 +260,9 @@ class TestConnectModuleLevelCaching:
         mock_manager.connect.return_value = mock_conn
 
         saved_module_conn = api.database._MEMORY_CONNECTION
+        saved_module_conn_manager = api.database._MEMORY_CONNECTION_MANAGER
         api.database._MEMORY_CONNECTION = None
+        api.database._MEMORY_CONNECTION_MANAGER = None
         try:
             with patch.object(api.database, "_db_manager", mock_manager):
                 with patch.object(api.database, "_is_memory_db", return_value=False):
@@ -264,6 +272,7 @@ class TestConnectModuleLevelCaching:
                     )
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
+            api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
 
 
 class TestCleanupMemoryConnection:
