@@ -281,14 +281,13 @@ class TestCleanupMemoryConnection:
     def test_cleanup_clears_module_level_memory_connection(self):
         """_cleanup_memory_connection() must set module-level _MEMORY_CONNECTION to None."""
         import api.database
-        from api.database import _cleanup_memory_connection
 
         mock_conn = MagicMock(spec=sqlite3.Connection)
         saved = api.database._MEMORY_CONNECTION
         api.database._MEMORY_CONNECTION = mock_conn
         try:
             with patch.object(api.database._db_manager, "close_shared_connection"):
-                _cleanup_memory_connection()
+                api.database._cleanup_memory_connection()
             assert api.database._MEMORY_CONNECTION is None
         finally:
             api.database._MEMORY_CONNECTION = saved
@@ -296,7 +295,6 @@ class TestCleanupMemoryConnection:
     def test_cleanup_closes_module_connection_when_distinct_from_manager(self):
         """When module and manager hold different connections, the module one must be closed."""
         import api.database
-        from api.database import _cleanup_memory_connection
 
         module_conn = MagicMock(spec=sqlite3.Connection)
         manager_conn = MagicMock(spec=sqlite3.Connection)
@@ -306,7 +304,7 @@ class TestCleanupMemoryConnection:
         try:
             with patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True):
                 with patch.object(api.database._db_manager, "close_shared_connection"):
-                    _cleanup_memory_connection()
+                    api.database._cleanup_memory_connection()
             module_conn.close.assert_called_once()
         finally:
             api.database._MEMORY_CONNECTION = saved
@@ -314,7 +312,6 @@ class TestCleanupMemoryConnection:
     def test_cleanup_does_not_double_close_when_connections_are_same(self):
         """When module-level and manager connections are identical, only one close must occur."""
         import api.database
-        from api.database import _cleanup_memory_connection
 
         shared_conn = MagicMock(spec=sqlite3.Connection)
 
@@ -326,7 +323,7 @@ class TestCleanupMemoryConnection:
             api.database._db_manager._memory_connection = shared_conn
             try:
                 with patch.object(api.database._db_manager, "close_shared_connection"):
-                    _cleanup_memory_connection()
+                    api.database._cleanup_memory_connection()
                 # The module-level branch skips close because they are the same object
                 shared_conn.close.assert_not_called()
             finally:
