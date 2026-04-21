@@ -48,7 +48,7 @@ fi
 echo ""
 echo "=== Stale Branches (no activity in 90+ days) ==="
 # Find branches with no commits in the last 90 days
-Revert to single quotes for consistency with common shell scripting practices for static strings: `--format='%(refname:short)'`.
+for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/); do
     if [ "$branch" != "main" ] && [ "$branch" != "develop" ]; then
         LAST_COMMIT_DATE=$(git log -1 --format=%ci "$branch" 2>/dev/null || echo "")
         if [ -n "$LAST_COMMIT_DATE" ]; then

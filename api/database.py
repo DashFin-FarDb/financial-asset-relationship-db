@@ -152,6 +152,7 @@ DATABASE_PATH = _resolve_sqlite_path(DATABASE_URL)
 
 # Module-level shared in-memory connection
 _MEMORY_CONNECTION: sqlite3.Connection | None = None
+_MEMORY_CONNECTION_MANAGER: _DatabaseConnectionManager | None = None
 _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 
@@ -266,19 +267,26 @@ def _connect() -> sqlite3.Connection:
 
     For in-memory databases (as determined by the current ``DATABASE_PATH``) the
     module-level shared connection is returned, creating it on the first call
-    under a lock by delegating to ``_db_manager.connect()``.  For file-backed
-    databases ``_db_manager.connect()`` is called directly, which creates a new
-    connection each time.
+    under a lock by delegating to ``_db_manager.connect()``.  If the module-level
+    ``_db_manager`` has been replaced since the cached connection was created (for
+    example, by test patching), the stale cache is discarded and a fresh connection
+    is obtained from the new manager.  For file-backed databases
+    ``_db_manager.connect()`` is called directly, which creates a new connection
+    each time.
 
     Returns:
         sqlite3.Connection: A shared persistent connection for in-memory databases,
         or a new connection instance for file-backed databases.
     """
-    global _MEMORY_CONNECTION
+    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
     if _is_memory_db():
         with _MEMORY_CONNECTION_LOCK:
+            if _MEMORY_CONNECTION is not None and _MEMORY_CONNECTION_MANAGER is not _db_manager:
+                _MEMORY_CONNECTION = None
+                _MEMORY_CONNECTION_MANAGER = None
             if _MEMORY_CONNECTION is None:
                 _MEMORY_CONNECTION = _db_manager.connect()
+                _MEMORY_CONNECTION_MANAGER = _db_manager
             return _MEMORY_CONNECTION
     return _db_manager.connect()
 
@@ -314,11 +322,12 @@ def _cleanup_memory_connection() -> None:
     connection, if present. This avoids double-closing when both caches
     reference the same SQLite connection. Safe to call multiple times.
     """
-    global _MEMORY_CONNECTION
+    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
     with _MEMORY_CONNECTION_LOCK:
         module_connection = _MEMORY_CONNECTION
         manager_connection = getattr(_db_manager, "_memory_connection", None)
         _MEMORY_CONNECTION = None
+        _MEMORY_CONNECTION_MANAGER = None
 
     module_close_error: sqlite3.Error | None = None
     if module_connection is not None and module_connection is not manager_connection:
