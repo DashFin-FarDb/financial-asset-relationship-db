@@ -35,7 +35,10 @@ async def get_asset_classes() -> Dict[str, List[str]]:
         return {"asset_classes": sorted(ac.value for ac in AssetClass)}
     except Exception as e:
         logger.exception("Error getting asset classes:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 @router.get("/api/sectors")
@@ -45,4 +48,8 @@ async def get_sectors() -> Dict[str, List[str]]:
         return {"sectors": sorted({a.sector for a in g.assets.values() if a.sector})}
     except Exception as e:
         logger.exception("Error getting sectors:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
+        
