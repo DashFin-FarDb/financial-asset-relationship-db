@@ -2,7 +2,7 @@
 
 **Production Architecture:** FastAPI backend + Next.js frontend
 
-This document describes the system architecture for the Financial Asset Relationship Database. The production architecture uses a FastAPI REST API backend with a Next.js/React frontend. The Gradio UI (`app.py`) remains available for demos and internal use as a **NON-PRODUCTION** surface, but it is **not the production path**.
+This document describes the system architecture for the Financial Asset Relationship Database. The production architecture uses a FastAPI REST API backend with a Next.js/React frontend. The Gradio UI (Port 7860) is available via `app.py` for demos and internal use as a **NON-PRODUCTION** surface, but it is **not the production path**.
 
 For the architectural decision rationale, see [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architecture.md).
 
