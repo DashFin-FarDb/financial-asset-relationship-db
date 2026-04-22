@@ -12,8 +12,18 @@ from .graph_lifecycle import get_graph as _get_graph
 logger = logging.getLogger(__name__)
 
 
-def get_graph() -> AssetRelationshipGraph:
-    """Return the shared asset relationship graph instance."""
+def get_graph():
+    """Return the active graph instance."""
+    try:
+        import api.main as api_main  # local import to avoid import cycle at module import time
+
+        if hasattr(api_main, "graph"):
+            return api_main.graph
+    except Exception:
+        pass
+
+    from .graph_lifecycle import get_graph as _get_graph
+
     return _get_graph()
 
 
