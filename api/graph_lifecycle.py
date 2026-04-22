@@ -5,10 +5,10 @@ AssetRelationshipGraph instance used by the API.
 """
 
 import logging
-import os
 import threading
 from typing import Callable, Optional
 
+from src.config.settings import get_settings
 from src.data.real_data_fetcher import RealDataFetcher
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -81,7 +81,7 @@ def set_graph_factory(
     Configure the callable used to construct the global AssetRelationshipGraph and clear any existing graph so it will be recreated on next access.
 
     Parameters:
-        factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns a new AssetRelationshipGraph instance. If `None`, any configured factory is cleared and the graph will be reinitialized using environment-backed defaults or a sample database on next access.
+        factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns a new AssetRelationshipGraph instance. If `None`, any configured factory is cleared and the graph will be reinitialized using settings-driven defaults or a sample database on next access.
     """
     with graph_lock:
         graph_state.graph_factory = factory
@@ -92,16 +92,30 @@ def reset_graph() -> None:
     """
     Reset module-level graph state so the graph will be recreated on next access.
 
-    Clears the cached graph instance and any configured graph factory.
+    Clears the cached graph instance, any configured graph factory, and the
+    settings cache to ensure environment variable changes are observed on the
+    next initialization.
     """
+    # Clear settings cache to preserve reset semantics: environment variable
+    # changes made after reset should be picked up on next initialization.
+    get_settings.cache_clear()
     set_graph_factory(None)
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Initialize the global AssetRelationshipGraph using the configured factory or environment-backed data sources.
+    Initialize the global AssetRelationshipGraph using the configured factory or settings-driven data sources.
 
-    If a factory is set on graph_state, its result is returned. Otherwise, if the environment variable GRAPH_CACHE_PATH is set a RealDataFetcher is created with that path (network access enabled when USE_REAL_DATA_FETCHER is enabled) and its real database is returned. If GRAPH_CACHE_PATH is not set but USE_REAL_DATA_FETCHER is enabled, REAL_DATA_CACHE_PATH is used to create a RealDataFetcher with network access and its real database is returned. If none of those conditions apply, a sample in-memory graph is returned.
+    Initialization order:
+        - If `graph_state.graph_factory` is set, return the factory result.
+        - If `settings.graph_cache_path` is set, create a `RealDataFetcher`
+          with that path. Network access is enabled when
+          `settings.use_real_data_fetcher` is enabled.
+        - If `settings.graph_cache_path` is not set, but
+          `settings.use_real_data_fetcher` is enabled, create a
+          `RealDataFetcher` using `settings.real_data_cache_path` with network
+          access enabled.
+        - Otherwise, return the sample in-memory graph.
 
     Returns:
         AssetRelationshipGraph: The initialized graph instance.
@@ -109,8 +123,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory()
 
-    cache_path = os.getenv("GRAPH_CACHE_PATH")
-    use_real_data = _should_use_real_data_fetcher()
+    settings = get_settings()
+    cache_path = settings.graph_cache_path
+    use_real_data = settings.use_real_data_fetcher
 
     if cache_path:
         fetcher = RealDataFetcher(
@@ -120,24 +135,11 @@ def _initialize_graph() -> AssetRelationshipGraph:
         return fetcher.create_real_database()
 
     if use_real_data:
-        cache_path_env = os.getenv("REAL_DATA_CACHE_PATH")
+        real_data_cache_path = settings.real_data_cache_path
         fetcher = RealDataFetcher(
-            cache_path=cache_path_env,
+            cache_path=real_data_cache_path,
             enable_network=True,
         )
         return fetcher.create_real_database()
 
     return create_sample_database()
-
-
-def _should_use_real_data_fetcher() -> bool:
-    """
-    Determine whether to use the real data fetcher based on the USE_REAL_DATA_FETCHER environment variable.
-
-    Treats the values "1", "true", "yes", and "on" (case-insensitive, surrounding whitespace ignored) as enabled.
-
-    Returns:
-        bool: `True` if USE_REAL_DATA_FETCHER is set to one of the enabled values, `False` otherwise.
-    """
-    flag = os.getenv("USE_REAL_DATA_FETCHER", "false")
-    return flag.strip().lower() in {"1", "true", "yes", "on"}
