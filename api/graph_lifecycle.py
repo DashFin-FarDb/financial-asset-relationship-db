@@ -92,8 +92,13 @@ def reset_graph() -> None:
     """
     Reset module-level graph state so the graph will be recreated on next access.
 
-    Clears the cached graph instance and any configured graph factory.
+    Clears the cached graph instance, any configured graph factory, and the
+    settings cache to ensure environment variable changes are observed on the
+    next initialization.
     """
+    # Clear settings cache to preserve reset semantics: environment variable
+    # changes made after reset should be picked up on next initialization.
+    get_settings.cache_clear()
     set_graph_factory(None)
 
 
