@@ -4,19 +4,13 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
-from datetime import timedelta
 from typing import Callable, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import FastAPI
 
 # pylint: disable=import-error
-from slowapi import (  # type: ignore[import-not-found]
-    Limiter,
-    _rate_limit_exceeded_handler,
-)
+from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
-from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
 from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -29,7 +23,7 @@ from .api_models import (  # noqa: F401
     RelationshipResponse,
     VisualizationDataResponse,
 )
-from .auth import (
+from .auth import (  # noqa: F401
     ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
     User,
@@ -44,12 +38,16 @@ from .graph_lifecycle import reset_graph as _reset_graph
 from .graph_lifecycle import set_graph as _set_graph
 from .graph_lifecycle import set_graph_factory as _set_graph_factory
 
+# Import and re-export limiter for backward compatibility
+from .rate_limit import limiter  # noqa: F401
+
 # Backward compatibility re-exports for helper functions
 from .router_helpers import (  # noqa: F401
     raise_asset_not_found,
     serialize_asset,
 )
 from .routers.assets import router as assets_router
+from .routers.auth import router as auth_router
 from .routers.metrics import router as metrics_router
 from .routers.relationships import router as relationships_router
 from .routers.system import router as system_router
@@ -117,9 +115,6 @@ async def lifespan(_fastapi_app: FastAPI):
     logger.info("Application shutdown")
 
 
-# Initialise rate limiter
-limiter = Limiter(key_func=get_remote_address)
-
 # Initialise FastAPI app with lifespan handler
 app = FastAPI(
     title="Financial Asset Relationship API",
@@ -134,45 +129,9 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Configure CORS via extracted policy
 configure_cors(app)
 
+app.include_router(auth_router)
 app.include_router(system_router)
 app.include_router(assets_router)
 app.include_router(relationships_router)
 app.include_router(metrics_router)
 app.include_router(visualization_router)
-
-
-# ---------------------------------------------------------------------------
-# Auth Endpoints
-# ---------------------------------------------------------------------------
-
-
-@app.post("/token", response_model=Token)
-@limiter.limit("5/minute")
-async def login_for_access_token(
-    request: Request,  # Required by slowapi for rate-limit key extraction.
-    form_data: OAuth2PasswordRequestForm = Depends(),
-) -> Token:
-    """Create a JWT access token for authenticated users."""
-    user = authenticate_user(form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username},
-        expires_delta=access_token_expires,
-    )
-    return Token(access_token=access_token, token_type="bearer")
-
-
-@app.get("/api/users/me", response_model=User)
-@limiter.limit("10/minute")
-async def read_users_me(
-    request: Request,  # Required by slowapi for rate-limit key extraction.
-    current_user: User = Depends(get_current_active_user),
-) -> User:
-    """Retrieve the currently authenticated user."""
-    return current_user
