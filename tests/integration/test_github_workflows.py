@@ -1742,10 +1742,16 @@ class TestWorkflowTriggers:
 
         if "pull_request" in triggers:
             pr_config = triggers["pull_request"]
+            assert pr_config is None or isinstance(pr_config, dict), (
+                f"Workflow {workflow_file.name} pull_request trigger must be a "
+                f"mapping (dict) or null, not {type(pr_config).__name__}"
+            )
             if isinstance(pr_config, dict):
                 allowed_without_types = {"branches", "branches-ignore", "paths", "paths-ignore"}
                 assert (
-                    "types" in pr_config or pr_config == {} or set(pr_config.keys()).issubset(allowed_without_types)
+                    "types" in pr_config
+                    or pr_config == {}
+                    or set(pr_config.keys()).issubset(allowed_without_types)
                 ), (
                     f"Workflow {workflow_file.name} pull_request trigger should "
                     "specify activity types for better control"
