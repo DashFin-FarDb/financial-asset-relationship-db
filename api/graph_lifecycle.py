@@ -130,9 +130,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
         return fetcher.create_real_database()
 
     if use_real_data:
-        cache_path_env = settings.real_data_cache_path
+        real_data_cache_path = settings.real_data_cache_path
         fetcher = RealDataFetcher(
-            cache_path=cache_path_env,
+            cache_path=real_data_cache_path,
             enable_network=True,
         )
         return fetcher.create_real_database()
