@@ -31,18 +31,18 @@ from .graph_lifecycle import get_graph as _get_graph
 from .graph_lifecycle import reset_graph as _reset_graph
 from .graph_lifecycle import set_graph as _set_graph
 from .graph_lifecycle import set_graph_factory as _set_graph_factory
-from .routers.assets import router as assets_router  # noqa: F401
-from .routers.auth import router as auth_router  # noqa: F401
-from .routers.metrics import router as metrics_router  # noqa: F401
-from .routers.relationships import router as relationships_router  # noqa: F401
-from .routers.system import router as system_router  # noqa: F401
-from .routers.visualization import router as visualization_router  # noqa: F401
 
 # Import and re-export limiter for backward compatibility
 from .rate_limit import limiter  # noqa: F401
 
 # Backward compatibility re-exports for helper functions
 from .router_helpers import raise_asset_not_found, serialize_asset  # noqa: F401
+from .routers.assets import router as assets_router  # noqa: F401
+from .routers.auth import router as auth_router  # noqa: F401
+from .routers.metrics import router as metrics_router  # noqa: F401
+from .routers.relationships import router as relationships_router  # noqa: F401
+from .routers.system import router as system_router  # noqa: F401
+from .routers.visualization import router as visualization_router  # noqa: F401
 
 # Backward compatibility export for older tests and callers.
 ENV = get_settings().env
