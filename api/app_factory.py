@@ -10,6 +10,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]

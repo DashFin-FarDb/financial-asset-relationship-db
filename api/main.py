@@ -14,18 +14,27 @@ from src.logic.asset_graph import AssetRelationshipGraph
 # Backward compatibility re-exports for response models
 # noqa: F401 tells flake8 to ignore "imported but unused" warnings
 from .api_models import AssetResponse, MetricsResponse, RelationshipResponse, VisualizationDataResponse  # noqa: F401
+
 # Import the FastAPI app and lifespan from app_factory
 from .app_factory import app, lifespan  # noqa: F401
-from .auth import (ACCESS_TOKEN_EXPIRE_MINUTES, Token, User, authenticate_user, create_access_token,  # noqa: F401
-                   get_current_active_user)
+from .auth import (  # noqa: F401
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    Token,
+    User,
+    authenticate_user,
+    create_access_token,
+    get_current_active_user,
+)
 from .cors_policy import configure_cors, validate_origin  # noqa: F401
 from .graph_lifecycle import _initialize_graph as _lifecycle_initialize_graph
 from .graph_lifecycle import get_graph as _get_graph
 from .graph_lifecycle import reset_graph as _reset_graph
 from .graph_lifecycle import set_graph as _set_graph
 from .graph_lifecycle import set_graph_factory as _set_graph_factory
+
 # Import and re-export limiter for backward compatibility
 from .rate_limit import limiter  # noqa: F401
+
 # Backward compatibility re-exports for helper functions
 from .router_helpers import raise_asset_not_found, serialize_asset  # noqa: F401
 
