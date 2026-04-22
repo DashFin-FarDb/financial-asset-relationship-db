@@ -1,3 +1,5 @@
+"""Visualization API routes."""
+
 import math
 from typing import Any, Dict, List
 
@@ -81,6 +83,7 @@ def _build_visualization_edges(g: AssetRelationshipGraph) -> List[Dict[str, Any]
 
 @router.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data() -> VisualizationDataResponse:
+    """Return visualization nodes and edges for the graph."""
     try:
         g = get_graph()
         asset_ids = list(g.assets.keys())

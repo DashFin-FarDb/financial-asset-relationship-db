@@ -1,3 +1,5 @@
+"""Metrics API routes."""
+
 from fastapi import APIRouter, HTTPException
 
 from ..api_models import MetricsResponse
@@ -8,6 +10,7 @@ router = APIRouter()
 
 @router.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics() -> MetricsResponse:
+    """Return summary metrics for the asset relationship graph."""
     try:
         g = get_graph()
         metrics = g.calculate_metrics()

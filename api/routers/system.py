@@ -1,3 +1,5 @@
+"""System and metadata API routes."""
+
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, HTTPException
@@ -11,6 +13,7 @@ router = APIRouter()
 
 @router.get("/")
 async def root() -> Dict[str, Any]:
+    """Return API metadata and key endpoint paths."""
     return {
         "message": "Financial Asset Relationship API",
         "version": "1.0.0",
@@ -26,11 +29,13 @@ async def root() -> Dict[str, Any]:
 
 @router.get("/api/health")
 async def health_check() -> Dict[str, Any]:
+    """Return service health status."""
     return {"status": "healthy", "graph_initialized": True}
 
 
 @router.get("/api/asset-classes")
 async def get_asset_classes() -> Dict[str, List[str]]:
+    """Return sorted asset class names."""
     try:
         return {"asset_classes": sorted(ac.value for ac in AssetClass)}
     except Exception as e:
@@ -43,6 +48,7 @@ async def get_asset_classes() -> Dict[str, List[str]]:
 
 @router.get("/api/sectors")
 async def get_sectors() -> Dict[str, List[str]]:
+    """Return sorted distinct sector names from the graph."""
     try:
         g = get_graph()
         return {"sectors": sorted({a.sector for a in g.assets.values() if a.sector})}

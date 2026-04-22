@@ -5,11 +5,10 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 from datetime import timedelta
-from typing import Any, Callable, Dict, List, NoReturn, Optional
+from typing import Callable, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
 
 # pylint: disable=import-error
 from slowapi import (  # type: ignore[import-not-found]
@@ -22,6 +21,7 @@ from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 from src.logic.asset_graph import AssetRelationshipGraph
 
 # Backward compatibility re-exports for response models
+# noqa: F401 tells flake8 to ignore "imported but unused" warnings
 from .api_models import (  # noqa: F401
     AssetResponse,
     MetricsResponse,

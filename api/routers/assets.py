@@ -1,3 +1,5 @@
+"""Asset API routes."""
+
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -18,6 +20,7 @@ async def get_assets(
     asset_class: Optional[str] = None,
     sector: Optional[str] = None,
 ) -> List[AssetResponse]:
+    """Return assets filtered by asset class and sector."""
     try:
         g = get_graph()
         assets = []
@@ -38,6 +41,7 @@ async def get_assets(
 
 @router.get("/api/assets/{asset_id}", response_model=AssetResponse)
 async def get_asset_detail(asset_id: str) -> AssetResponse:
+    """Return detailed data for a single asset."""
     try:
         g = get_graph()
         if asset_id not in g.assets:
