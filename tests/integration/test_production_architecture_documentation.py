@@ -430,10 +430,12 @@ class TestPullRequestTemplateChangedSections:
         assert "unrelated" in scope_section.lower() or "mixed" in scope_section.lower()
 
     def test_scope_compliance_references_production_architecture(self, content: str) -> None:
-        assert "FastAPI" in content and "Next.js" in content
+        scope_section = content.split("### Scope Compliance")[1].split("###")[0]
+        assert "FastAPI" in scope_section and "Next.js" in scope_section
 
     def test_scope_compliance_references_automation_scope_policy(self, content: str) -> None:
-        assert "AUTOMATION_SCOPE_POLICY.md" in content
+        scope_section = content.split("### Scope Compliance")[1].split("###")[0]
+        assert "AUTOMATION_SCOPE_POLICY.md" in scope_section
 
     def test_scope_compliance_has_checkboxes(self, content: str) -> None:
         scope_section = content.split("### Scope Compliance")[1].split("###")[0]
@@ -450,7 +452,8 @@ class TestPullRequestTemplateChangedSections:
         assert "```bash" in validation_section or "```" in validation_section
 
     def test_primary_objective_references_automation_scope_policy(self, content: str) -> None:
-        assert "AUTOMATION_SCOPE_POLICY.md" in content
+        primary_section = content.split("## Primary Objective")[1].split("##")[0]
+        assert "AUTOMATION_SCOPE_POLICY.md" in primary_section
 
     def test_scope_review_footer_references_pr_scope_guardrails(self, content: str) -> None:
         assert "PR_SCOPE_GUARDRAILS.md" in content
