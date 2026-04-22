@@ -440,9 +440,7 @@ class TestPullRequestTemplateChangedSections:
         scope_section = _extract_heading_section(content, "Scope Compliance")
         assert "unrelated" in scope_section.lower() or "mixed" in scope_section.lower()
 
-    def test_architectural_alignment_references_production_architecture(
-        self, content: str
-    ) -> None:
+    def test_architectural_alignment_references_production_architecture(self, content: str) -> None:
         arch_section = _extract_heading_section(content, "Architectural Alignment")
         assert "FastAPI" in arch_section and "Next.js" in arch_section
 
