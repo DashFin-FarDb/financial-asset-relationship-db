@@ -101,7 +101,16 @@ def _initialize_graph() -> AssetRelationshipGraph:
     """
     Initialize the global AssetRelationshipGraph using the configured factory or settings-driven data sources.
 
-    If a factory is set on graph_state, its result is returned. Otherwise, if settings.graph_cache_path is set a RealDataFetcher is created with that path (network access enabled when settings.use_real_data_fetcher is enabled) and its real database is returned. If settings.graph_cache_path is not set but settings.use_real_data_fetcher is enabled, settings.real_data_cache_path is used to create a RealDataFetcher with network access and its real database is returned. If none of those conditions apply, a sample in-memory graph is returned.
+    Initialization order:
+        - If `graph_state.graph_factory` is set, return the factory result.
+        - If `settings.graph_cache_path` is set, create a `RealDataFetcher`
+          with that path. Network access is enabled when
+          `settings.use_real_data_fetcher` is enabled.
+        - If `settings.graph_cache_path` is not set, but
+          `settings.use_real_data_fetcher` is enabled, create a
+          `RealDataFetcher` using `settings.real_data_cache_path` with network
+          access enabled.
+        - Otherwise, return the sample in-memory graph.
 
     Returns:
         AssetRelationshipGraph: The initialized graph instance.
