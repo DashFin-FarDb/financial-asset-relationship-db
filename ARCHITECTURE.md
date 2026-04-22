@@ -14,14 +14,14 @@ For the architectural decision rationale, see [docs/adr/0001-production-architec
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                       │
 │  ┌──────────────────────────┐     ┌──────────────────────────┐     │
-│  │   Gradio UI (Port 7860)  │     │ Next.js UI (Port 3000)   │     │
+│  │ Next.js UI (Port 3000)   │     │   Gradio UI (Port 7860)  │     │
 │  │  ┌────────────────────┐  │     │  ┌────────────────────┐  │     │
 │  │  │ 3D Visualization   │  │     │  │ 3D Visualization   │  │     │
 │  │  │ Metrics Dashboard  │  │     │  │ Metrics Dashboard  │  │     │
 │  │  │ Asset Explorer     │  │     │  │ Asset Explorer     │  │     │
-│  │  │ Schema Report      │  │     │  │ (React Components) │  │     │
+│  │  │ (React Components) │  │     │  │ Schema Report      │  │     │
 │  │  └────────────────────┘  │     │  └────────────────────┘  │     │
-│  │   (Python/Gradio)        │     │   (TypeScript/React)     │     │
+│  │   (TypeScript/React)     │     │   (Python/Gradio)        │     │
 │  └──────────┬───────────────┘     └──────────┬───────────────┘     │
 │             │                                 │                      │
 └─────────────┼─────────────────────────────────┼──────────────────────┘
