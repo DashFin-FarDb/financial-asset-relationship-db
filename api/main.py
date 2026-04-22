@@ -97,9 +97,8 @@ def reset_graph() -> None:
 async def lifespan(_fastapi_app: FastAPI):
     """
     Manage application lifespan: initialize the shared asset relationship graph before startup and log shutdown.
-    
+
     If graph initialization fails, the original exception is propagated to abort application startup.
-    
     Raises:
         Exception: Any error encountered during graph initialization is re-raised to stop startup.
     """
