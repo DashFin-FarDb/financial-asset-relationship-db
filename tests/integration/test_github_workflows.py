@@ -2584,13 +2584,9 @@ class TestWorkflowScheduledExecutionBestPractices:
                 # Allowed tokens: digits, *, /, ,, - (range/step/list operators)
                 # plus the known 3-letter month and weekday abbreviations that
                 # GitHub Actions' cron syntax supports.
-                _MONTH_NAMES = (
-                    "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC"
-                )
+                _MONTH_NAMES = "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC"
                 _DAY_NAMES = "SUN|MON|TUE|WED|THU|FRI|SAT"
-                _CRON_ATOM = (
-                    r"(?:\d+|(?:" + _MONTH_NAMES + r"|" + _DAY_NAMES + r"))"
-                )
+                _CRON_ATOM = r"(?:\d+|(?:" + _MONTH_NAMES + r"|" + _DAY_NAMES + r"))"
                 _CRON_PART = (
                     r"^\*(?:/\d+)?$"
                     r"|^" + _CRON_ATOM + r"(?:[-/]" + _CRON_ATOM + r")?$"
