@@ -19,6 +19,7 @@ from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.config.settings import get_settings
 
 # Backward compatibility re-exports for response models
 # noqa: F401 tells flake8 to ignore "imported but unused" warnings
@@ -53,6 +54,12 @@ from .routers.metrics import router as metrics_router
 from .routers.relationships import router as relationships_router
 from .routers.system import router as system_router
 from .routers.visualization import router as visualization_router
+
+# Backward compatibility export for older tests and callers.
+ENV = get_settings().env
+
+# Backward compatibility graph reference for older tests that patch api.main.graph.
+graph = _get_graph()
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
