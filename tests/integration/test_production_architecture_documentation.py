@@ -1009,7 +1009,9 @@ class TestProductionArchitectureDocumentationConsistency:
     ) -> None:
         """Both PR templates must enforce the one-primary-decision constraint."""
         assert "one primary decision" in arch_template_content.lower() or "primary" in arch_template_content.lower()
-        assert "one primary decision" in pr_template_content.lower() or "primary decision" in pr_template_content.lower()
+        assert (
+            "one primary decision" in pr_template_content.lower() or "primary decision" in pr_template_content.lower()
+        )
 
     def test_policy_and_adr_consistent_gradio_status(self, policy_content: str, adr_content: str) -> None:
         """Both policy and ADR must agree on Gradio's non-production status."""
