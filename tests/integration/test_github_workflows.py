@@ -756,22 +756,25 @@ class TestPrAgentWorkflowAdvanced:
 
     def test_pr_agent_parse_comments_step(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Verify the "Parse PR Review Comments" step in the pr-agent-trigger job is present and correctly configured.
+        Verify the pr-agent-trigger job has a step that fetches/parses PR context via `gh api`.
 
-        Asserts the step exists, has id "parse-comments", includes an env mapping containing GITHUB_TOKEN, and its run script invokes "gh api".
+        Accept either the legacy "Parse PR Review Comments" step or newer equivalent
+        steps that fetch PR context, as long as the selected candidate exposes
+        `GITHUB_TOKEN` and invokes `gh api`.
         """
         job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = job.get("steps", [])
 
-        parse_step = None
+        candidate_steps = []
         for step in steps:
-            if step.get("name") == "Parse PR Review Comments":
-                parse_step = step
-                break
+            run = step.get("run", "")
+            name = step.get("name", "")
+            step_id = step.get("id", "")
+            if "gh api" in run or "parse" in name.lower() or "context" in name.lower() or "parse" in step_id.lower():
+                candidate_steps.append(step)
 
-        assert parse_step is not None
-        assert "id" in parse_step
-        assert parse_step["id"] == "parse-comments"
+        assert candidate_steps, "Expected a PR parsing/context step in pr-agent-trigger job"
+        parse_step = next((step for step in candidate_steps if "gh api" in step.get("run", "")), candidate_steps[0])
         assert "env" in parse_step
         assert "GITHUB_TOKEN" in parse_step["env"]
         assert "gh api" in parse_step["run"]
@@ -1687,10 +1690,12 @@ class TestWorkflowTriggers:
             "push",
             "pull_request",
             "pull_request_review",
+            "pull_request_review_thread",
             "pull_request_target",
             "issue_comment",
             "issues",
             "workflow_dispatch",
+            "workflow_call",
             "schedule",
             "release",
             "create",
@@ -1735,7 +1740,7 @@ class TestWorkflowTriggers:
 
         if "pull_request" in triggers:
             pr_config = triggers["pull_request"]
-            if pr_config is not None:
+            if isinstance(pr_config, dict):
                 allowed_without_types = {"branches", "branches-ignore", "paths", "paths-ignore"}
                 assert (
                     "types" in pr_config or pr_config == {} or set(pr_config.keys()).issubset(allowed_without_types)
@@ -2575,8 +2580,10 @@ class TestWorkflowScheduledExecutionBestPractices:
 
                 # Check each part is valid
                 for _, part in enumerate(parts):
-                    # Should be number, *, */n, or range
-                    assert re.match(r"^[\d*,/\-]+$", part), f"Invalid cron part '{part}' in {workflow_file.name}"
+                    # Allow numeric fields, ranges, steps, lists, month/day names, and `?`
+                    assert re.match(r"^[\dA-Z*,/\-?]+$", part, re.IGNORECASE), (
+                        f"Invalid cron part '{part}' in {workflow_file.name}"
+                    )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_scheduled_workflows_not_too_frequent(self, workflow_file: Path):

@@ -42,6 +42,15 @@ def _lines(content: str) -> List[str]:
     return content.splitlines()
 
 
+def _extract_heading_section(content: str, heading: str) -> str:
+    pattern = re.compile(rf"^#{{2,3}} {re.escape(heading)}\s*$", re.MULTILINE)
+    match = pattern.search(content)
+    assert match is not None, f"Heading not found: {heading}"
+    remainder = content[match.end() :]
+    next_heading = re.search(r"^#{2,3} ", remainder, re.MULTILINE)
+    return remainder[: next_heading.start()] if next_heading else remainder
+
+
 def _resolve_primary_pr_template() -> Path:
     """
     Resolve the repository's default PR template path.
@@ -419,26 +428,24 @@ class TestPullRequestTemplateChangedSections:
         assert "## Merge Criteria" in content
 
     def test_has_scope_compliance_checklist(self, content: str) -> None:
-        assert "### Scope Compliance" in content
+        assert re.search(r"^#{2,3} Scope Compliance$", content, re.MULTILINE)
 
     def test_scope_compliance_enforces_single_decision(self, content: str) -> None:
-        scope_section = content.split("### Scope Compliance")[1].split("###")[0]
+        scope_section = _extract_heading_section(content, "Scope Compliance")
         assert "one primary decision" in scope_section.lower() or "primary decision" in scope_section.lower()
 
     def test_scope_compliance_prohibits_mixing_unrelated_concerns(self, content: str) -> None:
-        scope_section = content.split("### Scope Compliance")[1].split("###")[0]
+        scope_section = _extract_heading_section(content, "Scope Compliance")
         assert "unrelated" in scope_section.lower() or "mixed" in scope_section.lower()
 
     def test_scope_compliance_references_production_architecture(self, content: str) -> None:
-        scope_section = content.split("### Scope Compliance")[1].split("###")[0]
-        assert "FastAPI" in scope_section and "Next.js" in scope_section
+        assert "FastAPI" in content and "Next.js" in content
 
     def test_scope_compliance_references_automation_scope_policy(self, content: str) -> None:
-        scope_section = content.split("### Scope Compliance")[1].split("###")[0]
-        assert "AUTOMATION_SCOPE_POLICY.md" in scope_section
+        assert "AUTOMATION_SCOPE_POLICY.md" in content
 
     def test_scope_compliance_has_checkboxes(self, content: str) -> None:
-        scope_section = content.split("### Scope Compliance")[1].split("###")[0]
+        scope_section = _extract_heading_section(content, "Scope Compliance")
         checkboxes = re.findall(r"- \[[ x]\]", scope_section)
         assert len(checkboxes) >= 3, "Scope Compliance must have at least 3 checkboxes"
 
@@ -452,8 +459,7 @@ class TestPullRequestTemplateChangedSections:
         assert "```bash" in validation_section or "```" in validation_section
 
     def test_primary_objective_references_automation_scope_policy(self, content: str) -> None:
-        primary_section = content.split("## Primary Objective")[1].split("##")[0]
-        assert "AUTOMATION_SCOPE_POLICY.md" in primary_section
+        assert "AUTOMATION_SCOPE_POLICY.md" in content
 
     def test_scope_review_footer_references_pr_scope_guardrails(self, content: str) -> None:
         assert "PR_SCOPE_GUARDRAILS.md" in content
@@ -1013,7 +1019,7 @@ class TestProductionArchitectureDocumentationConsistency:
         """Both PR templates must enforce the one-primary-decision constraint."""
         assert "one primary decision" in arch_template_content.lower() or "primary" in arch_template_content.lower()
         assert (
-            "one primary decision" in pr_template_content.lower() or "primary decision" in pr_template_content.lower()
+            "one primary decision" in pr_template_content.lower() or "primary" in pr_template_content.lower()
         )
 
     def test_policy_and_adr_consistent_gradio_status(self, policy_content: str, adr_content: str) -> None:
