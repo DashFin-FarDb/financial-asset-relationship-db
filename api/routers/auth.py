@@ -26,11 +26,11 @@ async def login_for_access_token(
 ) -> Token:
     """
     Issue a JWT access token for valid user credentials.
-    
+
     Parameters:
         request (Request): Included so slowapi can extract the rate-limit key for this request.
         form_data (OAuth2PasswordRequestForm): OAuth2 password form containing `username` and `password`.
-    
+
     Returns:
         Token: A `Token` object containing the JWT in `access_token` and `token_type` set to "bearer".
     """
@@ -57,11 +57,11 @@ async def read_users_me(
 ) -> User:
     """
     Retrieve the authenticated active user.
-    
+
     Parameters:
         request (Request): Included for rate-limit key extraction by the request middleware.
         current_user (User): The authenticated active user resolved by dependency injection.
-    
+
     Returns:
         User: The `current_user` object representing the authenticated active user.
     """
