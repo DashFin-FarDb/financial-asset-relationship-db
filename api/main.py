@@ -18,8 +18,8 @@ from slowapi import (  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
-from src.logic.asset_graph import AssetRelationshipGraph
 from src.config.settings import get_settings
+from src.logic.asset_graph import AssetRelationshipGraph
 
 # Backward compatibility re-exports for response models
 # noqa: F401 tells flake8 to ignore "imported but unused" warnings
