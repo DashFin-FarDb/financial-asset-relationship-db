@@ -2580,10 +2580,25 @@ class TestWorkflowScheduledExecutionBestPractices:
                 parts = cron.split()
                 assert len(parts) == 5, f"Invalid cron '{cron}' in {workflow_file.name} (needs 5 fields)"
 
-                # Check each part is valid
+                # Check each part is valid.
+                # Allowed tokens: digits, *, /, ,, - (range/step/list operators)
+                # plus the known 3-letter month and weekday abbreviations that
+                # GitHub Actions' cron syntax supports.
+                _MONTH_NAMES = (
+                    "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC"
+                )
+                _DAY_NAMES = "SUN|MON|TUE|WED|THU|FRI|SAT"
+                _CRON_ATOM = (
+                    r"(?:\d+|(?:" + _MONTH_NAMES + r"|" + _DAY_NAMES + r"))"
+                )
+                _CRON_PART = (
+                    r"^\*(?:/\d+)?$"
+                    r"|^" + _CRON_ATOM + r"(?:[-/]" + _CRON_ATOM + r")?$"
+                    r"|^(?:" + _CRON_ATOM + r",)+" + _CRON_ATOM + r"$"
+                    r"|^\*$"
+                )
                 for _, part in enumerate(parts):
-                    # Allow numeric fields, ranges, steps, lists, month/day names, and `?`
-                    assert re.match(r"^[\dA-Z*,/\-?]+$", part, re.IGNORECASE), (
+                    assert re.match(_CRON_PART, part, re.IGNORECASE), (
                         f"Invalid cron part '{part}' in {workflow_file.name}"
                     )
 
