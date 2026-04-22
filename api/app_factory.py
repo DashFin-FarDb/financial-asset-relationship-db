@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(_fastapi_app: FastAPI):
+async def lifespan(fastapi_app: FastAPI):
     """
     Manage application lifespan: initialize the shared asset relationship graph before startup and log shutdown.
 
