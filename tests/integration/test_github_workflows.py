@@ -298,10 +298,12 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_name(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Assert the pr-agent workflow's top-level "name" equals "PR Agent".
+        Assert the pr-agent workflow's top-level "name" contains "pr agent"
+        (case-insensitive substring match).
 
         Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow fixture.
+            pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the
+                pr-agent workflow fixture.
         """
         assert "pr agent" in pr_agent_workflow["name"].lower()
 

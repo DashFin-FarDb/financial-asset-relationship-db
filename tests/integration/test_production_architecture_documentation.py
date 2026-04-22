@@ -385,7 +385,9 @@ class TestArchitectureDocsPRTemplate:
 
 
 # ---------------------------------------------------------------------------
-# .github/pull_request_template.md  (changed sections)
+# Default (primary) PR template – resolved dynamically; prefers the legacy
+# .github/pull_request_template.md when present and falls back to
+# .github/PULL_REQUEST_TEMPLATE/architecture-docs.md.
 # ---------------------------------------------------------------------------
 
 
