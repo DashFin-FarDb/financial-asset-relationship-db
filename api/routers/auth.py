@@ -24,7 +24,16 @@ async def login_for_access_token(
     request: Request,  # Required by slowapi for rate-limit key extraction.
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Token:
-    """Create a JWT access token for authenticated users."""
+    """
+    Issue a JWT access token for valid user credentials.
+    
+    Parameters:
+        request (Request): Included so slowapi can extract the rate-limit key for this request.
+        form_data (OAuth2PasswordRequestForm): OAuth2 password form containing `username` and `password`.
+    
+    Returns:
+        Token: A `Token` object containing the JWT in `access_token` and `token_type` set to "bearer".
+    """
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -46,5 +55,14 @@ async def read_users_me(
     request: Request,  # Required by slowapi for rate-limit key extraction.
     current_user: User = Depends(get_current_active_user),
 ) -> User:
-    """Retrieve the currently authenticated user."""
+    """
+    Retrieve the authenticated active user.
+    
+    Parameters:
+        request (Request): Included for rate-limit key extraction by the request middleware.
+        current_user (User): The authenticated active user resolved by dependency injection.
+    
+    Returns:
+        User: The `current_user` object representing the authenticated active user.
+    """
     return current_user
