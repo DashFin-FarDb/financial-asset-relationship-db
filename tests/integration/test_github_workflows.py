@@ -2278,13 +2278,14 @@ class TestWorkflowAdvancedValidation:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_checkout_with_proper_ref_for_pr(self, workflow_file: Path):
         """
-        Warn when a pull_request_target workflow checks out code without an
-        explicit ``ref``.
+        Enforce that pull_request_target workflows do not check out code
+        without an explicit ``ref`` or an explicit credential guard.
 
         Using ``pull_request_target`` without pinning ``ref`` can expose the
-        workflow to untrusted code from fork PRs.  This test collects all such
-        steps and asserts that each one either sets ``ref`` explicitly or uses a
-        ``persist-credentials: false`` guard (indicating deliberate intent).
+        workflow to untrusted code from fork PRs. This test collects all such
+        steps and fails if any checkout step neither sets ``ref`` explicitly
+        nor uses a ``persist-credentials: false`` guard (indicating
+        deliberate intent).
         """
         data = load_yaml_safe(workflow_file)
         triggers = data.get("on", {})
