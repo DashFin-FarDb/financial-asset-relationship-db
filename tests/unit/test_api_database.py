@@ -30,6 +30,7 @@ from api.database import (
     get_connection,
     initialize_schema,
 )
+from src.config.settings import get_settings
 
 
 class TestDatabaseURLConfiguration:
@@ -56,6 +57,7 @@ class TestDatabaseURLConfiguration:
             # Import will fail due to module-level check
             import importlib
 
+            get_settings.cache_clear()
             importlib.reload(db_module)
 
 

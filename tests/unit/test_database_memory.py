@@ -10,8 +10,15 @@ from typing import Iterator
 import pytest
 
 import api.database as database
+from src.config.settings import get_settings
 
 pytestmark = pytest.mark.unit
+
+
+def reload_database_module():
+    """Reload the database module after clearing the settings cache."""
+    get_settings.cache_clear()
+    return importlib.reload(database)
 
 
 @pytest.fixture()
@@ -36,7 +43,7 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     else:
         monkeypatch.setenv("DATABASE_URL", original_url)
 
-    importlib.reload(database)
+    reload_database_module()
 
 
 def test_in_memory_database_persists_schema_and_data(monkeypatch, restore_database_module):
@@ -46,7 +53,7 @@ def test_in_memory_database_persists_schema_and_data(monkeypatch, restore_databa
     """
     monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
 
-    reloaded_database = importlib.reload(database)
+    reloaded_database = reload_database_module()
     reloaded_database.initialize_schema()
 
     with reloaded_database.get_connection() as first_connection:
@@ -75,7 +82,7 @@ def test_uri_style_memory_database_persists_schema_and_data(monkeypatch, restore
     """Verify URI-style in-memory SQLite configuration preserves schema and data."""
     monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
 
-    reloaded_database = importlib.reload(database)
+    reloaded_database = reload_database_module()
     reloaded_database.initialize_schema()
 
     with reloaded_database.get_connection() as first_connection:
@@ -111,7 +118,7 @@ class TestIsMemoryDb:
     ) -> None:
         """Test that _is_memory_db returns True for literal ':memory:' string."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         assert reloaded_database._is_memory_db() is True
         assert reloaded_database._is_memory_db(":memory:") is True
@@ -179,7 +186,7 @@ class TestIsMemoryDb:
     ) -> None:
         """Test that _is_memory_db with None parameter uses the module's DATABASE_PATH."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         # When called without argument, should use module's DATABASE_PATH
         assert reloaded_database._is_memory_db() is True
@@ -242,7 +249,7 @@ class TestConnectWithMemoryDb:
     ) -> None:
         """Test that _connect creates and reuses a single shared connection for memory databases."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         # First connection
         conn1 = reloaded_database._connect()
@@ -262,7 +269,7 @@ class TestConnectWithMemoryDb:
         """Test that _connect properly handles URI-style memory databases."""
         # Test with file::memory:?cache=shared format
         monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         conn1 = reloaded_database._connect()
         assert conn1 is not None
@@ -285,7 +292,7 @@ class TestConnectWithMemoryDb:
 
         try:
             monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}")
-            reloaded_database = importlib.reload(database)
+            reloaded_database = reload_database_module()
 
             # First connection
             conn1 = reloaded_database._connect()
@@ -313,7 +320,7 @@ class TestConnectWithMemoryDb:
         import sqlite3
 
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         conn = reloaded_database._connect()
         assert conn.row_factory == sqlite3.Row
@@ -325,7 +332,7 @@ class TestConnectWithMemoryDb:
     ) -> None:
         """Test that _connect disables check_same_thread for thread safety."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         conn = reloaded_database._connect()
 
@@ -354,7 +361,7 @@ class TestConnectWithMemoryDb:
         Ensures `_connect` accepts a URI like `file::memory:?cache=shared` without raising and yields a valid connection object.
         """
         monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         # This should not raise an exception
         conn = reloaded_database._connect()
@@ -372,7 +379,7 @@ class TestGetConnectionWithMemoryDb:
     ) -> None:
         """Test that get_connection keeps memory database connections open."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         reloaded_database.initialize_schema()
 
@@ -406,7 +413,7 @@ class TestGetConnectionWithMemoryDb:
 
         try:
             monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}")
-            reloaded_database = importlib.reload(database)
+            reloaded_database = reload_database_module()
 
             reloaded_database.initialize_schema()
 
@@ -440,7 +447,7 @@ class TestThreadSafety:
     ) -> None:
         """Ensure concurrent calls to _connect() for an in-memory DB return a single shared connection (no races during first-connection creation)."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         connections: list[object] = []
         errors: list[Exception] = []
@@ -469,7 +476,7 @@ class TestThreadSafety:
     ) -> None:
         """Test concurrent read/write operations on memory database."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
         reloaded_database.initialize_schema()
 
         errors: list[BaseException] = []
@@ -542,7 +549,7 @@ class TestEdgeCasesAndErrorHandling:
         monkeypatch.delenv("DATABASE_URL", raising=False)
 
         with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
-            importlib.reload(database)
+            reload_database_module()
 
     @staticmethod
     def test_execute_with_memory_db_commits_changes(
@@ -551,7 +558,7 @@ class TestEdgeCasesAndErrorHandling:
     ) -> None:
         """Test that execute function properly commits changes to memory database."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         reloaded_database.initialize_schema()
         # Use execute to insert data
@@ -572,7 +579,7 @@ class TestEdgeCasesAndErrorHandling:
     ) -> None:
         """Test that fetch_value works correctly with memory database."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         reloaded_database.initialize_schema()
         reloaded_database.execute(
@@ -599,7 +606,7 @@ class TestEdgeCasesAndErrorHandling:
         import sqlite3
 
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         reloaded_database.initialize_schema()
         reloaded_database.execute(
@@ -635,7 +642,7 @@ class TestEdgeCasesAndErrorHandling:
         """Test that URI memory databases can persist across connections when properly configured."""
         # When using :memory: directly, it should use our shared connection logic
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
+        reloaded_database = reload_database_module()
 
         reloaded_database.initialize_schema()
 

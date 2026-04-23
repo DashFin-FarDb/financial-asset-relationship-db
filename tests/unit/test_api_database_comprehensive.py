@@ -23,6 +23,7 @@ from api.database import (
     _resolve_sqlite_path,
     get_connection,
 )
+from src.config.settings import get_settings
 
 
 class TestGetDatabaseUrl:
@@ -31,12 +32,14 @@ class TestGetDatabaseUrl:
     def test_get_database_url_from_env(self):
         """Test reading DATABASE_URL from environment."""
         with patch.dict(os.environ, {"DATABASE_URL": "sqlite:///test.db"}):
+            get_settings.cache_clear()
             url = _get_database_url()
             assert url == "sqlite:///test.db"
 
     def test_get_database_url_raises_when_not_set(self):
         """Test that ValueError is raised when DATABASE_URL is not set."""
         with patch.dict(os.environ, {}, clear=True):
+            get_settings.cache_clear()
             with pytest.raises(ValueError) as exc_info:
                 _get_database_url()
             assert "DATABASE_URL environment variable must be set" in str(exc_info.value)
@@ -140,7 +143,8 @@ class TestConnect:
         with patch("api.database.sqlite3.connect", return_value=mock_conn) as mock_sqlite_connect:
             temp_manager = _DatabaseConnectionManager("file:test.db?mode=ro")
             with patch.object(api.database, "_db_manager", temp_manager):
-                _connect()
+                with patch.object(api.database, "DATABASE_PATH", "file:test.db?mode=ro"):
+                    _connect()
 
         call_kwargs = mock_sqlite_connect.call_args[1]
         assert call_kwargs.get("uri") is True
@@ -240,10 +244,11 @@ class TestConnectModuleLevelCaching:
         api.database._MEMORY_CONNECTION_MANAGER = None
         try:
             with patch.object(api.database, "_db_manager", temp_manager):
-                with patch.object(api.database, "_is_memory_db", return_value=True):
-                    conn1 = api.database._connect()
-                    conn2 = api.database._connect()
-                    assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
+                with patch.object(api.database, "DATABASE_PATH", ":memory:"):
+                    with patch.object(api.database, "_is_memory_db", return_value=True):
+                        conn1 = api.database._connect()
+                        conn2 = api.database._connect()
+                        assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
             api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
