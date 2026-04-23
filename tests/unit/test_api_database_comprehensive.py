@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import api.database as database
 from api.database import (
     _connect,
     _get_database_url,
@@ -155,17 +154,19 @@ class TestConnect:
 
     def test_connect_with_uri_path(self):
         """Test connecting with URI-style database path uses URI mode."""
-        temp_manager = database._DatabaseConnectionManager("file:test.db?mode=ro")
+        import api.database
+
+        temp_manager = api.database._DatabaseConnectionManager("file:test.db?mode=ro")
 
         with (
-            patch.object(database, "DATABASE_PATH", "file:test.db?mode=ro"),
-            patch.object(database, "_db_manager", temp_manager),
+            patch.object(api.database, "DATABASE_PATH", "file:test.db?mode=ro"),
+            patch.object(api.database, "_db_manager", temp_manager),
             patch("api.database.sqlite3.connect") as mock_connect,
         ):
             mock_connection = MagicMock()
             mock_connect.return_value = mock_connection
 
-            connection = database._connect()
+            connection = _connect()
 
         assert connection is mock_connection
         mock_connect.assert_called_once_with(
