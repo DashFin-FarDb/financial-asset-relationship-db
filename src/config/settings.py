@@ -72,6 +72,7 @@ class Settings(BaseModel):
 
     # Database configuration
     asset_graph_database_url: Optional[str] = Field(default=None)
+    database_url: Optional[str] = Field(default=None)
 
     @property
     def allowed_origins(self) -> list[str]:
@@ -95,7 +96,7 @@ def load_settings() -> Settings:
     Creates a Settings instance populated from these environment variables:
     ENV (default "development", stripped and lowercased), ALLOWED_ORIGINS,
     GRAPH_CACHE_PATH, REAL_DATA_CACHE_PATH, USE_REAL_DATA_FETCHER (parsed as a
-    boolean), and ASSET_GRAPH_DATABASE_URL.
+    boolean), ASSET_GRAPH_DATABASE_URL, and DATABASE_URL.
 
     Returns:
         settings (Settings): Constructed and validated Settings object.
@@ -107,6 +108,7 @@ def load_settings() -> Settings:
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
+        database_url=os.getenv("DATABASE_URL"),
     )
 
 
