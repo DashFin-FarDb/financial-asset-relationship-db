@@ -25,9 +25,7 @@ def _get_database_url() -> str:
     """
     database_url = get_settings().database_url
     if not database_url:
-        raise ValueError(
-            "DATABASE_URL must be configured before using the API database helpers."
-        )
+        raise ValueError("DATABASE_URL must be configured before using the API database helpers.")
     return database_url
 
 
