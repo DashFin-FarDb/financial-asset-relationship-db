@@ -88,6 +88,7 @@ class Settings(BaseModel):
             return []
         return _parse_csv_env(self.allowed_origins_raw)
 
+
 def load_settings() -> Settings:
     """
     Load runtime settings from environment variables.
