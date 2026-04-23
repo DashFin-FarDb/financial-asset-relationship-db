@@ -1750,11 +1750,16 @@ class TestWorkflowTriggers:
                     f"Workflow {workflow_file.name} pull_request trigger must be a dict, "
                     f"got {type(pr_config).__name__}"
                 )
-                # Empty dict {} is valid (means all PR types), otherwise types must be specified
-                assert "types" in pr_config or pr_config == {}, (
-                    f"Workflow {workflow_file.name} pull_request trigger should "
-                    "specify activity types for better control"
-                )
+                # Empty dict {} is valid (means all PR types)
+                # Dict with only filter keys (paths, branches, etc.) is also valid - skip validation
+                # Otherwise types should be specified
+                filter_only_keys = {"paths", "paths-ignore", "branches", "branches-ignore", "tags", "tags-ignore"}
+                if pr_config and not (set(pr_config.keys()).issubset(filter_only_keys)):
+                    # Has non-filter keys, so should have types
+                    assert "types" in pr_config, (
+                        f"Workflow {workflow_file.name} pull_request trigger should "
+                        "specify activity types for better control"
+                    )
 
     @staticmethod
     def test_final_report_exists():

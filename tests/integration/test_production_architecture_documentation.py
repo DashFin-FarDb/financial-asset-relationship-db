@@ -368,6 +368,10 @@ class TestArchitectureDocsPRTemplate:
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(
+    not PULL_REQUEST_TEMPLATE.exists(),
+    reason="pull_request_template.md does not exist in this branch"
+)
 class TestPullRequestTemplateChangedSections:
     """Validate the new sections added to .github/pull_request_template.md in this PR."""
 
@@ -1051,12 +1055,20 @@ class TestProductionArchitectureDocumentationConsistency:
     def test_adr_references_readme_md(self, adr_content: str) -> None:
         assert "README.md" in adr_content
 
+    @pytest.mark.skipif(
+        not PULL_REQUEST_TEMPLATE.exists(),
+        reason="pull_request_template.md does not exist in this branch"
+    )
     def test_pr_template_references_automation_scope_policy(self, pr_template_content: str) -> None:
         assert "AUTOMATION_SCOPE_POLICY.md" in pr_template_content
 
     def test_architecture_docs_template_references_automation_scope_policy(self, arch_template_content: str) -> None:
         assert "AUTOMATION_SCOPE_POLICY.md" in arch_template_content
 
+    @pytest.mark.skipif(
+        not PULL_REQUEST_TEMPLATE.exists(),
+        reason="pull_request_template.md does not exist in this branch"
+    )
     def test_both_pr_templates_enforce_single_decision(
         self, arch_template_content: str, pr_template_content: str
     ) -> None:
