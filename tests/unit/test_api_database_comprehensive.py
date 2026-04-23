@@ -130,21 +130,21 @@ class TestConnect:
         assert conn == mock_conn
 
     def test_connect_resolves_uri_path_via_settings(self):
-    with patch.dict(
-        os.environ,
-        {"DATABASE_URL": "sqlite:///file:test.db?mode=ro"},
-        clear=False,
-    ):
-        get_settings.cache_clear()
-        with patch("api.database.sqlite3.connect") as mock_connect:
-            mock_connection = MagicMock()
-            mock_connect.return_value = mock_connection
-
-            connection = database._connect()
-
-        assert connection is mock_connection
-        mock_connect.assert_called_once()
-        assert mock_connect.call_args.kwargs["uri"] is True
+        with patch.dict(
+            os.environ,
+            {"DATABASE_URL": "sqlite:///file:test.db?mode=ro"},
+            clear=False,
+        ):
+            get_settings.cache_clear()
+            with patch("api.database.sqlite3.connect") as mock_connect:
+                mock_connection = MagicMock()
+                mock_connect.return_value = mock_connection
+    
+                connection = database._connect()
+    
+            assert connection is mock_connection
+            mock_connect.assert_called_once()
+            assert mock_connect.call_args.kwargs["uri"] is True
 
 
 class TestGetConnection:
