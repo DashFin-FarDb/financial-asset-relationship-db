@@ -1,3 +1,5 @@
+# Pull Request Template
+
 ## Architectural Alignment
 
 <!-- Describe how this PR aligns with the production architecture. -->
