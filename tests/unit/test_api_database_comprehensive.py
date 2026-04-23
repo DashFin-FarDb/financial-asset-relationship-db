@@ -11,6 +11,7 @@ This module provides extensive test coverage for api/database.py including:
 
 import os
 import sqlite3
+from src.config.settings import get_settings
 import threading
 from unittest.mock import MagicMock, patch
 
