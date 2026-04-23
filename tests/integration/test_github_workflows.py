@@ -980,30 +980,52 @@ class TestAutoAssignWorkflow:
     def test_auto_assign_permissions_issues_write(self, auto_assign_workflow: Dict[str, Any]):
         """Test that the workflow has issues write permission."""
         # Check workflow-level permissions first, then job-level
-        workflow_perms = auto_assign_workflow.get("permissions", {})
+        workflow_perms = auto_assign_workflow.get("permissions")
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
-        job_perms = run_job.get("permissions", {})
+        job_perms = run_job.get("permissions")
+
+        # At least one level must have permissions defined
+        assert workflow_perms is not None or job_perms is not None, (
+            "Either workflow-level or job-level permissions must be defined"
+        )
+
         permissions = workflow_perms if workflow_perms else job_perms
+        assert isinstance(permissions, dict), f"Permissions must be a dict, got {type(permissions).__name__}"
         assert "issues" in permissions, "Run job should have 'issues' permission"
         assert permissions["issues"] == "write", "Issues permission should be 'write'"
 
     def test_auto_assign_permissions_pull_requests_write(self, auto_assign_workflow: Dict[str, Any]):
         """Test that the workflow has pull-requests write permission."""
         # Check workflow-level permissions first, then job-level
-        workflow_perms = auto_assign_workflow.get("permissions", {})
+        workflow_perms = auto_assign_workflow.get("permissions")
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
-        job_perms = run_job.get("permissions", {})
+        job_perms = run_job.get("permissions")
+
+        # At least one level must have permissions defined
+        assert workflow_perms is not None or job_perms is not None, (
+            "Either workflow-level or job-level permissions must be defined"
+        )
+
         permissions = workflow_perms if workflow_perms else job_perms
+        assert isinstance(permissions, dict), f"Permissions must be a dict, got {type(permissions).__name__}"
         assert "pull-requests" in permissions, "Workflow should have 'pull-requests' permission"
         assert permissions["pull-requests"] == "write", "Pull-requests permission should be 'write'"
 
     def test_auto_assign_permissions_minimal(self, auto_assign_workflow: Dict[str, Any]):
         """Test that the workflow uses minimal permissions (least privilege principle)."""
         # Check workflow-level permissions first, then job-level
-        workflow_perms = auto_assign_workflow.get("permissions", {})
+        workflow_perms = auto_assign_workflow.get("permissions")
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
-        job_perms = run_job.get("permissions", {})
+        job_perms = run_job.get("permissions")
+
+        # At least one level must have permissions defined
+        assert workflow_perms is not None or job_perms is not None, (
+            "Either workflow-level or job-level permissions must be defined"
+        )
+
         permissions = workflow_perms if workflow_perms else job_perms
+        assert isinstance(permissions, dict), f"Permissions must be a dict, got {type(permissions).__name__}"
+
         required_perms = {"issues", "pull-requests"}
         actual_perms = set(permissions.keys())
         assert required_perms.issubset(actual_perms), f"Should have at least {required_perms} permissions"
@@ -1723,6 +1745,12 @@ class TestWorkflowTriggers:
         if "pull_request" in triggers:
             pr_config = triggers["pull_request"]
             if pr_config is not None:
+                # Fail clearly if pr_config is malformed (not a dict or empty dict)
+                assert isinstance(pr_config, dict), (
+                    f"Workflow {workflow_file.name} pull_request trigger must be a dict, "
+                    f"got {type(pr_config).__name__}"
+                )
+                # Empty dict {} is valid (means all PR types), otherwise types must be specified
                 assert "types" in pr_config or pr_config == {}, (
                     f"Workflow {workflow_file.name} pull_request trigger should "
                     "specify activity types for better control"
