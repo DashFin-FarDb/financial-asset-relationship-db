@@ -23,7 +23,7 @@ def _get_database_url() -> str:
     Raises:
         ValueError: If the configured `DATABASE_URL` is missing or empty.
     """
-    database_url = load_settings().database_url
+    database_url = get_settings().database_url
     if not database_url:
         raise ValueError("DATABASE_URL environment variable must be set before using the database")
     return database_url
