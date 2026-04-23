@@ -3,21 +3,6 @@
 <!-- State the single primary objective or scope decision this PR makes. -->
 <!-- This section must be completed in line with .github/AUTOMATION_SCOPE_POLICY.md. -->
 
-## Architectural Alignment
-
-<!-- Verify this PR aligns with the declared production architecture. -->
-<!-- **Production:** FastAPI backend + Next.js frontend -->
-<!-- **Non-Production:** Gradio UI (app.py) for demos and internal testing -->
-<!-- See docs/adr/0001-production-architecture.md and .github/AUTOMATION_SCOPE_POLICY.md -->
-
-- [ ] This PR targets the production architecture (FastAPI backend + Next.js frontend)
-- [ ] OR: This PR targets non-production code (Gradio UI) with explicit justification below
-- [ ] OR: This PR is architecture-neutral (docs, tests, CI/CD, policies)
-
-**Justification (if targeting non-production or architecture-neutral):**
-
-<!-- If this PR modifies Gradio UI or is architecture-neutral, explain why here -->
-
 ## Scope
 
 ### In Scope
