@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import atexit
-import os
 import sqlite3
 import threading
 from collections.abc import Iterator
@@ -11,18 +10,20 @@ from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
+from src.config.settings import load_settings
+
 
 def _get_database_url() -> str:
     """
-    Read the DATABASE_URL environment variable and return its value.
+    Read the database URL from centralized runtime settings.
 
     Returns:
-        The value of the `DATABASE_URL` environment variable.
+        The configured `DATABASE_URL` value exposed by settings.
 
     Raises:
-        ValueError: If the `DATABASE_URL` environment variable is not set.
+        ValueError: If the configured `DATABASE_URL` is missing or empty.
     """
-    database_url = os.getenv("DATABASE_URL")
+    database_url = load_settings().database_url
     if not database_url:
         raise ValueError("DATABASE_URL environment variable must be set before using the database")
     return database_url

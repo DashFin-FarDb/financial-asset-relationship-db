@@ -139,8 +139,10 @@ class TestConnect:
 
         with patch("api.database.sqlite3.connect", return_value=mock_conn) as mock_sqlite_connect:
             temp_manager = _DatabaseConnectionManager("file:test.db?mode=ro")
-            with patch.object(api.database, "_db_manager", temp_manager):
-                _connect()
+            with patch.object(api.database, "DATABASE_PATH", "file:test.db?mode=ro"):
+                with patch.object(api.database, "_is_memory_db", return_value=False):
+                    with patch.object(api.database, "_db_manager", temp_manager):
+                        _connect()
 
         call_kwargs = mock_sqlite_connect.call_args[1]
         assert call_kwargs.get("uri") is True
@@ -239,11 +241,12 @@ class TestConnectModuleLevelCaching:
         api.database._MEMORY_CONNECTION = None
         api.database._MEMORY_CONNECTION_MANAGER = None
         try:
-            with patch.object(api.database, "_db_manager", temp_manager):
-                with patch.object(api.database, "_is_memory_db", return_value=True):
-                    conn1 = api.database._connect()
-                    conn2 = api.database._connect()
-                    assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
+            with patch.object(api.database, "DATABASE_PATH", ":memory:"):
+                with patch.object(api.database, "_db_manager", temp_manager):
+                    with patch.object(api.database, "_is_memory_db", return_value=True):
+                        conn1 = api.database._connect()
+                        conn2 = api.database._connect()
+                        assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
             api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager

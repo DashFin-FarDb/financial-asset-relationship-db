@@ -71,6 +71,7 @@ class Settings(BaseModel):
     use_real_data_fetcher: bool = Field(default=False)
 
     # Database configuration
+    database_url: Optional[str] = Field(default=None)
     asset_graph_database_url: Optional[str] = Field(default=None)
 
     @property
@@ -95,7 +96,7 @@ def load_settings() -> Settings:
     Creates a Settings instance populated from these environment variables:
     ENV (default "development", stripped and lowercased), ALLOWED_ORIGINS,
     GRAPH_CACHE_PATH, REAL_DATA_CACHE_PATH, USE_REAL_DATA_FETCHER (parsed as a
-    boolean), and ASSET_GRAPH_DATABASE_URL.
+    boolean), DATABASE_URL, and ASSET_GRAPH_DATABASE_URL.
 
     Returns:
         settings (Settings): Constructed and validated Settings object.
@@ -106,6 +107,7 @@ def load_settings() -> Settings:
         graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
+        database_url=os.getenv("DATABASE_URL"),
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
     )
 
