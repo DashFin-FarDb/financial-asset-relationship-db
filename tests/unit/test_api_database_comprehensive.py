@@ -26,6 +26,14 @@ from api.database import (
 from src.config.settings import get_settings
 
 
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """Clear cached settings before and after each test."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
 class TestGetDatabaseUrl:
     """Test cases for _get_database_url function."""
 
