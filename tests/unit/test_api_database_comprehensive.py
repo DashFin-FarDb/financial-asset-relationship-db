@@ -242,10 +242,9 @@ class TestConnectModuleLevelCaching:
         try:
             with patch.object(api.database, "DATABASE_PATH", ":memory:"):
                 with patch.object(api.database, "_db_manager", temp_manager):
-                    with patch.object(api.database, "_is_memory_db", return_value=True):
-                        conn1 = api.database._connect()
-                        conn2 = api.database._connect()
-                        assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
+                    conn1 = api.database._connect()
+                    conn2 = api.database._connect()
+                    assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
             api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
