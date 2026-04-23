@@ -69,5 +69,5 @@
 
 **Related Documentation**:
 
-- [PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md)
-- [Automation Scope Policy](./AUTOMATION_SCOPE_POLICY.md)
+- [PR Scope Guardrails](docs/PR_SCOPE_GUARDRAILS.md)
+- [Automation Scope Policy](.github/AUTOMATION_SCOPE_POLICY.md)
