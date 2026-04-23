@@ -1,6 +1,6 @@
 ## Primary Objective
 
-<!-- State the single primary architectural or documentation decision this PR makes. -->
+<!-- State the single primary objective or scope decision this PR makes. -->
 <!-- This section must be completed in line with .github/AUTOMATION_SCOPE_POLICY.md. -->
 
 ## Scope
@@ -49,8 +49,8 @@
 
 - [ ] This PR makes one primary decision only (see Primary Objective)
 - [ ] I have explicitly listed what is out of scope
-- [ ] I have not mixed architectural changes with code changes
-- [ ] No runtime behavior changes are included
+- [ ] If this is a docs/policy/architecture-only PR, I have not mixed those changes with unrelated code changes
+- [ ] If this is a docs/policy/architecture-only PR, no runtime behavior changes are included
 - [ ] I have verified the branch, base branch, and referenced PR/commit/ref context before concluding merge status or PR necessity
 - [ ] I have checked this PR against the production architecture (`FastAPI` backend + `Next.js` frontend)
 - [ ] I have checked this PR against `.github/AUTOMATION_SCOPE_POLICY.md`
