@@ -1,3 +1,12 @@
+## Architectural Alignment
+
+<!-- Describe how this PR aligns with the production architecture. -->
+
+- Backend: FastAPI (production path)
+- Frontend: Next.js (production path)
+- Gradio: non-production (demo/testing only)
+
+<!-- Confirm that no changes contradict the defined production architecture. -->
 ## Primary Objective
 
 <!-- State the single primary objective or scope decision this PR makes. -->
