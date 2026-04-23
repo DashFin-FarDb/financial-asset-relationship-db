@@ -16,6 +16,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import api.database as database
 from api.database import (
     _connect,
     _get_database_url,
