@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
-from src.config.settings import load_settings
+from src.config.settings import get_settings
 
 
 def _get_database_url() -> str:
