@@ -26,8 +26,7 @@ def _get_database_url() -> str:
     database_url = get_settings().effective_database_url
     if not database_url:
         raise ValueError(
-            "Database URL must be configured before using the database. "
-            "Set ASSET_GRAPH_DATABASE_URL or DATABASE_URL."
+            "Database URL must be configured before using the database. Set ASSET_GRAPH_DATABASE_URL or DATABASE_URL."
         )
     return database_url
 
