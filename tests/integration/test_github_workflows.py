@@ -320,9 +320,7 @@ class TestPrAgentWorkflow:
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
         """Test that the pr-agent-trigger job runs on Ubuntu."""
         jobs = pr_agent_workflow.get("jobs", {})
-        assert "pr-agent-trigger" in jobs, (
-            "pr-agent workflow must define a 'pr-agent-trigger' job"
-        )
+        assert "pr-agent-trigger" in jobs, "pr-agent workflow must define a 'pr-agent-trigger' job"
         review_job = jobs["pr-agent-trigger"]
         runs_on = review_job.get("runs-on", "")
         assert "ubuntu" in str(runs_on).lower(), "pr-agent-trigger job should run on Ubuntu runner"
@@ -331,9 +329,7 @@ class TestPrAgentWorkflow:
     def _get_trigger_job(pr_agent_workflow: Dict[str, Any]) -> Dict[str, Any]:
         """Return the pr-agent-trigger job, asserting it exists."""
         jobs = pr_agent_workflow["jobs"]
-        assert "pr-agent-trigger" in jobs, (
-            "pr-agent workflow must have a 'pr-agent-trigger' job"
-        )
+        assert "pr-agent-trigger" in jobs, "pr-agent workflow must have a 'pr-agent-trigger' job"
         return jobs["pr-agent-trigger"]
 
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
@@ -2307,9 +2303,7 @@ class TestWorkflowAdvancedValidation:
                     has_ref = "ref" in step_with
                     has_guard = step_with.get("persist-credentials") is False
                     if not has_ref and not has_guard:
-                        unsafe_steps.append(
-                            f"{workflow_file.name} job '{job_name}' step {idx}"
-                        )
+                        unsafe_steps.append(f"{workflow_file.name} job '{job_name}' step {idx}")
 
         assert not unsafe_steps, (
             "pull_request_target workflows must pin 'ref' or set "
