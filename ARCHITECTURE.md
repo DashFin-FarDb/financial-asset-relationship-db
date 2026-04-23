@@ -27,8 +27,8 @@ For the architectural decision rationale, see [docs/adr/0001-production-architec
 │             │                                 │                      │
 └─────────────┼─────────────────────────────────┼──────────────────────┘
               │                                 │
-              │ ** PRODUCTION PATH **          │ ** DEMO/TESTING **
-              │ HTTP REST API                  │ Direct Function Calls
+              │ ** PRODUCTION PATH **          │ ** DEMO/TESTING **    │
+              │ HTTP REST API                  │ Direct Function Calls │
               │                                 │
 ┌─────────────▼─────────────────────┐   ┌────────────▼───────────────┐
 │           API Layer               │   │ Core Business Logic Layer  │
