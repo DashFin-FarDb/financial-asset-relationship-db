@@ -318,31 +318,40 @@ class TestPrAgentWorkflow:
         assert "pr-agent-trigger" in jobs, "pr-agent workflow must have a 'pr-agent-trigger' job"
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that review job runs on Ubuntu."""
+        """Test that the pr-agent-trigger job runs on Ubuntu."""
         jobs = pr_agent_workflow.get("jobs", {})
-        review_job_key = "review" if "review" in jobs else "pr-agent-trigger"
-        assert review_job_key in jobs, "pr-agent workflow must define a review job ('review' or 'pr-agent-trigger')"
-        review_job = jobs[review_job_key]
+        assert "pr-agent-trigger" in jobs, (
+            "pr-agent workflow must define a 'pr-agent-trigger' job"
+        )
+        review_job = jobs["pr-agent-trigger"]
         runs_on = review_job.get("runs-on", "")
-        assert "ubuntu" in str(runs_on).lower(), "Review job should run on Ubuntu runner"
+        assert "ubuntu" in str(runs_on).lower(), "pr-agent-trigger job should run on Ubuntu runner"
+
+    @staticmethod
+    def _get_trigger_job(pr_agent_workflow: Dict[str, Any]) -> Dict[str, Any]:
+        """Return the pr-agent-trigger job, asserting it exists."""
+        jobs = pr_agent_workflow["jobs"]
+        assert "pr-agent-trigger" in jobs, (
+            "pr-agent workflow must have a 'pr-agent-trigger' job"
+        )
+        return jobs["pr-agent-trigger"]
 
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that review job checks out the code."""
-        jobs = pr_agent_workflow["jobs"]
-        review_job = jobs.get("review", jobs.get("pr-agent-trigger", {}))
+        """Test that the pr-agent-trigger job checks out the code."""
+        review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         checkout_steps = [s for s in steps if s.get("uses", "").startswith("actions/checkout")]
-        assert len(checkout_steps) > 0, "Review job must check out the repository"
+        assert len(checkout_steps) > 0, "pr-agent-trigger job must check out the repository"
 
     def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure every actions/checkout step in the review job provides a `token` in its `with` mapping.
+        Ensure every actions/checkout step in the pr-agent-trigger job provides a
+        ``token`` in its ``with`` mapping.
 
-        Fails the test if any checkout step omits the `token` key.
+        Fails the test if any checkout step omits the ``token`` key.
         """
-        jobs = pr_agent_workflow["jobs"]
-        review_job = jobs.get("review", jobs.get("pr-agent-trigger", {}))
+        review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         checkout_steps = [s for s in steps if s.get("uses", "").startswith("actions/checkout")]
@@ -353,37 +362,40 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Asserts the workflow's "review" job includes at least one step that uses actions/setup-python.
+        Assert the pr-agent-trigger job includes at least one step that uses
+        ``actions/setup-python``.
 
         Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow; expected to contain a "jobs" mapping with a "review" job.
+            pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the
+                pr-agent workflow; expected to contain a "jobs" mapping with a
+                "pr-agent-trigger" job.
         """
-        jobs = pr_agent_workflow["jobs"]
-        review_job = jobs.get("review", jobs.get("pr-agent-trigger", {}))
+        review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         python_steps = [s for s in steps if s.get("uses", "").startswith("actions/setup-python")]
-        assert len(python_steps) > 0, "Review job must set up Python"
+        assert len(python_steps) > 0, "pr-agent-trigger job must set up Python"
 
     def test_pr_agent_has_node_setup(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that review job sets up Node.js."""
-        jobs = pr_agent_workflow["jobs"]
-        review_job = jobs.get("review", jobs.get("pr-agent-trigger", {}))
+        """Test that the pr-agent-trigger job sets up Node.js."""
+        review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         node_steps = [s for s in steps if s.get("uses", "").startswith("actions/setup-node")]
-        assert len(node_steps) > 0, "Review job must set up Node.js"
+        assert len(node_steps) > 0, "pr-agent-trigger job must set up Node.js"
 
     def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure any actions/setup-python step in the "review" job specifies python-version "3.11".
+        Ensure any actions/setup-python step in the "pr-agent-trigger" job specifies
+        python-version "3.11".
 
         Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow; expected to contain a "jobs" -> "review" -> "steps" sequence.
+            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR
+                Agent workflow; expected to contain a "jobs" -> "pr-agent-trigger" ->
+                "steps" sequence.
 
         """
-        jobs = pr_agent_workflow["jobs"]
-        review_job = jobs.get("review", jobs.get("pr-agent-trigger", {}))
+        review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         python_steps = [s for s in steps if s.get("uses", "").startswith("actions/setup-python")]
@@ -394,9 +406,8 @@ class TestPrAgentWorkflow:
             assert step_with["python-version"] == "3.11", "Python version should be 3.11"
 
     def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that there are no duplicate setup steps in the workflow."""
-        jobs = pr_agent_workflow["jobs"]
-        review_job = jobs.get("review", jobs.get("pr-agent-trigger", {}))
+        """Test that there are no duplicate setup steps in the pr-agent-trigger job."""
+        review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         # Check for duplicate step names
@@ -409,15 +420,17 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure checkout steps in the PR Agent review job have valid fetch-depth values.
+        Ensure checkout steps in the pr-agent-trigger job have valid fetch-depth values.
 
-        Checks each step in `jobs.review` that uses `actions/checkout`; if the step's `with` mapping contains `fetch-depth` the value must be an integer or exactly 0, otherwise an assertion fails.
+        Checks each step in ``jobs.pr-agent-trigger`` that uses ``actions/checkout``;
+        if the step's ``with`` mapping contains ``fetch-depth`` the value must be an
+        integer or exactly 0, otherwise an assertion fails.
 
         Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow.
+            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR
+                Agent workflow.
         """
-        jobs = pr_agent_workflow["jobs"]
-        review_job = jobs.get("review", jobs.get("pr-agent-trigger", {}))
+        review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         checkout_steps = [s for s in steps if s.get("uses", "").startswith("actions/checkout")]
@@ -2268,24 +2281,41 @@ class TestWorkflowAdvancedValidation:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_checkout_with_proper_ref_for_pr(self, workflow_file: Path):
-        """Test that PR workflows checkout the correct ref."""
+        """
+        Warn when a pull_request_target workflow checks out code without an
+        explicit ``ref``.
+
+        Using ``pull_request_target`` without pinning ``ref`` can expose the
+        workflow to untrusted code from fork PRs.  This test collects all such
+        steps and asserts that each one either sets ``ref`` explicitly or uses a
+        ``persist-credentials: false`` guard (indicating deliberate intent).
+        """
         data = load_yaml_safe(workflow_file)
         triggers = data.get("on", {})
 
-        # If pull_request_target is used, should checkout PR ref explicitly
-        if "pull_request_target" in triggers:
-            jobs = data.get("jobs", {})
-            has_checkout = False
+        if "pull_request_target" not in triggers:
+            return
 
-            for _, job in jobs.items():
-                steps = job.get("steps", [])
-                for step in steps:
-                    if "uses" in step and "actions/checkout" in step["uses"]:
-                        has_checkout = True
+        jobs = data.get("jobs", {})
+        unsafe_steps = []
 
-            if has_checkout:
-                # Advisory: pull_request_target should specify ref
-                assert True  # Not failing but important to check
+        for job_name, job in jobs.items():
+            steps = job.get("steps", [])
+            for idx, step in enumerate(steps):
+                if "uses" in step and "actions/checkout" in step["uses"]:
+                    step_with = step.get("with", {})
+                    has_ref = "ref" in step_with
+                    has_guard = step_with.get("persist-credentials") is False
+                    if not has_ref and not has_guard:
+                        unsafe_steps.append(
+                            f"{workflow_file.name} job '{job_name}' step {idx}"
+                        )
+
+        assert not unsafe_steps, (
+            "pull_request_target workflows must pin 'ref' or set "
+            "'persist-credentials: false' on checkout steps to prevent "
+            "untrusted code execution: " + ", ".join(unsafe_steps)
+        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_timeout_minutes_are_reasonable(self, workflow_file: Path):
