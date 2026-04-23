@@ -11,6 +11,7 @@ Tests cover:
 - Edge cases and error handling
 """
 
+import importlib
 import os
 import sqlite3
 import tempfile
@@ -19,6 +20,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+import api.database as database
 from api.database import (
     DATABASE_PATH,
     DATABASE_URL,
@@ -30,6 +32,42 @@ from api.database import (
     get_connection,
     initialize_schema,
 )
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """Clear cached settings before and after each test."""
+    from src.config.settings import get_settings
+
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+class TestDatabaseURLConfiguration:
+    """Test database URL configuration and validation."""
+
+    def test_database_url_is_set(self):
+        """Test that DATABASE_URL is set."""
+        assert DATABASE_URL is not None
+        assert isinstance(DATABASE_URL, str)
+        assert len(DATABASE_URL) > 0
+
+    def test_database_path_is_set(self):
+        """Test that DATABASE_PATH is resolved."""
+        assert DATABASE_PATH is not None
+        assert isinstance(DATABASE_PATH, str)
+
+    def test_missing_database_url_raises_error(self):
+        """Test that missing DATABASE_URL raises a ValueError."""
+        from src.config.settings import get_settings
+
+        with patch.dict(os.environ, {}, clear=True):
+            get_settings.cache_clear()
+            with pytest.raises(ValueError, match="DATABASE_URL must be configured"):
+                importlib.reload(database)
+
+        get_settings.cache_clear()
 
 
 class TestDatabaseURLConfiguration:
@@ -48,15 +86,15 @@ class TestDatabaseURLConfiguration:
 
     @patch.dict(os.environ, {"DATABASE_URL": ""}, clear=True)
     def test_missing_database_url_raises_error(self):
-        """Test that missing DATABASE_URL raises ValueError."""
-        from api import database as db_module
+        """Test that missing DATABASE_URL raises a ValueError."""
+        from src.config.settings import get_settings
 
-        # Need to reload the module to trigger the error
-        with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
-            # Import will fail due to module-level check
-            import importlib
-
-            importlib.reload(db_module)
+        get_settings.cache_clear()
+        with patch.dict(os.environ, {}, clear=True):
+            get_settings.cache_clear()
+            with pytest.raises(ValueError, match="DATABASE_URL must be configured"):
+                importlib.reload(database)
+        get_settings.cache_clear()
 
 
 class TestSQLitePathResolution:
