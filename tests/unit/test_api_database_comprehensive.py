@@ -38,28 +38,32 @@ class TestGetDatabaseUrl:
 
         assert url == "sqlite:///test.db"
 
-    def test_get_database_url_prefers_asset_graph_database_url(self):
-        """Test that ASSET_GRAPH_DATABASE_URL takes precedence over DATABASE_URL."""
+    def test_get_database_url_ignores_asset_graph_database_url(self):
+        """Test that API database helpers do not consume ASSET_GRAPH_DATABASE_URL."""
         with patch.dict(
             os.environ,
             {
-                "ASSET_GRAPH_DATABASE_URL": "sqlite:///asset-graph.db",
-                "DATABASE_URL": "sqlite:///fallback.db",
+                "ASSET_GRAPH_DATABASE_URL": "postgresql://user:pass@localhost/db",
+                "DATABASE_URL": "sqlite:///api.db",
             },
         ):
             get_settings.cache_clear()
             url = _get_database_url()
 
-        assert url == "sqlite:///asset-graph.db"
+        assert url == "sqlite:///api.db"
 
-    def test_get_database_url_raises_when_not_set(self):
-        """Test that ValueError is raised when no database URL is configured."""
-        with patch.dict(os.environ, {}, clear=True):
+    def test_get_database_url_raises_when_database_url_not_set(self):
+        """Test that ValueError is raised when DATABASE_URL is not set."""
+        with patch.dict(
+            os.environ,
+            {"ASSET_GRAPH_DATABASE_URL": "postgresql://user:pass@localhost/db"},
+            clear=True,
+        ):
             get_settings.cache_clear()
             with pytest.raises(ValueError) as exc_info:
                 _get_database_url()
 
-        assert "Database URL must be configured" in str(exc_info.value)
+        assert "DATABASE_URL must be configured" in str(exc_info.value)
 
 
 class TestResolveSqlitePath:
