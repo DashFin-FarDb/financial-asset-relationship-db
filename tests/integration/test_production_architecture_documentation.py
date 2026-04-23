@@ -534,9 +534,9 @@ class TestArchitectureMdProductionLabels:
         assert non_prod_pos != -1, "NON-PRODUCTION label must be present"
         assert gradio_diagram_pos != -1, "Gradio UI (Port 7860) must appear in diagram"
         # Both labels appear in the diagram section within a reasonable proximity
-        assert (
-            abs(gradio_diagram_pos - non_prod_pos) < 500
-        ), "NON-PRODUCTION label should be near Gradio UI diagram entry"
+        assert abs(gradio_diagram_pos - non_prod_pos) < 500, (
+            "NON-PRODUCTION label should be near Gradio UI diagram entry"
+        )
 
     def test_http_rest_api_is_labeled_production_path(self, content: str) -> None:
         assert "** PRODUCTION PATH **" in content or "PRODUCTION PATH" in content
@@ -571,17 +571,17 @@ class TestArchitectureMdProductionLabels:
         nextjs_stack_pos = content.find("Next.js Frontend Stack")
         production_label = content.find("** PRODUCTION **", nextjs_stack_pos)
         assert nextjs_stack_pos != -1, "Next.js Frontend Stack section must exist"
-        assert (
-            production_label != -1 and production_label < nextjs_stack_pos + 200
-        ), "PRODUCTION label must appear in Next.js stack section"
+        assert production_label != -1 and production_label < nextjs_stack_pos + 200, (
+            "PRODUCTION label must appear in Next.js stack section"
+        )
 
     def test_frontend_technologies_labels_gradio_non_production(self, content: str) -> None:
         gradio_stack_pos = content.find("Gradio Frontend Stack")
         non_prod_label = content.find("** NON-PRODUCTION **", gradio_stack_pos)
         assert gradio_stack_pos != -1, "Gradio Frontend Stack section must exist"
-        assert (
-            non_prod_label != -1 and non_prod_label < gradio_stack_pos + 200
-        ), "NON-PRODUCTION label must appear in Gradio stack section"
+        assert non_prod_label != -1 and non_prod_label < gradio_stack_pos + 200, (
+            "NON-PRODUCTION label must appear in Gradio stack section"
+        )
 
     def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
         for line in lines:
@@ -991,9 +991,9 @@ class TestProductionArchitectureDocumentationConsistency:
         }
         for name, content in files.items():
             assert "Gradio" in content, f"{name} must reference Gradio"
-            assert (
-                "non-production" in content.lower() or "NON-PRODUCTION" in content
-            ), f"{name} must declare Gradio as non-production"
+            assert "non-production" in content.lower() or "NON-PRODUCTION" in content, (
+                f"{name} must declare Gradio as non-production"
+            )
 
     def test_policy_references_adr_0001(self, policy_content: str) -> None:
         assert "0001-production-architecture.md" in policy_content
@@ -1020,12 +1020,12 @@ class TestProductionArchitectureDocumentationConsistency:
         self, arch_template_content: str, pr_template_content: str
     ) -> None:
         """Both PR templates must enforce the one-primary-decision constraint."""
-        assert (
-            "one primary decision" in arch_template_content.lower()
-        ), "architecture-docs template must contain 'one primary decision' constraint"
-        assert (
-            "one primary decision" in pr_template_content.lower()
-        ), "primary PR template must contain 'one primary decision' constraint"
+        assert "one primary decision" in arch_template_content.lower(), (
+            "architecture-docs template must contain 'one primary decision' constraint"
+        )
+        assert "one primary decision" in pr_template_content.lower(), (
+            "primary PR template must contain 'one primary decision' constraint"
+        )
 
     def test_policy_and_adr_consistent_gradio_status(self, policy_content: str, adr_content: str) -> None:
         """Both policy and ADR must agree on Gradio's non-production status."""
@@ -1079,6 +1079,6 @@ class TestProductionArchitectureDocumentationConsistency:
         required_in_policy = ["Primary Objective", "In Scope", "Out of Scope", "Validation Commands", "Merge Criteria"]
         # PR template must actually contain these sections
         for section in required_in_policy:
-            assert (
-                section in pr_template_content
-            ), f"PR template must contain the '{section}' section mandated by AUTOMATION_SCOPE_POLICY.md"
+            assert section in pr_template_content, (
+                f"PR template must contain the '{section}' section mandated by AUTOMATION_SCOPE_POLICY.md"
+            )
