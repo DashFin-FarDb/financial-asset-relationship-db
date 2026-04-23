@@ -1,126 +1,498 @@
-"""Centralized typed settings layer for selected runtime configuration.
-
-This module provides a typed settings interface for the runtime configuration
-centralized by this PR, specifically environment mode, CORS allowlist input,
-graph cache settings, real-data fetcher settings, and database URL resolution.
-It does not yet replace all direct environment reads across the repository.
-"""
+"""Lightweight database helpers for the API layer."""
 
 from __future__ import annotations
 
-import os
-from functools import lru_cache
-from typing import Optional
+import atexit
+import sqlite3
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+from pathlib import Path
+from urllib.parse import unquote, urlparse
 
-from pydantic import BaseModel, ConfigDict, Field
+from src.config.settings import get_settings
 
 
-def _parse_bool_env(value: Optional[str]) -> bool:
+def _get_database_url() -> str:
     """
-    Parse a boolean environment variable value.
-
-    Interprets the value case-insensitively; the values "1", "true", "yes",
-    or "on" (ignoring surrounding whitespace) are treated as true.
-
-    Parameters:
-        value (Optional[str]): Environment variable value to parse.
+    Return the effective database URL from centralized runtime settings.
 
     Returns:
-        bool: True if the value matches an accepted truthy value, False otherwise.
+        str: Effective database URL.
+
+    Raises:
+        ValueError: If no effective database URL is configured.
     """
-    if value is None:
-        return False
-    return value.strip().lower() in {"1", "true", "yes", "on"}
+    database_url = get_settings().effective_database_url
+    if not database_url:
+        raise ValueError(
+            "Database URL must be configured before using the database helpers. "
+            "Set ASSET_GRAPH_DATABASE_URL or DATABASE_URL."
+        )
+    return database_url
 
 
-def _parse_csv_env(value: str) -> list[str]:
+def _normalize_sqlite_path(parsed_path: str) -> str:
     """
-    Parse a comma-separated environment variable value into a list of strings.
-
-    Splits on commas, trims whitespace, and excludes empty entries.
+    Decode percent-encoding in a SQLite URL path.
 
     Parameters:
-        value (str): Comma-separated string to parse.
+        parsed_path (str): The raw path component extracted from a parsed SQLite URL, possibly containing
+            percent-encoded characters.
 
     Returns:
-        list[str]: A list of trimmed non-empty strings.
+        str: The path with percent-encoded sequences decoded.
     """
-    return [item.strip() for item in value.split(",") if item.strip()]
+    return unquote(parsed_path)
 
 
-class Settings(BaseModel):
+def _is_standard_memory_path(parsed: object, normalized_path: str) -> bool:
     """
-    Runtime configuration settings centralized by this PR.
+    Determine whether a parsed SQLite URL refers to the standard SQLite in-memory database.
 
-    Settings are loaded from environment variables and exposed through a typed,
-    immutable model. The cached accessor provides consistent config for startup
-    and module-level initialization paths.
+    Parameters:
+        parsed (object): Result of urllib.parse.urlparse (or similar) whose `netloc` may be ":memory:".
+        normalized_path (str): Percent-decoded path component of the URL.
+
+    Returns:
+        bool: `True` if `parsed.netloc == ":memory:"` or `normalized_path` is `":memory:"` or
+            `"/:memory:"`, `False` otherwise.
+    """
+    parsed_netloc = getattr(parsed, "netloc", "")
+    return parsed_netloc == ":memory:" or normalized_path in {":memory:", "/:memory:"}
+
+
+def _resolve_uri_style_memory_path(
+    path: str,
+    query: str,
+) -> str | None:
+    """
+    Return a URI-style SQLite in-memory path extracted from a URL path component.
+
+    If `path` represents a URI-style in-memory database (after removing leading
+    slashes and beginning with `file:` and containing `:memory:`), return the
+    normalized URI string. If `query` is non-empty, append it prefixed with `?`.
+
+    Parameters:
+        path (str): URL path component that may include leading slashes and a
+            `file:` URI indicating an in-memory database.
+        query (str): Raw query string (without a leading '?') to append when
+            present.
+
+    Returns:
+        str | None: The normalized URI-style memory path with `?{query}` appended
+            if `query` is non-empty, or `None` if `path` is not a URI-style memory
+            database.
+    """
+    if not path.lstrip("/").startswith("file:") or ":memory:" not in path:
+        return None
+    result = path.lstrip("/")
+    if query:
+        result += f"?{query}"
+    return result
+
+
+def _resolve_file_path(path: str) -> str:
+    """
+    Convert a normalized SQLite file path component into an absolute filesystem path.
+
+    Handles three forms:
+    - Absolute paths starting with a single leading slash (e.g., "/foo") are resolved as-is.
+    - UNC-like paths starting with two leading slashes (e.g., "//server/path") drop the first slash and are resolved.
+    - Rootless or relative-looking paths have any leading slashes removed and are resolved
+      relative to the current working directory.
+
+    Parameters:
+        path (str): Normalized SQLite path component; may be absolute ("/..."), UNC-like ("//..."), or rootless.
+
+    Returns:
+        str: The resolved absolute filesystem path.
+    """
+    if path.startswith("/") and not path.startswith("//"):
+        return str(Path(path).resolve())
+    if path.startswith("//"):
+        return str(Path(path[1:]).resolve())
+    return str(Path(path.lstrip("/")).resolve())
+
+
+def _resolve_sqlite_path(url: str) -> str:
+    """
+    Resolve a SQLite URL to a filesystem path or in-memory indicator.
+
+    Accept SQLite URLs with schemes like `sqlite:///relative.db`,
+    `sqlite:////absolute/path.db`, and `sqlite:///:memory:`.
+    Percent-encodings in the URL path are decoded before resolution.
+    For in-memory URLs (`:memory:` or `/:memory:`), return the literal string
+    `":memory:"`. URI-style memory databases like
+    `sqlite:///file::memory:?cache=shared` are returned as-is.
+
+    Parameters:
+        url (str): SQLite URL to resolve.
+
+    Returns:
+        str: Filesystem path for file-based URLs, the literal string `":memory:"`
+            for standard in-memory databases, or the original URI-style memory path.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme != "sqlite":
+        raise ValueError(f"Not a valid sqlite URI: {url}")
+
+    normalized_path = parsed.path.rstrip("/")
+    if _is_standard_memory_path(parsed, normalized_path):
+        return ":memory:"
+
+    path = _normalize_sqlite_path(parsed.path)
+    uri_memory_path = _resolve_uri_style_memory_path(path, parsed.query)
+    if uri_memory_path is not None:
+        return uri_memory_path
+
+    return _resolve_file_path(path)
+
+
+def _get_database_path() -> str:
+    """
+    Return the resolved SQLite path for the effective database URL.
+
+    Returns:
+        str: Resolved SQLite path for the configured database URL.
+    """
+    return _resolve_sqlite_path(_get_database_url())
+
+
+# Module-level shared in-memory connection
+_MEMORY_CONNECTION: sqlite3.Connection | None = None
+_MEMORY_CONNECTION_MANAGER: _DatabaseConnectionManager | None = None
+_MEMORY_CONNECTION_LOCK = threading.Lock()
+
+
+def _is_memory_db(path: str | None = None) -> bool:
+    """
+    Determine whether a SQLite database path denotes an in-memory database.
+
+    If `path` is omitted, the current configured database path is evaluated. The function treats the
+    literal ":memory:" and file-style URIs whose path component is exactly ":memory:" (for
+    example, "file::memory:" or "file::memory:?cache=shared") as in-memory targets. It does not
+    treat file URIs where ":memory:" appears as part of a filesystem path or URIs that use
+    `mode=memory` as in-memory.
+
+    Parameters:
+        path (str | None): Database path or URI to evaluate. If omitted, the
+            current configured database path is used.
+
+    Returns:
+        bool: `True` if the evaluated target denotes an in-memory SQLite database, `False` otherwise.
+    """
+    target = _get_database_path() if path is None else path
+    if target == ":memory:":
+        return True
+
+    parsed = urlparse(target)
+    return parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query)
+
+
+class _DatabaseConnectionManager:
+    """Manages SQLite connections to a configured database path.
+
+    Provides a persistent shared connection for in-memory databases and creates
+    new connections for file-backed databases. Thread-safe for in-memory usage.
     """
 
-    model_config = ConfigDict(frozen=True)
-
-    # Environment mode
-    env: str = Field(default="development")
-
-    # CORS configuration
-    allowed_origins_raw: str = Field(default="")
-
-    # Graph data source configuration
-    graph_cache_path: Optional[str] = Field(default=None)
-    real_data_cache_path: Optional[str] = Field(default=None)
-    use_real_data_fetcher: bool = Field(default=False)
-
-    # Database configuration
-    database_url: Optional[str] = Field(default=None)
-    asset_graph_database_url: Optional[str] = Field(default=None)
-
-    @property
-    def allowed_origins(self) -> list[str]:
+    def __init__(self, database_path: str):
         """
-        Return the configured CORS allowed origins as a list of trimmed, non-empty strings.
+        Create a connection manager for the given resolved SQLite database path.
 
-        If `allowed_origins_raw` is empty, returns an empty list; otherwise the raw value is parsed by splitting on commas, trimming whitespace, and excluding empty entries.
+        The manager owns connection creation and lifecycle for both in-memory
+        and file-backed databases.
+
+        Parameters:
+            database_path (str): Resolved SQLite path — a filesystem path, the
+                literal ":memory:", or a URI-style memory path (e.g.
+                "file::memory:?cache=shared").
+        """
+        self._database_path = database_path
+        self._memory_connection: sqlite3.Connection | None = None
+        self._memory_connection_lock = threading.Lock()
+
+    def connect(self) -> sqlite3.Connection:
+        """
+        Open a SQLite connection for the manager's configured database path.
+
+        In-memory databases return a single shared connection (created on the
+        first call and reused thereafter). File-backed databases return a new
+        connection on every call. The returned connection has its row factory
+        set to ``sqlite3.Row``.
 
         Returns:
-            list[str]: Parsed allowed origin strings.
+            sqlite3.Connection: The shared in-memory connection, or a new
+                connection for file-backed databases.
         """
-        if not self.allowed_origins_raw:
-            return []
-        return _parse_csv_env(self.allowed_origins_raw)
+        if _is_memory_db(self._database_path):
+            with self._memory_connection_lock:
+                if self._memory_connection is None:
+                    self._memory_connection = sqlite3.connect(
+                        self._database_path,
+                        detect_types=sqlite3.PARSE_DECLTYPES,
+                        check_same_thread=False,
+                        uri=self._database_path.startswith("file:"),
+                    )
+                    self._memory_connection.row_factory = sqlite3.Row
+                connection = self._memory_connection
+                if connection is None:
+                    raise RuntimeError("Expected an initialized in-memory connection but found None.")
+                return connection
+
+        connection = sqlite3.connect(
+            self._database_path,
+            detect_types=sqlite3.PARSE_DECLTYPES,
+            check_same_thread=False,
+            uri=self._database_path.startswith("file:"),
+        )
+        connection.row_factory = sqlite3.Row
+        return connection
+
+    def close_shared_connection(self) -> None:
+        """
+        Close the manager's shared persistent in-memory SQLite connection, if present.
+
+        If a shared in-memory connection exists, it is closed and cleared. This method is safe
+        to call repeatedly and acquires the manager's internal lock while performing the close.
+        """
+        with self._memory_connection_lock:
+            if self._memory_connection is not None:
+                self._memory_connection.close()
+                self._memory_connection = None
 
 
-def load_settings() -> Settings:
+_db_manager: _DatabaseConnectionManager | None = None
+
+
+def _get_db_manager() -> _DatabaseConnectionManager:
     """
-    Load runtime settings from environment variables.
+    Return a connection manager aligned to the current configured database path.
 
-    Creates a Settings instance populated from these environment variables:
-    ENV (default "development", stripped and lowercased), ALLOWED_ORIGINS,
-    GRAPH_CACHE_PATH, REAL_DATA_CACHE_PATH, USE_REAL_DATA_FETCHER (parsed as a
-    boolean), DATABASE_URL, and ASSET_GRAPH_DATABASE_URL.
+    Reuses the existing manager when its path matches the current configured
+    database path; otherwise creates and stores a new manager.
 
     Returns:
-        settings (Settings): Constructed and validated Settings object.
+        _DatabaseConnectionManager: Manager for the current database path.
     """
-    return Settings(
-        env=os.getenv("ENV", "development").strip().lower(),
-        allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
-        graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
-        real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
-        use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
-        database_url=os.getenv("DATABASE_URL"),
-        asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
+    global _db_manager
+    current_database_path = _get_database_path()
+    if _db_manager is None or _db_manager._database_path != current_database_path:
+        _db_manager = _DatabaseConnectionManager(current_database_path)
+    return _db_manager
+
+
+def _close_memory_connection_cache() -> None:
+    """Close and clear the module-level cached shared in-memory connection, if present."""
+    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
+
+    manager = _MEMORY_CONNECTION_MANAGER
+    connection = _MEMORY_CONNECTION
+
+    _MEMORY_CONNECTION = None
+    _MEMORY_CONNECTION_MANAGER = None
+
+    errors: list[sqlite3.Error] = []
+
+    manager_connection = getattr(manager, "_memory_connection", None)
+    if manager is not None:
+        try:
+            manager.close_shared_connection()
+        except sqlite3.Error as exc:
+            errors.append(exc)
+
+    if connection is not None and connection is not manager_connection:
+        try:
+            connection.close()
+        except sqlite3.Error as exc:
+            errors.append(exc)
+
+    if errors:
+        raise errors[0]
+
+
+def _connect() -> sqlite3.Connection:
+    """
+    Return a SQLite connection for the current configured database path.
+
+    For in-memory databases (as determined by the current configured path) the
+    module-level shared connection is returned, creating it on the first call
+    under a lock by delegating to the current connection manager.
+
+    If the configured database path changes, stale cached in-memory state is
+    discarded and a new manager is used.
+
+    For file-backed databases, the current manager creates a new connection
+    for each call.
+
+    Returns:
+        sqlite3.Connection: A shared persistent connection for in-memory databases,
+        or a new connection instance for file-backed databases.
+    """
+    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
+    current_database_path = _get_database_path()
+    manager = _get_db_manager()
+
+    if _is_memory_db(current_database_path):
+        with _MEMORY_CONNECTION_LOCK:
+            if _MEMORY_CONNECTION_MANAGER is not manager:
+                _close_memory_connection_cache()
+            if _MEMORY_CONNECTION is None:
+                _MEMORY_CONNECTION = manager.connect()
+                _MEMORY_CONNECTION_MANAGER = manager
+            return _MEMORY_CONNECTION
+
+    return manager.connect()
+
+
+@contextmanager
+def get_connection() -> Iterator[sqlite3.Connection]:
+    """
+    Yield a context-managed SQLite connection for the configured database.
+
+    For file-backed databases the yielded connection is closed when the context exits. For
+    in-memory databases a shared persistent connection is yielded and remains open across calls
+    (the context does not close it).
+
+    Returns:
+        sqlite3.Connection: An open SQLite connection for the configured database.
+    """
+    connection = _connect()
+    is_memory = _is_memory_db()
+    try:
+        yield connection
+    finally:
+        if not is_memory:
+            connection.close()
+
+
+def _cleanup_memory_connection() -> None:
+    """
+    Close any shared in-memory SQLite connections cached by this module.
+
+    Clear the module-level shared in-memory connection reference, close that
+    connection when it is distinct from the database manager's cached shared
+    connection, and always invoke the manager's shared-connection cleanup.
+    This avoids double-closing when both caches reference the same SQLite
+    connection. Safe to call multiple times.
+    """
+    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
+
+    errors: list[sqlite3.Error] = []
+    with _MEMORY_CONNECTION_LOCK:
+        module_connection = _MEMORY_CONNECTION
+        manager = _MEMORY_CONNECTION_MANAGER or _db_manager
+        manager_connection = getattr(manager, "_memory_connection", None)
+
+        _MEMORY_CONNECTION = None
+        _MEMORY_CONNECTION_MANAGER = None
+
+        if module_connection is not None and module_connection is not manager_connection:
+            try:
+                module_connection.close()
+            except sqlite3.Error as exc:
+                errors.append(exc)
+
+        if manager is not None:
+            try:
+                manager.close_shared_connection()
+            except sqlite3.Error as exc:
+                errors.append(exc)
+
+    if errors:
+        raise errors[0]
+
+
+atexit.register(_cleanup_memory_connection)
+
+
+def execute(query: str, parameters: tuple | list | None = None) -> None:
+    """
+    Execute a SQL write statement and commit the transaction.
+
+    Use the module's managed SQLite connection.
+
+    Parameters:
+        query (str): SQL statement to execute.
+        parameters (tuple | list | None): Sequence of values to bind to the
+            statement; use `None` or an empty sequence if there are no parameters.
+    """
+    with get_connection() as connection:
+        connection.execute(query, parameters or ())
+        connection.commit()
+
+
+def fetch_one(query: str, parameters: tuple | list | None = None):
+    """
+    Retrieve the first row produced by an SQL query.
+
+    Parameters:
+        query (str): SQL statement to execute.
+        parameters (tuple | list | None): Optional sequence of parameters
+            to bind into the query.
+
+    Returns:
+        sqlite3.Row | None: The first row of the result set
+            as a `sqlite3.Row`, or `None` if the query returned no rows.
+    """
+    with get_connection() as connection:
+        cursor = connection.execute(query, parameters or ())
+        return cursor.fetchone()
+
+
+def fetch_value(query: str, parameters: tuple | list | None = None) -> object | None:
+    """
+    Return the first column value from the first row of a query result.
+
+    If the query returns no rows, returns `None`. For any non-string indexable row
+    (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, or a mock with ``__getitem__``),
+    attempts to return ``row[0]``. Returns ``None`` when the row
+    is empty (i.e. ``row[0]`` raises ``IndexError``), and returns the row object
+    unchanged only when indexing is not supported (``TypeError``).
+
+    Parameters:
+        query (str): SQL query to execute; may include parameter placeholders.
+        parameters (tuple | list | None): Sequence of parameters for the query placeholders.
+
+    Returns:
+        The first column value from the first row, or `None` if no row is returned.
+    """
+    row = fetch_one(query, parameters)
+    if row is None:
+        return None
+    if isinstance(row, (sqlite3.Row, tuple, list)):
+        return row[0] if row else None
+    try:
+        return row[0]
+    except IndexError:
+        return None
+    except TypeError:
+        return row
+
+
+def initialize_schema() -> None:
+    """
+    Create the `user_credentials` table if it does not already exist.
+
+    The table has the following columns:
+    - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
+    - `username`: TEXT, unique and not null
+    - `email`: TEXT
+    - `full_name`: TEXT
+    - `hashed_password`: TEXT, not null
+    - `disabled`: INTEGER, not null, defaults to 0
+    """
+    execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_credentials(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT,
+            full_name TEXT,
+            hashed_password TEXT NOT NULL,
+            disabled INTEGER NOT NULL DEFAULT 0
+        )
+        """
     )
-
-
-@lru_cache(maxsize=1)
-def get_settings() -> Settings:
-    """
-    Get the cached runtime settings instance.
-
-    Settings are loaded once and cached for the lifetime of the process unless
-    the cache is explicitly cleared.
-
-    Returns:
-        Settings: The cached settings instance.
-    """
-    return load_settings()
+    
