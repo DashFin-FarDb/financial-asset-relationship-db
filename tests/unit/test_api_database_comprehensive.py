@@ -139,9 +139,9 @@ class TestConnect:
             with patch("api.database.sqlite3.connect") as mock_connect:
                 mock_connection = MagicMock()
                 mock_connect.return_value = mock_connection
-    
+
                 connection = database._connect()
-    
+
             assert connection is mock_connection
             mock_connect.assert_called_once()
             assert mock_connect.call_args.kwargs["uri"] is True
@@ -182,9 +182,9 @@ class TestDatabaseConnectionManagerLegacyRemoval:
         """LEGACY_CONNECTION class attribute must not exist on the manager after the PR change."""
         from api.database import _DatabaseConnectionManager
 
-        assert not hasattr(_DatabaseConnectionManager, "LEGACY_CONNECTION"), (
-            "LEGACY_CONNECTION class attribute should have been removed"
-        )
+        assert not hasattr(
+            _DatabaseConnectionManager, "LEGACY_CONNECTION"
+        ), "LEGACY_CONNECTION class attribute should have been removed"
 
     def test_file_connection_does_not_set_legacy_connection(self, tmp_path):
         """Connecting to a file-backed database must not set any LEGACY_CONNECTION attribute."""
@@ -194,12 +194,12 @@ class TestDatabaseConnectionManagerLegacyRemoval:
         manager = _DatabaseConnectionManager(db_path)
         conn = manager.connect()
         try:
-            assert not hasattr(_DatabaseConnectionManager, "LEGACY_CONNECTION"), (
-                "File connect() must not create LEGACY_CONNECTION"
-            )
-            assert not hasattr(manager, "LEGACY_CONNECTION"), (
-                "File connect() must not set LEGACY_CONNECTION on instance"
-            )
+            assert not hasattr(
+                _DatabaseConnectionManager, "LEGACY_CONNECTION"
+            ), "File connect() must not create LEGACY_CONNECTION"
+            assert not hasattr(
+                manager, "LEGACY_CONNECTION"
+            ), "File connect() must not set LEGACY_CONNECTION on instance"
         finally:
             conn.close()
 
@@ -220,9 +220,9 @@ class TestConnectModuleLevelCaching:
             with patch.object(api.database, "_db_manager", temp_manager):
                 with patch.object(api.database, "_is_memory_db", return_value=True):
                     conn = api.database._connect()
-                    assert api.database._MEMORY_CONNECTION is conn, (
-                        "_MEMORY_CONNECTION global must be set to the returned connection"
-                    )
+                    assert (
+                        api.database._MEMORY_CONNECTION is conn
+                    ), "_MEMORY_CONNECTION global must be set to the returned connection"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
             api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
@@ -268,9 +268,9 @@ class TestConnectModuleLevelCaching:
             with patch.object(api.database, "_db_manager", mock_manager):
                 with patch.object(api.database, "_is_memory_db", return_value=False):
                     api.database._connect()
-                    assert api.database._MEMORY_CONNECTION is None, (
-                        "_MEMORY_CONNECTION must remain None for file-backed databases"
-                    )
+                    assert (
+                        api.database._MEMORY_CONNECTION is None
+                    ), "_MEMORY_CONNECTION must remain None for file-backed databases"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
             api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
@@ -390,14 +390,14 @@ class TestAtexitRegistration:
         """The _close_shared_memory_connection alias must no longer exist in the module."""
         import api.database
 
-        assert not hasattr(api.database, "_close_shared_memory_connection"), (
-            "_close_shared_memory_connection alias should have been removed"
-        )
+        assert not hasattr(
+            api.database, "_close_shared_memory_connection"
+        ), "_close_shared_memory_connection alias should have been removed"
 
     def test_atexit_db_close_registered_flag_removed(self):
         """The _ATEXIT_DB_CLOSE_REGISTERED module-level flag must no longer exist."""
         import api.database
 
-        assert not hasattr(api.database, "_ATEXIT_DB_CLOSE_REGISTERED"), (
-            "_ATEXIT_DB_CLOSE_REGISTERED guard variable should have been removed"
-        )
+        assert not hasattr(
+            api.database, "_ATEXIT_DB_CLOSE_REGISTERED"
+        ), "_ATEXIT_DB_CLOSE_REGISTERED guard variable should have been removed"
