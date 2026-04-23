@@ -7,6 +7,7 @@
 - Gradio: non-production (demo/testing only)
 
 <!-- Confirm that no changes contradict the defined production architecture. -->
+
 ## Primary Objective
 
 <!-- State the single primary objective or scope decision this PR makes. -->
