@@ -15,17 +15,20 @@ from src.config.settings import get_settings
 
 def _get_database_url() -> str:
     """
-    Read the database URL from centralized runtime settings.
+    Read the effective database URL from centralized runtime settings.
 
     Returns:
-        The configured `DATABASE_URL` value exposed by settings.
+        The configured database URL exposed by settings.
 
     Raises:
-        ValueError: If the configured `DATABASE_URL` is missing or empty.
+        ValueError: If no effective database URL is configured.
     """
-    database_url = get_settings().database_url
+    database_url = get_settings().effective_database_url
     if not database_url:
-        raise ValueError("Database URL must be configured before using the database. Set DATABASE_URL.")
+        raise ValueError(
+            "Database URL must be configured before using the database. "
+            "Set ASSET_GRAPH_DATABASE_URL or DATABASE_URL."
+        )
     return database_url
 
 
