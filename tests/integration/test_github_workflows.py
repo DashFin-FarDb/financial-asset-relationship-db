@@ -2615,12 +2615,9 @@ class TestWorkflowScheduledExecutionBestPractices:
                 _MONTH_NAMES = "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC"
                 _DAY_NAMES = "SUN|MON|TUE|WED|THU|FRI|SAT"
                 _CRON_ATOM = r"(?:\d+|(?:" + _MONTH_NAMES + r"|" + _DAY_NAMES + r"))"
-                _CRON_PART = (
-                    r"^\*(?:/\d+)?$"
-                    r"|^" + _CRON_ATOM + r"(?:[-/]" + _CRON_ATOM + r")?$"
-                    r"|^(?:" + _CRON_ATOM + r",)+" + _CRON_ATOM + r"$"
-                    r"|^\*$"
-                )
+                _CRON_RANGE = _CRON_ATOM + r"(?:-" + _CRON_ATOM + r")?"
+                _CRON_ITEM = r"(?:\*(?:/\d+)?|(?:" + _CRON_RANGE + r")(?:/\d+)?)"
+                _CRON_PART = r"^" + _CRON_ITEM + r"(?:," + _CRON_ITEM + r")*$"
                 for _, part in enumerate(parts):
                     assert re.match(_CRON_PART, part, re.IGNORECASE), (
                         f"Invalid cron part '{part}' in {workflow_file.name}"
