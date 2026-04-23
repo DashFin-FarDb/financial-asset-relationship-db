@@ -133,6 +133,27 @@ class TestSettingsModel:
         assert settings.database_url == "sqlite:///runtime.db"
         assert settings.asset_graph_database_url == "postgresql://user:pass@localhost/db"
 
+    def test_effective_database_url_prefers_asset_graph_database_url(self) -> None:
+        """Test that asset_graph_database_url takes precedence over database_url."""
+        settings = Settings(
+            database_url="sqlite:///fallback.db",
+            asset_graph_database_url="sqlite:///asset-graph.db",
+        )
+
+        assert settings.effective_database_url == "sqlite:///asset-graph.db"
+
+    def test_effective_database_url_falls_back_to_database_url(self) -> None:
+        """Test that database_url is used when asset_graph_database_url is unset."""
+        settings = Settings(database_url="sqlite:///fallback.db")
+
+        assert settings.effective_database_url == "sqlite:///fallback.db"
+
+    def test_effective_database_url_is_none_without_database_config(self) -> None:
+        """Test that effective_database_url is None when no database URL is configured."""
+        settings = Settings()
+
+        assert settings.effective_database_url is None
+
     def test_settings_allowed_origins_property(self) -> None:
         """Test that allowed_origins property correctly parses CSV."""
         settings = Settings(allowed_origins_raw="https://example.com,https://example.org")
