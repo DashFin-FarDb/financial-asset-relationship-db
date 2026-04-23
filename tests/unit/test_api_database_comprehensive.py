@@ -23,7 +23,6 @@ from api.database import (
     _resolve_sqlite_path,
     get_connection,
 )
-from src.config.settings import get_settings
 
 
 class TestGetDatabaseUrl:
@@ -36,6 +35,7 @@ class TestGetDatabaseUrl:
             assert url == "sqlite:///test.db"
 
     def test_get_database_url_raises_when_not_set(self):
+from src.config.settings import get_settings
         """Test that ValueError is raised when DATABASE_URL is not set."""
         with patch.dict(os.environ, {}, clear=True):
             with pytest.raises(ValueError) as exc_info:
