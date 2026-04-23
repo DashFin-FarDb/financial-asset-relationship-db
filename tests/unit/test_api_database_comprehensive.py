@@ -43,6 +43,8 @@ class TestGetDatabaseUrl:
             assert "DATABASE_URL" in str(exc_info.value)
 
 
+
+
 class TestResolveSqlitePath:
     """Test cases for _resolve_sqlite_path function."""
 
