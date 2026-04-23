@@ -88,21 +88,6 @@ class Settings(BaseModel):
             return []
         return _parse_csv_env(self.allowed_origins_raw)
 
-    @property
-    def effective_database_url(self) -> Optional[str]:
-        """
-        Return the effective database URL for the API database helpers.
-
-        Prefers `asset_graph_database_url` when set, otherwise falls back to
-        `database_url`.
-
-        Returns:
-            Optional[str]: Effective database URL, or `None` when neither
-            source is configured.
-        """
-        return self.asset_graph_database_url or self.database_url
-
-
 def load_settings() -> Settings:
     """
     Load runtime settings from environment variables.
