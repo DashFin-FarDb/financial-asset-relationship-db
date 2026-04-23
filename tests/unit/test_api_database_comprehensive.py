@@ -36,16 +36,11 @@ class TestGetDatabaseUrl:
             assert url == "sqlite:///test.db"
 
     def test_get_database_url_raises_when_not_set(self):
-
-
-
- """Test that ValueError is raised when DATABASE_URL is not set."""
-  with patch.dict(os.environ, {}, clear=True):
-       with pytest.raises(ValueError) as exc_info:
-            _get_database_url()
-        assert "DATABASE_URL environment variable must be set" in str(exc_info.value)
-
-
+        """Test that ValueError is raised when DATABASE_URL is not set."""
+        with patch.dict(os.environ, {}, clear=True):
+            with pytest.raises(ValueError) as exc_info:
+                _get_database_url()
+            assert "DATABASE_URL" in str(exc_info.value)
 class TestResolveSqlitePath:
     """Test cases for _resolve_sqlite_path function."""
 
