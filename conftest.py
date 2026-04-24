@@ -45,34 +45,37 @@ def pytest_addoption(parser: "Parser") -> None:
         _register_dummy_cov_options(parser)
 
 
+def _safe_addoption(group: object, *names: str, **kwargs: object) -> None:  # pragma: no cover
+    """Add a pytest option, ignoring only duplicate-registration errors."""
+    try:
+        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
+    except ValueError as exc:
+        message = str(exc)
+        if "already added" not in message:
+            raise
+
+
 def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
     """Register dummy --cov and --cov-report options."""
     group = parser.getgroup("cov")
-    try:
-        group.addoption(
-            "--cov",
-            action="append",
-            dest="cov",
-            default=[],
-            metavar="path",
-            help="Dummy option registered when pytest-cov is unavailable.",
-        )
-    except ValueError:
-        pass
-
-    try:
-        group.addoption(
-            "--cov-report",
-            action="append",
-            dest="cov_report",
-            default=[],
-            metavar="type",
-            help="Dummy option registered when pytest-cov is unavailable.",
-        )
-    except ValueError:
-        pass
-
-
+    _safe_addoption(
+        group,
+        "--cov",
+        action="append",
+        dest="cov",
+        default=[],
+        metavar="path",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
+    _safe_addoption(
+        group,
+        "--cov-report",
+        action="append",
+        dest="cov_report",
+        default=[],
+        metavar="type",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
 @pytest.fixture(autouse=True)
 def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """
