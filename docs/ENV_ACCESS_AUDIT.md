@@ -69,6 +69,7 @@ All environment access in this file is classified as **DEFER** because migrating
 Both variables are read within the `validate_origin()` function, which is called on CORS validation paths. These same variables are already represented in `src/config/settings.py`, so the current implementation creates a split source of truth.
 
 This is an architectural smell, not a pattern to copy:
+
 - production code is currently shaped partly by test override convenience;
 - direct reads bypass the typed Settings model;
 - parsing behavior can diverge from `Settings.allowed_origins`;
