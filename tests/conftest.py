@@ -3,7 +3,6 @@ database tests.
 """
 
 import pytest
-
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     AssetClass,
