@@ -310,4 +310,4 @@ def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
         for key in keys:
             monkeypatch.delenv(key, raising=False)
 
-    return unsetter
+    return _unsetter
