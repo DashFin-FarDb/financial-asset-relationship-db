@@ -190,6 +190,7 @@ def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
             help="Dummy option registered when pytest-cov is unavailable.",
         )
     except ValueError:
+        # Option may already be registered by pytest-cov or another conftest.
         pass
 
     try:
@@ -202,6 +203,7 @@ def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
             help="Dummy option registered when pytest-cov is unavailable.",
         )
     except ValueError:
+        # Option may already be registered by pytest-cov or another conftest.
         pass
 
 
