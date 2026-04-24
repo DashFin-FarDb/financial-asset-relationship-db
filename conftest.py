@@ -149,6 +149,8 @@ def _register_dummy_cov_options(parser: Any) -> None:
 def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     monkeypatch.delenv("USE_REAL_DATA_FETCHER", raising=False)
+    monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
+    monkeypatch.delenv("REAL_DATA_CACHE_PATH", raising=False)
 
 
 @pytest.fixture()
