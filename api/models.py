@@ -2,23 +2,11 @@
 
 from typing import Any, Dict, List, Optional
 
-from api.auth import UserInDB
+from pydantic import BaseModel, Field
 
+from api.auth import UserInDB  # re-exported for backwards compatibility
 
-class UserBase(BaseModel):
-    """Shared schema for API user details."""
-
-    username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
-    hashed_password: str
-
-
-class UserInDB(UserBase):
-    """User record as stored in the database, including hashed password."""
-
-    hashed_password: str
+__all__ = ["UserInDB"]
 
 
 class AssetResponse(BaseModel):
