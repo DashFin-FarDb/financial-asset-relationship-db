@@ -11,6 +11,10 @@
 - Current Phase: Set-up/Maintenance
 - Last Updated: 2026-03-03T20:50:50.677Z
 
+## Current Phase
+
+- Current Phase: Set-up/Maintenance
+
 ## Project Structure
 
 - 949 py files
@@ -123,6 +127,8 @@
 - 📄 test_postgres.py
 - 📄 test_supabase.py
 
+## Dependencies
+
 ## PY Dependencies
 
 ### \test_supabase.py
@@ -167,7 +173,7 @@ Dependencies:
 - TestClient
 - traceback
 
-### \tests\_\_init\_\_.py
+### \tests\__init__.py
 
 No dependencies found
 
