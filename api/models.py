@@ -2,16 +2,13 @@
 
 from typing import Any, Dict, List, Optional
 
+from api.auth import User
 from pydantic import BaseModel, Field
 
 
-class UserInDB(BaseModel):
+class UserInDB(User):
     """User record as stored in the database, including hashed password."""
 
-    username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
     hashed_password: str
 
 
