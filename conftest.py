@@ -76,6 +76,8 @@ def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
         metavar="type",
         help="Dummy option registered when pytest-cov is unavailable.",
     )
+
+
 @pytest.fixture(autouse=True)
 def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """
