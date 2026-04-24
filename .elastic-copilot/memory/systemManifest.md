@@ -172,7 +172,7 @@ Dependencies:
 - TestClient
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
 
 No dependencies found
 
@@ -204,7 +204,7 @@ Dependencies:
 
 ## TS Dependencies
 
-### \frontend\__tests__\lib\api.test.ts
+### \frontend\_\_tests\_\_\lib\api.test.ts
 
 Dependencies:
 
@@ -216,7 +216,7 @@ Dependencies:
 
 No dependencies found
 
-### \frontend\app\lib\__tests__\api.test.ts
+### \frontend\app\lib\_\_tests\_\_\api.test.ts
 
 Dependencies:
 
@@ -236,7 +236,7 @@ Dependencies:
 
 ## TSX Dependencies
 
-### \frontend\__tests__\components\NetworkVisualization.test.tsx
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
 
 Dependencies:
 
@@ -246,7 +246,7 @@ Dependencies:
 - ../../app/components/NetworkVisualization
 - ../../app/types/api
 
-### \frontend\__tests__\components\MetricsDashboard.test.tsx
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
 
 Dependencies:
 
@@ -256,7 +256,7 @@ Dependencies:
 - ../../app/components/MetricsDashboard
 - ../../app/types/api
 
-### \frontend\__tests__\components\AssetList.test.tsx
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
 
 Dependencies:
 
@@ -266,7 +266,7 @@ Dependencies:
 - ../../app/components/AssetList
 - ../../app/lib/api
 
-### \frontend\__tests__\app\page.test.tsx
+### \frontend\_\_tests\_\_\app\page.test.tsx
 
 Dependencies:
 

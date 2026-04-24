@@ -13,8 +13,8 @@ import argparse
 import enum
 import json
 import logging
-import re
 import os
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -46,10 +46,9 @@ def _find_project_root(start: Path) -> Path:
             return current
         parent = current.parent
         if parent == current:
-            raise RuntimeError(
-                f"Could not determine project root starting from {start}"
-            )
+            raise RuntimeError(f"Could not determine project root starting from {start}")
         current = parent
+
 
 from src.data.sample_data import (  # noqa: E402  # pylint: disable=import-error  # type: ignore[import-not-found]
     create_sample_database,
