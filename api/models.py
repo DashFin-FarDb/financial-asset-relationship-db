@@ -5,23 +5,15 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
-class UserInDB(BaseModel):
-    """User model stored in the database.
-
-    Defined locally so importing `api.models` does not require importing
-    `api.auth`, which may perform environment validation at import time.
-    """
-
+class User(BaseModel):
     username: str
     email: Optional[str] = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
+
+
+class UserInDB(User):
     hashed_password: str
-
-
-
-
-__all__ = ["UserInDB"]
 
 
 class AssetResponse(BaseModel):
