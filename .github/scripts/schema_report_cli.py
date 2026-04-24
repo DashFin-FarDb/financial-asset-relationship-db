@@ -191,10 +191,10 @@ def parse_arguments() -> argparse.Namespace:
 
 def convert_markdown_to_plain_text(markdown: str) -> str:
     """Convert Markdown to a simple plain-text representation."""
-    _LEADING_MARKER = re.compile(r"^(#{1,6}\s+|[-*]\s+)")
+    _leading_marker = re.compile(r"^(#{1,6}\s+|[-*]\s+)")
     lines: list[str] = []
     for line in markdown.splitlines():
-        stripped = _LEADING_MARKER.sub("", line)
+        stripped = _leading_marker.sub("", line)
         lines.append(stripped)
     return "\n".join(lines)
 
