@@ -9,9 +9,8 @@ This file centralizes:
 """
 
 import importlib.util
-from collections.abc import Generator, Iterator
 from pathlib import Path
-from typing import Any, List, MutableSequence, Optional, Tuple
+from typing import Any, Iterator, List, MutableSequence, Optional, Tuple
 
 import pytest
 from sqlalchemy.engine import Engine
@@ -160,7 +159,7 @@ def database_url(tmp_path: Path) -> str:
 
 
 @pytest.fixture()
-def engine(database_url: str) -> Iterator[Engine]:
+def engine(database_url: str) -> Iterator:
     eng = create_engine_from_url(database_url)
     Base.metadata.create_all(eng)
     try:
@@ -175,6 +174,6 @@ def session_factory(engine: Engine) -> sessionmaker[Session]:
 
 
 @pytest.fixture()
-def db_session(session_factory: Any) -> Generator[Session, None, None]:
+def db_session(session_factory: Any) -> Iterator:
     with session_scope(session_factory) as session:
         yield session
