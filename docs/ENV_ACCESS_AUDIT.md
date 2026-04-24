@@ -10,7 +10,7 @@ This audit catalogues all direct `os.getenv()` and `os.environ[]` usage in runti
 
 **Key Findings:**
 
-- **No immediate migration candidates** - Recent PRs (e.g., #1051) have already migrated appropriate candidates
+- **No immediate migration candidates within the audit scope** - Recent PRs (e.g., #1051) have already migrated appropriate runtime candidates from `api/` and `src/`
 - **All remaining env access has architectural justification** for staying as direct reads
 - **No dead code found** - All env variable access is actively used
 - **Settings layer functioning correctly** - Centralized config mechanism working as designed
@@ -19,13 +19,13 @@ This audit catalogues all direct `os.getenv()` and `os.environ[]` usage in runti
 
 ### Summary by Action
 
-| Classification          | Count  | Percentage |
-| ----------------------- | ------ | ---------- |
-| DEFER (intentional)     | 8      | 53%        |
-| LEAVE (settings loader) | 7      | 47%        |
-| MIGRATE NOW             | 0      | 0%         |
-| REMOVE (dead code)      | 0      | 0%         |
-| **TOTAL**               | **15** | **100%**   |
+| Classification                | Count  | Percentage |
+| ----------------------------- | ------ | ---------- |
+| DEFER (intentional)           | 8      | 53%        |
+| LEAVE LOCAL (settings loader) | 7      | 47%        |
+| MIGRATE NOW                   | 0      | 0%         |
+| REMOVE (dead code)            | 0      | 0%         |
+| **TOTAL**                     | **15** | **100%**   |
 
 ### Classification Rules Applied
 
@@ -53,7 +53,7 @@ All environment access in this file is classified as **DEFER** due to security-s
 
 - `SECRET_KEY` (line 20): Used for JWT encoding/decoding. Module-level constant with explicit validation. This is security-sensitive startup configuration, not runtime config suitable for caching.
 
-- `ADMIN_*` variables (lines 221-229): Used exclusively in `_seed_credentials_from_env()` function, called once at module initialization (line 242). These are transient bootstrap credentials for initial user setup, not ongoing runtime configuration. Migrating to Settings would not improve semantics.
+- `ADMIN_*` variables (lines 221-229): Used exclusively in `_seed_credentials_from_env()` function, called once at module initialization (line 242). These are transient bootstrap credentials for initial user setup, not ongoing runtime configuration. They are not user-facing runtime settings and are intentionally read once during initialization. Migrating to Settings would not improve semantics.
 
 ### api/cors_utils.py - DEFER (2 occurrences)
 
@@ -76,9 +76,9 @@ This dynamic behavior is intentional and architectural. Test scenarios rely on t
 
 **This matches the task description's example:** "DEFER: dynamic behavior (e.g. CORS)"
 
-### src/config/settings.py - LEAVE (7 occurrences)
+### src/config/settings.py - LEAVE LOCAL (7 occurrences)
 
-All environment access in this file is classified as **LEAVE** because this IS the centralized settings mechanism.
+All environment access in this file is classified as **LEAVE LOCAL** because this IS the centralized settings mechanism.
 
 | Line | Variable                   | Purpose                                          |
 | ---- | -------------------------- | ------------------------------------------------ |
@@ -102,12 +102,12 @@ For completeness, environment variable usage in non-runtime files:
 
 | File                                   | Variables                                                           | Classification | Notes                          |
 | -------------------------------------- | ------------------------------------------------------------------- | -------------- | ------------------------------ |
-| `.github/scripts/schema_report_cli.py` | `SCHEMA_REPORT_LOG`                                                 | LEAVE          | CLI tooling                    |
-| `main.py`                              | `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_KEY`                      | LEAVE          | Dev/test script                |
-| `run_tests.py`                         | `TEST_SECRET_KEY`                                                   | LEAVE          | Test runner                    |
-| `test_supabase.py`                     | `SUPABASE_URL`, `SUPABASE_KEY`, `RUN_SUPABASE_TESTS`, `LOAD_DOTENV` | LEAVE          | Test file                      |
-| `test_postgres.py`                     | `ASSET_GRAPH_DATABASE_URL`, `DATABASE_URL`, `RUN_POSTGRES_TESTS`    | LEAVE          | Test file                      |
-| `tests/**`                             | Various                                                             | LEAVE          | Test files excluded from scope |
+| `.github/scripts/schema_report_cli.py` | `SCHEMA_REPORT_LOG`                                                 | LEAVE LOCAL    | CLI tooling                    |
+| `main.py`                              | `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_KEY`                      | LEAVE LOCAL    | Dev/test script                |
+| `run_tests.py`                         | `TEST_SECRET_KEY`                                                   | LEAVE LOCAL    | Test runner                    |
+| `test_supabase.py`                     | `SUPABASE_URL`, `SUPABASE_KEY`, `RUN_SUPABASE_TESTS`, `LOAD_DOTENV` | LEAVE LOCAL    | Test file                      |
+| `test_postgres.py`                     | `ASSET_GRAPH_DATABASE_URL`, `DATABASE_URL`, `RUN_POSTGRES_TESTS`    | LEAVE LOCAL    | Test file                      |
+| `tests/**`                             | Various                                                             | LEAVE LOCAL    | Test files excluded from scope |
 
 ## Recommendations
 
@@ -130,7 +130,7 @@ For completeness, environment variable usage in non-runtime files:
 
 ## Validation
 
-This audit was validated by:
+This audit was validated against the runtime audit scope only: `api/` and `src/`. Test files, scripts, and root-level helper files were excluded from the 15 runtime-match count and are listed separately as non-runtime context.
 
 1. **Exhaustive runtime search**: Grep for `os.getenv(` and `os.environ[` across the audited runtime directories (`api/` and `src/`)
 2. **Runtime scope filter**: Focused on `api/` and `src/` directories only
@@ -149,8 +149,8 @@ grep -r "os\.environ\[" api/ src/
 
 **Results:**
 
-- `os.getenv(` - 15 matches in runtime files (all classified)
-- `os.environ[` - 0 matches in runtime files
+- `os.getenv(` - 15 matches in audited runtime files under `api/` and `src/` (all classified)
+- `os.environ[` - 0 matches in audited runtime files under `api/` and `src/`
 
 All runtime environment access has been accounted for and classified.
 
