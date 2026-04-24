@@ -40,41 +40,41 @@ This audit catalogues all direct `os.getenv()` and `os.environ[]` usage in runti
 
 All environment access in this file is classified as **DEFER** due to security-sensitive startup characteristics.
 
-| Line | Variable          | Usage           | Rationale for DEFER                                                                                                    |
-| ---- | ----------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| 20   | `SECRET_KEY`      | JWT signing key | Security-critical crypto key; module-level initialization; fail-fast validation appropriate; caching provides no value |
-| 221  | `ADMIN_USERNAME`  | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
-| 222  | `ADMIN_PASSWORD`  | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
-| 227  | `ADMIN_EMAIL`     | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
-| 228  | `ADMIN_FULL_NAME` | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
-| 229  | `ADMIN_DISABLED`  | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
+| Line | Variable          | Usage           | Rationale for DEFER                                                                                                                                     |
+| ---- | ----------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 20   | `SECRET_KEY`      | JWT signing key | Security-critical crypto key; migration should be handled in a dedicated auth settings seam to preserve fail-fast startup and token validation behavior |
+| 221  | `ADMIN_USERNAME`  | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                                                                |
+| 222  | `ADMIN_PASSWORD`  | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                                                                |
+| 227  | `ADMIN_EMAIL`     | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                                                                |
+| 228  | `ADMIN_FULL_NAME` | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                                                                |
+| 229  | `ADMIN_DISABLED`  | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                                                                |
 
 **Analysis:**
 
-- `SECRET_KEY` (line 20): Used for JWT encoding/decoding. Module-level constant with explicit validation. This is security-sensitive startup configuration, not runtime config suitable for caching.
+`SECRET_KEY` (line 20): Used for JWT encoding/decoding. It is a valid future settings-migration candidate, but should be deferred to a dedicated auth settings seam because it is security-critical and currently participates in module-level fail-fast initialization.
 
 - `ADMIN_*` variables (lines 221-229): Used exclusively in `_seed_credentials_from_env()` function, called once at module initialization (line 242). These are transient bootstrap credentials for initial user setup, not ongoing runtime configuration. They are not user-facing runtime settings and are intentionally read once during initialization. Migrating to Settings would not improve semantics.
 
 ### api/cors_utils.py - DEFER (2 occurrences)
 
-All environment access in this file is classified as **DEFER** due to intentional dynamic behavior.
+All environment access in this file is classified as **DEFER** because migrating it changes CORS/test override semantics and should be handled as a dedicated CORS settings seam.
 
-| Line | Variable          | Usage                         | Rationale for DEFER                                       |
-| ---- | ----------------- | ----------------------------- | --------------------------------------------------------- |
-| 131  | `ENV`             | CORS validation (per-request) | Explicitly documented dynamic behavior for test overrides |
-| 134  | `ALLOWED_ORIGINS` | CORS validation (per-request) | Explicitly documented dynamic behavior for test overrides |
+| Line | Variable          | Usage                         | Rationale for DEFER                                                                                       |
+| ---- | ----------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 131  | `ENV`             | CORS validation (per-request) | Duplicates `Settings.env`; migrate only in a dedicated CORS seam due to dynamic override behavior         |
+| 134  | `ALLOWED_ORIGINS` | CORS validation (per-request) | Duplicates `Settings.allowed_origins`; migrate only in a dedicated CORS seam due to parsing/behavior risk |
 
 **Analysis:**
 
-Both variables are read within the `validate_origin()` function, which is called on every CORS validation request. The code includes an explicit comment on line 130:
+Both variables are read within the `validate_origin()` function, which is called on CORS validation paths. These same variables are already represented in `src/config/settings.py`, so the current implementation creates a split source of truth.
 
-```python
-# Read environment dynamically to support runtime overrides (e.g., during tests)
-```
+This is an architectural smell, not a pattern to copy:
+- production code is currently shaped partly by test override convenience;
+- direct reads bypass the typed Settings model;
+- parsing behavior can diverge from `Settings.allowed_origins`;
+- future changes risk inconsistent CORS behavior depending on which path reads the env.
 
-This dynamic behavior is intentional and architectural. Test scenarios rely on the ability to modify environment variables at runtime and see immediate effects. Caching these values via Settings would break this test design pattern.
-
-**This matches the task description's example:** "DEFER: dynamic behavior (e.g. CORS)"
+Classification remains **DEFER**, not because the current duplication is ideal, but because migrating this safely requires a dedicated CORS settings PR with explicit tests for dynamic override behavior, cache invalidation, and parsing compatibility.
 
 ### src/config/settings.py - LEAVE LOCAL (7 occurrences)
 
@@ -119,7 +119,7 @@ For completeness, environment variable usage in non-runtime files:
 
 ### Future Considerations
 
-1. **CORS Test Strategy Review**: If test scenarios no longer require runtime environment override capability, `api/cors_utils.py` could potentially migrate to `get_settings()`. However, this would be a behavior change requiring careful evaluation and is explicitly OUT OF SCOPE for this audit.
+1. **CORS Settings Seam**: `api/cors_utils.py` should be reviewed in a dedicated PR because it reads `ENV` and `ALLOWED_ORIGINS` directly even though both are already represented in `src/config/settings.py`. The current direct-read behavior supports dynamic override tests, but it creates a split source of truth and bypasses Settings parsing. A future CORS seam should decide whether to migrate to `get_settings()` with explicit `get_settings.cache_clear()` usage in tests, or retain direct reads with documented justification.
 
 2. **Auth Module Refactor**: The admin seeding logic in `api/auth.py` could potentially be refactored to use a different initialization pattern, but the current approach is appropriate for startup-only bootstrap credentials.
 
