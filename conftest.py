@@ -118,7 +118,7 @@ def _next_index_after_required_value(
 ) -> int:
     """Return the next index after a pytest-cov option with a required value."""
     next_index = index + 1
-    if next_index < len(args) and _looks_like_option_value(args[next_index]):
+    if next_index < len(args) and args[next_index] != "--":
         return next_index + 1
     return next_index
 
