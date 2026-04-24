@@ -11,6 +11,7 @@ Tests cover:
 - Edge cases and error handling
 """
 
+import importlib
 import os
 import sqlite3
 import tempfile
@@ -19,6 +20,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+import api.database as database
 from api.database import (
     DATABASE_PATH,
     DATABASE_URL,
@@ -30,6 +32,16 @@ from api.database import (
     get_connection,
     initialize_schema,
 )
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """Clear cached settings before and after each test."""
+    from src.config.settings import get_settings
+
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 class TestDatabaseURLConfiguration:
@@ -46,17 +58,30 @@ class TestDatabaseURLConfiguration:
         assert DATABASE_PATH is not None
         assert isinstance(DATABASE_PATH, str)
 
-    @patch.dict(os.environ, {"DATABASE_URL": ""}, clear=True)
     def test_missing_database_url_raises_error(self):
-        """Test that missing DATABASE_URL raises ValueError."""
-        from api import database as db_module
+        """Test that missing DATABASE_URL raises a ValueError."""
+        from src.config.settings import get_settings
 
-        # Need to reload the module to trigger the error
-        with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
-            # Import will fail due to module-level check
-            import importlib
+        original_database_url = os.environ.get("DATABASE_URL")
+        restore_database_url = original_database_url or "sqlite:///:memory:"
 
-            importlib.reload(db_module)
+        try:
+            with patch.dict(os.environ, {}, clear=True):
+                get_settings.cache_clear()
+                with pytest.raises(
+                    ValueError,
+                    match="DATABASE_URL must be configured",
+                ):
+                    importlib.reload(database)
+        finally:
+            with patch.dict(
+                os.environ,
+                {"DATABASE_URL": restore_database_url},
+                clear=False,
+            ):
+                get_settings.cache_clear()
+                importlib.reload(database)
+                get_settings.cache_clear()
 
 
 class TestSQLitePathResolution:
