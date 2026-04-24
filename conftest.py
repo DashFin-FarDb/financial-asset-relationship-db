@@ -46,6 +46,7 @@ def _cov_plugin_available() -> bool:
     return importlib.util.find_spec("pytest_cov") is not None
 
 
+
 def _safe_addoption(
     group: object,
     *names: str,
