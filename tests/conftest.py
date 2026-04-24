@@ -2,7 +2,6 @@
 database tests.
 """
 
-
 import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
