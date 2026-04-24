@@ -13,7 +13,7 @@ from __future__ import annotations
 import importlib.util
 from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
-from typing import Any, List, MutableSequence, Optional
+from typing import Any, List, MutableSequence, Optional, Tuple
 
 import pytest
 from sqlalchemy.engine import Engine
@@ -33,6 +33,13 @@ _COV_BOOLEAN_FLAGS = {
     "--cov-branch",
     "--cov-reset",
 }
+_COV_EQUALS_PREFIXES = (
+    "--cov=",
+    "--cov-report=",
+    "--cov-config=",
+    "--cov-context=",
+    "--cov-fail-under=",
+)
 
 
 def _cov_plugin_available() -> bool:
@@ -81,35 +88,55 @@ def _strip_pytest_cov_args(args: MutableSequence[str]) -> List[str]:
 
     while index < len(args):
         arg = args[index]
-
         if arg == "--":
-            filtered_args.extend(args[index:])
-            break
+            return filtered_args + list(args[index:])
 
-        if arg in _COV_FLAGS_WITH_OPTIONAL_VALUE:
-            index += 1
-            if index < len(args) and _looks_like_option_value(args[index]):
-                index += 1
-            continue
-
-        if arg in _COV_VALUE_FLAGS:
-            index += 1
-            if index < len(args) and args[index] != "--":
-                index += 1
-            continue
-
-        if arg in _COV_BOOLEAN_FLAGS:
-            index += 1
-            continue
-
-        if _is_cov_equals_arg(arg):
-            index += 1
-            continue
-
-        filtered_args.append(arg)
-        index += 1
+        should_keep, index = _classify_pytest_cov_arg(args, index)
+        if should_keep:
+            filtered_args.append(arg)
 
     return filtered_args
+
+
+def _classify_pytest_cov_arg(
+    args: MutableSequence[str],
+    index: int,
+) -> Tuple[bool, int]:
+    """Return whether to keep the current arg and the next index to inspect."""
+    arg = args[index]
+
+    if arg in _COV_FLAGS_WITH_OPTIONAL_VALUE:
+        return False, _next_index_after_optional_value(args, index)
+
+    if arg in _COV_VALUE_FLAGS:
+        return False, _next_index_after_required_value(args, index)
+
+    if arg in _COV_BOOLEAN_FLAGS or _is_cov_equals_arg(arg):
+        return False, index + 1
+
+    return True, index + 1
+
+
+def _next_index_after_optional_value(
+    args: MutableSequence[str],
+    index: int,
+) -> int:
+    """Return the next index after a pytest-cov flag with an optional value."""
+    next_index = index + 1
+    if next_index < len(args) and _looks_like_option_value(args[next_index]):
+        return next_index + 1
+    return next_index
+
+
+def _next_index_after_required_value(
+    args: MutableSequence[str],
+    index: int,
+) -> int:
+    """Return the next index after a pytest-cov flag with a required value."""
+    next_index = index + 1
+    if next_index < len(args) and args[next_index] != "--":
+        return next_index + 1
+    return next_index
 
 
 def _looks_like_option_value(arg: str) -> bool:
@@ -119,14 +146,7 @@ def _looks_like_option_value(arg: str) -> bool:
 
 def _is_cov_equals_arg(arg: str) -> bool:
     """Return whether arg is a pytest-cov flag provided as --flag=value."""
-    cov_prefixes = (
-        "--cov=",
-        "--cov-report=",
-        "--cov-config=",
-        "--cov-context=",
-        "--cov-fail-under=",
-    )
-    return arg.startswith(cov_prefixes)
+    return arg.startswith(_COV_EQUALS_PREFIXES)
 
 
 def pytest_addoption(parser: Any) -> None:
@@ -290,4 +310,4 @@ def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
         for key in keys:
             monkeypatch.delenv(key, raising=False)
 
-    return _unsetter
+    return unsetter
