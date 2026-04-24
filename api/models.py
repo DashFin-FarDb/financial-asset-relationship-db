@@ -4,8 +4,9 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from api.auth import User
 
+
+from api.auth import User
 
 class UserInDB(User):
     """User record as stored in the database, including hashed password."""
