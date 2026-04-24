@@ -115,7 +115,7 @@ For completeness, environment variable usage in non-runtime files:
 ### Immediate Actions
 
 1. **No code migrations required** - All runtime env access has been appropriately classified as DEFER or LEAVE
-2. **Document DEFER decisions** - Consider adding this audit document to repository for future reference
+2. **Retain and surface this audit** - Link this document from a relevant README or ADR and keep it updated when runtime environment-variable usage changes
 3. **Monitor new additions** - Future PRs adding `os.getenv()` should justify why they can't use `get_settings()`
 
 ### Future Considerations
