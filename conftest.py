@@ -8,8 +8,6 @@ This file centralizes:
 - Common test helpers (e.g., factories) to avoid repeated boilerplate
 """
 
-from __future__ import annotations
-
 import importlib.util
 from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
@@ -43,7 +41,6 @@ _COV_EQUALS_PREFIXES = (
 
 
 def _cov_plugin_available() -> bool:
-    """Return whether pytest-cov is importable in the current environment."""
     return importlib.util.find_spec("pytest_cov") is not None
 
 
@@ -51,15 +48,7 @@ def pytest_load_initial_conftests(
     early_config: Any,
     parser: Any,
     args: Optional[MutableSequence[str]],
-) -> None:  # pragma: no cover
-    """
-    Strip pytest-cov flags before option parsing when pytest-cov is unavailable.
-
-    The hook mutates the provided argument list in place. Some unit tests call
-    this helper with the argument list as the first positional argument, while
-    pytest itself supplies it as the third argument. Both forms are supported to
-    keep the hook testable and compatible with pytest's hook signature.
-    """
+) -> None:
     del parser
 
     if _cov_plugin_available():
@@ -76,7 +65,6 @@ def pytest_load_initial_conftests(
 
 
 def _strip_pytest_cov_args(args: MutableSequence[str]) -> List[str]:
-    """Return args with pytest-cov flags removed without dropping test paths."""
     filtered_args: List[str] = []
     index = 0
 
@@ -96,7 +84,6 @@ def _classify_pytest_cov_arg(
     args: MutableSequence[str],
     index: int,
 ) -> Tuple[bool, int]:
-    """Return whether to keep the current arg and the next index to inspect."""
     arg = args[index]
 
     if arg in _COV_FLAGS_WITH_OPTIONAL_VALUE:
@@ -115,7 +102,6 @@ def _next_index_after_optional_value(
     args: MutableSequence[str],
     index: int,
 ) -> int:
-    """Return the next index after a pytest-cov flag with an optional value."""
     next_index = index + 1
     if next_index < len(args) and _looks_like_option_value(args[next_index]):
         return next_index + 1
@@ -126,7 +112,6 @@ def _next_index_after_required_value(
     args: MutableSequence[str],
     index: int,
 ) -> int:
-    """Return the next index after a pytest-cov flag with a required value."""
     next_index = index + 1
     if next_index < len(args) and args[next_index] != "--":
         return next_index + 1
@@ -134,95 +119,46 @@ def _next_index_after_required_value(
 
 
 def _looks_like_option_value(arg: str) -> bool:
-    """Return whether arg is a value token rather than another CLI option."""
     return arg != "--" and not arg.startswith("-")
 
 
 def _is_cov_equals_arg(arg: str) -> bool:
-    """Return whether arg is a pytest-cov flag provided as --flag=value."""
     return arg.startswith(_COV_EQUALS_PREFIXES)
 
 
 def pytest_addoption(parser: Any) -> None:
-    """
-    Register dummy coverage command-line options when pytest-cov is unavailable.
-
-    This is a fallback for environments where option stripping does not run
-    early enough. If pytest-cov is available, no dummy options are registered.
-
-    Parameters:
-        parser: Pytest argument parser used to add command-line options.
-    """
     if not _cov_plugin_available():
         _register_dummy_cov_options(parser)
 
 
-def _safe_addoption(
-    group: object,
-    *names: str,
-    **kwargs: object,
-) -> None:  # pragma: no cover
-    """Add a pytest option, ignoring only duplicate-registration errors."""
+def _safe_addoption(group: object, *names: str, **kwargs: object) -> None:
     try:
-        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
+        group.addoption(*names, **kwargs)
     except ValueError as exc:
-        message = str(exc)
-        if "already added" not in message:
+        if "already added" not in str(exc):
             raise
 
 
-def _register_dummy_cov_options(parser: Any) -> None:  # pragma: no cover
-    """Register dummy --cov and --cov-report options."""
+def _register_dummy_cov_options(parser: Any) -> None:
     group = parser.getgroup("cov")
-    _safe_addoption(
-        group,
-        "--cov",
-        action="append",
-        dest="cov",
-        default=[],
-        metavar="path",
-        help="Dummy option registered when pytest-cov is unavailable.",
-    )
-    _safe_addoption(
-        group,
-        "--cov-report",
-        action="append",
-        dest="cov_report",
-        default=[],
-        metavar="type",
-        help="Dummy option registered when pytest-cov is unavailable.",
-    )
+    _safe_addoption(group, "--cov", action="append", dest="cov", default=[], metavar="path")
+    _safe_addoption(group, "--cov-report", action="append", dest="cov_report", default=[], metavar="type")
 
 
 @pytest.fixture(autouse=True)
 def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """
-    Ensure tests do not accidentally read developer/prod environment variables.
-
-    You can extend this list as the codebase grows.
-    """
     monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     monkeypatch.delenv("USE_REAL_DATA_FETCHER", raising=False)
-    monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
-    monkeypatch.delenv("REAL_DATA_CACHE_PATH", raising=False)
 
 
 @pytest.fixture()
 def database_url(tmp_path: Path) -> str:
-    """
-    Default test DB URL.
-
-    Uses a temporary on-disk SQLite DB to behave closer to production than :memory:.
-    If you want in-memory for speed, replace with:
-        "sqlite:///:memory:"
-    """
     db_path = tmp_path / "test_asset_graph.db"
     return f"sqlite:///{db_path}"
 
 
 @pytest.fixture()
 def engine(database_url: str) -> Iterator[Engine]:
-    """Create a SQLAlchemy Engine for tests and ensure schema exists."""
     eng = create_engine_from_url(database_url)
     Base.metadata.create_all(eng)
     try:
@@ -233,75 +169,10 @@ def engine(database_url: str) -> Iterator[Engine]:
 
 @pytest.fixture()
 def session_factory(engine: Engine) -> sessionmaker[Session]:
-    """Create a sessionmaker bound to the test engine."""
     return create_session_factory(engine)
 
 
 @pytest.fixture()
-def db_session(
-    session_factory: Callable[[], Session],
-) -> Generator[Session, None, None]:
-    """
-    Provide a transaction-scoped SQLAlchemy Session.
-
-    Uses the project's session_scope helper to ensure commit/rollback/close semantics.
-    """
+def db_session(session_factory: Callable[[], Session]) -> Generator[Session, None, None]:
     with session_scope(session_factory) as session:
         yield session
-
-
-@pytest.fixture()
-def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
-    """
-    Return a helper that sets environment variables for a test.
-
-    The returned callable accepts keyword arguments where each key is an
-    environment variable name and each value is the value to set;
-    invoking it sets those environment variables for the duration of the
-    test.
-
-    Returns:
-        setter (Callable[..., None]): Callable to set environment variables
-            by passing keyword arguments (e.g., `set_env(KEY="value")`).
-    """
-
-    def _setter(**kwargs: str) -> None:
-        """
-        Set environment variables for a test using the captured pytest `monkeypatch`.
-
-        Each keyword argument maps an environment variable name to its string
-        value and will be set with `monkeypatch.setenv`.
-        Parameters:
-            **kwargs (str): Environment variable names and their values to set.
-        """
-        for key, value in kwargs.items():
-            monkeypatch.setenv(key, value)
-
-    return _setter
-
-
-@pytest.fixture()
-def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
-    """
-    Provide a fixture that returns a callable to remove environment
-    variables from the test environment.
-
-    The returned callable accepts one or more environment variable names
-    and ensures each is removed for the duration of the test.
-
-    Returns:
-        unsetter (Callable[..., None]): Callable that deletes
-            the specified environment variables.
-    """
-
-    def _unsetter(*keys: str) -> None:
-        """
-        Remove the given environment variables from the test environment.
-
-        Parameters:
-            *keys (str): One or more environment variable names to remove.
-        """
-        for key in keys:
-            monkeypatch.delenv(key, raising=False)
-
-    return _unsetter
