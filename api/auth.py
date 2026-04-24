@@ -1,5 +1,6 @@
 """Authentication module for the Financial Asset Relationship Database API"""
 
+from api.models import User, UserInDB
 from __future__ import annotations
 
 import os
@@ -40,22 +41,6 @@ class TokenData(BaseModel):
     """Carries optional token payload data, such as the extracted username."""
 
     username: Optional[str] = None
-
-
-class User(BaseModel):
-    """Schema for user details including authentication credentials and profile information."""
-
-    username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
-    hashed_password: str
-
-
-class UserInDB(User):
-    """User record as stored in the database, including hashed password."""
-
-    hashed_password: str
 
 
 def _is_truthy(value: str | None) -> bool:
