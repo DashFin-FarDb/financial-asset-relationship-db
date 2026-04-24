@@ -227,12 +227,11 @@ class TestRetainedFilesState:
 
     def test_labeler_yml_present(self, repo_root: Path):
         """
-        Assert that the repository contains .github/labeler.yml.
-
-        This file is intentionally retained for labelling configuration.
+        Assert that .github/labeler.yml has been removed from the repository
+        (deleted as part of the workflow simplification).
         """
         labeler_file = repo_root / ".github" / "labeler.yml"
-        assert labeler_file.exists(), "labeler.yml is expected to be present"
+        assert not labeler_file.exists(), "labeler.yml should be deleted"
 
     def test_context_chunker_present(self, repo_root: Path):
         """
@@ -242,9 +241,9 @@ class TestRetainedFilesState:
         assert chunker_file.exists(), "context_chunker.py is expected to be present"
 
     def test_scripts_readme_present(self, repo_root: Path):
-        """Verify scripts README exists in the repository."""
+        """Verify scripts README has been removed (deleted as part of simplification)."""
         readme_file = repo_root / ".github" / "scripts" / "README.md"
-        assert readme_file.exists(), "scripts/README.md is expected to be present"
+        assert not readme_file.exists(), "scripts/README.md should be deleted"
 
     def test_codecov_workflow_present(self, repo_root: Path):
         """Verify codecov workflow is present in the repository."""

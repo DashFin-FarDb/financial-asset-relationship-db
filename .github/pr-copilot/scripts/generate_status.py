@@ -356,6 +356,9 @@ def main():
     except (IOError, OSError, RuntimeError, TypeError, ValueError):
         traceback.print_exc()
         sys.exit(1)
+    except Exception:  # pylint: disable=broad-except
+        traceback.print_exc()
+        sys.exit(1)
 
 
 if __name__ == "__main__":

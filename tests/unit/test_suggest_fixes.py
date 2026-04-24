@@ -964,7 +964,9 @@ def test_write_output_to_github_step_summary():
     report = "Test report"
     summary_file = "/tmp/github_summary.md"
 
-    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}):
+    # Remove RUNNER_TEMP so the security path-check is skipped
+    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}, clear=False):
+        os.environ.pop("RUNNER_TEMP", None)
         m = mock_open()
         with patch("builtins.open", m):
             with patch("tempfile.NamedTemporaryFile") as mock_temp:
@@ -997,7 +999,9 @@ def test_write_output_handles_io_error_github_summary(capsys):
     report = "Test content"
     summary_file = "/tmp/summary.md"
 
-    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}):
+    # Remove RUNNER_TEMP so the security path-check is skipped and IOError is hit
+    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}, clear=False):
+        os.environ.pop("RUNNER_TEMP", None)
         with patch("builtins.open", side_effect=IOError("Permission denied")):
             with patch("tempfile.NamedTemporaryFile") as mock_temp:
                 mock_file = Mock()

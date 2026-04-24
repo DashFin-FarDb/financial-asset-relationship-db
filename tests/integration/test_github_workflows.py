@@ -315,34 +315,34 @@ class TestPrAgentWorkflow:
     def test_pr_agent_has_review_job(self, pr_agent_workflow: Dict[str, Any]):
         """Test that pr-agent workflow has a review job."""
         jobs = pr_agent_workflow.get("jobs", {})
-        assert "pr-agent-trigger" in jobs, "pr-agent workflow must have a 'pr-agent-trigger' job"
+        assert "pr-agent-action" in jobs, "pr-agent workflow must have a 'pr-agent-action' job"
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that the pr-agent-trigger job runs on Ubuntu."""
+        """Test that the pr-agent-action job runs on Ubuntu."""
         jobs = pr_agent_workflow.get("jobs", {})
-        assert "pr-agent-trigger" in jobs, "pr-agent workflow must define a 'pr-agent-trigger' job"
-        review_job = jobs["pr-agent-trigger"]
+        assert "pr-agent-action" in jobs, "pr-agent workflow must define a 'pr-agent-action' job"
+        review_job = jobs["pr-agent-action"]
         runs_on = review_job.get("runs-on", "")
-        assert "ubuntu" in str(runs_on).lower(), "pr-agent-trigger job should run on Ubuntu runner"
+        assert "ubuntu" in str(runs_on).lower(), "pr-agent-action job should run on Ubuntu runner"
 
     @staticmethod
     def _get_trigger_job(pr_agent_workflow: Dict[str, Any]) -> Dict[str, Any]:
-        """Return the pr-agent-trigger job, asserting it exists."""
+        """Return the pr-agent-action job, asserting it exists."""
         jobs = pr_agent_workflow["jobs"]
-        assert "pr-agent-trigger" in jobs, "pr-agent workflow must have a 'pr-agent-trigger' job"
-        return jobs["pr-agent-trigger"]
+        assert "pr-agent-action" in jobs, "pr-agent workflow must have a 'pr-agent-action' job"
+        return jobs["pr-agent-action"]
 
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that the pr-agent-trigger job checks out the code."""
+        """Test that the pr-agent-action job checks out the code."""
         review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         checkout_steps = [s for s in steps if s.get("uses", "").startswith("actions/checkout")]
-        assert len(checkout_steps) > 0, "pr-agent-trigger job must check out the repository"
+        assert len(checkout_steps) > 0, "pr-agent-action job must check out the repository"
 
     def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure every actions/checkout step in the pr-agent-trigger job provides a
+        Ensure every actions/checkout step in the pr-agent-action job provides a
         ``token`` in its ``with`` mapping.
 
         Fails the test if any checkout step omits the ``token`` key.
@@ -358,36 +358,36 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Assert the pr-agent-trigger job includes at least one step that uses
+        Assert the pr-agent-action job includes at least one step that uses
         ``actions/setup-python``.
 
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the
                 pr-agent workflow; expected to contain a "jobs" mapping with a
-                "pr-agent-trigger" job.
+                "pr-agent-action" job.
         """
         review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         python_steps = [s for s in steps if s.get("uses", "").startswith("actions/setup-python")]
-        assert len(python_steps) > 0, "pr-agent-trigger job must set up Python"
+        assert len(python_steps) > 0, "pr-agent-action job must set up Python"
 
     def test_pr_agent_has_node_setup(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that the pr-agent-trigger job sets up Node.js."""
+        """Test that the pr-agent-action job sets up Node.js."""
         review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
         node_steps = [s for s in steps if s.get("uses", "").startswith("actions/setup-node")]
-        assert len(node_steps) > 0, "pr-agent-trigger job must set up Node.js"
+        assert len(node_steps) > 0, "pr-agent-action job must set up Node.js"
 
     def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure any actions/setup-python step in the "pr-agent-trigger" job specifies
+        Ensure any actions/setup-python step in the "pr-agent-action" job specifies
         python-version "3.11".
 
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR
-                Agent workflow; expected to contain a "jobs" -> "pr-agent-trigger" ->
+                Agent workflow; expected to contain a "jobs" -> "pr-agent-action" ->
                 "steps" sequence.
 
         """
@@ -402,7 +402,7 @@ class TestPrAgentWorkflow:
             assert step_with["python-version"] == "3.11", "Python version should be 3.11"
 
     def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that there are no duplicate setup steps in the pr-agent-trigger job."""
+        """Test that there are no duplicate setup steps in the pr-agent-action job."""
         review_job = self._get_trigger_job(pr_agent_workflow)
         steps = review_job.get("steps", [])
 
@@ -416,9 +416,9 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure checkout steps in the pr-agent-trigger job have valid fetch-depth values.
+        Ensure checkout steps in the pr-agent-action job have valid fetch-depth values.
 
-        Checks each step in ``jobs.pr-agent-trigger`` that uses ``actions/checkout``;
+        Checks each step in ``jobs.pr-agent-action`` that uses ``actions/checkout``;
         if the step's ``with`` mapping contains ``fetch-depth`` the value must be an
         integer or exactly 0, otherwise an assertion fails.
 
@@ -689,11 +689,11 @@ class TestPrAgentWorkflowAdvanced:
         """
         Ensure the pr-agent workflow defines exactly three jobs.
 
-        Asserts that the workflow's top-level `jobs` mapping contains exactly three entries named "pr-agent-trigger", "auto-merge-check" and "dependency-update".
+        Asserts that the workflow's top-level `jobs` mapping contains exactly three entries named "pr-agent-action", "auto-merge-check" and "dependency-update".
         """
         jobs = pr_agent_workflow.get("jobs", {})
         assert len(jobs) == 3, f"pr-agent workflow should have exactly 3 jobs, found {len(jobs)}"
-        assert "pr-agent-trigger" in jobs
+        assert "pr-agent-action" in jobs
         assert "auto-merge-check" in jobs
         assert "dependency-update" in jobs
 
@@ -703,7 +703,7 @@ class TestPrAgentWorkflowAdvanced:
 
         Checks performed:
         - Top-level `permissions.contents` equals "read".
-        - `pr-agent-trigger` job has `permissions.issues` set to "write".
+        - `pr-agent-action` job has `permissions.issues` set to "write".
         - `auto-merge-check` job has `permissions.issues` and `permissions.pull-requests` set to "write".
         - `dependency-update` job has `permissions.pull-requests` set to "write".
 
@@ -716,8 +716,8 @@ class TestPrAgentWorkflowAdvanced:
 
         # Job-level permissions
         jobs = pr_agent_workflow["jobs"]
-        assert "permissions" in jobs["pr-agent-trigger"]
-        assert jobs["pr-agent-trigger"]["permissions"]["issues"] == "write"
+        assert "permissions" in jobs["pr-agent-action"]
+        assert jobs["pr-agent-action"]["permissions"]["issues"] == "write"
 
         assert "permissions" in jobs["auto-merge-check"]
         assert jobs["auto-merge-check"]["permissions"]["issues"] == "write"
@@ -727,9 +727,9 @@ class TestPrAgentWorkflowAdvanced:
         assert jobs["dependency-update"]["permissions"]["pull-requests"] == "write"
 
     def test_pr_agent_trigger_has_conditional(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that pr-agent-trigger job has proper conditional logic."""
-        job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
-        assert "if" in job, "pr-agent-trigger should have conditional execution"
+        """Test that pr-agent-action job has proper conditional logic."""
+        job = pr_agent_workflow["jobs"]["pr-agent-action"]
+        assert "if" in job, "pr-agent-action should have conditional execution"
         conditional = job["if"]
         assert "pull_request_review" in conditional
         assert "changes_requested" in conditional
@@ -745,7 +745,7 @@ class TestPrAgentWorkflowAdvanced:
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed workflow dictionary for the pr-agent.yml workflow.
         """
-        job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = job.get("steps", [])
 
         python_install_step = None
@@ -767,13 +767,13 @@ class TestPrAgentWorkflowAdvanced:
 
     def test_pr_agent_parse_comments_step(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Verify the pr-agent-trigger job has a step that fetches/parses PR context via `gh api`.
+        Verify the pr-agent-action job has a step that fetches/parses PR context via `gh api`.
 
         Accept either the legacy "Parse PR Review Comments" step or newer equivalent
         steps that fetch PR context, as long as the selected candidate exposes
         `GITHUB_TOKEN` and invokes `gh api`.
         """
-        job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = job.get("steps", [])
 
         candidate_steps = []
@@ -784,7 +784,7 @@ class TestPrAgentWorkflowAdvanced:
             if "gh api" in run or "parse" in name.lower() or "context" in name.lower() or "parse" in step_id.lower():
                 candidate_steps.append(step)
 
-        assert candidate_steps, "Expected a PR parsing/context step in pr-agent-trigger job"
+        assert candidate_steps, "Expected a PR parsing/context step in pr-agent-action job"
         parse_step = next((step for step in candidate_steps if "gh api" in step.get("run", "")), candidate_steps[0])
         assert "env" in parse_step
         assert "GITHUB_TOKEN" in parse_step["env"]
@@ -797,7 +797,7 @@ class TestPrAgentWorkflowAdvanced:
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed mapping of the `pr-agent.yml` workflow containing jobs and steps.
         """
-        job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = job.get("steps", [])
 
         step_names = [s.get("name", "") for s in steps]
@@ -816,7 +816,7 @@ class TestPrAgentWorkflowAdvanced:
 
     def test_pr_agent_testing_steps(self, pr_agent_workflow: Dict[str, Any]):
         """Test that pr-agent includes proper testing steps."""
-        job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = job.get("steps", [])
 
         step_names = [s.get("name", "") for s in steps]
@@ -834,7 +834,7 @@ class TestPrAgentWorkflowAdvanced:
 
     def test_pr_agent_create_comment_step(self, pr_agent_workflow: Dict[str, Any]):
         """Test that Create PR Comment step runs always and uses github-script."""
-        job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = job.get("steps", [])
 
         comment_step = None
@@ -850,12 +850,12 @@ class TestPrAgentWorkflowAdvanced:
 
     def test_pr_agent_node_version_actual(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure that every actions/setup-node step in the "pr-agent-trigger" job specifies Node.js version 18.
+        Ensure that every actions/setup-node step in the "pr-agent-action" job specifies Node.js version 18.
 
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the PR Agent workflow fixture.
         """
-        job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = job.get("steps", [])
 
         node_steps = [s for s in steps if s.get("uses", "").startswith("actions/setup-node")]

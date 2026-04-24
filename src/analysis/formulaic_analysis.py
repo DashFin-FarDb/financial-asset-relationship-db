@@ -226,7 +226,7 @@ class FormulaicAnalyzer:
                 graph.
         """
         return Formula(
-            name="Price-to-Earnings",
+            name="Price-to-Earnings Ratio",
             expression="P / E",
             latex=r"\frac{P}{E}",
             description=("Market price per share divided by earnings per share."),
@@ -573,6 +573,23 @@ class FormulaicAnalyzer:
         formulas.append(portfolio_return_formula)
 
         # Portfolio Variance (2-asset case)
+        portfolio_variance_formula = Formula(
+            name="Portfolio Variance",
+            expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁₂",
+            latex=r"\sigma^2_p = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_{12}",
+            description=("Portfolio variance for a two-asset portfolio"),
+            variables={
+                "σ²_p": "Portfolio variance",
+                "w_i": "Weight of asset i",
+                "σ_i": "Standard deviation of asset i",
+                "σ₁₂": "Covariance between assets 1 and 2",
+            },
+            example_calculation={},
+            category="Portfolio Theory",
+            r_squared=1.0,
+        )
+        formulas.append(portfolio_variance_formula)
+
         return formulas
 
     def _analyze_cross_asset_relationships(

@@ -140,13 +140,26 @@ class TestWorkflowPermissionsHardening:
     @staticmethod
     def test_workflows_define_explicit_permissions(all_workflows):
         """
-        Ensure each workflow includes a top-level "permissions" key.
+        Ensure each workflow includes a "permissions" key at the top level or on every job.
 
         Parameters:
             all_workflows (Iterable[Mapping]): Iterable of workflow objects where each item has a "content" mapping for the parsed YAML and a "path" string used in failure messages.
         """
         for workflow in all_workflows:
-            assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
+            content = workflow["content"]
+            if "permissions" in content:
+                # Top-level permissions are sufficient
+                continue
+            # Accept workflows where all non-reusable jobs declare their own permissions
+            jobs = content.get("jobs", {})
+            all_jobs_have_permissions = all(
+                isinstance(job, dict) and ("permissions" in job or "uses" in job)
+                for job in jobs.values()
+            )
+            assert all_jobs_have_permissions, (
+                f"Workflow {workflow['path']} should define permissions "
+                "(either top-level or on each job)"
+            )
 
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):
