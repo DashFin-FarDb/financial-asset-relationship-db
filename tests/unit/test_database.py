@@ -71,10 +71,13 @@ def isolated_base() -> Iterator[type[Base]]:
     """
     Provide an isolated declarative SQLAlchemy Base subclass for use within a single test.
 
-    This fixture yields a Base subclass with `__abstract__ = True`; any tables registered on the global Base.metadata during the test are removed after the fixture completes.
+    This fixture yields a Base subclass with `__abstract__ = True`; any tables
+    registered on the global Base.metadata during the test are removed after the
+    fixture completes.
 
     Returns:
-        isolated_base (type[Base]): A declarative Base subclass whose test-created tables will be cleaned from the global metadata after the test.
+        isolated_base (type[Base]): A declarative Base subclass whose test-created
+            tables will be cleaned from the global metadata after the test.
     """
     existing_tables = set(Base.metadata.tables)
 
@@ -100,7 +103,9 @@ def engine() -> Iterator[Engine]:
     """
     Create and yield an in-memory SQLite Engine for tests.
 
-    The engine uses StaticPool and disables SQLite's same-thread check so multiple sessions can share the in-memory database. The engine is disposed when the fixture teardown runs.
+    The engine uses StaticPool and disables SQLite's same-thread check so
+    multiple sessions can share the in-memory database. The engine is disposed
+    when the fixture teardown runs.
 
     Returns:
         An in-memory SQLite `Engine` instance; it is disposed after use.
@@ -328,9 +333,12 @@ class TestSessionScope:
 
     def test_propagates_integrity_error(self, engine: Engine, isolated_base) -> None:
         """
-        Verify that an IntegrityError raised inside a session_scope is propagated to the caller after the transaction is rolled back.
+        Verify that an IntegrityError raised inside a session_scope is propagated
+        to the caller after the transaction is rolled back.
 
-        This test creates a simple model, initializes the database, and performs operations that raise an IntegrityError; the error must not be swallowed by the session scope.
+        This test creates a simple model, initializes the database, and performs
+        operations that raise an IntegrityError; the error must not be swallowed
+        by the session scope.
         """
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
@@ -506,7 +514,9 @@ class TestConcurrentDatabaseAccess:
 
         def create_session() -> None:
             """
-            Create a session using the surrounding `factory`, append it to the surrounding `sessions` list, then close it; on exception, append the exception to the surrounding `errors` list.
+            Create a session using the surrounding `factory`, append it to the
+            surrounding `sessions` list, then close it; on exception, append
+            the exception to the surrounding `errors` list.
             """
             try:
                 session = factory()
@@ -549,7 +559,10 @@ class TestConcurrentDatabaseAccess:
             """
             Worker executed by a thread to perform a read-only count query and record results.
 
-            Appends the number of rows in `TestModel` to the shared `results` list. If an exception occurs, appends the exception instance to the shared `errors` list. Obtains a session from the module-level session factory and does not return a value.
+            Appends the number of rows in `TestModel` to the shared `results`
+            list. If an exception occurs, appends the exception instance to the
+            shared `errors` list. Obtains a session from the module-level
+            session factory and does not return a value.
             """
             try:
                 with session_scope(factory) as session:
@@ -726,9 +739,13 @@ class TestResourceCleanup:
 
     def test_session_scope_with_nested_commits(self, engine: Engine, isolated_base) -> None:
         """
-        Verifies that explicit commits performed inside a session_scope persist data across subsequent scopes.
+        Verifies that explicit commits performed inside a session_scope persist
+        data across subsequent scopes.
 
-        This test creates a simple model, performs explicit commits within a session_scope (simulating a regression where nested commits might be discarded), and then opens a new session_scope to assert the committed row is visible.
+        This test creates a simple model, performs explicit commits within a
+        session_scope (simulating a regression where nested commits might be
+        discarded), and then opens a new session_scope to assert the committed
+        row is visible.
         """
 
         class TestModelBase(isolated_base):  # pylint: disable=redefined-outer-name
@@ -980,16 +997,16 @@ class TestDatabaseErrorHandling:
 class TestDatabaseUrlConfiguration:
     """Test database URL configuration edge cases."""
 
-    @patch.dict("os.environ", {}, clear=True)
     @pytest.fixture(autouse=True)
     def _clear_settings_cache(self):
+        """Clear the get_settings LRU cache before and after each test."""
         from src.config.settings import get_settings
-
 
         get_settings.cache_clear()
         yield
         get_settings.cache_clear()
 
+    @patch.dict("os.environ", {}, clear=True)
     def test_get_database_url_missing_env_var(self):
         """Test that missing DATABASE_URL raises ValueError."""
         with pytest.raises(ValueError, match="DATABASE_URL"):
@@ -998,26 +1015,17 @@ class TestDatabaseUrlConfiguration:
     @patch.dict("os.environ", {"DATABASE_URL": ""})
     def test_get_database_url_empty_string(self):
         """Test that empty DATABASE_URL raises ValueError."""
-        from src.config.settings import get_settings
-
-        get_settings.cache_clear()  # Clear cache to pick up new env vars
         with pytest.raises(ValueError):
             _get_database_url()
 
     @patch.dict("os.environ", {"DATABASE_URL": "   "})
     def test_get_database_url_whitespace_only(self):
         """Test that whitespace-only DATABASE_URL is returned as-is."""
-        from src.config.settings import get_settings
-
-        get_settings.cache_clear()  # Clear cache to pick up new env vars
         result = _get_database_url()
         assert result == "   "
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://user:pass@localhost/db"})
     def test_get_database_url_returns_configured_value(self):
         """Test that configured URL is returned as-is."""
-        from src.config.settings import get_settings
-
-        get_settings.cache_clear()  # Clear cache to pick up new env vars
         result = _get_database_url()
         assert result == "postgresql://user:pass@localhost/db"
