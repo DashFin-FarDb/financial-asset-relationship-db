@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from api.auth import UserInDB
 
 
 class UserBase(BaseModel):
