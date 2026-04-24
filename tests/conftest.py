@@ -4,6 +4,7 @@ database tests.
 
 import importlib.util
 
+
 import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
