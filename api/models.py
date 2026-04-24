@@ -17,6 +17,8 @@ class UserInDB(BaseModel):
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
     hashed_password: str
+
+
 __all__ = ["UserInDB"]
 
 
