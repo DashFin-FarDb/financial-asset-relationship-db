@@ -23,7 +23,6 @@
 - 10 js files
 - 19 h files
 
-
 ## Project Directory Structure
 
 - 📂 api/
@@ -173,7 +172,7 @@ Dependencies:
 - TestClient
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
 
 No dependencies found
 
