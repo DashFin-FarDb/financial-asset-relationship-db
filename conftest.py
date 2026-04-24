@@ -66,8 +66,6 @@ def pytest_load_initial_conftests(
         parser: Pytest parser object. Unused by this filtering hook.
         args: Mutable pytest argument list supplied by pytest.
     """
-    del parser
-
     if _cov_plugin_available():
         return
 
