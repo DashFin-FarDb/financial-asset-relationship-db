@@ -14,7 +14,7 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
-from .models import UserInDB
+from .models import UserBase, UserInDB
 
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -50,6 +50,12 @@ class User(BaseModel):
     email: Optional[str] = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
+    hashed_password: str
+
+
+class UserInDB(User):
+    """User record as stored in the database, including hashed password."""
+
     hashed_password: str
 
 
