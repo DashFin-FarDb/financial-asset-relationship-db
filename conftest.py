@@ -48,24 +48,6 @@ def pytest_addoption(parser: Any) -> None:
 def _cov_plugin_available() -> bool:
     """Return whether pytest-cov is importable in the current environment."""
     return importlib.util.find_spec("pytest_cov") is not None
-    _safe_addoption(
-        group,
-        "--cov",
-        action="append",
-        dest="cov",
-        default=[],
-        metavar="path",
-        help="Dummy option registered when pytest-cov is unavailable.",
-    )
-    _safe_addoption(
-        group,
-        "--cov-report",
-        action="append",
-        dest="cov_report",
-        default=[],
-        metavar="type",
-        help="Dummy option registered when pytest-cov is unavailable.",
-    )
 
 
 @pytest.fixture(autouse=True)
