@@ -27,6 +27,15 @@ from src.data.database import (
 )
 
 
+_COV_FLAGS_WITH_OPTIONAL_VALUE = {"--cov", "--cov-report"}
+_COV_VALUE_FLAGS = {"--cov-config", "--cov-context", "--cov-fail-under"}
+_COV_BOOLEAN_FLAGS = {
+    "--cov-append",
+    "--cov-branch",
+    "--cov-reset",
+}
+
+
 def _cov_plugin_available() -> bool:
     """Return whether pytest-cov is importable in the current environment."""
     return importlib.util.find_spec("pytest_cov") is not None
@@ -63,24 +72,62 @@ def pytest_load_initial_conftests(
     if target_args is None:
         return
 
+    target_args[:] = _strip_pytest_cov_args(target_args)
+
+
+def _strip_pytest_cov_args(args: MutableSequence[str]) -> list[str]:
+    """Return args with pytest-cov flags removed without dropping test paths."""
     filtered_args: list[str] = []
-    skip_next = False
+    index = 0
 
-    for arg in target_args:
-        if skip_next:
-            skip_next = False
+    while index < len(args):
+        arg = args[index]
+
+        if arg == "--":
+            filtered_args.extend(args[index:])
+            break
+
+        if arg in _COV_FLAGS_WITH_OPTIONAL_VALUE:
+            index += 1
+            if index < len(args) and _looks_like_option_value(args[index]):
+                index += 1
             continue
 
-        if arg in {"--cov", "--cov-report"}:
-            skip_next = True
+        if arg in _COV_VALUE_FLAGS:
+            index += 1
+            if index < len(args) and args[index] != "--":
+                index += 1
             continue
 
-        if arg.startswith("--cov=") or arg.startswith("--cov-report="):
+        if arg in _COV_BOOLEAN_FLAGS:
+            index += 1
+            continue
+
+        if _is_cov_equals_arg(arg):
+            index += 1
             continue
 
         filtered_args.append(arg)
+        index += 1
 
-    target_args[:] = filtered_args
+    return filtered_args
+
+
+def _looks_like_option_value(arg: str) -> bool:
+    """Return whether arg is a value token rather than another CLI option."""
+    return arg != "--" and not arg.startswith("-")
+
+
+def _is_cov_equals_arg(arg: str) -> bool:
+    """Return whether arg is a pytest-cov flag provided as --flag=value."""
+    cov_prefixes = (
+        "--cov=",
+        "--cov-report=",
+        "--cov-config=",
+        "--cov-context=",
+        "--cov-fail-under=",
+    )
+    return arg.startswith(cov_prefixes)
 
 
 def pytest_addoption(parser: Any) -> None:
