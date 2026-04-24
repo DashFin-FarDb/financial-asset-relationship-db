@@ -26,7 +26,6 @@ from src.data.database import (
     session_scope,
 )
 
-
 _COV_FLAGS_WITH_OPTIONAL_VALUE = {"--cov", "--cov-report"}
 _COV_VALUE_FLAGS = {"--cov-config", "--cov-context", "--cov-fail-under"}
 _COV_BOOLEAN_FLAGS = {
