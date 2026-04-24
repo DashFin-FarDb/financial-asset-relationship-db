@@ -13,7 +13,6 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleSource]
 from pydantic import BaseModel
 
-
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
 # Security configuration
