@@ -19,12 +19,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Ensure project root is on sys.path before importing src.*
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-
 _PROJECT_MARKERS = ("pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", ".git")
 
 
@@ -48,6 +42,15 @@ def _find_project_root(start: Path) -> Path:
         if parent == current:
             raise RuntimeError(f"Could not determine project root starting from {start}")
         current = parent
+
+
+# Ensure project root is on sys.path before importing src.*
+try:
+    PROJECT_ROOT = _find_project_root(Path(__file__).resolve().parent)
+except RuntimeError:
+    PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 
 from src.data.sample_data import (  # noqa: E402  # pylint: disable=import-error  # type: ignore[import-not-found]
