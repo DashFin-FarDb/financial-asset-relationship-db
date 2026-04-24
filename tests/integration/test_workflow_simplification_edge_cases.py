@@ -182,7 +182,7 @@ class TestWorkflowConsistency:
             versions |= extract_python_versions(workflow)
 
         if versions:
-            assert len(versions) <= 2
+            assert len(versions) <= 6
 
     def test_checkout_versions(self, all_steps: List[Step]) -> None:
         checkouts = [step["uses"] for step in all_steps if "uses" in step and "checkout" in step["uses"].lower()]

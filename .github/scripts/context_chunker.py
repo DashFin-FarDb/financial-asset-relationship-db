@@ -52,7 +52,7 @@ class ContextChunker:
         cfg_file = Path(config_path)
         if cfg_file.exists():
             try:
-                with cfg_file.open("r", encoding="utf-8") as f:
+                with open(config_path, "r", encoding="utf-8") as f:
                     self.config = yaml.safe_load(f) or {}
             except Exception as e:
                 print(f"Warning: failed to load config from {config_path}: {e}", file=sys.stderr)
@@ -113,11 +113,15 @@ class ContextChunker:
         if not isinstance(files, list):
             files = []
         for r in reviews:
-            body = (r or {}).get("body") or ""
+            if not isinstance(r, dict):
+                continue
+            body = r.get("body") or ""
             if body:
                 text_parts.append(str(body))
         for f in files:
-            patch = (f or {}).get("patch") or ""
+            if not isinstance(f, dict):
+                continue
+            patch = f.get("patch") or ""
             if patch:
                 text_parts.append(str(patch))
         result = "\n\n".join(text_parts).strip()

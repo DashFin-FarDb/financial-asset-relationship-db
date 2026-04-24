@@ -69,7 +69,7 @@ def sample_bond():
         asset_class=AssetClass.FIXED_INCOME,
         sector="Technology",
         price=100.0,
-        issuer_id="AAPL",
+        issuer_id="TEST_AAPL",
         yield_to_maturity=0.03,
         credit_rating="AAA",
     )
@@ -132,7 +132,7 @@ def sample_regulatory_event():
     """
     return RegulatoryEvent(
         id="EVENT_001",
-        asset_id="AAPL",
+        asset_id="TEST_AAPL",
         event_type=RegulatoryActivity.EARNINGS_REPORT,
         date="2024-01-01",
         description="Earnings report",

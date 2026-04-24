@@ -75,8 +75,7 @@ permissions:
 
 jobs:
   Trigger_APIsec_scan:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
-    # Note: Credential check is performed in the first step since secrets context
+    # Note: APIsec secret verification is performed at step level since secrets context
     # is not available in job-level 'if' conditions
     concurrency:
       group: apisec-${{ github.workflow }}-${{ github.ref }}
@@ -84,14 +83,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check for APIsec credentials
+      - name: Verify APIsec secrets
         id: check-creds
         run: |
           if [ -z "${{ secrets.apisec_username }}" ] || [ -z "${{ secrets.apisec_password }}" ]; then
             echo "⚠️ APIsec credentials not configured. Skipping scan."
-            echo "To enable APIsec scanning:"
-            echo "1. Register at https://cloud.apisec.ai/#/signup"
-            echo "2. Configure secrets: apisec_username and apisec_password"
+            echo "To enable APIsec scanning, register at https://cloud.apisec.ai/#/signup"
+            echo "and configure the required repository secrets."
             echo "has_credentials=false" >> $GITHUB_OUTPUT
           else
             echo "has_credentials=true" >> $GITHUB_OUTPUT

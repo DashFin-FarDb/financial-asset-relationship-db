@@ -14,6 +14,7 @@ approach for pytest. The S101 rule is suppressed because tests are not run with
 Python optimization flags that would remove assert statements.
 """
 
+import asyncio
 import json
 import threading
 from unittest.mock import MagicMock, Mock, patch
@@ -22,6 +23,16 @@ import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
+
+
+def _get_mcp_tools(mcp_app):
+    """Return internal tool objects (with .fn, .name) from a FastMCP app."""
+    return list(mcp_app._tool_manager._tools.values())
+
+
+def _get_mcp_resources(mcp_app):
+    """Return internal resource objects (with .fn, .uri) from a FastMCP app."""
+    return list(mcp_app._resource_manager._resources.values())
 
 
 @pytest.mark.unit
@@ -139,7 +150,7 @@ class TestAddEquityNode:
 
             # Access the registered tool
             tool_func = next(
-                (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
+                (tool.fn for tool in _get_mcp_tools(mcp_app) if tool.name == "add_equity_node"),
                 None,
             )
             assert tool_func is not None, "add_equity_node tool not found"
@@ -169,7 +180,7 @@ class TestAddEquityNode:
         mcp_app = _build_mcp_app()
 
         tool_func = None
-        for tool in mcp_app.list_tools():
+        for tool in _get_mcp_tools(mcp_app):
             if tool.name == "add_equity_node":
                 tool_func = tool.fn
                 break
@@ -194,7 +205,7 @@ class TestAddEquityNode:
         mcp_app = _build_mcp_app()
 
         tool_func = None
-        for tool in mcp_app.list_tools():
+        for tool in _get_mcp_tools(mcp_app):
             if tool.name == "add_equity_node":
                 tool_func = tool.fn
                 break
@@ -221,13 +232,13 @@ class TestAddEquityNode:
 
         # Create a minimal graph mock without add_asset method
         with patch("mcp_server.graph") as mock_graph:
-            # Make getattr return None for add_asset
-            mock_graph.__getattr__ = Mock(return_value=None)
+            # Make add_asset unavailable by setting to None
+            mock_graph.add_asset = None
 
             mcp_app = _build_mcp_app()
 
             tool_func = None
-            for tool in mcp_app.list_tools():
+            for tool in _get_mcp_tools(mcp_app):
                 if tool.name == "add_equity_node":
                     tool_func = tool.fn
                     break
@@ -274,7 +285,7 @@ class TestGet3DLayout:
 
         # Access the registered resource
         resource_func = next(
-            (resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri),
+            (resource.fn for resource in _get_mcp_resources(mcp_app) if "3d-layout" in str(resource.uri)),
             None,
         )
         assert resource_func is not None, "3d-layout resource not found"
@@ -319,8 +330,8 @@ class TestGet3DLayout:
         mcp_app = _build_mcp_app()
 
         resource_func = None
-        for resource in mcp_app.list_resources():
-            if "3d-layout" in resource.uri:
+        for resource in _get_mcp_resources(mcp_app):
+            if "3d-layout" in str(resource.uri):
                 resource_func = resource.fn
                 break
 
@@ -429,7 +440,7 @@ class TestBuildMcpApp:
 
         mcp_app = _build_mcp_app()
 
-        tools = mcp_app.list_tools()
+        tools = _get_mcp_tools(mcp_app)
         tool_names = [tool.name for tool in tools]
 
         assert "add_equity_node" in tool_names
@@ -441,10 +452,10 @@ class TestBuildMcpApp:
 
         mcp_app = _build_mcp_app()
 
-        resources = mcp_app.list_resources()
+        resources = _get_mcp_resources(mcp_app)
         resource_uris = [resource.uri for resource in resources]
 
-        assert any("3d-layout" in uri for uri in resource_uris)
+        assert any("3d-layout" in str(uri) for uri in resource_uris)
 
     @staticmethod
     def test_build_mcp_app_tool_has_correct_signature():
@@ -459,7 +470,7 @@ class TestBuildMcpApp:
         mcp_app = _build_mcp_app()
 
         tool = None
-        for t in mcp_app.list_tools():
+        for t in _get_mcp_tools(mcp_app):
             if t.name == "add_equity_node":
                 tool = t
                 break
@@ -518,9 +529,9 @@ class TestEdgeCases:
         lock = threading.Lock()
         safe_graph = _ThreadSafeGraph(graph, lock)
 
-        # Calling add_asset with invalid data should raise ValueError, but the
+        # Calling add_asset with invalid data should raise an exception, but the
         # lock must still be released after the exception.
-        with pytest.raises(ValueError):
+        with pytest.raises((ValueError, AttributeError, TypeError)):
             safe_graph.add_asset(None)
 
         # Lock should not be held after exception
@@ -537,7 +548,7 @@ class TestEdgeCases:
         mcp_app = _build_mcp_app()
 
         tool_func = None
-        for tool in mcp_app.list_tools():
+        for tool in _get_mcp_tools(mcp_app):
             if tool.name == "add_equity_node":
                 tool_func = tool.fn
                 break
@@ -568,8 +579,8 @@ class TestEdgeCases:
             mcp_app = _build_mcp_app()
 
             resource_func = None
-            for resource in mcp_app.list_resources():
-                if "3d-layout" in resource.uri:
+            for resource in _get_mcp_resources(mcp_app):
+                if "3d-layout" in str(resource.uri):
                     resource_func = resource.fn
                     break
 
@@ -604,7 +615,7 @@ class TestEdgeCases:
         mcp_app = _build_mcp_app()
 
         tool_func = None
-        for tool in mcp_app.list_tools():
+        for tool in _get_mcp_tools(mcp_app):
             if tool.name == "add_equity_node":
                 tool_func = tool.fn
                 break

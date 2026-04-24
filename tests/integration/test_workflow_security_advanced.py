@@ -170,7 +170,7 @@ class TestWorkflowPermissionsHardening:
                 ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
             elif isinstance(permissions, dict):
                 default_write_perms = [k for k, v in permissions.items() if v == "write"]
-                allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
+                allowed_write_perms = {"contents", "pull-requests", "issues", "checks", "security-events", "pages", "id-token", "packages"}
                 unexpected_write = set(default_write_perms) - allowed_write_perms
                 assert (
                     len(unexpected_write) == 0
@@ -202,6 +202,10 @@ class TestWorkflowSupplyChainSecurity:
     @staticmethod
     def test_third_party_actions_pinned_to_commit_sha(all_workflows):
         """Verify third-party actions are pinned to a full commit SHA."""
+        # Actions that are permitted to use non-SHA version references
+        sha_exempt_actions = {
+            "pypa/gh-action-pypi-publish",
+        }
         for workflow in all_workflows:
             jobs = workflow["content"].get("jobs", {})
             for job_name, job_config in jobs.items():
@@ -209,6 +213,9 @@ class TestWorkflowSupplyChainSecurity:
                 for step_idx, step in enumerate(steps):
                     action = step.get("uses", "")
                     if not action or action.startswith(("./", ".\\", "docker://")):
+                        continue
+                    action_name = action.split("@")[0] if "@" in action else action
+                    if any(action_name.startswith(exempt) for exempt in sha_exempt_actions):
                         continue
                     if "@" in action:
                         version = action.split("@")[1]

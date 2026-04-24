@@ -47,11 +47,11 @@ class TestPRAgentWorkflowChanges:
 
     def test_pr_agent_python_setup_simplified(self, pr_agent_workflow):
         """
-        Validate the pr-agent-trigger job uses a single Python dependency installation step and does not install PyYAML.
+        Validate the pr-agent-action job uses a single Python dependency installation step and does not install PyYAML.
 
         Finds a step whose name includes "Install Python dependencies", asserts exactly one such step exists, and verifies the step's run script contains no references to "pyyaml" or "PyYAML".
         """
-        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = pr_agent_job["steps"]
 
         # Find Python dependency installation step
@@ -76,7 +76,7 @@ class TestPRAgentWorkflowChanges:
 
     def test_pr_agent_uses_gh_cli_for_parsing(self, pr_agent_workflow):
         """Verify workflow uses gh CLI for PR comment parsing."""
-        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = pr_agent_job["steps"]
 
         parse_step = next((s for s in steps if "Parse PR" in s.get("name", "")), None)
@@ -87,13 +87,13 @@ class TestPRAgentWorkflowChanges:
         """
         Verify the PR Agent workflow exposes minimal permissions.
 
-        Asserts the workflow top-level 'permissions' sets 'contents' to 'read' and the 'pr-agent-trigger' job-level 'permissions' sets 'issues' to 'write'.
+        Asserts the workflow top-level 'permissions' sets 'contents' to 'read' and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
         """
         # Top-level permissions
         assert pr_agent_workflow.get("permissions", {}).get("contents") == "read"
 
         # Job-level permissions
-        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         assert pr_agent_job.get("permissions", {}).get("issues") == "write"
 
 
@@ -274,6 +274,9 @@ class TestWorkflowSecurityBestPractices:
                 for step in job.get("steps", []):
                     if "uses" in step:
                         action = step["uses"]
+                        # Local actions (./.github/actions/...) don't need version pins
+                        if action.startswith(("./", ".\\")):
+                            continue
                         # Should have version specifier
                         assert "@" in action, f"Action {action} in {workflow_file.name} should specify version"
                         # Should not use 'latest' or 'master'
@@ -292,6 +295,8 @@ class TestWorkflowSecurityBestPractices:
             # If permissions are specified, they should be limited
             if "permissions" in workflow:
                 perms = workflow["permissions"]
+                if not isinstance(perms, dict):
+                    continue
                 # Should not have blanket 'write-all' permission
                 assert (
                     perms.get("contents") != "write" or len(perms) > 1
@@ -331,7 +336,7 @@ class TestWorkflowYAMLValidity:
                 workflow = yaml.safe_load(f)
 
             assert "name" in workflow, f"{workflow_file.name} missing 'name'"
-            assert "on" in workflow, f"{workflow_file.name} missing 'on' trigger"
+            assert "on" in workflow or True in workflow, f"{workflow_file.name} missing 'on' trigger"
             assert "jobs" in workflow, f"{workflow_file.name} missing 'jobs'"
 
     @staticmethod
@@ -348,6 +353,9 @@ class TestWorkflowYAMLValidity:
                 workflow = yaml.safe_load(f)
 
             for job_name, job in workflow.get("jobs", {}).items():
+                # Reusable workflow jobs use `uses:` at job level and don't need `runs-on`
+                if isinstance(job, dict) and "uses" in job:
+                    continue
                 assert "runs-on" in job, f"Job '{job_name}' in {workflow_file.name} missing 'runs-on'"
 
 

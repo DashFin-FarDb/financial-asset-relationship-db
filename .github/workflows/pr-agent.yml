@@ -14,7 +14,7 @@ permissions:
     types: [completed]
 
 jobs:
-  pr-agent-trigger:
+  pr-agent-action:
     permissions:
       issues: write
     if: |

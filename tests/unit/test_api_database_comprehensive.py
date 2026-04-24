@@ -77,7 +77,7 @@ class TestGetDatabaseUrl:
             with pytest.raises(ValueError) as exc_info:
                 _get_database_url()
 
-        assert "DATABASE_URL must be configured" in str(exc_info.value)
+        assert "DATABASE_URL environment variable must be set" in str(exc_info.value)
 
 
 class TestResolveSqlitePath:

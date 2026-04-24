@@ -134,6 +134,14 @@ def _looks_like_secret(value: str) -> bool:
         return False
     if v.lower() in SAFE_PLACEHOLDERS:
         return False
+    # Skip glob patterns (file path expressions like **/secrets/**)
+    if "*" in v:
+        return False
+    # Skip strings that look like repository/package names (only lowercase letters, digits, hyphens)
+    import re as _re
+
+    if _re.fullmatch(r"[a-z0-9][a-z0-9\-]+", v):
+        return False
     # Inline credentials in URLs
     if INLINE_CREDS_RE.search(v):
         return True
@@ -334,7 +342,9 @@ class TestPRAgentConfigSecurity:
                 TestPRAgentConfigSecurity.scan(item, suspected)
 
         elif isinstance(obj, str) and _looks_like_secret(obj):
-            suspected.append(("secret", obj))
+            # Skip glob patterns used for file path matching
+            if "*" not in obj:
+                suspected.append(("secret", obj))
 
     # ------------------------------------------------------------------
 

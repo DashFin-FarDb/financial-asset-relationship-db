@@ -383,13 +383,16 @@ class TestGitHubWorkflows:
         assert len(config["jobs"]) > 0, f"{filename} has no jobs defined"
 
     def test_workflow_jobs_have_runs_on(self, workflow_file):
-        """All workflow jobs specify runs-on."""
+        """All workflow jobs specify runs-on (reusable workflow jobs exempted)."""
         filename, config = workflow_file
         assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
         jobs = config.get("jobs", {})
         assert isinstance(jobs, dict), f"{filename} jobs should be a mapping/dict"
         for job_name, job_config in jobs.items():
             assert isinstance(job_config, dict), f"{filename}: job '{job_name}' config should be a mapping/dict"
+            # Reusable workflow jobs use `uses:` at the job level and must not specify `runs-on`
+            if "uses" in job_config:
+                continue
             assert "runs-on" in job_config, f"{filename}: job '{job_name}' missing 'runs-on'"
 
     def test_workflow_jobs_have_steps(self, workflow_file):

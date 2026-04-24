@@ -113,13 +113,13 @@ class TestPRAgentWorkflowStructureValidation:
 
     def test_has_pr_agent_trigger_job(self, workflow_content: Dict[str, Any]):
         """
-        Verify the workflow defines a top-level job named "pr-agent-trigger".
+        Verify the workflow defines a top-level job named "pr-agent-action".
 
         Parameters:
             workflow_content (Dict[str, Any]): Parsed YAML content of the workflow file.
         """
         assert "jobs" in workflow_content
-        assert "pr-agent-trigger" in workflow_content["jobs"], "Workflow should have 'pr-agent-trigger' job"
+        assert "pr-agent-action" in workflow_content["jobs"], "Workflow should have 'pr-agent-action' job"
 
     def test_has_auto_merge_check_job(self, workflow_content: Dict[str, Any]):
         """Test that workflow has the auto-merge-check job."""
@@ -163,14 +163,14 @@ class TestPRAgentWorkflowSetupSteps:
     @pytest.fixture
     def pr_agent_job(self) -> Dict[str, Any]:
         """
-        Return the configuration for the 'pr-agent-trigger' job from the workflow file.
+        Return the configuration for the 'pr-agent-action' job from the workflow file.
 
         Returns:
-            job (Dict[str, Any]): Mapping of the 'pr-agent-trigger' job as defined in .github/workflows/pr-agent.yml
+            job (Dict[str, Any]): Mapping of the 'pr-agent-action' job as defined in .github/workflows/pr-agent.yml
         """
         with open(".github/workflows/pr-agent.yml", "r", encoding="utf-8") as f:
             workflow = yaml.safe_load(f)
-        return workflow["jobs"]["pr-agent-trigger"]
+        return workflow["jobs"]["pr-agent-action"]
 
     def test_checkout_step_exists(self, pr_agent_job: Dict[str, Any]):
         """
@@ -218,10 +218,10 @@ class TestPRAgentWorkflowSetupSteps:
 
     def test_setup_order_correct(self, pr_agent_job: Dict[str, Any]):
         """
-        Ensure the pr-agent-trigger job's setup steps are ordered: checkout, Setup Python, then Setup Node.js.
+        Ensure the pr-agent-action job's setup steps are ordered: checkout, Setup Python, then Setup Node.js.
 
         Parameters:
-            pr_agent_job (Dict[str, Any]): Parsed job dictionary for the pr-agent-trigger job from the workflow YAML.
+            pr_agent_job (Dict[str, Any]): Parsed job dictionary for the pr-agent-action job from the workflow YAML.
         """
         steps = pr_agent_job.get("steps", [])
 

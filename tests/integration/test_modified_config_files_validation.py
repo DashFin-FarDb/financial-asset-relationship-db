@@ -57,18 +57,12 @@ class TestPRAgentConfigChanges:
 
     def test_context_config_declared(self, config_data: Dict[str, Any]):
         """
-        Assert that the agent configuration retains its context/chunking block.
-
-        This is intentionally distinct from test_version_is_correct: it validates the
-        presence of the ``agent.context`` sub-section rather than re-checking the
-        version string.
+        Assert that the agent configuration does not contain the context/chunking block
+        (which was removed as part of the PR agent simplification).
         """
         assert "agent" in config_data
         context = config_data["agent"].get("context")
-        assert (
-            isinstance(context, dict) and context
-        ), "agent.context block should be a non-empty mapping in pr-agent-config.yml"
-        assert "chunking" in context, "agent.context should include a chunking subsection"
+        assert context is None, "agent.context block should be removed from pr-agent-config.yml"
 
     def test_limits_section_present(self, config_data: Dict[str, Any]):
         """

@@ -70,7 +70,7 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
             return ValidationResult(False, ["Workflow file is empty or contains only nulls."], {})
 
         if not isinstance(data, dict):
-            return ValidationResult(False, ["Workflow must be a dict"], {})
+            return ValidationResult(False, ["Workflow must be a dict"], data)
 
         if "jobs" not in data:
             return ValidationResult(False, ["Workflow must have a 'jobs' key"], data)
@@ -81,6 +81,8 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
         return ValidationResult(False, [f"File not found: {workflow_path}"], {})
     except yaml.YAMLError as e:
         return ValidationResult(False, [f"Invalid YAML syntax: {e}"], {})
+    except UnicodeDecodeError as e:
+        return ValidationResult(False, [f"File contains non-UTF-8 content: {e}"], {})
     except PermissionError as e:
         return ValidationResult(False, [f"Permission denied: {e}"], {})
     except IsADirectoryError as e:
