@@ -9,8 +9,8 @@ This file centralizes:
 
 from __future__ import annotations
 
-from collections.abc import Callable, Generator, Iterator
 import importlib.util
+from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
 
 import pytest
@@ -25,7 +25,6 @@ from src.data.database import (
 )
 
 
-
 def pytest_addoption(parser: "Parser") -> None:
     """
     Register dummy coverage command-line options when pytest-cov is unavailable.
@@ -37,7 +36,7 @@ def pytest_addoption(parser: "Parser") -> None:
     Parameters:
         parser (Parser): Pytest argument parser used to add the command-line options.
     """
-        _register_dummy_cov_options(parser)
+    _register_dummy_cov_options(parser)
 
 
 def pytest_addoption(parser: Any) -> None:
