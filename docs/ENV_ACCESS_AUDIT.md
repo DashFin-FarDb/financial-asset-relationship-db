@@ -152,7 +152,7 @@ grep -r "os\.environ\[" api/ src/
 - `os.getenv(` - 15 matches in audited runtime files under `api/` and `src/` (all classified)
 - `os.environ[` - 0 matches in audited runtime files under `api/` and `src/`
 
-All runtime environment access has been accounted for and classified.
+All runtime env access has been appropriately classified as DEFER or LEAVE LOCAL.
 
 ## Appendix: Recent Migration History
 
