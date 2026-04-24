@@ -70,33 +70,6 @@ class TestDatabaseURLConfiguration:
         get_settings.cache_clear()
 
 
-class TestDatabaseURLConfiguration:
-    """Test database URL configuration and validation."""
-
-    def test_database_url_is_set(self):
-        """Test that DATABASE_URL is set."""
-        assert DATABASE_URL is not None
-        assert isinstance(DATABASE_URL, str)
-        assert len(DATABASE_URL) > 0
-
-    def test_database_path_is_set(self):
-        """Test that DATABASE_PATH is resolved."""
-        assert DATABASE_PATH is not None
-        assert isinstance(DATABASE_PATH, str)
-
-    @patch.dict(os.environ, {"DATABASE_URL": ""}, clear=True)
-    def test_missing_database_url_raises_error(self):
-        """Test that missing DATABASE_URL raises a ValueError."""
-        from src.config.settings import get_settings
-
-        get_settings.cache_clear()
-        with patch.dict(os.environ, {}, clear=True):
-            get_settings.cache_clear()
-            with pytest.raises(ValueError, match="DATABASE_URL must be configured"):
-                importlib.reload(database)
-        get_settings.cache_clear()
-
-
 class TestSQLitePathResolution:
     """Test SQLite URL path resolution."""
 
