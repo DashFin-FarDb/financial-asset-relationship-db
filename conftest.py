@@ -40,6 +40,7 @@ _COV_EQUALS_PREFIXES = (
 
 
 def _cov_plugin_available() -> bool:
+    """Return whether pytest-cov is importable in the current environment."""
     return importlib.util.find_spec("pytest_cov") is not None
 
 
@@ -48,6 +49,7 @@ def pytest_load_initial_conftests(
     parser: Any,
     args: Optional[MutableSequence[str]],
 ) -> None:
+    """Strip pytest-cov arguments before parsing when pytest-cov is unavailable."""
     del parser
 
     if _cov_plugin_available():
@@ -64,6 +66,7 @@ def pytest_load_initial_conftests(
 
 
 def _strip_pytest_cov_args(args: MutableSequence[str]) -> List[str]:
+    """Return pytest arguments with pytest-cov options removed."""
     filtered_args: List[str] = []
     index = 0
 
@@ -83,6 +86,7 @@ def _classify_pytest_cov_arg(
     args: MutableSequence[str],
     index: int,
 ) -> Tuple[bool, int]:
+    """Return whether the current argument should be kept and the next index."""
     arg = args[index]
 
     if arg in _COV_FLAGS_WITH_OPTIONAL_VALUE:
@@ -101,6 +105,7 @@ def _next_index_after_optional_value(
     args: MutableSequence[str],
     index: int,
 ) -> int:
+    """Return the next index after a pytest-cov option with an optional value."""
     next_index = index + 1
     if next_index < len(args) and _looks_like_option_value(args[next_index]):
         return next_index + 1
@@ -111,6 +116,7 @@ def _next_index_after_required_value(
     args: MutableSequence[str],
     index: int,
 ) -> int:
+    """Return the next index after a pytest-cov option with a required value."""
     next_index = index + 1
     if next_index < len(args) and _looks_like_option_value(args[next_index]):
         return next_index + 1
@@ -118,19 +124,23 @@ def _next_index_after_required_value(
 
 
 def _looks_like_option_value(arg: str) -> bool:
+    """Return whether an argument token looks like a value rather than an option."""
     return arg != "--" and not arg.startswith("-")
 
 
 def _is_cov_equals_arg(arg: str) -> bool:
+    """Return whether an argument is a pytest-cov option using --flag=value."""
     return arg.startswith(_COV_EQUALS_PREFIXES)
 
 
 def pytest_addoption(parser: Any) -> None:
+    """Register fallback pytest-cov options when pytest-cov is unavailable."""
     if not _cov_plugin_available():
         _register_dummy_cov_options(parser)
 
 
 def _safe_addoption(group: object, *names: str, **kwargs: object) -> None:
+    """Add a pytest option while ignoring duplicate-registration errors only."""
     try:
         group.addoption(*names, **kwargs)
     except ValueError as exc:
@@ -139,6 +149,7 @@ def _safe_addoption(group: object, *names: str, **kwargs: object) -> None:
 
 
 def _register_dummy_cov_options(parser: Any) -> None:
+    """Register no-op coverage options when pytest-cov is unavailable."""
     group = parser.getgroup("cov")
     _safe_addoption(group, "--cov", action="append", dest="cov", default=[], metavar="path")
     _safe_addoption(group, "--cov-report", action="append", dest="cov_report", default=[], metavar="type")
@@ -146,6 +157,7 @@ def _register_dummy_cov_options(parser: Any) -> None:
 
 @pytest.fixture(autouse=True)
 def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Remove developer or production environment variables from each test."""
     monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     monkeypatch.delenv("USE_REAL_DATA_FETCHER", raising=False)
     monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
@@ -154,12 +166,14 @@ def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture()
 def database_url(tmp_path: Path) -> str:
+    """Return a temporary SQLite database URL for tests."""
     db_path = tmp_path / "test_asset_graph.db"
     return f"sqlite:///{db_path}"
 
 
 @pytest.fixture()
 def engine(database_url: str) -> Iterator:
+    """Create a test database engine and dispose it after use."""
     eng = create_engine_from_url(database_url)
     Base.metadata.create_all(eng)
     try:
@@ -170,10 +184,12 @@ def engine(database_url: str) -> Iterator:
 
 @pytest.fixture()
 def session_factory(engine: Engine) -> sessionmaker[Session]:
+    """Return a SQLAlchemy session factory bound to the test engine."""
     return create_session_factory(engine)
 
 
 @pytest.fixture()
 def db_session(session_factory: Any) -> Iterator:
+    """Yield a transaction-scoped database session for tests."""
     with session_scope(session_factory) as session:
         yield session
