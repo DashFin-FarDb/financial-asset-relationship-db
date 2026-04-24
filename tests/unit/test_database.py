@@ -983,23 +983,35 @@ class TestDatabaseUrlConfiguration:
     @patch.dict("os.environ", {}, clear=True)
     def test_get_database_url_missing_env_var(self):
         """Test that missing DATABASE_URL raises ValueError."""
+        from src.config.settings import get_settings
+
+        get_settings.cache_clear()  # Clear cache to pick up new env vars
         with pytest.raises(ValueError, match="DATABASE_URL"):
             _get_database_url()
 
     @patch.dict("os.environ", {"DATABASE_URL": ""})
     def test_get_database_url_empty_string(self):
         """Test that empty DATABASE_URL raises ValueError."""
+        from src.config.settings import get_settings
+
+        get_settings.cache_clear()  # Clear cache to pick up new env vars
         with pytest.raises(ValueError):
             _get_database_url()
 
     @patch.dict("os.environ", {"DATABASE_URL": "   "})
     def test_get_database_url_whitespace_only(self):
         """Test that whitespace-only DATABASE_URL is returned as-is."""
+        from src.config.settings import get_settings
+
+        get_settings.cache_clear()  # Clear cache to pick up new env vars
         result = _get_database_url()
         assert result == "   "
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://user:pass@localhost/db"})
     def test_get_database_url_returns_configured_value(self):
         """Test that configured URL is returned as-is."""
+        from src.config.settings import get_settings
+
+        get_settings.cache_clear()  # Clear cache to pick up new env vars
         result = _get_database_url()
         assert result == "postgresql://user:pass@localhost/db"
