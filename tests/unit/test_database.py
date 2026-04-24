@@ -43,6 +43,7 @@ from src.data.database import (
 )
 
 
+
 @pytest.fixture(autouse=True)
 def clear_settings_cache():
     """Clear the get_settings LRU cache before and after each test."""
@@ -51,6 +52,7 @@ def clear_settings_cache():
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
+
 
 
 pytest.importorskip("sqlalchemy")
