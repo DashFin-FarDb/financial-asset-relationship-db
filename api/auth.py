@@ -14,6 +14,7 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from api.models import User, UserInDB
+
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
 # Security configuration
