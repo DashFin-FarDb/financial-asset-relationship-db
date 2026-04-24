@@ -44,7 +44,6 @@ def pytest_addoption(parser: Any) -> None:
 def _cov_plugin_available() -> bool:
     """Return whether pytest-cov is importable in the current environment."""
     return importlib.util.find_spec("pytest_cov") is not None
-
     def _safe_addoption(
         group: object,
         *names: str,
