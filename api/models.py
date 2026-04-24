@@ -4,8 +4,19 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from api.auth import UserInDB  # re-exported for backwards compatibility
 
+class UserInDB(BaseModel):
+    """User model stored in the database.
+
+    Defined locally so importing `api.models` does not require importing
+    `api.auth`, which may perform environment validation at import time.
+    """
+
+    username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    disabled: Optional[bool] = None
+    hashed_password: str
 __all__ = ["UserInDB"]
 
 
