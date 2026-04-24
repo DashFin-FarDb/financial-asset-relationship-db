@@ -3,7 +3,6 @@ database tests.
 """
 
 import importlib.util
-from typing import Any
 
 import pytest
 
