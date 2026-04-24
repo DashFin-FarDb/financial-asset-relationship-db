@@ -2,8 +2,9 @@
 
 from typing import Any, Dict, List, Optional
 
-from api.auth import User
 from pydantic import BaseModel, Field
+
+from api.auth import User
 
 
 class UserInDB(User):
