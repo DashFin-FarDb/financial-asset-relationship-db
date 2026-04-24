@@ -981,11 +981,15 @@ class TestDatabaseUrlConfiguration:
     """Test database URL configuration edge cases."""
 
     @patch.dict("os.environ", {}, clear=True)
+    @pytest.fixture(autouse=True)
+    def _clear_settings_cache(self):
+        from src.config.settings import get_settings
+        get_settings.cache_clear()
+        yield
+        get_settings.cache_clear()
+
     def test_get_database_url_missing_env_var(self):
         """Test that missing DATABASE_URL raises ValueError."""
-        from src.config.settings import get_settings
-
-        get_settings.cache_clear()  # Clear cache to pick up new env vars
         with pytest.raises(ValueError, match="DATABASE_URL"):
             _get_database_url()
 
