@@ -42,6 +42,15 @@ from src.data.database import (
     session_scope,
 )
 
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """Clear the get_settings LRU cache before and after each test."""
+    from src.config.settings import get_settings
+
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
 pytest.importorskip("sqlalchemy")
 
 pytestmark = pytest.mark.unit
@@ -996,15 +1005,6 @@ class TestDatabaseErrorHandling:
 @pytest.mark.unit
 class TestDatabaseUrlConfiguration:
     """Test database URL configuration edge cases."""
-
-    @pytest.fixture(autouse=True)
-    def _clear_settings_cache(self):
-        """Clear the get_settings LRU cache before and after each test."""
-        from src.config.settings import get_settings
-
-        get_settings.cache_clear()
-        yield
-        get_settings.cache_clear()
 
     @patch.dict("os.environ", {}, clear=True)
     def test_get_database_url_missing_env_var(self):
