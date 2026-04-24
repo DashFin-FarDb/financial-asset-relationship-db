@@ -54,12 +54,25 @@ def pytest_load_initial_conftests(
 ) -> None:  # pragma: no cover
     """
     Strip pytest-cov flags before option parsing when pytest-cov is unavailable.
-    ...
+
+    The hook mutates the provided argument list in place. Some unit tests call
+    this helper with the argument list as the first positional argument, while
+    pytest itself supplies it as the third argument. Both forms are supported to
+    keep the hook testable and compatible with pytest's hook signature.
     """
     del parser
 
     if _cov_plugin_available():
         return
+
+    target_args = args
+    if target_args is None and isinstance(early_config, list):
+        target_args = early_config
+
+    if target_args is None:
+        return
+
+    target_args[:] = _strip_pytest_cov_args(target_args)
 
 
 def _strip_pytest_cov_args(args: MutableSequence[str]) -> List[str]:
