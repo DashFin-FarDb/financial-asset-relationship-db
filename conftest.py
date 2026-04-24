@@ -71,6 +71,8 @@ def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
         )
     except ValueError:
         pass
+
+
 @pytest.fixture(autouse=True)
 def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """
