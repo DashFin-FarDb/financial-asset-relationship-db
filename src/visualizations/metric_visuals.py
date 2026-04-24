@@ -67,7 +67,9 @@ def _apply_relationship_layout(fig: go.Figure) -> None:
     """
     Apply a consistent layout for a relationship-type distribution chart.
 
-    Updates the provided figure in place by setting the title to "Relationship Types Distribution", the x-axis title to "Relationship Type", the y-axis title to "Count", and rotating x-axis tick labels by -45 degrees.
+    Updates the provided figure in place by setting the title to "Relationship Types Distribution",
+    the x-axis title to "Relationship Type", the y-axis title to "Count",
+    and rotating x-axis tick labels by -45 degrees.
     """
     fig.update_layout(
         title="Relationship Types Distribution",
@@ -91,13 +93,15 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
         events (list): Sequence of event objects with the fields described above.
 
     Returns:
-        go.Figure: Plotly figure with dates on the x axis and impact scores on the y axis. Bars are labeled as "asset_id: event_type.value" and colored green for impact_score > 0, red otherwise.
+        go.Figure: Plotly figure with dates on the x axis and impact scores on the y axis.
+        Bars are labeled as "asset_id: event_type.value" and colored green for impact_score > 0, red otherwise.
     """
     sorted_events = sorted(events, key=lambda e: datetime.fromisoformat(e.date))
     dates = [datetime.fromisoformat(e.date) for e in sorted_events]
     names = [f"{e.asset_id}: {e.event_type.value}" for e in sorted_events]
     impacts = [e.impact_score for e in sorted_events]
     fig = go.Figure()
+    colors = ["green" if x > 0 else "red" for x in impacts]
     fig.add_trace(
         go.Bar(
             x=dates,
@@ -105,7 +109,7 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
             name="Impact Score",
             text=names,
             textposition="outside",
-            marker_color=["green" if x > 0 else "red" for x in impacts],
+            marker_color=colors,
         )
     )
     _apply_regulatory_events_layout(fig)

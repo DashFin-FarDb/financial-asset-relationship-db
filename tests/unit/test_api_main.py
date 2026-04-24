@@ -25,13 +25,19 @@ from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
 
 import api.main as api_main
-from api.main import (
+import api.router_helpers as router_helpers
+from api.api_models import (
     AssetResponse,
     MetricsResponse,
     RelationshipResponse,
     VisualizationDataResponse,
-    app,
-    validate_origin,
+)
+from api.main import app, validate_origin
+from api.router_helpers import (
+    _ASSET_CLASS_COLORS,
+    _DEFAULT_COLOR,
+    raise_asset_not_found,
+    serialize_asset,
 )
 from src.data.real_data_fetcher import _save_to_cache
 from src.data.sample_data import create_sample_database
@@ -552,20 +558,24 @@ class TestErrorHandling:
             """Raise a generic exception to simulate a backend graph access failure."""
             raise Exception("Database error")
 
-        with patch.object(api_main, "get_graph", side_effect=_raise):
+        # Patch at the router module level where get_graph is actually used
+        with patch("api.routers.assets.get_graph", side_effect=_raise):
             response = bare_client.get("/api/assets")
             assert response.status_code == 500
-            assert "database error" in response.json()["detail"].lower()
+            # Router returns generic error message for security
+            assert "internal error" in response.json()["detail"].lower()
 
     def test_get_metrics_server_error(self, bare_client: TestClient) -> None:
         """Metrics endpoint returns 500 when metric calculation raises an exception."""
         mock_graph = Mock(spec=AssetRelationshipGraph)
         mock_graph.calculate_metrics.side_effect = Exception("Calculation error")
 
-        with patch.object(api_main, "get_graph", return_value=mock_graph):
+        # Patch at the router module level where get_graph is actually used
+        with patch("api.routers.metrics.get_graph", return_value=mock_graph):
             response = bare_client.get("/api/metrics")
             assert response.status_code == 500
-            assert "calculation error" in response.json()["detail"].lower()
+            # Router returns generic error message for security
+            assert "internal error" in response.json()["detail"].lower()
 
     @staticmethod
     def test_invalid_http_methods(bare_client: TestClient) -> None:
@@ -1122,7 +1132,7 @@ class TestSerializeAsset:
             currency="USD",
         )
 
-        result = api_main.serialize_asset(equity)
+        result = serialize_asset(equity)
 
         assert result["id"] == "AAPL"
         assert result["symbol"] == "AAPL"
@@ -1149,7 +1159,7 @@ class TestSerializeAsset:
             book_value=3.85,
         )
 
-        result = api_main.serialize_asset(equity)
+        result = serialize_asset(equity)
 
         assert result["additional_fields"]["pe_ratio"] == 25.5
         assert result["additional_fields"]["dividend_yield"] == 0.006
@@ -1170,7 +1180,7 @@ class TestSerializeAsset:
         if hasattr(equity, "issuer_id"):
             equity.issuer_id = "ISSUER123"
 
-        result = api_main.serialize_asset(equity, include_issuer=False)
+        result = serialize_asset(equity, include_issuer=False)
 
         assert "issuer_id" not in result["additional_fields"]
 
@@ -1188,7 +1198,7 @@ class TestSerializeAsset:
         if hasattr(equity, "issuer_id"):
             equity.issuer_id = "ISSUER123"
 
-            result = api_main.serialize_asset(equity, include_issuer=True)
+            result = serialize_asset(equity, include_issuer=True)
 
             assert result["additional_fields"]["issuer_id"] == "ISSUER123"
 
@@ -1203,7 +1213,7 @@ class TestSerializeAsset:
             price=150.0,
         )
 
-        result = api_main.serialize_asset(equity)
+        result = serialize_asset(equity)
 
         # These fields should not be in additional_fields if they're None
         for field in ["pe_ratio", "dividend_yield", "earnings_per_share", "book_value"]:
@@ -1218,7 +1228,7 @@ class TestRaiseAssetNotFound:
     def test_raise_asset_not_found_default_resource_type(self):
         """raise_asset_not_found() should raise HTTPException with default resource type."""
         with pytest.raises(HTTPException) as exc_info:
-            api_main.raise_asset_not_found("AAPL")
+            raise_asset_not_found("AAPL")
 
         assert exc_info.value.status_code == 404
         assert "Asset AAPL not found" == exc_info.value.detail
@@ -1226,7 +1236,7 @@ class TestRaiseAssetNotFound:
     def test_raise_asset_not_found_custom_resource_type(self):
         """raise_asset_not_found() should use custom resource type."""
         with pytest.raises(HTTPException) as exc_info:
-            api_main.raise_asset_not_found("AAPL", resource_type="Stock")
+            raise_asset_not_found("AAPL", resource_type="Stock")
 
         assert exc_info.value.status_code == 404
         assert "Stock AAPL not found" == exc_info.value.detail
@@ -1235,7 +1245,7 @@ class TestRaiseAssetNotFound:
         """raise_asset_not_found() should never return normally."""
         exception_raised = False
         try:
-            api_main.raise_asset_not_found("TEST")
+            raise_asset_not_found("TEST")
         except HTTPException:
             exception_raised = True
 
@@ -1475,7 +1485,7 @@ class TestVisualizationSingleNode:
         node = viz_data["nodes"][0]
 
         # Should have the Equity color from _ASSET_CLASS_COLORS
-        assert node["color"] == api_main._ASSET_CLASS_COLORS.get("Equity", api_main._DEFAULT_COLOR)
+        assert node["color"] == _ASSET_CLASS_COLORS.get("Equity", _DEFAULT_COLOR)
 
         api_main.reset_graph()
 

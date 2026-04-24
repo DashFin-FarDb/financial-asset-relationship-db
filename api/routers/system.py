@@ -1,0 +1,60 @@
+"""System and metadata API routes."""
+
+from typing import Any, Dict, List
+
+from fastapi import APIRouter, HTTPException
+
+from src.models.financial_models import AssetClass
+
+from ..router_helpers import get_graph, logger
+
+router = APIRouter()
+
+
+@router.get("/")
+async def root() -> Dict[str, Any]:
+    """Return API metadata and key endpoint paths."""
+    return {
+        "message": "Financial Asset Relationship API",
+        "version": "1.0.0",
+        "endpoints": {
+            "assets": "/api/assets",
+            "asset_detail": "/api/assets/{asset_id}",
+            "relationships": "/api/relationships",
+            "metrics": "/api/metrics",
+            "visualization": "/api/visualization",
+        },
+    }
+
+
+@router.get("/api/health")
+async def health_check() -> Dict[str, Any]:
+    """Return service health status."""
+    return {"status": "healthy", "graph_initialized": True}
+
+
+@router.get("/api/asset-classes")
+async def get_asset_classes() -> Dict[str, List[str]]:
+    """Return sorted asset class names."""
+    try:
+        return {"asset_classes": sorted(ac.value for ac in AssetClass)}
+    except Exception as e:
+        logger.exception("Error getting asset classes:")
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
+
+
+@router.get("/api/sectors")
+async def get_sectors() -> Dict[str, List[str]]:
+    """Return sorted distinct sector names from the graph."""
+    try:
+        g = get_graph()
+        return {"sectors": sorted({a.sector for a in g.assets.values() if a.sector})}
+    except Exception as e:
+        logger.exception("Error getting sectors:")
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e

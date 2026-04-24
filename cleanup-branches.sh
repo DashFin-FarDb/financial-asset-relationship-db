@@ -48,7 +48,7 @@ fi
 echo ""
 echo "=== Stale Branches (no activity in 90+ days) ==="
 # Find branches with no commits in the last 90 days
-for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/); do
+for branch in $(git branch --format='%(refname:short)'); do
     if [ "$branch" != "main" ] && [ "$branch" != "develop" ]; then
         LAST_COMMIT_DATE=$(git log -1 --format=%ci "$branch" 2>/dev/null || echo "")
         if [ -n "$LAST_COMMIT_DATE" ]; then
@@ -62,16 +62,17 @@ done
 
 echo ""
 echo "=== Remote Branches Not in Local ==="
-# Find remote branches that don't have local counterparts
+# Find remote branches that do not have local counterparts
 for remote_branch in $(git branch -r | grep -v "HEAD" | grep 'origin/' | sed 's/origin\///'); do
-    if ! git show-ref --verify --quiet "refs/heads/$remote_branch"; then
+    ref_result="$(git show-ref --verify "refs/heads/$remote_branch" 2>/dev/null || true)"
+    if [[ -z "$ref_result" ]]; then
         echo -e "${YELLOW}origin/$remote_branch${NC} - Not tracked locally"
     fi
 done
 
 echo ""
 echo "=== Cleanup Recommendations ==="
-echo "1. Review the BRANCH_CLEANUP_ANALYSIS.md file for detailed analysis"
+echo "1. Review the BRANCH_CLEANUP_ANALYSIS.md document for detailed analysis"
 echo "2. Delete merged branches that are no longer needed"
 echo "3. Archive or delete stale branches (90+ days old)"
 echo "4. Ensure all important commits are merged to main"

@@ -26,6 +26,9 @@ class RegulatoryActivity(Enum):
     BOND_ISSUANCE = "Bond Issuance"
     ACQUISITION = "Acquisition"
     BANKRUPTCY = "Bankruptcy"
+    REGULATORY_FILING = "Regulatory Filing"
+    LEGAL_PROCEEDING = "Legal Proceeding"
+    COMPLIANCE_UPDATE = "Compliance Update"
 
 
 @dataclass
@@ -45,7 +48,10 @@ class Asset:
         """
         Validate and normalize Asset fields after dataclass initialization.
 
-        Ensures `id`, `symbol`, and `name` are non-empty strings; `price` and, if provided, `market_cap` are numbers greater than or equal to zero; normalizes `currency` to uppercase and validates it matches a three-letter uppercase currency code. Raises `ValueError` when validations fail.
+        Ensures `id`, `symbol`, and `name` are non-empty strings; `price` and, if provided,
+        `market_cap` are numbers greater than or equal to zero; normalizes `currency` to uppercase
+        and validates it matches a three-letter uppercase currency code. Raises `ValueError` when
+        validations fail.
         """
         self._validate_non_empty_string(
             self.id,
@@ -180,7 +186,8 @@ class RegulatoryEvent:
         """
         Validate regulatory event fields after dataclass initialization.
 
-        Ensures `id`, `asset_id`, and `description` are non-empty strings, `impact_score` is a number between -1 and 1, and `date` starts with an ISO-like `YYYY-MM-DD` prefix.
+        Ensures `id`, `asset_id`, and `description` are non-empty strings, `impact_score` is a
+        number between -1 and 1, and `date` starts with an ISO-like `YYYY-MM-DD` prefix.
 
         Raises:
             ValueError: If any validation check fails.

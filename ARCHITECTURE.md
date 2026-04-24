@@ -2,7 +2,7 @@
 
 **Production Architecture:** FastAPI backend + Next.js frontend
 
-This document describes the system architecture for the Financial Asset Relationship Database. The production architecture uses a FastAPI REST API backend with a Next.js/React frontend. The Gradio UI (`app.py`) remains available for demos and internal use, but it is **not the production path**.
+This document describes the system architecture for the Financial Asset Relationship Database. The production architecture uses a FastAPI REST API backend with a Next.js/React frontend. The Gradio UI is available via `app.py` for demos and internal use as a non-production surface, but it is **not the production path**.
 
 For the architectural decision rationale, see [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architecture.md).
 
@@ -14,33 +14,35 @@ For the architectural decision rationale, see [docs/adr/0001-production-architec
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                       │
 │  ┌──────────────────────────┐     ┌──────────────────────────┐     │
-│  │   Gradio UI (Port 7860)  │     │ Next.js UI (Port 3000)   │     │
+│  │ Next.js UI (Port 3000)   │     │   Gradio UI (Port 7860)  │     │
+│  │   ** PRODUCTION **       │     │   ** NON-PRODUCTION **   │     │
 │  │  ┌────────────────────┐  │     │  ┌────────────────────┐  │     │
 │  │  │ 3D Visualization   │  │     │  │ 3D Visualization   │  │     │
 │  │  │ Metrics Dashboard  │  │     │  │ Metrics Dashboard  │  │     │
 │  │  │ Asset Explorer     │  │     │  │ Asset Explorer     │  │     │
-│  │  │ Schema Report      │  │     │  │ (React Components) │  │     │
+│  │  │ (React Components) │  │     │  │ Schema Report      │  │     │
 │  │  └────────────────────┘  │     │  └────────────────────┘  │     │
-│  │   (Python/Gradio)        │     │   (TypeScript/React)     │     │
+│  │   (TypeScript/React)     │     │   (Python/Gradio)        │     │
 │  └──────────┬───────────────┘     └──────────┬───────────────┘     │
 │             │                                 │                      │
 └─────────────┼─────────────────────────────────┼──────────────────────┘
               │                                 │
-              │ Direct Function Calls          │ HTTP REST API
+              │ ** PRODUCTION PATH **          │ ** DEMO/TESTING **    │
+              │ HTTP REST API                  │ Direct Function Calls │
               │                                 │
-┌─────────────▼────────────────┐   ┌────────────▼─────────────────────┐
-│  Core Business Logic Layer   │   │           API Layer              │
-├──────────────────────────────┤   ├──────────────────────────────────┤
-│  Gradio calls the graph and  │   │  FastAPI Backend (Port 8000)     │
-│  visualization stack         │   │  Endpoints:                      │
-│  directly; it does not flow  │   │  - /api/assets                   │
-│  through the FastAPI layer.  │   │  - /api/metrics                  │
-└─────────────┬────────────────┘   │  - /api/visualization            │
-              │                    │  - /api/relationships            │
-              │                    │  - /api/health                   │
-              │                    └────────────┬─────────────────────┘
-              │                                 │
-              └───────────────┬─────────────────┘
+┌─────────────▼─────────────────────┐   ┌────────────▼───────────────┐
+│           API Layer               │   │ Core Business Logic Layer  │
+├───────────────────────────────────┤   ├────────────────────────────┤
+│ FastAPI Backend (Port 8000)       │   │ Gradio calls the graph and │
+│ Endpoints:                        │   │ visualization stack         │
+│ - /api/assets                     │   │ directly; it does not flow │
+│ - /api/metrics                    │   │ through the FastAPI layer. │
+│ - /api/visualization              │   │                            │
+│ - /api/relationships              │   │                            │
+│ - /api/health                     │   │                            │
+└────────────┬──────────────────────┘   └────────────┬───────────────┘
+             │                                        │
+             └────────────────┬───────────────────────┘
                               │ Function Calls
                               │
 ┌─────────────────────────────▼──────────────────────────────────────┐
@@ -89,7 +91,7 @@ For the architectural decision rationale, see [docs/adr/0001-production-architec
 
 ## Component Interaction Flow
 
-### Flow 1: Next.js Frontend → FastAPI → Core Logic
+### Production Flow: Next.js Frontend → FastAPI → Core Logic
 
 ```
 User Action (Next.js)
@@ -123,7 +125,7 @@ React Component
 3D Visualization Displayed
 ```
 
-### Flow 2: Gradio UI → Core Logic (Direct)
+### Non-Production Flow: Gradio UI → Core Logic (Direct)
 
 ```
 User Action (Gradio)
@@ -155,7 +157,8 @@ Gradio Interface Update
 
 ```
 ┌─────────────────────────────────────┐
-│      Next.js Frontend Stack         │
+│ Next.js Frontend Stack              │
+│ ** PRODUCTION **                    │
 ├─────────────────────────────────────┤
 │ React 18      │ UI Framework        │
 │ Next.js 14    │ React Framework     │
@@ -166,11 +169,12 @@ Gradio Interface Update
 └─────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
-│      Gradio Frontend Stack          │
+│ Gradio Frontend Stack               │
+│ ** NON-PRODUCTION **                │
 ├─────────────────────────────────────┤
 │ Gradio 4.x    │ UI Framework        │
 │ Plotly        │ Visualization       │
-│ Python        │ Backend Logic       │
+│ Python        │ Demo/Internal Logic │
 └─────────────────────────────────────┘
 ```
 

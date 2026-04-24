@@ -111,6 +111,7 @@ class TestSettingsModel:
         assert settings.graph_cache_path is None
         assert settings.real_data_cache_path is None
         assert settings.use_real_data_fetcher is False
+        assert settings.database_url is None
         assert settings.asset_graph_database_url is None
 
     def test_settings_with_explicit_values(self) -> None:
@@ -121,6 +122,7 @@ class TestSettingsModel:
             graph_cache_path="/path/to/cache",
             real_data_cache_path="/path/to/real/cache",
             use_real_data_fetcher=True,
+            database_url="sqlite:///runtime.db",
             asset_graph_database_url="postgresql://user:pass@localhost/db",
         )
         assert settings.env == "production"
@@ -128,6 +130,7 @@ class TestSettingsModel:
         assert settings.graph_cache_path == "/path/to/cache"
         assert settings.real_data_cache_path == "/path/to/real/cache"
         assert settings.use_real_data_fetcher is True
+        assert settings.database_url == "sqlite:///runtime.db"
         assert settings.asset_graph_database_url == "postgresql://user:pass@localhost/db"
 
     def test_settings_allowed_origins_property(self) -> None:
@@ -164,6 +167,7 @@ class TestLoadSettings:
         assert settings.graph_cache_path is None
         assert settings.real_data_cache_path is None
         assert settings.use_real_data_fetcher is False
+        assert settings.database_url is None
         assert settings.asset_graph_database_url is None
 
     @patch.dict(
@@ -174,6 +178,7 @@ class TestLoadSettings:
             "GRAPH_CACHE_PATH": "/path/to/cache",
             "REAL_DATA_CACHE_PATH": "/path/to/real/cache",
             "USE_REAL_DATA_FETCHER": "true",
+            "DATABASE_URL": "sqlite:///env.db",
             "ASSET_GRAPH_DATABASE_URL": "postgresql://localhost/db",
         },
     )
@@ -185,6 +190,7 @@ class TestLoadSettings:
         assert settings.graph_cache_path == "/path/to/cache"
         assert settings.real_data_cache_path == "/path/to/real/cache"
         assert settings.use_real_data_fetcher is True
+        assert settings.database_url == "sqlite:///env.db"
         assert settings.asset_graph_database_url == "postgresql://localhost/db"
 
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
@@ -321,6 +327,7 @@ class TestSettingsEdgeCases:
         settings = load_settings()
         assert settings.graph_cache_path is None
         assert settings.real_data_cache_path is None
+        assert settings.database_url is None
         assert settings.asset_graph_database_url is None
 
 
