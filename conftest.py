@@ -11,9 +11,9 @@ This file centralizes:
 from __future__ import annotations
 
 import importlib.util
-from collections.abc import Callable, Generator, Iterator, MutableSequence
+from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, List, MutableSequence, Optional
 
 import pytest
 from sqlalchemy.engine import Engine
@@ -43,7 +43,7 @@ def _cov_plugin_available() -> bool:
 def pytest_load_initial_conftests(
     early_config: Any,
     parser: Any,
-    args: MutableSequence[str] | None,
+    args: Optional[MutableSequence[str]],
 ) -> None:  # pragma: no cover
     """
     Strip pytest-cov flags before option parsing when pytest-cov is unavailable.
@@ -59,6 +59,8 @@ def pytest_load_initial_conftests(
         parser: Pytest parser object. Unused by this filtering hook.
         args: Mutable pytest argument list supplied by pytest.
     """
+    del parser
+
     if _cov_plugin_available():
         return
 
@@ -72,9 +74,9 @@ def pytest_load_initial_conftests(
     target_args[:] = _strip_pytest_cov_args(target_args)
 
 
-def _strip_pytest_cov_args(args: MutableSequence[str]) -> list[str]:
+def _strip_pytest_cov_args(args: MutableSequence[str]) -> List[str]:
     """Return args with pytest-cov flags removed without dropping test paths."""
-    filtered_args: list[str] = []
+    filtered_args: List[str] = []
     index = 0
 
     while index < len(args):
