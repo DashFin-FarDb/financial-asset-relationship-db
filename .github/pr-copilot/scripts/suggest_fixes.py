@@ -448,7 +448,7 @@ def main():
         # Specific GitHub API error handling for clearer failures.
         print(f"GitHub API Error: {ge}", file=sys.stderr)
         sys.exit(1)
-    except (IOError, OSError, RuntimeError, TypeError, ValueError) as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Unexpected Error: {e}", file=sys.stderr)
 
         traceback.print_exc()
