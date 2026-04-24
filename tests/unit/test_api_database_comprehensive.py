@@ -35,45 +35,49 @@ def clear_settings_cache():
     get_settings.cache_clear()
 
 
-class TestDatabaseURLConfiguration:
-    """Test database URL configuration and validation."""
+class TestGetDatabaseUrl:
+    """Test cases for _get_database_url function."""
 
-    def test_database_url_is_set(self):
-        """Test that DATABASE_URL is set."""
-        assert DATABASE_URL is not None
-        assert isinstance(DATABASE_URL, str)
-        assert len(DATABASE_URL) > 0
+    def test_get_database_url_from_env(self):
+        """Test reading DATABASE_URL from centralized settings."""
+        with patch.dict(os.environ, {"DATABASE_URL": "sqlite:///test.db"}):
+            from src.config.settings import get_settings
 
-    def test_database_path_is_set(self):
-        """Test that DATABASE_PATH is resolved."""
-        assert DATABASE_PATH is not None
-        assert isinstance(DATABASE_PATH, str)
+            get_settings.cache_clear()
+            url = _get_database_url()
 
-    def test_missing_database_url_raises_error(self):
-        """Test that missing DATABASE_URL raises a ValueError."""
-        from src.config.settings import get_settings
+        assert url == "sqlite:///test.db"
 
-        original_database_url = os.environ.get("DATABASE_URL")
-        fallback_database_url = original_database_url or "sqlite:///:memory:"
+    def test_get_database_url_ignores_asset_graph_database_url(self):
+        """Test that API database helpers do not consume ASSET_GRAPH_DATABASE_URL."""
+        with patch.dict(
+            os.environ,
+            {
+                "ASSET_GRAPH_DATABASE_URL": "postgresql://user:pass@localhost/db",
+                "DATABASE_URL": "sqlite:///api.db",
+            },
+        ):
+            from src.config.settings import get_settings
 
-        try:
-            with patch.dict(os.environ, {}, clear=True):
-                get_settings.cache_clear()
-                with pytest.raises(
-                    ValueError,
-                    match="DATABASE_URL must be configured",
-                ):
-                    importlib.reload(database)
-        finally:
-            with patch.dict(
-                os.environ,
-                {"DATABASE_URL": fallback_database_url},
-                clear=False,
-            ):
-                get_settings.cache_clear()
-                importlib.reload(database)
-                get_settings.cache_clear()
+            get_settings.cache_clear()
+            url = _get_database_url()
 
+        assert url == "sqlite:///api.db"
+
+    def test_get_database_url_raises_when_database_url_not_set(self):
+        """Test that ValueError is raised when DATABASE_URL is not set."""
+        with patch.dict(
+            os.environ,
+            {"ASSET_GRAPH_DATABASE_URL": "postgresql://user:pass@localhost/db"},
+            clear=True,
+        ):
+            from src.config.settings import get_settings
+
+            get_settings.cache_clear()
+            with pytest.raises(ValueError) as exc_info:
+                _get_database_url()
+
+        assert "DATABASE_URL must be configured" in str(exc_info.value)
 
 class TestResolveSqlitePath:
     """Test cases for _resolve_sqlite_path function."""
