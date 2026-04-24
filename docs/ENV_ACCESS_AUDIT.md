@@ -19,13 +19,13 @@ This audit catalogues all direct `os.getenv()` and `os.environ[]` usage in runti
 
 ### Summary by Action
 
-| Classification | Count | Percentage |
-|----------------|-------|------------|
-| DEFER (intentional) | 8 | 53% |
-| LEAVE (settings loader) | 7 | 47% |
-| MIGRATE NOW | 0 | 0% |
-| REMOVE (dead code) | 0 | 0% |
-| **TOTAL** | **15** | **100%** |
+| Classification          | Count  | Percentage |
+| ----------------------- | ------ | ---------- |
+| DEFER (intentional)     | 8      | 53%        |
+| LEAVE (settings loader) | 7      | 47%        |
+| MIGRATE NOW             | 0      | 0%         |
+| REMOVE (dead code)      | 0      | 0%         |
+| **TOTAL**               | **15** | **100%**   |
 
 ### Classification Rules Applied
 
@@ -40,14 +40,14 @@ This audit catalogues all direct `os.getenv()` and `os.environ[]` usage in runti
 
 All environment access in this file is classified as **DEFER** due to security-sensitive startup characteristics.
 
-| Line | Variable | Usage | Rationale for DEFER |
-|------|----------|-------|---------------------|
-| 20 | `SECRET_KEY` | JWT signing key | Security-critical crypto key; module-level initialization; fail-fast validation appropriate; caching provides no value |
-| 221 | `ADMIN_USERNAME` | User seeding | Startup-only bootstrap; read once during module init; not runtime config |
-| 222 | `ADMIN_PASSWORD` | User seeding | Startup-only bootstrap; read once during module init; not runtime config |
-| 227 | `ADMIN_EMAIL` | User seeding | Startup-only bootstrap; read once during module init; not runtime config |
-| 228 | `ADMIN_FULL_NAME` | User seeding | Startup-only bootstrap; read once during module init; not runtime config |
-| 229 | `ADMIN_DISABLED` | User seeding | Startup-only bootstrap; read once during module init; not runtime config |
+| Line | Variable          | Usage           | Rationale for DEFER                                                                                                    |
+| ---- | ----------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 20   | `SECRET_KEY`      | JWT signing key | Security-critical crypto key; module-level initialization; fail-fast validation appropriate; caching provides no value |
+| 221  | `ADMIN_USERNAME`  | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
+| 222  | `ADMIN_PASSWORD`  | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
+| 227  | `ADMIN_EMAIL`     | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
+| 228  | `ADMIN_FULL_NAME` | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
+| 229  | `ADMIN_DISABLED`  | User seeding    | Startup-only bootstrap; read once during module init; not runtime config                                               |
 
 **Analysis:**
 
@@ -59,10 +59,10 @@ All environment access in this file is classified as **DEFER** due to security-s
 
 All environment access in this file is classified as **DEFER** due to intentional dynamic behavior.
 
-| Line | Variable | Usage | Rationale for DEFER |
-|------|----------|-------|---------------------|
-| 131 | `ENV` | CORS validation (per-request) | Explicitly documented dynamic behavior for test overrides |
-| 134 | `ALLOWED_ORIGINS` | CORS validation (per-request) | Explicitly documented dynamic behavior for test overrides |
+| Line | Variable          | Usage                         | Rationale for DEFER                                       |
+| ---- | ----------------- | ----------------------------- | --------------------------------------------------------- |
+| 131  | `ENV`             | CORS validation (per-request) | Explicitly documented dynamic behavior for test overrides |
+| 134  | `ALLOWED_ORIGINS` | CORS validation (per-request) | Explicitly documented dynamic behavior for test overrides |
 
 **Analysis:**
 
@@ -80,15 +80,15 @@ This dynamic behavior is intentional and architectural. Test scenarios rely on t
 
 All environment access in this file is classified as **LEAVE** because this IS the centralized settings mechanism.
 
-| Line | Variable | Purpose |
-|------|----------|---------|
-| 105 | `ENV` | Settings loader - canonical env→Settings mapping |
-| 106 | `ALLOWED_ORIGINS` | Settings loader - canonical env→Settings mapping |
-| 107 | `GRAPH_CACHE_PATH` | Settings loader - canonical env→Settings mapping |
-| 108 | `REAL_DATA_CACHE_PATH` | Settings loader - canonical env→Settings mapping |
-| 109 | `USE_REAL_DATA_FETCHER` | Settings loader - canonical env→Settings mapping |
-| 110 | `ASSET_GRAPH_DATABASE_URL` | Settings loader - canonical env→Settings mapping |
-| 111 | `DATABASE_URL` | Settings loader - canonical env→Settings mapping |
+| Line | Variable                   | Purpose                                          |
+| ---- | -------------------------- | ------------------------------------------------ |
+| 105  | `ENV`                      | Settings loader - canonical env→Settings mapping |
+| 106  | `ALLOWED_ORIGINS`          | Settings loader - canonical env→Settings mapping |
+| 107  | `GRAPH_CACHE_PATH`         | Settings loader - canonical env→Settings mapping |
+| 108  | `REAL_DATA_CACHE_PATH`     | Settings loader - canonical env→Settings mapping |
+| 109  | `USE_REAL_DATA_FETCHER`    | Settings loader - canonical env→Settings mapping |
+| 110  | `ASSET_GRAPH_DATABASE_URL` | Settings loader - canonical env→Settings mapping |
+| 111  | `DATABASE_URL`             | Settings loader - canonical env→Settings mapping |
 
 **Analysis:**
 
@@ -100,14 +100,14 @@ These reads occur in the `load_settings()` function (lines 92-112), which is the
 
 For completeness, environment variable usage in non-runtime files:
 
-| File | Variables | Classification | Notes |
-|------|-----------|----------------|-------|
-| `.github/scripts/schema_report_cli.py` | `SCHEMA_REPORT_LOG` | LEAVE | CLI tooling |
-| `main.py` | `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_KEY` | LEAVE | Dev/test script |
-| `run_tests.py` | `TEST_SECRET_KEY` | LEAVE | Test runner |
-| `test_supabase.py` | `SUPABASE_URL`, `SUPABASE_KEY`, `RUN_SUPABASE_TESTS` | LEAVE | Test file |
-| `test_postgres.py` | `ASSET_GRAPH_DATABASE_URL`, `DATABASE_URL`, `RUN_POSTGRES_TESTS` | LEAVE | Test file |
-| `tests/**` | Various | LEAVE | Test files excluded from scope |
+| File                                   | Variables                                                        | Classification | Notes                          |
+| -------------------------------------- | ---------------------------------------------------------------- | -------------- | ------------------------------ |
+| `.github/scripts/schema_report_cli.py` | `SCHEMA_REPORT_LOG`                                              | LEAVE          | CLI tooling                    |
+| `main.py`                              | `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_KEY`                   | LEAVE          | Dev/test script                |
+| `run_tests.py`                         | `TEST_SECRET_KEY`                                                | LEAVE          | Test runner                    |
+| `test_supabase.py`                     | `SUPABASE_URL`, `SUPABASE_KEY`, `RUN_SUPABASE_TESTS`             | LEAVE          | Test file                      |
+| `test_postgres.py`                     | `ASSET_GRAPH_DATABASE_URL`, `DATABASE_URL`, `RUN_POSTGRES_TESTS` | LEAVE          | Test file                      |
+| `tests/**`                             | Various                                                          | LEAVE          | Test files excluded from scope |
 
 ## Recommendations
 
@@ -148,6 +148,7 @@ grep -r "os\.environ\[" api/ src/
 ```
 
 **Results:**
+
 - `os.getenv(` - 15 matches in runtime files (all classified)
 - `os.environ[` - 0 matches in runtime files
 
