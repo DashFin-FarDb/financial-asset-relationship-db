@@ -12,6 +12,7 @@ from __future__ import annotations
 import importlib.util
 from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sqlalchemy.engine import Engine
@@ -25,7 +26,7 @@ from src.data.database import (
 )
 
 
-def pytest_addoption(parser: "Parser") -> None:
+def pytest_addoption(parser: Any) -> None:
     """
     Register dummy coverage command-line options when pytest-cov is unavailable.
 
@@ -34,13 +35,8 @@ def pytest_addoption(parser: "Parser") -> None:
     flags do not error. If `pytest-cov` is importable this function has no effect.
 
     Parameters:
-        parser (Parser): Pytest argument parser used to add the command-line options.
+        parser: Pytest argument parser used to add command-line options.
     """
-    _register_dummy_cov_options(parser)
-
-
-def pytest_addoption(parser: Any) -> None:
-    """Register dummy coverage options when pytest-cov is unavailable."""
     if not _cov_plugin_available():
         _register_dummy_cov_options(parser)
 
@@ -48,6 +44,43 @@ def pytest_addoption(parser: Any) -> None:
 def _cov_plugin_available() -> bool:
     """Return whether pytest-cov is importable in the current environment."""
     return importlib.util.find_spec("pytest_cov") is not None
+
+
+def _safe_addoption(
+    group: object,
+    *names: str,
+    **kwargs: object,
+) -> None:  # pragma: no cover
+    """Add a pytest option, ignoring only duplicate-registration errors."""
+    try:
+        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
+    except ValueError as exc:
+        message = str(exc)
+        if "already added" not in message:
+            raise
+
+
+def _register_dummy_cov_options(parser: Any) -> None:  # pragma: no cover
+    """Register dummy --cov and --cov-report options."""
+    group = parser.getgroup("cov")
+    _safe_addoption(
+        group,
+        "--cov",
+        action="append",
+        dest="cov",
+        default=[],
+        metavar="path",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
+    _safe_addoption(
+        group,
+        "--cov-report",
+        action="append",
+        dest="cov_report",
+        default=[],
+        metavar="type",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
 
 
 @pytest.fixture(autouse=True)
