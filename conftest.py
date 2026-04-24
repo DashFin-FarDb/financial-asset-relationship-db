@@ -58,8 +58,6 @@ def pytest_load_initial_conftests(
         parser: Pytest parser object. Unused by this filtering hook.
         args: Mutable pytest argument list supplied by pytest.
     """
-    del parser
-
     if _cov_plugin_available():
         return
 
@@ -109,7 +107,6 @@ def _strip_pytest_cov_args(args: MutableSequence[str]) -> list[str]:
         index += 1
 
     return filtered_args
-
 
 def _looks_like_option_value(arg: str) -> bool:
     """Return whether arg is a value token rather than another CLI option."""
