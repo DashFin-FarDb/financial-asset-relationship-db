@@ -17,12 +17,19 @@ from datetime import datetime, timezone
 from io import StringIO
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
-import generate_status
 import pytest
-from github import GithubException
 
 # Add the script directory to path so generate_status can be resolved
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
+
+try:
+    import generate_status
+    from github import GithubException
+except ImportError:
+    pytest.skip(
+        "generate_status requires PyGithub (pip install PyGithub)",
+        allow_module_level=True,
+    )
 
 
 # --- Fixtures ---
@@ -155,7 +162,9 @@ def sample_pr_status():
 
 def test_check_run_info_creation():
     """Test CheckRunInfo dataclass creation."""
-    check = generate_status.CheckRunInfo(name="test-check", status="completed", conclusion="success")
+    check = generate_status.CheckRunInfo(
+        name="test-check", status="completed", conclusion="success"
+    )
     assert check.name == "test-check"
     assert check.status == "completed"
     assert check.conclusion == "success"
@@ -1177,7 +1186,9 @@ def test_main_github_api_error(capsys):
         with patch("generate_status.Github") as mock_github_class:
             mock_github = Mock()
             mock_github_class.return_value = mock_github
-            mock_github.get_repo.side_effect = GithubException(status=404, data={"message": "Not Found"}, headers={})
+            mock_github.get_repo.side_effect = GithubException(
+                status=404, data={"message": "Not Found"}, headers={}
+            )
 
             with pytest.raises(SystemExit) as exc_info:
                 generate_status.main()
