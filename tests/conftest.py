@@ -2,7 +2,8 @@
 database tests.
 """
 
-from typing import TYPE_CHECKING
+import importlib.util
+from typing import Any
 
 import pytest
 
@@ -180,31 +181,24 @@ def pytest_addoption(parser: "Parser") -> None:
 def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
     """Register dummy --cov and --cov-report options."""
     group = parser.getgroup("cov")
-    try:
-        group.addoption(
-            "--cov",
-            action="append",
-            dest="cov",
-            default=[],
-            metavar="path",
-            help="Dummy option registered when pytest-cov is unavailable.",
-        )
-    except ValueError:
-        # Option may already be registered by pytest-cov or another conftest.
-        pass
-
-    try:
-        group.addoption(
-            "--cov-report",
-            action="append",
-            dest="cov_report",
-            default=[],
-            metavar="type",
-            help="Dummy option registered when pytest-cov is unavailable.",
-        )
-    except ValueError:
-        # Option may already be registered by pytest-cov or another conftest.
-        pass
+    _safe_addoption(
+        group,
+        "--cov",
+        action="append",
+        dest="cov",
+        default=[],
+        metavar="path",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
+    _safe_addoption(
+        group,
+        "--cov-report",
+        action="append",
+        dest="cov_report",
+        default=[],
+        metavar="type",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
 
 
 @pytest.fixture
