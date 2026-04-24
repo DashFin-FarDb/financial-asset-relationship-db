@@ -62,12 +62,26 @@ class TestDatabaseURLConfiguration:
         """Test that missing DATABASE_URL raises a ValueError."""
         from src.config.settings import get_settings
 
-        with patch.dict(os.environ, {}, clear=True):
-            get_settings.cache_clear()
-            with pytest.raises(ValueError, match="DATABASE_URL must be configured"):
-                importlib.reload(database)
+        original_database_url = os.environ.get("DATABASE_URL")
+        restore_database_url = original_database_url or "sqlite:///:memory:"
 
-        get_settings.cache_clear()
+        try:
+            with patch.dict(os.environ, {}, clear=True):
+                get_settings.cache_clear()
+                with pytest.raises(
+                    ValueError,
+                    match="DATABASE_URL must be configured",
+                ):
+                    importlib.reload(database)
+        finally:
+            with patch.dict(
+                os.environ,
+                {"DATABASE_URL": restore_database_url},
+                clear=False,
+            ):
+                get_settings.cache_clear()
+                importlib.reload(database)
+                get_settings.cache_clear()
 
 
 class TestSQLitePathResolution:
