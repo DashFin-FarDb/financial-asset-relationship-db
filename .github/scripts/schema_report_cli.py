@@ -13,6 +13,7 @@ import argparse
 import enum
 import json
 import logging
+import re
 import os
 import sys
 import tempfile
@@ -22,6 +23,33 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+
+_PROJECT_MARKERS = ("pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", ".git")
+
+
+def _find_project_root(start: Path) -> Path:
+    """Walk upward from *start* to find the project root directory.
+
+    Parameters:
+        start: Directory at which to begin the upward search.
+
+    Returns:
+        The first ancestor directory that contains a recognised project marker.
+
+    Raises:
+        RuntimeError: If no project root can be located.
+    """
+    current = start.resolve()
+    while True:
+        if any((current / marker).exists() for marker in _PROJECT_MARKERS):
+            return current
+        parent = current.parent
+        if parent == current:
+            raise RuntimeError(
+                f"Could not determine project root starting from {start}"
+            )
+        current = parent
 
 from src.data.sample_data import (  # noqa: E402  # pylint: disable=import-error  # type: ignore[import-not-found]
     create_sample_database,
@@ -109,6 +137,21 @@ DEFAULT_OUTPUT_FILENAMES = {
 }
 
 
+def configure_logging(verbose: bool = False) -> logging.Logger:
+    """Configure and return the CLI logger.
+
+    Sets handler levels based on *verbose*.  Safe to call multiple times; does
+    not add duplicate handlers.
+    """
+    if verbose:
+        stream_handler.setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
+    else:
+        stream_handler.setLevel(logging.WARNING)
+        logger.setLevel(logging.INFO)
+    return logger
+
+
 def parse_arguments() -> argparse.Namespace:
     """Parse command-line arguments for the schema report CLI."""
     parser = argparse.ArgumentParser(
@@ -121,7 +164,7 @@ def parse_arguments() -> argparse.Namespace:
         type=str,
         choices=[f.value for f in OutputFormat],
         default=OutputFormat.MARKDOWN.value,
-        help="Output format (default: %(default)s).",
+        help="Output format: markdown, text, json (default: %(default)s).",
     )
     parser.add_argument(
         "--output",
@@ -137,14 +180,22 @@ def parse_arguments() -> argparse.Namespace:
         help="Enable verbose logging.",
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    # Convert fmt string to OutputFormat enum; leave as-is if invalid so
+    # main() can emit the proper user-facing error message.
+    try:
+        args.fmt = OutputFormat(args.fmt)
+    except ValueError:
+        pass  # Invalid value remains a string; main() will validate
+    return args
 
 
 def convert_markdown_to_plain_text(markdown: str) -> str:
     """Convert Markdown to a simple plain-text representation."""
+    _LEADING_MARKER = re.compile(r"^(#{1,6}\s+|[-*]\s+)")
     lines: list[str] = []
     for line in markdown.splitlines():
-        stripped = line.lstrip("# ").lstrip("- ").lstrip("* ")
+        stripped = _LEADING_MARKER.sub("", line)
         lines.append(stripped)
     return "\n".join(lines)
 
@@ -209,21 +260,19 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
 
     fd, tmp_path_str = tempfile.mkstemp(dir=str(parent))
     tmp_path = Path(tmp_path_str)
+    os.close(fd)  # Release the OS fd; we'll write via write_text below.
 
     try:
-        with os.fdopen(fd, "w", encoding=encoding) as fh:
-            fh.write(data)
-            fh.flush()
-            os.fsync(fh.fileno())
+        tmp_path.write_text(data, encoding=encoding)
         tmp_path.replace(path)
     except BaseException:
         cleanup_partial_output(tmp_path)
         raise
 
 
-def generate_report(fmt: OutputFormat, output: Path | None) -> None:
+def generate_report(log: logging.Logger, fmt: OutputFormat, output: Path | None) -> None:
     """Generate the schema report and write it to the given file path or stdout."""
-    logger.info("Generating schema report with format: %s", fmt.value)
+    log.info("Generating schema report with format: %s", fmt.value)
     try:
         graph = create_sample_database()
         report = generate_schema_report(graph)
@@ -231,7 +280,7 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
 
         if output:
             write_atomic(output, formatted)
-            logger.info("Report written to: %s", output)
+            log.info("Report written to: %s", output)
         else:
             sys.stdout.write(formatted + ("\n" if not formatted.endswith("\n") else ""))
     except Exception as exc:  # noqa: BLE001
@@ -245,23 +294,23 @@ def main() -> int:
         try:
             args = parse_arguments()
         except SystemExit as exc:
-            return int(exc.code) if exc.code not in (None, 0) else 1
+            code = int(exc.code) if exc.code is not None else 1
+            if code != 0:
+                # argparse already printed the reason; add our friendly message.
+                print(
+                    "Error: Invalid output format. Please use one of: markdown, text, json.",
+                    file=sys.stderr,
+                )
+            return 1 if code != 0 else 0
 
+        log = configure_logging(verbose=args.verbose)
         if args.verbose:
-            logger.setLevel(logging.DEBUG)
-            stream_handler.setLevel(logging.DEBUG)
-            logger.debug("Verbose logging enabled.")
-        else:
-            stream_handler.setLevel(logging.WARNING)
-            logger.setLevel(logging.INFO)
+            log.debug("Verbose logging enabled.")
 
-        output_format = parse_output_format(args.fmt)
-        if output_format is None:
-            return 1
-
+        output_format = args.fmt
         safe_output = args.output
-        generate_report(output_format, safe_output)
-        logger.info("Schema report generation completed successfully.")
+        generate_report(log, output_format, safe_output)
+        log.info("Schema report generation completed successfully.")
         return 0
 
     except CLIError as exc:

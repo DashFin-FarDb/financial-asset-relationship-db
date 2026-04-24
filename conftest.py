@@ -44,7 +44,7 @@ def _cov_plugin_available() -> bool:
     return importlib.util.find_spec("pytest_cov") is not None
 
 
-def pytest_load_initial_conftests(
+def pytest_load_initial_conftests(  # pragma: no cover
     early_config: Any,
     parser: Any,
     args: Optional[MutableSequence[str]],
