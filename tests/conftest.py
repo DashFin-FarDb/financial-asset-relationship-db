@@ -2,8 +2,6 @@
 database tests.
 """
 
-import importlib.util
-
 
 import pytest
 
