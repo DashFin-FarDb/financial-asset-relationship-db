@@ -27,22 +27,13 @@ except ImportError:
     sys.exit(1)
 
 
-# --- Configuration ---
-
-
 def load_config() -> Dict[str, Any]:
-    """
-    Load PR copilot configuration from .github/pr-copilot-config.yml; if the file is missing, return a built-in default configuration.
-
-    Returns:
-        dict: Parsed configuration mapping. If the YAML file exists but parses to a falsy value, returns an empty dict. If the file is missing, returns a default mapping containing a "review_handling" key with an "actionable_keywords" list.
-    """
+    """Load PR copilot configuration."""
     config_path = ".github/pr-copilot-config.yml"
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
+        with open(config_path, "r", encoding="utf-8") as config_file:
+            return yaml.safe_load(config_file) or {}
     except FileNotFoundError:
-        # Defaults if config missing
         return {
             "review_handling": {
                 "actionable_keywords": [
@@ -62,28 +53,10 @@ def load_config() -> Dict[str, Any]:
         }
 
 
-# --- Parsing Logic ---
-
-
 def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
-    """
-    Extract code change suggestions from a review comment body.
-
-    Scans the comment for two suggestion forms and returns them in the order found:
-    - Fenced suggestion blocks delimited by ```suggestion ... ``` are returned with type "code_suggestion".
-    - Inline suggestions following phrases like "should be", "change to", "replace with", or "use" and containing backticked code are returned with type "inline_suggestion".
-
-    Parameters:
-        comment_body (str): Raw text of the review comment.
-
-    Returns:
-        List[Dict[str, str]]: A list of suggestion objects in discovery order. Each object contains:
-            - type: "code_suggestion" or "inline_suggestion".
-            - content: the suggested code or replacement text.
-    """
+    """Extract code change suggestions from a review comment body."""
     suggestions = []
 
-    # Pattern 1: Code blocks with suggestion marker
     suggestion_pattern = r"```suggestion\s*\n(.*?)\n```"
     matches = re.finditer(suggestion_pattern, comment_body, re.DOTALL)
     for match in matches:
@@ -94,7 +67,6 @@ def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
             }
         )
 
-    # Pattern 2: Inline code in quotes with suggestion words
     inline_pattern = r"(?:should be|change to|replace with|use)\s+`([^`]+)`"
     matches = re.finditer(inline_pattern, comment_body, re.IGNORECASE)
     for match in matches:
@@ -109,20 +81,9 @@ def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
 
 
 def categorize_comment(comment_body: str) -> Tuple[str, int]:
-    """
-    Determine the category and priority for a review comment.
-
-    Scans the comment for known keywords and returns the first matching category with its mapped priority. If no keywords match, returns ("improvement", 2).
-
-    Parameters:
-        comment_body (str): Full text of the review comment to classify.
-
-    Returns:
-        tuple: (category, priority) — `category` is one of "critical", "bug", "improvement", "style", or "question"; `priority` is 1 (high), 2 (medium), or 3 (low).
-    """
+    """Determine the category and priority for a review comment."""
     body_lower = comment_body.lower()
 
-    # Define category keywords with their priorities
     categories = [
         (
             "critical",
@@ -139,26 +100,15 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
         ),
     ]
 
-    # Check each category in priority order
     for category, priority, keywords in categories:
-        if any(kw in body_lower for kw in keywords):
+        if any(keyword in body_lower for keyword in keywords):
             return category, priority
 
-    # Default
     return "improvement", 2
 
 
 def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
-    """
-    Determine whether the comment contains any of the actionable keywords.
-
-    Parameters:
-        comment_body (str): Text of the comment to inspect; matching is case-insensitive and uses substring matching.
-        actionable_keywords (List[str]): Keywords to search for.
-
-    Returns:
-        bool: True if at least one actionable keyword appears in comment_body, False otherwise.
-    """
+    """Return whether the comment contains any actionable keyword."""
     body_lower = comment_body.lower()
     return any(keyword in body_lower for keyword in actionable_keywords)
 
@@ -167,29 +117,9 @@ def parse_review_comments(
     pr: Any,
     actionable_keywords: List[str],
 ) -> List[Dict[str, Any]]:
-    """
-    Collect actionable items from a GitHub pull request's review comments.
-
-    Parameters:
-        pr (Any): A PullRequest-like object providing get_review_comments() and get_reviews().
-        actionable_keywords (List[str]): Keywords used to determine whether a comment is actionable.
-
-    Returns:
-        List[Dict[str, Any]]: A list of actionable item dictionaries sorted by priority (ascending) then creation time (ascending). Each dictionary contains:
-            - id: comment or review identifier
-            - author: comment author's login
-            - body: full comment text
-            - category: classified category (e.g., critical, bug, improvement, style, question)
-            - priority: numeric priority where lower is higher priority
-            - file: file path the comment refers to, or None
-            - line: original line number the comment refers to, or None
-            - code_suggestions: list of extracted code suggestion entries
-            - url: URL to the original comment
-            - created_at: timestamp when the comment or review was submitted
-    """
+    """Collect actionable items from a GitHub pull request's review comments."""
     actionable_items = []
 
-    # Helper to process a raw comment object
     def process_comment(comment_obj: Any, is_review: bool = False) -> None:
         body = comment_obj.body or ""
         if not is_actionable(body, actionable_keywords):
@@ -197,8 +127,6 @@ def parse_review_comments(
 
         category, priority = categorize_comment(body)
         code_suggestions = extract_code_suggestions(body)
-
-        # Handle difference between Review object and Comment object
         created_at = comment_obj.submitted_at if is_review else comment_obj.created_at
         file_path = getattr(comment_obj, "path", None)
         line_num = getattr(comment_obj, "original_line", None)
@@ -218,21 +146,15 @@ def parse_review_comments(
             }
         )
 
-    # 1. File-level comments
     for comment in pr.get_review_comments():
         process_comment(comment)
 
-    # 2. High-level Review comments (Changes Requested only)
     for review in pr.get_reviews():
         if review.state == "CHANGES_REQUESTED":
             process_comment(review, is_review=True)
 
-    # Sort: Priority (1=High) asc, then Date asc
-    actionable_items.sort(key=lambda x: (x["priority"], x["created_at"]))
+    actionable_items.sort(key=lambda item: (item["priority"], item["created_at"]))
     return actionable_items
-
-
-# --- Formatting Helpers ---
 
 
 def _format_code_suggestions(suggestions: List[Dict[str, str]]) -> str:
@@ -249,8 +171,6 @@ def _format_code_suggestions(suggestions: List[Dict[str, str]]) -> str:
 def _format_item(index: int, item: Dict[str, Any]) -> str:
     """Format a single actionable item entry."""
     priority_map = {1: "🔴 High", 2: "🟡 Medium", 3: "🟢 Low"}
-
-    # Text truncation
     body_excerpt = item["body"][:200]
     if len(item["body"]) > 200:
         body_excerpt += "..."
@@ -270,17 +190,7 @@ def _format_item(index: int, item: Dict[str, Any]) -> str:
 
 
 def _generate_summary(items: List[Dict[str, Any]]) -> str:
-    """
-    Create a Markdown footer summarizing counts of actionable items by category.
-
-    Counts the number of items in each category (critical, bug, improvement, style, question) and produces a Markdown-formatted summary that includes the total actionable item count, per-category counts, an optional priority note when any critical issues or bugs exist, and a generated-by line.
-
-    Parameters:
-        items (List[Dict[str, Any]]): List of actionable item dictionaries; each item must include a "category" key.
-
-    Returns:
-        str: Markdown-formatted summary footer containing total and per-category counts, an optional priority note, and a generated-by attribution.
-    """
+    """Create a Markdown footer summarizing actionable items by category."""
     counts: defaultdict[str, int] = defaultdict(int)
     for item in items:
         counts[item["category"]] += 1
@@ -308,14 +218,11 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
     if not actionable_items:
         return "✅ No actionable items found in review comments."
 
-    # Grouping
     categorized = defaultdict(list)
     for item in actionable_items:
         categorized[item["category"]].append(item)
 
     report = "🔧 **Fix Proposals from Review Comments**\n\n"
-
-    # Order of presentation
     priority_order = ["critical", "bug", "improvement", "style", "question"]
     emoji_map = {
         "critical": "🚨",
@@ -331,27 +238,15 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
             continue
 
         report += f"\n### {emoji_map.get(category, '📝')} {category.title()} ({len(items)})\n\n"
-
-        for i, item in enumerate(items, 1):
-            report += _format_item(i, item)
+        for index, item in enumerate(items, 1):
+            report += _format_item(index, item)
 
     report += _generate_summary(actionable_items)
     return report
 
 
-# --- Main ---
-
-
 def write_output(report: str) -> None:
-    # 1. GitHub Summary
-    """
-    Persist the Markdown report to configured outputs and print it.
-
-    When GITHUB_STEP_SUMMARY is set, appends the report to that file. Always writes the report to a securely created temporary `.md` file and prints that temporary file path to stderr on success. Finally prints the full report to stdout. IO failures are reported to stderr.
-
-    Parameters:
-        report (str): Markdown-formatted report content to persist and print.
-    """
+    """Persist the Markdown report to configured outputs and print it."""
     gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if gh_summary:
         try:
@@ -365,15 +260,14 @@ def write_output(report: str) -> None:
                         file=sys.stderr,
                     )
                     return
-            with open(summary_path, "a", encoding="utf-8") as f:
-                f.write(report)
-        except (IOError, ValueError) as e:
+            with open(summary_path, "a", encoding="utf-8") as summary_file:
+                summary_file.write(report)
+        except (IOError, ValueError) as error:
             print(
-                f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}",
+                f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {error}",
                 file=sys.stderr,
             )
 
-    # 2. Secure Temp File
     try:
         with tempfile.NamedTemporaryFile(
             mode="w",
@@ -384,24 +278,14 @@ def write_output(report: str) -> None:
         ) as tmp:
             tmp.write(report)
             print(f"Fix proposals generated: {tmp.name}", file=sys.stderr)
-    except IOError as e:
-        print(f"Error writing temp file: {e}", file=sys.stderr)
+    except IOError as error:
+        print(f"Error writing temp file: {error}", file=sys.stderr)
 
     print(report)
 
 
-def main():
-    """
-    Run the CLI flow to collect actionable review comments from a GitHub pull request and write a Markdown fix-proposal report.
-
-    Reads required environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME to locate the target repository and pull request, loads configuration, extracts actionable review items, generates a formatted report, and writes the report to stdout, a temporary .md file, and (optionally) the GitHub Actions step summary.
-
-    Behavior:
-    - If any required environment variable is missing, prints an error to stderr and exits with status code 1.
-    - If PR_NUMBER cannot be parsed as an integer, prints an error to stderr and exits with status code 1.
-    - On GitHub API errors, prints a "GitHub API Error: <error>" message to stderr and exits with status code 1.
-    - On other unexpected errors, prints "Unexpected Error: <error>", emits a traceback to stderr, and exits with status code 1.
-    """
+def main() -> None:
+    """Run the CLI flow to collect actionable review comments from a pull request."""
     required = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]
     env_vars = {var: os.environ.get(var) for var in required}
 
@@ -410,7 +294,7 @@ def main():
         sys.exit(1)
 
     try:
-        pr_number = int(env_vars["PR_NUMBER"])  # type: ignore
+        pr_number = int(env_vars["PR_NUMBER"])  # type: ignore[arg-type]
     except ValueError:
         print("Error: PR_NUMBER must be an integer", file=sys.stderr)
         sys.exit(1)
@@ -431,26 +315,20 @@ def main():
     )
 
     try:
-        g = Github(env_vars["GITHUB_TOKEN"])
-        repo = g.get_repo(f"{env_vars['REPO_OWNER']}/{env_vars['REPO_NAME']}")
+        github_client = Github(env_vars["GITHUB_TOKEN"])
+        repo = github_client.get_repo(f"{env_vars['REPO_OWNER']}/{env_vars['REPO_NAME']}")
         pr = repo.get_pull(pr_number)
 
-        print(
-            f"Parsing review comments for PR #{pr_number}...",
-            file=sys.stderr,
-        )
+        print(f"Parsing review comments for PR #{pr_number}...", file=sys.stderr)
         items = parse_review_comments(pr, keywords)
-
         report = generate_fix_proposals(items)
         write_output(report)
 
-    except GithubException as ge:
-        # Specific GitHub API error handling for clearer failures.
-        print(f"GitHub API Error: {ge}", file=sys.stderr)
+    except GithubException as github_error:
+        print(f"GitHub API Error: {github_error}", file=sys.stderr)
         sys.exit(1)
-    except Exception as e:  # noqa: BLE001
-        print(f"Unexpected Error: {e}", file=sys.stderr)
-
+    except Exception as unexpected_error:  # noqa: BLE001
+        print(f"Unexpected Error: {unexpected_error}", file=sys.stderr)
         traceback.print_exc()
         sys.exit(1)
 
