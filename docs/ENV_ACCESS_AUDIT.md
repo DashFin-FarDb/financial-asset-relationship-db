@@ -132,7 +132,7 @@ For completeness, environment variable usage in non-runtime files:
 
 This audit was validated by:
 
-1. **Exhaustive search**: Grep for `os.getenv(` and `os.environ[` across entire repository
+1. **Exhaustive runtime search**: Grep for `os.getenv(` and `os.environ[` across the audited runtime directories (`api/` and `src/`)
 2. **Runtime scope filter**: Focused on `api/` and `src/` directories only
 3. **Full file review**: Read complete context of each file containing env access
 4. **Classification criteria**: Applied task-defined rules consistently
