@@ -10,8 +10,8 @@ This file centralizes:
 from __future__ import annotations
 
 from collections.abc import Callable, Generator, Iterator
+import importlib.util
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy.engine import Engine
@@ -24,8 +24,6 @@ from src.data.database import (
     session_scope,
 )
 
-if TYPE_CHECKING:
-    from _pytest.config.argparsing import Parser
 
 
 def pytest_addoption(parser: "Parser") -> None:
@@ -39,25 +37,18 @@ def pytest_addoption(parser: "Parser") -> None:
     Parameters:
         parser (Parser): Pytest argument parser used to add the command-line options.
     """
-    try:
-        import pytest_cov  # type: ignore  # noqa: F401
-    except ImportError:  # pragma: no cover
         _register_dummy_cov_options(parser)
 
 
-def _safe_addoption(group: object, *names: str, **kwargs: object) -> None:  # pragma: no cover
-    """Add a pytest option, ignoring only duplicate-registration errors."""
-    try:
-        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
-    except ValueError as exc:
-        message = str(exc)
-        if "already added" not in message:
-            raise
+def pytest_addoption(parser: Any) -> None:
+    """Register dummy coverage options when pytest-cov is unavailable."""
+    if not _cov_plugin_available():
+        _register_dummy_cov_options(parser)
 
 
-def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
-    """Register dummy --cov and --cov-report options."""
-    group = parser.getgroup("cov")
+def _cov_plugin_available() -> bool:
+    """Return whether pytest-cov is importable in the current environment."""
+    return importlib.util.find_spec("pytest_cov") is not None
     _safe_addoption(
         group,
         "--cov",
