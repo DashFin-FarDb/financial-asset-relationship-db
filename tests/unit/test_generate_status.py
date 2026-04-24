@@ -162,9 +162,7 @@ def sample_pr_status():
 
 def test_check_run_info_creation():
     """Test CheckRunInfo dataclass creation."""
-    check = generate_status.CheckRunInfo(
-        name="test-check", status="completed", conclusion="success"
-    )
+    check = generate_status.CheckRunInfo(name="test-check", status="completed", conclusion="success")
     assert check.name == "test-check"
     assert check.status == "completed"
     assert check.conclusion == "success"
@@ -1186,9 +1184,7 @@ def test_main_github_api_error(capsys):
         with patch("generate_status.Github") as mock_github_class:
             mock_github = Mock()
             mock_github_class.return_value = mock_github
-            mock_github.get_repo.side_effect = GithubException(
-                status=404, data={"message": "Not Found"}, headers={}
-            )
+            mock_github.get_repo.side_effect = GithubException(status=404, data={"message": "Not Found"}, headers={})
 
             with pytest.raises(SystemExit) as exc_info:
                 generate_status.main()
@@ -1421,9 +1417,9 @@ def test_pull_request_type_accessible_in_module():
     """
     # If the module imported successfully (it was imported at the top of this
     # test file), PullRequest should be accessible in the module's globals.
-    assert hasattr(
-        generate_status, "PullRequest"
-    ), "generate_status module should expose PullRequest after importing it from github.PullRequest"
+    assert hasattr(generate_status, "PullRequest"), (
+        "generate_status module should expose PullRequest after importing it from github.PullRequest"
+    )
 
     # Also verify we can independently import the same symbol
     from github.PullRequest import PullRequest as PR
