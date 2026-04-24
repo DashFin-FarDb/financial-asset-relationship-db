@@ -130,7 +130,7 @@
 
 ## PY Dependencies
 
-### \test_supabase.py
+### /test_supabase.py
 
 Dependencies:
 
@@ -142,7 +142,7 @@ Dependencies:
 - logging
 - environment
 
-### \test_postgres.py
+### /test_postgres.py
 
 Dependencies:
 
@@ -153,7 +153,7 @@ Dependencies:
 - logging
 - environment
 
-### \test_db_module.py
+### /test_db_module.py
 
 Dependencies:
 
@@ -161,7 +161,7 @@ Dependencies:
 - src.data.database
 - get_db
 
-### \test_api.py
+### /test_api.py
 
 Dependencies:
 
@@ -172,31 +172,31 @@ Dependencies:
 - TestClient
 - traceback
 
-### \tests/**init**.py
+### /tests/__init__.py
 
 No dependencies found
 
 ## JS Dependencies
 
-### \frontend\tailwind.config.js
+### /frontend/tailwind.config.js
 
 No dependencies found
 
-### \frontend\postcss.config.js
+### /frontend/postcss.config.js
 
 No dependencies found
 
-### \frontend\next.config.js
+### /frontend/next.config.js
 
 No dependencies found
 
-### \frontend\jest.setup.js
+### /frontend/jest.setup.js
 
 Dependencies:
 
 - @testing-library/jest-dom
 
-### \frontend\jest.config.js
+### /frontend/jest.config.js
 
 Dependencies:
 
@@ -204,7 +204,7 @@ Dependencies:
 
 ## TS Dependencies
 
-### \frontend\_\_tests\_\_\lib\api.test.ts
+### /frontend/__tests__/lib/api.test.ts
 
 Dependencies:
 
@@ -212,22 +212,22 @@ Dependencies:
 - ../../app/lib/api
 - ../../app/types/api
 
-### \frontend\app\types\api.ts
+### /frontend/app/types/api.ts
 
 No dependencies found
 
-### \frontend\app\lib\_\_tests\_\_\api.test.ts
+### /frontend/app/lib/__tests__/api.test.ts
 
 Dependencies:
 
 - axios
 - ../api
 
-### \frontend\app\lib\index.ts
+### /frontend/app/lib/index.ts
 
 No dependencies found
 
-### \frontend\app\lib\api.ts
+### /frontend/app/lib/api.ts
 
 Dependencies:
 
@@ -236,7 +236,7 @@ Dependencies:
 
 ## TSX Dependencies
 
-### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+### /frontend/__tests__/components/NetworkVisualization.test.tsx
 
 Dependencies:
 
@@ -246,7 +246,7 @@ Dependencies:
 - ../../app/components/NetworkVisualization
 - ../../app/types/api
 
-### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+### /frontend/__tests__/components/MetricsDashboard.test.tsx
 
 Dependencies:
 
@@ -256,7 +256,7 @@ Dependencies:
 - ../../app/components/MetricsDashboard
 - ../../app/types/api
 
-### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+### /frontend/__tests__/components/AssetList.test.tsx
 
 Dependencies:
 
@@ -266,7 +266,7 @@ Dependencies:
 - ../../app/components/AssetList
 - ../../app/lib/api
 
-### \frontend\_\_tests\_\_\app\page.test.tsx
+### /frontend/__tests__/app/page.test.tsx
 
 Dependencies:
 
@@ -276,7 +276,7 @@ Dependencies:
 - ../../app/page
 - ../../app/lib/api
 
-### \frontend\app\page.tsx
+### /frontend/app/page.tsx
 
 Dependencies:
 
