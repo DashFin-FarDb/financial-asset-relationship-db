@@ -100,14 +100,14 @@ These reads occur in the `load_settings()` function (lines 92-112), which is the
 
 For completeness, environment variable usage in non-runtime files:
 
-| File                                   | Variables                                                        | Classification | Notes                          |
-| -------------------------------------- | ---------------------------------------------------------------- | -------------- | ------------------------------ |
-| `.github/scripts/schema_report_cli.py` | `SCHEMA_REPORT_LOG`                                              | LEAVE          | CLI tooling                    |
-| `main.py`                              | `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_KEY`                   | LEAVE          | Dev/test script                |
-| `run_tests.py`                         | `TEST_SECRET_KEY`                                                | LEAVE          | Test runner                    |
-| `test_supabase.py`                     | `SUPABASE_URL`, `SUPABASE_KEY`, `RUN_SUPABASE_TESTS`             | LEAVE          | Test file                      |
-| `test_postgres.py`                     | `ASSET_GRAPH_DATABASE_URL`, `DATABASE_URL`, `RUN_POSTGRES_TESTS` | LEAVE          | Test file                      |
-| `tests/**`                             | Various                                                          | LEAVE          | Test files excluded from scope |
+| File                                   | Variables                                                           | Classification | Notes                          |
+| -------------------------------------- | ------------------------------------------------------------------- | -------------- | ------------------------------ |
+| `.github/scripts/schema_report_cli.py` | `SCHEMA_REPORT_LOG`                                                 | LEAVE          | CLI tooling                    |
+| `main.py`                              | `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_KEY`                      | LEAVE          | Dev/test script                |
+| `run_tests.py`                         | `TEST_SECRET_KEY`                                                   | LEAVE          | Test runner                    |
+| `test_supabase.py`                     | `SUPABASE_URL`, `SUPABASE_KEY`, `RUN_SUPABASE_TESTS`, `LOAD_DOTENV` | LEAVE          | Test file                      |
+| `test_postgres.py`                     | `ASSET_GRAPH_DATABASE_URL`, `DATABASE_URL`, `RUN_POSTGRES_TESTS`    | LEAVE          | Test file                      |
+| `tests/**`                             | Various                                                             | LEAVE          | Test files excluded from scope |
 
 ## Recommendations
 
