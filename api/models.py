@@ -5,10 +5,17 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
+class UserBase(BaseModel):
+    """Shared schema for API user details."""
 
-from api.auth import User
+    username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    disabled: Optional[bool] = None
+    hashed_password: str
 
-class UserInDB(User):
+
+class UserInDB(UserBase):
     """User record as stored in the database, including hashed password."""
 
     hashed_password: str
