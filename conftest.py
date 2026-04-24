@@ -4,13 +4,14 @@ Pytest configuration and shared fixtures.
 This file centralizes:
 - Database engine/session fixtures (SQLite file or in-memory)
 - Environment isolation for tests
+- Coverage flag compatibility when pytest-cov is unavailable
 - Common test helpers (e.g., factories) to avoid repeated boilerplate
 """
 
 from __future__ import annotations
 
 import importlib.util
-from collections.abc import Callable, Generator, Iterator
+from collections.abc import Callable, Generator, Iterator, MutableSequence
 from pathlib import Path
 from typing import Any
 
@@ -26,24 +27,74 @@ from src.data.database import (
 )
 
 
+def _cov_plugin_available() -> bool:
+    """Return whether pytest-cov is importable in the current environment."""
+    return importlib.util.find_spec("pytest_cov") is not None
+
+
+def pytest_load_initial_conftests(
+    early_config: Any,
+    parser: Any,
+    args: MutableSequence[str] | None,
+) -> None:  # pragma: no cover
+    """
+    Strip pytest-cov flags before option parsing when pytest-cov is unavailable.
+
+    The hook mutates the provided argument list in place. Some unit tests call
+    this helper with the argument list as the first positional argument, while
+    pytest itself supplies it as the third argument. Both forms are supported to
+    keep the hook testable and compatible with pytest's hook signature.
+
+    Parameters:
+        early_config: Pytest early configuration object, or the args list in
+            direct unit-test calls.
+        parser: Pytest parser object. Unused by this filtering hook.
+        args: Mutable pytest argument list supplied by pytest.
+    """
+    del parser
+
+    if _cov_plugin_available():
+        return
+
+    target_args = args
+    if target_args is None and isinstance(early_config, list):
+        target_args = early_config
+
+    if target_args is None:
+        return
+
+    filtered_args: list[str] = []
+    skip_next = False
+
+    for arg in target_args:
+        if skip_next:
+            skip_next = False
+            continue
+
+        if arg in {"--cov", "--cov-report"}:
+            skip_next = True
+            continue
+
+        if arg.startswith("--cov=") or arg.startswith("--cov-report="):
+            continue
+
+        filtered_args.append(arg)
+
+    target_args[:] = filtered_args
+
+
 def pytest_addoption(parser: Any) -> None:
     """
     Register dummy coverage command-line options when pytest-cov is unavailable.
 
-    If the `pytest-cov` plugin cannot be imported this registers `--cov` and
-    `--cov-report` as benign, appendable options so test runs that include those
-    flags do not error. If `pytest-cov` is importable this function has no effect.
+    This is a fallback for environments where option stripping does not run
+    early enough. If pytest-cov is available, no dummy options are registered.
 
     Parameters:
         parser: Pytest argument parser used to add command-line options.
     """
     if not _cov_plugin_available():
         _register_dummy_cov_options(parser)
-
-
-def _cov_plugin_available() -> bool:
-    """Return whether pytest-cov is importable in the current environment."""
-    return importlib.util.find_spec("pytest_cov") is not None
 
 
 def _safe_addoption(
