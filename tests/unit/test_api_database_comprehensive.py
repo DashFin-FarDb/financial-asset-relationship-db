@@ -23,7 +23,6 @@ from api.database import (
     _resolve_sqlite_path,
     get_connection,
 )
-from src.config.settings import get_settings
 
 
 @pytest.fixture(autouse=True)
