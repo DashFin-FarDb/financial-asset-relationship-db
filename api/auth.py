@@ -13,6 +13,7 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleSource]
 from pydantic import BaseModel
 
+from api.models import User, UserInDB
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
 # Security configuration
@@ -25,7 +26,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Password hashing
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-from api.models import User, UserInDB
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
