@@ -1,7 +1,14 @@
 """Pytest configuration and fixtures for the financial asset relationship
 database tests.
 """
+
+from __future__ import annotations
+
+import importlib.util
+from typing import Any
+
 import pytest
+
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     AssetClass,
@@ -75,7 +82,8 @@ def sample_commodity():
 
     Returns:
         Commodity: A Commodity representing gold with id "GOLD", symbol "GC",
-            sector "Metals", price 2000.0, contract_size 100.0, and volatility 0.15.
+            sector "Metals", price 2000.0, contract_size 100.0, and
+            volatility 0.15.
     """
     return Commodity(
         id="GOLD",
@@ -152,11 +160,7 @@ def populated_graph(
     return graph
 
 
-if TYPE_CHECKING:
-    from _pytest.config.argparsing import Parser
-
-
-def pytest_addoption(parser: "Parser") -> None:
+def pytest_addoption(parser: Any) -> None:
     """
     Register dummy coverage command-line options when pytest-cov is unavailable.
 
@@ -165,15 +169,32 @@ def pytest_addoption(parser: "Parser") -> None:
     flags do not error. If `pytest-cov` is importable this function has no effect.
 
     Parameters:
-        parser (Parser): Pytest argument parser used to add the command-line options.
+        parser: Pytest argument parser used to add command-line options.
     """
-    try:
-        import pytest_cov  # type: ignore  # noqa: F401
-    except ImportError:  # pragma: no cover
+    if not _cov_plugin_available():
         _register_dummy_cov_options(parser)
 
 
-def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
+def _cov_plugin_available() -> bool:
+    """Return whether pytest-cov is importable in the current environment."""
+    return importlib.util.find_spec("pytest_cov") is not None
+
+
+def _safe_addoption(
+    group: object,
+    *names: str,
+    **kwargs: object,
+) -> None:  # pragma: no cover
+    """Add a pytest option, ignoring only duplicate-registration errors."""
+    try:
+        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
+    except ValueError as exc:
+        message = str(exc)
+        if "already added" not in message:
+            raise
+
+
+def _register_dummy_cov_options(parser: Any) -> None:  # pragma: no cover
     """Register dummy --cov and --cov-report options."""
     group = parser.getgroup("cov")
     _safe_addoption(
