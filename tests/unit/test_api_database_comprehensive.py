@@ -81,6 +81,7 @@ class TestDatabaseURLConfiguration:
                 importlib.reload(database)
                 get_settings.cache_clear()
 
+
 class TestResolveSqlitePath:
     """Test cases for _resolve_sqlite_path function."""
 
