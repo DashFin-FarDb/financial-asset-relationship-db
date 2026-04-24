@@ -9,27 +9,21 @@ This module provides extensive test coverage for api/database.py including:
 - Cleanup and resource management
 """
 
-import importlib
 import os
 import sqlite3
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
+import threading
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-import api.database as database
 from api.database import (
-    DATABASE_PATH,
-    DATABASE_URL,
+    _connect,
+    _get_database_url,
     _is_memory_db,
     _resolve_sqlite_path,
-    execute,
-    fetch_one,
-    fetch_value,
     get_connection,
-    initialize_schema,
 )
+from src.config.settings import get_settings
 
 
 @pytest.fixture(autouse=True)
