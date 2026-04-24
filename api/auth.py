@@ -14,7 +14,6 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
-from .models import UserBase, UserInDB
 
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -106,7 +105,7 @@ class UserRepository:
     @staticmethod
     def has_users() -> bool:
         """
-        Determine whether any user credential records exist.
+        Check whether any user credential records exist.
 
         Returns:
             `true` if at least one user credential exists, `false` otherwise.
