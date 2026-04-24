@@ -733,7 +733,7 @@ class TestRealDataFetcherFallback:
         fetcher.create_real_database()
 
         # Verify error and warning were logged
-        assert mock_logger.error.called
+        assert mock_logger.exception.called
         assert mock_logger.warning.called
         # Check that "Falling back" message was logged
         warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
@@ -741,8 +741,7 @@ class TestRealDataFetcherFallback:
 
     @patch("src.data.real_data_fetcher.logger")
     @patch("yfinance.Ticker")
-    @staticmethod
-    def test_individual_asset_class_fetch_failures_logged(mock_ticker, mock_logger):
+    def test_individual_asset_class_fetch_failures_logged(self, mock_ticker, mock_logger):
         """Test that individual asset class fetch failures are logged properly."""
         from src.data.real_data_fetcher import RealDataFetcher
 
@@ -753,7 +752,7 @@ class TestRealDataFetcherFallback:
         fetcher.create_real_database()
 
         # Should log errors for each failed fetch
-        assert mock_logger.error.call_count > 0  # Multiple fetch attempts failed
+        assert mock_logger.exception.call_count > 0  # Multiple fetch attempts failed
 
     @staticmethod
     def test_real_data_fetcher_loads_from_cache(tmp_path):
