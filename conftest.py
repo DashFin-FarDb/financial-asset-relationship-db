@@ -46,18 +46,18 @@ def _cov_plugin_available() -> bool:
     return importlib.util.find_spec("pytest_cov") is not None
 
 
-def _safe_addoption(
-    group: object,
-    *names: str,
-    **kwargs: object,
-) -> None:  # pragma: no cover
-    """Add a pytest option, ignoring only duplicate-registration errors."""
-    try:
-        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
-    except ValueError as exc:
-        message = str(exc)
-        if "already added" not in message:
-            raise
+    def _safe_addoption(
+        group: object,
+        *names: str,
+        **kwargs: object,
+    ) -> None:  # pragma: no cover
+        """Add a pytest option, ignoring only duplicate-registration errors."""
+        try:
+            group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
+        except ValueError as exc:
+            message = str(exc)
+            if "already added" not in message:
+                raise
 
 
 def _register_dummy_cov_options(parser: Any) -> None:  # pragma: no cover
