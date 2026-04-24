@@ -9,7 +9,7 @@ This file centralizes:
 """
 
 import importlib.util
-from collections.abc import Callable, Generator, Iterator
+from collections.abc import Generator, Iterator
 from pathlib import Path
 from typing import Any, List, MutableSequence, Optional, Tuple
 
@@ -175,6 +175,6 @@ def session_factory(engine: Engine) -> sessionmaker[Session]:
 
 
 @pytest.fixture()
-def db_session(session_factory: Callable[[], Session]) -> Generator[Session, None, None]:
+def db_session(session_factory: Any) -> Generator[Session, None, None]:
     with session_scope(session_factory) as session:
         yield session
