@@ -79,6 +79,7 @@ class TestGetDatabaseUrl:
 
         assert "DATABASE_URL must be configured" in str(exc_info.value)
 
+
 class TestResolveSqlitePath:
     """Test cases for _resolve_sqlite_path function."""
 
