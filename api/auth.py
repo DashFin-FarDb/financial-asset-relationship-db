@@ -1,6 +1,5 @@
 """Authentication module for the Financial Asset Relationship Database API"""
 
-from api.models import User, UserInDB
 from __future__ import annotations
 
 import os
@@ -13,6 +12,8 @@ from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleSource]
 from pydantic import BaseModel
+
+from api.models import User, UserInDB
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
