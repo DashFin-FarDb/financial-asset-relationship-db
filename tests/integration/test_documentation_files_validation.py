@@ -215,6 +215,35 @@ class TestDocumentationFilesValidation:
             f"{path}: {msg}" for path, msg in table_errors
         )
 
+    @staticmethod
+    def _heading_errors_in_file(md_file: Path, heading_pattern: "re.Pattern[str]") -> List[str]:
+        """Return hierarchy-jump error strings for a single markdown file."""
+        lines = md_file.read_text(encoding="utf-8").splitlines()
+        last_level = None
+        in_fence = False
+        errors: List[str] = []
+
+        for idx, line in enumerate(lines):
+            # Skip content inside fenced code blocks so that shell/script
+            # comment lines (e.g. "# some comment") are not mistaken for
+            # Markdown headings and do not corrupt the last-seen level.
+            if line.strip().startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence:
+                continue
+
+            match = heading_pattern.match(line)
+            if not match:
+                continue
+
+            level = len(match.group(1))
+            if last_level is not None and level > last_level + 1:
+                errors.append(f"Line {idx + 1}: heading level jumps from H{last_level} to H{level}")
+            last_level = level
+
+        return errors
+
     def test_heading_hierarchy_is_logical(
         self,
         markdown_files: List[Path],
@@ -223,44 +252,13 @@ class TestDocumentationFilesValidation:
         import re
 
         heading_pattern = re.compile(r"^(#{1,6})\s+.+$")
-        hierarchy_errors: List[Tuple[Path, str]] = []
-
-        for md_file in markdown_files:
-            content = md_file.read_text(encoding="utf-8")
-            lines = content.splitlines()
-            last_level = None
-            in_fence = False
-
-            for idx, line in enumerate(lines):
-                # Skip content inside fenced code blocks so that shell/script
-                # comment lines (e.g. "# some comment") are not mistaken for
-                # Markdown headings and do not corrupt the last-seen level.
-                stripped = line.strip()
-                if stripped.startswith("```"):
-                    in_fence = not in_fence
-                    continue
-                if in_fence:
-                    continue
-
-                match = heading_pattern.match(line)
-                if not match:
-                    continue
-
-                level = len(match.group(1))
-                if last_level is None:
-                    last_level = level
-                    continue
-
-                # Allow same level, increase by one level, or decrease arbitrarily.
-                if level > last_level + 1:
-                    hierarchy_errors.append(
-                        (
-                            md_file,
-                            (f"Line {idx + 1}: heading level jumps from " f"H{last_level} to H{level}"),
-                        ),
-                    )
-                last_level = level
+        hierarchy_errors: List[Tuple[Path, str]] = [
+            (md_file, msg)
+            for md_file in markdown_files
+            for msg in self._heading_errors_in_file(md_file, heading_pattern)
+        ]
 
         assert not hierarchy_errors, "Markdown heading hierarchy issues:\n" + "\n".join(
             f"{path}: {msg}" for path, msg in hierarchy_errors
         )
+
