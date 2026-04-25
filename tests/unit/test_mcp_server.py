@@ -34,6 +34,24 @@ async def _get_mcp_resources(mcp_app):
     return await mcp_app.list_resources()
 
 
+def _extract_result_text(result):
+    """Extract text from MCP API result (handles list, tuple, or object format)."""
+    if isinstance(result, list):
+        return result[0].text
+    elif isinstance(result, tuple):
+        return result[0]
+    else:
+        return result.content[0].text
+
+
+def _extract_resource_text(result_list):
+    """Extract text from MCP resource result."""
+    if isinstance(result_list[0], str):
+        return result_list[0]
+    else:
+        return result_list[0].text
+
+
 @pytest.mark.unit
 class TestThreadSafeGraph:
     """Test cases for the _ThreadSafeGraph wrapper class."""
@@ -160,8 +178,8 @@ class TestAddEquityNode:
                 },
             )
 
-            # Extract the text result from the returned tuple
-            result_text = result[0] if isinstance(result, tuple) else result.content[0].text
+            # Extract the text result from the returned list of TextContent
+            result_text = _extract_result_text(result)
 
             assert "Successfully" in result_text
             assert "Apple Inc Test" in result_text
@@ -191,7 +209,7 @@ class TestAddEquityNode:
             },
         )
 
-        result_text = result[0] if isinstance(result, tuple) else result.content[0].text
+        result_text = _extract_result_text(result)
 
         assert isinstance(result_text, str)
         assert "Validation Error" in result_text
@@ -216,7 +234,7 @@ class TestAddEquityNode:
             },
         )
 
-        result_text = result[0] if isinstance(result, tuple) else result.content[0].text
+        result_text = _extract_result_text(result)
 
         assert "Validation Error" in result_text
         assert "id" in result_text.lower()
@@ -249,7 +267,7 @@ class TestAddEquityNode:
                 },
             )
 
-            result_text = result[0] if isinstance(result, tuple) else result.content[0].text
+            result_text = _extract_result_text(result)
 
             # Should indicate validation-only mode
             assert "validation" in result_text.lower() or "Successfully" in result_text
@@ -288,7 +306,7 @@ class TestGet3DLayout:
         result_list = await mcp_app.read_resource("graph://data/3d-layout")
 
         # Extract content from the resource response
-        result = result_list[0] if isinstance(result_list[0], str) else result_list[0].text
+        result = _extract_resource_text(result_list)
 
         # Should return valid JSON
         data = json.loads(result)
@@ -329,7 +347,7 @@ class TestGet3DLayout:
         mcp_app = _build_mcp_app()
 
         result_list = await mcp_app.read_resource("graph://data/3d-layout")
-        result = result_list[0] if isinstance(result_list[0], str) else result_list[0].text
+        result = _extract_resource_text(result_list)
         data = json.loads(result)
 
         # Verify structure
@@ -555,7 +573,7 @@ class TestEdgeCases:
             },
         )
 
-        result_text = result[0] if isinstance(result, tuple) else result.content[0].text
+        result_text = _extract_result_text(result)
 
         # Should handle special characters without error
         assert "Validation Error" not in result_text
@@ -576,7 +594,7 @@ class TestEdgeCases:
             mcp_app = _build_mcp_app()
 
             result_list = await mcp_app.read_resource("graph://data/3d-layout")
-            result = result_list[0] if isinstance(result_list[0], str) else result_list[0].text
+            result = _extract_resource_text(result_list)
             data = json.loads(result)
 
             # Should return valid structure even with empty graph
@@ -618,7 +636,7 @@ class TestEdgeCases:
             },
         )
 
-        result_text = result[0] if isinstance(result, tuple) else result.content[0].text
+        result_text = _extract_result_text(result)
 
         # Should accept very large valid price
         assert "Validation Error" not in result_text
