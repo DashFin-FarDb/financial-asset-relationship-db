@@ -182,7 +182,23 @@ def parse_arguments() -> argparse.Namespace:
         help="Enable verbose logging.",
     )
 
-    args = parser.parse_args()
+    try:
+        args = parser.parse_args()
+    except SystemExit as exc:
+        # Check if this is due to an invalid format choice
+        if "--fmt" in sys.argv:
+            fmt_idx = sys.argv.index("--fmt")
+            if fmt_idx + 1 < len(sys.argv):
+                provided_fmt = sys.argv[fmt_idx + 1]
+                valid_formats = [f.value for f in OutputFormat]
+                if provided_fmt not in valid_formats and not provided_fmt.startswith("-"):
+                    print(
+                        "Error: Invalid output format. Please use one of: markdown, text, json.",
+                        file=sys.stderr,
+                    )
+                    raise SystemExit(1) from exc
+        raise
+
     # Convert fmt string to OutputFormat enum; leave as-is if invalid so
     # main() can emit the proper user-facing error message.
     try:
@@ -293,13 +309,7 @@ def generate_report(log: logging.Logger, fmt: OutputFormat, output: Path | None)
 def main() -> int:
     """Execute the CLI and return an exit code."""
     try:
-        try:
-            args = parse_arguments()
-        except SystemExit as exc:
-            # Preserve argparse's own messaging and exit status so unrelated
-            # parse failures are not misreported as invalid output format.
-            code = int(exc.code) if exc.code is not None else 1
-            return 1 if code != 0 else 0
+        args = parse_arguments()
 
         log = configure_logging(verbose=args.verbose)
         if args.verbose:
@@ -310,6 +320,11 @@ def main() -> int:
         generate_report(log, output_format, safe_output)
         log.info("Schema report generation completed successfully.")
         return 0
+
+    except SystemExit as exc:
+        # Re-raise SystemExit from parse_arguments() to preserve exit code
+        code = int(exc.code) if exc.code is not None else 1
+        return 1 if code != 0 else 0
 
     except CLIError as exc:
         print(f"Error: {exc}", file=sys.stderr)
