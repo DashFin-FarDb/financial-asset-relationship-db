@@ -287,7 +287,7 @@ class TestGet3DLayout:
         result_list = await mcp_app.read_resource("graph://data/3d-layout")
 
         # Extract content from the resource response
-        result = result_list[0].content
+        result = result_list[0].text
 
         # Should return valid JSON
         data = json.loads(result)
