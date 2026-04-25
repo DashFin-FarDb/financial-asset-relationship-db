@@ -369,9 +369,7 @@ class TestPRAgentConfigSecurity:
                 TestPRAgentConfigSecurity.scan(item, suspected)
 
         elif isinstance(obj, str) and _looks_like_secret(obj):
-            # Skip glob patterns used for file path matching
-            if "*" not in obj:
-                suspected.append(("secret", obj))
+            suspected.append(("secret", obj))
 
     # ------------------------------------------------------------------
 
