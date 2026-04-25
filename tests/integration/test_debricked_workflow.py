@@ -40,7 +40,7 @@ def workflow_config(workflow_content: str) -> dict[str, Any]:
     try:
         return yaml.safe_load(workflow_content)
     except yaml.YAMLError as e:
-        pytest.fail(f"Invalid YAML syntax in debricked.yml: {e}")
+        raise AssertionError(f"Invalid YAML syntax in debricked.yml: {e}") from e
 
 
 @pytest.fixture(scope="module")
