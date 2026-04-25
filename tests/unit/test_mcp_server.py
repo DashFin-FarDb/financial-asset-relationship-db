@@ -14,7 +14,6 @@ approach for pytest. The S101 rule is suppressed because tests are not run with
 Python optimization flags that would remove assert statements.
 """
 
-import asyncio
 import json
 import threading
 from unittest.mock import MagicMock, Mock, patch
