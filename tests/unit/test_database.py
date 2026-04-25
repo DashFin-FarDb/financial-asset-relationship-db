@@ -591,10 +591,6 @@ class TestConcurrentDatabaseAccess:
         assert len(errors) == 0
         assert all(count == 100 for count in results)
 
-    @pytest.mark.xfail(
-        reason="SQLite concurrent writes are not fully serialized; test is inherently flaky",
-        strict=False,
-    )
     def test_concurrent_writes_serialized(self, engine: Engine, isolated_base) -> None:
         """Concurrent writes should be properly serialized."""
         import threading
@@ -637,9 +633,9 @@ class TestConcurrentDatabaseAccess:
 
         with session_scope(factory) as session:
             count = session.query(TestModel).count()
-            assert count >= num_threads - 2, f"Expected at least {num_threads - 2} writes but found {count}"
+            assert count == num_threads, f"Expected {num_threads} writes but found {count}"
 
-        assert len(errors) <= 2, f"Too many errors: {len(errors)}"
+        assert len(errors) == 0, f"Expected no errors but got {len(errors)}: {errors}"
 
 
 # ---------------------------------------------------------------------------

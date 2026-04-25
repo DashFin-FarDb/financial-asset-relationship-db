@@ -15,7 +15,7 @@ import tempfile
 import traceback
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Optional
 
 try:
     from github import Github, GithubException
@@ -56,14 +56,14 @@ class PRStatus:
     deletions: int
 
     # State
-    labels: List[str]
+    labels: list[str]
     mergeable: Optional[bool]
     mergeable_state: str
 
     # Reviews & Checks
-    review_stats: Dict[str, int]
+    review_stats: dict[str, int]
     open_thread_count: int
-    check_runs: List[CheckRunInfo]
+    check_runs: list[CheckRunInfo]
 
 
 def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
@@ -184,7 +184,7 @@ def format_checklist(status: PRStatus) -> str:
     return "\n".join(tasks)
 
 
-def format_checks_section(checks: List[CheckRunInfo]) -> str:
+def format_checks_section(checks: list[CheckRunInfo]) -> str:
     """Format the CI status section."""
     if not checks:
         return "- ℹ️ No checks configured or pending"
@@ -314,12 +314,12 @@ def write_output(content: str) -> None:
     print(content)
 
 
-def _validate_environment() -> Dict[str, str]:
+def _validate_environment() -> dict[str, str]:
     """
     Validate required environment variables are set.
 
     Returns:
-        Dict[str, str]: Dictionary of validated environment variables.
+        dict[str, str]: Dictionary of validated environment variables.
 
     Exits:
         Exits with status 1 if any required variables are missing.
@@ -335,7 +335,8 @@ def _validate_environment() -> Dict[str, str]:
         )
         sys.exit(1)
 
-    return env  # type: ignore
+    # Type narrowing: we've verified all values are truthy (not None/empty)
+    return {k: v for k, v in env.items() if v is not None}
 
 
 def _parse_pr_number(pr_number_str: str) -> int:

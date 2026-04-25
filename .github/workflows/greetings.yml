@@ -1,9 +1,5 @@
 name: Greetings
 
-permissions:
-  issues: write
-  pull-requests: write
-
 "on":
   pull_request_target:
   issues:
@@ -11,6 +7,9 @@ permissions:
 jobs:
   greeting:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
     - uses: actions/first-interaction@3c71ce730280171fd1cfb57c00c774f8998586f7 # v1
       with:

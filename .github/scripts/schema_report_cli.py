@@ -155,7 +155,22 @@ def configure_logging(verbose: bool = False) -> logging.Logger:
 
 
 def parse_arguments() -> argparse.Namespace:
-    """Parse command-line arguments for the schema report CLI."""
+    """Parse command-line arguments for the schema report CLI.
+
+    Returns:
+        argparse.Namespace with the following attributes:
+            - fmt (OutputFormat): Converted enum instance (not string)
+            - output (Path | None): Output file path or None for stdout
+            - verbose (bool): Verbose logging flag
+
+    Raises:
+        CLIError: If the format string is not a valid OutputFormat value.
+
+    Note:
+        The fmt attribute is converted from string to OutputFormat enum
+        during parsing. This allows better type safety in downstream code
+        but means callers receive an enum, not the raw string argument.
+    """
     parser = argparse.ArgumentParser(
         description=("Generate schema reports for financial asset relationships."),
         formatter_class=argparse.RawDescriptionHelpFormatter,
