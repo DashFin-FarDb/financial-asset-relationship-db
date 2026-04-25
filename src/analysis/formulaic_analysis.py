@@ -580,8 +580,10 @@ class FormulaicAnalyzer:
             description=("Portfolio variance for a two-asset portfolio"),
             variables={
                 "σ²_p": "Portfolio variance",
-                "w_i": "Weight of asset i",
-                "σ_i": "Standard deviation of asset i",
+                "w₁": "Weight of asset 1",
+                "w₂": "Weight of asset 2",
+                "σ₁": "Standard deviation of asset 1",
+                "σ₂": "Standard deviation of asset 2",
                 "σ₁₂": "Covariance between assets 1 and 2",
             },
             example_calculation={},
