@@ -190,9 +190,7 @@ def parse_arguments() -> argparse.Namespace:
     try:
         args.fmt = OutputFormat(args.fmt)
     except ValueError:
-        raise CLIError(
-            "Invalid output format. Please use one of: {}".format(", ".join(valid_formats))
-        )
+        raise CLIError("Invalid output format. Please use one of: {}".format(", ".join(valid_formats)))
     return args
 
 

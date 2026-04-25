@@ -33,7 +33,6 @@ if importlib.util.find_spec("github") is None:
 import generate_status  # noqa: E402
 from github import GithubException  # noqa: E402
 
-
 # --- Fixtures ---
 
 
