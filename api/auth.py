@@ -308,7 +308,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
     """
     Retrieve the UserInDB identified by the JWT's subject.
 
@@ -395,7 +395,7 @@ def _decode_username_from_token(
         raise credentials_exception from e
 
 
-def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """
     Verify that the authenticated user's account is active.
 
