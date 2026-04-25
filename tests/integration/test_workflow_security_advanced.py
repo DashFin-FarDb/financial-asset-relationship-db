@@ -239,7 +239,7 @@ class TestWorkflowSupplyChainSecurity:
     @staticmethod
     def _is_sha_exempt_action(action_name: str, sha_exempt_actions: set) -> bool:
         """Check if action is exempt from SHA pinning requirement."""
-        return any(action_name.startswith(exempt) for exempt in sha_exempt_actions)
+        return any(action_name == exempt or action_name.startswith(exempt + '/') for exempt in sha_exempt_actions)
 
     @staticmethod
     def _validate_action_sha_pinning(action: str, workflow_path: str, job_name: str, step_idx: int) -> None:
