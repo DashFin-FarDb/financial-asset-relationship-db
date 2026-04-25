@@ -29,6 +29,24 @@ import suggest_fixes  # noqa: E402
 # --- Fixtures ---
 
 
+def _create_env_without_runner_temp(additional_vars: dict) -> dict:
+    """Create a clean environment dict with additional vars but without RUNNER_TEMP.
+
+    Args:
+        additional_vars: Dictionary of environment variables to include.
+
+    Returns:
+        dict: Environment dictionary with all current env vars except RUNNER_TEMP,
+              plus any additional vars provided.
+    """
+    env = additional_vars.copy()
+    # Preserve other env vars but exclude RUNNER_TEMP
+    for key, value in os.environ.items():
+        if key != "RUNNER_TEMP":
+            env[key] = value
+    return env
+
+
 @pytest.fixture
 def sample_config():
     """Create a sample configuration."""
@@ -966,11 +984,7 @@ def test_write_output_to_github_step_summary():
 
     # Create a clean environment with GITHUB_STEP_SUMMARY but without RUNNER_TEMP
     # to skip the security path-check
-    env = {"GITHUB_STEP_SUMMARY": summary_file}
-    # Preserve other env vars but exclude RUNNER_TEMP
-    for key, value in os.environ.items():
-        if key != "RUNNER_TEMP":
-            env[key] = value
+    env = _create_env_without_runner_temp({"GITHUB_STEP_SUMMARY": summary_file})
 
     with patch.dict(os.environ, env, clear=True):
         m = mock_open()
@@ -1007,11 +1021,7 @@ def test_write_output_handles_io_error_github_summary(capsys):
 
     # Create a clean environment with GITHUB_STEP_SUMMARY but without RUNNER_TEMP
     # to skip the security path-check and hit the IOError
-    env = {"GITHUB_STEP_SUMMARY": summary_file}
-    # Preserve other env vars but exclude RUNNER_TEMP
-    for key, value in os.environ.items():
-        if key != "RUNNER_TEMP":
-            env[key] = value
+    env = _create_env_without_runner_temp({"GITHUB_STEP_SUMMARY": summary_file})
 
     with patch.dict(os.environ, env, clear=True):
         with patch("builtins.open", side_effect=IOError("Permission denied")):
