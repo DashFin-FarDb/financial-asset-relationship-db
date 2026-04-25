@@ -53,7 +53,9 @@ class TestRequirementsDevChanges:
 
         assert pyyaml_line is not None
         # Find all non-comment lines for the PyYAML package itself (not type stubs)
-        pyyaml_lines = [line for line in lines if line.lower().startswith("pyyaml") and not line.strip().startswith("#")]
+        pyyaml_lines = [
+            line for line in lines if line.lower().startswith("pyyaml") and not line.strip().startswith("#")
+        ]
         # Assert exactly one active PyYAML requirement exists
         assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
         pyyaml_line = pyyaml_lines[0]
@@ -74,7 +76,11 @@ class TestRequirementsDevChanges:
         Parameters:
             requirements_dev_content(str): Contents of requirements - dev.txt.
         """
-        lines = [line.strip() for line in requirements_dev_content.split("\n") if line.strip() and not line.strip().startswith("#")]
+        lines = [
+            line.strip()
+            for line in requirements_dev_content.split("\n")
+            if line.strip() and not line.strip().startswith("#")
+        ]
 
         # Split on any common version operator to reliably extract the package name
         from packaging.requirements import Requirement

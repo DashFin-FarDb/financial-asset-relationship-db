@@ -253,9 +253,9 @@ class TestWorkflowSupplyChainSecurity:
         """
         if "@" in action:
             version = action.split("@")[1]
-            assert re.match(r"^[a-f0-9]{40}$", version.lower()), (
-                f"Action {action} in {workflow_path} job '{job_name}' step {step_idx} must be pinned to a SHA"
-            )
+            assert re.match(
+                r"^[a-f0-9]{40}$", version.lower()
+            ), f"Action {action} in {workflow_path} job '{job_name}' step {step_idx} must be pinned to a SHA"
 
     @staticmethod
     def _validate_workflow_job_steps(workflow, sha_exempt_actions):
