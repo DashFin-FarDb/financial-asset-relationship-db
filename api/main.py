@@ -61,9 +61,14 @@ def get_graph() -> AssetRelationshipGraph:
     return _get_graph()
 
 
-def set_graph(graph: AssetRelationshipGraph) -> None:
+def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """Set the shared asset relationship graph instance."""
-    _set_graph(graph)
+    global graph  # noqa: PLW0603
+    _set_graph(graph_instance)
+    # Keep the module-level reference in sync so router_helpers.get_graph()
+    # (which prefers api.main.graph for backward compatibility) sees the
+    # updated instance immediately.
+    graph = graph_instance
 
 
 GraphFactory = Callable[[], AssetRelationshipGraph]
@@ -76,4 +81,9 @@ def set_graph_factory(factory: Optional[GraphFactory]) -> None:
 
 def reset_graph() -> None:
     """Reset the shared asset relationship graph state."""
+    global graph  # noqa: PLW0603
     _reset_graph()
+    # Clear the module-level reference so router_helpers.get_graph() falls
+    # through to the lifecycle get_graph() on the next request, which will
+    # trigger lazy re-initialization from the configured factory or settings.
+    graph = None  # type: ignore[assignment]

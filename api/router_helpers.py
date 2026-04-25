@@ -13,7 +13,7 @@ def get_graph():
     try:
         import api.main as api_main  # local import to avoid import cycle at module import time
 
-        if hasattr(api_main, "graph"):
+        if hasattr(api_main, "graph") and api_main.graph is not None:
             return api_main.graph
     except Exception:
         pass
