@@ -689,7 +689,7 @@ class TestPrAgentWorkflowAdvanced:
         """
         Ensure the pr-agent workflow defines exactly three jobs.
 
-        Asserts that the workflow's top-level `jobs` mapping contains exactly 
+        Asserts that the workflow's top-level `jobs` mapping contains exactly
         three entries named "pr-agent-action", "auto-merge-check" and "dependency-update".
         """
         jobs = pr_agent_workflow.get("jobs", {})
