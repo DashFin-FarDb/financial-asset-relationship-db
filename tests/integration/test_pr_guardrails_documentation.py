@@ -11,7 +11,6 @@ Covers:
 
 import re
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -34,7 +33,7 @@ def _load(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _lines(content: str) -> List[str]:
+def _lines(content: str) -> list[str]:
     return content.splitlines()
 
 
@@ -52,7 +51,7 @@ class TestAIAgentGuardrails:
         return _load(AI_GUARDRAILS_FILE)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -62,7 +61,7 @@ class TestAIAgentGuardrails:
     def test_file_is_not_empty(self, content: str) -> None:
         assert len(content.strip()) > 0, "AI_AGENT_GUARDRAILS.md must not be empty"
 
-    def test_title_is_level_one_heading(self, lines: List[str]) -> None:
+    def test_title_is_level_one_heading(self, lines: list[str]) -> None:
         first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None, "File must have at least one heading"
         assert first_heading.startswith("# "), "First heading must be H1"
@@ -120,7 +119,7 @@ class TestAIAgentGuardrails:
         dep_section = content.split("### Dependency alignment PR")[1].split("###")[0]
         assert "pyproject.toml" in dep_section
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -129,7 +128,7 @@ class TestAIAgentGuardrails:
         count = content.count("```")
         assert count % 2 == 0, f"Unbalanced code fences: {count} backtick groups"
 
-    def test_no_trailing_whitespace(self, lines: List[str]) -> None:
+    def test_no_trailing_whitespace(self, lines: list[str]) -> None:
         bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
@@ -164,7 +163,7 @@ class TestDependencyChangePRTemplate:
         return _load(DEPENDENCY_CHANGE_TEMPLATE)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     @staticmethod
@@ -284,12 +283,12 @@ class TestDependencyChangePRTemplate:
         count = content.count("```")
         assert count % 2 == 0, f"Unbalanced code fences: {count} backtick groups"
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
 
-    def test_no_trailing_whitespace(self, lines: List[str]) -> None:
+    def test_no_trailing_whitespace(self, lines: list[str]) -> None:
         bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
@@ -312,7 +311,7 @@ class TestValidatorFollowupPRTemplate:
         return _load(VALIDATOR_FOLLOWUP_TEMPLATE)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -386,12 +385,12 @@ class TestValidatorFollowupPRTemplate:
         count = content.count("```")
         assert count % 2 == 0, f"Unbalanced code fences: {count} backtick groups"
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
 
-    def test_no_trailing_whitespace(self, lines: List[str]) -> None:
+    def test_no_trailing_whitespace(self, lines: list[str]) -> None:
         bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
@@ -417,7 +416,7 @@ class TestDependencyPolicyDoc:
         return _load(DEPENDENCY_POLICY_FILE)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -427,7 +426,7 @@ class TestDependencyPolicyDoc:
     def test_file_is_not_empty(self, content: str) -> None:
         assert len(content.strip()) > 0
 
-    def test_title_is_level_one_heading(self, lines: List[str]) -> None:
+    def test_title_is_level_one_heading(self, lines: list[str]) -> None:
         first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None
         assert first_heading.startswith("# ")
@@ -539,7 +538,7 @@ class TestDependencyPolicyDoc:
                 in_fence = not in_fence
         assert not issues, "Code blocks must have language identifiers:\n" + "\n".join(issues)
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -548,7 +547,7 @@ class TestDependencyPolicyDoc:
         count = content.count("```")
         assert count % 2 == 0, f"Unbalanced code fences: {count} backtick groups"
 
-    def test_no_trailing_whitespace(self, lines: List[str]) -> None:
+    def test_no_trailing_whitespace(self, lines: list[str]) -> None:
         bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
@@ -582,7 +581,7 @@ class TestPRScopeGuardrailsDoc:
         return _load(PR_SCOPE_GUARDRAILS_FILE)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -592,7 +591,7 @@ class TestPRScopeGuardrailsDoc:
     def test_file_is_not_empty(self, content: str) -> None:
         assert len(content.strip()) > 0
 
-    def test_title_is_level_one_heading(self, lines: List[str]) -> None:
+    def test_title_is_level_one_heading(self, lines: list[str]) -> None:
         first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None
         assert first_heading.startswith("# ")
@@ -678,7 +677,7 @@ class TestPRScopeGuardrailsDoc:
         bullets = [line for line in reviewer_section.splitlines() if line.strip().startswith("- ")]
         assert len(bullets) >= 3, "Reviewer checklist must have at least 3 items"
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -687,7 +686,7 @@ class TestPRScopeGuardrailsDoc:
         count = content.count("```")
         assert count % 2 == 0, f"Unbalanced code fences: {count} backtick groups"
 
-    def test_no_trailing_whitespace(self, lines: List[str]) -> None:
+    def test_no_trailing_whitespace(self, lines: list[str]) -> None:
         bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 

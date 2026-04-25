@@ -117,7 +117,7 @@ class TestGet3DVisualizationDataEnhanced:
 
         _, asset_ids, _, hover_texts = graph.get_3d_visualization_data_enhanced()
 
-        for asset_id, hover_text in zip(asset_ids, hover_texts):
+        for asset_id, hover_text in zip(asset_ids, hover_texts, strict=False):
             assert hover_text == f"Asset: {asset_id}"
 
     @staticmethod

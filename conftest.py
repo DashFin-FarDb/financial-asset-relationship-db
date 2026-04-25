@@ -9,8 +9,9 @@ This file centralizes:
 """
 
 import importlib.util
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import pytest
 from sqlalchemy.engine import Engine

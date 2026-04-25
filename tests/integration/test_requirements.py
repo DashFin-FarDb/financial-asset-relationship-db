@@ -13,7 +13,6 @@ statements are the standard and required pattern in pytest test files.
 
 import re
 from pathlib import Path
-from typing import List, Tuple
 
 import pytest
 from packaging.requirements import InvalidRequirement, Requirement
@@ -22,7 +21,7 @@ from packaging.requirements import InvalidRequirement, Requirement
 REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements.txt"
 
 
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
+def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
     """Parse requirements file and return list of (package, version_spec) tuples.
 
     Examples:
@@ -45,7 +44,7 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     requirements = []
 
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
 
@@ -62,7 +61,7 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 # Preserve the package token as written in the requirements file
                 raw_pkg_token = line.split(";", 1)[0]  # drop environment markers
                 raw_pkg_token = raw_pkg_token.split("[", 1)[0]  # drop extras
-                pkg_part = re.split(r"(?=[<>=!~,])", raw_pkg_token, 1)[0].strip()
+                pkg_part = re.split(r"(?=[<>=!~,])", raw_pkg_token, maxsplit=1)[0].strip()
                 pkg = pkg_part or req.name.strip()
 
                 specifier_str = str(req.specifier).strip()
@@ -92,7 +91,7 @@ class TestRequirementsFileExists:
     @staticmethod
     def test_file_is_readable():
         """Test that the file can be read."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(REQUIREMENTS_FILE, encoding="utf-8") as f:
             content = f.read()
             assert len(content) > 0
 
@@ -103,23 +102,23 @@ class TestRequirementsFileFormat:
     @pytest.fixture
     def file_content(self) -> str:
         """Load requirements file content."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(REQUIREMENTS_FILE, encoding="utf-8") as f:
             return f.read()
 
     @pytest.fixture
-    def file_lines(self) -> List[str]:
+    def file_lines(self) -> list[str]:
         """Load requirements file as list of lines."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(REQUIREMENTS_FILE, encoding="utf-8") as f:
             return f.readlines()
 
     @staticmethod
     def test_file_encoding():
         """Test that file uses UTF-8 encoding."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(REQUIREMENTS_FILE, encoding="utf-8") as f:
             f.read()
 
     @staticmethod
-    def test_no_trailing_whitespace(file_lines: List[str]):
+    def test_no_trailing_whitespace(file_lines: list[str]):
         """Test that lines don't have trailing whitespace."""
         lines_with_trailing = [
             (i + 1, repr(line)) for i, line in enumerate(file_lines) if line.rstrip("\n") != line.rstrip()
@@ -132,7 +131,7 @@ class TestRequirementsFileFormat:
         assert file_content.endswith("\n"), "File should end with a newline character"
 
     @staticmethod
-    def test_no_blank_lines_in_middle(file_lines: List[str]):
+    def test_no_blank_lines_in_middle(file_lines: list[str]):
         """Test that there are no excessive blank lines (max 1 consecutive)."""
         consecutive_blanks = 0
         max_consecutive = 0
@@ -150,39 +149,39 @@ class TestRequiredPackages:
 
     @pytest.fixture
     @staticmethod
-    def requirements() -> List[Tuple[str, str]]:
+    def requirements() -> list[tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
     @pytest.fixture
     @staticmethod
-    def package_names(requirements: List[Tuple[str, str]]) -> List[str]:
+    def package_names(requirements: list[tuple[str, str]]) -> list[str]:
         """Extract package names from requirements."""
         return [pkg.lower() for pkg, _ in requirements]
 
     @staticmethod
-    def test_has_core_packages(package_names: List[str]):
+    def test_has_core_packages(package_names: list[str]):
         """Test that core application packages are present."""
         # Based on the application structure, these are likely core dependencies
         assert len(package_names) > 0, "Requirements file should not be empty"
 
     @staticmethod
-    def test_has_fastapi(package_names: List[str]):
+    def test_has_fastapi(package_names: list[str]):
         """Test that FastAPI is included for API framework."""
         assert "fastapi" in package_names
 
     @staticmethod
-    def test_has_uvicorn(package_names: List[str]):
+    def test_has_uvicorn(package_names: list[str]):
         """Test that uvicorn is included for ASGI server."""
         assert "uvicorn" in package_names
 
     @staticmethod
-    def test_has_pydantic(package_names: List[str]):
+    def test_has_pydantic(package_names: list[str]):
         """Test that pydantic is included for data validation."""
         assert "pydantic" in package_names
 
     @staticmethod
-    def test_has_security_pinned_packages(requirements: List[Tuple[str, str]]):
+    def test_has_security_pinned_packages(requirements: list[tuple[str, str]]):
         """Test that security-pinned packages are present with comments."""
         # Check for zipp which was added as a security fix
         zipp_entries = [pkg for pkg, _ in requirements if pkg.lower() == "zipp"]
@@ -194,15 +193,15 @@ class TestVersionSpecifications:
 
     @staticmethod
     @pytest.fixture
-    def requirements() -> List[Tuple[str, str]]:
+    def requirements() -> list[tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
-    def test_all_packages_parseable(self, requirements: List[Tuple[str, str]]):
+    def test_all_packages_parseable(self, requirements: list[tuple[str, str]]):
         """Test that all package specifications are parseable."""
         assert len(requirements) > 0
 
-    def test_version_format_valid(self, requirements: List[Tuple[str, str]]):
+    def test_version_format_valid(self, requirements: list[tuple[str, str]]):
         """Test that version specifications use valid format."""
         version_pattern = re.compile(r"^(>=|==|<=|>|<|~=)\d+(\.\d+)*$")
 
@@ -213,22 +212,22 @@ class TestVersionSpecifications:
                     spec = spec.strip()
                     assert version_pattern.match(spec), f"Invalid version spec '{spec}' for package '{pkg}'"
 
-    def test_zipp_security_version(self, requirements: List[Tuple[str, str]]):
+    def test_zipp_security_version(self, requirements: list[tuple[str, str]]):
         """Test that zipp has the security-required minimum version."""
         zipp_specs = [ver for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_specs) > 0, "zipp should be present for security fix"
         assert zipp_specs[0].startswith(">=3.19"), f"zipp should be >=3.19.1, got {zipp_specs[0]}"
 
-    def test_uses_minimum_versions(self, requirements: List[Tuple[str, str]]):
+    def test_uses_minimum_versions(self, requirements: list[tuple[str, str]]):
         """Test that most packages use >= for version specifications."""
         specs_using_gte = [ver for pkg, ver in requirements if ver.startswith(">=")]
         all_with_versions = [ver for pkg, ver in requirements if ver]
         # At least 70% should use >= for flexibility
         assert len(specs_using_gte) >= len(all_with_versions) * 0.7
 
-    def test_no_exact_pins_without_comment(self, requirements: List[Tuple[str, str]]):
+    def test_no_exact_pins_without_comment(self, requirements: list[tuple[str, str]]):
         """Test that exact pins (==) are documented with comments in the file."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(REQUIREMENTS_FILE, encoding="utf-8") as f:
             lines = f.readlines()
 
         exact_pins = [pkg for pkg, ver in requirements if ver.startswith("==")]
@@ -247,31 +246,31 @@ class TestPackageConsistency:
 
     @pytest.fixture
     @staticmethod
-    def requirements() -> List[Tuple[str, str]]:
+    def requirements() -> list[tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
     @pytest.fixture
     @staticmethod
-    def package_names(requirements: List[Tuple[str, str]]) -> List[str]:
+    def package_names(requirements: list[tuple[str, str]]) -> list[str]:
         """Extract package names from requirements."""
         return [pkg for pkg, _ in requirements]
 
     @staticmethod
-    def test_no_duplicate_packages(package_names: List[str]):
+    def test_no_duplicate_packages(package_names: list[str]):
         """Test that no package is listed multiple times."""
         lowercase_names = [name.lower() for name in package_names]
         duplicates = [name for name in lowercase_names if lowercase_names.count(name) > 1]
         assert len(set(duplicates)) == 0, f"Duplicate packages found: {set(duplicates)}"
 
     @staticmethod
-    def test_packages_sorted_logically(package_names: List[str]):
+    def test_packages_sorted_logically(package_names: list[str]):
         """Test that packages are organized in logical groups."""
         # We don't enforce strict alphabetical sorting, but check for some organization
         assert len(package_names) > 0
 
     @staticmethod
-    def test_package_names_valid(package_names: List[str]):
+    def test_package_names_valid(package_names: list[str]):
         """
         Assert that each package name contains only letters, digits, underscores, hyphens, or dots.
 
@@ -288,7 +287,7 @@ class TestPackageConsistency:
         assert len(invalid_names) == 0, f"Invalid package names: {invalid_names}"
 
     @staticmethod
-    def test_no_conflicting_packages(package_names: List[str]):
+    def test_no_conflicting_packages(package_names: list[str]):
         """Test that there are no known conflicting packages."""
         # Check for common conflicts (example: different database drivers)
         lowercase_names = [name.lower() for name in package_names]
@@ -309,19 +308,19 @@ class TestFileOrganization:
 
     @pytest.fixture
     @staticmethod
-    def file_lines() -> List[str]:
+    def file_lines() -> list[str]:
         """Load requirements file as list of lines."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(REQUIREMENTS_FILE, encoding="utf-8") as f:
             return f.readlines()
 
     @staticmethod
-    def test_reasonable_file_size(file_lines: List[str]):
+    def test_reasonable_file_size(file_lines: list[str]):
         """Test that file size is reasonable (not too large)."""
         # Production requirements should typically be under 100 lines
         assert len(file_lines) < 200, f"Requirements file is too large: {len(file_lines)} lines"
 
     @staticmethod
-    def test_has_comments_for_sections(file_lines: List[str]):
+    def test_has_comments_for_sections(file_lines: list[str]):
         """Test that file has organizational comments."""
         comment_lines = [line for line in file_lines if line.strip().startswith("#")]
         # Should have at least some comments for organization
@@ -333,7 +332,7 @@ class TestSecurityAndCompliance:
 
     @pytest.fixture
     @staticmethod
-    def requirements() -> List[Tuple[str, str]]:
+    def requirements() -> list[tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
@@ -341,11 +340,11 @@ class TestSecurityAndCompliance:
     @staticmethod
     def file_content() -> str:
         """Load requirements file content."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(REQUIREMENTS_FILE, encoding="utf-8") as f:
             return f.read()
 
     @staticmethod
-    def test_zipp_security_fix_present(requirements: List[Tuple[str, str]]):
+    def test_zipp_security_fix_present(requirements: list[tuple[str, str]]):
         """Test that zipp security fix is present."""
         zipp_entries = [(pkg, ver) for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_entries) == 1, "zipp security pin should be present exactly once"
@@ -370,7 +369,7 @@ class TestSecurityAndCompliance:
         ), f"zipp comment should mention security/vulnerability, got: {comment}"
 
     @staticmethod
-    def test_no_known_vulnerable_versions(requirements: List[Tuple[str, str]]):
+    def test_no_known_vulnerable_versions(requirements: list[tuple[str, str]]):
         """Test that packages don't use known vulnerable version patterns."""
         # This is a basic check - in production, integrate with safety or snyk
         for _, ver in requirements:
@@ -426,12 +425,12 @@ class TestComprehensiveValidation:
 
     @staticmethod
     @pytest.fixture
-    def requirements() -> List[Tuple[str, str]]:
+    def requirements() -> list[tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
     @staticmethod
-    def test_all_packages_have_versions_or_pins(requirements: List[Tuple[str, str]]):
+    def test_all_packages_have_versions_or_pins(requirements: list[tuple[str, str]]):
         """Test that critical packages have version specifications."""
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         # Allow some packages without versions, but production deps should mostly be pinned
@@ -440,7 +439,7 @@ class TestComprehensiveValidation:
         ), f"Too many packages without versions: {packages_without_versions}"
 
     @staticmethod
-    def test_version_consistency(requirements: List[Tuple[str, str]]):
+    def test_version_consistency(requirements: list[tuple[str, str]]):
         """Test that version specifications are consistent in style."""
         version_styles = {}
         for pkg, ver in requirements:
@@ -459,9 +458,9 @@ class TestComprehensiveValidation:
             assert len(max_style) >= total_versioned * 0.6, "Version specifications should be consistent in style"
 
     @staticmethod
-    def test_transitive_dependencies_documented(requirements: List[Tuple[str, str]]):
+    def test_transitive_dependencies_documented(requirements: list[tuple[str, str]]):
         """Test that transitive dependencies are documented if pinned."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(REQUIREMENTS_FILE, encoding="utf-8") as f:
             lines = f.readlines()
 
         # Packages that are typically transitive dependencies

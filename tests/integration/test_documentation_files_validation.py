@@ -11,7 +11,6 @@ Tests ensure that:
 
 import re
 from pathlib import Path
-from typing import List, Tuple
 
 import pytest
 
@@ -34,7 +33,7 @@ class TestDocumentationFilesValidation:
         return path.name in legacy_markdown_debt
 
     @staticmethod
-    def _collect_docs_dir_files() -> List[Path]:
+    def _collect_docs_dir_files() -> list[Path]:
         """Collect markdown files from the docs/ directory."""
         docs_dir = Path("docs")
         if not docs_dir.exists():
@@ -42,15 +41,15 @@ class TestDocumentationFilesValidation:
         return [f for f in docs_dir.rglob("*.md") if not TestDocumentationFilesValidation._is_excluded(f)]
 
     @staticmethod
-    def _collect_top_level_files() -> List[Path]:
+    def _collect_top_level_files() -> list[Path]:
         """Collect top-level markdown files such as README.md, CONTRIBUTING.md."""
         return [f for f in Path(".").glob("*.md") if not TestDocumentationFilesValidation._is_excluded(f)]
 
     @staticmethod
-    def _deduplicate_files(files: List[Path]) -> List[Path]:
+    def _deduplicate_files(files: list[Path]) -> list[Path]:
         """Remove duplicate paths while preserving order."""
         seen = set()
-        unique_files: List[Path] = []
+        unique_files: list[Path] = []
         for f in files:
             if f not in seen:
                 seen.add(f)
@@ -58,14 +57,14 @@ class TestDocumentationFilesValidation:
         return unique_files
 
     @staticmethod
-    def _markdown_files() -> List[Path]:
+    def _markdown_files() -> list[Path]:
         """Return markdown files to validate (docs/ plus top-level *.md)."""
         files = TestDocumentationFilesValidation._collect_docs_dir_files()
         files.extend(TestDocumentationFilesValidation._collect_top_level_files())
         return TestDocumentationFilesValidation._deduplicate_files(files)
 
     @pytest.fixture(scope="class")
-    def markdown_files(self) -> List[Path]:
+    def markdown_files(self) -> list[Path]:
         """Collect markdown files or skip the suite if none exist."""
         files = self._markdown_files()
         if not files:
@@ -74,11 +73,11 @@ class TestDocumentationFilesValidation:
 
     def test_markdown_files_are_readable_and_non_empty(
         self,
-        markdown_files: List[Path],
+        markdown_files: list[Path],
     ) -> None:
         """All markdown files should be readable and non-empty."""
-        unreadable: List[Tuple[Path, str]] = []
-        empty: List[Path] = []
+        unreadable: list[tuple[Path, str]] = []
+        empty: list[Path] = []
 
         for md_file in markdown_files:
             try:
@@ -90,7 +89,7 @@ class TestDocumentationFilesValidation:
             if not content.strip():
                 empty.append(md_file)
 
-        errors: List[str] = []
+        errors: list[str] = []
         for path, msg in unreadable:
             errors.append(f"{path}: unreadable ({msg})")
         for path in empty:
@@ -100,7 +99,7 @@ class TestDocumentationFilesValidation:
 
     def test_markdown_is_parseable_if_markdown_installed(
         self,
-        markdown_files: List[Path],
+        markdown_files: list[Path],
     ) -> None:
         """Markdown should be parseable if the markdown lib is available."""
         try:
@@ -110,7 +109,7 @@ class TestDocumentationFilesValidation:
                 "markdown package not installed; skipping parseability checks.",
             )
 
-        parse_errors: List[Tuple[Path, str]] = []
+        parse_errors: list[tuple[Path, str]] = []
 
         for md_file in markdown_files:
             content = md_file.read_text(encoding="utf-8")
@@ -123,12 +122,12 @@ class TestDocumentationFilesValidation:
 
     def test_links_are_well_formed(
         self,
-        markdown_files: List[Path],
+        markdown_files: list[Path],
     ) -> None:
         """Links should use basic [text](url) structure without obvious issues."""
         import re
 
-        bad_links: List[Tuple[Path, str]] = []
+        bad_links: list[tuple[Path, str]] = []
 
         link_pattern = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
         for md_file in markdown_files:
@@ -148,10 +147,10 @@ class TestDocumentationFilesValidation:
 
     def test_code_blocks_have_language_identifiers_where_expected(
         self,
-        markdown_files: List[Path],
+        markdown_files: list[Path],
     ) -> None:
         """Triple-backtick code fences should usually specify a language."""
-        fence_issues: List[Tuple[Path, str]] = []
+        fence_issues: list[tuple[Path, str]] = []
 
         for md_file in markdown_files:
             content = md_file.read_text(encoding="utf-8")
@@ -177,10 +176,10 @@ class TestDocumentationFilesValidation:
 
     def test_tables_have_consistent_column_counts(
         self,
-        markdown_files: List[Path],
+        markdown_files: list[Path],
     ) -> None:
         """Markdown tables should have consistent column counts within a table."""
-        table_errors: List[Tuple[Path, str]] = []
+        table_errors: list[tuple[Path, str]] = []
 
         for md_file in markdown_files:
             content = md_file.read_text(encoding="utf-8")
@@ -217,12 +216,12 @@ class TestDocumentationFilesValidation:
         )
 
     @staticmethod
-    def _heading_errors_in_file(md_file: Path, heading_pattern: "re.Pattern[str]") -> List[str]:
+    def _heading_errors_in_file(md_file: Path, heading_pattern: "re.Pattern[str]") -> list[str]:
         """Return hierarchy-jump error strings for a single markdown file."""
         lines = md_file.read_text(encoding="utf-8").splitlines()
         last_level = None
         in_fence = False
-        errors: List[str] = []
+        errors: list[str] = []
 
         for idx, line in enumerate(lines):
             # Skip content inside fenced code blocks so that shell/script
@@ -247,13 +246,13 @@ class TestDocumentationFilesValidation:
 
     def test_heading_hierarchy_is_logical(
         self,
-        markdown_files: List[Path],
+        markdown_files: list[Path],
     ) -> None:
         """Heading levels should not jump by more than one level."""
         import re
 
         heading_pattern = re.compile(r"^(#{1,6})\s+.+$")
-        hierarchy_errors: List[Tuple[Path, str]] = [
+        hierarchy_errors: list[tuple[Path, str]] = [
             (md_file, msg)
             for md_file in markdown_files
             for msg in self._heading_errors_in_file(md_file, heading_pattern)

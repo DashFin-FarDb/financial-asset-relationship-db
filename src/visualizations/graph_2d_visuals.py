@@ -11,7 +11,7 @@ relationship filtering.
 
 import logging
 import math
-from typing import Dict, List, Tuple, cast
+from typing import cast
 
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 
@@ -32,8 +32,8 @@ REL_TYPE_COLORS = {
 
 
 def _create_circular_layout(
-    asset_ids: List[str],
-) -> Dict[str, Tuple[float, float]]:
+    asset_ids: list[str],
+) -> dict[str, tuple[float, float]]:
     """
     Generate 2D positions for the given assets placed evenly around the unit circle.
 
@@ -59,8 +59,8 @@ def _create_circular_layout(
 
 
 def _create_grid_layout(
-    asset_ids: List[str],
-) -> Dict[str, Tuple[float, float]]:
+    asset_ids: list[str],
+) -> dict[str, tuple[float, float]]:
     """
     Create a 2D grid layout that assigns each asset to integer (x, y) grid coordinates.
 
@@ -83,8 +83,8 @@ def _create_grid_layout(
 
 
 def _create_spring_layout_2d(
-    positions_3d: Dict[str, Tuple[float, float, float]], asset_ids: List[str]
-) -> Dict[str, Tuple[float, float]]:
+    positions_3d: dict[str, tuple[float, float, float]], asset_ids: list[str]
+) -> dict[str, tuple[float, float]]:
     """Convert 3D spring layout positions to 2D by dropping z-coordinate.
 
     Args:
@@ -110,8 +110,8 @@ def _create_spring_layout_2d(
 
 def _create_2d_relationship_traces(
     graph: AssetRelationshipGraph,
-    positions: Dict[str, Tuple[float, float]],
-    asset_ids: List[str],
+    positions: dict[str, tuple[float, float]],
+    asset_ids: list[str],
     show_same_sector: bool = True,
     show_market_cap: bool = True,
     show_correlation: bool = True,
@@ -120,7 +120,7 @@ def _create_2d_relationship_traces(
     show_income_comparison: bool = True,
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
-) -> List[go.Scatter]:
+) -> list[go.Scatter]:
     """
     Create Plotly line traces for asset-to-asset relationships, grouped and filtered by relationship type.
 
@@ -181,7 +181,7 @@ def _relationship_visibility_filters(
     show_commodity_currency: bool,
     show_income_comparison: bool,
     show_regulatory: bool,
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     """
     Produce a mapping from internal relationship type keys to their visibility flags.
 
@@ -208,7 +208,7 @@ def _relationship_visibility_filters(
 
 def _is_relationship_filtered(
     rel_type: str,
-    relationship_filters: Dict[str, bool],
+    relationship_filters: dict[str, bool],
     show_all_relationships: bool,
 ) -> bool:
     """
@@ -228,11 +228,11 @@ def _is_relationship_filtered(
 def _group_relationships_by_type(
     *,
     graph: AssetRelationshipGraph,
-    positions: Dict[str, Tuple[float, float]],
-    asset_ids: List[str],
-    relationship_filters: Dict[str, bool],
+    positions: dict[str, tuple[float, float]],
+    asset_ids: list[str],
+    relationship_filters: dict[str, bool],
     show_all_relationships: bool,
-) -> Dict[str, list[Dict[str, object]]]:
+) -> dict[str, list[dict[str, object]]]:
     """
     Group visible relationships from the graph by their relationship type.
 
@@ -251,7 +251,7 @@ def _group_relationships_by_type(
                 - "strength" (object): relationship strength value as provided by the graph
     """
     asset_id_set = set(asset_ids)
-    relationship_groups: Dict[str, list[Dict[str, object]]] = {}
+    relationship_groups: dict[str, list[dict[str, object]]] = {}
 
     for source_id in asset_ids:
         for target_id, rel_type, strength in graph.relationships.get(source_id, []):
@@ -277,8 +277,8 @@ def _group_relationships_by_type(
 def _build_relationship_trace(
     *,
     rel_type: str,
-    relationships: list[Dict[str, object]],
-    positions: Dict[str, Tuple[float, float]],
+    relationships: list[dict[str, object]],
+    positions: dict[str, tuple[float, float]],
 ) -> go.Scatter:
     """
     Create a Plotly line trace that renders all edges for a single relationship type.
@@ -322,8 +322,8 @@ def _build_relationship_trace(
 def _resolve_layout_positions(
     graph: AssetRelationshipGraph,
     layout_type: str,
-    asset_ids: List[str],
-) -> Dict[str, Tuple[float, float]]:
+    asset_ids: list[str],
+) -> dict[str, tuple[float, float]]:
     """
     Determine 2D coordinates for each asset according to the chosen layout.
 
@@ -344,8 +344,8 @@ def _resolve_layout_positions(
 
 def _spring_or_fallback_positions(
     graph: AssetRelationshipGraph,
-    asset_ids: List[str],
-) -> Dict[str, Tuple[float, float]]:
+    asset_ids: list[str],
+) -> dict[str, tuple[float, float]]:
     """
     Resolve 2D positions using the graph's 3D spring layout when available, otherwise use a circular layout fallback.
 
@@ -395,9 +395,9 @@ def _asset_class_label(asset: object) -> str:
 
 def _build_node_visual_components(
     graph: AssetRelationshipGraph,
-    positions: Dict[str, Tuple[float, float]],
-    asset_ids: List[str],
-) -> Tuple[list[float], list[float], list[str], list[int], list[str]]:
+    positions: dict[str, tuple[float, float]],
+    asset_ids: list[str],
+) -> tuple[list[float], list[float], list[str], list[int], list[str]]:
     """
     Compute per-node x/y positions, marker colors, marker sizes, and hover text for the given assets.
 

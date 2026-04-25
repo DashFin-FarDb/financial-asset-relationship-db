@@ -45,7 +45,7 @@ def _extract_package_token(raw_line: str, req: Requirement) -> str:
     line = line.split("[", 1)[0].strip()
 
     # Split at the first occurrence of any operator character (<,>,=,!,~) or comma
-    pkg_part = re.split(r"(?=[<>=!~,])", line, 1)[0].strip()
+    pkg_part = re.split(r"(?=[<>=!~,])", line, maxsplit=1)[0].strip()
     return pkg_part or req.name.strip()
 
 

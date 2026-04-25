@@ -23,7 +23,7 @@ def load_config():
     Returns:
         The parsed YAML content from MERGIFY_PATH as native Python objects (typically a dict).
     """
-    with open(MERGIFY_PATH, "r") as f:
+    with open(MERGIFY_PATH) as f:
         return yaml.safe_load(f)
 
 

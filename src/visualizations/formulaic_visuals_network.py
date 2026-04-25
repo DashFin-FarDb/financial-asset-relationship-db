@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import html
 import math
-from typing import Any, Dict, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import plotly.graph_objects as go
 
@@ -156,10 +157,10 @@ class FormulaicVisualsNetworkMixin:
         return ("", "", 0.0)
 
     @staticmethod
-    def _create_circular_positions(assets: list[str]) -> Dict[str, tuple[float, float]]:
+    def _create_circular_positions(assets: list[str]) -> dict[str, tuple[float, float]]:
         """Compute evenly spaced coordinates on the unit circle for each asset."""
         n = len(assets)
-        positions: Dict[str, tuple[float, float]] = {}
+        positions: dict[str, tuple[float, float]] = {}
         for i, asset in enumerate(assets):
             angle = 2 * math.pi * i / n
             positions[asset] = (math.cos(angle), math.sin(angle))
@@ -168,7 +169,7 @@ class FormulaicVisualsNetworkMixin:
     @staticmethod
     def _create_edge_traces(
         correlations: Any,
-        positions: Dict[str, tuple[float, float]],
+        positions: dict[str, tuple[float, float]],
     ) -> list[go.Scatter]:
         """Build Plotly line traces for correlations connecting positioned assets."""
         edge_traces = []
@@ -186,7 +187,7 @@ class FormulaicVisualsNetworkMixin:
         asset1: str,
         asset2: str,
         value: float,
-        positions: Dict[str, tuple[float, float]],
+        positions: dict[str, tuple[float, float]],
     ) -> go.Scatter:
         """Create a Plotly line trace representing a correlation edge."""
         x0, y0 = positions[asset1]
@@ -207,7 +208,7 @@ class FormulaicVisualsNetworkMixin:
     @staticmethod
     def _create_node_trace(
         assets: list[str],
-        positions: Dict[str, tuple[float, float]],
+        positions: dict[str, tuple[float, float]],
     ) -> go.Scatter:
         """Create a Plotly scatter trace representing asset nodes."""
         node_x = [positions[asset][0] for asset in assets]
@@ -229,7 +230,7 @@ class FormulaicVisualsNetworkMixin:
         )
 
     @staticmethod
-    def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
+    def create_metric_comparison_chart(analysis_results: dict[str, Any]) -> go.Figure:
         """Generate a bar chart comparing average R-squared per formula category."""
         formulas = analysis_results.get("formulas", [])
         fig = go.Figure()
@@ -237,7 +238,7 @@ class FormulaicVisualsNetworkMixin:
         if not formulas:
             return fig
 
-        categories: Dict[str, list[float]] = {}
+        categories: dict[str, list[float]] = {}
         for formula in formulas:
             category = getattr(formula, "category", None) or "Unknown"
             r_sq = getattr(formula, "r_squared", 0.0) or 0.0

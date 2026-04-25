@@ -14,7 +14,7 @@ class TestRequirementsDevChanges:
     @pytest.fixture
     def requirements_dev_content(self):
         req_path = Path("requirements-dev.txt")
-        with open(req_path, "r") as f:
+        with open(req_path) as f:
             return f.read()
 
     def test_pyyaml_added(self, requirements_dev_content):
@@ -47,7 +47,7 @@ class TestRequirementsDevChanges:
     def test_requirements_format_valid(self, requirements_dev_content):
         lines = requirements_dev_content.split("\n")
 
-        for i, line in enumerate(lines, 1):
+        for _i, line in enumerate(lines, 1):
             line = line.strip()
             if line and not line.startswith("#"):
                 assert not line.startswith(" ")
@@ -64,7 +64,7 @@ class TestRequirementsDependencyCompatibility:
         python_version = sys.version_info
 
         req_path = Path("requirements-dev.txt")
-        with open(req_path, "r") as f:
+        with open(req_path) as f:
             content = f.read()
 
         if "pyyaml" in content.lower():
@@ -78,9 +78,9 @@ class TestRequirementsDependencyCompatibility:
         if not req_path.exists():
             pytest.skip("requirements.txt not found")
 
-        with open(req_path, "r") as f:
+        with open(req_path) as f:
             req_content = f.read()
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path) as f:
             req_dev_content = f.read()
 
         req_packages = {
@@ -136,7 +136,7 @@ class TestRequirementsDocumentation:
     @staticmethod
     def test_requirements_has_helpful_comments():
         req_dev_path = Path("requirements-dev.txt")
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path) as f:
             lines = f.readlines()
 
         comment_lines = [line for line in lines if line.strip().startswith("#")]
@@ -145,7 +145,7 @@ class TestRequirementsDocumentation:
     @staticmethod
     def test_pyyaml_purpose_documented():
         req_dev_path = Path("requirements-dev.txt")
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path) as f:
             content = f.read()
 
         lines = content.split("\n")

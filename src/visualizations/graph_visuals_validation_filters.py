@@ -1,9 +1,8 @@
 """Filter validation helpers for graph visualizations."""
 
-from typing import Dict, Optional
 
 
-def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
+def _validate_filter_parameters(filter_params: dict[str, bool]) -> None:
     """Validate that filter_params is a dictionary with boolean values."""
     if not isinstance(filter_params, dict):
         raise TypeError(f"filter_params must be a dictionary, got {type(filter_params).__name__}")
@@ -12,7 +11,7 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
         raise TypeError(f"The following parameters must be boolean values: {', '.join(invalid)}")
 
 
-def _ensure_relationship_filters_dict(relationship_filters: object) -> Dict[str, bool]:
+def _ensure_relationship_filters_dict(relationship_filters: object) -> dict[str, bool]:
     """Return relationship_filters as dict or raise a type error."""
     if isinstance(relationship_filters, dict):
         return relationship_filters
@@ -20,18 +19,18 @@ def _ensure_relationship_filters_dict(relationship_filters: object) -> Dict[str,
     raise TypeError(f"relationship_filters must be a dictionary or None, got {actual_type}")
 
 
-def _get_invalid_value_keys(relationship_filters: Dict[str, bool]) -> list[str]:
+def _get_invalid_value_keys(relationship_filters: dict[str, bool]) -> list[str]:
     """Return keys whose values are not booleans."""
     return [key for key, value in relationship_filters.items() if not isinstance(value, bool)]
 
 
-def _get_invalid_key_types(relationship_filters: Dict[str, bool]) -> list[object]:
+def _get_invalid_key_types(relationship_filters: dict[str, bool]) -> list[object]:
     """Return keys that are not strings."""
     return [key for key in relationship_filters if not isinstance(key, str)]
 
 
 def _validate_relationship_filters(
-    relationship_filters: Optional[Dict[str, bool]],
+    relationship_filters: dict[str, bool] | None,
 ) -> None:
     """Validate relationship_filters shape and key/value types."""
     if relationship_filters is None:

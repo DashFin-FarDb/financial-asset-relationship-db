@@ -10,7 +10,7 @@ This module tests all API endpoints including:
 - Error handling and edge cases
 """
 
-from typing import Callable
+from collections.abc import Callable
 from unittest.mock import PropertyMock, patch
 
 import pytest

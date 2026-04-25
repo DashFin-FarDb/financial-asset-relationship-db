@@ -28,7 +28,7 @@ class TestCodeRabbitConfiguration:
     def test_coderabbit_valid_yaml_syntax(self):
         """Test that .coderabbit.yaml contains valid YAML syntax."""
         try:
-            with open(self.CODERABBIT_PATH, "r") as f:
+            with open(self.CODERABBIT_PATH) as f:
                 data = yaml.safe_load(f)
             assert data is not None, ".coderabbit.yaml is empty"
         except yaml.YAMLError as e:
@@ -36,7 +36,7 @@ class TestCodeRabbitConfiguration:
 
     def test_coderabbit_has_language_setting(self):
         """Test that .coderabbit.yaml specifies language."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         assert "language" in config, "Missing language setting"
@@ -44,7 +44,7 @@ class TestCodeRabbitConfiguration:
 
     def test_coderabbit_has_reviews_section(self):
         """Test that .coderabbit.yaml contains reviews section."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         # Note: The current file has duplicate 'reviews' and 'knowledge_base' sections
@@ -53,22 +53,21 @@ class TestCodeRabbitConfiguration:
 
     def test_coderabbit_has_knowledge_base_section(self):
         """Test that .coderabbit.yaml contains knowledge_base section."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         assert "knowledge_base" in config, "Missing knowledge_base section"
 
     def test_coderabbit_no_duplicate_top_level_keys(self):
         """Test for duplicate top-level keys in YAML (structural issue)."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             content = f.read()
 
         # Check for duplicate top-level keys by parsing line by line
         top_level_keys = []
         for line in content.split("\n"):
             stripped = line.lstrip()
-            if stripped and not stripped.startswith("#") and not stripped.startswith("-"):
-                if ":" in stripped and not stripped.startswith(" "):
+            if stripped and not stripped.startswith("#") and not stripped.startswith("-") and ":" in stripped and not stripped.startswith(" "):
                     key = stripped.split(":")[0].strip()
                     top_level_keys.append(key)
 
@@ -83,7 +82,7 @@ class TestCodeRabbitConfiguration:
 
     def test_reviews_has_auto_review_config(self):
         """Test that reviews section has auto_review configuration."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
@@ -97,7 +96,7 @@ class TestCodeRabbitConfiguration:
 
     def test_knowledge_base_has_mcp_config(self):
         """Test that knowledge_base section has MCP configuration."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         kb = config.get("knowledge_base", {})
@@ -109,7 +108,7 @@ class TestCodeRabbitConfiguration:
 
     def test_knowledge_base_has_code_guidelines(self):
         """Test that knowledge_base has code_guidelines configuration."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         kb = config.get("knowledge_base", {})
@@ -120,7 +119,7 @@ class TestCodeRabbitConfiguration:
 
     def test_labeling_instructions_structure(self):
         """Test that labeling_instructions follow correct structure."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
@@ -143,7 +142,7 @@ class TestCodeRabbitConfiguration:
 
     def test_early_access_setting(self):
         """Test that early_access setting is properly configured."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         if "early_access" in config:
@@ -151,7 +150,7 @@ class TestCodeRabbitConfiguration:
 
     def test_inheritance_setting(self):
         """Test that inheritance setting is properly configured."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         if "inheritance" in config:
@@ -159,7 +158,7 @@ class TestCodeRabbitConfiguration:
 
     def test_schema_reference_in_comment(self):
         """Test that file includes schema reference in comments."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             content = f.read()
 
         # Check for schema reference
@@ -167,10 +166,10 @@ class TestCodeRabbitConfiguration:
 
     def test_yaml_can_be_parsed_consistently(self):
         """Test that YAML can be parsed consistently multiple times."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config1 = yaml.safe_load(f)
 
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config2 = yaml.safe_load(f)
 
         assert config1 == config2, "YAML parses differently on multiple attempts"
@@ -183,7 +182,7 @@ class TestCodeRabbitReviewsConfiguration:
 
     def test_request_changes_workflow_setting(self):
         """Test that request_changes_workflow is properly configured."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
@@ -193,7 +192,7 @@ class TestCodeRabbitReviewsConfiguration:
 
     def test_high_level_summary_setting(self):
         """Test that high_level_summary_in_walkthrough is configured."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
@@ -203,7 +202,7 @@ class TestCodeRabbitReviewsConfiguration:
 
     def test_auto_apply_labels_setting(self):
         """Test that auto_apply_labels is properly configured."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
@@ -213,7 +212,7 @@ class TestCodeRabbitReviewsConfiguration:
 
     def test_auto_assign_reviewers_setting(self):
         """Test that auto_assign_reviewers is properly configured."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         reviews = config.get("reviews", {})
@@ -229,7 +228,7 @@ class TestCodeRabbitKnowledgeBaseConfiguration:
 
     def test_mcp_usage_setting(self):
         """Test that MCP usage is properly configured."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         kb = config.get("knowledge_base", {})
@@ -240,7 +239,7 @@ class TestCodeRabbitKnowledgeBaseConfiguration:
 
     def test_mcp_documents_or_file_patterns(self):
         """Test that MCP has either documents or filePatterns configured."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         kb = config.get("knowledge_base", {})
@@ -254,7 +253,7 @@ class TestCodeRabbitKnowledgeBaseConfiguration:
 
     def test_code_guidelines_enabled_setting(self):
         """Test that code_guidelines enabled setting is boolean."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         kb = config.get("knowledge_base", {})
@@ -265,7 +264,7 @@ class TestCodeRabbitKnowledgeBaseConfiguration:
 
     def test_code_guidelines_file_patterns(self):
         """Test that code_guidelines filePatterns is a list if present."""
-        with open(self.CODERABBIT_PATH, "r") as f:
+        with open(self.CODERABBIT_PATH) as f:
             config = yaml.safe_load(f)
 
         kb = config.get("knowledge_base", {})

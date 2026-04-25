@@ -61,12 +61,8 @@ runs:
         # Write commands to a temporary script file to prevent injection
         SCRIPT_FILE="$(mktemp)"
         trap 'rm -f "$SCRIPT_FILE"' EXIT
-        # Decode JSON-encoded content using Python to prevent heredoc delimiter injection
-        if ! command -v python3 >/dev/null 2>&1; then
-          echo "Error: python3 is required but not found in PATH" >&2
-          exit 1
-        fi
-        printf '%s' "$SCRIPT_CONTENT" | python3 -c "import json, sys; sys.stdout.write(json.loads(sys.stdin.read()))" > "$SCRIPT_FILE" || {
+        # Decode JSON-encoded content using jq (always available on GitHub-hosted runners)
+        printf '%s' "$SCRIPT_CONTENT" | jq -r '.' > "$SCRIPT_FILE" || {
           echo "Error: Failed to decode script content" >&2
           exit 1
         }
@@ -88,12 +84,8 @@ runs:
         # Write commands to a temporary script file to prevent injection
         SCRIPT_FILE="$(mktemp)"
         trap 'rm -f "$SCRIPT_FILE"' EXIT
-        # Decode JSON-encoded content using Python to prevent heredoc delimiter injection
-        if ! command -v python3 >/dev/null 2>&1; then
-          echo "Error: python3 is required but not found in PATH" >&2
-          exit 1
-        fi
-        printf '%s' "$SCRIPT_CONTENT" | python3 -c "import json, sys; sys.stdout.write(json.loads(sys.stdin.read()))" > "$SCRIPT_FILE" || {
+        # Decode JSON-encoded content using jq (always available on GitHub-hosted runners)
+        printf '%s' "$SCRIPT_CONTENT" | jq -r '.' > "$SCRIPT_FILE" || {
           echo "Error: Failed to decode script content" >&2
           exit 1
         }
@@ -115,12 +107,8 @@ runs:
         # Write commands to a temporary script file to prevent injection
         SCRIPT_FILE="$(mktemp)"
         trap 'rm -f "$SCRIPT_FILE"' EXIT
-        # Decode JSON-encoded content using Python to prevent heredoc delimiter injection
-        if ! command -v python3 >/dev/null 2>&1; then
-          echo "Error: python3 is required but not found in PATH" >&2
-          exit 1
-        fi
-        printf '%s' "$SCRIPT_CONTENT" | python3 -c "import json, sys; sys.stdout.write(json.loads(sys.stdin.read()))" > "$SCRIPT_FILE" || {
+        # Decode JSON-encoded content using jq (always available on GitHub-hosted runners)
+        printf '%s' "$SCRIPT_CONTENT" | jq -r '.' > "$SCRIPT_FILE" || {
           echo "Error: Failed to decode script content" >&2
           exit 1
         }

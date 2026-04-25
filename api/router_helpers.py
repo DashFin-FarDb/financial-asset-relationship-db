@@ -1,7 +1,7 @@
 """Shared helper functions for API routers."""
 
 import logging
-from typing import Any, Dict, NoReturn
+from typing import Any, NoReturn
 
 from fastapi import HTTPException
 
@@ -46,7 +46,7 @@ def raise_asset_not_found(
 def serialize_asset(
     asset: Any,
     include_issuer: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Serialize an Asset object to a dictionary representation.
 
@@ -59,7 +59,7 @@ def serialize_asset(
         Dict[str, Any]: Dictionary containing core asset fields plus any
         non-``None`` asset-specific attributes under ``additional_fields``.
     """
-    asset_dict: Dict[str, Any] = {
+    asset_dict: dict[str, Any] = {
         "id": asset.id,
         "symbol": asset.symbol,
         "name": asset.name,
@@ -100,7 +100,7 @@ def serialize_asset(
 
 
 # Asset class colour mapping for 3-D visualisation
-_ASSET_CLASS_COLORS: Dict[str, str] = {
+_ASSET_CLASS_COLORS: dict[str, str] = {
     "Equity": "#4e79a7",
     "Fixed Income": "#f28e2b",
     "Commodity": "#e15759",

@@ -16,8 +16,9 @@ Notes:
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Dict, Iterator
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -25,7 +26,6 @@ from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
 
 import api.main as api_main
-import api.router_helpers as router_helpers
 from api.api_models import (
     AssetResponse,
     MetricsResponse,
@@ -263,7 +263,7 @@ class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
     @staticmethod
-    def _assert_metrics_no_relationships(data: Dict[str, Any], expected_assets: int) -> None:
+    def _assert_metrics_no_relationships(data: dict[str, Any], expected_assets: int) -> None:
         """Assert that metrics response shows no relationships.
 
         Args:
@@ -360,7 +360,7 @@ class TestAPIEndpoints:
         """Metrics endpoint returns populated statistics and valid bounds."""
         response = client.get("/api/metrics")
         assert response.status_code == 200
-        data: Dict[str, Any] = response.json()
+        data: dict[str, Any] = response.json()
 
         assert data["total_assets"] > 0
         assert data["total_relationships"] > 0
@@ -1240,7 +1240,7 @@ class TestRaiseAssetNotFound:
             raise_asset_not_found("AAPL")
 
         assert exc_info.value.status_code == 404
-        assert "Asset AAPL not found" == exc_info.value.detail
+        assert exc_info.value.detail == "Asset AAPL not found"
 
     def test_raise_asset_not_found_custom_resource_type(self):
         """raise_asset_not_found() should use custom resource type."""
@@ -1248,7 +1248,7 @@ class TestRaiseAssetNotFound:
             raise_asset_not_found("AAPL", resource_type="Stock")
 
         assert exc_info.value.status_code == 404
-        assert "Stock AAPL not found" == exc_info.value.detail
+        assert exc_info.value.detail == "Stock AAPL not found"
 
     def test_raise_asset_not_found_always_raises(self):
         """raise_asset_not_found() should never return normally."""
@@ -1473,7 +1473,6 @@ class TestVisualizationSingleNode:
 
     def test_visualization_color_mapping(self, bare_client: TestClient):
         """Visualization should map asset classes to correct colors."""
-        from src.models.financial_models import Bond, Commodity
 
         graph = AssetRelationshipGraph()
         graph.add_asset(

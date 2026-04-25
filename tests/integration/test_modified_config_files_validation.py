@@ -9,7 +9,7 @@ Tests cover:
 """
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 import yaml
@@ -31,7 +31,7 @@ class TestPRAgentConfigChanges:
 
     @pytest.fixture
     @staticmethod
-    def config_data(config_path: Path) -> Dict[str, Any]:
+    def config_data(config_path: Path) -> dict[str, Any]:
         """
         Load and parse the PR Agent YAML configuration file.
 
@@ -41,10 +41,10 @@ class TestPRAgentConfigChanges:
         Returns:
             config (Dict[str, Any]): Mapping representing the parsed YAML configuration.
         """
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             return yaml.safe_load(f)
 
-    def test_version_is_correct(self, config_data: Dict[str, Any]):
+    def test_version_is_correct(self, config_data: dict[str, Any]):
         """
         Verify the PR agent configuration declares agent.version equal to "1.0.0".
 
@@ -55,7 +55,7 @@ class TestPRAgentConfigChanges:
         assert "version" in config_data["agent"]
         assert config_data["agent"]["version"] == "1.0.0"
 
-    def test_context_config_declared(self, config_data: Dict[str, Any]):
+    def test_context_config_declared(self, config_data: dict[str, Any]):
         """
         Assert that the agent configuration does not contain the context/chunking block
         (which was removed as part of the PR agent simplification).
@@ -64,7 +64,7 @@ class TestPRAgentConfigChanges:
         context = config_data["agent"].get("context")
         assert context is None, "agent.context block should be removed from pr-agent-config.yml"
 
-    def test_limits_section_present(self, config_data: Dict[str, Any]):
+    def test_limits_section_present(self, config_data: dict[str, Any]):
         """
         Verify the PR Agent configuration limits section is present and is a non-empty mapping.
 
@@ -74,7 +74,7 @@ class TestPRAgentConfigChanges:
         limits = config_data.get("limits")
         assert isinstance(limits, dict) and limits, "limits section should be a non-empty mapping in config"
 
-    def test_basic_sections_present(self, config_data: Dict[str, Any]):
+    def test_basic_sections_present(self, config_data: dict[str, Any]):
         """
         Check that the PR agent YAML configuration includes the essential top-level sections.
 
@@ -86,7 +86,7 @@ class TestPRAgentConfigChanges:
         for section in required_sections:
             assert section in config_data, f"Required section '{section}' missing from config"
 
-    def test_max_execution_time_declared(self, config_data: Dict[str, Any]):
+    def test_max_execution_time_declared(self, config_data: dict[str, Any]):
         """
         Assert that the PR agent configuration declares a usable execution timeout.
 
@@ -99,7 +99,7 @@ class TestPRAgentConfigChanges:
             isinstance(max_execution_time, int) and max_execution_time > 0
         ), "limits.max_execution_time should be a positive integer"
 
-    def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
+    def test_quality_standards_preserved(self, config_data: dict[str, Any]):
         """
         Validate that the configuration preserves required quality settings for supported languages.
 
@@ -140,7 +140,7 @@ class TestWorkflowSimplifications:
         workflow_file = workflows_dir / "pr-agent.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r", encoding="utf-8") as f:
+        with open(workflow_file, encoding="utf-8") as f:
             content = f.read()
 
         # Should not contain context chunking references
@@ -162,7 +162,7 @@ class TestWorkflowSimplifications:
         workflow_file = workflows_dir / "apisec-scan.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r", encoding="utf-8") as f:
+        with open(workflow_file, encoding="utf-8") as f:
             content = f.read()
 
         # Should not have "if: secrets.apisec_username != ''" type conditions
@@ -182,7 +182,7 @@ class TestWorkflowSimplifications:
         workflow_file = workflows_dir / "label.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r", encoding="utf-8") as f:
+        with open(workflow_file, encoding="utf-8") as f:
             content = f.read()
 
         # Should be simple and not check for config existence
@@ -197,7 +197,7 @@ class TestWorkflowSimplifications:
         workflow_file = workflows_dir / "greetings.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r", encoding="utf-8") as f:
+        with open(workflow_file, encoding="utf-8") as f:
             workflow_data = yaml.safe_load(f)
 
         steps = workflow_data["jobs"]["greeting"]["steps"]
@@ -272,7 +272,7 @@ class TestRequirementsDevChanges:
 
     def test_pyyaml_added(self, req_dev_path: Path):
         """Verify PyYAML has been added to requirements-dev.txt."""
-        with open(req_dev_path, "r", encoding="utf-8") as f:
+        with open(req_dev_path, encoding="utf-8") as f:
             content = f.read().lower()
 
         assert "pyyaml" in content or "yaml" in content, "PyYAML should be in requirements-dev.txt"
@@ -283,7 +283,7 @@ class TestRequirementsDevChanges:
 
         Reads the file at the provided path and checks case-insensitively that the string `tiktoken` is not present.
         """
-        with open(req_dev_path, "r", encoding="utf-8") as f:
+        with open(req_dev_path, encoding="utf-8") as f:
             content = f.read().lower()
 
         # tiktoken should not be required anymore
@@ -291,7 +291,7 @@ class TestRequirementsDevChanges:
 
     def test_essential_dev_dependencies_present(self, req_dev_path: Path):
         """Verify essential development dependencies are present."""
-        with open(req_dev_path, "r", encoding="utf-8") as f:
+        with open(req_dev_path, encoding="utf-8") as f:
             content = f.read().lower()
 
         essential_deps = ["pytest", "pyyaml"]
@@ -321,7 +321,7 @@ class TestGitignoreChanges:
         Parameters:
             gitignore_path (Path): Path to the .gitignore file to check.
         """
-        with open(gitignore_path, "r", encoding="utf-8") as f:
+        with open(gitignore_path, encoding="utf-8") as f:
             content = f.read()
 
         assert "codacy.instructions.md" in content, "codacy.instructions.md should be in .gitignore"
@@ -334,7 +334,7 @@ class TestGitignoreChanges:
         The 'test_*.db' pattern is intentionally present to keep test artefacts out of
         version control.
         """
-        with open(gitignore_path, "r", encoding="utf-8") as f:
+        with open(gitignore_path, encoding="utf-8") as f:
             content = f.read()
 
         assert "test_*.db" in content, "Test database glob pattern should be present in .gitignore"
@@ -347,7 +347,7 @@ class TestGitignoreChanges:
         Checks that each of the following patterns is present in the file:
         "__pycache__", ".pytest_cache", "node_modules", and ".coverage".
         """
-        with open(gitignore_path, "r", encoding="utf-8") as f:
+        with open(gitignore_path, encoding="utf-8") as f:
             content = f.read()
 
         standard_patterns = [
@@ -390,7 +390,7 @@ class TestCodacyInstructionsChanges:
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
 
-        with open(codacy_instructions_path, "r", encoding="utf-8") as f:
+        with open(codacy_instructions_path, encoding="utf-8") as f:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
@@ -408,7 +408,7 @@ class TestCodacyInstructionsChanges:
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
 
-        with open(codacy_instructions_path, "r", encoding="utf-8") as f:
+        with open(codacy_instructions_path, encoding="utf-8") as f:
             content = f.read()
 
         # Critical rules should be preserved

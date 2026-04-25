@@ -862,8 +862,8 @@ class TestWorkflowValidatorPerformance:
         """Test validating multiple workflows in sequence"""
         workflows = []
         for i in range(10):
-            f = tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False)
-            f.write(f"""
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+                f.write(f"""
 name: Test{i}
 on: push
 jobs:
@@ -872,8 +872,8 @@ jobs:
     steps:
       - run: echo {i}
 """)
-            f.flush()
-            workflows.append(f.name)
+                f.flush()
+                workflows.append(f.name)
 
         try:
             results = []

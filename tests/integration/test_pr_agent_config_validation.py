@@ -9,7 +9,7 @@ Tests the simplified PR agent configuration, ensuring:
 """
 
 import re
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 import numpy as np
@@ -52,7 +52,7 @@ SAFE_PLACEHOLDERS = {
 
 
 # Common secret / credential indicators used across heuristics
-class SecretMarker(str, Enum):
+class SecretMarker(StrEnum):
     """
     Fixed set of secret/credential indicator keywords.
 
@@ -89,7 +89,7 @@ def pr_agent_config() -> dict[str, object]:
     config_path = Path(".github/pr-agent-config.yml")
     if not config_path.exists():
         pytest.fail(f"Config file not found: {config_path}")
-    with open(config_path, "r", encoding="utf-8") as f:
+    with open(config_path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     if cfg is None or not isinstance(cfg, dict):
         pytest.fail("Config must be a YAML mapping (dict) and not empty")
@@ -148,9 +148,7 @@ def _is_safe_value(v: str) -> bool:
     # These are typical repository names, package names, and project identifiers
     # (e.g. "financial-asset-relationship-db") and are never valid secrets.
     # Real secrets always contain uppercase letters, digits, or special chars.
-    if re.fullmatch(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)+", v):
-        return True
-    return False
+    return bool(re.fullmatch(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)+", v))
 
 
 def _matches_secret_patterns(v: str) -> bool:
@@ -173,9 +171,7 @@ def _matches_secret_patterns(v: str) -> bool:
     if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
         return True
     # Hex-encoded secrets (e.g. hashes, keys)
-    if HEX_RE.fullmatch(v):
-        return True
-    return False
+    return bool(HEX_RE.fullmatch(v))
 
 
 def _looks_like_secret(value: str) -> bool:
@@ -284,7 +280,7 @@ class TestPRAgentConfigYAMLValidity:
         Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             yaml.safe_load(f)
 
     @staticmethod
@@ -295,7 +291,7 @@ class TestPRAgentConfigYAMLValidity:
         Parses the file and fails with pytest.fail when a mapping key appears more than once at any nesting level; the failure message includes the duplicated key and its line number.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             content = f.read()
 
         # Custom loader to detect duplicate YAML entries at any nesting level
@@ -341,7 +337,7 @@ class TestPRAgentConfigYAMLValidity:
             AssertionError: if a line's leading spaces are not a multiple of two; the message includes the offending line number.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             lines = f.readlines()
 
         for i, line in enumerate(lines, 1):
@@ -497,7 +493,7 @@ class TestPRAgentConfigRemovedComplexity:
             FileNotFoundError: If the configuration file cannot be found.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             return f.read()
 
     @staticmethod

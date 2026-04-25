@@ -13,10 +13,8 @@ This module tests all functions in the suggest_fixes.py script including:
 
 import os
 import sys
-import tempfile
-from datetime import datetime, timezone
-from io import StringIO
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from datetime import UTC, datetime
+from unittest.mock import Mock, mock_open, patch
 
 import pytest
 from github import GithubException
@@ -78,7 +76,7 @@ def mock_comment():
     comment.path = "src/file.py"
     comment.original_line = 10
     comment.html_url = "https://github.com/owner/repo/pull/123#comment-1"
-    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
     return comment
 
 
@@ -90,7 +88,7 @@ def mock_review():
     review.user = Mock(login="reviewer2")
     review.body = "Please add more tests"
     review.state = "CHANGES_REQUESTED"
-    review.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+    review.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC)
     review.html_url = "https://github.com/owner/repo/pull/123#review-100"
     return review
 
@@ -115,9 +113,8 @@ review_handling:
     - should
     - fix
 """
-    with patch("builtins.open", mock_open(read_data=config_data)):
-        with patch("os.path.exists", return_value=True):
-            config = suggest_fixes.load_config()
+    with patch("builtins.open", mock_open(read_data=config_data)), patch("os.path.exists", return_value=True):
+        config = suggest_fixes.load_config()
 
     assert "review_handling" in config
     assert "actionable_keywords" in config["review_handling"]
@@ -413,7 +410,7 @@ def test_parse_review_comments_multiple_comments(mock_pr):
     comment1.path = "file1.py"
     comment1.original_line = 10
     comment1.html_url = "url1"
-    comment1.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    comment1.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
 
     comment2 = Mock()
     comment2.id = 2
@@ -422,7 +419,7 @@ def test_parse_review_comments_multiple_comments(mock_pr):
     comment2.path = "file2.py"
     comment2.original_line = 20
     comment2.html_url = "url2"
-    comment2.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+    comment2.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC)
 
     mock_pr.get_review_comments.return_value = [comment1, comment2]
     mock_pr.get_reviews.return_value = []
@@ -442,7 +439,7 @@ def test_parse_review_comments_filters_non_actionable(mock_pr):
     actionable.path = "file.py"
     actionable.original_line = 10
     actionable.html_url = "url"
-    actionable.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    actionable.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
 
     non_actionable = Mock()
     non_actionable.id = 2
@@ -451,7 +448,7 @@ def test_parse_review_comments_filters_non_actionable(mock_pr):
     non_actionable.path = "file.py"
     non_actionable.original_line = 20
     non_actionable.html_url = "url2"
-    non_actionable.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+    non_actionable.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC)
 
     mock_pr.get_review_comments.return_value = [actionable, non_actionable]
     mock_pr.get_reviews.return_value = []
@@ -483,7 +480,7 @@ def test_parse_review_comments_only_changes_requested_reviews(mock_pr):
     review_approved.user = Mock(login="user1")
     review_approved.body = "Please fix something"
     review_approved.state = "APPROVED"
-    review_approved.submitted_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    review_approved.submitted_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
     review_approved.html_url = "url1"
 
     review_changes = Mock()
@@ -491,7 +488,7 @@ def test_parse_review_comments_only_changes_requested_reviews(mock_pr):
     review_changes.user = Mock(login="user2")
     review_changes.body = "Please fix this issue"
     review_changes.state = "CHANGES_REQUESTED"
-    review_changes.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+    review_changes.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC)
     review_changes.html_url = "url2"
 
     mock_pr.get_review_comments.return_value = []
@@ -514,7 +511,7 @@ def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
     comment1.path = "file.py"
     comment1.original_line = 10
     comment1.html_url = "url1"
-    comment1.created_at = datetime(2024, 1, 2, 12, 0, 0, tzinfo=timezone.utc)
+    comment1.created_at = datetime(2024, 1, 2, 12, 0, 0, tzinfo=UTC)
 
     # Bug (priority 1), earlier date
     comment2 = Mock()
@@ -524,7 +521,7 @@ def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
     comment2.path = "file.py"
     comment2.original_line = 20
     comment2.html_url = "url2"
-    comment2.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    comment2.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
 
     # Improvement (priority 2)
     comment3 = Mock()
@@ -534,7 +531,7 @@ def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
     comment3.path = "file.py"
     comment3.original_line = 30
     comment3.html_url = "url3"
-    comment3.created_at = datetime(2024, 1, 3, 12, 0, 0, tzinfo=timezone.utc)
+    comment3.created_at = datetime(2024, 1, 3, 12, 0, 0, tzinfo=UTC)
 
     mock_pr.get_review_comments.return_value = [comment1, comment2, comment3]
     mock_pr.get_reviews.return_value = []
@@ -558,7 +555,7 @@ def test_parse_review_comments_includes_code_suggestions(mock_pr):
     comment.path = "file.py"
     comment.original_line = 10
     comment.html_url = "url"
-    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
 
     mock_pr.get_review_comments.return_value = [comment]
     mock_pr.get_reviews.return_value = []
@@ -941,14 +938,13 @@ def test_write_output_to_stdout(capsys):
     """Test write_output writes to stdout."""
     report = "Test fix proposals"
 
-    with patch.dict(os.environ, {}, clear=True):
-        with patch("tempfile.NamedTemporaryFile") as mock_temp:
-            mock_file = mock_open()
-            mock_temp.return_value.__enter__ = lambda self: mock_file()
-            mock_temp.return_value.__exit__ = lambda self, *args: None
-            mock_file.return_value.name = "/tmp/fix_proposals_test.md"
+    with patch.dict(os.environ, {}, clear=True), patch("tempfile.NamedTemporaryFile") as mock_temp:
+        mock_file = mock_open()
+        mock_temp.return_value.__enter__ = lambda self: mock_file()
+        mock_temp.return_value.__exit__ = lambda self, *args: None
+        mock_file.return_value.name = "/tmp/fix_proposals_test.md"
 
-            suggest_fixes.write_output(report)
+        suggest_fixes.write_output(report)
 
     captured = capsys.readouterr()
     assert report in captured.out
@@ -958,22 +954,21 @@ def test_write_output_to_temp_file():
     """Test write_output writes to temp file."""
     report = "Test report"
 
-    with patch.dict(os.environ, {}, clear=True):
-        with patch("tempfile.NamedTemporaryFile") as mock_temp:
-            mock_file = Mock()
-            mock_file.name = "/tmp/test.md"
-            mock_temp.return_value.__enter__ = lambda self: mock_file
-            mock_temp.return_value.__exit__ = lambda self, *args: None
+    with patch.dict(os.environ, {}, clear=True), patch("tempfile.NamedTemporaryFile") as mock_temp:
+        mock_file = Mock()
+        mock_file.name = "/tmp/test.md"
+        mock_temp.return_value.__enter__ = lambda self: mock_file
+        mock_temp.return_value.__exit__ = lambda self, *args: None
 
-            suggest_fixes.write_output(report)
+        suggest_fixes.write_output(report)
 
-            # Verify NamedTemporaryFile was called with correct parameters
-            mock_temp.assert_called_once()
-            kwargs = mock_temp.call_args[1]
-            assert kwargs["mode"] == "w"
-            assert kwargs["delete"] is False
-            assert kwargs["suffix"] == ".md"
-            assert kwargs["prefix"] == "fix_proposals_"
+        # Verify NamedTemporaryFile was called with correct parameters
+        mock_temp.assert_called_once()
+        kwargs = mock_temp.call_args[1]
+        assert kwargs["mode"] == "w"
+        assert kwargs["delete"] is False
+        assert kwargs["suffix"] == ".md"
+        assert kwargs["prefix"] == "fix_proposals_"
 
 
 def test_write_output_to_github_step_summary():
@@ -987,14 +982,13 @@ def test_write_output_to_github_step_summary():
 
     with patch.dict(os.environ, env, clear=True):
         m = mock_open()
-        with patch("builtins.open", m):
-            with patch("tempfile.NamedTemporaryFile") as mock_temp:
-                mock_file = Mock()
-                mock_file.name = "/tmp/test.md"
-                mock_temp.return_value.__enter__ = lambda self: mock_file
-                mock_temp.return_value.__exit__ = lambda self, *args: None
+        with patch("builtins.open", m), patch("tempfile.NamedTemporaryFile") as mock_temp:
+            mock_file = Mock()
+            mock_file.name = "/tmp/test.md"
+            mock_temp.return_value.__enter__ = lambda self: mock_file
+            mock_temp.return_value.__exit__ = lambda self, *args: None
 
-                suggest_fixes.write_output(report)
+            suggest_fixes.write_output(report)
 
         # Check that summary file was opened in append mode
         calls = [str(call) for call in m.call_args_list]
@@ -1005,9 +999,8 @@ def test_write_output_handles_io_error_temp_file(capsys):
     """Test write_output handles IOError for temp file."""
     report = "Test content"
 
-    with patch.dict(os.environ, {}, clear=True):
-        with patch("tempfile.NamedTemporaryFile", side_effect=IOError("Disk full")):
-            suggest_fixes.write_output(report)
+    with patch.dict(os.environ, {}, clear=True), patch("tempfile.NamedTemporaryFile", side_effect=OSError("Disk full")):
+        suggest_fixes.write_output(report)
 
     captured = capsys.readouterr()
     assert "Error writing temp file" in captured.err
@@ -1022,15 +1015,13 @@ def test_write_output_handles_io_error_github_summary(capsys):
     # to skip the security path-check and hit the IOError
     env = _create_env_without_runner_temp({"GITHUB_STEP_SUMMARY": summary_file})
 
-    with patch.dict(os.environ, env, clear=True):
-        with patch("builtins.open", side_effect=IOError("Permission denied")):
-            with patch("tempfile.NamedTemporaryFile") as mock_temp:
-                mock_file = Mock()
-                mock_file.name = "/tmp/test.md"
-                mock_temp.return_value.__enter__ = lambda self: mock_file
-                mock_temp.return_value.__exit__ = lambda self, *args: None
+    with patch.dict(os.environ, env, clear=True), patch("builtins.open", side_effect=OSError("Permission denied")), patch("tempfile.NamedTemporaryFile") as mock_temp:
+        mock_file = Mock()
+        mock_file.name = "/tmp/test.md"
+        mock_temp.return_value.__enter__ = lambda self: mock_file
+        mock_temp.return_value.__exit__ = lambda self, *args: None
 
-                suggest_fixes.write_output(report)
+        suggest_fixes.write_output(report)
 
     captured = capsys.readouterr()
     assert "Failed to write to GITHUB_STEP_SUMMARY" in captured.err
@@ -1079,22 +1070,20 @@ def test_main_github_api_error(capsys):
         "REPO_NAME": "repo",
     }
 
-    with patch.dict(os.environ, env, clear=True):
-        with patch(
-            "suggest_fixes.load_config",
-            return_value={"review_handling": {"actionable_keywords": ["please"]}},
-        ):
-            with patch("suggest_fixes.Github") as mock_github_class:
-                mock_github = Mock()
-                mock_github_class.return_value = mock_github
-                mock_github.get_repo.side_effect = GithubException(
-                    status=404, data={"message": "Not Found"}, headers={}
-                )
+    with patch.dict(os.environ, env, clear=True), patch(
+        "suggest_fixes.load_config",
+        return_value={"review_handling": {"actionable_keywords": ["please"]}},
+    ), patch("suggest_fixes.Github") as mock_github_class:
+        mock_github = Mock()
+        mock_github_class.return_value = mock_github
+        mock_github.get_repo.side_effect = GithubException(
+            status=404, data={"message": "Not Found"}, headers={}
+        )
 
-                with pytest.raises(SystemExit) as exc_info:
-                    suggest_fixes.main()
+        with pytest.raises(SystemExit) as exc_info:
+            suggest_fixes.main()
 
-                assert exc_info.value.code == 1
+        assert exc_info.value.code == 1
 
     captured = capsys.readouterr()
     assert "GitHub API Error" in captured.err
@@ -1109,29 +1098,27 @@ def test_main_success_flow(mock_pr, mock_comment, capsys):
         "REPO_NAME": "repo",
     }
 
-    with patch.dict(os.environ, env, clear=True):
-        with patch("suggest_fixes.load_config") as mock_config:
-            mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
+    with patch.dict(os.environ, env, clear=True), patch("suggest_fixes.load_config") as mock_config:
+        mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
 
-            with patch("suggest_fixes.Github") as mock_github_class:
-                with patch("tempfile.NamedTemporaryFile") as mock_temp:
-                    mock_file = Mock()
-                    mock_file.name = "/tmp/test.md"
-                    mock_temp.return_value.__enter__ = lambda self: mock_file
-                    mock_temp.return_value.__exit__ = lambda self, *args: None
+        with patch("suggest_fixes.Github") as mock_github_class, patch("tempfile.NamedTemporaryFile") as mock_temp:
+            mock_file = Mock()
+            mock_file.name = "/tmp/test.md"
+            mock_temp.return_value.__enter__ = lambda self: mock_file
+            mock_temp.return_value.__exit__ = lambda self, *args: None
 
-                    # Setup mocks
-                    mock_github = Mock()
-                    mock_repo = Mock()
+            # Setup mocks
+            mock_github = Mock()
+            mock_repo = Mock()
 
-                    mock_github_class.return_value = mock_github
-                    mock_github.get_repo.return_value = mock_repo
-                    mock_repo.get_pull.return_value = mock_pr
+            mock_github_class.return_value = mock_github
+            mock_github.get_repo.return_value = mock_repo
+            mock_repo.get_pull.return_value = mock_pr
 
-                    mock_pr.get_review_comments.return_value = [mock_comment]
-                    mock_pr.get_reviews.return_value = []
+            mock_pr.get_review_comments.return_value = [mock_comment]
+            mock_pr.get_reviews.return_value = []
 
-                    suggest_fixes.main()
+            suggest_fixes.main()
 
     captured = capsys.readouterr()
     assert "Parsing review comments for PR #123" in captured.err
@@ -1146,16 +1133,14 @@ def test_main_generic_exception(capsys):
         "REPO_NAME": "repo",
     }
 
-    with patch.dict(os.environ, env, clear=True):
-        # Patch load_config to return valid config, then patch Github to raise exception
-        with patch("suggest_fixes.load_config") as mock_config:
-            mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
+    with patch.dict(os.environ, env, clear=True), patch("suggest_fixes.load_config") as mock_config:
+        mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
 
-            with patch("suggest_fixes.Github", side_effect=Exception("Unexpected error")):
-                with pytest.raises(SystemExit) as exc_info:
-                    suggest_fixes.main()
+        with patch("suggest_fixes.Github", side_effect=Exception("Unexpected error")):
+            with pytest.raises(SystemExit) as exc_info:
+                suggest_fixes.main()
 
-                assert exc_info.value.code == 1
+            assert exc_info.value.code == 1
 
     captured = capsys.readouterr()
     assert "Unexpected Error" in captured.err
@@ -1175,30 +1160,28 @@ def test_main_with_no_actionable_items(mock_pr, capsys):
     non_actionable.id = 1
     non_actionable.user = Mock(login="user")
     non_actionable.body = "Looks good"
-    non_actionable.created_at = datetime.now(timezone.utc)
+    non_actionable.created_at = datetime.now(UTC)
 
-    with patch.dict(os.environ, env, clear=True):
-        with patch("suggest_fixes.load_config") as mock_config:
-            mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
+    with patch.dict(os.environ, env, clear=True), patch("suggest_fixes.load_config") as mock_config:
+        mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
 
-            with patch("suggest_fixes.Github") as mock_github_class:
-                with patch("tempfile.NamedTemporaryFile") as mock_temp:
-                    mock_file = Mock()
-                    mock_file.name = "/tmp/test.md"
-                    mock_temp.return_value.__enter__ = lambda self: mock_file
-                    mock_temp.return_value.__exit__ = lambda self, *args: None
+        with patch("suggest_fixes.Github") as mock_github_class, patch("tempfile.NamedTemporaryFile") as mock_temp:
+            mock_file = Mock()
+            mock_file.name = "/tmp/test.md"
+            mock_temp.return_value.__enter__ = lambda self: mock_file
+            mock_temp.return_value.__exit__ = lambda self, *args: None
 
-                    mock_github = Mock()
-                    mock_repo = Mock()
+            mock_github = Mock()
+            mock_repo = Mock()
 
-                    mock_github_class.return_value = mock_github
-                    mock_github.get_repo.return_value = mock_repo
-                    mock_repo.get_pull.return_value = mock_pr
+            mock_github_class.return_value = mock_github
+            mock_github.get_repo.return_value = mock_repo
+            mock_repo.get_pull.return_value = mock_pr
 
-                    mock_pr.get_review_comments.return_value = [non_actionable]
-                    mock_pr.get_reviews.return_value = []
+            mock_pr.get_review_comments.return_value = [non_actionable]
+            mock_pr.get_reviews.return_value = []
 
-                    suggest_fixes.main()
+            suggest_fixes.main()
 
     captured = capsys.readouterr()
     assert "No actionable items found" in captured.out

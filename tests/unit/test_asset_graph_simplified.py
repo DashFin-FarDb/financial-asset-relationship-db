@@ -5,7 +5,6 @@ focusing on the minimal interface required for visualization.
 """
 
 import numpy as np
-import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
 

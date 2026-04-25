@@ -11,7 +11,7 @@ Tests focus on:
 """
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 import yaml
@@ -22,7 +22,7 @@ class TestPRAgentWorkflowChanges:
 
     @staticmethod
     @pytest.fixture
-    def pr_agent_workflow() -> Dict[str, Any]:
+    def pr_agent_workflow() -> dict[str, Any]:
         """
         Load and parse the .github/workflows/pr-agent.yml workflow file.
 
@@ -30,7 +30,7 @@ class TestPRAgentWorkflowChanges:
             dict: Dictionary representation of the parsed YAML workflow.
         """
         workflow_path = Path(".github/workflows/pr-agent.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     def test_workflow_has_valid_yaml_syntax(self, pr_agent_workflow):
@@ -120,7 +120,7 @@ class TestPRAgentConfigChanges:
     """Tests for pr-agent-config.yml configuration changes."""
 
     @pytest.fixture
-    def pr_agent_config(self) -> Dict[str, Any]:
+    def pr_agent_config(self) -> dict[str, Any]:
         """
         Load and parse the .github/pr-agent-config.yml file.
 
@@ -128,7 +128,7 @@ class TestPRAgentConfigChanges:
             config (Dict[str, Any]): Parsed YAML configuration as a dictionary.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             return yaml.safe_load(f)
 
     def test_config_has_valid_yaml_syntax(self, pr_agent_config):
@@ -191,10 +191,10 @@ class TestGreetingsWorkflowChanges:
     """Tests for greetings.yml workflow changes."""
 
     @pytest.fixture
-    def greetings_workflow(self) -> Dict[str, Any]:
+    def greetings_workflow(self) -> dict[str, Any]:
         """Load greetings.yml workflow."""
         workflow_path = Path(".github/workflows/greetings.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     def test_workflow_syntax_valid(self, greetings_workflow):
@@ -244,7 +244,7 @@ class TestLabelWorkflowChanges:
     """Tests for label.yml workflow changes."""
 
     @pytest.fixture
-    def label_workflow(self) -> Dict[str, Any]:
+    def label_workflow(self) -> dict[str, Any]:
         """
         Load and parse the label GitHub Actions workflow file.
 
@@ -252,7 +252,7 @@ class TestLabelWorkflowChanges:
             workflow (dict): Parsed contents of `.github/workflows/label.yml` as a dictionary.
         """
         workflow_path = Path(".github/workflows/label.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     def test_workflow_syntax_valid(self, label_workflow):
@@ -326,7 +326,7 @@ class TestRequirementsDevChanges:
     def test_pyyaml_dependency_added():
         """Verify PyYAML dependency is in requirements-dev.txt."""
         req_path = Path("requirements-dev.txt")
-        with open(req_path, "r") as f:
+        with open(req_path) as f:
             content = f.read().lower()
 
         assert "pyyaml" in content, "PyYAML should be in requirements-dev.txt"
@@ -335,7 +335,7 @@ class TestRequirementsDevChanges:
     def test_pyyaml_version_pinned():
         """Verify PyYAML has version constraint."""
         req_path = Path("requirements-dev.txt")
-        with open(req_path, "r") as f:
+        with open(req_path) as f:
             lines = f.readlines()
 
         pyyaml_lines = [line for line in lines if "pyyaml" in line.lower()]
@@ -353,7 +353,7 @@ class TestRequirementsDevChanges:
         Ignores blank lines and comments, normalizes package names to lowercase and strips version specifiers (e.g., ==, >=, <=, ~=, >, <), and asserts there are no duplicate package names; on failure, reports the duplicated package names.
         """
         req_path = Path("requirements-dev.txt")
-        with open(req_path, "r") as f:
+        with open(req_path) as f:
             lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
         # Extract package names (before version specifiers)

@@ -1,6 +1,6 @@
 """Pydantic models for the API authentication layer."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -9,9 +9,9 @@ class User(BaseModel):
     """User model for authentication."""
 
     username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
+    email: str | None = None
+    full_name: str | None = None
+    disabled: bool | None = None
 
 
 class UserInDB(User):
@@ -29,9 +29,9 @@ class AssetResponse(BaseModel):
     asset_class: str
     sector: str
     price: float
-    market_cap: Optional[float] = None
+    market_cap: float | None = None
     currency: str = "USD"
-    additional_fields: Dict[str, Any] = Field(default_factory=dict)
+    additional_fields: dict[str, Any] = Field(default_factory=dict)
 
 
 class RelationshipResponse(BaseModel):
@@ -48,7 +48,7 @@ class MetricsResponse(BaseModel):
 
     total_assets: int
     total_relationships: int
-    asset_classes: Dict[str, int]
+    asset_classes: dict[str, int]
     avg_degree: float
     max_degree: int
     network_density: float
@@ -58,5 +58,5 @@ class MetricsResponse(BaseModel):
 class VisualizationDataResponse(BaseModel):
     """API response model for frontend visualization nodes and edges."""
 
-    nodes: List[Dict[str, Any]]
-    edges: List[Dict[str, Any]]
+    nodes: list[dict[str, Any]]
+    edges: list[dict[str, Any]]

@@ -1,6 +1,5 @@
 """Validation helpers for graph visualization inputs."""
 
-from typing import Dict, List, Optional, Set
 
 import numpy as np
 
@@ -72,7 +71,7 @@ def _ensure_finite_values(positions: np.ndarray) -> None:
     raise ValueError(f"positions must contain finite values. Found {nan_count} NaN and {inf_count} Inf")
 
 
-def _validate_asset_ids_list(asset_ids: List[str]) -> None:
+def _validate_asset_ids_list(asset_ids: list[str]) -> None:
     """
     Ensure asset_ids is a sequence of non-empty strings.
 
@@ -89,7 +88,7 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
         raise ValueError("asset_ids must contain non-empty strings")
 
 
-def _validate_colors_list(colors: List[str], expected_length: int) -> None:
+def _validate_colors_list(colors: list[str], expected_length: int) -> None:
     """
     Ensure `colors` is a list or tuple containing exactly `expected_length` non-empty strings.
 
@@ -111,7 +110,7 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
 
 
 def _validate_hover_texts_list(
-    hover_texts: List[str],
+    hover_texts: list[str],
     expected_length: int,
 ) -> None:
     """
@@ -136,7 +135,7 @@ def _validate_hover_texts_list(
     )
 
 
-def _ensure_hover_texts_sequence(hover_texts: List[str]) -> None:
+def _ensure_hover_texts_sequence(hover_texts: list[str]) -> None:
     """
     Ensure `hover_texts` is a list or tuple.
 
@@ -148,7 +147,7 @@ def _ensure_hover_texts_sequence(hover_texts: List[str]) -> None:
 
 
 def _ensure_sequence_length(
-    sequence: List[str],
+    sequence: list[str],
     expected_length: int,
     name: str,
 ) -> None:
@@ -168,7 +167,7 @@ def _ensure_sequence_length(
 
 
 def _ensure_non_empty_string_values(
-    values: List[str],
+    values: list[str],
     name: str,
 ) -> None:
     """
@@ -185,7 +184,7 @@ def _ensure_non_empty_string_values(
         raise ValueError(f"{name} must contain non-empty strings")
 
 
-def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
+def _validate_asset_ids_uniqueness(asset_ids: list[str]) -> None:
     """
     Ensure asset_ids contains only unique strings.
 
@@ -197,8 +196,8 @@ def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
     """
     if len(set(asset_ids)) == len(asset_ids):
         return
-    seen: Set[str] = set()
-    dups: List[str] = []
+    seen: set[str] = set()
+    dups: list[str] = []
     for aid in asset_ids:
         if aid in seen and aid not in dups:
             dups.append(aid)
@@ -208,9 +207,9 @@ def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
 
 def _validate_visualization_data(
     positions: np.ndarray,
-    asset_ids: List[str],
-    colors: List[str],
-    hover_texts: List[str],
+    asset_ids: list[str],
+    colors: list[str],
+    hover_texts: list[str],
 ) -> None:
     """
     Validate that positions, asset IDs, colors, and hover texts are consistent for visualization.
@@ -238,7 +237,7 @@ def _validate_visualization_data(
     _validate_asset_ids_uniqueness(asset_ids)
 
 
-def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
+def _validate_filter_parameters(filter_params: dict[str, bool]) -> None:
     """
     Ensure `filter_params` is a dict mapping parameter names to boolean values.
 
@@ -256,7 +255,7 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
 
 
 def _validate_relationship_filters(
-    relationship_filters: Optional[Dict[str, bool]],
+    relationship_filters: dict[str, bool] | None,
 ) -> None:
     """
     Validate relationship filter mapping.
@@ -279,7 +278,7 @@ def _validate_relationship_filters(
 
 
 def _ensure_relationship_filters_dict(
-    relationship_filters: Dict[str, bool],
+    relationship_filters: dict[str, bool],
 ) -> None:
     """
     Validate that `relationship_filters` is a dictionary.
@@ -295,7 +294,7 @@ def _ensure_relationship_filters_dict(
 
 
 def _ensure_relationship_filter_values(
-    relationship_filters: Dict[str, bool],
+    relationship_filters: dict[str, bool],
 ) -> None:
     """
     Validate that every value in `relationship_filters` is a boolean.
@@ -314,7 +313,7 @@ def _ensure_relationship_filter_values(
 
 
 def _ensure_relationship_filter_keys(
-    relationship_filters: Dict[str, bool],
+    relationship_filters: dict[str, bool],
 ) -> None:
     """
     Validate that all keys in `relationship_filters` are strings.

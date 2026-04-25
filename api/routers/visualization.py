@@ -1,7 +1,7 @@
 """Visualization API routes."""
 
 import math
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
@@ -18,8 +18,8 @@ from ..router_helpers import (
 router = APIRouter()
 
 
-def _calculate_node_degrees(g: AssetRelationshipGraph) -> Dict[str, int]:
-    degree: Dict[str, int] = {asset_id: 0 for asset_id in g.assets.keys()}
+def _calculate_node_degrees(g: AssetRelationshipGraph) -> dict[str, int]:
+    degree: dict[str, int] = dict.fromkeys(g.assets.keys(), 0)
     for source_id, rels in g.relationships.items():
         degree[source_id] = degree.get(source_id, 0) + len(rels)
     return degree
@@ -42,12 +42,12 @@ def _compute_fibonacci_position(
 
 def _build_visualization_nodes(
     g: AssetRelationshipGraph,
-    asset_ids: List[str],
-) -> List[Dict[str, Any]]:
+    asset_ids: list[str],
+) -> list[dict[str, Any]]:
     degree = _calculate_node_degrees(g)
     total_nodes = len(asset_ids)
     golden_ratio = (1 + math.sqrt(5)) / 2
-    nodes: List[Dict[str, Any]] = []
+    nodes: list[dict[str, Any]] = []
     for idx, asset_id in enumerate(asset_ids):
         asset = g.assets[asset_id]
         x, y, z = _compute_fibonacci_position(idx, total_nodes, golden_ratio)
@@ -68,7 +68,7 @@ def _build_visualization_nodes(
     return nodes
 
 
-def _build_visualization_edges(g: AssetRelationshipGraph) -> List[Dict[str, Any]]:
+def _build_visualization_edges(g: AssetRelationshipGraph) -> list[dict[str, Any]]:
     return [
         {
             "source": source_id,

@@ -13,10 +13,8 @@ This module tests all functions in the generate_status.py script including:
 import importlib.util
 import os
 import sys
-import tempfile
-from datetime import datetime, timezone
-from io import StringIO
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from datetime import UTC, datetime
+from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
@@ -64,7 +62,7 @@ def mock_review_approved():
     review = Mock()
     review.state = "APPROVED"
     review.user = Mock(login="reviewer1")
-    review.submitted_at = datetime.now(timezone.utc)
+    review.submitted_at = datetime.now(UTC)
     review.body = "LGTM!"
     review.id = 1
     review.html_url = "https://github.com/owner/repo/pull/123#review-1"
@@ -77,7 +75,7 @@ def mock_review_changes_requested():
     review = Mock()
     review.state = "CHANGES_REQUESTED"
     review.user = Mock(login="reviewer2")
-    review.submitted_at = datetime.now(timezone.utc)
+    review.submitted_at = datetime.now(UTC)
     review.body = "Please fix the typo"
     review.id = 2
     review.html_url = "https://github.com/owner/repo/pull/123#review-2"
@@ -90,7 +88,7 @@ def mock_review_commented():
     review = Mock()
     review.state = "COMMENTED"
     review.user = Mock(login="reviewer3")
-    review.submitted_at = datetime.now(timezone.utc)
+    review.submitted_at = datetime.now(UTC)
     review.body = "Nice work!"
     review.id = 3
     review.html_url = "https://github.com/owner/repo/pull/123#review-3"
@@ -1073,10 +1071,8 @@ def test_write_output_to_stdout(capsys):
     """Test write_output writes to stdout."""
     content = "Test report content"
 
-    with patch.dict(os.environ, {}, clear=True):
-        with patch("tempfile.gettempdir", return_value="/tmp"):
-            with patch("builtins.open", mock_open()):
-                generate_status.write_output(content)
+    with patch.dict(os.environ, {}, clear=True), patch("tempfile.gettempdir", return_value="/tmp"), patch("builtins.open", mock_open()):
+        generate_status.write_output(content)
 
     captured = capsys.readouterr()
     assert content in captured.out
@@ -1086,16 +1082,15 @@ def test_write_output_to_temp_file():
     """Test write_output writes to temp file."""
     content = "Test report content"
 
-    with patch.dict(os.environ, {}, clear=True):
-        with patch("tempfile.gettempdir", return_value="/tmp"):
-            m = mock_open()
-            with patch("builtins.open", m):
-                generate_status.write_output(content)
+    with patch.dict(os.environ, {}, clear=True), patch("tempfile.gettempdir", return_value="/tmp"):
+        m = mock_open()
+        with patch("builtins.open", m):
+            generate_status.write_output(content)
 
-            # Verify file was written
-            m.assert_called_once()
-            handle = m()
-            handle.write.assert_called_once_with(content)
+        # Verify file was written
+        m.assert_called_once()
+        handle = m()
+        handle.write.assert_called_once_with(content)
 
 
 def test_write_output_to_github_step_summary():
@@ -1117,10 +1112,8 @@ def test_write_output_handles_io_error_temp_file(capsys):
     """Test write_output handles IOError for temp file."""
     content = "Test content"
 
-    with patch.dict(os.environ, {}, clear=True):
-        with patch("tempfile.gettempdir", return_value="/tmp"):
-            with patch("builtins.open", side_effect=IOError("Disk full")):
-                generate_status.write_output(content)
+    with patch.dict(os.environ, {}, clear=True), patch("tempfile.gettempdir", return_value="/tmp"), patch("builtins.open", side_effect=OSError("Disk full")):
+        generate_status.write_output(content)
 
     captured = capsys.readouterr()
     assert "Error writing to temp file" in captured.err
@@ -1131,9 +1124,8 @@ def test_write_output_handles_io_error_github_summary(capsys):
     content = "Test content"
     summary_file = "/tmp/summary.md"
 
-    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}):
-        with patch("builtins.open", side_effect=IOError("Permission denied")):
-            generate_status.write_output(content)
+    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}), patch("builtins.open", side_effect=OSError("Permission denied")):
+        generate_status.write_output(content)
 
     captured = capsys.readouterr()
     assert "Warning: Could not write to GITHUB_STEP_SUMMARY" in captured.err
@@ -1182,16 +1174,15 @@ def test_main_github_api_error(capsys):
         "REPO_NAME": "repo",
     }
 
-    with patch.dict(os.environ, env, clear=True):
-        with patch("generate_status.Github") as mock_github_class:
-            mock_github = Mock()
-            mock_github_class.return_value = mock_github
-            mock_github.get_repo.side_effect = GithubException(status=404, data={"message": "Not Found"}, headers={})
+    with patch.dict(os.environ, env, clear=True), patch("generate_status.Github") as mock_github_class:
+        mock_github = Mock()
+        mock_github_class.return_value = mock_github
+        mock_github.get_repo.side_effect = GithubException(status=404, data={"message": "Not Found"}, headers={})
 
-            with pytest.raises(SystemExit) as exc_info:
-                generate_status.main()
+        with pytest.raises(SystemExit) as exc_info:
+            generate_status.main()
 
-            assert exc_info.value.code == 1
+        assert exc_info.value.code == 1
 
     captured = capsys.readouterr()
     assert "GitHub API Error" in captured.err
@@ -1206,28 +1197,25 @@ def test_main_success_flow(mock_pr, mock_review_approved, mock_check_run_success
         "REPO_NAME": "repo",
     }
 
-    with patch.dict(os.environ, env, clear=True):
-        with patch("generate_status.Github") as mock_github_class:
-            with patch("tempfile.gettempdir", return_value="/tmp"):
-                with patch("builtins.open", mock_open()):
-                    # Setup mocks
-                    mock_github = Mock()
-                    mock_repo = Mock()
-                    mock_commit = Mock()
+    with patch.dict(os.environ, env, clear=True), patch("generate_status.Github") as mock_github_class, patch("tempfile.gettempdir", return_value="/tmp"), patch("builtins.open", mock_open()):
+            # Setup mocks
+            mock_github = Mock()
+            mock_repo = Mock()
+            mock_commit = Mock()
 
-                    mock_github_class.return_value = mock_github
-                    mock_github.get_repo.return_value = mock_repo
-                    mock_repo.get_pull.return_value = mock_pr
-                    mock_repo.get_commit.return_value = mock_commit
+            mock_github_class.return_value = mock_github
+            mock_github.get_repo.return_value = mock_repo
+            mock_repo.get_pull.return_value = mock_pr
+            mock_repo.get_commit.return_value = mock_commit
 
-                    mock_pr.get_reviews.return_value = [mock_review_approved]
-                    mock_pr.get_review_comments.return_value = Mock(totalCount=0)
-                    mock_commit.get_check_runs.return_value = [mock_check_run_success]
+            mock_pr.get_reviews.return_value = [mock_review_approved]
+            mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+            mock_commit.get_check_runs.return_value = [mock_check_run_success]
 
-                    with pytest.raises(SystemExit) as exc_info:
-                        generate_status.main()
+            with pytest.raises(SystemExit) as exc_info:
+                generate_status.main()
 
-                    assert exc_info.value.code == 0
+            assert exc_info.value.code == 0
 
     captured = capsys.readouterr()
     assert "Fetching status for PR #123" in captured.err
@@ -1243,12 +1231,11 @@ def test_main_generic_exception(capsys):
         "REPO_NAME": "repo",
     }
 
-    with patch.dict(os.environ, env, clear=True):
-        with patch("generate_status.Github", side_effect=Exception("Unexpected error")):
-            with pytest.raises(SystemExit) as exc_info:
-                generate_status.main()
+    with patch.dict(os.environ, env, clear=True), patch("generate_status.Github", side_effect=Exception("Unexpected error")):
+        with pytest.raises(SystemExit) as exc_info:
+            generate_status.main()
 
-            assert exc_info.value.code == 1
+        assert exc_info.value.code == 1
 
     captured = capsys.readouterr()
     # Should print traceback

@@ -6,7 +6,7 @@ AssetRelationshipGraph instance used by the API.
 
 import logging
 import threading
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from src.config.settings import get_settings
 from src.data.real_data_fetcher import RealDataFetcher
@@ -30,8 +30,8 @@ class _GraphState:
             graph: Cached AssetRelationshipGraph instance or `None` if not yet initialized.
             graph_factory: Optional callable that returns an AssetRelationshipGraph; when set, it will be used to construct `graph`.
         """
-        self.graph: Optional[AssetRelationshipGraph] = None
-        self.graph_factory: Optional[Callable[[], AssetRelationshipGraph]] = None
+        self.graph: AssetRelationshipGraph | None = None
+        self.graph_factory: Callable[[], AssetRelationshipGraph] | None = None
 
 
 graph_state = _GraphState()
@@ -75,7 +75,7 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
 
 
 def set_graph_factory(
-    factory: Optional[Callable[[], AssetRelationshipGraph]],
+    factory: Callable[[], AssetRelationshipGraph] | None,
 ) -> None:
     """
     Configure the callable used to construct the global AssetRelationshipGraph and clear any existing graph so it will be recreated on next access.

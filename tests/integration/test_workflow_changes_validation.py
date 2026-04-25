@@ -27,7 +27,7 @@ class TestPRAgentWorkflowChanges:
             dict: Parsed contents of .github/workflows/pr-agent.yml as native Python objects.
         """
         workflow_path = Path(".github/workflows/pr-agent.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     def test_pr_agent_workflow_structure(self, pr_agent_workflow):
@@ -110,7 +110,7 @@ class TestGreetingsWorkflowChanges:
             Parsed workflow content as native Python structures (typically a dict).
         """
         workflow_path = Path(".github/workflows/greetings.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     @staticmethod
@@ -144,7 +144,7 @@ class TestLabelWorkflowChanges:
             dict: Parsed YAML content of the label workflow.
         """
         workflow_path = Path(".github/workflows/label.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     @staticmethod
@@ -191,7 +191,7 @@ class TestAPISecWorkflowChanges:
             workflow (dict): Parsed content of .github/workflows/apisec-scan.yml.
         """
         workflow_path = Path(".github/workflows/apisec-scan.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     @staticmethod
@@ -246,7 +246,7 @@ class TestDeletedFilesImpact:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 content = f.read()
                 assert (
                     "context_chunker" not in content.lower()
@@ -266,7 +266,7 @@ class TestWorkflowSecurityBestPractices:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflow = yaml.safe_load(f)
 
             # Check all jobs and steps
@@ -289,7 +289,7 @@ class TestWorkflowSecurityBestPractices:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflow = yaml.safe_load(f)
 
             # If permissions are specified, they should be limited
@@ -316,7 +316,7 @@ class TestWorkflowYAMLValidity:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 try:
                     yaml.safe_load(f)
                 except yaml.YAMLError as e:
@@ -332,7 +332,7 @@ class TestWorkflowYAMLValidity:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflow = yaml.safe_load(f)
 
             assert "name" in workflow, f"{workflow_file.name} missing 'name'"
@@ -349,7 +349,7 @@ class TestWorkflowYAMLValidity:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflow = yaml.safe_load(f)
 
             for job_name, job in workflow.get("jobs", {}).items():
@@ -373,7 +373,7 @@ class TestWorkflowIntegration:
         repo_root = Path(".")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 content = f.read()
 
             # Common path patterns to check
@@ -412,7 +412,7 @@ class TestDependencyCheckWorkflowPresence:
     def test_dependency_check_workflow_yaml_is_valid():
         """dependency-check.yml should parse as a valid workflow YAML document."""
         workflow_path = Path(".github/workflows/dependency-check.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             workflow = yaml.safe_load(f)
 
         assert isinstance(workflow, dict), "dependency-check.yml should contain a valid workflow mapping"

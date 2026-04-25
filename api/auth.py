@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta, timezone
-from typing import Optional, TypedDict
+from datetime import UTC, datetime, timedelta
+from typing import TypedDict
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -42,7 +42,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     """Carries optional token payload data, such as the extracted username."""
 
-    username: Optional[str] = None
+    username: str | None = None
 
 
 def _is_truthy(value: str | None) -> bool:
@@ -64,7 +64,7 @@ class UserRepository:
     """Repository for accessing user credential records."""
 
     @staticmethod
-    def get_user(username: str) -> Optional[UserInDB]:
+    def get_user(username: str) -> UserInDB | None:
         """
         Retrieve a user record by username from the repository.
 
@@ -111,7 +111,7 @@ class UserRepository:
         *,
         username: str,
         hashed_password: str,
-        user_profile: Optional["UserRepository.UserProfile"] = None,
+        user_profile: UserRepository.UserProfile | None = None,
         **legacy_profile_fields: object,
     ) -> None:
         """
@@ -241,8 +241,8 @@ if not user_repository.has_users():
 
 def get_user(
     username: str,
-    repository: Optional[UserRepository] = None,
-) -> Optional[UserInDB]:
+    repository: UserRepository | None = None,
+) -> UserInDB | None:
     """
     Retrieve a user by username.
 
@@ -261,7 +261,7 @@ def get_user(
 def authenticate_user(
     username: str,
     password: str,
-    repository: Optional[UserRepository] = None,
+    repository: UserRepository | None = None,
 ) -> UserInDB | bool:
     """
     Authenticate a username and password and return the corresponding stored user.
@@ -283,7 +283,7 @@ def authenticate_user(
     return user
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     """
     Create a JWT access token that includes an expiry (`exp`) claim.
 
@@ -300,9 +300,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -395,7 +395,7 @@ def _decode_username_from_token(
         raise credentials_exception from e
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:  # noqa: B008
     """
     Verify that the authenticated user's account is active.
 

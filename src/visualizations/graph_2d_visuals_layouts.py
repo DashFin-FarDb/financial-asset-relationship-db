@@ -4,12 +4,11 @@ visualizations, including circular, grid, and spring layouts.
 """
 
 import math
-from typing import Dict, List, Tuple
 
 
 def _create_circular_layout(
-    asset_ids: List[str],
-) -> Dict[str, Tuple[float, float]]:
+    asset_ids: list[str],
+) -> dict[str, tuple[float, float]]:
     """
     Assigns each asset ID to an evenly spaced point on the unit circle.
 
@@ -31,8 +30,8 @@ def _create_circular_layout(
 
 
 def _create_grid_layout(
-    asset_ids: List[str],
-) -> Dict[str, Tuple[float, float]]:
+    asset_ids: list[str],
+) -> dict[str, tuple[float, float]]:
     """
     Generate grid positions for the given assets arranged in row-major order.
 
@@ -54,9 +53,9 @@ def _create_grid_layout(
 
 
 def _create_spring_layout_2d(
-    positions_3d: Dict[str, Tuple[float, float, float]],
-    asset_ids: List[str],
-) -> Dict[str, Tuple[float, float]]:
+    positions_3d: dict[str, tuple[float, float, float]],
+    asset_ids: list[str],
+) -> dict[str, tuple[float, float]]:
     """
     Convert selected 3D positions to 2D coordinates by taking the first two components (X, Y).
 

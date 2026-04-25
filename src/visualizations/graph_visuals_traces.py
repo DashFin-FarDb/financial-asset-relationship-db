@@ -1,6 +1,5 @@
 """Helpers to build Plotly Scatter3d traces for asset-graph visuals."""
 
-from typing import Dict, List, Optional
 
 import numpy as np
 import plotly.graph_objects as go  # type: ignore[import-untyped]
@@ -55,9 +54,9 @@ def _format_trace_name(rel_type: str, is_bidirectional: bool) -> str:
 
 def _create_trace_for_group(
     relationship_key: tuple[str, bool],
-    relationships: List[dict],
+    relationships: list[dict],
     positions: np.ndarray,
-    asset_id_index: Dict[str, int],
+    asset_id_index: dict[str, int],
 ) -> go.Scatter3d:
     """
     Builds a Plotly Scatter3d trace for a group of relationships that share the same type and direction.
@@ -94,9 +93,9 @@ def _create_trace_for_group(
 
 def _create_node_trace(
     positions: np.ndarray,
-    asset_ids: List[str],
-    colors: List[str],
-    hover_texts: List[str],
+    asset_ids: list[str],
+    colors: list[str],
+    hover_texts: list[str],
 ) -> go.Scatter3d:
     """
     Builds a Plotly Scatter3d trace representing asset nodes for a 3D graph visualization.
@@ -141,9 +140,9 @@ def _create_node_trace(
 def _create_relationship_traces(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
-    asset_ids: List[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
-) -> List[go.Scatter3d]:
+    asset_ids: list[str],
+    relationship_filters: dict[str, bool] | None = None,
+) -> list[go.Scatter3d]:
     """
     Builds Plotly Scatter3d traces for each relationship type and direction group present in the graph.
 
@@ -174,7 +173,7 @@ def _create_relationship_traces(
 def _validate_relationship_trace_inputs(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
-    asset_ids: List[str],
+    asset_ids: list[str],
 ) -> None:
     """
     Validate inputs for constructing relationship traces.
@@ -222,7 +221,7 @@ def _validate_positions_array(positions: np.ndarray) -> None:
 
 def _validate_positions_match_asset_ids(
     positions: np.ndarray,
-    asset_ids: List[str],
+    asset_ids: list[str],
 ) -> None:
     """
     Ensure the number of position entries equals the number of asset IDs.
@@ -242,7 +241,7 @@ def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: list[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
+    relationship_filters: dict[str, bool] | None = None,
 ) -> list[go.Scatter3d]:
     """
     Create diamond markers placed at 70% along each unidirectional relationship edge.
@@ -498,7 +497,7 @@ def _create_directional_arrows_traces(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: list[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
+    relationship_filters: dict[str, bool] | None = None,
 ) -> list[go.Scatter3d]:
     """
     Create 3D directional arrow traces for relationships that are present in one direction but not the reverse.

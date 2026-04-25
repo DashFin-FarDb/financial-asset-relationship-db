@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, TypedDict
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -109,7 +109,7 @@ class AssetGraphRepository:
         self._update_asset_orm(existing, asset)
         self.session.add(existing)
 
-    def list_assets(self) -> List[Asset]:
+    def list_assets(self) -> list[Asset]:
         """
         Retrieve all assets ordered by id.
 
@@ -121,7 +121,7 @@ class AssetGraphRepository:
         result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         return [self._to_asset_model(record) for record in result]
 
-    def get_assets_map(self) -> Dict[str, Asset]:
+    def get_assets_map(self) -> dict[str, Asset]:
         """
         Return a mapping of asset id to the corresponding Asset domain object.
 
@@ -132,7 +132,7 @@ class AssetGraphRepository:
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
-    def get_asset_by_id(self, asset_id: str) -> Optional[Asset]:
+    def get_asset_by_id(self, asset_id: str) -> Asset | None:
         """
         Return a single asset by its ID, or None if not found.
 
@@ -304,7 +304,7 @@ class AssetGraphRepository:
         relationship.bidirectional = relationship_spec.bidirectional
         return relationship
 
-    def list_relationships(self) -> List[RelationshipRecord]:
+    def list_relationships(self) -> list[RelationshipRecord]:
         """
         List all asset relationships stored in the repository.
 
@@ -328,7 +328,7 @@ class AssetGraphRepository:
         source_id: str,
         target_id: str,
         rel_type: str,
-    ) -> Optional[RelationshipRecord]:
+    ) -> RelationshipRecord | None:
         """
         Return the relationship between two assets for the given relationship type.
 
@@ -387,7 +387,7 @@ class AssetGraphRepository:
 
         self.session.add(existing)
 
-    def list_regulatory_events(self) -> List[RegulatoryEvent]:
+    def list_regulatory_events(self) -> list[RegulatoryEvent]:
         """Return all regulatory events."""
         result = self.session.execute(select(RegulatoryEventORM)).scalars().all()
         return [self._to_regulatory_event_model(record) for record in result]

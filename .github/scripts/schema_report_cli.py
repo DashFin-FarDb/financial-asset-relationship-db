@@ -10,6 +10,7 @@ detailed diagnostics.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import enum
 import json
 import logging
@@ -18,7 +19,6 @@ import re
 import sys
 import tempfile
 from pathlib import Path
-from typing import Dict
 
 _PROJECT_MARKERS = ("pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", ".git")
 
@@ -134,7 +134,7 @@ class CLIError(Exception):
     """Base exception for CLI errors with user-friendly messages."""
 
 
-def parse_output_format(format_str: str) -> "OutputFormat | None":
+def parse_output_format(format_str: str) -> OutputFormat | None:
     """Parse a string into an OutputFormat enum value.
 
     Args:
@@ -143,7 +143,7 @@ def parse_output_format(format_str: str) -> "OutputFormat | None":
     Returns:
         The corresponding OutputFormat enum value, or None if invalid.
     """
-    valid_formats: Dict[str, OutputFormat] = {
+    valid_formats: dict[str, OutputFormat] = {
         "markdown": OutputFormat.MARKDOWN,
         "text": OutputFormat.TEXT,
         "json": OutputFormat.JSON,
@@ -314,10 +314,8 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
             # or when O_RDONLY on directories is not supported
             pass
     except BaseException:
-        try:
+        with contextlib.suppress(OSError):
             os.close(fd)
-        except OSError:
-            pass  # fd might already be closed
         cleanup_partial_output(tmp_path)
         raise
 

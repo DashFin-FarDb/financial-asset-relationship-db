@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import sys
 from pathlib import Path
@@ -649,10 +650,8 @@ class TestSecurityAndSafety:
         content = "test"
 
         # write_atomic writes to temp file, then replace fails (simulating disk full)
-        try:
+        with contextlib.suppress(Exception):
             cli_module.write_atomic(target, content)
-        except Exception:
-            pass  # Expected
 
         # Check no temp files remain after cleanup
         temp_files = list(tmp_path.glob("*.tmp"))

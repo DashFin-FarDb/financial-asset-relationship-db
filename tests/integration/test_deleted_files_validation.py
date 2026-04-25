@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List
 
 import pytest
 import yaml
@@ -25,14 +25,13 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def load_yaml(path: Path) -> Dict:
+def load_yaml(path: Path) -> dict:
     return yaml.safe_load(read_text(path))
 
 
-def iter_workflow_steps(workflow: Dict) -> Iterable[Dict]:
+def iter_workflow_steps(workflow: dict) -> Iterable[dict]:
     for job in workflow.get("jobs", {}).values():
-        for step in job.get("steps", []):
-            yield step
+        yield from job.get("steps", [])
 
 
 def scan_files(
@@ -56,7 +55,7 @@ def scan_files(
 
 
 @pytest.fixture(scope="session")
-def label_workflow() -> Dict:
+def label_workflow() -> dict:
     path = WORKFLOWS_DIR / "label.yml"
     if not path.exists():
         pytest.skip("label.yml not found")
@@ -64,21 +63,21 @@ def label_workflow() -> Dict:
 
 
 class TestLabelWorkflowUpdated:
-    def test_no_checkout_step(self, label_workflow: Dict) -> None:
+    def test_no_checkout_step(self, label_workflow: dict) -> None:
         assert not any("checkout" in step.get("uses", "").lower() for step in iter_workflow_steps(label_workflow))
 
-    def test_no_config_check_step(self, label_workflow: Dict) -> None:
+    def test_no_config_check_step(self, label_workflow: dict) -> None:
         assert not any(
             "check" in step.get("name", "").lower() and "config" in step.get("name", "").lower()
             for step in iter_workflow_steps(label_workflow)
         )
 
-    def test_labeler_not_conditional(self, label_workflow: Dict) -> None:
+    def test_labeler_not_conditional(self, label_workflow: dict) -> None:
         for step in iter_workflow_steps(label_workflow):
             if "labeler" in step.get("uses", "").lower():
                 assert "if" not in step
 
-    def test_minimal_steps(self, label_workflow: Dict) -> None:
+    def test_minimal_steps(self, label_workflow: dict) -> None:
         jobs = label_workflow.get("jobs", {})
         for job in jobs.values():
             assert len(job.get("steps", [])) <= 2
@@ -98,7 +97,7 @@ def pr_agent_path() -> Path:
 
 
 @pytest.fixture(scope="session")
-def pr_agent_workflow(pr_agent_path: Path) -> Dict:
+def pr_agent_workflow(pr_agent_path: Path) -> dict:
     return load_yaml(pr_agent_path)
 
 
@@ -114,10 +113,10 @@ class TestPRAgentWorkflowCleaned:
     def test_no_tiktoken_reference(self, pr_agent_text: str) -> None:
         assert "tiktoken" not in pr_agent_text.lower()
 
-    def test_no_chunking_steps(self, pr_agent_workflow: Dict) -> None:
+    def test_no_chunking_steps(self, pr_agent_workflow: dict) -> None:
         assert not any("chunk" in step.get("name", "").lower() for step in iter_workflow_steps(pr_agent_workflow))
 
-    def test_no_context_files_or_size_logic(self, pr_agent_workflow: Dict) -> None:
+    def test_no_context_files_or_size_logic(self, pr_agent_workflow: dict) -> None:
         for step in iter_workflow_steps(pr_agent_workflow):
             run = step.get("run", "")
             assert "pr_context.json" not in run.lower()
@@ -163,7 +162,7 @@ class TestCodecovCleanup:
 
 
 @pytest.fixture(scope="session")
-def greetings_workflow() -> Dict:
+def greetings_workflow() -> dict:
     path = WORKFLOWS_DIR / "greetings.yml"
     if not path.exists():
         pytest.skip("greetings.yml not found")
@@ -171,7 +170,7 @@ def greetings_workflow() -> Dict:
 
 
 class TestGreetingsWorkflowStructure:
-    def test_single_step(self, greetings_workflow: Dict) -> None:
+    def test_single_step(self, greetings_workflow: dict) -> None:
         steps = next(iter(greetings_workflow["jobs"].values()))["steps"]
         assert len(steps) == 1
 

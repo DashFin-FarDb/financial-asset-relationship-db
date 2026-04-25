@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 from sqlalchemy import (
     Boolean,
     Float,
@@ -71,19 +69,19 @@ class AssetORM(Base):
         nullable=True,
     )
 
-    outgoing_relationships: Mapped[List["AssetRelationshipORM"]] = relationship(
+    outgoing_relationships: Mapped[list[AssetRelationshipORM]] = relationship(
         "AssetRelationshipORM",
         back_populates="source",
         cascade=CASCADE_DELETE_ORPHAN,
         foreign_keys="AssetRelationshipORM.source_asset_id",
     )
-    incoming_relationships: Mapped[List["AssetRelationshipORM"]] = relationship(
+    incoming_relationships: Mapped[list[AssetRelationshipORM]] = relationship(
         "AssetRelationshipORM",
         back_populates="target",
         cascade=CASCADE_DELETE_ORPHAN,
         foreign_keys="AssetRelationshipORM.target_asset_id",
     )
-    regulatory_events: Mapped[List["RegulatoryEventORM"]] = relationship(
+    regulatory_events: Mapped[list[RegulatoryEventORM]] = relationship(
         "RegulatoryEventORM",
         back_populates="asset",
         cascade=CASCADE_DELETE_ORPHAN,
@@ -155,7 +153,7 @@ class RegulatoryEventORM(Base):
         "AssetORM",
         back_populates="regulatory_events",
     )
-    related_assets: Mapped[List["RegulatoryEventAssetORM"]] = relationship(
+    related_assets: Mapped[list[RegulatoryEventAssetORM]] = relationship(
         "RegulatoryEventAssetORM",
         back_populates="event",
         cascade=CASCADE_DELETE_ORPHAN,

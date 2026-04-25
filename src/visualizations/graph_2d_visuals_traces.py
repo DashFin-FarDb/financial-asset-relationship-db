@@ -1,6 +1,6 @@
 """Trace-construction helpers for 2D graph visualizations."""
 
-from typing import Dict, List, Tuple, TypedDict
+from typing import TypedDict
 
 import plotly.graph_objects as go
 
@@ -24,7 +24,7 @@ class RelationshipTraceOptions(TypedDict, total=False):
     show_all_relationships: bool
 
 
-DEFAULT_TRACE_OPTIONS: Dict[str, bool] = {
+DEFAULT_TRACE_OPTIONS: dict[str, bool] = {
     "show_same_sector": True,
     "show_market_cap": True,
     "show_correlation": True,
@@ -38,12 +38,12 @@ DEFAULT_TRACE_OPTIONS: Dict[str, bool] = {
 
 def create_2d_relationship_traces(
     graph: AssetRelationshipGraph,
-    positions: Dict[str, Tuple[float, float]],
-    asset_ids: List[str],
+    positions: dict[str, tuple[float, float]],
+    asset_ids: list[str],
     *,
     options: RelationshipTraceOptions | None = None,
     **legacy_flags: bool,
-) -> List[go.Scatter]:
+) -> list[go.Scatter]:
     """
     Builds Plotly 2D line traces representing relationships between assets.
 
@@ -68,10 +68,10 @@ def create_2d_relationship_traces(
 
 def _create_2d_relationship_traces(
     graph: AssetRelationshipGraph,
-    positions: Dict[str, Tuple[float, float]],
-    asset_ids: List[str],
-    options: Dict[str, bool] | None = None,
-) -> List[go.Scatter]:
+    positions: dict[str, tuple[float, float]],
+    asset_ids: list[str],
+    options: dict[str, bool] | None = None,
+) -> list[go.Scatter]:
     """
     Builds Plotly line traces representing relationships between the provided assets.
 
@@ -105,9 +105,9 @@ def _create_2d_relationship_traces(
 
 
 def _resolve_trace_options(
-    options: Dict[str, bool] | None,
-    legacy_flags: Dict[str, bool],
-) -> Dict[str, bool]:
+    options: dict[str, bool] | None,
+    legacy_flags: dict[str, bool],
+) -> dict[str, bool]:
     """
     Resolve trace option flags by merging module defaults, `options`, and `legacy_flags` in that precedence order.
 
@@ -126,7 +126,7 @@ def _resolve_trace_options(
     return resolved
 
 
-def _build_relationship_filters(options: Dict[str, bool]) -> Dict[str, bool]:
+def _build_relationship_filters(options: dict[str, bool]) -> dict[str, bool]:
     """
     Create a normalized mapping from high-level visibility options to relationship-type filter flags.
 
@@ -155,11 +155,11 @@ def _build_relationship_filters(options: Dict[str, bool]) -> Dict[str, bool]:
 def _collect_relationship_groups(
     *,
     graph: AssetRelationshipGraph,
-    positions: Dict[str, Tuple[float, float]],
-    asset_ids: List[str],
-    relationship_filters: Dict[str, bool],
+    positions: dict[str, tuple[float, float]],
+    asset_ids: list[str],
+    relationship_filters: dict[str, bool],
     show_all_relationships: bool,
-) -> Dict[str, list[Dict[str, object]]]:
+) -> dict[str, list[dict[str, object]]]:
     """
     Group visible relationships from the graph by relationship type for the given assets and positions.
 
@@ -177,7 +177,7 @@ def _collect_relationship_groups(
             - "strength" (object): Relationship strength value (as provided by the graph).
     """
     asset_id_set = set(asset_ids)
-    relationship_groups: Dict[str, list[Dict[str, object]]] = {}
+    relationship_groups: dict[str, list[dict[str, object]]] = {}
     for source_id in asset_ids:
         for target_id, rel_type, strength in graph.relationships.get(source_id, []):
             if target_id not in positions or target_id not in asset_id_set:
@@ -201,7 +201,7 @@ def _collect_relationship_groups(
 def _relationship_hidden(
     *,
     rel_type: str,
-    relationship_filters: Dict[str, bool],
+    relationship_filters: dict[str, bool],
     show_all_relationships: bool,
 ) -> bool:
     """
@@ -219,8 +219,8 @@ def _relationship_hidden(
 
 def _build_relationship_trace(
     rel_type: str,
-    relationships: list[Dict[str, object]],
-    positions: Dict[str, Tuple[float, float]],
+    relationships: list[dict[str, object]],
+    positions: dict[str, tuple[float, float]],
 ) -> go.Scatter:
     """
     Construct a Plotly Scatter trace containing one independent line segment per relationship.
@@ -263,8 +263,8 @@ def _build_relationship_trace(
 
 def _create_node_trace(
     graph: AssetRelationshipGraph,
-    positions: Dict[str, Tuple[float, float]],
-    asset_ids: List[str],
+    positions: dict[str, tuple[float, float]],
+    asset_ids: list[str],
 ) -> go.Scatter:
     """
     Builds a Plotly Scatter trace containing markers and labels for the given asset IDs.
@@ -295,17 +295,17 @@ def _create_node_trace(
         x=node_x,
         y=node_y,
         mode="markers+text",
-        marker=dict(
-            size=node_sizes,
-            color=colors,
-            opacity=0.9,
-            line=dict(color="rgba(0,0,0,0.8)", width=2),
-        ),
+        marker={
+            "size": node_sizes,
+            "color": colors,
+            "opacity": 0.9,
+            "line": {"color": "rgba(0,0,0,0.8)", "width": 2},
+        },
         text=asset_ids,
         hovertext=hover_texts,
         hoverinfo="text",
         textposition="top center",
-        textfont=dict(size=10, color="black"),
+        textfont={"size": 10, "color": "black"},
         name="Assets",
         showlegend=False,
     )

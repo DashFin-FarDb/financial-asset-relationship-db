@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import asdict
-from typing import Any, Optional
+from typing import Any
 
 import gradio as gr  # type: ignore[import-not-found]  # pyright: ignore[reportMissingImports]
 import plotly.graph_objects as go  # type: ignore[import-untyped]
@@ -317,7 +317,7 @@ class FinancialAssetApp:
 
     @staticmethod
     def update_asset_info(
-        selected_asset: Optional[str],
+        selected_asset: str | None,
         graph: AssetRelationshipGraph,
     ) -> tuple[dict, dict]:
         """

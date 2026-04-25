@@ -101,8 +101,8 @@ class TestCompleteAPIFlow:
         all_assets = client.get("/api/assets").json()
 
         # Get unique asset classes and sectors
-        asset_classes = set(a["asset_class"] for a in all_assets)
-        sectors = set(a["sector"] for a in all_assets)
+        asset_classes = {a["asset_class"] for a in all_assets}
+        sectors = {a["sector"] for a in all_assets}
 
         # Test each asset class filter
         for ac in asset_classes:

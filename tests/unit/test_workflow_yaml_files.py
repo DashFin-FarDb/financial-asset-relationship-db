@@ -533,7 +533,7 @@ class TestWorkflowSecurity:
         if risky_patterns:
             warnings.warn(
                 f"Workflows with @main/@master refs (consider pinning): {risky_patterns}",
-                UserWarning,
+                UserWarning, stacklevel=2,
             )
 
     def test_workflows_with_secrets_limit_permissions(self):
@@ -555,7 +555,7 @@ class TestWorkflowSecurity:
             if not _workflow_has_permissions(config):
                 warnings.warn(
                     f"{workflow_file.name} uses secrets but lacks explicit permissions",
-                    UserWarning,
+                    UserWarning, stacklevel=2,
                 )
 
 

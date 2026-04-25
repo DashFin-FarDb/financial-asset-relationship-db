@@ -7,7 +7,6 @@ contains required sections, and has no broken internal references.
 
 import re
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -20,9 +19,9 @@ class TestDocumentationSections:
 
     @pytest.fixture
     @staticmethod
-    def section_headers() -> List[str]:
+    def section_headers() -> list[str]:
         """Extract all section headers from the document."""
-        with open(DOC_FILE, "r", encoding="utf-8") as f:
+        with open(DOC_FILE, encoding="utf-8") as f:
             content = f.read()
         return re.findall(r"^##\s+(.+)$", content, re.MULTILINE)
 

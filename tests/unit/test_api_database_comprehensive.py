@@ -11,7 +11,6 @@ This module provides extensive test coverage for api/database.py including:
 
 import os
 import sqlite3
-import threading
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -262,12 +261,11 @@ class TestConnectModuleLevelCaching:
         api.database._MEMORY_CONNECTION = None
         api.database._MEMORY_CONNECTION_MANAGER = None
         try:
-            with patch.object(api.database, "_db_manager", temp_manager):
-                with patch.object(api.database, "_is_memory_db", return_value=True):
-                    conn = api.database._connect()
-                    assert (
-                        api.database._MEMORY_CONNECTION is conn
-                    ), "_MEMORY_CONNECTION global must be set to the returned connection"
+            with patch.object(api.database, "_db_manager", temp_manager), patch.object(api.database, "_is_memory_db", return_value=True):
+                conn = api.database._connect()
+                assert (
+                    api.database._MEMORY_CONNECTION is conn
+                ), "_MEMORY_CONNECTION global must be set to the returned connection"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
             api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
@@ -285,11 +283,10 @@ class TestConnectModuleLevelCaching:
         api.database._MEMORY_CONNECTION = None
         api.database._MEMORY_CONNECTION_MANAGER = None
         try:
-            with patch.object(api.database, "DATABASE_PATH", ":memory:"):
-                with patch.object(api.database, "_db_manager", temp_manager):
-                    conn1 = api.database._connect()
-                    conn2 = api.database._connect()
-                    assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
+            with patch.object(api.database, "DATABASE_PATH", ":memory:"), patch.object(api.database, "_db_manager", temp_manager):
+                conn1 = api.database._connect()
+                conn2 = api.database._connect()
+                assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
             api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
@@ -310,12 +307,11 @@ class TestConnectModuleLevelCaching:
         api.database._MEMORY_CONNECTION = None
         api.database._MEMORY_CONNECTION_MANAGER = None
         try:
-            with patch.object(api.database, "_db_manager", mock_manager):
-                with patch.object(api.database, "_is_memory_db", return_value=False):
-                    api.database._connect()
-                    assert (
-                        api.database._MEMORY_CONNECTION is None
-                    ), "_MEMORY_CONNECTION must remain None for file-backed databases"
+            with patch.object(api.database, "_db_manager", mock_manager), patch.object(api.database, "_is_memory_db", return_value=False):
+                api.database._connect()
+                assert (
+                    api.database._MEMORY_CONNECTION is None
+                ), "_MEMORY_CONNECTION must remain None for file-backed databases"
         finally:
             api.database._MEMORY_CONNECTION = saved_module_conn
             api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
@@ -348,9 +344,8 @@ class TestCleanupMemoryConnection:
         saved = api.database._MEMORY_CONNECTION
         api.database._MEMORY_CONNECTION = module_conn
         try:
-            with patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True):
-                with patch.object(api.database._db_manager, "close_shared_connection"):
-                    api.database._cleanup_memory_connection()
+            with patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True), patch.object(api.database._db_manager, "close_shared_connection"):
+                api.database._cleanup_memory_connection()
             module_conn.close.assert_called_once()
         finally:
             api.database._MEMORY_CONNECTION = saved
@@ -414,10 +409,8 @@ class TestCleanupMemoryConnection:
         saved = api.database._MEMORY_CONNECTION
         api.database._MEMORY_CONNECTION = module_conn
         try:
-            with patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True):
-                with patch.object(api.database._db_manager, "close_shared_connection"):
-                    with pytest.raises(sqlite3.Error, match="forced close error"):
-                        api.database._cleanup_memory_connection()
+            with patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True), patch.object(api.database._db_manager, "close_shared_connection"), pytest.raises(sqlite3.Error, match="forced close error"):
+                api.database._cleanup_memory_connection()
         finally:
             api.database._MEMORY_CONNECTION = saved
 

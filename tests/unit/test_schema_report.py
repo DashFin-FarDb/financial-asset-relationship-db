@@ -166,7 +166,7 @@ class TestReportMetrics:
         # Should list relationship types
         metrics = populated_graph.calculate_metrics()
         if metrics["relationship_distribution"]:
-            for rel_type in metrics["relationship_distribution"].keys():
+            for rel_type in metrics["relationship_distribution"]:
                 # Type should appear somewhere in report
                 assert rel_type in report or rel_type.replace("_", " ") in report
 

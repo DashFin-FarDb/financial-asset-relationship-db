@@ -6,7 +6,7 @@ for existing imports. The actual FastAPI app construction logic lives in app_fac
 
 from __future__ import annotations
 
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -74,7 +74,7 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
 GraphFactory = Callable[[], AssetRelationshipGraph]
 
 
-def set_graph_factory(factory: Optional[GraphFactory]) -> None:
+def set_graph_factory(factory: GraphFactory | None) -> None:
     """Set the factory used to build the shared asset relationship graph."""
     _set_graph_factory(factory)
 

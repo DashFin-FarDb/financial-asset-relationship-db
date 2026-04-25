@@ -10,8 +10,7 @@ This module provides extensive test coverage for api/auth.py including:
 - Error cases and edge conditions
 """
 
-import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import jwt
@@ -21,20 +20,17 @@ from fastapi import HTTPException
 from api.auth import (
     ALGORITHM,
     SECRET_KEY,
-    User,
     UserInDB,
     UserRepository,
     _build_credentials_exception,
     _build_expired_exception,
     _decode_username_from_token,
     _is_truthy,
-    _seed_credentials_from_env,
     authenticate_user,
     create_access_token,
     get_current_active_user,
     get_current_user,
     get_password_hash,
-    get_user,
     verify_password,
 )
 
@@ -245,7 +241,7 @@ class TestCreateAccessToken:
 
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         exp_timestamp = payload["exp"]
-        now_timestamp = datetime.now(timezone.utc).timestamp()
+        now_timestamp = datetime.now(UTC).timestamp()
         assert exp_timestamp > now_timestamp
 
 
@@ -266,7 +262,7 @@ class TestGetCurrentUser:
     @pytest.mark.asyncio
     async def test_get_current_user_with_expired_token(self):
         """Test get_current_user with expired token."""
-        exp_time = datetime.now(timezone.utc) - timedelta(minutes=10)
+        exp_time = datetime.now(UTC) - timedelta(minutes=10)
         token_data = {"sub": "testuser", "exp": int(exp_time.timestamp())}
         token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -399,11 +395,11 @@ class TestDecodeUsernameFromToken:
 
     def test_valid_token_returns_username(self):
         """A valid token with a 'sub' claim returns that claim value."""
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         payload = {
             "sub": "alice",
-            "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp(),
+            "exp": (datetime.now(UTC) + timedelta(minutes=30)).timestamp(),
         }
         token = self._make_token(payload)
         cred_exc, exp_exc = self._make_exceptions()
@@ -417,9 +413,9 @@ class TestDecodeUsernameFromToken:
 
     def test_missing_sub_raises_credentials_exception(self):
         """A token without a 'sub' claim raises the credentials exception."""
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
-        payload = {"exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
+        payload = {"exp": (datetime.now(UTC) + timedelta(minutes=30)).timestamp()}
         token = self._make_token(payload)
         cred_exc, exp_exc = self._make_exceptions()
 
@@ -433,11 +429,11 @@ class TestDecodeUsernameFromToken:
 
     def test_expired_token_raises_expired_exception(self):
         """An expired token raises the expired exception."""
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         payload = {
             "sub": "bob",
-            "exp": (datetime.now(timezone.utc) - timedelta(minutes=10)).timestamp(),
+            "exp": (datetime.now(UTC) - timedelta(minutes=10)).timestamp(),
         }
         token = self._make_token(payload)
         cred_exc, exp_exc = self._make_exceptions()
@@ -464,9 +460,9 @@ class TestDecodeUsernameFromToken:
 
     def test_tampered_token_raises_credentials_exception(self):
         """A token with an invalid signature raises the credentials exception."""
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
-        payload = {"sub": "eve", "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
+        payload = {"sub": "eve", "exp": (datetime.now(UTC) + timedelta(minutes=30)).timestamp()}
         token = jwt.encode(payload, "wrong-secret", algorithm=ALGORITHM)
         cred_exc, exp_exc = self._make_exceptions()
 
@@ -480,9 +476,9 @@ class TestDecodeUsernameFromToken:
 
     def test_return_type_is_string(self):
         """The return value is always a plain str."""
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
-        payload = {"sub": "charlie", "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
+        payload = {"sub": "charlie", "exp": (datetime.now(UTC) + timedelta(minutes=30)).timestamp()}
         token = self._make_token(payload)
         cred_exc, exp_exc = self._make_exceptions()
 

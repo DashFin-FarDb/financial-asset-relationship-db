@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Iterable, List
+from collections.abc import Callable, Iterable
+from typing import Any
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.helpers import (
@@ -13,7 +14,7 @@ from src.reports.helpers import (
 )
 
 Formatter = Callable[[Iterable[str]], str]
-Metrics = Dict[str, Any]
+Metrics = dict[str, Any]
 
 
 def _default_formatter(lines: Iterable[str]) -> str:
@@ -46,7 +47,7 @@ class SchemaReportGenerator:
         """Produce the full Markdown report."""
         metrics = self._collect_metrics()
 
-        sections: List[str] = []
+        sections: list[str] = []
         sections.extend(self._render_header())
         sections.extend(self._render_schema_overview())
         sections.extend(self._render_relationship_types(metrics))
@@ -69,14 +70,14 @@ class SchemaReportGenerator:
     # ------------------------------------------------------------------
     # Rendering sections
     # ------------------------------------------------------------------
-    def _render_header(self) -> List[str]:
+    def _render_header(self) -> list[str]:
         """Render the title header section for the report."""
         return [
             "# Financial Asset Relationship Database Schema & Rules",
             "",
         ]
 
-    def _render_schema_overview(self) -> List[str]:
+    def _render_schema_overview(self) -> list[str]:
         """
         Return a Markdown "Schema Overview" section listing supported entity types.
 
@@ -97,7 +98,7 @@ class SchemaReportGenerator:
             "",
         ]
 
-    def _render_relationship_types(self, metrics: Metrics) -> List[str]:
+    def _render_relationship_types(self, metrics: Metrics) -> list[str]:
         """Render a list of relationship types with their instance counts."""
         dist = _as_str_int_map(metrics.get("relationship_distribution"))
         lines = ["### Relationship Types"]
@@ -106,7 +107,7 @@ class SchemaReportGenerator:
         lines.append("")
         return lines
 
-    def _render_calculated_metrics(self, metrics: Metrics) -> List[str]:
+    def _render_calculated_metrics(self, metrics: Metrics) -> list[str]:
         """Render calculated network metrics such as total assets,
         relationships, density, and events.
         """
@@ -128,7 +129,7 @@ class SchemaReportGenerator:
             "",
         ]
 
-    def _render_asset_class_distribution(self, metrics: Metrics) -> List[str]:
+    def _render_asset_class_distribution(self, metrics: Metrics) -> list[str]:
         """Render the distribution of assets by class with counts."""
         dist = _as_str_int_map(metrics.get("asset_class_distribution"))
         lines = ["### Asset Class Distribution"]
@@ -137,7 +138,7 @@ class SchemaReportGenerator:
         lines.append("")
         return lines
 
-    def _render_top_relationships(self, metrics: Metrics) -> List[str]:
+    def _render_top_relationships(self, metrics: Metrics) -> list[str]:
         """
         Render the "Top Relationships" section as Markdown lines.
 
@@ -159,7 +160,7 @@ class SchemaReportGenerator:
         lines.append("")
         return lines
 
-    def _render_business_rules(self) -> List[str]:
+    def _render_business_rules(self) -> list[str]:
         """
         Render the "Business Rules & Constraints" report section as Markdown lines.
 
@@ -188,7 +189,7 @@ class SchemaReportGenerator:
             "",
         ]
 
-    def _render_schema_optimization(self, metrics: Metrics) -> List[str]:
+    def _render_schema_optimization(self, metrics: Metrics) -> list[str]:
         """
         Render schema optimization section lines including a data quality score and a single recommendation determined by relationship density.
 
@@ -224,7 +225,7 @@ class SchemaReportGenerator:
         lines.append("")
         return lines
 
-    def _render_implementation_notes(self) -> List[str]:
+    def _render_implementation_notes(self) -> list[str]:
         """
         Render the "Implementation Notes" section.
 

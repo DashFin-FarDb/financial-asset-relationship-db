@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 import sys
 import tempfile
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import patch
 
 # Add the pr-copilot scripts directory to sys.path so analyze_pr can be
@@ -79,7 +79,7 @@ class TestFormatFileCategories:
 
     def test_single_category(self):
         """One category produces one bullet line."""
-        file_analysis: Dict[str, Any] = {"file_categories": {"python": 3}}
+        file_analysis: dict[str, Any] = {"file_categories": {"python": 3}}
         result = analyze_pr._format_file_categories(file_analysis)
         assert "- Python: 3" in result
 
@@ -98,7 +98,7 @@ class TestFormatFileCategories:
 
     def test_empty_categories(self):
         """Empty dict produces an empty string."""
-        file_analysis: Dict[str, Any] = {"file_categories": {}}
+        file_analysis: dict[str, Any] = {"file_categories": {}}
         result = analyze_pr._format_file_categories(file_analysis)
         assert result == ""
 
@@ -119,7 +119,7 @@ class TestFormatLargeFiles:
 
     def test_no_large_files_returns_empty_string(self):
         """No large files yields an empty string."""
-        file_analysis: Dict[str, Any] = {"large_files": []}
+        file_analysis: dict[str, Any] = {"large_files": []}
         result = analyze_pr._format_large_files(file_analysis)
         assert result == ""
 
@@ -432,7 +432,7 @@ class TestWriteOutput:
             Raises:
                 IOError: always raised with the message "disk full".
             """
-            raise IOError("disk full")
+            raise OSError("disk full")
 
         monkeypatch.setattr("builtins.open", _raise)
 
@@ -471,8 +471,7 @@ class TestWriteOutput:
             created_names.append((kwargs.get("prefix"), kwargs.get("suffix")))
             return original_ntf(**kwargs)
 
-        with patch.dict(os.environ, {}, clear=True):
-            with patch("tempfile.NamedTemporaryFile", side_effect=spy_ntf):
-                analyze_pr.write_output("data")
+        with patch.dict(os.environ, {}, clear=True), patch("tempfile.NamedTemporaryFile", side_effect=spy_ntf):
+            analyze_pr.write_output("data")
 
         assert any(prefix == "pr_analysis_" and suffix == ".md" for prefix, suffix in created_names)

@@ -454,7 +454,7 @@ class TestSnykWorkflowEdgeCases:
         with open(snyk_workflow_path) as f:
             workflow = yaml.safe_load(f)
 
-        for job_name in workflow["jobs"].keys():
+        for job_name in workflow["jobs"]:
             # Job names should be alphanumeric with hyphens/underscores
             assert job_name.replace("-", "").replace("_", "").isalnum()
 

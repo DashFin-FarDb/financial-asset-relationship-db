@@ -36,7 +36,7 @@ class TestWorkflowYAMLValidation:
             path = self.WORKFLOW_DIR / workflow_file
             assert path.exists(), f"Workflow file not found: {workflow_file}"
 
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 try:
                     data = yaml.safe_load(f)
                     assert data is not None, f"Empty YAML in {workflow_file}"
@@ -58,7 +58,7 @@ class TestWorkflowYAMLValidation:
         for workflow_file in modified_workflows:
             path = self.WORKFLOW_DIR / workflow_file
             try:
-                with open(path, "r", encoding="utf-8") as f:
+                with open(path, encoding="utf-8") as f:
                     workflow = yaml.safe_load(f)
                 assert workflow is not None, f"Empty YAML in {workflow_file}"
 
@@ -82,7 +82,7 @@ class TestWorkflowYAMLValidation:
         chunking references and includes Python setup plus concrete test execution.
         """
         path = self.WORKFLOW_DIR / "pr-agent.yml"
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             content = f.read()
 
         content_lower = content.lower()
@@ -123,7 +123,7 @@ class TestRequirementsDevChanges:
         """
         path = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         assert path.exists(), "requirements-dev.txt not found"
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             content = f.read()
 
         lines = [line.strip() for line in content.splitlines() if line.strip() and not line.strip().startswith("#")]

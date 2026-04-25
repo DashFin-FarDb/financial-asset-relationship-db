@@ -1,7 +1,7 @@
 """Build sample asset graph data for local development and demos."""
 
 import logging
-from typing import Sequence
+from collections.abc import Sequence
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (

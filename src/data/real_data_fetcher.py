@@ -1,11 +1,12 @@
 import json
 import logging
 import math
+from collections.abc import Callable
 from dataclasses import asdict
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
@@ -112,8 +113,8 @@ class RealDataFetcher:
     def __init__(
         self,
         *,
-        cache_path: Optional[str] = None,
-        fallback_factory: Optional[Callable[[], AssetRelationshipGraph]] = None,
+        cache_path: str | None = None,
+        fallback_factory: Callable[[], AssetRelationshipGraph] | None = None,
         enable_network: bool = True,
     ) -> None:
         """
@@ -195,7 +196,7 @@ class RealDataFetcher:
         import os
         import tempfile
 
-        tmp_path: Optional[Path] = None
+        tmp_path: Path | None = None
 
         try:
             if self.cache_path is None:
@@ -250,7 +251,7 @@ class RealDataFetcher:
     def _fetch_history_close(
         yf_module: Any,
         symbol: str,
-    ) -> Tuple[Optional[float], Any]:
+    ) -> tuple[float | None, Any]:
         """
         Fetch the most recent closing price for a Yahoo Finance symbol and return it with the ticker object.
 
@@ -275,7 +276,7 @@ class RealDataFetcher:
         return close_value, ticker
 
     @staticmethod
-    def _fetch_equity_data() -> List[Equity]:
+    def _fetch_equity_data() -> list[Equity]:
         """
         Builds a list of Equity objects for a fixed set of major symbols using Yahoo Finance data.
 
@@ -286,14 +287,14 @@ class RealDataFetcher:
         """
         yf = _get_yfinance()
 
-        equity_symbols: Dict[str, Tuple[str, str]] = {
+        equity_symbols: dict[str, tuple[str, str]] = {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
             "XOM": ("Exxon Mobil Corporation", "Energy"),
             "JPM": ("JPMorgan Chase & Co.", "Financial Services"),
         }
 
-        equities: List[Equity] = []
+        equities: list[Equity] = []
 
         for symbol, (name, sector) in equity_symbols.items():
             try:
@@ -326,7 +327,7 @@ class RealDataFetcher:
         return equities
 
     @staticmethod
-    def _fetch_bond_data() -> List[Bond]:
+    def _fetch_bond_data() -> list[Bond]:
         """
         Construct Bond proxy instances from a fixed set of treasury and corporate bond ETF symbols.
 
@@ -337,7 +338,7 @@ class RealDataFetcher:
         """
         yf = _get_yfinance()
 
-        bond_symbols: Dict[str, Tuple[str, str, Optional[str], Optional[str]]] = {
+        bond_symbols: dict[str, tuple[str, str, str | None, str | None]] = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
                 "iShares iBoxx $ Investment Grade Corporate Bond ETF",
@@ -353,7 +354,7 @@ class RealDataFetcher:
             ),
         }
 
-        bonds: List[Bond] = []
+        bonds: list[Bond] = []
 
         for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
             try:
@@ -390,7 +391,7 @@ class RealDataFetcher:
         return bonds
 
     @staticmethod
-    def _fetch_commodity_data() -> List[Commodity]:
+    def _fetch_commodity_data() -> list[Commodity]:
         """
         Create and return Commodity objects for a fixed set of futures symbols.
 
@@ -401,13 +402,13 @@ class RealDataFetcher:
         """
         yf = _get_yfinance()
 
-        commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
+        commodity_symbols: dict[str, tuple[str, str, float, float]] = {
             "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
             "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
             "SI=F": ("Silver Futures", "Metals", 5000.0, 0.25),
         }
 
-        commodities: List[Commodity] = []
+        commodities: list[Commodity] = []
 
         for symbol, (name, sector, contract_size, volatility) in commodity_symbols.items():
             try:
@@ -440,7 +441,7 @@ class RealDataFetcher:
         return commodities
 
     @staticmethod
-    def _fetch_currency_data() -> List[Currency]:
+    def _fetch_currency_data() -> list[Currency]:
         """
         Builds Currency objects for a predefined set of FX pairs using the latest available rates.
 
@@ -455,13 +456,13 @@ class RealDataFetcher:
         """
         yf = _get_yfinance()
 
-        currency_symbols: Dict[str, Tuple[str, str, str]] = {
+        currency_symbols: dict[str, tuple[str, str, str]] = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
             "GBPUSD=X": ("British Pound", "UK", "GBP"),
             "JPYUSD=X": ("Japanese Yen", "Japan", "JPY"),
         }
 
-        currencies: List[Currency] = []
+        currencies: list[Currency] = []
 
         for symbol, (name, country, currency_code) in currency_symbols.items():
             try:
@@ -489,7 +490,7 @@ class RealDataFetcher:
         return currencies
 
     @staticmethod
-    def _create_regulatory_events() -> List[RegulatoryEvent]:
+    def _create_regulatory_events() -> list[RegulatoryEvent]:
         """
         Constructs a fixed set of synthetic RegulatoryEvent objects associated with assets.
 
@@ -498,7 +499,7 @@ class RealDataFetcher:
         Returns:
             List[RegulatoryEvent]: The list of synthetic regulatory events.
         """
-        events: List[RegulatoryEvent] = []
+        events: list[RegulatoryEvent] = []
 
         events.append(
             RegulatoryEvent(
@@ -557,7 +558,7 @@ def _enum_to_value(value: Any) -> Any:
     return value.value if isinstance(value, Enum) else value
 
 
-def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
+def _serialize_dataclass(obj: Any) -> dict[str, Any]:
     """
     Convert a dataclass instance into a JSON-serializable dictionary with type metadata.
 
@@ -573,7 +574,7 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     return serialized
 
 
-def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
+def _serialize_graph(graph: AssetRelationshipGraph) -> dict[str, Any]:
     """
     Convert an AssetRelationshipGraph into a JSON-serializable dictionary.
 
@@ -586,7 +587,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             - "incoming_relationships": mapping from target asset id to a list of objects each
               containing "source", "relationship_type", and "strength".
     """
-    incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
+    incoming_relationships: dict[str, list[tuple[str, str, float]]] = {}
 
     for source, rels in graph.relationships.items():
         for target, rel_type, strength in rels:
@@ -622,7 +623,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     }
 
 
-def _deserialize_asset(data: Dict[str, Any]) -> Asset:
+def _deserialize_asset(data: dict[str, Any]) -> Asset:
     """
     Reconstructs an Asset (or specific Asset subclass) instance from a JSON-like dictionary.
 
@@ -652,7 +653,7 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     return cls(**data)
 
 
-def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
+def _deserialize_event(data: dict[str, Any]) -> RegulatoryEvent:
     """
     Convert a serialized regulatory event dictionary into a RegulatoryEvent instance.
 
@@ -668,7 +669,7 @@ def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
     return RegulatoryEvent(**data)
 
 
-def _deserialize_graph(payload: Dict[str, Any]) -> AssetRelationshipGraph:
+def _deserialize_graph(payload: dict[str, Any]) -> AssetRelationshipGraph:
     """
     Reconstruct an AssetRelationshipGraph from a serialized payload.
 

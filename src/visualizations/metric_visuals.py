@@ -1,7 +1,6 @@
 """Metric visualization helpers for asset relationship analytics."""
 
 from datetime import datetime
-from typing import Tuple
 
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 
@@ -131,7 +130,7 @@ def _apply_regulatory_events_layout(fig: go.Figure) -> None:
 
 def visualize_metrics(
     graph: AssetRelationshipGraph,
-) -> Tuple[go.Figure, go.Figure, go.Figure]:
+) -> tuple[go.Figure, go.Figure, go.Figure]:
     """
     Build three Plotly figures summarizing metrics extracted from an AssetRelationshipGraph.
 

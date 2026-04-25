@@ -1,5 +1,5 @@
 import os
-from typing import Any, List
+from typing import Any
 
 import yaml
 
@@ -18,7 +18,7 @@ class ValidationResult:
     def __init__(
         self,
         is_valid: bool,
-        errors: List[str],
+        errors: list[str],
         workflow_data: Any,
     ):
         """
@@ -66,7 +66,7 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
         if not os.path.isfile(safe_path):
             return ValidationResult(False, [f"File not found: {safe_path}"], {})
 
-        with open(safe_path, "r", encoding="utf-8") as f:
+        with open(safe_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         if data is None:

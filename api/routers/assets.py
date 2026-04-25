@@ -1,6 +1,5 @@
 """Asset API routes."""
 
-from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException
 
@@ -15,11 +14,11 @@ from ..router_helpers import (
 router = APIRouter()
 
 
-@router.get("/api/assets", response_model=List[AssetResponse])
+@router.get("/api/assets", response_model=list[AssetResponse])
 async def get_assets(
-    asset_class: Optional[str] = None,
-    sector: Optional[str] = None,
-) -> List[AssetResponse]:
+    asset_class: str | None = None,
+    sector: str | None = None,
+) -> list[AssetResponse]:
     """Return assets filtered by asset class and sector."""
     try:
         g = get_graph()

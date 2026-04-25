@@ -10,7 +10,6 @@ Focus areas:
 """
 
 import re
-from typing import Any, Dict, List
 
 
 class TestWorkflowInjectionPrevention:

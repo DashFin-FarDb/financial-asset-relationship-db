@@ -7,12 +7,11 @@ calculate visible relationships, and prepare layout configurations
 for financial asset network plots.
 """
 
-from typing import Dict, List, Optional, Tuple
 
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 
-def _int_option(options: Dict[str, object], key: str, default: int) -> int:
+def _int_option(options: dict[str, object], key: str, default: int) -> int:
     """Return an int option value with safe fallback to default."""
     value = options.get(key, default)
     if isinstance(value, bool):
@@ -29,7 +28,7 @@ def _int_option(options: Dict[str, object], key: str, default: int) -> int:
     return default
 
 
-def _str_option(options: Dict[str, object], key: str, default: str) -> str:
+def _str_option(options: dict[str, object], key: str, default: str) -> str:
     """Return a string option value with safe fallback to default."""
     value = options.get(key, default)
     return value if isinstance(value, str) else default
@@ -50,7 +49,7 @@ def _generate_dynamic_title(
 
 
 def _calculate_visible_relationships(
-    relationship_traces: List[go.Scatter3d],
+    relationship_traces: list[go.Scatter3d],
 ) -> int:
     """
     Estimate the number of visible relationships represented by a list of 3D scatter traces.
@@ -67,10 +66,10 @@ def _calculate_visible_relationships(
 
 def _prepare_layout_config(
     num_assets: int,
-    relationship_traces: List[go.Scatter3d],
+    relationship_traces: list[go.Scatter3d],
     base_title: str = "Financial Asset Network",
-    layout_options: Optional[Dict[str, object]] = None,
-) -> Tuple[str, Dict[str, object]]:
+    layout_options: dict[str, object] | None = None,
+) -> tuple[str, dict[str, object]]:
     """
     Create a dynamic plot title using the asset count and estimated visible relationships, and return that title with layout options.
 
@@ -94,7 +93,7 @@ def _prepare_layout_config(
 def _configure_3d_layout(
     fig: go.Figure,
     title: str,
-    options: Optional[Dict[str, object]] = None,
+    options: dict[str, object] | None = None,
 ) -> None:
     """
     Apply a 3D scene layout and visual defaults to a Plotly Figure.

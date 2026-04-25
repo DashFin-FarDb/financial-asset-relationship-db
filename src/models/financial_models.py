@@ -3,7 +3,6 @@
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional
 
 
 # Asset Class Definitions
@@ -41,7 +40,7 @@ class Asset:
     asset_class: AssetClass
     sector: str
     price: float
-    market_cap: Optional[float] = None
+    market_cap: float | None = None
     currency: str = "USD"
 
     def __post_init__(self) -> None:
@@ -135,39 +134,39 @@ class Asset:
 class Equity(Asset):
     """Equity asset"""
 
-    pe_ratio: Optional[float] = None
-    dividend_yield: Optional[float] = None
-    earnings_per_share: Optional[float] = None
-    book_value: Optional[float] = None
+    pe_ratio: float | None = None
+    dividend_yield: float | None = None
+    earnings_per_share: float | None = None
+    book_value: float | None = None
 
 
 @dataclass
 class Bond(Asset):
     """Fixed income asset"""
 
-    yield_to_maturity: Optional[float] = None
-    coupon_rate: Optional[float] = None
-    maturity_date: Optional[str] = None
-    credit_rating: Optional[str] = None
-    issuer_id: Optional[str] = None  # Link to company if corporate
+    yield_to_maturity: float | None = None
+    coupon_rate: float | None = None
+    maturity_date: str | None = None
+    credit_rating: str | None = None
+    issuer_id: str | None = None  # Link to company if corporate
 
 
 @dataclass
 class Commodity(Asset):
     """Commodity asset"""
 
-    contract_size: Optional[float] = None
-    delivery_date: Optional[str] = None
-    volatility: Optional[float] = None
+    contract_size: float | None = None
+    delivery_date: str | None = None
+    volatility: float | None = None
 
 
 @dataclass
 class Currency(Asset):
     """Currency asset"""
 
-    exchange_rate: Optional[float] = None
-    country: Optional[str] = None
-    central_bank_rate: Optional[float] = None
+    exchange_rate: float | None = None
+    country: str | None = None
+    central_bank_rate: float | None = None
 
 
 @dataclass
@@ -180,7 +179,7 @@ class RegulatoryEvent:
     date: str  # ISO 8601 recommended
     description: str
     impact_score: float  # -1 to 1
-    related_assets: List[str] = field(default_factory=list)
+    related_assets: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """
