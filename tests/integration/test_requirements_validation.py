@@ -151,7 +151,5 @@ class TestRequirementsDocumentation:
         for i, line in enumerate(lines):
             if "pyyaml" in line.lower():
                 context = "\n".join(lines[max(0, i - 3) : i + 1])
-                assert any(
-                    keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]
-                )
+                assert any(keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"])
                 break
