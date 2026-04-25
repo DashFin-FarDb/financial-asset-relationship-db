@@ -601,12 +601,12 @@ class TestSecurityAndSafety:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """generate_report raises CLIError when file permissions prevent writing."""
-        from pathlib import Path as _Path
+        import tempfile
 
-        def mock_write_text(*args, **kwargs):  # noqa: ARG001
+        def mock_mkstemp(*args, **kwargs):  # noqa: ARG001
             raise PermissionError("Permission denied")
 
-        monkeypatch.setattr(_Path, "write_text", mock_write_text)
+        monkeypatch.setattr(tempfile, "mkstemp", mock_mkstemp)
 
         output = tmp_path / "readonly.txt"
         fmt = cli_module.OutputFormat.MARKDOWN

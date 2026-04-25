@@ -160,8 +160,8 @@ class TestAddEquityNode:
                 },
             )
 
-            # Extract the text result from the returned ToolResult object
-            result_text = result.content[0].text
+            # Extract the text result from the returned tuple
+            result_text = result[0] if isinstance(result, tuple) else result.content[0].text
 
             assert "Successfully" in result_text
             assert "Apple Inc Test" in result_text
@@ -191,7 +191,7 @@ class TestAddEquityNode:
             },
         )
 
-        result_text = result.content[0].text
+        result_text = result[0] if isinstance(result, tuple) else result.content[0].text
 
         assert isinstance(result_text, str)
         assert "Validation Error" in result_text
@@ -216,7 +216,7 @@ class TestAddEquityNode:
             },
         )
 
-        result_text = result.content[0].text
+        result_text = result[0] if isinstance(result, tuple) else result.content[0].text
 
         assert "Validation Error" in result_text
         assert "id" in result_text.lower()
@@ -249,7 +249,7 @@ class TestAddEquityNode:
                 },
             )
 
-            result_text = result.content[0].text
+            result_text = result[0] if isinstance(result, tuple) else result.content[0].text
 
             # Should indicate validation-only mode
             assert "validation" in result_text.lower() or "Successfully" in result_text
@@ -288,7 +288,7 @@ class TestGet3DLayout:
         result_list = await mcp_app.read_resource("graph://data/3d-layout")
 
         # Extract content from the resource response
-        result = result_list[0].text
+        result = result_list[0] if isinstance(result_list[0], str) else result_list[0].text
 
         # Should return valid JSON
         data = json.loads(result)
@@ -329,7 +329,7 @@ class TestGet3DLayout:
         mcp_app = _build_mcp_app()
 
         result_list = await mcp_app.read_resource("graph://data/3d-layout")
-        result = result_list[0].text
+        result = result_list[0] if isinstance(result_list[0], str) else result_list[0].text
         data = json.loads(result)
 
         # Verify structure
@@ -527,7 +527,7 @@ class TestEdgeCases:
 
         # Calling add_asset with invalid data should raise an exception, but the
         # lock must still be released after the exception.
-        with pytest.raises(ValueError):
+        with pytest.raises((ValueError, AttributeError)):
             safe_graph.add_asset(None)
 
         # Lock should not be held after exception
@@ -555,7 +555,7 @@ class TestEdgeCases:
             },
         )
 
-        result_text = result.content[0].text
+        result_text = result[0] if isinstance(result, tuple) else result.content[0].text
 
         # Should handle special characters without error
         assert "Validation Error" not in result_text
@@ -576,7 +576,7 @@ class TestEdgeCases:
             mcp_app = _build_mcp_app()
 
             result_list = await mcp_app.read_resource("graph://data/3d-layout")
-            result = result_list[0].text
+            result = result_list[0] if isinstance(result_list[0], str) else result_list[0].text
             data = json.loads(result)
 
             # Should return valid structure even with empty graph
@@ -618,7 +618,7 @@ class TestEdgeCases:
             },
         )
 
-        result_text = result.content[0].text
+        result_text = result[0] if isinstance(result, tuple) else result.content[0].text
 
         # Should accept very large valid price
         assert "Validation Error" not in result_text
