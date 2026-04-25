@@ -586,7 +586,7 @@ class FormulaicAnalyzer:
                 "σ₂": "Standard deviation of asset 2",
                 "σ₁₂": "Covariance between assets 1 and 2",
             },
-            example_calculation={},
+            example_calculation="",
             category="Portfolio Theory",
             r_squared=1.0,
         )
