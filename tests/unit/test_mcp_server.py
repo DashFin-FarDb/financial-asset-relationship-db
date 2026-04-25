@@ -215,7 +215,7 @@ class TestAddEquityNode:
             },
         )
 
-        result = result_tuple[1]["result"]
+        result = result_tuple.content[0].text
 
         assert "Validation Error" in result
         assert "id" in result.lower()
@@ -248,7 +248,7 @@ class TestAddEquityNode:
                 },
             )
 
-            result = result_tuple[1]["result"]
+            result = result_tuple.content[0].text
 
             # Should indicate validation-only mode
             assert "validation" in result.lower() or "Successfully" in result
