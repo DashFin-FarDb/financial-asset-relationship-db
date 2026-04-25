@@ -7,6 +7,16 @@ from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
+# Color mapping for each AssetClass.value string used by the visualization router.
+_DEFAULT_COLOR = "#7f7f7f"
+_ASSET_CLASS_COLORS: dict[str, str] = {
+    "Equity": "#1f77b4",
+    "Fixed Income": "#2ca02c",
+    "Commodity": "#ff7f0e",
+    "Currency": "#d62728",
+    "Derivative": "#9467bd",
+}
+
 
 def get_graph():
     """Return the active graph instance."""
