@@ -14,6 +14,7 @@ approach for pytest. The S101 rule is suppressed because tests are not run with
 Python optimization flags that would remove assert statements.
 """
 
+import asyncio
 import json
 import threading
 from unittest.mock import MagicMock, Mock, patch
@@ -24,14 +25,14 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
 
-def _get_mcp_tools(mcp_app):
-    """Return internal tool objects (with .fn, .name) from a FastMCP app."""
-    return list(mcp_app._tool_manager._tools.values())
+async def _get_mcp_tools(mcp_app):
+    """Return tool objects from a FastMCP app using the public API."""
+    return await mcp_app.list_tools()
 
 
-def _get_mcp_resources(mcp_app):
-    """Return internal resource objects (with .fn, .uri) from a FastMCP app."""
-    return list(mcp_app._resource_manager._resources.values())
+async def _get_mcp_resources(mcp_app):
+    """Return resource objects from a FastMCP app using the public API."""
+    return await mcp_app.list_resources()
 
 
 @pytest.mark.unit
@@ -134,7 +135,8 @@ class TestAddEquityNode:
     """Test cases for the add_equity_node MCP tool."""
 
     @staticmethod
-    def test_add_equity_node_successful_addition():
+    @pytest.mark.asyncio
+    async def test_add_equity_node_successful_addition():
         """Test successful equity node addition."""
         from mcp_server import _build_mcp_app, graph
 
@@ -147,20 +149,20 @@ class TestAddEquityNode:
 
             mcp_app = _build_mcp_app()
 
-            # Access the registered tool
-            tool_func = next(
-                (tool.fn for tool in _get_mcp_tools(mcp_app) if tool.name == "add_equity_node"),
-                None,
+            # Call tool via public API
+            result_tuple = await mcp_app.call_tool(
+                "add_equity_node",
+                {
+                    "asset_id": "AAPL_TEST",
+                    "symbol": "AAPL",
+                    "name": "Apple Inc Test",
+                    "sector": "Technology",
+                    "price": 150.0,
+                },
             )
-            assert tool_func is not None, "add_equity_node tool not found"
 
-            result = tool_func(
-                asset_id="AAPL_TEST",
-                symbol="AAPL",
-                name="Apple Inc Test",
-                sector="Technology",
-                price=150.0,
-            )
+            # Extract the text result from the returned tuple
+            result = result_tuple[1]["result"]
 
             assert "Successfully" in result
             assert "Apple Inc Test" in result
@@ -172,56 +174,56 @@ class TestAddEquityNode:
             graph._graph.relationships.update(original_relationships)
 
     @staticmethod
-    def test_add_equity_node_validation_error_negative_price():
+    @pytest.mark.asyncio
+    async def test_add_equity_node_validation_error_negative_price():
         """Test that validation catches negative price."""
         from mcp_server import _build_mcp_app
 
         mcp_app = _build_mcp_app()
 
-        tool_func = None
-        for tool in _get_mcp_tools(mcp_app):
-            if tool.name == "add_equity_node":
-                tool_func = tool.fn
-                break
-
-        assert tool_func is not None, "add_equity_node tool not found"
-        result = tool_func(
-            asset_id="TEST",
-            symbol="TST",
-            name="Test",
-            sector="Tech",
-            price=-100.0,  # Invalid negative price
+        result_tuple = await mcp_app.call_tool(
+            "add_equity_node",
+            {
+                "asset_id": "TEST",
+                "symbol": "TST",
+                "name": "Test",
+                "sector": "Tech",
+                "price": -100.0,  # Invalid negative price
+            },
         )
+
+        result = result_tuple[1]["result"]
 
         assert "Validation Error" in result if isinstance(result, str) else False
         assert "price" in result.lower() if isinstance(result, str) else False
 
     @staticmethod
-    def test_add_equity_node_validation_error_empty_id():
+    @pytest.mark.asyncio
+    async def test_add_equity_node_validation_error_empty_id():
         """Test that validation catches empty asset ID."""
         from mcp_server import _build_mcp_app
 
         mcp_app = _build_mcp_app()
 
-        tool_func = None
-        for tool in _get_mcp_tools(mcp_app):
-            if tool.name == "add_equity_node":
-                tool_func = tool.fn
-                break
-
-        result = tool_func(
-            asset_id="",  # Invalid empty ID
-            symbol="TST",
-            name="Test",
-            sector="Tech",
-            price=100.0,
+        result_tuple = await mcp_app.call_tool(
+            "add_equity_node",
+            {
+                "asset_id": "",  # Invalid empty ID
+                "symbol": "TST",
+                "name": "Test",
+                "sector": "Tech",
+                "price": 100.0,
+            },
         )
+
+        result = result_tuple[1]["result"]
 
         assert "Validation Error" in result
         assert "id" in result.lower()
 
     @staticmethod
-    def test_add_equity_node_fallback_without_add_asset():
+    @pytest.mark.asyncio
+    async def test_add_equity_node_fallback_without_add_asset():
         """
         Verify add_equity_node falls back to validation-only behavior when the global graph lacks an add_asset method.
 
@@ -236,19 +238,18 @@ class TestAddEquityNode:
 
             mcp_app = _build_mcp_app()
 
-            tool_func = None
-            for tool in _get_mcp_tools(mcp_app):
-                if tool.name == "add_equity_node":
-                    tool_func = tool.fn
-                    break
-
-            result = tool_func(
-                asset_id="TEST",
-                symbol="TST",
-                name="Test",
-                sector="Tech",
-                price=100.0,
+            result_tuple = await mcp_app.call_tool(
+                "add_equity_node",
+                {
+                    "asset_id": "TEST",
+                    "symbol": "TST",
+                    "name": "Test",
+                    "sector": "Tech",
+                    "price": 100.0,
+                },
             )
+
+            result = result_tuple[1]["result"]
 
             # Should indicate validation-only mode
             assert "validation" in result.lower() or "Successfully" in result
@@ -259,7 +260,8 @@ class TestGet3DLayout:
     """Test cases for the get_3d_layout MCP resource."""
 
     @staticmethod
-    def test_get_3d_layout_returns_valid_json():
+    @pytest.mark.asyncio
+    async def test_get_3d_layout_returns_valid_json():
         """
         Verify the 3D layout resource returns JSON containing the expected keys and types.
 
@@ -282,14 +284,11 @@ class TestGet3DLayout:
 
         mcp_app = _build_mcp_app()
 
-        # Access the registered resource
-        resource_func = next(
-            (resource.fn for resource in _get_mcp_resources(mcp_app) if "3d-layout" in str(resource.uri)),
-            None,
-        )
-        assert resource_func is not None, "3d-layout resource not found"
+        # Read resource via public API
+        result_list = await mcp_app.read_resource("graph://data/3d-layout")
 
-        result = resource_func()
+        # Extract content from the resource response
+        result = result_list[0].content
 
         # Should return valid JSON
         data = json.loads(result)
@@ -301,7 +300,8 @@ class TestGet3DLayout:
         assert isinstance(data["positions"], list)
 
     @staticmethod
-    def test_get_3d_layout_structure():
+    @pytest.mark.asyncio
+    async def test_get_3d_layout_structure():
         """Test the structure of data returned by get_3d_layout."""
         from mcp_server import _build_mcp_app, graph
 
@@ -328,13 +328,8 @@ class TestGet3DLayout:
 
         mcp_app = _build_mcp_app()
 
-        resource_func = None
-        for resource in _get_mcp_resources(mcp_app):
-            if "3d-layout" in str(resource.uri):
-                resource_func = resource.fn
-                break
-
-        result = resource_func()
+        result_list = await mcp_app.read_resource("graph://data/3d-layout")
+        result = result_list[0].content
         data = json.loads(result)
 
         # Verify structure
@@ -433,60 +428,62 @@ class TestBuildMcpApp:
         assert hasattr(mcp_app, "list_resources")
 
     @staticmethod
-    def test_build_mcp_app_registers_add_equity_tool():
+    @pytest.mark.asyncio
+    async def test_build_mcp_app_registers_add_equity_tool():
         """Test that add_equity_node tool is registered."""
         from mcp_server import _build_mcp_app
 
         mcp_app = _build_mcp_app()
 
-        tools = _get_mcp_tools(mcp_app)
+        tools = await _get_mcp_tools(mcp_app)
         tool_names = [tool.name for tool in tools]
 
         assert "add_equity_node" in tool_names
 
     @staticmethod
-    def test_build_mcp_app_registers_3d_layout_resource():
+    @pytest.mark.asyncio
+    async def test_build_mcp_app_registers_3d_layout_resource():
         """Test that 3d-layout resource is registered."""
         from mcp_server import _build_mcp_app
 
         mcp_app = _build_mcp_app()
 
-        resources = _get_mcp_resources(mcp_app)
+        resources = await _get_mcp_resources(mcp_app)
         resource_uris = [resource.uri for resource in resources]
 
         assert any("3d-layout" in str(uri) for uri in resource_uris)
 
     @staticmethod
-    def test_build_mcp_app_tool_has_correct_signature():
+    @pytest.mark.asyncio
+    async def test_build_mcp_app_tool_has_correct_signature():
         """
         Verify the registered "add_equity_node" tool exposes the expected function parameters.
 
-        Builds the MCP app, locates the tool named "add_equity_node", and confirms the tool's callable `fn`
-        accepts the parameters: `asset_id`, `symbol`, `name`, `sector`, and `price`.
+        Builds the MCP app, locates the tool named "add_equity_node", and confirms the tool's
+        input schema includes the parameters: `asset_id`, `symbol`, `name`, `sector`, and `price`.
         """
         from mcp_server import _build_mcp_app
 
         mcp_app = _build_mcp_app()
 
+        tools = await _get_mcp_tools(mcp_app)
         tool = None
-        for t in _get_mcp_tools(mcp_app):
+        for t in tools:
             if t.name == "add_equity_node":
                 tool = t
                 break
 
         assert tool is not None
 
-        # Check that tool function has expected parameters
-        import inspect
+        # Check that tool input schema has expected parameters
+        input_schema = tool.inputSchema
+        properties = input_schema.get("properties", {})
 
-        sig = inspect.signature(tool.fn)
-        params = list(sig.parameters.keys())
-
-        assert "asset_id" in params
-        assert "symbol" in params
-        assert "name" in params
-        assert "sector" in params
-        assert "price" in params
+        assert "asset_id" in properties
+        assert "symbol" in properties
+        assert "name" in properties
+        assert "sector" in properties
+        assert "price" in properties
 
 
 @pytest.mark.unit
@@ -540,31 +537,32 @@ class TestEdgeCases:
         assert acquired, "Lock was not released after exception"
 
     @staticmethod
-    def test_add_equity_node_with_special_characters():
+    @pytest.mark.asyncio
+    async def test_add_equity_node_with_special_characters():
         """Test add_equity_node with special characters in name."""
         from mcp_server import _build_mcp_app
 
         mcp_app = _build_mcp_app()
 
-        tool_func = None
-        for tool in _get_mcp_tools(mcp_app):
-            if tool.name == "add_equity_node":
-                tool_func = tool.fn
-                break
-
-        result = tool_func(
-            asset_id="TEST_SPECIAL",
-            symbol="TST",
-            name="Test & Company, Inc.",
-            sector="Technology",
-            price=100.0,
+        result_tuple = await mcp_app.call_tool(
+            "add_equity_node",
+            {
+                "asset_id": "TEST_SPECIAL",
+                "symbol": "TST",
+                "name": "Test & Company, Inc.",
+                "sector": "Technology",
+                "price": 100.0,
+            },
         )
+
+        result = result_tuple[1]["result"]
 
         # Should handle special characters without error
         assert "Validation Error" not in result
 
     @staticmethod
-    def test_get_3d_layout_with_empty_graph():
+    @pytest.mark.asyncio
+    async def test_get_3d_layout_with_empty_graph():
         """Test get_3d_layout with empty graph."""
         from mcp_server import _build_mcp_app, graph
 
@@ -577,13 +575,8 @@ class TestEdgeCases:
 
             mcp_app = _build_mcp_app()
 
-            resource_func = None
-            for resource in _get_mcp_resources(mcp_app):
-                if "3d-layout" in str(resource.uri):
-                    resource_func = resource.fn
-                    break
-
-            result = resource_func()
+            result_list = await mcp_app.read_resource("graph://data/3d-layout")
+            result = result_list[0].content
             data = json.loads(result)
 
             # Should return valid structure even with empty graph
@@ -607,25 +600,25 @@ class TestEdgeCases:
             main(["--invalid-arg"])
 
     @staticmethod
-    def test_add_equity_node_with_very_large_price():
+    @pytest.mark.asyncio
+    async def test_add_equity_node_with_very_large_price():
         """Test add_equity_node with very large price value (boundary case)."""
         from mcp_server import _build_mcp_app
 
         mcp_app = _build_mcp_app()
 
-        tool_func = None
-        for tool in _get_mcp_tools(mcp_app):
-            if tool.name == "add_equity_node":
-                tool_func = tool.fn
-                break
-
-        result = tool_func(
-            asset_id="TEST_LARGE_PRICE",
-            symbol="TLP",
-            name="Large Price Company",
-            sector="Technology",
-            price=1e15,  # Very large price
+        result_tuple = await mcp_app.call_tool(
+            "add_equity_node",
+            {
+                "asset_id": "TEST_LARGE_PRICE",
+                "symbol": "TLP",
+                "name": "Large Price Company",
+                "sector": "Technology",
+                "price": 1e15,  # Very large price
+            },
         )
+
+        result = result_tuple[1]["result"]
 
         # Should accept very large valid price
         assert "Validation Error" not in result
