@@ -347,8 +347,10 @@ class TestBranchCoherence:
     def test_branch_reduces_dependencies_on_external_config(self):
         """
         Ensure the branch removes external workflow configuration and limits external file references in workflows.
-
-        Asserts that .github/labeler.yml does not exist. For each YAML file under .github/workflows, asserts that at most one step's `run` command references a path containing ".github/" or "scripts/".
+        Asserts that .github/labeler.yml does not exist.
+        
+        For each YAML file under .github/workflows asserts that,
+        at most one step's `run` command references a path containing ".github/" or "scripts/".
         """
         # labeler.yml was removed - workflows should work without it
         assert not Path(".github/labeler.yml").exists()
@@ -379,7 +381,8 @@ class TestBranchQuality:
         """
         Verify at least one workflow YAML exists and that each workflow parses as a mapping containing a 'jobs' key.
 
-        This test fails if no workflow files are found, if any file cannot be parsed into a mapping, or if a parsed workflow does not include a top-level 'jobs' entry. Failure messages include the offending file path and parser error when applicable.
+        This test fails if no workflow files are found, file cannot be parsed into a mapping, or a workflow does not include a top-level 'jobs' entry.
+        Failure messages include the offending file path and parser error when applicable.
         """
         workflow_dir = Path(".github/workflows")
         workflow_files = list(workflow_dir.glob("*.yml"))
