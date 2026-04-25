@@ -9,6 +9,7 @@ Tests ensure that:
 - Headings follow a logical hierarchy (no large jumps)
 """
 
+import re
 from pathlib import Path
 from typing import List, Tuple
 

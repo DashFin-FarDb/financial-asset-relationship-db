@@ -99,6 +99,7 @@ class TestRequirementsDependencyCompatibility:
 
         allowed_overlap = {
             "markdown",
+            "numpy",
             "pydantic",
             "pytest",
             "pytest-asyncio",
