@@ -55,7 +55,6 @@ class TestCovPluginAvailable:
 
 
 @pytest.mark.unit
-@pytest.mark.unit
 class TestPytestAddoption:
     """Test the pytest_addoption hook and fallback coverage options."""
 

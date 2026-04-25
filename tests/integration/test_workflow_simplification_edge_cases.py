@@ -182,7 +182,8 @@ class TestWorkflowConsistency:
             versions |= extract_python_versions(workflow)
 
         if versions:
-            assert len(versions) <= 6
+            # Project supports Python 3.10, 3.11, 3.12 per pyproject.toml classifiers
+            assert len(versions) <= 3
 
     def test_checkout_versions(self, all_steps: List[Step]) -> None:
         checkouts = [step["uses"] for step in all_steps if "uses" in step and "checkout" in step["uses"].lower()]

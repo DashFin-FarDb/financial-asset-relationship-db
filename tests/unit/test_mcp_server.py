@@ -193,8 +193,9 @@ class TestAddEquityNode:
 
         result = result_tuple.content[0].text
 
-        assert "Validation Error" in result if isinstance(result, str) else False
-        assert "price" in result.lower() if isinstance(result, str) else False
+        assert isinstance(result, str)
+        assert "Validation Error" in result
+        assert "price" in result.lower()
 
     @staticmethod
     @pytest.mark.asyncio
