@@ -220,6 +220,33 @@ class TestWorkflowSupplyChainSecurity:
     """Tests for supply chain security in workflows."""
 
     @staticmethod
+    def _is_local_or_docker_action(action: str) -> bool:
+        """Check if action is a local path or docker reference."""
+        return not action or action.startswith(("./", ".\\", "docker://"))
+
+    @staticmethod
+    def _is_sha_exempt_action(action_name: str, sha_exempt_actions: set) -> bool:
+        """Check if action is exempt from SHA pinning requirement."""
+        return any(action_name.startswith(exempt) for exempt in sha_exempt_actions)
+
+    @staticmethod
+    def _validate_action_sha_pinning(action: str, workflow_path: str, job_name: str, step_idx: int) -> None:
+        """Validate that an action reference uses SHA pinning.
+
+        Args:
+            action: The action reference string (e.g., 'owner/repo@ref').
+            workflow_path: Path to the workflow file for error messages.
+            job_name: Name of the job containing the action.
+            step_idx: Index of the step in the job.
+        """
+        if "@" in action:
+            version = action.split("@")[1]
+            assert re.match(r"^[a-f0-9]{40}$", version.lower()), (
+                f"Action {action} in {workflow_path} job '{job_name}' "
+                f"step {step_idx} must be pinned to a SHA"
+            )
+
+    @staticmethod
     def test_third_party_actions_pinned_to_commit_sha(all_workflows):
         """Verify third-party actions are pinned to a full commit SHA."""
         # Actions that are permitted to use non-SHA version references
@@ -232,17 +259,14 @@ class TestWorkflowSupplyChainSecurity:
                 steps = job_config.get("steps", [])
                 for step_idx, step in enumerate(steps):
                     action = step.get("uses", "")
-                    if not action or action.startswith(("./", ".\\", "docker://")):
+                    if TestWorkflowSupplyChainSecurity._is_local_or_docker_action(action):
                         continue
                     action_name = action.split("@")[0] if "@" in action else action
-                    if any(action_name.startswith(exempt) for exempt in sha_exempt_actions):
+                    if TestWorkflowSupplyChainSecurity._is_sha_exempt_action(action_name, sha_exempt_actions):
                         continue
-                    if "@" in action:
-                        version = action.split("@")[1]
-                        assert re.match(r"^[a-f0-9]{40}$", version.lower()), (
-                            f"Action {action} in {workflow['path']} job '{job_name}' "
-                            f"step {step_idx} must be pinned to a SHA"
-                        )
+                    TestWorkflowSupplyChainSecurity._validate_action_sha_pinning(
+                        action, workflow["path"], job_name, step_idx
+                    )
 
     @staticmethod
     def test_no_insecure_downloads(all_workflows):
