@@ -86,4 +86,4 @@ def reset_graph() -> None:
     # Clear the module-level reference so router_helpers.get_graph() falls
     # through to the lifecycle get_graph() on the next request, which will
     # trigger lazy re-initialization from the configured factory or settings.
-    graph = None  # type: ignore[assignment]
+    graph = None  # type: ignore[assignment]  # Intentionally set to None (AssetRelationshipGraph | None) to signal lazy re-init on next access

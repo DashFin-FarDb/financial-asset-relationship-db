@@ -592,13 +592,15 @@ class TestConcurrentDatabaseAccess:
         assert all(count == 100 for count in results)
 
     def test_concurrent_writes_serialized(self, engine: Engine, isolated_base) -> None:
-        """Verify all concurrent writes complete when database access is serialized.
+        """Verify all concurrent writes complete when database access is explicitly serialized.
 
         SQLite in-memory with StaticPool routes every session to the same underlying
         connection, which is not thread-safe on its own.  An explicit ``threading.Lock``
         is used here to serialize the database operations so that all threads complete
         without contention errors.  The test validates ``session_scope`` together with
-        the StaticPool engine, not SQLite's or SQLAlchemy's intrinsic thread-safety.
+        the StaticPool engine for deterministic serialized access, not SQLite's or
+        SQLAlchemy's intrinsic thread-safety.  (Previously, this test used staggered
+        sleeps to reduce concurrent overlap, which made it intermittently flaky.)
         """
         import threading
 
