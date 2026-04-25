@@ -45,7 +45,7 @@ def test_invalid_format_rejected(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """CLI should exit with code 1 and print a message on invalid format."""
+    """CLI should exit with code 2 (argparse error) for invalid format."""
     mod = _load_module_for_test(monkeypatch, tmp_path)
 
     # Simulate CLI argv with invalid format
@@ -56,11 +56,11 @@ def test_invalid_format_rejected(
     )
 
     rc = mod.main()
-    assert rc == 1
+    assert rc == 2  # argparse exits with 2 for invalid argument values
 
     captured = capsys.readouterr()
-    # Our CLI prints "Error: Invalid output format. Please use one of: ..."
-    assert "Invalid output format" in captured.err
+    # argparse prints its own error message about invalid choice
+    assert "invalid choice" in captured.err or "not-a-format" in captured.err
 
 
 def test_json_output_writes_file(

@@ -312,6 +312,12 @@ def main() -> int:
         log.info("Schema report generation completed successfully.")
         return 0
 
+    except SystemExit as exc:
+        # argparse calls sys.exit() on invalid arguments; preserve the exit code
+        if isinstance(exc.code, int):
+            return exc.code
+        return 1 if exc.code else 0
+
     except CLIError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
