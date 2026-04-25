@@ -4,6 +4,7 @@
       "src": "api/main.py",
       "use": "@vercel/python",
       "config": {
+        "maxLambdaSize": "50mb",
         "excludeFiles": "{docs/**,tests/**,.github/**,.circleci/**,.elastic-copilot/**,.openhands/**,frontend/coverage/**,frontend/__tests__/**,frontend/app/**/__tests__/**,**/*.test.py,**/test_*.py,__pycache__/**}"
       }
     },
