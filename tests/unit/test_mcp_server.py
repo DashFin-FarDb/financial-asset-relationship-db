@@ -191,7 +191,7 @@ class TestAddEquityNode:
             },
         )
 
-        result = result_tuple[1]["result"]
+        result = result_tuple.content[0].text
 
         assert "Validation Error" in result if isinstance(result, str) else False
         assert "price" in result.lower() if isinstance(result, str) else False
