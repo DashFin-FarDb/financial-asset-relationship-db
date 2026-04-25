@@ -31,8 +31,8 @@ if importlib.util.find_spec("github") is None:
     )
 
 # Import after path setup and skip check
-import generate_status
-from github import GithubException
+import generate_status  # pylint: disable=wrong-import-position
+from github import GithubException  # pylint: disable=wrong-import-position,import-error
 
 # --- Fixtures ---
 

@@ -24,6 +24,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import StaticPool
 
 from api.database import (
+    _cleanup_memory_connection,
     _connect,
     _get_database_url,
     _is_memory_db,
@@ -1052,8 +1053,6 @@ class TestNestedConnectionCalls:
         This regression test verifies that _MEMORY_USE_LOCK is reentrant (RLock)
         and allows same-thread nested calls to get_connection().
         """
-        from api.database import _cleanup_memory_connection
-
         # Clean up any existing connection
         _cleanup_memory_connection()
 
@@ -1079,8 +1078,6 @@ class TestNestedConnectionCalls:
     @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
     def test_nested_get_connection_with_fetch_one(self):
         """Test nested get_connection() with fetch_one helper."""
-        from api.database import _cleanup_memory_connection
-
         _cleanup_memory_connection()
 
         with get_connection() as outer_conn:

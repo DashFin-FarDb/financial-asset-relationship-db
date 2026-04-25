@@ -266,9 +266,6 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
         encoded_data = data.encode(encoding)
         bytes_written = 0
         while bytes_written < len(encoded_data):
-        encoded_data = data.encode(encoding)
-        bytes_written = 0
-        while bytes_written < len(encoded_data):
             n = os.write(fd, encoded_data[bytes_written:])
             if n == 0:
                 # os.write returning 0 indicates no progress can be made
