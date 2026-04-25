@@ -62,8 +62,6 @@ class TestPytestAddoption:
     @staticmethod
     def test_registers_fallback_options_when_plugin_unavailable():
         """Test that fallback options are registered when pytest-cov is unavailable."""
-        from unittest.mock import MagicMock
-
         import conftest
 
         mock_parser = MagicMock()
@@ -82,8 +80,6 @@ class TestPytestAddoption:
     @staticmethod
     def test_skips_registration_when_plugin_available():
         """Test that fallback options are not registered when pytest-cov is available."""
-        from unittest.mock import MagicMock
-
         import conftest
 
         mock_parser = MagicMock()
