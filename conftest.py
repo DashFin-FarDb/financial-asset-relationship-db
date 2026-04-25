@@ -24,12 +24,9 @@ from src.data.database import (
 )
 
 
-
 def _cov_plugin_available() -> bool:
     """Return whether pytest-cov is importable in the current environment."""
     return importlib.util.find_spec("pytest_cov") is not None
-
-
 
 
 def pytest_addoption(parser: Any) -> None:
