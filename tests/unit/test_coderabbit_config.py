@@ -67,9 +67,15 @@ class TestCodeRabbitConfiguration:
         top_level_keys = []
         for line in content.split("\n"):
             stripped = line.lstrip()
-            if stripped and not stripped.startswith("#") and not stripped.startswith("-") and ":" in stripped and not stripped.startswith(" "):
-                    key = stripped.split(":")[0].strip()
-                    top_level_keys.append(key)
+            if (
+                stripped
+                and not stripped.startswith("#")
+                and not stripped.startswith("-")
+                and ":" in stripped
+                and not stripped.startswith(" ")
+            ):
+                key = stripped.split(":")[0].strip()
+                top_level_keys.append(key)
 
         # Check for duplicates
         duplicates = [k for k in set(top_level_keys) if top_level_keys.count(k) > 1]

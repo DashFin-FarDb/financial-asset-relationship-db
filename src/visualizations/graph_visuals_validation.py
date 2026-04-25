@@ -1,6 +1,5 @@
 """Validation helpers for graph visualization inputs."""
 
-
 import numpy as np
 
 

@@ -1,7 +1,6 @@
 """Filter validation helpers for graph visualizations."""
 
 
-
 def _validate_filter_parameters(filter_params: dict[str, bool]) -> None:
     """Validate that filter_params is a dictionary with boolean values."""
     if not isinstance(filter_params, dict):

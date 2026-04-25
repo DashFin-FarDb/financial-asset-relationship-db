@@ -695,8 +695,8 @@ class TestDocumentationRealisticContent:
         for dep in deps[:20]:  # Check first 20
             # Should not have spaces (unless it's a relative path)
             if not dep.startswith(".") and not dep.startswith("@") and " " not in dep:
-                    # Valid package name format
-                    assert re.match(r"^[@\w\.\-/]+$", dep), f"Dependency '{dep}' doesn't look like a valid package name"
+                # Valid package name format
+                assert re.match(r"^[@\w\.\-/]+$", dep), f"Dependency '{dep}' doesn't look like a valid package name"
 
 
 @pytest.mark.unit

@@ -1,6 +1,5 @@
 """Data validation helpers for graph visualizations."""
 
-
 from src.visualizations.graph_visuals_positions import _normalize_positions
 
 

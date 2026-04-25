@@ -261,4 +261,3 @@ class TestDocumentationFilesValidation:
         assert not hierarchy_errors, "Markdown heading hierarchy issues:\n" + "\n".join(
             f"{path}: {msg}" for path, msg in hierarchy_errors
         )
-

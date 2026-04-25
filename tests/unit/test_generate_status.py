@@ -1071,7 +1071,11 @@ def test_write_output_to_stdout(capsys):
     """Test write_output writes to stdout."""
     content = "Test report content"
 
-    with patch.dict(os.environ, {}, clear=True), patch("tempfile.gettempdir", return_value="/tmp"), patch("builtins.open", mock_open()):
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        patch("tempfile.gettempdir", return_value="/tmp"),
+        patch("builtins.open", mock_open()),
+    ):
         generate_status.write_output(content)
 
     captured = capsys.readouterr()
@@ -1112,7 +1116,11 @@ def test_write_output_handles_io_error_temp_file(capsys):
     """Test write_output handles IOError for temp file."""
     content = "Test content"
 
-    with patch.dict(os.environ, {}, clear=True), patch("tempfile.gettempdir", return_value="/tmp"), patch("builtins.open", side_effect=OSError("Disk full")):
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        patch("tempfile.gettempdir", return_value="/tmp"),
+        patch("builtins.open", side_effect=OSError("Disk full")),
+    ):
         generate_status.write_output(content)
 
     captured = capsys.readouterr()
@@ -1124,7 +1132,10 @@ def test_write_output_handles_io_error_github_summary(capsys):
     content = "Test content"
     summary_file = "/tmp/summary.md"
 
-    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}), patch("builtins.open", side_effect=OSError("Permission denied")):
+    with (
+        patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}),
+        patch("builtins.open", side_effect=OSError("Permission denied")),
+    ):
         generate_status.write_output(content)
 
     captured = capsys.readouterr()
@@ -1197,25 +1208,30 @@ def test_main_success_flow(mock_pr, mock_review_approved, mock_check_run_success
         "REPO_NAME": "repo",
     }
 
-    with patch.dict(os.environ, env, clear=True), patch("generate_status.Github") as mock_github_class, patch("tempfile.gettempdir", return_value="/tmp"), patch("builtins.open", mock_open()):
-            # Setup mocks
-            mock_github = Mock()
-            mock_repo = Mock()
-            mock_commit = Mock()
+    with (
+        patch.dict(os.environ, env, clear=True),
+        patch("generate_status.Github") as mock_github_class,
+        patch("tempfile.gettempdir", return_value="/tmp"),
+        patch("builtins.open", mock_open()),
+    ):
+        # Setup mocks
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_commit = Mock()
 
-            mock_github_class.return_value = mock_github
-            mock_github.get_repo.return_value = mock_repo
-            mock_repo.get_pull.return_value = mock_pr
-            mock_repo.get_commit.return_value = mock_commit
+        mock_github_class.return_value = mock_github
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
 
-            mock_pr.get_reviews.return_value = [mock_review_approved]
-            mock_pr.get_review_comments.return_value = Mock(totalCount=0)
-            mock_commit.get_check_runs.return_value = [mock_check_run_success]
+        mock_pr.get_reviews.return_value = [mock_review_approved]
+        mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+        mock_commit.get_check_runs.return_value = [mock_check_run_success]
 
-            with pytest.raises(SystemExit) as exc_info:
-                generate_status.main()
+        with pytest.raises(SystemExit) as exc_info:
+            generate_status.main()
 
-            assert exc_info.value.code == 0
+        assert exc_info.value.code == 0
 
     captured = capsys.readouterr()
     assert "Fetching status for PR #123" in captured.err
@@ -1231,7 +1247,10 @@ def test_main_generic_exception(capsys):
         "REPO_NAME": "repo",
     }
 
-    with patch.dict(os.environ, env, clear=True), patch("generate_status.Github", side_effect=Exception("Unexpected error")):
+    with (
+        patch.dict(os.environ, env, clear=True),
+        patch("generate_status.Github", side_effect=Exception("Unexpected error")),
+    ):
         with pytest.raises(SystemExit) as exc_info:
             generate_status.main()
 

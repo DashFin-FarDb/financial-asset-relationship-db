@@ -1,6 +1,5 @@
 """Relationship API routes."""
 
-
 from fastapi import APIRouter, HTTPException
 
 from ..api_models import RelationshipResponse

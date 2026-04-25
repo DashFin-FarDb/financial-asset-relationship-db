@@ -1015,7 +1015,11 @@ def test_write_output_handles_io_error_github_summary(capsys):
     # to skip the security path-check and hit the IOError
     env = _create_env_without_runner_temp({"GITHUB_STEP_SUMMARY": summary_file})
 
-    with patch.dict(os.environ, env, clear=True), patch("builtins.open", side_effect=OSError("Permission denied")), patch("tempfile.NamedTemporaryFile") as mock_temp:
+    with (
+        patch.dict(os.environ, env, clear=True),
+        patch("builtins.open", side_effect=OSError("Permission denied")),
+        patch("tempfile.NamedTemporaryFile") as mock_temp,
+    ):
         mock_file = Mock()
         mock_file.name = "/tmp/test.md"
         mock_temp.return_value.__enter__ = lambda self: mock_file
@@ -1070,15 +1074,17 @@ def test_main_github_api_error(capsys):
         "REPO_NAME": "repo",
     }
 
-    with patch.dict(os.environ, env, clear=True), patch(
-        "suggest_fixes.load_config",
-        return_value={"review_handling": {"actionable_keywords": ["please"]}},
-    ), patch("suggest_fixes.Github") as mock_github_class:
+    with (
+        patch.dict(os.environ, env, clear=True),
+        patch(
+            "suggest_fixes.load_config",
+            return_value={"review_handling": {"actionable_keywords": ["please"]}},
+        ),
+        patch("suggest_fixes.Github") as mock_github_class,
+    ):
         mock_github = Mock()
         mock_github_class.return_value = mock_github
-        mock_github.get_repo.side_effect = GithubException(
-            status=404, data={"message": "Not Found"}, headers={}
-        )
+        mock_github.get_repo.side_effect = GithubException(status=404, data={"message": "Not Found"}, headers={})
 
         with pytest.raises(SystemExit) as exc_info:
             suggest_fixes.main()

@@ -1030,12 +1030,12 @@ class TestMergifyRegressionCases:
         rules = config["pull_request_rules"]
 
         for rule in rules:
-            if "stale" in rule.get("actions", {}).get("label", {}).get("add", []) and "comment" in rule.get("actions", {}):
+            if "stale" in rule.get("actions", {}).get("label", {}).get("add", []) and "comment" in rule.get(
+                "actions", {}
+            ):
                 message = rule["actions"]["comment"]["message"].lower()
                 has_removal_info = any(keyword in message for keyword in ["remove", "push", "update", "commit"])
-                assert (
-                    has_removal_info
-                ), f"Rule '{rule.get('name')}' comment should explain how to remove stale label"
+                assert has_removal_info, f"Rule '{rule.get('name')}' comment should explain how to remove stale label"
 
     def test_auto_merge_has_label_conditions(self):
         """Test that auto-merge rules check for appropriate labels."""

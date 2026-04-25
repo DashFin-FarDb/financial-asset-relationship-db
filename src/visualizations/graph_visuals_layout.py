@@ -7,7 +7,6 @@ calculate visible relationships, and prepare layout configurations
 for financial asset network plots.
 """
 
-
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 

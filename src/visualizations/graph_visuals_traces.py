@@ -1,6 +1,5 @@
 """Helpers to build Plotly Scatter3d traces for asset-graph visuals."""
 
-
 import numpy as np
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 

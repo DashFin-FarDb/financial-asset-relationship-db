@@ -201,7 +201,11 @@ class TestConnectionManagement:
     def test_connection_supports_uri(self):
         """Test that URI-style paths are supported."""
         uri_path = "file::memory:?cache=shared"
-        with patch("api.database.DATABASE_PATH", uri_path), patch("api.database._is_memory_db", return_value=True), get_connection() as conn:
+        with (
+            patch("api.database.DATABASE_PATH", uri_path),
+            patch("api.database._is_memory_db", return_value=True),
+            get_connection() as conn,
+        ):
             assert conn is not None
 
 

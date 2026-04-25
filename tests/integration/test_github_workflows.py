@@ -481,7 +481,9 @@ class TestWorkflowSecurity:
                 for key, value in step_with.items():
                     if key.lower() in {"key", "path", "restore-keys"} and "cache" in step.get("uses", ""):
                         continue
-                    if any(sensitive in key.lower() for sensitive in ["token", "password", "key", "secret"]) and isinstance(value, str):
+                    if any(
+                        sensitive in key.lower() for sensitive in ["token", "password", "key", "secret"]
+                    ) and isinstance(value, str):
                         assert value.startswith("${{") or value == "", (
                             f"Sensitive field '{key}' in {workflow_file.name} "
                             "should use secrets context (e.g., ${{ secrets.TOKEN }})"
@@ -2356,7 +2358,13 @@ class TestWorkflowCachingStrategies:
             if "os" in matrix or "runs-on" in job:
                 steps = job.get("steps", [])
                 for step in steps:
-                    if "uses" in step and "actions/cache" in step["uses"] and "with" in step and "key" in step["with"] and "os" in matrix:
+                    if (
+                        "uses" in step
+                        and "actions/cache" in step["uses"]
+                        and "with" in step
+                        and "key" in step["with"]
+                        and "os" in matrix
+                    ):
                         # Should include runner.os in cache key
                         # Advisory: consider including OS in cache key
                         assert True
@@ -2542,7 +2550,12 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
         for _, job in jobs.items():
             steps = job.get("steps", [])
             for step in steps:
-                if "uses" in step and "actions/upload-artifact" in step["uses"] and "with" in step and "retention-days" in step["with"]:
+                if (
+                    "uses" in step
+                    and "actions/upload-artifact" in step["uses"]
+                    and "with" in step
+                    and "retention-days" in step["with"]
+                ):
                     retention = step["with"]["retention-days"]
                     assert 1 <= retention <= 90, f"Artifact retention should be 1-90 days in {workflow_file.name}"
 
