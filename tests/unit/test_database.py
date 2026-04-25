@@ -1112,4 +1112,3 @@ class TestNestedConnectionCalls:
             assert value == 99
 
         _cleanup_memory_connection()
-
