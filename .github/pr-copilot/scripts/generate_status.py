@@ -314,20 +314,16 @@ def write_output(content: str) -> None:
     print(content)
 
 
-def main():
+def _validate_environment() -> Dict[str, str]:
     """
-    Main entry point for the CLI: validates environment, fetches PR status, generates a Markdown report, and writes the report to configured outputs.
+    Validate required environment variables are set.
 
-    Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME. Exits with status code 0 on success and with status code 1 on any validation, API, or runtime error; prints error details to stderr before exiting.
+    Returns:
+        Dict[str, str]: Dictionary of validated environment variables.
+
+    Exits:
+        Exits with status 1 if any required variables are missing.
     """
-    if not _PYGITHUB_AVAILABLE:
-        print(
-            "Error: Required package 'PyGithub' not installed. Run: pip install PyGithub",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    # Env Var Validation
     required = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]
     env = {var: os.environ.get(var) for var in required}
 
@@ -339,21 +335,49 @@ def main():
         )
         sys.exit(1)
 
+    return env  # type: ignore
+
+
+def _parse_pr_number(pr_number_str: str) -> int:
+    """
+    Parse and validate PR number from string.
+
+    Args:
+        pr_number_str: String representation of PR number.
+
+    Returns:
+        int: Validated PR number.
+
+    Exits:
+        Exits with status 1 if PR_NUMBER is not a valid integer.
+    """
     try:
-        pr_num = int(env["PR_NUMBER"])  # type: ignore
+        return int(pr_number_str)
     except ValueError:
         print("Error: PR_NUMBER must be an integer", file=sys.stderr)
         sys.exit(1)
 
+
+def _fetch_and_generate_report(token: str, repo_owner: str, repo_name: str, pr_num: int) -> None:
+    """
+    Connect to GitHub, fetch PR status, generate report, and write output.
+
+    Args:
+        token: GitHub authentication token.
+        repo_owner: Repository owner name.
+        repo_name: Repository name.
+        pr_num: Pull request number.
+
+    Exits:
+        Exits with status 0 on success, status 1 on any error.
+    """
     try:
-        # Connect
-        g = Github(env["GITHUB_TOKEN"])
-        repo_name = f"{env['REPO_OWNER']}/{env['REPO_NAME']}"
+        g = Github(token)
+        repo_full_name = f"{repo_owner}/{repo_name}"
 
         print(f"Fetching status for PR #{pr_num}...", file=sys.stderr)
 
-        # Execute
-        status = fetch_pr_status(g, repo_name, pr_num)
+        status = fetch_pr_status(g, repo_full_name, pr_num)
         report = generate_markdown(status)
         write_output(report)
 
@@ -368,6 +392,24 @@ def main():
     except Exception:  # pylint: disable=broad-except
         traceback.print_exc()
         sys.exit(1)
+
+
+def main():
+    """
+    Main entry point for the CLI: validates environment, fetches PR status, generates a Markdown report, and writes the report to configured outputs.
+
+    Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME. Exits with status code 0 on success and with status code 1 on any validation, API, or runtime error; prints error details to stderr before exiting.
+    """
+    if not _PYGITHUB_AVAILABLE:
+        print(
+            "Error: Required package 'PyGithub' not installed. Run: pip install PyGithub",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    env = _validate_environment()
+    pr_num = _parse_pr_number(env["PR_NUMBER"])
+    _fetch_and_generate_report(env["GITHUB_TOKEN"], env["REPO_OWNER"], env["REPO_NAME"], pr_num)
 
 
 if __name__ == "__main__":
