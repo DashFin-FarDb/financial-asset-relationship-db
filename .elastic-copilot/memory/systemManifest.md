@@ -205,35 +205,20 @@ Dependencies:
 
 ## TS Dependencies
 
-### /frontend/app/lib/tests/api.test.ts
-
-Dependencies:
-
-- axios
-- ../../app/lib/api
-- ../../app/types/api
-
-### /frontend/app/types/api.ts
-
-No dependencies found
-
-### /frontend/app/lib/tests/api.test.ts
-
-Dependencies:
-
-- axios
-- ../api
-
-### /frontend/app/lib/index.ts
-
-No dependencies found
-
 ### /frontend/app/lib/api.ts
 
 Dependencies:
 
 - axios
 - ../types/api
+
+### /frontend/app/types/api.ts
+
+No dependencies found
+
+### /frontend/app/lib/index.ts
+
+No dependencies found
 
 ## TSX Dependencies
 
