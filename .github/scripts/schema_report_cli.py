@@ -18,6 +18,7 @@ import re
 import sys
 import tempfile
 from pathlib import Path
+from typing import Dict
 
 _PROJECT_MARKERS = ("pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", ".git")
 
@@ -142,7 +143,7 @@ def parse_output_format(format_str: str) -> "OutputFormat | None":
     Returns:
         The corresponding OutputFormat enum value, or None if invalid.
     """
-    valid_formats: dict[str, OutputFormat] = {
+    valid_formats: Dict[str, OutputFormat] = {
         "markdown": OutputFormat.MARKDOWN,
         "text": OutputFormat.TEXT,
         "json": OutputFormat.JSON,
