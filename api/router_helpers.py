@@ -97,16 +97,3 @@ def serialize_asset(
             asset_dict["additional_fields"][field] = value
 
     return asset_dict
-
-
-# Asset class colour mapping for 3-D visualisation
-_ASSET_CLASS_COLORS: dict[str, str] = {
-    "Equity": "#4e79a7",
-    "Fixed Income": "#f28e2b",
-    "Commodity": "#e15759",
-    "Currency": "#76b7b2",
-    "Cryptocurrency": "#59a14f",
-    "RealEstate": "#edc948",
-    "Alternative": "#b07aa1",
-}
-_DEFAULT_COLOR = "#9c755f"
