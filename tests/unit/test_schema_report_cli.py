@@ -45,7 +45,7 @@ def test_invalid_format_rejected(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """CLI should exit with code 2 (argparse error) for invalid format."""
+    """CLI should exit with code 1 (app-level error) for invalid format."""
     mod = _load_module_for_test(monkeypatch, tmp_path)
 
     # Simulate CLI argv with invalid format
@@ -56,7 +56,7 @@ def test_invalid_format_rejected(
     )
 
     rc = mod.main()
-    assert rc == 2  # argparse exits with 2 for invalid argument values
+    assert rc == 1  # argparse SystemExit(2) is mapped to app-level code 1
 
     captured = capsys.readouterr()
     # argparse prints its own error message about invalid choice

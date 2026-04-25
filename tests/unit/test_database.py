@@ -592,13 +592,14 @@ class TestConcurrentDatabaseAccess:
         assert all(count == 100 for count in results)
 
     def test_concurrent_writes_serialized(self, engine: Engine, isolated_base) -> None:
-        """Concurrent writes should be properly serialized.
+        """Concurrent writes should complete without errors under staggered conditions.
 
         This test verifies that concurrent writes via ``src.data.database.session_scope``
         complete without errors when the engine uses SQLite in-memory with ``StaticPool``.
-        ``StaticPool`` routes every session to the same single underlying connection, so
-        SQLite's connection-level locking naturally serializes all writes.  The strict
-        assertions (all threads succeed, zero errors) are valid for this configuration.
+        Each thread sleeps a small, incrementally longer duration before writing, which
+        staggers the writes in time and reduces the chance of true concurrent overlap.
+        The strict assertions (all threads succeed, zero errors) reflect the staggered
+        access pattern, not an inherent thread-safety guarantee from SQLAlchemy or SQLite.
         """
         import threading
         import time
