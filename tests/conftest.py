@@ -122,10 +122,10 @@ def sample_currency():
 @pytest.fixture
 def sample_regulatory_event():
     """
-    Create a sample RegulatoryEvent representing an earnings report for AAPL.
+    Create a sample RegulatoryEvent representing an earnings report for TEST_AAPL.
 
     Returns:
-        RegulatoryEvent: Instance with id "EVENT_001", asset_id "AAPL",
+        RegulatoryEvent: Instance with id "EVENT_001", asset_id "TEST_AAPL",
             event_type RegulatoryActivity.EARNINGS_REPORT, date "2024-01-01",
             description "Earnings report", impact_score 0.8, and
             related_assets ["AAPL_BOND"].
