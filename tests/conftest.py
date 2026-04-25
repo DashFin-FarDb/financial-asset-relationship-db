@@ -56,7 +56,7 @@ def sample_bond():
 
     The returned Bond is pre-populated with the following values:
     id "AAPL_BOND", symbol "AAPL_B", name "Apple Bond", asset_class
-    FIXED_INCOME, sector "Technology", price 100.0, issuer_id "AAPL",
+    FIXED_INCOME, sector "Technology", price 100.0, issuer_id "TEST_AAPL",
     yield_to_maturity 0.03, and credit_rating "AAA".
 
     Returns:

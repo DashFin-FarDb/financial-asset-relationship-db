@@ -21,7 +21,9 @@ try:
     from github import Github, GithubException
     from github.PullRequest import PullRequest
 except ImportError as exc:
-    raise ImportError("Required package 'PyGithub' not installed. Run: pip install PyGithub") from exc
+    raise ImportError(
+        "Required package 'PyGithub' not installed. Run: pip install PyGithub"
+    ) from exc
 
 
 @dataclass(frozen=True)

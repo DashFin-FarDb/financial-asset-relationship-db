@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List
+from typing import Any, List
 
 import yaml
 
@@ -11,14 +11,15 @@ class ValidationResult:
     Attributes:
         is_valid (bool): True when the workflow passed validation, False otherwise.
         errors (list[str]): List of error messages describing validation failures.
-        workflow_data (dict): Parsed YAML workflow data.
+        workflow_data (Any): Parsed YAML workflow data (typically a dict, but may
+            be any type produced by yaml.safe_load for non-mapping documents).
     """
 
     def __init__(
         self,
         is_valid: bool,
         errors: List[str],
-        workflow_data: Dict[str, Any],
+        workflow_data: Any,
     ):
         """
         Initialize a ValidationResult representing the outcome of validating a
@@ -29,8 +30,10 @@ class ValidationResult:
                 more validation checks failed.
             errors (List[str]): Human-readable error messages describing
                 validation failures; empty when is_valid is True.
-            workflow_data (Dict[str, Any]): The parsed workflow data structure
-                from the YAML file (may be empty or partial on failure).
+            workflow_data (Any): The parsed workflow data structure from the
+                YAML file. Normally a dict, but may be any value returned by
+                yaml.safe_load (e.g., a list or None for non-mapping documents).
+                May be empty or partial on failure.
         """
         self.is_valid = is_valid
         self.errors = errors

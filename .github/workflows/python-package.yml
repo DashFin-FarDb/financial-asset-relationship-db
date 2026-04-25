@@ -1,8 +1,5 @@
 name: Python package
 
-permissions:
-  contents: read
-
 on:
   push:
     branches: ["main"]
@@ -31,6 +28,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
