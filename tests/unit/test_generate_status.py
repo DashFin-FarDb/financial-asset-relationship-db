@@ -30,8 +30,8 @@ if importlib.util.find_spec("github") is None:
         allow_module_level=True,
     )
 
-import generate_status
-from github import GithubException
+import generate_status  # type: ignore[import]
+from github import GithubException  # type: ignore[import]
 
 # --- Fixtures ---
 

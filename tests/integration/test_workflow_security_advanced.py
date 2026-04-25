@@ -254,8 +254,31 @@ class TestWorkflowSupplyChainSecurity:
         if "@" in action:
             version = action.split("@")[1]
             assert re.match(r"^[a-f0-9]{40}$", version.lower()), (
-                f"Action {action} in {workflow_path} job '{job_name}' " f"step {step_idx} must be pinned to a SHA"
+                f"Action {action} in {workflow_path} job '{job_name}' step {step_idx} must be pinned to a SHA"
             )
+
+    @staticmethod
+    def _validate_workflow_job_steps(workflow, sha_exempt_actions):
+        """
+        Validate that all third-party actions in a workflow's job steps are SHA-pinned.
+
+        Parameters:
+            workflow: Workflow dictionary containing content and path.
+            sha_exempt_actions: Set of action names exempt from SHA pinning.
+        """
+        jobs = workflow["content"].get("jobs", {})
+        for job_name, job_config in jobs.items():
+            steps = job_config.get("steps", [])
+            for step_idx, step in enumerate(steps):
+                action = step.get("uses", "")
+                if TestWorkflowSupplyChainSecurity._is_local_or_docker_action(action):
+                    continue
+                action_name = action.split("@")[0] if "@" in action else action
+                if TestWorkflowSupplyChainSecurity._is_sha_exempt_action(action_name, sha_exempt_actions):
+                    continue
+                TestWorkflowSupplyChainSecurity._validate_action_sha_pinning(
+                    action, workflow["path"], job_name, step_idx
+                )
 
     @staticmethod
     def test_third_party_actions_pinned_to_commit_sha(all_workflows):
@@ -265,19 +288,7 @@ class TestWorkflowSupplyChainSecurity:
             "pypa/gh-action-pypi-publish",
         }
         for workflow in all_workflows:
-            jobs = workflow["content"].get("jobs", {})
-            for job_name, job_config in jobs.items():
-                steps = job_config.get("steps", [])
-                for step_idx, step in enumerate(steps):
-                    action = step.get("uses", "")
-                    if TestWorkflowSupplyChainSecurity._is_local_or_docker_action(action):
-                        continue
-                    action_name = action.split("@")[0] if "@" in action else action
-                    if TestWorkflowSupplyChainSecurity._is_sha_exempt_action(action_name, sha_exempt_actions):
-                        continue
-                    TestWorkflowSupplyChainSecurity._validate_action_sha_pinning(
-                        action, workflow["path"], job_name, step_idx
-                    )
+            TestWorkflowSupplyChainSecurity._validate_workflow_job_steps(workflow, sha_exempt_actions)
 
     @staticmethod
     def test_no_insecure_downloads(all_workflows):
