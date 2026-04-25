@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 import sqlite3
 from typing import Any, Iterator
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from sqlalchemy import Column, Integer, String, create_engine
@@ -25,7 +25,6 @@ from sqlalchemy.pool import StaticPool
 
 from api.database import (
     _cleanup_memory_connection,
-    _connect,
     _get_database_url,
     _is_memory_db,
     _resolve_sqlite_path,
@@ -231,7 +230,7 @@ class TestDatabaseInitialization:
         Verifies that init_db creates tables for models registered on the provided declarative base.
         """
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for verifying table creation functionality."""
 
             __tablename__ = "test_model"
@@ -250,7 +249,7 @@ class TestDatabaseInitialization:
     def test_init_db_is_idempotent(self, engine: Engine, isolated_base) -> None:
         """Calling init_db multiple times should not error."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for verifying that database initialization is idempotent."""
 
             __tablename__ = "test_idempotent"
@@ -274,7 +273,7 @@ class TestDatabaseInitialization:
     ) -> None:
         """init_db should not wipe existing data."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for testing data preservation during database initialization."""
 
             __tablename__ = "test_preserve"
@@ -306,7 +305,7 @@ class TestSessionScope:
     def test_commits_on_success(self, engine: Engine, isolated_base) -> None:
         """session_scope should commit on success."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for commit testing."""
 
             __tablename__ = "test_commit"
@@ -327,7 +326,7 @@ class TestSessionScope:
     def test_rolls_back_on_exception(self, engine: Engine, isolated_base) -> None:
         """session_scope should rollback on error."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for rollback testing."""
 
             __tablename__ = "test_rollback"
@@ -353,7 +352,7 @@ class TestSessionScope:
         by the session scope.
         """
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model used in tests to trigger and verify integrity errors."""
 
             __tablename__ = "test_integrity"
@@ -371,7 +370,7 @@ class TestSessionScope:
     def test_nested_operations_commit(self, engine: Engine, isolated_base) -> None:
         """Multiple operations in one scope should commit atomically."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for nested operations commit tests."""
 
             __tablename__ = "test_nested"
@@ -478,7 +477,7 @@ class TestConnectionPooling:
 
         Session = sessionmaker(bind=in_memory_engine)
 
-        class TestTable(isolated_base):
+        class TestTable(isolated_base):  # type: ignore[misc]
             """Test table for connection pooling validation."""
 
             __tablename__ = "test_pool"
@@ -550,7 +549,7 @@ class TestConcurrentDatabaseAccess:
         """Concurrent reads should not interfere with each other."""
         import threading
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent read validation."""
 
             __tablename__ = "test_concurrent_reads"
@@ -604,7 +603,7 @@ class TestConcurrentDatabaseAccess:
         import threading
         import time
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent write validation."""
 
             __tablename__ = "test_concurrent_writes"
@@ -658,7 +657,7 @@ class TestDatabaseErrorRecovery:
     def test_session_scope_recovers_from_nested_error(self, engine: Engine, isolated_base) -> None:
         """Session scope should recover after error in nested operation."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for error recovery validation."""
 
             __tablename__ = "test_error_recovery"
@@ -688,7 +687,7 @@ class TestDatabaseErrorRecovery:
     def test_session_scope_handles_commit_failure(self, engine: Engine, isolated_base) -> None:
         """Session scope should handle commit failures gracefully."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for commit failure handling."""
 
             __tablename__ = "test_commit_failure"
@@ -740,7 +739,7 @@ class TestResourceCleanup:
     def test_multiple_session_scopes_cleanup_properly(self, engine: Engine, isolated_base) -> None:
         """Multiple session scopes should clean up properly."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for cleanup validation."""
 
             __tablename__ = "test_cleanup"
@@ -767,7 +766,7 @@ class TestResourceCleanup:
         row is visible.
         """
 
-        class TestModelBase(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModelBase(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for nested commit validation."""
 
             __tablename__ = "test_nested_commits"

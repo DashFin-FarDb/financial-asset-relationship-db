@@ -35,10 +35,10 @@ def pytest_addoption(parser: Any) -> None:
         _register_dummy_cov_options(parser)
 
 
-def _safe_addoption(group: object, *names: str, **kwargs: object) -> None:
+def _safe_addoption(group: Any, *names: str, **kwargs: object) -> None:
     """Add a pytest option while ignoring duplicate-registration errors only."""
     try:
-        group.addoption(*names, **kwargs)
+        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
     except ValueError as exc:
         if "already added" not in str(exc):
             raise
