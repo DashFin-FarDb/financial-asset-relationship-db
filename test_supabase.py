@@ -102,7 +102,6 @@ def _execute_smoke_query(client: Client, url: str) -> Any:
         return client.table("assets").select("id").limit(1).execute()
     except Exception as exc:  # noqa: BLE001
         pytest.fail(f"Supabase query failed (url={_redact(url)}): {exc}")
-        return None
 
         # pytest.fail is expected to raise and not return, but add an explicit
         # raise to avoid any implicit fall-through in static analysis.
