@@ -356,7 +356,7 @@ def main() -> int:
 
     except SystemExit as exc:
         # argparse calls sys.exit() on invalid arguments; map to app-level exit codes
-        if exc.code == 0:
+        if exc.code in (None, 0):
             return 0
         return 1
 
