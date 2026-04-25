@@ -81,6 +81,10 @@ def iter_steps(job: Mapping[str, Any]) -> Iterable[Step]:
 def extract_python_versions(workflow: Mapping[str, Any]) -> Set[str]:
     """
     Extract python-version values from structured step definitions.
+
+    GitHub Actions template expressions (e.g. ``${{ matrix.python-version }}``)
+    are excluded because they are not concrete version strings; their actual
+    values are already represented by the matrix entries captured elsewhere.
     """
     versions: Set[str] = set()
 
@@ -89,7 +93,7 @@ def extract_python_versions(workflow: Mapping[str, Any]) -> Set[str]:
             with_cfg = step.get("with_", step.get("with", {}))
             if isinstance(with_cfg, dict):
                 version = with_cfg.get("python-version")
-                if isinstance(version, str):
+                if isinstance(version, str) and not version.strip().startswith("${{"):
                     versions.add(version)
 
     return versions
