@@ -10,6 +10,7 @@ from typing import Iterator
 import pytest
 
 import api.database as database
+from src.config.settings import get_settings
 
 pytestmark = pytest.mark.unit
 
@@ -21,8 +22,6 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
     Yields control to the test. On teardown, closes any in-memory connection stored in api.database._MEMORY_CONNECTION and clears that reference, restores the original DATABASE_URL environment variable (or removes it if none was set), and reloads the api.database module to reset its state.
     """
-    from src.config.settings import get_settings
-
     original_url = os.environ.get("DATABASE_URL")
     get_settings.cache_clear()
 
