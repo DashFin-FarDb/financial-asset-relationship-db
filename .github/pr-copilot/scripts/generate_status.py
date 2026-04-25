@@ -303,7 +303,7 @@ def write_output(content: str) -> None:
             else:
                 with open(summary_path, "a", encoding="utf-8") as f:
                     f.write(content)
-        except (IOError, ValueError) as e:
+        except (OSError, ValueError) as e:
             print(
                 f"Warning: Could not write to GITHUB_STEP_SUMMARY: {e}",
                 file=sys.stderr,
@@ -318,7 +318,7 @@ def write_output(content: str) -> None:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(content)
         print(f"Report written to: {output_path}", file=sys.stderr)
-    except IOError as e:
+    except OSError as e:
         print(f"Error writing to temp file: {e}", file=sys.stderr)
 
     # 3. Stdout
@@ -398,7 +398,7 @@ def _fetch_and_generate_report(token: str, repo_owner: str, repo_name: str, pr_n
     except GithubException as e:
         print(f"GitHub API Error: {e.data.get('message', e)}", file=sys.stderr)
         sys.exit(1)
-    except (IOError, OSError, RuntimeError, TypeError, ValueError):
+    except (OSError, RuntimeError, TypeError, ValueError):
         traceback.print_exc()
         sys.exit(1)
     except Exception:  # pylint: disable=broad-except

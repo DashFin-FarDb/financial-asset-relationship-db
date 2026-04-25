@@ -262,7 +262,7 @@ def write_output(report: str) -> None:
                     return
             with open(summary_path, "a", encoding="utf-8") as summary_file:
                 summary_file.write(report)
-        except (IOError, ValueError) as error:
+        except (OSError, ValueError) as error:
             print(
                 f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {error}",
                 file=sys.stderr,
@@ -278,7 +278,7 @@ def write_output(report: str) -> None:
         ) as tmp:
             tmp.write(report)
             print(f"Fix proposals generated: {tmp.name}", file=sys.stderr)
-    except IOError as error:
+    except OSError as error:
         print(f"Error writing temp file: {error}", file=sys.stderr)
 
     print(report)

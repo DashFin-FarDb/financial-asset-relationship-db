@@ -501,7 +501,7 @@ def write_output(report: str) -> None:
             else:
                 with open(summary_path, "a", encoding="utf-8") as f:
                     f.write(report)
-        except (IOError, ValueError) as e:
+        except (OSError, ValueError) as e:
             print(
                 f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}",
                 file=sys.stderr,
@@ -520,7 +520,7 @@ def write_output(report: str) -> None:
         ) as tmp:
             tmp.write(report)
             print(f"Report written to: {tmp.name}")
-    except IOError as e:
+    except OSError as e:
         print(f"Warning: Failed to write temp report: {e}", file=sys.stderr)
 
     # 3. Stdout
@@ -586,7 +586,7 @@ def run() -> None:
     except GithubException as ge:
         print(f"GitHub API Error: {ge}", file=sys.stderr)
         sys.exit(1)
-    except (IOError, OSError, RuntimeError, TypeError, ValueError):
+    except (OSError, RuntimeError, TypeError, ValueError):
         traceback.print_exc()
         sys.exit(1)
 
