@@ -165,7 +165,18 @@ class TestWorkflowPermissionsHardening:
         Verify workflows' default permissions enforce least privilege.
 
         If a workflow's top-level `permissions` is a string, it must be either "read-all" or "none".
-        If `permissions` is a mapping, no permission may be set to "write" except for the allowed keys: "contents", "pull-requests", "issues", and "checks".
+        If `permissions` is a mapping, no permission may be set to "write" except for the allowed keys:
+        "contents", "pull-requests", "issues", "checks", "security-events", "pages", "id-token", "packages".
+
+        Note: The allowed write permissions accommodate common CI/CD needs:
+        - contents: Pushing changes, creating tags/releases
+        - pull-requests: PR comments, labels
+        - issues: Issue management
+        - checks: CI status reporting
+        - security-events: SARIF upload for security scanning (CodeQL, Bandit, etc.)
+        - pages: GitHub Pages deployment
+        - id-token: OIDC token for cloud deployments
+        - packages: Package publishing (npm, docker, etc.)
 
         Parameters:
             all_workflows (iterable): Iterable of workflow mappings; each mapping must include "path" (str)
@@ -181,15 +192,16 @@ class TestWorkflowPermissionsHardening:
                 ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
             elif isinstance(permissions, dict):
                 default_write_perms = [k for k, v in permissions.items() if v == "write"]
+                # Allowed write permissions for common CI/CD workflows
                 allowed_write_perms = {
-                    "contents",
-                    "pull-requests",
-                    "issues",
-                    "checks",
-                    "security-events",
-                    "pages",
-                    "id-token",
-                    "packages",
+                    "contents",  # Code pushes, releases
+                    "pull-requests",  # PR management
+                    "issues",  # Issue management
+                    "checks",  # CI status updates
+                    "security-events",  # Security scanning (CodeQL, SARIF)
+                    "pages",  # GitHub Pages deployment
+                    "id-token",  # OIDC for cloud auth
+                    "packages",  # Package publishing
                 }
                 unexpected_write = set(default_write_perms) - allowed_write_perms
                 assert (

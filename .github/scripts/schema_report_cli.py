@@ -258,18 +258,24 @@ def format_report_content(fmt: OutputFormat, report: str) -> str:
 
 
 def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
-    """Atomically write text data to the given path."""
+    """Atomically write text data to the given path with durability guarantee."""
     parent = path.parent
     parent.mkdir(parents=True, exist_ok=True)
 
     fd, tmp_path_str = tempfile.mkstemp(dir=str(parent))
     tmp_path = Path(tmp_path_str)
-    os.close(fd)  # Release the OS fd; we'll write via write_text below.
 
     try:
-        tmp_path.write_text(data, encoding=encoding)
+        # Write through the file descriptor for durability
+        os.write(fd, data.encode(encoding))
+        os.fsync(fd)  # Ensure data is written to disk before rename
+        os.close(fd)
         tmp_path.replace(path)
     except BaseException:
+        try:
+            os.close(fd)
+        except OSError:
+            pass  # fd might already be closed
         cleanup_partial_output(tmp_path)
         raise
 

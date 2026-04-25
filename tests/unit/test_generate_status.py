@@ -30,8 +30,8 @@ if importlib.util.find_spec("github") is None:
         allow_module_level=True,
     )
 
-import generate_status  # noqa: E402
-from github import GithubException  # noqa: E402
+import generate_status
+from github import GithubException
 
 # --- Fixtures ---
 

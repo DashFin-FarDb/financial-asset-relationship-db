@@ -592,7 +592,13 @@ class TestConcurrentDatabaseAccess:
         assert all(count == 100 for count in results)
 
     def test_concurrent_writes_serialized(self, engine: Engine, isolated_base) -> None:
-        """Concurrent writes should be properly serialized."""
+        """Concurrent writes should be properly serialized.
+
+        This test verifies that the in-memory database lock properly serializes all writes,
+        ensuring that all threads successfully complete without conflicts. The strict assertion
+        (all threads succeed with exact count) is valid because api/database.py uses _MEMORY_USE_LOCK
+        to serialize all in-memory database operations.
+        """
         import threading
         import time
 

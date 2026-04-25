@@ -70,14 +70,18 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
     """
     Retrieve aggregated metadata, review statistics, mergeability, and CI check-run summaries for a pull request.
 
-    Aggregates PR identity (number, title, author, branches, draft flag, URL), fast statistics (commits, changed files, additions, deletions), label names, mergeability and mergeable state, review counts, a proxy count for open review threads, and a list of check runs (name, status, conclusion).
+    Aggregates PR identity (number, title, author, branches, draft flag, URL), fast statistics
+    (commits, changed files, additions, deletions), label names, mergeability and mergeable state,
+    review counts, a proxy count for open review threads, and a list of check runs
+    (name, status, conclusion).
 
     Parameters:
         repo_name (str): Repository identifier in "owner/name" form.
         pr_num (int): Pull request number.
 
     Returns:
-        PRStatus: Aggregated PR information populated with metadata, stats, review summary, open thread count, mergeability state, and check run entries.
+        PRStatus: Aggregated PR information populated with metadata, stats, review summary,
+        open thread count, mergeability state, and check run entries.
     """
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_num)
@@ -137,13 +141,17 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
 def format_checklist(status: PRStatus) -> str:
     """
-    Create a Markdown task checklist summarizing a PR's readiness, review status, CI check results, mergeability, and pending change requests.
+    Create a Markdown task checklist summarizing a PR's readiness, review status, CI check results,
+    mergeability, and pending change requests.
 
     Parameters:
-        status (PRStatus): Aggregated pull request data used to determine checklist items (reads draft status, review_stats, check_runs, mergeable, and mergeable_state).
+        status (PRStatus): Aggregated pull request data used to determine checklist items
+        (reads draft status, review_stats, check_runs, mergeable, and mergeable_state).
 
     Returns:
-        markdown_checklist (str): Newline-separated Markdown task list where each line is a checked/unchecked item for: ready for review, approval, CI passing (with counts when partial), merge conflict resolution, and pending change requests.
+        markdown_checklist (str): Newline-separated Markdown task list where each line is a
+        checked/unchecked item for: ready for review, approval, CI passing (with counts when
+        partial), merge conflict resolution, and pending change requests.
     """
     tasks = []
 
@@ -274,7 +282,12 @@ def write_output(content: str) -> None:
     """
     Write the PR Markdown report to the GitHub Actions step summary (when allowed), to a standard temp file, and to stdout.
 
-    If the GITHUB_STEP_SUMMARY environment variable is set and resolves inside the system temporary directory, append content to that file; otherwise skip the step-summary write and emit a warning to stderr. Overwrite the file named "pr_status_report.md" in the system temporary directory and print its path to stderr on success. All I/O and path-related errors are caught and reported to stderr; the function does not raise exceptions.
+    If the GITHUB_STEP_SUMMARY environment variable is set and resolves inside the system
+    temporary directory, append content to that file; otherwise skip the step-summary write
+    and emit a warning to stderr. Overwrite the file named "pr_status_report.md" in the system
+    temporary directory and print its path to stderr on success. All I/O and path-related errors
+    are caught and reported to stderr; the function does not raise exceptions.
+
     Parameters:
         content (str): The Markdown report content to write.
     """
@@ -397,9 +410,12 @@ def _fetch_and_generate_report(token: str, repo_owner: str, repo_name: str, pr_n
 
 def main():
     """
-    Main entry point for the CLI: validates environment, fetches PR status, generates a Markdown report, and writes the report to configured outputs.
+    Main entry point for the CLI: validates environment, fetches PR status, generates a Markdown report,
+    and writes the report to configured outputs.
 
-    Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME. Exits with status code 0 on success and with status code 1 on any validation, API, or runtime error; prints error details to stderr before exiting.
+    Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME.
+    Exits with status code 0 on success and with status code 1 on any validation, API, or runtime error;
+    prints error details to stderr before exiting.
     """
     if not _PYGITHUB_AVAILABLE:
         print(
