@@ -133,6 +133,31 @@ class CLIError(Exception):
     """Base exception for CLI errors with user-friendly messages."""
 
 
+def parse_output_format(format_str: str) -> "OutputFormat | None":
+    """Parse a string into an OutputFormat enum value.
+
+    Args:
+        format_str: The format string to parse ("markdown", "text", or "json").
+
+    Returns:
+        The corresponding OutputFormat enum value, or None if invalid.
+    """
+    valid_formats: dict[str, OutputFormat] = {
+        "markdown": OutputFormat.MARKDOWN,
+        "text": OutputFormat.TEXT,
+        "json": OutputFormat.JSON,
+    }
+
+    if format_str not in valid_formats:
+        print(
+            f"Invalid output format: '{format_str}'. Valid formats: markdown, text, json",
+            file=sys.stderr,
+        )
+        return None
+
+    return valid_formats[format_str]
+
+
 DEFAULT_OUTPUT_FILENAMES = {
     OutputFormat.MARKDOWN: "schema_report.md",
     OutputFormat.TEXT: "schema_report.txt",
