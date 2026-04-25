@@ -229,8 +229,19 @@ class TestDocumentationFilesValidation:
             content = md_file.read_text(encoding="utf-8")
             lines = content.splitlines()
             last_level = None
+            in_fence = False
 
             for idx, line in enumerate(lines):
+                # Skip content inside fenced code blocks so that shell/script
+                # comment lines (e.g. "# some comment") are not mistaken for
+                # Markdown headings and do not corrupt the last-seen level.
+                stripped = line.strip()
+                if stripped.startswith("```"):
+                    in_fence = not in_fence
+                    continue
+                if in_fence:
+                    continue
+
                 match = heading_pattern.match(line)
                 if not match:
                     continue

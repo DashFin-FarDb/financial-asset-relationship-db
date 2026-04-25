@@ -254,7 +254,7 @@ vercel --prod
 
 ### 9. Learning Curve
 
-```
+```text
 Easy ─────────────────────────────────────── Hard
 
 Gradio UI (Python developers)

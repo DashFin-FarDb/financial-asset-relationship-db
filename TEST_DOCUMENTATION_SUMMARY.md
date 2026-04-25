@@ -141,6 +141,6 @@ python -m pytest tests/unit/test_documentation_validation.py::TestDependencyMatr
 
 ### Expected Output:
 
-```
+```text
 
 ```

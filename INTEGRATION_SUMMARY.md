@@ -37,7 +37,7 @@ This document summarizes the integration of a Next.js frontend with FastAPI back
 
 **Application Structure:**
 
-```
+```text
 frontend/
 ├── app/
 │   ├── components/          # React components
@@ -120,7 +120,7 @@ frontend/
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                    User's Browser                        │
 └─────────────────────┬───────────────────────────────────┘

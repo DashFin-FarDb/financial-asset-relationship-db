@@ -6,7 +6,7 @@ This project uses Supabase as the database provider. The integration supports bo
 
 Add the following environment variables to your `.env` file:
 
-```
+```text
 # Supabase Configuration
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_KEY=your-supabase-anon-key

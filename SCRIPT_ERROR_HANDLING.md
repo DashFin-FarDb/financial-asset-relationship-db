@@ -89,7 +89,7 @@ echo "Error: message" >&2
 
 ### Error Message Format
 
-```
+```text
 Error: [Clear description of what went wrong]
 ```
 
@@ -103,7 +103,7 @@ bash test_scripts.sh
 
 Expected output:
 
-```
+```text
 ✅ gh CLI detected successfully
 ✅ Correctly requires PR number
 ✅ Correctly validates numeric PR number

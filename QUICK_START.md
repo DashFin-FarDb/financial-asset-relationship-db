@@ -83,7 +83,7 @@ npm run dev
 
 ### Backend (Port 8000)
 
-```
+```text
 INFO:     Uvicorn running on http://0.0.0.0:8000
 INFO:     Application startup complete.
 ```
@@ -92,7 +92,7 @@ Visit http://localhost:8000/docs to see the interactive API documentation.
 
 ### Frontend (Port 3000)
 
-```
+```text
 - ready started server on 0.0.0.0:3000, url: http://localhost:3000
 - event compiled client and server successfully
 ```

@@ -156,7 +156,7 @@ Created automated script to resolve 109 conflicts by:
 
 ## Files Changed Summary
 
-```
+```text
 New files: 66
 Modified files: 1 (bandit-report.json)
 Total files affected: 67
