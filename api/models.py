@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 
 
 class User(BaseModel):
+    """User model for authentication."""
+
     username: str
     email: Optional[str] = None
     full_name: Optional[str] = None
@@ -13,6 +15,8 @@ class User(BaseModel):
 
 
 class UserInDB(User):
+    """User model with hashed password for database storage."""
+
     hashed_password: str
 
 

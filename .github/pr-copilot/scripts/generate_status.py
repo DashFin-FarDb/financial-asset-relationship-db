@@ -139,9 +139,7 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
 
 def format_checklist(status: PRStatus) -> str:
-    """
-    Create a Markdown task checklist summarizing a PR's readiness, review status, CI check results,
-    mergeability, and pending change requests.
+    """Create a Markdown task checklist summarizing PR readiness and review status.
 
     Parameters:
         status (PRStatus): Aggregated pull request data used to determine checklist items
@@ -408,9 +406,7 @@ def _fetch_and_generate_report(token: str, repo_owner: str, repo_name: str, pr_n
 
 
 def main():
-    """
-    Main entry point for the CLI: validates environment, fetches PR status, generates a Markdown report,
-    and writes the report to configured outputs.
+    """Validate environment, fetch PR status, generate Markdown report, and write outputs.
 
     Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME.
     Exits with status code 0 on success and with status code 1 on any validation, API, or runtime error;

@@ -146,8 +146,7 @@ Top Relationships:
 
 
 class FinancialAssetApp:
-    """Main application class for managing
-    financial asset relationship graph.
+    """Manage financial asset relationship graph and provide analysis functionality.
 
     Initializes and maintains the AssetRelationshipGraph.
     Also offers functionality for analyzing and reporting on asset
@@ -1155,8 +1154,7 @@ class FinancialAssetApp:
         }
 
     def _build_metrics_tab(self) -> dict[str, Any]:
-        """
-        Builds the Metrics & Analytics tab and returns its Gradio component references.
+        """Build the Metrics & Analytics tab and return its Gradio component references.
 
         Returns:
             dict[str, Any]: Mapping of component names to Gradio components created for the tab:

@@ -266,8 +266,7 @@ def find_scope_issues(
     file_data: Dict[str, Any],
     config: Dict[str, Any],
 ) -> List[str]:
-    """
-    Detects potential PR scope issues based on title length/content, overall size, and diversity of changed file types.
+    """Detect potential PR scope issues based on title, size, and file type diversity.
 
     Parameters:
         pr_title (str): The pull request title.
@@ -387,8 +386,7 @@ def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
 
 
 def _format_large_files(file_analysis: Dict[str, Any]) -> str:
-    """
-    Builds a Markdown section listing files with more than 500 changed lines.
+    """Build a Markdown section listing files with more than 500 changed lines.
 
     Parameters:
         file_analysis (dict): Analysis dictionary that contains a "large_files" list of dicts, each with at least "filename" and "changes".
@@ -446,8 +444,7 @@ def _get_recommendations(risk_level: str) -> List[str]:
 
 
 def generate_markdown(pr: Any, data: AnalysisData) -> str:
-    """
-    Constructs a Markdown report summarizing a pull request analysis.
+    """Construct a Markdown report summarizing pull request analysis.
 
     Parameters:
         pr (Any): Pull request object (expects at least `.number` and `.user.login`).

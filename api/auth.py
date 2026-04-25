@@ -1,4 +1,4 @@
-"""Authentication module for the Financial Asset Relationship Database API"""
+"""Authentication module for the Financial Asset Relationship Database API."""
 
 from __future__ import annotations
 
