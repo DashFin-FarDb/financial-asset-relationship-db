@@ -329,7 +329,7 @@ class TestGet3DLayout:
         mcp_app = _build_mcp_app()
 
         result_list = await mcp_app.read_resource("graph://data/3d-layout")
-        result = result_list[0].content
+        result = result_list[0].text
         data = json.loads(result)
 
         # Verify structure
