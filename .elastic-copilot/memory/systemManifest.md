@@ -232,7 +232,7 @@ Dependencies:
 
 ## TSX Dependencies
 
-### /frontend/**tests**/components/NetworkVisualization.test.tsx
+### /frontend/tests/components/NetworkVisualization.test.tsx
 
 Dependencies:
 
@@ -242,7 +242,7 @@ Dependencies:
 - ../../app/components/NetworkVisualization
 - ../../app/types/api
 
-### /frontend/**tests**/components/MetricsDashboard.test.tsx
+### /frontend/tests/components/MetricsDashboard.test.tsx
 
 Dependencies:
 
@@ -252,7 +252,7 @@ Dependencies:
 - ../../app/components/MetricsDashboard
 - ../../app/types/api
 
-### /frontend/**tests**/components/AssetList.test.tsx
+### /frontend/tests/components/AssetList.test.tsx
 
 Dependencies:
 
@@ -262,7 +262,7 @@ Dependencies:
 - ../../app/components/AssetList
 - ../../app/lib/api
 
-### /frontend/**tests**/app/page.test.tsx
+### /frontend/tests/app/page.test.tsx
 
 Dependencies:
 
