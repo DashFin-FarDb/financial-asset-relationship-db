@@ -161,7 +161,7 @@ class TestAddEquityNode:
             )
 
             # Extract the text result from the returned tuple
-            result = result_tuple[1]["result"]
+            result = result_tuple.content[0].text
 
             assert "Successfully" in result
             assert "Apple Inc Test" in result
