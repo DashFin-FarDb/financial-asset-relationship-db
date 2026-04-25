@@ -119,6 +119,54 @@ def _shannon_entropy(value: str) -> float:
     return float(-np.sum(probs * np.log2(probs)))
 
 
+def _is_safe_value(v: str) -> bool:
+    """
+    Check if a value is safe (not a secret).
+
+    Args:
+        v: The string to check (already stripped).
+
+    Returns:
+        bool: True if the value is safe and should not be flagged as a secret.
+    """
+    if not v:
+        return True
+    if v.lower() in SAFE_PLACEHOLDERS:
+        return True
+    # Skip glob patterns (file path expressions like **/secrets/**)
+    if "*" in v:
+        return True
+    # Skip strings that look like repository/package names (only lowercase letters, digits, hyphens)
+    if re.fullmatch(r"[a-z0-9][a-z0-9\-]+", v):
+        return True
+    return False
+
+
+def _matches_secret_patterns(v: str) -> bool:
+    """
+    Check if a value matches known secret patterns.
+
+    Args:
+        v: The string to check (already stripped).
+
+    Returns:
+        bool: True if the value matches secret detection patterns.
+    """
+    # Inline credentials in URLs
+    if INLINE_CREDS_RE.search(v):
+        return True
+    # Keyword-based secret indicators
+    if any(marker.value in v.lower() for marker in SecretMarker) and len(v) >= 12:
+        return True
+    # High-entropy base64 / URL-safe strings
+    if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
+        return True
+    # Hex-encoded secrets (e.g. hashes, keys)
+    if HEX_RE.fullmatch(v):
+        return True
+    return False
+
+
 def _looks_like_secret(value: str) -> bool:
     """
     Determine whether a string value appears to be a secret.
@@ -130,35 +178,9 @@ def _looks_like_secret(value: str) -> bool:
         bool: True when the value matches secret heuristics.
     """
     v = value.strip()
-    if not v:
+    if _is_safe_value(v):
         return False
-    if v.lower() in SAFE_PLACEHOLDERS:
-        return False
-    # Skip glob patterns (file path expressions like **/secrets/**)
-    if "*" in v:
-        return False
-    # Skip strings that look like repository/package names (only lowercase letters, digits, hyphens)
-    import re as _re
-
-    if _re.fullmatch(r"[a-z0-9][a-z0-9\-]+", v):
-        return False
-    # Inline credentials in URLs
-    if INLINE_CREDS_RE.search(v):
-        return True
-
-    # Keyword-based secret indicators
-    if any(marker.value in v.lower() for marker in SecretMarker) and len(v) >= 12:
-        return True
-
-    # High-entropy base64 / URL-safe strings
-    if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
-        return True
-
-    # Hex-encoded secrets (e.g. hashes, keys)
-    if HEX_RE.fullmatch(v):
-        return True
-
-    return False
+    return _matches_secret_patterns(v)
 
 
 class TestPRAgentConfigSimplification:
