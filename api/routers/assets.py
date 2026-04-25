@@ -13,7 +13,7 @@ from ..router_helpers import (
 router = APIRouter()
 
 
-@router.get("/api/assets", response_model=list[AssetResponse])
+@router.get("/api/assets")
 async def get_assets(
     asset_class: str | None = None,
     sector: str | None = None,
@@ -39,7 +39,7 @@ async def get_assets(
     return assets
 
 
-@router.get("/api/assets/{asset_id}", response_model=AssetResponse)
+@router.get("/api/assets/{asset_id}")
 async def get_asset_detail(asset_id: str) -> AssetResponse:
     """Return detailed data for a single asset."""
     try:
