@@ -233,12 +233,13 @@ class TestRetainedFilesState:
         labeler_file = repo_root / ".github" / "labeler.yml"
         assert not labeler_file.exists(), "labeler.yml should be deleted"
 
-    def test_context_chunker_present(self, repo_root: Path):
+    def test_context_chunker_deleted(self, repo_root: Path):
         """
-        Check that .github/scripts/context_chunker.py is present in the repository.
+        Check that .github/scripts/context_chunker.py has been removed from the repository
+        (deleted as part of workflow simplification).
         """
         chunker_file = repo_root / ".github" / "scripts" / "context_chunker.py"
-        assert chunker_file.exists(), "context_chunker.py is expected to be present"
+        assert not chunker_file.exists(), "context_chunker.py should be deleted"
 
     def test_scripts_readme_present(self, repo_root: Path):
         """Verify scripts README has been removed (deleted as part of simplification)."""
@@ -254,27 +255,6 @@ class TestRetainedFilesState:
         """Verify .vscode/settings.json is present in the repository."""
         vscode_file = repo_root / ".vscode" / "settings.json"
         assert vscode_file.exists(), ".vscode/settings.json is expected to be present"
-
-    def test_workflow_files_do_not_reference_retained_scripts(self, repo_root: Path):
-        """
-        Verify that workflow files do not reference context_chunker.py, which is retained
-        locally but not called from CI.
-        """
-        workflows_dir = repo_root / ".github" / "workflows"
-
-        # Only the Python script retained locally but not invoked from any workflow.
-        local_scripts_not_in_ci = [
-            "context_chunker.py",
-        ]
-
-        for workflow_file in list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml")):
-            with open(workflow_file, "r", encoding="utf-8") as f:
-                content = f.read()
-
-            for script_ref in local_scripts_not_in_ci:
-                assert (
-                    script_ref not in content
-                ), f"{workflow_file.name} references a script not expected to be called from CI: {script_ref}"
 
 
 class TestRequirementsDevChanges:
