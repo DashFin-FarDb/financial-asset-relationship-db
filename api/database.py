@@ -153,8 +153,8 @@ DATABASE_PATH = _resolve_sqlite_path(DATABASE_URL)
 _MEMORY_CONNECTION: sqlite3.Connection | None = None
 _MEMORY_CONNECTION_MANAGER: _DatabaseConnectionManager | None = None
 _MEMORY_CONNECTION_LOCK = threading.Lock()
-# Separate lock used to serialize concurrent use of the shared in-memory connection.
-_MEMORY_USE_LOCK = threading.Lock()
+# Separate reentrant lock used to serialize concurrent use of the shared in-memory connection.
+_MEMORY_USE_LOCK = threading.RLock()
 
 
 def _is_memory_db(path: str | None = None) -> bool:
@@ -357,9 +357,11 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     (the context does not close it).
 
     **Important for in-memory databases:**
-    Access to in-memory databases is fully serialized via _MEMORY_USE_LOCK. This means:
+    Access to in-memory databases is fully serialized via _MEMORY_USE_LOCK (a reentrant RLock).
+    This means:
     - Only one operation can use the in-memory connection at a time
     - Concurrent operations (including reads) will block and wait for the lock
+    - The lock is reentrant, allowing nested get_connection() calls from the same thread
     - This prevents SQLite transaction conflicts but may become a bottleneck for parallel reads
     - The lock is held for the entire duration of the `with get_connection()` block
 

@@ -1038,3 +1038,78 @@ class TestDatabaseUrlConfiguration:
         """Test that configured URL is returned as-is."""
         result = _get_database_url()
         assert result == "postgresql://user:pass@localhost/db"
+
+
+@pytest.mark.unit
+class TestNestedConnectionCalls:
+    """Test nested get_connection() calls with reentrant lock."""
+
+    @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
+    def test_nested_get_connection_with_execute(self):
+        """
+        Test that nested get_connection() calls don't deadlock on in-memory DB.
+
+        This regression test verifies that _MEMORY_USE_LOCK is reentrant (RLock)
+        and allows same-thread nested calls to get_connection().
+        """
+        from api.database import _cleanup_memory_connection
+
+        # Clean up any existing connection
+        _cleanup_memory_connection()
+
+        # Outer get_connection call
+        with get_connection() as outer_conn:
+            # Create a test table
+            outer_conn.execute("CREATE TABLE IF NOT EXISTS test_table (id INTEGER PRIMARY KEY, value TEXT)")
+            outer_conn.commit()
+
+            # Nested execute() which calls get_connection() internally
+            # This should not deadlock with RLock
+            execute("INSERT INTO test_table (id, value) VALUES (1, 'nested')")
+
+            # Verify the nested write succeeded
+            cursor = outer_conn.execute("SELECT value FROM test_table WHERE id = 1")
+            row = cursor.fetchone()
+            assert row is not None
+            assert row[0] == "nested"
+
+        # Clean up
+        _cleanup_memory_connection()
+
+    @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
+    def test_nested_get_connection_with_fetch_one(self):
+        """Test nested get_connection() with fetch_one helper."""
+        from api.database import _cleanup_memory_connection
+
+        _cleanup_memory_connection()
+
+        with get_connection() as outer_conn:
+            outer_conn.execute("CREATE TABLE IF NOT EXISTS test_data (id INTEGER, name TEXT)")
+            outer_conn.execute("INSERT INTO test_data VALUES (42, 'test')")
+            outer_conn.commit()
+
+            # Nested fetch_one() which calls get_connection() internally
+            row = fetch_one("SELECT name FROM test_data WHERE id = ?", (42,))
+            assert row is not None
+            assert row[0] == "test"
+
+        _cleanup_memory_connection()
+
+    @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
+    def test_nested_get_connection_with_fetch_value(self):
+        """Test nested get_connection() with fetch_value helper."""
+        from api.database import _cleanup_memory_connection
+
+        _cleanup_memory_connection()
+
+        with get_connection() as outer_conn:
+            outer_conn.execute("CREATE TABLE IF NOT EXISTS counter (val INTEGER)")
+            outer_conn.execute("INSERT INTO counter VALUES (99)")
+            outer_conn.commit()
+
+            # Nested fetch_value() which calls get_connection() internally
+            value = fetch_value("SELECT val FROM counter LIMIT 1")
+            assert value == 99
+
+        _cleanup_memory_connection()
+
