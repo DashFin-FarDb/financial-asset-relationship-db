@@ -24,36 +24,45 @@ class TestDocumentationFilesValidation:
     """
 
     @staticmethod
-    def _markdown_files() -> List[Path]:
-        """Return markdown files to validate (docs/ plus top-level *.md)."""
-        docs_dir = Path("docs")
-        files: List[Path] = []
-
+    def _is_excluded(path: Path) -> bool:
+        """Check if a markdown file should be excluded from validation."""
         # Large auto-generated wiki/spec files are excluded from style checks
-        _excluded_names = {
+        excluded_names = {
             "DashFin-financial-asset-relationship-db-wiki-v2.md",
             "tech_spec.md",
         }
+        return path.name in excluded_names
 
-        if docs_dir.exists():
-            for f in docs_dir.rglob("*.md"):
-                if f.name not in _excluded_names:
-                    files.append(f)
+    @staticmethod
+    def _collect_docs_dir_files() -> List[Path]:
+        """Collect markdown files from the docs/ directory."""
+        docs_dir = Path("docs")
+        if not docs_dir.exists():
+            return []
+        return [f for f in docs_dir.rglob("*.md") if not TestDocumentationFilesValidation._is_excluded(f)]
 
-        # Top-level markdown files such as README.md, CONTRIBUTING.md
-        for f in Path(".").glob("*.md"):
-            if f.name not in _excluded_names:
-                files.append(f)
+    @staticmethod
+    def _collect_top_level_files() -> List[Path]:
+        """Collect top-level markdown files such as README.md, CONTRIBUTING.md."""
+        return [f for f in Path(".").glob("*.md") if not TestDocumentationFilesValidation._is_excluded(f)]
 
-        # De-duplicate while preserving order
+    @staticmethod
+    def _deduplicate_files(files: List[Path]) -> List[Path]:
+        """Remove duplicate paths while preserving order."""
         seen = set()
         unique_files: List[Path] = []
         for f in files:
             if f not in seen:
                 seen.add(f)
                 unique_files.append(f)
-
         return unique_files
+
+    @staticmethod
+    def _markdown_files() -> List[Path]:
+        """Return markdown files to validate (docs/ plus top-level *.md)."""
+        files = TestDocumentationFilesValidation._collect_docs_dir_files()
+        files.extend(TestDocumentationFilesValidation._collect_top_level_files())
+        return TestDocumentationFilesValidation._deduplicate_files(files)
 
     @pytest.fixture(scope="class")
     def markdown_files(self) -> List[Path]:
