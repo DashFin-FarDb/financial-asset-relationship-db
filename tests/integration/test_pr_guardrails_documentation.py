@@ -63,7 +63,7 @@ class TestAIAgentGuardrails:
         assert len(content.strip()) > 0, "AI_AGENT_GUARDRAILS.md must not be empty"
 
     def test_title_is_level_one_heading(self, lines: List[str]) -> None:
-        first_heading = next((l for l in lines if l.startswith("#")), None)
+        first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None, "File must have at least one heading"
         assert first_heading.startswith("# "), "First heading must be H1"
         assert "AI Agent Guardrails" in first_heading
@@ -93,12 +93,12 @@ class TestAIAgentGuardrails:
     def test_hard_rules_list_is_present(self, content: str) -> None:
         """Hard rules section must contain bullet-list items."""
         hard_rules_section = content.split("## Hard rules")[1].split("##")[0]
-        bullets = [l for l in hard_rules_section.splitlines() if l.strip().startswith("- ")]
+        bullets = [line for line in hard_rules_section.splitlines() if line.strip().startswith("- ")]
         assert len(bullets) >= 4, "Hard rules section must have at least 4 bullet items"
 
     def test_stop_conditions_list_is_present(self, content: str) -> None:
         stop_section = content.split("## Stop conditions")[1].split("##")[0]
-        bullets = [l for l in stop_section.splitlines() if l.strip().startswith("- ")]
+        bullets = [line for line in stop_section.splitlines() if line.strip().startswith("- ")]
         assert len(bullets) >= 3, "Stop conditions must have at least 3 bullet items"
 
     def test_mandatory_reasoning_order_has_numbered_steps(self, content: str) -> None:
@@ -130,7 +130,7 @@ class TestAIAgentGuardrails:
         assert count % 2 == 0, f"Unbalanced code fences: {count} backtick groups"
 
     def test_no_trailing_whitespace(self, lines: List[str]) -> None:
-        bad = [(i + 1, l) for i, l in enumerate(lines) if l.rstrip() != l and l.strip()]
+        bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
     def test_file_does_not_mention_secrets(self, content: str) -> None:
@@ -290,7 +290,7 @@ class TestDependencyChangePRTemplate:
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
 
     def test_no_trailing_whitespace(self, lines: List[str]) -> None:
-        bad = [(i + 1, l) for i, l in enumerate(lines) if l.rstrip() != l and l.strip()]
+        bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
     def test_template_has_html_comment_placeholders(self, content: str) -> None:
@@ -392,7 +392,7 @@ class TestValidatorFollowupPRTemplate:
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
 
     def test_no_trailing_whitespace(self, lines: List[str]) -> None:
-        bad = [(i + 1, l) for i, l in enumerate(lines) if l.rstrip() != l and l.strip()]
+        bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
     def test_template_has_html_comment_placeholders(self, content: str) -> None:
@@ -428,7 +428,7 @@ class TestDependencyPolicyDoc:
         assert len(content.strip()) > 0
 
     def test_title_is_level_one_heading(self, lines: List[str]) -> None:
-        first_heading = next((l for l in lines if l.startswith("#")), None)
+        first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None
         assert first_heading.startswith("# ")
         assert "Dependency Policy" in first_heading
@@ -475,7 +475,7 @@ class TestDependencyPolicyDoc:
 
     def test_order_of_operations_step_one_is_requirements_txt(self, content: str) -> None:
         order_section = content.split("## Dependency change order of operations")[1].split("##")[0]
-        lines = [l.strip() for l in order_section.splitlines() if l.strip().startswith("1.")]
+        lines = [line.strip() for line in order_section.splitlines() if line.strip().startswith("1.")]
         assert lines, "Step 1 must exist"
         assert "requirements.txt" in lines[0], "Step 1 must reference requirements.txt"
 
@@ -549,7 +549,7 @@ class TestDependencyPolicyDoc:
         assert count % 2 == 0, f"Unbalanced code fences: {count} backtick groups"
 
     def test_no_trailing_whitespace(self, lines: List[str]) -> None:
-        bad = [(i + 1, l) for i, l in enumerate(lines) if l.rstrip() != l and l.strip()]
+        bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
     def test_utf8_encoding(self) -> None:
@@ -593,7 +593,7 @@ class TestPRScopeGuardrailsDoc:
         assert len(content.strip()) > 0
 
     def test_title_is_level_one_heading(self, lines: List[str]) -> None:
-        first_heading = next((l for l in lines if l.startswith("#")), None)
+        first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None
         assert first_heading.startswith("# ")
         assert "PR Scope Guardrails" in first_heading
@@ -670,12 +670,12 @@ class TestPRScopeGuardrailsDoc:
 
     def test_required_pr_description_sections_lists_four_items(self, content: str) -> None:
         pr_desc_section = content.split("## Required PR description sections")[1].split("##")[0]
-        bullets = [l for l in pr_desc_section.splitlines() if l.strip().startswith("- ")]
+        bullets = [line for line in pr_desc_section.splitlines() if line.strip().startswith("- ")]
         assert len(bullets) >= 4, "Required PR description sections must have at least 4 bullet items"
 
     def test_reviewer_checklist_has_bullet_items(self, content: str) -> None:
         reviewer_section = content.split("## Reviewer checklist")[1]
-        bullets = [l for l in reviewer_section.splitlines() if l.strip().startswith("- ")]
+        bullets = [line for line in reviewer_section.splitlines() if line.strip().startswith("- ")]
         assert len(bullets) >= 3, "Reviewer checklist must have at least 3 items"
 
     def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
@@ -688,7 +688,7 @@ class TestPRScopeGuardrailsDoc:
         assert count % 2 == 0, f"Unbalanced code fences: {count} backtick groups"
 
     def test_no_trailing_whitespace(self, lines: List[str]) -> None:
-        bad = [(i + 1, l) for i, l in enumerate(lines) if l.rstrip() != l and l.strip()]
+        bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
     def test_utf8_encoding(self) -> None:
@@ -702,7 +702,7 @@ class TestPRScopeGuardrailsDoc:
 
     def test_stop_and_split_conditions_listed(self, content: str) -> None:
         split_section = content.split("### Stop and split")[1].split("##")[0]
-        bullets = [l for l in split_section.splitlines() if l.strip().startswith("- ")]
+        bullets = [line for line in split_section.splitlines() if line.strip().startswith("- ")]
         assert len(bullets) >= 3, "Stop and split section must list at least 3 conditions"
 
 

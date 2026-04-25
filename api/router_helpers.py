@@ -5,10 +5,6 @@ from typing import Any, Dict, NoReturn
 
 from fastapi import HTTPException
 
-from src.logic.asset_graph import AssetRelationshipGraph
-
-from .graph_lifecycle import get_graph as _get_graph
-
 logger = logging.getLogger(__name__)
 
 

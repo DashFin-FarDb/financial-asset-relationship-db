@@ -442,7 +442,7 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_not_disabled(self, snyk_workflow_path):
         """Test that workflow is not commented out or disabled."""
         content = snyk_workflow_path.read_text()
-        lines = [l for l in content.split("\n") if l.strip() and not l.strip().startswith("#")]
+        lines = [line for line in content.split("\n") if line.strip() and not line.strip().startswith("#")]
         assert len(lines) > 0
 
     def test_workflow_job_names_valid(self, snyk_workflow_path):
@@ -482,13 +482,13 @@ class TestSnykWorkflowComments:
         """Test that third - party action usage is documented."""
         # Should mention that actions are not certified by GitHub
         lines = snyk_workflow_content.split("\n")
-        comment_lines = [l for l in lines if l.strip().startswith("#")]
+        comment_lines = [line for line in lines if line.strip().startswith("#")]
         assert len(comment_lines) > 0
 
     def test_workflow_provides_context(self, snyk_workflow_content):
         """Test that workflow provides context about its purpose."""
         comments = " ".join(
-            l.strip("# ").lower() for l in snyk_workflow_content.split("\n") if l.strip().startswith("#")
+            line.strip("# ").lower() for line in snyk_workflow_content.split("\n") if line.strip().startswith("#")
         )
         # Should mention scanning or security
         assert "scan" in comments or "security" in comments

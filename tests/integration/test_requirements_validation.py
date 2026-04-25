@@ -47,13 +47,13 @@ class TestRequirementsDevChanges:
         lines = requirements_dev_content.split("\n")
         # Ignore commented lines and type-stub packages (types-PyYAML is separate)
         pyyaml_line = next(
-            (l for l in lines if l.lower().startswith("pyyaml") and not l.strip().startswith("#")),
+            (line for line in lines if line.lower().startswith("pyyaml") and not line.strip().startswith("#")),
             None,
         )
 
         assert pyyaml_line is not None
         # Find all non-comment lines for the PyYAML package itself (not type stubs)
-        pyyaml_lines = [l for l in lines if l.lower().startswith("pyyaml") and not l.strip().startswith("#")]
+        pyyaml_lines = [line for line in lines if line.lower().startswith("pyyaml") and not line.strip().startswith("#")]
         # Assert exactly one active PyYAML requirement exists
         assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
         pyyaml_line = pyyaml_lines[0]
@@ -74,12 +74,12 @@ class TestRequirementsDevChanges:
         Parameters:
             requirements_dev_content(str): Contents of requirements - dev.txt.
         """
-        lines = [l.strip() for l in requirements_dev_content.split("\n") if l.strip() and not l.strip().startswith("#")]
+        lines = [line.strip() for line in requirements_dev_content.split("\n") if line.strip() and not line.strip().startswith("#")]
 
         # Split on any common version operator to reliably extract the package name
         from packaging.requirements import Requirement
 
-        package_names = [Requirement(l).name.lower() for l in lines]
+        package_names = [Requirement(line).name.lower() for line in lines]
 
         assert len(package_names) == len(set(package_names)), "Duplicate packages found in requirements-dev.txt"
 
@@ -150,15 +150,15 @@ class TestRequirementsDependencyCompatibility:
 
         # Check for packages in both files
         req_packages = {
-            l.split("==")[0].split(">=")[0].lower().strip()
-            for l in req_content.split("\n")
-            if l.strip() and not l.strip().startswith("#")
+            line.split("==")[0].split(">=")[0].lower().strip()
+            for line in req_content.split("\n")
+            if line.strip() and not line.strip().startswith("#")
         }
 
         req_dev_packages = {
-            l.split("==")[0].split(">=")[0].lower().strip()
-            for l in req_dev_content.split("\n")
-            if l.strip() and not l.strip().startswith("#")
+            line.split("==")[0].split(">=")[0].lower().strip()
+            for line in req_dev_content.split("\n")
+            if line.strip() and not line.strip().startswith("#")
         }
 
         overlap = req_packages & req_dev_packages
@@ -202,7 +202,7 @@ class TestRequirementsDocumentation:
             lines = f.readlines()
 
         # Should have at least some comments explaining purpose
-        comment_lines = [l for l in lines if l.strip().startswith("#")]
+        comment_lines = [line for line in lines if line.strip().startswith("#")]
         assert len(comment_lines) >= 1, "requirements-dev.txt should have explanatory comments"
 
     @staticmethod

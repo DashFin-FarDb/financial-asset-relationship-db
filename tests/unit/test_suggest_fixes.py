@@ -1363,7 +1363,7 @@ def test_unicode_characters_in_comments():
     """Test handling of unicode characters in comments."""
     comment = "Please fix this 🐛 bug with émojis and spëcial çhars"
 
-    suggestions = suggest_fixes.extract_code_suggestions(comment)
+    _ = suggest_fixes.extract_code_suggestions(comment)
     category, priority = suggest_fixes.categorize_comment(comment)
     is_act = suggest_fixes.is_actionable(comment, ["please"])
 

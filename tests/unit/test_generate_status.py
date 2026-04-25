@@ -30,8 +30,9 @@ if importlib.util.find_spec("github") is None:
         allow_module_level=True,
     )
 
-import generate_status  # type: ignore[import]
-from github import GithubException  # type: ignore[import]
+# Import after path setup and skip check
+import generate_status  # noqa: E402
+from github import GithubException  # noqa: E402
 
 # --- Fixtures ---
 
@@ -1074,7 +1075,7 @@ def test_write_output_to_stdout(capsys):
 
     with patch.dict(os.environ, {}, clear=True):
         with patch("tempfile.gettempdir", return_value="/tmp"):
-            with patch("builtins.open", mock_open()) as mock_file:
+            with patch("builtins.open", mock_open()):
                 generate_status.write_output(content)
 
     captured = capsys.readouterr()

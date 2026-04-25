@@ -208,7 +208,7 @@ class TestDocumentMaintainability:
         for section in sections[1:]:
             lines = section.split("\n")
             section_name = lines[0]
-            content_lines = [l for l in lines[1:] if l.strip()]
+            content_lines = [line for line in lines[1:] if line.strip()]
             assert len(content_lines) > 0, f"Section '{section_name}' should have content"
 
 
