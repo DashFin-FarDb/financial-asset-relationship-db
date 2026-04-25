@@ -266,10 +266,26 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
         bytes_written = 0
         while bytes_written < len(encoded_data):
             n = os.write(fd, encoded_data[bytes_written:])
+            if n == 0:
+                # os.write returning 0 indicates no progress can be made
+                raise OSError("write returned 0, no progress possible")
             bytes_written += n
         os.fsync(fd)  # Ensure data is written to disk before rename
         os.close(fd)
         tmp_path.replace(path)
+
+        # Fsync parent directory to ensure directory entry is durable
+        # This is best-effort and platform-specific
+        try:
+            parent_fd = os.open(str(parent), os.O_RDONLY)
+            try:
+                os.fsync(parent_fd)
+            finally:
+                os.close(parent_fd)
+        except (OSError, AttributeError):
+            # Ignore errors on platforms that don't support directory fsync
+            # or when O_RDONLY on directories is not supported
+            pass
     except BaseException:
         try:
             os.close(fd)
