@@ -35,21 +35,33 @@ async def _get_mcp_resources(mcp_app):
 
 
 def _extract_result_text(result):
-    """Extract text from MCP API result (handles list, tuple, or object format)."""
-    if isinstance(result, list):
+    """Extract text from MCP API result (handles list, tuple, or object format).
+
+    FastMCP >= 3.x call_tool returns a tuple (content_list, structured_dict).
+    """
+    if isinstance(result, tuple):
+        # call_tool returns (list[TextContent], dict); extract from the content list
+        content_list = result[0]
+        return content_list[0].text
+    elif isinstance(result, list):
         return result[0].text
-    elif isinstance(result, tuple):
-        return result[0]
     else:
         return result.content[0].text
 
 
 def _extract_resource_text(result_list):
-    """Extract text from MCP resource result."""
-    if isinstance(result_list[0], str):
-        return result_list[0]
-    else:
-        return result_list[0].text
+    """Extract text from MCP resource result.
+
+    FastMCP >= 3.x read_resource returns a list of ReadResourceContents objects
+    whose payload is in the `content` attribute (not `text`).
+    """
+    item = result_list[0]
+    if isinstance(item, str):
+        return item
+    # ReadResourceContents uses .content; TextResourceContents uses .text
+    if hasattr(item, "content"):
+        return item.content
+    return item.text
 
 
 @pytest.mark.unit

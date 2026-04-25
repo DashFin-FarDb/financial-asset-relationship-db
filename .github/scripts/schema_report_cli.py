@@ -143,9 +143,9 @@ def parse_output_format(format_str: str) -> OutputFormat | None:
         OutputFormat enum member if valid, None otherwise
     """
     try:
-        return OutputFormat(format_str.lower())
+        return OutputFormat(format_str)
     except (ValueError, AttributeError):
-        print(f"Error: Invalid format '{format_str}'. Valid formats: markdown, text, json", file=sys.stderr)
+        print(f"Invalid output format: '{format_str}'. Valid formats: markdown, text, json", file=sys.stderr)
         return None
 
 
