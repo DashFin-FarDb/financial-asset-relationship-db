@@ -594,10 +594,11 @@ class TestConcurrentDatabaseAccess:
     def test_concurrent_writes_serialized(self, engine: Engine, isolated_base) -> None:
         """Concurrent writes should be properly serialized.
 
-        This test verifies that the in-memory database lock properly serializes all writes,
-        ensuring that all threads successfully complete without conflicts. The strict assertion
-        (all threads succeed with exact count) is valid because api/database.py uses _MEMORY_USE_LOCK
-        to serialize all in-memory database operations.
+        This test verifies that concurrent writes via ``src.data.database.session_scope``
+        complete without errors when the engine uses SQLite in-memory with ``StaticPool``.
+        ``StaticPool`` routes every session to the same single underlying connection, so
+        SQLite's connection-level locking naturally serializes all writes.  The strict
+        assertions (all threads succeed, zero errors) are valid for this configuration.
         """
         import threading
         import time
