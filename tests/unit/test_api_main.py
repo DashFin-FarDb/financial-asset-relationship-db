@@ -358,10 +358,11 @@ class TestAPIEndpoints:
         if "relationship_density" in data:
             assert 0 <= data["relationship_density"] <= 100
 
-    def test_get_metrics_no_assets(self, client: TestClient) -> None:
+    def test_get_metrics_no_assets(self, bare_client: TestClient) -> None:
         """Metrics endpoint returns zeros for an empty graph."""
+        api_main.reset_graph()
         api_main.set_graph(AssetRelationshipGraph())
-        response = client.get("/api/metrics")
+        response = bare_client.get("/api/metrics")
         assert response.status_code == 200
         data = response.json()
         assert data["total_assets"] == 0
@@ -370,8 +371,9 @@ class TestAPIEndpoints:
         assert data["max_degree"] == 0
         assert data["network_density"] == 0
 
-    def test_get_metrics_one_asset_no_relationships(self, client: TestClient) -> None:
+    def test_get_metrics_one_asset_no_relationships(self, bare_client: TestClient) -> None:
         """Metrics endpoint handles one-node graphs with no relationships."""
+        api_main.reset_graph()
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -384,7 +386,7 @@ class TestAPIEndpoints:
             )
         )
         api_main.set_graph(graph)
-        response = client.get("/api/metrics")
+        response = bare_client.get("/api/metrics")
         assert response.status_code == 200
         data = response.json()
         assert data["total_assets"] == 1
@@ -393,8 +395,9 @@ class TestAPIEndpoints:
         assert data["max_degree"] == 0
         assert data["network_density"] == 0
 
-    def test_get_metrics_multiple_assets_no_relationships(self, client: TestClient) -> None:
+    def test_get_metrics_multiple_assets_no_relationships(self, bare_client: TestClient) -> None:
         """Metrics endpoint handles multi-node graphs with no relationships."""
+        api_main.reset_graph()
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -417,7 +420,7 @@ class TestAPIEndpoints:
             )
         )
         api_main.set_graph(graph)
-        response = client.get("/api/metrics")
+        response = bare_client.get("/api/metrics")
         assert response.status_code == 200
         data = response.json()
         assert data["total_assets"] == 2
@@ -1360,6 +1363,7 @@ class TestVisualizationSingleNode:
 
     def test_visualization_single_node(self, bare_client: TestClient):
         """Visualization should handle graph with single node."""
+        api_main.reset_graph()
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -1404,6 +1408,7 @@ class TestVisualizationSingleNode:
 
     def test_visualization_node_size_scaling(self, bare_client: TestClient):
         """Visualization should scale node size based on degree."""
+        api_main.reset_graph()
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -1574,9 +1579,10 @@ class TestEndpointRegressionCases:
         assert isinstance(assets, list)
         assert len(assets) == 0
 
-    def test_asset_relationships_empty_list(self, client: TestClient):
+    def test_asset_relationships_empty_list(self, bare_client: TestClient):
         """Asset with no relationships should return empty list."""
         # Create graph with isolated node
+        api_main.reset_graph()
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -1590,10 +1596,12 @@ class TestEndpointRegressionCases:
         )
         api_main.set_graph(graph)
 
-        response = client.get("/api/assets/ISOLATED/relationships")
+        response = bare_client.get("/api/assets/ISOLATED/relationships")
         assert response.status_code == 200
         relationships = response.json()
         assert relationships == []
+
+        api_main.reset_graph()
 
     def test_metrics_relationship_density_calculation(self, client: TestClient):
         """Metrics should correctly calculate relationship_density."""
