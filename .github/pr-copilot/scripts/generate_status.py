@@ -18,7 +18,6 @@ from datetime import UTC, datetime
 
 try:
     from github import Github, GithubException
-    from github.PullRequest import PullRequest
 
     _PYGITHUB_AVAILABLE = True
 except ImportError:
