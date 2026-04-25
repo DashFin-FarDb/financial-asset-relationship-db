@@ -219,7 +219,7 @@ class FormulaicAnalyzer:
                 calculation for the formula.
 
         Returns:
-            Formula: A Formula for "Price-to-Earnings" with expression "P / E",
+            Formula: A Formula for "Price-to-Earnings Ratio" with expression "P / E",
                 LaTeX "\\frac{P}{E}", variables `P` mapped to "Price per share"
                 and `E` mapped to "Earnings per share (EPS)", category
                 "Valuation", and an example calculation derived from the provided

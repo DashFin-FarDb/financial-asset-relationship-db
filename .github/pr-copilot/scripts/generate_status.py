@@ -20,8 +20,10 @@ from typing import Dict, List, Optional
 try:
     from github import Github, GithubException
     from github.PullRequest import PullRequest
-except ImportError as exc:
-    raise ImportError("Required package 'PyGithub' not installed. Run: pip install PyGithub") from exc
+
+    _PYGITHUB_AVAILABLE = True
+except ImportError:
+    _PYGITHUB_AVAILABLE = False
 
 
 @dataclass(frozen=True)
@@ -318,6 +320,13 @@ def main():
 
     Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME. Exits with status code 0 on success and with status code 1 on any validation, API, or runtime error; prints error details to stderr before exiting.
     """
+    if not _PYGITHUB_AVAILABLE:
+        print(
+            "Error: Required package 'PyGithub' not installed. Run: pip install PyGithub",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     # Env Var Validation
     required = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]
     env = {var: os.environ.get(var) for var in required}
