@@ -144,11 +144,14 @@ def _is_safe_value(v: str) -> bool:
     # Allow common short package/module names (2-4 chars, lowercase only)
     if re.fullmatch(r"[a-z]{2,4}", v):
         return True
-    # Allow kebab-case identifiers: all lowercase letters, digits, and hyphens.
-    # These are typical repository names, package names, and project identifiers
-    # (e.g. "financial-asset-relationship-db") and are never valid secrets.
-    # Real secrets always contain uppercase letters, digits, or special chars.
-    return bool(re.fullmatch(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)+", v))
+    # Allow kebab-case identifiers (e.g. repo/package names like
+    # "financial-asset-relationship-db") only when no individual segment matches
+    # a known secret-marker keyword.  This prevents values like "sk-test-token"
+    # from being treated as safe simply because they are lowercase with hyphens.
+    if re.fullmatch(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)+", v):
+        secret_words = {m.value for m in SecretMarker}
+        return not any(seg in secret_words for seg in v.split("-"))
+    return False
 
 
 def _matches_secret_patterns(v: str) -> bool:

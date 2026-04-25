@@ -592,18 +592,21 @@ class TestConcurrentDatabaseAccess:
         assert len(errors) == 0
         assert all(count == 100 for count in results)
 
-    def test_concurrent_writes_serialized(self, engine: Engine, isolated_base) -> None:
-        """Verify all concurrent writes complete when database access is explicitly serialized.
+    def test_concurrent_writes(self, isolated_base) -> None:
+        """Verify the session_scope handles true concurrent writes without external locking.
 
-        SQLite in-memory with StaticPool routes every session to the same underlying
-        connection, which is not thread-safe on its own.  An explicit ``threading.Lock``
-        is used here to serialize the database operations so that all threads complete
-        without contention errors.  The test validates ``session_scope`` together with
-        the StaticPool engine for deterministic serialized access, not SQLite's or
-        SQLAlchemy's intrinsic thread-safety.  (Previously, this test used staggered
-        sleeps to reduce concurrent overlap, which made it intermittently flaky.)
+        Uses a temporary file-based SQLite database with NullPool so each thread
+        opens its own connection.  SQLite serialises concurrent writers at the
+        database level; the test asserts that all ``session_scope`` operations
+        complete successfully, validating the DB/session stack under concurrency
+        without relying on any Python-level locking.
         """
+        import os
+        import tempfile
         import threading
+
+        from sqlalchemy import create_engine as _create_engine
+        from sqlalchemy.pool import NullPool
 
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent write validation."""
@@ -611,41 +614,54 @@ class TestConcurrentDatabaseAccess:
             __tablename__ = "test_concurrent_writes"
             id = Column(Integer, primary_key=True)
 
-        init_db(engine)
-        factory = create_session_factory(engine)
-
         errors: list[Exception] = []
-        write_lock = threading.Lock()
 
-        def write_data(thread_id: int) -> None:
-            """
-            Insert a TestModel row using thread_id as the primary key and record any exception.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db_url = f"sqlite:///{os.path.join(tmpdir, 'concurrent.db')}"
+            # NullPool: each call to session_scope opens its own SQLite connection
+            # so concurrent access is exercised at the database level, not masked
+            # by a shared in-memory connection.
+            file_engine = _create_engine(
+                db_url,
+                poolclass=NullPool,
+                connect_args={"timeout": 30},  # wait up to 30 s for the DB lock
+            )
+            init_db(file_engine)
+            factory = create_session_factory(file_engine)
 
-            Acquires *write_lock* before opening a transactional session so that
-            only one thread accesses the SQLite in-memory connection at a time.
-            Any exception is appended to the shared ``errors`` list.
+            def write_data(thread_id: int) -> None:
+                """
+                Insert a TestModel row using thread_id as the primary key and record any exception.
 
-            Parameters:
-                thread_id (int): Integer used as the TestModel ``id``.
-            """
-            try:
-                with write_lock, session_scope(factory) as session:
-                    session.add(TestModel(id=thread_id))
-            except Exception as exc:  # noqa: BLE001
-                errors.append(exc)
+                Opens a transactional session via ``session_scope`` without external
+                locking so that the SQLite database-level serialisation is exercised.
+                Any exception is appended to the shared ``errors`` list.
 
-        num_threads = 20
-        threads = [threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+                Parameters:
+                    thread_id (int): Integer used as the TestModel ``id``.
+                """
+                try:
+                    with session_scope(factory) as session:
+                        session.add(TestModel(id=thread_id))
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(exc)
 
-        with session_scope(factory) as session:
-            count = session.query(TestModel).count()
-            assert count == num_threads, f"Expected {num_threads} writes but found {count}"
+            num_threads = 20
+            threads = [threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
 
-        assert len(errors) == 0, f"Expected no errors but got {len(errors)}: {errors}"
+            # SQLite serialises concurrent writes at the database level.
+            # All session_scope operations must complete without error.
+            with session_scope(factory) as session:
+                count = session.query(TestModel).count()
+
+            file_engine.dispose()
+
+        assert len(errors) == 0, f"Unexpected errors under concurrent writes: {errors}"
+        assert count == num_threads, f"Expected {num_threads} rows, found {count}"
 
 
 # ---------------------------------------------------------------------------
