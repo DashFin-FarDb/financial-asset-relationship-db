@@ -125,6 +125,7 @@ class OutputFormat(enum.Enum):
     JSON = "json"
 
     def __str__(self) -> str:
+        """Return string representation of the output format."""
         return self.value
 
 
