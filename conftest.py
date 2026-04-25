@@ -10,7 +10,7 @@ This file centralizes:
 
 import importlib.util
 from pathlib import Path
-from typing import Any, Iterator, List, MutableSequence, Optional, Tuple
+from typing import Any, Iterator
 
 import pytest
 from sqlalchemy.engine import Engine
@@ -23,20 +23,6 @@ from src.data.database import (
     session_scope,
 )
 
-_COV_FLAGS_WITH_OPTIONAL_VALUE = {"--cov", "--cov-report"}
-_COV_VALUE_FLAGS = {"--cov-config", "--cov-context", "--cov-fail-under"}
-_COV_BOOLEAN_FLAGS = {
-    "--cov-append",
-    "--cov-branch",
-    "--cov-reset",
-}
-_COV_EQUALS_PREFIXES = (
-    "--cov=",
-    "--cov-report=",
-    "--cov-config=",
-    "--cov-context=",
-    "--cov-fail-under=",
-)
 
 
 def _cov_plugin_available() -> bool:
@@ -44,93 +30,6 @@ def _cov_plugin_available() -> bool:
     return importlib.util.find_spec("pytest_cov") is not None
 
 
-def pytest_load_initial_conftests(  # pragma: no cover
-    early_config: Any,
-    parser: Any,
-    args: Optional[MutableSequence[str]],
-) -> None:
-    """Strip pytest-cov arguments before parsing when pytest-cov is unavailable."""
-    del parser
-
-    if _cov_plugin_available():
-        return
-
-    target_args = args
-    if target_args is None and isinstance(early_config, list):
-        target_args = early_config
-
-    if target_args is None:
-        return
-
-    target_args[:] = _strip_pytest_cov_args(target_args)
-
-
-def _strip_pytest_cov_args(args: MutableSequence[str]) -> List[str]:
-    """Return pytest arguments with pytest-cov options removed."""
-    filtered_args: List[str] = []
-    index = 0
-
-    while index < len(args):
-        arg = args[index]
-        if arg == "--":
-            return filtered_args + list(args[index:])
-
-        should_keep, index = _classify_pytest_cov_arg(args, index)
-        if should_keep:
-            filtered_args.append(arg)
-
-    return filtered_args
-
-
-def _classify_pytest_cov_arg(
-    args: MutableSequence[str],
-    index: int,
-) -> Tuple[bool, int]:
-    """Return whether the current argument should be kept and the next index."""
-    arg = args[index]
-
-    if arg in _COV_FLAGS_WITH_OPTIONAL_VALUE:
-        return False, _next_index_after_optional_value(args, index)
-
-    if arg in _COV_VALUE_FLAGS:
-        return False, _next_index_after_required_value(args, index)
-
-    if arg in _COV_BOOLEAN_FLAGS or _is_cov_equals_arg(arg):
-        return False, index + 1
-
-    return True, index + 1
-
-
-def _next_index_after_optional_value(
-    args: MutableSequence[str],
-    index: int,
-) -> int:
-    """Return the next index after a pytest-cov option with an optional value."""
-    next_index = index + 1
-    if next_index < len(args) and _looks_like_option_value(args[next_index]):
-        return next_index + 1
-    return next_index
-
-
-def _next_index_after_required_value(
-    args: MutableSequence[str],
-    index: int,
-) -> int:
-    """Return the next index after a pytest-cov option with a required value."""
-    next_index = index + 1
-    if next_index < len(args) and args[next_index] != "--":
-        return next_index + 1
-    return next_index
-
-
-def _looks_like_option_value(arg: str) -> bool:
-    """Return whether an argument token looks like a value rather than an option."""
-    return arg != "--" and not arg.startswith("-")
-
-
-def _is_cov_equals_arg(arg: str) -> bool:
-    """Return whether an argument is a pytest-cov option using --flag=value."""
-    return arg.startswith(_COV_EQUALS_PREFIXES)
 
 
 def pytest_addoption(parser: Any) -> None:
@@ -151,8 +50,36 @@ def _safe_addoption(group: object, *names: str, **kwargs: object) -> None:
 def _register_dummy_cov_options(parser: Any) -> None:
     """Register no-op coverage options when pytest-cov is unavailable."""
     group = parser.getgroup("cov")
-    _safe_addoption(group, "--cov", action="append", dest="cov", default=[], metavar="path")
-    _safe_addoption(group, "--cov-report", action="append", dest="cov_report", default=[], metavar="type")
+
+    # Flags that take optional values (can be used with or without arguments)
+    _safe_addoption(
+        group,
+        "--cov",
+        action="append",
+        dest="cov_source",
+        default=[],
+        nargs="?",
+        const=True,
+        metavar="SOURCE",
+    )
+    _safe_addoption(
+        group,
+        "--cov-report",
+        action="append",
+        dest="cov_report",
+        default=[],
+        metavar="TYPE",
+    )
+
+    # Flags that take required values
+    _safe_addoption(group, "--cov-config", action="store", dest="cov_config", default=None, metavar="PATH")
+    _safe_addoption(group, "--cov-context", action="store", dest="cov_context", default=None, metavar="CONTEXT")
+    _safe_addoption(group, "--cov-fail-under", action="store", dest="cov_fail_under", default=None, metavar="MIN")
+
+    # Boolean flags
+    _safe_addoption(group, "--cov-append", action="store_true", dest="cov_append", default=False)
+    _safe_addoption(group, "--cov-branch", action="store_true", dest="cov_branch", default=False)
+    _safe_addoption(group, "--cov-reset", action="store_true", dest="cov_reset", default=False)
 
 
 @pytest.fixture(autouse=True)
