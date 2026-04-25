@@ -212,7 +212,7 @@ class FormulaicAnalyzer:
     @staticmethod
     def _price_to_earnings_formula(graph: AssetRelationshipGraph) -> Formula:
         """
-        Constructs a Formula representing the Price-to-Earnings (P/E) ratio.
+        Constructs a Formula representing the Price-to-Earnings Ratio (P/E).
 
         Parameters:
             graph (AssetRelationshipGraph): Graph used to produce the example
