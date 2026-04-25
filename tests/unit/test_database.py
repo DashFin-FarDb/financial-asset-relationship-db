@@ -1094,8 +1094,6 @@ class TestNestedConnectionCalls:
     @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
     def test_nested_get_connection_with_fetch_value(self):
         """Test nested get_connection() with fetch_value helper."""
-        from api.database import _cleanup_memory_connection
-
         _cleanup_memory_connection()
 
         with get_connection() as outer_conn:
