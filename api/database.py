@@ -356,6 +356,19 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     in-memory databases a shared persistent connection is yielded and remains open across calls
     (the context does not close it).
 
+    **Important for in-memory databases:**
+    Access to in-memory databases is fully serialized via _MEMORY_USE_LOCK. This means:
+    - Only one operation can use the in-memory connection at a time
+    - Concurrent operations (including reads) will block and wait for the lock
+    - This prevents SQLite transaction conflicts but may become a bottleneck for parallel reads
+    - The lock is held for the entire duration of the `with get_connection()` block
+
+    This serialization is necessary because SQLite in-memory databases cannot safely handle
+    concurrent transactions, even for reads. If performance becomes an issue, consider:
+    - Using a file-backed database with WAL mode for better concurrency
+    - Restructuring code to minimize the time spent holding the connection
+    - Using connection pooling for file-backed databases
+
     Returns:
         sqlite3.Connection: An open SQLite connection for the configured database.
     """

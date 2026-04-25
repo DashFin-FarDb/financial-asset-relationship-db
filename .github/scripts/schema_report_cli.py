@@ -163,13 +163,11 @@ def parse_arguments() -> argparse.Namespace:
             - output (Path | None): Output file path or None for stdout
             - verbose (bool): Verbose logging flag
 
-    Raises:
-        CLIError: If the format string is not a valid OutputFormat value.
-
     Note:
         The fmt attribute is converted from string to OutputFormat enum
         during parsing. This allows better type safety in downstream code
         but means callers receive an enum, not the raw string argument.
+        Invalid formats will cause argparse to exit with code 2.
     """
     parser = argparse.ArgumentParser(
         description=("Generate schema reports for financial asset relationships."),
@@ -180,8 +178,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--fmt",
         type=str,
+        choices=valid_formats,
         default=OutputFormat.MARKDOWN.value,
-        help="Output format: {} (default: %(default)s).".format(", ".join(valid_formats)),
+        help="Output format (default: %(default)s).",
     )
     parser.add_argument(
         "--output",
@@ -199,13 +198,8 @@ def parse_arguments() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    # Manually validate and convert fmt string to OutputFormat enum so we can
-    # emit our own friendly message (rather than argparse's generic error) and
-    # return exit-code 1 (bad argument) instead of 2 (argument-parsing error).
-    try:
-        args.fmt = OutputFormat(args.fmt)
-    except ValueError:
-        raise CLIError("Invalid output format. Please use one of: {}".format(", ".join(valid_formats)))
+    # Convert fmt string to OutputFormat enum for type safety
+    args.fmt = OutputFormat(args.fmt)
     return args
 
 
@@ -312,14 +306,6 @@ def main() -> int:
         generate_report(log, output_format, safe_output)
         log.info("Schema report generation completed successfully.")
         return 0
-
-    except SystemExit as exc:
-        # Re-raise SystemExit from parse_arguments() to preserve exit code
-        # argparse uses exit code 2 for invalid arguments, which should be preserved
-        if isinstance(exc.code, int):
-            return exc.code
-        # For non-int codes, return 1 for non-zero/truthy, 0 otherwise
-        return 1 if exc.code else 0
 
     except CLIError as exc:
         print(f"Error: {exc}", file=sys.stderr)

@@ -555,7 +555,7 @@ class TestEdgeCases:
             },
         )
 
-        result = result_tuple[1]["result"]
+        result = result_tuple.content[0].text
 
         # Should handle special characters without error
         assert "Validation Error" not in result
@@ -618,7 +618,7 @@ class TestEdgeCases:
             },
         )
 
-        result = result_tuple[1]["result"]
+        result = result_tuple.content[0].text
 
         # Should accept very large valid price
         assert "Validation Error" not in result

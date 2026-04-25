@@ -308,12 +308,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
     """
-    Retrieve the User identified by the JWT's subject.
+    Retrieve the UserInDB identified by the JWT's subject.
 
     Returns:
-        The User object for the token's subject.
+        UserInDB: The UserInDB object for the token's subject (includes hashed_password).
 
     Raises:
         HTTPException: 401 with detail "Token has expired" when the token has expired.
@@ -395,15 +395,19 @@ def _decode_username_from_token(
         raise credentials_exception from e
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     """
     Verify that the authenticated user's account is active.
+
+    Note: Although get_current_user returns UserInDB, this function accepts and returns
+    the base User type since it doesn't need access to hashed_password. This provides
+    better separation of concerns - only authentication code should see hashed passwords.
 
     Raises:
         HTTPException: 400 with detail "Inactive user" if the user's account is disabled.
 
     Returns:
-        User: The authenticated user's public profile.
+        User: The authenticated user's public profile (without hashed_password).
     """
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
