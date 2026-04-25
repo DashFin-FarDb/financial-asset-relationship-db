@@ -181,10 +181,7 @@ def parse_arguments() -> argparse.Namespace:
         help="Enable verbose logging.",
     )
 
-    try:
-        args = parser.parse_args()
-    except SystemExit:
-        raise
+    args = parser.parse_args()
 
     valid_formats = [f.value for f in OutputFormat]
     if args.fmt not in valid_formats:
