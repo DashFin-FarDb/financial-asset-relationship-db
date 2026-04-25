@@ -17,6 +17,7 @@ import jwt
 import pytest
 from fastapi import HTTPException
 from jwt import InvalidTokenError
+from passlib.exc import PasswordSizeError
 
 from api.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -409,8 +410,6 @@ class TestEdgeCases:
 
     def test_very_long_password(self):
         """Test hashing very long password."""
-        from passlib.exc import PasswordSizeError
-
         long_password = "a" * 10000
 
         # passlib has a maximum password size limit (typically 4096 bytes)
