@@ -526,7 +526,7 @@ class TestEdgeCases:
 
         # Calling add_asset with invalid data should raise an exception, but the
         # lock must still be released after the exception.
-        with pytest.raises((ValueError, AttributeError, TypeError)):
+        with pytest.raises(ValueError):
             safe_graph.add_asset(None)
 
         # Lock should not be held after exception
