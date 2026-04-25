@@ -62,29 +62,17 @@ class ContextChunker:
             except (IOError, OSError):
                 self.config = {}
 
-        agent_context: dict[str, Any] = (
-            self.config.get("agent", {}).get("context", {}) or {}
-        )
-        limits_fallback: dict[str, Any] = (
-            self.config.get("limits", {}).get("fallback", {}) or {}
-        )
+        agent_context: dict[str, Any] = self.config.get("agent", {}).get("context", {}) or {}
+        limits_fallback: dict[str, Any] = self.config.get("limits", {}).get("fallback", {}) or {}
 
         self.max_tokens: int = agent_context.get("max_tokens", _DEFAULT_MAX_TOKENS)
-        self.chunk_size: int = agent_context.get(
-            "chunk_size", max(1, self.max_tokens - 4000)
-        )
-        self.overlap_tokens: int = agent_context.get(
-            "overlap_tokens", _DEFAULT_OVERLAP_TOKENS
-        )
+        self.chunk_size: int = agent_context.get("chunk_size", max(1, self.max_tokens - 4000))
+        self.overlap_tokens: int = agent_context.get("overlap_tokens", _DEFAULT_OVERLAP_TOKENS)
         self.summarization_threshold: int = agent_context.get(
             "summarization_threshold", _DEFAULT_SUMMARIZATION_THRESHOLD
         )
-        self.priority_order: list[str] = limits_fallback.get(
-            "priority_order", list(_DEFAULT_PRIORITY_ORDER)
-        )
-        self.priority_map: dict[str, int] = {
-            name: i for i, name in enumerate(self.priority_order)
-        }
+        self.priority_order: list[str] = limits_fallback.get("priority_order", list(_DEFAULT_PRIORITY_ORDER))
+        self.priority_map: dict[str, int] = {name: i for i, name in enumerate(self.priority_order)}
 
         # Try to set up a tiktoken encoder for accurate token counting.
         if _TIKTOKEN_AVAILABLE:

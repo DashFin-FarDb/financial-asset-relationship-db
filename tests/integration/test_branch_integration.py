@@ -348,7 +348,7 @@ class TestBranchCoherence:
         """
         Ensure the branch removes external workflow configuration and limits external file references in workflows.
         Asserts that .github/labeler.yml does not exist.
-        
+
         For each YAML file under .github/workflows asserts that,
         at most one step's `run` command references a path containing ".github/" or "scripts/".
         """
