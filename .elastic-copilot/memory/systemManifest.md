@@ -200,7 +200,7 @@ Dependencies:
 
 ## TS Dependencies
 
-### /frontend/**tests**/lib/api.test.ts
+### /frontend/app/lib/tests/api.test.ts
 
 Dependencies:
 
@@ -212,7 +212,7 @@ Dependencies:
 
 No dependencies found
 
-### /frontend/app/lib/**tests**/api.test.ts
+### /frontend/app/lib/tests/api.test.ts
 
 Dependencies:
 
