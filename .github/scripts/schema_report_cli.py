@@ -290,8 +290,11 @@ def main() -> int:
 
     except SystemExit as exc:
         # Re-raise SystemExit from parse_arguments() to preserve exit code
-        code = int(exc.code) if exc.code is not None else 1
-        return 1 if code != 0 else 0
+        # argparse uses exit code 2 for invalid arguments, which should be preserved
+        if isinstance(exc.code, int):
+            return exc.code
+        # For non-int codes, return 1 for non-zero/truthy, 0 otherwise
+        return 1 if exc.code else 0
 
     except CLIError as exc:
         print(f"Error: {exc}", file=sys.stderr)

@@ -136,8 +136,13 @@ def _is_safe_value(v: str) -> bool:
     # Skip glob patterns (file path expressions like **/secrets/**)
     if "*" in v:
         return True
-    # Skip strings that look like repository/package names (only lowercase letters, digits, hyphens)
-    if re.fullmatch(r"[a-z0-9][a-z0-9\-]+", v):
+    # Skip strings that look like repository/package names (require slash or specific format)
+    # Match patterns like: "owner/repo", "scope/package", "org/project"
+    # This is more restrictive than before to avoid false negatives in secret detection
+    if re.fullmatch(r"[a-z0-9][a-z0-9\-]*/[a-z0-9][a-z0-9\-]*", v):
+        return True
+    # Allow common short package/module names (2-4 chars, lowercase only)
+    if re.fullmatch(r"[a-z]{2,4}", v):
         return True
     return False
 
