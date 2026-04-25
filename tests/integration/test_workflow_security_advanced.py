@@ -153,12 +153,10 @@ class TestWorkflowPermissionsHardening:
             # Accept workflows where all non-reusable jobs declare their own permissions
             jobs = content.get("jobs", {})
             all_jobs_have_permissions = all(
-                isinstance(job, dict) and ("permissions" in job or "uses" in job)
-                for job in jobs.values()
+                isinstance(job, dict) and ("permissions" in job or "uses" in job) for job in jobs.values()
             )
             assert all_jobs_have_permissions, (
-                f"Workflow {workflow['path']} should define permissions "
-                "(either top-level or on each job)"
+                f"Workflow {workflow['path']} should define permissions " "(either top-level or on each job)"
             )
 
     @staticmethod
@@ -183,7 +181,16 @@ class TestWorkflowPermissionsHardening:
                 ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
             elif isinstance(permissions, dict):
                 default_write_perms = [k for k, v in permissions.items() if v == "write"]
-                allowed_write_perms = {"contents", "pull-requests", "issues", "checks", "security-events", "pages", "id-token", "packages"}
+                allowed_write_perms = {
+                    "contents",
+                    "pull-requests",
+                    "issues",
+                    "checks",
+                    "security-events",
+                    "pages",
+                    "id-token",
+                    "packages",
+                }
                 unexpected_write = set(default_write_perms) - allowed_write_perms
                 assert (
                     len(unexpected_write) == 0
