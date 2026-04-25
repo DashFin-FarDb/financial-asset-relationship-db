@@ -4,6 +4,9 @@ database tests.
 
 from __future__ import annotations
 
+import importlib.util
+from typing import Any
+
 import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -164,6 +167,38 @@ def _reset_graph():
 
     reset_graph()
     yield
+
+
+def pytest_addoption(parser: Any) -> None:
+    """Register dummy coverage options when pytest-cov is unavailable."""
+    if not _cov_plugin_available():
+        _register_dummy_cov_options(parser)
+
+
+def _cov_plugin_available() -> bool:
+    """Return whether pytest-cov is importable in the current environment."""
+    return importlib.util.find_spec("pytest_cov") is not None
+
+
+def _register_dummy_cov_options(parser: Any) -> None:
+    """Register dummy --cov and --cov-report options."""
+    group = parser.getgroup("cov")
+    group.addoption(
+        "--cov",
+        action="append",
+        dest="cov",
+        default=[],
+        metavar="path",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
+    group.addoption(
+        "--cov-report",
+        action="append",
+        dest="cov_report",
+        default=[],
+        metavar="type",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
 
 
 @pytest.fixture
