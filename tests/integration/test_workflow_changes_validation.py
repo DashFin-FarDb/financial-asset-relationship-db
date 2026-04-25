@@ -336,6 +336,11 @@ class TestWorkflowYAMLValidity:
                 workflow = yaml.safe_load(f)
 
             assert "name" in workflow, f"{workflow_file.name} missing 'name'"
+            # PyYAML (YAML 1.1) parses an unquoted `on:` key as boolean True rather
+            # than the string "on". We accept both so that workflows with either
+            # `on:` or `"on":` pass. The preferred form in new workflows is the
+            # quoted `"on":` key (or using `yaml.safe_load` with explicit quoting)
+            # to avoid this ambiguity.
             assert "on" in workflow or True in workflow, f"{workflow_file.name} missing 'on' trigger"
             assert "jobs" in workflow, f"{workflow_file.name} missing 'jobs'"
 
