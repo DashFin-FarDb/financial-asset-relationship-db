@@ -149,7 +149,7 @@ class TestAddEquityNode:
             mcp_app = _build_mcp_app()
 
             # Call tool via public API
-            result_tuple = await mcp_app.call_tool(
+            result = await mcp_app.call_tool(
                 "add_equity_node",
                 {
                     "asset_id": "AAPL_TEST",
@@ -160,12 +160,12 @@ class TestAddEquityNode:
                 },
             )
 
-            # Extract the text result from the returned tuple
-            result = result_tuple.content[0].text
+            # Extract the text result from the returned ToolResult object
+            result_text = result.content[0].text
 
-            assert "Successfully" in result
-            assert "Apple Inc Test" in result
-            assert "AAPL" in result
+            assert "Successfully" in result_text
+            assert "Apple Inc Test" in result_text
+            assert "AAPL" in result_text
         finally:
             graph._graph.assets.clear()
             graph._graph.assets.update(original_assets)
@@ -180,7 +180,7 @@ class TestAddEquityNode:
 
         mcp_app = _build_mcp_app()
 
-        result_tuple = await mcp_app.call_tool(
+        result = await mcp_app.call_tool(
             "add_equity_node",
             {
                 "asset_id": "TEST",
@@ -191,11 +191,11 @@ class TestAddEquityNode:
             },
         )
 
-        result = result_tuple.content[0].text
+        result_text = result.content[0].text
 
-        assert isinstance(result, str)
-        assert "Validation Error" in result
-        assert "price" in result.lower()
+        assert isinstance(result_text, str)
+        assert "Validation Error" in result_text
+        assert "price" in result_text.lower()
 
     @staticmethod
     @pytest.mark.asyncio
@@ -205,7 +205,7 @@ class TestAddEquityNode:
 
         mcp_app = _build_mcp_app()
 
-        result_tuple = await mcp_app.call_tool(
+        result = await mcp_app.call_tool(
             "add_equity_node",
             {
                 "asset_id": "",  # Invalid empty ID
@@ -216,10 +216,10 @@ class TestAddEquityNode:
             },
         )
 
-        result = result_tuple.content[0].text
+        result_text = result.content[0].text
 
-        assert "Validation Error" in result
-        assert "id" in result.lower()
+        assert "Validation Error" in result_text
+        assert "id" in result_text.lower()
 
     @staticmethod
     @pytest.mark.asyncio
@@ -238,7 +238,7 @@ class TestAddEquityNode:
 
             mcp_app = _build_mcp_app()
 
-            result_tuple = await mcp_app.call_tool(
+            result = await mcp_app.call_tool(
                 "add_equity_node",
                 {
                     "asset_id": "TEST",
@@ -249,10 +249,10 @@ class TestAddEquityNode:
                 },
             )
 
-            result = result_tuple.content[0].text
+            result_text = result.content[0].text
 
             # Should indicate validation-only mode
-            assert "validation" in result.lower() or "Successfully" in result
+            assert "validation" in result_text.lower() or "Successfully" in result_text
 
 
 @pytest.mark.unit
@@ -544,7 +544,7 @@ class TestEdgeCases:
 
         mcp_app = _build_mcp_app()
 
-        result_tuple = await mcp_app.call_tool(
+        result = await mcp_app.call_tool(
             "add_equity_node",
             {
                 "asset_id": "TEST_SPECIAL",
@@ -555,10 +555,10 @@ class TestEdgeCases:
             },
         )
 
-        result = result_tuple.content[0].text
+        result_text = result.content[0].text
 
         # Should handle special characters without error
-        assert "Validation Error" not in result
+        assert "Validation Error" not in result_text
 
     @staticmethod
     @pytest.mark.asyncio
@@ -607,7 +607,7 @@ class TestEdgeCases:
 
         mcp_app = _build_mcp_app()
 
-        result_tuple = await mcp_app.call_tool(
+        result = await mcp_app.call_tool(
             "add_equity_node",
             {
                 "asset_id": "TEST_LARGE_PRICE",
@@ -618,8 +618,8 @@ class TestEdgeCases:
             },
         )
 
-        result = result_tuple.content[0].text
+        result_text = result.content[0].text
 
         # Should accept very large valid price
-        assert "Validation Error" not in result
-        assert "Successfully" in result
+        assert "Validation Error" not in result_text
+        assert "Successfully" in result_text
