@@ -26,12 +26,11 @@ class TestDocumentationFilesValidation:
     @staticmethod
     def _is_excluded(path: Path) -> bool:
         """Check if a markdown file should be excluded from validation."""
-        # Large auto-generated wiki/spec files are excluded from style checks
-        excluded_names = {
+        legacy_markdown_debt = {
             "DashFin-financial-asset-relationship-db-wiki-v2.md",
             "tech_spec.md",
         }
-        return path.name in excluded_names
+        return path.name in legacy_markdown_debt
 
     @staticmethod
     def _collect_docs_dir_files() -> List[Path]:
@@ -171,8 +170,7 @@ class TestDocumentationFilesValidation:
                     in_fence = not in_fence
                     continue
 
-        # Allow a reasonable number of undeclared code fences (pre-existing doc debt)
-        assert len(fence_issues) <= 50, "Code block language issues:\n" + "\n".join(
+        assert not fence_issues, "Code block language issues:\n" + "\n".join(
             f"{path}: {msg}" for path, msg in fence_issues
         )
 
@@ -242,9 +240,8 @@ class TestDocumentationFilesValidation:
                     last_level = level
                     continue
 
-                # Allow same level, or increase by up to 3 levels, or decrease arbitrarily.
-                # Jumps from H1 directly to H3/H4 are common in repository docs.
-                if level > last_level + 3:
+                # Allow same level, increase by one level, or decrease arbitrarily.
+                if level > last_level + 1:
                     hierarchy_errors.append(
                         (
                             md_file,
