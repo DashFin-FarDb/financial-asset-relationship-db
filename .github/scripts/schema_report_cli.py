@@ -165,9 +165,8 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--fmt",
         type=str,
-        choices=valid_formats,
         default=OutputFormat.MARKDOWN.value,
-        help="Output format (default: %(default)s).",
+        help="Output format: {} (default: %(default)s).".format(", ".join(valid_formats)),
     )
     parser.add_argument(
         "--output",
@@ -185,8 +184,15 @@ def parse_arguments() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    # Convert fmt string to OutputFormat enum
-    args.fmt = OutputFormat(args.fmt)
+    # Manually validate and convert fmt string to OutputFormat enum so we can
+    # emit our own friendly message (rather than argparse's generic error) and
+    # return exit-code 1 (bad argument) instead of 2 (argument-parsing error).
+    try:
+        args.fmt = OutputFormat(args.fmt)
+    except ValueError:
+        raise CLIError(
+            "Invalid output format. Please use one of: {}".format(", ".join(valid_formats))
+        )
     return args
 
 

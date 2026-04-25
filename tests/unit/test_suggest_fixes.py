@@ -37,13 +37,12 @@ def _create_env_without_runner_temp(additional_vars: dict) -> dict:
 
     Returns:
         dict: Environment dictionary with all current env vars except RUNNER_TEMP,
-              plus any additional vars provided.
+              plus any additional vars provided (additional_vars take precedence).
     """
-    env = additional_vars.copy()
-    # Preserve other env vars but exclude RUNNER_TEMP
-    for key, value in os.environ.items():
-        if key != "RUNNER_TEMP":
-            env[key] = value
+    # Start from the real environment, excluding RUNNER_TEMP
+    env = {key: value for key, value in os.environ.items() if key != "RUNNER_TEMP"}
+    # Apply caller-supplied overrides last so they win over real env values
+    env.update(additional_vars)
     return env
 
 

@@ -10,6 +10,7 @@ This module tests all functions in the generate_status.py script including:
 - Error handling and edge cases
 """
 
+import importlib.util
 import os
 import sys
 import tempfile
@@ -22,14 +23,15 @@ import pytest
 # Add the script directory to path so generate_status can be resolved
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
 
-try:
-    import generate_status
-    from github import GithubException
-except ImportError:
+# Skip only when PyGithub itself is absent (generate_status is always imported).
+if importlib.util.find_spec("github") is None:
     pytest.skip(
         "generate_status requires PyGithub (pip install PyGithub)",
         allow_module_level=True,
     )
+
+import generate_status  # noqa: E402
+from github import GithubException  # noqa: E402
 
 
 # --- Fixtures ---
