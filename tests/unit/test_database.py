@@ -592,17 +592,15 @@ class TestConcurrentDatabaseAccess:
         assert all(count == 100 for count in results)
 
     def test_concurrent_writes_serialized(self, engine: Engine, isolated_base) -> None:
-        """Concurrent writes should complete without errors under staggered conditions.
+        """Verify all concurrent writes complete when database access is serialized.
 
-        This test verifies that concurrent writes via ``src.data.database.session_scope``
-        complete without errors when the engine uses SQLite in-memory with ``StaticPool``.
-        Each thread sleeps a small, incrementally longer duration before writing, which
-        staggers the writes in time and reduces the chance of true concurrent overlap.
-        The strict assertions (all threads succeed, zero errors) reflect the staggered
-        access pattern, not an inherent thread-safety guarantee from SQLAlchemy or SQLite.
+        SQLite in-memory with StaticPool routes every session to the same underlying
+        connection, which is not thread-safe on its own.  An explicit ``threading.Lock``
+        is used here to serialize the database operations so that all threads complete
+        without contention errors.  The test validates ``session_scope`` together with
+        the StaticPool engine, not SQLite's or SQLAlchemy's intrinsic thread-safety.
         """
         import threading
-        import time
 
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent write validation."""
@@ -614,20 +612,21 @@ class TestConcurrentDatabaseAccess:
         factory = create_session_factory(engine)
 
         errors: list[Exception] = []
+        write_lock = threading.Lock()
 
         def write_data(thread_id: int) -> None:
             """
             Insert a TestModel row using thread_id as the primary key and record any exception.
 
-            Sleeps briefly based on thread_id, opens a transactional session, and adds TestModel(id=thread_id).
-            If an exception occurs, it is appended to the shared `errors` list as a side effect.
+            Acquires *write_lock* before opening a transactional session so that
+            only one thread accesses the SQLite in-memory connection at a time.
+            Any exception is appended to the shared ``errors`` list.
 
             Parameters:
-                thread_id (int): Integer used as the TestModel `id`.
+                thread_id (int): Integer used as the TestModel ``id``.
             """
             try:
-                time.sleep(0.001 * thread_id)
-                with session_scope(factory) as session:
+                with write_lock, session_scope(factory) as session:
                     session.add(TestModel(id=thread_id))
             except Exception as exc:  # noqa: BLE001
                 errors.append(exc)
