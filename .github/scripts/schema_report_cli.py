@@ -261,7 +261,12 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
 
     try:
         # Write through the file descriptor for durability
-        os.write(fd, data.encode(encoding))
+        # Loop to handle partial writes - os.write() may write fewer bytes than requested
+        encoded_data = data.encode(encoding)
+        bytes_written = 0
+        while bytes_written < len(encoded_data):
+            n = os.write(fd, encoded_data[bytes_written:])
+            bytes_written += n
         os.fsync(fd)  # Ensure data is written to disk before rename
         os.close(fd)
         tmp_path.replace(path)
