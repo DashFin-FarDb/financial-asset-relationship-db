@@ -144,6 +144,12 @@ def _is_safe_value(v: str) -> bool:
     # Allow common short package/module names (2-4 chars, lowercase only)
     if re.fullmatch(r"[a-z]{2,4}", v):
         return True
+    # Allow kebab-case identifiers: all lowercase letters, digits, and hyphens.
+    # These are typical repository names, package names, and project identifiers
+    # (e.g. "financial-asset-relationship-db") and are never valid secrets.
+    # Real secrets always contain uppercase letters, digits, or special chars.
+    if re.fullmatch(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)+", v):
+        return True
     return False
 
 
