@@ -161,11 +161,13 @@ def parse_arguments() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
+    valid_formats = [f.value for f in OutputFormat]
     parser.add_argument(
         "--fmt",
         type=str,
+        choices=valid_formats,
         default=OutputFormat.MARKDOWN.value,
-        help="Output format: markdown, text, json (default: %(default)s).",
+        help="Output format (default: %(default)s).",
     )
     parser.add_argument(
         "--output",
@@ -183,20 +185,8 @@ def parse_arguments() -> argparse.Namespace:
 
     args = parser.parse_args()
 
-    valid_formats = [f.value for f in OutputFormat]
-    if args.fmt not in valid_formats:
-        print(
-            f"Error: Invalid output format. Please use one of: {', '.join(valid_formats)}.",
-            file=sys.stderr,
-        )
-        raise SystemExit(1)
-
-    # Convert fmt string to OutputFormat enum; leave as-is if invalid so
-    # main() can emit the proper user-facing error message.
-    try:
-        args.fmt = OutputFormat(args.fmt)
-    except ValueError:
-        pass  # Invalid value remains a string; main() will validate
+    # Convert fmt string to OutputFormat enum
+    args.fmt = OutputFormat(args.fmt)
     return args
 
 
@@ -222,21 +212,6 @@ def default_output_path(fmt: OutputFormat) -> Path:
     if filename is None:
         raise CLIError(f"Unsupported format: {fmt!r}")
     return Path.cwd().resolve() / filename
-
-
-def parse_output_format(value: str) -> OutputFormat | None:
-    """Parse a user-provided format name into an OutputFormat enum value."""
-    try:
-        output_format = OutputFormat(value)
-        logger.debug("Using output format: %s", output_format)
-        return output_format
-    except ValueError:
-        logger.error("Invalid format value: %s", value)
-        print(
-            "Error: Invalid output format. Please use one of: markdown, text, json.",
-            file=sys.stderr,
-        )
-        return None
 
 
 def cleanup_partial_output(temp_path: Path | None) -> None:
