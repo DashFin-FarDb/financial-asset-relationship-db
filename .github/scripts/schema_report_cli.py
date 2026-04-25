@@ -296,13 +296,9 @@ def main() -> int:
         try:
             args = parse_arguments()
         except SystemExit as exc:
+            # Preserve argparse's own messaging and exit status so unrelated
+            # parse failures are not misreported as invalid output format.
             code = int(exc.code) if exc.code is not None else 1
-            if code != 0:
-                # argparse already printed the reason; add our friendly message.
-                print(
-                    "Error: Invalid output format. Please use one of: markdown, text, json.",
-                    file=sys.stderr,
-                )
             return 1 if code != 0 else 0
 
         log = configure_logging(verbose=args.verbose)
