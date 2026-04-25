@@ -263,6 +263,20 @@ class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
     @staticmethod
+    def _assert_metrics_no_relationships(data: Dict[str, Any], expected_assets: int) -> None:
+        """Assert that metrics response shows no relationships.
+
+        Args:
+            data: The JSON response data from the metrics endpoint.
+            expected_assets: The expected number of assets in the graph.
+        """
+        assert data["total_assets"] == expected_assets
+        assert data["total_relationships"] == 0
+        assert data["avg_degree"] == 0
+        assert data["max_degree"] == 0
+        assert data["network_density"] == 0
+
+    @staticmethod
     @pytest.fixture
     def client():
         """
@@ -389,11 +403,7 @@ class TestAPIEndpoints:
         response = bare_client.get("/api/metrics")
         assert response.status_code == 200
         data = response.json()
-        assert data["total_assets"] == 1
-        assert data["total_relationships"] == 0
-        assert data["avg_degree"] == 0
-        assert data["max_degree"] == 0
-        assert data["network_density"] == 0
+        self._assert_metrics_no_relationships(data, expected_assets=1)
 
     def test_get_metrics_multiple_assets_no_relationships(self, bare_client: TestClient) -> None:
         """Metrics endpoint handles multi-node graphs with no relationships."""
@@ -423,11 +433,7 @@ class TestAPIEndpoints:
         response = bare_client.get("/api/metrics")
         assert response.status_code == 200
         data = response.json()
-        assert data["total_assets"] == 2
-        assert data["total_relationships"] == 0
-        assert data["avg_degree"] == 0
-        assert data["max_degree"] == 0
-        assert data["network_density"] == 0
+        self._assert_metrics_no_relationships(data, expected_assets=2)
 
     def test_get_asset_detail_valid(self, client: TestClient) -> None:
         """Asset detail endpoint returns the requested asset when it exists."""
