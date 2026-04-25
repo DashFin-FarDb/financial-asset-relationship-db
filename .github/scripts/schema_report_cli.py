@@ -164,7 +164,6 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--fmt",
         type=str,
-        choices=[f.value for f in OutputFormat],
         default=OutputFormat.MARKDOWN.value,
         help="Output format: markdown, text, json (default: %(default)s).",
     )
@@ -184,20 +183,16 @@ def parse_arguments() -> argparse.Namespace:
 
     try:
         args = parser.parse_args()
-    except SystemExit as exc:
-        # Check if this is due to an invalid format choice
-        if "--fmt" in sys.argv:
-            fmt_idx = sys.argv.index("--fmt")
-            if fmt_idx + 1 < len(sys.argv):
-                provided_fmt = sys.argv[fmt_idx + 1]
-                valid_formats = [f.value for f in OutputFormat]
-                if provided_fmt not in valid_formats and not provided_fmt.startswith("-"):
-                    print(
-                        "Error: Invalid output format. Please use one of: markdown, text, json.",
-                        file=sys.stderr,
-                    )
-                    raise SystemExit(1) from exc
+    except SystemExit:
         raise
+
+    valid_formats = [f.value for f in OutputFormat]
+    if args.fmt not in valid_formats:
+        print(
+            f"Error: Invalid output format. Please use one of: {', '.join(valid_formats)}.",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
 
     # Convert fmt string to OutputFormat enum; leave as-is if invalid so
     # main() can emit the proper user-facing error message.
