@@ -10,8 +10,10 @@ from api import cors_utils
 from src.config.settings import get_settings
 
 
+from collections.abc import Generator
+
 @pytest.fixture(autouse=True)
-def clear_settings_cache():  # NOSONAR - pytest yield fixture
+def clear_settings_cache() -> Generator[None, None, None]:
     """Clear cached settings before and after each CORS utility test."""
     get_settings.cache_clear()
     yield
