@@ -36,7 +36,7 @@ async def login_for_access_token(
         Token: A `Token` object containing the JWT in `access_token` and `token_type` set to "bearer".
     """
     user = authenticate_user(form_data.username, form_data.password)
-    if user is False:
+    if user is None or user is False:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -67,4 +67,5 @@ async def read_users_me(
     Returns:
         UserPublic: Public user profile without credential-bearing fields.
     """
+    # Defense in depth: current_user may be a UserInDB at runtime.
     return UserPublic.model_validate(current_user.model_dump(exclude={"hashed_password"}))
