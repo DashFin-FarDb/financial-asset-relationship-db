@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
 
 import pytest
 
@@ -12,7 +11,7 @@ from src.config.settings import get_settings
 
 
 @pytest.fixture(autouse=True)
-def clear_settings_cache() -> Iterator[None]:
+def clear_settings_cache():  # NOSONAR - pytest yield fixture
     """Clear cached settings before and after each CORS utility test."""
     get_settings.cache_clear()
     yield
