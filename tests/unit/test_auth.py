@@ -855,7 +855,7 @@ class TestSeedCredentialsParameterNameChanges:
 
     @patch.dict(
         os.environ,
-        {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": "pass", "ADMIN_DISABLED": " true "},
+        {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": "adminpass", "ADMIN_DISABLED": " true "},
     )
     @patch("api.auth.get_password_hash")
     def test_seed_disabled_whitespace_normalized(self, mock_hash):
