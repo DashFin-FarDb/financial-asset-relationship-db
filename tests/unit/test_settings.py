@@ -7,7 +7,6 @@ to ensure environment variables are correctly parsed and cached.
 from __future__ import annotations
 
 import os
-from collections.abc import Iterator
 from typing import Any
 from unittest.mock import patch
 
@@ -19,7 +18,7 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.fixture(autouse=True)
-def clear_settings_cache() -> Iterator[None]:
+def clear_settings_cache():  # NOSONAR - pytest yield fixture
     """Clear the settings cache before and after each test."""
     get_settings.cache_clear()
     yield

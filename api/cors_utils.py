@@ -5,9 +5,10 @@ and security requirements.
 """
 
 import logging
-import os
 import re
 from urllib.parse import urlparse
+
+from src.config.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,8 @@ def _is_http_local_in_dev(origin: str, current_env: str) -> bool:
         current_env (str): Environment name compared exactly to "development".
 
     Returns:
-        bool: `True` if `origin` is an HTTP localhost origin (http://localhost or http://127.0.0.1 with an optional port) and `current_env` is "development", `False` otherwise.
+        bool: `True` if `origin` is an HTTP localhost origin (http://localhost,
+        or http://127.0.0.1 with an optional port) and `current_env` is "development", `False` otherwise.
     """
     return current_env == "development" and bool(_HTTP_LOCAL_RE.match(origin))
 
@@ -54,7 +56,8 @@ def _is_https_local(origin: str) -> bool:
         origin (str): Origin string to test (e.g., "https://localhost:3000").
 
     Returns:
-        bool: `True` if the origin matches "https://localhost" or "https://127.0.0.1" with an optional port, `False` otherwise.
+        bool: `True` if the origin matches "https://localhost",
+        or "https://127.0.0.1" with an optional port, `False` otherwise.
     """
     return bool(_HTTPS_LOCAL_RE.match(origin))
 
@@ -87,13 +90,16 @@ def _is_valid_https_domain(origin: str) -> bool:
 
 def _is_valid_https_idn(origin: str) -> bool:
     """
-    Validate an HTTPS origin whose hostname can be IDNA-encoded to an ASCII form that matches the module's HTTPS domain pattern.
+    Validate an HTTPS origin hostname that is IDNA-encodable to an ASCII form
+    matching the module's HTTPS domain pattern.
 
     Parameters:
         origin (str): Origin URL including scheme and hostname; may include a port.
 
     Returns:
-        `true` if the origin uses the `https` scheme, has a hostname that can be IDNA-encoded to ASCII, and the reconstructed ASCII origin (including port if present) matches the module's HTTPS domain regular expression; `false` otherwise.
+        `True` if the origin uses the `https` scheme, has a hostname that can be IDNA-encoded to ASCII,
+        and the reconstructed ASCII origin (including port if present),
+        matches the module's HTTPS domain regular expression; `False` otherwise.
     """
     parsed = urlparse(origin)
     if parsed.scheme != "https":
@@ -119,7 +125,17 @@ def validate_origin(origin: str) -> bool:
     """
     Validate whether an HTTP origin is permitted by the application's CORS rules.
 
-    Permitted origins include entries in the ALLOWED_ORIGINS allowlist, HTTPS domains matching the configured domain pattern, Vercel preview hostnames, HTTPS localhost/127.0.0.1 (any environment), and HTTP localhost/127.0.0.1 when ENV is "development". Origins containing URL components beyond scheme/host[:port] (path, params, query, fragment, username, password) are rejected. Internationalized hostnames are accepted when their IDNA-encoded ASCII form matches the HTTPS domain pattern.
+    Permitted origins include entries in the ALLOWED_ORIGINS allowlist,
+    HTTPS domains matching the configured domain pattern, Vercel preview hostnames,
+    HTTPS localhost/127.0.0.1 (any environment), and HTTP localhost/127.0.0.1 when ENV is "development".
+    Origins containing URL components beyond scheme/host[:port]
+    (path, params, query, fragment, username, password) are rejected.
+    Internationalized hostnames are accepted when their IDNA-encoded ASCII form matches the HTTPS domain pattern.
+
+    CORS configuration is read from the centralized cached settings layer via
+    `get_settings()`. Environment variables (ENV, ALLOWED_ORIGINS) are resolved
+    at first access and cached for the process lifetime. Environment changes after
+    the first `get_settings()` call require `get_settings.cache_clear()` to take effect.
 
     Parameters:
         origin (str): Origin URL to validate (e.g., "https://example.com" or "http://localhost:3000").
@@ -127,11 +143,12 @@ def validate_origin(origin: str) -> bool:
     Returns:
         bool: True if the origin is allowed, False otherwise.
     """
-    # Read environment dynamically to support runtime overrides (e.g., during tests)
-    current_env = os.getenv("ENV", "development").lower()
-
-    # Get allowed origins from environment variable or use default
-    allowed_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+    # CORS runtime configuration is resolved through the centralized cached
+    # settings layer. Tests or special runtime contexts that mutate ENV or
+    # ALLOWED_ORIGINS after first use must call `get_settings.cache_clear()`.
+    settings = get_settings()
+    current_env = settings.env
+    allowed_origins = settings.allowed_origins
 
     if _is_allowed_list_origin(origin, allowed_origins):
         return True
