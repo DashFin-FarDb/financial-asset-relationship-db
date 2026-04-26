@@ -96,9 +96,9 @@ def _is_valid_https_idn(origin: str) -> bool:
         origin (str): Origin URL including scheme and hostname; may include a port.
 
     Returns:
-        `true` if the origin uses the `https` scheme, has a hostname that can be IDNA-encoded to ASCII,
+        `True` if the origin uses the `https` scheme, has a hostname that can be IDNA-encoded to ASCII,
         and the reconstructed ASCII origin (including port if present) matches the module's HTTPS domain regular expression;
-        `false` otherwise.
+        `False` otherwise.
     """
     parsed = urlparse(origin)
     if parsed.scheme != "https":
