@@ -116,7 +116,12 @@ class UserRepository:
         """
         Insert or update a user credential record in the user_credentials table.
 
-        Performs an upsert for the given username using the provided hashed_password and optional profile data. Accepts a modern mapping via `user_profile` containing any of `user_email`, `user_full_name`, and `is_disabled`. Legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields` are accepted and override values from `user_profile` when provided. A `TypeError` is raised if any unexpected legacy keys are supplied. The `disabled` column is stored as `1` when `is_disabled` is truthy, otherwise `0`.
+        Performs an upsert for the given username using the provided hashed_password and optional profile data.
+        Accepts a modern mapping via `user_profile` containing any of `user_email`, `user_full_name`, and `is_disabled`.
+        Legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields`,
+        are accepted and override values from `user_profile` when provided.
+        A `TypeError` is raised if any unexpected legacy keys are supplied.
+        The `disabled` column is stored as `1` when `is_disabled` is truthy, otherwise `0`.
 
         Parameters:
             user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
@@ -210,9 +215,9 @@ def _seed_credentials_from_settings(
     """
     Seed an administrative user into the repository from centralized settings.
 
-    If both admin username and password are configured, hashes the password and
-    upserts a user using optional admin email, full name, and disabled flag. If
-    either username or password is missing, the repository is not modified.
+    If both admin username and password are configured, hash the password and
+    upsert a user using optional admin email, full name, and disabled flag. If
+    either username or password is missing, leave the repository unchanged.
 
     Parameters:
         repository (UserRepository): Repository to seed.
@@ -240,10 +245,10 @@ def _seed_credentials_from_settings(
 
 def _seed_credentials_from_env(repository: UserRepository) -> None:
     """
-    Seed an administrative user into the repository from centralized settings.
+    Seed an administrative user through the backward-compatible env wrapper.
 
-    The function name is retained for backward compatibility. Environment
-    values are resolved through load_settings(), not read directly in this module.
+    Resolve environment values through load_settings() rather than reading
+    os.environ directly. Keep the function name for compatibility.
 
     Parameters:
         repository (UserRepository): Repository to seed.
