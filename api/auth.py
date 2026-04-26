@@ -229,7 +229,7 @@ def _seed_credentials_from_settings(
         return
 
     hashed_password = get_password_hash(password)
-    admin_disabled = _is_truthy(settings.admin_disabled_raw)
+    admin_disabled = settings.admin_disabled
 
     repository.create_or_update_user(
         username=username,

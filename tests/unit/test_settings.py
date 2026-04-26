@@ -113,7 +113,7 @@ class TestSettingsModel:
         assert settings.admin_password is None
         assert settings.admin_email is None
         assert settings.admin_full_name is None
-        assert settings.admin_disabled_raw == "false"
+        assert settings.admin_disabled is False
         assert settings.graph_cache_path is None
         assert settings.real_data_cache_path is None
         assert settings.use_real_data_fetcher is False
@@ -130,7 +130,7 @@ class TestSettingsModel:
             admin_password="password",
             admin_email="admin@example.com",
             admin_full_name="Admin User",
-            admin_disabled_raw="true",
+            admin_disabled=True,
             graph_cache_path="/path/to/cache",
             real_data_cache_path="/path/to/real/cache",
             use_real_data_fetcher=True,
@@ -144,7 +144,7 @@ class TestSettingsModel:
         assert settings.admin_password == "password"
         assert settings.admin_email == "admin@example.com"
         assert settings.admin_full_name == "Admin User"
-        assert settings.admin_disabled_raw == "true"
+        assert settings.admin_disabled is True
         assert settings.graph_cache_path == "/path/to/cache"
         assert settings.real_data_cache_path == "/path/to/real/cache"
         assert settings.use_real_data_fetcher is True
@@ -198,7 +198,7 @@ class TestLoadSettings:
         assert settings.admin_password is None
         assert settings.admin_email is None
         assert settings.admin_full_name is None
-        assert settings.admin_disabled_raw == "false"
+        assert settings.admin_disabled is False
         assert settings.graph_cache_path is None
         assert settings.real_data_cache_path is None
         assert settings.use_real_data_fetcher is False
@@ -233,7 +233,7 @@ class TestLoadSettings:
         assert settings.admin_password == "adminpass"
         assert settings.admin_email == "admin@example.com"
         assert settings.admin_full_name == "Admin User"
-        assert settings.admin_disabled_raw == "true"
+        assert settings.admin_disabled is True
         assert settings.graph_cache_path == "/path/to/cache"
         assert settings.real_data_cache_path == "/path/to/real/cache"
         assert settings.use_real_data_fetcher is True
@@ -369,10 +369,22 @@ class TestSettingsEdgeCases:
         assert settings.use_real_data_fetcher is True
 
     @patch.dict(os.environ, {"ADMIN_DISABLED": " true "})
-    def test_admin_disabled_raw_preserves_whitespace(self) -> None:
-        """Test that ADMIN_DISABLED is loaded as raw text for auth-compatible parsing."""
+    def test_admin_disabled_normalizes_whitespace(self) -> None:
+        """Test that ADMIN_DISABLED whitespace is normalized through settings parsing."""
         settings = load_settings()
-        assert settings.admin_disabled_raw == " true "
+        assert settings.admin_disabled is True
+
+    @patch.dict(os.environ, {"ADMIN_DISABLED": "false"})
+    def test_admin_disabled_false_value(self) -> None:
+        """Test that ADMIN_DISABLED=false loads as False."""
+        settings = load_settings()
+        assert settings.admin_disabled is False
+
+    @patch.dict(os.environ, {"ADMIN_DISABLED": "maybe"})
+    def test_admin_disabled_unknown_value_is_false(self) -> None:
+        """Test that unknown ADMIN_DISABLED values load as False."""
+        settings = load_settings()
+        assert settings.admin_disabled is False
 
     @patch.dict(os.environ, {}, clear=True)
     def test_missing_optional_vars(self) -> None:

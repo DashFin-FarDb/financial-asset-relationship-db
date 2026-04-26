@@ -1098,7 +1098,7 @@ class TestSeedCredentialsFromSettings:
                     admin_password="adminpass",
                     admin_email="admin@example.com",
                     admin_full_name="Admin User",
-                    admin_disabled_raw="true",
+                    admin_disabled=True,
                 ),
             )
 

@@ -71,7 +71,7 @@ class Settings(BaseModel):
     admin_password: str | None = Field(default=None)
     admin_email: str | None = Field(default=None)
     admin_full_name: str | None = Field(default=None)
-    admin_disabled_raw: str = Field(default="false")
+    admin_disabled: bool = Field(default=False)
 
     # Graph data source configuration
     graph_cache_path: str | None = Field(default=None)
@@ -135,7 +135,7 @@ def load_settings() -> Settings:
         admin_password=os.getenv("ADMIN_PASSWORD"),
         admin_email=os.getenv("ADMIN_EMAIL"),
         admin_full_name=os.getenv("ADMIN_FULL_NAME"),
-        admin_disabled_raw=os.getenv("ADMIN_DISABLED", "false"),
+        admin_disabled=_parse_bool_env(os.getenv("ADMIN_DISABLED")),
         graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
