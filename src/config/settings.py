@@ -87,7 +87,7 @@ class Settings(BaseModel):
         """
         Return the configured CORS allowed origins as a list of trimmed, non-empty strings.
 
-        If `allowed_origins_raw` is empty, returns an empty list; otherwise the raw value,
+        If `allowed_origins_raw` is empty, returns an empty list; otherwise the raw value
         is parsed by splitting on commas, trimming whitespace, and excluding empty entries.
 
         Returns:
