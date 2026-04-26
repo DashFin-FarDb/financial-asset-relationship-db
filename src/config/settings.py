@@ -108,9 +108,7 @@ class Settings(BaseModel):
             str: Configured JWT secret key.
         """
         if not self.secret_key:
-            raise ValueError(
-                "SECRET_KEY environment variable must be set before importing api.auth"
-            )
+            raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
         return self.secret_key
 
 
