@@ -234,7 +234,7 @@ class FinancialAssetApp:
     @staticmethod
     def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
         """
-        Builds a formatted network statistics summary for the given asset relationship graph.
+        Build a formatted network statistics summary for the given asset relationship graph.
 
         The returned string includes totals (assets, relationships), average relationship strength, relationship density, regulatory event count, a pretty-printed asset-class distribution, and a numbered list of top relationships. Each top-relationship line is formatted "N. source → target (relationship_type): strength" where numeric strengths are rendered as percentages with one decimal and non-numeric strengths are shown as "n/a".
 
