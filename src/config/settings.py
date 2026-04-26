@@ -65,6 +65,8 @@ class Settings(BaseModel):
     # CORS configuration
     allowed_origins_raw: str = Field(default="")
 
+    # N/A – the change itself is correct; add a note in the Settings docstring:
+    # "Note: admin_disabled is serialized as a boolean, not a string."
     # Auth configuration
     secret_key: str | None = Field(default=None)
     admin_username: str | None = Field(default=None)
