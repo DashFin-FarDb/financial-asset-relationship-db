@@ -355,17 +355,20 @@ class TestJWTOperations:
 
     @pytest.fixture
     def valid_token(self):
+        """Fixture providing a valid JWT token for testuser."""
         data = {"sub": "testuser"}
         return create_access_token(data)
 
     @pytest.fixture
     def expired_token(self):
+        """Fixture providing an already-expired JWT token."""
         data = {"sub": "testuser"}
         expires_delta = timedelta(seconds=-10)  # Already expired
         return create_access_token(data, expires_delta)
 
     @pytest.fixture
     def mock_user(self):
+        """Fixture providing a mock UserInDB instance."""
         return UserInDB(
             username="testuser",
             email="test@example.com",
@@ -376,6 +379,7 @@ class TestJWTOperations:
     @pytest.mark.asyncio
     @patch("api.auth.user_repository.get_user")
     async def test_get_current_user_valid_token(self, mock_get_user, valid_token, mock_user):
+        """Test that valid token returns the correct user."""
         mock_get_user.return_value = mock_user
 
         user = await get_current_user(valid_token)
@@ -385,6 +389,7 @@ class TestJWTOperations:
 
     @pytest.mark.asyncio
     async def test_get_current_user_invalid_token(self):
+        """Test that invalid token raises HTTPException."""
         invalid_token = "invalid.jwt.token"
 
         with pytest.raises(HTTPException) as exc_info:
@@ -414,6 +419,8 @@ class TestJWTOperations:
 
 
 class TestGetCurrentActiveUser:
+    """Test get_current_active_user dependency."""
+
     @pytest.fixture
     def active_user(self):
         """Fixture providing an active user."""
@@ -421,6 +428,7 @@ class TestGetCurrentActiveUser:
 
     @pytest.fixture
     def disabled_user(self):
+        """Fixture providing a disabled user."""
         return User(username="disableduser", email="disabled@example.com", disabled=True, hashed_password="hash")
 
     @pytest.mark.asyncio
@@ -447,8 +455,11 @@ class TestGetCurrentActiveUser:
 
 
 class TestEdgeCases:
+    """Test edge cases and error handling in authentication."""
+
     @pytest.fixture
     def valid_token(self):
+        """Fixture providing a valid JWT token for testuser."""
         data = {"sub": "testuser"}
         return create_access_token(data)
 
@@ -511,6 +522,7 @@ class TestEdgeCases:
 
 
 def test_special_character_usernames_do_not_break_token_creation():
+    """Test that special characters in usernames don't break token creation."""
     special_usernames = ["user@name", "user name", "user'name", 'user"name']
     for username in special_usernames:
         token = create_access_token({"sub": username})
