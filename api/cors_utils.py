@@ -130,6 +130,11 @@ def validate_origin(origin: str) -> bool:
     Origins containing URL components beyond scheme/host[:port] (path, params, query, fragment, username, password) are rejected.
     Internationalized hostnames are accepted when their IDNA-encoded ASCII form matches the HTTPS domain pattern.
 
+    CORS configuration is read from the centralized cached settings layer via
+    `get_settings()`. Environment variables (ENV, ALLOWED_ORIGINS) are resolved
+    at first access and cached for the process lifetime. Environment changes after
+    the first `get_settings()` call require `get_settings.cache_clear()` to take effect.
+
     Parameters:
         origin (str): Origin URL to validate (e.g., "https://example.com" or "http://localhost:3000").
 
