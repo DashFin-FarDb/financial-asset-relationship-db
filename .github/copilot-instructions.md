@@ -102,7 +102,7 @@ Integration & external deps
 
 - Production UI: Next.js + React frontend with Plotly
 - Non-production UI: Gradio
-- Runtime configuration: use `load_settings()` or `get_settings()` from `src/config/settings.py` for centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`) and CORS settings are centralized. Database URL in `api/database.py` is not yet centralized.
+- Runtime configuration: use `load_settings()` or `get_settings()` from `src/config/settings.py` for centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`) and CORS settings are centralized. Some legacy/runtime seams still use direct `os.getenv()` access where migration has been deferred; do not assume full migration away from environment reads.
 
 Editing guidelines for AI agents
 
