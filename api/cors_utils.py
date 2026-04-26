@@ -90,15 +90,16 @@ def _is_valid_https_domain(origin: str) -> bool:
 
 def _is_valid_https_idn(origin: str) -> bool:
     """
-    Validate an HTTPS origin whose hostname can be IDNA-encoded to an ASCII form that matches the module's HTTPS domain pattern.
+    Validate an HTTPS origin whose hostname can be IDNA-encoded,
+    to an ASCII form that matches the module's HTTPS domain pattern.
 
     Parameters:
         origin (str): Origin URL including scheme and hostname; may include a port.
 
     Returns:
         `True` if the origin uses the `https` scheme, has a hostname that can be IDNA-encoded to ASCII,
-        and the reconstructed ASCII origin (including port if present) matches the module's HTTPS domain regular expression;
-        `False` otherwise.
+        and the reconstructed ASCII origin (including port if present),
+        matches the module's HTTPS domain regular expression; `False` otherwise.
     """
     parsed = urlparse(origin)
     if parsed.scheme != "https":
@@ -127,7 +128,8 @@ def validate_origin(origin: str) -> bool:
     Permitted origins include entries in the ALLOWED_ORIGINS allowlist,
     HTTPS domains matching the configured domain pattern, Vercel preview hostnames,
     HTTPS localhost/127.0.0.1 (any environment), and HTTP localhost/127.0.0.1 when ENV is "development".
-    Origins containing URL components beyond scheme/host[:port] (path, params, query, fragment, username, password) are rejected.
+    Origins containing URL components beyond scheme/host[:port]
+    (path, params, query, fragment, username, password) are rejected.
     Internationalized hostnames are accepted when their IDNA-encoded ASCII form matches the HTTPS domain pattern.
 
     CORS configuration is read from the centralized cached settings layer via
