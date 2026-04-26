@@ -50,11 +50,12 @@ def _parse_csv_env(value: str) -> list[str]:
 
 class Settings(BaseModel):
     """
-    Runtime configuration settings centralized by this PR.
+    Runtime configuration settings centralized by Phase 4 work.
 
     Settings are loaded from environment variables and exposed through a typed,
-    immutable model. The cached accessor provides consistent config for startup
-    and module-level initialization paths.
+    immutable model. Boolean-like environment variables centralized here are
+    parsed into booleans before serialization; for example, ADMIN_DISABLED is
+    exposed as admin_disabled: bool rather than as the original raw string.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -65,8 +66,6 @@ class Settings(BaseModel):
     # CORS configuration
     allowed_origins_raw: str = Field(default="")
 
-    # N/A – the change itself is correct; add a note in the Settings docstring:
-    # "Note: admin_disabled is serialized as a boolean, not a string."
     # Auth configuration
     secret_key: str | None = Field(default=None)
     admin_username: str | None = Field(default=None)
