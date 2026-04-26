@@ -4,10 +4,10 @@ type: knowledge
 version: 1.0.0
 agent: CodeActAgent
 triggers:
-  - @airepo_eng
-  - @openhands-agent
-  - @openhandsagent
-  - @openhands_airepo_eng
+  - "@airepo_eng"
+  - "@openhands-agent"
+  - "@openhandsagent"
+  - "@openhands_airepo_eng"
 ---
 
 # Repository Engineering Agent for mohavro/financial-asset-relationship-db
@@ -53,8 +53,8 @@ The agent will make suggestions and commit changes for:
 - **Template Usage**: Use repository templates as required.
 - **Commenting**: Comment on all changes made, and all reviews provided by the agent.
 - **Summarization**:
-  - Summarise an open PR when the post/comment contains the keyword `"summary"` posted by `@mohavro`.
-  - Summarise outstanding PR issues preventing merge when the post/comment contains the keyword `"status"`.
+  - Summarise an open PR when the post/comment contains the keyword `summary` posted by `@mohavro`.
+  - Summarise outstanding PR issues preventing merge when the post/comment contains the keyword `status`.
 
 ## Workflow Notes
 

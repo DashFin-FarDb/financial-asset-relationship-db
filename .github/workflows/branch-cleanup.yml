@@ -1,5 +1,9 @@
 name: Branch Cleanup
 
+permissions:
+  contents: write
+  pull-requests: read
+
 "on":
   schedule:
     # Run weekly on Sundays at 00:00 UTC

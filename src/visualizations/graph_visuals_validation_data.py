@@ -1,7 +1,5 @@
 """Data validation helpers for graph visualizations."""
 
-from typing import List, Set
-
 from src.visualizations.graph_visuals_positions import _normalize_positions
 
 
@@ -10,7 +8,7 @@ def _validate_positions_array(positions: object) -> None:
     _normalize_positions(positions)
 
 
-def _validate_asset_ids_list(asset_ids: List[str]) -> None:
+def _validate_asset_ids_list(asset_ids: list[str]) -> None:
     """Validate that asset_ids is a list or tuple of non-empty strings."""
     if not isinstance(asset_ids, (list, tuple)):
         raise ValueError(f"asset_ids must be a list or tuple, got {type(asset_ids).__name__}")
@@ -18,7 +16,7 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
         raise ValueError("asset_ids must contain non-empty strings")
 
 
-def _validate_colors_list(colors: List[str], expected_length: int) -> None:
+def _validate_colors_list(colors: list[str], expected_length: int) -> None:
     """Validate that colors is a list/tuple of non-empty strings with expected length."""
     if not isinstance(colors, (list, tuple)) or len(colors) != expected_length:
         colors_len = len(colors) if isinstance(colors, (list, tuple)) else "N/A"
@@ -30,7 +28,7 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
         raise ValueError("colors must contain non-empty strings")
 
 
-def _validate_hover_texts_list(hover_texts: List[str], expected_length: int) -> None:
+def _validate_hover_texts_list(hover_texts: list[str], expected_length: int) -> None:
     """Validate that hover_texts is a list/tuple of non-empty strings with expected length."""
     if not isinstance(hover_texts, (list, tuple)) or len(hover_texts) != expected_length:
         raise ValueError(f"hover_texts must be a list/tuple of length {expected_length}")
@@ -38,12 +36,12 @@ def _validate_hover_texts_list(hover_texts: List[str], expected_length: int) -> 
         raise ValueError("hover_texts must contain non-empty strings")
 
 
-def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
+def _validate_asset_ids_uniqueness(asset_ids: list[str]) -> None:
     """Validate asset_ids uniqueness and report duplicate IDs."""
     if len(set(asset_ids)) == len(asset_ids):
         return
-    seen: Set[str] = set()
-    duplicates: List[str] = []
+    seen: set[str] = set()
+    duplicates: list[str] = []
     for asset_id in asset_ids:
         if asset_id in seen and asset_id not in duplicates:
             duplicates.append(asset_id)
@@ -53,9 +51,9 @@ def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
 
 def _validate_visualization_data(
     positions: object,
-    asset_ids: List[str],
-    colors: List[str],
-    hover_texts: List[str],
+    asset_ids: list[str],
+    colors: list[str],
+    hover_texts: list[str],
 ) -> None:
     """Validate coherence between positions, asset ids, colors, and hover texts."""
     _validate_positions_array(positions)

@@ -4,7 +4,8 @@
       "src": "api/main.py",
       "use": "@vercel/python",
       "config": {
-        "maxLambdaSize": "50mb"
+        "maxLambdaSize": "50mb",
+        "excludeFiles": "{docs/**,tests/**,.github/**,.circleci/**,.elastic-copilot/**,.openhands/**,frontend/coverage/**,frontend/__tests__/**,frontend/app/**/__tests__/**,**/*.test.py,**/test_*.py,__pycache__/**,bin/**,**/*.md,app.py,mcp_server.py,branch_reviews/**,scripts/**,*.sh,*.bat,*.ps1,asset_graph.db,bandit-report.json,.git/**,.cursor/**,.qlty/**,.sonarlint/**,.windsurf/**,.codacy/**,.vscode/**,.deepsource.toml,compass.yml,migrations/**}"
       }
     },
     {

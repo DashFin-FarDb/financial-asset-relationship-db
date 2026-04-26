@@ -145,7 +145,7 @@ The Gradio demo will be available at `http://localhost:7860`. **This is not reco
 
 ### Project Structure for Vercel
 
-```
+```text
 .
 ├── api/                    # FastAPI backend
 │   ├── __init__.py

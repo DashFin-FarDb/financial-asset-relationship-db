@@ -292,7 +292,7 @@ Based on PR_MERGE_ORDER_ANALYSIS.md:
 
 ### Merge Statistics
 
-```
+```text
 Branches merged: 2 (main + patch)
 Commits in patch: 460+
 Merge commit: 4d3b81ad
@@ -302,7 +302,7 @@ Total commits added: 2
 
 ### File Changes
 
-```
+```text
 New files added: 66
 Files modified: 1
 Lines added: 7,000+ (estimated)

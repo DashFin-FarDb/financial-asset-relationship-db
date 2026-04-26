@@ -1,6 +1,6 @@
 """Pydantic response models for API endpoints."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -14,9 +14,9 @@ class AssetResponse(BaseModel):
     asset_class: str
     sector: str
     price: float
-    market_cap: Optional[float] = None
+    market_cap: float | None = None
     currency: str = "USD"
-    additional_fields: Dict[str, Any] = Field(default_factory=dict)
+    additional_fields: dict[str, Any] = Field(default_factory=dict)
 
 
 class RelationshipResponse(BaseModel):
@@ -33,7 +33,7 @@ class MetricsResponse(BaseModel):
 
     total_assets: int
     total_relationships: int
-    asset_classes: Dict[str, int]
+    asset_classes: dict[str, int]
     avg_degree: float
     max_degree: int
     network_density: float
@@ -43,5 +43,5 @@ class MetricsResponse(BaseModel):
 class VisualizationDataResponse(BaseModel):
     """Response model for visualization data."""
 
-    nodes: List[Dict[str, Any]]
-    edges: List[Dict[str, Any]]
+    nodes: list[dict[str, Any]]
+    edges: list[dict[str, Any]]

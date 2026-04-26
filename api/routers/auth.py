@@ -22,7 +22,7 @@ router = APIRouter()
 @limiter.limit("5/minute")
 async def login_for_access_token(
     request: Request,  # Required by slowapi for rate-limit key extraction.
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    form_data: OAuth2PasswordRequestForm = Depends(),  # noqa: B008
 ) -> Token:
     """
     Issue a JWT access token for valid user credentials.
@@ -53,7 +53,7 @@ async def login_for_access_token(
 @limiter.limit("10/minute")
 async def read_users_me(
     request: Request,  # Required by slowapi for rate-limit key extraction.
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_user),  # noqa: B008
 ) -> User:
     """
     Retrieve the authenticated active user.

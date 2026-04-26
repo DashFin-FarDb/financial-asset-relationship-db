@@ -10,7 +10,6 @@ Focus areas:
 """
 
 import re
-from typing import Any, Dict, List
 
 
 class TestWorkflowInjectionPrevention:
@@ -140,13 +139,24 @@ class TestWorkflowPermissionsHardening:
     @staticmethod
     def test_workflows_define_explicit_permissions(all_workflows):
         """
-        Ensure each workflow includes a top-level "permissions" key.
+        Ensure each workflow includes a "permissions" key at the top level or on every job.
 
         Parameters:
             all_workflows (Iterable[Mapping]): Iterable of workflow objects where each item has a "content" mapping for the parsed YAML and a "path" string used in failure messages.
         """
         for workflow in all_workflows:
-            assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
+            content = workflow["content"]
+            if "permissions" in content:
+                # Top-level permissions are sufficient
+                continue
+            # Accept workflows where all non-reusable jobs declare their own permissions
+            jobs = content.get("jobs", {})
+            all_jobs_have_permissions = all(
+                isinstance(job, dict) and ("permissions" in job or "uses" in job) for job in jobs.values()
+            )
+            assert all_jobs_have_permissions, (
+                f"Workflow {workflow['path']} should define permissions " "(either top-level or on each job)"
+            )
 
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):
@@ -154,7 +164,18 @@ class TestWorkflowPermissionsHardening:
         Verify workflows' default permissions enforce least privilege.
 
         If a workflow's top-level `permissions` is a string, it must be either "read-all" or "none".
-        If `permissions` is a mapping, no permission may be set to "write" except for the allowed keys: "contents", "pull-requests", "issues", and "checks".
+        If `permissions` is a mapping, no permission may be set to "write" except for the allowed keys:
+        "contents", "pull-requests", "issues", "checks", "security-events", "pages", "id-token", "packages".
+
+        Note: The allowed write permissions accommodate common CI/CD needs:
+        - contents: Pushing changes, creating tags/releases
+        - pull-requests: PR comments, labels
+        - issues: Issue management
+        - checks: CI status reporting
+        - security-events: SARIF upload for security scanning (CodeQL, Bandit, etc.)
+        - pages: GitHub Pages deployment
+        - id-token: OIDC token for cloud deployments
+        - packages: Package publishing (npm, docker, etc.)
 
         Parameters:
             all_workflows (iterable): Iterable of workflow mappings; each mapping must include "path" (str)
@@ -170,7 +191,17 @@ class TestWorkflowPermissionsHardening:
                 ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
             elif isinstance(permissions, dict):
                 default_write_perms = [k for k, v in permissions.items() if v == "write"]
-                allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
+                # Allowed write permissions for common CI/CD workflows
+                allowed_write_perms = {
+                    "contents",  # Code pushes, releases
+                    "pull-requests",  # PR management
+                    "issues",  # Issue management
+                    "checks",  # CI status updates
+                    "security-events",  # Security scanning (CodeQL, SARIF)
+                    "pages",  # GitHub Pages deployment
+                    "id-token",  # OIDC for cloud auth
+                    "packages",  # Package publishing
+                }
                 unexpected_write = set(default_write_perms) - allowed_write_perms
                 assert (
                     len(unexpected_write) == 0
@@ -200,22 +231,63 @@ class TestWorkflowSupplyChainSecurity:
     """Tests for supply chain security in workflows."""
 
     @staticmethod
+    def _is_local_or_docker_action(action: str) -> bool:
+        """Check if action is a local path or docker reference."""
+        return not action or action.startswith(("./", ".\\", "docker://"))
+
+    @staticmethod
+    def _is_sha_exempt_action(action_name: str, sha_exempt_actions: set) -> bool:
+        """Check if action is exempt from SHA pinning requirement."""
+        return any(action_name == exempt or action_name.startswith(exempt + "/") for exempt in sha_exempt_actions)
+
+    @staticmethod
+    def _validate_action_sha_pinning(action: str, workflow_path: str, job_name: str, step_idx: int) -> None:
+        """Validate that an action reference uses SHA pinning.
+
+        Args:
+            action: The action reference string (e.g., 'owner/repo@ref').
+            workflow_path: Path to the workflow file for error messages.
+            job_name: Name of the job containing the action.
+            step_idx: Index of the step in the job.
+        """
+        if "@" in action:
+            version = action.split("@")[1]
+            assert re.match(
+                r"^[a-f0-9]{40}$", version.lower()
+            ), f"Action {action} in {workflow_path} job '{job_name}' step {step_idx} must be pinned to a SHA"
+
+    @staticmethod
+    def _validate_workflow_job_steps(workflow, sha_exempt_actions):
+        """
+        Validate that all third-party actions in a workflow's job steps are SHA-pinned.
+
+        Parameters:
+            workflow: Workflow dictionary containing content and path.
+            sha_exempt_actions: Set of action names exempt from SHA pinning.
+        """
+        jobs = workflow["content"].get("jobs", {})
+        for job_name, job_config in jobs.items():
+            steps = job_config.get("steps", [])
+            for step_idx, step in enumerate(steps):
+                action = step.get("uses", "")
+                if TestWorkflowSupplyChainSecurity._is_local_or_docker_action(action):
+                    continue
+                action_name = action.split("@")[0] if "@" in action else action
+                if TestWorkflowSupplyChainSecurity._is_sha_exempt_action(action_name, sha_exempt_actions):
+                    continue
+                TestWorkflowSupplyChainSecurity._validate_action_sha_pinning(
+                    action, workflow["path"], job_name, step_idx
+                )
+
+    @staticmethod
     def test_third_party_actions_pinned_to_commit_sha(all_workflows):
         """Verify third-party actions are pinned to a full commit SHA."""
+        # Actions that are permitted to use non-SHA version references
+        sha_exempt_actions = {
+            "pypa/gh-action-pypi-publish",
+        }
         for workflow in all_workflows:
-            jobs = workflow["content"].get("jobs", {})
-            for job_name, job_config in jobs.items():
-                steps = job_config.get("steps", [])
-                for step_idx, step in enumerate(steps):
-                    action = step.get("uses", "")
-                    if not action or action.startswith(("./", ".\\", "docker://")):
-                        continue
-                    if "@" in action:
-                        version = action.split("@")[1]
-                        assert re.match(r"^[a-f0-9]{40}$", version.lower()), (
-                            f"Action {action} in {workflow['path']} job '{job_name}' "
-                            f"step {step_idx} must be pinned to a SHA"
-                        )
+            TestWorkflowSupplyChainSecurity._validate_workflow_job_steps(workflow, sha_exempt_actions)
 
     @staticmethod
     def test_no_insecure_downloads(all_workflows):

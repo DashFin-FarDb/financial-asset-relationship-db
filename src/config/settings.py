@@ -10,12 +10,11 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
-def _parse_bool_env(value: Optional[str]) -> bool:
+def _parse_bool_env(value: str | None) -> bool:
     """
     Parse a boolean environment variable value.
 
@@ -66,13 +65,13 @@ class Settings(BaseModel):
     allowed_origins_raw: str = Field(default="")
 
     # Graph data source configuration
-    graph_cache_path: Optional[str] = Field(default=None)
-    real_data_cache_path: Optional[str] = Field(default=None)
+    graph_cache_path: str | None = Field(default=None)
+    real_data_cache_path: str | None = Field(default=None)
     use_real_data_fetcher: bool = Field(default=False)
 
     # Database configuration
-    asset_graph_database_url: Optional[str] = Field(default=None)
-    database_url: Optional[str] = Field(default=None)
+    asset_graph_database_url: str | None = Field(default=None)
+    database_url: str | None = Field(default=None)
 
     @property
     def allowed_origins(self) -> list[str]:

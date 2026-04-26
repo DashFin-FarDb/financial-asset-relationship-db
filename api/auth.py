@@ -1,10 +1,10 @@
-"""Authentication module for the Financial Asset Relationship Database API"""
+"""Authentication module for the Financial Asset Relationship Database API."""
 
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta, timezone
-from typing import Optional, TypedDict
+from datetime import UTC, datetime, timedelta
+from typing import TypedDict
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -13,8 +13,9 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleSource]
 from pydantic import BaseModel
 
+from api.models import User, UserInDB
+
 from .database import execute, fetch_one, fetch_value, initialize_schema
-from .models import UserInDB
 
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -26,6 +27,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Password hashing
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -40,17 +42,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     """Carries optional token payload data, such as the extracted username."""
 
-    username: Optional[str] = None
-
-
-class User(BaseModel):
-    """Schema for user details including authentication credentials and profile information."""
-
-    username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
-    hashed_password: str
+    username: str | None = None
 
 
 def _is_truthy(value: str | None) -> bool:
@@ -72,7 +64,7 @@ class UserRepository:
     """Repository for accessing user credential records."""
 
     @staticmethod
-    def get_user(username: str) -> Optional[UserInDB]:
+    def get_user(username: str) -> UserInDB | None:
         """
         Retrieve a user record by username from the repository.
 
@@ -100,7 +92,7 @@ class UserRepository:
     @staticmethod
     def has_users() -> bool:
         """
-        Determine whether any user credential records exist.
+        Check whether any user credential records exist.
 
         Returns:
             `true` if at least one user credential exists, `false` otherwise.
@@ -119,7 +111,7 @@ class UserRepository:
         *,
         username: str,
         hashed_password: str,
-        user_profile: Optional["UserRepository.UserProfile"] = None,
+        user_profile: UserRepository.UserProfile | None = None,
         **legacy_profile_fields: object,
     ) -> None:
         """
@@ -249,8 +241,8 @@ if not user_repository.has_users():
 
 def get_user(
     username: str,
-    repository: Optional[UserRepository] = None,
-) -> Optional[UserInDB]:
+    repository: UserRepository | None = None,
+) -> UserInDB | None:
     """
     Retrieve a user by username.
 
@@ -269,7 +261,7 @@ def get_user(
 def authenticate_user(
     username: str,
     password: str,
-    repository: Optional[UserRepository] = None,
+    repository: UserRepository | None = None,
 ) -> UserInDB | bool:
     """
     Authenticate a username and password and return the corresponding stored user.
@@ -291,7 +283,7 @@ def authenticate_user(
     return user
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     """
     Create a JWT access token that includes an expiry (`exp`) claim.
 
@@ -308,20 +300,20 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
     """
-    Retrieve the User identified by the JWT's subject.
+    Retrieve the UserInDB identified by the JWT's subject.
 
     Returns:
-        The User object for the token's subject.
+        UserInDB: The UserInDB object for the token's subject (includes hashed_password).
 
     Raises:
         HTTPException: 401 with detail "Token has expired" when the token has expired.
@@ -403,15 +395,19 @@ def _decode_username_from_token(
         raise credentials_exception from e
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:  # noqa: B008
     """
     Verify that the authenticated user's account is active.
+
+    Note: Although get_current_user returns UserInDB, this function accepts and returns
+    the base User type since it doesn't need access to hashed_password. This provides
+    better separation of concerns - only authentication code should see hashed passwords.
 
     Raises:
         HTTPException: 400 with detail "Inactive user" if the user's account is disabled.
 
     Returns:
-        User: The authenticated user's public profile.
+        User: The authenticated user's public profile (without hashed_password).
     """
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")

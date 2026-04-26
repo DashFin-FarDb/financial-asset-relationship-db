@@ -1,15 +1,21 @@
 """Shared helper functions for API routers."""
 
 import logging
-from typing import Any, Dict, NoReturn
+from typing import Any, NoReturn
 
 from fastapi import HTTPException
 
-from src.logic.asset_graph import AssetRelationshipGraph
-
-from .graph_lifecycle import get_graph as _get_graph
-
 logger = logging.getLogger(__name__)
+
+# Color mapping for each AssetClass.value string used by the visualization router.
+_DEFAULT_COLOR = "#7f7f7f"
+_ASSET_CLASS_COLORS: dict[str, str] = {
+    "Equity": "#1f77b4",
+    "Fixed Income": "#2ca02c",
+    "Commodity": "#ff7f0e",
+    "Currency": "#d62728",
+    "Derivative": "#9467bd",
+}
 
 
 def get_graph():
@@ -17,7 +23,7 @@ def get_graph():
     try:
         import api.main as api_main  # local import to avoid import cycle at module import time
 
-        if hasattr(api_main, "graph"):
+        if hasattr(api_main, "graph") and api_main.graph is not None:
             return api_main.graph
     except Exception:
         pass
@@ -50,7 +56,7 @@ def raise_asset_not_found(
 def serialize_asset(
     asset: Any,
     include_issuer: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Serialize an Asset object to a dictionary representation.
 
@@ -63,7 +69,7 @@ def serialize_asset(
         Dict[str, Any]: Dictionary containing core asset fields plus any
         non-``None`` asset-specific attributes under ``additional_fields``.
     """
-    asset_dict: Dict[str, Any] = {
+    asset_dict: dict[str, Any] = {
         "id": asset.id,
         "symbol": asset.symbol,
         "name": asset.name,
@@ -101,16 +107,3 @@ def serialize_asset(
             asset_dict["additional_fields"][field] = value
 
     return asset_dict
-
-
-# Asset class colour mapping for 3-D visualisation
-_ASSET_CLASS_COLORS: Dict[str, str] = {
-    "Equity": "#4e79a7",
-    "Fixed Income": "#f28e2b",
-    "Commodity": "#e15759",
-    "Currency": "#76b7b2",
-    "Cryptocurrency": "#59a14f",
-    "RealEstate": "#edc948",
-    "Alternative": "#b07aa1",
-}
-_DEFAULT_COLOR = "#9c755f"

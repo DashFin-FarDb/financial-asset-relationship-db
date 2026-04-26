@@ -25,7 +25,7 @@ def _get_database_url() -> str:
     """
     database_url = get_settings().database_url
     if not database_url:
-        raise ValueError("DATABASE_URL must be configured before using the API database helpers.")
+        raise ValueError("DATABASE_URL environment variable must be set")
     return database_url
 
 
@@ -153,6 +153,8 @@ DATABASE_PATH = _resolve_sqlite_path(DATABASE_URL)
 _MEMORY_CONNECTION: sqlite3.Connection | None = None
 _MEMORY_CONNECTION_MANAGER: _DatabaseConnectionManager | None = None
 _MEMORY_CONNECTION_LOCK = threading.Lock()
+# Separate reentrant lock used to serialize concurrent use of the shared in-memory connection.
+_MEMORY_USE_LOCK = threading.RLock()
 
 
 def _is_memory_db(path: str | None = None) -> bool:
@@ -354,15 +356,35 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     in-memory databases a shared persistent connection is yielded and remains open across calls
     (the context does not close it).
 
+    **Important for in-memory databases:**
+    Access to in-memory databases is fully serialized via _MEMORY_USE_LOCK (a reentrant RLock).
+    This means:
+    - Only one operation can use the in-memory connection at a time
+    - Concurrent operations (including reads) will block and wait for the lock
+    - The lock is reentrant, allowing nested get_connection() calls from the same thread
+    - This prevents SQLite transaction conflicts but may become a bottleneck for parallel reads
+    - The lock is held for the entire duration of the `with get_connection()` block
+
+    This serialization is necessary because SQLite in-memory databases cannot safely handle
+    concurrent transactions, even for reads. If performance becomes an issue, consider:
+    - Using a file-backed database with WAL mode for better concurrency
+    - Restructuring code to minimize the time spent holding the connection
+    - Using connection pooling for file-backed databases
+
     Returns:
         sqlite3.Connection: An open SQLite connection for the configured database.
     """
     connection = _connect()
     is_memory = _is_memory_db()
-    try:
-        yield connection
-    finally:
-        if not is_memory:
+    if is_memory:
+        # Serialize access to the shared in-memory connection to prevent
+        # concurrent-transaction errors from multiple threads.
+        with _MEMORY_USE_LOCK:
+            yield connection
+    else:
+        try:
+            yield connection
+        finally:
             connection.close()
 
 

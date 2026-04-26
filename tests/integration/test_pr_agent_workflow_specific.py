@@ -5,7 +5,7 @@ Tests the duplicate key fix and PR Agent-specific functionality.
 
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 import yaml
@@ -25,7 +25,7 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         return Path(".github/workflows/pr-agent.yml")
 
     @pytest.fixture
-    def workflow_content(self, workflow_file: Path) -> Dict[str, Any]:
+    def workflow_content(self, workflow_file: Path) -> dict[str, Any]:
         """
         Parse the GitHub Actions workflow YAML file into a Python mapping.
 
@@ -35,7 +35,7 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         Returns:
             Dict[str, Any]: Parsed YAML content as a dictionary.
         """
-        with open(workflow_file, "r", encoding="utf-8") as f:
+        with open(workflow_file, encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     @pytest.fixture
@@ -46,10 +46,10 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         Returns:
             The file contents decoded as UTF-8.
         """
-        with open(workflow_file, "r", encoding="utf-8") as f:
+        with open(workflow_file, encoding="utf-8") as f:
             return f.read()
 
-    def test_no_duplicate_step_name_setup_python(self, workflow_content: Dict[str, Any]):
+    def test_no_duplicate_step_name_setup_python(self, workflow_content: dict[str, Any]):
         """Test that there's no duplicate 'Setup Python' step name."""
         for job_name, job_config in workflow_content.get("jobs", {}).items():
             steps = job_config.get("steps", [])
@@ -101,35 +101,35 @@ class TestPRAgentWorkflowStructureValidation:
     """Validate the overall structure of pr-agent.yml."""
 
     @pytest.fixture
-    def workflow_content(self) -> Dict[str, Any]:
+    def workflow_content(self) -> dict[str, Any]:
         """
         Load and parse the repository's pr-agent GitHub Actions workflow YAML.
 
         Returns:
             dict: The workflow content parsed from .github/workflows/pr-agent.yml as a mapping of YAML keys to Python objects.
         """
-        with open(".github/workflows/pr-agent.yml", "r", encoding="utf-8") as f:
+        with open(".github/workflows/pr-agent.yml", encoding="utf-8") as f:
             return yaml.safe_load(f)
 
-    def test_has_pr_agent_trigger_job(self, workflow_content: Dict[str, Any]):
+    def test_has_pr_agent_trigger_job(self, workflow_content: dict[str, Any]):
         """
-        Verify the workflow defines a top-level job named "pr-agent-trigger".
+        Verify the workflow defines a top-level job named "pr-agent-action".
 
         Parameters:
             workflow_content (Dict[str, Any]): Parsed YAML content of the workflow file.
         """
         assert "jobs" in workflow_content
-        assert "pr-agent-trigger" in workflow_content["jobs"], "Workflow should have 'pr-agent-trigger' job"
+        assert "pr-agent-action" in workflow_content["jobs"], "Workflow should have 'pr-agent-action' job"
 
-    def test_has_auto_merge_check_job(self, workflow_content: Dict[str, Any]):
+    def test_has_auto_merge_check_job(self, workflow_content: dict[str, Any]):
         """Test that workflow has the auto-merge-check job."""
         assert "auto-merge-check" in workflow_content.get("jobs", {}), "Workflow should have 'auto-merge-check' job"
 
-    def test_has_dependency_update_job(self, workflow_content: Dict[str, Any]):
+    def test_has_dependency_update_job(self, workflow_content: dict[str, Any]):
         """Test that workflow has the dependency-update job."""
         assert "dependency-update" in workflow_content.get("jobs", {}), "Workflow should have 'dependency-update' job"
 
-    def test_trigger_on_pr_events(self, workflow_content: Dict[str, Any]):
+    def test_trigger_on_pr_events(self, workflow_content: dict[str, Any]):
         """Test that workflow triggers on appropriate PR events."""
         triggers = workflow_content.get("on", {})
 
@@ -141,12 +141,12 @@ class TestPRAgentWorkflowStructureValidation:
             for expected in expected_types:
                 assert expected in pr_types, f"pull_request trigger should include '{expected}' type"
 
-    def test_trigger_on_pr_review(self, workflow_content: Dict[str, Any]):
+    def test_trigger_on_pr_review(self, workflow_content: dict[str, Any]):
         """Test that workflow triggers on PR review events."""
         triggers = workflow_content.get("on", {})
         assert "pull_request_review" in triggers, "Workflow should trigger on pull_request_review events"
 
-    def test_trigger_on_issue_comment(self, workflow_content: Dict[str, Any]):
+    def test_trigger_on_issue_comment(self, workflow_content: dict[str, Any]):
         """
         Check that the workflow includes an `issue_comment` trigger (used for @copilot mentions).
 
@@ -161,18 +161,18 @@ class TestPRAgentWorkflowSetupSteps:
     """Test the setup steps in pr-agent workflow."""
 
     @pytest.fixture
-    def pr_agent_job(self) -> Dict[str, Any]:
+    def pr_agent_job(self) -> dict[str, Any]:
         """
-        Return the configuration for the 'pr-agent-trigger' job from the workflow file.
+        Return the configuration for the 'pr-agent-action' job from the workflow file.
 
         Returns:
-            job (Dict[str, Any]): Mapping of the 'pr-agent-trigger' job as defined in .github/workflows/pr-agent.yml
+            job (Dict[str, Any]): Mapping of the 'pr-agent-action' job as defined in .github/workflows/pr-agent.yml
         """
-        with open(".github/workflows/pr-agent.yml", "r", encoding="utf-8") as f:
+        with open(".github/workflows/pr-agent.yml", encoding="utf-8") as f:
             workflow = yaml.safe_load(f)
-        return workflow["jobs"]["pr-agent-trigger"]
+        return workflow["jobs"]["pr-agent-action"]
 
-    def test_checkout_step_exists(self, pr_agent_job: Dict[str, Any]):
+    def test_checkout_step_exists(self, pr_agent_job: dict[str, Any]):
         """
         Assert the job contains at least one checkout step that uses actions/checkout.
 
@@ -183,7 +183,7 @@ class TestPRAgentWorkflowSetupSteps:
         checkout_steps = [step for step in steps if step.get("uses", "").startswith("actions/checkout")]
         assert len(checkout_steps) >= 1, "Job should have checkout step"
 
-    def test_setup_python_exists(self, pr_agent_job: Dict[str, Any]):
+    def test_setup_python_exists(self, pr_agent_job: dict[str, Any]):
         """
         Assert the job contains exactly one step named "Setup Python".
 
@@ -194,13 +194,13 @@ class TestPRAgentWorkflowSetupSteps:
         python_steps = [step for step in steps if step.get("name") == "Setup Python"]
         assert len(python_steps) == 1, "Job should have exactly one Setup Python step"
 
-    def test_setup_nodejs_exists(self, pr_agent_job: Dict[str, Any]):
+    def test_setup_nodejs_exists(self, pr_agent_job: dict[str, Any]):
         """Assert that the job includes at least one step named "Setup Node.js"."""
         steps = pr_agent_job.get("steps", [])
         node_steps = [step for step in steps if step.get("name") == "Setup Node.js"]
         assert len(node_steps) >= 1, "Job should have Setup Node.js step"
 
-    def test_python_version_is_311(self, pr_agent_job: Dict[str, Any]):
+    def test_python_version_is_311(self, pr_agent_job: dict[str, Any]):
         """Test that Python 3.11 is specified."""
         steps = pr_agent_job.get("steps", [])
         for step in steps:
@@ -208,7 +208,7 @@ class TestPRAgentWorkflowSetupSteps:
                 version = step.get("with", {}).get("python-version")
                 assert version == "3.11", f"Expected Python version '3.11', got '{version}'"
 
-    def test_nodejs_version_is_18(self, pr_agent_job: Dict[str, Any]):
+    def test_nodejs_version_is_18(self, pr_agent_job: dict[str, Any]):
         """Test that Node.js 18 is specified."""
         steps = pr_agent_job.get("steps", [])
         for step in steps:
@@ -216,12 +216,12 @@ class TestPRAgentWorkflowSetupSteps:
                 version = step.get("with", {}).get("node-version")
                 assert version == "18", f"Expected Node.js version '18', got '{version}'"
 
-    def test_setup_order_correct(self, pr_agent_job: Dict[str, Any]):
+    def test_setup_order_correct(self, pr_agent_job: dict[str, Any]):
         """
-        Ensure the pr-agent-trigger job's setup steps are ordered: checkout, Setup Python, then Setup Node.js.
+        Ensure the pr-agent-action job's setup steps are ordered: checkout, Setup Python, then Setup Node.js.
 
         Parameters:
-            pr_agent_job (Dict[str, Any]): Parsed job dictionary for the pr-agent-trigger job from the workflow YAML.
+            pr_agent_job (Dict[str, Any]): Parsed job dictionary for the pr-agent-action job from the workflow YAML.
         """
         steps = pr_agent_job.get("steps", [])
 

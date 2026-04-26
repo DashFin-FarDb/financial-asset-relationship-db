@@ -6,10 +6,15 @@
 - Description: CRCT-enabled project: financial-asset-relationship-db
 - Created: 2025-11-06T16:31:13.737Z
 
-## Current Status
+## Current Phase
 
 - Current Phase: Set-up/Maintenance
 - Last Updated: 2026-03-03T20:50:50.677Z
+
+## Current Status
+
+- Status: Active
+- Phase: Set-up/Maintenance
 
 ## Project Structure
 
@@ -18,7 +23,6 @@
 - 10 tsx files
 - 10 js files
 - 19 h files
-
 
 ## Project Directory Structure
 
@@ -123,9 +127,11 @@
 - 📄 test_postgres.py
 - 📄 test_supabase.py
 
+## Dependencies
+
 ## PY Dependencies
 
-### \test_supabase.py
+### /test_supabase.py
 
 Dependencies:
 
@@ -137,7 +143,7 @@ Dependencies:
 - logging
 - environment
 
-### \test_postgres.py
+### /test_postgres.py
 
 Dependencies:
 
@@ -148,7 +154,7 @@ Dependencies:
 - logging
 - environment
 
-### \test_db_module.py
+### /test_db_module.py
 
 Dependencies:
 
@@ -156,7 +162,7 @@ Dependencies:
 - src.data.database
 - get_db
 
-### \test_api.py
+### /test_api.py
 
 Dependencies:
 
@@ -167,31 +173,31 @@ Dependencies:
 - TestClient
 - traceback
 
-### \tests\_\_init\_\_.py
+### /tests/__init__.py
 
 No dependencies found
 
 ## JS Dependencies
 
-### \frontend\tailwind.config.js
+### /frontend/tailwind.config.js
 
 No dependencies found
 
-### \frontend\postcss.config.js
+### /frontend/postcss.config.js
 
 No dependencies found
 
-### \frontend\next.config.js
+### /frontend/next.config.js
 
 No dependencies found
 
-### \frontend\jest.setup.js
+### /frontend/jest.setup.js
 
 Dependencies:
 
 - @testing-library/jest-dom
 
-### \frontend\jest.config.js
+### /frontend/jest.config.js
 
 Dependencies:
 
@@ -199,39 +205,24 @@ Dependencies:
 
 ## TS Dependencies
 
-### \frontend\_\_tests\_\_\lib\api.test.ts
-
-Dependencies:
-
-- axios
-- ../../app/lib/api
-- ../../app/types/api
-
-### \frontend\app\types\api.ts
-
-No dependencies found
-
-### \frontend\app\lib\_\_tests\_\_\api.test.ts
-
-Dependencies:
-
-- axios
-- ../api
-
-### \frontend\app\lib\index.ts
-
-No dependencies found
-
-### \frontend\app\lib\api.ts
+### /frontend/app/lib/api.ts
 
 Dependencies:
 
 - axios
 - ../types/api
 
+### /frontend/app/types/api.ts
+
+No dependencies found
+
+### /frontend/app/lib/index.ts
+
+No dependencies found
+
 ## TSX Dependencies
 
-### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+### /frontend/tests/components/NetworkVisualization.test.tsx
 
 Dependencies:
 
@@ -241,7 +232,7 @@ Dependencies:
 - ../../app/components/NetworkVisualization
 - ../../app/types/api
 
-### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+### /frontend/tests/components/MetricsDashboard.test.tsx
 
 Dependencies:
 
@@ -251,7 +242,7 @@ Dependencies:
 - ../../app/components/MetricsDashboard
 - ../../app/types/api
 
-### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+### /frontend/tests/components/AssetList.test.tsx
 
 Dependencies:
 
@@ -261,7 +252,7 @@ Dependencies:
 - ../../app/components/AssetList
 - ../../app/lib/api
 
-### \frontend\_\_tests\_\_\app\page.test.tsx
+### /frontend/tests/app/page.test.tsx
 
 Dependencies:
 
@@ -271,7 +262,7 @@ Dependencies:
 - ../../app/page
 - ../../app/lib/api
 
-### \frontend\app\page.tsx
+### /frontend/app/page.tsx
 
 Dependencies:
 

@@ -27,7 +27,7 @@ class TestPRAgentWorkflowChanges:
             dict: Parsed contents of .github/workflows/pr-agent.yml as native Python objects.
         """
         workflow_path = Path(".github/workflows/pr-agent.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     def test_pr_agent_workflow_structure(self, pr_agent_workflow):
@@ -47,11 +47,11 @@ class TestPRAgentWorkflowChanges:
 
     def test_pr_agent_python_setup_simplified(self, pr_agent_workflow):
         """
-        Validate the pr-agent-trigger job uses a single Python dependency installation step and does not install PyYAML.
+        Validate the pr-agent-action job uses a single Python dependency installation step and does not install PyYAML.
 
         Finds a step whose name includes "Install Python dependencies", asserts exactly one such step exists, and verifies the step's run script contains no references to "pyyaml" or "PyYAML".
         """
-        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = pr_agent_job["steps"]
 
         # Find Python dependency installation step
@@ -76,7 +76,7 @@ class TestPRAgentWorkflowChanges:
 
     def test_pr_agent_uses_gh_cli_for_parsing(self, pr_agent_workflow):
         """Verify workflow uses gh CLI for PR comment parsing."""
-        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = pr_agent_job["steps"]
 
         parse_step = next((s for s in steps if "Parse PR" in s.get("name", "")), None)
@@ -87,13 +87,13 @@ class TestPRAgentWorkflowChanges:
         """
         Verify the PR Agent workflow exposes minimal permissions.
 
-        Asserts the workflow top-level 'permissions' sets 'contents' to 'read' and the 'pr-agent-trigger' job-level 'permissions' sets 'issues' to 'write'.
+        Asserts the workflow top-level 'permissions' sets 'contents' to 'read' and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
         """
         # Top-level permissions
         assert pr_agent_workflow.get("permissions", {}).get("contents") == "read"
 
         # Job-level permissions
-        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         assert pr_agent_job.get("permissions", {}).get("issues") == "write"
 
 
@@ -110,7 +110,7 @@ class TestGreetingsWorkflowChanges:
             Parsed workflow content as native Python structures (typically a dict).
         """
         workflow_path = Path(".github/workflows/greetings.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     @staticmethod
@@ -144,7 +144,7 @@ class TestLabelWorkflowChanges:
             dict: Parsed YAML content of the label workflow.
         """
         workflow_path = Path(".github/workflows/label.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     @staticmethod
@@ -191,7 +191,7 @@ class TestAPISecWorkflowChanges:
             workflow (dict): Parsed content of .github/workflows/apisec-scan.yml.
         """
         workflow_path = Path(".github/workflows/apisec-scan.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             return yaml.safe_load(f)
 
     @staticmethod
@@ -246,7 +246,7 @@ class TestDeletedFilesImpact:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 content = f.read()
                 assert (
                     "context_chunker" not in content.lower()
@@ -266,7 +266,7 @@ class TestWorkflowSecurityBestPractices:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflow = yaml.safe_load(f)
 
             # Check all jobs and steps
@@ -274,6 +274,9 @@ class TestWorkflowSecurityBestPractices:
                 for step in job.get("steps", []):
                     if "uses" in step:
                         action = step["uses"]
+                        # Local actions (./.github/actions/...) don't need version pins
+                        if action.startswith(("./", ".\\")):
+                            continue
                         # Should have version specifier
                         assert "@" in action, f"Action {action} in {workflow_file.name} should specify version"
                         # Should not use 'latest' or 'master'
@@ -286,12 +289,14 @@ class TestWorkflowSecurityBestPractices:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflow = yaml.safe_load(f)
 
             # If permissions are specified, they should be limited
             if "permissions" in workflow:
                 perms = workflow["permissions"]
+                if not isinstance(perms, dict):
+                    continue
                 # Should not have blanket 'write-all' permission
                 assert (
                     perms.get("contents") != "write" or len(perms) > 1
@@ -311,7 +316,7 @@ class TestWorkflowYAMLValidity:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 try:
                     yaml.safe_load(f)
                 except yaml.YAMLError as e:
@@ -327,11 +332,16 @@ class TestWorkflowYAMLValidity:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflow = yaml.safe_load(f)
 
             assert "name" in workflow, f"{workflow_file.name} missing 'name'"
-            assert "on" in workflow, f"{workflow_file.name} missing 'on' trigger"
+            # PyYAML (YAML 1.1) parses an unquoted `on:` key as boolean True rather
+            # than the string "on". We accept both so that workflows with either
+            # `on:` or `"on":` pass. The preferred form in new workflows is the
+            # quoted `"on":` key (or using `yaml.safe_load` with explicit quoting)
+            # to avoid this ambiguity.
+            assert "on" in workflow or True in workflow, f"{workflow_file.name} missing 'on' trigger"
             assert "jobs" in workflow, f"{workflow_file.name} missing 'jobs'"
 
     @staticmethod
@@ -344,10 +354,13 @@ class TestWorkflowYAMLValidity:
         workflows_dir = Path(".github/workflows")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflow = yaml.safe_load(f)
 
             for job_name, job in workflow.get("jobs", {}).items():
+                # Reusable workflow jobs use `uses:` at job level and don't need `runs-on`
+                if isinstance(job, dict) and "uses" in job:
+                    continue
                 assert "runs-on" in job, f"Job '{job_name}' in {workflow_file.name} missing 'runs-on'"
 
 
@@ -365,7 +378,7 @@ class TestWorkflowIntegration:
         repo_root = Path(".")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 content = f.read()
 
             # Common path patterns to check
@@ -404,7 +417,7 @@ class TestDependencyCheckWorkflowPresence:
     def test_dependency_check_workflow_yaml_is_valid():
         """dependency-check.yml should parse as a valid workflow YAML document."""
         workflow_path = Path(".github/workflows/dependency-check.yml")
-        with open(workflow_path, "r") as f:
+        with open(workflow_path) as f:
             workflow = yaml.safe_load(f)
 
         assert isinstance(workflow, dict), "dependency-check.yml should contain a valid workflow mapping"

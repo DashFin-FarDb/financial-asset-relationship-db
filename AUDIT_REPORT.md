@@ -168,7 +168,7 @@ This comprehensive audit evaluated the codebase quality, development workflows, 
 
 1. **Test Directory Structure**
 
-   ```
+   ```text
    tests/
    ├── __init__.py
    ├── conftest.py

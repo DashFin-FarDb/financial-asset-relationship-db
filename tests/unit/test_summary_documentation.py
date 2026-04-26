@@ -75,7 +75,7 @@ class TestEnhancedTestSummary:
 
     def test_summary_has_statistics_table(self, summary_content):
         """Test that summary includes test statistics table."""
-        assert "| Metric |" in summary_content
+        assert re.search(r"^\|\s*Metric\b", summary_content, re.MULTILINE)
         assert "Test Classes" in summary_content
         assert "Test Functions" in summary_content
 

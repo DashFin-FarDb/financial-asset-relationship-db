@@ -3,8 +3,8 @@ from __future__ import annotations
 import importlib
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Mapping
 
 import pytest
 
@@ -45,7 +45,7 @@ def test_invalid_format_rejected(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """CLI should exit with code 1 and print a message on invalid format."""
+    """CLI should exit with code 1 (app-level error) for invalid format."""
     mod = _load_module_for_test(monkeypatch, tmp_path)
 
     # Simulate CLI argv with invalid format
@@ -56,11 +56,11 @@ def test_invalid_format_rejected(
     )
 
     rc = mod.main()
-    assert rc == 1
+    assert rc == 1  # argparse SystemExit(2) is mapped to app-level code 1
 
     captured = capsys.readouterr()
-    # Our CLI prints "Error: Invalid output format. Please use one of: ..."
-    assert "Invalid output format" in captured.err
+    # argparse prints its own error message about invalid choice
+    assert "invalid choice" in captured.err or "not-a-format" in captured.err
 
 
 def test_json_output_writes_file(

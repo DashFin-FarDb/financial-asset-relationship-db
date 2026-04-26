@@ -7,7 +7,6 @@ contains accurate information, and follows markdown best practices.
 
 import re
 from pathlib import Path
-from typing import List, Set
 
 import pytest
 
@@ -19,12 +18,12 @@ def summary_content() -> str:
     """Load the summary file content."""
     if not SUMMARY_FILE.exists():
         pytest.skip("TEST_GENERATION_WORKFLOW_SUMMARY.md not found")
-    with open(SUMMARY_FILE, "r", encoding="utf-8") as f:
+    with open(SUMMARY_FILE, encoding="utf-8") as f:
         return f.read()
 
 
 @pytest.fixture
-def summary_lines(summary_content: str) -> List[str]:
+def summary_lines(summary_content: str) -> list[str]:
     """Get summary file lines."""
     return summary_content.split("\n")
 
@@ -43,7 +42,7 @@ class TestDocumentStructure:
         assert len(summary_content.strip()) > 0, "File should not be empty"
 
     @staticmethod
-    def test_file_has_title(summary_lines: List[str]):
+    def test_file_has_title(summary_lines: list[str]):
         """Test that file starts with a markdown title."""
         first_heading = None
         for line in summary_lines:
@@ -85,7 +84,7 @@ class TestMarkdownFormatting:
     """Test suite for markdown formatting validation."""
 
     @staticmethod
-    def test_headings_properly_formatted(summary_lines: List[str]):
+    def test_headings_properly_formatted(summary_lines: list[str]):
         """Test that headings follow proper markdown format."""
         heading_lines = [line for line in summary_lines if line.startswith("#")]
         for line in heading_lines:
@@ -93,7 +92,7 @@ class TestMarkdownFormatting:
             assert re.match(r"^#{1,6} .+", line), f"Heading '{line}' should have space after #"
 
     @staticmethod
-    def test_no_trailing_whitespace(summary_lines: List[str]):
+    def test_no_trailing_whitespace(summary_lines: list[str]):
         """Test that lines don't have trailing whitespace."""
         lines_with_trailing = [
             (i + 1, line) for i, line in enumerate(summary_lines) if line.rstrip() != line and line.strip() != ""
@@ -110,7 +109,7 @@ class TestMarkdownFormatting:
         ), f"Code blocks not properly closed (found {backtick_count} triple backticks, should be even)"
 
     @staticmethod
-    def test_lists_properly_formatted(summary_lines: List[str]):
+    def test_lists_properly_formatted(summary_lines: list[str]):
         """Test that bullet lists use consistent markers."""
         list_lines = [line for line in summary_lines if re.match(r"^\s*[-*+] ", line)]
         if list_lines:
@@ -180,7 +179,7 @@ class TestDocumentMaintainability:
     """Test suite for document maintainability."""
 
     @staticmethod
-    def test_line_length_reasonable(summary_lines: List[str]):
+    def test_line_length_reasonable(summary_lines: list[str]):
         """Test that lines aren't excessively long."""
         long_lines = [
             (i + 1, line)
@@ -208,7 +207,7 @@ class TestDocumentMaintainability:
         for section in sections[1:]:
             lines = section.split("\n")
             section_name = lines[0]
-            content_lines = [l for l in lines[1:] if l.strip()]
+            content_lines = [line for line in lines[1:] if line.strip()]
             assert len(content_lines) > 0, f"Section '{section_name}' should have content"
 
 
@@ -298,7 +297,7 @@ class TestEdgeCases:
     def test_utf8_encoding():
         """Test that file is properly UTF-8 encoded."""
         try:
-            with open(SUMMARY_FILE, "r", encoding="utf-8") as f:
+            with open(SUMMARY_FILE, encoding="utf-8") as f:
                 f.read()
         except UnicodeDecodeError:
             pytest.fail("File should be valid UTF-8")

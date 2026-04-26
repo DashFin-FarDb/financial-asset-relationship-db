@@ -7,7 +7,6 @@ duplicate keys.
 """
 
 from pathlib import Path
-from typing import List
 from unittest.mock import patch
 
 import pytest

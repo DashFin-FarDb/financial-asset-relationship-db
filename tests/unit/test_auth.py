@@ -15,7 +15,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from fastapi import HTTPException, status
-from jwt import ExpiredSignatureError, InvalidTokenError
+from jwt import ExpiredSignatureError
 
 from api.auth import (
     Token,
@@ -796,13 +796,15 @@ class TestSeedCredentialsParameterNameChanges:
 
         _seed_credentials_from_env(mock_repo)
 
-        # Verify create_or_update_user was called with new parameter names
+        # Verify create_or_update_user was called with user_profile dict
         mock_repo.create_or_update_user.assert_called_once_with(
             username="admin",
             hashed_password="hashed_adminpass",
-            user_email="admin@example.com",
-            user_full_name="Admin User",
-            is_disabled=False,
+            user_profile={
+                "user_email": "admin@example.com",
+                "user_full_name": "Admin User",
+                "is_disabled": False,
+            },
         )
 
     @patch.dict(
@@ -820,7 +822,7 @@ class TestSeedCredentialsParameterNameChanges:
         _seed_credentials_from_env(mock_repo)
 
         call_kwargs = mock_repo.create_or_update_user.call_args[1]
-        assert call_kwargs["is_disabled"] is True
+        assert call_kwargs["user_profile"]["is_disabled"] is True
 
     @patch.dict(
         os.environ,
@@ -837,7 +839,7 @@ class TestSeedCredentialsParameterNameChanges:
         _seed_credentials_from_env(mock_repo)
 
         call_kwargs = mock_repo.create_or_update_user.call_args[1]
-        assert call_kwargs["is_disabled"] is True
+        assert call_kwargs["user_profile"]["is_disabled"] is True
 
 
 class TestIsTruthyAdditionalCases:

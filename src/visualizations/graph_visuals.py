@@ -4,7 +4,7 @@ import logging
 import re
 import threading
 from collections import defaultdict
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from collections.abc import Iterable
 
 import numpy as np
 import plotly.graph_objects as go
@@ -62,14 +62,14 @@ def _is_valid_color_format(color: str) -> bool:
     return True
 
 
-def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
+def _build_asset_id_index(asset_ids: list[str]) -> dict[str, int]:
     """Build O(1) lookup index for asset IDs to their positions."""
     return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
 
 
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
-) -> Dict[Tuple[str, str, str], float]:
+) -> dict[tuple[str, str, str], float]:
     """
     Build an index of relationships limited to the provided asset IDs.
 
@@ -87,7 +87,7 @@ def _build_relationship_index(
         asset_ids_set,
     )
 
-    relationship_index: Dict[Tuple[str, str, str], float] = {}
+    relationship_index: dict[tuple[str, str, str], float] = {}
     for source_id, rels in relevant_relationships.items():
         _validate_source_relationships(source_id, rels)
         for idx, rel in enumerate(rels):
@@ -152,7 +152,7 @@ def _normalize_asset_ids_for_index(
 def _snapshot_relevant_relationships(
     graph: AssetRelationshipGraph,
     asset_ids_set: set[str],
-) -> Dict[str, list]:
+) -> dict[str, list]:
     """
     Create a consistent, locked snapshot of graph.relationships containing only entries whose source IDs are in asset_ids_set.
 
@@ -203,7 +203,7 @@ def _parse_relationship_entry(
     source_id: str,
     idx: int,
     rel: object,
-) -> Tuple[str, str, float]:
+) -> tuple[str, str, float]:
     """
     Parse and validate a single relationship entry for a given source asset.
 
@@ -316,9 +316,9 @@ def _to_float_strength(
 
 def _create_node_trace(
     positions: np.ndarray,
-    asset_ids: List[str],
-    colors: List[str],
-    hover_texts: List[str],
+    asset_ids: list[str],
+    colors: list[str],
+    hover_texts: list[str],
 ) -> go.Scatter3d:
     """
     Create a Plotly 3D scatter trace for asset nodes.
@@ -372,21 +372,21 @@ def _create_node_trace(
         y=positions[:, 1],
         z=positions[:, 2],
         mode="markers+text",
-        marker=dict(
-            size=15,
-            color=colors,
-            opacity=0.9,
-            line=dict(
-                color="rgba(0,0,0,0.8)",
-                width=2,
-            ),
-            symbol="circle",
-        ),
+        marker={
+            "size": 15,
+            "color": colors,
+            "opacity": 0.9,
+            "line": {
+                "color": "rgba(0,0,0,0.8)",
+                "width": 2,
+            },
+            "symbol": "circle",
+        },
         text=asset_ids,
         hovertext=hover_texts,
         hoverinfo="text",
         textposition="top center",
-        textfont=dict(size=12, color="black"),
+        textfont={"size": 12, "color": "black"},
         name="Assets",
         visible=True,
     )
@@ -412,7 +412,7 @@ def _generate_dynamic_title(
 
 
 def _calculate_visible_relationships(
-    relationship_traces: List[go.Scatter3d],
+    relationship_traces: list[go.Scatter3d],
 ) -> int:
     """
     Compute the number of visible relationship edges represented by the provided relationship traces.
@@ -433,10 +433,10 @@ def _calculate_visible_relationships(
 
 def _prepare_layout_config(
     num_assets: int,
-    relationship_traces: List[go.Scatter3d],
+    relationship_traces: list[go.Scatter3d],
     base_title: str = "Financial Asset Network",
-    layout_options: Optional[Dict[str, object]] = None,
-) -> Tuple[str, Dict[str, object]]:
+    layout_options: dict[str, object] | None = None,
+) -> tuple[str, dict[str, object]]:
     """
     Prepare a dynamic figure title and return layout options for the 3D visualization.
 
@@ -464,7 +464,7 @@ def _add_directional_arrows_to_figure(
     fig: go.Figure,
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
-    asset_ids: List[str],
+    asset_ids: list[str],
 ) -> None:
     """Add directional arrows to the figure for unidirectional
     relationships using batch operations.
@@ -477,7 +477,7 @@ def _add_directional_arrows_to_figure(
 def _configure_3d_layout(
     fig: go.Figure,
     title: str,
-    options: Optional[Dict[str, object]] = None,
+    options: dict[str, object] | None = None,
 ) -> None:
     """Configure the 3D layout for the figure.
 
@@ -507,24 +507,24 @@ def _configure_3d_layout(
             "xanchor": "center",
             "font": {"size": 16},
         },
-        scene=dict(
-            xaxis=dict(title="Dimension 1", showgrid=True, gridcolor=gridcolor),
-            yaxis=dict(title="Dimension 2", showgrid=True, gridcolor=gridcolor),
-            zaxis=dict(title="Dimension 3", showgrid=True, gridcolor=gridcolor),
-            bgcolor=bgcolor,
-            camera=dict(eye=dict(x=1.5, y=1.5, z=1.5)),
-        ),
+        scene={
+            "xaxis": {"title": "Dimension 1", "showgrid": True, "gridcolor": gridcolor},
+            "yaxis": {"title": "Dimension 2", "showgrid": True, "gridcolor": gridcolor},
+            "zaxis": {"title": "Dimension 3", "showgrid": True, "gridcolor": gridcolor},
+            "bgcolor": bgcolor,
+            "camera": {"eye": {"x": 1.5, "y": 1.5, "z": 1.5}},
+        },
         width=width,
         height=height,
         showlegend=True,
         hovermode="closest",
-        legend=dict(
-            x=0.02,
-            y=0.98,
-            bgcolor=legend_bgcolor,
-            bordercolor=legend_bordercolor,
-            borderwidth=1,
-        ),
+        legend={
+            "x": 0.02,
+            "y": 0.98,
+            "bgcolor": legend_bgcolor,
+            "bordercolor": legend_bordercolor,
+            "borderwidth": 1,
+        },
     )
 
 
@@ -557,7 +557,7 @@ def _validate_positions_array(positions: np.ndarray) -> None:
         )
 
 
-def _validate_asset_ids_list(asset_ids: List[str]) -> None:
+def _validate_asset_ids_list(asset_ids: list[str]) -> None:
     """
     Validate that asset_ids is a sequence of non-empty strings.
 
@@ -570,7 +570,7 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
         raise ValueError("Invalid graph data: asset_ids must contain non-empty strings")
 
 
-def _validate_colors_list(colors: List[str], expected_length: int) -> None:
+def _validate_colors_list(colors: list[str], expected_length: int) -> None:
     """
     Validate that `colors` is a list or tuple of non-empty color strings of the required length and that each entry matches an acceptable color format.
 
@@ -598,7 +598,7 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
 
 
 def _validate_hover_texts_list(
-    hover_texts: List[str],
+    hover_texts: list[str],
     expected_length: int,
 ) -> None:
     """
@@ -617,12 +617,12 @@ def _validate_hover_texts_list(
         raise ValueError("Invalid graph data: hover_texts must contain non-empty strings")
 
 
-def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
+def _validate_asset_ids_uniqueness(asset_ids: list[str]) -> None:
     """Validate that asset IDs are unique."""
     unique_count = len(set(asset_ids))
     if unique_count != len(asset_ids):
-        seen_ids: Set[str] = set()
-        dup_ids: List[str] = []
+        seen_ids: set[str] = set()
+        dup_ids: list[str] = []
         for aid in asset_ids:
             if aid in seen_ids and aid not in dup_ids:
                 dup_ids.append(aid)
@@ -634,9 +634,9 @@ def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
 
 def _validate_visualization_data(
     positions: np.ndarray,
-    asset_ids: List[str],
-    colors: List[str],
-    hover_texts: List[str],
+    asset_ids: list[str],
+    colors: list[str],
+    hover_texts: list[str],
 ) -> None:
     """
     Validate 3D visualization inputs and ensure positions, asset IDs, colors, and hover texts are consistent.
@@ -740,36 +740,36 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
             "xanchor": "center",
             "font": {"size": 16},
         },
-        scene=dict(
-            xaxis=dict(
-                title="Dimension 1",
-                showgrid=True,
-                gridcolor="rgba(200, 200, 200, 0.3)",
-            ),
-            yaxis=dict(
-                title="Dimension 2",
-                showgrid=True,
-                gridcolor="rgba(200, 200, 200, 0.3)",
-            ),
-            zaxis=dict(
-                title="Dimension 3",
-                showgrid=True,
-                gridcolor="rgba(200, 200, 200, 0.3)",
-            ),
-            bgcolor="rgba(248, 248, 248, 0.95)",
-            camera=dict(eye=dict(x=1.5, y=1.5, z=1.5)),
-        ),
+        scene={
+            "xaxis": {
+                "title": "Dimension 1",
+                "showgrid": True,
+                "gridcolor": "rgba(200, 200, 200, 0.3)",
+            },
+            "yaxis": {
+                "title": "Dimension 2",
+                "showgrid": True,
+                "gridcolor": "rgba(200, 200, 200, 0.3)",
+            },
+            "zaxis": {
+                "title": "Dimension 3",
+                "showgrid": True,
+                "gridcolor": "rgba(200, 200, 200, 0.3)",
+            },
+            "bgcolor": "rgba(248, 248, 248, 0.95)",
+            "camera": {"eye": {"x": 1.5, "y": 1.5, "z": 1.5}},
+        },
         width=1200,
         height=800,
         showlegend=True,
         hovermode="closest",
-        legend=dict(
-            x=0.02,
-            y=0.98,
-            bgcolor="rgba(255, 255, 255, 0.8)",
-            bordercolor="rgba(0, 0, 0, 0.3)",
-            borderwidth=1,
-        ),
+        legend={
+            "x": 0.02,
+            "y": 0.98,
+            "bgcolor": "rgba(255, 255, 255, 0.8)",
+            "bordercolor": "rgba(0, 0, 0, 0.3)",
+            "borderwidth": 1,
+        },
     )
 
     return fig
@@ -778,8 +778,8 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
 def _collect_and_group_relationships(
     graph: AssetRelationshipGraph,
     asset_ids: Iterable[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
-) -> Dict[Tuple[str, bool], List[dict]]:
+    relationship_filters: dict[str, bool] | None = None,
+) -> dict[tuple[str, bool], list[dict]]:
     """
     Groups relationships from the graph for the given asset subset by relationship type and whether each relationship is bidirectional.
 
@@ -801,8 +801,8 @@ def _collect_and_group_relationships(
     """
     relationship_index = _build_relationship_index(graph, asset_ids)
 
-    processed_pairs: Set[Tuple[str, str, str]] = set()
-    relationship_groups: Dict[Tuple[str, bool], List[dict]] = defaultdict(list)
+    processed_pairs: set[tuple[str, str, str]] = set()
+    relationship_groups: dict[tuple[str, bool], list[dict]] = defaultdict(list)
 
     for (
         source_id,
@@ -814,7 +814,7 @@ def _collect_and_group_relationships(
 
         # Canonical pair key for bidirectional detection
         if source_id <= target_id:
-            pair_key: Tuple[str, str, str] = (source_id, target_id, rel_type)
+            pair_key: tuple[str, str, str] = (source_id, target_id, rel_type)
         else:
             pair_key = (target_id, source_id, rel_type)
 
@@ -843,13 +843,13 @@ def _collect_and_group_relationships(
 
 
 def _build_edge_coordinates_optimized(
-    relationships: List[dict],
+    relationships: list[dict],
     positions: np.ndarray,
-    asset_id_index: Dict[str, int],
-) -> Tuple[
-    List[Optional[float]],
-    List[Optional[float]],
-    List[Optional[float]],
+    asset_id_index: dict[str, int],
+) -> tuple[
+    list[float | None],
+    list[float | None],
+    list[float | None],
 ]:
     """
     Build three parallel coordinate lists for Plotly edge segments using O(1) asset index lookups.
@@ -865,9 +865,9 @@ def _build_edge_coordinates_optimized(
         the source coordinate, the target coordinate, and a `None` separator (used to break segments when plotting).
     """
     num_edges = len(relationships)
-    edges_x: List[Optional[float]] = [None] * (num_edges * 3)
-    edges_y: List[Optional[float]] = [None] * (num_edges * 3)
-    edges_z: List[Optional[float]] = [None] * (num_edges * 3)
+    edges_x: list[float | None] = [None] * (num_edges * 3)
+    edges_y: list[float | None] = [None] * (num_edges * 3)
+    edges_z: list[float | None] = [None] * (num_edges * 3)
 
     for i, rel in enumerate(relationships):
         source_idx = asset_id_index[rel["source_id"]]
@@ -888,10 +888,10 @@ def _build_edge_coordinates_optimized(
 
 
 def _build_hover_texts(
-    relationships: List[dict],
+    relationships: list[dict],
     rel_type: str,
     is_bidirectional: bool,
-) -> List[Optional[str]]:
+) -> list[str | None]:
     """
     Create hover text entries formatted for Plotly 3D line segments for a list of relationships.
 
@@ -908,7 +908,7 @@ def _build_hover_texts(
     direction_text = "↔" if is_bidirectional else "→"
 
     num_rels = len(relationships)
-    hover_texts: List[Optional[str]] = [None] * (num_rels * 3)
+    hover_texts: list[str | None] = [None] * (num_rels * 3)
 
     for i, rel in enumerate(relationships):
         hover_text = (
@@ -945,11 +945,11 @@ def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
         )
         color = "#888888"
 
-    return dict(
-        color=color,
-        width=4 if is_bidirectional else 2,
-        dash="solid" if is_bidirectional else "dash",
-    )
+    return {
+        "color": color,
+        "width": 4 if is_bidirectional else 2,
+        "dash": "solid" if is_bidirectional else "dash",
+    }
 
 
 def _format_trace_name(rel_type: str, is_bidirectional: bool) -> str:
@@ -962,9 +962,9 @@ def _format_trace_name(rel_type: str, is_bidirectional: bool) -> str:
 def _create_trace_for_group(
     rel_type: str,
     is_bidirectional: bool,
-    relationships: List[dict],
+    relationships: list[dict],
     positions: np.ndarray,
-    asset_id_index: Dict[str, int],
+    asset_id_index: dict[str, int],
 ) -> go.Scatter3d:
     """
     Builds a Plotly Scatter3d trace representing all edges for a single relationship type and directionality.
@@ -1003,9 +1003,9 @@ def _create_trace_for_group(
 def _create_relationship_traces(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
-    asset_ids: List[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
-) -> List[go.Scatter3d]:
+    asset_ids: list[str],
+    relationship_filters: dict[str, bool] | None = None,
+) -> list[go.Scatter3d]:
     """
     Create Plotly Scatter3d traces grouped by relationship type and direction for the given graph and assets.
 
@@ -1035,7 +1035,7 @@ def _create_relationship_traces(
         relationship_filters,
     )
 
-    traces: List[go.Scatter3d] = []
+    traces: list[go.Scatter3d] = []
     for (rel_type, is_bidirectional), relationships in relationship_groups.items():
         if relationships:
             trace = _create_trace_for_group(
@@ -1053,8 +1053,8 @@ def _create_relationship_traces(
 def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
-    asset_ids: List[str],
-) -> List[go.Scatter3d]:
+    asset_ids: list[str],
+) -> list[go.Scatter3d]:
     """
     Create marker traces representing direction for unidirectional relationships.
 
@@ -1079,9 +1079,9 @@ def _create_directional_arrows(
     relationship_index = _build_relationship_index(graph, asset_ids_norm)
     asset_id_index = _build_asset_id_index(asset_ids_norm)
 
-    source_indices: List[int] = []
-    target_indices: List[int] = []
-    hover_texts: List[str] = []
+    source_indices: list[int] = []
+    target_indices: list[int] = []
+    hover_texts: list[str] = []
 
     # Gather unidirectional relationships
     for (source_id, target_id, rel_type), _ in relationship_index.items():
@@ -1106,12 +1106,12 @@ def _create_directional_arrows(
         y=arrow_positions[:, 1].tolist(),
         z=arrow_positions[:, 2].tolist(),
         mode="markers",
-        marker=dict(
-            symbol="diamond",
-            size=8,
-            color="rgba(255, 0, 0, 0.8)",
-            line=dict(color="red", width=1),
-        ),
+        marker={
+            "symbol": "diamond",
+            "size": 8,
+            "color": "rgba(255, 0, 0, 0.8)",
+            "line": {"color": "red", "width": 1},
+        },
         hovertext=hover_texts,
         hoverinfo="text",
         name="Direction Arrows",
@@ -1125,8 +1125,8 @@ def _create_directional_arrows(
 def _prepare_directional_arrow_inputs(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
-    asset_ids: List[str],
-) -> Tuple[np.ndarray, List[str]]:
+    asset_ids: list[str],
+) -> tuple[np.ndarray, list[str]]:
     """
     Validate and normalize inputs for computing directional arrow marker positions.
 
@@ -1185,7 +1185,7 @@ def _normalize_positions_array(positions: np.ndarray) -> np.ndarray:
     return np.asarray(positions)
 
 
-def _normalize_asset_ids_list(asset_ids: List[str]) -> List[str]:
+def _normalize_asset_ids_list(asset_ids: list[str]) -> list[str]:
     """
     Convert an iterable of asset IDs into a plain Python list while preserving iteration order.
 
@@ -1209,7 +1209,7 @@ def _normalize_asset_ids_list(asset_ids: List[str]) -> List[str]:
 
 def _validate_positions_and_asset_ids_lengths(
     positions: np.ndarray,
-    asset_ids: List[str],
+    asset_ids: list[str],
 ) -> None:
     """
     Validate that the positions array and asset id sequence correspond to the same number of assets and that positions are 2-D coordinates with three columns.
@@ -1267,7 +1267,7 @@ def _ensure_finite_positions(positions: np.ndarray) -> None:
         raise ValueError("Invalid positions: values must be finite numbers")
 
 
-def _ensure_non_empty_string_asset_ids(asset_ids: List[str]) -> None:
+def _ensure_non_empty_string_asset_ids(asset_ids: list[str]) -> None:
     """
     Validate that every item in `asset_ids` is a non-empty string.
 
@@ -1278,7 +1278,7 @@ def _ensure_non_empty_string_asset_ids(asset_ids: List[str]) -> None:
         raise ValueError("asset_ids must contain non-empty strings")
 
 
-def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
+def _validate_filter_parameters(filter_params: dict[str, bool]) -> None:
     """
     Validate that `filter_params` is a mapping of filter names to boolean flags.
 
@@ -1306,7 +1306,7 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
 
 
 def _validate_relationship_filters(
-    relationship_filters: Optional[Dict[str, bool]],
+    relationship_filters: dict[str, bool] | None,
 ) -> None:
     """
     Validate a mapping of relationship types to boolean visibility flags used for filtering.
@@ -1339,7 +1339,7 @@ def _validate_relationship_filters(
         )
 
     # Validate keys are strings
-    invalid_keys = [key for key in relationship_filters.keys() if not isinstance(key, str)]
+    invalid_keys = [key for key in relationship_filters if not isinstance(key, str)]
     if invalid_keys:
         raise ValueError(
             f"Invalid filter configuration: relationship_filters keys must be strings. Invalid keys: {invalid_keys}"
@@ -1379,7 +1379,7 @@ def _build_relationship_filters_for_visualization(
     show_income_comparison: bool,
     show_regulatory: bool,
     show_all_relationships: bool,
-) -> Optional[Dict[str, bool]]:
+) -> dict[str, bool] | None:
     """
     Constructs a mapping of relationship-type visibility flags for visualization.
 
@@ -1406,7 +1406,7 @@ def _build_relationship_filters_for_visualization(
 
 def _get_and_validate_visualization_data(
     graph: AssetRelationshipGraph,
-) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
+) -> tuple[np.ndarray, list[str], list[str], list[str]]:
     """
     Fetch and validate 3D visualization positions and associated asset metadata from the graph.
 
@@ -1436,9 +1436,9 @@ def _get_and_validate_visualization_data(
 def _create_relationship_traces_with_fallback(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
-    asset_ids: List[str],
-    relationship_filters: Optional[Dict[str, bool]],
-) -> List[go.Scatter3d]:
+    asset_ids: list[str],
+    relationship_filters: dict[str, bool] | None,
+) -> list[go.Scatter3d]:
     """
     Attempt to build 3D relationship traces for the given graph visualization.
 
@@ -1478,7 +1478,7 @@ def _create_relationship_traces_with_fallback(
 
 def _add_traces_with_logging(
     fig: go.Figure,
-    traces: List[go.Scatter3d],
+    traces: list[go.Scatter3d],
     failure_message: str,
 ) -> None:
     """
@@ -1502,8 +1502,8 @@ def _add_traces_with_logging(
 def _create_directional_arrows_with_fallback(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
-    asset_ids: List[str],
-) -> List[go.Scatter3d]:
+    asset_ids: list[str],
+) -> list[go.Scatter3d]:
     """
     Attempt to build directional arrow marker traces for unidirectional relationships; fall back to no traces on failure.
 
@@ -1528,8 +1528,8 @@ def _create_directional_arrows_with_fallback(
 
 def _configure_layout_with_fallback(
     fig: go.Figure,
-    asset_ids: List[str],
-    relationship_traces: List[go.Scatter3d],
+    asset_ids: list[str],
+    relationship_traces: list[go.Scatter3d],
 ) -> None:
     """
     Configure a Plotly 3D figure's layout using a dynamic title derived from the provided assets and visible relationship traces.

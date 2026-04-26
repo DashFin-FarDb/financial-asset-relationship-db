@@ -1,9 +1,9 @@
 """Position normalization helpers for graph visualizations."""
 
 import math
-from typing import Sequence, Tuple
+from collections.abc import Sequence
 
-Position3D = Tuple[float, float, float]
+Position3D = tuple[float, float, float]
 PositionMatrix = list[Position3D]
 
 

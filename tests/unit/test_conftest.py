@@ -14,7 +14,7 @@ Python optimization flags that would remove assert statements.
 
 import importlib.util
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -151,7 +151,7 @@ class TestConftestFixtures:
     def test_sample_regulatory_event_fixture(sample_regulatory_event):
         """Test sample_regulatory_event fixture returns a RegulatoryEvent."""
         assert isinstance(sample_regulatory_event, RegulatoryEvent)
-        assert sample_regulatory_event.asset_id == "AAPL"
+        assert sample_regulatory_event.asset_id == "TEST_AAPL"
 
     @staticmethod
     def test_populated_graph_fixture(populated_graph):

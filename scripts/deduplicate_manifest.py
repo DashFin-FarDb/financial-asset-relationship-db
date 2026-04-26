@@ -20,7 +20,6 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")  # matches "## Title"
 
@@ -42,9 +41,9 @@ def _extract_section_heading(line: str) -> str | None:
 
 
 def _flush_current_section(
-    sections: List[Tuple[str, str]],
+    sections: list[tuple[str, str]],
     current_heading: str | None,
-    current_content: List[str],
+    current_content: list[str],
 ) -> None:
     """
     Append the current section (heading and its content) to `sections` if `current_heading` is present.
@@ -59,7 +58,7 @@ def _flush_current_section(
     sections.append((current_heading, "\n".join(current_content)))
 
 
-def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
+def parse_manifest(content: str) -> tuple[str, list[tuple[str, str]]]:
     """
     Parse the manifest into a preamble and a list of level-2 sections.
 
@@ -74,11 +73,11 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     """
     lines = content.splitlines()
 
-    preamble_lines: List[str] = []
-    sections: List[Tuple[str, str]] = []
+    preamble_lines: list[str] = []
+    sections: list[tuple[str, str]] = []
 
     current_heading: str | None = None
-    current_content: List[str] = []
+    current_content: list[str] = []
     found_first_heading = False
 
     for line in lines:
@@ -105,8 +104,8 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
 
 
 def deduplicate_sections(
-    sections: List[Tuple[str, str]],
-) -> List[Tuple[str, str]]:
+    sections: list[tuple[str, str]],
+) -> list[tuple[str, str]]:
     """
     Deduplicate section entries by keeping only the last occurrence of each heading.
 
@@ -117,7 +116,7 @@ def deduplicate_sections(
         List[Tuple[str, str]]: Sections with duplicate headings removed; for each heading, the last occurrence from the input is kept and returned in the original input order.
     """
     seen: set[str] = set()
-    out_reversed: List[Tuple[str, str]] = []
+    out_reversed: list[tuple[str, str]] = []
 
     for heading, content in reversed(sections):
         if heading in seen:
@@ -130,7 +129,7 @@ def deduplicate_sections(
 
 def reconstruct_manifest(
     preamble: str,
-    sections: List[Tuple[str, str]],
+    sections: list[tuple[str, str]],
 ) -> str:
     """
     Assembles manifest text from a preamble and an ordered list of level-2 sections.
@@ -144,7 +143,7 @@ def reconstruct_manifest(
     Returns:
         str: The reconstructed manifest text.
     """
-    parts: List[str] = []
+    parts: list[str] = []
 
     if preamble:
         parts.append(preamble.rstrip())
@@ -159,7 +158,7 @@ def reconstruct_manifest(
     return "\n".join(parts) + ("\n" if parts else "")
 
 
-def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
+def count_duplicates(sections: list[tuple[str, str]]) -> dict[str, int]:
     """
     Return a mapping of section headings to their occurrence counts.
 
@@ -169,7 +168,7 @@ def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
     Returns:
         Dict[str, int]: Mapping where each key is a heading and the value is the number of times it appears.
     """
-    counts: Dict[str, int] = {}
+    counts: dict[str, int] = {}
     for heading, _ in sections:
         counts[heading] = counts.get(heading, 0) + 1
     return counts

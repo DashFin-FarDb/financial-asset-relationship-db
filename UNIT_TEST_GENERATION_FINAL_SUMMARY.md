@@ -79,7 +79,7 @@ pytest tests/unit/test_workflow_validator.py::TestValidateWorkflow -v
 
 When running the tests, you should see output similar to:
 
-```
+```text
 tests/unit/test_workflow_validator.py::TestValidationResult::test_valid_result PASSED
 tests/unit/test_workflow_validator.py::TestValidationResult::test_invalid_result PASSED
 tests/unit/test_workflow_validator.py::TestValidateWorkflow::test_valid_workflow PASSED

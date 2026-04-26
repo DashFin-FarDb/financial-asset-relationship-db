@@ -187,7 +187,7 @@ echo "✅ All validations passed"
 
 ### Commit History
 
-```
+```text
 d6cc8d90 - Fix merge conflict in bandit-report.json
 6d912f73 - Add task completion report for PR #181 resolution
 12012476 - Add comprehensive documentation for PR #181 resolution

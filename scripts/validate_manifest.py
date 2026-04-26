@@ -12,10 +12,9 @@ Exit codes:
 
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 
-def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
+def _collect_headings(lines: list[str]) -> dict[str, list[int]]:
     """
     Collect level-2 Markdown headings and their 1-based line numbers.
 
@@ -25,7 +24,7 @@ def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
     Returns:
         Dict[str, List[int]]: Mapping from each level-2 heading text (the text following '##') to a list of 1-based line numbers where that heading appears.
     """
-    occurrences: Dict[str, List[int]] = {}
+    occurrences: dict[str, list[int]] = {}
 
     for line_num, line in enumerate(lines, start=1):
         stripped = line.strip()
@@ -37,7 +36,7 @@ def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
 
 
 def _report_duplicates(
-    duplicates: Dict[str, List[int]],
+    duplicates: dict[str, list[int]],
     manifest_path: Path,
 ) -> int:
     """

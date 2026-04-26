@@ -2,7 +2,7 @@
 
 import threading
 from collections import defaultdict
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from collections.abc import Iterable
 
 import numpy as np
 
@@ -13,7 +13,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 _graph_access_lock = threading.RLock()
 
 
-def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
+def _build_asset_id_index(asset_ids: list[str]) -> dict[str, int]:
     """
     Create a lookup that maps each asset ID to its index in the provided list.
 
@@ -44,7 +44,7 @@ def _validate_graph_relationships_structure(
         raise TypeError(f"graph.relationships must be a dictionary, got {type(graph.relationships).__name__}")
 
 
-def _normalize_asset_ids(asset_ids: Iterable[str]) -> Set[str]:
+def _normalize_asset_ids(asset_ids: Iterable[str]) -> set[str]:
     """
     Normalize and validate asset ID inputs, returning a set of unique asset ID strings.
 
@@ -59,7 +59,7 @@ def _normalize_asset_ids(asset_ids: Iterable[str]) -> Set[str]:
         ValueError: If any element of `asset_ids` is not a string.
     """
     try:
-        asset_ids_set: Set[str] = set(asset_ids)
+        asset_ids_set: set[str] = set(asset_ids)
     except TypeError as exc:
         raise TypeError(f"asset_ids must be an iterable, got {type(asset_ids).__name__}") from exc
     if not all(isinstance(aid, str) for aid in asset_ids_set):
@@ -69,8 +69,8 @@ def _normalize_asset_ids(asset_ids: Iterable[str]) -> Set[str]:
 
 def _get_relevant_relationships(
     graph: AssetRelationshipGraph,
-    asset_ids_set: Set[str],
-) -> Dict[str, List[Tuple[object, object, object]]]:
+    asset_ids_set: set[str],
+) -> dict[str, list[tuple[object, object, object]]]:
     """
     Map source asset IDs in asset_ids_set to copies of their relationship lists from the graph.
 
@@ -89,7 +89,7 @@ def _parse_relationship_record(
     source_id: str,
     idx: int,
     rel: object,
-) -> Tuple[str, str, float]:
+) -> tuple[str, str, float]:
     """
     Parse and normalize a single raw relationship record for a given source.
 
@@ -132,7 +132,7 @@ def _unpack_relationship_tuple(
     source_id: str,
     idx: int,
     rel: object,
-) -> Tuple[object, object, object]:
+) -> tuple[object, object, object]:
     """
     Unpack and validate a raw relationship entry for a given source.
 
@@ -209,7 +209,7 @@ def _coerce_strength(
 
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
-) -> Dict[Tuple[str, str, str], float]:
+) -> dict[tuple[str, str, str], float]:
     """
     Builds an index mapping (source_id, target_id, rel_type) to relationship strength for relationships whose source and target are both in the provided asset IDs.
 
@@ -224,7 +224,7 @@ def _build_relationship_index(
     asset_ids_set = _normalize_asset_ids(asset_ids)
     relevant_relationships = _get_relevant_relationships(graph, asset_ids_set)
 
-    relationship_index: Dict[Tuple[str, str, str], float] = {}
+    relationship_index: dict[tuple[str, str, str], float] = {}
     for source_id, rels in relevant_relationships.items():
         _accumulate_source_relationships(
             source_id=source_id,
@@ -240,8 +240,8 @@ def _accumulate_source_relationships(
     *,
     source_id: str,
     rels: object,
-    asset_ids_set: Set[str],
-    relationship_index: Dict[Tuple[str, str, str], float],
+    asset_ids_set: set[str],
+    relationship_index: dict[tuple[str, str, str], float],
 ) -> None:
     """
     Validate and add relationships for a single source asset into the provided relationship index.
@@ -280,9 +280,9 @@ def _accumulate_source_relationships(
 def _store_relationship_if_target_known(
     *,
     source_id: str,
-    relationship: Tuple[str, str, float],
-    asset_ids_set: Set[str],
-    relationship_index: Dict[Tuple[str, str, str], float],
+    relationship: tuple[str, str, float],
+    asset_ids_set: set[str],
+    relationship_index: dict[tuple[str, str, str], float],
 ) -> None:
     """
     Insert a parsed relationship into the relationship index if the relationship's target asset is in the provided asset set.
@@ -302,8 +302,8 @@ def _store_relationship_if_target_known(
 def _collect_and_group_relationships(
     graph: AssetRelationshipGraph,
     asset_ids: Iterable[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
-) -> Dict[Tuple[str, bool], List[dict]]:
+    relationship_filters: dict[str, bool] | None = None,
+) -> dict[tuple[str, bool], list[dict]]:
     """
     Group relationships from the graph by relationship type and by whether each pair is bidirectional.
 
@@ -324,15 +324,15 @@ def _collect_and_group_relationships(
     """
     relationship_index = _build_relationship_index(graph, asset_ids)
 
-    processed_pairs: Set[Tuple[str, str, str]] = set()
-    relationship_groups: Dict[Tuple[str, bool], List[dict]] = defaultdict(list)
+    processed_pairs: set[tuple[str, str, str]] = set()
+    relationship_groups: dict[tuple[str, bool], list[dict]] = defaultdict(list)
 
     for relationship_key, strength in relationship_index.items():
         source_id, target_id, rel_type = relationship_key
         if _is_filtered_relationship(rel_type, relationship_filters):
             continue
 
-        pair_key: Tuple[str, str, str] = (
+        pair_key: tuple[str, str, str] = (
             (source_id, target_id, rel_type) if source_id <= target_id else (target_id, source_id, rel_type)
         )
         is_bidirectional = (
@@ -363,7 +363,7 @@ def _collect_and_group_relationships(
 
 def _is_filtered_relationship(
     rel_type: str,
-    relationship_filters: Optional[Dict[str, bool]],
+    relationship_filters: dict[str, bool] | None,
 ) -> bool:
     """
     Check whether a relationship type is disabled by the provided filter mapping.
@@ -381,9 +381,9 @@ def _is_filtered_relationship(
 
 def _is_processed_bidirectional_pair(
     *,
-    pair_key: Tuple[str, str, str],
+    pair_key: tuple[str, str, str],
     is_bidirectional: bool,
-    processed_pairs: Set[Tuple[str, str, str]],
+    processed_pairs: set[tuple[str, str, str]],
 ) -> bool:
     """
     Check whether a bidirectional relationship pair has already been recorded as processed.
@@ -400,13 +400,13 @@ def _is_processed_bidirectional_pair(
 
 
 def _build_edge_coordinates_optimized(
-    relationships: List[dict],
+    relationships: list[dict],
     positions: np.ndarray,
-    asset_id_index: Dict[str, int],
-) -> Tuple[
-    List[Optional[float]],
-    List[Optional[float]],
-    List[Optional[float]],
+    asset_id_index: dict[str, int],
+) -> tuple[
+    list[float | None],
+    list[float | None],
+    list[float | None],
 ]:
     """
     Build three flat coordinate lists for plotting edges; each relationship occupies three consecutive slots (two endpoints then a separator).
@@ -422,9 +422,9 @@ def _build_edge_coordinates_optimized(
         edges_z (List[Optional[float]]): List of z coordinates with the same layout as `edges_x`.
     """
     n = len(relationships)
-    edges_x: List[Optional[float]] = [None] * (n * 3)
-    edges_y: List[Optional[float]] = [None] * (n * 3)
-    edges_z: List[Optional[float]] = [None] * (n * 3)
+    edges_x: list[float | None] = [None] * (n * 3)
+    edges_y: list[float | None] = [None] * (n * 3)
+    edges_z: list[float | None] = [None] * (n * 3)
 
     for i, rel in enumerate(relationships):
         src = asset_id_index[rel["source_id"]]
@@ -438,10 +438,10 @@ def _build_edge_coordinates_optimized(
 
 
 def _build_hover_texts(
-    relationships: List[dict],
+    relationships: list[dict],
     rel_type: str,
     is_bidirectional: bool,
-) -> List[Optional[str]]:
+) -> list[str | None]:
     """
     Construct hover text entries for a group of relationships.
 
@@ -464,7 +464,7 @@ def _build_hover_texts(
     """
     direction = "↔" if is_bidirectional else "→"
     n = len(relationships)
-    hover_texts: List[Optional[str]] = [None] * (n * 3)
+    hover_texts: list[str | None] = [None] * (n * 3)
 
     for i, rel in enumerate(relationships):
         text = (

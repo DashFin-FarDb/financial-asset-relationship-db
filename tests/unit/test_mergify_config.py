@@ -29,7 +29,7 @@ class TestMergifyConfiguration:
     def test_mergify_valid_yaml_syntax(self):
         """Test that .mergify.yml contains valid YAML syntax."""
         try:
-            with open(self.MERGIFY_PATH, "r") as f:
+            with open(self.MERGIFY_PATH) as f:
                 data = yaml.safe_load(f)
             assert data is not None, ".mergify.yml is empty"
         except yaml.YAMLError as e:
@@ -37,7 +37,7 @@ class TestMergifyConfiguration:
 
     def test_mergify_has_pull_request_rules(self):
         """Test that .mergify.yml contains pull_request_rules key."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         assert "pull_request_rules" in config, "Missing pull_request_rules key"
@@ -50,7 +50,7 @@ class TestMergifyConfiguration:
 
         Asserts that the configuration contains one or more entries in `pull_request_rules` whose `name` contains "t-shirt" (case-insensitive), and that every matched rule has non-empty `name`, `conditions`, and `actions` fields.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -65,7 +65,7 @@ class TestMergifyConfiguration:
 
     def test_tshirt_rule_has_valid_conditions(self):
         """Test that t-shirt size rules have valid conditions."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -82,7 +82,7 @@ class TestMergifyConfiguration:
 
     def test_tshirt_rule_has_label_action(self):
         """Test that t-shirt size rule has label action."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -109,7 +109,7 @@ class TestMergifyConfiguration:
 
     def test_tshirt_rule_assigns_size_l_label(self):
         """Test that t-shirt rule assigns size/L label."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -122,7 +122,7 @@ class TestMergifyConfiguration:
 
     def test_modified_lines_thresholds_are_valid(self):
         """Test that modified lines thresholds are sensible."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -158,7 +158,7 @@ class TestMergifyConfiguration:
 
     def test_all_rules_have_required_fields(self):
         """Test that all rules have name, conditions, and actions."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -176,7 +176,7 @@ class TestMergifyConfiguration:
 
     def test_mergify_no_syntax_errors(self):
         """Test that Mergify configuration has no obvious syntax errors."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             content = f.read()
 
         # Check for common YAML/Mergify issues
@@ -186,7 +186,7 @@ class TestMergifyConfiguration:
 
     def test_label_format_follows_convention(self):
         """Test that labels follow size/* convention."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -219,7 +219,7 @@ class TestMergifyRuleLogic:
 
         Asserts that a pull request rule which assigns the `size/L` label exists and that its conditions include thresholds for `>= 100` and `< 500` modified lines.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -243,7 +243,7 @@ class TestMergifyRuleLogic:
         - The `description` length is greater than 10 characters.
         - The `description` mentions one of: "line", "size", or "change" (case-insensitive).
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -266,7 +266,7 @@ class TestMergifyEdgeCases:
 
     def test_no_conflicting_conditions(self):
         """Test that rules don't have obviously conflicting conditions."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -311,10 +311,10 @@ class TestMergifyEdgeCases:
 
     def test_yaml_can_be_parsed_multiple_times(self):
         """Test that YAML can be parsed consistently multiple times."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config1 = yaml.safe_load(f)
 
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config2 = yaml.safe_load(f)
 
         assert config1 == config2, "YAML parses differently on multiple attempts"
@@ -331,7 +331,7 @@ class TestMergifyAdditionalEdgeCases:
 
         Collects labels from each rule whose name contains "t-shirt" by reading the label action's `toggle` and `add` lists, and asserts that no label appears more than once across those lists. Fails with an AssertionError if duplicate size labels are found.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -348,7 +348,7 @@ class TestMergifyAdditionalEdgeCases:
 
     def test_size_thresholds_cover_all_ranges(self):
         """Test that size thresholds cover all possible line counts without gaps."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -372,7 +372,7 @@ class TestMergifyAdditionalEdgeCases:
         Raises:
             AssertionError: If a rule's `actions` is not a dict; if a `label` action is not a dict; or if a `label` action does not include `toggle`, `add`, or `remove`.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -388,7 +388,7 @@ class TestMergifyAdditionalEdgeCases:
 
     def test_rule_names_are_descriptive(self):
         """Test that all rule names are descriptive and meaningful."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -400,7 +400,7 @@ class TestMergifyAdditionalEdgeCases:
 
     def test_no_duplicate_rule_names(self):
         """Test that all rule names are unique."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -410,7 +410,7 @@ class TestMergifyAdditionalEdgeCases:
 
     def test_conditions_list_not_empty(self):
         """Test that all rules have at least one condition."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
@@ -421,7 +421,7 @@ class TestMergifyAdditionalEdgeCases:
 
     def test_yaml_indentation_consistency(self):
         """Test that YAML file uses consistent indentation."""
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             content = f.read()
 
         lines = content.split("\n")
@@ -451,7 +451,7 @@ class TestMergifySizeCoverage:
         Returns:
             list[dict]: List of pull request rule objects matching the "t-shirt" name filter.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
         return [r for r in config["pull_request_rules"] if "t-shirt" in r.get("name", "").lower()]
 
@@ -520,7 +520,7 @@ class TestMergifyContentLabels:
         Returns:
             list: The list of pull request rule mappings defined under the `pull_request_rules` key.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
@@ -589,7 +589,7 @@ class TestMergifyReviewAutomation:
         Returns:
             list: The list of pull request rule mappings defined under the `pull_request_rules` key.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
@@ -643,7 +643,7 @@ class TestMergifyAutoMerge:
         Returns:
             list: The list of pull request rule mappings defined under the `pull_request_rules` key.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
@@ -706,7 +706,7 @@ class TestMergifyStaleManagement:
         Returns:
             list: The list of pull request rule mappings defined under the `pull_request_rules` key.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
@@ -764,7 +764,7 @@ class TestMergifyBoundaryConditions:
         Returns:
             The parsed YAML content of .mergify.yml as native Python objects (commonly a dict), or `None` if the file is empty.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             return yaml.safe_load(f)
 
     def test_size_xs_upper_boundary(self):
@@ -844,7 +844,7 @@ class TestMergifyNegativeCases:
         Returns:
             The parsed YAML content of .mergify.yml as native Python objects (commonly a dict), or `None` if the file is empty.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             return yaml.safe_load(f)
 
     def test_no_empty_conditions_lists(self):
@@ -925,7 +925,7 @@ class TestMergifyFilePatterns:
         Returns:
             The parsed YAML content of .mergify.yml as native Python objects (commonly a dict), or `None` if the file is empty.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             return yaml.safe_load(f)
 
     def test_security_file_patterns_exist(self):
@@ -991,7 +991,7 @@ class TestMergifyRegressionCases:
         Returns:
             The parsed YAML content of .mergify.yml as native Python objects (commonly a dict), or `None` if the file is empty.
         """
-        with open(self.MERGIFY_PATH, "r") as f:
+        with open(self.MERGIFY_PATH) as f:
             return yaml.safe_load(f)
 
     def test_dismiss_reviews_has_when_clause(self):
@@ -1030,13 +1030,12 @@ class TestMergifyRegressionCases:
         rules = config["pull_request_rules"]
 
         for rule in rules:
-            if "stale" in rule.get("actions", {}).get("label", {}).get("add", []):
-                if "comment" in rule.get("actions", {}):
-                    message = rule["actions"]["comment"]["message"].lower()
-                    has_removal_info = any(keyword in message for keyword in ["remove", "push", "update", "commit"])
-                    assert (
-                        has_removal_info
-                    ), f"Rule '{rule.get('name')}' comment should explain how to remove stale label"
+            if "stale" in rule.get("actions", {}).get("label", {}).get("add", []) and "comment" in rule.get(
+                "actions", {}
+            ):
+                message = rule["actions"]["comment"]["message"].lower()
+                has_removal_info = any(keyword in message for keyword in ["remove", "push", "update", "commit"])
+                assert has_removal_info, f"Rule '{rule.get('name')}' comment should explain how to remove stale label"
 
     def test_auto_merge_has_label_conditions(self):
         """Test that auto-merge rules check for appropriate labels."""

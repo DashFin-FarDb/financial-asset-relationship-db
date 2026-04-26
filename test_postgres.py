@@ -18,7 +18,7 @@ Security:
 from __future__ import annotations
 
 import os
-from typing import Final, Optional
+from typing import Final
 
 import pytest
 
@@ -37,7 +37,7 @@ PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
 )
 
 
-def _get_database_url() -> Optional[str]:
+def _get_database_url() -> str | None:
     """
     Get database URL from env vars
     (prefer ASSET_GRAPH..., fallback DATABASE_URL).
@@ -65,7 +65,7 @@ def _redact_dsn(dsn: str) -> str:
     return "***"
 
 
-def _redact_url_dsn(dsn: str) -> Optional[str]:
+def _redact_url_dsn(dsn: str) -> str | None:
     """Redact URL-style DSN credentials if present."""
     if "://" not in dsn or "@" not in dsn:
         return None
@@ -76,7 +76,7 @@ def _redact_url_dsn(dsn: str) -> Optional[str]:
     return f"{scheme}://***:***@{creds_and_host[1]}"
 
 
-def _redact_keyword_dsn(dsn: str) -> Optional[str]:
+def _redact_keyword_dsn(dsn: str) -> str | None:
     """Redact password=... segment in keyword-style DSN."""
     if "password=" not in dsn.lower():
         return None
@@ -114,7 +114,7 @@ def _run_smoke_query(database_url: str) -> object:
         pytest.fail(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
         # pytest.fail is expected to raise and not return, but add an explicit
         # raise to avoid any implicit fall-through in static analysis.
-        raise AssertionError(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
+        raise AssertionError(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}") from exc
 
 
 @pytest.mark.integration

@@ -1,7 +1,5 @@
 """Relationship API routes."""
 
-from typing import List
-
 from fastapi import APIRouter, HTTPException
 
 from ..api_models import RelationshipResponse
@@ -10,11 +8,8 @@ from ..router_helpers import get_graph, logger, raise_asset_not_found
 router = APIRouter()
 
 
-@router.get(
-    "/api/assets/{asset_id}/relationships",
-    response_model=List[RelationshipResponse],
-)
-async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
+@router.get("/api/assets/{asset_id}/relationships")
+async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
     """Return outgoing relationships for a single asset."""
     try:
         g = get_graph()
@@ -39,8 +34,8 @@ async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
         ) from e
 
 
-@router.get("/api/relationships", response_model=List[RelationshipResponse])
-async def get_all_relationships() -> List[RelationshipResponse]:
+@router.get("/api/relationships")
+async def get_all_relationships() -> list[RelationshipResponse]:
     """Return all graph relationships."""
     try:
         g = get_graph()

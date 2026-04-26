@@ -18,7 +18,7 @@ Notes:
 from __future__ import annotations
 
 import os
-from typing import Any, Final, Optional
+from typing import Any, Final
 
 import pytest
 
@@ -40,7 +40,7 @@ PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
 )
 
 
-def _get_env(name: str) -> Optional[str]:
+def _get_env(name: str) -> str | None:
     """Return the environment variable value for name, or None if unset."""
     value = os.getenv(name)
     if value is None:
@@ -93,7 +93,7 @@ def _create_supabase_client(url: str, key: str) -> Client:
         pytest.fail(f"Failed to initialize Supabase client (url={_redact(url)}): {exc}")
         # pytest.fail is expected to raise and not return, but add an explicit
         # raise to avoid any implicit fall-through in static analysis.
-        raise AssertionError(f"Failed to initialize Supabase client (url={_redact(url)}): {exc}")
+        raise AssertionError(f"Failed to initialize Supabase client (url={_redact(url)}): {exc}") from exc
 
 
 def _execute_smoke_query(client: Client, url: str) -> Any:
@@ -102,11 +102,10 @@ def _execute_smoke_query(client: Client, url: str) -> Any:
         return client.table("assets").select("id").limit(1).execute()
     except Exception as exc:  # noqa: BLE001
         pytest.fail(f"Supabase query failed (url={_redact(url)}): {exc}")
-        return None
 
         # pytest.fail is expected to raise and not return, but add an explicit
         # raise to avoid any implicit fall-through in static analysis.
-        raise AssertionError(f"Supabase query failed (url={_redact(url)}): {exc}")
+        raise AssertionError(f"Supabase query failed (url={_redact(url)}): {exc}") from exc
 
 
 @pytest.mark.integration

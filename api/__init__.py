@@ -1,1 +1,1 @@
-"""FastAPI API package for Financial Asset Relationship Database"""
+"""FastAPI API package for Financial Asset Relationship Database."""

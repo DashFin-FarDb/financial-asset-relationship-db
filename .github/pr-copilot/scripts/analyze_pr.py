@@ -20,7 +20,7 @@ import traceback
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Graceful import handling
 try:
@@ -70,18 +70,18 @@ EXTENSION_MAP = {
 class AnalysisData:
     """Container for PR analysis results."""
 
-    file_analysis: Dict[str, Any]
+    file_analysis: dict[str, Any]
     complexity_score: int
     risk_level: str
-    scope_issues: List[str]
-    related_issues: List[Dict[str, str]]
+    scope_issues: list[str]
+    related_issues: list[dict[str, str]]
     commit_count: int
 
 
 # --- Core Logic ---
 
 
-def load_config() -> Dict[str, Any]:
+def load_config() -> dict[str, Any]:
     """
     Load repository configuration from the expected YAML file path.
 
@@ -101,7 +101,7 @@ def load_config() -> Dict[str, Any]:
         return {}
 
     try:
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        with open(CONFIG_PATH, encoding="utf-8") as f:
             return yaml.safe_load(f) or {}
     except (yaml.YAMLError, OSError) as e:
         print(f"Warning: Failed to load config: {e}", file=sys.stderr)
@@ -124,7 +124,7 @@ def categorize_filename(filename: str) -> str:
     return EXTENSION_MAP.get(suffix, "other")
 
 
-def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
+def analyze_pr_files(pr_files_iterable: Any) -> dict[str, Any]:
     """
     Aggregate file-level statistics for a pull request's changed files.
 
@@ -143,9 +143,9 @@ def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
               each entry contains `filename`, `changes`, `additions`, and `deletions`
             - has_large_files (bool): True if any large files were found, False otherwise
     """
-    categories: Dict[str, int] = defaultdict(int)
+    categories: dict[str, int] = defaultdict(int)
     stats = {"additions": 0, "deletions": 0, "changes": 0}
-    large_files: List[Dict[str, Any]] = []
+    large_files: list[dict[str, Any]] = []
     file_count = 0
 
     for pr_file in pr_files_iterable:
@@ -184,7 +184,7 @@ def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
 
 def calculate_score(
     value: int,
-    thresholds: List[Tuple[int, int]],
+    thresholds: list[tuple[int, int]],
     default: int,
 ) -> int:
     """
@@ -205,9 +205,9 @@ def calculate_score(
 
 
 def assess_complexity(
-    file_data: Dict[str, Any],
+    file_data: dict[str, Any],
     commit_count: int,
-) -> Tuple[int, str]:
+) -> tuple[int, str]:
     """
     Assess a pull request's overall complexity and determine a risk level.
 
@@ -263,11 +263,10 @@ def assess_complexity(
 
 def find_scope_issues(
     pr_title: str,
-    file_data: Dict[str, Any],
-    config: Dict[str, Any],
-) -> List[str]:
-    """
-    Detects potential PR scope issues based on title length/content, overall size, and diversity of changed file types.
+    file_data: dict[str, Any],
+    config: dict[str, Any],
+) -> list[str]:
+    """Detect potential PR scope issues based on title, size, and file type diversity.
 
     Parameters:
         pr_title (str): The pull request title.
@@ -315,9 +314,9 @@ def find_scope_issues(
 
 
 def find_related_issues(
-    pr_body: Optional[str],
+    pr_body: str | None,
     repo_url: str,
-) -> List[Dict[str, str]]:
+) -> list[dict[str, str]]:
     """
     Extract issue references from a pull request body and return their numbers and URLs.
 
@@ -356,7 +355,7 @@ def find_related_issues(
 # --- Reporting ---
 
 
-def _format_list_items(items: List[str], header: str) -> str:
+def _format_list_items(items: list[str], header: str) -> str:
     """
     Return a Markdown bullet section prefixed by a bold header when `items` is non-empty.
 
@@ -372,7 +371,7 @@ def _format_list_items(items: List[str], header: str) -> str:
     return f"\n**{header}**\n" + "".join([f"- {item}\n" for item in items])
 
 
-def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
+def _format_file_categories(file_analysis: dict[str, Any]) -> str:
     """
     Format file category counts into a Markdown bullet list.
 
@@ -386,9 +385,8 @@ def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
     return "\n".join([f"- {name.title()}: {count}" for name, count in file_analysis["file_categories"].items()])
 
 
-def _format_large_files(file_analysis: Dict[str, Any]) -> str:
-    """
-    Builds a Markdown section listing files with more than 500 changed lines.
+def _format_large_files(file_analysis: dict[str, Any]) -> str:
+    """Build a Markdown section listing files with more than 500 changed lines.
 
     Parameters:
         file_analysis (dict): Analysis dictionary that contains a "large_files" list of dicts, each with at least "filename" and "changes".
@@ -403,7 +401,7 @@ def _format_large_files(file_analysis: Dict[str, Any]) -> str:
     return "\n**Large Files (>500 lines):**\n" + "\n".join(lines) + "\n"
 
 
-def _format_related_issues(related_issues: List[Dict[str, str]]) -> str:
+def _format_related_issues(related_issues: list[dict[str, str]]) -> str:
     """
     Create a Markdown section listing related issue references.
 
@@ -418,7 +416,7 @@ def _format_related_issues(related_issues: List[Dict[str, str]]) -> str:
     return "\n**Related Issues:**\n" + "".join([f"- #{issue['number']}\n" for issue in related_issues])
 
 
-def _get_recommendations(risk_level: str) -> List[str]:
+def _get_recommendations(risk_level: str) -> list[str]:
     """
     Provide a short list of recommendation bullets appropriate for the given risk level.
 
@@ -446,8 +444,7 @@ def _get_recommendations(risk_level: str) -> List[str]:
 
 
 def generate_markdown(pr: Any, data: AnalysisData) -> str:
-    """
-    Constructs a Markdown report summarizing a pull request analysis.
+    """Construct a Markdown report summarizing pull request analysis.
 
     Parameters:
         pr (Any): Pull request object (expects at least `.number` and `.user.login`).
@@ -504,7 +501,7 @@ def write_output(report: str) -> None:
             else:
                 with open(summary_path, "a", encoding="utf-8") as f:
                     f.write(report)
-        except (IOError, ValueError) as e:
+        except (OSError, ValueError) as e:
             print(
                 f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}",
                 file=sys.stderr,
@@ -523,7 +520,7 @@ def write_output(report: str) -> None:
         ) as tmp:
             tmp.write(report)
             print(f"Report written to: {tmp.name}")
-    except IOError as e:
+    except OSError as e:
         print(f"Warning: Failed to write temp report: {e}", file=sys.stderr)
 
     # 3. Stdout
@@ -589,7 +586,7 @@ def run() -> None:
     except GithubException as ge:
         print(f"GitHub API Error: {ge}", file=sys.stderr)
         sys.exit(1)
-    except (IOError, OSError, RuntimeError, TypeError, ValueError):
+    except (OSError, RuntimeError, TypeError, ValueError):
         traceback.print_exc()
         sys.exit(1)
 

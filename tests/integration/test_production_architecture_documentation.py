@@ -13,7 +13,6 @@ Covers:
 
 import re
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -38,7 +37,7 @@ def _load(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _lines(content: str) -> List[str]:
+def _lines(content: str) -> list[str]:
     return content.splitlines()
 
 
@@ -78,7 +77,7 @@ class TestAutomationScopePolicy:
         return _load(AUTOMATION_SCOPE_POLICY)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -88,7 +87,7 @@ class TestAutomationScopePolicy:
     def test_file_is_not_empty(self, content: str) -> None:
         assert len(content.strip()) > 0, "AUTOMATION_SCOPE_POLICY.md must not be empty"
 
-    def test_title_is_level_one_heading(self, lines: List[str]) -> None:
+    def test_title_is_level_one_heading(self, lines: list[str]) -> None:
         first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None, "File must have at least one heading"
         assert first_heading.startswith("# "), "First heading must be H1"
@@ -207,7 +206,7 @@ class TestAutomationScopePolicy:
         authority_section = content.split("## Authority")[1].split("##")[0]
         assert "Dependabot" in authority_section or "dependency" in authority_section.lower()
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -216,7 +215,7 @@ class TestAutomationScopePolicy:
         count = content.count("```")
         assert count % 2 == 0, f"Unbalanced code fences: {count} backtick groups"
 
-    def test_no_trailing_whitespace(self, lines: List[str]) -> None:
+    def test_no_trailing_whitespace(self, lines: list[str]) -> None:
         bad = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip() != line and line.strip()]
         assert not bad, f"Trailing whitespace on lines: {[n for n, _ in bad]}"
 
@@ -264,7 +263,7 @@ class TestArchitectureDocsPRTemplate:
         return _load(ARCHITECTURE_DOCS_TEMPLATE)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -362,7 +361,7 @@ class TestArchitectureDocsPRTemplate:
     def test_references_pr_scope_guardrails(self, content: str) -> None:
         assert "PR_SCOPE_GUARDRAILS.md" in content
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -400,7 +399,7 @@ class TestPullRequestTemplateChangedSections:
         return _load(_resolve_primary_pr_template())
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -470,7 +469,7 @@ class TestPullRequestTemplateChangedSections:
     def test_scope_review_footer_references_automation_scope_policy(self, content: str) -> None:
         assert "AUTOMATION_SCOPE_POLICY.md" in content
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -497,14 +496,14 @@ class TestArchitectureMdProductionLabels:
         return _load(ARCHITECTURE_MD)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
         assert ARCHITECTURE_MD.exists()
         assert ARCHITECTURE_MD.is_file()
 
-    def test_title_is_architecture_overview(self, lines: List[str]) -> None:
+    def test_title_is_architecture_overview(self, lines: list[str]) -> None:
         first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None
         assert "Architecture" in first_heading
@@ -583,7 +582,7 @@ class TestArchitectureMdProductionLabels:
             non_prod_label != -1 and non_prod_label < gradio_stack_pos + 200
         ), "NON-PRODUCTION label must appear in Gradio stack section"
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -607,14 +606,14 @@ class TestDeploymentMdProductionFraming:
         return _load(DEPLOYMENT_MD)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
         assert DEPLOYMENT_MD.exists()
         assert DEPLOYMENT_MD.is_file()
 
-    def test_title_mentions_production_architecture(self, lines: List[str]) -> None:
+    def test_title_mentions_production_architecture(self, lines: list[str]) -> None:
         first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None
         assert "Production" in first_heading, "Deployment guide title must mention Production Architecture"
@@ -650,7 +649,7 @@ class TestDeploymentMdProductionFraming:
         overview_section = content.split("## Architecture Overview")[1].split("##")[0]
         assert "Backend" in overview_section and "Frontend" in overview_section
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -683,7 +682,7 @@ class TestReadmeMdProductionFraming:
         return _load(README_MD)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -726,7 +725,7 @@ class TestReadmeMdProductionFraming:
         """Node.js requirement comment should indicate it's for the production frontend."""
         assert "production frontend" in content.lower() or "Node.js 18+" in content
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -754,7 +753,7 @@ class TestProductionArchitectureADR:
         return _load(ADR_0001)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -764,13 +763,13 @@ class TestProductionArchitectureADR:
     def test_file_is_not_empty(self, content: str) -> None:
         assert len(content.strip()) > 0
 
-    def test_title_is_level_one_heading(self, lines: List[str]) -> None:
+    def test_title_is_level_one_heading(self, lines: list[str]) -> None:
         first_heading = next((line for line in lines if line.startswith("#")), None)
         assert first_heading is not None
         assert first_heading.startswith("# ")
         assert "ADR 0001" in first_heading or "Production Architecture" in first_heading
 
-    def test_title_mentions_fastapi_and_nextjs(self, lines: List[str]) -> None:
+    def test_title_mentions_fastapi_and_nextjs(self, lines: list[str]) -> None:
         first_heading = next((line for line in lines if line.startswith("# ")), None)
         assert first_heading is not None
         assert "FastAPI" in first_heading and "Next.js" in first_heading
@@ -898,7 +897,7 @@ class TestProductionArchitectureADR:
         ref_section = content.split("## References")[1]
         assert "DEPLOYMENT.md" in ref_section
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in lines:
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"

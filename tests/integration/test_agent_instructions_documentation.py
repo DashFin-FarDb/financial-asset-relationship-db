@@ -10,7 +10,6 @@ Covers:
 
 import re
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -30,12 +29,12 @@ def _load(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _lines(content: str) -> List[str]:
+def _lines(content: str) -> list[str]:
     return content.splitlines()
 
 
-def _lines_outside_code_fences(lines: List[str]) -> List[str]:
-    outside: List[str] = []
+def _lines_outside_code_fences(lines: list[str]) -> list[str]:
+    outside: list[str] = []
     in_fence = False
     for line in lines:
         if line.lstrip().startswith("```"):
@@ -60,7 +59,7 @@ class TestCopilotInstructionsProductionArchitecture:
         return _load(COPILOT_INSTRUCTIONS)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -155,7 +154,7 @@ class TestCopilotInstructionsProductionArchitecture:
         assert "app.py" in content
         assert "Gradio" in content
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in _lines_outside_code_fences(lines):
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
@@ -233,7 +232,7 @@ class TestAgentsMdProductionArchitecture:
         return _load(AGENTS_MD)
 
     @pytest.fixture
-    def lines(self, content: str) -> List[str]:
+    def lines(self, content: str) -> list[str]:
         return _lines(content)
 
     def test_file_exists(self) -> None:
@@ -341,7 +340,7 @@ class TestAgentsMdProductionArchitecture:
     def test_uvicorn_command_present(self, content: str) -> None:
         assert "uvicorn api.main:app" in content
 
-    def test_headings_have_space_after_hash(self, lines: List[str]) -> None:
+    def test_headings_have_space_after_hash(self, lines: list[str]) -> None:
         for line in _lines_outside_code_fences(lines):
             if line.startswith("#"):
                 assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"

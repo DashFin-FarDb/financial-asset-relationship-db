@@ -9,7 +9,7 @@ Tests the simplified PR agent configuration, ensuring:
 """
 
 import re
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 import numpy as np
@@ -52,7 +52,7 @@ SAFE_PLACEHOLDERS = {
 
 
 # Common secret / credential indicators used across heuristics
-class SecretMarker(str, Enum):
+class SecretMarker(StrEnum):
     """
     Fixed set of secret/credential indicator keywords.
 
@@ -89,7 +89,7 @@ def pr_agent_config() -> dict[str, object]:
     config_path = Path(".github/pr-agent-config.yml")
     if not config_path.exists():
         pytest.fail(f"Config file not found: {config_path}")
-    with open(config_path, "r", encoding="utf-8") as f:
+    with open(config_path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     if cfg is None or not isinstance(cfg, dict):
         pytest.fail("Config must be a YAML mapping (dict) and not empty")
@@ -119,6 +119,64 @@ def _shannon_entropy(value: str) -> float:
     return float(-np.sum(probs * np.log2(probs)))
 
 
+def _is_safe_value(v: str) -> bool:
+    """
+    Check if a value is safe (not a secret).
+
+    Args:
+        v: The string to check (already stripped).
+
+    Returns:
+        bool: True if the value is safe and should not be flagged as a secret.
+    """
+    if not v:
+        return True
+    if v.lower() in SAFE_PLACEHOLDERS:
+        return True
+    # Skip glob patterns (file path expressions like **/secrets/**)
+    if "*" in v:
+        return True
+    # Skip strings that look like repository/package names (require slash or specific format)
+    # Match patterns like: "owner/repo", "scope/package", "org/project"
+    # This is more restrictive than before to avoid false negatives in secret detection
+    if re.fullmatch(r"[a-z0-9][a-z0-9\-]*/[a-z0-9][a-z0-9\-]*", v):
+        return True
+    # Allow common short package/module names (2-4 chars, lowercase only)
+    if re.fullmatch(r"[a-z]{2,4}", v):
+        return True
+    # Allow kebab-case identifiers (e.g. repo/package names like
+    # "financial-asset-relationship-db") only when no individual segment matches
+    # a known secret-marker keyword.  This prevents values like "sk-test-token"
+    # from being treated as safe simply because they are lowercase with hyphens.
+    if re.fullmatch(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)+", v):
+        secret_words = {m.value for m in SecretMarker}
+        return not any(seg in secret_words for seg in v.split("-"))
+    return False
+
+
+def _matches_secret_patterns(v: str) -> bool:
+    """
+    Check if a value matches known secret patterns.
+
+    Args:
+        v: The string to check (already stripped).
+
+    Returns:
+        bool: True if the value matches secret detection patterns.
+    """
+    # Inline credentials in URLs
+    if INLINE_CREDS_RE.search(v):
+        return True
+    # Keyword-based secret indicators
+    if any(marker.value in v.lower() for marker in SecretMarker) and len(v) >= 12:
+        return True
+    # High-entropy base64 / URL-safe strings
+    if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
+        return True
+    # Hex-encoded secrets (e.g. hashes, keys)
+    return bool(HEX_RE.fullmatch(v))
+
+
 def _looks_like_secret(value: str) -> bool:
     """
     Determine whether a string value appears to be a secret.
@@ -130,27 +188,9 @@ def _looks_like_secret(value: str) -> bool:
         bool: True when the value matches secret heuristics.
     """
     v = value.strip()
-    if not v:
+    if _is_safe_value(v):
         return False
-    if v.lower() in SAFE_PLACEHOLDERS:
-        return False
-    # Inline credentials in URLs
-    if INLINE_CREDS_RE.search(v):
-        return True
-
-    # Keyword-based secret indicators
-    if any(marker.value in v.lower() for marker in SecretMarker) and len(v) >= 12:
-        return True
-
-    # High-entropy base64 / URL-safe strings
-    if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
-        return True
-
-    # Hex-encoded secrets (e.g. hashes, keys)
-    if HEX_RE.fullmatch(v):
-        return True
-
-    return False
+    return _matches_secret_patterns(v)
 
 
 class TestPRAgentConfigSimplification:
@@ -243,7 +283,7 @@ class TestPRAgentConfigYAMLValidity:
         Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             yaml.safe_load(f)
 
     @staticmethod
@@ -254,7 +294,7 @@ class TestPRAgentConfigYAMLValidity:
         Parses the file and fails with pytest.fail when a mapping key appears more than once at any nesting level; the failure message includes the duplicated key and its line number.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             content = f.read()
 
         # Custom loader to detect duplicate YAML entries at any nesting level
@@ -300,7 +340,7 @@ class TestPRAgentConfigYAMLValidity:
             AssertionError: if a line's leading spaces are not a multiple of two; the message includes the offending line number.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             lines = f.readlines()
 
         for i, line in enumerate(lines, 1):
@@ -456,7 +496,7 @@ class TestPRAgentConfigRemovedComplexity:
             FileNotFoundError: If the configuration file cannot be found.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             return f.read()
 
     @staticmethod

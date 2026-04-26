@@ -1,6 +1,9 @@
 name: Run tests and upload coverage
 
-on:
+permissions:
+  contents: read
+
+"on":
   push:
 
 jobs:

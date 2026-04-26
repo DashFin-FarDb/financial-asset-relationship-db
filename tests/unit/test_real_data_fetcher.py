@@ -124,18 +124,22 @@ class TestGetYfinanceLazyImport:
     @staticmethod
     def test_get_yfinance_raises_runtime_error_on_module_not_found():
         """_get_yfinance() raises RuntimeError when yfinance is not installed."""
-        with patch("src.data.real_data_fetcher._YFINANCE_MODULE", None):
-            with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
-                with pytest.raises(RuntimeError, match="Install it using: pip install yfinance"):
-                    _get_yfinance()
+        with (
+            patch("src.data.real_data_fetcher._YFINANCE_MODULE", None),
+            patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")),
+            pytest.raises(RuntimeError, match="Install it using: pip install yfinance"),
+        ):
+            _get_yfinance()
 
     @staticmethod
     def test_get_yfinance_runtime_error_chains_original_cause():
         """RuntimeError raised by _get_yfinance() chains the original ImportError."""
-        with patch("src.data.real_data_fetcher._YFINANCE_MODULE", None):
-            with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
-                with pytest.raises(RuntimeError) as exc_info:
-                    _get_yfinance()
+        with (
+            patch("src.data.real_data_fetcher._YFINANCE_MODULE", None),
+            patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")),
+            pytest.raises(RuntimeError) as exc_info,
+        ):
+            _get_yfinance()
         assert isinstance(exc_info.value.__cause__, ImportError)
 
     @staticmethod
@@ -162,13 +166,15 @@ class TestGetYfinanceLazyImport:
                 raise ImportError("Dependency conflict while importing yfinance")
             return real_import(name, *args, **kwargs)
 
-        with patch("src.data.real_data_fetcher._YFINANCE_MODULE", None):
-            with patch("builtins.__import__", side_effect=side_effect):
-                with pytest.raises(
-                    RuntimeError,
-                    match="could not be imported in the current environment",
-                ):
-                    _get_yfinance()
+        with (
+            patch("src.data.real_data_fetcher._YFINANCE_MODULE", None),
+            patch("builtins.__import__", side_effect=side_effect),
+            pytest.raises(
+                RuntimeError,
+                match="could not be imported in the current environment",
+            ),
+        ):
+            _get_yfinance()
 
     @staticmethod
     def test_module_import_succeeds_without_yfinance():

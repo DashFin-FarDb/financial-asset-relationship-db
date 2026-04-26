@@ -4,13 +4,14 @@ Pytest configuration and shared fixtures.
 This file centralizes:
 - Database engine/session fixtures (SQLite file or in-memory)
 - Environment isolation for tests
+- Coverage flag compatibility when pytest-cov is unavailable
 - Common test helpers (e.g., factories) to avoid repeated boilerplate
 """
 
-from __future__ import annotations
-
-from collections.abc import Callable, Generator, Iterator
+import importlib.util
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sqlalchemy.engine import Engine
@@ -24,13 +25,64 @@ from src.data.database import (
 )
 
 
+def _cov_plugin_available() -> bool:
+    """Return whether pytest-cov is importable in the current environment."""
+    return importlib.util.find_spec("pytest_cov") is not None
+
+
+def pytest_addoption(parser: Any) -> None:
+    """Register fallback pytest-cov options when pytest-cov is unavailable."""
+    if not _cov_plugin_available():
+        _register_dummy_cov_options(parser)
+
+
+def _safe_addoption(group: Any, *names: str, **kwargs: object) -> None:
+    """Add a pytest option while ignoring duplicate-registration errors only."""
+    try:
+        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
+    except ValueError as exc:
+        if "already added" not in str(exc):
+            raise
+
+
+def _register_dummy_cov_options(parser: Any) -> None:
+    """Register no-op coverage options when pytest-cov is unavailable."""
+    group = parser.getgroup("cov")
+
+    # Flags that take optional values (can be used with or without arguments)
+    _safe_addoption(
+        group,
+        "--cov",
+        action="append",
+        dest="cov_source",
+        default=[],
+        nargs="?",
+        const=True,
+        metavar="SOURCE",
+    )
+    _safe_addoption(
+        group,
+        "--cov-report",
+        action="append",
+        dest="cov_report",
+        default=[],
+        metavar="TYPE",
+    )
+
+    # Flags that take required values
+    _safe_addoption(group, "--cov-config", action="store", dest="cov_config", default=None, metavar="PATH")
+    _safe_addoption(group, "--cov-context", action="store", dest="cov_context", default=None, metavar="CONTEXT")
+    _safe_addoption(group, "--cov-fail-under", action="store", dest="cov_fail_under", default=None, metavar="MIN")
+
+    # Boolean flags
+    _safe_addoption(group, "--cov-append", action="store_true", dest="cov_append", default=False)
+    _safe_addoption(group, "--cov-branch", action="store_true", dest="cov_branch", default=False)
+    _safe_addoption(group, "--cov-reset", action="store_true", dest="cov_reset", default=False)
+
+
 @pytest.fixture(autouse=True)
 def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """
-    Ensure tests do not accidentally read developer/prod environment variables.
-
-    You can extend this list as the codebase grows.
-    """
+    """Remove developer or production environment variables from each test."""
     monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     monkeypatch.delenv("USE_REAL_DATA_FETCHER", raising=False)
     monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
@@ -39,20 +91,14 @@ def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture()
 def database_url(tmp_path: Path) -> str:
-    """
-    Default test DB URL.
-
-    Uses a temporary on-disk SQLite DB to behave closer to production than :memory:.
-    If you want in-memory for speed, replace with:
-        "sqlite:///:memory:"
-    """
+    """Return a temporary SQLite database URL for tests."""
     db_path = tmp_path / "test_asset_graph.db"
     return f"sqlite:///{db_path}"
 
 
 @pytest.fixture()
-def engine(database_url: str) -> Iterator[Engine]:
-    """Create a SQLAlchemy Engine for tests and ensure schema exists."""
+def engine(database_url: str) -> Iterator:
+    """Create a test database engine and dispose it after use."""
     eng = create_engine_from_url(database_url)
     Base.metadata.create_all(eng)
     try:
@@ -63,75 +109,12 @@ def engine(database_url: str) -> Iterator[Engine]:
 
 @pytest.fixture()
 def session_factory(engine: Engine) -> sessionmaker[Session]:
-    """Create a sessionmaker bound to the test engine."""
+    """Return a SQLAlchemy session factory bound to the test engine."""
     return create_session_factory(engine)
 
 
 @pytest.fixture()
-def db_session(
-    session_factory: Callable[[], Session],
-) -> Generator[Session, None, None]:
-    """
-    Provide a transaction-scoped SQLAlchemy Session.
-
-    Uses the project's session_scope helper to ensure commit/rollback/close semantics.
-    """
+def db_session(session_factory: Any) -> Iterator:
+    """Yield a transaction-scoped database session for tests."""
     with session_scope(session_factory) as session:
         yield session
-
-
-@pytest.fixture()
-def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
-    """
-    Return a helper that sets environment variables for a test.
-
-    The returned callable accepts keyword arguments where each key is an
-    environment variable name and each value is the value to set;
-    invoking it sets those environment variables for the duration of the
-    test.
-
-    Returns:
-        setter (Callable[..., None]): Callable to set environment variables
-            by passing keyword arguments (e.g., `set_env(KEY="value")`).
-    """
-
-    def _setter(**kwargs: str) -> None:
-        """
-        Set environment variables for a test using the captured pytest `monkeypatch`.
-
-        Each keyword argument maps an environment variable name to its string
-        value and will be set with `monkeypatch.setenv`.
-        Parameters:
-            **kwargs (str): Environment variable names and their values to set.
-        """
-        for key, value in kwargs.items():
-            monkeypatch.setenv(key, value)
-
-    return _setter
-
-
-@pytest.fixture()
-def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
-    """
-    Provide a fixture that returns a callable to remove environment
-    variables from the test environment.
-
-    The returned callable accepts one or more environment variable names
-    and ensures each is removed for the duration of the test.
-
-    Returns:
-        unsetter (Callable[..., None]): Callable that deletes
-            the specified environment variables.
-    """
-
-    def _unsetter(*keys: str) -> None:
-        """
-        Remove the given environment variables from the test environment.
-
-        Parameters:
-            *keys (str): One or more environment variable names to remove.
-        """
-        for key in keys:
-            monkeypatch.delenv(key, raising=False)
-
-    return _unsetter

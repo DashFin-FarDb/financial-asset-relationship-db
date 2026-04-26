@@ -8,7 +8,7 @@ For the architectural decision rationale, see [docs/adr/0001-production-architec
 
 ## System Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         User Interface Layer                         │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -93,7 +93,7 @@ For the architectural decision rationale, see [docs/adr/0001-production-architec
 
 ### Production Flow: Next.js Frontend → FastAPI → Core Logic
 
-```
+```text
 User Action (Next.js)
        │
        │ 1. Click "View 3D Graph"
@@ -127,7 +127,7 @@ React Component
 
 ### Non-Production Flow: Gradio UI → Core Logic (Direct)
 
-```
+```text
 User Action (Gradio)
        │
        │ 1. Click "Refresh Visualization"
@@ -155,7 +155,7 @@ Gradio Interface Update
 
 ### Frontend Technologies
 
-```
+```text
 ┌─────────────────────────────────────┐
 │ Next.js Frontend Stack              │
 │ ** PRODUCTION **                    │
@@ -180,7 +180,7 @@ Gradio Interface Update
 
 ### Backend Technologies
 
-```
+```text
 ┌─────────────────────────────────────┐
 │       Backend Stack                 │
 ├─────────────────────────────────────┤
@@ -204,7 +204,7 @@ Gradio Interface Update
 
 ### Asset Relationship Discovery
 
-```
+```text
 1. Data Ingestion
    ├── Yahoo Finance API (yfinance)
    │   ├── Stock prices
@@ -248,7 +248,7 @@ Gradio Interface Update
 
 ### Local Development
 
-```
+```text
 ┌──────────────────────────────────────────┐
 │         Developer Machine                 │
 ├──────────────────────────────────────────┤
@@ -270,7 +270,7 @@ Gradio Interface Update
 
 ### Vercel Deployment
 
-```
+```text
 ┌──────────────────────────────────────────────────────────┐
 │                    Vercel Platform                        │
 ├──────────────────────────────────────────────────────────┤
@@ -295,7 +295,7 @@ Gradio Interface Update
 
 ## Security Architecture
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │         Security Layers                  │
 ├─────────────────────────────────────────┤
@@ -320,7 +320,7 @@ Gradio Interface Update
 
 ### Caching Strategy (Future)
 
-```
+```text
 Request → Cache Check → Cache Hit?
                           │
                           ├─ Yes → Return cached data
@@ -330,7 +330,7 @@ Request → Cache Check → Cache Hit?
 
 ### Load Distribution
 
-```
+```text
 High Traffic
     │
     ├─ Static Assets → CDN (Vercel Edge)
@@ -344,24 +344,24 @@ High Traffic
 
 1. **New Asset Type**
 
-   ```
+   ```text
    financial_models.py → asset_graph.py → API endpoint → Frontend
    ```
 
 2. **New Relationship Type**
 
-   ```
+   ```text
    _find_relationships() → build_relationships() → Visualization
    ```
 
 3. **New Visualization**
 
-   ```
+   ```text
    Create component → Add to page.tsx → Connect to API
    ```
 
 4. **New API Endpoint**
-   ```
+   ```text
    api/main.py → Test → Update frontend API client → Use in components
    ```
 

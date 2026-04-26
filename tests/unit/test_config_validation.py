@@ -663,7 +663,7 @@ class TestConfigurationSecurityNegative:
                 if "your" not in line.lower() and "example" not in line.lower():
                     # Might be a real key
                     snippet = match.group(0)[:10]
-                    assert False, f"Potential real key found: {snippet}..."
+                    raise AssertionError(f"Potential real key found: {snippet}...")
 
     @staticmethod
     def test_package_json_no_vulnerable_scripts():
@@ -815,7 +815,7 @@ class TestConfigurationBoundaryValues:
             package = json.load(f)
 
         scripts = package.get("scripts", {})
-        for script_name in scripts.keys():
+        for script_name in scripts:
             assert len(script_name) < 50, f"Script name '{script_name}' is excessively long"
 
 

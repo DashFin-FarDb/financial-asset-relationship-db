@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable, Literal
+from collections.abc import Callable
+from typing import Any, Literal
 
 import bleach  # type: ignore[import-untyped]
 import markdown

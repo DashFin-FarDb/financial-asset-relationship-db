@@ -10,7 +10,7 @@ This module tests markdown documentation files to ensure:
 """
 
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -575,7 +575,7 @@ class TestDocumentationConsistency:
 
         Checks the dependency matrix "Generated" timestamp and the system manifest "Last Updated" timestamp(expected as ISO 8601 with milliseconds and a trailing "Z"); if either timestamp is present and is more than one year old the test fails.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         one_year_ago = now - timedelta(days=365)
 
         # Check dependency matrix timestamp
@@ -694,11 +694,9 @@ class TestDocumentationRealisticContent:
         # Check that dependencies follow common patterns
         for dep in deps[:20]:  # Check first 20
             # Should not have spaces (unless it's a relative path)
-            if not dep.startswith(".") and not dep.startswith("@"):
-                # Package names shouldn't have spaces
-                if " " not in dep:
-                    # Valid package name format
-                    assert re.match(r"^[@\w\.\-/]+$", dep), f"Dependency '{dep}' doesn't look like a valid package name"
+            if not dep.startswith(".") and not dep.startswith("@") and " " not in dep:
+                # Valid package name format
+                assert re.match(r"^[@\w\.\-/]+$", dep), f"Dependency '{dep}' doesn't look like a valid package name"
 
 
 @pytest.mark.unit

@@ -7,7 +7,6 @@ workflows can successfully use the installed dependencies.
 """
 
 from pathlib import Path
-from typing import List, Tuple
 
 import pytest
 import yaml
@@ -17,7 +16,7 @@ WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
 REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
-def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
+def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
     """
     Parse a pip-style requirements file into a list of package names with their version specifiers.
 
@@ -32,9 +31,9 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     Raises:
         ValueError: If any non-empty, non-comment line cannot be parsed as a requirement.
     """
-    requirements: List[Tuple[str, str]] = []
+    requirements: list[tuple[str, str]] = []
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         for raw_line in f:
             line = raw_line.strip()
 
@@ -62,7 +61,7 @@ class TestWorkflowCanInstallRequirements:
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
 
-        with open(pr_agent_file, "r") as f:
+        with open(pr_agent_file) as f:
             workflow = yaml.safe_load(f)
 
         # Check that at least one job has a step to install dependencies
@@ -98,7 +97,7 @@ class TestWorkflowCanInstallRequirements:
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
 
-        with open(pr_agent_file, "r") as f:
+        with open(pr_agent_file) as f:
             workflow = yaml.safe_load(f)
 
         for job_name, job in workflow.get("jobs", {}).items():
@@ -112,14 +111,12 @@ class TestWorkflowCanInstallRequirements:
                 step_name = step.get("name", "").lower()
 
                 # Check for dependency installation step
-                if "pip install" in run_cmd or "requirements" in run_cmd:
-                    if install_idx is None:
-                        install_idx = i
+                if ("pip install" in run_cmd or "requirements" in run_cmd) and install_idx is None:
+                    install_idx = i
 
                 # Check for test execution step
-                if "pytest" in run_cmd or "test" in step_name:
-                    if test_idx is None:
-                        test_idx = i
+                if ("pytest" in run_cmd or "test" in step_name) and test_idx is None:
+                    test_idx = i
 
             # If both exist, install should come before test
             if install_idx is not None and test_idx is not None:
@@ -156,7 +153,7 @@ class TestPyYAMLAvailability:
         assert len(workflow_files) > 0, "No workflow files found to test"
 
         for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 try:
                     content = yaml.safe_load(f)
                     assert isinstance(content, dict), f"{workflow_file.name} should parse to a dictionary"
@@ -219,7 +216,7 @@ class TestRequirementsMatchWorkflowNeeds:
         if not pr_agent_file.exists():
             pytest.skip("pr-agent.yml not found")
 
-        with open(pr_agent_file, "r") as f:
+        with open(pr_agent_file) as f:
             workflow = yaml.safe_load(f)
 
         # Extract Python version from workflow

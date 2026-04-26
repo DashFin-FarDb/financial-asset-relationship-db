@@ -14,7 +14,6 @@ Tests cover:
 import importlib
 import os
 import sqlite3
-import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -70,7 +69,7 @@ class TestDatabaseURLConfiguration:
                 get_settings.cache_clear()
                 with pytest.raises(
                     ValueError,
-                    match="DATABASE_URL must be configured",
+                    match="DATABASE_URL environment variable must be set",
                 ):
                     importlib.reload(database)
         finally:
@@ -164,16 +163,14 @@ class TestConnectionManagement:
 
     def test_get_connection_context_manager(self):
         """Test that get_connection works as context manager."""
-        with patch("api.database.DATABASE_PATH", ":memory:"):
-            with get_connection() as conn:
-                assert conn is not None
-                assert isinstance(conn, sqlite3.Connection)
+        with patch("api.database.DATABASE_PATH", ":memory:"), get_connection() as conn:
+            assert conn is not None
+            assert isinstance(conn, sqlite3.Connection)
 
     def test_connection_has_row_factory(self):
         """Test that connection has Row factory set."""
-        with patch("api.database.DATABASE_PATH", ":memory:"):
-            with get_connection() as conn:
-                assert conn.row_factory == sqlite3.Row
+        with patch("api.database.DATABASE_PATH", ":memory:"), get_connection() as conn:
+            assert conn.row_factory == sqlite3.Row
 
     def test_memory_connection_is_reused(self):
         """Test that in-memory connection is reused."""
@@ -191,24 +188,25 @@ class TestConnectionManagement:
         """Test that file-based connections are new each time."""
         db_file = tmp_path / "test.db"
 
-        with patch("api.database.DATABASE_PATH", str(db_file)):
-            with patch("api.database._is_memory_db", return_value=False):
-                with get_connection() as conn1:
-                    conn1_id = id(conn1)
+        with patch("api.database.DATABASE_PATH", str(db_file)), patch("api.database._is_memory_db", return_value=False):
+            with get_connection() as conn1:
+                conn1_id = id(conn1)
 
-                with get_connection() as conn2:
-                    conn2_id = id(conn2)
+            with get_connection() as conn2:
+                conn2_id = id(conn2)
 
-                # Should be different connections for file DB
-                assert conn1_id != conn2_id
+            # Should be different connections for file DB
+            assert conn1_id != conn2_id
 
     def test_connection_supports_uri(self):
         """Test that URI-style paths are supported."""
         uri_path = "file::memory:?cache=shared"
-        with patch("api.database.DATABASE_PATH", uri_path):
-            with patch("api.database._is_memory_db", return_value=True):
-                with get_connection() as conn:
-                    assert conn is not None
+        with (
+            patch("api.database.DATABASE_PATH", uri_path),
+            patch("api.database._is_memory_db", return_value=True),
+            get_connection() as conn,
+        ):
+            assert conn is not None
 
 
 class TestQueryExecution:

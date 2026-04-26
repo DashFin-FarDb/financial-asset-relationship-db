@@ -1,7 +1,8 @@
 """Visualization helpers for formulaic financial analysis results."""
 
 import math
-from typing import Any, Dict, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 from plotly.subplots import make_subplots  # type: ignore[import-untyped]
@@ -40,7 +41,7 @@ class FormulaicVisualizer:
 
     def create_formula_dashboard(
         self,
-        analysis_results: Dict[str, Any],
+        analysis_results: dict[str, Any],
     ) -> go.Figure:
         """
         Create a multi-panel Plotly dashboard visualizing formula analysis results.
@@ -137,7 +138,7 @@ class FormulaicVisualizer:
     # Dashboard plotting methods
     # ------------------------------------------------------------------
 
-    def _aggregate_category_stats(self, formulas: Any) -> Dict[str, Dict[str, float]]:
+    def _aggregate_category_stats(self, formulas: Any) -> dict[str, dict[str, float]]:
         """
         Aggregate formula counts and average R-squared grouped by category.
 
@@ -154,7 +155,7 @@ class FormulaicVisualizer:
         Returns:
             Dict[str, Dict[str, float]]: Per-category statistics with keys `count`, `total_r2`, and `avg_r2`.
         """
-        stats: Dict[str, Dict[str, float]] = {}
+        stats: dict[str, dict[str, float]] = {}
         if not formulas:
             return stats
 
@@ -171,7 +172,7 @@ class FormulaicVisualizer:
 
         return stats
 
-    def _plot_category_distribution(self, fig: go.Figure, category_stats: Dict[str, Dict[str, float]]) -> None:
+    def _plot_category_distribution(self, fig: go.Figure, category_stats: dict[str, dict[str, float]]) -> None:
         """
         Render a pie chart showing formula counts by category into the provided Plotly figure.
 
@@ -197,7 +198,7 @@ class FormulaicVisualizer:
             col=1,
         )
 
-    def _plot_reliability(self, fig: go.Figure, category_stats: Dict[str, Dict[str, float]]) -> None:
+    def _plot_reliability(self, fig: go.Figure, category_stats: dict[str, dict[str, float]]) -> None:
         """
         Add a bar chart of average R-squared per formula category to the dashboard (subplot row 1, col 2).
 
@@ -450,7 +451,7 @@ class FormulaicVisualizer:
         except (TypeError, ValueError):
             return 0.0
 
-    def _plot_asset_class_relationships(self, fig: go.Figure, category_stats: Dict[str, Dict[str, float]]) -> None:
+    def _plot_asset_class_relationships(self, fig: go.Figure, category_stats: dict[str, dict[str, float]]) -> None:
         """
         Add a bar chart of formula counts per category to the provided Plotly figure.
 
@@ -477,7 +478,7 @@ class FormulaicVisualizer:
             col=2,
         )
 
-    def _plot_sector_analysis(self, fig: go.Figure, category_stats: Dict[str, Dict[str, float]]) -> None:
+    def _plot_sector_analysis(self, fig: go.Figure, category_stats: dict[str, dict[str, float]]) -> None:
         """
         Plot average R-squared per formula category as a bar chart and add it to the dashboard.
 
@@ -797,7 +798,7 @@ class FormulaicVisualizer:
         return ("", "", 0.0)
 
     @staticmethod
-    def _create_circular_positions(assets: list[str]) -> Dict[str, tuple[float, float]]:
+    def _create_circular_positions(assets: list[str]) -> dict[str, tuple[float, float]]:
         """
         Compute evenly spaced coordinates on the unit circle for each asset.
 
@@ -822,7 +823,7 @@ class FormulaicVisualizer:
     @staticmethod
     def _create_edge_traces(
         correlations: Any,
-        positions: Dict[str, tuple[float, float]],
+        positions: dict[str, tuple[float, float]],
     ) -> list[go.Scatter]:
         """
         Builds Plotly line traces for correlations between positioned assets.
@@ -851,7 +852,7 @@ class FormulaicVisualizer:
         asset1: str,
         asset2: str,
         value: float,
-        positions: Dict[str, tuple[float, float]],
+        positions: dict[str, tuple[float, float]],
     ) -> go.Scatter:
         """
         Create a Plotly line trace that visualizes the correlation between two assets.
@@ -885,7 +886,7 @@ class FormulaicVisualizer:
     @staticmethod
     def _create_node_trace(
         assets: list[str],
-        positions: Dict[str, tuple[float, float]],
+        positions: dict[str, tuple[float, float]],
     ) -> go.Scatter:
         """
         Create a Plotly scatter trace representing
@@ -933,7 +934,7 @@ class FormulaicVisualizer:
 
     def create_metric_comparison_chart(
         self,
-        analysis_results: Dict[str, Any],
+        analysis_results: dict[str, Any],
     ) -> go.Figure:
         """
         Render a grouped bar chart comparing average R-squared and formula count per category.

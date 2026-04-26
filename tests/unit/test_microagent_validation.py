@@ -15,7 +15,7 @@ This module tests microagent markdown files to ensure:
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 import yaml
@@ -31,7 +31,7 @@ class TestMicroagentValidation:
         return Path(".openhands/microagents")
 
     @pytest.fixture
-    def microagent_files(self, microagents_dir: Path) -> List[Path]:
+    def microagent_files(self, microagents_dir: Path) -> list[Path]:
         """Get all microagent markdown files."""
         assert microagents_dir.exists(), "Microagents directory does not exist"
         files = list(microagents_dir.glob("*.md"))
@@ -39,7 +39,7 @@ class TestMicroagentValidation:
         return files
 
     @staticmethod
-    def parse_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
+    def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
         """
         Extracts YAML frontmatter and the remaining markdown body from a markdown string.
 
@@ -66,7 +66,7 @@ class TestMicroagentValidation:
         try:
             frontmatter = yaml.safe_load(frontmatter_text)
         except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML in frontmatter: {e}")
+            raise ValueError(f"Invalid YAML in frontmatter: {e}") from e
 
         return frontmatter, body
 
@@ -91,7 +91,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             return f.read()
 
     @pytest.fixture
-    def repo_engineer_frontmatter(self, repo_engineer_content: str) -> Dict[str, Any]:
+    def repo_engineer_frontmatter(self, repo_engineer_content: str) -> dict[str, Any]:
         """Parse and return frontmatter from repo_engineer_lead.md."""
         frontmatter, _ = self.parse_frontmatter(repo_engineer_content)
         return frontmatter
@@ -121,14 +121,14 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert len(body) > 0
 
     @staticmethod
-    def test_frontmatter_has_required_fields(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_has_required_fields(repo_engineer_frontmatter: dict[str, Any]):
         """Test that frontmatter contains all required fields."""
         required_fields = ["name", "type", "version", "agent"]
         for field in required_fields:
             assert field in repo_engineer_frontmatter, f"Missing required field: {field}"
 
     @staticmethod
-    def test_frontmatter_name_field(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_name_field(repo_engineer_frontmatter: dict[str, Any]):
         """
         Verify the frontmatter contains a non-empty 'name' field matching 'repo_engineer_lead'.
 
@@ -142,7 +142,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert name == "repo_engineer_lead", "Name should match filename convention"
 
     @staticmethod
-    def test_frontmatter_type_field(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_type_field(repo_engineer_frontmatter: dict[str, Any]):
         """Test that type field is valid."""
         assert "type" in repo_engineer_frontmatter
         agent_type = repo_engineer_frontmatter["type"]
@@ -152,7 +152,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
     @staticmethod
     def test_frontmatter_version_field(
-        repo_engineer_frontmatter: Dict[str, Any],
+        repo_engineer_frontmatter: dict[str, Any],
     ) -> None:
         """
         Validate that the parsed frontmatter includes a semantic version string in the form x.y.z.
@@ -167,7 +167,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert re.match(r"^\d+\.\d+\.\d+$", version), "Version should follow semver format (x.y.z)"
 
     @staticmethod
-    def test_frontmatter_agent_field(repo_engineer_frontmatter: Dict[str, Any]) -> None:
+    def test_frontmatter_agent_field(repo_engineer_frontmatter: dict[str, Any]) -> None:
         """
         Validate that the frontmatter 'agent' field exists and is a non-empty string matching an allowed OpenHands agent type.
 
@@ -183,7 +183,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert agent in valid_agents, f"Agent should be one of {valid_agents}"
 
     @staticmethod
-    def test_frontmatter_no_triggers(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_no_triggers(repo_engineer_frontmatter: dict[str, Any]):
         """Test that triggers field is absent (as documented in the content)."""
         # The content states "the microagent doesn't have any triggers"
         # So triggers should either be absent or empty
@@ -335,7 +335,7 @@ class TestAllMicroagents(TestMicroagentValidation):
     """Test cases for all microagent files in the directory."""
 
     @staticmethod
-    def test_all_microagents_have_valid_structure(microagent_files: List[Path]):
+    def test_all_microagents_have_valid_structure(microagent_files: list[Path]):
         """Test that all microagent files have valid structure."""
         for file_path in microagent_files:
             with open(file_path, encoding="utf-8") as f:
@@ -347,7 +347,7 @@ class TestAllMicroagents(TestMicroagentValidation):
                 r"^---\s*\n.*?\n---\s*\n", content, re.DOTALL
             ), f"{file_path.name} should have valid frontmatter"
 
-    def test_all_microagents_have_required_fields(self, microagent_files: List[Path]):
+    def test_all_microagents_have_required_fields(self, microagent_files: list[Path]):
         """
         Verify each microagent Markdown file contains the required YAML frontmatter fields "name", "type", "version", and "agent".
 
@@ -365,7 +365,7 @@ class TestAllMicroagents(TestMicroagentValidation):
             for field in required_fields:
                 assert field in frontmatter, f"{file_path.name} is missing required field: {field}"
 
-    def test_all_microagents_have_unique_names(self, microagent_files: List[Path]):
+    def test_all_microagents_have_unique_names(self, microagent_files: list[Path]):
         """Test that all microagent names are unique."""
         names = []
         for file_path in microagent_files:
@@ -378,7 +378,7 @@ class TestAllMicroagents(TestMicroagentValidation):
         # Check for duplicates
         assert len(names) == len(set(names)), "All microagent names should be unique"
 
-    def test_all_microagents_valid_versions(self, microagent_files: List[Path]):
+    def test_all_microagents_valid_versions(self, microagent_files: list[Path]):
         """Test that all microagents have valid semantic versions."""
         for file_path in microagent_files:
             with open(file_path, encoding="utf-8") as f:
@@ -391,7 +391,7 @@ class TestAllMicroagents(TestMicroagentValidation):
                 r"^\d+\.\d+\.\d+$", version
             ), f"{file_path.name} should have valid semver version, got: {version}"
 
-    def test_all_microagents_valid_types(self, microagent_files: List[Path]):
+    def test_all_microagents_valid_types(self, microagent_files: list[Path]):
         """Test that all microagents have valid type values."""
         valid_types = ["knowledge", "action", "hybrid"]
 
@@ -406,7 +406,7 @@ class TestAllMicroagents(TestMicroagentValidation):
                 agent_type in valid_types
             ), f"{file_path.name} has invalid type: {agent_type}, must be one of {valid_types}"
 
-    def test_all_microagents_valid_agents(self, microagent_files: List[Path]):
+    def test_all_microagents_valid_agents(self, microagent_files: list[Path]):
         """Test that all microagents have valid agent values."""
         valid_agents = ["CodeActAgent", "PlannerAgent", "BrowsingAgent"]
 
@@ -419,7 +419,7 @@ class TestAllMicroagents(TestMicroagentValidation):
 
             assert agent in valid_agents, f"{file_path.name} has invalid agent: {agent}, must be one of {valid_agents}"
 
-    def test_triggers_field_is_optional(self, microagent_files: List[Path]):
+    def test_triggers_field_is_optional(self, microagent_files: list[Path]):
         """Test that triggers field is optional and properly formatted when present."""
         for file_path in microagent_files:
             with open(file_path, encoding="utf-8") as f:
@@ -618,7 +618,7 @@ class TestMicroagentPerformance(TestMicroagentValidation):
     """Performance and size tests for microagent files."""
 
     @staticmethod
-    def test_all_microagents_reasonable_size(microagent_files: List[Path]):
+    def test_all_microagents_reasonable_size(microagent_files: list[Path]):
         """Test that all microagent files are reasonably sized."""
         for file_path in microagent_files:
             file_size = file_path.stat().st_size
@@ -626,7 +626,7 @@ class TestMicroagentPerformance(TestMicroagentValidation):
             assert file_size > 50, f"{file_path.name} is too small ({file_size} bytes)"
 
     @staticmethod
-    def test_all_microagents_parse_quickly(microagent_files: List[Path]):
+    def test_all_microagents_parse_quickly(microagent_files: list[Path]):
         """Test that all microagents can be parsed quickly."""
         import time
 
@@ -642,7 +642,7 @@ class TestMicroagentPerformance(TestMicroagentValidation):
 class TestMicroagentDocumentation(TestMicroagentValidation):
     """Test documentation quality in microagent files."""
 
-    def test_all_microagents_have_body_content(self, microagent_files: List[Path]) -> None:
+    def test_all_microagents_have_body_content(self, microagent_files: list[Path]) -> None:
         """
         Assert each microagent markdown file's body contains at least 20 words.
 
@@ -662,7 +662,7 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
                 # Skip files with unparseable frontmatter (may have special YAML syntax)
                 pass
 
-    def test_all_microagents_use_markdown_formatting(self, microagent_files: List[Path]) -> None:
+    def test_all_microagents_use_markdown_formatting(self, microagent_files: list[Path]) -> None:
         """Test that microagent bodies use markdown formatting."""
         for file_path in microagent_files:
             with open(file_path, encoding="utf-8") as f:

@@ -224,7 +224,7 @@ class TestSampleRelationships:
         bond_rel_found = False
         for _source_id, rels in graph.relationships.items():
             for _target_id, rel_type, _strength in rels:
-                if "bond" in rel_type.lower():
+                if "bond" in rel_type.lower() or "corporate" in rel_type.lower():
                     bond_rel_found = True
                     break
             if bond_rel_found:

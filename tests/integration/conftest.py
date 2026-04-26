@@ -1,7 +1,6 @@
 """Shared fixtures for integration tests."""
 
 from pathlib import Path
-from typing import List, Tuple
 
 import pytest
 import yaml
@@ -9,13 +8,13 @@ import yaml
 REQUIREMENTS_DEV_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
-def _parse_requirements_file(file_path: Path) -> List[Tuple[str, str]]:
+def _parse_requirements_file(file_path: Path) -> list[tuple[str, str]]:
     """Helper to parse requirements file into (package, version) tuples."""
     if not file_path.exists():
         return []
 
     requirements = []
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
@@ -40,13 +39,13 @@ def _parse_requirements_file(file_path: Path) -> List[Tuple[str, str]]:
 
 
 @pytest.fixture
-def parsed_requirements() -> List[Tuple[str, str]]:
+def parsed_requirements() -> list[tuple[str, str]]:
     """Parse requirements-dev.txt and return list of (package, version) tuples."""
     return _parse_requirements_file(REQUIREMENTS_DEV_FILE)
 
 
 @pytest.fixture
-def all_workflows() -> List[dict]:
+def all_workflows() -> list[dict]:
     """
     Load and parse all GitHub Actions workflow YAML files from .github/workflows.
 
@@ -59,7 +58,7 @@ def all_workflows() -> List[dict]:
     if workflow_dir.exists():
         for workflow_file in workflow_dir.glob("*.y*ml"):
             try:
-                with open(workflow_file, "r", encoding="utf-8") as f:
+                with open(workflow_file, encoding="utf-8") as f:
                     raw = f.read()
                     content = yaml.safe_load(raw)
                     if isinstance(content, dict):

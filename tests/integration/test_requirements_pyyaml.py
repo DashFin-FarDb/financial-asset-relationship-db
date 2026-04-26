@@ -5,7 +5,6 @@ Tests the addition of PyYAML and types-PyYAML dependencies.
 
 import re
 from pathlib import Path
-from typing import List
 
 import pytest
 
@@ -35,12 +34,12 @@ class TestPyYAMLDependencyAddition:
         Returns:
             str: File contents decoded as UTF-8.
         """
-        with open(requirements_file, "r", encoding="utf-8") as f:
+        with open(requirements_file, encoding="utf-8") as f:
             return f.read()
 
     @pytest.fixture
     @staticmethod
-    def requirements_lines(requirements_content: str) -> List[str]:
+    def requirements_lines(requirements_content: str) -> list[str]:
         """
         Extracts the non-empty, non-comment lines from the contents of a requirements file.
 
@@ -58,19 +57,19 @@ class TestPyYAMLDependencyAddition:
         return lines
 
     @staticmethod
-    def test_pyyaml_present(requirements_lines: List[str]):
+    def test_pyyaml_present(requirements_lines: list[str]):
         """Test that PyYAML is in requirements-dev.txt."""
         pyyaml_lines = [line for line in requirements_lines if line.startswith("PyYAML")]
         assert len(pyyaml_lines) >= 1, "PyYAML should be present in requirements-dev.txt"
 
     @staticmethod
-    def test_types_pyyaml_present(requirements_lines: List[str]):
+    def test_types_pyyaml_present(requirements_lines: list[str]):
         """Test that types-PyYAML is in requirements-dev.txt."""
         types_lines = [line for line in requirements_lines if line.startswith("types-PyYAML")]
         assert len(types_lines) >= 1, "types-PyYAML should be present in requirements-dev.txt"
 
     @staticmethod
-    def test_pyyaml_version_specified(requirements_lines: List[str]):
+    def test_pyyaml_version_specified(requirements_lines: list[str]):
         """Test that PyYAML has a version specifier."""
         pyyaml_lines = [line for line in requirements_lines if line.startswith("PyYAML")]
 
@@ -78,7 +77,7 @@ class TestPyYAMLDependencyAddition:
             assert ">=" in line or "==" in line, f"PyYAML should have version specifier: {line}"
 
     @staticmethod
-    def test_pyyaml_version_at_least_6(requirements_lines: List[str]):
+    def test_pyyaml_version_at_least_6(requirements_lines: list[str]):
         """
         Ensure any 'PyYAML' entries with a '>=' minimum version in requirements_lines specify version 6.0 or higher.
 
@@ -94,7 +93,7 @@ class TestPyYAMLDependencyAddition:
                 assert version >= 6.0, f"PyYAML version should be >= 6.0, got {version}"
 
     @staticmethod
-    def test_types_pyyaml_matches_pyyaml_version(requirements_lines: List[str]):
+    def test_types_pyyaml_matches_pyyaml_version(requirements_lines: list[str]):
         """
         Assert that the major version of types-PyYAML equals the major version of PyYAML when both are specified with '>=' in the given requirements lines.
 
@@ -135,7 +134,7 @@ class TestRequirementsDevYAMLUsage:
         pyyaml_used = False
         for test_file in workflow_test_files:
             if test_file.exists():
-                with open(test_file, "r", encoding="utf-8") as f:
+                with open(test_file, encoding="utf-8") as f:
                     content = f.read()
                     if "import yaml" in content:
                         pyyaml_used = True
@@ -171,7 +170,7 @@ class TestRequirementsDevCompleteness:
         Returns:
             str: The full contents of requirements-dev.txt.
         """
-        with open("requirements-dev.txt", "r", encoding="utf-8") as f:
+        with open("requirements-dev.txt", encoding="utf-8") as f:
             return f.read()
 
     def test_file_ends_with_newline(self, requirements_content: str):
@@ -248,7 +247,7 @@ class TestPyYAMLCompatibility:
             workflow_file = Path(".github/workflows/pr-agent.yml")
 
             if workflow_file.exists():
-                with open(workflow_file, "r", encoding="utf-8") as f:
+                with open(workflow_file, encoding="utf-8") as f:
                     content = yaml.safe_load(f)
 
                 assert content is not None, "PyYAML should successfully parse workflow files"
@@ -262,14 +261,14 @@ class TestRequirementsDevVersionPinning:
 
     @pytest.fixture
     @staticmethod
-    def requirements_lines() -> List[str]:
+    def requirements_lines() -> list[str]:
         """
         Get the non-comment, non-empty lines from requirements-dev.txt.
 
         Returns:
             List[str]: Cleaned requirement lines (whitespace trimmed) in file order.
         """
-        with open("requirements-dev.txt", "r", encoding="utf-8") as f:
+        with open("requirements-dev.txt", encoding="utf-8") as f:
             content = f.read()
 
         lines = []
@@ -280,7 +279,7 @@ class TestRequirementsDevVersionPinning:
         return lines
 
     @staticmethod
-    def test_uses_minimum_version_specifiers(requirements_lines: List[str]):
+    def test_uses_minimum_version_specifiers(requirements_lines: list[str]):
         """
         Ensure non-typing packages in the provided requirement lines include a minimum version specifier ('>=' or '==').
 
@@ -292,7 +291,7 @@ class TestRequirementsDevVersionPinning:
                 assert ">=" in line or "==" in line, f"Package should have version specifier: {line}"
 
     @staticmethod
-    def test_pyyaml_and_types_both_pinned(requirements_lines: List[str]):
+    def test_pyyaml_and_types_both_pinned(requirements_lines: list[str]):
         """Test that both PyYAML and types-PyYAML have version pins."""
         pyyaml_pinned = any("PyYAML>=" in line for line in requirements_lines)
         types_pinned = any("types-PyYAML>=" in line for line in requirements_lines)

@@ -11,7 +11,7 @@ Validates:
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 import yaml
@@ -34,7 +34,7 @@ class TestYAMLSyntaxAndStructure:
         parse_errors = []
         for yaml_file in yaml_files:
             try:
-                with open(yaml_file, "r") as f:
+                with open(yaml_file) as f:
                     yaml.safe_load(f)
             except yaml.YAMLError as e:
                 parse_errors.append(f"{yaml_file}: {str(e)}")
@@ -116,7 +116,7 @@ def test_no_duplicate_keys_in_yaml():
 
     for yaml_file in yaml_files:
         try:
-            with open(yaml_file, "r") as f:
+            with open(yaml_file) as f:
                 parser.load(f)
         except YAMLError as e:
             parse_errors.append(f"{yaml_file}: YAML error - {e}")
@@ -134,7 +134,7 @@ class TestWorkflowSchemaCompliance:
 
     @staticmethod
     @pytest.fixture
-    def all_workflows() -> List[Dict[str, Any]]:
+    def all_workflows() -> list[dict[str, Any]]:
         """
         Collects and parses all GitHub Actions workflow files from .github/workflows.
 
@@ -146,7 +146,7 @@ class TestWorkflowSchemaCompliance:
         workflow_dir = Path(".github/workflows")
         workflows = []
         for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflows.append({"path": workflow_file, "content": yaml.safe_load(f)})
         return workflows
 
@@ -162,13 +162,13 @@ class TestWorkflowSchemaCompliance:
                 - 'content' (dict | None): parsed YAML content of the workflow
         """
         required_keys = ["name", "jobs"]
-        checkout_versions: Dict[str, str] = {}
+        checkout_versions: dict[str, str] = {}
         for workflow in all_workflows:
             if not isinstance(workflow["content"], dict):
                 continue
             for key in required_keys:
                 assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
-            for job_name, job in workflow["content"].get("jobs", {}).items():
+            for _job_name, job in workflow["content"].get("jobs", {}).items():
                 for step in job.get("steps", []):
                     uses = step.get("uses", "")
                     if "actions/checkout@" in uses:
@@ -194,7 +194,7 @@ class TestDefaultValueHandling:
         """
         config_path = Path(".github/pr-agent-config.yml")
 
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # These fields should have defaults if not specified
@@ -214,7 +214,7 @@ class TestDefaultValueHandling:
         workflow_dir = Path(".github/workflows")
 
         for workflow_file in workflow_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file) as f:
                 workflow = yaml.safe_load(f)
 
             jobs = workflow.get("jobs", {})

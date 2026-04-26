@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import sys
 from pathlib import Path
@@ -601,12 +602,12 @@ class TestSecurityAndSafety:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """generate_report raises CLIError when file permissions prevent writing."""
-        from pathlib import Path as _Path
+        import tempfile
 
-        def mock_write_text(*args, **kwargs):  # noqa: ARG001
+        def mock_mkstemp(*args, **kwargs):  # noqa: ARG001
             raise PermissionError("Permission denied")
 
-        monkeypatch.setattr(_Path, "write_text", mock_write_text)
+        monkeypatch.setattr(tempfile, "mkstemp", mock_mkstemp)
 
         output = tmp_path / "readonly.txt"
         fmt = cli_module.OutputFormat.MARKDOWN
@@ -649,10 +650,8 @@ class TestSecurityAndSafety:
         content = "test"
 
         # write_atomic writes to temp file, then replace fails (simulating disk full)
-        try:
+        with contextlib.suppress(Exception):
             cli_module.write_atomic(target, content)
-        except Exception:
-            pass  # Expected
 
         # Check no temp files remain after cleanup
         temp_files = list(tmp_path.glob("*.tmp"))

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Mapping, Set, TypedDict
+from typing import Any, TypedDict
 
 import pytest
 import yaml
@@ -22,15 +23,15 @@ WORKFLOWS_DIR = ROOT_DIR / ".github" / "workflows"
 class Step(TypedDict, total=False):
     uses: str
     run: str
-    with_: Dict[str, Any]
+    with_: dict[str, Any]
 
 
 class Job(TypedDict, total=False):
-    steps: List[Step]
-    concurrency: Dict[str, Any]
+    steps: list[Step]
+    concurrency: dict[str, Any]
 
 
-Workflow = Dict[str, Any]
+Workflow = dict[str, Any]
 
 
 # ---------------------------------------------------------------------------
@@ -38,7 +39,7 @@ Workflow = Dict[str, Any]
 # ---------------------------------------------------------------------------
 
 
-def load_yaml(path: Path) -> Dict[str, Any]:
+def load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         pytest.skip(f"{path.name} not found")
     with path.open(encoding="utf-8") as fh:
@@ -78,18 +79,22 @@ def iter_steps(job: Mapping[str, Any]) -> Iterable[Step]:
                 yield step
 
 
-def extract_python_versions(workflow: Mapping[str, Any]) -> Set[str]:
+def extract_python_versions(workflow: Mapping[str, Any]) -> set[str]:
     """
     Extract python-version values from structured step definitions.
+
+    GitHub Actions template expressions (e.g. ``${{ matrix.python-version }}``)
+    are excluded because they are not concrete version strings; their actual
+    values are already represented by the matrix entries captured elsewhere.
     """
-    versions: Set[str] = set()
+    versions: set[str] = set()
 
     for job in iter_jobs(workflow):
         for step in iter_steps(job):
             with_cfg = step.get("with_", step.get("with", {}))
             if isinstance(with_cfg, dict):
                 version = with_cfg.get("python-version")
-                if isinstance(version, str):
+                if isinstance(version, str) and not version.strip().startswith("${{"):
                     versions.add(version)
 
     return versions
@@ -101,13 +106,13 @@ def extract_python_versions(workflow: Mapping[str, Any]) -> Set[str]:
 
 
 @pytest.fixture(scope="session")
-def all_workflows() -> List[tuple[Path, Workflow]]:
+def all_workflows() -> list[tuple[Path, Workflow]]:
     return list(iter_workflows())
 
 
 @pytest.fixture(scope="session")
-def all_steps(all_workflows: List[tuple[Path, Workflow]]) -> List[Step]:
-    steps: List[Step] = []
+def all_steps(all_workflows: list[tuple[Path, Workflow]]) -> list[Step]:
+    steps: list[Step] = []
     for _, workflow in all_workflows:
         for job in iter_jobs(workflow):
             steps.extend(iter_steps(job))
@@ -174,17 +179,18 @@ class TestAPISecWorkflowEdgeCases:
 class TestWorkflowConsistency:
     def test_python_versions_consistent(
         self,
-        all_workflows: List[tuple[Path, Workflow]],
+        all_workflows: list[tuple[Path, Workflow]],
     ) -> None:
-        versions: Set[str] = set()
+        versions: set[str] = set()
 
         for _, workflow in all_workflows:
             versions |= extract_python_versions(workflow)
 
         if versions:
-            assert len(versions) <= 2
+            # Project supports Python 3.10, 3.11, 3.12 per pyproject.toml classifiers
+            assert len(versions) <= 3
 
-    def test_checkout_versions(self, all_steps: List[Step]) -> None:
+    def test_checkout_versions(self, all_steps: list[Step]) -> None:
         checkouts = [step["uses"] for step in all_steps if "uses" in step and "checkout" in step["uses"].lower()]
         if checkouts:
             # Accept either @v4 tags or SHA pins (40-char hex) as valid pinned versions
@@ -199,9 +205,9 @@ class TestWorkflowConsistency:
 
     def test_permissions_declared(
         self,
-        all_workflows: List[tuple[Path, Workflow]],
+        all_workflows: list[tuple[Path, Workflow]],
     ) -> None:
-        for path, workflow in all_workflows:
+        for _path, workflow in all_workflows:
             perms = workflow.get("permissions")
             if perms is not None:
                 assert isinstance(perms, (dict, str))

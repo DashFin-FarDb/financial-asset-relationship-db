@@ -146,7 +146,7 @@ make check         # Run all checks (format, lint, type, test)
 
 ## File Organization
 
-```
+```text
 financial-asset-relationship-db/
 ├── .github/
 │   ├── workflows/

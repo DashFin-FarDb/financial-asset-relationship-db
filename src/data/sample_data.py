@@ -1,6 +1,7 @@
 """Build sample asset graph data for local development and demos."""
 
 import logging
+from collections.abc import Sequence
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
@@ -365,7 +366,7 @@ def create_sample_database() -> AssetRelationshipGraph:
         raise
 
 
-def _log_asset_class_coverage(all_assets: list[object]) -> None:
+def _log_asset_class_coverage(all_assets: Sequence[object]) -> None:
     """
     Log how many sample assets belong to each AssetClass to the module logger.
 
@@ -373,7 +374,7 @@ def _log_asset_class_coverage(all_assets: list[object]) -> None:
     `asset_class` attribute and emits a single INFO-level log line with the four totals.
 
     Parameters:
-        all_assets (list[object]): Sequence of asset instances; each should expose an
+        all_assets (Sequence[object]): Sequence of asset instances; each should expose an
             `asset_class` attribute whose value is a member of `AssetClass`.
     """
     logger.info(

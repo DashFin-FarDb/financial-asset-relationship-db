@@ -1,6 +1,6 @@
 """Directional arrow traces for graph visualizations."""
 
-from typing import Dict, Optional, Sequence
+from collections.abc import Sequence
 
 import plotly.graph_objects as go
 
@@ -13,7 +13,7 @@ def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: Sequence[Sequence[float]],
     asset_ids: list[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
+    relationship_filters: dict[str, bool] | None = None,
 ) -> list[go.Scatter3d]:
     """Create diamond markers at 70% along each unidirectional edge."""
     positions_arr, asset_ids_norm = _validate_and_prepare_directional_arrows_inputs(
@@ -59,7 +59,7 @@ def _create_directional_arrows_traces(
     graph: AssetRelationshipGraph,
     positions: PositionMatrix,
     asset_ids: list[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
+    relationship_filters: dict[str, bool] | None = None,
 ) -> list[go.Scatter3d]:
     """Build 3D directional arrow traces for asymmetric relationships."""
     relationship_index = _build_relationship_index(graph, asset_ids)

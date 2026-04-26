@@ -14,8 +14,9 @@ from __future__ import annotations
 
 import os
 import sqlite3
-from typing import Any, Iterator
-from unittest.mock import MagicMock, Mock, patch
+from collections.abc import Iterator
+from typing import Any
+from unittest.mock import Mock, patch
 
 import pytest
 from sqlalchemy import Column, Integer, String, create_engine
@@ -24,7 +25,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import StaticPool
 
 from api.database import (
-    _connect,
+    _cleanup_memory_connection,
     _get_database_url,
     _is_memory_db,
     _resolve_sqlite_path,
@@ -41,6 +42,17 @@ from src.data.database import (
     init_db,
     session_scope,
 )
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """Clear the get_settings LRU cache before and after each test."""
+    from src.config.settings import get_settings
+
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
 
 pytest.importorskip("sqlalchemy")
 
@@ -71,10 +83,13 @@ def isolated_base() -> Iterator[type[Base]]:
     """
     Provide an isolated declarative SQLAlchemy Base subclass for use within a single test.
 
-    This fixture yields a Base subclass with `__abstract__ = True`; any tables registered on the global Base.metadata during the test are removed after the fixture completes.
+    This fixture yields a Base subclass with `__abstract__ = True`; any tables
+    registered on the global Base.metadata during the test are removed after the
+    fixture completes.
 
     Returns:
-        isolated_base (type[Base]): A declarative Base subclass whose test-created tables will be cleaned from the global metadata after the test.
+        isolated_base (type[Base]): A declarative Base subclass whose test-created
+            tables will be cleaned from the global metadata after the test.
     """
     existing_tables = set(Base.metadata.tables)
 
@@ -100,7 +115,9 @@ def engine() -> Iterator[Engine]:
     """
     Create and yield an in-memory SQLite Engine for tests.
 
-    The engine uses StaticPool and disables SQLite's same-thread check so multiple sessions can share the in-memory database. The engine is disposed when the fixture teardown runs.
+    The engine uses StaticPool and disables SQLite's same-thread check so
+    multiple sessions can share the in-memory database. The engine is disposed
+    when the fixture teardown runs.
 
     Returns:
         An in-memory SQLite `Engine` instance; it is disposed after use.
@@ -214,7 +231,7 @@ class TestDatabaseInitialization:
         Verifies that init_db creates tables for models registered on the provided declarative base.
         """
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for verifying table creation functionality."""
 
             __tablename__ = "test_model"
@@ -233,7 +250,7 @@ class TestDatabaseInitialization:
     def test_init_db_is_idempotent(self, engine: Engine, isolated_base) -> None:
         """Calling init_db multiple times should not error."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for verifying that database initialization is idempotent."""
 
             __tablename__ = "test_idempotent"
@@ -257,7 +274,7 @@ class TestDatabaseInitialization:
     ) -> None:
         """init_db should not wipe existing data."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for testing data preservation during database initialization."""
 
             __tablename__ = "test_preserve"
@@ -289,7 +306,7 @@ class TestSessionScope:
     def test_commits_on_success(self, engine: Engine, isolated_base) -> None:
         """session_scope should commit on success."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for commit testing."""
 
             __tablename__ = "test_commit"
@@ -310,7 +327,7 @@ class TestSessionScope:
     def test_rolls_back_on_exception(self, engine: Engine, isolated_base) -> None:
         """session_scope should rollback on error."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for rollback testing."""
 
             __tablename__ = "test_rollback"
@@ -328,12 +345,15 @@ class TestSessionScope:
 
     def test_propagates_integrity_error(self, engine: Engine, isolated_base) -> None:
         """
-        Verify that an IntegrityError raised inside a session_scope is propagated to the caller after the transaction is rolled back.
+        Verify that an IntegrityError raised inside a session_scope is propagated
+        to the caller after the transaction is rolled back.
 
-        This test creates a simple model, initializes the database, and performs operations that raise an IntegrityError; the error must not be swallowed by the session scope.
+        This test creates a simple model, initializes the database, and performs
+        operations that raise an IntegrityError; the error must not be swallowed
+        by the session scope.
         """
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model used in tests to trigger and verify integrity errors."""
 
             __tablename__ = "test_integrity"
@@ -351,7 +371,7 @@ class TestSessionScope:
     def test_nested_operations_commit(self, engine: Engine, isolated_base) -> None:
         """Multiple operations in one scope should commit atomically."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Model for nested operations commit tests."""
 
             __tablename__ = "test_nested"
@@ -458,7 +478,7 @@ class TestConnectionPooling:
 
         Session = sessionmaker(bind=in_memory_engine)
 
-        class TestTable(isolated_base):
+        class TestTable(isolated_base):  # type: ignore[misc]
             """Test table for connection pooling validation."""
 
             __tablename__ = "test_pool"
@@ -506,7 +526,9 @@ class TestConcurrentDatabaseAccess:
 
         def create_session() -> None:
             """
-            Create a session using the surrounding `factory`, append it to the surrounding `sessions` list, then close it; on exception, append the exception to the surrounding `errors` list.
+            Create a session using the surrounding `factory`, append it to the
+            surrounding `sessions` list, then close it; on exception, append
+            the exception to the surrounding `errors` list.
             """
             try:
                 session = factory()
@@ -528,7 +550,7 @@ class TestConcurrentDatabaseAccess:
         """Concurrent reads should not interfere with each other."""
         import threading
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent read validation."""
 
             __tablename__ = "test_concurrent_reads"
@@ -549,7 +571,10 @@ class TestConcurrentDatabaseAccess:
             """
             Worker executed by a thread to perform a read-only count query and record results.
 
-            Appends the number of rows in `TestModel` to the shared `results` list. If an exception occurs, appends the exception instance to the shared `errors` list. Obtains a session from the module-level session factory and does not return a value.
+            Appends the number of rows in `TestModel` to the shared `results`
+            list. If an exception occurs, appends the exception instance to the
+            shared `errors` list. Obtains a session from the module-level
+            session factory and does not return a value.
             """
             try:
                 with session_scope(factory) as session:
@@ -567,51 +592,76 @@ class TestConcurrentDatabaseAccess:
         assert len(errors) == 0
         assert all(count == 100 for count in results)
 
-    def test_concurrent_writes_serialized(self, engine: Engine, isolated_base) -> None:
-        """Concurrent writes should be properly serialized."""
-        import threading
-        import time
+    def test_concurrent_writes(self, isolated_base) -> None:
+        """Verify the session_scope handles true concurrent writes without external locking.
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        Uses a temporary file-based SQLite database with NullPool so each thread
+        opens its own connection.  SQLite serialises concurrent writers at the
+        database level; the test asserts that all ``session_scope`` operations
+        complete successfully, validating the DB/session stack under concurrency
+        without relying on any Python-level locking.
+        """
+        import os
+        import tempfile
+        import threading
+
+        from sqlalchemy import create_engine as _create_engine
+        from sqlalchemy.pool import NullPool
+
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent write validation."""
 
             __tablename__ = "test_concurrent_writes"
             id = Column(Integer, primary_key=True)
 
-        init_db(engine)
-        factory = create_session_factory(engine)
-
         errors: list[Exception] = []
 
-        def write_data(thread_id: int) -> None:
-            """
-            Insert a TestModel row using thread_id as the primary key and record any exception.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db_url = f"sqlite:///{os.path.join(tmpdir, 'concurrent.db')}"
+            # NullPool: each call to session_scope opens its own SQLite connection
+            # so concurrent access is exercised at the database level, not masked
+            # by a shared in-memory connection.
+            file_engine = _create_engine(
+                db_url,
+                poolclass=NullPool,
+                connect_args={"timeout": 30},  # wait up to 30 s for the DB lock
+            )
+            init_db(file_engine)
+            factory = create_session_factory(file_engine)
 
-            Sleeps briefly based on thread_id, opens a transactional session, and adds TestModel(id=thread_id).
-            If an exception occurs, it is appended to the shared `errors` list as a side effect.
+            def write_data(thread_id: int) -> None:
+                """
+                Insert a TestModel row using thread_id as the primary key and record any exception.
 
-            Parameters:
-                thread_id (int): Integer used as the TestModel `id`.
-            """
-            try:
-                time.sleep(0.001 * thread_id)
-                with session_scope(factory) as session:
-                    session.add(TestModel(id=thread_id))
-            except Exception as exc:  # noqa: BLE001
-                errors.append(exc)
+                Opens a transactional session via ``session_scope`` without external
+                locking so that the SQLite database-level serialisation is exercised.
+                Any exception is appended to the shared ``errors`` list.
 
-        num_threads = 20
-        threads = [threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+                Parameters:
+                    thread_id (int): Integer used as the TestModel ``id``.
+                """
+                try:
+                    with session_scope(factory) as session:
+                        session.add(TestModel(id=thread_id))
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(exc)
 
-        with session_scope(factory) as session:
-            count = session.query(TestModel).count()
-            assert count >= num_threads - 1, f"Expected at least {num_threads - 1} writes but found {count}"
+            num_threads = 20
+            threads = [threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
 
-        assert len(errors) <= 1, f"Too many errors: {len(errors)}"
+            # SQLite serialises concurrent writes at the database level.
+            # All session_scope operations must complete without error.
+            with session_scope(factory) as session:
+                count = session.query(TestModel).count()
+
+            file_engine.dispose()
+
+        assert len(errors) == 0, f"Unexpected errors under concurrent writes: {errors}"
+        assert count == num_threads, f"Expected {num_threads} rows, found {count}"
 
 
 # ---------------------------------------------------------------------------
@@ -626,7 +676,7 @@ class TestDatabaseErrorRecovery:
     def test_session_scope_recovers_from_nested_error(self, engine: Engine, isolated_base) -> None:
         """Session scope should recover after error in nested operation."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for error recovery validation."""
 
             __tablename__ = "test_error_recovery"
@@ -656,7 +706,7 @@ class TestDatabaseErrorRecovery:
     def test_session_scope_handles_commit_failure(self, engine: Engine, isolated_base) -> None:
         """Session scope should handle commit failures gracefully."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for commit failure handling."""
 
             __tablename__ = "test_commit_failure"
@@ -708,7 +758,7 @@ class TestResourceCleanup:
     def test_multiple_session_scopes_cleanup_properly(self, engine: Engine, isolated_base) -> None:
         """Multiple session scopes should clean up properly."""
 
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for cleanup validation."""
 
             __tablename__ = "test_cleanup"
@@ -726,12 +776,16 @@ class TestResourceCleanup:
 
     def test_session_scope_with_nested_commits(self, engine: Engine, isolated_base) -> None:
         """
-        Verifies that explicit commits performed inside a session_scope persist data across subsequent scopes.
+        Verifies that explicit commits performed inside a session_scope persist
+        data across subsequent scopes.
 
-        This test creates a simple model, performs explicit commits within a session_scope (simulating a regression where nested commits might be discarded), and then opens a new session_scope to assert the committed row is visible.
+        This test creates a simple model, performs explicit commits within a
+        session_scope (simulating a regression where nested commits might be
+        discarded), and then opens a new session_scope to assert the committed
+        row is visible.
         """
 
-        class TestModelBase(isolated_base):  # pylint: disable=redefined-outer-name
+        class TestModelBase(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for nested commit validation."""
 
             __tablename__ = "test_nested_commits"
@@ -1003,3 +1057,71 @@ class TestDatabaseUrlConfiguration:
         """Test that configured URL is returned as-is."""
         result = _get_database_url()
         assert result == "postgresql://user:pass@localhost/db"
+
+
+@pytest.mark.unit
+class TestNestedConnectionCalls:
+    """Test nested get_connection() calls with reentrant lock."""
+
+    @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
+    def test_nested_get_connection_with_execute(self):
+        """
+        Test that nested get_connection() calls don't deadlock on in-memory DB.
+
+        This regression test verifies that _MEMORY_USE_LOCK is reentrant (RLock)
+        and allows same-thread nested calls to get_connection().
+        """
+        # Clean up any existing connection
+        _cleanup_memory_connection()
+
+        # Outer get_connection call
+        with get_connection() as outer_conn:
+            # Create a test table
+            outer_conn.execute("CREATE TABLE IF NOT EXISTS test_table (id INTEGER PRIMARY KEY, value TEXT)")
+            outer_conn.commit()
+
+            # Nested execute() which calls get_connection() internally
+            # This should not deadlock with RLock
+            execute("INSERT INTO test_table (id, value) VALUES (1, 'nested')")
+
+            # Verify the nested write succeeded
+            cursor = outer_conn.execute("SELECT value FROM test_table WHERE id = 1")
+            row = cursor.fetchone()
+            assert row is not None
+            assert row[0] == "nested"
+
+        # Clean up
+        _cleanup_memory_connection()
+
+    @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
+    def test_nested_get_connection_with_fetch_one(self):
+        """Test nested get_connection() with fetch_one helper."""
+        _cleanup_memory_connection()
+
+        with get_connection() as outer_conn:
+            outer_conn.execute("CREATE TABLE IF NOT EXISTS test_data (id INTEGER, name TEXT)")
+            outer_conn.execute("INSERT INTO test_data VALUES (42, 'test')")
+            outer_conn.commit()
+
+            # Nested fetch_one() which calls get_connection() internally
+            row = fetch_one("SELECT name FROM test_data WHERE id = ?", (42,))
+            assert row is not None
+            assert row[0] == "test"
+
+        _cleanup_memory_connection()
+
+    @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
+    def test_nested_get_connection_with_fetch_value(self):
+        """Test nested get_connection() with fetch_value helper."""
+        _cleanup_memory_connection()
+
+        with get_connection() as outer_conn:
+            outer_conn.execute("CREATE TABLE IF NOT EXISTS counter (val INTEGER)")
+            outer_conn.execute("INSERT INTO counter VALUES (99)")
+            outer_conn.commit()
+
+            # Nested fetch_value() which calls get_connection() internally
+            value = fetch_value("SELECT val FROM counter LIMIT 1")
+            assert value == 99
+
+        _cleanup_memory_connection()
