@@ -141,7 +141,9 @@ def validate_origin(origin: str) -> bool:
     Returns:
         bool: True if the origin is allowed, False otherwise.
     """
-    # Get runtime settings from centralized typed settings layer
+    # CORS runtime configuration is resolved through the centralized cached
+    # settings layer. Tests or special runtime contexts that mutate ENV or
+    # ALLOWED_ORIGINS after first use must clear get_settings.cache_clear().
     settings = get_settings()
     current_env = settings.env
     allowed_origins = settings.allowed_origins
