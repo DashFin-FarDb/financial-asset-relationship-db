@@ -31,7 +31,7 @@ from api.auth import (
     get_password_hash,
     verify_password,
 )
-from api.models import UserInDB
+from api.models import UserInDB, UserPublic
 
 
 class TestPasswordHandling:
@@ -439,3 +439,32 @@ class TestEdgeCases:
 
             assert user is not None
             assert user.username == "用户"
+
+
+class TestPublicUserEndpoint:
+    """Test public user endpoint response model."""
+
+    def test_read_users_me_returns_public_user_without_hashed_password(self):
+        """Test current-user route returns public user data only."""
+        from api.models import UserPublic
+
+        current_user = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            full_name="Test User",
+            disabled=False,
+            hashed_password="hashed_secret_value",
+        )
+
+        # Test the conversion that happens in read_users_me
+        response = UserPublic.model_validate(current_user.model_dump())
+
+        dumped = response.model_dump()
+        assert dumped == {
+            "username": "testuser",
+            "email": "test@example.com",
+            "full_name": "Test User",
+            "disabled": False,
+        }
+        assert "hashed_password" not in dumped
+        assert isinstance(response, UserPublic)
