@@ -2,7 +2,7 @@
 Comprehensive unit tests for api/auth.py module.
 
 Tests cover:
-- Password hashing and verification
+- Secret hashing and verification
 - User authentication
 - JWT token creation and validation
 - User repository operations
@@ -11,13 +11,14 @@ Tests cover:
 """
 
 from datetime import timedelta
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import jwt
 import pytest
 from fastapi import HTTPException
 from jwt import InvalidTokenError
 from passlib.exc import PasswordSizeError
+from starlette.requests import Request
 
 from api.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -31,61 +32,61 @@ from api.auth import (
     get_password_hash,
     verify_password,
 )
-from api.models import UserInDB
+from api.models import User, UserInDB, UserPublic
 
 
-class TestPasswordHandling:
-    """Test password hashing and verification functions."""
+class TestSecretHandling:
+    """Test secret hashing and verification functions."""
 
-    def test_password_hash_generates_hash(self):
-        """Test that password hashing generates a non-empty hash."""
-        password = "test_password_123"
-        hashed = get_password_hash(password)
+    def test_hash_generates_hash(self):
+        """Test that hashing generates a non-empty hash."""
+        secret_value = "test_secret_value_123"
+        hashed = get_password_hash(secret_value)
 
         assert hashed is not None
         assert isinstance(hashed, str)
         assert len(hashed) > 0
-        assert hashed != password  # Hash should not equal plaintext
+        assert hashed != secret_value  # Hash should not equal plaintext
 
-    def test_password_hash_is_deterministic_per_run(self):
-        """Test that hashing same password twice produces different hashes (salt)."""
-        password = "test_password_123"
-        hash1 = get_password_hash(password)
-        hash2 = get_password_hash(password)
+    def test_hash_is_deterministic_per_run(self):
+        """Test that hashing same secret twice produces different hashes (salt)."""
+        secret_value = "test_secret_value_123"
+        hash1 = get_password_hash(secret_value)
+        hash2 = get_password_hash(secret_value)
 
         # With salt, hashes should be different
         assert hash1 != hash2
 
-    def test_verify_password_correct_password(self):
-        """Test that correct password verification returns True."""
-        password = "correct_password"
-        hashed = get_password_hash(password)
+    def test_verify_correct_secret(self):
+        """Test that correct secret verification returns True."""
+        secret_value = "correct_secret_value"
+        hashed = get_password_hash(secret_value)
 
-        assert verify_password(password, hashed) is True
+        assert verify_password(secret_value, hashed) is True
 
-    def test_verify_password_incorrect_password(self):
-        """Test that incorrect password verification returns False."""
-        password = "correct_password"
-        wrong_password = "wrong_password"
-        hashed = get_password_hash(password)
+    def test_verify_incorrect_secret(self):
+        """Test that incorrect secret verification returns False."""
+        secret_value = "correct_secret_value"
+        wrong_secret_value = "wrong_secret_value"
+        hashed = get_password_hash(secret_value)
 
-        assert verify_password(wrong_password, hashed) is False
+        assert verify_password(wrong_secret_value, hashed) is False
 
-    def test_verify_password_empty_password(self):
-        """Test verification with empty password."""
-        password = "test_password"
-        hashed = get_password_hash(password)
+    def test_verify_empty_secret(self):
+        """Test verification with empty secret."""
+        secret_value = "test_secret_value"
+        hashed = get_password_hash(secret_value)
 
         assert verify_password("", hashed) is False
 
-    def test_verify_password_case_sensitive(self):
-        """Test that password verification is case-sensitive."""
-        password = "TestPassword"
-        hashed = get_password_hash(password)
+    def test_verify_secret_case_sensitive(self):
+        """Test that secret verification is case-sensitive."""
+        secret_value = "TestSecretValue"
+        hashed = get_password_hash(secret_value)
 
-        assert verify_password("testpassword", hashed) is False
-        assert verify_password("TESTPASSWORD", hashed) is False
-        assert verify_password("TestPassword", hashed) is True
+        assert verify_password("testsecretvalue", hashed) is False
+        assert verify_password("TESTSECRETVALUE", hashed) is False
+        assert verify_password("TestSecretValue", hashed) is True
 
 
 class TestUserRepository:
@@ -98,7 +99,7 @@ class TestUserRepository:
             "username": "testuser",
             "email": "test@example.com",
             "full_name": "Test User",
-            "hashed_password": "hashed_pwd",
+            "hashed_password": "stored_hash_value",
             "disabled": 0,
         }
 
@@ -128,7 +129,7 @@ class TestUserRepository:
             "username": "disabled_user",
             "email": "disabled@example.com",
             "full_name": "Disabled User",
-            "hashed_password": "hashed_pwd",
+            "hashed_password": "stored_hash_value",
             "disabled": 1,
         }
 
@@ -160,7 +161,7 @@ class TestUserRepository:
         repo = UserRepository()
         repo.create_or_update_user(
             username="newuser",
-            hashed_password="hashed_pwd",
+            hashed_password="stored_hash_value",
             user_email="new@example.com",
             user_full_name="New User",
             is_disabled=False,
@@ -170,13 +171,13 @@ class TestUserRepository:
         call_args = mock_execute.call_args[0]
         assert "INSERT INTO user_credentials" in call_args[0]
         assert call_args[1][0] == "newuser"
-        assert call_args[1][3] == "hashed_pwd"
+        assert call_args[1][3] == "stored_hash_value"
 
     @patch("api.auth.execute")
     def test_create_or_update_user_disabled(self, mock_execute):
         """Test creating a disabled user."""
         repo = UserRepository()
-        repo.create_or_update_user(username="disableduser", hashed_password="hashed_pwd", is_disabled=True)
+        repo.create_or_update_user(username="disableduser", hashed_password="stored_hash_value", is_disabled=True)
 
         call_args = mock_execute.call_args[0]
         assert call_args[1][4] == 1  # disabled flag
@@ -185,7 +186,7 @@ class TestUserRepository:
     def test_create_or_update_user_minimal_fields(self, mock_execute):
         """Test creating user with only required fields."""
         repo = UserRepository()
-        repo.create_or_update_user(username="minimaluser", hashed_password="hashed_pwd")
+        repo.create_or_update_user(username="minimaluser", hashed_password="stored_hash_value")
 
         call_args = mock_execute.call_args[0]
         assert call_args[1][0] == "minimaluser"
@@ -200,11 +201,11 @@ class TestAuthentication:
     @patch("api.auth.verify_password")
     def test_authenticate_user_success(self, mock_verify, mock_get_user):
         """Test successful user authentication."""
-        mock_user = UserInDB(username="testuser", hashed_password="hashed_pwd", disabled=False)
+        mock_user = UserInDB(username="testuser", hashed_password="stored_hash_value", disabled=False)
         mock_get_user.return_value = mock_user
         mock_verify.return_value = True
 
-        result = authenticate_user("testuser", "correct_password")
+        result = authenticate_user("testuser", "correct_secret_value")
 
         assert result is not False
         assert isinstance(result, UserInDB)
@@ -215,19 +216,19 @@ class TestAuthentication:
         """Test authentication with non-existent user."""
         mock_get_user.return_value = None
 
-        result = authenticate_user("nonexistent", "password")
+        result = authenticate_user("nonexistent", "secret_value")
 
         assert result is False
 
     @patch("api.auth.get_user")
     @patch("api.auth.verify_password")
-    def test_authenticate_user_wrong_password(self, mock_verify, mock_get_user):
-        """Test authentication with wrong password."""
-        mock_user = UserInDB(username="testuser", hashed_password="hashed_pwd", disabled=False)
+    def test_authenticate_user_wrong_secret(self, mock_verify, mock_get_user):
+        """Test authentication with wrong secret."""
+        mock_user = UserInDB(username="testuser", hashed_password="stored_hash_value", disabled=False)
         mock_get_user.return_value = mock_user
         mock_verify.return_value = False
 
-        result = authenticate_user("testuser", "wrong_password")
+        result = authenticate_user("testuser", "wrong_secret_value")
 
         assert result is False
 
@@ -235,12 +236,12 @@ class TestAuthentication:
     @patch("api.auth.verify_password")
     def test_authenticate_disabled_user(self, mock_verify, mock_get_user):
         """Test authentication of disabled user."""
-        mock_user = UserInDB(username="testuser", hashed_password="hashed_pwd", disabled=True)
+        mock_user = UserInDB(username="testuser", hashed_password="stored_hash_value", disabled=True)
         mock_get_user.return_value = mock_user
         mock_verify.return_value = True
 
         # Authentication should succeed, but user will be disabled
-        result = authenticate_user("testuser", "correct_password")
+        result = authenticate_user("testuser", "correct_secret_value")
 
         assert isinstance(result, UserInDB)
         assert result.disabled is True
@@ -312,7 +313,7 @@ class TestGetCurrentUser:
     @patch("api.auth.get_user")
     async def test_get_current_user_valid_token(self, mock_get_user):
         """Test get_current_user with valid token."""
-        mock_user = UserInDB(username="testuser", hashed_password="hashed_pwd", disabled=False)
+        mock_user = UserInDB(username="testuser", hashed_password="stored_hash_value", disabled=False)
         mock_get_user.return_value = mock_user
 
         # Create valid token
@@ -369,22 +370,18 @@ class TestGetCurrentActiveUser:
 
     async def test_get_current_active_user_active(self):
         """Test getting active user."""
-        mock_user = Mock()
-        mock_user.disabled = False
-        mock_user.username = "testuser"
+        user = User(username="testuser", disabled=False)
 
-        result = await get_current_active_user(mock_user)
+        result = await get_current_active_user(user)
 
-        assert result == mock_user
+        assert result == user
 
     async def test_get_current_active_user_disabled(self):
         """Test that disabled user raises exception."""
-        mock_user = Mock()
-        mock_user.disabled = True
-        mock_user.username = "testuser"
+        user = User(username="testuser", disabled=True)
 
         with pytest.raises(HTTPException):
-            await get_current_active_user(mock_user)
+            await get_current_active_user(user)
 
     def test_algorithm_is_hs256(self):
         """Test that ALGORITHM is set to HS256."""
@@ -408,21 +405,21 @@ class TestEdgeCases:
             user = repo.get_user("")
             assert user is None
 
-    def test_very_long_password(self):
-        """Test hashing very long password."""
-        long_password = "a" * 10000
+    def test_very_long_secret(self):
+        """Test hashing very long secret."""
+        long_secret = "a" * 10000
 
-        # passlib has a maximum password size limit (typically 4096 bytes)
-        # This test verifies we handle extremely long passwords appropriately
+        # passlib has a maximum secret size limit (typically 4096 bytes)
+        # This test verifies we handle extremely long values appropriately
         with pytest.raises(PasswordSizeError):
-            get_password_hash(long_password)
+            get_password_hash(long_secret)
 
-    def test_special_characters_in_password(self):
-        """Test password with special characters."""
-        special_password = "p@$$w0rd!#%^&*()"
-        hashed = get_password_hash(special_password)
+    def test_special_characters_in_secret(self):
+        """Test secret with special characters."""
+        special_secret = "special_secret_value"
+        hashed = get_password_hash(special_secret)
 
-        assert verify_password(special_password, hashed) is True
+        assert verify_password(special_secret, hashed) is True
 
     def test_unicode_in_username(self):
         """Test handling unicode characters in username."""
@@ -431,7 +428,7 @@ class TestEdgeCases:
                 "username": "用户",
                 "email": "test@example.com",
                 "full_name": "Unicode User",
-                "hashed_password": "hashed",
+                "hashed_password": "stored_hash_value",
                 "disabled": 0,
             }
             repo = UserRepository()
@@ -439,3 +436,36 @@ class TestEdgeCases:
 
             assert user is not None
             assert user.username == "用户"
+
+
+class TestPublicUserEndpoint:
+    """Test public user endpoint response model."""
+
+    @pytest.mark.asyncio
+    async def test_read_users_me_returns_public_user_without_hashed_password(self):
+        """Test current-user route returns public user data only."""
+        from api.routers.auth import read_users_me
+
+        current_user = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            full_name="Test User",
+            disabled=False,
+            hashed_password="stored_hash_value",
+        )
+        request = Request({"type": "http", "method": "GET", "path": "/api/users/me", "headers": []})
+
+        response = await read_users_me(
+            request=request,
+            current_user=current_user,
+        )
+
+        dumped = response.model_dump()
+        assert dumped == {
+            "username": "testuser",
+            "email": "test@example.com",
+            "full_name": "Test User",
+            "disabled": False,
+        }
+        assert "hashed_password" not in dumped
+        assert isinstance(response, UserPublic)

@@ -12,6 +12,10 @@ class User(BaseModel):
     disabled: bool | None = None
 
 
+class UserPublic(User):
+    """Public user model returned by authentication API endpoints."""
+
+
 class UserInDB(User):
     """User model with hashed password for database storage."""
 

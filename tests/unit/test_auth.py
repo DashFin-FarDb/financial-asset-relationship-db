@@ -31,6 +31,7 @@ from api.auth import (
     get_password_hash,
     verify_password,
 )
+from api.models import UserPublic
 
 
 class TestIsTruthy:
@@ -171,6 +172,18 @@ class TestUserModels:
         assert user_in_db.username == "testuser"
         assert user_in_db.email == "test@example.com"
         assert user_in_db.hashed_password == "hashed_pwd_123"
+
+    def test_user_public_excludes_hashed_password(self):
+        """Test UserPublic does not expose hashed_password."""
+        user = UserPublic(
+            username="testuser",
+            email="test@example.com",
+            full_name="Test User",
+            disabled=False,
+        )
+
+        assert "hashed_password" not in UserPublic.model_fields
+        assert "hashed_password" not in user.model_dump()
 
 
 class TestUserRepository:
