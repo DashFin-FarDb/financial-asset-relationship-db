@@ -25,40 +25,39 @@ _HTTPS_DOMAIN_RE = re.compile(
 
 def _is_allowed_list_origin(origin: str, allowed_origins: list[str]) -> bool:
     """
-    Determine whether the origin is non-empty and in the allowlist.
+    Determine whether the origin is non-empty and exactly equals an entry in the allowlist.
 
     Returns:
-        True if origin is non-empty and present in allowed_origins,
-        False otherwise.
+        True if origin is non-empty and present in allowed_origins, False otherwise.
     """
     return bool(origin) and origin in allowed_origins
 
 
 def _is_http_local_in_dev(origin: str, current_env: str) -> bool:
     """
-    Check if origin is HTTP localhost and environment is "development".
+    Determine whether the origin is an HTTP localhost origin and the environment is exactly "development".
 
     Parameters:
-        origin (str): Origin string (e.g., "http://localhost:3000").
-        current_env (str): Environment name compared to "development".
+        origin (str): Origin string to check (e.g., "http://localhost:3000").
+        current_env (str): Environment name compared exactly to "development".
 
     Returns:
-        bool: True if origin is HTTP localhost/127.0.0.1 with optional port
-            and current_env is "development", False otherwise.
+        bool: `True` if `origin` is an HTTP localhost origin (http://localhost,
+        or http://127.0.0.1 with an optional port) and `current_env` is "development", `False` otherwise.
     """
     return current_env == "development" and bool(_HTTP_LOCAL_RE.match(origin))
 
 
 def _is_https_local(origin: str) -> bool:
     """
-    Check if origin is HTTPS localhost (localhost or 127.0.0.1).
+    Check whether the given origin is HTTPS localhost (localhost or 127.0.0.1), allowing an optional port.
 
     Parameters:
-        origin (str): Origin string (e.g., "https://localhost:3000").
+        origin (str): Origin string to test (e.g., "https://localhost:3000").
 
     Returns:
-        bool: True if origin matches https://localhost or https://127.0.0.1
-            with optional port, False otherwise.
+        bool: `True` if the origin matches "https://localhost",
+        or "https://127.0.0.1" with an optional port, `False` otherwise.
     """
     return bool(_HTTPS_LOCAL_RE.match(origin))
 
@@ -78,27 +77,28 @@ def _is_vercel_preview(origin: str) -> bool:
 
 def _is_valid_https_domain(origin: str) -> bool:
     """
-    Check if origin is HTTPS with a standard domain and optional port.
+    Check whether origin is an HTTPS origin with a standard domain and optional port.
 
     Parameters:
-        origin (str): Origin string (e.g., "https://example.com").
+        origin (str): Origin string such as "https://example.com" or "https://sub.example.com:8443".
 
     Returns:
-        True if origin matches the HTTPS domain regex, False otherwise.
+        True if the origin matches the module's HTTPS domain regex, False otherwise.
     """
     return bool(_HTTPS_DOMAIN_RE.match(origin))
 
 
 def _is_valid_https_idn(origin: str) -> bool:
     """
-    Validate HTTPS origin with IDNA-encodable hostname.
+    Validate an HTTPS origin whose hostname can be IDNA-encoded to an ASCII form that matches the module's HTTPS domain pattern.
 
     Parameters:
-        origin (str): Origin URL with scheme and hostname; may include port.
+        origin (str): Origin URL including scheme and hostname; may include a port.
 
     Returns:
-        bool: True if origin uses https, has an IDNA-encodable hostname,
-            and the ASCII origin matches the HTTPS domain regex.
+        `true` if the origin uses the `https` scheme, has a hostname that can be IDNA-encoded to ASCII,
+        and the reconstructed ASCII origin (including port if present) matches the module's HTTPS domain regular expression;
+        `false` otherwise.
     """
     parsed = urlparse(origin)
     if parsed.scheme != "https":
@@ -122,21 +122,16 @@ def _is_valid_https_idn(origin: str) -> bool:
 
 def validate_origin(origin: str) -> bool:
     """
-    Validate whether an HTTP origin is permitted by CORS rules.
+    Validate whether an HTTP origin is permitted by the application's CORS rules.
 
-    Permitted origins include:
-    - Entries in the ALLOWED_ORIGINS allowlist
-    - HTTPS domains matching the configured domain pattern
-    - Vercel preview hostnames
-    - HTTPS localhost/127.0.0.1 (any environment)
-    - HTTP localhost/127.0.0.1 when ENV is "development"
-
-    Origins with path, params, query, fragment, username, or password
-    components are rejected. Internationalized hostnames are accepted
-    when their IDNA-encoded ASCII form matches the HTTPS domain pattern.
+    Permitted origins include entries in the ALLOWED_ORIGINS allowlist,
+    HTTPS domains matching the configured domain pattern, Vercel preview hostnames,
+    HTTPS localhost/127.0.0.1 (any environment), and HTTP localhost/127.0.0.1 when ENV is "development".
+    Origins containing URL components beyond scheme/host[:port] (path, params, query, fragment, username, password) are rejected.
+    Internationalized hostnames are accepted when their IDNA-encoded ASCII form matches the HTTPS domain pattern.
 
     Parameters:
-        origin (str): Origin URL to validate (e.g., "https://example.com").
+        origin (str): Origin URL to validate (e.g., "https://example.com" or "http://localhost:3000").
 
     Returns:
         bool: True if the origin is allowed, False otherwise.
@@ -157,10 +152,7 @@ def validate_origin(origin: str) -> bool:
     if _is_valid_https_domain(origin):
         return True
     parsed = urlparse(origin)
-    has_extra_components = any(
-        [parsed.path, parsed.params, parsed.query, parsed.fragment, parsed.username, parsed.password]
-    )
-    if has_extra_components:
+    if any([parsed.path, parsed.params, parsed.query, parsed.fragment, parsed.username, parsed.password]):
         return False
     try:
         return _is_valid_https_idn(origin)
