@@ -31,6 +31,8 @@ from api.auth import (
     get_password_hash,
     verify_password,
 )
+
+
 class TestIsTruthy:
     """Test the _is_truthy helper function."""
 
