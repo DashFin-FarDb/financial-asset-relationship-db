@@ -31,23 +31,6 @@ from api.auth import (
     get_password_hash,
     verify_password,
 )
-from src.config.settings import get_settings
-
-
-@pytest.fixture(autouse=True)
-def clear_get_settings_cache():  # NOSONAR - pytest yield fixture
-    """Clear only the ``get_settings()`` cache before and after each test.
-
-    This fixture does not reload ``api.auth`` module-level auth settings that
-    were initialized at import time, so tests must not assume patched
-    environment variables will change auth behavior just because this cache is
-    cleared.
-    """
-    get_settings.cache_clear()
-    yield
-    get_settings.cache_clear()
-
-
 class TestIsTruthy:
     """Test the _is_truthy helper function."""
 
