@@ -2,7 +2,7 @@
 Comprehensive unit tests for api/auth.py module.
 
 Tests cover:
-- Password hashing and verification
+- Secret hashing and verification
 - User authentication
 - JWT token creation and validation
 - User repository operations
@@ -35,20 +35,20 @@ from api.auth import (
 from api.models import User, UserInDB, UserPublic
 
 
-class TestPasswordHandling:
-    """Test password hashing and verification functions."""
+class TestSecretHandling:
+    """Test secret hashing and verification functions."""
 
-    def test_password_hash_generates_hash(self):
-        """Test that password hashing generates a non-empty hash."""
-        password = "test_secret_value_123"
-        hashed = get_password_hash(password)
+    def test_hash_generates_hash(self):
+        """Test that hashing generates a non-empty hash."""
+        secret_value = "test_secret_value_123"
+        hashed = get_password_hash(secret_value)
 
         assert hashed is not None
         assert isinstance(hashed, str)
         assert len(hashed) > 0
-        assert hashed != password  # Hash should not equal plaintext
+        assert hashed != secret_value  # Hash should not equal plaintext
 
-    def test_password_hash_is_deterministic_per_run(self):
+    def test_hash_is_deterministic_per_run(self):
         """Test that hashing same secret twice produces different hashes (salt)."""
         secret_value = "test_secret_value_123"
         hash1 = get_password_hash(secret_value)
@@ -57,32 +57,32 @@ class TestPasswordHandling:
         # With salt, hashes should be different
         assert hash1 != hash2
 
-    def test_verify_password_correct_password(self):
-        """Test that correct password verification returns True."""
-        password = "correct_secret_value"
-        hashed = get_password_hash(password)
+    def test_verify_correct_secret(self):
+        """Test that correct secret verification returns True."""
+        secret_value = "correct_secret_value"
+        hashed = get_password_hash(secret_value)
 
-        assert verify_password(password, hashed) is True
+        assert verify_password(secret_value, hashed) is True
 
-    def test_verify_password_incorrect_password(self):
-        """Test that incorrect password verification returns False."""
-        password = "correct_secret_value"
-        wrong_password = "wrong_secret_value"
-        hashed = get_password_hash(password)
+    def test_verify_incorrect_secret(self):
+        """Test that incorrect secret verification returns False."""
+        secret_value = "correct_secret_value"
+        wrong_secret_value = "wrong_secret_value"
+        hashed = get_password_hash(secret_value)
 
-        assert verify_password(wrong_password, hashed) is False
+        assert verify_password(wrong_secret_value, hashed) is False
 
-    def test_verify_password_empty_password(self):
-        """Test verification with empty password."""
-        password = "test_secret_value"
-        hashed = get_password_hash(password)
+    def test_verify_empty_secret(self):
+        """Test verification with empty secret."""
+        secret_value = "test_secret_value"
+        hashed = get_password_hash(secret_value)
 
         assert verify_password("", hashed) is False
 
-    def test_verify_password_case_sensitive(self):
-        """Test that password verification is case-sensitive."""
-        password = "TestSecretValue"
-        hashed = get_password_hash(password)
+    def test_verify_secret_case_sensitive(self):
+        """Test that secret verification is case-sensitive."""
+        secret_value = "TestSecretValue"
+        hashed = get_password_hash(secret_value)
 
         assert verify_password("testsecretvalue", hashed) is False
         assert verify_password("TESTSECRETVALUE", hashed) is False
@@ -222,8 +222,8 @@ class TestAuthentication:
 
     @patch("api.auth.get_user")
     @patch("api.auth.verify_password")
-    def test_authenticate_user_wrong_password(self, mock_verify, mock_get_user):
-        """Test authentication with wrong password."""
+    def test_authenticate_user_wrong_secret(self, mock_verify, mock_get_user):
+        """Test authentication with wrong secret."""
         mock_user = UserInDB(username="testuser", hashed_password="stored_hash_value", disabled=False)
         mock_get_user.return_value = mock_user
         mock_verify.return_value = False
@@ -405,18 +405,18 @@ class TestEdgeCases:
             user = repo.get_user("")
             assert user is None
 
-    def test_very_long_password(self):
-        """Test hashing very long password."""
+    def test_very_long_secret(self):
+        """Test hashing very long secret."""
         long_secret = "a" * 10000
 
-        # passlib has a maximum password size limit (typically 4096 bytes)
+        # passlib has a maximum secret size limit (typically 4096 bytes)
         # This test verifies we handle extremely long values appropriately
         with pytest.raises(PasswordSizeError):
             get_password_hash(long_secret)
 
-    def test_special_characters_in_password(self):
-        """Test password with special characters."""
-        special_secret = "p@$$w0rd!#%^&*()"
+    def test_special_characters_in_secret(self):
+        """Test secret with special characters."""
+        special_secret = "special_secret_value"
         hashed = get_password_hash(special_secret)
 
         assert verify_password(special_secret, hashed) is True
