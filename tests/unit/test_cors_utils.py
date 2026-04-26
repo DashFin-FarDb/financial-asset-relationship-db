@@ -7,6 +7,15 @@ import re
 import pytest
 
 from api import cors_utils
+from src.config.settings import get_settings
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache() -> None:
+    """Clear cached settings before and after each CORS utility test."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 @pytest.mark.unit

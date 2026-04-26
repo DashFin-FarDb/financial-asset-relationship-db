@@ -5,9 +5,10 @@ and security requirements.
 """
 
 import logging
-import os
 import re
 from urllib.parse import urlparse
+
+from src.config.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -127,11 +128,10 @@ def validate_origin(origin: str) -> bool:
     Returns:
         bool: True if the origin is allowed, False otherwise.
     """
-    # Read environment dynamically to support runtime overrides (e.g., during tests)
-    current_env = os.getenv("ENV", "development").lower()
-
-    # Get allowed origins from environment variable or use default
-    allowed_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+    # Get runtime settings from centralized typed settings layer
+    settings = get_settings()
+    current_env = settings.env
+    allowed_origins = settings.allowed_origins
 
     if _is_allowed_list_origin(origin, allowed_origins):
         return True
