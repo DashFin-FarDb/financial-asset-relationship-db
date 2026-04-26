@@ -50,11 +50,12 @@ def _parse_csv_env(value: str) -> list[str]:
 
 class Settings(BaseModel):
     """
-    Runtime configuration settings centralized by this PR.
+    Runtime configuration settings centralized by Phase 4 work.
 
     Settings are loaded from environment variables and exposed through a typed,
-    immutable model. The cached accessor provides consistent config for startup
-    and module-level initialization paths.
+    immutable model. Boolean-like environment variables centralized here are
+    parsed into booleans before serialization; for example, ADMIN_DISABLED is
+    exposed as admin_disabled: bool rather than as the original raw string.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -71,7 +72,7 @@ class Settings(BaseModel):
     admin_password: str | None = Field(default=None)
     admin_email: str | None = Field(default=None)
     admin_full_name: str | None = Field(default=None)
-    admin_disabled_raw: str = Field(default="false")
+    admin_disabled: bool = Field(default=False)
 
     # Graph data source configuration
     graph_cache_path: str | None = Field(default=None)
@@ -120,9 +121,9 @@ def load_settings() -> Settings:
     Creates a Settings instance populated from these environment variables:
     ENV (default "development", stripped and lowercased), ALLOWED_ORIGINS,
     SECRET_KEY, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_EMAIL, ADMIN_FULL_NAME,
-    ADMIN_DISABLED, GRAPH_CACHE_PATH, REAL_DATA_CACHE_PATH,
-    USE_REAL_DATA_FETCHER (parsed as a boolean), ASSET_GRAPH_DATABASE_URL,
-    and DATABASE_URL.
+    ADMIN_DISABLED (parsed as a boolean), GRAPH_CACHE_PATH,
+    REAL_DATA_CACHE_PATH, USE_REAL_DATA_FETCHER (parsed as a boolean),
+    ASSET_GRAPH_DATABASE_URL, and DATABASE_URL.
 
     Returns:
         settings (Settings): Constructed and validated Settings object.
@@ -135,7 +136,7 @@ def load_settings() -> Settings:
         admin_password=os.getenv("ADMIN_PASSWORD"),
         admin_email=os.getenv("ADMIN_EMAIL"),
         admin_full_name=os.getenv("ADMIN_FULL_NAME"),
-        admin_disabled_raw=os.getenv("ADMIN_DISABLED", "false"),
+        admin_disabled=_parse_bool_env(os.getenv("ADMIN_DISABLED")),
         graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
