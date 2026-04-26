@@ -853,6 +853,23 @@ class TestSeedCredentialsParameterNameChanges:
         call_kwargs = mock_repo.create_or_update_user.call_args[1]
         assert call_kwargs["user_profile"]["is_disabled"] is True
 
+    @patch.dict(
+        os.environ,
+        {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": "pass", "ADMIN_DISABLED": " true "},
+    )
+    @patch("api.auth.get_password_hash")
+    def test_seed_disabled_whitespace_normalized(self, mock_hash):
+        """Test that ADMIN_DISABLED=' true ' is normalized to True through the settings layer."""
+        mock_hash.return_value = "hashed"
+        mock_repo = Mock(spec=UserRepository)
+
+        from api.auth import _seed_credentials_from_env
+
+        _seed_credentials_from_env(mock_repo)
+
+        call_kwargs = mock_repo.create_or_update_user.call_args[1]
+        assert call_kwargs["user_profile"]["is_disabled"] is True
+
 
 class TestIsTruthyAdditionalCases:
     """Additional test cases for _is_truthy helper."""

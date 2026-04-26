@@ -122,9 +122,9 @@ def load_settings() -> Settings:
     Creates a Settings instance populated from these environment variables:
     ENV (default "development", stripped and lowercased), ALLOWED_ORIGINS,
     SECRET_KEY, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_EMAIL, ADMIN_FULL_NAME,
-    ADMIN_DISABLED, GRAPH_CACHE_PATH, REAL_DATA_CACHE_PATH,
-    USE_REAL_DATA_FETCHER (parsed as a boolean), ASSET_GRAPH_DATABASE_URL,
-    and DATABASE_URL.
+    ADMIN_DISABLED (parsed as a boolean), GRAPH_CACHE_PATH,
+    REAL_DATA_CACHE_PATH, USE_REAL_DATA_FETCHER (parsed as a boolean),
+    ASSET_GRAPH_DATABASE_URL, and DATABASE_URL.
 
     Returns:
         settings (Settings): Constructed and validated Settings object.
