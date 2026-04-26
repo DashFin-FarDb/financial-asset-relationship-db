@@ -53,14 +53,16 @@ pip install -r requirements-dev.txt
 
 Note: importing `api.main` imports `api.auth` and `api.database`, which **require env vars**.
 
-Minimum env vars for startup (see `api/auth.py` and `api/database.py`; these are not currently provided via `src/config/settings.py`):
+Minimum env vars for startup (see `api/auth.py` and `api/database.py`):
 
 - `DATABASE_URL` (SQLite URL; e.g. `sqlite:///./dev.db` or `sqlite:///:memory:`)
-- `SECRET_KEY` (JWT signing key)
+- `SECRET_KEY` (JWT signing key) — now centralized via `src/config/settings.py`
 - Either pre-populated user credentials in the DB, or seed via:
   - `ADMIN_USERNAME`
   - `ADMIN_PASSWORD`
   - optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
+
+Auth settings (`SECRET_KEY`, `ADMIN_*`) are now centralized in `src/config/settings.py` (PR #1059).
 
 Start the API:
 
@@ -237,9 +239,14 @@ FastAPI graph initialization in `api/main.py`:
 
 Configuration + persistence:
 
-- `src/config/settings.py` — Centralized typed runtime configuration for the settings introduced so far. It does not yet replace all direct `os.getenv()` usage across the repository.
+- `src/config/settings.py` — Centralized typed runtime configuration including:
+  - Environment mode (`ENV`)
+  - CORS configuration (`ALLOWED_ORIGINS`)
+  - Auth settings (`SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`)
+  - Graph data source settings (`GRAPH_CACHE_PATH`, `REAL_DATA_CACHE_PATH`, `USE_REAL_DATA_FETCHER`)
+  - Database URLs (`DATABASE_URL`, `ASSET_GRAPH_DATABASE_URL`)
 - `api/database.py` — SQLite connection management driven by `DATABASE_URL`.
-- `api/auth.py` — JWT auth (`SECRET_KEY` required) and user seeding via `ADMIN_*` env vars.
+- `api/auth.py` — JWT auth and user seeding; reads config from `src/config/settings.py` via `load_settings()`.
 
 ### Next.js frontend
 
@@ -251,7 +258,8 @@ Configuration + persistence:
 
 - **Production architecture:** FastAPI + Next.js is the declared production stack. Prioritize work on this stack. See `.github/AUTOMATION_SCOPE_POLICY.md`.
 - **PR scope guardrails:** All PRs must include Primary Objective, In Scope, Out of Scope, Files Expected to Change, Validation Commands, and Merge Criteria.
-- **Runtime configuration:** Use `src/config/settings.py` and `get_settings()` for the settings currently centralized there. Do not assume all existing env vars have been migrated yet.
+- **Runtime configuration:** Use `src/config/settings.py` and `load_settings()` or `get_settings()` for centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`) and CORS settings are now centralized. Database URL is not yet centralized in `api/database.py`.
+- **Pre-commit hooks:** Run `pre-commit run --files <files>` before committing. Key checks: black (120 char lines), flake8-docstrings (D101/D102/D103), ruff, mypy.
 - **Plotting/visualization:** Standardized on **Plotly** (see `AI_RULES.md`).
 - When changing relationship semantics or graph-derived metrics, expect to update:
   - the graph engine (`src/logic/asset_graph.py`)
