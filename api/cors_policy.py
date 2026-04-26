@@ -104,8 +104,12 @@ def build_allowed_origins() -> list[str]:
             [
                 "http://localhost:3000",
                 "http://localhost:7860",
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1:7860",
                 "https://localhost:3000",
                 "https://localhost:7860",
+                "https://127.0.0.1:3000",
+                "https://127.0.0.1:7860",
             ]
         )
     else:
@@ -113,6 +117,8 @@ def build_allowed_origins() -> list[str]:
             [
                 "https://localhost:3000",
                 "https://localhost:7860",
+                "https://127.0.0.1:3000",
+                "https://127.0.0.1:7860",
             ]
         )
 
