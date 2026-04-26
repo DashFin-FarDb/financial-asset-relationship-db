@@ -446,8 +446,6 @@ class TestPublicUserEndpoint:
 
     def test_read_users_me_returns_public_user_without_hashed_password(self):
         """Test current-user route returns public user data only."""
-        from api.models import UserPublic
-
         current_user = UserInDB(
             username="testuser",
             email="test@example.com",
