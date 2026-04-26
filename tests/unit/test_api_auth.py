@@ -444,18 +444,23 @@ class TestEdgeCases:
 class TestPublicUserEndpoint:
     """Test public user endpoint response model."""
 
-    def test_read_users_me_returns_public_user_without_hashed_password(self):
+    @pytest.mark.asyncio
+    async def test_read_users_me_returns_public_user_without_hashed_password(self):
         """Test current-user route returns public user data only."""
+        from api.routers.auth import read_users_me
+
         current_user = UserInDB(
             username="testuser",
             email="test@example.com",
             full_name="Test User",
             disabled=False,
-            hashed_password="hashed_secret_value",
+            hashed_password="stored_hash_value",
         )
 
-        # Test the conversion that happens in read_users_me
-        response = UserPublic.model_validate(current_user.model_dump())
+        response = await read_users_me(
+            request=Mock(),
+            current_user=current_user,
+        )
 
         dumped = response.model_dump()
         assert dumped == {
