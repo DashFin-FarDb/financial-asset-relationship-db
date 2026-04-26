@@ -145,7 +145,7 @@ def validate_origin(origin: str) -> bool:
     """
     # CORS runtime configuration is resolved through the centralized cached
     # settings layer. Tests or special runtime contexts that mutate ENV or
-    # ALLOWED_ORIGINS after first use must clear get_settings.cache_clear().
+    # ALLOWED_ORIGINS after first use must call `get_settings.cache_clear()`.
     settings = get_settings()
     current_env = settings.env
     allowed_origins = settings.allowed_origins
