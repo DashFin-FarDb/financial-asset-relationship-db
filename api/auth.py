@@ -223,21 +223,20 @@ def _seed_credentials_from_settings(
         repository (UserRepository): Repository to seed.
         settings (Settings): Settings instance containing admin credentials.
     """
-    auth_settings = settings
-    username = auth_settings.admin_username
-    password = auth_settings.admin_password
+    username = settings.admin_username
+    password = settings.admin_password
     if not username or not password:
         return
 
     hashed_password = get_password_hash(password)
-    admin_disabled = _is_truthy(auth_settings.admin_disabled_raw)
+    admin_disabled = _is_truthy(settings.admin_disabled_raw)
 
     repository.create_or_update_user(
         username=username,
         hashed_password=hashed_password,
         user_profile={
-            "user_email": auth_settings.admin_email,
-            "user_full_name": auth_settings.admin_full_name,
+            "user_email": settings.admin_email,
+            "user_full_name": settings.admin_full_name,
             "is_disabled": admin_disabled,
         },
     )
