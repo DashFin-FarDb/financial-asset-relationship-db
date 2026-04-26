@@ -67,4 +67,7 @@ async def read_users_me(
     Returns:
         UserPublic: Public user profile without credential-bearing fields.
     """
-    return UserPublic.model_validate(current_user.model_dump())
+    return UserPublic.model_validate(
+    current_user.model_dump(exclude={"hashed_password"})
+)
+    
