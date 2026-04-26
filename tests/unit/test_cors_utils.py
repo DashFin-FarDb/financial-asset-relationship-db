@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Generator
 
 import pytest
 
 from api import cors_utils
 from src.config.settings import get_settings
 
-
-from collections.abc import Generator
 
 @pytest.fixture(autouse=True)
 def clear_settings_cache() -> Generator[None, None, None]:
