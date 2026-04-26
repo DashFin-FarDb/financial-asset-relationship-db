@@ -11,13 +11,14 @@ Tests cover:
 """
 
 from datetime import timedelta
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import jwt
 import pytest
 from fastapi import HTTPException
 from jwt import InvalidTokenError
 from passlib.exc import PasswordSizeError
+from starlette.requests import Request
 
 from api.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -369,9 +370,7 @@ class TestGetCurrentActiveUser:
 
     async def test_get_current_active_user_active(self):
         """Test getting active user."""
-        mock_user = Mock()
-        mock_user.disabled = False
-        mock_user.username = "testuser"
+        mock_user = MockUser(disabled=False, username="testuser")
 
         result = await get_current_active_user(mock_user)
 
@@ -379,9 +378,7 @@ class TestGetCurrentActiveUser:
 
     async def test_get_current_active_user_disabled(self):
         """Test that disabled user raises exception."""
-        mock_user = Mock()
-        mock_user.disabled = True
-        mock_user.username = "testuser"
+        mock_user = MockUser(disabled=True, username="testuser")
 
         with pytest.raises(HTTPException):
             await get_current_active_user(mock_user)
@@ -441,6 +438,15 @@ class TestEdgeCases:
             assert user.username == "用户"
 
 
+class MockUser:
+    """Simple test double for active-user dependency tests."""
+
+    def __init__(self, disabled: bool, username: str) -> None:
+        """Initialize the mock user."""
+        self.disabled = disabled
+        self.username = username
+
+
 class TestPublicUserEndpoint:
     """Test public user endpoint response model."""
 
@@ -456,9 +462,10 @@ class TestPublicUserEndpoint:
             disabled=False,
             hashed_password="stored_hash_value",
         )
+        request = Request({"type": "http", "method": "GET", "path": "/api/users/me", "headers": []})
 
         response = await read_users_me(
-            request=Mock(),
+            request=request,
             current_user=current_user,
         )
 
