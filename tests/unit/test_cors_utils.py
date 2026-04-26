@@ -50,31 +50,13 @@ def test_validate_origin_stops_after_first_true_check(monkeypatch: pytest.Monkey
     """Validation should stop at the first True check in order."""
     calls: list[str] = []
 
-    def _allowlist_false(origin: str, allowed_origins: list[str]) -> bool:
-        """
-        Test double that records an allowlist check invocation and always returns False.
-
-        Appends the string "allowlist" to the surrounding `calls` list as a side effect. The `origin` and `allowed_origins` parameters are accepted but ignored.
-
-        Returns:
-            False to indicate the origin is not allowed by the allowlist.
-        """
-        del origin, allowed_origins
+    def _allowlist_false(_origin: str, _allowed_origins: list[str]) -> bool:
+        """Test double that records allowlist check and returns False."""
         calls.append("allowlist")
         return False
 
-    def _http_local_true(origin: str, current_env: str) -> bool:
-        """
-        Record a stubbed http-local-in-dev check by appending "http_local_dev" to the shared calls list.
-
-        Parameters:
-            origin (str): Unused; present for signature compatibility.
-            current_env (str): Unused; present for signature compatibility.
-
-        Returns:
-            bool: Always True.
-        """
-        del origin, current_env
+    def _http_local_true(_origin: str, _current_env: str) -> bool:
+        """Test double that records http-local-dev check and returns True."""
         calls.append("http_local_dev")
         return True
 
