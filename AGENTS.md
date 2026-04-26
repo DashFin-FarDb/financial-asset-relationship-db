@@ -258,7 +258,7 @@ Configuration + persistence:
 
 - **Production architecture:** FastAPI + Next.js is the declared production stack. Prioritize work on this stack. See `.github/AUTOMATION_SCOPE_POLICY.md`.
 - **PR scope guardrails:** All PRs must include Primary Objective, In Scope, Out of Scope, Files Expected to Change, Validation Commands, and Merge Criteria.
-- **Runtime configuration:** Use `src/config/settings.py` and `load_settings()` or `get_settings()` for centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`) and CORS settings are now centralized. Database URL is not yet centralized in `api/database.py`.
+- **Runtime configuration:** use `src/config/settings.py` and `load_settings()` or `get_settings()` for centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`), CORS settings, and database URL resolution are centralized through the settings layer. Some legacy/runtime seams may still use direct `os.getenv()` access where migration has been intentionally deferred; do not assume full migration away from environment reads.
 - **Pre-commit hooks:** Run `pre-commit run --files <files>` before committing. Key checks: black (120 char lines), flake8-docstrings (D101/D102/D103), ruff, mypy.
 - **Plotting/visualization:** Standardized on **Plotly** (see `AI_RULES.md`).
 - When changing relationship semantics or graph-derived metrics, expect to update:
