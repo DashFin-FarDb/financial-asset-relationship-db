@@ -370,7 +370,7 @@ class TestSettingsEdgeCases:
 
     @patch.dict(os.environ, {"ADMIN_DISABLED": " true "})
     def test_load_settings_admin_disabled_normalizes_whitespace(self) -> None:
-        """Test that ADMIN_DISABLED whitespace is normalized through settings parsing."""
+        """Test that load_settings normalizes ADMIN_DISABLED whitespace."""
         settings = load_settings()
         assert settings.admin_disabled is True
 
@@ -382,7 +382,7 @@ class TestSettingsEdgeCases:
 
     @patch.dict(os.environ, {"ADMIN_DISABLED": "maybe"})
     def test_load_settings_admin_disabled_unknown_value_is_false(self) -> None:
-        """Test that unknown ADMIN_DISABLED values load as False."""
+        """Test that load_settings returns False for unknown ADMIN_DISABLED values."""
         settings = load_settings()
         assert settings.admin_disabled is False
 
