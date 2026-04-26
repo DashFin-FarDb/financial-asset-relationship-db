@@ -84,6 +84,7 @@ htmlcov/
 .hypothesis/
 test_*.db
 *_test.db
+dev.db
 *.db-journal
 *.db-wal
 *.db-shm
