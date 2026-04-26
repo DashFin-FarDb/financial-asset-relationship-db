@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from datetime import UTC, datetime, timedelta
 from typing import TypedDict
 
@@ -14,13 +13,13 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from api.models import User, UserInDB
+from src.config.settings import Settings, get_settings
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
 # Security configuration
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
+_auth_settings = get_settings()
+SECRET_KEY = _auth_settings.required_secret_key
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -204,34 +203,56 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def _seed_credentials_from_env(repository: UserRepository) -> None:
+def _seed_credentials_from_settings(
+    repository: UserRepository,
+    settings: Settings | None = None,
+) -> None:
     """
-    Seed an administrative user into the repository from environment variables.
+    Seed an administrative user into the repository from centralized settings.
 
-    Reads ADMIN_USERNAME and ADMIN_PASSWORD; if both are present, hashes the password and upserts a user using optional ADMIN_EMAIL, ADMIN_FULL_NAME, and ADMIN_DISABLED (interpreted as a truthy flag). If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, the repository is not modified.
+    If both admin username and password are configured, hashes the password and
+    upserts a user using optional admin email, full name, and disabled flag. If
+    either username or password is missing, the repository is not modified.
+
+    Parameters:
+        repository (UserRepository): Repository to seed.
+        settings (Settings | None): Optional settings instance. If omitted,
+            cached runtime settings are loaded via get_settings().
     """
-    username = os.getenv("ADMIN_USERNAME")
-    password = os.getenv("ADMIN_PASSWORD")
+    auth_settings = settings or get_settings()
+    username = auth_settings.admin_username
+    password = auth_settings.admin_password
     if not username or not password:
         return
 
     hashed_password = get_password_hash(password)
-    admin_email = os.getenv("ADMIN_EMAIL")
-    admin_full_name = os.getenv("ADMIN_FULL_NAME")
-    admin_disabled = _is_truthy(os.getenv("ADMIN_DISABLED", "false"))
+    admin_disabled = _is_truthy(auth_settings.admin_disabled_raw)
 
     repository.create_or_update_user(
         username=username,
         hashed_password=hashed_password,
         user_profile={
-            "user_email": admin_email,
-            "user_full_name": admin_full_name,
+            "user_email": auth_settings.admin_email,
+            "user_full_name": auth_settings.admin_full_name,
             "is_disabled": admin_disabled,
         },
     )
 
 
-_seed_credentials_from_env(user_repository)
+def _seed_credentials_from_env(repository: UserRepository) -> None:
+    """
+    Seed an administrative user into the repository from centralized settings.
+
+    The function name is retained for backward compatibility. Environment
+    values are resolved through get_settings(), not read directly in this module.
+
+    Parameters:
+        repository (UserRepository): Repository to seed.
+    """
+    _seed_credentials_from_settings(repository)
+
+
+_seed_credentials_from_settings(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(

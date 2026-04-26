@@ -108,6 +108,12 @@ class TestSettingsModel:
         settings = Settings()
         assert settings.env == "development"
         assert settings.allowed_origins_raw == ""
+        assert settings.secret_key is None
+        assert settings.admin_username is None
+        assert settings.admin_password is None
+        assert settings.admin_email is None
+        assert settings.admin_full_name is None
+        assert settings.admin_disabled_raw == "false"
         assert settings.graph_cache_path is None
         assert settings.real_data_cache_path is None
         assert settings.use_real_data_fetcher is False
@@ -119,6 +125,12 @@ class TestSettingsModel:
         settings = Settings(
             env="production",
             allowed_origins_raw="https://example.com,https://example.org",
+            secret_key="secret",
+            admin_username="admin",
+            admin_password="password",
+            admin_email="admin@example.com",
+            admin_full_name="Admin User",
+            admin_disabled_raw="true",
             graph_cache_path="/path/to/cache",
             real_data_cache_path="/path/to/real/cache",
             use_real_data_fetcher=True,
@@ -127,6 +139,12 @@ class TestSettingsModel:
         )
         assert settings.env == "production"
         assert settings.allowed_origins_raw == "https://example.com,https://example.org"
+        assert settings.secret_key == "secret"
+        assert settings.admin_username == "admin"
+        assert settings.admin_password == "password"
+        assert settings.admin_email == "admin@example.com"
+        assert settings.admin_full_name == "Admin User"
+        assert settings.admin_disabled_raw == "true"
         assert settings.graph_cache_path == "/path/to/cache"
         assert settings.real_data_cache_path == "/path/to/real/cache"
         assert settings.use_real_data_fetcher is True
@@ -149,6 +167,17 @@ class TestSettingsModel:
         with pytest.raises((AttributeError, Exception)):
             settings.env = "test"  # type: ignore
 
+    def test_required_secret_key_returns_secret(self) -> None:
+        """Test that required_secret_key returns configured secret."""
+        settings = Settings(secret_key="configured-secret")
+        assert settings.required_secret_key == "configured-secret"
+
+    def test_required_secret_key_raises_when_missing(self) -> None:
+        """Test that required_secret_key raises when SECRET_KEY is missing."""
+        settings = Settings(secret_key=None)
+        with pytest.raises(ValueError, match="SECRET_KEY environment variable"):
+            _ = settings.required_secret_key
+
 
 # ---------------------------------------------------------------------------
 # Settings loading tests
@@ -164,6 +193,12 @@ class TestLoadSettings:
         settings = load_settings()
         assert settings.env == "development"
         assert settings.allowed_origins_raw == ""
+        assert settings.secret_key is None
+        assert settings.admin_username is None
+        assert settings.admin_password is None
+        assert settings.admin_email is None
+        assert settings.admin_full_name is None
+        assert settings.admin_disabled_raw == "false"
         assert settings.graph_cache_path is None
         assert settings.real_data_cache_path is None
         assert settings.use_real_data_fetcher is False
@@ -175,6 +210,12 @@ class TestLoadSettings:
         {
             "ENV": "production",
             "ALLOWED_ORIGINS": "https://example.com,https://example.org",
+            "SECRET_KEY": "test-secret",
+            "ADMIN_USERNAME": "admin",
+            "ADMIN_PASSWORD": "adminpass",
+            "ADMIN_EMAIL": "admin@example.com",
+            "ADMIN_FULL_NAME": "Admin User",
+            "ADMIN_DISABLED": "true",
             "GRAPH_CACHE_PATH": "/path/to/cache",
             "REAL_DATA_CACHE_PATH": "/path/to/real/cache",
             "USE_REAL_DATA_FETCHER": "true",
@@ -187,6 +228,12 @@ class TestLoadSettings:
         settings = load_settings()
         assert settings.env == "production"
         assert settings.allowed_origins_raw == "https://example.com,https://example.org"
+        assert settings.secret_key == "test-secret"
+        assert settings.admin_username == "admin"
+        assert settings.admin_password == "adminpass"
+        assert settings.admin_email == "admin@example.com"
+        assert settings.admin_full_name == "Admin User"
+        assert settings.admin_disabled_raw == "true"
         assert settings.graph_cache_path == "/path/to/cache"
         assert settings.real_data_cache_path == "/path/to/real/cache"
         assert settings.use_real_data_fetcher is True
@@ -320,6 +367,12 @@ class TestSettingsEdgeCases:
         """Test USE_REAL_DATA_FETCHER with mixed case."""
         settings = load_settings()
         assert settings.use_real_data_fetcher is True
+
+    @patch.dict(os.environ, {"ADMIN_DISABLED": " true "})
+    def test_admin_disabled_raw_preserves_whitespace(self) -> None:
+        """Test that ADMIN_DISABLED is loaded as raw text for auth-compatible parsing."""
+        settings = load_settings()
+        assert settings.admin_disabled_raw == " true "
 
     @patch.dict(os.environ, {}, clear=True)
     def test_missing_optional_vars(self) -> None:

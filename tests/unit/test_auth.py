@@ -31,6 +31,15 @@ from api.auth import (
     get_password_hash,
     verify_password,
 )
+from src.config.settings import get_settings
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache():  # NOSONAR - pytest yield fixture
+    """Clear cached settings before and after each auth test."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 class TestIsTruthy:
@@ -1065,3 +1074,47 @@ class TestAuthenticationIntegrationFlow:
         # User exists but is disabled
         assert user is not None
         assert user.disabled is True
+
+
+class TestSeedCredentialsFromSettings:
+    """Test _seed_credentials_from_settings with explicit settings injection."""
+
+    def test_seed_credentials_from_settings_uses_settings_values(self):
+        """Test that admin seed values can be supplied through Settings."""
+        from api.auth import _seed_credentials_from_settings
+        from src.config.settings import Settings
+
+        mock_repo = Mock(spec=UserRepository)
+
+        with patch("api.auth.get_password_hash", return_value="hashed_adminpass"):
+            _seed_credentials_from_settings(
+                mock_repo,
+                Settings(
+                    secret_key="secret",
+                    admin_username="admin",
+                    admin_password="adminpass",
+                    admin_email="admin@example.com",
+                    admin_full_name="Admin User",
+                    admin_disabled_raw="true",
+                ),
+            )
+
+        mock_repo.create_or_update_user.assert_called_once_with(
+            username="admin",
+            hashed_password="hashed_adminpass",
+            user_profile={
+                "user_email": "admin@example.com",
+                "user_full_name": "Admin User",
+                "is_disabled": True,
+            },
+        )
+
+    def test_seed_credentials_from_settings_skips_when_username_or_password_missing(self):
+        """Test that incomplete admin settings do not seed a user."""
+        from api.auth import _seed_credentials_from_settings
+        from src.config.settings import Settings
+
+        mock_repo = Mock(spec=UserRepository)
+
+        _seed_credentials_from_settings(mock_repo, Settings(secret_key="secret"))
+        mock_repo.create_or_update_user.assert_not_called()
