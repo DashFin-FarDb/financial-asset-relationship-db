@@ -1,9 +1,10 @@
 """Centralized typed settings layer for selected runtime configuration.
 
-This module provides a typed settings interface for the runtime configuration
-centralized by this PR, specifically environment mode, CORS allowlist input,
-graph cache settings, real-data fetcher settings, and database URL resolution.
-It does not yet replace all direct environment reads across the repository.
+This module provides a typed settings interface for runtime configuration
+centralized by Phase 4 work, including environment mode, CORS allowlist input,
+auth bootstrap settings, graph cache settings, real-data fetcher settings, and
+database URL resolution. It does not yet replace all direct environment reads
+across the repository.
 """
 
 from __future__ import annotations
@@ -64,6 +65,14 @@ class Settings(BaseModel):
     # CORS configuration
     allowed_origins_raw: str = Field(default="")
 
+    # Auth configuration
+    secret_key: str | None = Field(default=None)
+    admin_username: str | None = Field(default=None)
+    admin_password: str | None = Field(default=None)
+    admin_email: str | None = Field(default=None)
+    admin_full_name: str | None = Field(default=None)
+    admin_disabled_raw: str = Field(default="false")
+
     # Graph data source configuration
     graph_cache_path: str | None = Field(default=None)
     real_data_cache_path: str | None = Field(default=None)
@@ -78,7 +87,8 @@ class Settings(BaseModel):
         """
         Return the configured CORS allowed origins as a list of trimmed, non-empty strings.
 
-        If `allowed_origins_raw` is empty, returns an empty list; otherwise the raw value is parsed by splitting on commas, trimming whitespace, and excluding empty entries.
+        If `allowed_origins_raw` is empty, returns an empty list; otherwise the raw value
+        is parsed by splitting on commas, trimming whitespace, and excluding empty entries.
 
         Returns:
             list[str]: Parsed allowed origin strings.
@@ -87,6 +97,21 @@ class Settings(BaseModel):
             return []
         return _parse_csv_env(self.allowed_origins_raw)
 
+    @property
+    def required_secret_key(self) -> str:
+        """
+        Return the configured JWT secret key or raise when it is missing.
+
+        Raises:
+            ValueError: If SECRET_KEY is not configured.
+
+        Returns:
+            str: Configured JWT secret key.
+        """
+        if not self.secret_key:
+            raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
+        return self.secret_key
+
 
 def load_settings() -> Settings:
     """
@@ -94,8 +119,10 @@ def load_settings() -> Settings:
 
     Creates a Settings instance populated from these environment variables:
     ENV (default "development", stripped and lowercased), ALLOWED_ORIGINS,
-    GRAPH_CACHE_PATH, REAL_DATA_CACHE_PATH, USE_REAL_DATA_FETCHER (parsed as a
-    boolean), ASSET_GRAPH_DATABASE_URL, and DATABASE_URL.
+    SECRET_KEY, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_EMAIL, ADMIN_FULL_NAME,
+    ADMIN_DISABLED, GRAPH_CACHE_PATH, REAL_DATA_CACHE_PATH,
+    USE_REAL_DATA_FETCHER (parsed as a boolean), ASSET_GRAPH_DATABASE_URL,
+    and DATABASE_URL.
 
     Returns:
         settings (Settings): Constructed and validated Settings object.
@@ -103,6 +130,12 @@ def load_settings() -> Settings:
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
+        secret_key=os.getenv("SECRET_KEY"),
+        admin_username=os.getenv("ADMIN_USERNAME"),
+        admin_password=os.getenv("ADMIN_PASSWORD"),
+        admin_email=os.getenv("ADMIN_EMAIL"),
+        admin_full_name=os.getenv("ADMIN_FULL_NAME"),
+        admin_disabled_raw=os.getenv("ADMIN_DISABLED", "false"),
         graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
