@@ -13,13 +13,13 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from api.models import User, UserInDB
-from src.config.settings import Settings, get_settings
+from src.config.settings import Settings, load_settings
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
 # Security configuration
-_auth_settings = get_settings()
-SECRET_KEY = _auth_settings.required_secret_key
+_AUTH_SETTINGS = load_settings()
+SECRET_KEY = _AUTH_SETTINGS.required_secret_key
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -205,7 +205,7 @@ def get_password_hash(password):
 
 def _seed_credentials_from_settings(
     repository: UserRepository,
-    settings: Settings | None = None,
+    settings: Settings,
 ) -> None:
     """
     Seed an administrative user into the repository from centralized settings.
@@ -216,10 +216,9 @@ def _seed_credentials_from_settings(
 
     Parameters:
         repository (UserRepository): Repository to seed.
-        settings (Settings | None): Optional settings instance. If omitted,
-            cached runtime settings are loaded via get_settings().
+        settings (Settings): Settings instance containing admin credentials.
     """
-    auth_settings = settings or get_settings()
+    auth_settings = settings
     username = auth_settings.admin_username
     password = auth_settings.admin_password
     if not username or not password:
@@ -244,15 +243,15 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     Seed an administrative user into the repository from centralized settings.
 
     The function name is retained for backward compatibility. Environment
-    values are resolved through get_settings(), not read directly in this module.
+    values are resolved through load_settings(), not read directly in this module.
 
     Parameters:
         repository (UserRepository): Repository to seed.
     """
-    _seed_credentials_from_settings(repository)
+    _seed_credentials_from_settings(repository, load_settings())
 
 
-_seed_credentials_from_settings(user_repository)
+_seed_credentials_from_settings(user_repository, _AUTH_SETTINGS)
 
 if not user_repository.has_users():
     raise ValueError(
