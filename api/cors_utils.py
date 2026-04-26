@@ -157,10 +157,9 @@ def validate_origin(origin: str) -> bool:
     if _is_valid_https_domain(origin):
         return True
     parsed = urlparse(origin)
-    has_extra_components = any([
-        parsed.path, parsed.params, parsed.query,
-        parsed.fragment, parsed.username, parsed.password
-    ])
+    has_extra_components = any(
+        [parsed.path, parsed.params, parsed.query, parsed.fragment, parsed.username, parsed.password]
+    )
     if has_extra_components:
         return False
     try:
