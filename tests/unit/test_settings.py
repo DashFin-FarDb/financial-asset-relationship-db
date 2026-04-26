@@ -374,9 +374,9 @@ class TestSettingsEdgeCases:
         settings = load_settings()
         assert settings.admin_disabled is True
 
-    @patch.dict(os.environ, {"ADMIN_DISABLED": "false"})
-    def test_admin_disabled_false_value(self) -> None:
-        """Test that ADMIN_DISABLED=false loads as False."""
+@patch.dict(os.environ, {"ADMIN_DISABLED": "false"})
+    def test_load_settings_admin_disabled_false(self) -> None:
+        """Test that load_settings returns False for ADMIN_DISABLED=false."""
         settings = load_settings()
         assert settings.admin_disabled is False
 
