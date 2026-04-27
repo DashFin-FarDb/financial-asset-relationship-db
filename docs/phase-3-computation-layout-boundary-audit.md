@@ -4,12 +4,12 @@
 
 The computation boundary is mostly isolated, but not ideal.
 
-The graph engine is the authoritative source for relationship construction and the richest network metric set. The production API then recomputes or derives a small set of endpoint-specific values, and the frontend performs one density formatting transform that conflicts with the backend contract.
+The graph engine is the authoritative source for relationship construction and the richest network metric set. The production API then recomputes or derives a small set of endpoint-specific values, and the frontend performs one density formatting transform against an implicit backend contract.
 
 Minimal follow-up PRs should address these boundary blurs:
 
 1. Move API `asset_classes`, `avg_degree`, and `max_degree` computation behind the graph metric contract or document them as API-only presentation metrics.
-2. Resolve density semantics so `network_density`/`relationship_density` are either both 0-100 percentages end-to-end or both 0-1 fractions end-to-end.
+2. Make density semantics explicit so `network_density`/`relationship_density` are documented and tested as either 0-100 percentages end-to-end or 0-1 fractions end-to-end.
 3. Tighten visualization and asset list contracts so layout fields, node sizing, frontend limits, and pagination assumptions are explicit.
 
 ## 1. Computation map
@@ -61,7 +61,7 @@ Classification: presentation serialization.
 
 | Surface | Behavior | Classification |
 | --- | --- | --- |
-| `api/api_models.py` | Defines `RelationshipResponse`, `MetricsResponse`, and `VisualizationDataResponse`. Visualization nodes and edges are loose `dict[str, Any]`. | Contract |
+| `api/api_models.py` | Defines `RelationshipResponse`, `MetricsResponse`, and `VisualizationDataResponse`. Visualization nodes and edges are `list[dict[str, Any]]`, leaving node/edge validation to frontend assumptions. | Contract |
 | `api/routers/assets.py` | Filters assets by class/sector and serializes assets. It does not accept `page` or `per_page`. | Response shaping |
 | `api/routers/relationships.py` | Serializes graph relationships as response models. | Display-only serialization |
 | `api/routers/metrics.py` | Recomputes asset class counts and degree stats, aliases graph density into two fields. | Boundary-blurring computation |
@@ -71,10 +71,10 @@ Classification: presentation serialization.
 
 | Surface | Behavior | Classification |
 | --- | --- | --- |
-| `frontend/app/components/MetricsDashboard.tsx` | Displays totals, degree values, asset class counts, and formats `network_density` as `(value * 100).toFixed(2)%`. | Display formatting with semantic drift |
+| `frontend/app/components/MetricsDashboard.tsx` | Displays totals, degree values, asset class counts, and formats `network_density` as `(value * 100).toFixed(2)%`. | Display formatting against an implicit unit contract |
 | `frontend/app/components/NetworkVisualization.tsx` | Uses API-provided node coordinates, size, and color; maps edge strength into Plotly opacity and width; filters edges whose endpoint nodes are absent; enforces `MAX_NODES` and `MAX_EDGES`. | Display encoding and client render guard |
 | `frontend/app/components/AssetList.tsx` | Formats prices and market cap; reads `page`/`per_page` UI state. | Display formatting plus contract drift |
-| `frontend/app/lib/assetHelpers.ts` | Sends `page` and `per_page` to `api.getAssets()` and supports a paginated response shape, while the API returns a plain list. | Boundary-blurring client assumption |
+| `frontend/app/lib/assetHelpers.ts` | Sends `page` and `per_page` to `api.getAssets()`, accepts a paginated response shape first, then falls back to a plain list. The current backend returns a list, so the paginated branch is effectively a compatibility assumption. | Boundary-blurring client assumption |
 | `frontend/app/types/api.ts` | Mirrors API response shapes in TypeScript; `relationship_density` is optional. | Client contract mirror |
 
 ## 3. Boundary classification
@@ -98,18 +98,18 @@ The graph engine owns the core financial relationship and network metrics, but t
    - Risk: graph metrics and API metrics can drift because only part of the response is sourced from `calculate_metrics()`. For example, the metrics router's degree calculation is currently inconsistent with the visualization router's logic.
    - Minimal PR: either extend `calculate_metrics()` to include these fields or move them into a named API presentation section with tests that document the distinction.
 
-2. Density semantics conflict across backend and frontend.
+2. Density semantics are implicit and underspecified across backend and frontend.
    - Graph docs and API tests treat density as 0-100.
    - Frontend component docs, mocks, and tests treat `network_density` as 0-1 and multiply by 100.
    - Minimal PR: choose one unit, update `MetricsResponse`, `frontend/app/types/api.ts`, `MetricsDashboard`, and tests together.
 
 3. Visualization fields are loosely contracted.
-   - Backend response model allows arbitrary node/edge dicts.
-   - Frontend assumes strict node and edge fields.
+   - Backend `VisualizationDataResponse` uses `list[dict[str, Any]]` for nodes and edges.
+   - That schema leaves node/edge validation to the frontend, which assumes strict node and edge fields.
    - Minimal PR: introduce explicit Pydantic node/edge models and align TypeScript types/tests.
 
 4. Asset pagination assumptions are outside the API contract.
-   - Frontend sends `page` and `per_page` and supports paginated responses.
+   - Frontend sends `page` and `per_page` and accepts paginated responses before falling back to a list.
    - Backend `GET /api/assets` only accepts `asset_class` and `sector` and returns a list.
    - Minimal PR: either add server pagination or remove pagination-shaped client assumptions.
 
@@ -131,7 +131,7 @@ The graph engine owns the core financial relationship and network metrics, but t
 - `tests/unit/test_asset_graph.py` and `tests/unit/test_asset_graph_simplified.py` focus on initialization, relationship insertion, and legacy enhanced visualization; they do not directly test `build_relationships()` or `calculate_metrics()` as the core metric contract.
 - `build_relationships()` coverage is mostly indirect through fixtures and formulaic analysis tests.
 - There is no single contract test proving `GET /api/metrics` is a strict projection of `AssetRelationshipGraph.calculate_metrics()`.
-- Frontend tests encode 0-1 density assumptions while backend tests encode 0-100 density assumptions.
+- Frontend tests encode 0-1 density assumptions while backend tests encode 0-100 density assumptions, but the shared API contract does not document the unit.
 - Visualization response models are loose on the backend, so frontend strictness is not protected by a shared or explicit backend schema.
 - Relationship list endpoints are tested in the API client and backend, but the production home UI does not consume them directly.
 
@@ -163,12 +163,12 @@ API visualization contract:
 
 Frontend contract:
 
-- `MetricsDashboard` expects metric numbers and formats density as a fraction.
+- `MetricsDashboard` expects metric numbers and formats `network_density` as a fraction.
 - `NetworkVisualization` expects explicit node/edge fields and treats strength as a visual opacity/width input.
-- `AssetList` expects either a list or a paginated response, though the current backend list endpoint is not paginated.
+- `AssetList` accepts either a list or a paginated response, though the current backend list endpoint is not paginated.
 
 ## Final answer
 
 The answer is:
 
-Financial relationship computation is mostly isolated in `src/logic/asset_graph.py`, but production API metrics are not a pure presentation projection. The specific boundary violations or blurs are the metrics router's duplicate aggregations, density unit drift between backend and frontend, loose visualization response contracts, and asset pagination assumptions in the frontend.
+Core graph computation is mostly isolated, but the API and frontend both add boundary-specific derived values. The specific boundary violations or blurs are the metrics router's duplicate aggregations, the implicit density unit contract, loose visualization response contracts, and asset pagination compatibility assumptions in the frontend.
