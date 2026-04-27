@@ -390,12 +390,6 @@ class TestSettingsEdgeCases:
         assert settings.admin_disabled is False
 
     @patch.dict(os.environ, {}, clear=True)
-    def test_load_settings_admin_disabled_defaults_false_when_unset(self) -> None:
-        """Test that ADMIN_DISABLED defaults to False when unset."""
-        settings = load_settings()
-        assert settings.admin_disabled is False
-
-    @patch.dict(os.environ, {}, clear=True)
     def test_missing_optional_vars(self) -> None:
         """Test that missing optional environment variables use defaults."""
         settings = load_settings()
