@@ -23,7 +23,6 @@ from api.auth import (
     User,
     UserInDB,
     UserRepository,
-    _is_truthy,
     authenticate_user,
     create_access_token,
     get_current_active_user,
@@ -32,43 +31,6 @@ from api.auth import (
     verify_password,
 )
 from api.models import UserPublic
-
-
-class TestIsTruthy:
-    """Test the _is_truthy helper function."""
-
-    def test_truthy_values(self):
-        """Test that recognized truthy strings return True."""
-        assert _is_truthy("true")
-        assert _is_truthy("True")
-        assert _is_truthy("TRUE")
-        assert _is_truthy("1")
-        assert _is_truthy("yes")
-        assert _is_truthy("Yes")
-        assert _is_truthy("YES")
-        assert _is_truthy("on")
-        assert _is_truthy("On")
-        assert _is_truthy("ON")
-
-    def test_falsy_values(self):
-        """Test that non-truthy strings return False."""
-        assert not _is_truthy("false")
-        assert not _is_truthy("0")
-        assert not _is_truthy("no")
-        assert not _is_truthy("off")
-        assert not _is_truthy("")
-        assert not _is_truthy("random")
-        assert not _is_truthy("maybe")
-
-    def test_none_value(self):
-        """Test that None returns False."""
-        assert not _is_truthy(None)
-
-    def test_whitespace(self):
-        """Test handling of whitespace."""
-        assert not _is_truthy("  ")
-        assert not _is_truthy("\t")
-        assert not _is_truthy("\n")
 
 
 class TestPasswordHashing:
@@ -882,58 +844,6 @@ class TestSeedCredentialsParameterNameChanges:
 
         call_kwargs = mock_repo.create_or_update_user.call_args[1]
         assert call_kwargs["user_profile"]["is_disabled"] is True
-
-
-class TestIsTruthyAdditionalCases:
-    """Additional test cases for _is_truthy helper."""
-
-    def test_mixed_case_combinations(self):
-        """Test various mixed case combinations."""
-        truthy_cases = [
-            "TrUe",
-            "tRuE",
-            "TRUE",
-            "true",
-            "YeS",
-            "yEs",
-            "YES",
-            "yes",
-            "On",
-            "oN",
-            "ON",
-            "on",
-        ]
-        for value in truthy_cases:
-            assert _is_truthy(value), f"Failed for {value}"
-
-    def test_numeric_strings(self):
-        """Test numeric string handling."""
-        assert _is_truthy("1")
-        assert not _is_truthy("0")
-        assert not _is_truthy("2")
-        assert not _is_truthy("-1")
-        assert not _is_truthy("1.0")
-
-    def test_whitespace_variations(self):
-        """Test whitespace handling."""
-        assert not _is_truthy("  ")
-        assert not _is_truthy("\t\t")
-        assert not _is_truthy("\n\n")
-        assert not _is_truthy("   ")
-
-    def test_truthy_with_surrounding_whitespace(self):
-        """Test that whitespace around truthy values matters."""
-        # These should NOT be truthy (whitespace is not stripped by _is_truthy)
-        assert not _is_truthy(" true")
-        assert not _is_truthy("true ")
-        assert not _is_truthy(" 1 ")
-
-    def test_partial_matches(self):
-        """Test that partial matches don't count."""
-        assert not _is_truthy("truex")
-        assert not _is_truthy("xtrue")
-        assert not _is_truthy("yes!")
-        assert not _is_truthy("!yes")
 
 
 class TestAuthenticationEdgeCases:

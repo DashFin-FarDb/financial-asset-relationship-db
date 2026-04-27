@@ -44,21 +44,6 @@ class TokenData(BaseModel):
     username: str | None = None
 
 
-def _is_truthy(value: str | None) -> bool:
-    """
-    Determine whether a string value represents a truthy boolean.
-
-    Parameters:
-        value (str | None): Input string to evaluate; recognised truthy forms are
-            "true", "1", "yes" and "on" (case-insensitive).
-
-    Returns:
-        bool: True if `value` matches a recognised truthy form,
-            False otherwise.
-    """
-    return False if not value else value.lower() in ("true", "1", "yes", "on")
-
-
 class UserRepository:
     """Repository for accessing user credential records."""
 
