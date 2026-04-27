@@ -25,7 +25,6 @@ from api.auth import (
     _build_credentials_exception,
     _build_expired_exception,
     _decode_username_from_token,
-    _is_truthy,
     authenticate_user,
     create_access_token,
     get_current_active_user,
@@ -66,46 +65,6 @@ def sample_user():
         disabled=False,
         hashed_password="$2b$12$KIXqZ3vZ3vZ3vZ3vZ3vZ3O",
     )
-
-
-class TestIsTruthy:
-    """Test cases for _is_truthy helper function."""
-
-    def test_is_truthy_with_true_lowercase(self):
-        """Test that 'true' is recognized as truthy."""
-        assert _is_truthy("true") is True
-
-    def test_is_truthy_with_true_uppercase(self):
-        """Test that 'TRUE' is recognized as truthy."""
-        assert _is_truthy("TRUE") is True
-
-    def test_is_truthy_with_one(self):
-        """Test that '1' is recognized as truthy."""
-        assert _is_truthy("1") is True
-
-    def test_is_truthy_with_yes(self):
-        """Test that 'yes' is recognized as truthy."""
-        assert _is_truthy("yes") is True
-
-    def test_is_truthy_with_on(self):
-        """Test that 'on' is recognized as truthy."""
-        assert _is_truthy("on") is True
-
-    def test_is_truthy_with_false(self):
-        """Test that 'false' is not truthy."""
-        assert _is_truthy("false") is False
-
-    def test_is_truthy_with_zero(self):
-        """Test that '0' is not truthy."""
-        assert _is_truthy("0") is False
-
-    def test_is_truthy_with_empty_string(self):
-        """Test that empty string is not truthy."""
-        assert _is_truthy("") is False
-
-    def test_is_truthy_with_none(self):
-        """Test that None is not truthy."""
-        assert _is_truthy(None) is False
 
 
 class TestUserRepository:
