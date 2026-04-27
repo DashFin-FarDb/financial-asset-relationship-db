@@ -381,6 +381,37 @@ class TestAPIEndpoints:
         if "relationship_density" in data:
             assert 0 <= data["relationship_density"] <= 100
 
+    def test_get_metrics_projects_graph_owned_contract(self, bare_client: TestClient) -> None:
+        """Metrics endpoint should only project public metrics from the graph layer."""
+        graph = Mock(spec=AssetRelationshipGraph)
+        graph.calculate_metrics.return_value = {
+            "total_assets": 9,
+            "total_relationships": 12,
+            "asset_classes": {"Graph Owned": 9},
+            "avg_degree": 2.5,
+            "max_degree": 7,
+            "network_density": 42.0,
+            "relationship_density": 42.0,
+        }
+        graph.assets = {
+            "IGNORED": Equity(
+                id="IGNORED",
+                symbol="IGN",
+                name="Should Not Be Counted",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=1.0,
+            )
+        }
+        graph.relationships = {"IGNORED": [("ALSO_IGNORED", "same_sector", 0.7)]}
+
+        with patch("api.routers.metrics.get_graph", return_value=graph):
+            response = bare_client.get("/api/metrics")
+
+        assert response.status_code == 200
+        assert response.json() == graph.calculate_metrics.return_value
+        graph.calculate_metrics.assert_called_once_with()
+
     def test_get_metrics_no_assets(self, bare_client: TestClient) -> None:
         """Metrics endpoint returns zeros for an empty graph."""
         api_main.reset_graph()

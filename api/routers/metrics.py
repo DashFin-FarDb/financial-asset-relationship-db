@@ -15,23 +15,14 @@ async def get_metrics() -> MetricsResponse:
         g = get_graph()
         metrics = g.calculate_metrics()
 
-        asset_classes = {}
-        for asset in g.assets.values():
-            key = asset.asset_class.value
-            asset_classes[key] = asset_classes.get(key, 0) + 1
-
-        degrees = [len(rels) for rels in g.relationships.values()]
-        avg_degree = sum(degrees) / len(degrees) if degrees else 0.0
-        max_degree = max(degrees) if degrees else 0
-
         return MetricsResponse(
             total_assets=metrics["total_assets"],
             total_relationships=metrics["total_relationships"],
-            asset_classes=asset_classes,
-            avg_degree=avg_degree,
-            max_degree=max_degree,
-            network_density=metrics.get("relationship_density", 0.0),
-            relationship_density=metrics.get("relationship_density", 0.0),
+            asset_classes=metrics["asset_classes"],
+            avg_degree=metrics["avg_degree"],
+            max_degree=metrics["max_degree"],
+            network_density=metrics["network_density"],
+            relationship_density=metrics["relationship_density"],
         )
     except Exception as e:
         logger.exception("Error getting metrics:")
