@@ -98,9 +98,17 @@ class TestValidateOrigin:
 
     @staticmethod
     def test_validate_origin_https_localhost() -> None:
-        """HTTPS localhost is always allowed."""
+        """HTTPS localhost is allowed, while HTTPS loopback is development-only."""
+        from src.config.settings import get_settings
+
+        get_settings.cache_clear()
         assert validate_origin("https://localhost:3000")
-        assert validate_origin("https://127.0.0.1:8000")
+        with patch.dict(os.environ, {"ENV": "development"}):
+            get_settings.cache_clear()
+            assert validate_origin("https://127.0.0.1:8000")
+        with patch.dict(os.environ, {"ENV": "production"}):
+            get_settings.cache_clear()
+            assert not validate_origin("https://127.0.0.1:8000")
 
     @staticmethod
     def test_validate_origin_vercel_urls() -> None:

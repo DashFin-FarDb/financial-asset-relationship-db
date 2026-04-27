@@ -190,10 +190,13 @@ class TestCORSValidation:
             assert validate_origin(TEST_ORIGIN_HTTP_LOOPBACK) is True
 
     @staticmethod
-    def test_validate_origin_localhost_https_always():
-        """Test HTTPS localhost is always valid."""
+    def test_validate_origin_localhost_https_policy():
+        """Test HTTPS localhost is valid, while HTTPS loopback is development-only."""
         assert validate_origin(TEST_ORIGIN_HTTPS_LOCALHOST) is True
-        assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is True
+        with patch.dict("os.environ", {"ENV": "development"}):
+            assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is True
+        with patch.dict("os.environ", {"ENV": "production"}):
+            assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is False
 
     @staticmethod
     def test_validate_origin_vercel_urls():
