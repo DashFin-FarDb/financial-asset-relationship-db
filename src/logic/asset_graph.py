@@ -345,7 +345,9 @@ class AssetRelationshipGraph:
                 - asset_class_distribution (dict[str, int]): Counts of assets grouped by asset class value.
                 - asset_classes (dict[str, int]): Public API alias for asset_class_distribution.
                 - avg_degree (float): Mean outgoing relationship count for sources in the relationship map.
+                  Zero-degree assets (those absent from ``relationships``) are excluded from this average.
                 - max_degree (int): Maximum outgoing relationship count for sources in the relationship map.
+                  Zero-degree assets (those absent from ``relationships``) are excluded from this maximum.
                 - top_relationships (list[tuple[str, str, str, float]]): Up to 10 relationships sorted by strength as (source_id, target_id, rel_type, strength).
                 - regulatory_event_count (int): Number of stored regulatory events.
                 - regulatory_event_norm (float): Normalized regulatory event count in [0.0, 1.0) using a saturating mapping.
@@ -376,6 +378,8 @@ class AssetRelationshipGraph:
             "relationship_distribution": rel_dist,
             "asset_class_distribution": asset_class_dist,
             "asset_classes": asset_class_dist,
+            # avg_degree and max_degree are computed across sources present in
+            # `relationships`, not all assets; zero-degree assets are excluded.
             "avg_degree": avg_degree,
             "max_degree": max_degree,
             "top_relationships": top_relationships,
