@@ -54,6 +54,9 @@ class TestParseBoolEnv:
         assert _parse_bool_env("  true  ") is True
         assert _parse_bool_env("  1  ") is True
         assert _parse_bool_env("  yes  ") is True
+        assert _parse_bool_env("  false  ") is False
+        assert _parse_bool_env("  0  ") is False
+        assert _parse_bool_env("  maybe  ") is False
 
     def test_parse_bool_env_random_string(self) -> None:
         """Test that random strings return False."""
@@ -394,6 +397,7 @@ class TestSettingsEdgeCases:
         assert settings.real_data_cache_path is None
         assert settings.database_url is None
         assert settings.asset_graph_database_url is None
+        assert settings.admin_disabled is False
 
 
 # ---------------------------------------------------------------------------
