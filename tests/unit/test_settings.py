@@ -54,6 +54,9 @@ class TestParseBoolEnv:
         assert _parse_bool_env("  true  ") is True
         assert _parse_bool_env("  1  ") is True
         assert _parse_bool_env("  yes  ") is True
+        assert _parse_bool_env("  false  ") is False
+        assert _parse_bool_env("  0  ") is False
+        assert _parse_bool_env("  maybe  ") is False
 
     def test_parse_bool_env_random_string(self) -> None:
         """Test that random strings return False."""
@@ -383,6 +386,12 @@ class TestSettingsEdgeCases:
     @patch.dict(os.environ, {"ADMIN_DISABLED": "maybe"})
     def test_load_settings_admin_disabled_unknown_value_is_false(self) -> None:
         """Test that load_settings returns False for unknown ADMIN_DISABLED values."""
+        settings = load_settings()
+        assert settings.admin_disabled is False
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_load_settings_admin_disabled_defaults_false_when_unset(self) -> None:
+        """Test that ADMIN_DISABLED defaults to False when unset."""
         settings = load_settings()
         assert settings.admin_disabled is False
 
