@@ -13,6 +13,7 @@ from ..auth import (
     create_access_token,
     get_current_active_user,
 )
+from ..models import UserPublic
 from ..rate_limit import limiter
 
 router = APIRouter()
@@ -35,34 +36,36 @@ async def login_for_access_token(
         Token: A `Token` object containing the JWT in `access_token` and `token_type` set to "bearer".
     """
     user = authenticate_user(form_data.username, form_data.password)
-    if not user:
+    if user is None or user is False:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username},
+        data={"sub": user.username},  # type: ignore[union-attr]
         expires_delta=access_token_expires,
     )
     return Token(access_token=access_token, token_type="bearer")
 
 
-@router.get("/api/users/me", response_model=User)
+@router.get("/api/users/me", response_model=UserPublic)
 @limiter.limit("10/minute")
 async def read_users_me(
     request: Request,  # Required by slowapi for rate-limit key extraction.
     current_user: User = Depends(get_current_active_user),  # noqa: B008
-) -> User:
+) -> UserPublic:
     """
-    Retrieve the authenticated active user.
+    Retrieve the authenticated active user as a public response model.
 
     Parameters:
         request (Request): Included for rate-limit key extraction by the request middleware.
         current_user (User): The authenticated active user resolved by dependency injection.
 
     Returns:
-        User: The `current_user` object representing the authenticated active user.
+        UserPublic: Public user profile without credential-bearing fields.
     """
-    return current_user
+    # Defense in depth: current_user may be a UserInDB at runtime.
+    return UserPublic.model_validate(current_user.model_dump(exclude={"hashed_password"}))

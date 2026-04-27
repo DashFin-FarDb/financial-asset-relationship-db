@@ -23,7 +23,6 @@ from api.auth import (
     User,
     UserInDB,
     UserRepository,
-    _is_truthy,
     authenticate_user,
     create_access_token,
     get_current_active_user,
@@ -31,43 +30,7 @@ from api.auth import (
     get_password_hash,
     verify_password,
 )
-
-
-class TestIsTruthy:
-    """Test the _is_truthy helper function."""
-
-    def test_truthy_values(self):
-        """Test that recognized truthy strings return True."""
-        assert _is_truthy("true")
-        assert _is_truthy("True")
-        assert _is_truthy("TRUE")
-        assert _is_truthy("1")
-        assert _is_truthy("yes")
-        assert _is_truthy("Yes")
-        assert _is_truthy("YES")
-        assert _is_truthy("on")
-        assert _is_truthy("On")
-        assert _is_truthy("ON")
-
-    def test_falsy_values(self):
-        """Test that non-truthy strings return False."""
-        assert not _is_truthy("false")
-        assert not _is_truthy("0")
-        assert not _is_truthy("no")
-        assert not _is_truthy("off")
-        assert not _is_truthy("")
-        assert not _is_truthy("random")
-        assert not _is_truthy("maybe")
-
-    def test_none_value(self):
-        """Test that None returns False."""
-        assert not _is_truthy(None)
-
-    def test_whitespace(self):
-        """Test handling of whitespace."""
-        assert not _is_truthy("  ")
-        assert not _is_truthy("\t")
-        assert not _is_truthy("\n")
+from api.models import UserPublic
 
 
 class TestPasswordHashing:
@@ -171,6 +134,18 @@ class TestUserModels:
         assert user_in_db.username == "testuser"
         assert user_in_db.email == "test@example.com"
         assert user_in_db.hashed_password == "hashed_pwd_123"
+
+    def test_user_public_excludes_hashed_password(self):
+        """Test UserPublic does not expose hashed_password."""
+        user = UserPublic(
+            username="testuser",
+            email="test@example.com",
+            full_name="Test User",
+            disabled=False,
+        )
+
+        assert "hashed_password" not in UserPublic.model_fields
+        assert "hashed_password" not in user.model_dump()
 
 
 class TestUserRepository:
@@ -340,17 +315,20 @@ class TestJWTOperations:
 
     @pytest.fixture
     def valid_token(self):
+        """Fixture providing a valid JWT token for testuser."""
         data = {"sub": "testuser"}
         return create_access_token(data)
 
     @pytest.fixture
     def expired_token(self):
+        """Fixture providing an already-expired JWT token."""
         data = {"sub": "testuser"}
         expires_delta = timedelta(seconds=-10)  # Already expired
         return create_access_token(data, expires_delta)
 
     @pytest.fixture
     def mock_user(self):
+        """Fixture providing a mock UserInDB instance."""
         return UserInDB(
             username="testuser",
             email="test@example.com",
@@ -361,6 +339,7 @@ class TestJWTOperations:
     @pytest.mark.asyncio
     @patch("api.auth.user_repository.get_user")
     async def test_get_current_user_valid_token(self, mock_get_user, valid_token, mock_user):
+        """Test that valid token returns the correct user."""
         mock_get_user.return_value = mock_user
 
         user = await get_current_user(valid_token)
@@ -370,6 +349,7 @@ class TestJWTOperations:
 
     @pytest.mark.asyncio
     async def test_get_current_user_invalid_token(self):
+        """Test that invalid token raises HTTPException."""
         invalid_token = "invalid.jwt.token"
 
         with pytest.raises(HTTPException) as exc_info:
@@ -399,6 +379,8 @@ class TestJWTOperations:
 
 
 class TestGetCurrentActiveUser:
+    """Test get_current_active_user dependency."""
+
     @pytest.fixture
     def active_user(self):
         """Fixture providing an active user."""
@@ -406,6 +388,7 @@ class TestGetCurrentActiveUser:
 
     @pytest.fixture
     def disabled_user(self):
+        """Fixture providing a disabled user."""
         return User(username="disableduser", email="disabled@example.com", disabled=True, hashed_password="hash")
 
     @pytest.mark.asyncio
@@ -432,8 +415,11 @@ class TestGetCurrentActiveUser:
 
 
 class TestEdgeCases:
+    """Test edge cases and error handling in authentication."""
+
     @pytest.fixture
     def valid_token(self):
+        """Fixture providing a valid JWT token for testuser."""
         data = {"sub": "testuser"}
         return create_access_token(data)
 
@@ -496,6 +482,7 @@ class TestEdgeCases:
 
 
 def test_special_character_usernames_do_not_break_token_creation():
+    """Test that special characters in usernames don't break token creation."""
     special_usernames = ["user@name", "user name", "user'name", 'user"name']
     for username in special_usernames:
         token = create_access_token({"sub": username})
@@ -841,57 +828,22 @@ class TestSeedCredentialsParameterNameChanges:
         call_kwargs = mock_repo.create_or_update_user.call_args[1]
         assert call_kwargs["user_profile"]["is_disabled"] is True
 
+    @patch.dict(
+        os.environ,
+        {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": "adminpass", "ADMIN_DISABLED": " true "},
+    )
+    @patch("api.auth.get_password_hash")
+    def test_seed_disabled_whitespace_normalized(self, mock_hash):
+        """Test that ADMIN_DISABLED=' true ' is normalized to True through the settings layer."""
+        mock_hash.return_value = "hashed"
+        mock_repo = Mock(spec=UserRepository)
 
-class TestIsTruthyAdditionalCases:
-    """Additional test cases for _is_truthy helper."""
+        from api.auth import _seed_credentials_from_env
 
-    def test_mixed_case_combinations(self):
-        """Test various mixed case combinations."""
-        truthy_cases = [
-            "TrUe",
-            "tRuE",
-            "TRUE",
-            "true",
-            "YeS",
-            "yEs",
-            "YES",
-            "yes",
-            "On",
-            "oN",
-            "ON",
-            "on",
-        ]
-        for value in truthy_cases:
-            assert _is_truthy(value), f"Failed for {value}"
+        _seed_credentials_from_env(mock_repo)
 
-    def test_numeric_strings(self):
-        """Test numeric string handling."""
-        assert _is_truthy("1")
-        assert not _is_truthy("0")
-        assert not _is_truthy("2")
-        assert not _is_truthy("-1")
-        assert not _is_truthy("1.0")
-
-    def test_whitespace_variations(self):
-        """Test whitespace handling."""
-        assert not _is_truthy("  ")
-        assert not _is_truthy("\t\t")
-        assert not _is_truthy("\n\n")
-        assert not _is_truthy("   ")
-
-    def test_truthy_with_surrounding_whitespace(self):
-        """Test that whitespace around truthy values matters."""
-        # These should NOT be truthy (whitespace is not stripped by _is_truthy)
-        assert not _is_truthy(" true")
-        assert not _is_truthy("true ")
-        assert not _is_truthy(" 1 ")
-
-    def test_partial_matches(self):
-        """Test that partial matches don't count."""
-        assert not _is_truthy("truex")
-        assert not _is_truthy("xtrue")
-        assert not _is_truthy("yes!")
-        assert not _is_truthy("!yes")
+        call_kwargs = mock_repo.create_or_update_user.call_args[1]
+        assert call_kwargs["user_profile"]["is_disabled"] is True
 
 
 class TestAuthenticationEdgeCases:
@@ -1065,3 +1017,47 @@ class TestAuthenticationIntegrationFlow:
         # User exists but is disabled
         assert user is not None
         assert user.disabled is True
+
+
+class TestSeedCredentialsFromSettings:
+    """Test _seed_credentials_from_settings with explicit settings injection."""
+
+    def test_seed_credentials_from_settings_uses_settings_values(self):
+        """Test that admin seed values can be supplied through Settings."""
+        from api.auth import _seed_credentials_from_settings
+        from src.config.settings import Settings
+
+        mock_repo = Mock(spec=UserRepository)
+
+        with patch("api.auth.get_password_hash", return_value="hashed_adminpass"):
+            _seed_credentials_from_settings(
+                mock_repo,
+                Settings(
+                    secret_key="secret",
+                    admin_username="admin",
+                    admin_password="adminpass",
+                    admin_email="admin@example.com",
+                    admin_full_name="Admin User",
+                    admin_disabled=True,
+                ),
+            )
+
+        mock_repo.create_or_update_user.assert_called_once_with(
+            username="admin",
+            hashed_password="hashed_adminpass",
+            user_profile={
+                "user_email": "admin@example.com",
+                "user_full_name": "Admin User",
+                "is_disabled": True,
+            },
+        )
+
+    def test_seed_credentials_from_settings_skips_when_username_or_password_missing(self):
+        """Test that incomplete admin settings do not seed a user."""
+        from api.auth import _seed_credentials_from_settings
+        from src.config.settings import Settings
+
+        mock_repo = Mock(spec=UserRepository)
+
+        _seed_credentials_from_settings(mock_repo, Settings(secret_key="secret"))
+        mock_repo.create_or_update_user.assert_not_called()

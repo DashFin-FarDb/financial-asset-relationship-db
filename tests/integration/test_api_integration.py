@@ -220,6 +220,7 @@ class TestAuthenticationFlow:
         assert payload["email"] == os.environ["ADMIN_EMAIL"]
         assert payload["full_name"] == os.environ["ADMIN_FULL_NAME"]
         assert payload["disabled"] is False
+        assert "hashed_password" not in payload  # Security: ensure password hash is never exposed
 
         invalid_response = client.get("/api/users/me", headers={"Authorization": "Bearer invalid-token"})
         assert invalid_response.status_code == 401

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from datetime import UTC, datetime, timedelta
 from typing import TypedDict
 
@@ -14,13 +13,13 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from api.models import User, UserInDB
+from src.config.settings import Settings, load_settings
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
 # Security configuration
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
+_AUTH_SETTINGS = load_settings()
+SECRET_KEY = _AUTH_SETTINGS.required_secret_key
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -43,21 +42,6 @@ class TokenData(BaseModel):
     """Carries optional token payload data, such as the extracted username."""
 
     username: str | None = None
-
-
-def _is_truthy(value: str | None) -> bool:
-    """
-    Determine whether a string value represents a truthy boolean.
-
-    Parameters:
-        value (str | None): Input string to evaluate; recognised truthy forms are
-            "true", "1", "yes" and "on" (case-insensitive).
-
-    Returns:
-        bool: True if `value` matches a recognised truthy form,
-            False otherwise.
-    """
-    return False if not value else value.lower() in ("true", "1", "yes", "on")
 
 
 class UserRepository:
@@ -117,7 +101,12 @@ class UserRepository:
         """
         Insert or update a user credential record in the user_credentials table.
 
-        Performs an upsert for the given username using the provided hashed_password and optional profile data. Accepts a modern mapping via `user_profile` containing any of `user_email`, `user_full_name`, and `is_disabled`. Legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields` are accepted and override values from `user_profile` when provided. A `TypeError` is raised if any unexpected legacy keys are supplied. The `disabled` column is stored as `1` when `is_disabled` is truthy, otherwise `0`.
+        Performs an upsert for the given username using the provided hashed_password and optional profile data.
+        Accepts a modern mapping via `user_profile` containing any of `user_email`, `user_full_name`, and `is_disabled`.
+        Legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields`,
+        are accepted and override values from `user_profile` when provided.
+        A `TypeError` is raised if any unexpected legacy keys are supplied.
+        The `disabled` column is stored as `1` when `is_disabled` is truthy, otherwise `0`.
 
         Parameters:
             user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
@@ -204,34 +193,54 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def _seed_credentials_from_env(repository: UserRepository) -> None:
+def _seed_credentials_from_settings(
+    repository: UserRepository,
+    settings: Settings,
+) -> None:
     """
-    Seed an administrative user into the repository from environment variables.
+    Seed an administrative user into the repository from centralized settings.
 
-    Reads ADMIN_USERNAME and ADMIN_PASSWORD; if both are present, hashes the password and upserts a user using optional ADMIN_EMAIL, ADMIN_FULL_NAME, and ADMIN_DISABLED (interpreted as a truthy flag). If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, the repository is not modified.
+    If both admin username and password are configured, hash the password and
+    upsert a user using optional admin email, full name, and disabled flag. If
+    either username or password is missing, leave the repository unchanged.
+
+    Parameters:
+        repository (UserRepository): Repository to seed.
+        settings (Settings): Settings instance containing admin credentials.
     """
-    username = os.getenv("ADMIN_USERNAME")
-    password = os.getenv("ADMIN_PASSWORD")
+    username = settings.admin_username
+    password = settings.admin_password
     if not username or not password:
         return
 
     hashed_password = get_password_hash(password)
-    admin_email = os.getenv("ADMIN_EMAIL")
-    admin_full_name = os.getenv("ADMIN_FULL_NAME")
-    admin_disabled = _is_truthy(os.getenv("ADMIN_DISABLED", "false"))
+    admin_disabled = settings.admin_disabled
 
     repository.create_or_update_user(
         username=username,
         hashed_password=hashed_password,
         user_profile={
-            "user_email": admin_email,
-            "user_full_name": admin_full_name,
+            "user_email": settings.admin_email,
+            "user_full_name": settings.admin_full_name,
             "is_disabled": admin_disabled,
         },
     )
 
 
-_seed_credentials_from_env(user_repository)
+def _seed_credentials_from_env(repository: UserRepository) -> None:
+    """
+    Seed an administrative user through the backward-compatible env wrapper.
+
+    Resolve environment values through load_settings() rather than reading
+    os.environ directly. Keep the function name for compatibility.
+
+    Parameters:
+        repository (UserRepository): Repository to seed.
+    """
+    _seed_credentials_from_settings(repository, load_settings())
+
+
+_seed_credentials_from_settings(user_repository, _AUTH_SETTINGS)
 
 if not user_repository.has_users():
     raise ValueError(
