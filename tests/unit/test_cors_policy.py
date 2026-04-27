@@ -28,9 +28,7 @@ _LOOPBACK_ORIGINS = [
 
 @pytest.mark.unit
 @pytest.mark.parametrize("origin", _LOOPBACK_ORIGINS)
-def test_development_allowed_origins_include_loopback_frontend(
-    monkeypatch: pytest.MonkeyPatch, origin: str
-) -> None:
+def test_development_allowed_origins_include_loopback_frontend(monkeypatch: pytest.MonkeyPatch, origin: str) -> None:
     """Development CORS defaults allow all loopback origins used by local dev servers."""
     monkeypatch.setenv("ENV", "development")
     monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
@@ -42,9 +40,7 @@ def test_development_allowed_origins_include_loopback_frontend(
 
 @pytest.mark.unit
 @pytest.mark.parametrize("origin", _LOOPBACK_ORIGINS)
-def test_production_allowed_origins_exclude_loopback_frontend(
-    monkeypatch: pytest.MonkeyPatch, origin: str
-) -> None:
+def test_production_allowed_origins_exclude_loopback_frontend(monkeypatch: pytest.MonkeyPatch, origin: str) -> None:
     """Production CORS defaults do not allow loopback frontend origins."""
     monkeypatch.setenv("ENV", "production")
     monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
@@ -56,9 +52,7 @@ def test_production_allowed_origins_exclude_loopback_frontend(
 
 @pytest.mark.unit
 @pytest.mark.parametrize("origin", _LOOPBACK_ORIGINS)
-def test_production_validate_origin_excludes_loopback_frontend(
-    monkeypatch: pytest.MonkeyPatch, origin: str
-) -> None:
+def test_production_validate_origin_excludes_loopback_frontend(monkeypatch: pytest.MonkeyPatch, origin: str) -> None:
     """Production origin validation rejects all loopback frontend origins by default."""
     monkeypatch.setenv("ENV", "production")
     monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
