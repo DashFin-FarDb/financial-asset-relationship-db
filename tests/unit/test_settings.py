@@ -403,6 +403,7 @@ class TestSettingsEdgeCases:
         assert settings.real_data_cache_path is None
         assert settings.database_url is None
         assert settings.asset_graph_database_url is None
+        assert settings.admin_disabled is False
 
 
 # ---------------------------------------------------------------------------
