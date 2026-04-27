@@ -169,6 +169,6 @@ Frontend contract:
 
 ## Final answer
 
-The likely answer is:
+The answer is:
 
 Financial relationship computation is mostly isolated in `src/logic/asset_graph.py`, but production API metrics are not a pure presentation projection. The specific boundary violations or blurs are the metrics router's duplicate aggregations, density unit drift between backend and frontend, loose visualization response contracts, and asset pagination assumptions in the frontend.
