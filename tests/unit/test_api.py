@@ -17,6 +17,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app, validate_origin
+from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 
@@ -192,11 +193,15 @@ class TestCORSValidation:
     @staticmethod
     def test_validate_origin_localhost_https_policy():
         """Test HTTPS localhost is valid, while HTTPS loopback is development-only."""
+        get_settings.cache_clear()
         assert validate_origin(TEST_ORIGIN_HTTPS_LOCALHOST) is True
         with patch.dict("os.environ", {"ENV": "development"}):
+            get_settings.cache_clear()
             assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is True
         with patch.dict("os.environ", {"ENV": "production"}):
+            get_settings.cache_clear()
             assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is False
+        get_settings.cache_clear()
 
     @staticmethod
     def test_validate_origin_vercel_urls():
