@@ -11,6 +11,7 @@ This module tests all API endpoints including:
 """
 
 from collections.abc import Callable
+from typing import Any
 from unittest.mock import PropertyMock, patch
 
 import pytest
@@ -122,7 +123,7 @@ def mock_graph():
     return graph
 
 
-def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRelationshipGraph) -> None:
+def _apply_mock_graph_configuration(mock_graph_instance: Any, graph: AssetRelationshipGraph) -> None:
     """
     Copy core attributes from a concrete AssetRelationshipGraph onto a mocked graph used in tests.
 
@@ -132,10 +133,20 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
         mock_graph_instance (object): The mocked graph object (typically a unittest.mock.Mock) to configure.
         graph (AssetRelationshipGraph): The concrete AssetRelationshipGraph whose attributes will be copied.
     """
+    metrics = graph.calculate_metrics()
+
     # The patched object is a Mock from unittest.mock; we set attributes dynamically.
     mock_graph_instance.assets = graph.assets
     mock_graph_instance.relationships = graph.relationships
-    mock_graph_instance.calculate_metrics = graph.calculate_metrics
+    mock_graph_instance.calculate_metrics.return_value = {
+        "total_assets": metrics["total_assets"],
+        "total_relationships": metrics["total_relationships"],
+        "asset_classes": metrics["asset_classes"],
+        "avg_degree": metrics["avg_degree"],
+        "max_degree": metrics["max_degree"],
+        "network_density": metrics["network_density"],
+        "relationship_density": metrics["relationship_density"],
+    }
     mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data_enhanced
 
 

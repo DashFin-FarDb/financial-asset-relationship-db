@@ -29,7 +29,7 @@ class RelationshipResponse(BaseModel):
 
 
 class MetricsResponse(BaseModel):
-    """Response model for network metrics."""
+    """Response model for graph-owned public network metrics."""
 
     total_assets: int
     total_relationships: int
