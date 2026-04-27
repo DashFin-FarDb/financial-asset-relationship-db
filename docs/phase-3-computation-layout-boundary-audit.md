@@ -73,7 +73,7 @@ Classification: presentation serialization.
 | --- | --- | --- |
 | `frontend/app/components/MetricsDashboard.tsx` | Displays totals, degree values, asset class counts, and formats `network_density` as `(value * 100).toFixed(2)%`. | Display formatting with semantic drift |
 | `frontend/app/components/NetworkVisualization.tsx` | Uses API-provided node coordinates, size, and color; maps edge strength into Plotly opacity and width; filters edges whose endpoint nodes are absent; enforces `MAX_NODES` and `MAX_EDGES`. | Display encoding and client render guard |
-| `frontend/app/components/AssetList.tsx` | Formats prices and market cap; reads page/per-page UI state. | Display formatting plus contract drift |
+| `frontend/app/components/AssetList.tsx` | Formats prices and market cap; reads `page`/`per_page` UI state. | Display formatting plus contract drift |
 | `frontend/app/lib/assetHelpers.ts` | Sends `page` and `per_page` to `api.getAssets()` and supports a paginated response shape, while the API returns a plain list. | Boundary-blurring client assumption |
 | `frontend/app/types/api.ts` | Mirrors API response shapes in TypeScript; `relationship_density` is optional. | Client contract mirror |
 
