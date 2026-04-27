@@ -340,7 +340,7 @@ class AssetRelationshipGraph:
                 - total_relationships (int): Total number of relationships stored.
                 - average_relationship_strength (float): Mean strength across all relationships (0.0 if none).
                 - relationship_density (float): Percentage of possible directed links present (0.0–100.0).
-                - network_density (float): Public API alias for relationship_density.
+                - network_density (float): Normalized fraction of possible directed links present (0.0–1.0).
                 - relationship_distribution (dict[str, int]): Counts of relationships grouped by relationship type.
                 - asset_class_distribution (dict[str, int]): Counts of assets grouped by asset class value.
                 - asset_classes (dict[str, int]): Public API alias for asset_class_distribution.
@@ -374,7 +374,7 @@ class AssetRelationshipGraph:
             "total_relationships": total_relationships,
             "average_relationship_strength": avg_strength,
             "relationship_density": density,
-            "network_density": density,
+            "network_density": density / 100.0,
             "relationship_distribution": rel_dist,
             "asset_class_distribution": asset_class_dist,
             "asset_classes": dict(asset_class_dist),

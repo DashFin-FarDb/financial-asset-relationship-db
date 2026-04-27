@@ -375,11 +375,12 @@ class TestAPIEndpoints:
         assert data["total_relationships"] > 0
         assert data["avg_degree"] > 0
         assert data["max_degree"] >= data["avg_degree"]
-        assert 0 <= data["network_density"] <= 100
+        assert 0 <= data["network_density"] <= 1
 
         # If the API includes relationship_density separately, validate its bounds too.
         if "relationship_density" in data:
             assert 0 <= data["relationship_density"] <= 100
+            assert data["network_density"] == pytest.approx(data["relationship_density"] / 100.0)
 
     def test_get_metrics_projects_graph_owned_contract(self, bare_client: TestClient) -> None:
         """Metrics endpoint should only project public metrics from the graph layer."""
@@ -390,7 +391,7 @@ class TestAPIEndpoints:
             "asset_classes": {"Graph Owned": 9},
             "avg_degree": 2.5,
             "max_degree": 7,
-            "network_density": 42.0,
+            "network_density": 0.42,
             "relationship_density": 42.0,
         }
         graph.assets = {
@@ -1658,8 +1659,9 @@ class TestEndpointRegressionCases:
         assert "network_density" in data
         assert "relationship_density" in data
 
-        # They should have the same value (as per the implementation)
-        assert data["network_density"] == data["relationship_density"]
+        assert 0 <= data["network_density"] <= 1
+        assert 0 <= data["relationship_density"] <= 100
+        assert data["network_density"] == pytest.approx(data["relationship_density"] / 100.0)
 
     def test_visualization_coordinates_precision(self, client: TestClient):
         """Visualization coordinates should be rounded to 6 decimal places."""
