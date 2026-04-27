@@ -18,34 +18,49 @@ def clear_settings_cache() -> Generator[None, None, None]:
     get_settings.cache_clear()
 
 
+_LOOPBACK_ORIGINS = [
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:7860",
+    "https://127.0.0.1:3000",
+    "https://127.0.0.1:7860",
+]
+
+
 @pytest.mark.unit
-def test_development_allowed_origins_include_loopback_frontend(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Development CORS defaults allow the loopback host used by local Next.js."""
+@pytest.mark.parametrize("origin", _LOOPBACK_ORIGINS)
+def test_development_allowed_origins_include_loopback_frontend(
+    monkeypatch: pytest.MonkeyPatch, origin: str
+) -> None:
+    """Development CORS defaults allow all loopback origins used by local dev servers."""
     monkeypatch.setenv("ENV", "development")
     monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
 
     allowed_origins = build_allowed_origins()
 
-    assert "http://127.0.0.1:3000" in allowed_origins
+    assert origin in allowed_origins
 
 
 @pytest.mark.unit
-def test_production_allowed_origins_exclude_loopback_frontend(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("origin", _LOOPBACK_ORIGINS)
+def test_production_allowed_origins_exclude_loopback_frontend(
+    monkeypatch: pytest.MonkeyPatch, origin: str
+) -> None:
     """Production CORS defaults do not allow loopback frontend origins."""
     monkeypatch.setenv("ENV", "production")
     monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
 
     allowed_origins = build_allowed_origins()
 
-    assert "http://127.0.0.1:3000" not in allowed_origins
-    assert "https://127.0.0.1:3000" not in allowed_origins
+    assert origin not in allowed_origins
 
 
 @pytest.mark.unit
-def test_production_validate_origin_excludes_loopback_frontend(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Production origin validation rejects loopback frontend origins by default."""
+@pytest.mark.parametrize("origin", _LOOPBACK_ORIGINS)
+def test_production_validate_origin_excludes_loopback_frontend(
+    monkeypatch: pytest.MonkeyPatch, origin: str
+) -> None:
+    """Production origin validation rejects all loopback frontend origins by default."""
     monkeypatch.setenv("ENV", "production")
     monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
 
-    assert validate_origin("http://127.0.0.1:3000") is False
-    assert validate_origin("https://127.0.0.1:3000") is False
+    assert validate_origin(origin) is False
