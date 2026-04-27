@@ -71,6 +71,7 @@ class TestCalculateMetricsContract:
         metrics = graph.calculate_metrics()
 
         assert metrics["asset_classes"] == metrics["asset_class_distribution"]
+        assert metrics["asset_classes"] is not metrics["asset_class_distribution"]
         assert metrics["asset_classes"] == {"Equity": 2}
         assert metrics["avg_degree"] == pytest.approx(1.5)
         assert metrics["max_degree"] == 2

@@ -377,7 +377,7 @@ class AssetRelationshipGraph:
             "network_density": density,
             "relationship_distribution": rel_dist,
             "asset_class_distribution": asset_class_dist,
-            "asset_classes": asset_class_dist,
+            "asset_classes": dict(asset_class_dist),
             # avg_degree and max_degree are computed across sources present in
             # `relationships`, not all assets; zero-degree assets are excluded.
             "avg_degree": avg_degree,
