@@ -139,7 +139,7 @@ def _apply_mock_graph_configuration(mock_graph_instance: Any, graph: AssetRelati
     mock_graph_instance.assets = graph.assets
     mock_graph_instance.relationships = graph.relationships
     mock_graph_instance.calculate_metrics.return_value = {
-        "total_assets": 4,
+        "total_assets": metrics["total_assets"],
         "total_relationships": metrics["total_relationships"],
         "asset_classes": metrics["asset_classes"],
         "avg_degree": metrics["avg_degree"],
