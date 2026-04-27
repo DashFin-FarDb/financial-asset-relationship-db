@@ -27,3 +27,15 @@ def test_development_allowed_origins_include_loopback_frontend(monkeypatch: pyte
     allowed_origins = build_allowed_origins()
 
     assert "http://127.0.0.1:3000" in allowed_origins
+
+
+@pytest.mark.unit
+def test_production_allowed_origins_exclude_loopback_frontend(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Production CORS defaults do not allow loopback frontend origins."""
+    monkeypatch.setenv("ENV", "production")
+    monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
+
+    allowed_origins = build_allowed_origins()
+
+    assert "http://127.0.0.1:3000" not in allowed_origins
+    assert "https://127.0.0.1:3000" not in allowed_origins
