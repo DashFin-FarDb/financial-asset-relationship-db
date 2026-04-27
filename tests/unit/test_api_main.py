@@ -95,6 +95,7 @@ class TestValidateOrigin:
             get_settings.cache_clear()  # Clear cache to pick up new env vars
             assert not validate_origin("http://localhost:3000")
             assert not validate_origin("http://127.0.0.1:8000")
+            get_settings.cache_clear()
 
     @staticmethod
     def test_validate_origin_https_localhost() -> None:
