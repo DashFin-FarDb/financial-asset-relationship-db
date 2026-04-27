@@ -39,6 +39,7 @@ from api.router_helpers import (
     raise_asset_not_found,
     serialize_asset,
 )
+from src.config.settings import get_settings
 from src.data.real_data_fetcher import _save_to_cache
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -50,6 +51,14 @@ CORS_DEV_ORIGIN = "http://localhost:3000"
 # -----------------------
 # Fixtures
 # -----------------------
+@pytest.fixture()
+def clear_settings_cache() -> Iterator[None]:
+    """Clear cached runtime settings around each test."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
 @pytest.fixture()
 def client() -> Iterator[TestClient]:
     """
