@@ -63,6 +63,8 @@ class TestCalculateMetricsContract:
                 price=300.0,
             )
         )
+        # Direct assignment intentionally exercises the current relationship-map contract
+        # used by calculate_metrics() without invoking relationship-building logic.
         graph.relationships = {
             "AAPL": [("MSFT", "same_sector", 0.7), ("GOOG", "same_sector", 0.5)],
             "MSFT": [("AAPL", "same_sector", 0.7)],
