@@ -19,9 +19,11 @@ def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     return current_env == "development" and bool(re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
 
 
-def _is_https_local(origin_url: str) -> bool:
-    """Return whether the origin is HTTPS localhost or 127.0.0.1."""
-    return bool(re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
+def _is_https_local(origin_url: str, current_env: str) -> bool:
+    """Allow HTTPS localhost in all environments, and HTTPS loopback only in development."""
+    if re.match(r"^https://localhost(:\d+)?$", origin_url):
+        return True
+    return current_env == "development" and bool(re.match(r"^https://127\.0\.0\.1(:\d+)?$", origin_url))
 
 
 def _is_vercel_preview(origin_url: str) -> bool:
@@ -74,7 +76,7 @@ def _is_supported_origin_format(origin_url: str, current_env: str) -> bool:
     """Return whether an origin string matches supported CORS origin formats."""
     return (
         _is_http_local_in_dev(origin_url, current_env)
-        or _is_https_local(origin_url)
+        or _is_https_local(origin_url, current_env)
         or _is_vercel_preview(origin_url)
         or _is_valid_https_domain(origin_url)
     )
