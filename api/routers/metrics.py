@@ -15,15 +15,7 @@ async def get_metrics() -> MetricsResponse:
         g = get_graph()
         metrics = g.calculate_metrics()
 
-        return MetricsResponse(
-            total_assets=metrics["total_assets"],
-            total_relationships=metrics["total_relationships"],
-            asset_classes=metrics["asset_classes"],
-            avg_degree=metrics["avg_degree"],
-            max_degree=metrics["max_degree"],
-            network_density=metrics["network_density"],
-            relationship_density=metrics["relationship_density"],
-        )
+        return MetricsResponse.model_validate(metrics)
     except Exception as e:
         logger.exception("Error getting metrics:")
         raise HTTPException(
