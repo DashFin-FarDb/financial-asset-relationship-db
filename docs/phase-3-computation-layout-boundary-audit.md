@@ -95,7 +95,7 @@ The graph engine owns the core financial relationship and network metrics, but t
 ### Blurred or violating boundaries
 
 1. `api/routers/metrics.py` recomputes `asset_classes`, `avg_degree`, and `max_degree`.
-   - Risk: graph metrics and API metrics can drift because only part of the response is sourced from `calculate_metrics()`.
+   - Risk: graph metrics and API metrics can drift because only part of the response is sourced from `calculate_metrics()`. For example, the metrics router's degree calculation is currently inconsistent with the visualization router's logic.
    - Minimal PR: either extend `calculate_metrics()` to include these fields or move them into a named API presentation section with tests that document the distinction.
 
 2. Density semantics conflict across backend and frontend.
