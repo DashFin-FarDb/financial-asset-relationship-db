@@ -34,11 +34,11 @@ TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
 
 def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
     """Return asset items from a paginated assets response."""
-    assert set(page) == {"items", "total", "page", "page_size"}
+    assert set(page) == {"items", "total", "page", "per_page"}
     assert isinstance(page["items"], list)
     assert isinstance(page["total"], int)
     assert isinstance(page["page"], int)
-    assert isinstance(page["page_size"], int)
+    assert isinstance(page["per_page"], int)
     return page["items"]
 
 

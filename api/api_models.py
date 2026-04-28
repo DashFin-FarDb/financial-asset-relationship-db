@@ -25,7 +25,7 @@ class AssetPageResponse(BaseModel):
     items: list[AssetResponse]
     total: int
     page: int
-    page_size: int
+    per_page: int
 
 
 class RelationshipResponse(BaseModel):
