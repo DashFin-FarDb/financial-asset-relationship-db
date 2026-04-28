@@ -37,7 +37,7 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
    ```bash
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    pip install -r requirements.txt
-   export DATABASE_URL=sqlite:./dev.db
+   export DATABASE_URL=sqlite:///./dev.db
    export SECRET_KEY=replace-with-a-long-random-secret
    export ADMIN_USERNAME=admin
    export ADMIN_PASSWORD=replace-with-a-strong-password

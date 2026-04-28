@@ -85,7 +85,7 @@ In the Vercel dashboard, add:
   - Note: Use your actual Vercel deployment URL
   - This will be available after first deployment
 - [ ] `DATABASE_URL` = SQLite URI required by the current API database layer
-  - Local/dev example: `sqlite:./dev.db`
+  - Local/dev example: `sqlite:///./dev.db`
   - Do not use local SQLite file storage for durable production persistence on Vercel/serverless environments.
   - For durable production deployment, use a persistent external storage strategy only after the API database layer explicitly supports it.
 - [ ] `SECRET_KEY` = a long random JWT signing secret
@@ -148,6 +148,8 @@ vercel env add NEXT_PUBLIC_API_URL production
 # Minimum backend runtime variables
 vercel env add DATABASE_URL production
 vercel env add SECRET_KEY production
+
+# Bootstrap credentials, only if the configured database does not already contain a usable user
 vercel env add ADMIN_USERNAME production
 vercel env add ADMIN_PASSWORD production
 ```
