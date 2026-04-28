@@ -13,6 +13,43 @@ The production application consists of two main components:
 1. **Backend API** (`/api`): FastAPI server that provides REST endpoints for the asset relationship graph
 2. **Frontend** (`/frontend`): Next.js application with React components for visualization
 
+## Backend Production Contract
+
+The backend production entrypoint is:
+
+```text
+api.main:app
+```
+
+`api/main.py` is intentionally a thin public entrypoint and compatibility surface. FastAPI application
+construction, lifespan startup, middleware, and router registration live in `api/app_factory.py`.
+
+Use this production-style run command on hosts that provide a `$PORT` environment variable:
+
+```bash
+uvicorn api.main:app --host 0.0.0.0 --port "$PORT"
+```
+
+For local production-like testing, replace `$PORT` with a concrete port such as `8000`.
+
+Minimum backend environment required before importing `api.main`:
+
+- `DATABASE_URL` — SQLite URL used by `api/database.py`, for example `sqlite:///./dev.db`
+- `SECRET_KEY` — JWT signing key used by `api/auth.py`
+- Existing user credentials in the configured database, or bootstrap credentials:
+  - `ADMIN_USERNAME`
+  - `ADMIN_PASSWORD`
+  - Optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
+
+Optional backend runtime settings:
+
+- `ENV` — environment mode; defaults to `development`
+- `ALLOWED_ORIGINS` — comma-separated CORS allowlist; configured through `src/config/settings.py`
+- `GRAPH_CACHE_PATH` — graph cache path
+- `REAL_DATA_CACHE_PATH` — real-data cache path
+- `USE_REAL_DATA_FETCHER` — truthy value enables real-data fetcher mode
+- `ASSET_GRAPH_DATABASE_URL` — graph persistence URL when used by graph repository flows
+
 ## Local Development
 
 ### Prerequisites
@@ -39,7 +76,11 @@ The production application consists of two main components:
 3. **Run the FastAPI backend:**
 
    ```bash
-   python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+   export DATABASE_URL="sqlite:///./dev.db"
+   export SECRET_KEY="replace-me-for-local-dev"
+   export ADMIN_USERNAME="admin"
+   export ADMIN_PASSWORD="replace-me-for-local-dev"
+   python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
    ```
 
    The API will be available at `http://localhost:8000`
@@ -225,15 +266,9 @@ NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app
 
 ### CORS Issues
 
-If you encounter CORS errors, ensure the FastAPI backend has the correct origins configured in `api/main.py`:
-
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://*.vercel.app"],
-    ...
-)
-```
+If you encounter CORS errors, configure `ALLOWED_ORIGINS` for explicit production origins. CORS settings
+are loaded through `src/config/settings.py` and applied by `api/cors_policy.py`; do not edit
+`api/main.py` middleware directly.
 
 ### API Connection Errors
 
