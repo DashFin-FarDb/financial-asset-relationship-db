@@ -260,8 +260,27 @@ class TestPydanticModels:
     def test_visualization_data_response_model(self) -> None:
         """VisualizationDataResponse accepts node/edge lists for graph rendering."""
         viz = VisualizationDataResponse(
-            nodes=[{"id": "AAPL", "x": 1.0, "y": 2.0, "z": 3.0}],
-            edges=[{"source": "AAPL", "target": "MSFT"}],
+            nodes=[
+                {
+                    "id": "AAPL",
+                    "symbol": "AAPL",
+                    "name": "Apple Inc.",
+                    "asset_class": "Equity",
+                    "x": 1.0,
+                    "y": 2.0,
+                    "z": 3.0,
+                    "color": "#1f77b4",
+                    "size": 5,
+                }
+            ],
+            edges=[
+                {
+                    "source": "AAPL",
+                    "target": "MSFT",
+                    "relationship_type": "same_sector",
+                    "strength": 0.7,
+                }
+            ],
         )
         assert len(viz.nodes) == 1
         assert len(viz.edges) == 1
@@ -566,6 +585,19 @@ class TestAPIEndpoints:
             for key in ("source", "target", "relationship_type", "strength"):
                 assert key in edge
             assert 0 <= edge["strength"] <= 1
+
+    def test_visualization_response_enforces_domain_and_presentation_shape(self, client: TestClient) -> None:
+        """Visualization payload should expose typed domain fields and presentation encodings."""
+        response = client.get("/api/visualization")
+        assert response.status_code == 200
+        viz_data = response.json()
+
+        assert "nodes" in viz_data
+        assert "edges" in viz_data
+        assert all("id" in node and "asset_class" in node for node in viz_data["nodes"])
+        assert all("symbol" in node for node in viz_data["nodes"])
+        assert all("source" in edge and "target" in edge for edge in viz_data["edges"])
+        assert all("relationship_type" in edge and "strength" in edge for edge in viz_data["edges"])
 
     def test_get_asset_classes(self, client: TestClient) -> None:
         """Asset classes endpoint returns all AssetClass enum values."""

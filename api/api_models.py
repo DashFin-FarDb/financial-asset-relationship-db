@@ -40,8 +40,31 @@ class MetricsResponse(BaseModel):
     relationship_density: float = 0.0
 
 
-class VisualizationDataResponse(BaseModel):
-    """Response model for visualization data."""
+class VisualizationNode(BaseModel):
+    """Response model for a visualization node."""
 
-    nodes: list[dict[str, Any]]
-    edges: list[dict[str, Any]]
+    id: str
+    symbol: str
+    name: str
+    asset_class: str
+    x: float
+    y: float
+    z: float
+    color: str
+    size: float
+
+
+class VisualizationEdge(BaseModel):
+    """Response model for a visualization edge."""
+
+    source: str
+    target: str
+    relationship_type: str
+    strength: float
+
+
+class VisualizationDataResponse(BaseModel):
+    """Response model for typed visualization data."""
+
+    nodes: list[VisualizationNode]
+    edges: list[VisualizationEdge]
