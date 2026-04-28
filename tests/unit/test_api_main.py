@@ -27,6 +27,7 @@ from fastapi.testclient import TestClient
 
 import api.main as api_main
 from api.api_models import (
+    AssetPageResponse,
     AssetResponse,
     MetricsResponse,
     RelationshipResponse,
@@ -45,6 +46,17 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
 CORS_DEV_ORIGIN = "http://localhost:3000"
+
+
+def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 50) -> list[dict[str, Any]]:
+    """Assert that an assets response follows the paginated contract."""
+    assert set(data) == {"items", "total", "page", "per_page"}
+    assert isinstance(data["items"], list)
+    assert isinstance(data["total"], int)
+    assert data["page"] == page
+    assert data["per_page"] == per_page
+    assert data["total"] >= len(data["items"])
+    return data["items"]
 
 
 # -----------------------
@@ -343,8 +355,7 @@ class TestAPIEndpoints:
         """Test getting all assets without filters."""
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
         assert len(assets) > 0
 
         asset = assets[0]
@@ -355,33 +366,66 @@ class TestAPIEndpoints:
         assert "sector" in asset
         assert "price" in asset
 
+    def test_get_assets_explicit_pagination(self, client: TestClient) -> None:
+        """Assets endpoint supports explicit page and per_page parameters."""
+        first_response = client.get("/api/assets?page=1&per_page=2")
+        second_response = client.get("/api/assets?page=2&per_page=2")
+
+        assert first_response.status_code == 200
+        assert second_response.status_code == 200
+
+        first_payload = first_response.json()
+        second_payload = second_response.json()
+        first_page = _assert_asset_page(first_payload, page=1, per_page=2)
+        second_page = _assert_asset_page(second_payload, page=2, per_page=2)
+
+        assert len(first_page) == 2
+        assert len(second_page) == 2
+        assert first_payload["total"] == second_payload["total"]
+        assert first_payload["total"] >= len(first_page) + len(second_page)
+        assert {asset["id"] for asset in first_page}.isdisjoint({asset["id"] for asset in second_page})
+
+    def test_get_assets_rejects_invalid_pagination(self, client: TestClient) -> None:
+        """Assets endpoint rejects invalid page and per_page values."""
+        assert client.get("/api/assets?page=0").status_code == 422
+        assert client.get("/api/assets?per_page=0").status_code == 422
+        assert client.get("/api/assets?per_page=1001").status_code == 422
+
+    def test_get_assets_out_of_range_page_returns_empty_items(self, client: TestClient) -> None:
+        """Assets endpoint returns an empty page for out-of-range page requests."""
+        response = client.get("/api/assets?page=999999&per_page=50")
+        assert response.status_code == 200
+        payload = response.json()
+        assets = _assert_asset_page(payload, page=999999, per_page=50)
+        assert assets == []
+        assert payload["total"] >= 0
+
     def test_get_assets_filter_by_class(self, client):
         """Test filtering assets by asset class."""
-        response = client.get("/api/assets?asset_class=EQUITY")
+        response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
+        assert assets
         for asset in assets:
-            assert asset["asset_class"] == "EQUITY"
+            assert asset["asset_class"] == "Equity"
 
     def test_get_assets_filter_by_sector(self, client: TestClient) -> None:
         """Assets endpoint supports filtering by sector."""
         response = client.get("/api/assets?sector=Technology")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
         for asset in assets:
             assert asset["sector"] == "Technology"
 
     def test_get_assets_filter_by_class_and_sector(self, client: TestClient) -> None:
         """Assets endpoint supports combined asset_class and sector filters."""
         # IMPORTANT: use '&' not '&amp;' (HTML entity should not appear in test URLs)
-        response = client.get("/api/assets?asset_class=EQUITY&sector=Technology")
+        response = client.get("/api/assets?asset_class=Equity&sector=Technology")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
+        assert assets
         for asset in assets:
-            assert asset["asset_class"] == "EQUITY"
+            assert asset["asset_class"] == "Equity"
             assert asset["sector"] == "Technology"
 
     def test_get_metrics_enriched_statistics(self, client: TestClient) -> None:
@@ -498,7 +542,7 @@ class TestAPIEndpoints:
     def test_get_asset_detail_valid(self, client: TestClient) -> None:
         """Asset detail endpoint returns the requested asset when it exists."""
         response = client.get("/api/assets")
-        assets = response.json()
+        assets = _assert_asset_page(response.json())
         asset_id = assets[0]["id"]
 
         response = client.get(f"/api/assets/{asset_id}")
@@ -515,7 +559,7 @@ class TestAPIEndpoints:
     def test_get_asset_relationships_valid(self, client: TestClient) -> None:
         """Asset relationships endpoint returns relationships for a valid asset."""
         response = client.get("/api/assets")
-        assets = response.json()
+        assets = _assert_asset_page(response.json())
         asset_id = assets[0]["id"]
 
         response = client.get(f"/api/assets/{asset_id}/relationships")
@@ -708,37 +752,37 @@ class TestAdditionalFields:
 
     def test_equity_additional_fields(self, client: TestClient) -> None:
         """Equity assets include expected equity-specific fields in additional_fields."""
-        response = client.get("/api/assets?asset_class=EQUITY")
-        assets = response.json()
+        response = client.get("/api/assets?asset_class=Equity")
+        assets = _assert_asset_page(response.json())
 
-        if assets:
-            asset = assets[0]
-            additional = asset.get("additional_fields", {})
-            possible_fields = {
-                "pe_ratio",
-                "dividend_yield",
-                "earnings_per_share",
-                "book_value",
-            }
-            has_equity_field = any(field in additional for field in possible_fields)
-            assert has_equity_field or additional == {}
+        assert assets
+        asset = assets[0]
+        additional = asset.get("additional_fields", {})
+        possible_fields = {
+            "pe_ratio",
+            "dividend_yield",
+            "earnings_per_share",
+            "book_value",
+        }
+        has_equity_field = any(field in additional for field in possible_fields)
+        assert has_equity_field or additional == {}
 
     def test_bond_additional_fields(self, client: TestClient) -> None:
         """Bond assets include expected bond-specific fields in additional_fields."""
-        response = client.get("/api/assets?asset_class=BOND")
-        assets = response.json()
+        response = client.get("/api/assets?asset_class=Fixed Income")
+        assets = _assert_asset_page(response.json())
 
-        if assets:
-            asset = assets[0]
-            additional = asset.get("additional_fields", {})
-            possible_fields = {
-                "yield_to_maturity",
-                "coupon_rate",
-                "maturity_date",
-                "credit_rating",
-            }
-            has_bond_field = any(field in additional for field in possible_fields)
-            assert has_bond_field or additional == {}
+        assert assets
+        asset = assets[0]
+        additional = asset.get("additional_fields", {})
+        possible_fields = {
+            "yield_to_maturity",
+            "coupon_rate",
+            "maturity_date",
+            "credit_rating",
+        }
+        has_bond_field = any(field in additional for field in possible_fields)
+        assert has_bond_field or additional == {}
 
 
 @pytest.mark.unit
@@ -785,7 +829,7 @@ class TestIntegrationScenarios:
         """Exercise the core browse flow: list assets, fetch detail, fetch relationships."""
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assets = response.json()
+        assets = _assert_asset_page(response.json())
         assert assets
 
         asset_id = assets[0]["id"]
@@ -814,14 +858,14 @@ class TestIntegrationScenarios:
     def test_filter_refinement_workflow(self, client: TestClient) -> None:
         """Confirm progressive filters reduce (or keep) result sets, never increase them."""
         response = client.get("/api/assets")
-        all_assets = response.json()
+        all_assets = _assert_asset_page(response.json())
 
-        response = client.get("/api/assets?asset_class=EQUITY")
-        equity_assets = response.json()
+        response = client.get("/api/assets?asset_class=Equity")
+        equity_assets = _assert_asset_page(response.json())
         assert len(equity_assets) <= len(all_assets)
 
-        response = client.get("/api/assets?asset_class=EQUITY&sector=Technology")
-        tech_equity_assets = response.json()
+        response = client.get("/api/assets?asset_class=Equity&sector=Technology")
+        tech_equity_assets = _assert_asset_page(response.json())
         assert len(tech_equity_assets) <= len(equity_assets)
 
 
@@ -1647,16 +1691,14 @@ class TestEndpointRegressionCases:
         """Assets endpoint should return empty list for nonexistent asset class."""
         response = client.get("/api/assets?asset_class=NONEXISTENT")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
         assert len(assets) == 0
 
     def test_assets_endpoint_with_nonexistent_sector(self, client: TestClient):
         """Assets endpoint should return empty list for nonexistent sector."""
         response = client.get("/api/assets?sector=NonexistentSector")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
         assert len(assets) == 0
 
     def test_asset_relationships_empty_list(self, bare_client: TestClient):
