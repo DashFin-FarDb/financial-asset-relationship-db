@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AssetResponse(BaseModel):
@@ -43,6 +43,8 @@ class MetricsResponse(BaseModel):
 class VisualizationNode(BaseModel):
     """Response model for a visualization node."""
 
+    model_config = ConfigDict(extra="forbid")
+
     id: str
     symbol: str
     name: str
@@ -51,11 +53,13 @@ class VisualizationNode(BaseModel):
     y: float
     z: float
     color: str
-    size: float
+    size: int
 
 
 class VisualizationEdge(BaseModel):
     """Response model for a visualization edge."""
+
+    model_config = ConfigDict(extra="forbid")
 
     source: str
     target: str

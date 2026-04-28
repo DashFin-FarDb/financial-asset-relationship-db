@@ -591,13 +591,13 @@ class TestAPIEndpoints:
         response = client.get("/api/visualization")
         assert response.status_code == 200
         viz_data = response.json()
+        node_keys = {"id", "symbol", "name", "asset_class", "x", "y", "z", "color", "size"}
+        edge_keys = {"source", "target", "relationship_type", "strength"}
 
         assert "nodes" in viz_data
         assert "edges" in viz_data
-        assert all("id" in node and "asset_class" in node for node in viz_data["nodes"])
-        assert all("symbol" in node for node in viz_data["nodes"])
-        assert all("source" in edge and "target" in edge for edge in viz_data["edges"])
-        assert all("relationship_type" in edge and "strength" in edge for edge in viz_data["edges"])
+        assert all(node_keys.issubset(node) for node in viz_data["nodes"])
+        assert all(edge_keys.issubset(edge) for edge in viz_data["edges"])
 
     def test_get_asset_classes(self, client: TestClient) -> None:
         """Asset classes endpoint returns all AssetClass enum values."""
