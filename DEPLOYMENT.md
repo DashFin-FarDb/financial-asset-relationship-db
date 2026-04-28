@@ -34,7 +34,7 @@ For local production-like testing, the command defaults to port `8000` when `POR
 
 Minimum backend environment required before importing `api.main`:
 
-- `DATABASE_URL` — SQLite URI used by `api/database.py`; local/dev file example: `sqlite:./dev.db`
+- `DATABASE_URL` — SQLite URI used by `api/database.py`; local/dev file example: `sqlite:///./dev.db`
 - `SECRET_KEY` — JWT signing key used by `api/auth.py`
 - Existing user credentials in the configured database, or bootstrap credentials:
   - `ADMIN_USERNAME`
@@ -51,7 +51,7 @@ Optional backend runtime settings:
 - `ASSET_GRAPH_DATABASE_URL` — graph persistence URL when used by graph repository flows; this does not replace the API auth/database `DATABASE_URL` requirement
 
 The current API database layer expects a SQLite URI for `DATABASE_URL`. Local SQLite files such as
-`sqlite:./dev.db` are suitable for local/dev runs, but do not use local SQLite file storage for durable production
+`sqlite:///./dev.db` are suitable for local/dev runs, but do not use local SQLite file storage for durable production
 persistence on Vercel/serverless filesystems. Durable production persistence requires a separate storage decision
 after the API database layer explicitly supports it.
 
@@ -81,7 +81,7 @@ after the API database layer explicitly supports it.
 3. **Run the FastAPI backend:**
 
    ```bash
-   export DATABASE_URL="sqlite:./dev.db"
+   export DATABASE_URL="sqlite:///./dev.db"
    export SECRET_KEY="replace-me-for-local-dev"
    export ADMIN_USERNAME="admin"
    export ADMIN_PASSWORD="replace-me-for-local-dev"
