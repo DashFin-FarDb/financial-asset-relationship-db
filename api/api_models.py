@@ -19,6 +19,15 @@ class AssetResponse(BaseModel):
     additional_fields: dict[str, Any] = Field(default_factory=dict)
 
 
+class AssetPageResponse(BaseModel):
+    """Response model for paginated asset data."""
+
+    items: list[AssetResponse]
+    total: int
+    page: int
+    page_size: int
+
+
 class RelationshipResponse(BaseModel):
     """Response model for relationship data."""
 

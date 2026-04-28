@@ -32,6 +32,16 @@ TEST_ORIGIN_HTTPS_LOOPBACK = "https://127.0.0.1:8000"
 TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
 
 
+def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return asset items from a paginated assets response."""
+    assert set(page) == {"items", "total", "page", "page_size"}
+    assert isinstance(page["items"], list)
+    assert isinstance(page["total"], int)
+    assert isinstance(page["page"], int)
+    assert isinstance(page["page_size"], int)
+    return page["items"]
+
+
 @pytest.fixture
 def client():
     """Create a test client for the FastAPI app.
@@ -252,7 +262,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 4  # equity, bond, commodity, currency
 
         # Verify structure
@@ -272,7 +282,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 1
         assert data[0]["asset_class"] == "Equity"
         assert data[0]["symbol"] == "AAPL"
@@ -284,7 +294,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?sector=Technology")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 1
         assert data[0]["sector"] == "Technology"
 
@@ -295,7 +305,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?asset_class=Equity&sector=Technology")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 1
         assert data[0]["asset_class"] == "Equity"
         assert data[0]["sector"] == "Technology"
@@ -307,7 +317,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
 
         equity = data[0]
         assert "additional_fields" in equity
@@ -565,7 +575,7 @@ class TestEdgeCases:
 
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assert len(response.json()) == 0
+        assert len(asset_items(response.json())) == 0
 
         response = client.get("/api/metrics")
         assert response.status_code == 200
@@ -589,7 +599,7 @@ class TestEdgeCases:
 
         response = client.get("/api/assets?sector=NonExistent")
         assert response.status_code == 200
-        assert len(response.json()) == 0
+        assert len(asset_items(response.json())) == 0
 
 
 @pytest.mark.unit
@@ -610,7 +620,7 @@ class TestConcurrency:
         # All should succeed
         for response in responses:
             assert response.status_code == 200
-            assert len(response.json()) == 4
+            assert len(asset_items(response.json())) == 4
 
 
 @pytest.mark.unit
@@ -627,7 +637,7 @@ class TestResponseValidation:
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         response = client.get("/api/assets")
-        data = response.json()
+        data = asset_items(response.json())
 
         for asset in data:
             # Required fields
@@ -955,7 +965,9 @@ class TestAPIBoundaryConditions:
         # Should not timeout or error
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assert len(response.json()) == 1000
+        data = response.json()
+        assert data["total"] == 1000
+        assert len(data["items"]) == 50
 
     @staticmethod
     @patch("api.main.graph")

@@ -1,8 +1,8 @@
 """Asset API routes."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
-from ..api_models import AssetResponse
+from ..api_models import AssetPageResponse, AssetResponse
 from ..router_helpers import (
     get_graph,
     logger,
@@ -17,8 +17,10 @@ router = APIRouter()
 async def get_assets(
     asset_class: str | None = None,
     sector: str | None = None,
-) -> list[AssetResponse]:
-    """Return assets filtered by asset class and sector."""
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1),
+) -> AssetPageResponse:
+    """Return a paginated page of assets filtered by asset class and sector."""
     try:
         g = get_graph()
         assets = []
@@ -28,6 +30,9 @@ async def get_assets(
             if sector and asset.sector != sector:
                 continue
             assets.append(AssetResponse(**serialize_asset(asset)))
+        total = len(assets)
+        start = (page - 1) * page_size
+        end = start + page_size
     except HTTPException:
         raise
     except Exception as e:
@@ -36,7 +41,7 @@ async def get_assets(
             status_code=500,
             detail="An internal error occurred. Please try again later.",
         ) from e
-    return assets
+    return AssetPageResponse(items=assets[start:end], total=total, page=page, page_size=page_size)
 
 
 @router.get("/api/assets/{asset_id}")
