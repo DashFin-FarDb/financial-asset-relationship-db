@@ -598,8 +598,8 @@ class TestAPIEndpoints:
         assert "edges" in viz_data
         assert len(viz_data["nodes"]) > 0
         assert len(viz_data["edges"]) > 0
-        assert all(node_keys.issubset(node) for node in viz_data["nodes"])
-        assert all(edge_keys.issubset(edge) for edge in viz_data["edges"])
+        assert all(set(node.keys()) == node_keys for node in viz_data["nodes"])
+        assert all(set(edge.keys()) == edge_keys for edge in viz_data["edges"])
 
     def test_get_asset_classes(self, client: TestClient) -> None:
         """Asset classes endpoint returns all AssetClass enum values."""

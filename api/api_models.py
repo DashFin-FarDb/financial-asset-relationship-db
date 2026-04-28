@@ -70,5 +70,7 @@ class VisualizationEdge(BaseModel):
 class VisualizationDataResponse(BaseModel):
     """Response model for typed visualization data."""
 
+    model_config = ConfigDict(extra="forbid")
+
     nodes: list[VisualizationNode]
     edges: list[VisualizationEdge]
