@@ -87,6 +87,18 @@ class TestGet3DVisualizationDataEnhanced:
     """Test suite for get_3d_visualization_data_enhanced method."""
 
     @staticmethod
+    def test_get_3d_visualization_data_does_not_mutate_metrics():
+        """Visualization helper should not mutate graph metric state."""
+        graph = AssetRelationshipGraph()
+        graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
+
+        before = graph.calculate_metrics()
+        _ = graph.get_3d_visualization_data_enhanced()
+        after = graph.calculate_metrics()
+
+        assert before == after
+
+    @staticmethod
     def test_empty_graph_returns_placeholder():
         """Test that empty graph returns a single placeholder node."""
         graph = AssetRelationshipGraph()
