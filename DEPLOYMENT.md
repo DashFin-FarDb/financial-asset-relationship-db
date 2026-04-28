@@ -80,6 +80,8 @@ after the API database layer explicitly supports it.
 
 3. **Run the FastAPI backend:**
 
+   The following commands use Linux/macOS shell syntax. On Windows PowerShell, set the same variables with `$env:NAME="value"` before running the `python -m uvicorn ...` command.
+
    ```bash
    export DATABASE_URL="sqlite:///./dev.db"
    export SECRET_KEY="replace-me-for-local-dev"

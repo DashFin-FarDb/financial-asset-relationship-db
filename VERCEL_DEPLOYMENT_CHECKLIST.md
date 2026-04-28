@@ -86,6 +86,7 @@ In the Vercel dashboard, add:
   - This will be available after first deployment
 - [ ] `DATABASE_URL` = SQLite URI required by the current API database layer
   - Local/dev example: `sqlite:///./dev.db`
+  - Vercel/serverless demo-only examples must use ephemeral storage such as `sqlite:///:memory:` or an explicit `/tmp` SQLite path, and must not be treated as durable production persistence.
   - Do not use local SQLite file storage for durable production persistence on Vercel/serverless environments.
   - For durable production deployment, use a persistent external storage strategy only after the API database layer explicitly supports it.
 - [ ] `SECRET_KEY` = a long random JWT signing secret

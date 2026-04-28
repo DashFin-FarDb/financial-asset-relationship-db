@@ -1,8 +1,8 @@
 # Docker Compose for Financial Asset Relationship Database
 #
 # This compose file runs the Gradio demo/internal-testing surface. The
-# production architecture is FastAPI backend + Next.js frontend; run the
-# production backend via `uvicorn api.main:app`.
+# production architecture is FastAPI backend + Next.js frontend; see
+# DEPLOYMENT.md for the canonical production backend run command.
 version: '3.8'
 
 services:
