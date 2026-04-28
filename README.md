@@ -20,11 +20,23 @@ For the modern web frontend with REST API:
 
 **Quick Start (Both Servers):**
 
-```bash
-# Linux/Mac
-./run-dev.sh
+Before using the convenience scripts, set the backend runtime environment required by `api.main:app`. The scripts do not currently load these values from `.env.example`.
 
-# Windows
+```bash
+# Linux/macOS
+export DATABASE_URL=sqlite:dev.db
+export SECRET_KEY=replace-with-a-long-random-secret
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD=replace-with-a-strong-password
+./run-dev.sh
+```
+
+```cmd
+REM Windows CMD
+set DATABASE_URL=sqlite:dev.db
+set SECRET_KEY=replace-with-a-long-random-secret
+set ADMIN_USERNAME=admin
+set ADMIN_PASSWORD=replace-with-a-strong-password
 run-dev.bat
 ```
 
@@ -34,13 +46,21 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
 
 1. **Start the FastAPI backend:**
 
+   Linux/macOS:
+
    ```bash
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   source .venv/bin/activate
    pip install -r requirements.txt
+   export DATABASE_URL=sqlite:dev.db
+   export SECRET_KEY=replace-with-a-long-random-secret
+   export ADMIN_USERNAME=admin
+   export ADMIN_PASSWORD=replace-with-a-strong-password
    python -m uvicorn api.main:app --reload --port 8000
    ```
 
-   Depending on your local setup or deployment target, the backend may also require environment configuration. See [DEPLOYMENT.md](DEPLOYMENT.md) for runtime and deployment details.
+   Windows PowerShell users should activate `.venv\Scripts\Activate.ps1` and set the same environment variables with `$env:NAME="value"` before running the `python -m uvicorn ...` command.
+
+   The backend production entrypoint is `api.main:app`. Production deployments should run the same app object with a command equivalent to `python -m uvicorn api.main:app --host 0.0.0.0 --port "${PORT:-8000}"`. See [DEPLOYMENT.md](DEPLOYMENT.md) for runtime environment details.
 
 2. **Start the Next.js frontend (in a new terminal):**
 
