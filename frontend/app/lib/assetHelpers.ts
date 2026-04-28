@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { Asset, AssetPageResponse } from "../types/api";
+import type { Asset } from "../types/api";
 
 /**
  * Parses a string into a positive integer or returns a fallback if parsing fails or result is non-positive.
