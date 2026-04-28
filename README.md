@@ -37,14 +37,14 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
    ```bash
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    pip install -r requirements.txt
-   export DATABASE_URL=sqlite:///./dev.db
+   export DATABASE_URL=sqlite:./dev.db
    export SECRET_KEY=replace-with-a-long-random-secret
    export ADMIN_USERNAME=admin
    export ADMIN_PASSWORD=replace-with-a-strong-password
    python -m uvicorn api.main:app --reload --port 8000
    ```
 
-   The backend production entrypoint is `api.main:app`. Production deployments should run the same app object with a command equivalent to `python -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}`. See [DEPLOYMENT.md](DEPLOYMENT.md) for runtime environment details.
+   The backend production entrypoint is `api.main:app`. Production deployments should run the same app object with a command equivalent to `python -m uvicorn api.main:app --host 0.0.0.0 --port "${PORT:-8000}"`. See [DEPLOYMENT.md](DEPLOYMENT.md) for runtime environment details.
 
 2. **Start the Next.js frontend (in a new terminal):**
 

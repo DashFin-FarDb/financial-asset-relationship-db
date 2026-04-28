@@ -24,17 +24,17 @@ api.main:app
 `api/main.py` is intentionally a thin public entrypoint and compatibility surface. FastAPI application
 construction, lifespan startup, middleware, and router registration live in `api/app_factory.py`.
 
-Use this production-style run command on hosts that provide a `$PORT` environment variable:
+Use this production-style run command on hosts that provide a `PORT` environment variable:
 
 ```bash
-uvicorn api.main:app --host 0.0.0.0 --port "$PORT"
+python -m uvicorn api.main:app --host 0.0.0.0 --port "${PORT:-8000}"
 ```
 
-For local production-like testing, replace `$PORT` with a concrete port such as `8000`.
+For local production-like testing, the command defaults to port `8000` when `PORT` is not set.
 
 Minimum backend environment required before importing `api.main`:
 
-- `DATABASE_URL` — SQLite URL used by `api/database.py`, for example `sqlite:///./dev.db`
+- `DATABASE_URL` — SQLite URI used by `api/database.py`; local/dev file example: `sqlite:./dev.db`
 - `SECRET_KEY` — JWT signing key used by `api/auth.py`
 - Existing user credentials in the configured database, or bootstrap credentials:
   - `ADMIN_USERNAME`
@@ -44,11 +44,16 @@ Minimum backend environment required before importing `api.main`:
 Optional backend runtime settings:
 
 - `ENV` — environment mode; defaults to `development`
-- `ALLOWED_ORIGINS` — comma-separated CORS allowlist; configured through `src/config/settings.py`
+- `ALLOWED_ORIGINS` — comma-separated CORS allowlist; read from the environment by the settings layer
 - `GRAPH_CACHE_PATH` — graph cache path
 - `REAL_DATA_CACHE_PATH` — real-data cache path
 - `USE_REAL_DATA_FETCHER` — truthy value enables real-data fetcher mode
-- `ASSET_GRAPH_DATABASE_URL` — graph persistence URL when used by graph repository flows
+- `ASSET_GRAPH_DATABASE_URL` — graph persistence URL when used by graph repository flows; this does not replace the API auth/database `DATABASE_URL` requirement
+
+The current API database layer expects a SQLite URI for `DATABASE_URL`. Local SQLite files such as
+`sqlite:./dev.db` are suitable for local/dev runs, but do not use local SQLite file storage for durable production
+persistence on Vercel/serverless filesystems. Durable production persistence requires a separate storage decision
+after the API database layer explicitly supports it.
 
 ## Local Development
 
@@ -76,7 +81,7 @@ Optional backend runtime settings:
 3. **Run the FastAPI backend:**
 
    ```bash
-   export DATABASE_URL="sqlite:///./dev.db"
+   export DATABASE_URL="sqlite:./dev.db"
    export SECRET_KEY="replace-me-for-local-dev"
    export ADMIN_USERNAME="admin"
    export ADMIN_PASSWORD="replace-me-for-local-dev"

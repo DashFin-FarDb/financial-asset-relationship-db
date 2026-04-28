@@ -84,12 +84,16 @@ In the Vercel dashboard, add:
 - [ ] `NEXT_PUBLIC_API_URL` = `https://your-project.vercel.app`
   - Note: Use your actual Vercel deployment URL
   - This will be available after first deployment
-- [ ] `DATABASE_URL` = your API SQLite URL or deployment database URL
+- [ ] `DATABASE_URL` = SQLite URI required by the current API database layer
+  - Local/dev example: `sqlite:./dev.db`
+  - Do not use local SQLite file storage for durable production persistence on Vercel/serverless environments.
+  - For durable production deployment, use a persistent external storage strategy only after the API database layer explicitly supports it.
 - [ ] `SECRET_KEY` = a long random JWT signing secret
 - [ ] Seed credentials via an existing database user, or set:
   - [ ] `ADMIN_USERNAME`
   - [ ] `ADMIN_PASSWORD`
   - [ ] Optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
+- [ ] Optional: `ASSET_GRAPH_DATABASE_URL` if using graph repository persistence flows; this does not replace the API auth/database `DATABASE_URL` requirement.
 - [ ] Optional backend settings as needed: `ENV`, `ALLOWED_ORIGINS`, `GRAPH_CACHE_PATH`, `REAL_DATA_CACHE_PATH`, `USE_REAL_DATA_FETCHER`
 
 #### Step 5: Deploy
