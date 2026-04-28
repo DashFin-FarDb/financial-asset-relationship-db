@@ -10,6 +10,7 @@ This module tests all API endpoints including:
 - Error handling and edge cases
 """
 
+import os
 from collections.abc import Callable
 from typing import Any
 from unittest.mock import PropertyMock, patch
@@ -30,6 +31,14 @@ TEST_ORIGIN_HTTP_LOOPBACK = "http://127.0.0.1:8000"  # nosec B104
 TEST_ORIGIN_HTTPS_LOCALHOST = "https://localhost:3000"
 TEST_ORIGIN_HTTPS_LOOPBACK = "https://127.0.0.1:8000"
 TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """Clear cached runtime settings around each test."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 @pytest.fixture
@@ -195,9 +204,10 @@ class TestCORSValidation:
     """Test CORS origin validation."""
 
     @staticmethod
-    def test_validate_origin_localhost_http_dev():
+    def test_validate_origin_localhost_http_dev(clear_settings_cache):
         """Test HTTP localhost is valid in development."""
-        with patch("api.main.ENV", "development"):
+        with patch.dict(os.environ, {"ENV": "development"}):
+            get_settings.cache_clear()
             assert validate_origin(TEST_ORIGIN_HTTP_LOCALHOST) is True
             assert validate_origin(TEST_ORIGIN_HTTP_LOOPBACK) is True
 
@@ -229,10 +239,12 @@ class TestCORSValidation:
         assert validate_origin("https://my-site.example.co.uk") is True
 
     @staticmethod
-    def test_validate_origin_invalid():
+    def test_validate_origin_invalid(clear_settings_cache):
         """Test invalid origins are rejected."""
-        # HTTP in production (when not localhost)
-        with patch("api.main.ENV", "production"):
+        # HTTP origins are rejected in production.
+        with patch.dict(os.environ, {"ENV": "production"}):
+            get_settings.cache_clear()
+            assert validate_origin(TEST_ORIGIN_HTTP_LOCALHOST) is False
             assert validate_origin("http://example.com") is False
 
         # Invalid formats
