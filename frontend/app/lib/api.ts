@@ -2,6 +2,7 @@ import axios from "axios";
 import type { AxiosRequestConfig } from "axios";
 import type {
   Asset,
+  AssetPageResponse,
   Relationship,
   Metrics,
   VisualizationData,
@@ -47,8 +48,8 @@ export const api = {
       per_page?: number;
     },
     signal?: AbortSignal,
-  ): Promise<Asset[]> => {
-    return getData<Asset[]>("/api/assets", { params, signal });
+  ): Promise<AssetPageResponse> => {
+    return getData<AssetPageResponse>("/api/assets", { params, signal });
   },
 
   getAssetDetail: async (
