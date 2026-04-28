@@ -31,6 +31,25 @@ def asset_items(page: dict) -> list[dict]:
     return page["items"]
 
 
+def all_asset_items(client: TestClient) -> list[dict]:
+    """Return all asset items across paginated assets responses."""
+    first_response = client.get("/api/assets")
+    assert first_response.status_code == 200
+    first_payload = first_response.json()
+    assets = asset_items(first_payload)
+
+    total = first_payload["total"]
+    per_page = first_payload["per_page"]
+
+    for page in range(2, (total + per_page - 1) // per_page + 1):
+        response = client.get(f"/api/assets?page={page}&per_page={per_page}")
+        assert response.status_code == 200
+        assets.extend(asset_items(response.json()))
+
+    assert len(assets) == total
+    return assets
+
+
 class TestCompleteAPIFlow:
     """Test complete API workflows."""
 
@@ -69,11 +88,10 @@ class TestCompleteAPIFlow:
         metrics = metrics_response.json()
 
         # Get all assets
-        assets_response = client.get("/api/assets")
-        assets = asset_items(assets_response.json())
+        assets = all_asset_items(client)
 
         # Verify metrics match actual counts
-        assert metrics["total_assets"] == assets_response.json()["total"]
+        assert metrics["total_assets"] == len(assets)
 
         # Verify asset class counts
         asset_class_counts = {}
@@ -87,8 +105,7 @@ class TestCompleteAPIFlow:
     def test_visualization_data_consistency(client):
         """Test visualization data consistency with assets."""
         # Get assets
-        assets_response = client.get("/api/assets")
-        assets = asset_items(assets_response.json())
+        assets = all_asset_items(client)
         asset_ids = {asset["id"] for asset in assets}
 
         # Get visualization data

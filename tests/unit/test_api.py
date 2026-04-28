@@ -966,6 +966,8 @@ class TestAPIBoundaryConditions:
         response = client.get("/api/assets")
         assert response.status_code == 200
         data = response.json()
+        assert data["page"] == 1
+        assert data["per_page"] == 50
         assert data["total"] == 1000
         assert len(data["items"]) == 50
 
