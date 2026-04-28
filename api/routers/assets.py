@@ -53,7 +53,7 @@ async def get_assets(
     )
 
 
-@router.get("/api/assets/{asset_id}")
+@router.get("/api/assets")
 async def get_asset_detail(asset_id: str) -> AssetResponse:
     """Return detailed data for a single asset."""
     try:
