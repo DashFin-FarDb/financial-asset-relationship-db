@@ -560,9 +560,7 @@ class TestAPIEndpoints:
         assert "nodes" in viz_data
         assert "edges" in viz_data
         assert isinstance(viz_data["nodes"], list)
-        assert isinstance(viz_data["edges"], list)
-        assert len(viz_data["nodes"]) > 0
-        assert len(viz_data["edges"]) > 0
+        assert isinstance(viz_data["edges"], list) 
 
         if viz_data["nodes"]:
             node = viz_data["nodes"][0]
@@ -598,6 +596,8 @@ class TestAPIEndpoints:
 
         assert "nodes" in viz_data
         assert "edges" in viz_data
+        assert len(viz_data["nodes"]) > 0
+        assert len(viz_data["edges"]) > 0
         assert all(node_keys.issubset(node) for node in viz_data["nodes"])
         assert all(edge_keys.issubset(edge) for edge in viz_data["edges"])
 
