@@ -20,11 +20,23 @@ For the modern web frontend with REST API:
 
 **Quick Start (Both Servers):**
 
-```bash
-# Linux/Mac
-./run-dev.sh
+Before using the convenience scripts, set the backend runtime environment required by `api.main:app`. The scripts do not currently load these values from `.env.example`.
 
-# Windows
+```bash
+# Linux/macOS
+export DATABASE_URL=sqlite:dev.db
+export SECRET_KEY=replace-with-a-long-random-secret
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD=replace-with-a-strong-password
+./run-dev.sh
+```
+
+```cmd
+REM Windows CMD
+set DATABASE_URL=sqlite:dev.db
+set SECRET_KEY=replace-with-a-long-random-secret
+set ADMIN_USERNAME=admin
+set ADMIN_PASSWORD=replace-with-a-strong-password
 run-dev.bat
 ```
 
@@ -39,7 +51,7 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
    ```bash
    source .venv/bin/activate
    pip install -r requirements.txt
-   export DATABASE_URL=sqlite:///./dev.db
+   export DATABASE_URL=sqlite:dev.db
    export SECRET_KEY=replace-with-a-long-random-secret
    export ADMIN_USERNAME=admin
    export ADMIN_PASSWORD=replace-with-a-strong-password
