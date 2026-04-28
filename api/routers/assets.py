@@ -15,7 +15,7 @@ from ..router_helpers import (
 router = APIRouter()
 
 
-@router.get("/api/assets", response_model=AssetPageResponse)
+@router.get("/api/assets")
 async def get_assets(
     asset_class: str | None = None,
     sector: str | None = None,
