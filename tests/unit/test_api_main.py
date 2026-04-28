@@ -561,6 +561,8 @@ class TestAPIEndpoints:
         assert "edges" in viz_data
         assert isinstance(viz_data["nodes"], list)
         assert isinstance(viz_data["edges"], list)
+        assert len(viz_data["nodes"]) > 0
+        assert len(viz_data["edges"]) > 0
 
         if viz_data["nodes"]:
             node = viz_data["nodes"][0]
