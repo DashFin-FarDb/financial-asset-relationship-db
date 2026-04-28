@@ -22,8 +22,8 @@ import axios, {
   AxiosRequestConfig,
   AxiosResponse,
 } from "axios";
-import type { Asset, Metrics } from "../../app/types/api";
-import { mockAsset, mockMetrics } from "../test-utils";
+import type { Asset, AssetPageResponse, Metrics } from "../../app/types/api";
+import { mockAsset, mockMetrics, mockAssetsPage } from "../test-utils";
 
 // Mock axios
 jest.mock("axios");
@@ -136,8 +136,15 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
 
   describe("Request Configuration - Axios 1.13.2 Features", () => {
     it("should properly handle query parameters with axios 1.13.2", async () => {
+      const page: AssetPageResponse = {
+        items: [mockAsset],
+        total: 1,
+        page: 1,
+        per_page: 10,
+      };
+
       mockAxiosInstance.get.mockResolvedValue({
-        data: [mockAsset],
+        data: page,
         status: 200,
         statusText: "OK",
         headers: {},
@@ -158,12 +165,20 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
           page: 1,
           per_page: 10,
         },
+        signal: undefined,
       });
     });
 
     it("should handle undefined query parameters correctly", async () => {
+      const page: AssetPageResponse = {
+        items: [mockAsset],
+        total: 1,
+        page: 1,
+        per_page: 50,
+      };
+
       mockAxiosInstance.get.mockResolvedValue({
-        data: [mockAsset],
+        data: page,
         status: 200,
         statusText: "OK",
         headers: {},
@@ -174,6 +189,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
         params: { asset_class: undefined },
+        signal: undefined,
       });
     });
 
@@ -471,30 +487,40 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       expect(result.name).toBeDefined();
     });
 
-    it("should properly type array responses", async () => {
+    it("should properly type paginated asset responses", async () => {
+      const page: AssetPageResponse = {
+        items: [mockAsset],
+        total: 1,
+        page: 1,
+        per_page: 50,
+      };
+
       mockAxiosInstance.get.mockResolvedValue({
-        data: [mockAsset],
+        data: page,
         status: 200,
         statusText: "OK",
         headers: {},
         config: {} as AxiosRequestConfig,
       });
 
-      // TypeScript should infer array type
-      const result = await api.getAssets();
+      // TypeScript should infer paginated response type
+      const result: AssetPageResponse = await api.getAssets();
 
-      expect(Array.isArray(result) || typeof result === "object").toBeTruthy();
+      expect(Array.isArray(result.items)).toBe(true);
+      expect(result.items[0]).toEqual(mockAsset);
+      expect(result.total).toBe(1);
     });
 
-    it("should handle union types correctly", async () => {
-      // Test that API can return either array or paginated response
+    it("should handle paginated asset response shape correctly", async () => {
+      const page: AssetPageResponse = {
+        items: [mockAsset],
+        total: 1,
+        page: 1,
+        per_page: 10,
+      };
+
       mockAxiosInstance.get.mockResolvedValue({
-        data: {
-          items: [mockAsset],
-          total: 1,
-          page: 1,
-          per_page: 10,
-        },
+        data: page,
         status: 200,
         statusText: "OK",
         headers: {},
@@ -503,7 +529,10 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
 
       const result = await api.getAssets({ page: 1, per_page: 10 });
 
-      expect(result).toBeDefined();
+      expect(result.items).toEqual([mockAsset]);
+      expect(result.total).toBe(1);
+      expect(result.page).toBe(1);
+      expect(result.per_page).toBe(10);
     });
   });
 
@@ -699,7 +728,12 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       }));
 
       mockAxiosInstance.get.mockResolvedValue({
-        data: largeDataset,
+        data: {
+          items: largeDataset,
+          total: largeDataset.length,
+          page: 1,
+          per_page: largeDataset.length,
+        },
         status: 200,
         statusText: "OK",
         headers: {},
@@ -708,7 +742,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
 
       const result = await api.getAssets();
 
-      expect(Array.isArray(result) ? result.length : 0).toBeGreaterThan(0);
+      expect(result.items.length).toBeGreaterThan(0);
+      expect(result.total).toBe(largeDataset.length);
     });
   });
 });
