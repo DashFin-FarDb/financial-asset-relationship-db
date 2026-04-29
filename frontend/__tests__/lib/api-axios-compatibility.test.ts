@@ -23,7 +23,7 @@ import axios, {
   AxiosResponse,
 } from "axios";
 import type { Asset, AssetPageResponse, Metrics } from "../../app/types/api";
-import { mockAsset, mockMetrics, mockAssetsPage } from "../test-utils";
+import { mockAsset, mockMetrics } from "../test-utils";
 
 // Mock axios
 jest.mock("axios");
