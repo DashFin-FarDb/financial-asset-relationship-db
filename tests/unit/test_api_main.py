@@ -1606,7 +1606,7 @@ class TestVisualizationSingleNode:
         assert response.status_code == 200
 
         viz_data = response.json()
-        nodes_by_id = {node.get("id", f"<unknown-{i}>"): node for i, node in enumerate(viz_data["nodes"])}
+        nodes_by_id = {node["id"]: node for node in viz_data["nodes"]}
 
         # AAPL should have larger size due to more relationships
         aapl_size = nodes_by_id["AAPL"]["size"]
