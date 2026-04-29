@@ -4,6 +4,33 @@ REM Development startup script - runs both backend and frontend on Windows
 echo 🚀 Starting Financial Asset Relationship Database Development Environment
 echo.
 
+REM Check required environment variables
+echo 🔍 Checking required environment variables...
+set missing_vars=
+if "%DATABASE_URL%"=="" set missing_vars=%missing_vars% DATABASE_URL
+if "%SECRET_KEY%"=="" set missing_vars=%missing_vars% SECRET_KEY
+if "%ADMIN_USERNAME%"=="" set missing_vars=%missing_vars% ADMIN_USERNAME
+if "%ADMIN_PASSWORD%"=="" set missing_vars=%missing_vars% ADMIN_PASSWORD
+
+if not "%missing_vars%"=="" (
+    echo.
+    echo ❌ Error: Missing required backend environment variables:
+    echo    %missing_vars%
+    echo.
+    echo Set required variables before running run-dev.bat:
+    echo.
+    echo   set DATABASE_URL=sqlite:dev.db
+    echo   set SECRET_KEY=replace-with-a-long-random-secret
+    echo   set ADMIN_USERNAME=admin
+    echo   set ADMIN_PASSWORD=replace-with-a-strong-password
+    echo.
+    echo See README.md and .env.example for more details.
+    exit /b 1
+)
+
+echo ✓ All required environment variables are set
+echo.
+
 REM Check if virtual environment exists
 if not exist ".venv\" (
     echo 📦 Creating Python virtual environment...
