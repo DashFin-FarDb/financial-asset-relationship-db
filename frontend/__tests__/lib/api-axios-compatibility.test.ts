@@ -503,7 +503,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         config: {} as AxiosRequestConfig,
       });
 
-      // TypeScript should infer paginated response type
+      // TypeScript should enforce the paginated response type
       const result: AssetPageResponse = await api.getAssets();
 
       expect(Array.isArray(result.items)).toBe(true);
