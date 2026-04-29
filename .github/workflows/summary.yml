@@ -28,15 +28,16 @@ jobs:
         run: |
           # Sanitize title: remove special characters and limit length
           SANITIZED_TITLE=$(printf '%s' "$ISSUE_TITLE" | sed 's/[^a-zA-Z0-9 .,?!-]//g' | head -c 200)
-          printf "title=%s\n" "$SANITIZED_TITLE" >> "$GITHUB_OUTPUT"
+          printf 'title=%s\n' "$SANITIZED_TITLE" >> "$GITHUB_OUTPUT"
 
-          # Sanitize body: remove special characters and limit length
-          # Use heredoc syntax for multiline output to prevent injection
+          # Sanitize body: remove special characters and limit length.
+          # Use a generated delimiter for multiline output to avoid delimiter collisions.
           SANITIZED_BODY=$(printf '%s' "$ISSUE_BODY" | sed 's/[^a-zA-Z0-9 .,?!\n-]//g' | head -c 1000)
+          BODY_DELIMITER="SANITIZED_ISSUE_BODY_$(uuidgen)"
           {
-            echo "body<<SANITIZED_BODY_EOF"
-            printf "%s\n" "$SANITIZED_BODY"
-            echo "SANITIZED_BODY_EOF"
+            printf 'body<<%s\n' "$BODY_DELIMITER"
+            printf '%s\n' "$SANITIZED_BODY"
+            printf '%s\n' "$BODY_DELIMITER"
           } >> "$GITHUB_OUTPUT"
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
