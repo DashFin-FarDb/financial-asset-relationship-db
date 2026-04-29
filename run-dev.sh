@@ -12,26 +12,28 @@ required_vars=(DATABASE_URL SECRET_KEY ADMIN_USERNAME ADMIN_PASSWORD)
 missing_vars=()
 
 for var in "${required_vars[@]}"; do
-  if [ -z "${!var:-}" ]; then
+  if [[ -z "${!var:-}" ]]; then
     missing_vars+=("$var")
   fi
 done
 
-if [ ${#missing_vars[@]} -ne 0 ]; then
-  echo ""
-  echo "❌ Error: Missing required backend environment variables:"
-  for var in "${missing_vars[@]}"; do
-    echo "   - $var"
-  done
-  echo ""
-  echo "Set required variables before running ./run-dev.sh:"
-  echo ""
-  echo "  export DATABASE_URL=sqlite:dev.db"
-  echo "  export SECRET_KEY=replace-with-a-long-random-secret"
-  echo "  export ADMIN_USERNAME=admin"
-  echo "  export ADMIN_PASSWORD=replace-with-a-strong-password"
-  echo ""
-  echo "See README.md and .env.example for more details."
+if [[ ${#missing_vars[@]} -ne 0 ]]; then
+  {
+    echo ""
+    echo "❌ Error: Missing required backend environment variables:"
+    for var in "${missing_vars[@]}"; do
+      echo "   - $var"
+    done
+    echo ""
+    echo "Set required variables before running ./run-dev.sh:"
+    echo ""
+    echo "  export DATABASE_URL=sqlite:dev.db"
+    echo "  export SECRET_KEY=replace-with-a-long-random-secret"
+    echo "  export ADMIN_USERNAME=admin"
+    echo "  export ADMIN_PASSWORD=replace-with-a-strong-password"
+    echo ""
+    echo "See README.md and .env.example for more details."
+  } >&2
   exit 1
 fi
 
