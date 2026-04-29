@@ -77,6 +77,31 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and Vercel integration.
 
+### Troubleshooting
+
+#### Frontend shows "Failed to load data"
+
+This usually means the FastAPI backend is not running or failed during startup.
+
+Before starting the frontend, verify the backend starts with the required environment variables:
+
+```bash
+export DATABASE_URL="sqlite:dev.db"
+export SECRET_KEY="change-me-to-a-long-random-secret"
+export ADMIN_USERNAME="admin"
+export ADMIN_PASSWORD="change-me"
+python -m uvicorn api.main:app --reload --port 8000
+```
+
+Then verify:
+
+```bash
+curl http://localhost:8000/api/health
+curl http://localhost:8000/api/visualization
+```
+
+If `/api/health` fails, fix the backend startup first. If `/api/health` works but the frontend still fails, check `NEXT_PUBLIC_API_URL` and the browser Network tab.
+
 ### Demo/Internal UI: Gradio (Non-Production)
 
 The Gradio UI (`app.py`) is available for demos, internal testing, and rapid prototyping. It is **not recommended for production deployment**.
