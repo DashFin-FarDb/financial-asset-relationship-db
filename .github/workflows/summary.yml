@@ -27,12 +27,18 @@ jobs:
         id: sanitize
         run: |
           # Sanitize title: remove special characters and limit length
-          SANITIZED_TITLE=$(echo "$ISSUE_TITLE" | sed 's/[^a-zA-Z0-9 .,?!-]//g' | head -c 200)
-          echo "title=${SANITIZED_TITLE}" >> $GITHUB_OUTPUT
+          SANITIZED_TITLE=$(printf '%s' "$ISSUE_TITLE" | sed 's/[^a-zA-Z0-9 .,?!-]//g' | head -c 200)
+          printf 'title=%s\n' "$SANITIZED_TITLE" >> "$GITHUB_OUTPUT"
 
-          # Sanitize body: remove special characters and limit length
-          SANITIZED_BODY=$(echo "$ISSUE_BODY" | sed 's/[^a-zA-Z0-9 .,?!\n-]//g' | head -c 1000)
-          echo "body=${SANITIZED_BODY}" >> $GITHUB_OUTPUT
+          # Sanitize body: remove special characters and limit length.
+          # Use a generated delimiter for multiline output to avoid delimiter collisions.
+          SANITIZED_BODY=$(printf '%s' "$ISSUE_BODY" | sed 's/[^a-zA-Z0-9 .,?!\n-]//g' | head -c 1000)
+          BODY_DELIMITER="SANITIZED_ISSUE_BODY_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}_${RANDOM}"
+          {
+            printf 'body<<%s\n' "$BODY_DELIMITER"
+            printf '%s\n' "$SANITIZED_BODY"
+            printf '%s\n' "$BODY_DELIMITER"
+          } >> "$GITHUB_OUTPUT"
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Iterator
+from numbers import Number
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
@@ -27,6 +28,7 @@ from fastapi.testclient import TestClient
 
 import api.main as api_main
 from api.api_models import (
+    AssetPageResponse,
     AssetResponse,
     MetricsResponse,
     RelationshipResponse,
@@ -45,6 +47,17 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
 CORS_DEV_ORIGIN = "http://localhost:3000"
+
+
+def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 50) -> list[dict[str, Any]]:
+    """Assert that an assets response follows the paginated contract."""
+    assert set(data) == {"items", "total", "page", "per_page"}
+    assert isinstance(data["items"], list)
+    assert isinstance(data["total"], int)
+    assert data["page"] == page
+    assert data["per_page"] == per_page
+    assert data["total"] >= len(data["items"])
+    return data["items"]
 
 
 # -----------------------
@@ -260,8 +273,27 @@ class TestPydanticModels:
     def test_visualization_data_response_model(self) -> None:
         """VisualizationDataResponse accepts node/edge lists for graph rendering."""
         viz = VisualizationDataResponse(
-            nodes=[{"id": "AAPL", "x": 1.0, "y": 2.0, "z": 3.0}],
-            edges=[{"source": "AAPL", "target": "MSFT"}],
+            nodes=[
+                {
+                    "id": "AAPL",
+                    "symbol": "AAPL",
+                    "name": "Apple Inc.",
+                    "asset_class": "Equity",
+                    "x": 1.0,
+                    "y": 2.0,
+                    "z": 3.0,
+                    "color": "#1f77b4",
+                    "size": 5,
+                }
+            ],
+            edges=[
+                {
+                    "source": "AAPL",
+                    "target": "MSFT",
+                    "relationship_type": "same_sector",
+                    "strength": 0.7,
+                }
+            ],
         )
         assert len(viz.nodes) == 1
         assert len(viz.edges) == 1
@@ -324,8 +356,7 @@ class TestAPIEndpoints:
         """Test getting all assets without filters."""
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
         assert len(assets) > 0
 
         asset = assets[0]
@@ -336,33 +367,76 @@ class TestAPIEndpoints:
         assert "sector" in asset
         assert "price" in asset
 
+    def test_get_assets_explicit_pagination(self, client: TestClient) -> None:
+        """Assets endpoint supports explicit page and per_page parameters."""
+        first_response = client.get("/api/assets?page=1&per_page=2")
+        second_response = client.get("/api/assets?page=2&per_page=2")
+
+        assert first_response.status_code == 200
+        assert second_response.status_code == 200
+
+        first_payload = first_response.json()
+        second_payload = second_response.json()
+        first_page = _assert_asset_page(first_payload, page=1, per_page=2)
+        second_page = _assert_asset_page(second_payload, page=2, per_page=2)
+
+        assert len(first_page) == 2
+        assert len(second_page) == 2
+        # BOUNDARY: total must be invariant across pages (pagination does not change total count)
+        assert first_payload["total"] == second_payload["total"]
+        assert first_payload["total"] >= len(first_page) + len(second_page)
+        assert {asset["id"] for asset in first_page}.isdisjoint({asset["id"] for asset in second_page})
+
+    def test_get_assets_rejects_invalid_pagination(self, client: TestClient) -> None:
+        """Assets endpoint rejects invalid page and per_page values."""
+        assert client.get("/api/assets?page=0").status_code == 422
+        assert client.get("/api/assets?per_page=0").status_code == 422
+        assert client.get("/api/assets?per_page=1001").status_code == 422
+
+    def test_get_assets_out_of_range_page_returns_empty_items(self, client: TestClient) -> None:
+        """Assets endpoint returns an empty page for out-of-range page requests."""
+        # First get baseline total from page 1
+        baseline_response = client.get("/api/assets?page=1&per_page=50")
+        assert baseline_response.status_code == 200
+        baseline_total = baseline_response.json()["total"]
+
+        # Out-of-range page should return empty items but preserve total
+        response = client.get("/api/assets?page=999999&per_page=50")
+        assert response.status_code == 200
+        payload = response.json()
+        assets = _assert_asset_page(payload, page=999999, per_page=50)
+        # BOUNDARY: out-of-range page returns empty items
+        assert assets == []
+        # BOUNDARY: but total is preserved (reflects full dataset, not page slice)
+        assert payload["total"] == baseline_total
+        assert payload["total"] >= 0
+
     def test_get_assets_filter_by_class(self, client):
         """Test filtering assets by asset class."""
-        response = client.get("/api/assets?asset_class=EQUITY")
+        response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
+        assert assets
         for asset in assets:
-            assert asset["asset_class"] == "EQUITY"
+            assert asset["asset_class"] == "Equity"
 
     def test_get_assets_filter_by_sector(self, client: TestClient) -> None:
         """Assets endpoint supports filtering by sector."""
         response = client.get("/api/assets?sector=Technology")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
         for asset in assets:
             assert asset["sector"] == "Technology"
 
     def test_get_assets_filter_by_class_and_sector(self, client: TestClient) -> None:
         """Assets endpoint supports combined asset_class and sector filters."""
         # IMPORTANT: use '&' not '&amp;' (HTML entity should not appear in test URLs)
-        response = client.get("/api/assets?asset_class=EQUITY&sector=Technology")
+        response = client.get("/api/assets?asset_class=Equity&sector=Technology")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
+        assert assets
         for asset in assets:
-            assert asset["asset_class"] == "EQUITY"
+            assert asset["asset_class"] == "Equity"
             assert asset["sector"] == "Technology"
 
     def test_get_metrics_enriched_statistics(self, client: TestClient) -> None:
@@ -375,11 +449,52 @@ class TestAPIEndpoints:
         assert data["total_relationships"] > 0
         assert data["avg_degree"] > 0
         assert data["max_degree"] >= data["avg_degree"]
-        assert 0 <= data["network_density"] <= 100
+        assert 0 <= data["network_density"] <= 1
 
         # If the API includes relationship_density separately, validate its bounds too.
         if "relationship_density" in data:
             assert 0 <= data["relationship_density"] <= 100
+            assert data["network_density"] == pytest.approx(data["relationship_density"] / 100.0)
+
+    def test_get_metrics_projects_graph_owned_contract(self, bare_client: TestClient) -> None:
+        """Metrics endpoint should only project public metrics from the graph layer."""
+        graph = Mock(spec=AssetRelationshipGraph)
+        graph.calculate_metrics.return_value = {
+            "total_assets": 9,
+            "total_relationships": 12,
+            "asset_classes": {"Graph Owned": 9},
+            "avg_degree": 2.5,
+            "max_degree": 7,
+            "network_density": 0.42,
+            "relationship_density": 42.0,
+        }
+        # BOUNDARY: Make graph state intentionally inconsistent to verify endpoint
+        # cannot accidentally read graph.assets/relationships directly instead of
+        # calling calculate_metrics(). If endpoint reads len(graph.assets), test fails.
+        graph.assets = {
+            f"IGNORED_{i}": Equity(
+                id=f"IGNORED_{i}",
+                symbol=f"IGN{i}",
+                name=f"Should Not Be Counted {i}",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=1.0,
+            )
+            for i in range(999)  # Intentionally != 9
+        }
+        graph.relationships = {f"IGNORED_{i}": [(f"ALSO_IGNORED_{i}", "same_sector", 0.7)] for i in range(999)}
+
+        with patch("api.routers.metrics.get_graph", return_value=graph):
+            response = bare_client.get("/api/metrics")
+
+        assert response.status_code == 200
+        result = response.json()
+
+        # BOUNDARY: Endpoint must return the graph-owned metrics contract exactly.
+        # The intentionally inconsistent graph.assets / graph.relationships above
+        # ensures this would fail if the endpoint recomputed from graph state directly.
+        assert result == graph.calculate_metrics.return_value
+        graph.calculate_metrics.assert_called_once_with()
 
     def test_get_metrics_no_assets(self, bare_client: TestClient) -> None:
         """Metrics endpoint returns zeros for an empty graph."""
@@ -447,7 +562,7 @@ class TestAPIEndpoints:
     def test_get_asset_detail_valid(self, client: TestClient) -> None:
         """Asset detail endpoint returns the requested asset when it exists."""
         response = client.get("/api/assets")
-        assets = response.json()
+        assets = _assert_asset_page(response.json())
         asset_id = assets[0]["id"]
 
         response = client.get(f"/api/assets/{asset_id}")
@@ -464,7 +579,7 @@ class TestAPIEndpoints:
     def test_get_asset_relationships_valid(self, client: TestClient) -> None:
         """Asset relationships endpoint returns relationships for a valid asset."""
         response = client.get("/api/assets")
-        assets = response.json()
+        assets = _assert_asset_page(response.json())
         asset_id = assets[0]["id"]
 
         response = client.get(f"/api/assets/{asset_id}/relationships")
@@ -525,15 +640,40 @@ class TestAPIEndpoints:
                 "size",
             ):
                 assert key in node
-            assert isinstance(node["x"], (int, float))
-            assert isinstance(node["y"], (int, float))
-            assert isinstance(node["z"], (int, float))
+            assert isinstance(node["x"], Number), f"Node {node.get('id', '<unknown>')} x coordinate is not numeric"
+            assert isinstance(node["y"], Number), f"Node {node.get('id', '<unknown>')} y coordinate is not numeric"
+            assert isinstance(node["z"], Number), f"Node {node.get('id', '<unknown>')} z coordinate is not numeric"
 
         if viz_data["edges"]:
             edge = viz_data["edges"][0]
             for key in ("source", "target", "relationship_type", "strength"):
                 assert key in edge
             assert 0 <= edge["strength"] <= 1
+
+    def test_visualization_response_enforces_domain_and_presentation_shape(self, client: TestClient) -> None:
+        """Visualization payload should expose typed domain fields and presentation encodings."""
+        response = client.get("/api/visualization")
+        assert response.status_code == 200
+        viz_data = response.json()
+        node_keys = {"id", "symbol", "name", "asset_class", "x", "y", "z", "color", "size"}
+        edge_keys = {"source", "target", "relationship_type", "strength"}
+
+        assert "nodes" in viz_data
+        assert "edges" in viz_data
+        assert len(viz_data["nodes"]) > 0
+        assert len(viz_data["edges"]) > 0
+        # BOUNDARY: All nodes must have exact key set
+        assert all(set(node.keys()) == node_keys for node in viz_data["nodes"])
+        # BOUNDARY: All edges must have exact key set
+        assert all(set(edge.keys()) == edge_keys for edge in viz_data["edges"])
+        # BOUNDARY: All node coordinates must be numeric (floats or ints)
+        for node in viz_data["nodes"]:
+            assert isinstance(node["x"], Number), f"Node {node.get('id', '<unknown>')} x coordinate is not numeric"
+            assert isinstance(node["y"], Number), f"Node {node.get('id', '<unknown>')} y coordinate is not numeric"
+            assert isinstance(node["z"], Number), f"Node {node.get('id', '<unknown>')} z coordinate is not numeric"
+        # BOUNDARY: All edge strengths must be in valid range [0, 1]
+        for edge in viz_data["edges"]:
+            assert 0 <= edge["strength"] <= 1, f"Edge {edge['source']}->{edge['target']} strength out of bounds"
 
     def test_get_asset_classes(self, client: TestClient) -> None:
         """Asset classes endpoint returns all AssetClass enum values."""
@@ -642,37 +782,37 @@ class TestAdditionalFields:
 
     def test_equity_additional_fields(self, client: TestClient) -> None:
         """Equity assets include expected equity-specific fields in additional_fields."""
-        response = client.get("/api/assets?asset_class=EQUITY")
-        assets = response.json()
+        response = client.get("/api/assets?asset_class=Equity")
+        assets = _assert_asset_page(response.json())
 
-        if assets:
-            asset = assets[0]
-            additional = asset.get("additional_fields", {})
-            possible_fields = {
-                "pe_ratio",
-                "dividend_yield",
-                "earnings_per_share",
-                "book_value",
-            }
-            has_equity_field = any(field in additional for field in possible_fields)
-            assert has_equity_field or additional == {}
+        assert assets
+        asset = assets[0]
+        additional = asset.get("additional_fields", {})
+        possible_fields = {
+            "pe_ratio",
+            "dividend_yield",
+            "earnings_per_share",
+            "book_value",
+        }
+        has_equity_field = any(field in additional for field in possible_fields)
+        assert has_equity_field or additional == {}
 
     def test_bond_additional_fields(self, client: TestClient) -> None:
         """Bond assets include expected bond-specific fields in additional_fields."""
-        response = client.get("/api/assets?asset_class=BOND")
-        assets = response.json()
+        response = client.get("/api/assets?asset_class=Fixed Income")
+        assets = _assert_asset_page(response.json())
 
-        if assets:
-            asset = assets[0]
-            additional = asset.get("additional_fields", {})
-            possible_fields = {
-                "yield_to_maturity",
-                "coupon_rate",
-                "maturity_date",
-                "credit_rating",
-            }
-            has_bond_field = any(field in additional for field in possible_fields)
-            assert has_bond_field or additional == {}
+        assert assets
+        asset = assets[0]
+        additional = asset.get("additional_fields", {})
+        possible_fields = {
+            "yield_to_maturity",
+            "coupon_rate",
+            "maturity_date",
+            "credit_rating",
+        }
+        has_bond_field = any(field in additional for field in possible_fields)
+        assert has_bond_field or additional == {}
 
 
 @pytest.mark.unit
@@ -685,9 +825,9 @@ class TestVisualizationDataProcessing:
         viz_data = response.json()
 
         for node in viz_data["nodes"]:
-            assert isinstance(node["x"], (int, float))
-            assert isinstance(node["y"], (int, float))
-            assert isinstance(node["z"], (int, float))
+            assert isinstance(node["x"], Number), f"Node {node.get('id', '<unknown>')} x coordinate is not numeric"
+            assert isinstance(node["y"], Number), f"Node {node.get('id', '<unknown>')} y coordinate is not numeric"
+            assert isinstance(node["z"], Number), f"Node {node.get('id', '<unknown>')} z coordinate is not numeric"
 
     def test_visualization_node_defaults(self, client: TestClient) -> None:
         """Visualization nodes include default color/size fields with expected types."""
@@ -719,7 +859,7 @@ class TestIntegrationScenarios:
         """Exercise the core browse flow: list assets, fetch detail, fetch relationships."""
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assets = response.json()
+        assets = _assert_asset_page(response.json())
         assert assets
 
         asset_id = assets[0]["id"]
@@ -748,14 +888,14 @@ class TestIntegrationScenarios:
     def test_filter_refinement_workflow(self, client: TestClient) -> None:
         """Confirm progressive filters reduce (or keep) result sets, never increase them."""
         response = client.get("/api/assets")
-        all_assets = response.json()
+        all_assets = _assert_asset_page(response.json())
 
-        response = client.get("/api/assets?asset_class=EQUITY")
-        equity_assets = response.json()
+        response = client.get("/api/assets?asset_class=Equity")
+        equity_assets = _assert_asset_page(response.json())
         assert len(equity_assets) <= len(all_assets)
 
-        response = client.get("/api/assets?asset_class=EQUITY&sector=Technology")
-        tech_equity_assets = response.json()
+        response = client.get("/api/assets?asset_class=Equity&sector=Technology")
+        tech_equity_assets = _assert_asset_page(response.json())
         assert len(tech_equity_assets) <= len(equity_assets)
 
 
@@ -1581,16 +1721,14 @@ class TestEndpointRegressionCases:
         """Assets endpoint should return empty list for nonexistent asset class."""
         response = client.get("/api/assets?asset_class=NONEXISTENT")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
         assert len(assets) == 0
 
     def test_assets_endpoint_with_nonexistent_sector(self, client: TestClient):
         """Assets endpoint should return empty list for nonexistent sector."""
         response = client.get("/api/assets?sector=NonexistentSector")
         assert response.status_code == 200
-        assets = response.json()
-        assert isinstance(assets, list)
+        assets = _assert_asset_page(response.json())
         assert len(assets) == 0
 
     def test_asset_relationships_empty_list(self, bare_client: TestClient):
@@ -1627,8 +1765,9 @@ class TestEndpointRegressionCases:
         assert "network_density" in data
         assert "relationship_density" in data
 
-        # They should have the same value (as per the implementation)
-        assert data["network_density"] == data["relationship_density"]
+        assert 0 <= data["network_density"] <= 1
+        assert 0 <= data["relationship_density"] <= 100
+        assert data["network_density"] == pytest.approx(data["relationship_density"] / 100.0)
 
     def test_visualization_coordinates_precision(self, client: TestClient):
         """Visualization coordinates should be rounded to 6 decimal places."""

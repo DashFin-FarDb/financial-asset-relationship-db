@@ -52,3 +52,10 @@ export interface VisualizationData {
   nodes: VisualizationNode[];
   edges: VisualizationEdge[];
 }
+
+export interface AssetPageResponse {
+  items: Asset[];
+  total: number;
+  page: number;
+  per_page: number;
+}

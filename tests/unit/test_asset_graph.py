@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.models.financial_models import AssetClass, Equity
 
 
 @pytest.mark.unit
@@ -35,8 +36,67 @@ class TestAssetRelationshipGraphInit:
 
 
 @pytest.mark.unit
+class TestCalculateMetricsContract:
+    """Test graph-owned public metrics exposed by the API."""
+
+    @staticmethod
+    def test_calculate_metrics_includes_public_api_metrics():
+        """Graph metrics own the public API metric contract."""
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Equity(
+                id="AAPL",
+                symbol="AAPL",
+                name="Apple Inc.",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=150.0,
+            )
+        )
+        graph.add_asset(
+            Equity(
+                id="MSFT",
+                symbol="MSFT",
+                name="Microsoft Corporation",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=300.0,
+            )
+        )
+        # Direct assignment intentionally exercises the current relationship-map contract
+        # used by calculate_metrics() without invoking relationship-building logic.
+        graph.relationships = {
+            "AAPL": [("MSFT", "same_sector", 0.7), ("GOOG", "same_sector", 0.5)],
+            "MSFT": [("AAPL", "same_sector", 0.7)],
+        }
+
+        metrics = graph.calculate_metrics()
+
+        assert metrics["asset_classes"] == metrics["asset_class_distribution"]
+        assert metrics["asset_classes"] is not metrics["asset_class_distribution"]
+        assert metrics["asset_classes"] == {"Equity": 2}
+        assert metrics["avg_degree"] == pytest.approx(1.5)
+        assert metrics["max_degree"] == 2
+        assert 0 <= metrics["relationship_density"] <= 100
+        assert 0 <= metrics["network_density"] <= 1
+        assert metrics["network_density"] == pytest.approx(metrics["relationship_density"] / 100.0)
+
+
+@pytest.mark.unit
 class TestGet3DVisualizationDataEnhanced:
     """Test suite for get_3d_visualization_data_enhanced method."""
+
+    @staticmethod
+    def test_get_3d_visualization_data_does_not_mutate_metrics():
+        """Visualization helper should not mutate graph metric state."""
+        graph = AssetRelationshipGraph()
+        graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
+
+        before = graph.calculate_metrics()
+        _ = graph.get_3d_visualization_data_enhanced()
+        after = graph.calculate_metrics()
+
+        assert before == after
 
     @staticmethod
     def test_empty_graph_returns_placeholder():

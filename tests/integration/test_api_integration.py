@@ -21,6 +21,35 @@ def client():
     return TestClient(app)
 
 
+def asset_items(page: dict) -> list[dict]:
+    """Return asset items from a paginated assets response."""
+    assert set(page) == {"items", "total", "page", "per_page"}
+    assert isinstance(page["items"], list)
+    assert isinstance(page["total"], int)
+    assert isinstance(page["page"], int)
+    assert isinstance(page["per_page"], int)
+    return page["items"]
+
+
+def all_asset_items(client: TestClient) -> list[dict]:
+    """Return all asset items across paginated assets responses."""
+    first_response = client.get("/api/assets")
+    assert first_response.status_code == 200
+    first_payload = first_response.json()
+    assets = asset_items(first_payload)
+
+    total = first_payload["total"]
+    per_page = first_payload["per_page"]
+
+    for page in range(2, (total + per_page - 1) // per_page + 1):
+        response = client.get(f"/api/assets?page={page}&per_page={per_page}")
+        assert response.status_code == 200
+        assets.extend(asset_items(response.json()))
+
+    assert len(assets) == total
+    return assets
+
+
 class TestCompleteAPIFlow:
     """Test complete API workflows."""
 
@@ -34,7 +63,7 @@ class TestCompleteAPIFlow:
         # Step 2: Get all assets
         assets_response = client.get("/api/assets")
         assert assets_response.status_code == 200
-        assets = assets_response.json()
+        assets = asset_items(assets_response.json())
         assert len(assets) > 0
 
         # Step 3: Get detail for first asset
@@ -59,8 +88,7 @@ class TestCompleteAPIFlow:
         metrics = metrics_response.json()
 
         # Get all assets
-        assets_response = client.get("/api/assets")
-        assets = assets_response.json()
+        assets = all_asset_items(client)
 
         # Verify metrics match actual counts
         assert metrics["total_assets"] == len(assets)
@@ -77,8 +105,7 @@ class TestCompleteAPIFlow:
     def test_visualization_data_consistency(client):
         """Test visualization data consistency with assets."""
         # Get assets
-        assets_response = client.get("/api/assets")
-        assets = assets_response.json()
+        assets = all_asset_items(client)
         asset_ids = {asset["id"] for asset in assets}
 
         # Get visualization data
@@ -98,7 +125,7 @@ class TestCompleteAPIFlow:
     def test_filter_combinations(client):
         """Test various filter combinations return consistent results."""
         # Get all assets
-        all_assets = client.get("/api/assets").json()
+        all_assets = asset_items(client.get("/api/assets").json())
 
         # Get unique asset classes and sectors
         asset_classes = {a["asset_class"] for a in all_assets}
@@ -106,13 +133,13 @@ class TestCompleteAPIFlow:
 
         # Test each asset class filter
         for ac in asset_classes:
-            filtered = client.get(f"/api/assets?asset_class={ac}").json()
+            filtered = asset_items(client.get(f"/api/assets?asset_class={ac}").json())
             assert all(a["asset_class"] == ac for a in filtered)
             assert len(filtered) <= len(all_assets)
 
         # Test each sector filter
         for sector in sectors:
-            filtered = client.get(f"/api/assets?sector={sector}").json()
+            filtered = asset_items(client.get(f"/api/assets?sector={sector}").json())
             assert all(a["sector"] == sector for a in filtered)
             assert len(filtered) <= len(all_assets)
 
@@ -123,7 +150,7 @@ class TestDataIntegrity:
     @staticmethod
     def test_asset_detail_matches_list(client):
         """Test that asset details match what is in the list."""
-        assets = client.get("/api/assets").json()
+        assets = asset_items(client.get("/api/assets").json())
 
         for asset in assets[:3]:  # Test first 3 assets
             detail = client.get(f"/api/assets/{asset['id']}").json()
@@ -257,4 +284,4 @@ class TestErrorRecovery:
         # Test with invalid query parameters
         response = client.get("/api/assets?asset_class=INVALID")
         assert response.status_code == 200
-        assert len(response.json()) == 0
+        assert len(asset_items(response.json())) == 0

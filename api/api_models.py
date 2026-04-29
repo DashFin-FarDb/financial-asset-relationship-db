@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AssetResponse(BaseModel):
@@ -19,6 +19,15 @@ class AssetResponse(BaseModel):
     additional_fields: dict[str, Any] = Field(default_factory=dict)
 
 
+class AssetPageResponse(BaseModel):
+    """Response model for paginated asset data."""
+
+    items: list[AssetResponse]
+    total: int
+    page: int
+    per_page: int
+
+
 class RelationshipResponse(BaseModel):
     """Response model for relationship data."""
 
@@ -29,7 +38,7 @@ class RelationshipResponse(BaseModel):
 
 
 class MetricsResponse(BaseModel):
-    """Response model for network metrics."""
+    """Response model for graph-owned public network metrics."""
 
     total_assets: int
     total_relationships: int
@@ -40,8 +49,37 @@ class MetricsResponse(BaseModel):
     relationship_density: float = 0.0
 
 
-class VisualizationDataResponse(BaseModel):
-    """Response model for visualization data."""
+class VisualizationNode(BaseModel):
+    """Response model for a visualization node."""
 
-    nodes: list[dict[str, Any]]
-    edges: list[dict[str, Any]]
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    symbol: str
+    name: str
+    asset_class: str
+    x: float
+    y: float
+    z: float
+    color: str
+    size: int
+
+
+class VisualizationEdge(BaseModel):
+    """Response model for a visualization edge."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    source: str
+    target: str
+    relationship_type: str
+    strength: float
+
+
+class VisualizationDataResponse(BaseModel):
+    """Response model for typed visualization data."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nodes: list[VisualizationNode]
+    edges: list[VisualizationEdge]

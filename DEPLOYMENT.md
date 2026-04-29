@@ -13,6 +13,48 @@ The production application consists of two main components:
 1. **Backend API** (`/api`): FastAPI server that provides REST endpoints for the asset relationship graph
 2. **Frontend** (`/frontend`): Next.js application with React components for visualization
 
+## Backend Production Contract
+
+The backend production entrypoint is:
+
+```text
+api.main:app
+```
+
+`api/main.py` is intentionally a thin public entrypoint and compatibility surface. FastAPI application
+construction, lifespan startup, middleware, and router registration live in `api/app_factory.py`.
+
+Use this production-style run command on hosts that provide a `PORT` environment variable:
+
+```bash
+python -m uvicorn api.main:app --host 0.0.0.0 --port "${PORT:-8000}"
+```
+
+For local production-like testing, the command defaults to port `8000` when `PORT` is not set.
+
+Minimum backend environment required before importing `api.main`:
+
+- `DATABASE_URL` — SQLite URI used by `api/database.py`; local/dev file example: `sqlite:dev.db`
+- `SECRET_KEY` — JWT signing key used by `api/auth.py`
+- Existing user credentials in the configured database, or bootstrap credentials:
+  - `ADMIN_USERNAME`
+  - `ADMIN_PASSWORD`
+  - Optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
+
+Optional backend runtime settings:
+
+- `ENV` — environment mode; defaults to `development`
+- `ALLOWED_ORIGINS` — comma-separated CORS allowlist; read from the environment by the settings layer
+- `GRAPH_CACHE_PATH` — graph cache path
+- `REAL_DATA_CACHE_PATH` — real-data cache path
+- `USE_REAL_DATA_FETCHER` — truthy value enables real-data fetcher mode
+- `ASSET_GRAPH_DATABASE_URL` — graph persistence URL when used by graph repository flows; this does not replace the API auth/database `DATABASE_URL` requirement
+
+The current API database layer expects a SQLite URI for `DATABASE_URL`. Local SQLite files such as
+`sqlite:dev.db` are suitable for local/dev runs, but do not use local SQLite file storage for durable production
+persistence on Vercel/serverless filesystems. Durable production persistence requires a separate storage decision
+after the API database layer explicitly supports it.
+
 ## Local Development
 
 ### Prerequisites
@@ -38,8 +80,14 @@ The production application consists of two main components:
 
 3. **Run the FastAPI backend:**
 
+   The following commands use Linux/macOS shell syntax. On Windows PowerShell, set the same variables with `$env:NAME="value"` before running the `python -m uvicorn ...` command.
+
    ```bash
-   python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+   export DATABASE_URL="sqlite:dev.db"
+   export SECRET_KEY="replace-me-for-local-dev"
+   export ADMIN_USERNAME="admin"
+   export ADMIN_PASSWORD="replace-me-for-local-dev"
+   python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
    ```
 
    The API will be available at `http://localhost:8000`
@@ -225,15 +273,9 @@ NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app
 
 ### CORS Issues
 
-If you encounter CORS errors, ensure the FastAPI backend has the correct origins configured in `api/main.py`:
-
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://*.vercel.app"],
-    ...
-)
-```
+If you encounter CORS errors, configure `ALLOWED_ORIGINS` for explicit production origins. CORS settings
+are loaded through `src/config/settings.py` and applied by `api/cors_policy.py`; do not edit
+`api/main.py` middleware directly.
 
 ### API Connection Errors
 

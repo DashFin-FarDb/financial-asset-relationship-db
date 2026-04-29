@@ -84,6 +84,18 @@ In the Vercel dashboard, add:
 - [ ] `NEXT_PUBLIC_API_URL` = `https://your-project.vercel.app`
   - Note: Use your actual Vercel deployment URL
   - This will be available after first deployment
+- [ ] `DATABASE_URL` = SQLite URI required by the current API database layer
+  - Local/dev example for the current API resolver: `sqlite:dev.db`
+  - Vercel/serverless demo-only examples must use ephemeral storage such as `sqlite:///:memory:` or an explicit `/tmp` SQLite path, and must not be treated as durable production persistence.
+  - Do not use local SQLite file storage for durable production persistence on Vercel/serverless environments.
+  - For durable production deployment, use a persistent external storage strategy only after the API database layer explicitly supports it.
+- [ ] `SECRET_KEY` = a long random JWT signing secret
+- [ ] Seed credentials via an existing database user, or set:
+  - [ ] `ADMIN_USERNAME`
+  - [ ] `ADMIN_PASSWORD`
+  - [ ] Optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
+- [ ] Optional: `ASSET_GRAPH_DATABASE_URL` if using graph repository persistence flows; this does not replace the API auth/database `DATABASE_URL` requirement.
+- [ ] Optional backend settings as needed: `ENV`, `ALLOWED_ORIGINS`, `GRAPH_CACHE_PATH`, `REAL_DATA_CACHE_PATH`, `USE_REAL_DATA_FETCHER`
 
 #### Step 5: Deploy
 
@@ -133,6 +145,14 @@ vercel
 # Set production environment variable
 vercel env add NEXT_PUBLIC_API_URL production
 # Enter: https://your-project.vercel.app
+
+# Minimum backend runtime variables
+vercel env add DATABASE_URL production
+vercel env add SECRET_KEY production
+
+# Bootstrap credentials, only if the configured database does not already contain a usable user
+vercel env add ADMIN_USERNAME production
+vercel env add ADMIN_PASSWORD production
 ```
 
 #### Step 5: Deploy to Production
@@ -202,20 +222,9 @@ vercel --prod
 **Error**: CORS policy errors in browser
 **Solution**:
 
-- [ ] Check CORS configuration in `api/main.py`
-- [ ] Add Vercel domain to allowed origins
+- [ ] Check `ALLOWED_ORIGINS` in the deployment environment
+- [ ] Add Vercel domain to `ALLOWED_ORIGINS`
 - [ ] Verify `NEXT_PUBLIC_API_URL` is set correctly
-
-```python
-# In api/main.py
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://*.vercel.app", "https://your-domain.com"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-```
 
 #### Issue 4: Environment Variables Not Working
 
