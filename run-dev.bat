@@ -6,11 +6,11 @@ echo.
 
 REM Check required environment variables
 echo 🔍 Checking required environment variables...
-set missing_vars=
-if "%DATABASE_URL%"=="" set missing_vars=%missing_vars% DATABASE_URL
-if "%SECRET_KEY%"=="" set missing_vars=%missing_vars% SECRET_KEY
-if "%ADMIN_USERNAME%"=="" set missing_vars=%missing_vars% ADMIN_USERNAME
-if "%ADMIN_PASSWORD%"=="" set missing_vars=%missing_vars% ADMIN_PASSWORD
+set "missing_vars="
+if "%DATABASE_URL%"=="" set "missing_vars=%missing_vars% DATABASE_URL"
+if "%SECRET_KEY%"=="" set "missing_vars=%missing_vars% SECRET_KEY"
+if "%ADMIN_USERNAME%"=="" set "missing_vars=%missing_vars% ADMIN_USERNAME"
+if "%ADMIN_PASSWORD%"=="" set "missing_vars=%missing_vars% ADMIN_PASSWORD"
 
 if not "%missing_vars%"=="" (
     echo.
