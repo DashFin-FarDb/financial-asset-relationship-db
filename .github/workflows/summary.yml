@@ -33,7 +33,7 @@ jobs:
           # Sanitize body: remove special characters and limit length.
           # Use a generated delimiter for multiline output to avoid delimiter collisions.
           SANITIZED_BODY=$(printf '%s' "$ISSUE_BODY" | sed 's/[^a-zA-Z0-9 .,?!\n-]//g' | head -c 1000)
-          BODY_DELIMITER="SANITIZED_ISSUE_BODY_$(uuidgen)"
+          BODY_DELIMITER="SANITIZED_ISSUE_BODY_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}_${RANDOM}"
           {
             printf 'body<<%s\n' "$BODY_DELIMITER"
             printf '%s\n' "$SANITIZED_BODY"
