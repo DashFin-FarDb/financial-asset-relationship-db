@@ -639,15 +639,9 @@ class TestAPIEndpoints:
                 "size",
             ):
                 assert key in node
-            assert isinstance(node["x"], Number), (
-                f"Node {node['id']} x coordinate is not numeric"
-            )
-            assert isinstance(node["y"], Number), (
-                f"Node {node['id']} y coordinate is not numeric"
-            )
-            assert isinstance(node["z"], Number), (
-                f"Node {node['id']} z coordinate is not numeric"
-            )
+            assert isinstance(node["x"], Number), f"Node {node['id']} x coordinate is not numeric"
+            assert isinstance(node["y"], Number), f"Node {node['id']} y coordinate is not numeric"
+            assert isinstance(node["z"], Number), f"Node {node['id']} z coordinate is not numeric"
 
         if viz_data["edges"]:
             edge = viz_data["edges"][0]
