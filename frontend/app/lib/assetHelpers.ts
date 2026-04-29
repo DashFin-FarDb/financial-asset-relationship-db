@@ -1,55 +1,6 @@
 import { api } from "./api";
 import type { Asset } from "../types/api";
 
-interface PaginatedAssetsResponse {
-  items: Asset[];
-  total: number;
-  page: number;
-  per_page: number;
-}
-
-/**
- * Type guard to check if a value is a non-null object record.
- *
- * @param value - The value to test.
- * @returns `true` if `value` is a non-null object, `false` otherwise.
- */
-const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
-/**
- * Check whether an object has a property with a numeric value.
- *
- * @param obj - The object to inspect.
- * @param key - The property name to look up.
- * @returns `true` if `obj[key]` is of type `"number"`, `false` otherwise.
- */
-const hasNumberProperty = (
-  obj: Record<string, unknown>,
-  key: string,
-): boolean => typeof obj[key] === "number";
-
-/**
- * Type guard to check if a value is a PaginatedAssetsResponse.
- *
- * @param value - The value to check.
- * @returns True if the value conforms to PaginatedAssetsResponse, otherwise false.
- */
-const isPaginatedResponse = (
-  value: unknown,
-): value is PaginatedAssetsResponse => {
-  if (!isObjectRecord(value)) {
-    return false;
-  }
-
-  return (
-    Array.isArray(value.items) &&
-    hasNumberProperty(value, "total") &&
-    hasNumberProperty(value, "page") &&
-    hasNumberProperty(value, "per_page")
-  );
-};
-
 /**
  * Parses a string into a positive integer or returns a fallback if parsing fails or result is non-positive.
  *
@@ -171,13 +122,8 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
       return;
     }
 
-    if (isPaginatedResponse(data)) {
-      setAssets(data.items);
-      setTotal(data.total);
-    } else {
-      setAssets(data);
-      setTotal(Array.isArray(data) ? data.length : null);
-    }
+    setAssets(data.items);
+    setTotal(data.total);
   } catch (error) {
     // Ignore aborted/canceled requests
     if (
