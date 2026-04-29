@@ -489,9 +489,10 @@ class TestAPIEndpoints:
 
         assert response.status_code == 200
         result = response.json()
-        # BOUNDARY: Endpoint must use calculate_metrics(), not direct graph access
-        assert result["total_assets"] == 9  # NOT 999
-        assert result["total_relationships"] == 12  # NOT 999
+
+        # BOUNDARY: Endpoint must return the graph-owned metrics contract exactly.
+        # The intentionally inconsistent graph.assets / graph.relationships above
+        # ensures this would fail if the endpoint recomputed from graph state directly.
         assert result == graph.calculate_metrics.return_value
         graph.calculate_metrics.assert_called_once_with()
 
@@ -667,9 +668,9 @@ class TestAPIEndpoints:
         assert all(set(edge.keys()) == edge_keys for edge in viz_data["edges"])
         # BOUNDARY: All node coordinates must be numeric (floats or ints)
         for node in viz_data["nodes"]:
-            assert isinstance(node["x"], Number), f"Node {node['id']} x coordinate is not numeric"
-            assert isinstance(node["y"], Number), f"Node {node['id']} y coordinate is not numeric"
-            assert isinstance(node["z"], Number), f"Node {node['id']} z coordinate is not numeric"
+            assert isinstance(node["x"], (int, float)), f"Node {node.get('id', '<unknown>')} x coordinate is not numeric"
+            assert isinstance(node["y"], (int, float)), f"Node {node.get('id', '<unknown>')} y coordinate is not numeric"
+            assert isinstance(node["z"], (int, float)), f"Node {node.get('id', '<unknown>')} z coordinate is not numeric"
         # BOUNDARY: All edge strengths must be in valid range [0, 1]
         for edge in viz_data["edges"]:
             assert 0 <= edge["strength"] <= 1, f"Edge {edge['source']}->{edge['target']} strength out of bounds"
