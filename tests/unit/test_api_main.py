@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Iterator
+from numbers import Number
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
@@ -381,6 +382,7 @@ class TestAPIEndpoints:
 
         assert len(first_page) == 2
         assert len(second_page) == 2
+        # BOUNDARY: total must be invariant across pages (pagination does not change total count)
         assert first_payload["total"] == second_payload["total"]
         assert first_payload["total"] >= len(first_page) + len(second_page)
         assert {asset["id"] for asset in first_page}.isdisjoint({asset["id"] for asset in second_page})
@@ -393,11 +395,20 @@ class TestAPIEndpoints:
 
     def test_get_assets_out_of_range_page_returns_empty_items(self, client: TestClient) -> None:
         """Assets endpoint returns an empty page for out-of-range page requests."""
+        # First get baseline total from page 1
+        baseline_response = client.get("/api/assets?page=1&per_page=50")
+        assert baseline_response.status_code == 200
+        baseline_total = baseline_response.json()["total"]
+
+        # Out-of-range page should return empty items but preserve total
         response = client.get("/api/assets?page=999999&per_page=50")
         assert response.status_code == 200
         payload = response.json()
         assets = _assert_asset_page(payload, page=999999, per_page=50)
+        # BOUNDARY: out-of-range page returns empty items
         assert assets == []
+        # BOUNDARY: but total is preserved (reflects full dataset, not page slice)
+        assert payload["total"] == baseline_total
         assert payload["total"] >= 0
 
     def test_get_assets_filter_by_class(self, client):
@@ -457,23 +468,32 @@ class TestAPIEndpoints:
             "network_density": 0.42,
             "relationship_density": 42.0,
         }
+        # BOUNDARY: Make graph state intentionally inconsistent to verify endpoint
+        # cannot accidentally read graph.assets/relationships directly instead of
+        # calling calculate_metrics(). If endpoint reads len(graph.assets), test fails.
         graph.assets = {
-            "IGNORED": Equity(
-                id="IGNORED",
-                symbol="IGN",
-                name="Should Not Be Counted",
+            f"IGNORED_{i}": Equity(
+                id=f"IGNORED_{i}",
+                symbol=f"IGN{i}",
+                name=f"Should Not Be Counted {i}",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
                 price=1.0,
             )
+            for i in range(999)  # Intentionally != 9
         }
-        graph.relationships = {"IGNORED": [("ALSO_IGNORED", "same_sector", 0.7)]}
+        graph.relationships = {f"IGNORED_{i}": [(f"ALSO_IGNORED_{i}", "same_sector", 0.7)] for i in range(999)}
 
         with patch("api.routers.metrics.get_graph", return_value=graph):
             response = bare_client.get("/api/metrics")
 
         assert response.status_code == 200
-        assert response.json() == graph.calculate_metrics.return_value
+        result = response.json()
+
+        # BOUNDARY: Endpoint must return the graph-owned metrics contract exactly.
+        # The intentionally inconsistent graph.assets / graph.relationships above
+        # ensures this would fail if the endpoint recomputed from graph state directly.
+        assert result == graph.calculate_metrics.return_value
         graph.calculate_metrics.assert_called_once_with()
 
     def test_get_metrics_no_assets(self, bare_client: TestClient) -> None:
@@ -620,9 +640,9 @@ class TestAPIEndpoints:
                 "size",
             ):
                 assert key in node
-            assert isinstance(node["x"], (int, float))
-            assert isinstance(node["y"], (int, float))
-            assert isinstance(node["z"], (int, float))
+            assert isinstance(node["x"], Number), f"Node {node.get('id', '<unknown>')} x coordinate is not numeric"
+            assert isinstance(node["y"], Number), f"Node {node.get('id', '<unknown>')} y coordinate is not numeric"
+            assert isinstance(node["z"], Number), f"Node {node.get('id', '<unknown>')} z coordinate is not numeric"
 
         if viz_data["edges"]:
             edge = viz_data["edges"][0]
@@ -642,8 +662,18 @@ class TestAPIEndpoints:
         assert "edges" in viz_data
         assert len(viz_data["nodes"]) > 0
         assert len(viz_data["edges"]) > 0
+        # BOUNDARY: All nodes must have exact key set
         assert all(set(node.keys()) == node_keys for node in viz_data["nodes"])
+        # BOUNDARY: All edges must have exact key set
         assert all(set(edge.keys()) == edge_keys for edge in viz_data["edges"])
+        # BOUNDARY: All node coordinates must be numeric (floats or ints)
+        for node in viz_data["nodes"]:
+            assert isinstance(node["x"], Number), f"Node {node.get('id', '<unknown>')} x coordinate is not numeric"
+            assert isinstance(node["y"], Number), f"Node {node.get('id', '<unknown>')} y coordinate is not numeric"
+            assert isinstance(node["z"], Number), f"Node {node.get('id', '<unknown>')} z coordinate is not numeric"
+        # BOUNDARY: All edge strengths must be in valid range [0, 1]
+        for edge in viz_data["edges"]:
+            assert 0 <= edge["strength"] <= 1, f"Edge {edge['source']}->{edge['target']} strength out of bounds"
 
     def test_get_asset_classes(self, client: TestClient) -> None:
         """Asset classes endpoint returns all AssetClass enum values."""
@@ -795,9 +825,9 @@ class TestVisualizationDataProcessing:
         viz_data = response.json()
 
         for node in viz_data["nodes"]:
-            assert isinstance(node["x"], (int, float))
-            assert isinstance(node["y"], (int, float))
-            assert isinstance(node["z"], (int, float))
+            assert isinstance(node["x"], Number), f"Node {node.get('id', '<unknown>')} x coordinate is not numeric"
+            assert isinstance(node["y"], Number), f"Node {node.get('id', '<unknown>')} y coordinate is not numeric"
+            assert isinstance(node["z"], Number), f"Node {node.get('id', '<unknown>')} z coordinate is not numeric"
 
     def test_visualization_node_defaults(self, client: TestClient) -> None:
         """Visualization nodes include default color/size fields with expected types."""
