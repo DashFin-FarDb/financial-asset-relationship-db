@@ -639,9 +639,16 @@ class TestAPIEndpoints:
                 "size",
             ):
                 assert key in node
-            assert isinstance(node["x"], Number), f"Node {node['id']} x coordinate is not numeric"
-            assert isinstance(node["y"], Number), f"Node {node['id']} y coordinate is not numeric"
-            assert isinstance(node["z"], Number), f"Node {node['id']} z coordinate is not numeric"
+            for node in viz_data["nodes"]:
+            assert isinstance(node["x"], Number), (
+                f"Node {node['id']} x coordinate is not numeric"
+            )
+            assert isinstance(node["y"], Number), (
+                f"Node {node['id']} y coordinate is not numeric"
+            )
+            assert isinstance(node["z"], Number), (
+                f"Node {node['id']} z coordinate is not numeric"
+            )
 
         if viz_data["edges"]:
             edge = viz_data["edges"][0]
@@ -667,9 +674,15 @@ class TestAPIEndpoints:
         assert all(set(edge.keys()) == edge_keys for edge in viz_data["edges"])
         # BOUNDARY: All node coordinates must be numeric (floats or ints)
         for node in viz_data["nodes"]:
-            assert isinstance(node["x"], (int, float)), f"Node {node['id']} x coordinate is not numeric"
-            assert isinstance(node["y"], (int, float)), f"Node {node['id']} y coordinate is not numeric"
-            assert isinstance(node["z"], (int, float)), f"Node {node['id']} z coordinate is not numeric"
+        assert isinstance(node["x"], Number), (
+            f"Node {node['id']} x coordinate is not numeric"
+        )
+        assert isinstance(node["y"], Number), (
+            f"Node {node['id']} y coordinate is not numeric"
+        )
+        assert isinstance(node["z"], Number), (
+            f"Node {node['id']} z coordinate is not numeric"
+        )
         # BOUNDARY: All edge strengths must be in valid range [0, 1]
         for edge in viz_data["edges"]:
             assert 0 <= edge["strength"] <= 1, f"Edge {edge['source']}->{edge['target']} strength out of bounds"
@@ -824,9 +837,15 @@ class TestVisualizationDataProcessing:
         viz_data = response.json()
 
         for node in viz_data["nodes"]:
-            assert isinstance(node["x"], (int, float))
-            assert isinstance(node["y"], (int, float))
-            assert isinstance(node["z"], (int, float))
+        assert isinstance(node["x"], Number), (
+            f"Node {node['id']} x coordinate is not numeric"
+        )
+        assert isinstance(node["y"], Number), (
+            f"Node {node['id']} y coordinate is not numeric"
+        )
+        assert isinstance(node["z"], Number), (
+            f"Node {node['id']} z coordinate is not numeric"
+        )
 
     def test_visualization_node_defaults(self, client: TestClient) -> None:
         """Visualization nodes include default color/size fields with expected types."""
