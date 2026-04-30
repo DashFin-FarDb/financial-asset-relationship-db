@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 import pytest
 
 pytestmark = pytest.mark.unit
@@ -121,11 +120,10 @@ class TestPostgreSQLConnection:
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     def test_create_postgres_connection_without_psycopg2_raises_import_error(self):
         """Test that missing psycopg2 raises ImportError with helpful message."""
-        import importlib
-        import sys
-
         # Import builtins to use __import__
         import builtins
+        import importlib
+        import sys
 
         # Save original __import__
         original_import = builtins.__import__

@@ -282,8 +282,7 @@ def _create_postgres_connection():
         import psycopg2.extras  # type: ignore[import-untyped]
     except ImportError as exc:
         raise ImportError(
-            "psycopg2-binary is required for PostgreSQL support. "
-            "Install it with: pip install psycopg2-binary"
+            "psycopg2-binary is required for PostgreSQL support. " "Install it with: pip install psycopg2-binary"
         ) from exc
 
     conn = psycopg2.connect(DATABASE_URL)
