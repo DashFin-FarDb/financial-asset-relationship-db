@@ -72,13 +72,13 @@ class TestURLDetection:
 
     def test_is_postgres_url_with_postgresql_scheme(self):
         """Test that postgresql:// URLs are detected as PostgreSQL."""
-        assert database._is_postgres_url("postgresql://user:pass@localhost/db") is True
+        assert database._is_postgres_url("postgresql://fardb_user:example_value@localhost/fardb") is True
         assert database._is_postgres_url("postgresql://localhost/db") is True
         assert database._is_postgres_url("PostgreSQL://localhost/db") is True  # case insensitive
 
     def test_is_postgres_url_with_postgres_scheme(self):
         """Test that postgres:// URLs are detected as PostgreSQL."""
-        assert database._is_postgres_url("postgres://user:pass@localhost/db") is True
+        assert database._is_postgres_url("postgres://fardb_user:example_value@localhost/fardb") is True
         assert database._is_postgres_url("postgres://localhost/db") is True
         assert database._is_postgres_url("POSTGRES://localhost/db") is True  # case insensitive
 
@@ -152,7 +152,6 @@ class TestPostgreSQLConnection:
         """Test that missing psycopg2 raises ImportError with helpful message."""
         # Import builtins to use __import__
         import builtins
-        import sys
 
         # Save original __import__
         original_import = builtins.__import__

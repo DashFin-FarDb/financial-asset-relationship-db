@@ -282,8 +282,7 @@ def _create_postgres_connection():
         import psycopg2.extras  # type: ignore[import-untyped]
     except ImportError as exc:
         raise ImportError(
-            "psycopg2-binary is required for PostgreSQL support. "
-            "Install it with: pip install psycopg2-binary"
+            "psycopg2-binary is required for PostgreSQL support. " "Install it with: pip install psycopg2-binary"
         ) from exc
 
     conn = psycopg2.connect(DATABASE_URL)
@@ -577,7 +576,8 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
             pg_query = _convert_internal_qmark_placeholders_for_postgres(query)
             # Security: Query strings are internal/static from this module and api/auth.py.
             # User values are ALWAYS passed via the 'parameters' tuple, never embedded in query.
-            # _convert_internal_qmark_placeholders_for_postgres only changes placeholder tokens (? to %s), not parameter values.
+            # _convert_internal_qmark_placeholders_for_postgres only changes placeholder tokens
+            # (? to %s), not parameter values.
             # This follows DB-API 2.0 parameterized query pattern to prevent SQL injection.
             with connection.cursor() as cursor:
                 cursor.execute(pg_query, parameters or ())
@@ -610,7 +610,8 @@ def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
             pg_query = _convert_internal_qmark_placeholders_for_postgres(query)
             # Security: Query strings are internal/static from this module and api/auth.py.
             # User values are ALWAYS passed via the 'parameters' tuple, never embedded in query.
-            # _convert_internal_qmark_placeholders_for_postgres only changes placeholder tokens (? to %s), not parameter values.
+            # _convert_internal_qmark_placeholders_for_postgres only changes placeholder tokens
+            # (? to %s), not parameter values.
             # This follows DB-API 2.0 parameterized query pattern to prevent SQL injection.
             with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 cursor.execute(pg_query, parameters or ())
