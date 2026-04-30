@@ -29,7 +29,6 @@ from fastapi.testclient import TestClient
 import api.main as api_main
 from api.api_models import (
     AssetPageResponse,
-    AssetResponse,
     MetricsResponse,
     RelationshipResponse,
     VisualizationDataResponse,
