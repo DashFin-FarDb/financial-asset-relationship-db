@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
+import importlib
+import os
+from collections.abc import Iterator
+from unittest.mock import Mock, patch
+
 import pytest
+
+import api.database as database
 
 pytestmark = pytest.mark.unit
 
@@ -15,6 +22,41 @@ def clear_settings_cache():
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
+
+
+@pytest.fixture()
+def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """
+    Preserve the api.database module state and DATABASE_URL for test duration.
+
+    This fixture prevents test order dependencies by restoring module-level globals
+    (DATABASE_TYPE, DATABASE_URL, DATABASE_PATH) after tests that reload the module
+    with different database configurations.
+
+    Yields control to the test. On teardown, closes any in-memory connection stored
+    in api.database._MEMORY_CONNECTION, restores the original DATABASE_URL environment
+    variable, clears the settings cache, and reloads api.database to reset its state.
+    """
+    from src.config.settings import get_settings
+
+    original_url = os.environ.get("DATABASE_URL")
+    get_settings.cache_clear()
+
+    yield
+
+    # Close any in-memory connection that may have been created during the test
+    memory_conn = getattr(database, "_MEMORY_CONNECTION", None)
+    if memory_conn is not None:
+        memory_conn.close()
+        database._MEMORY_CONNECTION = None
+
+    if original_url is None:
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+    else:
+        monkeypatch.setenv("DATABASE_URL", original_url)
+
+    get_settings.cache_clear()
+    importlib.reload(database)
 
 
 class TestURLDetection:
@@ -63,7 +105,7 @@ class TestDatabaseTypeDetection:
     """Test database type detection at module load."""
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
-    def test_postgresql_url_sets_type_to_postgresql(self):
+    def test_postgresql_url_sets_type_to_postgresql(self, restore_database_module):
         """Test that PostgreSQL URL sets DATABASE_TYPE to 'postgresql'."""
         import importlib
 
@@ -74,7 +116,7 @@ class TestDatabaseTypeDetection:
         assert db_module.DATABASE_PATH == "postgresql://localhost/test"
 
     @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///test.db"})
-    def test_sqlite_url_sets_type_to_sqlite(self):
+    def test_sqlite_url_sets_type_to_sqlite(self, restore_database_module):
         """Test that SQLite URL sets DATABASE_TYPE to 'sqlite'."""
         import importlib
 
@@ -86,7 +128,7 @@ class TestDatabaseTypeDetection:
         assert "test.db" in db_module.DATABASE_PATH
 
     @patch.dict("os.environ", {"DATABASE_URL": "mysql://localhost/test"})
-    def test_unsupported_url_raises_error(self):
+    def test_unsupported_url_raises_error(self, restore_database_module):
         """Test that unsupported database URLs raise a ValueError."""
         import importlib
 
@@ -101,7 +143,7 @@ class TestPostgreSQLConnection:
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.connect")
-    def test_create_postgres_connection_imports_psycopg2(self, mock_connect):
+    def test_create_postgres_connection_imports_psycopg2(self, mock_connect, restore_database_module):
         """Test that _create_postgres_connection imports and uses psycopg2."""
         import importlib
 
@@ -118,7 +160,7 @@ class TestPostgreSQLConnection:
         assert conn == mock_conn
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
-    def test_create_postgres_connection_without_psycopg2_raises_import_error(self):
+    def test_create_postgres_connection_without_psycopg2_raises_import_error(self, restore_database_module):
         """Test that missing psycopg2 raises ImportError with helpful message."""
         # Import builtins to use __import__
         import builtins
@@ -148,7 +190,7 @@ class TestGetConnectionPostgreSQL:
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.connect")
-    def test_get_connection_creates_and_closes_postgres_connection(self, mock_connect):
+    def test_get_connection_creates_and_closes_postgres_connection(self, mock_connect, restore_database_module):
         """Test that get_connection creates a new PostgreSQL connection and closes it."""
         import importlib
 
@@ -166,7 +208,7 @@ class TestGetConnectionPostgreSQL:
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.connect")
-    def test_get_connection_closes_on_exception(self, mock_connect):
+    def test_get_connection_closes_on_exception(self, mock_connect, restore_database_module):
         """Test that connection is closed even when an exception occurs."""
         import importlib
 
@@ -189,7 +231,7 @@ class TestExecutePostgreSQL:
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.connect")
-    def test_execute_uses_cursor_for_postgres(self, mock_connect):
+    def test_execute_uses_cursor_for_postgres(self, mock_connect, restore_database_module):
         """Test that execute() uses cursor.execute for PostgreSQL."""
         import importlib
 
@@ -215,7 +257,7 @@ class TestFetchOnePostgreSQL:
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.extras.RealDictCursor")
     @patch("psycopg2.connect")
-    def test_fetch_one_uses_realdict_cursor(self, mock_connect, mock_realdict_cursor):
+    def test_fetch_one_uses_realdict_cursor(self, mock_connect, mock_realdict_cursor, restore_database_module):
         """Test that fetch_one() uses RealDictCursor for PostgreSQL."""
         import importlib
 
@@ -248,7 +290,7 @@ class TestFetchValuePostgreSQL:
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.extras.RealDictCursor")
     @patch("psycopg2.connect")
-    def test_fetch_value_extracts_first_value_from_dict(self, mock_connect, mock_realdict_cursor):
+    def test_fetch_value_extracts_first_value_from_dict(self, mock_connect, mock_realdict_cursor, restore_database_module):
         """Test that fetch_value() extracts first value from PostgreSQL dict row."""
         import importlib
 
@@ -273,7 +315,7 @@ class TestInitializeSchemaPostgreSQL:
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.connect")
-    def test_initialize_schema_uses_postgres_ddl(self, mock_connect):
+    def test_initialize_schema_uses_postgres_ddl(self, mock_connect, restore_database_module):
         """Test that initialize_schema() uses PostgreSQL-compatible DDL."""
         import importlib
 
@@ -300,7 +342,7 @@ class TestSQLiteCompatibility:
     """Test that SQLite behavior remains unchanged."""
 
     @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
-    def test_sqlite_url_still_works(self):
+    def test_sqlite_url_still_works(self, restore_database_module):
         """Test that SQLite URLs still work after PostgreSQL changes."""
         import importlib
 
@@ -312,7 +354,7 @@ class TestSQLiteCompatibility:
         assert db_module.DATABASE_PATH == ":memory:"
 
     @patch.dict("os.environ", {"DATABASE_URL": "sqlite:///:memory:"})
-    def test_sqlite_schema_initialization_unchanged(self):
+    def test_sqlite_schema_initialization_unchanged(self, restore_database_module):
         """Test that SQLite schema initialization uses INTEGER AUTOINCREMENT."""
         import importlib
 
@@ -392,7 +434,7 @@ class TestPlaceholderConversion:
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.connect")
-    def test_execute_converts_placeholders_for_postgres(self, mock_connect):
+    def test_execute_converts_placeholders_for_postgres(self, mock_connect, restore_database_module):
         """Test that execute() converts ? to %s when using PostgreSQL."""
         import importlib
 
@@ -417,7 +459,7 @@ class TestPlaceholderConversion:
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.extras.RealDictCursor")
     @patch("psycopg2.connect")
-    def test_fetch_one_converts_placeholders_for_postgres(self, mock_connect, mock_realdict_cursor):
+    def test_fetch_one_converts_placeholders_for_postgres(self, mock_connect, mock_realdict_cursor, restore_database_module):
         """Test that fetch_one() converts ? to %s when using PostgreSQL."""
         import importlib
 
