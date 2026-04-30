@@ -273,3 +273,38 @@ CircleCI (`.circleci/config.yml`) runs:
 
 - Python: flake8 (critical errors), pytest with coverage, safety + bandit
 - Frontend: `npm run lint`, `npm run build`
+
+## Cursor Cloud specific instructions
+
+### Services overview
+
+| Service | Port | How to start |
+|---------|------|-------------|
+| FastAPI backend | 8000 | See "Run the FastAPI backend" above |
+| Next.js frontend | 3000 | `cd frontend && npm run dev` |
+
+### Environment variables required before starting FastAPI
+
+The backend will fail to import without these env vars set:
+
+```sh
+export DATABASE_URL="sqlite:///./dev.db"
+export SECRET_KEY="dev-secret-key-for-local-testing-only"
+export ADMIN_USERNAME="admin"
+export ADMIN_PASSWORD="admin123"
+```
+
+`DATABASE_URL` must use the triple-slash SQLAlchemy format (`sqlite:///./dev.db`), not the shorthand `sqlite:dev.db` shown in `.env.example`. The SQLite file and admin user are auto-created on first startup.
+
+### Running tests
+
+- **Python:** `pytest` from repo root (venv must be active). Expect ~7100+ passing tests; 3 pre-existing failures in `test_schema_report_cli_integration.py` and `test_workflow_validator.py` are known.
+- **Frontend:** `cd frontend && npm test` runs Jest. ~480/545 pass; some pre-existing test failures in component tests.
+- **Frontend lint:** `cd frontend && npm run lint` (passes clean).
+- **Python lint:** `flake8 src/ tests/` and `mypy src/ --ignore-missing-imports`. Pre-existing mypy errors exist (25 errors in 9 files).
+
+### Gotchas
+
+- Node.js is not pre-installed on the base VM image. The update script installs `npm ci` for frontend deps, but Node.js itself must be installed separately (e.g., via `nodesource` setup_20.x) if the VM snapshot doesn't include it.
+- The frontend defaults `NEXT_PUBLIC_API_URL` to `http://localhost:8000` in code, so no frontend `.env` file is needed for local dev.
+- Python tests (`pytest`) do not require the env vars above; tests mock the database layer.
