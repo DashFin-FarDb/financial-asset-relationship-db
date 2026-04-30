@@ -4,6 +4,8 @@
 
 This guide explains how to deploy the Financial Asset Relationship Database using the production-recommended FastAPI + Next.js stack on Vercel or other cloud platforms.
 
+**For the hosted deployment and durable persistence decision, see [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).**
+
 **Note:** The Gradio UI (`app.py`) is available for demos, and internal testing, but is **not recommended for production deployment**. This guide focuses on the production architecture.
 
 ## Architecture Overview
@@ -51,9 +53,18 @@ Optional backend runtime settings:
 - `ASSET_GRAPH_DATABASE_URL` — graph persistence URL when used by graph repository flows; this does not replace the API auth/database `DATABASE_URL` requirement
 
 The current API database layer expects a SQLite URI for `DATABASE_URL`. Local SQLite files such as
-`sqlite:dev.db` are suitable for local/dev runs, but do not use local SQLite file storage for durable production
-persistence on Vercel/serverless filesystems. Durable production persistence requires a separate storage decision
-after the API database layer explicitly supports it.
+`sqlite:dev.db` are suitable for local/dev runs, but **SQLite is not durable on Vercel/serverless filesystems**
+because serverless environments have ephemeral file storage.
+
+**For production hosted deployment**, PostgreSQL is the selected durable persistence target, but implementation
+is pending. See [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md)
+for the full decision and implementation roadmap.
+
+**Current limitation**: The database layer (`api/database.py`) currently only supports SQLite. Current hosted
+deployments using SQLite are demo/preview only and non-durable. PostgreSQL support is planned in Phase 1 of the
+deployment roadmap.
+
+**Hosted preview/demo before Phase 1**: Before Phase 1 PostgreSQL support, hosted preview/demo deployments must use ephemeral SQLite only, for example `sqlite:///:memory:` or a SQLite file under `/tmp`. These deployments are non-durable and must not be treated as production persistence. See [VERCEL_DEPLOYMENT_CHECKLIST.md](VERCEL_DEPLOYMENT_CHECKLIST.md) for deployment configuration.
 
 ## Local Development
 

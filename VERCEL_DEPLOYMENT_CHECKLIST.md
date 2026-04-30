@@ -2,6 +2,12 @@
 
 Use this checklist to ensure a smooth deployment to Vercel.
 
+**Important**: PostgreSQL is the selected durable persistence target, but implementation is pending.
+See [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).
+
+**Current Limitation**: The database layer currently only supports SQLite. Current hosted deployments using SQLite
+are demo/preview only and non-durable. For production use, wait for PostgreSQL support (Phase 1 of deployment roadmap).
+
 ## Pre-Deployment Checklist
 
 ### 1. Code Preparation
