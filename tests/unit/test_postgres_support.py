@@ -290,7 +290,9 @@ class TestFetchValuePostgreSQL:
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.extras.RealDictCursor")
     @patch("psycopg2.connect")
-    def test_fetch_value_extracts_first_value_from_dict(self, mock_connect, mock_realdict_cursor, restore_database_module):
+    def test_fetch_value_extracts_first_value_from_dict(
+        self, mock_connect, mock_realdict_cursor, restore_database_module
+    ):
         """Test that fetch_value() extracts first value from PostgreSQL dict row."""
         import importlib
 
@@ -459,7 +461,9 @@ class TestPlaceholderConversion:
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.extras.RealDictCursor")
     @patch("psycopg2.connect")
-    def test_fetch_one_converts_placeholders_for_postgres(self, mock_connect, mock_realdict_cursor, restore_database_module):
+    def test_fetch_one_converts_placeholders_for_postgres(
+        self, mock_connect, mock_realdict_cursor, restore_database_module
+    ):
         """Test that fetch_one() converts ? to %s when using PostgreSQL."""
         import importlib
 
