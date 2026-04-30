@@ -155,7 +155,9 @@ def test_postgres_connection_smoke() -> None:
 
     assert row is not None  # nosec B101
     assert len(row) == 3  # nosec B101
-    # Use _row_value helper to safely access row values (handles dict and tuple/list rows)
-    assert isinstance(_row_value(row, index=0), str) and _row_value(row, index=0)  # nosec B101
-    assert isinstance(_row_value(row, index=1), str) and _row_value(row, index=1)  # nosec B101
-    assert isinstance(_row_value(row, index=2), str) and _row_value(row, index=2)  # nosec B101
+    
+    database_name, database_user, postgres_version = row
+    
+    assert isinstance(database_name, str) and database_name  # nosec B101
+    assert isinstance(database_user, str) and database_user  # nosec B101
+    assert isinstance(postgres_version, str) and postgres_version  # nosec B101
