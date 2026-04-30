@@ -434,8 +434,6 @@ class TestConnectionPooling:
 
     def test_cleanup_function_is_registered(self):
         """Test that cleanup function is registered."""
-        import importlib
-
         with patch("atexit.register") as mock_register:
             import api.database as db_module
 
