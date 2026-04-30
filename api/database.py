@@ -17,9 +17,10 @@ handles two parameter placeholder styles:
 2. PostgreSQL: Uses '%s' placeholders (format style, per DB-API 2.0 standard via psycopg2)
    Example: "SELECT * FROM users WHERE id = %s"
 
-The module automatically converts '?' placeholders to '%s' when using PostgreSQL,
-allowing existing SQLite queries to work transparently. This conversion happens in
-_convert_placeholders() and is applied in execute() and fetch_one().
+For the limited set of internal queries used in this module and api/auth.py, the module
+converts '?' placeholders to '%s' when using PostgreSQL. This conversion is intentionally
+simple and only safe for the known internal SQL queries that do not contain literal ? or %
+characters in string literals. See _convert_placeholders() for limitations.
 
 IMPORTANT: psycopg2 uses %s for ALL types (not just strings). The %s is a placeholder
 that psycopg2 replaces with properly escaped values. It does NOT use $1, $2, etc.
@@ -32,6 +33,7 @@ These are FALSE POSITIVES because:
 1. All queries use parameterized binding (never string concatenation)
 2. User input is passed via the 'parameters' tuple, not embedded in query strings
 3. Both sqlite3 and psycopg2 properly escape parameters to prevent injection
+4. _convert_placeholders only changes placeholder tokens (? to %s), not parameter values
 
 Connection Pooling:
 ------------------
@@ -542,7 +544,17 @@ atexit.register(_cleanup_memory_connection)
 
 def _convert_placeholders(query: str, from_style: str = "qmark", to_style: str = "format") -> str:
     """
-    Convert SQL parameter placeholders between styles.
+    Convert SQL parameter placeholders between styles for simple internal queries.
+
+    This function performs simple string replacement and is ONLY safe for the limited
+    set of internal SQL queries used in this module (schema DDL and auth helpers).
+    It does NOT handle:
+    - Literal ? or %s characters inside SQL string literals
+    - Complex queries with mixed placeholder styles
+    - Already-converted placeholders
+
+    Current usage is limited to known-safe internal queries in api/auth.py that use
+    simple ? placeholders without string literals containing ? or %.
 
     Args:
         query: SQL query string with placeholders
@@ -552,9 +564,9 @@ def _convert_placeholders(query: str, from_style: str = "qmark", to_style: str =
     Returns:
         Query string with converted placeholders
 
-    Note:
-        This is a simple replacement and doesn't handle ? or %s in string literals.
-        For production use with complex queries, consider a proper SQL parser.
+    Warning:
+        Do not use this for arbitrary user-provided SQL or complex queries.
+        For general-purpose conversion, use a proper SQL parser.
     """
     if from_style == to_style:
         return query
@@ -584,9 +596,12 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
         if DATABASE_TYPE == "postgresql":
             # Convert SQLite ? placeholders to PostgreSQL %s
             pg_query = _convert_placeholders(query, from_style="qmark", to_style="format")
-            cursor = connection.cursor()
-            cursor.execute(pg_query, parameters or ())
-            cursor.close()
+            # Security: Query strings are internal/static from this module and api/auth.py.
+            # User values are ALWAYS passed via the 'parameters' tuple, never embedded in query.
+            # _convert_placeholders only changes placeholder tokens (? to %s), not parameter values.
+            # This follows DB-API 2.0 parameterized query pattern to prevent SQL injection.
+            with connection.cursor() as cursor:
+                cursor.execute(pg_query, parameters or ())
         else:
             connection.execute(query, parameters or ())
         connection.commit()
@@ -614,11 +629,13 @@ def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
 
             # Convert SQLite ? placeholders to PostgreSQL %s
             pg_query = _convert_placeholders(query, from_style="qmark", to_style="format")
-            cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            cursor.execute(pg_query, parameters or ())
-            row = cursor.fetchone()
-            cursor.close()
-            return row
+            # Security: Query strings are internal/static from this module and api/auth.py.
+            # User values are ALWAYS passed via the 'parameters' tuple, never embedded in query.
+            # _convert_placeholders only changes placeholder tokens (? to %s), not parameter values.
+            # This follows DB-API 2.0 parameterized query pattern to prevent SQL injection.
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+                cursor.execute(pg_query, parameters or ())
+                return cursor.fetchone()
         else:
             cursor = connection.execute(query, parameters or ())
             return cursor.fetchone()
