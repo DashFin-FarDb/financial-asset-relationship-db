@@ -273,3 +273,44 @@ CircleCI (`.circleci/config.yml`) runs:
 
 - Python: flake8 (critical errors), pytest with coverage, safety + bandit
 - Frontend: `npm run lint`, `npm run build`
+
+## Cursor Cloud specific instructions
+
+### Environment overview
+
+- **Python 3.12** via system python; venv at `/workspace/.venv`
+- **Node.js 20** installed via NodeSource apt repo
+- **npm** is the frontend package manager (lockfile: `frontend/package-lock.json`)
+- No Docker needed for local dev — SQLite is embedded
+
+### Starting services
+
+The FastAPI backend requires these env vars before startup: `DATABASE_URL`, `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`. A minimal dev `.env` example:
+
+```sh
+export DATABASE_URL=sqlite:///./dev.db
+export SECRET_KEY=dev-secret-key-for-local-development-only
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD=AdminPass123!
+export ENV=development
+```
+
+Then start services (see "Common commands" above for full details):
+
+```sh
+# Backend (port 8000)
+source .venv/bin/activate
+python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+
+# Frontend (port 3000, in a separate terminal)
+cd frontend && npm run dev
+```
+
+### Gotchas
+
+- The `python3-venv` system package must be installed for `python3 -m venv` to produce a working virtualenv (with pip/activate). The update script handles this.
+- The backend seeds the admin user on first startup when the DB is empty. If `dev.db` already exists with users, the `ADMIN_*` env vars are not re-applied.
+- `pytest` needs `DATABASE_URL`, `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` set in the environment (use in-memory SQLite `sqlite:///./test.db` for tests).
+- 4 pre-existing test failures exist on `main` (as of this writing): 2 in `test_schema_report_cli_integration.py`, 1 in `test_database.py`, 1 in `test_workflow_validator.py`.
+- Frontend has ~65 pre-existing Jest test failures (480 of 545 pass). These are in the existing codebase, not caused by environment setup.
+- The `DATABASE_URL` format the backend expects is `sqlite:///./dev.db` (3 slashes + relative path), not `sqlite:dev.db` as shown in `.env.example`.
