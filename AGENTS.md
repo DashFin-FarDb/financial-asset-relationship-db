@@ -309,7 +309,7 @@ cd frontend && npm run dev
 ### Gotchas
 
 - The `python3-venv` system package must be installed for `python3 -m venv` to produce a working virtualenv (with pip/activate). The update script handles this.
-- The backend seeds the admin user on first startup when the DB is empty. If `dev.db` already exists with users, the `ADMIN_*` env vars are not re-applied.
+- The backend seeds or updates the admin user on startup if `ADMIN_USERNAME` and `ADMIN_PASSWORD` are provided. If the user already exists, their credentials and profile are updated to match the environment variables.
 - `pytest` needs `DATABASE_URL`, `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` set in the environment (use in-memory SQLite `sqlite:///./test.db` for tests).
 - 4 pre-existing test failures exist on `main` (as of this writing): 2 in `test_schema_report_cli_integration.py`, 1 in `test_database.py`, 1 in `test_workflow_validator.py`.
 - Frontend has ~65 pre-existing Jest test failures (480 of 545 pass). These are in the existing codebase, not caused by environment setup.
