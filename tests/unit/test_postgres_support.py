@@ -206,11 +206,9 @@ class TestGetConnectionPostgreSQL:
 
         mock_connect.return_value = mock_conn
 
-        with pytest.raises(RuntimeError):
-            with database.get_connection() as conn:
-                # Simulate a DB operation that fails
-                with conn.cursor() as cursor:
-                    cursor.execute("SELECT 1")
+        # Test through public API - database.execute() uses get_connection() internally
+        with pytest.raises(RuntimeError, match="Test error"):
+            database.execute("SELECT ?", ("value",))
 
         mock_conn.close.assert_called_once()
 
