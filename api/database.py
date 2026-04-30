@@ -78,14 +78,24 @@ def _is_sqlite_url(url: str) -> bool:
     return url.lower().strip().startswith("sqlite:")
 
 
-def _get_database_url() -> str | None:
+def _get_database_url() -> str:
     """
     Read the API database URL from centralized runtime settings.
 
+    DATABASE_URL remains canonical. POSTGRES_URL may be exposed by hosted
+    providers such as Vercel Postgres and is resolved as a fallback by the
+    settings layer when DATABASE_URL is not set.
+
     Returns:
-        The configured DATABASE_URL value exposed by settings, or None if not configured.
+        The configured database URL.
+
+    Raises:
+        ValueError: If neither DATABASE_URL nor POSTGRES_URL is configured.
     """
-    return get_settings().database_url
+    database_url = get_settings().database_url
+    if not database_url:
+        raise ValueError("No database URL configured. Set DATABASE_URL or POSTGRES_URL.")
+    return database_url
 
 
 def _normalize_sqlite_path(parsed_path: str) -> str:
@@ -206,9 +216,6 @@ def _resolve_sqlite_path(url: str) -> str:
 
 
 DATABASE_URL = _get_database_url()
-
-if DATABASE_URL is None:
-    raise ValueError("No database URL configured. Set DATABASE_URL or POSTGRES_URL.")
 
 # Determine database type and resolve path/connection info
 if _is_postgres_url(DATABASE_URL):
