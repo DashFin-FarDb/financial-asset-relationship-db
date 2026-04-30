@@ -301,7 +301,7 @@ export ADMIN_PASSWORD="admin123"
 - **Python:** `pytest` from repo root (venv must be active). Expect ~7100+ passing tests; 3 pre-existing failures in `test_schema_report_cli_integration.py` and `test_workflow_validator.py` are known.
 - **Frontend:** `cd frontend && npm test` runs Jest. ~480/545 pass; some pre-existing test failures in component tests.
 - **Frontend lint:** `cd frontend && npm run lint` (passes clean).
-- **Python lint:** `flake8 src/ tests/` and `mypy src/ --ignore-missing-imports`. Pre-existing mypy errors exist (25 errors in 9 files).
+- **Python lint:** `flake8 src/ tests/` and `mypy src/`. Pre-existing mypy errors exist (25 errors in 9 files).
 
 ### Gotchas
 
