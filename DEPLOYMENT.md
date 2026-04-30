@@ -4,7 +4,7 @@
 
 This guide explains how to deploy the Financial Asset Relationship Database using the production-recommended FastAPI + Next.js stack on Vercel or other cloud platforms.
 
-**For comprehensive hosted deployment strategy, database persistence, and production environment configuration, see [docs/HOSTED_DEPLOYMENT_STRATEGY.md](docs/HOSTED_DEPLOYMENT_STRATEGY.md).**
+**For the hosted deployment and durable persistence decision, see [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).**
 
 **Note:** The Gradio UI (`app.py`) is available for demos, and internal testing, but is **not recommended for production deployment**. This guide focuses on the production architecture.
 
@@ -56,11 +56,13 @@ The current API database layer expects a SQLite URI for `DATABASE_URL`. Local SQ
 `sqlite:dev.db` are suitable for local/dev runs, but **SQLite is not durable on Vercel/serverless filesystems**
 because serverless environments have ephemeral file storage.
 
-**For production hosted deployment**, use PostgreSQL for durable persistence. See [docs/HOSTED_DEPLOYMENT_STRATEGY.md](docs/HOSTED_DEPLOYMENT_STRATEGY.md)
-for the full deployment strategy, PostgreSQL setup instructions, and migration path from SQLite to PostgreSQL.
+**For production hosted deployment**, PostgreSQL is the selected durable persistence target, but implementation
+is pending. See [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md)
+for the full decision and implementation roadmap.
 
-**Current limitation**: The database layer (`api/database.py`) currently only supports SQLite. PostgreSQL support
-is planned in Phase 1 of the hosted deployment roadmap (see strategy document).
+**Current limitation**: The database layer (`api/database.py`) currently only supports SQLite. Current hosted
+deployments using SQLite are demo/preview only and non-durable. PostgreSQL support is planned in Phase 1 of the
+deployment roadmap.
 
 ## Local Development
 

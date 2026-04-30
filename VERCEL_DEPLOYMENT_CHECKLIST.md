@@ -2,12 +2,11 @@
 
 Use this checklist to ensure a smooth deployment to Vercel.
 
-**Important**: This checklist assumes the current SQLite-based implementation for local development.
-For production hosted deployment with durable PostgreSQL persistence, see [docs/HOSTED_DEPLOYMENT_STRATEGY.md](docs/HOSTED_DEPLOYMENT_STRATEGY.md).
+**Important**: PostgreSQL is the selected durable persistence target, but implementation is pending.
+See [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).
 
-**Current Limitation**: The database layer currently only supports SQLite. For production use, you must either:
-1. Use ephemeral in-memory SQLite (`sqlite:///:memory:`) and accept that data is lost on each restart, OR
-2. Wait for PostgreSQL support (Phase 1 of deployment roadmap - see strategy document)
+**Current Limitation**: The database layer currently only supports SQLite. Current hosted deployments using SQLite
+are demo/preview only and non-durable. For production use, wait for PostgreSQL support (Phase 1 of deployment roadmap).
 
 ## Pre-Deployment Checklist
 
