@@ -409,6 +409,53 @@ class TestPlaceholderConversion:
         result = _convert_placeholders(query, from_style="qmark", to_style="qmark")
         assert result == query
 
+    def test_convert_unsupported_style_returns_unchanged(self):
+        """Test that unsupported conversion styles return the query unchanged."""
+        from api.database import _convert_placeholders
+
+        query = "SELECT * FROM users WHERE id = ?"
+        # Unsupported style combination should return original
+        result = _convert_placeholders(query, from_style="numeric", to_style="format")
+        assert result == query
+
+    def test_convert_with_no_placeholders(self):
+        """Test conversion works on queries without placeholders."""
+        from api.database import _convert_placeholders
+
+        query = "SELECT * FROM users"
+        result = _convert_placeholders(query, from_style="qmark", to_style="format")
+        assert result == query
+
+    def test_convert_limitations_documented(self):
+        """
+        Document known limitations of _convert_placeholders for internal use only.
+
+        This test serves as documentation that _convert_placeholders is intentionally
+        simple and does NOT handle:
+        1. Literal ? or %s inside SQL string literals
+        2. Complex queries with mixed styles
+        3. Comments containing placeholders
+
+        These limitations are ACCEPTABLE because:
+        - Function is used ONLY for internal static queries from api/auth.py
+        - All internal queries are simple DDL/DML without string literals containing ? or %
+        - User input is ALWAYS passed via parameters tuple, never embedded in query strings
+        """
+        from api.database import _convert_placeholders
+
+        # Example showing naive replacement (acceptable for internal use)
+        # Real usage avoids queries like this
+        query_with_string_literal = "INSERT INTO test VALUES (?, 'question?')"
+        result = _convert_placeholders(query_with_string_literal, from_style="qmark", to_style="format")
+        # Naively replaces ALL ? characters including in string literal
+        assert result == "INSERT INTO test VALUES (%s, 'question%s')"
+
+        # This is OK because internal queries don't have such literals
+        # For reference, actual internal queries look like:
+        simple_internal_query = "SELECT * FROM user_credentials WHERE username = ?"
+        converted = _convert_placeholders(simple_internal_query, from_style="qmark", to_style="format")
+        assert converted == "SELECT * FROM user_credentials WHERE username = %s"
+
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.connect")
     def test_execute_converts_placeholders_for_postgres(self, mock_connect, restore_database_module):
