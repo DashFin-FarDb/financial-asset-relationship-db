@@ -96,7 +96,7 @@ The initial hosted deployment target is the existing Vercel monorepo path for bo
 
 ### Neutral
 
-- Graph persistence remains in-memory until Phase 3
+- Graph state remains in-memory until Phase 3 introduces durable graph persistence.
 - Current hosted deployments with SQLite are explicitly non-durable demos only
 
 ## Implementation Plan
