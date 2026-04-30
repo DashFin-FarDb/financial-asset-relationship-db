@@ -208,9 +208,7 @@ def _resolve_sqlite_path(url: str) -> str:
 DATABASE_URL = _get_database_url()
 
 if DATABASE_URL is None:
-    raise ValueError(
-        "No database URL configured. Set DATABASE_URL or POSTGRES_URL."
-    )
+    raise ValueError("No database URL configured. Set DATABASE_URL or POSTGRES_URL.")
 
 # Determine database type and resolve path/connection info
 if _is_postgres_url(DATABASE_URL):

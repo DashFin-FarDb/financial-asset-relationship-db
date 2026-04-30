@@ -130,7 +130,6 @@ class TestDatabaseTypeDetection:
             importlib.reload(database)
 
 
-
 class TestPostgreSQLConnection:
     """Test PostgreSQL connection creation."""
 
