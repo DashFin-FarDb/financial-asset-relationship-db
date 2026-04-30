@@ -313,4 +313,4 @@ cd frontend && npm run dev
 - `pytest` needs `DATABASE_URL`, `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` set in the environment (use in-memory SQLite `sqlite:///:memory:` for tests).
 - Pre-existing test failures may exist on `main` (e.g. in `test_schema_report_cli_integration.py`, `test_database.py`, `test_workflow_validator.py`).
 - Frontend may have pre-existing Jest test failures. These are in the existing codebase, not caused by environment setup.
-- The `DATABASE_URL` format the backend expects is `sqlite:///./dev.db` (3 slashes + relative path), not `sqlite:dev.db` as shown in `.env.example`.
+- The `DATABASE_URL` format recommended for relative paths is `sqlite:///./dev.db` (3 slashes + relative path).
