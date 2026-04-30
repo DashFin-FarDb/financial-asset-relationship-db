@@ -77,6 +77,8 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and Vercel integration.
 
+**Hosted Deployment**: For production deployment strategy, database persistence, and environment configuration, see [docs/HOSTED_DEPLOYMENT_STRATEGY.md](docs/HOSTED_DEPLOYMENT_STRATEGY.md).
+
 ### Troubleshooting
 
 #### Frontend shows "Failed to load data"
