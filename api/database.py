@@ -8,9 +8,37 @@ import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
+
+
+def _is_postgres_url(url: str) -> bool:
+    """
+    Determine whether a database URL is a PostgreSQL connection string.
+
+    Parameters:
+        url (str): Database URL to check.
+
+    Returns:
+        bool: True if the URL starts with postgresql:// or postgres://, False otherwise.
+    """
+    url_lower = url.lower().strip()
+    return url_lower.startswith("postgresql://") or url_lower.startswith("postgres://")
+
+
+def _is_sqlite_url(url: str) -> bool:
+    """
+    Determine whether a database URL is a SQLite connection string.
+
+    Parameters:
+        url (str): Database URL to check.
+
+    Returns:
+        bool: True if the URL starts with sqlite:, False otherwise.
+    """
+    return url.lower().strip().startswith("sqlite:")
 
 
 def _get_database_url() -> str:
@@ -147,7 +175,19 @@ def _resolve_sqlite_path(url: str) -> str:
 
 
 DATABASE_URL = _get_database_url()
-DATABASE_PATH = _resolve_sqlite_path(DATABASE_URL)
+
+# Determine database type and resolve path/connection info
+if _is_postgres_url(DATABASE_URL):
+    DATABASE_TYPE = "postgresql"
+    DATABASE_PATH = DATABASE_URL  # For PostgreSQL, store the full connection string
+elif _is_sqlite_url(DATABASE_URL):
+    DATABASE_TYPE = "sqlite"
+    DATABASE_PATH = _resolve_sqlite_path(DATABASE_URL)
+else:
+    raise ValueError(
+        f"Unsupported database URL scheme: {DATABASE_URL}. "
+        "Supported schemes are: sqlite:, postgresql://, postgres://"
+    )
 
 # Module-level shared in-memory connection
 _MEMORY_CONNECTION: sqlite3.Connection | None = None
@@ -183,6 +223,30 @@ def _is_memory_db(path: str | None = None) -> bool:
     # (not part of a longer path).
     parsed = urlparse(target)
     return parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query)
+
+
+def _create_postgres_connection():
+    """
+    Create a PostgreSQL database connection using psycopg2.
+
+    Returns:
+        A psycopg2 connection object.
+
+    Raises:
+        ImportError: If psycopg2 is not installed.
+        Exception: If connection fails.
+    """
+    try:
+        import psycopg2  # type: ignore[import-untyped]
+        import psycopg2.extras  # type: ignore[import-untyped]
+    except ImportError as exc:
+        raise ImportError(
+            "psycopg2-binary is required for PostgreSQL support. "
+            "Install it with: pip install psycopg2-binary"
+        ) from exc
+
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
 
 
 class _DatabaseConnectionManager:
@@ -348,15 +412,15 @@ def _connect() -> sqlite3.Connection:
 
 
 @contextmanager
-def get_connection() -> Iterator[sqlite3.Connection]:
+def get_connection() -> Iterator[Any]:
     """
-    Yield a context-managed SQLite connection for the configured database.
+    Yield a context-managed database connection for the configured database.
 
-    For file-backed databases the yielded connection is closed when the context exits. For
-    in-memory databases a shared persistent connection is yielded and remains open across calls
-    (the context does not close it).
+    For PostgreSQL databases, creates a new connection for each call and closes it on exit.
+    For file-backed SQLite databases, creates a new connection and closes it on exit.
+    For in-memory SQLite databases, yields a shared persistent connection that remains open.
 
-    **Important for in-memory databases:**
+    **Important for in-memory SQLite databases:**
     Access to in-memory databases is fully serialized via _MEMORY_USE_LOCK (a reentrant RLock).
     This means:
     - Only one operation can use the in-memory connection at a time
@@ -372,20 +436,29 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     - Using connection pooling for file-backed databases
 
     Returns:
-        sqlite3.Connection: An open SQLite connection for the configured database.
+        Connection object (sqlite3.Connection for SQLite, psycopg2 connection for PostgreSQL).
     """
-    connection = _connect()
-    is_memory = _is_memory_db()
-    if is_memory:
-        # Serialize access to the shared in-memory connection to prevent
-        # concurrent-transaction errors from multiple threads.
-        with _MEMORY_USE_LOCK:
-            yield connection
-    else:
+    if DATABASE_TYPE == "postgresql":
+        # PostgreSQL: create new connection, close on exit
+        connection = _create_postgres_connection()
         try:
             yield connection
         finally:
             connection.close()
+    else:
+        # SQLite path (original logic)
+        connection = _connect()
+        is_memory = _is_memory_db()
+        if is_memory:
+            # Serialize access to the shared in-memory connection to prevent
+            # concurrent-transaction errors from multiple threads.
+            with _MEMORY_USE_LOCK:
+                yield connection
+        else:
+            try:
+                yield connection
+            finally:
+                connection.close()
 
 
 def _cleanup_memory_connection() -> None:
@@ -431,7 +504,8 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
     Execute a SQL write statement and commit the transaction.
 
-    Use the module's managed SQLite connection.
+    Use the module's managed database connection. Supports both SQLite (? placeholders)
+    and PostgreSQL (%s placeholders) parameter styles.
 
     Parameters:
         query (str): SQL statement to execute.
@@ -439,11 +513,16 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
             statement; use `None` or an empty sequence if there are no parameters.
     """
     with get_connection() as connection:
-        connection.execute(query, parameters or ())
+        if DATABASE_TYPE == "postgresql":
+            cursor = connection.cursor()
+            cursor.execute(query, parameters or ())
+            cursor.close()
+        else:
+            connection.execute(query, parameters or ())
         connection.commit()
 
 
-def fetch_one(query: str, parameters: tuple | list | None = None):
+def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
     """
     Retrieve the first row produced by an SQL query.
 
@@ -453,12 +532,21 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
             to bind into the query.
 
     Returns:
-        sqlite3.Row | None: The first row of the result set
-            as a `sqlite3.Row`, or `None` if the query returned no rows.
+        Row object: The first row of the result set (sqlite3.Row for SQLite,
+            dict-like for PostgreSQL), or `None` if the query returned no rows.
     """
     with get_connection() as connection:
-        cursor = connection.execute(query, parameters or ())
-        return cursor.fetchone()
+        if DATABASE_TYPE == "postgresql":
+            import psycopg2.extras  # type: ignore[import-untyped]
+
+            cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cursor.execute(query, parameters or ())
+            row = cursor.fetchone()
+            cursor.close()
+            return row
+        else:
+            cursor = connection.execute(query, parameters or ())
+            return cursor.fetchone()
 
 
 def fetch_value(query: str, parameters: tuple | list | None = None) -> object | None:
@@ -466,8 +554,8 @@ def fetch_value(query: str, parameters: tuple | list | None = None) -> object | 
     Return the first column value from the first row of a query result.
 
     If the query returns no rows, returns `None`. For any non-string indexable row
-    (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, or a mock with ``__getitem__``),
-    attempts to return ``row[0]``. Returns ``None`` when the row
+    (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, dict, or a mock with ``__getitem__``),
+    attempts to return ``row[0]`` or the first value. Returns ``None`` when the row
     is empty (i.e. ``row[0]`` raises ``IndexError``), and returns the row object
     unchanged only when indexing is not supported (``TypeError``).
 
@@ -481,6 +569,10 @@ def fetch_value(query: str, parameters: tuple | list | None = None) -> object | 
     row = fetch_one(query, parameters)
     if row is None:
         return None
+    # Handle dict-like rows (PostgreSQL RealDictCursor)
+    if isinstance(row, dict):
+        return next(iter(row.values())) if row else None
+    # Handle tuple/list/sqlite3.Row
     if isinstance(row, (sqlite3.Row, tuple, list)):
         return row[0] if row else None
     try:
@@ -495,21 +587,39 @@ def initialize_schema() -> None:
     """
     Create the `user_credentials` table if it does not already exist.
 
+    The table schema is compatible with both SQLite and PostgreSQL:
+    - SQLite uses INTEGER PRIMARY KEY AUTOINCREMENT
+    - PostgreSQL uses SERIAL PRIMARY KEY
+
     The table has the following columns:
-    - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
-    - `username`: TEXT, unique and not null
-    - `email`: TEXT
-    - `full_name`: TEXT
-    - `hashed_password`: TEXT, not null
-    - `disabled`: INTEGER, not null, defaults to 0
+    - `id`: Auto-incrementing primary key
+    - `username`: TEXT/VARCHAR, unique and not null
+    - `email`: TEXT/VARCHAR
+    - `full_name`: TEXT/VARCHAR
+    - `hashed_password`: TEXT/VARCHAR, not null
+    - `disabled`: INTEGER/SMALLINT, not null, defaults to 0
     """
-    execute("""
-        CREATE TABLE IF NOT EXISTS user_credentials(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT,
-            full_name TEXT,
-            hashed_password TEXT NOT NULL,
-            disabled INTEGER NOT NULL DEFAULT 0
-        )
-        """)
+    if DATABASE_TYPE == "postgresql":
+        # PostgreSQL-compatible DDL
+        execute("""
+            CREATE TABLE IF NOT EXISTS user_credentials(
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255),
+                full_name VARCHAR(255),
+                hashed_password VARCHAR(255) NOT NULL,
+                disabled SMALLINT NOT NULL DEFAULT 0
+            )
+            """)
+    else:
+        # SQLite DDL (original)
+        execute("""
+            CREATE TABLE IF NOT EXISTS user_credentials(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT,
+                full_name TEXT,
+                hashed_password TEXT NOT NULL,
+                disabled INTEGER NOT NULL DEFAULT 0
+            )
+            """)
