@@ -82,6 +82,7 @@ class Settings(BaseModel):
     # Database configuration
     asset_graph_database_url: str | None = Field(default=None)
     database_url: str | None = Field(default=None)
+    postgres_url: str | None = Field(default=None)
 
     @property
     def allowed_origins(self) -> list[str]:
@@ -123,11 +124,20 @@ def load_settings() -> Settings:
     SECRET_KEY, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_EMAIL, ADMIN_FULL_NAME,
     ADMIN_DISABLED (parsed as a boolean), GRAPH_CACHE_PATH,
     REAL_DATA_CACHE_PATH, USE_REAL_DATA_FETCHER (parsed as a boolean),
-    ASSET_GRAPH_DATABASE_URL, and DATABASE_URL.
+    ASSET_GRAPH_DATABASE_URL, DATABASE_URL, and POSTGRES_URL (Vercel provider fallback).
+
+    DATABASE_URL is the canonical database URL. If DATABASE_URL is not set but POSTGRES_URL is,
+    POSTGRES_URL is used as a fallback for Vercel Postgres compatibility.
 
     Returns:
         settings (Settings): Constructed and validated Settings object.
     """
+    database_url = os.getenv("DATABASE_URL")
+    postgres_url = os.getenv("POSTGRES_URL")
+
+    # Use POSTGRES_URL as fallback if DATABASE_URL is not set
+    resolved_database_url = database_url or postgres_url
+
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
@@ -141,7 +151,8 @@ def load_settings() -> Settings:
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
-        database_url=os.getenv("DATABASE_URL"),
+        database_url=resolved_database_url,
+        postgres_url=postgres_url,
     )
 
 

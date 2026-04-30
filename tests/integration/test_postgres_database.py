@@ -85,6 +85,27 @@ def _redact_keyword_dsn(dsn: str) -> str | None:
     return " ".join(redacted_parts)
 
 
+def _row_value(row: object, key: str | None = None, index: int = 0) -> object:
+    """
+    Extract a value from a database row that may be dict-like or tuple/list-like.
+
+    Args:
+        row: The database row (dict, tuple, list, or other row type)
+        key: Optional key for dict-like access
+        index: Index for tuple/list-like access (default: 0)
+
+    Returns:
+        The value at the specified key or index
+    """
+    # Try dict-like access first if key is provided
+    if key is not None and hasattr(row, "__getitem__") and isinstance(row, dict):
+        return row[key]
+    # Fall back to index-based access for tuples/lists
+    if hasattr(row, "__getitem__"):
+        return row[index]  # type: ignore[index]
+    raise TypeError(f"Cannot extract value from row type: {type(row)}")
+
+
 def _ensure_live_test_enabled() -> None:
     """Skip test unless live Postgres integration tests are enabled."""
     if os.getenv("RUN_POSTGRES_TESTS") == "1":
@@ -134,6 +155,9 @@ def test_postgres_connection_smoke() -> None:
 
     assert row is not None  # nosec B101
     assert len(row) == 3  # nosec B101
-    assert isinstance(row[0], str) and row[0]  # nosec B101
-    assert isinstance(row[1], str) and row[1]  # nosec B101
-    assert isinstance(row[2], str) and row[2]  # nosec B101
+
+    database_name, database_user, postgres_version = row
+
+    assert isinstance(database_name, str) and database_name  # nosec B101
+    assert isinstance(database_user, str) and database_user  # nosec B101
+    assert isinstance(postgres_version, str) and postgres_version  # nosec B101

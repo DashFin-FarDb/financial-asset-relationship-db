@@ -36,7 +36,7 @@ For local production-like testing, the command defaults to port `8000` when `POR
 
 Minimum backend environment required before importing `api.main`:
 
-- `DATABASE_URL` — SQLite URI used by `api/database.py`; local/dev file example: `sqlite:dev.db`
+- `DATABASE_URL` — Database connection string; local/dev: `sqlite:dev.db`, production: PostgreSQL URL
 - `SECRET_KEY` — JWT signing key used by `api/auth.py`
 - Existing user credentials in the configured database, or bootstrap credentials:
   - `ADMIN_USERNAME`
@@ -51,20 +51,22 @@ Optional backend runtime settings:
 - `REAL_DATA_CACHE_PATH` — real-data cache path
 - `USE_REAL_DATA_FETCHER` — truthy value enables real-data fetcher mode
 - `ASSET_GRAPH_DATABASE_URL` — graph persistence URL when used by graph repository flows; this does not replace the API auth/database `DATABASE_URL` requirement
+- `POSTGRES_URL` — Vercel Postgres provider fallback; used only if `DATABASE_URL` is not set
 
-The current API database layer expects a SQLite URI for `DATABASE_URL`. Local SQLite files such as
-`sqlite:dev.db` are suitable for local/dev runs, but **SQLite is not durable on Vercel/serverless filesystems**
-because serverless environments have ephemeral file storage.
+### Database Configuration
 
-**For production hosted deployment**, PostgreSQL is the selected durable persistence target, but implementation
-is pending. See [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md)
-for the full decision and implementation roadmap.
+The API database layer supports both **SQLite** (local/dev) and **PostgreSQL** (production).
 
-**Current limitation**: The database layer (`api/database.py`) currently only supports SQLite. Current hosted
-deployments using SQLite are demo/preview only and non-durable. PostgreSQL support is planned in Phase 1 of the
-deployment roadmap.
+**Local/Development (SQLite):**
+- SQLite files such as `sqlite:dev.db` are suitable for local development
+- In-memory databases (`sqlite:///:memory:`) work for testing
 
-**Hosted preview/demo before Phase 1**: Before Phase 1 PostgreSQL support, hosted preview/demo deployments must use ephemeral SQLite only, for example `sqlite:///:memory:` or a SQLite file under `/tmp`. These deployments are non-durable and must not be treated as production persistence. See [VERCEL_DEPLOYMENT_CHECKLIST.md](VERCEL_DEPLOYMENT_CHECKLIST.md) for deployment configuration.
+**Production/Hosted (PostgreSQL):**
+- PostgreSQL is the recommended durable persistence target for hosted deployments
+- Example: `postgresql://user:password@host:5432/database`
+- Vercel Postgres: If `DATABASE_URL` is not set, `POSTGRES_URL` is used as a fallback
+
+**Important:** SQLite is not durable on Vercel/serverless filesystems due to ephemeral file storage. Use PostgreSQL for production hosted deployments requiring persistence.
 
 ## Local Development
 

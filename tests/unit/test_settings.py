@@ -138,7 +138,7 @@ class TestSettingsModel:
             real_data_cache_path="/path/to/real/cache",
             use_real_data_fetcher=True,
             database_url="sqlite:///runtime.db",
-            asset_graph_database_url="postgresql://user:pass@localhost/db",
+            asset_graph_database_url="postgresql://fardb_user:example_value@localhost/fardb",
         )
         assert settings.env == "production"
         assert settings.allowed_origins_raw == "https://example.com,https://example.org"
@@ -152,7 +152,7 @@ class TestSettingsModel:
         assert settings.real_data_cache_path == "/path/to/real/cache"
         assert settings.use_real_data_fetcher is True
         assert settings.database_url == "sqlite:///runtime.db"
-        assert settings.asset_graph_database_url == "postgresql://user:pass@localhost/db"
+        assert settings.asset_graph_database_url == "postgresql://fardb_user:example_value@localhost/fardb"
 
     def test_settings_allowed_origins_property(self) -> None:
         """Test that allowed_origins property correctly parses CSV."""
@@ -335,13 +335,13 @@ class TestSettingsIntegration:
     @patch.dict(
         os.environ,
         {
-            "ASSET_GRAPH_DATABASE_URL": "postgresql://user:pass@localhost:5432/assets",
+            "ASSET_GRAPH_DATABASE_URL": "postgresql://fardb_user:example_value@localhost:5432/fardb_assets",
         },
     )
     def test_settings_database_integration(self) -> None:
         """Test typical database configuration pattern."""
         settings = get_settings()
-        assert settings.asset_graph_database_url == "postgresql://user:pass@localhost:5432/assets"
+        assert settings.asset_graph_database_url == "postgresql://fardb_user:example_value@localhost:5432/fardb_assets"
 
 
 # ---------------------------------------------------------------------------

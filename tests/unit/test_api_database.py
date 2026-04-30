@@ -69,7 +69,7 @@ class TestDatabaseURLConfiguration:
                 get_settings.cache_clear()
                 with pytest.raises(
                     ValueError,
-                    match="DATABASE_URL environment variable must be set",
+                    match="No database URL configured",
                 ):
                     importlib.reload(database)
         finally:
@@ -434,8 +434,6 @@ class TestConnectionPooling:
 
     def test_cleanup_function_is_registered(self):
         """Test that cleanup function is registered."""
-        import importlib
-
         with patch("atexit.register") as mock_register:
             import api.database as db_module
 
