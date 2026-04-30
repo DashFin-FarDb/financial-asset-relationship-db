@@ -307,4 +307,4 @@ export ADMIN_PASSWORD="admin123"
 
 - Node.js is not pre-installed on the base VM image. The update script installs `npm ci` for frontend deps, but Node.js itself must be installed separately (e.g., via `nodesource` setup_20.x) if the VM snapshot doesn't include it.
 - The frontend defaults `NEXT_PUBLIC_API_URL` to `http://localhost:8000` in code, so no frontend `.env` file is needed for local dev.
-- Python tests (`pytest`) do not require the env vars above; tests mock the database layer.
+- Python tests (`pytest`) do not require the env vars above; tests isolate env vars and use temporary SQLite databases via test fixtures.
