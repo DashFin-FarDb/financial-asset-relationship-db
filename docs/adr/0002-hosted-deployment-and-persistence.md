@@ -99,6 +99,10 @@ The initial hosted deployment target is the existing Vercel monorepo path for bo
 - Graph state remains in-memory until Phase 3 introduces durable graph persistence.
 - Current hosted deployments with SQLite are explicitly non-durable demos only
 
+### Testing Implications
+
+Current database tests exercise SQLite URIs only. Phase 1 must add PostgreSQL-specific tests for the auth database path, including PostgreSQL URL handling, driver/connection creation, serverless connection pooling assumptions, and continued SQLite compatibility for local development. PostgreSQL support should not be considered complete until both SQLite and PostgreSQL paths are covered.
+
 ## Implementation Plan
 
 ### Phase 1: PostgreSQL User Auth (Next PR)
@@ -107,11 +111,16 @@ Add PostgreSQL support for the API auth/user database while preserving SQLite lo
 
 **Scope:**
 - Add PostgreSQL adapter to `api/database.py`
+- Add the selected PostgreSQL driver to `requirements.txt` and document the choice (`psycopg2-binary`, `psycopg`, or `asyncpg`, depending on the chosen sync/async adapter design)
 - Add connection pooling for serverless
 - Add database migration tooling (Alembic)
 - PostgreSQL-compatible DDL for `user_credentials` table
 - Maintain backward compatibility with SQLite for local development
 - Update deployment docs with PostgreSQL setup guide
+
+**Environment variable handling:**
+
+Vercel Postgres may expose `POSTGRES_*` variables rather than `DATABASE_URL`. Phase 1 must either map the selected provider connection string to `DATABASE_URL` in deployment settings or add explicit settings-layer support for the chosen provider variable. The application should not rely on an undocumented implicit variable name.
 
 ### Phase 2: Enhanced Health Checks
 
@@ -128,7 +137,7 @@ Connection pooling tuning, caching strategy, monitoring, backup procedures.
 ## Required Hosted Environment Variables
 
 **Backend (Required):**
-- `DATABASE_URL` — PostgreSQL connection string (future); currently SQLite for demo/preview only
+- `DATABASE_URL` — current implementation requires a SQLite URI. For hosted preview/demo before Phase 1, use ephemeral SQLite only, such as `sqlite:///:memory:` or an explicit `/tmp` SQLite path. PostgreSQL connection strings are the Phase 1+ production target and are not supported by `api/database.py` yet.
 - `SECRET_KEY` — JWT signing key
 - `ADMIN_USERNAME` — Bootstrap admin username
 - `ADMIN_PASSWORD` — Bootstrap admin password

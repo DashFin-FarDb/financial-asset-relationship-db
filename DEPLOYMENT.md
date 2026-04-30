@@ -64,6 +64,8 @@ for the full decision and implementation roadmap.
 deployments using SQLite are demo/preview only and non-durable. PostgreSQL support is planned in Phase 1 of the
 deployment roadmap.
 
+**Hosted preview/demo before Phase 1**: Before Phase 1 PostgreSQL support, hosted preview/demo deployments must use ephemeral SQLite only, for example `sqlite:///:memory:` or a SQLite file under `/tmp`. These deployments are non-durable and must not be treated as production persistence. See [VERCEL_DEPLOYMENT_CHECKLIST.md](VERCEL_DEPLOYMENT_CHECKLIST.md) for deployment configuration.
+
 ## Local Development
 
 ### Prerequisites
