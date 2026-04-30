@@ -294,7 +294,7 @@ export ADMIN_USERNAME="admin"
 export ADMIN_PASSWORD="admin123"
 ```
 
-`DATABASE_URL` must use the triple-slash SQLAlchemy format (`sqlite:///./dev.db`), not the shorthand `sqlite:dev.db` shown in `.env.example`. The SQLite file and admin user are auto-created on first startup.
+`DATABASE_URL` must use the triple-slash SQLAlchemy format (`sqlite:///./dev.db`), not the shorthand `sqlite:dev.db` shown in `.env.example`. The SQLite file is created as needed, and admin credentials are seeded during auth module initialisation when the backend imports `api.auth`.
 
 ### Running tests
 
