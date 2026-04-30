@@ -105,22 +105,33 @@ Current database tests exercise SQLite URIs only. Phase 1 must add PostgreSQL-sp
 
 ## Implementation Plan
 
-### Phase 1: PostgreSQL User Auth (Next PR)
+### Phase 1: PostgreSQL User Auth (Current PR)
 
 Add PostgreSQL support for the API auth/user database while preserving SQLite local dev compatibility.
 
 **Scope:**
-- Add PostgreSQL adapter to `api/database.py`
-- Add the selected PostgreSQL driver to `requirements.txt` and document the choice (`psycopg2-binary`, `psycopg`, or `asyncpg`, depending on the chosen sync/async adapter design)
-- Add connection pooling for serverless
-- Add database migration tooling (Alembic)
-- PostgreSQL-compatible DDL for `user_credentials` table
-- Maintain backward compatibility with SQLite for local development
-- Update deployment docs with PostgreSQL setup guide
+- Add PostgreSQL adapter to `api/database.py` ✅
+- Add psycopg2-binary driver to `requirements.txt` ✅
+- PostgreSQL-compatible DDL for `user_credentials` table ✅
+- Automatic placeholder conversion (SQLite `?` → PostgreSQL `%s`) ✅
+- POSTGRES_URL fallback support for Vercel deployments ✅
+- Maintain backward compatibility with SQLite for local development ✅
+- Update deployment docs with PostgreSQL setup guide ✅
+- Comprehensive test coverage (unit + opt-in integration) ✅
+
+**Explicitly Deferred to Phase 4:**
+- Production-grade connection pooling for serverless
+- Database migration tooling (Alembic)
+
+**Current Limitations:**
+The Phase 1 implementation creates a new connection per request. This is acceptable for
+low-traffic environments but NOT recommended for production at scale. Production deployments
+should implement connection pooling (Phase 4) before significant traffic.
 
 **Environment variable handling:**
 
-Vercel Postgres may expose `POSTGRES_*` variables rather than `DATABASE_URL`. Phase 1 must either map the selected provider connection string to `DATABASE_URL` in deployment settings or add explicit settings-layer support for the chosen provider variable. The application should not rely on an undocumented implicit variable name.
+Vercel Postgres may expose `POSTGRES_*` variables rather than `DATABASE_URL`. Phase 1 adds
+explicit settings-layer support for `POSTGRES_URL` as a fallback when `DATABASE_URL` is not set.
 
 ### Phase 2: Enhanced Health Checks
 

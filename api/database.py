@@ -1,4 +1,45 @@
-"""Lightweight database helpers for the API layer."""
+"""
+Lightweight database helpers for the API layer.
+
+This module provides a dual-database abstraction supporting both SQLite (for local/dev)
+and PostgreSQL (for production/hosted deployments). The module uses import-time
+configuration to determine the database type based on the DATABASE_URL environment
+variable.
+
+Parameter Binding Security:
+---------------------------
+All database operations use parameterized queries to prevent SQL injection. The module
+handles two parameter placeholder styles:
+
+1. SQLite: Uses '?' placeholders (qmark style)
+   Example: "SELECT * FROM users WHERE id = ?"
+
+2. PostgreSQL: Uses '%s' placeholders (format style, per DB-API 2.0 standard via psycopg2)
+   Example: "SELECT * FROM users WHERE id = %s"
+
+The module automatically converts '?' placeholders to '%s' when using PostgreSQL,
+allowing existing SQLite queries to work transparently. This conversion happens in
+_convert_placeholders() and is applied in execute() and fetch_one().
+
+IMPORTANT: psycopg2 uses %s for ALL types (not just strings). The %s is a placeholder
+that psycopg2 replaces with properly escaped values. It does NOT use $1, $2, etc.
+(those are server-side prepared statement placeholders, not client-side parameter binding).
+
+Security Scanner Alerts:
+------------------------
+GitHub Advanced Security may flag cursor.execute() calls as potential SQL injection risks.
+These are FALSE POSITIVES because:
+1. All queries use parameterized binding (never string concatenation)
+2. User input is passed via the 'parameters' tuple, not embedded in query strings
+3. Both sqlite3 and psycopg2 properly escape parameters to prevent injection
+
+Connection Pooling:
+------------------
+Production-grade serverless connection pooling is DEFERRED to a future PR.
+The current implementation creates a new connection per request, which is acceptable
+for low-traffic environments but not recommended for production at scale.
+See ADR 0002 Phase 4 for planned pooling implementation.
+"""
 
 from __future__ import annotations
 
@@ -500,12 +541,40 @@ def _cleanup_memory_connection() -> None:
 atexit.register(_cleanup_memory_connection)
 
 
+def _convert_placeholders(query: str, from_style: str = "qmark", to_style: str = "format") -> str:
+    """
+    Convert SQL parameter placeholders between styles.
+
+    Args:
+        query: SQL query string with placeholders
+        from_style: Source placeholder style ('qmark' for ?, 'format' for %s)
+        to_style: Target placeholder style ('qmark' for ?, 'format' for %s)
+
+    Returns:
+        Query string with converted placeholders
+
+    Note:
+        This is a simple replacement and doesn't handle ? or %s in string literals.
+        For production use with complex queries, consider a proper SQL parser.
+    """
+    if from_style == to_style:
+        return query
+
+    if from_style == "qmark" and to_style == "format":
+        return query.replace("?", "%s")
+    if from_style == "format" and to_style == "qmark":
+        return query.replace("%s", "?")
+
+    return query
+
+
 def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
     Execute a SQL write statement and commit the transaction.
 
-    Use the module's managed database connection. Supports both SQLite (? placeholders)
-    and PostgreSQL (%s placeholders) parameter styles.
+    Use the module's managed database connection. Supports SQLite-style (?) and
+    PostgreSQL-style (%s) placeholders. When using PostgreSQL, ? placeholders are
+    automatically converted to %s.
 
     Parameters:
         query (str): SQL statement to execute.
@@ -514,8 +583,10 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
     with get_connection() as connection:
         if DATABASE_TYPE == "postgresql":
+            # Convert SQLite ? placeholders to PostgreSQL %s
+            pg_query = _convert_placeholders(query, from_style="qmark", to_style="format")
             cursor = connection.cursor()
-            cursor.execute(query, parameters or ())
+            cursor.execute(pg_query, parameters or ())
             cursor.close()
         else:
             connection.execute(query, parameters or ())
@@ -525,6 +596,9 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
 def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
     """
     Retrieve the first row produced by an SQL query.
+
+    Supports SQLite-style (?) and PostgreSQL-style (%s) placeholders.
+    When using PostgreSQL, ? placeholders are automatically converted to %s.
 
     Parameters:
         query (str): SQL statement to execute.
@@ -539,8 +613,10 @@ def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
         if DATABASE_TYPE == "postgresql":
             import psycopg2.extras  # type: ignore[import-untyped]
 
+            # Convert SQLite ? placeholders to PostgreSQL %s
+            pg_query = _convert_placeholders(query, from_style="qmark", to_style="format")
             cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            cursor.execute(query, parameters or ())
+            cursor.execute(pg_query, parameters or ())
             row = cursor.fetchone()
             cursor.close()
             return row

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import os
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -365,3 +364,82 @@ class TestPostgresURLFallback:
 
         settings = load_settings()
         assert settings.database_url is None
+
+
+class TestPlaceholderConversion:
+    """Test SQL placeholder conversion for cross-database compatibility."""
+
+    def test_convert_qmark_to_format(self):
+        """Test conversion from SQLite ? placeholders to PostgreSQL %s."""
+        from api.database import _convert_placeholders
+
+        query = "SELECT * FROM users WHERE id = ? AND name = ?"
+        result = _convert_placeholders(query, from_style="qmark", to_style="format")
+        assert result == "SELECT * FROM users WHERE id = %s AND name = %s"
+
+    def test_convert_format_to_qmark(self):
+        """Test conversion from PostgreSQL %s placeholders to SQLite ?."""
+        from api.database import _convert_placeholders
+
+        query = "SELECT * FROM users WHERE id = %s AND name = %s"
+        result = _convert_placeholders(query, from_style="format", to_style="qmark")
+        assert result == "SELECT * FROM users WHERE id = ? AND name = ?"
+
+    def test_convert_same_style_returns_unchanged(self):
+        """Test that conversion with same source/target style returns unchanged query."""
+        from api.database import _convert_placeholders
+
+        query = "SELECT * FROM users WHERE id = ?"
+        result = _convert_placeholders(query, from_style="qmark", to_style="qmark")
+        assert result == query
+
+    @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
+    @patch("psycopg2.connect")
+    def test_execute_converts_placeholders_for_postgres(self, mock_connect):
+        """Test that execute() converts ? to %s when using PostgreSQL."""
+        import importlib
+
+        import api.database as db_module
+
+        importlib.reload(db_module)
+
+        mock_conn = Mock()
+        mock_cursor = Mock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        # Execute with SQLite-style ? placeholders
+        db_module.execute("INSERT INTO test VALUES (?, ?)", ("val1", "val2"))
+
+        # Verify the cursor received PostgreSQL-style %s placeholders
+        mock_cursor.execute.assert_called_once()
+        call_args = mock_cursor.execute.call_args[0]
+        assert call_args[0] == "INSERT INTO test VALUES (%s, %s)"
+        assert call_args[1] == ("val1", "val2")
+
+    @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
+    @patch("psycopg2.extras.RealDictCursor")
+    @patch("psycopg2.connect")
+    def test_fetch_one_converts_placeholders_for_postgres(self, mock_connect, mock_realdict_cursor):
+        """Test that fetch_one() converts ? to %s when using PostgreSQL."""
+        import importlib
+
+        import api.database as db_module
+
+        importlib.reload(db_module)
+
+        mock_conn = Mock()
+        mock_cursor = Mock()
+        mock_row = {"id": 1, "name": "test"}
+        mock_cursor.fetchone.return_value = mock_row
+        mock_conn.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_conn
+
+        # Query with SQLite-style ? placeholders
+        db_module.fetch_one("SELECT * FROM test WHERE id = ?", (1,))
+
+        # Verify the cursor received PostgreSQL-style %s placeholders
+        mock_cursor.execute.assert_called_once()
+        call_args = mock_cursor.execute.call_args[0]
+        assert call_args[0] == "SELECT * FROM test WHERE id = %s"
+        assert call_args[1] == (1,)
