@@ -105,7 +105,7 @@ Current database tests exercise SQLite URIs only. Phase 1 must add PostgreSQL-sp
 
 ## Implementation Plan
 
-### Phase 1: PostgreSQL User Auth (Current PR)
+### Phase 1: PostgreSQL User Auth
 
 Add PostgreSQL support for the API auth/user database while preserving SQLite local dev compatibility.
 

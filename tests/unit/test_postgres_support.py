@@ -27,19 +27,20 @@ def clear_settings_cache():
 @pytest.fixture()
 def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
-    Preserve the api.database module state and DATABASE_URL for test duration.
+    Preserve the api.database module state and DATABASE_URL/POSTGRES_URL for test duration.
 
     This fixture prevents test order dependencies by restoring module-level globals
     (DATABASE_TYPE, DATABASE_URL, DATABASE_PATH) after tests that reload the module
     with different database configurations.
 
     Yields control to the test. On teardown, closes any in-memory connection stored
-    in api.database._MEMORY_CONNECTION, restores the original DATABASE_URL environment
-    variable, clears the settings cache, and reloads api.database to reset its state.
+    in api.database._MEMORY_CONNECTION, restores the original DATABASE_URL and POSTGRES_URL
+    environment variables, clears the settings cache, and reloads api.database to reset its state.
     """
     from src.config.settings import get_settings
 
-    original_url = os.environ.get("DATABASE_URL")
+    original_database_url = os.environ.get("DATABASE_URL")
+    original_postgres_url = os.environ.get("POSTGRES_URL")
     get_settings.cache_clear()
 
     yield
@@ -50,10 +51,17 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         memory_conn.close()
         database._MEMORY_CONNECTION = None
 
-    if original_url is None:
-        monkeypatch.delenv("DATABASE_URL", raising=False)
+    # Restore original environment variables
+    if original_database_url is None:
+        # If neither was set originally, set a safe SQLite default for reload
+        monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
     else:
-        monkeypatch.setenv("DATABASE_URL", original_url)
+        monkeypatch.setenv("DATABASE_URL", original_database_url)
+
+    if original_postgres_url is None:
+        monkeypatch.delenv("POSTGRES_URL", raising=False)
+    else:
+        monkeypatch.setenv("POSTGRES_URL", original_postgres_url)
 
     get_settings.cache_clear()
     importlib.reload(database)
@@ -130,6 +138,15 @@ class TestDatabaseTypeDetection:
 
         with pytest.raises(ValueError, match="Unsupported database URL scheme"):
             importlib.reload(db_module)
+
+    @patch.dict("os.environ", {}, clear=True)
+    def test_missing_database_url_raises_error(self, restore_database_module):
+        """Test that missing DATABASE_URL and POSTGRES_URL raises clear configuration error."""
+        import api.database as db_module
+
+        with pytest.raises(ValueError, match="No database URL configured"):
+            importlib.reload(db_module)
+
 
 
 class TestPostgreSQLConnection:
@@ -226,13 +243,15 @@ class TestExecutePostgreSQL:
 
         mock_conn = Mock()
         mock_cursor = Mock()
-        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor_manager = Mock()
+        mock_cursor_manager.__enter__ = Mock(return_value=mock_cursor)
+        mock_cursor_manager.__exit__ = Mock(return_value=None)
+        mock_conn.cursor.return_value = mock_cursor_manager
         mock_connect.return_value = mock_conn
 
         db_module.execute("INSERT INTO test VALUES (%s)", ("value",))
 
         mock_cursor.execute.assert_called_once_with("INSERT INTO test VALUES (%s)", ("value",))
-        mock_cursor.close.assert_called_once()
         mock_conn.commit.assert_called_once()
 
 
@@ -252,7 +271,10 @@ class TestFetchOnePostgreSQL:
         mock_cursor = Mock()
         mock_row = {"id": 1, "name": "test"}
         mock_cursor.fetchone.return_value = mock_row
-        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor_manager = Mock()
+        mock_cursor_manager.__enter__ = Mock(return_value=mock_cursor)
+        mock_cursor_manager.__exit__ = Mock(return_value=None)
+        mock_conn.cursor.return_value = mock_cursor_manager
         mock_connect.return_value = mock_conn
 
         result = db_module.fetch_one("SELECT * FROM test WHERE id = %s", (1,))
@@ -264,7 +286,6 @@ class TestFetchOnePostgreSQL:
 
         mock_cursor.execute.assert_called_once_with("SELECT * FROM test WHERE id = %s", (1,))
         assert result == mock_row
-        mock_cursor.close.assert_called_once()
 
 
 class TestFetchValuePostgreSQL:
@@ -285,7 +306,10 @@ class TestFetchValuePostgreSQL:
         mock_cursor = Mock()
         mock_row = {"count": 42}
         mock_cursor.fetchone.return_value = mock_row
-        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor_manager = Mock()
+        mock_cursor_manager.__enter__ = Mock(return_value=mock_cursor)
+        mock_cursor_manager.__exit__ = Mock(return_value=None)
+        mock_conn.cursor.return_value = mock_cursor_manager
         mock_connect.return_value = mock_conn
 
         result = db_module.fetch_value("SELECT COUNT(*) as count FROM test")
@@ -306,7 +330,10 @@ class TestInitializeSchemaPostgreSQL:
 
         mock_conn = Mock()
         mock_cursor = Mock()
-        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor_manager = Mock()
+        mock_cursor_manager.__enter__ = Mock(return_value=mock_cursor)
+        mock_cursor_manager.__exit__ = Mock(return_value=None)
+        mock_conn.cursor.return_value = mock_cursor_manager
         mock_connect.return_value = mock_conn
 
         db_module.initialize_schema()
@@ -387,73 +414,41 @@ class TestPlaceholderConversion:
 
     def test_convert_qmark_to_format(self):
         """Test conversion from SQLite ? placeholders to PostgreSQL %s."""
-        from api.database import _convert_placeholders
+        from api.database import _convert_internal_qmark_placeholders_for_postgres
 
         query = "SELECT * FROM users WHERE id = ? AND name = ?"
-        result = _convert_placeholders(query, from_style="qmark", to_style="format")
+        result = _convert_internal_qmark_placeholders_for_postgres(query)
         assert result == "SELECT * FROM users WHERE id = %s AND name = %s"
-
-    def test_convert_format_to_qmark(self):
-        """Test conversion from PostgreSQL %s placeholders to SQLite ?."""
-        from api.database import _convert_placeholders
-
-        query = "SELECT * FROM users WHERE id = %s AND name = %s"
-        result = _convert_placeholders(query, from_style="format", to_style="qmark")
-        assert result == "SELECT * FROM users WHERE id = ? AND name = ?"
-
-    def test_convert_same_style_returns_unchanged(self):
-        """Test that conversion with same source/target style returns unchanged query."""
-        from api.database import _convert_placeholders
-
-        query = "SELECT * FROM users WHERE id = ?"
-        result = _convert_placeholders(query, from_style="qmark", to_style="qmark")
-        assert result == query
-
-    def test_convert_unsupported_style_returns_unchanged(self):
-        """Test that unsupported conversion styles return the query unchanged."""
-        from api.database import _convert_placeholders
-
-        query = "SELECT * FROM users WHERE id = ?"
-        # Unsupported style combination should return original
-        result = _convert_placeholders(query, from_style="numeric", to_style="format")
-        assert result == query
 
     def test_convert_with_no_placeholders(self):
         """Test conversion works on queries without placeholders."""
-        from api.database import _convert_placeholders
+        from api.database import _convert_internal_qmark_placeholders_for_postgres
 
         query = "SELECT * FROM users"
-        result = _convert_placeholders(query, from_style="qmark", to_style="format")
+        result = _convert_internal_qmark_placeholders_for_postgres(query)
         assert result == query
 
-    def test_convert_limitations_documented(self):
+    def test_convert_limitations_warning(self):
         """
-        Document known limitations of _convert_placeholders for internal use only.
+        Warn that _convert_internal_qmark_placeholders_for_postgres has limitations.
 
-        This test serves as documentation that _convert_placeholders is intentionally
-        simple and does NOT handle:
-        1. Literal ? or %s inside SQL string literals
-        2. Complex queries with mixed styles
-        3. Comments containing placeholders
+        This function is intentionally simple and does NOT handle literal ? inside
+        SQL string literals. This is ACCEPTABLE because it is only used for
+        repository-owned internal queries in api/auth.py that do not contain such literals.
 
-        These limitations are ACCEPTABLE because:
-        - Function is used ONLY for internal static queries from api/auth.py
-        - All internal queries are simple DDL/DML without string literals containing ? or %
-        - User input is ALWAYS passed via parameters tuple, never embedded in query strings
+        Parameter values are ALWAYS passed via the parameters tuple, never embedded.
         """
-        from api.database import _convert_placeholders
+        from api.database import _convert_internal_qmark_placeholders_for_postgres
 
-        # Example showing naive replacement (acceptable for internal use)
-        # Real usage avoids queries like this
-        query_with_string_literal = "INSERT INTO test VALUES (?, 'question?')"
-        result = _convert_placeholders(query_with_string_literal, from_style="qmark", to_style="format")
-        # Naively replaces ALL ? characters including in string literal
+        # This demonstrates the naive replacement - acceptable for internal use only
+        query_with_literal = "INSERT INTO test VALUES (?, 'question?')"
+        result = _convert_internal_qmark_placeholders_for_postgres(query_with_literal)
+        # Naively replaces ALL ? characters
         assert result == "INSERT INTO test VALUES (%s, 'question%s')"
 
-        # This is OK because internal queries don't have such literals
-        # For reference, actual internal queries look like:
-        simple_internal_query = "SELECT * FROM user_credentials WHERE username = ?"
-        converted = _convert_placeholders(simple_internal_query, from_style="qmark", to_style="format")
+        # Actual internal queries are simple and safe
+        internal_query = "SELECT * FROM user_credentials WHERE username = ?"
+        converted = _convert_internal_qmark_placeholders_for_postgres(internal_query)
         assert converted == "SELECT * FROM user_credentials WHERE username = %s"
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
@@ -466,7 +461,10 @@ class TestPlaceholderConversion:
 
         mock_conn = Mock()
         mock_cursor = Mock()
-        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor_manager = Mock()
+        mock_cursor_manager.__enter__ = Mock(return_value=mock_cursor)
+        mock_cursor_manager.__exit__ = Mock(return_value=None)
+        mock_conn.cursor.return_value = mock_cursor_manager
         mock_connect.return_value = mock_conn
 
         # Execute with SQLite-style ? placeholders
@@ -493,14 +491,18 @@ class TestPlaceholderConversion:
         mock_cursor = Mock()
         mock_row = {"id": 1, "name": "test"}
         mock_cursor.fetchone.return_value = mock_row
-        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor_manager = Mock()
+        mock_cursor_manager.__enter__ = Mock(return_value=mock_cursor)
+        mock_cursor_manager.__exit__ = Mock(return_value=None)
+        mock_conn.cursor.return_value = mock_cursor_manager
         mock_connect.return_value = mock_conn
 
         # Query with SQLite-style ? placeholders
-        db_module.fetch_one("SELECT * FROM test WHERE id = ?", (1,))
+        result = db_module.fetch_one("SELECT * FROM test WHERE id = ?", (1,))
 
         # Verify the cursor received PostgreSQL-style %s placeholders
         mock_cursor.execute.assert_called_once()
         call_args = mock_cursor.execute.call_args[0]
         assert call_args[0] == "SELECT * FROM test WHERE id = %s"
         assert call_args[1] == (1,)
+        assert result == mock_row

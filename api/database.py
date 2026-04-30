@@ -8,8 +8,11 @@ variable.
 
 Parameter Binding Security:
 ---------------------------
-All database operations use parameterized queries to prevent SQL injection. The module
-handles two parameter placeholder styles:
+Database values must be supplied through DB-API parameter binding. Query strings
+are repository-owned SQL statements; user-controlled values must be passed via the
+parameters argument and must not be interpolated into SQL strings.
+
+The module handles two parameter placeholder styles:
 
 1. SQLite: Uses '?' placeholders (qmark style)
    Example: "SELECT * FROM users WHERE id = ?"
@@ -20,20 +23,11 @@ handles two parameter placeholder styles:
 For the limited set of internal queries used in this module and api/auth.py, the module
 converts '?' placeholders to '%s' when using PostgreSQL. This conversion is intentionally
 simple and only safe for the known internal SQL queries that do not contain literal ? or %
-characters in string literals. See _convert_placeholders() for limitations.
+characters in string literals.
 
 IMPORTANT: psycopg2 uses %s for ALL types (not just strings). The %s is a placeholder
 that psycopg2 replaces with properly escaped values. It does NOT use $1, $2, etc.
 (those are server-side prepared statement placeholders, not client-side parameter binding).
-
-Security Scanner Alerts:
-------------------------
-GitHub Advanced Security may flag cursor.execute() calls as potential SQL injection risks.
-These are FALSE POSITIVES because:
-1. All queries use parameterized binding (never string concatenation)
-2. User input is passed via the 'parameters' tuple, not embedded in query strings
-3. Both sqlite3 and psycopg2 properly escape parameters to prevent injection
-4. _convert_placeholders only changes placeholder tokens (? to %s), not parameter values
 
 Connection Pooling:
 ------------------
@@ -84,20 +78,14 @@ def _is_sqlite_url(url: str) -> bool:
     return url.lower().strip().startswith("sqlite:")
 
 
-def _get_database_url() -> str:
+def _get_database_url() -> str | None:
     """
-    Read the API SQLite database URL from centralized runtime settings.
+    Read the API database URL from centralized runtime settings.
 
     Returns:
-        The configured DATABASE_URL value exposed by settings.
-
-    Raises:
-        ValueError: If DATABASE_URL is missing or empty.
+        The configured DATABASE_URL value exposed by settings, or None if not configured.
     """
-    database_url = get_settings().database_url
-    if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set")
-    return database_url
+    return get_settings().database_url
 
 
 def _normalize_sqlite_path(parsed_path: str) -> str:
@@ -218,6 +206,11 @@ def _resolve_sqlite_path(url: str) -> str:
 
 
 DATABASE_URL = _get_database_url()
+
+if DATABASE_URL is None:
+    raise ValueError(
+        "No database URL configured. Set DATABASE_URL or POSTGRES_URL."
+    )
 
 # Determine database type and resolve path/connection info
 if _is_postgres_url(DATABASE_URL):
@@ -542,41 +535,21 @@ def _cleanup_memory_connection() -> None:
 atexit.register(_cleanup_memory_connection)
 
 
-def _convert_placeholders(query: str, from_style: str = "qmark", to_style: str = "format") -> str:
+def _convert_internal_qmark_placeholders_for_postgres(query: str) -> str:
     """
-    Convert SQL parameter placeholders between styles for simple internal queries.
+    Convert qmark placeholders to psycopg2 placeholders for known internal auth SQL only.
 
-    This function performs simple string replacement and is ONLY safe for the limited
-    set of internal SQL queries used in this module (schema DDL and auth helpers).
-    It does NOT handle:
-    - Literal ? or %s characters inside SQL string literals
-    - Complex queries with mixed placeholder styles
-    - Already-converted placeholders
-
-    Current usage is limited to known-safe internal queries in api/auth.py that use
-    simple ? placeholders without string literals containing ? or %.
+    This is not a general SQL parser. It must only be used for repository-owned
+    SQL statements that do not contain literal question marks in SQL string literals.
+    Parameter values must still be passed separately to DB-API execute calls.
 
     Args:
-        query: SQL query string with placeholders
-        from_style: Source placeholder style ('qmark' for ?, 'format' for %s)
-        to_style: Target placeholder style ('qmark' for ?, 'format' for %s)
+        query: SQL query string with qmark (?) placeholders
 
     Returns:
-        Query string with converted placeholders
-
-    Warning:
-        Do not use this for arbitrary user-provided SQL or complex queries.
-        For general-purpose conversion, use a proper SQL parser.
+        Query string with placeholders converted to PostgreSQL format (%s)
     """
-    if from_style == to_style:
-        return query
-
-    if from_style == "qmark" and to_style == "format":
-        return query.replace("?", "%s")
-    if from_style == "format" and to_style == "qmark":
-        return query.replace("%s", "?")
-
-    return query
+    return query.replace("?", "%s")
 
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:
@@ -595,10 +568,10 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
     with get_connection() as connection:
         if DATABASE_TYPE == "postgresql":
             # Convert SQLite ? placeholders to PostgreSQL %s
-            pg_query = _convert_placeholders(query, from_style="qmark", to_style="format")
+            pg_query = _convert_internal_qmark_placeholders_for_postgres(query)
             # Security: Query strings are internal/static from this module and api/auth.py.
             # User values are ALWAYS passed via the 'parameters' tuple, never embedded in query.
-            # _convert_placeholders only changes placeholder tokens (? to %s), not parameter values.
+            # _convert_internal_qmark_placeholders_for_postgres only changes placeholder tokens (? to %s), not parameter values.
             # This follows DB-API 2.0 parameterized query pattern to prevent SQL injection.
             with connection.cursor() as cursor:
                 cursor.execute(pg_query, parameters or ())
@@ -628,10 +601,10 @@ def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
             import psycopg2.extras  # type: ignore[import-untyped]
 
             # Convert SQLite ? placeholders to PostgreSQL %s
-            pg_query = _convert_placeholders(query, from_style="qmark", to_style="format")
+            pg_query = _convert_internal_qmark_placeholders_for_postgres(query)
             # Security: Query strings are internal/static from this module and api/auth.py.
             # User values are ALWAYS passed via the 'parameters' tuple, never embedded in query.
-            # _convert_placeholders only changes placeholder tokens (? to %s), not parameter values.
+            # _convert_internal_qmark_placeholders_for_postgres only changes placeholder tokens (? to %s), not parameter values.
             # This follows DB-API 2.0 parameterized query pattern to prevent SQL injection.
             with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 cursor.execute(pg_query, parameters or ())
