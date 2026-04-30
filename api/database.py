@@ -226,7 +226,7 @@ elif _is_sqlite_url(DATABASE_URL):
     DATABASE_PATH = _resolve_sqlite_path(DATABASE_URL)
 else:
     raise ValueError(
-        f"Unsupported database URL scheme: {DATABASE_URL}. "
+        f"Unsupported database URL scheme: {urlparse(DATABASE_URL).scheme or '<empty>'}. "
         "Supported schemes are: sqlite:, postgresql://, postgres://"
     )
 
