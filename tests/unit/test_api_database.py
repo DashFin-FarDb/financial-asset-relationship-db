@@ -69,7 +69,7 @@ class TestDatabaseURLConfiguration:
                 get_settings.cache_clear()
                 with pytest.raises(
                     ValueError,
-                    match="DATABASE_URL environment variable must be set",
+                    match="No database URL configured",
                 ):
                     importlib.reload(database)
         finally:
