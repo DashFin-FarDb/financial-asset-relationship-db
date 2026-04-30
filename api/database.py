@@ -592,7 +592,7 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
         connection.commit()
 
 
-def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
+def fetch_one(query: str, parameters: tuple | list | None = None)-> Any | None:
     """
     Retrieve the first row produced by an SQL query.
 
