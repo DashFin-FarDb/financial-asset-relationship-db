@@ -1,4 +1,41 @@
-"""Lightweight database helpers for the API layer."""
+"""
+Lightweight database helpers for the API layer.
+
+This module provides a dual-database abstraction supporting both SQLite (for local/dev)
+and PostgreSQL (for production/hosted deployments). The module uses import-time
+configuration to determine the database type based on the DATABASE_URL environment
+variable.
+
+Parameter Binding Security:
+---------------------------
+Database values must be supplied through DB-API parameter binding. Query strings
+are repository-owned SQL statements; user-controlled values must be passed via the
+parameters argument and must not be interpolated into SQL strings.
+
+The module handles two parameter placeholder styles:
+
+1. SQLite: Uses '?' placeholders (qmark style)
+   Example: "SELECT * FROM users WHERE id = ?"
+
+2. PostgreSQL: Uses '%s' placeholders (format style, per DB-API 2.0 standard via psycopg2)
+   Example: "SELECT * FROM users WHERE id = %s"
+
+For the limited set of internal queries used in this module and api/auth.py, the module
+converts '?' placeholders to '%s' when using PostgreSQL. This conversion is intentionally
+simple and only safe for the known internal SQL queries that do not contain literal ? or %
+characters in string literals.
+
+IMPORTANT: psycopg2 uses %s for ALL types (not just strings). The %s is a placeholder
+that psycopg2 replaces with properly escaped values. It does NOT use $1, $2, etc.
+(those are server-side prepared statement placeholders, not client-side parameter binding).
+
+Connection Pooling:
+------------------
+Production-grade serverless connection pooling is DEFERRED to a future PR.
+The current implementation creates a new connection per request, which is acceptable
+for low-traffic environments but not recommended for production at scale.
+See ADR 0002 Phase 4 for planned pooling implementation.
+"""
 
 from __future__ import annotations
 
@@ -8,24 +45,56 @@ import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
 
 
-def _get_database_url() -> str:
+def _is_postgres_url(url: str) -> bool:
     """
-    Read the API SQLite database URL from centralized runtime settings.
+    Determine whether a database URL is a PostgreSQL connection string.
+
+    Parameters:
+        url (str): Database URL to check.
 
     Returns:
-        The configured DATABASE_URL value exposed by settings.
+        bool: True if the URL starts with postgresql:// or postgres://, False otherwise.
+    """
+    url_lower = url.lower().strip()
+    return url_lower.startswith("postgresql://") or url_lower.startswith("postgres://")
+
+
+def _is_sqlite_url(url: str) -> bool:
+    """
+    Determine whether a database URL is a SQLite connection string.
+
+    Parameters:
+        url (str): Database URL to check.
+
+    Returns:
+        bool: True if the URL starts with sqlite:, False otherwise.
+    """
+    return url.lower().strip().startswith("sqlite:")
+
+
+def _get_database_url() -> str:
+    """
+    Read the API database URL from centralized runtime settings.
+
+    DATABASE_URL remains canonical. POSTGRES_URL may be exposed by hosted
+    providers such as Vercel Postgres and is resolved as a fallback by the
+    settings layer when DATABASE_URL is not set.
+
+    Returns:
+        The configured database URL.
 
     Raises:
-        ValueError: If DATABASE_URL is missing or empty.
+        ValueError: If neither DATABASE_URL nor POSTGRES_URL is configured.
     """
     database_url = get_settings().database_url
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set")
+        raise ValueError("No database URL configured. Set DATABASE_URL or POSTGRES_URL.")
     return database_url
 
 
@@ -147,7 +216,19 @@ def _resolve_sqlite_path(url: str) -> str:
 
 
 DATABASE_URL = _get_database_url()
-DATABASE_PATH = _resolve_sqlite_path(DATABASE_URL)
+
+# Determine database type and resolve path/connection info
+if _is_postgres_url(DATABASE_URL):
+    DATABASE_TYPE = "postgresql"
+    DATABASE_PATH = DATABASE_URL  # For PostgreSQL, store the full connection string
+elif _is_sqlite_url(DATABASE_URL):
+    DATABASE_TYPE = "sqlite"
+    DATABASE_PATH = _resolve_sqlite_path(DATABASE_URL)
+else:
+    raise ValueError(
+        f"Unsupported database URL scheme: {urlparse(DATABASE_URL).scheme or '<empty>'}. "
+        "Supported schemes are: sqlite:, postgresql://, postgres://"
+    )
 
 # Module-level shared in-memory connection
 _MEMORY_CONNECTION: sqlite3.Connection | None = None
@@ -183,6 +264,29 @@ def _is_memory_db(path: str | None = None) -> bool:
     # (not part of a longer path).
     parsed = urlparse(target)
     return parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query)
+
+
+def _create_postgres_connection():
+    """
+    Create a PostgreSQL database connection using psycopg2.
+
+    Returns:
+        A psycopg2 connection object.
+
+    Raises:
+        ImportError: If psycopg2 is not installed.
+        Exception: If connection fails.
+    """
+    try:
+        import psycopg2  # type: ignore[import-untyped]
+        import psycopg2.extras  # type: ignore[import-untyped]
+    except ImportError as exc:
+        raise ImportError(
+            "psycopg2-binary is required for PostgreSQL support. " "Install it with: pip install psycopg2-binary"
+        ) from exc
+
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
 
 
 class _DatabaseConnectionManager:
@@ -348,15 +452,15 @@ def _connect() -> sqlite3.Connection:
 
 
 @contextmanager
-def get_connection() -> Iterator[sqlite3.Connection]:
+def get_connection() -> Iterator[Any]:
     """
-    Yield a context-managed SQLite connection for the configured database.
+    Yield a context-managed database connection for the configured database.
 
-    For file-backed databases the yielded connection is closed when the context exits. For
-    in-memory databases a shared persistent connection is yielded and remains open across calls
-    (the context does not close it).
+    For PostgreSQL databases, creates a new connection for each call and closes it on exit.
+    For file-backed SQLite databases, creates a new connection and closes it on exit.
+    For in-memory SQLite databases, yields a shared persistent connection that remains open.
 
-    **Important for in-memory databases:**
+    **Important for in-memory SQLite databases:**
     Access to in-memory databases is fully serialized via _MEMORY_USE_LOCK (a reentrant RLock).
     This means:
     - Only one operation can use the in-memory connection at a time
@@ -372,20 +476,29 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     - Using connection pooling for file-backed databases
 
     Returns:
-        sqlite3.Connection: An open SQLite connection for the configured database.
+        Connection object (sqlite3.Connection for SQLite, psycopg2 connection for PostgreSQL).
     """
-    connection = _connect()
-    is_memory = _is_memory_db()
-    if is_memory:
-        # Serialize access to the shared in-memory connection to prevent
-        # concurrent-transaction errors from multiple threads.
-        with _MEMORY_USE_LOCK:
-            yield connection
-    else:
+    if DATABASE_TYPE == "postgresql":
+        # PostgreSQL: create new connection, close on exit
+        connection = _create_postgres_connection()
         try:
             yield connection
         finally:
             connection.close()
+    else:
+        # SQLite path (original logic)
+        connection = _connect()
+        is_memory = _is_memory_db()
+        if is_memory:
+            # Serialize access to the shared in-memory connection to prevent
+            # concurrent-transaction errors from multiple threads.
+            with _MEMORY_USE_LOCK:
+                yield connection
+        else:
+            try:
+                yield connection
+            finally:
+                connection.close()
 
 
 def _cleanup_memory_connection() -> None:
@@ -427,11 +540,30 @@ def _cleanup_memory_connection() -> None:
 atexit.register(_cleanup_memory_connection)
 
 
+def _convert_internal_qmark_placeholders_for_postgres(query: str) -> str:
+    """
+    Convert qmark placeholders to psycopg2 placeholders for known internal auth SQL only.
+
+    This is not a general SQL parser. It must only be used for repository-owned
+    SQL statements that do not contain literal question marks in SQL string literals.
+    Parameter values must still be passed separately to DB-API execute calls.
+
+    Args:
+        query: SQL query string with qmark (?) placeholders
+
+    Returns:
+        Query string with placeholders converted to PostgreSQL format (%s)
+    """
+    return query.replace("?", "%s")
+
+
 def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
     Execute a SQL write statement and commit the transaction.
 
-    Use the module's managed SQLite connection.
+    Use the module's managed database connection. Supports SQLite-style (?) and
+    PostgreSQL-style (%s) placeholders. When using PostgreSQL, ? placeholders are
+    automatically converted to %s.
 
     Parameters:
         query (str): SQL statement to execute.
@@ -439,13 +571,27 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
             statement; use `None` or an empty sequence if there are no parameters.
     """
     with get_connection() as connection:
-        connection.execute(query, parameters or ())
+        if DATABASE_TYPE == "postgresql":
+            # Convert SQLite ? placeholders to PostgreSQL %s
+            pg_query = _convert_internal_qmark_placeholders_for_postgres(query)
+            # Security: Query strings are internal/static from this module and api/auth.py.
+            # User values are ALWAYS passed via the 'parameters' tuple, never embedded in query.
+            # _convert_internal_qmark_placeholders_for_postgres only changes placeholder tokens
+            # (? to %s), not parameter values.
+            # This follows DB-API 2.0 parameterized query pattern to prevent SQL injection.
+            with connection.cursor() as cursor:
+                cursor.execute(pg_query, parameters or ())
+        else:
+            connection.execute(query, parameters or ())
         connection.commit()
 
 
-def fetch_one(query: str, parameters: tuple | list | None = None):
+def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
     """
     Retrieve the first row produced by an SQL query.
+
+    Supports SQLite-style (?) and PostgreSQL-style (%s) placeholders.
+    When using PostgreSQL, ? placeholders are automatically converted to %s.
 
     Parameters:
         query (str): SQL statement to execute.
@@ -453,12 +599,26 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
             to bind into the query.
 
     Returns:
-        sqlite3.Row | None: The first row of the result set
-            as a `sqlite3.Row`, or `None` if the query returned no rows.
+        Row object: The first row of the result set (sqlite3.Row for SQLite,
+            dict-like for PostgreSQL), or `None` if the query returned no rows.
     """
     with get_connection() as connection:
-        cursor = connection.execute(query, parameters or ())
-        return cursor.fetchone()
+        if DATABASE_TYPE == "postgresql":
+            import psycopg2.extras  # type: ignore[import-untyped]
+
+            # Convert SQLite ? placeholders to PostgreSQL %s
+            pg_query = _convert_internal_qmark_placeholders_for_postgres(query)
+            # Security: Query strings are internal/static from this module and api/auth.py.
+            # User values are ALWAYS passed via the 'parameters' tuple, never embedded in query.
+            # _convert_internal_qmark_placeholders_for_postgres only changes placeholder tokens
+            # (? to %s), not parameter values.
+            # This follows DB-API 2.0 parameterized query pattern to prevent SQL injection.
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+                cursor.execute(pg_query, parameters or ())
+                return cursor.fetchone()
+        else:
+            cursor = connection.execute(query, parameters or ())
+            return cursor.fetchone()
 
 
 def fetch_value(query: str, parameters: tuple | list | None = None) -> object | None:
@@ -466,8 +626,8 @@ def fetch_value(query: str, parameters: tuple | list | None = None) -> object | 
     Return the first column value from the first row of a query result.
 
     If the query returns no rows, returns `None`. For any non-string indexable row
-    (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, or a mock with ``__getitem__``),
-    attempts to return ``row[0]``. Returns ``None`` when the row
+    (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, dict, or a mock with ``__getitem__``),
+    attempts to return ``row[0]`` or the first value. Returns ``None`` when the row
     is empty (i.e. ``row[0]`` raises ``IndexError``), and returns the row object
     unchanged only when indexing is not supported (``TypeError``).
 
@@ -481,6 +641,10 @@ def fetch_value(query: str, parameters: tuple | list | None = None) -> object | 
     row = fetch_one(query, parameters)
     if row is None:
         return None
+    # Handle dict-like rows (PostgreSQL RealDictCursor)
+    if isinstance(row, dict):
+        return next(iter(row.values())) if row else None
+    # Handle tuple/list/sqlite3.Row
     if isinstance(row, (sqlite3.Row, tuple, list)):
         return row[0] if row else None
     try:
@@ -495,21 +659,39 @@ def initialize_schema() -> None:
     """
     Create the `user_credentials` table if it does not already exist.
 
+    The table schema is compatible with both SQLite and PostgreSQL:
+    - SQLite uses INTEGER PRIMARY KEY AUTOINCREMENT
+    - PostgreSQL uses SERIAL PRIMARY KEY
+
     The table has the following columns:
-    - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
-    - `username`: TEXT, unique and not null
-    - `email`: TEXT
-    - `full_name`: TEXT
-    - `hashed_password`: TEXT, not null
-    - `disabled`: INTEGER, not null, defaults to 0
+    - `id`: Auto-incrementing primary key
+    - `username`: TEXT/VARCHAR, unique and not null
+    - `email`: TEXT/VARCHAR
+    - `full_name`: TEXT/VARCHAR
+    - `hashed_password`: TEXT/VARCHAR, not null
+    - `disabled`: INTEGER/SMALLINT, not null, defaults to 0
     """
-    execute("""
-        CREATE TABLE IF NOT EXISTS user_credentials(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT,
-            full_name TEXT,
-            hashed_password TEXT NOT NULL,
-            disabled INTEGER NOT NULL DEFAULT 0
-        )
-        """)
+    if DATABASE_TYPE == "postgresql":
+        # PostgreSQL-compatible DDL
+        execute("""
+            CREATE TABLE IF NOT EXISTS user_credentials(
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255),
+                full_name VARCHAR(255),
+                hashed_password VARCHAR(255) NOT NULL,
+                disabled SMALLINT NOT NULL DEFAULT 0
+            )
+            """)
+    else:
+        # SQLite DDL (original)
+        execute("""
+            CREATE TABLE IF NOT EXISTS user_credentials(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT,
+                full_name TEXT,
+                hashed_password TEXT NOT NULL,
+                disabled INTEGER NOT NULL DEFAULT 0
+            )
+            """)
