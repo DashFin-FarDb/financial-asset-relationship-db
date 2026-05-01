@@ -480,6 +480,28 @@ class TestAPIEndpoints:
             "relationship_count": 0,
         }
 
+    def test_detailed_health_degraded_when_graph_containers_are_unsupported(
+        self,
+        bare_client: TestClient,
+    ) -> None:
+        """Detailed health degrades when graph containers have unsupported shapes."""
+        graph = Mock()
+        graph.assets = []
+        graph.relationships = []
+
+        with patch("api.routers.system.get_graph", return_value=graph):
+            response = bare_client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert data["graph"] == {
+            "available": False,
+            "asset_count": 0,
+            "relationship_count": 0,
+        }
+    
     def test_detailed_health_degraded_when_database_check_fails(
         self,
         client: TestClient,
@@ -496,6 +518,28 @@ class TestAPIEndpoints:
         assert data["database"]["configured"] is True
         assert data["database"]["type"] in {"sqlite", "postgresql"}
         assert data["database"]["reachable"] is False
+
+    def test_detailed_health_degraded_when_database_type_is_unsupported(
+        self,
+        client: TestClient,
+    ) -> None:
+        """Detailed health reports unconfigured when the database type is unsupported."""
+        with (
+            patch("api.database.DATABASE_TYPE", "mysql"),
+            patch("api.database.fetch_value") as fetch_value,
+        ):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert data["database"] == {
+            "configured": False,
+            "type": "unknown",
+            "reachable": False,
+        }
+        fetch_value.assert_not_called()
 
     def test_detailed_health_does_not_leak_database_error_details(
         self,
