@@ -91,7 +91,7 @@ def _get_database_health() -> DatabaseHealthResponse:
             reachable=False,
         )
 
-    database_type = cast(SupportedDatabaseType, database_type_raw)
+    database_type = cast(SUPPORTED_DATABASE_TYPE, database_type_raw)
 
     try:
         database.fetch_value("SELECT 1")
