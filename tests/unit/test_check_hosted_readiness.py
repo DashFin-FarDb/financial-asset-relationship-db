@@ -121,7 +121,23 @@ def test_detailed_readiness_rejects_unexpected_top_level_field(monkeypatch: pyte
 
     failures = script.check_detailed_readiness("https://example.com", 5.0)
 
-    assert "/api/health/detailed returned unexpected top-level fields: ['extra']" in failures
+    assert "/api/health/detailed returned top-level field mismatch: missing=[], unexpected=['extra']" in failures
+
+
+def test_detailed_readiness_rejects_missing_top_level_fields(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Detailed readiness check reports missing required top-level fields."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        return 200, {"status": "healthy"}
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+
+    failures = script.check_detailed_readiness("https://example.com", 5.0)
+
+    assert (
+        "/api/health/detailed returned top-level field mismatch: " "missing=['database', 'graph'], unexpected=[]"
+    ) in failures
 
 
 def test_detailed_readiness_rejects_forbidden_top_level_field(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -140,7 +156,9 @@ def test_detailed_readiness_rejects_forbidden_top_level_field(monkeypatch: pytes
 
     failures = script.check_detailed_readiness("https://example.com", 5.0)
 
-    assert "/api/health/detailed returned unexpected top-level fields: ['environment']" in failures
+    assert (
+        "/api/health/detailed returned top-level field mismatch: " "missing=[], unexpected=['environment']"
+    ) in failures
     assert "/api/health/detailed exposed forbidden top-level fields: ['environment']" in failures
 
 
