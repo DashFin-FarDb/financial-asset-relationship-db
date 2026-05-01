@@ -501,7 +501,7 @@ class TestAPIEndpoints:
             "asset_count": 0,
             "relationship_count": 0,
         }
-    
+
     def test_detailed_health_degraded_when_database_check_fails(
         self,
         client: TestClient,
