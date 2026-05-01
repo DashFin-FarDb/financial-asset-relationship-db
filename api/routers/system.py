@@ -38,25 +38,6 @@ def _get_graph_health() -> GraphHealthResponse:
     """Return bounded, non-secret graph readiness details."""
     try:
         graph = get_graph()
-        relationships = getattr(graph, "relationships", {}) or {}
-        return GraphHealthResponse(
-            available=True,
-            asset_count=len(getattr(graph, "assets", {}) or {}),
-            relationship_count=sum(len(items) for items in relationships.values()),
-        )
-    except Exception:
-        logger.exception("Detailed health graph check failed:")
-        return GraphHealthResponse(
-            available=False,
-            asset_count=0,
-            relationship_count=0,
-        )
-
-
-def _get_graph_health() -> GraphHealthResponse:
-    """Return bounded, non-secret graph readiness details."""
-    try:
-        graph = get_graph()
         assets = getattr(graph, "assets", {}) or {}
         relationships = getattr(graph, "relationships", {}) or {}
 
@@ -80,6 +61,44 @@ def _get_graph_health() -> GraphHealthResponse:
             asset_count=0,
             relationship_count=0,
         )
+
+
+def _get_database_health() -> DatabaseHealthResponse:
+    """Return bounded, non-secret auth database readiness details."""
+    try:
+        from api import database
+    except Exception:
+        logger.warning("Detailed health database configuration check failed")
+        return DatabaseHealthResponse(
+            configured=False,
+            type="unknown",
+            reachable=False,
+        )
+
+    database_type = getattr(database, "DATABASE_TYPE", "unknown")
+    if database_type not in {"sqlite", "postgresql"}:
+        logger.warning("Detailed health database check found unsupported database type")
+        return DatabaseHealthResponse(
+            configured=False,
+            type="unknown",
+            reachable=False,
+        )
+
+    try:
+        database.fetch_value("SELECT 1")
+    except Exception:
+        logger.warning("Detailed health database reachability check failed")
+        return DatabaseHealthResponse(
+            configured=True,
+            type=database_type,
+            reachable=False,
+        )
+
+    return DatabaseHealthResponse(
+        configured=True,
+        type=database_type,
+        reachable=True,
+    )
 
 
 @router.get("/api/health/detailed", response_model=DetailedHealthResponse)
