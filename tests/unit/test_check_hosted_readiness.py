@@ -198,3 +198,18 @@ def test_main_rejects_non_positive_timeout() -> None:
     script = _load_script()
 
     assert script.main(["https://example.com", "--timeout", "0"]) == script.USAGE_ERROR
+
+
+@pytest.mark.parametrize(
+    "base_url",
+    [
+        "example.com",
+        "ftp://example.com",
+        "https://",
+    ],
+)
+def test_main_rejects_invalid_base_url(base_url: str) -> None:
+    """CLI rejects base URLs without supported scheme and host."""
+    script = _load_script()
+
+    assert script.main([base_url]) == script.USAGE_ERROR

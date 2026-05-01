@@ -7,7 +7,7 @@ import json
 import sys
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
 SUCCESS = 0
@@ -35,6 +35,16 @@ FORBIDDEN_DETAILED_TOP_LEVEL_FIELDS = {
 def _build_url(base_url: str, path: str) -> str:
     """Build an absolute URL for a hosted API path."""
     return urljoin(base_url.rstrip("/") + "/", path.lstrip("/"))
+
+
+def _validate_base_url(base_url: str) -> str | None:
+    """Return a bounded validation error when the base URL is not usable."""
+    parsed = urlparse(base_url)
+
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return "base_url must include an http:// or https:// scheme and host"
+
+    return None
 
 
 def _get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
@@ -156,6 +166,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.timeout <= 0:
         print("--timeout must be greater than zero", file=sys.stderr)
+        return USAGE_ERROR
+
+    base_url_error = _validate_base_url(args.base_url)
+    if base_url_error is not None:
+        print(base_url_error, file=sys.stderr)
         return USAGE_ERROR
 
     return run_checks(args.base_url, args.timeout)
