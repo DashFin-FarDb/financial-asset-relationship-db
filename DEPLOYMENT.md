@@ -58,10 +58,12 @@ Optional backend runtime settings:
 The API database layer supports both **SQLite** (local/dev) and **PostgreSQL** (production).
 
 **Local/Development (SQLite):**
+
 - SQLite files such as `sqlite:dev.db` are suitable for local development
 - In-memory databases (`sqlite:///:memory:`) work for testing
 
 **Production/Hosted (PostgreSQL):**
+
 - PostgreSQL is the recommended durable persistence target for hosted deployments
 - Example: `postgresql://user:password@host:5432/database`
 - Vercel Postgres: If `DATABASE_URL` is not set, `POSTGRES_URL` is used as a fallback
@@ -106,6 +108,7 @@ The API database layer supports both **SQLite** (local/dev) and **PostgreSQL** (
    The API will be available at `http://localhost:8000`
    - API documentation: `http://localhost:8000/docs`
    - Health check: `http://localhost:8000/api/health`
+   - Detailed readiness check: `http://localhost:8000/api/health/detailed`
 
 ### Frontend Setup
 
@@ -234,7 +237,8 @@ The FastAPI backend exposes the following endpoints:
 ### Core Endpoints
 
 - `GET /` - API information
-- `GET /api/health` - Health check
+- `GET /api/health` - Simple liveness health check
+- `GET /api/health/detailed` - Bounded hosted-readiness diagnostics for graph and auth database status
 
 ### Assets
 
@@ -259,6 +263,67 @@ The FastAPI backend exposes the following endpoints:
 
 - `GET /api/asset-classes` - Get available asset classes
 - `GET /api/sectors` - Get available sectors
+
+### Detailed Readiness Check
+
+Use `GET /api/health/detailed` for hosted deployment diagnostics after the API is deployed.
+
+The response is intentionally bounded and non-secret. It reports:
+
+- overall readiness status: `healthy` or `degraded`
+- graph availability
+- graph asset and relationship counts
+- auth database configured/reachable status
+- auth database type: `sqlite`, `postgresql`, or `unknown`
+
+Example healthy response:
+
+```json
+{
+  "status": "healthy",
+  "graph": {
+    "available": true,
+    "asset_count": 19,
+    "relationship_count": 57
+  },
+  "database": {
+    "configured": true,
+    "type": "postgresql",
+    "reachable": true
+  }
+}
+```
+
+Example degraded response:
+
+```json
+{
+  "status": "degraded",
+  "graph": {
+    "available": true,
+    "asset_count": 19,
+    "relationship_count": 57
+  },
+  "database": {
+    "configured": true,
+    "type": "postgresql",
+    "reachable": false
+  }
+}
+```
+
+It must not expose:
+
+- environment names
+- database URLs
+- database filesystem paths
+- hostnames
+- usernames
+- provider names
+- exception messages
+- secrets
+
+A degraded response still returns HTTP 200. Treat `status: "degraded"` as an operational readiness signal, not an HTTP transport failure. Automated monitoring tools should be configured to verify the status field in the JSON response body.
 
 ## Frontend Features
 
@@ -293,8 +358,16 @@ are loaded through `src/config/settings.py` and applied by `api/cors_policy.py`;
 ### API Connection Errors
 
 1. Check that the backend is running: `curl http://localhost:8000/api/health`
-2. Verify the `NEXT_PUBLIC_API_URL` environment variable
-3. Check browser console for detailed error messages
+2. For hosted readiness diagnostics, also check:
+
+   ```bash
+   curl https://your-api-domain.vercel.app/api/health/detailed
+   ```
+
+   The response should include only `status`, `graph`, and `database` at the top level.
+
+3. Verify the `NEXT_PUBLIC_API_URL` environment variable
+4. Check browser console for detailed error messages
 
 ### Build Errors
 

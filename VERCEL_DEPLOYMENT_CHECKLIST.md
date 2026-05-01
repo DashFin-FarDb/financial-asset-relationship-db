@@ -171,6 +171,9 @@ vercel --prod
 - [ ] Open deployed URL in browser
 - [ ] Check that frontend loads without errors
 - [ ] Verify API health: `https://your-project.vercel.app/api/health`
+- [ ] Verify detailed readiness: `https://your-project.vercel.app/api/health/detailed`
+- [ ] Confirm detailed readiness returns only bounded non-secret fields: `status`, `graph`, and `database`
+- [ ] Confirm the response does not expose environment names, database URLs, paths, hostnames, usernames, provider names, exception messages, or secrets
 - [ ] Test API docs: `https://your-project.vercel.app/docs`
 
 ### 2. Test Functionality
@@ -366,6 +369,14 @@ Before going live:
 - [ ] Backup plan is documented
 - [ ] Users are notified of new deployment
 
+### Detailed Readiness Interpretation
+
+`GET /api/health/detailed` returns HTTP 200 for both healthy and degraded readiness states. Automated monitoring tools should parse the JSON response body and check the `status` field instead of relying on HTTP status code alone.
+
+- `status: "healthy"` means the graph and auth database checks are available/reachable.
+- `status: "degraded"` means at least one readiness component is unavailable or unreachable.
+- A degraded response should be investigated through deployment logs and environment configuration, but the response body itself must remain non-secret.
+
 ---
 
 ## Quick Reference Commands
@@ -388,6 +399,12 @@ vercel logs
 
 # List deployments
 vercel ls
+
+# Check simple API liveness
+curl https://your-project.vercel.app/api/health
+
+# Check detailed hosted readiness
+curl https://your-project.vercel.app/api/health/detailed
 ```
 
 ---
