@@ -295,6 +295,7 @@ Example healthy response:
 ```
 
 Example degraded response:
+
 ```json
 {
   "status": "degraded",
