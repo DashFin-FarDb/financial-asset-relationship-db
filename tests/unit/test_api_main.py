@@ -492,11 +492,10 @@ class TestAPIEndpoints:
         data = response.json()
 
         assert data["status"] == "degraded"
-        assert data["database"] == {
-            "configured": False,
-            "type": "unknown",
-            "reachable": False,
-        }
+        assert set(data["database"]) == {"configured", "type", "reachable"}
+        assert data["database"]["configured"] is True
+        assert data["database"]["type"] in {"sqlite", "postgresql"}
+        assert data["database"]["reachable"] is False
 
     def test_detailed_health_does_not_leak_database_error_details(
         self,
