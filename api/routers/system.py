@@ -79,7 +79,7 @@ def _get_database_health() -> DatabaseHealthResponse:
 
 
 @router.get("/api/health/detailed", response_model=DetailedHealthResponse)
-async def detailed_health_check() -> DetailedHealthResponse:
+def detailed_health_check() -> DetailedHealthResponse:
     """Return bounded, non-secret readiness information for hosted deployment."""
     graph_health = _get_graph_health()
     database_health = _get_database_health()
