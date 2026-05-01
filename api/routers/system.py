@@ -11,7 +11,7 @@ from ..router_helpers import get_graph, logger
 
 router = APIRouter()
 
-SupportedDatabaseType = Literal["sqlite", "postgresql"]
+SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
 
 
 @router.get("/")
