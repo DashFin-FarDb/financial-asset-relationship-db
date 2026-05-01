@@ -1,6 +1,6 @@
 """Pydantic response models for API endpoints."""
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -83,3 +83,33 @@ class VisualizationDataResponse(BaseModel):
 
     nodes: list[VisualizationNode]
     edges: list[VisualizationEdge]
+
+
+class GraphHealthResponse(BaseModel):
+    """Non-secret graph readiness status."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    available: bool
+    asset_count: int = Field(ge=0)
+    relationship_count: int = Field(ge=0)
+
+
+class DatabaseHealthResponse(BaseModel):
+    """Non-secret auth database readiness status."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    configured: bool
+    type: Literal["sqlite", "postgresql", "unknown"]
+    reachable: bool
+
+
+class DetailedHealthResponse(BaseModel):
+    """Non-secret hosted deployment readiness status."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["healthy", "degraded"]
+    graph: GraphHealthResponse
+    database: DatabaseHealthResponse

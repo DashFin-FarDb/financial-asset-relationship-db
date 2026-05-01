@@ -29,6 +29,9 @@ from fastapi.testclient import TestClient
 import api.main as api_main
 from api.api_models import (
     AssetResponse,
+    DatabaseHealthResponse,
+    DetailedHealthResponse,
+    GraphHealthResponse,
     MetricsResponse,
     RelationshipResponse,
     VisualizationDataResponse,
@@ -297,6 +300,93 @@ class TestPydanticModels:
         assert len(viz.nodes) == 1
         assert len(viz.edges) == 1
 
+    def test_detailed_health_response_model_valid(self) -> None:
+        """DetailedHealthResponse accepts bounded readiness payloads."""
+        response = DetailedHealthResponse(
+            status="healthy",
+            graph=GraphHealthResponse(
+                available=True,
+                asset_count=19,
+                relationship_count=57,
+            ),
+            database=DatabaseHealthResponse(
+                configured=True,
+                type="sqlite",
+                reachable=True,
+            ),
+        )
+
+        assert response.status == "healthy"
+        assert response.graph.available is True
+        assert response.graph.asset_count == 19
+        assert response.database.type == "sqlite"
+
+    def test_detailed_health_response_rejects_extra_fields(self) -> None:
+        """DetailedHealthResponse rejects fields outside the public readiness contract."""
+        with pytest.raises(ValueError):
+            DetailedHealthResponse(
+                status="healthy",
+                environment="production",
+                graph=GraphHealthResponse(
+                    available=True,
+                    asset_count=1,
+                    relationship_count=0,
+                ),
+                database=DatabaseHealthResponse(
+                    configured=True,
+                    type="sqlite",
+                    reachable=True,
+                ),
+            )
+
+    def test_detailed_health_response_rejects_invalid_status_and_database_type(self) -> None:
+        """DetailedHealthResponse restricts status and database type values."""
+        with pytest.raises(ValueError):
+            DetailedHealthResponse(
+                status="unknown",
+                graph=GraphHealthResponse(
+                    available=True,
+                    asset_count=1,
+                    relationship_count=0,
+                ),
+                database=DatabaseHealthResponse(
+                    configured=True,
+                    type="sqlite",
+                    reachable=True,
+                ),
+            )
+
+        with pytest.raises(ValueError):
+            DetailedHealthResponse(
+                status="healthy",
+                graph=GraphHealthResponse(
+                    available=True,
+                    asset_count=1,
+                    relationship_count=0,
+                ),
+                database=DatabaseHealthResponse(
+                    configured=True,
+                    type="mysql",
+                    reachable=True,
+                ),
+            )
+
+    def test_graph_health_response_rejects_negative_counts(self) -> None:
+        """GraphHealthResponse rejects negative graph counts."""
+        with pytest.raises(ValueError):
+            GraphHealthResponse(
+                available=True,
+                asset_count=-1,
+                relationship_count=0,
+            )
+
+        with pytest.raises(ValueError):
+            GraphHealthResponse(
+                available=True,
+                asset_count=1,
+                relationship_count=-1,
+            )
+
 
 @pytest.mark.unit
 class TestAPIEndpoints:
@@ -350,6 +440,141 @@ class TestAPIEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
+        assert data["graph_initialized"] is True
+
+    def test_detailed_health_endpoint_success(self, client: TestClient) -> None:
+        """Detailed health endpoint returns typed graph and database readiness."""
+        response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert set(data) == {"status", "graph", "database"}
+        assert data["status"] == "healthy"
+
+        assert set(data["graph"]) == {"available", "asset_count", "relationship_count"}
+        assert data["graph"]["available"] is True
+        assert data["graph"]["asset_count"] > 0
+        assert data["graph"]["relationship_count"] >= 0
+
+        assert set(data["database"]) == {"configured", "type", "reachable"}
+        assert data["database"]["configured"] is True
+        assert data["database"]["type"] in {"sqlite", "postgresql"}
+        assert data["database"]["reachable"] is True
+
+    def test_detailed_health_degraded_when_graph_check_fails(
+        self,
+        bare_client: TestClient,
+    ) -> None:
+        """Detailed health reports degraded when graph readiness fails."""
+        with patch("api.routers.system.get_graph", side_effect=RuntimeError("graph boom")):
+            response = bare_client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert data["graph"] == {
+            "available": False,
+            "asset_count": 0,
+            "relationship_count": 0,
+        }
+
+    def test_detailed_health_degraded_when_graph_containers_are_unsupported(
+        self,
+        bare_client: TestClient,
+    ) -> None:
+        """Detailed health degrades when graph containers have unsupported shapes."""
+        graph = Mock()
+        graph.assets = []
+        graph.relationships = []
+
+        with patch("api.routers.system.get_graph", return_value=graph):
+            response = bare_client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert data["graph"] == {
+            "available": False,
+            "asset_count": 0,
+            "relationship_count": 0,
+        }
+
+    def test_detailed_health_degraded_when_database_check_fails(
+        self,
+        client: TestClient,
+    ) -> None:
+        """Detailed health reports degraded when auth database readiness fails."""
+        with patch("api.database.fetch_value", side_effect=RuntimeError("db boom")):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert set(data["database"]) == {"configured", "type", "reachable"}
+        assert data["database"]["configured"] is True
+        assert data["database"]["type"] in {"sqlite", "postgresql"}
+        assert data["database"]["reachable"] is False
+
+    def test_detailed_health_degraded_when_database_type_is_unsupported(
+        self,
+        client: TestClient,
+    ) -> None:
+        """Detailed health reports unconfigured when the database type is unsupported."""
+        with (
+            patch("api.database.DATABASE_TYPE", "mysql"),
+            patch("api.database.fetch_value") as fetch_value,
+        ):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert data["database"] == {
+            "configured": False,
+            "type": "unknown",
+            "reachable": False,
+        }
+        fetch_value.assert_not_called()
+
+    def test_detailed_health_does_not_leak_database_error_details(
+        self,
+        client: TestClient,
+    ) -> None:
+        """Detailed health response must not expose DB connection details or exception text."""
+        sensitive_message = "postgresql://admin:super-secret@example.internal:5432/fardb"
+
+        with patch("api.database.fetch_value", side_effect=RuntimeError(sensitive_message)):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        body = response.text
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert set(data["database"]) == {"configured", "type", "reachable"}
+        assert data["database"]["configured"] is True
+        assert data["database"]["type"] in {"sqlite", "postgresql"}
+        assert data["database"]["reachable"] is False
+
+        assert "super-secret" not in body
+        assert "example.internal" not in body
+        assert "postgresql://" not in body
+        assert "admin" not in body
+        assert sensitive_message not in body
+
+    def test_detailed_health_does_not_expose_environment(self, client: TestClient) -> None:
+        """Detailed health response must not expose deployment environment metadata."""
+        response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert "environment" not in data
 
     def test_get_assets_all(self, client):
         """Test getting all assets without filters."""
