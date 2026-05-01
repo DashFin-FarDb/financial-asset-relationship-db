@@ -131,6 +131,8 @@ Security scanners must not automatically:
 3. Change authentication or authorization models
 4. Modify API contracts to fix security issues
 
+For detailed scanner finding rules and suppression guidance, see the "High-risk change control" section in [AI_AGENT_GUARDRAILS.md](AI_AGENT_GUARDRAILS.md).
+
 ### Prioritization
 
 Security issues in the **production architecture** (FastAPI + Next.js) take priority over issues in the **non-production** Gradio UI.

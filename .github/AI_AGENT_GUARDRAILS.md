@@ -97,3 +97,96 @@ Only when **all three** conditions hold:
 ### Origin of this rule
 
 `re.DOTALL` + `.*?` spanning a whole file was used in `tests/integration/test_pyproject_dev_deps.py` (PR #1022, commit 6c94b98) and flagged as a ReDoS risk (Sonar S5852). It was replaced with a `str.find()` + bounded `[^\]]*` approach in commit b97073c. Do not reintroduce the broad-dotall pattern.
+
+---
+
+## High-risk change control
+
+Database, authentication, deployment, CI/CD, security scanner configuration, persistence, and migration work require low-autonomy, file-bounded implementation contracts.
+
+### Low-autonomy areas
+
+The following areas have complex failure modes and require explicit boundaries before implementation:
+
+- database schema, connections, drivers, pooling
+- authentication and authorization
+- deployment, hosting, and containerization
+- CI/CD pipelines and workflow configuration
+- security scanner configuration (CodeQL, DeepSource, Snyk, Codacy, Trivy)
+- persistence and storage backends
+- environment-variable precedence and configuration loading
+- migrations (schema, data, or auth)
+- connection pooling and async/sync driver selection
+
+### Required prompt contract
+
+When working in low-autonomy areas, the prompt must specify:
+
+1. **Allowed files**: Exact list of files that may be modified
+2. **Forbidden files**: Explicit list of files that must not be touched
+3. **Exact targets**: Specific functions, classes, or config keys to modify
+4. **Exact non-targets**: Functions, classes, or config keys that must not be modified
+5. **Fixed decisions**: Implementation choices already decided (e.g., SQLite vs PostgreSQL, sync vs async, migration tool, env-var precedence order)
+6. **Tests to add/update**: Specific test files or test cases required
+7. **Validation commands**: Commands to verify correctness
+8. **Stop conditions**: When to stop and report instead of continuing
+
+### Stop and report conditions
+
+Stop implementation and report (do not continue coding) if the change appears to require:
+
+- an architectural decision not already documented
+- a new file outside the allowed-files list
+- suppression of security scanner findings
+- changes to dependencies (requirements.txt, package.json, etc.)
+- touching a forbidden file
+- choosing between technical alternatives (drivers, pools, auth flows, migration strategies)
+
+### Scanner finding rules
+
+**Do not suppress scanner findings globally.**
+
+Do not edit scanner configuration files (`.deepsource.toml`, `.github/workflows/codeql.yml`, `.snyk`, `codacy-config.yml`, etc.) unless that exact file is listed in the allowed-files list.
+
+Prefer fixing the specific code, test, or example causing the finding.
+
+If a finding is believed to be a false positive:
+
+1. Explain why it is a false positive
+2. Request human decision before adding suppression
+3. If approved, add inline suppression with a comment explaining the justification
+
+### Artifact creation rules
+
+Do not create root-level files unless explicitly requested:
+
+- No `PR_DESCRIPTION.md` (PR summaries belong in the GitHub PR body)
+- No audit summaries, scratch scripts, or manual test scripts
+- No new tracking documents or report files
+
+### Scope control rules
+
+When working in high-risk areas:
+
+- No opportunistic cleanup of adjacent code
+- No refactoring unrelated to the stated objective
+- No dependency upgrades except explicitly named ones
+- No changes to graph logic, frontend, CI, or docs unless listed in allowed files
+
+### Database/auth/deployment-specific rules
+
+Do not choose between technical alternatives during implementation:
+
+- SQLite vs PostgreSQL
+- sync vs async database drivers
+- migration tool selection (Alembic, sqlalchemy-migrate, custom scripts)
+- connection pooling strategies
+- environment-variable precedence order when multiple config sources exist
+
+These decisions must be made before coding begins.
+
+If not specified in the prompt, stop and ask for the decision.
+
+### Lesson from PR #1096
+
+PR #1096 (PostgreSQL support for API auth database) demonstrated the risk of autonomous implementation across database boundaries. The PR added PostgreSQL support but initially drifted into broader scope (connection pooling, async driver selection, environment-variable precedence) without explicit contracts. This showed the need for file-bounded implementation contracts in high-risk areas. Future database/auth/deployment work should specify allowed files, fixed decisions, and stop conditions before coding begins.
