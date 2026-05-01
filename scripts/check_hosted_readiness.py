@@ -94,10 +94,12 @@ def check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
 
     expected_top_level = {"status", "graph", "database"}
     actual_top_level = set(payload)
+    missing_top_level = sorted(expected_top_level - actual_top_level)
+    unexpected_top_level = sorted(actual_top_level - expected_top_level)
     if actual_top_level != expected_top_level:
         failures.append(
-            "/api/health/detailed returned unexpected top-level fields: "
-            f"{sorted(actual_top_level - expected_top_level)}"
+            "/api/health/detailed returned top-level field mismatch: "
+            f"missing={missing_top_level}, unexpected={unexpected_top_level}"
         )
 
     leaked_fields = sorted(actual_top_level & FORBIDDEN_DETAILED_TOP_LEVEL_FIELDS)
