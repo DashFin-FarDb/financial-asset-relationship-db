@@ -509,6 +509,13 @@ class TestAPIEndpoints:
 
         assert response.status_code == 200
         body = response.text
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert set(data["database"]) == {"configured", "type", "reachable"}
+        assert data["database"]["configured"] is True
+        assert data["database"]["type"] in {"sqlite", "postgresql"}
+        assert data["database"]["reachable"] is False
 
         assert "super-secret" not in body
         assert "example.internal" not in body
