@@ -53,28 +53,32 @@ def _get_graph_health() -> GraphHealthResponse:
         )
 
 
-def _get_database_health() -> DatabaseHealthResponse:
-    """Return bounded, non-secret auth database readiness details."""
+def _get_graph_health() -> GraphHealthResponse:
+    """Return bounded, non-secret graph readiness details."""
     try:
-        from api import database
+        graph = get_graph()
+        assets = getattr(graph, "assets", {}) or {}
+        relationships = getattr(graph, "relationships", {}) or {}
 
-        database_type = getattr(database, "DATABASE_TYPE", "unknown")
-        if database_type not in {"sqlite", "postgresql"}:
-            database_type = "unknown"
+        if not isinstance(assets, dict) or not isinstance(relationships, dict):
+            logger.warning("Detailed health graph check found unsupported graph container shape")
+            return GraphHealthResponse(
+                available=False,
+                asset_count=0,
+                relationship_count=0,
+            )
 
-        database.fetch_value("SELECT 1")
-
-        return DatabaseHealthResponse(
-            configured=True,
-            type=database_type,
-            reachable=True,
+        return GraphHealthResponse(
+            available=True,
+            asset_count=len(assets),
+            relationship_count=sum(len(items) for items in relationships.values()),
         )
     except Exception:
-        logger.exception("Detailed health database check failed:")
-        return DatabaseHealthResponse(
-            configured=False,
-            type="unknown",
-            reachable=False,
+        logger.warning("Detailed health graph check failed")
+        return GraphHealthResponse(
+            available=False,
+            asset_count=0,
+            relationship_count=0,
         )
 
 
