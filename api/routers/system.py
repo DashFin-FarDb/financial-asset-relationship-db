@@ -1,6 +1,6 @@
 """System and metadata API routes."""
 
-from typing import Any
+from typing import Any, Literal, NoReturn, cast
 
 from fastapi import APIRouter, HTTPException
 
@@ -10,6 +10,8 @@ from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHe
 from ..router_helpers import get_graph, logger
 
 router = APIRouter()
+
+SupportedDatabaseType = Literal["sqlite", "postgresql"]
 
 
 @router.get("/")
@@ -75,14 +77,16 @@ def _get_database_health() -> DatabaseHealthResponse:
             reachable=False,
         )
 
-    database_type = getattr(database, "DATABASE_TYPE", "unknown")
-    if database_type not in {"sqlite", "postgresql"}:
+    database_type_raw = getattr(database, "DATABASE_TYPE", "unknown")
+    if database_type_raw not in {"sqlite", "postgresql"}:
         logger.warning("Detailed health database check found unsupported database type")
         return DatabaseHealthResponse(
             configured=False,
             type="unknown",
             reachable=False,
         )
+
+    database_type = cast(SupportedDatabaseType, database_type_raw)
 
     try:
         database.fetch_value("SELECT 1")
@@ -101,7 +105,7 @@ def _get_database_health() -> DatabaseHealthResponse:
     )
 
 
-@router.get("/api/health/detailed", response_model=DetailedHealthResponse)
+@router.get("/api/health/detailed")
 def detailed_health_check() -> DetailedHealthResponse:
     """Return bounded, non-secret readiness information for hosted deployment."""
     graph_health = _get_graph_health()
@@ -115,6 +119,13 @@ def detailed_health_check() -> DetailedHealthResponse:
         database=database_health,
     )
 
+def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:
+    """Log a system route failure and raise the public internal-error response."""
+    logger.exception(message)
+    raise HTTPException(
+        status_code=500,
+        detail="An internal error occurred. Please try again later.",
+    ) from exc
 
 @router.get("/api/asset-classes")
 async def get_asset_classes() -> dict[str, list[str]]:
@@ -122,11 +133,7 @@ async def get_asset_classes() -> dict[str, list[str]]:
     try:
         return {"asset_classes": sorted(ac.value for ac in AssetClass)}
     except Exception as e:
-        logger.exception("Error getting asset classes:")
-        raise HTTPException(
-            status_code=500,
-            detail="An internal error occurred. Please try again later.",
-        ) from e
+        _raise_system_route_error("Error getting asset classes:", e)
 
 
 @router.get("/api/sectors")
@@ -136,8 +143,4 @@ async def get_sectors() -> dict[str, list[str]]:
         g = get_graph()
         return {"sectors": sorted({a.sector for a in g.assets.values() if a.sector})}
     except Exception as e:
-        logger.exception("Error getting sectors:")
-        raise HTTPException(
-            status_code=500,
-            detail="An internal error occurred. Please try again later.",
-        ) from e
+        _raise_system_route_error("Error getting sectors:", e)
