@@ -276,6 +276,41 @@ The response is intentionally bounded and non-secret. It reports:
 - auth database configured/reachable status
 - auth database type: `sqlite`, `postgresql`, or `unknown`
 
+Example healthy response:
+
+```json
+{
+  "status": "healthy",
+  "graph": {
+    "available": true,
+    "asset_count": 19,
+    "relationship_count": 57
+  },
+  "database": {
+    "configured": true,
+    "type": "postgresql",
+    "reachable": true
+  }
+}
+```
+
+Example degraded response:
+```json
+{
+  "status": "degraded",
+  "graph": {
+    "available": true,
+    "asset_count": 19,
+    "relationship_count": 57
+  },
+  "database": {
+    "configured": true,
+    "type": "postgresql",
+    "reachable": false
+  }
+}
+```
+
 It must not expose:
 
 - environment names
