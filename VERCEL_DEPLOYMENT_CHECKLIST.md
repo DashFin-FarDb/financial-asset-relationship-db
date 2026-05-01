@@ -371,7 +371,7 @@ Before going live:
 
 ### Detailed Readiness Interpretation
 
-`GET /api/health/detailed` returns HTTP 200 for both healthy and degraded readiness states.
+`GET /api/health/detailed` returns HTTP 200 for both healthy and degraded readiness states. Automated monitoring tools should parse the JSON response body and check the `status` field instead of relying on HTTP status code alone.
 
 - `status: "healthy"` means the graph and auth database checks are available/reachable.
 - `status: "degraded"` means at least one readiness component is unavailable or unreachable.
