@@ -58,10 +58,12 @@ Optional backend runtime settings:
 The API database layer supports both **SQLite** (local/dev) and **PostgreSQL** (production).
 
 **Local/Development (SQLite):**
+
 - SQLite files such as `sqlite:dev.db` are suitable for local development
 - In-memory databases (`sqlite:///:memory:`) work for testing
 
 **Production/Hosted (PostgreSQL):**
+
 - PostgreSQL is the recommended durable persistence target for hosted deployments
 - Example: `postgresql://user:password@host:5432/database`
 - Vercel Postgres: If `DATABASE_URL` is not set, `POSTGRES_URL` is used as a fallback
