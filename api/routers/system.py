@@ -40,8 +40,13 @@ def _get_graph_health() -> GraphHealthResponse:
     """Return bounded, non-secret graph readiness details."""
     try:
         graph = get_graph()
-        assets = getattr(graph, "assets", {}) or {}
-        relationships = getattr(graph, "relationships", {}) or {}
+        assets = getattr(graph, "assets", {})
+        relationships = getattr(graph, "relationships", {})
+
+        if assets is None:
+            assets = {}
+        if relationships is None:
+            relationships = {}
 
         if not isinstance(assets, dict) or not isinstance(relationships, dict):
             logger.warning("Detailed health graph check found unsupported graph container shape")
