@@ -119,6 +119,7 @@ def detailed_health_check() -> DetailedHealthResponse:
         database=database_health,
     )
 
+
 def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:
     """Log a system route failure and raise the public internal-error response."""
     logger.exception(message)
@@ -126,6 +127,7 @@ def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:
         status_code=500,
         detail="An internal error occurred. Please try again later.",
     ) from exc
+
 
 @router.get("/api/asset-classes")
 async def get_asset_classes() -> dict[str, list[str]]:
