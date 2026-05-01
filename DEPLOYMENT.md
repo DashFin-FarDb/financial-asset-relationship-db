@@ -323,7 +323,7 @@ It must not expose:
 - exception messages
 - secrets
 
-A degraded response still returns HTTP 200. Treat `status: "degraded"` as an operational readiness signal, not an HTTP transport failure.
+A degraded response still returns HTTP 200. Treat `status: "degraded"` as an operational readiness signal, not an HTTP transport failure. Automated monitoring tools should be configured to verify the status field in the JSON response body.
 
 ## Frontend Features
 
