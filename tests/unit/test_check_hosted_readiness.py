@@ -321,7 +321,7 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
 
         status = 200
 
-        def __enter__(self) -> FakeResponse:
+        def __enter__(self) -> "FakeResponse":
             """Enter the fake response context."""
             return self
 
