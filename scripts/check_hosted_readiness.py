@@ -109,6 +109,28 @@ def check_liveness(base_url: str, timeout: float) -> list[str]:
     return failures
 
 
+def test_run_checks_reports_detailed_readiness_runtime_context(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Runtime failures should identify the failing readiness phase."""
+    script = _load_script()
+
+    def fake_check_liveness(base_url: str, timeout: float) -> list[str]:
+        return []
+
+    def fake_check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
+        raise RuntimeError("/api/health/detailed request failed")
+
+    monkeypatch.setattr(script, "check_liveness", fake_check_liveness)
+    monkeypatch.setattr(script, "check_detailed_readiness", fake_check_detailed_readiness)
+
+    assert script.run_checks("https://example.com", 5.0) == script.CHECK_FAILED
+
+    captured = capsys.readouterr()
+    assert "Detailed readiness check failed: /api/health/detailed request failed" in captured.err
+
+
 def check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
     """Return detailed readiness check failures."""
     failures: list[str] = []
@@ -154,9 +176,14 @@ def run_checks(base_url: str, timeout: float) -> int:
 
     try:
         failures.extend(check_liveness(base_url, timeout))
+    except RuntimeError as exc:
+        print(f"Liveness check failed: {exc}", file=sys.stderr)
+        return CHECK_FAILED
+
+    try:
         failures.extend(check_detailed_readiness(base_url, timeout))
     except RuntimeError as exc:
-        print(f"Hosted readiness smoke check failed: {exc}", file=sys.stderr)
+        print(f"Detailed readiness check failed: {exc}", file=sys.stderr)
         return CHECK_FAILED
 
     if failures:
