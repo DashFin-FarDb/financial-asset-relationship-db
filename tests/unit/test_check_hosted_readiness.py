@@ -193,6 +193,58 @@ def test_run_checks_returns_failure_on_runtime_error(monkeypatch: pytest.MonkeyP
     assert script.run_checks("https://example.com", 5.0) == script.CHECK_FAILED
 
 
+def test_get_json_uses_bounded_request_failure_message(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Request failures should not expose full URLs or raw exception reasons."""
+    script = _load_script()
+
+    def fake_urlopen(request: object, timeout: float) -> object:
+        raise script.URLError("super-secret connection detail")
+
+    monkeypatch.setattr(script, "urlopen", fake_urlopen)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        script._get_json("https://user:secret@example.com/api/health", 5.0)
+
+    message = str(exc_info.value)
+
+    assert message == "/api/health request failed"
+    assert "secret" not in message
+    assert "example.com" not in message
+    assert "https://" not in message
+
+
+def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Invalid JSON errors should mention only the endpoint path."""
+    script = _load_script()
+
+    class FakeResponse:
+        status = 200
+
+        def __enter__(self) -> "FakeResponse":
+            return self
+
+        def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
+            return None
+
+        def read(self) -> bytes:
+            return b"not-json"
+
+    def fake_urlopen(request: object, timeout: float) -> FakeResponse:
+        return FakeResponse()
+
+    monkeypatch.setattr(script, "urlopen", fake_urlopen)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        script._get_json("https://user:secret@example.com/api/health/detailed", 5.0)
+
+    message = str(exc_info.value)
+
+    assert message == "/api/health/detailed returned invalid JSON"
+    assert "secret" not in message
+    assert "example.com" not in message
+    assert "https://" not in message
+
+
 def test_main_rejects_non_positive_timeout() -> None:
     """CLI rejects invalid timeout values."""
     script = _load_script()
