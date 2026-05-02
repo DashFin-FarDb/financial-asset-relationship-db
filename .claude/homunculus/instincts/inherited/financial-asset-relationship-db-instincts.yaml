@@ -1,0 +1,536 @@
+# Instincts generated from https://github.com/DashFin-FarDb/financial-asset-relationship-db
+# Generated: 2026-05-02T11:25:19.804Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: financial-asset-relationship-db-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Commit Length
+
+## Action
+
+Write moderate-length commit messages (~52 characters)
+
+## Evidence
+
+- Average commit message length: 52 chars
+- Based on 16 commits
+
+---
+id: financial-asset-relationship-db-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Naming Files
+
+## Action
+
+Use snake_case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: snake_case
+
+---
+id: financial-asset-relationship-db-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: financial-asset-relationship-db-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: financial-asset-relationship-db-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: financial-asset-relationship-db-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~17x per month
+- Files: **/*.test.*
+
+---
+id: financial-asset-relationship-db-workflow-script-feature-update-and-test-sync
+trigger: "when doing script feature update and test sync"
+confidence: 0.7
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Script Feature Update And Test Sync
+
+## Action
+
+Follow the script-feature-update-and-test-sync workflow:
+1. Edit or add feature to scripts/check_hosted_readiness.py
+2. Add or update tests in tests/unit/test_check_hosted_readiness.py to cover the new or changed logic
+3. Commit both script and test changes together
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~4x per month
+- Files: scripts/check_hosted_readiness.py, tests/unit/test_check_hosted_readiness.py
+
+---
+id: financial-asset-relationship-db-workflow-test-file-extension-and-refinement
+trigger: "when doing test file extension and refinement"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Test File Extension And Refinement
+
+## Action
+
+Follow the test-file-extension-and-refinement workflow:
+1. Edit tests/unit/test_check_hosted_readiness.py to add new test cases or clarify existing ones
+2. Commit only the test file changes
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: tests/unit/test_check_hosted_readiness.py
+
+---
+id: financial-asset-relationship-db-workflow-script-refactor-or-bugfix
+trigger: "when doing script refactor or bugfix"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Script Refactor Or Bugfix
+
+## Action
+
+Follow the script-refactor-or-bugfix workflow:
+1. Edit scripts/check_hosted_readiness.py to refactor code or fix a bug
+2. Commit only the script file
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: scripts/check_hosted_readiness.py
+
+---
+id: financial-asset-relationship-db-workflow-code-formatting-pass-single-file
+trigger: "when doing code formatting pass single file"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Code Formatting Pass Single File
+
+## Action
+
+Follow the code-formatting-pass-single-file workflow:
+1. Run code formatter on the changed file (e.g., scripts/check_hosted_readiness.py or tests/unit/test_check_hosted_readiness.py)
+2. Commit the formatted file
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: scripts/check_hosted_readiness.py, tests/unit/test_check_hosted_readiness.py
+
+---
+id: financial-asset-relationship-db-instinct-file-naming
+trigger: "When creating or renaming a Python file"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct File Naming
+
+## Action
+
+Use snake_case for file names
+
+## Evidence
+
+- Pattern in namingConventions.files
+- All files in scripts/ and tests/ use snake_case
+
+---
+id: financial-asset-relationship-db-instinct-function-naming
+trigger: "When defining a function in Python"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Function Naming
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: financial-asset-relationship-db-instinct-class-naming
+trigger: "When defining a class in Python"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Class Naming
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: financial-asset-relationship-db-instinct-constant-naming
+trigger: "When defining a constant in Python"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constants
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: financial-asset-relationship-db-instinct-import-style
+trigger: "When importing modules within the package"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Import Style
+
+## Action
+
+Use relative imports
+
+## Evidence
+
+- Pattern in importStyle
+- Seen in scripts/check_hosted_readiness.py
+
+---
+id: financial-asset-relationship-db-instinct-export-style
+trigger: "When exporting functions or classes from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle
+
+---
+id: financial-asset-relationship-db-instinct-test-location
+trigger: "When adding or updating tests for a script"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test Location
+
+## Action
+
+Place tests in the separate tests/unit/ directory, mirroring the script's location
+
+## Evidence
+
+- Pattern in architecture.testLocation
+- Seen in tests/unit/test_check_hosted_readiness.py
+
+---
+id: financial-asset-relationship-db-instinct-test-file-naming
+trigger: "When creating a test file for a script"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test File Naming
+
+## Action
+
+Name the test file as test_<script_name>.py
+
+## Evidence
+
+- Pattern in tests/unit/test_check_hosted_readiness.py
+
+---
+id: financial-asset-relationship-db-instinct-test-update-on-feature-change
+trigger: "When adding or updating a feature in a script"
+confidence: 0.95
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test Update On Feature Change
+
+## Action
+
+Add or update corresponding tests in the related test file
+
+## Evidence
+
+- script-feature-update-and-test-sync workflow
+- Commits: Add hosted readiness smoke-check script, Add test for missing top-level fields and update assertions
+
+---
+id: financial-asset-relationship-db-instinct-test-refinement
+trigger: "When improving or clarifying test coverage for an existing feature"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test Refinement
+
+## Action
+
+Edit only the test file to add or clarify test cases, without changing the main script
+
+## Evidence
+
+- test-file-extension-and-refinement workflow
+- Commits: Add test for missing top-level fields and update assertions
+
+---
+id: financial-asset-relationship-db-instinct-commit-prefix-style
+trigger: "When committing a code formatting change"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Commit Prefix Style
+
+## Action
+
+Prefix the commit message with 'style:'
+
+## Evidence
+
+- Seen in commit: style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+
+---
+id: financial-asset-relationship-db-instinct-commit-message-format
+trigger: "When writing a commit message"
+confidence: 0.8
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Commit Message Format
+
+## Action
+
+Use a concise, imperative sentence describing the change (e.g., 'Add test for missing top-level fields and update assertions')
+
+## Evidence
+
+- Pattern in commits.examples
+
+---
+id: financial-asset-relationship-db-instinct-script-feature-update-and-test-sync
+trigger: "When adding a new feature or bugfix to a script and ensuring it is tested"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Script Feature Update And Test Sync
+
+## Action
+
+Edit or add feature to scripts/check_hosted_readiness.py, update or add corresponding tests in tests/unit/test_check_hosted_readiness.py, and commit both changes together
+
+## Evidence
+
+- script-feature-update-and-test-sync workflow
+- Commits: Add hosted readiness smoke-check script, Add test for missing top-level fields and update assertions
+
+---
+id: financial-asset-relationship-db-instinct-test-file-extension-and-refinement
+trigger: "When improving, clarifying, or extending test coverage for an existing script feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test File Extension And Refinement
+
+## Action
+
+Edit tests/unit/test_check_hosted_readiness.py to add new test cases or clarify existing ones, and commit only the test file changes
+
+## Evidence
+
+- test-file-extension-and-refinement workflow
+- Commits: Clarify test description for base URL validation
+
+---
+id: financial-asset-relationship-db-instinct-script-refactor-or-bugfix
+trigger: "When refactoring or fixing a bug in a script without requiring immediate test changes"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Script Refactor Or Bugfix
+
+## Action
+
+Edit scripts/check_hosted_readiness.py and commit only the script file
+
+## Evidence
+
+- script-refactor-or-bugfix workflow
+- Commits: Add base URL validation to prevent runtime errors
+
+---
+id: financial-asset-relationship-db-instinct-code-formatting-pass-single-file
+trigger: "When fixing style issues in a recently changed file using automated formatters"
+confidence: 0.8
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Code Formatting Pass Single File
+
+## Action
+
+Run code formatter (e.g., Black, Ruff, Prettier) on the changed file and commit the formatted file
+
+## Evidence
+
+- code-formatting-pass-single-file workflow
+- Commits: style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+
