@@ -18,6 +18,7 @@ CHECK_FAILED = 1
 USAGE_ERROR = 2
 
 LOOPBACK_HOST_LABEL = "local" + "host"
+MAX_RESPONSE_BYTES = 64 * 1024
 
 FORBIDDEN_DETAILED_TOP_LEVEL_FIELDS = {
     "environment",
@@ -175,7 +176,10 @@ def _read_response_body(url: str, timeout: float) -> tuple[int, str]:
             request,
             timeout=timeout,
         ) as response:
-            return response.status, response.read().decode("utf-8")
+            raw_body = response.read(MAX_RESPONSE_BYTES + 1)
+            if len(raw_body) > MAX_RESPONSE_BYTES:
+                raise RuntimeError(f"{endpoint} response body exceeded size limit")
+            return response.status, raw_body.decode("utf-8")
     except HTTPError as exc:
         # Treat HTTP error responses as bounded readiness failures at the caller.
         return exc.code, ""
@@ -247,11 +251,19 @@ def _record_forbidden_field_failures(payload: dict[str, Any], failures: list[str
         failures.append(f"/api/health/detailed exposed forbidden top-level fields: {leaked_fields}")
 
 
+def _readiness_status_label(value: Any) -> str:
+    """Return a bounded readiness status label for operator output."""
+    if value in {"healthy", "degraded"}:
+        return str(value)
+    return "unknown"
+
+
 def _record_detailed_shape_failures(payload: dict[str, Any], failures: list[str]) -> None:
     """Record detailed-readiness status and object-shape failures."""
     readiness_status = payload.get("status")
     if readiness_status != "healthy":
-        failures.append(f'/api/health/detailed status is "{readiness_status}", expected "healthy"')
+        status_label = _readiness_status_label(readiness_status)
+        failures.append(f'/api/health/detailed status is "{status_label}", expected "healthy"')
 
     if not isinstance(payload.get("graph"), dict):
         failures.append("/api/health/detailed graph field is not an object")

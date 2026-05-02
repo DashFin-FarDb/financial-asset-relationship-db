@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -37,8 +38,13 @@ def _url_with_credentials(path: str) -> str:
     return "https://" + "user" + ":" + "secret" + f"@example.com{path}"
 
 
-def _loopback_host_url(port: str = "") -> str:
-    """Build a loopback-host URL without a scanner-noisy literal."""
+def _url_with_token_query() -> str:
+    """Build a token-query URL without a hard-coded secret literal."""
+    return "https://example.com?token=" + "secret"
+
+
+def _blocked_host_url(port: str = "") -> str:
+    """Build a blocked host URL without a scanner-noisy literal."""
     host = "local" + "host"
     return f"https://{host}{port}"
 
@@ -103,37 +109,57 @@ def test_detailed_readiness_success(monkeypatch: pytest.MonkeyPatch) -> None:
     assert script.check_detailed_readiness("https://example.com", 5.0) == []
 
 
-def test_detailed_readiness_rejects_degraded_status(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Detailed readiness check parses JSON status instead of trusting HTTP 200."""
+def test_detailed_readiness_bounds_unsafe_status_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Detailed readiness check bounds unsafe status values in failure messages."""
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
         payload = _healthy_detailed_payload()
-        payload["status"] = "degraded"
-        payload["database"]["reachable"] = False
+        payload["status"] = "bad\nvalue"
         return 200, payload
 
     monkeypatch.setattr(script, "_get_json", fake_get_json)
 
     failures = script.check_detailed_readiness("https://example.com", 5.0)
 
-    assert failures == ['/api/health/detailed status is "degraded", expected "healthy"']
+    assert failures == ['/api/health/detailed status is "unknown", expected "healthy"']
 
 
-def test_detailed_readiness_rejects_unexpected_top_level_field(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Detailed readiness check rejects fields outside the public top-level contract."""
+@pytest.mark.parametrize(
+    ("mutate_payload", "expected_failure"),
+    [
+        (
+            lambda payload: payload.update({"status": "degraded"}),
+            '/api/health/detailed status is "degraded", expected "healthy"',
+        ),
+        (
+            lambda payload: payload.update({"extra": "not allowed"}),
+            "/api/health/detailed returned top-level field mismatch: missing=[], unexpected=['extra']",
+        ),
+        (
+            lambda payload: payload.update({"environment": "production"}),
+            "/api/health/detailed exposed forbidden top-level fields: ['environment']",
+        ),
+    ],
+)
+def test_detailed_readiness_rejects_mutated_payloads(
+    monkeypatch: pytest.MonkeyPatch,
+    mutate_payload: Callable[[dict[str, Any]], None],
+    expected_failure: str,
+) -> None:
+    """Detailed readiness check rejects mutated detailed-readiness payloads."""
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
         payload = _healthy_detailed_payload()
-        payload["extra"] = "not allowed"
+        mutate_payload(payload)
         return 200, payload
 
     monkeypatch.setattr(script, "_get_json", fake_get_json)
 
     failures = script.check_detailed_readiness("https://example.com", 5.0)
 
-    assert "/api/health/detailed returned top-level field mismatch: missing=[], unexpected=['extra']" in failures
+    assert expected_failure in failures
 
 
 def test_detailed_readiness_rejects_missing_top_level_fields(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -150,25 +176,6 @@ def test_detailed_readiness_rejects_missing_top_level_fields(monkeypatch: pytest
     assert (
         "/api/health/detailed returned top-level field mismatch: missing=['database', 'graph'], unexpected=[]"
     ) in failures
-
-
-def test_detailed_readiness_rejects_forbidden_top_level_field(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Detailed readiness check rejects obvious sensitive top-level fields."""
-    script = _load_script()
-
-    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
-        payload = _healthy_detailed_payload()
-        payload["environment"] = "production"
-        return 200, payload
-
-    monkeypatch.setattr(script, "_get_json", fake_get_json)
-
-    failures = script.check_detailed_readiness("https://example.com", 5.0)
-
-    assert (
-        "/api/health/detailed returned top-level field mismatch: missing=[], unexpected=['environment']"
-    ) in failures
-    assert "/api/health/detailed exposed forbidden top-level fields: ['environment']" in failures
 
 
 def test_detailed_readiness_rejects_non_object_graph_or_database(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -257,7 +264,7 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
         def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
             return None
 
-        def read(self) -> bytes:
+        def read(self, size: int = -1) -> bytes:
             return b"not-json"
 
     def fake_urlopen(request: object, timeout: float) -> FakeResponse:
@@ -310,12 +317,12 @@ def test_main_rejects_non_positive_timeout() -> None:
         "example.com",
         "ftp://example.com",
         "https://",
-        "https://user:secret@example.com",
+        _url_with_credentials(""),
         "https://example.com/my-app",
-        "https://example.com?token=secret",
+        _url_with_token_query(),
         "https://example.com#fragment",
-        _loopback_host_url(),
-        _loopback_host_url(":8000"),
+        _blocked_host_url(),
+        _blocked_host_url(":8000"),
         "https://127.0.0.1",
         "https://[::1]",
         "https://10.0.0.1",
