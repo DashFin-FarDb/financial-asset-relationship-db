@@ -267,6 +267,27 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
     assert "https://" not in message
 
 
+def test_get_json_returns_http_error_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    """HTTP errors should return status code without raising or exposing response details."""
+    script = _load_script()
+
+    def fake_urlopen(request: object, timeout: float) -> object:
+        raise script.HTTPError(
+            url="https://user:secret@example.com/api/health",
+            code=503,
+            msg="Service Unavailable",
+            hdrs=None,
+            fp=None,
+        )
+
+    monkeypatch.setattr(script, "urlopen", fake_urlopen)
+
+    status_code, payload = script._get_json("https://user:secret@example.com/api/health", 5.0)
+
+    assert status_code == 503
+    assert payload == {}
+
+
 def test_main_rejects_non_positive_timeout() -> None:
     """CLI rejects invalid timeout values."""
     script = _load_script()
