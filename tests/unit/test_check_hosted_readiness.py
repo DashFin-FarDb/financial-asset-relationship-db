@@ -305,10 +305,30 @@ def test_main_rejects_non_positive_timeout() -> None:
         "https://example.com/my-app",
         "https://example.com?token=secret",
         "https://example.com#fragment",
+        "http://localhost",
+        "http://localhost:8000",
+        "http://127.0.0.1",
+        "http://[::1]",
+        "http://10.0.0.1",
+        "http://172.16.0.1",
+        "http://192.168.1.1",
+        "http://169.254.169.254",
     ],
 )
 def test_main_rejects_invalid_base_url(base_url: str) -> None:
-    """CLI rejects base URLs outside the supported root http/https form."""
+    """CLI rejects base URLs outside the supported public root http/https form."""
     script = _load_script()
 
     assert script.main([base_url]) == script.USAGE_ERROR
+
+
+def test_main_rejects_hostname_that_resolves_to_internal_address(monkeypatch: pytest.MonkeyPatch) -> None:
+    """CLI rejects hostnames resolving to internal network addresses."""
+    script = _load_script()
+
+    def fake_getaddrinfo(hostname: str, port: object) -> list[tuple[object, object, object, object, tuple[str, int]]]:
+        return [(None, None, None, None, ("169.254.169.254", 0))]
+
+    monkeypatch.setattr(script.socket, "getaddrinfo", fake_getaddrinfo)
+
+    assert script.main(["https://metadata.example.com"]) == script.USAGE_ERROR

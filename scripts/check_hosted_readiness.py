@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
+import socket
 import sys
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -32,6 +34,33 @@ FORBIDDEN_DETAILED_TOP_LEVEL_FIELDS = {
 }
 
 
+def _is_internal_ip_address(address: str) -> bool:
+    """Return whether an IP address is not suitable for hosted readiness checks."""
+    try:
+        ip_address = ipaddress.ip_address(address)
+    except ValueError:
+        return False
+
+    return (
+        ip_address.is_private
+        or ip_address.is_loopback
+        or ip_address.is_link_local
+        or ip_address.is_multicast
+        or ip_address.is_reserved
+        or ip_address.is_unspecified
+    )
+
+
+def _resolves_to_internal_address(hostname: str) -> bool:
+    """Return whether a hostname resolves to an internal or non-public address."""
+    try:
+        address_info = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        return False
+
+    return any(_is_internal_ip_address(result[4][0]) for result in address_info)
+
+
 def _build_url(base_url: str, path: str) -> str:
     """Build an absolute URL for a hosted API path."""
     return urljoin(base_url.rstrip("/") + "/", path.lstrip("/"))
@@ -46,6 +75,16 @@ def _validate_base_url(base_url: str) -> str | None:
 
     if parsed.username or parsed.password:
         return "base_url must not include credentials"
+
+    hostname = parsed.hostname
+    if hostname is None:
+        return "base_url must include a host"
+
+    if hostname == "localhost" or hostname.endswith(".localhost"):
+        return "base_url must not target localhost"
+
+    if _is_internal_ip_address(hostname) or _resolves_to_internal_address(hostname):
+        return "base_url must not resolve to an internal network address"
 
     if parsed.path not in {"", "/"}:
         return "base_url must not include a path"
@@ -71,6 +110,7 @@ def _get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
             status_code = response.status
             raw_body = response.read().decode("utf-8")
     except HTTPError as exc:
+        # Treat HTTP error responses as bounded readiness failures at the caller.
         return exc.code, {}
     except URLError as exc:
         if isinstance(exc.reason, TimeoutError):
