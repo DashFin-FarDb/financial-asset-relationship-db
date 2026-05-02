@@ -124,13 +124,17 @@ def test_bench_add_assets_batch(benchmark):
     def _():
         graph = AssetRelationshipGraph()
         for i in range(100):
-            equity = Equity(
+equity = Equity(
                 id=f"EQ_{i}",
                 symbol=f"SYM{i}",
                 name=f"Company {i}",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
                 price=100.0 + i,
+                market_cap=1e9 + i * 1e6,
+                pe_ratio=15.0 + (i % 20),
+                dividend_yield=0.02,
+                earnings_per_share=5.0 + i * 0.1,
             )
             graph.add_asset(equity)
 
