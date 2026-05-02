@@ -1,0 +1,39 @@
+name: Hosted readiness smoke check
+
+"on":
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Hosted deployment base URL. Prefer repository secret HOSTED_READINESS_BASE_URL for persistent targets."
+        required: false
+        type: string
+      timeout:
+        description: "Request timeout in seconds."
+        required: false
+        default: "10"
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  hosted-readiness:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      HOSTED_READINESS_BASE_URL: ${{ inputs.base_url || secrets.HOSTED_READINESS_BASE_URL }}
+      HOSTED_READINESS_TIMEOUT: ${{ inputs.timeout }}
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Skip when hosted readiness target is not configured
+        if: ${{ env.HOSTED_READINESS_BASE_URL == '' }}
+        run: echo "Hosted readiness check skipped - no base URL configured."
+
+      - name: Run hosted readiness smoke check
+        if: ${{ env.HOSTED_READINESS_BASE_URL != '' }}
+        run: |
+          python scripts/check_hosted_readiness.py "$HOSTED_READINESS_BASE_URL" --timeout "$HOSTED_READINESS_TIMEOUT"
