@@ -56,8 +56,14 @@ def _validate_base_url(base_url: str) -> str | None:
     return None
 
 
+def _endpoint_path(url: str) -> str:
+    """Return only the endpoint path for bounded operator output."""
+    return urlparse(url).path or "/"
+    
+
 def _get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
     """Fetch a JSON object from a URL."""
+    endpoint = _endpoint_path(url)
     request = Request(url, headers={"Accept": "application/json"}, method="GET")
 
     try:
@@ -67,17 +73,19 @@ def _get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
     except HTTPError as exc:
         return exc.code, {}
     except URLError as exc:
-        raise RuntimeError(f"request failed for {url}: {exc.reason}") from exc
+        if isinstance(exc.reason, TimeoutError):
+            raise RuntimeError(f"{endpoint} request timed out") from exc
+        raise RuntimeError(f"{endpoint} request failed") from exc
     except TimeoutError as exc:
-        raise RuntimeError(f"request timed out for {url}") from exc
+        raise RuntimeError(f"{endpoint} request timed out") from exc
 
     try:
         payload = json.loads(raw_body)
     except json.JSONDecodeError as exc:
-        raise RuntimeError(f"invalid JSON response from {url}") from exc
+        raise RuntimeError(f"{endpoint} returned invalid JSON") from exc
 
     if not isinstance(payload, dict):
-        raise RuntimeError(f"expected JSON object from {url}")
+        raise RuntimeError(f"{endpoint} did not return a JSON object")
 
     return status_code, payload
 
