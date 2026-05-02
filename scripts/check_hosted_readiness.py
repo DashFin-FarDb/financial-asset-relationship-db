@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import ipaddress
 import json
+import math
 import socket
 import sys
 from collections.abc import Callable
@@ -121,6 +122,15 @@ def _validate_no_extra_components(parsed: ParseResult) -> str | None:
     return None
 
 
+def _validate_port(parsed: ParseResult) -> str | None:
+    """Return an error when the URL contains an invalid port value."""
+    try:
+        _ = parsed.port
+    except ValueError:
+        return "base_url must not include an invalid port"
+    return None
+
+
 def _build_url(base_url: str, path: str) -> str:
     """Build an absolute URL for a hosted API path."""
     return urljoin(base_url.rstrip("/") + "/", path.lstrip("/"))
@@ -136,6 +146,7 @@ def _validate_base_url(base_url: str) -> str | None:
         _validate_not_loopback_hostname,
         _validate_root_path,
         _validate_no_extra_components,
+        _validate_port,
         _validate_not_internal_address,
     )
 
@@ -158,6 +169,12 @@ def _is_timeout_exception(exc: BaseException) -> bool:
     return isinstance(exc, timeout_types) or (isinstance(exc, URLError) and isinstance(exc.reason, timeout_types))
 
 
+def _validate_request_target(url: str) -> str | None:
+    """Return a bounded validation error for a request URL target."""
+    parsed = urlparse(url)
+    return _validate_not_internal_address(parsed)
+
+
 def _response_failure_message(endpoint: str, exc: BaseException) -> str:
     """Return a bounded response-read failure message."""
     if _is_timeout_exception(exc):
@@ -172,6 +189,12 @@ def _response_failure_message(endpoint: str, exc: BaseException) -> str:
 def _read_response_body(url: str, timeout: float) -> tuple[int, str]:
     """Read an HTTP response while preserving bounded failure messages."""
     endpoint = _endpoint_path(url)
+
+    # Revalidate request target to reduce DNS rebinding attack window
+    target_error = _validate_request_target(url)
+    if target_error is not None:
+        raise RuntimeError(f"{endpoint} request target validation failed")
+
     request = Request(url, headers={"Accept": "application/json"}, method="GET")
 
     try:
@@ -351,8 +374,8 @@ def main(argv: list[str] | None = None) -> int:
     """Run the hosted readiness smoke check."""
     args = parse_args(sys.argv[1:] if argv is None else argv)
 
-    if args.timeout <= 0:
-        print("--timeout must be greater than zero", file=sys.stderr)
+    if not math.isfinite(args.timeout) or args.timeout <= 0:
+        print("--timeout must be a positive finite number", file=sys.stderr)
         return USAGE_ERROR
 
     base_url_error = _validate_base_url(args.base_url)

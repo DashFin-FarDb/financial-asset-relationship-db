@@ -321,7 +321,7 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
 
         status = 200
 
-        def __enter__(self) -> "FakeResponse":
+        def __enter__(self) -> FakeResponse:
             """Enter the fake response context."""
             return self
 
@@ -372,11 +372,42 @@ def test_get_json_returns_http_error_status(monkeypatch: pytest.MonkeyPatch) -> 
     assert payload == {}
 
 
+def test_read_response_body_revalidates_request_target(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Request target should be revalidated before each request to reduce DNS rebinding window."""
+    script = _load_script()
+
+    def fake_validate_request_target(url: str) -> str | None:
+        """Return a fake target validation failure."""
+        return "target resolved to internal address"
+
+    monkeypatch.setattr(script, "_validate_request_target", fake_validate_request_target)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        script._read_response_body(_url_with_credentials("/api/health"), 5.0)
+
+    message = str(exc_info.value)
+
+    assert message == "/api/health request target validation failed"
+    assert "secret" not in message
+    assert "example.com" not in message
+
+
 def test_main_rejects_non_positive_timeout() -> None:
     """CLI rejects invalid timeout values."""
     script = _load_script()
 
     assert script.main(["https://example.com", "--timeout", "0"]) == script.USAGE_ERROR
+
+
+@pytest.mark.parametrize(
+    "timeout_value",
+    ["0", "-1", "nan", "inf"],
+)
+def test_main_rejects_non_finite_timeout(timeout_value: str) -> None:
+    """CLI rejects non-finite and non-positive timeout values."""
+    script = _load_script()
+
+    assert script.main(["https://example.com", "--timeout", timeout_value]) == script.USAGE_ERROR
 
 
 @pytest.mark.parametrize(
@@ -389,6 +420,7 @@ def test_main_rejects_non_positive_timeout() -> None:
         "https://example.com/my-app",
         _url_with_token_query(),
         "https://example.com#fragment",
+        "https://example.com:abc",
         _blocked_host_url(),
         _blocked_host_url(":8000"),
         _ipv4_url(127, 0, 0, 1),
