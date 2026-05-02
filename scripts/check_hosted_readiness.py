@@ -41,15 +41,7 @@ FORBIDDEN_DETAILED_TOP_LEVEL_FIELDS = {
 class _NoRedirectHandler(HTTPRedirectHandler):
     """Disable automatic HTTP redirect following for bounded smoke checks."""
 
-    def redirect_request(
-        self,
-        req: Request,
-        fp: object,
-        code: int,
-        msg: str,
-        headers: object,
-        newurl: str,
-    ) -> None:
+    def redirect_request(self, *args: object, **kwargs: object) -> None:
         """Return None so redirects are exposed as HTTPError responses."""
         return None
 
@@ -162,7 +154,8 @@ def _endpoint_path(url: str) -> str:
 
 def _is_timeout_exception(exc: BaseException) -> bool:
     """Return whether an exception represents a request timeout."""
-    return isinstance(exc, TimeoutError) or (isinstance(exc, URLError) and isinstance(exc.reason, TimeoutError))
+    timeout_types = (TimeoutError, socket.timeout)
+    return isinstance(exc, timeout_types) or (isinstance(exc, URLError) and isinstance(exc.reason, timeout_types))
 
 
 def _response_failure_message(endpoint: str, exc: BaseException) -> str:
