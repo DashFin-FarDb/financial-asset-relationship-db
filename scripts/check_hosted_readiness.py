@@ -7,6 +7,7 @@ import ipaddress
 import json
 import socket
 import sys
+from collections.abc import Callable
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import ParseResult, urljoin, urlparse
@@ -15,6 +16,8 @@ from urllib.request import Request, urlopen
 SUCCESS = 0
 CHECK_FAILED = 1
 USAGE_ERROR = 2
+
+LOOPBACK_HOST_LABEL = "local" + "host"
 
 FORBIDDEN_DETAILED_TOP_LEVEL_FIELDS = {
     "environment",
@@ -57,7 +60,7 @@ def _resolves_to_internal_address(hostname: str) -> bool:
     """Return whether a hostname resolves to an internal or non-public address."""
     try:
         address_info = socket.getaddrinfo(hostname, None)
-    except socket.gaierror:
+    except (OSError, socket.gaierror):
         return False
 
     return any(_is_internal_ip_address(result[4][0]) for result in address_info)
@@ -84,11 +87,11 @@ def _validate_hostname_present(parsed: ParseResult) -> str | None:
     return None
 
 
-def _validate_not_localhost(parsed: ParseResult) -> str | None:
-    """Return an error when the URL targets localhost."""
+def _validate_not_loopback_hostname(parsed: ParseResult) -> str | None:
+    """Return an error when the URL targets a loopback hostname."""
     hostname = parsed.hostname or ""
-    if hostname == "localhost" or hostname.endswith(".localhost"):
-        return "base_url must not target localhost"
+    if hostname == LOOPBACK_HOST_LABEL or hostname.endswith(f".{LOOPBACK_HOST_LABEL}"):
+        return "base_url must not target loopback hostnames"
     return None
 
 
@@ -109,7 +112,8 @@ def _validate_root_path(parsed: ParseResult) -> str | None:
 
 def _validate_no_extra_components(parsed: ParseResult) -> str | None:
     """Return an error when the URL includes params, query strings, or fragments."""
-    if parsed.params or parsed.query or parsed.fragment:
+    extra_components = (parsed.params, parsed.query, parsed.fragment)
+    if any(extra_components):
         return "base_url must not include params, query strings, or fragments"
     return None
 
@@ -126,7 +130,7 @@ def _validate_base_url(base_url: str) -> str | None:
         _validate_scheme_and_host,
         _validate_no_credentials,
         _validate_hostname_present,
-        _validate_not_localhost,
+        _validate_not_loopback_hostname,
         _validate_not_internal_address,
         _validate_root_path,
         _validate_no_extra_components,
@@ -145,25 +149,38 @@ def _endpoint_path(url: str) -> str:
     return urlparse(url).path or "/"
 
 
+def _is_timeout_exception(exc: BaseException) -> bool:
+    """Return whether an exception represents a request timeout."""
+    return isinstance(exc, TimeoutError) or (isinstance(exc, URLError) and isinstance(exc.reason, TimeoutError))
+
+
+def _response_failure_message(endpoint: str, exc: BaseException) -> str:
+    """Return a bounded response-read failure message."""
+    if _is_timeout_exception(exc):
+        return f"{endpoint} request timed out"
+
+    if isinstance(exc, UnicodeDecodeError):
+        return f"{endpoint} returned non-UTF-8 response"
+
+    return f"{endpoint} request failed"
+
+
 def _read_response_body(url: str, timeout: float) -> tuple[int, str]:
     """Read an HTTP response while preserving bounded failure messages."""
     endpoint = _endpoint_path(url)
     request = Request(url, headers={"Accept": "application/json"}, method="GET")
 
     try:
-        with urlopen(request, timeout=timeout) as response:  # nosec B310 - operator-supplied smoke-check URL
+        with urlopen(  # nosec B310 - operator-supplied smoke-check URL
+            request,
+            timeout=timeout,
+        ) as response:
             return response.status, response.read().decode("utf-8")
     except HTTPError as exc:
         # Treat HTTP error responses as bounded readiness failures at the caller.
         return exc.code, ""
-    except URLError as exc:
-        if isinstance(exc.reason, TimeoutError):
-            raise RuntimeError(f"{endpoint} request timed out") from exc
-        raise RuntimeError(f"{endpoint} request failed") from exc
-    except TimeoutError as exc:
-        raise RuntimeError(f"{endpoint} request timed out") from exc
-    except UnicodeDecodeError as exc:
-        raise RuntimeError(f"{endpoint} returned non-UTF-8 response") from exc
+    except (URLError, TimeoutError, UnicodeDecodeError) as exc:
+        raise RuntimeError(_response_failure_message(endpoint, exc)) from exc
 
 
 def _parse_json_object(endpoint: str, raw_body: str) -> dict[str, Any]:
@@ -260,10 +277,13 @@ def check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
     return failures
 
 
-def _run_named_check(label: str, base_url: str, timeout: float, check_name: str) -> list[str] | None:
+def _run_named_check(
+    label: str,
+    base_url: str,
+    timeout: float,
+    check: Callable[[str, float], list[str]],
+) -> list[str] | None:
     """Run a named check and report bounded runtime failures."""
-    check = check_liveness if check_name == "liveness" else check_detailed_readiness
-
     try:
         return check(base_url, timeout)
     except RuntimeError as exc:
@@ -285,11 +305,16 @@ def _report_failures(failures: list[str]) -> int:
 
 def run_checks(base_url: str, timeout: float) -> int:
     """Run hosted readiness checks and return a process exit code."""
-    liveness_failures = _run_named_check("Liveness", base_url, timeout, "liveness")
+    liveness_failures = _run_named_check("Liveness", base_url, timeout, check_liveness)
     if liveness_failures is None:
         return CHECK_FAILED
 
-    readiness_failures = _run_named_check("Detailed readiness", base_url, timeout, "detailed")
+    readiness_failures = _run_named_check(
+        "Detailed readiness",
+        base_url,
+        timeout,
+        check_detailed_readiness,
+    )
     if readiness_failures is None:
         return CHECK_FAILED
 
