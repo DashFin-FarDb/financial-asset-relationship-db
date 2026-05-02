@@ -49,6 +49,25 @@ def _blocked_host_url(port: str = "") -> str:
     return f"https://{host}{port}"
 
 
+def test_no_redirect_handler_disables_redirects() -> None:
+    """Redirect handler should not follow redirect targets."""
+    script = _load_script()
+
+    handler = script._NoRedirectHandler()
+
+    assert (
+        handler.redirect_request(
+            req=script.Request("https://example.com/api/health"),
+            fp=None,
+            code=302,
+            msg="Found",
+            headers={},
+            newurl="https://127.0.0.1/metadata",
+        )
+        is None
+    )
+
+
 def test_build_url_handles_trailing_slash() -> None:
     """URL builder should handle base URLs with and without trailing slashes."""
     script = _load_script()
@@ -209,6 +228,25 @@ def test_run_checks_returns_failure_on_runtime_error(monkeypatch: pytest.MonkeyP
     assert script.run_checks("https://example.com", 5.0) == script.CHECK_FAILED
 
 
+def test_run_checks_bounds_unexpected_exception(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Unexpected check exceptions should not produce tracebacks or raw details."""
+    script = _load_script()
+
+    def fake_check_liveness(base_url: str, timeout: float) -> list[str]:
+        raise TypeError("sensitive internal detail")
+
+    monkeypatch.setattr(script, "check_liveness", fake_check_liveness)
+
+    assert script.run_checks("https://example.com", 5.0) == script.CHECK_FAILED
+
+    captured = capsys.readouterr()
+    assert "Liveness check failed: unexpected error" in captured.err
+    assert "sensitive internal detail" not in captured.err
+
+
 def test_run_checks_reports_detailed_readiness_runtime_context(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -329,11 +367,20 @@ def test_main_rejects_non_positive_timeout() -> None:
         "https://172.16.0.1",
         "https://192.168.1.1",
         "https://169.254.169.254",
+        "https://100.64.0.1",
     ],
 )
-def test_main_rejects_invalid_base_url(base_url: str) -> None:
-    """CLI rejects base URLs outside the supported public root http/https form."""
+def test_main_rejects_invalid_base_url(
+    base_url: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """CLI rejects invalid base URLs without real DNS lookups."""
     script = _load_script()
+
+    def fail_getaddrinfo(hostname: str, port: object) -> object:
+        pytest.fail("invalid URL validation should not perform DNS resolution")
+
+    monkeypatch.setattr(script.socket, "getaddrinfo", fail_getaddrinfo)
 
     assert script.main([base_url]) == script.USAGE_ERROR
 

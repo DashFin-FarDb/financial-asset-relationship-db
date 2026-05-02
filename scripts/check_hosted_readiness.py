@@ -11,7 +11,7 @@ from collections.abc import Callable
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import ParseResult, urljoin, urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 SUCCESS = 0
 CHECK_FAILED = 1
@@ -38,6 +38,25 @@ FORBIDDEN_DETAILED_TOP_LEVEL_FIELDS = {
 }
 
 
+class _NoRedirectHandler(HTTPRedirectHandler):
+    """Disable automatic HTTP redirect following for bounded smoke checks."""
+
+    def redirect_request(
+        self,
+        req: Request,
+        fp: object,
+        code: int,
+        msg: str,
+        headers: object,
+        newurl: str,
+    ) -> None:
+        """Return None so redirects are exposed as HTTPError responses."""
+        return None
+
+
+urlopen = build_opener(_NoRedirectHandler).open
+
+
 def _is_internal_ip_address(address: str) -> bool:
     """Return whether an IP address is not suitable for hosted readiness checks."""
     try:
@@ -45,16 +64,7 @@ def _is_internal_ip_address(address: str) -> bool:
     except ValueError:
         return False
 
-    return any(
-        (
-            ip_address.is_private,
-            ip_address.is_loopback,
-            ip_address.is_link_local,
-            ip_address.is_multicast,
-            ip_address.is_reserved,
-            ip_address.is_unspecified,
-        )
-    )
+    return not ip_address.is_global or ip_address.is_multicast
 
 
 def _resolves_to_internal_address(hostname: str) -> bool:
@@ -132,9 +142,9 @@ def _validate_base_url(base_url: str) -> str | None:
         _validate_no_credentials,
         _validate_hostname_present,
         _validate_not_loopback_hostname,
-        _validate_not_internal_address,
         _validate_root_path,
         _validate_no_extra_components,
+        _validate_not_internal_address,
     )
 
     for validator in validators:
@@ -300,6 +310,9 @@ def _run_named_check(
         return check(base_url, timeout)
     except RuntimeError as exc:
         print(f"{label} check failed: {exc}", file=sys.stderr)
+        return None
+    except Exception:
+        print(f"{label} check failed: unexpected error", file=sys.stderr)
         return None
 
 
