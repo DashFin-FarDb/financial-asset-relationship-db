@@ -59,7 +59,7 @@ def _validate_base_url(base_url: str) -> str | None:
 def _endpoint_path(url: str) -> str:
     """Return only the endpoint path for bounded operator output."""
     return urlparse(url).path or "/"
-    
+
 
 def _get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
     """Fetch a JSON object from a URL."""
