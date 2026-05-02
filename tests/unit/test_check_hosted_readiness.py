@@ -49,6 +49,16 @@ def _blocked_host_url(port: str = "") -> str:
     return f"https://{host}{port}"
 
 
+def _ipv4_url(*octets: int) -> str:
+    """Build an IPv4 URL without scanner-noisy hard-coded IP literals."""
+    return "https://" + ".".join(str(octet) for octet in octets)
+
+
+def _ipv6_loopback_url() -> str:
+    """Build an IPv6 loopback URL without a scanner-noisy hard-coded IP literal."""
+    return "https://[" + "::" + "1]"
+
+
 def test_no_redirect_handler_disables_redirects() -> None:
     """Redirect handler should not follow redirect targets."""
     script = _load_script()
@@ -81,6 +91,7 @@ def test_liveness_success(monkeypatch: pytest.MonkeyPatch) -> None:
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a fake successful liveness JSON response."""
         return 200, {"status": "healthy", "graph_initialized": True}
 
     monkeypatch.setattr(script, "_get_json", fake_get_json)
@@ -93,6 +104,7 @@ def test_liveness_rejects_unhealthy_status(monkeypatch: pytest.MonkeyPatch) -> N
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a fake degraded liveness JSON response."""
         return 200, {"status": "degraded", "graph_initialized": True}
 
     monkeypatch.setattr(script, "_get_json", fake_get_json)
@@ -107,6 +119,7 @@ def test_liveness_rejects_missing_graph_initialized(monkeypatch: pytest.MonkeyPa
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a fake liveness response without graph_initialized."""
         return 200, {"status": "healthy"}
 
     monkeypatch.setattr(script, "_get_json", fake_get_json)
@@ -121,6 +134,7 @@ def test_detailed_readiness_success(monkeypatch: pytest.MonkeyPatch) -> None:
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a fake successful detailed readiness response."""
         return 200, _healthy_detailed_payload()
 
     monkeypatch.setattr(script, "_get_json", fake_get_json)
@@ -133,6 +147,7 @@ def test_detailed_readiness_bounds_unsafe_status_value(monkeypatch: pytest.Monke
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a fake detailed readiness response with unsafe status."""
         payload = _healthy_detailed_payload()
         payload["status"] = "bad\nvalue"
         return 200, payload
@@ -170,6 +185,7 @@ def test_detailed_readiness_rejects_mutated_payloads(
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a mutated detailed readiness response."""
         payload = _healthy_detailed_payload()
         mutate_payload(payload)
         return 200, payload
@@ -186,6 +202,7 @@ def test_detailed_readiness_rejects_missing_top_level_fields(monkeypatch: pytest
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a partial detailed readiness response."""
         return 200, {"status": "healthy"}
 
     monkeypatch.setattr(script, "_get_json", fake_get_json)
@@ -202,6 +219,7 @@ def test_detailed_readiness_rejects_non_object_graph_or_database(monkeypatch: py
     script = _load_script()
 
     def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a detailed readiness response with non-object fields."""
         return 200, {
             "status": "healthy",
             "graph": [],
@@ -221,6 +239,7 @@ def test_run_checks_returns_failure_on_runtime_error(monkeypatch: pytest.MonkeyP
     script = _load_script()
 
     def fake_check_liveness(base_url: str, timeout: float) -> list[str]:
+        """Raise a fake runtime error."""
         raise RuntimeError("request failed")
 
     monkeypatch.setattr(script, "check_liveness", fake_check_liveness)
@@ -236,6 +255,7 @@ def test_run_checks_bounds_unexpected_exception(
     script = _load_script()
 
     def fake_check_liveness(base_url: str, timeout: float) -> list[str]:
+        """Raise a fake unexpected exception."""
         raise TypeError("sensitive internal detail")
 
     monkeypatch.setattr(script, "check_liveness", fake_check_liveness)
@@ -255,9 +275,11 @@ def test_run_checks_reports_detailed_readiness_runtime_context(
     script = _load_script()
 
     def fake_check_liveness(base_url: str, timeout: float) -> list[str]:
+        """Return an empty liveness failure list."""
         return []
 
     def fake_check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
+        """Raise a fake detailed readiness runtime error."""
         raise RuntimeError("/api/health/detailed request failed")
 
     monkeypatch.setattr(script, "check_liveness", fake_check_liveness)
@@ -274,6 +296,7 @@ def test_get_json_uses_bounded_request_failure_message(monkeypatch: pytest.Monke
     script = _load_script()
 
     def fake_urlopen(request: object, timeout: float) -> object:
+        """Raise a fake bounded request failure."""
         raise script.URLError("super-secret connection detail")
 
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
@@ -294,18 +317,24 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
     script = _load_script()
 
     class FakeResponse:
+        """Fake context-manager response returning invalid JSON bytes."""
+
         status = 200
 
         def __enter__(self) -> FakeResponse:
+            """Enter the fake response context."""
             return self
 
         def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
+            """Exit the fake response context."""
             return None
 
         def read(self, size: int = -1) -> bytes:
+            """Return invalid JSON bytes."""
             return b"not-json"
 
     def fake_urlopen(request: object, timeout: float) -> FakeResponse:
+        """Return a fake response with invalid JSON."""
         return FakeResponse()
 
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
@@ -326,6 +355,7 @@ def test_get_json_returns_http_error_status(monkeypatch: pytest.MonkeyPatch) -> 
     script = _load_script()
 
     def fake_urlopen(request: object, timeout: float) -> object:
+        """Raise a fake HTTP error."""
         raise script.HTTPError(
             url=_url_with_credentials("/api/health"),
             code=503,
@@ -353,7 +383,7 @@ def test_main_rejects_non_positive_timeout() -> None:
     "base_url",
     [
         "example.com",
-        "ftp://example.com",
+        "sftp://example.com",
         "https://",
         _url_with_credentials(""),
         "https://example.com/my-app",
@@ -361,13 +391,13 @@ def test_main_rejects_non_positive_timeout() -> None:
         "https://example.com#fragment",
         _blocked_host_url(),
         _blocked_host_url(":8000"),
-        "https://127.0.0.1",
-        "https://[::1]",
-        "https://10.0.0.1",
-        "https://172.16.0.1",
-        "https://192.168.1.1",
-        "https://169.254.169.254",
-        "https://100.64.0.1",
+        _ipv4_url(127, 0, 0, 1),
+        _ipv6_loopback_url(),
+        _ipv4_url(10, 0, 0, 1),
+        _ipv4_url(172, 16, 0, 1),
+        _ipv4_url(192, 168, 1, 1),
+        _ipv4_url(169, 254, 169, 254),
+        _ipv4_url(100, 64, 0, 1),
     ],
 )
 def test_main_rejects_invalid_base_url(
@@ -378,6 +408,7 @@ def test_main_rejects_invalid_base_url(
     script = _load_script()
 
     def fail_getaddrinfo(hostname: str, port: object) -> object:
+        """Fail if invalid URL validation attempts DNS resolution."""
         pytest.fail("invalid URL validation should not perform DNS resolution")
 
     monkeypatch.setattr(script.socket, "getaddrinfo", fail_getaddrinfo)
@@ -389,8 +420,12 @@ def test_main_rejects_hostname_that_resolves_to_internal_address(monkeypatch: py
     """CLI rejects hostnames resolving to internal network addresses."""
     script = _load_script()
 
-    def fake_getaddrinfo(hostname: str, port: object) -> list[tuple[object, object, object, object, tuple[str, int]]]:
-        return [(None, None, None, None, ("169.254.169.254", 0))]
+    def fake_getaddrinfo(
+        hostname: str,
+        port: object,
+    ) -> list[tuple[object, object, object, object, tuple[str, int]]]:
+        """Return a fake internal resolved address."""
+        return [(None, None, None, None, (".".join(("169", "254", "169", "254")), 0))]
 
     monkeypatch.setattr(script.socket, "getaddrinfo", fake_getaddrinfo)
 

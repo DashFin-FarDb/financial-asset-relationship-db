@@ -63,7 +63,7 @@ def _resolves_to_internal_address(hostname: str) -> bool:
     """Return whether a hostname resolves to an internal or non-public address."""
     try:
         address_info = socket.getaddrinfo(hostname, None)
-    except (OSError, socket.gaierror):
+    except OSError:
         return False
 
     return any(_is_internal_ip_address(result[4][0]) for result in address_info)
