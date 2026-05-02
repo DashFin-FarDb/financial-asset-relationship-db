@@ -206,10 +206,14 @@ def test_main_rejects_non_positive_timeout() -> None:
         "example.com",
         "ftp://example.com",
         "https://",
+        "https://user:secret@example.com",
+        "https://example.com/my-app",
+        "https://example.com?token=secret",
+        "https://example.com#fragment",
     ],
 )
 def test_main_rejects_invalid_base_url(base_url: str) -> None:
-    """CLI rejects base URLs without supported scheme and host."""
+    """CLI rejects base URLs outside the supported root http/https form."""
     script = _load_script()
 
     assert script.main([base_url]) == script.USAGE_ERROR
