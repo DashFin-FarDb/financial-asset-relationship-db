@@ -193,6 +193,28 @@ def test_run_checks_returns_failure_on_runtime_error(monkeypatch: pytest.MonkeyP
     assert script.run_checks("https://example.com", 5.0) == script.CHECK_FAILED
 
 
+def test_run_checks_reports_detailed_readiness_runtime_context(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Runtime failures should identify the failing readiness phase."""
+    script = _load_script()
+
+    def fake_check_liveness(base_url: str, timeout: float) -> list[str]:
+        return []
+
+    def fake_check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
+        raise RuntimeError("/api/health/detailed request failed")
+
+    monkeypatch.setattr(script, "check_liveness", fake_check_liveness)
+    monkeypatch.setattr(script, "check_detailed_readiness", fake_check_detailed_readiness)
+
+    assert script.run_checks("https://example.com", 5.0) == script.CHECK_FAILED
+
+    captured = capsys.readouterr()
+    assert "Detailed readiness check failed: /api/health/detailed request failed" in captured.err
+
+
 def test_get_json_uses_bounded_request_failure_message(monkeypatch: pytest.MonkeyPatch) -> None:
     """Request failures should not expose full URLs or raw exception reasons."""
     script = _load_script()
@@ -220,7 +242,7 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
     class FakeResponse:
         status = 200
 
-        def __enter__(self) -> "FakeResponse":
+        def __enter__(self) -> FakeResponse:
             return self
 
         def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
