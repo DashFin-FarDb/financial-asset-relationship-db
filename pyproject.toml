@@ -74,6 +74,7 @@ addopts = [
     "-v",
     "--strict-markers",
 ]
+norecursedirs = ["tests/benchmarks"]
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
