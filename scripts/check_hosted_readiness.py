@@ -44,6 +44,15 @@ def _validate_base_url(base_url: str) -> str | None:
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         return "base_url must include an http:// or https:// scheme and host"
 
+    if parsed.username or parsed.password:
+        return "base_url must not include credentials"
+
+    if parsed.path not in {"", "/"}:
+        return "base_url must not include a path"
+
+    if parsed.params or parsed.query or parsed.fragment:
+        return "base_url must not include params, query strings, or fragments"
+
     return None
 
 
