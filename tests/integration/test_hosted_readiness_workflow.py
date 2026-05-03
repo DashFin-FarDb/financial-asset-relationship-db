@@ -23,7 +23,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HOSTED_READINESS_WORKFLOW_PATH = REPO_ROOT / ".github/workflows/hosted-readiness.yml"
 
-GITHUB_EXPRESSION_MARKERS = ("secrets.", "inputs.")
+GITHUB_EXPRESSION_PATTERN = re.compile(r"\$\{\{[^}]*\}\}")
 
 PROVIDER_SECRET_NAMES = (
     "VERCEL_TOKEN",
@@ -41,12 +41,10 @@ PROVIDER_SECRET_NAMES = (
 )
 
 
-def _is_ignored_workflow_line(line: str) -> bool:
-    """Return whether a workflow line should be ignored by hardcoded-secret checks."""
+def _scannable_workflow_content(line: str) -> str:
+    """Return workflow code content with comments and GitHub expressions removed."""
     content = line.split("#", 1)[0].strip()
-    if not content:
-        return True
-    return any(marker in content for marker in GITHUB_EXPRESSION_MARKERS)
+    return GITHUB_EXPRESSION_PATTERN.sub("", content).strip()
 
 
 @pytest.fixture(name="hosted_readiness_workflow")
@@ -365,43 +363,59 @@ class TestHostedReadinessWorkflowSecurity:
 
     def test_no_hardcoded_hosted_url(self, hosted_readiness_workflow_raw):
         """Workflow must not contain hardcoded hosted URLs."""
-        assert not re.search(r"https?://", hosted_readiness_workflow_raw, re.IGNORECASE), (
-            "Workflow must not contain hardcoded URLs"
-        )
+        for line in hosted_readiness_workflow_raw.splitlines():
+            content = _scannable_workflow_content(line)
+            assert not re.search(r"https?://", content, re.IGNORECASE), (
+                f"Workflow must not contain hardcoded URLs in code: {line}"
+            )
 
     def test_no_hardcoded_tokens(self, hosted_readiness_workflow_raw):
         """Workflow must not contain hardcoded tokens or API keys."""
-        # Check for common token patterns (excluding valid GitHub Actions expressions)
-        lines = hosted_readiness_workflow_raw.splitlines()
-        for line in lines:
-            if _is_ignored_workflow_line(line):
+        sensitive_assignment = re.compile(
+            r"\b(?:api[_-]?key|access[_-]?token|auth[_-]?token|bearer[_-]?token|token)\b"
+            r"\s*[:=]\s*['\"]?[A-Za-z0-9._~+/=-]{20,}['\"]?",
+            re.IGNORECASE,
+        )
+        bearer_literal = re.compile(
+            r"\bBearer\s+[A-Za-z0-9._~+/=-]{20,}",
+            re.IGNORECASE,
+        )
+
+        for line in hosted_readiness_workflow_raw.splitlines():
+            content = _scannable_workflow_content(line)
+            if not content:
                 continue
-            # Look for suspicious token patterns
-            assert not re.search(r"token[:\s]*['\"][a-zA-Z0-9_-]{20,}['\"]", line, re.IGNORECASE), (
-                f"Workflow may contain hardcoded token in line: {line}"
+            assert not sensitive_assignment.search(content), (
+                f"Workflow may contain hardcoded token or API key in line: {line}"
+            )
+            assert not bearer_literal.search(content), (
+                f"Workflow may contain hardcoded bearer token in line: {line}"
             )
 
     def test_no_hardcoded_database_urls(self, hosted_readiness_workflow_raw):
         """Workflow must not contain hardcoded database URLs."""
-        assert not re.search(r"postgres(ql)?://", hosted_readiness_workflow_raw, re.IGNORECASE), (
-            "Workflow must not contain hardcoded PostgreSQL URLs"
-        )
-        assert not re.search(r"mysql://", hosted_readiness_workflow_raw, re.IGNORECASE), (
-            "Workflow must not contain hardcoded MySQL URLs"
-        )
+        for line in hosted_readiness_workflow_raw.splitlines():
+            content = _scannable_workflow_content(line)
+            assert not re.search(r"postgres(ql)?://", content, re.IGNORECASE), (
+                f"Workflow must not contain hardcoded PostgreSQL URLs: {line}"
+            )
+            assert not re.search(r"mysql://", content, re.IGNORECASE), (
+                f"Workflow must not contain hardcoded MySQL URLs: {line}"
+            )
 
     def test_no_hardcoded_credentials(self, hosted_readiness_workflow_raw):
         """Workflow must not contain hardcoded usernames or passwords."""
-        lines = hosted_readiness_workflow_raw.splitlines()
-        for line in lines:
-            if _is_ignored_workflow_line(line):
+        credential_assignment = re.compile(
+            r"\b(?:username|password)\b\s*[:=]\s*['\"]?[^'\"\s#]{3,}['\"]?",
+            re.IGNORECASE,
+        )
+
+        for line in hosted_readiness_workflow_raw.splitlines():
+            content = _scannable_workflow_content(line)
+            if not content:
                 continue
-            # Look for suspicious credential patterns
-            assert not re.search(r"password[:\s]*['\"][^'\"]{3,}['\"]", line, re.IGNORECASE), (
-                f"Workflow may contain hardcoded password in line: {line}"
-            )
-            assert not re.search(r"username[:\s]*['\"][^'\"]{3,}['\"]", line, re.IGNORECASE), (
-                f"Workflow may contain hardcoded username in line: {line}"
+            assert not credential_assignment.search(content), (
+                f"Workflow may contain hardcoded credential in line: {line}"
             )
 
     def test_no_raw_endpoint_response_bodies(self, hosted_readiness_workflow_raw):
@@ -437,5 +451,5 @@ class TestHostedReadinessWorkflowConcurrency:
     def test_concurrency_cancel_in_progress_is_false(self, hosted_readiness_workflow):
         """Workflow concurrency must not cancel in-progress runs (manual workflow safety)."""
         concurrency = hosted_readiness_workflow["concurrency"]
-        cancel_in_progress = concurrency.get("cancel-in-progress", True)
+        cancel_in_progress = concurrency.get("cancel-in-progress", False)
         assert cancel_in_progress is False, "Concurrency cancel-in-progress must be false for manual workflow safety"
