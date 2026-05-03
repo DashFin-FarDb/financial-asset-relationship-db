@@ -88,20 +88,20 @@ Stores durable graph edges between assets.
 
 Recommended fields:
 
-| Field               | Purpose                                                                                                           | Compatibility note                                                                               |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `id`                | Internal primary key                                                                                              | Integer or UUID based on repo-wide persistence convention.                                       |
-| `source_asset_id`   | Source asset foreign key                                                                                          | References `assets.id`.                                                                          |
-| `target_asset_id`   | Target asset foreign key                                                                                          | References `assets.id`.                                                                          |
-| `relationship_type` | Domain relationship type, such as same-sector, issuer link, regulatory impact, correlation, or other future types | Validate allowed values in application code initially.                                           |
+| Field               | Purpose                                                                                                           | Compatibility note                                                                                                                     |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                | Internal primary key                                                                                              | Integer or UUID based on repo-wide persistence convention.                                                                             |
+| `source_asset_id`   | Source asset foreign key                                                                                          | References `assets.id`.                                                                                                                |
+| `target_asset_id`   | Target asset foreign key                                                                                          | References `assets.id`.                                                                                                                |
+| `relationship_type` | Domain relationship type, such as same-sector, issuer link, regulatory impact, correlation, or other future types | Validate allowed values in application code initially.                                                                                 |
 | `bidirectional`     | Current ORM-compatible direction marker                                                                           | Boolean compatibility baseline for `AssetRelationshipORM.bidirectional`; a later enum-based `direction` field requires a migration PR. |
-| `strength`          | Relationship strength                                                                                             | Target name should remain compatible with `AssetRelationshipORM.strength`; use `FLOAT(53)` / double precision. |
-| `confidence`        | Confidence score separate from strength                                                                           | `FLOAT(53)` / double precision; nullable if not all relationship types have confidence yet.      |
-| `valid_from`        | Start of validity window                                                                                          | Nullable for timeless/static relationships.                                                      |
-| `valid_to`          | End of validity window                                                                                            | Nullable for current/open-ended relationships.                                                   |
-| `source`            | Data/source system that produced the relationship                                                                 | Useful for evidence and rebuild diagnostics.                                                     |
-| `created_at`        | Insert timestamp                                                                                                  | Repository-managed.                                                                              |
-| `updated_at`        | Last update timestamp                                                                                             | Repository-managed.                                                                              |
+| `strength`          | Relationship strength                                                                                             | Target name should remain compatible with `AssetRelationshipORM.strength`; use `FLOAT(53)` / double precision.                         |
+| `confidence`        | Confidence score separate from strength                                                                           | `FLOAT(53)` / double precision; nullable if not all relationship types have confidence yet.                                            |
+| `valid_from`        | Start of validity window                                                                                          | Nullable for timeless/static relationships.                                                                                            |
+| `valid_to`          | End of validity window                                                                                            | Nullable for current/open-ended relationships.                                                                                         |
+| `source`            | Data/source system that produced the relationship                                                                 | Useful for evidence and rebuild diagnostics.                                                                                           |
+| `created_at`        | Insert timestamp                                                                                                  | Repository-managed.                                                                                                                    |
+| `updated_at`        | Last update timestamp                                                                                             | Repository-managed.                                                                                                                    |
 
 Constraints and indexes:
 
@@ -175,19 +175,19 @@ Tracks graph rebuild/load state without making visualization layout the graph so
 
 Recommended fields:
 
-| Field                | Purpose                                                  | Compatibility note                                                                                                |
-| -------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `id`                 | Internal primary key                                     | String-compatible internal key unless a later migration establishes a repo-wide surrogate-key policy.             |
-| `graph_version`      | Application graph schema/semantic version                | Portable text.                                                                                                    |
+| Field                | Purpose                                                          | Compatibility note                                                                                        |
+| -------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `id`                 | Internal primary key                                             | String-compatible internal key unless a later migration establishes a repo-wide surrogate-key policy.     |
+| `graph_version`      | Application graph schema/semantic version                        | Portable text.                                                                                            |
 | `graph_hash`         | Deterministic hash of assets, relationships, and evidence inputs | Used for stale detection; inputs must be sorted by stable keys and serialized canonically before hashing. |
-| `build_reason`       | Initial build, rebuild, refresh, import, test seed, etc. | Portable text.                                                                                                    |
-| `data_mode`          | Runtime data mode that produced the graph                | Mirrors explicit runtime contract when implemented.                                                               |
-| `asset_count`        | Asset count at build time                                | Integer.                                                                                                          |
-| `relationship_count` | Relationship count at build time                         | Integer.                                                                                                          |
-| `status`             | succeeded, failed, partial, invalidated                  | Portable string.                                                                                                  |
-| `started_at`         | Build start timestamp                                    | Repository-managed.                                                                                               |
-| `completed_at`       | Build completion timestamp                               | Nullable until finished.                                                                                          |
-| `build_attributes`   | Non-secret build diagnostics                             | SQLAlchemy `JSON`-compatible extended attributes.                                                                 |
+| `build_reason`       | Initial build, rebuild, refresh, import, test seed, etc.         | Portable text.                                                                                            |
+| `data_mode`          | Runtime data mode that produced the graph                        | Mirrors explicit runtime contract when implemented.                                                       |
+| `asset_count`        | Asset count at build time                                        | Integer.                                                                                                  |
+| `relationship_count` | Relationship count at build time                                 | Integer.                                                                                                  |
+| `status`             | succeeded, failed, partial, invalidated                          | Portable string.                                                                                          |
+| `started_at`         | Build start timestamp                                            | Repository-managed.                                                                                       |
+| `completed_at`       | Build completion timestamp                                       | Nullable until finished.                                                                                  |
+| `build_attributes`   | Non-secret build diagnostics                                     | SQLAlchemy `JSON`-compatible extended attributes.                                                         |
 
 Design rule:
 
