@@ -35,6 +35,7 @@ jobs:
 
       - name: Run hosted readiness smoke check
         if: ${{ env.HOSTED_READINESS_BASE_URL != '' }}
+        shell: bash
         run: |
           mask_value="${HOSTED_READINESS_BASE_URL//%/%25}"
           mask_value="${mask_value//$'\r'/%0D}"
