@@ -8,7 +8,7 @@ Design proposal. This document defines the graph persistence boundary for the ne
 
 The hosted preview gate is complete. Issue #1108 records the verified hosted deployment, the hosted readiness smoke command, the passing smoke result, and manual endpoint evidence for health, detailed health, assets, metrics, and visualization endpoints.
 
-The next production-path need is durable graph persistence. The current service can initialize and serve graph state, but graph truth is not yet represented as first-class durable state in PostgreSQL. Local development and tests must continue to work with SQLite.
+The next production-path need is authoritative graph persistence. The repository already has SQLAlchemy persistence primitives and migration history for assets and asset relationships, but the hosted/runtime graph lifecycle is not yet explicitly wired to load from and save to that persistence layer as the authoritative graph source. Local development and tests must continue to work with SQLite.
 
 The graph persistence boundary must also preserve the existing architectural separation between graph truth and graph layout. Financial relationships are domain data. Coordinates and visualization layout are presentation metadata and must not become the source of truth for relationships.
 
@@ -25,7 +25,7 @@ Until such an implementation PR is accepted, the existing ORM and migration file
 
 ## Problem statement
 
-FarDb can now be deployed to a hosted preview and can pass hosted readiness checks, but graph data is still treated primarily as runtime-initialized/sample/cache state rather than as durable graph state with explicit persistence semantics.
+FarDb can now be deployed to a hosted preview and can pass hosted readiness checks, but runtime graph state is still treated primarily as initialized/sample/cache state rather than as state loaded from and saved to an explicit authoritative persistence lifecycle.
 
 This creates four production risks:
 
@@ -68,12 +68,14 @@ Recommended fields:
 | `symbol`      | Stable asset symbol or ticker                                      | Add a unique constraint only if `symbol` is confirmed as the canonical asset lookup key for all persisted assets. |
 | `name`        | Display name                                                       | Nullable only if ingestion can legitimately omit it.                                                              |
 | `asset_class` | Asset class such as Equity, Fixed Income, Commodity, Currency      | Prefer portable string enum validation in application code before DB-specific enum types.                         |
-| `sector`      | Sector classification where applicable                             | Nullable for assets where sector does not apply.                                                                  |
-| `issuer`      | Issuer or issuer family where applicable                           | Nullable.                                                                                                         |
-| `currency`    | Currency code where applicable                                     | Nullable.                                                                                                         |
+| `sector`      | Sector classification where applicable                             | Preserve current non-null ORM/migration behavior unless a migration PR explicitly relaxes it.                     |
+| `issuer`      | Issuer or issuer family where applicable                           | Nullable only if current ORM/migration behavior permits it, or after an explicit migration PR.                    |
+| `currency`    | Currency code where applicable                                     | Preserve current non-null ORM/migration behavior unless a migration PR explicitly relaxes it.                     |
 | `attributes`  | Source-specific attributes not yet promoted to first-class columns | SQLAlchemy `JSON`-compatible extended attributes; avoid ORM attribute name `metadata`.                            |
 | `created_at`  | Insert timestamp                                                   | Must be timezone-aware in application handling.                                                                   |
 | `updated_at`  | Last update timestamp                                              | Updated by repository/service layer.                                                                              |
+
+Nullability compatibility: current ORM and migration constraints remain authoritative until a schema PR changes them. If current `AssetORM` / `migrations/001_initial.sql` require fields such as `sector` or `currency` to be non-null, implementation PRs must preserve that behavior. Any target relaxation for asset classes where a field does not apply requires an explicit migration plan, backfill/default strategy, SQLite compatibility check, and repository/service-layer validation update.
 
 Constraints and indexes:
 
@@ -195,7 +197,9 @@ A graph build/snapshot record may identify which graph version is current and wh
 
 ## Repository boundary
 
-Future implementation should introduce repositories behind a persistence interface. The API and graph services should not issue ad hoc queries directly.
+Future implementation should expose graph persistence through repository interfaces. The codebase already has `AssetGraphRepository` in `src/data/repository.py`; implementation PRs should build on, split, or rename that existing repository rather than introduce a competing persistence layer. The API and graph services should not issue ad hoc queries directly.
+
+The repository names below describe target responsibilities, not a requirement to create entirely new modules. A future implementation PR may keep `AssetGraphRepository` as the façade and delegate internally to asset, relationship, regulatory-event, and graph-build helpers, or it may split the existing repository into narrower classes if that reduces coupling without changing behavior.
 
 ### `AssetRepository`
 
