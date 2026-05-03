@@ -25,6 +25,21 @@ HOSTED_READINESS_WORKFLOW_PATH = REPO_ROOT / ".github/workflows/hosted-readiness
 
 GITHUB_EXPRESSION_MARKERS = ("secrets.", "inputs.")
 
+PROVIDER_SECRET_NAMES = (
+    "VERCEL_TOKEN",
+    "NETLIFY_AUTH_TOKEN",
+    "NETLIFY_SITE_ID",
+    "HEROKU_API_KEY",
+    "FLY_API_TOKEN",
+    "RAILWAY_TOKEN",
+    "RENDER_API_KEY",
+    "DIGITALOCEAN_ACCESS_TOKEN",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AZURE_CLIENT_SECRET",
+    "GCP_SA_KEY",
+)
+
 
 def _is_ignored_workflow_line(line: str) -> bool:
     """Return whether a workflow line should be ignored by hardcoded-secret checks."""
@@ -401,22 +416,8 @@ class TestHostedReadinessWorkflowSecurity:
 
     def test_no_provider_specific_secrets(self, hosted_readiness_workflow_raw):
         """Workflow must not embed provider-specific credential names."""
-        provider_secret_names = (
-            "VERCEL_TOKEN",
-            "NETLIFY_AUTH_TOKEN",
-            "NETLIFY_SITE_ID",
-            "HEROKU_API_KEY",
-            "FLY_API_TOKEN",
-            "RAILWAY_TOKEN",
-            "RENDER_API_KEY",
-            "DIGITALOCEAN_ACCESS_TOKEN",
-            "AWS_ACCESS_KEY_ID",
-            "AWS_SECRET_ACCESS_KEY",
-            "AZURE_CLIENT_SECRET",
-            "GCP_SA_KEY",
-        )
-        for secret_name in provider_secret_names:
-            assert secret_name not in hosted_readiness_workflow_raw, (
+        for secret_name in PROVIDER_SECRET_NAMES:
+            assert not re.search(rf"\b{secret_name}\b", hosted_readiness_workflow_raw), (
                 f"Workflow must not embed provider-specific secret '{secret_name}'"
             )
 
