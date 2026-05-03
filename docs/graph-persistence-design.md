@@ -51,18 +51,18 @@ Stores durable asset identity and asset attributes needed to reconstruct graph n
 
 Recommended fields:
 
-| Field | Purpose | Compatibility note |
-| --- | --- | --- |
-| `id` | Internal primary key | Use integer or UUID only if current DB policy supports both PostgreSQL and SQLite cleanly. |
-| `symbol` | Stable asset symbol or ticker | Unique when symbol is the canonical asset key. |
-| `name` | Display name | Nullable only if ingestion can legitimately omit it. |
-| `asset_class` | Asset class such as Equity, Fixed Income, Commodity, Currency | Prefer portable string enum validation in application code before DB-specific enum types. |
-| `sector` | Sector classification where applicable | Nullable for assets where sector does not apply. |
-| `issuer` | Issuer or issuer family where applicable | Nullable. |
-| `currency` | Currency code where applicable | Nullable. |
-| `metadata` | Source-specific attributes not yet promoted to first-class columns | JSON-compatible text/object with SQLite fallback handling. |
-| `created_at` | Insert timestamp | Must be timezone-aware in application handling. |
-| `updated_at` | Last update timestamp | Updated by repository/service layer. |
+| Field         | Purpose                                                            | Compatibility note                                                                         |
+| ------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `id`          | Internal primary key                                               | Use integer or UUID only if current DB policy supports both PostgreSQL and SQLite cleanly. |
+| `symbol`      | Stable asset symbol or ticker                                      | Unique when symbol is the canonical asset key.                                             |
+| `name`        | Display name                                                       | Nullable only if ingestion can legitimately omit it.                                       |
+| `asset_class` | Asset class such as Equity, Fixed Income, Commodity, Currency      | Prefer portable string enum validation in application code before DB-specific enum types.  |
+| `sector`      | Sector classification where applicable                             | Nullable for assets where sector does not apply.                                           |
+| `issuer`      | Issuer or issuer family where applicable                           | Nullable.                                                                                  |
+| `currency`    | Currency code where applicable                                     | Nullable.                                                                                  |
+| `metadata`    | Source-specific attributes not yet promoted to first-class columns | JSON-compatible text/object with SQLite fallback handling.                                 |
+| `created_at`  | Insert timestamp                                                   | Must be timezone-aware in application handling.                                            |
+| `updated_at`  | Last update timestamp                                              | Updated by repository/service layer.                                                       |
 
 Constraints and indexes:
 
@@ -77,20 +77,20 @@ Stores durable graph edges between assets.
 
 Recommended fields:
 
-| Field | Purpose | Compatibility note |
-| --- | --- | --- |
-| `id` | Internal primary key | Integer or UUID based on repo-wide persistence convention. |
-| `source_asset_id` | Source asset foreign key | References `assets.id`. |
-| `target_asset_id` | Target asset foreign key | References `assets.id`. |
-| `relationship_type` | Domain relationship type, such as same-sector, issuer link, regulatory impact, correlation, or other future types | Validate allowed values in application code initially. |
-| `direction` | Directionality marker such as directed, undirected, or inferred | Required so consumers do not infer direction from row order. |
-| `weight` | Relationship strength | Numeric/float compatible with SQLite and PostgreSQL. |
-| `confidence` | Confidence score separate from strength | Nullable if not all relationship types have confidence yet. |
-| `valid_from` | Start of validity window | Nullable for timeless/static relationships. |
-| `valid_to` | End of validity window | Nullable for current/open-ended relationships. |
-| `source` | Data/source system that produced the relationship | Useful for evidence and rebuild diagnostics. |
-| `created_at` | Insert timestamp | Repository-managed. |
-| `updated_at` | Last update timestamp | Repository-managed. |
+| Field               | Purpose                                                                                                           | Compatibility note                                           |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `id`                | Internal primary key                                                                                              | Integer or UUID based on repo-wide persistence convention.   |
+| `source_asset_id`   | Source asset foreign key                                                                                          | References `assets.id`.                                      |
+| `target_asset_id`   | Target asset foreign key                                                                                          | References `assets.id`.                                      |
+| `relationship_type` | Domain relationship type, such as same-sector, issuer link, regulatory impact, correlation, or other future types | Validate allowed values in application code initially.       |
+| `direction`         | Directionality marker such as directed, undirected, or inferred                                                   | Required so consumers do not infer direction from row order. |
+| `weight`            | Relationship strength                                                                                             | Numeric/float compatible with SQLite and PostgreSQL.         |
+| `confidence`        | Confidence score separate from strength                                                                           | Nullable if not all relationship types have confidence yet.  |
+| `valid_from`        | Start of validity window                                                                                          | Nullable for timeless/static relationships.                  |
+| `valid_to`          | End of validity window                                                                                            | Nullable for current/open-ended relationships.               |
+| `source`            | Data/source system that produced the relationship                                                                 | Useful for evidence and rebuild diagnostics.                 |
+| `created_at`        | Insert timestamp                                                                                                  | Repository-managed.                                          |
+| `updated_at`        | Last update timestamp                                                                                             | Repository-managed.                                          |
 
 Constraints and indexes:
 
@@ -106,14 +106,14 @@ Stores evidence/provenance and extensible relationship attributes without forcin
 
 Recommended fields:
 
-| Field | Purpose | Compatibility note |
-| --- | --- | --- |
-| `id` | Internal primary key | Same key policy as other tables. |
-| `relationship_id` | Relationship foreign key | References `relationships.id`. |
-| `metadata_key` | Metadata/evidence key | Portable text. |
-| `metadata_value` | JSON-compatible metadata value | Store as JSON/JSONB in PostgreSQL only if SQLite fallback is abstracted; otherwise use serialized JSON text. |
-| `evidence_source` | Source of the evidence | Nullable when inherited from relationship source. |
-| `created_at` | Insert timestamp | Repository-managed. |
+| Field             | Purpose                        | Compatibility note                                                                                           |
+| ----------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `id`              | Internal primary key           | Same key policy as other tables.                                                                             |
+| `relationship_id` | Relationship foreign key       | References `relationships.id`.                                                                               |
+| `metadata_key`    | Metadata/evidence key          | Portable text.                                                                                               |
+| `metadata_value`  | JSON-compatible metadata value | Store as JSON/JSONB in PostgreSQL only if SQLite fallback is abstracted; otherwise use serialized JSON text. |
+| `evidence_source` | Source of the evidence         | Nullable when inherited from relationship source.                                                            |
+| `created_at`      | Insert timestamp               | Repository-managed.                                                                                          |
 
 Design rule:
 
@@ -125,19 +125,19 @@ Stores durable event data if regulatory events remain part of graph construction
 
 Recommended fields:
 
-| Field | Purpose | Compatibility note |
-| --- | --- | --- |
-| `id` | Internal primary key | Same key policy as other tables. |
-| `event_key` | Stable external or derived event identifier | Unique if available. |
-| `event_type` | Regulatory event classification | Portable string. |
-| `title` | Human-readable event label | Required where available. |
-| `description` | Event detail | Nullable. |
-| `event_date` | Date or timestamp of event | Portable datetime/date handling. |
-| `jurisdiction` | Jurisdiction or regulator region | Nullable. |
-| `source` | Source system or URL label | Do not store secrets. |
-| `metadata` | JSON-compatible extended event attributes | Same JSON compatibility policy as above. |
-| `created_at` | Insert timestamp | Repository-managed. |
-| `updated_at` | Last update timestamp | Repository-managed. |
+| Field          | Purpose                                     | Compatibility note                       |
+| -------------- | ------------------------------------------- | ---------------------------------------- |
+| `id`           | Internal primary key                        | Same key policy as other tables.         |
+| `event_key`    | Stable external or derived event identifier | Unique if available.                     |
+| `event_type`   | Regulatory event classification             | Portable string.                         |
+| `title`        | Human-readable event label                  | Required where available.                |
+| `description`  | Event detail                                | Nullable.                                |
+| `event_date`   | Date or timestamp of event                  | Portable datetime/date handling.         |
+| `jurisdiction` | Jurisdiction or regulator region            | Nullable.                                |
+| `source`       | Source system or URL label                  | Do not store secrets.                    |
+| `metadata`     | JSON-compatible extended event attributes   | Same JSON compatibility policy as above. |
+| `created_at`   | Insert timestamp                            | Repository-managed.                      |
+| `updated_at`   | Last update timestamp                       | Repository-managed.                      |
 
 Optional join table:
 
@@ -161,19 +161,19 @@ Tracks graph rebuild/load state without making visualization layout the graph so
 
 Recommended fields:
 
-| Field | Purpose | Compatibility note |
-| --- | --- | --- |
-| `id` | Internal primary key | Same key policy as other tables. |
-| `graph_version` | Application graph schema/semantic version | Portable text. |
-| `graph_hash` | Hash of assets, relationships, and evidence inputs | Used for stale detection. |
-| `build_reason` | Initial build, rebuild, refresh, import, test seed, etc. | Portable text. |
-| `data_mode` | Runtime data mode that produced the graph | Mirrors explicit runtime contract when implemented. |
-| `asset_count` | Asset count at build time | Integer. |
-| `relationship_count` | Relationship count at build time | Integer. |
-| `status` | succeeded, failed, partial, invalidated | Portable string. |
-| `started_at` | Build start timestamp | Repository-managed. |
-| `completed_at` | Build completion timestamp | Nullable until finished. |
-| `metadata` | Non-secret build diagnostics | JSON-compatible. |
+| Field                | Purpose                                                  | Compatibility note                                  |
+| -------------------- | -------------------------------------------------------- | --------------------------------------------------- |
+| `id`                 | Internal primary key                                     | Same key policy as other tables.                    |
+| `graph_version`      | Application graph schema/semantic version                | Portable text.                                      |
+| `graph_hash`         | Hash of assets, relationships, and evidence inputs       | Used for stale detection.                           |
+| `build_reason`       | Initial build, rebuild, refresh, import, test seed, etc. | Portable text.                                      |
+| `data_mode`          | Runtime data mode that produced the graph                | Mirrors explicit runtime contract when implemented. |
+| `asset_count`        | Asset count at build time                                | Integer.                                            |
+| `relationship_count` | Relationship count at build time                         | Integer.                                            |
+| `status`             | succeeded, failed, partial, invalidated                  | Portable string.                                    |
+| `started_at`         | Build start timestamp                                    | Repository-managed.                                 |
+| `completed_at`       | Build completion timestamp                               | Nullable until finished.                            |
+| `metadata`           | Non-secret build diagnostics                             | JSON-compatible.                                    |
 
 Design rule:
 
