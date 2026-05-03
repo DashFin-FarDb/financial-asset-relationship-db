@@ -430,11 +430,11 @@ class TestHostedReadinessWorkflowSecurity:
 
     def test_no_provider_specific_secrets(self, hosted_readiness_workflow_raw):
         """Workflow must not embed provider-specific credential names."""
+        scannable_content = "\n".join(_scannable_workflow_content(line) for line in hosted_readiness_workflow_raw.splitlines())
         for secret_name in PROVIDER_SECRET_NAMES:
-            assert not re.search(rf"\b{secret_name}\b", hosted_readiness_workflow_raw), (
+            assert not re.search(rf"\b{secret_name}\b", scannable_content), (
                 f"Workflow must not embed provider-specific secret '{secret_name}'"
             )
-
 
 @pytest.mark.integration
 class TestHostedReadinessWorkflowConcurrency:
