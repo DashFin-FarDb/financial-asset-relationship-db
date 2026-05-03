@@ -36,5 +36,8 @@ jobs:
       - name: Run hosted readiness smoke check
         if: ${{ env.HOSTED_READINESS_BASE_URL != '' }}
         run: |
-          echo "::add-mask::$HOSTED_READINESS_BASE_URL"
+          mask_value="${HOSTED_READINESS_BASE_URL//%/%25}"
+          mask_value="${mask_value//$'\r'/%0D}"
+          mask_value="${mask_value//$'\n'/%0A}"
+          printf '::add-mask::%s\n' "$mask_value"
           python scripts/check_hosted_readiness.py "$HOSTED_READINESS_BASE_URL" --timeout "$HOSTED_READINESS_TIMEOUT"
