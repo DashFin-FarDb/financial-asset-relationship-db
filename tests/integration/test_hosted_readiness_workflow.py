@@ -23,7 +23,9 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HOSTED_READINESS_WORKFLOW_PATH = REPO_ROOT / ".github/workflows/hosted-readiness.yml"
 
-GITHUB_EXPRESSION_PATTERN = re.compile(r"\$\{\{[^}]*\}\}")
+TRUSTED_GITHUB_REFERENCES_PATTERN = re.compile(
+    r"\b(?:inputs\.base_url|inputs\.timeout|secrets\.HOSTED_READINESS_BASE_URL)\b"
+)
 
 PROVIDER_SECRET_NAMES = (
     "VERCEL_TOKEN",
@@ -42,9 +44,9 @@ PROVIDER_SECRET_NAMES = (
 
 
 def _scannable_workflow_content(line: str) -> str:
-    """Return workflow code content with comments and GitHub expressions removed."""
+    """Return workflow code content with comments removed and trusted references redacted."""
     content = line.split("#", 1)[0].strip()
-    return GITHUB_EXPRESSION_PATTERN.sub("", content).strip()
+    return TRUSTED_GITHUB_REFERENCES_PATTERN.sub("", content).strip()
 
 
 @pytest.fixture(name="hosted_readiness_workflow")
