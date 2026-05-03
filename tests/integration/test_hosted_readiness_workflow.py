@@ -388,9 +388,7 @@ class TestHostedReadinessWorkflowSecurity:
             assert not sensitive_assignment.search(content), (
                 f"Workflow may contain hardcoded token or API key in line: {line}"
             )
-            assert not bearer_literal.search(content), (
-                f"Workflow may contain hardcoded bearer token in line: {line}"
-            )
+            assert not bearer_literal.search(content), f"Workflow may contain hardcoded bearer token in line: {line}"
 
     def test_no_hardcoded_database_urls(self, hosted_readiness_workflow_raw):
         """Workflow must not contain hardcoded database URLs."""
