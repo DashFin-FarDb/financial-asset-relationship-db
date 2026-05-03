@@ -399,6 +399,27 @@ class TestHostedReadinessWorkflowSecurity:
             "Workflow must not contain example response bodies"
         )
 
+    def test_no_provider_specific_secrets(self, hosted_readiness_workflow_raw):
+        """Workflow must not embed provider-specific credential names."""
+        provider_secret_names = (
+            "VERCEL_TOKEN",
+            "NETLIFY_AUTH_TOKEN",
+            "NETLIFY_SITE_ID",
+            "HEROKU_API_KEY",
+            "FLY_API_TOKEN",
+            "RAILWAY_TOKEN",
+            "RENDER_API_KEY",
+            "DIGITALOCEAN_ACCESS_TOKEN",
+            "AWS_ACCESS_KEY_ID",
+            "AWS_SECRET_ACCESS_KEY",
+            "AZURE_CLIENT_SECRET",
+            "GCP_SA_KEY",
+        )
+        for secret_name in provider_secret_names:
+            assert secret_name not in hosted_readiness_workflow_raw, (
+                f"Workflow must not embed provider-specific secret '{secret_name}'"
+            )
+
 
 @pytest.mark.integration
 class TestHostedReadinessWorkflowConcurrency:
