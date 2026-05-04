@@ -174,8 +174,14 @@ make test
 make test-fast
 make lint
 make format
+make format-check
 make type-check
 make check
+make pre-commit          # install pre-commit hooks
+make pre-commit-run      # run pre-commit hooks on all files
+make clean               # remove caches/build artifacts
+make docker-compose-up   # start Gradio app via docker-compose
+make docker-compose-down
 ```
 
 ### Docker (Gradio app - NON-PRODUCTION)
@@ -185,6 +191,21 @@ docker-compose up --build
 ```
 
 Note: Docker configuration currently references Gradio. Aligning deployment artifacts with production architecture is deferred work per ADR 0001.
+
+### Hosted readiness smoke check
+
+`scripts/check_hosted_readiness.py` performs a bounded liveness/readiness probe against a hosted deployment. It is wired into the manual GitHub Actions workflow `.github/workflows/hosted-readiness.yml` (trigger via `workflow_dispatch`).
+
+Inputs/env:
+
+- `base_url` workflow input or `HOSTED_READINESS_BASE_URL` repository secret (the workflow skips when neither is set)
+- `timeout` workflow input (seconds; defaults to `10`)
+
+Run locally:
+
+```pwsh
+python scripts/check_hosted_readiness.py <base_url> --timeout 10
+```
 
 ## High-level architecture
 
@@ -274,3 +295,9 @@ CircleCI (`.circleci/config.yml`) runs:
 
 - Python: flake8 (critical errors), pytest with coverage, safety + bandit
 - Frontend: `npm run lint`, `npm run build`
+
+GitHub Actions (`.github/workflows/`) include, among others:
+
+- `ci.yml` — primary CI pipeline
+- `hosted-readiness.yml` — manual (`workflow_dispatch`) hosted deployment smoke check (see "Hosted readiness smoke check" above)
+- A range of security/scanner workflows (CodeQL, Bandit, Bearer, Semgrep, Snyk, Trivy, etc.)
