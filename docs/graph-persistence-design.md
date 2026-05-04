@@ -279,7 +279,7 @@ Atomicity and publication rules:
 - Marking a build `succeeded`, or moving a `latest_valid` pointer to that build, must be the final publish step.
 - A build must not become latest valid unless foreign-key integrity checks pass for required graph truth tables.
 - On write failure, the build must be rolled back where possible or marked `failed`; partial writes must not be considered durable graph state.
-- Concurrent rebuild attempts should be serialized by repository-level locking, database advisory locking where available, or a single-writer application policy.
+- Concurrent rebuild attempts should be serialized by application-level locking (e.g., file-based locks for SQLite or distributed locks for hosted environments) or a single-writer application policy. Database advisory locking can be used as an optimization where available.
 
 Staleness should be based on explicit signals rather than incidental process state:
 
