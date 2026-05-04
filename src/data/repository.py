@@ -120,12 +120,12 @@ class AssetGraphRepository:
     def load_graph(self) -> AssetRelationshipGraph:
         """
         Reconstruct an in-memory asset relationship graph from persisted rows.
-        
+
         Loads only durable persisted data; does not derive relationships from other
         sources or restore visualization/layout metadata. Persisted relationship rows
         are loaded one-for-one as directed edges, so a stored bidirectional flag is not
         expanded into an additional reverse edge during graph reconstruction.
-        
+
         Returns:
             AssetRelationshipGraph: The reconstructed graph containing persisted assets,
             relationship rows, and regulatory events.
