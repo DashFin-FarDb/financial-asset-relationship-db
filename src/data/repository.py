@@ -85,7 +85,9 @@ class _BaseAssetKwargs(TypedDict):
     market_cap: float | None
     currency: str
 
+
 GraphRelationshipRows = Dict[str, List[Tuple[str, str, float]]]
+
 
 class AssetGraphRepository:
     """Data access layer for the asset relationship graph."""
@@ -153,7 +155,7 @@ class AssetGraphRepository:
     def replace_relationships_from_graph(
         self,
         relationships: GraphRelationshipRows,
-     ) -> None:
+    ) -> None:
         """
         Replace persisted relationships with the supplied graph relationships.
 
