@@ -192,9 +192,9 @@ Recommended fields:
 - `attributes`
 - `created_at`
 
-### `graph_builds` or `graph_snapshots` optional
+### `graph_builds` optional
 
-Tracks graph rebuild/load state without making visualization layout the graph source of truth.
+Tracks graph rebuild/load state without making visualization layout the graph source of truth. If future implementation or migration planning prefers the term `graph_snapshots`, treat it as an alias/mapping for this same optional tracking table rather than as a distinct concept.
 
 Recommended fields:
 
