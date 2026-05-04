@@ -23,6 +23,14 @@ Future implementation PRs must explicitly reconcile this design with the current
 
 Until such an implementation PR is accepted, the existing ORM and migration files remain the operative schema contract.
 
+Migration strategy note: future migration PRs will outline steps for migrating or synchronizing existing data between environments. Each such PR must include:
+
+- **Atomicity and versioning**: data backfill must be performed atomically and under a versioned migration step.
+- **Row transformation**: describe how existing rows are transformed, or state explicitly that no target-environment rows exist as a precondition.
+- **Data integrity**: ensure no data loss across assets, relationships, and relationship metadata tables.
+- **Rollback plan**: provide a down-migration or explicit rollback procedure for each schema change.
+- **Environment compatibility**: schema transitions between SQLite (local development and tests) and PostgreSQL (production target) must be explicitly verified in each PR that introduces or changes a migration step.
+
 ## Problem statement
 
 FarDb can now be deployed to a hosted preview and can pass hosted readiness checks, but runtime graph state is still treated primarily as initialized/sample/cache state rather than as state loaded from and saved to an explicit authoritative persistence lifecycle.
@@ -103,8 +111,8 @@ Recommended fields:
 | `target_asset_id`   | Target asset foreign key                                                                                          | References `assets.id`.                                                                                                                                                                                                                |
 | `relationship_type` | Domain relationship type, such as same-sector, issuer link, regulatory impact, correlation, or other future types | Validate allowed values in application code initially.                                                                                                                                                                                 |
 | `bidirectional`     | Current ORM-compatible direction marker                                                                           | Boolean compatibility baseline for `AssetRelationshipORM.bidirectional`; a later enum-based `direction` field requires a migration PR.                                                                                                 |
-| `strength`          | Relationship strength                                                                                             | Target name should remain compatible with `AssetRelationshipORM.strength`; use `FLOAT(53)` / double precision.                                                                                                                         |
-| `confidence`        | Confidence score separate from strength                                                                           | `FLOAT(53)` / double precision; nullable if not all relationship types have confidence yet.                                                                                                                                            |
+| `strength`          | Relationship strength                                                                                             | Target name should remain compatible with `AssetRelationshipORM.strength`; use SQLAlchemy `Float` (maps to `REAL` in SQLite and `DOUBLE PRECISION` in PostgreSQL). Avoid dialect-specific DDL such as `FLOAT(53)` in model definitions. |
+| `confidence`        | Confidence score separate from strength                                                                           | Use SQLAlchemy `Float`; nullable if not all relationship types have confidence yet. Avoid dialect-specific DDL such as `FLOAT(53)` in model definitions; use a SQLAlchemy type alias if precision requirements must differ by dialect.  |
 | `valid_from`        | Start of validity window                                                                                          | Nullable for timeless/static relationships.                                                                                                                                                                                            |
 | `valid_to`          | End of validity window                                                                                            | Nullable for current/open-ended relationships.                                                                                                                                                                                         |
 | `source`            | Data/source system that produced the relationship                                                                 | Useful for evidence and rebuild diagnostics.                                                                                                                                                                                           |
@@ -242,6 +250,20 @@ Responsibilities:
 - provide bulk load operations for graph reconstruction;
 - enforce application-level validation that must remain portable across PostgreSQL and SQLite.
 
+Example target method signatures (illustrative; not prescriptive):
+
+```python
+def upsert_asset(self, asset: Asset) -> None: ...
+def upsert_assets(self, assets: list[Asset]) -> None: ...
+def get_asset_by_id(self, asset_id: str) -> Asset | None: ...
+def get_asset_by_symbol(self, symbol: str) -> Asset | None: ...
+def list_assets(self, asset_class: str | None = None) -> list[Asset]: ...
+```
+
+Implementation PRs that define these methods must use SQLAlchemy session management (e.g., `session_scope` from the existing `src/data/repository.py`) to ensure both SQLite and PostgreSQL compatibility through consistent transaction boundaries.
+
+Repository interaction: `AssetRepository` operates independently of `RelationshipRepository`. During a graph rebuild, the service layer (or a future `GraphSnapshotRepository`/`GraphBuildRepository` as described below) must call both in sequence: persist assets first (so foreign-key references are valid), then persist relationships. Neither repository may assume the other has already written to the database within the same call.
+
 ### `RelationshipRepository`
 
 Responsibilities:
@@ -331,6 +353,17 @@ Compatibility rules:
 - Keep foreign keys and uniqueness constraints compatible with SQLite test behavior.
 - Do not require PostgreSQL-only upsert syntax directly in repository callers.
 - Keep local tests able to initialize an in-memory or temporary SQLite database.
+
+### SQLite performance considerations
+
+SQLite is appropriate for local development and automated tests against the current sample dataset. Implementation PRs should apply the following guidelines to prevent SQLite performance issues from masking production-scale concerns:
+
+- Index all frequently queried columns, including `asset_class`, `sector`, and `relationship_type`, using portable B-tree index definitions compatible with both SQLite and PostgreSQL.
+- Composite indexes on `(source_asset_id, target_asset_id)` and `(relationship_type, source_asset_id)` must be included in the initial schema model; these are portable and have already been noted in the `relationships` section above.
+- For SQLite, enable `PRAGMA foreign_keys = ON` via the SQLAlchemy event hook at connection-pool checkout time, as described in the `relationships` section. This ensures foreign-key enforcement matches PostgreSQL behavior in tests.
+- SQLite's in-memory mode (`:memory:`) is acceptable for unit tests. Tests that exercise persistence behavior (graph load/rebuild lifecycle) should use a temporary on-disk SQLite file to avoid masking file-system or connection-scope issues.
+- For graphs beyond the current sample size, performance benchmarks should be measured against a representative dataset in PostgreSQL before any production release. Automated benchmark gates (latency targets for load, rebuild, and integrity check operations) should be deferred to a dedicated performance PR, but the first persistence implementation PR must record baseline timings in its PR description as specified in the [Load and rebuild semantics](#load-and-rebuild-semantics) section.
+- PostgreSQL production environments may use connection pooling and, where needed, table partitioning for large relationship datasets. These optimizations are out of scope for the initial schema/repository PR and should be documented in a dedicated scaling PR.
 
 ## Future implementation PR split
 
