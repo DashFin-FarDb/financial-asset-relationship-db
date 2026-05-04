@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Generator, Iterable
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, TypedDict
+from typing import Any, Iterable, TypedDict
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -103,7 +103,7 @@ class AssetGraphRepository:
         through the current ORM models. It intentionally does not persist layout
         coordinates or visualization metadata.
         """
-        self.upsert_assets(graph.assets.values())
+        self.replace_assets(graph.assets.values())
         self.replace_relationships_from_graph(graph.relationships)
         self.replace_regulatory_events(graph.regulatory_events)
 
@@ -126,7 +126,7 @@ class AssetGraphRepository:
                 relationship.target_id,
                 relationship.relationship_type,
                 relationship.strength,
-                bidirectional=False,
+                bidirectional=relationship.bidirectional,
             )
         return graph
 
@@ -134,6 +134,20 @@ class AssetGraphRepository:
         """Create or update multiple assets in a single repository session."""
         for asset in assets:
             self.upsert_asset(asset)
+
+    def replace_assets(self, assets: Iterable[Asset]) -> None:
+        """
+        Replace persisted assets with the supplied graph asset collection.
+
+        Rows absent from the incoming graph are deleted so save/load behaves as
+        a graph snapshot operation rather than a partial upsert.
+        """
+        incoming_assets = list(assets)
+        incoming_ids = {asset.id for asset in incoming_assets}
+        persisted_ids = set(self.session.execute(select(AssetORM.id)).scalars().all())
+        for stale_id in sorted(persisted_ids - incoming_ids):
+            self.delete_asset(stale_id)
+        self.upsert_assets(incoming_assets)
 
     def replace_relationships_from_graph(
         self,
@@ -146,15 +160,21 @@ class AssetGraphRepository:
         persistence implementation. It preserves directed edges exactly as stored
         in the in-memory graph instead of collapsing reciprocal relationships.
         """
-        self.session.query(AssetRelationshipORM).delete()
+        self.session.execute(
+            delete(AssetRelationshipORM),
+            execution_options={"synchronize_session": False},
+        )
         for source_id, outgoing_relationships in relationships.items():
             for target_id, relationship_type, strength in outgoing_relationships:
-                self.add_or_update_relationship(
-                    source_id,
-                    target_id,
-                    relationship_type,
-                    strength,
-                    bidirectional=False,
+                normalized_strength = self._validate_relationship_strength(strength)
+                self.session.add(
+                    AssetRelationshipORM(
+                        source_asset_id=source_id,
+                        target_asset_id=target_id,
+                        relationship_type=relationship_type,
+                        strength=normalized_strength,
+                        bidirectional=False,
+                    )
                 )
 
     def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
@@ -165,10 +185,26 @@ class AssetGraphRepository:
         Stable event-key semantics for a normalized shared-event model remain a
         later schema/repository migration concern.
         """
-        self.session.query(RegulatoryEventAssetORM).delete()
-        self.session.query(RegulatoryEventORM).delete()
+        self.session.execute(
+            delete(RegulatoryEventAssetORM),
+            execution_options={"synchronize_session": False},
+        )
+        self.session.execute(
+            delete(RegulatoryEventORM),
+            execution_options={"synchronize_session": False},
+        )
         for event in events:
-            self.upsert_regulatory_event(event)
+            event_orm = RegulatoryEventORM(
+                id=event.id,
+                asset_id=event.asset_id,
+                event_type=event.event_type.value,
+                date=event.date,
+                description=event.description,
+                impact_score=event.impact_score,
+            )
+            for related_id in event.related_assets:
+                event_orm.related_assets.append(RegulatoryEventAssetORM(asset_id=related_id))
+            self.session.add(event_orm)
 
     # ------------------------------------------------------------------
     # Asset helpers
@@ -397,7 +433,17 @@ class AssetGraphRepository:
                 containing source_id, target_id, relationship_type, strength
                 (float), and bidirectional (bool).
         """
-        result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
+        result = (
+            self.session.execute(
+                select(AssetRelationshipORM).order_by(
+                    AssetRelationshipORM.source_asset_id,
+                    AssetRelationshipORM.target_asset_id,
+                    AssetRelationshipORM.relationship_type,
+                )
+            )
+            .scalars()
+            .all()
+        )
         return [
             RelationshipRecord(
                 source_id=rel.source_asset_id,
@@ -475,7 +521,16 @@ class AssetGraphRepository:
 
     def list_regulatory_events(self) -> list[RegulatoryEvent]:
         """Return all regulatory events."""
-        result = self.session.execute(select(RegulatoryEventORM)).scalars().all()
+        result = (
+            self.session.execute(
+                select(RegulatoryEventORM).order_by(
+                    RegulatoryEventORM.date,
+                    RegulatoryEventORM.id,
+                )
+            )
+            .scalars()
+            .all()
+        )
         return [self._to_regulatory_event_model(record) for record in result]
 
     def delete_regulatory_event(self, event_id: str) -> None:
