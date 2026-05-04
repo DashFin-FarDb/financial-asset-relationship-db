@@ -119,6 +119,7 @@ Constraints and indexes:
 - Compatibility baseline: preserve the current uniqueness semantics on `(source_asset_id, target_asset_id, relationship_type)` unless a migration PR explicitly introduces validity-windowed relationship history.
 - If validity-windowed history is added later, avoid nullable fields inside idempotency constraints; use a non-null normalized validity key or a partial/generated-index strategy with PostgreSQL and SQLite behavior documented.
 - Compatibility baseline: preserve current runtime semantics for bidirectional relationships. If the runtime stores reciprocal directed edges, persistence should not collapse them to one row unless the implementation PR also updates query paths, indexing, and reconstruction semantics.
+- SQLite compatibility note: these composite indexes are portable B-tree indexes. Foreign-key enforcement in SQLite requires `PRAGMA foreign_keys = ON`; implementation PRs must ensure the SQLAlchemy engine or connection setup enables this so test behavior matches PostgreSQL as closely as possible.
 
 ### `relationship_metadata`
 
@@ -155,24 +156,25 @@ Recommended fields:
 | `asset_id`     | Associated asset foreign key                | Required for the initial asset-scoped compatibility implementation; references `assets.id`.                                                                                                                                      |
 | `event_key`    | Stable external or derived event identifier | Required and unique only for the normalized shared-event model; optional external identifier for asset-scoped compatibility mode.                                                                                                |
 | `event_type`   | Regulatory event classification             | Portable string.                                                                                                                                                                                                                 |
-| `title`        | Human-readable event label                  | Required where available.                                                                                                                                                                                                        |
+| `title`        | Human-readable event label                  | Target field only; not currently present in `RegulatoryEventORM` or `migrations/001_initial.sql`.                                                                  |
 | `description`  | Event detail                                | Future target model may allow nulls, but the current operative schema/ORM requires NOT NULL; any relaxation of `description` or similar required fields needs a dedicated migration, backfill, compatibility, and rollback plan. |
-| `event_date`   | Date or timestamp of event                  | Portable datetime/date handling.                                                                                                                                                                                                 |
+| `event_date`   | Date or timestamp of event                  | Portable datetime/date handling; target name for the current `date` field.                                                                                         |
 | `impact_score` | Event impact score                          | Preserve current non-null behavior; range -1.0 to 1.0.                                                                                                                                                                           |
-| `jurisdiction` | Jurisdiction or regulator region            | Nullable.                                                                                                                                                                                                                        |
-| `source`       | Source system or URL label                  | Do not store secrets.                                                                                                                                                                                                            |
-| `attributes`   | JSON-compatible extended event attributes   | SQLAlchemy `JSON`-compatible extended attributes; avoid ORM attribute name `metadata`.                                                                                                                                           |
+| `jurisdiction` | Jurisdiction or regulator region            | Target field only; not currently present in `RegulatoryEventORM` or `migrations/001_initial.sql`.                                                                  |
+| `source`       | Source system or URL label                  | Target field only; not currently present in `RegulatoryEventORM` or `migrations/001_initial.sql`; do not store secrets.                                            |
+| `attributes`   | JSON-compatible extended event attributes   | Target field only; not currently present in `RegulatoryEventORM` or `migrations/001_initial.sql`; avoid ORM attribute name `metadata`.                             |
 | `created_at`   | Insert timestamp                            | Repository-managed.                                                                                                                                                                                                              |
 | `updated_at`   | Last update timestamp                       | Repository-managed.                                                                                                                                                                                                              |
 
 Current compatibility mapping:
 
-| Current concept / column                     | Target concept                                                               | Implementation rule                                                                                                                           |
-| -------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `RegulatoryEventORM.id`                      | `regulatory_events.id`                                                       | Preserve as the internal key unless a migration PR changes key policy.                                                                        |
-| asset-scoped `asset_id` relationship         | `regulatory_events.asset_id`                                                 | Keep the current direct asset-scoped shape for the first compatibility implementation, or migrate to the join table in a dedicated schema PR. |
-| `date`                                       | `event_date`                                                                 | Treat `event_date` as a target normalized name; preserve `date` until a migration/backfill PR renames or remaps it.                           |
-| event detail fields currently present in ORM | `title`, `description`, `event_type`, `jurisdiction`, `source`, `attributes` | Add only through schema/repository PRs that define defaults, nullability, and SQLite compatibility.                                           |
+| Current concept / column                                                                                                      | Target concept                                                       | Implementation rule                                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `RegulatoryEventORM.id`                                                                                                       | `regulatory_events.id`                                               | Preserve as the internal key unless a migration PR changes key policy.                                                                                                                                                                                             |
+| asset-scoped `asset_id` relationship                                                                                          | `regulatory_events.asset_id`                                         | Keep the current direct asset-scoped shape for the first compatibility implementation, or migrate to the join table in a dedicated schema PR.                                                                                                                      |
+| `date`                                                                                                                        | `event_date`                                                         | Treat `event_date` as a target normalized name; preserve `date` until a migration/backfill PR renames or remaps it.                                                                                                                                                |
+| `event_type`, `description`, `impact_score` — fields present in current `RegulatoryEventORM` and `migrations/001_initial.sql` | `event_type`, `description`, `impact_score` (target names unchanged) | These columns exist today and map directly; no migration or backfill required for the initial compatibility implementation.                                                                                                                                        |
+| `title`, `jurisdiction`, `source`, `attributes` — **not present** in the current ORM or migration                             | `title`, `jurisdiction`, `source`, `attributes` (new target fields)  | These fields do not exist in `RegulatoryEventORM` or `migrations/001_initial.sql` today. Adding any of them requires a dedicated schema/migration PR with column defaults, nullability rules, backfill plan, rollback plan, and SQLite compatibility verification. |
 
 Optional join table:
 
@@ -207,7 +209,7 @@ Recommended fields:
 | `data_mode`          | Runtime data mode that produced the graph                        | Mirrors explicit runtime contract when implemented.                                                       |
 | `asset_count`        | Asset count at build time                                        | Integer.                                                                                                  |
 | `relationship_count` | Relationship count at build time                                 | Integer.                                                                                                  |
-| status               | succeeded, failed, in_progress, partial, invalidated             | Portable string.                                                                                          |
+| `status`             | succeeded, failed, in_progress, partial, invalidated             | Portable string.                                                                                          |
 | `started_at`         | Build start timestamp                                            | Repository-managed.                                                                                       |
 | `completed_at`       | Build completion timestamp                                       | Nullable until finished.                                                                                  |
 | `build_attributes`   | Non-secret build diagnostics                                     | SQLAlchemy `JSON`-compatible extended attributes.                                                         |
@@ -221,6 +223,14 @@ A graph build/snapshot record may identify which graph version is current and wh
 Future implementation should expose graph persistence through repository interfaces. The codebase already has `AssetGraphRepository` in `src/data/repository.py`; implementation PRs should build on, split, or rename that existing repository rather than introduce a competing persistence layer. The API and graph services should not issue ad hoc queries directly.
 
 The repository names below describe target responsibilities, not a requirement to create entirely new modules. A future implementation PR may keep `AssetGraphRepository` as the façade and delegate internally to asset, relationship, regulatory-event, and graph-build helpers, or it may split the existing repository into narrower classes if that reduces coupling without changing behavior.
+
+Separation of concerns between repositories:
+
+`AssetRepository` is responsible for asset-row lifecycle: upsert, retrieval by id or symbol, bulk load for graph reconstruction, and application-level field validation. It must not write relationship or regulatory-event rows.
+
+`RelationshipRepository` is responsible for relationship rows and associated metadata/evidence: idempotent upsert, type- and asset-filtered queries, bulk replacement for full graph rebuilds, and any approved canonicalization of undirected edges. It must not write asset attributes beyond foreign-key identifiers.
+
+A future `GraphSnapshotRepository` or `GraphBuildRepository` coordinates atomic publication of a complete graph build by recording build state, delegating asset and relationship writes, and marking the build `succeeded` only after required integrity checks pass.
 
 ### `AssetRepository`
 
@@ -270,6 +280,16 @@ Startup and refresh behavior should eventually follow a deterministic policy.
 4. If persisted graph state is missing, stale, invalid, or explicitly refreshed, rebuild graph state from the configured source path.
 5. After successful rebuild, persist assets, relationships, relationship metadata, optional regulatory events, and graph build metadata with atomic publish semantics. Small graphs may use one controlled transaction boundary. Larger graphs should use a staging/swap or build-version pointer pattern so partially written graph state is never published as latest valid state.
 6. If persistence write fails after a rebuild, surface the degraded state explicitly rather than silently treating the runtime graph as durable.
+
+Performance expectations for implementation PRs:
+
+The first persistence implementation should record basic timings in the PR description for:
+
+- loading persisted assets and relationships into the in-memory graph;
+- full rebuild duration through the graph-build publish step;
+- final consistency/integrity check duration.
+
+These timings can be measured against the current sample dataset initially. Automated benchmarks and performance gates should be deferred to a dedicated performance PR.
 
 Atomicity and publication rules:
 
@@ -321,6 +341,15 @@ The implementation should remain narrow and ordered.
 3. Startup integration PR: wire persisted graph load/rebuild semantics into application startup.
 4. Test expansion PR: add integration tests for PostgreSQL-like behavior where available and SQLite compatibility.
 5. Hosted-readiness extension PR if needed: extend smoke/readiness checks only after persistence behavior is implemented.
+
+Migration validation requirements for implementation PRs:
+
+Each PR that changes schema or introduces a migration step must include:
+
+- **Backfill plan**: describe how existing rows are transformed. If no target-environment rows exist, state that explicitly as a precondition rather than assuming clean-slate deployment.
+- **Rollback plan**: provide a down-migration or explicit rollback procedure. PRs that cannot provide lossless rollback must document the data-loss risk and require explicit sign-off.
+- **Compatibility verification**: record evidence that the migration ran on SQLite and, where available, PostgreSQL-compatible staging.
+- **Column-type change procedure**: for type changes such as string-to-UUID or text-to-enum, use a two-phase plan: add/backfill the new column first, then remove the old column in a later migration step. Single-step destructive renames are not permitted without explicit data-loss acknowledgment.
 
 ## Validation for this PR
 
