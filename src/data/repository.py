@@ -162,8 +162,9 @@ class AssetGraphRepository:
         """
         self.session.execute(
             delete(AssetRelationshipORM),
-            execution_options={"synchronize_session": False},
+            execution_options={"synchronize_session": "fetch"},
         )
+        self.session.flush()
         for source_id, outgoing_relationships in relationships.items():
             for target_id, relationship_type, strength in outgoing_relationships:
                 normalized_strength = self._validate_relationship_strength(strength)
@@ -187,12 +188,13 @@ class AssetGraphRepository:
         """
         self.session.execute(
             delete(RegulatoryEventAssetORM),
-            execution_options={"synchronize_session": False},
+            execution_options={"synchronize_session": "fetch"},
         )
         self.session.execute(
             delete(RegulatoryEventORM),
-            execution_options={"synchronize_session": False},
+            execution_options={"synchronize_session": "fetch"},
         )
+        self.session.flush()
         for event in events:
             event_orm = RegulatoryEventORM(
                 id=event.id,
