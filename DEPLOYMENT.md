@@ -365,11 +365,11 @@ python scripts/check_hosted_readiness.py https://your-api-domain.vercel.app --ti
 
 Exit codes:
 
-| Code | Meaning                                                          |
-| ---- | ---------------------------------------------------------------- |
-| 0    | All readiness checks passed                                      |
-| 1    | One or more checks failed (printed to stderr)                    |
-| 2    | Usage error: invalid `--timeout` or rejected `base_url`          |
+| Code | Meaning                                                 |
+| ---- | ------------------------------------------------------- |
+| 0    | All readiness checks passed                             |
+| 1    | One or more checks failed (printed to stderr)           |
+| 2    | Usage error: invalid `--timeout` or rejected `base_url` |
 
 **Base URL constraints**
 
