@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import tempfile
+import threading
 from collections.abc import Iterator
 from typing import Any
 from unittest.mock import Mock, patch
@@ -22,7 +24,7 @@ import pytest
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool, StaticPool
 
 from api.database import (
     _cleanup_memory_connection,
@@ -546,6 +548,7 @@ class TestConcurrentDatabaseAccess:
         assert len(errors) == 0
         assert len(sessions) == 10
 
+    # pylint: disable=too-many-locals
     def test_concurrent_reads_safe(self, isolated_base) -> None:
         """Concurrent reads should not interfere with each other.
 
@@ -554,12 +557,6 @@ class TestConcurrentDatabaseAccess:
         read-session behavior without relying on a shared in-memory SQLite
         connection from StaticPool.
         """
-        import os
-        import tempfile
-        import threading
-
-        from sqlalchemy import create_engine as _create_engine
-        from sqlalchemy.pool import NullPool
 
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent read validation."""
@@ -576,7 +573,7 @@ class TestConcurrentDatabaseAccess:
             # NullPool: each session opens its own SQLite connection, so concurrent
             # reads are exercised at the database level rather than through a single
             # shared in-memory connection.
-            file_engine = _create_engine(
+            file_engine = create_engine(
                 db_url,
                 poolclass=NullPool,
                 connect_args={"timeout": 30},
