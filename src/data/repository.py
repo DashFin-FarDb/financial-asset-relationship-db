@@ -119,12 +119,16 @@ class AssetGraphRepository:
 
     def load_graph(self) -> AssetRelationshipGraph:
         """
-        Reconstruct an in-memory asset relationship graph from persisted assets, relationships, and regulatory events.
-
-        Loads only durable persisted data; does not derive relationships from other sources or restore visualization/layout metadata. Relationship `bidirectional` flags are preserved as stored.
-
+        Reconstruct an in-memory asset relationship graph from persisted rows.
+        
+        Loads only durable persisted data; does not derive relationships from other
+        sources or restore visualization/layout metadata. Persisted relationship rows
+        are loaded one-for-one as directed edges, so a stored bidirectional flag is not
+        expanded into an additional reverse edge during graph reconstruction.
+        
         Returns:
-            graph (AssetRelationshipGraph): The reconstructed graph containing persisted assets, relationships (with `bidirectional` forwarded), and regulatory events.
+            AssetRelationshipGraph: The reconstructed graph containing persisted assets,
+            relationship rows, and regulatory events.
         """
         graph = AssetRelationshipGraph()
         for asset in self.list_assets():
@@ -137,7 +141,7 @@ class AssetGraphRepository:
                 relationship.target_id,
                 relationship.relationship_type,
                 relationship.strength,
-                bidirectional=relationship.bidirectional,
+                bidirectional=False,
             )
         return graph
 
