@@ -5,10 +5,10 @@ from __future__ import annotations
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Iterable, TypedDict
+from typing import Any, Dict, Iterable, List, Tuple, TypedDict
 
 from sqlalchemy import delete, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
@@ -85,6 +85,7 @@ class _BaseAssetKwargs(TypedDict):
     market_cap: float | None
     currency: str
 
+GraphRelationshipRows = Dict[str, List[Tuple[str, str, float]]]
 
 class AssetGraphRepository:
     """Data access layer for the asset relationship graph."""
@@ -151,8 +152,8 @@ class AssetGraphRepository:
 
     def replace_relationships_from_graph(
         self,
-        relationships: dict[str, list[tuple[str, str, float]]],
-    ) -> None:
+        relationships: GraphRelationshipRows,
+     ) -> None:
         """
         Replace persisted relationships with the supplied graph relationships.
 
