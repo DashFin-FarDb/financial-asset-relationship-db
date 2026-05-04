@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Tuple, TypedDict
 
 from sqlalchemy import delete, select
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -157,11 +156,6 @@ class AssetGraphRepository:
             )
         return graph
 
-    def upsert_assets(self, assets: Iterable[Asset]) -> None:
-        """Create or update multiple assets in a single repository session."""
-        for asset in assets:
-            self.upsert_asset(asset)
-
     def replace_assets(self, assets: Iterable[Asset]) -> None:
         """
         Replace persisted assets with the supplied graph asset collection.
@@ -266,6 +260,25 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     # Asset helpers
     # ------------------------------------------------------------------
+    def upsert_asset(self, asset: Asset) -> None:
+        """
+        Create or update the persistent record for a domain Asset.
+
+        Maps fields from the given domain `Asset` onto an `AssetORM`, creating
+        one if needed, and stages the ORM instance on the repository session.
+
+        Args:
+            asset: Domain asset to persist or update.
+
+        Returns:
+            None.
+        """
+        existing = self.session.get(AssetORM, asset.id)
+        if existing is None:
+            existing = AssetORM(id=asset.id)
+        self._update_asset_orm(existing, asset)
+        self.session.add(existing)
+
     def upsert_assets(self, assets: Iterable[Asset]) -> None:
         """
         Create or update multiple assets in a single repository session.
