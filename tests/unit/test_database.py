@@ -520,8 +520,6 @@ class TestConcurrentDatabaseAccess:
 
     def test_concurrent_session_creation(self, engine: Engine) -> None:
         """Multiple concurrent sessions should be safe."""
-        import threading
-
         factory = create_session_factory(engine)
         sessions: list[Any] = []
         errors: list[Exception] = []
@@ -621,13 +619,6 @@ class TestConcurrentDatabaseAccess:
         complete successfully, validating the DB/session stack under concurrency
         without relying on any Python-level locking.
         """
-        import os
-        import tempfile
-        import threading
-
-        from sqlalchemy import create_engine as _create_engine
-        from sqlalchemy.pool import NullPool
-
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent write validation."""
 
@@ -641,11 +632,11 @@ class TestConcurrentDatabaseAccess:
             # NullPool: each call to session_scope opens its own SQLite connection
             # so concurrent access is exercised at the database level, not masked
             # by a shared in-memory connection.
-            file_engine = _create_engine(
-                db_url,
-                poolclass=NullPool,
-                connect_args={"timeout": 30},  # wait up to 30 s for the DB lock
-            )
+            file_engine = create_engine(
+                 db_url,
+                 poolclass=NullPool,
+                 connect_args={"timeout": 30},  # wait up to 30 s for the DB lock
+             )
             init_db(file_engine)
             factory = create_session_factory(file_engine)
 
