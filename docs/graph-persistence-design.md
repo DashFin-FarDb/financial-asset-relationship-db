@@ -176,7 +176,9 @@ Current compatibility mapping:
 
 Optional join table:
 
-`regulatory_event_impacts` may be introduced later if event-to-asset or event-to-relationship impact needs first-class querying.
+The current ORM/schema already includes an event-to-asset join-table concept via `regulatory_event_assets` in `src/data/db_models.py` and `migrations/001_initial.sql`. Future implementation PRs must treat `regulatory_event_impacts` as a possible evolution or expansion of that existing pattern, not as a brand-new event↔asset association concept.
+
+`regulatory_event_impacts` may be introduced later if event-to-asset or event-to-relationship impact needs first-class querying. Where only event↔asset association is required, implementation should prefer mapping onto the existing `regulatory_event_assets` shape unless a dedicated migration PR justifies the new table and documents compatibility, backfill, and rollback behavior.
 
 Recommended fields:
 
