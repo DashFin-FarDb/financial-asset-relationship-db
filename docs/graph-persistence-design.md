@@ -25,7 +25,7 @@ Until such an implementation PR is accepted, the existing ORM and migration file
 
 Migration plan and data backfill:
 
-Future migration PRs will outline the steps for migrating existing data from SQLite to PostgreSQL. This includes backfilling data where necessary and ensuring no data loss during the transition. The migration plan will address any renamed or schema-transitioned fields (for example `date` → `event_date` on regulatory events) and must include:
+Future migration PRs will outline the steps for managing schema changes while maintaining compatibility across SQLite (local/test) and PostgreSQL (hosted/production). Where data backfill is required — for example when a field is renamed or a column type changes — the migration plan must ensure no data loss during the transition. The migration plan will address any renamed or schema-transitioned fields (for example `date` → `event_date` on regulatory events) and must include:
 
 - **Backfill strategy**: enumerate rows requiring transformation, apply changes atomically within a single transaction or within a versioned migration step, and verify row counts before and after.
 - **Rollback plan**: each migration must ship with a corresponding down-migration that restores the previous schema state and re-applies any required default values.
@@ -234,7 +234,11 @@ The repository names below describe target responsibilities, not a requirement t
 
 Separation of concerns between repositories:
 
-`AssetRepository` is solely responsible for the lifecycle of asset rows: upsert, retrieval by id or symbol, bulk load for graph reconstruction, and application-level field validation. It must not write relationship or regulatory-event rows. `RelationshipRepository` is solely responsible for relationship rows and their associated metadata and evidence: idempotent upsert, type- and asset-filtered queries, bulk replacement for full graph rebuilds, and canonicalization of undirected edges. It must not write or read asset attributes beyond the foreign-key identifiers it stores. This boundary prevents overlapping write paths that could leave assets and relationships in inconsistent states. A future `GraphSnapshotRepository` (or `GraphBuildRepository`) sits above both and coordinates the atomic publish of a complete graph build by writing a build record, delegating asset and relationship writes to the appropriate repositories, and only marking the build `succeeded` once all writes pass foreign-key integrity checks.
+`AssetRepository` is solely responsible for the lifecycle of asset rows: upsert, retrieval by id or symbol, bulk load for graph reconstruction, and application-level field validation. It must not write relationship or regulatory-event rows.
+
+`RelationshipRepository` is solely responsible for relationship rows and their associated metadata and evidence: idempotent upsert, type- and asset-filtered queries, bulk replacement for full graph rebuilds, and canonicalization of undirected edges. It must not write or read asset attributes beyond the foreign-key identifiers it stores.
+
+This boundary prevents overlapping write paths that could leave assets and relationships in inconsistent states. A future `GraphSnapshotRepository` (or `GraphBuildRepository`) sits above both and coordinates the atomic publish of a complete graph build: it writes the build record, delegates asset and relationship writes to the appropriate repositories, and only marks the build `succeeded` once all writes pass foreign-key integrity checks.
 
 ### `AssetRepository`
 
