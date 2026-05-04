@@ -162,7 +162,7 @@ Recommended fields:
 | -------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`           | Internal primary key                        | String-compatible internal key unless a later migration establishes a repo-wide surrogate-key policy.                                                                                                                            |
 | `asset_id`     | Associated asset foreign key                | Required for the initial asset-scoped compatibility implementation; references `assets.id`.                                                                                                                                      |
-| `event_key`    | Stable external or derived event identifier | Required and unique only for the normalized shared-event model; optional external identifier for asset-scoped compatibility mode.                                                                                                |
+| `event_key`    | Stable external or derived event identifier | In the normalized shared-event model, `event_key` is required and unique and `RegulatoryEventRepository.upsert` must use it as the stable idempotency key. In asset-scoped compatibility mode, `event_key` is optional; implementations must either derive a stable key, for example from `asset_id`, `event_type`, `date`/`event_date`, and normalized `description`, or document an alternative identifier and how `upsert` semantics differ. |
 | `event_type`   | Regulatory event classification             | Portable string.                                                                                                                                                                                                                 |
 | `title`        | Human-readable event label                  | Target field only; not currently present in `RegulatoryEventORM` or `migrations/001_initial.sql`.                                                                                                                                |
 | `description`  | Event detail                                | Future target model may allow nulls, but the current operative schema/ORM requires NOT NULL; any relaxation of `description` or similar required fields needs a dedicated migration, backfill, compatibility, and rollback plan. |
@@ -278,7 +278,8 @@ Responsibilities:
 
 Responsibilities:
 
-- upsert regulatory events by stable event key;
+- upsert regulatory events by stable event key in the normalized shared-event model;
+- in asset-scoped compatibility mode, either derive a stable event key from current fields such as `asset_id`, `event_type`, `date`/`event_date`, and normalized `description`, or document the alternative identifier used for idempotent upsert behavior;
 - persist event-to-asset or event-to-relationship impacts if modeled;
 - expose event inputs used by graph rebuild logic.
 
