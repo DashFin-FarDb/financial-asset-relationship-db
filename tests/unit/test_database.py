@@ -619,6 +619,7 @@ class TestConcurrentDatabaseAccess:
         complete successfully, validating the DB/session stack under concurrency
         without relying on any Python-level locking.
         """
+
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent write validation."""
 
@@ -633,10 +634,10 @@ class TestConcurrentDatabaseAccess:
             # so concurrent access is exercised at the database level, not masked
             # by a shared in-memory connection.
             file_engine = create_engine(
-                 db_url,
-                 poolclass=NullPool,
-                 connect_args={"timeout": 30},  # wait up to 30 s for the DB lock
-             )
+                db_url,
+                poolclass=NullPool,
+                connect_args={"timeout": 30},  # wait up to 30 s for the DB lock
+            )
             init_db(file_engine)
             factory = create_session_factory(file_engine)
 
