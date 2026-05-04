@@ -525,7 +525,9 @@ class AssetGraphRepository:
         """Return all regulatory events."""
         result = (
             self.session.execute(
-                select(RegulatoryEventORM).order_by(
+                select(RegulatoryEventORM)
+                .options(selectinload(RegulatoryEventORM.related_assets))
+                .order_by(
                     RegulatoryEventORM.date,
                     RegulatoryEventORM.id,
                 )
