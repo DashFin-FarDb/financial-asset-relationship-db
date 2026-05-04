@@ -207,7 +207,7 @@ Recommended fields:
 | `data_mode`          | Runtime data mode that produced the graph                        | Mirrors explicit runtime contract when implemented.                                                       |
 | `asset_count`        | Asset count at build time                                        | Integer.                                                                                                  |
 | `relationship_count` | Relationship count at build time                                 | Integer.                                                                                                  |
-| `status`             | succeeded, failed, partial, invalidated                          | Portable string.                                                                                          |
+| status             | succeeded, failed, in_progress, partial, invalidated             | Portable string.                                                                                          |
 | `started_at`         | Build start timestamp                                            | Repository-managed.                                                                                       |
 | `completed_at`       | Build completion timestamp                                       | Nullable until finished.                                                                                  |
 | `build_attributes`   | Non-secret build diagnostics                                     | SQLAlchemy `JSON`-compatible extended attributes.                                                         |
