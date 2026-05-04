@@ -225,7 +225,10 @@ Recommended fields:
 - `created_at`
   - Purpose: Insert timestamp
   - Compatibility note: Repository-managed.
-    | `updated_at` | Last update timestamp | Repository-managed. |
+
+- `updated_at`
+  - Purpose: Last update timestamp
+  - Compatibility note: Repository-managed.
 
 Current compatibility mapping:
 
