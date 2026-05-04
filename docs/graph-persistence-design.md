@@ -23,6 +23,15 @@ Future implementation PRs must explicitly reconcile this design with the current
 
 Until such an implementation PR is accepted, the existing ORM and migration files remain the operative schema contract.
 
+Migration plan and data backfill:
+
+Future migration PRs will outline the steps for migrating existing data from SQLite to PostgreSQL. This includes backfilling data where necessary and ensuring no data loss during the transition. The migration plan will address any renamed or schema-transitioned fields (for example `date` → `event_date` on regulatory events) and must include:
+
+- **Backfill strategy**: enumerate rows requiring transformation, apply changes atomically within a single transaction or within a versioned migration step, and verify row counts before and after.
+- **Rollback plan**: each migration must ship with a corresponding down-migration that restores the previous schema state and re-applies any required default values.
+- **Compatibility checks**: run against both SQLite (test) and PostgreSQL (staging) before merging to confirm behaviour parity on assets, relationships, and relationship metadata tables.
+- **Schema version tracking**: once Alembic or an equivalent tool is introduced, every migration step must carry a monotonic version identifier so startup can verify the running schema matches the expected version.
+
 ## Problem statement
 
 FarDb can now be deployed to a hosted preview and can pass hosted readiness checks, but runtime graph state is still treated primarily as initialized/sample/cache state rather than as state loaded from and saved to an explicit authoritative persistence lifecycle.
@@ -114,11 +123,12 @@ Recommended fields:
 Constraints and indexes:
 
 - Foreign keys from `source_asset_id` and `target_asset_id` to `assets.id`.
-- Composite index on `(source_asset_id, target_asset_id)`.
-- Composite index on `(relationship_type, source_asset_id)`.
+- Composite index on `(source_asset_id, target_asset_id)` to optimise bidirectional relationship lookups.
+- Composite index on `(relationship_type, source_asset_id)` to optimise type-filtered traversals.
 - Compatibility baseline: preserve the current uniqueness semantics on `(source_asset_id, target_asset_id, relationship_type)` unless a migration PR explicitly introduces validity-windowed relationship history.
 - If validity-windowed history is added later, avoid nullable fields inside idempotency constraints; use a non-null normalized validity key or a partial/generated-index strategy with PostgreSQL and SQLite behavior documented.
 - Compatibility baseline: preserve current runtime semantics for bidirectional relationships. If the runtime stores reciprocal directed edges, persistence should not collapse them to one row unless the implementation PR also updates query paths, indexing, and reconstruction semantics.
+- SQLite cross-environment note: composite indexes on `(source_asset_id, target_asset_id)` and `(relationship_type, source_asset_id)` are standard B-tree indexes and are portable to SQLite without dialect-specific syntax. Foreign-key enforcement requires `PRAGMA foreign_keys = ON` in SQLite; implementation PRs must ensure the SQLAlchemy engine event or connection hook sets this pragma so constraint behaviour matches PostgreSQL in tests. Unique constraint semantics on the composite natural key are already present via `uq_relationship` in `AssetRelationshipORM` and must be preserved across both dialects.
 
 ### `relationship_metadata`
 
@@ -222,14 +232,18 @@ Future implementation should expose graph persistence through repository interfa
 
 The repository names below describe target responsibilities, not a requirement to create entirely new modules. A future implementation PR may keep `AssetGraphRepository` as the façade and delegate internally to asset, relationship, regulatory-event, and graph-build helpers, or it may split the existing repository into narrower classes if that reduces coupling without changing behavior.
 
+Separation of concerns between repositories:
+
+`AssetRepository` is solely responsible for the lifecycle of asset rows: upsert, retrieval by id or symbol, bulk load for graph reconstruction, and application-level field validation. It must not write relationship or regulatory-event rows. `RelationshipRepository` is solely responsible for relationship rows and their associated metadata and evidence: idempotent upsert, type- and asset-filtered queries, bulk replacement for full graph rebuilds, and canonicalization of undirected edges. It must not write or read asset attributes beyond the foreign-key identifiers it stores. This boundary prevents overlapping write paths that could leave assets and relationships in inconsistent states. A future `GraphSnapshotRepository` (or `GraphBuildRepository`) sits above both and coordinates the atomic publish of a complete graph build by writing a build record, delegating asset and relationship writes to the appropriate repositories, and only marking the build `succeeded` once all writes pass foreign-key integrity checks.
+
 ### `AssetRepository`
 
 Responsibilities:
 
-- upsert assets by canonical key;
-- fetch assets by symbol/id;
+- upsert assets by canonical key; the existing `AssetGraphRepository.upsert_asset` method is the baseline implementation reference;
+- fetch assets by symbol or id; a `get_asset_by_symbol(symbol: str) -> Asset | None` method should mirror the existing `get_asset_by_id` pattern;
 - list assets with filters needed by current API behavior;
-- provide bulk load operations for graph reconstruction;
+- provide bulk load operations for graph reconstruction; a `upsert_assets(assets: list[Asset]) -> None` helper that calls `upsert_asset` inside a single transaction boundary is the recommended starting point;
 - enforce application-level validation that must remain portable across PostgreSQL and SQLite.
 
 ### `RelationshipRepository`
@@ -270,6 +284,16 @@ Startup and refresh behavior should eventually follow a deterministic policy.
 4. If persisted graph state is missing, stale, invalid, or explicitly refreshed, rebuild graph state from the configured source path.
 5. After successful rebuild, persist assets, relationships, relationship metadata, optional regulatory events, and graph build metadata with atomic publish semantics. Small graphs may use one controlled transaction boundary. Larger graphs should use a staging/swap or build-version pointer pattern so partially written graph state is never published as latest valid state.
 6. If persistence write fails after a rebuild, surface the degraded state explicitly rather than silently treating the runtime graph as durable.
+
+Performance expectations for persistence operations:
+
+Implementation PRs should establish baseline measurements for the following operations so regressions can be detected as the graph grows:
+
+- **Read latency**: time to load the full asset and relationship set from persistence into the in-memory graph on a cold start.
+- **Rebuild duration**: time from rebuild trigger to the graph build record being marked `succeeded`, including all relationship and metadata writes.
+- **Consistency check duration**: time to verify foreign-key integrity between assets and relationships at the end of a rebuild.
+
+These baselines do not need to be automated benchmarks in the first implementation PR. A documented measurement taken against a representative dataset (for example the current sample data set) in the PR description is sufficient. Automated benchmark tests or caching strategies should be introduced in a dedicated performance PR once the persistence layer is functional.
 
 Atomicity and publication rules:
 
@@ -312,6 +336,15 @@ Compatibility rules:
 - Do not require PostgreSQL-only upsert syntax directly in repository callers.
 - Keep local tests able to initialize an in-memory or temporary SQLite database.
 
+SQLite performance considerations:
+
+SQLite is appropriate for local development and automated tests but has known limitations for larger graphs. Implementation PRs should account for these:
+
+- **Indexing**: ensure composite indexes on `(source_asset_id, target_asset_id)` and `(relationship_type, source_asset_id)` are created at schema initialisation time; without them, relationship lookups degrade to full table scans even in SQLite.
+- **Write concurrency**: SQLite uses a database-level write lock. If the application serializes graph rebuilds through a single-writer policy (as required by the atomicity rules above), this is acceptable. Do not introduce concurrent write paths that assume PostgreSQL row-level locking.
+- **In-memory mode**: SQLite in-memory databases (`sqlite:///:memory:`) provide the fastest test-environment performance for small-to-medium datasets and should be the default for unit and integration tests.
+- **PostgreSQL for production scale**: for graphs exceeding a few thousand assets or tens of thousands of relationships, PostgreSQL's connection pooling, parallel query execution, and partitioning options provide substantially better throughput. These optimisations are deferred to a dedicated performance PR; implementation PRs need only ensure the schema and repository layer are compatible with PostgreSQL without hard-coding SQLite-specific behaviour.
+
 ## Future implementation PR split
 
 The implementation should remain narrow and ordered.
@@ -321,6 +354,15 @@ The implementation should remain narrow and ordered.
 3. Startup integration PR: wire persisted graph load/rebuild semantics into application startup.
 4. Test expansion PR: add integration tests for PostgreSQL-like behavior where available and SQLite compatibility.
 5. Hosted-readiness extension PR if needed: extend smoke/readiness checks only after persistence behavior is implemented.
+
+Migration validation requirements for implementation PRs:
+
+Each PR that changes schema or introduces a migration step must include:
+
+- **Backfill plan**: describe how existing rows are transformed to meet the new schema. If no existing rows exist in the target environment at migration time, state this explicitly as a pre-condition rather than assuming a clean-slate deployment.
+- **Rollback script**: a down-migration or explicit rollback procedure that restores the previous schema version without data loss. PRs that cannot provide a lossless rollback must document the data-loss risk and require explicit sign-off.
+- **Compatibility verification**: evidence that the migration ran successfully on SQLite (test) and, where available, on a PostgreSQL-compatible environment. The PR description must record the database versions and dataset sizes used.
+- **Column-type change procedure**: if a column type changes (for example string to UUID, or `TEXT` to `SMALLINT`), the migration must include a two-phase plan: first add the new column and backfill it, then remove the old column in a subsequent migration step. Single-step destructive renames are not permitted without an explicit data-loss acknowledgment.
 
 ## Validation for this PR
 
