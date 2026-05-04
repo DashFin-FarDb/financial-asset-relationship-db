@@ -93,6 +93,12 @@ class AssetGraphRepository:
     """Data access layer for the asset relationship graph."""
 
     def __init__(self, session: Session):
+        """
+        Initialize the repository with a SQLAlchemy session for database operations.
+        
+        Parameters:
+            session (Session): SQLAlchemy Session used for all database access by this repository.
+        """
         self.session = session
 
     # ------------------------------------------------------------------
@@ -100,11 +106,12 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def save_graph(self, graph: AssetRelationshipGraph) -> None:
         """
-        Persist the current graph truth using the existing schema contract.
-
-        This method stores assets, directed relationships, and regulatory events
-        through the current ORM models. It intentionally does not persist layout
-        coordinates or visualization metadata.
+        Persist an AssetRelationshipGraph snapshot to the database.
+        
+        Stores the graph's assets, directed relationships, and regulatory events using snapshot semantics and does not persist any layout or visualization metadata.
+        
+        Parameters:
+            graph (AssetRelationshipGraph): In-memory graph whose assets, relationships, and regulatory_events will replace the persisted state.
         """
         self.replace_assets(graph.assets.values())
         self.replace_relationships_from_graph(graph.relationships)
@@ -112,11 +119,12 @@ class AssetGraphRepository:
 
     def load_graph(self) -> AssetRelationshipGraph:
         """
-        Reconstruct an in-memory graph from persisted assets and relationships.
-
-        The returned graph is loaded from durable graph truth only. The method
-        does not derive new relationships, rebuild from sample data, or assign
-        visualization coordinates.
+        Reconstruct an in-memory asset relationship graph from persisted assets, relationships, and regulatory events.
+        
+        Loads only durable persisted data; does not derive relationships from other sources or restore visualization/layout metadata. Relationship `bidirectional` flags are preserved as stored.
+        
+        Returns:
+            graph (AssetRelationshipGraph): The reconstructed graph containing persisted assets, relationships (with `bidirectional` forwarded), and regulatory events.
         """
         graph = AssetRelationshipGraph()
         for asset in self.list_assets():
@@ -157,11 +165,12 @@ class AssetGraphRepository:
         relationships: GraphRelationshipRows,
     ) -> None:
         """
-        Replace persisted relationships with the supplied graph relationships.
-
-        This is the schema-compatible bulk publish primitive for the first graph
-        persistence implementation. It preserves directed edges exactly as stored
-        in the in-memory graph instead of collapsing reciprocal relationships.
+        Replace all persisted relationships with the provided directed adjacency data.
+        
+        Deletes all existing relationship rows and inserts a new row for each outgoing edge in `relationships`. Each outgoing tuple is interpreted as (target_id, relationship_type, strength); `strength` is validated to be a number between -1.0 and 1.0 inclusive and stored as the relationship strength. Inserted rows are stored as directed edges with `bidirectional=False`.
+        
+        Parameters:
+            relationships (dict[str, list[tuple[str, str, float]]]): Mapping from source asset id to a list of outgoing edges; each edge is a tuple of (target_id, relationship_type, strength).
         """
         self.session.execute(
             delete(AssetRelationshipORM),
@@ -183,11 +192,12 @@ class AssetGraphRepository:
 
     def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
         """
-        Replace persisted regulatory events with the supplied event collection.
-
-        The current compatibility mode uses event IDs as the idempotency key.
-        Stable event-key semantics for a normalized shared-event model remain a
-        later schema/repository migration concern.
+        Replace all persisted regulatory events with the supplied collection.
+        
+        Performs a snapshot-style replacement: deletes all existing regulatory events and their event-asset link rows, flushes the deletion, then inserts ORM rows for each provided event including their related asset associations. The provided events' IDs are used as the idempotency key for this operation.
+         
+        Parameters:
+            events (Iterable[RegulatoryEvent]): Iterable of regulatory events to persist as the complete set.
         """
         self.session.execute(
             delete(RegulatoryEventAssetORM),
@@ -525,7 +535,14 @@ class AssetGraphRepository:
         self.session.add(existing)
 
     def list_regulatory_events(self) -> list[RegulatoryEvent]:
-        """Return all regulatory events."""
+        """
+        Retrieve all persisted regulatory events ordered by date then id.
+        
+        Each returned event includes its associated related_assets (eagerly loaded).
+        
+        Returns:
+            events (list[RegulatoryEvent]): RegulatoryEvent models ordered by `date`, then `id`, with `related_assets` populated.
+        """
         result = (
             self.session.execute(
                 select(RegulatoryEventORM)
@@ -541,7 +558,12 @@ class AssetGraphRepository:
         return [self._to_regulatory_event_model(record) for record in result]
 
     def delete_regulatory_event(self, event_id: str) -> None:
-        """Delete a regulatory event."""
+        """
+        Delete the persisted regulatory event with the given id.
+        
+        Parameters:
+            event_id (str): Primary key of the regulatory event to delete. If no matching record exists, no action is taken.
+        """
         record = self.session.get(RegulatoryEventORM, event_id)
         if record is not None:
             self.session.delete(record)
