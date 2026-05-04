@@ -325,6 +325,66 @@ It must not expose:
 
 A degraded response still returns HTTP 200. Treat `status: "degraded"` as an operational readiness signal, not an HTTP transport failure. Automated monitoring tools should be configured to verify the status field in the JSON response body.
 
+### Automated Hosted Readiness Smoke Check
+
+A manual GitHub Actions workflow and a standalone CLI script wrap the liveness and detailed
+readiness endpoints into a single bounded smoke check. Both live in the repository:
+
+- `.github/workflows/hosted-readiness.yml` — manual `workflow_dispatch` workflow
+- `scripts/check_hosted_readiness.py` — standalone CLI used by the workflow
+
+**What it checks**
+
+For a given hosted base URL the smoke check verifies, in order:
+
+1. `GET /api/health` returns HTTP 200 with `status: "healthy"` and `graph_initialized: true`.
+2. `GET /api/health/detailed` returns HTTP 200 with exactly the top-level keys `status`, `graph`,
+   and `database`, no forbidden fields leaked (see list above), and `status: "healthy"`.
+
+A non-zero exit code indicates a readiness failure; failure messages are printed to stderr without
+echoing the base URL or response bodies.
+
+**Running the workflow**
+
+From the GitHub Actions UI, run the **Hosted readiness smoke check** workflow with optional
+inputs:
+
+- `base_url` — full hosted base URL such as `https://example.vercel.app`. If omitted the
+  workflow falls back to the `HOSTED_READINESS_BASE_URL` repository secret. If neither is set
+  the workflow logs a skip message and exits successfully.
+- `timeout` — request timeout in seconds (default `10`).
+
+The base URL is masked in workflow logs. Configure `HOSTED_READINESS_BASE_URL` as a repository
+secret for persistent monitoring targets so operators do not need to retype it.
+
+**Running the script locally**
+
+```bash
+python scripts/check_hosted_readiness.py https://your-api-domain.vercel.app --timeout 10
+```
+
+Exit codes:
+
+| Code | Meaning                                                          |
+| ---- | ---------------------------------------------------------------- |
+| 0    | All readiness checks passed                                      |
+| 1    | One or more checks failed (printed to stderr)                    |
+| 2    | Usage error: invalid `--timeout` or rejected `base_url`          |
+
+**Base URL constraints**
+
+The script intentionally refuses to call non-public targets to keep the smoke check bounded.
+A base URL is rejected (exit code `2`) when it:
+
+- uses a scheme other than `http`/`https`, or omits the host
+- includes user credentials, a path, params, query string, or fragment
+- targets `localhost` or any `*.localhost` hostname
+- is, or resolves to, an internal/non-global IP address (loopback, private, link-local,
+  multicast, etc.)
+- has an invalid port
+
+Redirects are not followed and response bodies are capped at 64 KiB to keep the check bounded.
+
 ## Frontend Features
 
 The Next.js frontend includes:
@@ -365,6 +425,12 @@ are loaded through `src/config/settings.py` and applied by `api/cors_policy.py`;
    ```
 
    The response should include only `status`, `graph`, and `database` at the top level.
+   To run both the liveness and detailed readiness checks together, use the bundled
+   smoke-check script (see [Automated Hosted Readiness Smoke Check](#automated-hosted-readiness-smoke-check)):
+
+   ```bash
+   python scripts/check_hosted_readiness.py https://your-api-domain.vercel.app --timeout 10
+   ```
 
 3. Verify the `NEXT_PUBLIC_API_URL` environment variable
 4. Check browser console for detailed error messages
