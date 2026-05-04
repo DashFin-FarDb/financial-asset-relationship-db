@@ -152,11 +152,13 @@ Recommended fields:
 | Field          | Purpose                                     | Compatibility note                                                                                                                |
 | -------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `id`           | Internal primary key                        | String-compatible internal key unless a later migration establishes a repo-wide surrogate-key policy.                             |
+| `asset_id`     | Associated asset foreign key                | Required for the initial asset-scoped compatibility implementation; references `assets.id`.                                       |
 | `event_key`    | Stable external or derived event identifier | Required and unique only for the normalized shared-event model; optional external identifier for asset-scoped compatibility mode. |
 | `event_type`   | Regulatory event classification             | Portable string.                                                                                                                  |
 | `title`        | Human-readable event label                  | Required where available.                                                                                                         |
 | `description`  | Event detail                                | Nullable.                                                                                                                         |
 | `event_date`   | Date or timestamp of event                  | Portable datetime/date handling.                                                                                                  |
+| `impact_score` | Event impact score                          | Preserve current non-null behavior; range -1.0 to 1.0.                                                                            |
 | `jurisdiction` | Jurisdiction or regulator region            | Nullable.                                                                                                                         |
 | `source`       | Source system or URL label                  | Do not store secrets.                                                                                                             |
 | `attributes`   | JSON-compatible extended event attributes   | SQLAlchemy `JSON`-compatible extended attributes; avoid ORM attribute name `metadata`.                                            |
