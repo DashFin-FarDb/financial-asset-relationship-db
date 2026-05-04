@@ -87,7 +87,7 @@ class _BaseAssetKwargs(TypedDict):
     currency: str
 
 
-GraphRelationshipRows = Dict[str, List[Tuple[str, str, float]]]
+GRAPH_RELATIONSHIP_ROWS = Dict[str, List[Tuple[str, str, float]]]
 
 
 class AssetGraphRepository:
@@ -183,7 +183,7 @@ class AssetGraphRepository:
 
     def replace_relationships_from_graph(
         self,
-        relationships: GraphRelationshipRows,
+        relationships: GRAPH_RELATIONSHIP_ROWS,
     ) -> None:
         """
         Replace all persisted relationships with directed adjacency data.
