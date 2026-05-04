@@ -182,7 +182,8 @@ Current compatibility mapping:
 | `RegulatoryEventORM.id`                      | `regulatory_events.id`                                                       | Preserve as the internal key unless a migration PR changes key policy.                                                                        |
 | asset-scoped `asset_id` relationship         | `regulatory_events.asset_id`                                                 | Keep the current direct asset-scoped shape for the first compatibility implementation, or migrate to the join table in a dedicated schema PR. |
 | `date`                                       | `event_date`                                                                 | Treat `event_date` as a target normalized name; preserve `date` until a migration/backfill PR renames or remaps it.                           |
-| event detail fields currently present in ORM | `title`, `description`, `event_type`, `jurisdiction`, `source`, `attributes` | Add only through schema/repository PRs that define defaults, nullability, and SQLite compatibility.                                           |
+| `event_type`, `description`, `impact_score` — fields present in current `RegulatoryEventORM` and `migrations/001_initial.sql` | `event_type`, `description`, `impact_score` (target names unchanged) | These columns exist today and map directly; no migration or backfill required for the initial compatibility implementation.                   |
+| `title`, `jurisdiction`, `source`, `attributes` — **not present** in the current ORM or migration | `title`, `jurisdiction`, `source`, `attributes` (new target fields) | These fields do not exist in `RegulatoryEventORM` or `migrations/001_initial.sql` today. Adding any of them requires a dedicated schema/migration PR with column defaults, nullability rules, backfill plan, rollback plan, and SQLite compatibility verification. |
 
 Optional join table:
 
