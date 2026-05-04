@@ -300,7 +300,11 @@ class AssetGraphRepository:
         incoming_ids = [asset.id for asset in incoming_assets]
         existing_assets = {
             orm.id: orm
-            for orm in self.session.execute(select(AssetORM).where(AssetORM.id.in_(incoming_ids))).scalars().all()
+            for orm in self.session.execute(
+                select(AssetORM).where(AssetORM.id.in_(incoming_ids))
+            )
+            .scalars()
+            .all()
         }
 
         for asset in incoming_assets:
