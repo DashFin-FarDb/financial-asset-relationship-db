@@ -108,18 +108,18 @@ class AssetGraphRepository:
     def save_graph(self, graph: AssetRelationshipGraph) -> None:
         """
         Persist an AssetRelationshipGraph snapshot to the database.
-        
+
         Stores the graph's assets, directed relationships, and regulatory events using
         snapshot semantics. Layout and visualization metadata are intentionally not
         persisted.
-        
+
         Args:
             graph: In-memory graph whose assets, relationships, and regulatory events
                 replace the persisted state.
-        
+
         Returns:
             None.
-        
+
         Raises:
             SQLAlchemyError: If the active database session fails while staging
                 replacement rows.
@@ -187,18 +187,18 @@ class AssetGraphRepository:
     ) -> None:
         """
         Replace all persisted relationships with directed adjacency data.
-        
+
         Deletes existing relationship rows and inserts one new row for each outgoing
         edge in `relationships`. Each outgoing tuple is interpreted as
         `(target_id, relationship_type, strength)`. Inserted rows are stored as directed
         edges with `bidirectional=False`.
-        
+
         Args:
             relationships: Mapping from source asset ID to outgoing edge tuples.
-        
+
         Returns:
             None.
-        
+
         Raises:
             SQLAlchemyError: If the active database session fails while deleting or
                 staging relationship rows.
@@ -225,18 +225,18 @@ class AssetGraphRepository:
     def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
         """
         Replace all persisted regulatory events with the supplied collection.
-        
+
         Deletes existing regulatory events and event-asset link rows, flushes the
         deletion, then inserts ORM rows for each provided event and related asset
         association. Event IDs are used as the idempotency key for this compatibility
         mode.
-        
+
         Args:
             events: Regulatory events to persist as the complete event set.
-        
+
         Returns:
             None.
-        
+
         Raises:
             SQLAlchemyError: If the active database session fails while deleting or
                 staging event rows.
@@ -269,13 +269,13 @@ class AssetGraphRepository:
     def upsert_assets(self, assets: Iterable[Asset]) -> None:
         """
         Create or update multiple assets in a single repository session.
-    
+
         Args:
             assets: Domain assets to create or update.
-    
+
         Returns:
             None.
-    
+
         Raises:
             SQLAlchemyError: If the active database session fails while loading or
                 staging asset rows.
@@ -283,17 +283,13 @@ class AssetGraphRepository:
         incoming_assets = list(assets)
         if not incoming_assets:
             return
-    
+
         incoming_ids = [asset.id for asset in incoming_assets]
         existing_assets = {
             orm.id: orm
-            for orm in self.session.execute(
-                select(AssetORM).where(AssetORM.id.in_(incoming_ids))
-            )
-            .scalars()
-            .all()
+            for orm in self.session.execute(select(AssetORM).where(AssetORM.id.in_(incoming_ids))).scalars().all()
         }
-    
+
         for asset in incoming_assets:
             orm = existing_assets.get(asset.id)
             if orm is None:
@@ -540,7 +536,7 @@ class AssetGraphRepository:
         Return the relationship between two assets for the given relationship type.
 
         Returns:
-            `RelationshipRecord` if a matching relationship exists 
+            `RelationshipRecord` if a matching relationship exists
             (with `strength` converted to a `float`), `None` otherwise.
         """
         stmt = select(AssetRelationshipORM).where(
@@ -602,7 +598,7 @@ class AssetGraphRepository:
         Each returned event includes its associated related_assets (eagerly loaded).
 
         Returns:
-            events (list[RegulatoryEvent]): RegulatoryEvent models ordered by `date`, 
+            events (list[RegulatoryEvent]): RegulatoryEvent models ordered by `date`,
             then `id`, with `related_assets` populated.
         """
         result = (
@@ -624,7 +620,7 @@ class AssetGraphRepository:
         Delete the persisted regulatory event with the given id.
 
         Parameters:
-            event_id (str): Primary key of the regulatory event to delete. 
+            event_id (str): Primary key of the regulatory event to delete.
             If no matching record exists, no action is taken.
         """
         record = self.session.get(RegulatoryEventORM, event_id)
@@ -679,7 +675,7 @@ class AssetGraphRepository:
             orm (AssetORM): The persisted ORM row to convert.
 
         Returns:
-            Asset: A domain Asset. Returns an Equity, Bond, Commodity, or Currency instance when 
+            Asset: A domain Asset. Returns an Equity, Bond, Commodity, or Currency instance when
             `orm.asset_class` indicates that class; otherwise returns a generic `Asset`.
         """
         asset_class = AssetClass(orm.asset_class)
