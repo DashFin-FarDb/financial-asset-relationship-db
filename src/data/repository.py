@@ -95,7 +95,7 @@ class AssetGraphRepository:
     def __init__(self, session: Session):
         """
         Initialize the repository with a SQLAlchemy session for database operations.
-        
+
         Parameters:
             session (Session): SQLAlchemy Session used for all database access by this repository.
         """
@@ -107,9 +107,9 @@ class AssetGraphRepository:
     def save_graph(self, graph: AssetRelationshipGraph) -> None:
         """
         Persist an AssetRelationshipGraph snapshot to the database.
-        
+
         Stores the graph's assets, directed relationships, and regulatory events using snapshot semantics and does not persist any layout or visualization metadata.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): In-memory graph whose assets, relationships, and regulatory_events will replace the persisted state.
         """
@@ -120,9 +120,9 @@ class AssetGraphRepository:
     def load_graph(self) -> AssetRelationshipGraph:
         """
         Reconstruct an in-memory asset relationship graph from persisted assets, relationships, and regulatory events.
-        
+
         Loads only durable persisted data; does not derive relationships from other sources or restore visualization/layout metadata. Relationship `bidirectional` flags are preserved as stored.
-        
+
         Returns:
             graph (AssetRelationshipGraph): The reconstructed graph containing persisted assets, relationships (with `bidirectional` forwarded), and regulatory events.
         """
@@ -166,9 +166,9 @@ class AssetGraphRepository:
     ) -> None:
         """
         Replace all persisted relationships with the provided directed adjacency data.
-        
+
         Deletes all existing relationship rows and inserts a new row for each outgoing edge in `relationships`. Each outgoing tuple is interpreted as (target_id, relationship_type, strength); `strength` is validated to be a number between -1.0 and 1.0 inclusive and stored as the relationship strength. Inserted rows are stored as directed edges with `bidirectional=False`.
-        
+
         Parameters:
             relationships (dict[str, list[tuple[str, str, float]]]): Mapping from source asset id to a list of outgoing edges; each edge is a tuple of (target_id, relationship_type, strength).
         """
@@ -193,9 +193,9 @@ class AssetGraphRepository:
     def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
         """
         Replace all persisted regulatory events with the supplied collection.
-        
+
         Performs a snapshot-style replacement: deletes all existing regulatory events and their event-asset link rows, flushes the deletion, then inserts ORM rows for each provided event including their related asset associations. The provided events' IDs are used as the idempotency key for this operation.
-         
+
         Parameters:
             events (Iterable[RegulatoryEvent]): Iterable of regulatory events to persist as the complete set.
         """
@@ -537,9 +537,9 @@ class AssetGraphRepository:
     def list_regulatory_events(self) -> list[RegulatoryEvent]:
         """
         Retrieve all persisted regulatory events ordered by date then id.
-        
+
         Each returned event includes its associated related_assets (eagerly loaded).
-        
+
         Returns:
             events (list[RegulatoryEvent]): RegulatoryEvent models ordered by `date`, then `id`, with `related_assets` populated.
         """
@@ -560,7 +560,7 @@ class AssetGraphRepository:
     def delete_regulatory_event(self, event_id: str) -> None:
         """
         Delete the persisted regulatory event with the given id.
-        
+
         Parameters:
             event_id (str): Primary key of the regulatory event to delete. If no matching record exists, no action is taken.
         """
