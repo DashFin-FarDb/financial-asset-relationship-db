@@ -18,7 +18,7 @@ This document is a target persistence-boundary design for the next graph persist
 
 Future implementation PRs must explicitly reconcile this design with the current schema and ORM models, including `src/data/db_models.py` and `migrations/001_initial.sql`. Where this document uses target names such as `relationships` or `relationship_metadata`, implementation PRs must either:
 
-1. map those concepts onto the existing table/model names, such as `asset_relationships`, without changing behavior; or
+1. map those concepts onto the existing table/model names, such as `asset_relationships`, without changing behavior, or
 2. introduce a migration plan that explains the rename or schema transition, including backfill, compatibility, rollback, and repository/service-layer changes.
 
 Until such an implementation PR is accepted, the existing ORM and migration files remain the operative schema contract.
