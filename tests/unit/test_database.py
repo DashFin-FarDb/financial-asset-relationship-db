@@ -546,50 +546,73 @@ class TestConcurrentDatabaseAccess:
         assert len(errors) == 0
         assert len(sessions) == 10
 
-    def test_concurrent_reads_safe(self, engine: Engine, isolated_base) -> None:
-        """Concurrent reads should not interfere with each other."""
+    def test_concurrent_reads_safe(self, isolated_base) -> None:
+        """Concurrent reads should not interfere with each other.
+    
+        Uses a temporary file-based SQLite database with NullPool so each reader
+        thread opens its own database connection. This validates concurrent
+        read-session behavior without relying on a shared in-memory SQLite
+        connection from StaticPool.
+        """
+        import os
+        import tempfile
         import threading
-
+    
+        from sqlalchemy import create_engine as _create_engine
+        from sqlalchemy.pool import NullPool
+    
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent read validation."""
-
+    
             __tablename__ = "test_concurrent_reads"
             id = Column(Integer, primary_key=True)
             value = Column(String)
-
-        init_db(engine)
-        factory = create_session_factory(engine)
-
-        with session_scope(factory) as session:
-            for i in range(100):
-                session.add(TestModel(id=i, value=f"value_{i}"))
-
+    
         results: list[int] = []
         errors: list[Exception] = []
-
-        def read_data() -> None:
-            """
-            Worker executed by a thread to perform a read-only count query and record results.
-
-            Appends the number of rows in `TestModel` to the shared `results`
-            list. If an exception occurs, appends the exception instance to the
-            shared `errors` list. Obtains a session from the module-level
-            session factory and does not return a value.
-            """
-            try:
-                with session_scope(factory) as session:
-                    count = session.query(TestModel).count()
-                    results.append(count)
-            except Exception as exc:  # noqa: BLE001
-                errors.append(exc)
-
-        threads = [threading.Thread(target=read_data) for _ in range(10)]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
-
-        assert len(errors) == 0
+    
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db_url = f"sqlite:///{os.path.join(tmpdir, 'concurrent_reads.db')}"
+            # NullPool: each session opens its own SQLite connection, so concurrent
+            # reads are exercised at the database level rather than through a single
+            # shared in-memory connection.
+            file_engine = _create_engine(
+                db_url,
+                poolclass=NullPool,
+                connect_args={"timeout": 30},
+            )
+            init_db(file_engine)
+            factory = create_session_factory(file_engine)
+    
+            with session_scope(factory) as session:
+                for i in range(100):
+                    session.add(TestModel(id=i, value=f"value_{i}"))
+    
+            def read_data() -> None:
+                """
+                Worker executed by a thread to perform a read-only count query.
+    
+                Appends the number of rows in `TestModel` to the shared `results`
+                list. If an exception occurs, appends the exception instance to the
+                shared `errors` list.
+                """
+                try:
+                    with session_scope(factory) as session:
+                        count = session.query(TestModel).count()
+                        results.append(count)
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(exc)
+    
+            threads = [threading.Thread(target=read_data) for _ in range(10)]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+    
+            file_engine.dispose()
+    
+        assert len(errors) == 0, f"Unexpected errors under concurrent reads: {errors}"
+        assert len(results) == 10
         assert all(count == 100 for count in results)
 
     def test_concurrent_writes(self, isolated_base) -> None:
