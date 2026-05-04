@@ -39,6 +39,7 @@ This creates four production risks:
 - Define PostgreSQL as the durable persistence boundary for graph truth in hosted and production environments.
 - Preserve SQLite compatibility for local development and automated tests.
 - Define tables for assets, relationships, relationship metadata, and optional regulatory events.
+- Define persistence boundaries for assets, relationships, relationship metadata, and optional regulatory events while preserving the current domain/schema contract unless a later migration PR explicitly changes it.
 - Define optional graph build/snapshot tracking for rebuild/load decisions.
 - Define repository boundaries that future implementation PRs can add without changing this design's scope.
 - Keep graph truth separate from layout and visualization coordinates.
@@ -62,26 +63,32 @@ Stores durable asset identity and asset attributes needed to reconstruct graph n
 
 Recommended fields:
 
-| Field         | Purpose                                                            | Compatibility note                                                                                                |
-| ------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| `id`          | Internal primary key                                               | String-compatible primary key to match the current `AssetORM.id`; integer/UUID requires a separate migration PR.  |
-| `symbol`      | Stable asset symbol or ticker                                      | Add a unique constraint only if `symbol` is confirmed as the canonical asset lookup key for all persisted assets. |
-| `name`        | Display name                                                       | Nullable only if ingestion can legitimately omit it.                                                              |
-| `asset_class` | Asset class such as Equity, Fixed Income, Commodity, Currency      | Prefer portable string enum validation in application code before DB-specific enum types.                         |
-| `sector`      | Sector classification where applicable                             | Preserve current non-null ORM/migration behavior unless a migration PR explicitly relaxes it.                     |
-| `issuer`      | Issuer or issuer family where applicable                           | Nullable only if current ORM/migration behavior permits it, or after an explicit migration PR.                    |
-| `currency`    | Currency code where applicable                                     | Preserve current non-null ORM/migration behavior unless a migration PR explicitly relaxes it.                     |
-| `attributes`  | Source-specific attributes not yet promoted to first-class columns | SQLAlchemy `JSON`-compatible extended attributes; avoid ORM attribute name `metadata`.                            |
-| `created_at`  | Insert timestamp                                                   | Must be timezone-aware in application handling.                                                                   |
-| `updated_at`  | Last update timestamp                                              | Updated by repository/service layer.                                                                              |
+This list is a target persistence boundary, not an exhaustive replacement for the current asset contract. Implementation PRs must include every field required to reconstruct `src.models.financial_models.Asset` and supported subclasses from the operative ORM/migration contract. Current required fields such as `price`, and current optional or class-specific fields such as `market_cap`, must not be dropped merely because they are not central to graph topology.
+
+| Field         | Purpose                                                            | Compatibility note                                                                                                                                          |
+| ------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`          | Internal primary key                                               | String-compatible primary key to match the current `AssetORM.id`; integer/UUID requires a separate migration PR.                                            |
+| `symbol`      | Stable asset symbol or ticker                                      | Add a unique constraint only if `symbol` is confirmed as the canonical asset lookup key for all persisted assets.                                           |
+| `name`        | Display name                                                       | Nullable only if ingestion can legitimately omit it.                                                                                                        |
+| `asset_class` | Asset class from the current `AssetClass` domain enum, including Equity, Fixed Income, Commodity, Currency, and Derivative | Prefer portable string enum validation in application code before DB-specific enum types.           |
+| `price`       | Current asset price/value required by the domain model             | Preserve current non-null ORM/domain behavior unless a migration PR explicitly changes it.                                                                  |
+| `market_cap`  | Market capitalization where applicable                             | Preserve current ORM/domain behavior; nullable or class-specific only if the current model permits it.                                                      |
+| `sector`      | Sector classification where applicable                             | Preserve current non-null ORM/migration behavior unless a migration PR explicitly relaxes it.                                                               |
+| `issuer_id`   | Issuer identifier where applicable                                 | Aligns with current `AssetORM.issuer_id` / `Bond.issuer_id`; nullable only if current ORM/migration behavior permits it, or after an explicit migration PR. |
+| `currency`    | Currency code where applicable                                     | Preserve current non-null ORM/migration behavior unless a migration PR explicitly relaxes it.                                                               |
+| `attributes`  | Source-specific attributes not yet promoted to first-class columns | SQLAlchemy `JSON`-compatible extended attributes; avoid ORM attribute name `metadata`.                                                                      |
+| `created_at`  | Insert timestamp                                                   | Must be timezone-aware in application handling.                                                                                                             |
+| `updated_at`  | Last update timestamp                                              | Updated by repository/service layer.                                                                                                                        |
 
 Nullability compatibility: current ORM and migration constraints remain authoritative until a schema PR changes them. If current `AssetORM` / `migrations/001_initial.sql` require fields such as `sector` or `currency` to be non-null, implementation PRs must preserve that behavior. Any target relaxation for asset classes where a field does not apply requires an explicit migration plan, backfill/default strategy, SQLite compatibility check, and repository/service-layer validation update.
-
+Domain/schema compatibility: current ORM, migration, and domain-model constraints remain authoritative until a schema PR changes them. If current `AssetORM` / `migrations/001_initial.sql` require fields such as `price`, `sector`, or `currency` to be non-null, implementation PRs must preserve that behavior. Any target relaxation for asset classes where a field does not apply requires an explicit migration plan, backfill/default strategy, SQLite compatibility check, and repository/service-layer validation update.
+ 
 Constraints and indexes:
 
 - Unique index on `symbol` when symbol is canonical.
 - Index on `asset_class`.
 - Index on `sector` if sector filters remain common.
+- Preserve current indexes and constraints needed by the existing ORM/domain contract unless a migration PR explicitly changes them.
 - Avoid PostgreSQL-only enum definitions unless there is a clear SQLite fallback.
 
 ### `relationships`
@@ -92,7 +99,7 @@ Recommended fields:
 
 | Field               | Purpose                                                                                                           | Compatibility note                                                                                                                     |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                | Internal primary key                                                                                              | Integer or UUID based on repo-wide persistence convention.                                                                             |
+| `id`                | Internal primary key                                                                                              | Preserve the current relationship-table key strategy. The existing schema may use an autoincrement integer for relationship rows while asset/event IDs remain string-compatible; unifying key policy requires a separate migration PR. |
 | `source_asset_id`   | Source asset foreign key                                                                                          | References `assets.id`.                                                                                                                |
 | `target_asset_id`   | Target asset foreign key                                                                                          | References `assets.id`.                                                                                                                |
 | `relationship_type` | Domain relationship type, such as same-sector, issuer link, regulatory impact, correlation, or other future types | Validate allowed values in application code initially.                                                                                 |
@@ -139,6 +146,8 @@ Stores durable event data if regulatory events remain part of graph construction
 
 Compatibility baseline: if the current ORM models regulatory events as asset-scoped rows, implementation PRs should preserve that behavior initially. A normalized shared-event model, where one regulatory event links to many assets or relationships through `regulatory_event_impacts`, requires a dedicated schema/migration PR.
 
+The recommended fields below describe the future normalized/shared-event target model. The initial compatibility-preserving implementation must either map the target concepts onto the current `RegulatoryEventORM` shape or include a dedicated migration plan. Current schema names such as `date` must not be silently replaced by target names such as `event_date` without backfill, compatibility, and rollback planning.
+
 Recommended fields:
 
 | Field          | Purpose                                     | Compatibility note                                                                                                                |
@@ -154,6 +163,15 @@ Recommended fields:
 | `attributes`   | JSON-compatible extended event attributes   | SQLAlchemy `JSON`-compatible extended attributes; avoid ORM attribute name `metadata`.                                            |
 | `created_at`   | Insert timestamp                            | Repository-managed.                                                                                                               |
 | `updated_at`   | Last update timestamp                       | Repository-managed.                                                                                                               |
+
+Current compatibility mapping:
+
+| Current concept / column | Target concept | Implementation rule |
+| --- | --- | --- |
+| `RegulatoryEventORM.id` | `regulatory_events.id` | Preserve as the internal key unless a migration PR changes key policy. |
+| asset-scoped `asset_id` relationship | `regulatory_event_impacts.asset_id` | Keep the current direct asset-scoped shape for the first compatibility implementation, or migrate to the join table in a dedicated schema PR.|
+| `date` | `event_date` | Treat `event_date` as a target normalized name; preserve `date` until a migration/backfill PR renames or remaps it. |
+| event detail fields currently present in ORM | `title`, `description`, `event_type`, `jurisdiction`, `source`, `attributes` | Add only through schema/repository PRs that define defaults, nullability, and SQLite compatibility. |
 
 Optional join table:
 
