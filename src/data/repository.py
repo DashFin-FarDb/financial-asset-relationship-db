@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, TypedDict
@@ -10,6 +10,7 @@ from typing import Any, TypedDict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     Asset,
     AssetClass,
@@ -92,13 +93,93 @@ class AssetGraphRepository:
         self.session = session
 
     # ------------------------------------------------------------------
+    # Graph persistence helpers
+    # ------------------------------------------------------------------
+    def save_graph(self, graph: AssetRelationshipGraph) -> None:
+        """
+        Persist the current graph truth using the existing schema contract.
+
+        This method stores assets, directed relationships, and regulatory events
+        through the current ORM models. It intentionally does not persist layout
+        coordinates or visualization metadata.
+        """
+        self.upsert_assets(graph.assets.values())
+        self.replace_relationships_from_graph(graph.relationships)
+        self.replace_regulatory_events(graph.regulatory_events)
+
+    def load_graph(self) -> AssetRelationshipGraph:
+        """
+        Reconstruct an in-memory graph from persisted assets and relationships.
+
+        The returned graph is loaded from durable graph truth only. The method
+        does not derive new relationships, rebuild from sample data, or assign
+        visualization coordinates.
+        """
+        graph = AssetRelationshipGraph()
+        for asset in self.list_assets():
+            graph.add_asset(asset)
+        for event in self.list_regulatory_events():
+            graph.add_regulatory_event(event)
+        for relationship in self.list_relationships():
+            graph.add_relationship(
+                relationship.source_id,
+                relationship.target_id,
+                relationship.relationship_type,
+                relationship.strength,
+                bidirectional=False,
+            )
+        return graph
+
+    def upsert_assets(self, assets: Iterable[Asset]) -> None:
+        """Create or update multiple assets in a single repository session."""
+        for asset in assets:
+            self.upsert_asset(asset)
+
+    def replace_relationships_from_graph(
+        self,
+        relationships: dict[str, list[tuple[str, str, float]]],
+    ) -> None:
+        """
+        Replace persisted relationships with the supplied graph relationships.
+
+        This is the schema-compatible bulk publish primitive for the first graph
+        persistence implementation. It preserves directed edges exactly as stored
+        in the in-memory graph instead of collapsing reciprocal relationships.
+        """
+        self.session.query(AssetRelationshipORM).delete()
+        for source_id, outgoing_relationships in relationships.items():
+            for target_id, relationship_type, strength in outgoing_relationships:
+                self.add_or_update_relationship(
+                    source_id,
+                    target_id,
+                    relationship_type,
+                    strength,
+                    bidirectional=False,
+                )
+
+    def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
+        """
+        Replace persisted regulatory events with the supplied event collection.
+
+        The current compatibility mode uses event IDs as the idempotency key.
+        Stable event-key semantics for a normalized shared-event model remain a
+        later schema/repository migration concern.
+        """
+        self.session.query(RegulatoryEventAssetORM).delete()
+        self.session.query(RegulatoryEventORM).delete()
+        for event in events:
+            self.upsert_regulatory_event(event)
+
+    # ------------------------------------------------------------------
     # Asset helpers
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
         """
         Create or update the persistent record for a domain Asset.
 
-        Maps fields from the given domain `Asset` onto an `AssetORM` (creating one if needed) and stages the ORM instance on the repository session for persistence.
+        Maps fields from the given domain `Asset` onto an `AssetORM` (creating
+        one if needed) and stages the ORM instance on the repository session for
+        persistence.
 
         Parameters:
             asset (Asset): Domain asset to persist or update.
@@ -163,13 +244,16 @@ class AssetGraphRepository:
         """
         Create or update an asset relationship and stage it on the repository session.
 
-        Accepts either a single _RelationshipUpsertSpec or explicit fields (source_id, target_id, rel_type, strength[, bidirectional=False]).
-        Strength must be a numeric value between -1.0 and 1.0 inclusive; boolean values are rejected.
+        Accepts either a single _RelationshipUpsertSpec or explicit fields
+        (source_id, target_id, rel_type, strength[, bidirectional=False]).
+        Strength must be a numeric value between -1.0 and 1.0 inclusive; boolean
+        values are rejected.
 
         Parameters:
             *args: Either a single `_RelationshipUpsertSpec` or positional fields:
                 (source_id, target_id, rel_type, strength[, bidirectional]).
-            **kwargs: When not passing a `_RelationshipUpsertSpec`, may include `bidirectional` as a keyword.
+            **kwargs: When not passing a `_RelationshipUpsertSpec`, may include
+                `bidirectional` as a keyword.
         """
         relationship_spec = self._build_relationship_upsert_spec(
             *args,
@@ -309,7 +393,9 @@ class AssetGraphRepository:
         List all asset relationships stored in the repository.
 
         Returns:
-            List[RelationshipRecord]: A list of RelationshipRecord objects, each containing source_id, target_id, relationship_type, strength (float), and bidirectional (bool).
+            List[RelationshipRecord]: A list of RelationshipRecord objects, each
+                containing source_id, target_id, relationship_type, strength
+                (float), and bidirectional (bool).
         """
         result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
