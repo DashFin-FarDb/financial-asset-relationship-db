@@ -20,7 +20,7 @@ pytestmark = pytest.mark.unit
 def repository_factory(tmp_path):
     """
     Provides a factory for creating AssetGraphRepository instances backed by a temporary SQLite database.
-    
+
     Yields a callable that creates new repositories each with its own SQLAlchemy session tied to the same temporary database file; after the fixture completes all created sessions are closed and the engine is disposed.
     """
     db_path = tmp_path / "graph_persistence.db"

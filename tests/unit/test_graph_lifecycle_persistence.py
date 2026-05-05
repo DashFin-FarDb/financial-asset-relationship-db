@@ -30,7 +30,7 @@ pytestmark = pytest.mark.unit
 def reset_lifecycle(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
     Reset the graph lifecycle and clear persistence-related environment variables before each test, then reset the lifecycle again after the test.
-    
+
     This fixture removes the environment variables ASSET_GRAPH_DATABASE_URL, GRAPH_CACHE_PATH, REAL_DATA_CACHE_PATH, and USE_REAL_DATA_FETCHER to ensure tests start with a clean persisted-graph configuration and to prevent leakage between tests.
     """
     for name in (
@@ -83,10 +83,10 @@ def _relationship_strength(
 ) -> float:
     """
     Retrieve the stored strength value for the specified relationship.
-    
+
     @returns
         The relationship strength as a float.
-    
+
     @raises AssertionError
         If no relationship matching `source_id`, `target_id`, and `relationship_type` is found.
     """
@@ -99,11 +99,11 @@ def _relationship_strength(
 def _sqlite_url(tmp_path: Path, name: str = "asset_graph.db") -> str:
     """
     Construct a file-backed SQLite URL pointing to a database file under the given directory.
-    
+
     Parameters:
         tmp_path (Path): Directory in which the SQLite file will be placed.
         name (str): Filename for the SQLite database (defaults to "asset_graph.db").
-    
+
     Returns:
         str: A SQLite URL string referencing the file (e.g., "sqlite:///path/to/{name}").
     """
@@ -122,11 +122,11 @@ def _init_empty_db(database_url: str) -> None:
 def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
     """
     Persist the given AssetRelationshipGraph into the database identified by `database_url`.
-    
+
     Parameters:
         database_url (str): SQLAlchemy database URL for the test database (file-backed or in-memory).
         graph (AssetRelationshipGraph): In-memory graph snapshot to be saved.
-    
+
     """
     engine = create_engine(database_url)
     init_db(engine)
@@ -142,7 +142,7 @@ def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
 def _asset_only_graph() -> AssetRelationshipGraph:
     """
     Create an in-memory asset relationship graph containing a single equity and no relationships or events.
-    
+
     Returns:
         AssetRelationshipGraph: Graph with one asset (id "ASSET_ONLY", symbol "ONLY") and no relationships or regulatory events.
     """
@@ -154,7 +154,7 @@ def _asset_only_graph() -> AssetRelationshipGraph:
 def _full_graph() -> AssetRelationshipGraph:
     """
     Create an AssetRelationshipGraph containing three equities, two directed relationships, and one regulatory event.
-    
+
     Returns:
         AssetRelationshipGraph: Graph with assets "ASSET_A", "ASSET_B", and "ASSET_C"; relationships
         "ASSET_A" -> "ASSET_B" with type "directed_alpha" and strength 0.4, and
@@ -177,7 +177,7 @@ def _full_graph() -> AssetRelationshipGraph:
 def _initialize_graph_for_test() -> AssetRelationshipGraph:
     """
     Initialize the asset relationship graph via the lifecycle test seam.
-    
+
     Returns:
         AssetRelationshipGraph: The initialized graph instance used by tests.
     """
@@ -195,7 +195,7 @@ class _ClosingSessionProxy:
     def __init__(self, session: Any, close_counter: Callable[[], None]) -> None:
         """
         Initialize the proxy with a wrapped session and a callback to record close calls.
-        
+
         Parameters:
             session: The underlying SQLAlchemy session to proxy.
             close_counter: A zero-argument callable invoked each time the proxy's `close()` is called to increment the external close-call counter.
@@ -206,13 +206,13 @@ class _ClosingSessionProxy:
     def __getattr__(self, name: str) -> Any:
         """
         Delegate attribute access to the wrapped SQLAlchemy session.
-        
+
         Parameters:
             name (str): The attribute name to retrieve from the wrapped session.
-        
+
         Returns:
             Any: The attribute value from the underlying session.
-        
+
         Raises:
             AttributeError: If the underlying session does not have the requested attribute.
         """
@@ -221,7 +221,7 @@ class _ClosingSessionProxy:
     def close(self) -> None:
         """
         Increment the tracked close counter and close the wrapped SQLAlchemy session.
-        
+
         Increments the provided close-call counter and then delegates to the underlying
         session's `close()` method to release database resources.
         """
@@ -232,12 +232,12 @@ class _ClosingSessionProxy:
 def _patch_session_close_counter(monkeypatch: pytest.MonkeyPatch) -> Callable[[], int]:
     """
     Patch the session factory so created sessions are wrapped and their `.close()` calls are counted.
-    
+
     This replaces graph_lifecycle_providers.create_session_factory via the provided pytest monkeypatch so sessions returned by the factory are proxied to increment an internal counter each time `close()` is invoked.
-    
+
     Parameters:
         monkeypatch (pytest.MonkeyPatch): Fixture used to set the patched session factory.
-    
+
     Returns:
         Callable[[], int]: A zero-argument callable that returns the current count of `close()` calls.
     """
@@ -247,7 +247,7 @@ def _patch_session_close_counter(monkeypatch: pytest.MonkeyPatch) -> Callable[[]
     def increment_close_calls() -> None:
         """
         Increment the internal counter tracking how many times proxied sessions were closed.
-        
+
         Used by the session proxy to record each `.close()` invocation.
         """
         nonlocal close_calls
@@ -256,12 +256,12 @@ def _patch_session_close_counter(monkeypatch: pytest.MonkeyPatch) -> Callable[[]
     def tracking_session_factory(engine: Any) -> Any:
         """
         Create a session factory that produces sessions wrapped with a proxy which increments a close-call counter when closed.
-        
+
         The returned callable takes no arguments and produces a `_ClosingSessionProxy` that delegates to a real SQLAlchemy session while incrementing the provided close-count on each `.close()` call.
-        
+
         Parameters:
             engine: The SQLAlchemy engine passed through to the underlying session factory.
-        
+
         Returns:
             session_factory (Callable[[], Any]): A zero-argument callable that returns a proxied session whose `close()` increments the tracked close-call counter and then closes the underlying session.
         """
@@ -270,10 +270,10 @@ def _patch_session_close_counter(monkeypatch: pytest.MonkeyPatch) -> Callable[[]
         def make_session() -> Any:
             """
             Return a session proxy that increments a close-call counter each time its .close() is invoked.
-            
+
             This wraps a real SQLAlchemy session produced by the factory and delegates all attributes
             and method calls to it while counting calls to .close().
-            
+
             Returns:
                 _ClosingSessionProxy: Proxy around the real session that increments the configured counter on `.close()` and forwards all other behavior to the underlying session.
             """
@@ -301,7 +301,7 @@ def _assert_empty_db_uses_configured_source(
 ) -> None:
     """
     Verify that when a persisted database exists but contains no graph rows, startup falls through to a configured non-persistent graph provider and does not attempt to save to the database.
-    
+
     This test helper:
     - Creates an empty file-backed SQLite database and sets ASSET_GRAPH_DATABASE_URL to it.
     - Monkeypatches the specified provider (given by `provider_attr`) to return a configured in-memory graph and replaces AssetGraphRepository.save_graph with a function that fails if called.
@@ -315,7 +315,7 @@ def _assert_empty_db_uses_configured_source(
     def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
         """
         Raise an AssertionError to indicate startup attempted to save graph data.
-        
+
         Raises:
             AssertionError: Always raised with message "startup load must not save graph data".
         """
@@ -326,7 +326,7 @@ def _assert_empty_db_uses_configured_source(
     def load_configured_graph(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
         """
         Provide the preconfigured fallback AssetRelationshipGraph instance.
-        
+
         Returns:
             AssetRelationshipGraph: The configured fallback graph object.
         """
@@ -362,7 +362,7 @@ def test_factory_precedence_skips_persistence_load(
     def fail_create_engine(_url: str) -> Any:
         """
         Fail when called to indicate persistence engine creation must not occur when a graph factory is configured.
-        
+
         Raises:
             AssertionError: always raised with message "persistence load should not be attempted".
         """
@@ -554,7 +554,7 @@ def test_invalid_configured_database_url_fails_without_leaking_url(
 ) -> None:
     """
     Ensure startup fails when ASSET_GRAPH_DATABASE_URL is invalid and that the resulting error message and logs do not expose the raw URL or embedded secrets.
-    
+
     Verifies that initializing the graph raises a RuntimeError with the text "Failed to load persisted graph during startup" and that neither the full configured URL nor secret substrings appear in the exception message or captured log output.
     """
     raw_url = "not-a-real-driver://user:secret@example.invalid/db"
@@ -670,9 +670,9 @@ def test_reset_reloads_persisted_graph_without_saving(
     def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
         """
         Raise an AssertionError to fail tests when a reset or startup load attempts to persist the graph.
-        
+
         Used as a test stub replacement for persistence calls to ensure startup/reset code does not write to storage.
-        
+
         Raises:
             AssertionError: always; indicates the code under test attempted to save graph data when it must not.
         """
