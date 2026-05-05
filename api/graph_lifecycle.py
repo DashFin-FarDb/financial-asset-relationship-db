@@ -10,16 +10,9 @@ import logging
 import threading
 from collections.abc import Callable
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from src.config.settings import Settings, get_settings
-from src.data.database import create_engine_from_url, create_session_factory
-from src.data.db_models import AssetORM
-from src.data.real_data_fetcher import RealDataFetcher
-from src.data.repository import AssetGraphRepository
-from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
+
+from . import graph_lifecycle_providers
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +99,7 @@ def reset_graph() -> None:
     """
     # Clear settings cache to preserve reset semantics: environment variable
     # changes made after reset should be picked up on next initialization.
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
     set_graph_factory(None)
 
 
@@ -118,15 +111,14 @@ def _initialize_graph() -> AssetRelationshipGraph:
         - If `graph_state.graph_factory` is set, return the factory result.
         - If `settings.asset_graph_database_url` is set and the configured
           store has at least one persisted asset row, load and return the graph
-          via ``AssetGraphRepository``. Configured-persistence failures raise
+          through the lifecycle provider. Configured-persistence failures raise
           ``RuntimeError`` and do not fall through to later steps.
-        - If `settings.graph_cache_path` is set, create a `RealDataFetcher`
-          with that path. Network access is enabled when
+        - If `settings.graph_cache_path` is set, create a real-data graph
+          through the lifecycle provider. Network access is enabled when
           `settings.use_real_data_fetcher` is enabled.
         - If `settings.graph_cache_path` is not set, but
-          `settings.use_real_data_fetcher` is enabled, create a
-          `RealDataFetcher` using `settings.real_data_cache_path` with network
-          access enabled.
+          `settings.use_real_data_fetcher` is enabled, create a real-data graph
+          through the lifecycle provider with network access enabled.
         - Otherwise, return the sample in-memory graph.
 
     Returns:
@@ -135,8 +127,8 @@ def _initialize_graph() -> AssetRelationshipGraph:
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory()
 
-    settings = get_settings()
-    persisted_graph = _load_persisted_graph_if_available(settings)
+    settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
+    persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(settings.asset_graph_database_url)
     if persisted_graph is not None:
         return persisted_graph
 
@@ -144,67 +136,16 @@ def _initialize_graph() -> AssetRelationshipGraph:
     use_real_data = settings.use_real_data_fetcher
 
     if cache_path:
-        fetcher = RealDataFetcher(
-            cache_path=cache_path,
+        return graph_lifecycle_providers.create_real_data_graph(
+            cache_path,
             enable_network=use_real_data,
         )
-        return fetcher.create_real_database()
 
     if use_real_data:
         real_data_cache_path = settings.real_data_cache_path
-        fetcher = RealDataFetcher(
-            cache_path=real_data_cache_path,
+        return graph_lifecycle_providers.create_real_data_graph(
+            real_data_cache_path,
             enable_network=True,
         )
-        return fetcher.create_real_database()
 
-    return create_sample_database()
-
-
-def _load_persisted_graph_if_available(
-    settings: Settings,
-) -> AssetRelationshipGraph | None:
-    """
-    Load a persisted graph when graph persistence is explicitly configured.
-
-    Returns ``None`` only when graph persistence is not configured or when the
-    configured store is reachable and schema-ready but has no persisted asset
-    rows. Configured load failures are raised so startup does not silently fall
-    back to sample or cache data.
-    """
-    database_url = (settings.asset_graph_database_url or "").strip()
-    if not database_url:
-        return None
-
-    engine = None
-    session = None
-    load_error: RuntimeError | None = None
-    persisted_graph: AssetRelationshipGraph | None = None
-    try:
-        engine = create_engine_from_url(database_url)
-        session_factory = create_session_factory(engine)
-        session = session_factory()
-        if not _has_persisted_graph_rows(session):
-            return None
-        persisted_graph = AssetGraphRepository(session).load_graph()
-    except Exception as exc:
-        logger.error(
-            "Failed to load persisted graph during startup: %s",
-            exc.__class__.__name__,
-        )
-        load_error = RuntimeError("Failed to load persisted graph during startup")
-    finally:
-        if session is not None:
-            session.close()
-        if engine is not None:
-            engine.dispose()
-
-    if load_error is not None:
-        raise load_error
-
-    return persisted_graph
-
-
-def _has_persisted_graph_rows(session: Session) -> bool:
-    """Return whether the asset graph store contains at least one asset row."""
-    return session.execute(select(AssetORM.id).limit(1)).scalar_one_or_none() is not None
+    return graph_lifecycle_providers.create_sample_graph()

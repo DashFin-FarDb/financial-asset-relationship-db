@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy import create_engine, text
 
 import api.graph_lifecycle as graph_lifecycle
-from src.config.settings import get_settings
+import api.graph_lifecycle_providers as graph_lifecycle_providers
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -141,7 +141,7 @@ def test_factory_precedence_skips_persistence_load(
 
     factory_graph = AssetRelationshipGraph()
     graph_lifecycle.set_graph_factory(lambda: factory_graph)
-    monkeypatch.setattr(graph_lifecycle, "create_engine_from_url", fail_create_engine)
+    monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
 
     assert graph_lifecycle._initialize_graph() is factory_graph
 
@@ -156,12 +156,12 @@ def test_persistence_disabled_preserves_sample_fallback(
         monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     else:
         monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", configured_value)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_create_engine(_url: str) -> Any:
         raise AssertionError("persistence load should not be attempted")
 
-    monkeypatch.setattr(graph_lifecycle, "create_engine_from_url", fail_create_engine)
+    monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
 
     graph = graph_lifecycle._initialize_graph()
 
@@ -176,7 +176,7 @@ def test_empty_configured_db_falls_back_without_saving(
     database_url = _sqlite_url(tmp_path)
     _init_empty_db(database_url)
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
         raise AssertionError("startup load must not save graph data")
@@ -197,7 +197,7 @@ def test_persisted_asset_only_graph_loads(
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _asset_only_graph())
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     loaded = graph_lifecycle._initialize_graph()
 
@@ -214,7 +214,7 @@ def test_persisted_full_graph_loads(
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _full_graph())
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     loaded = graph_lifecycle._initialize_graph()
 
@@ -250,7 +250,7 @@ def test_legacy_bidirectional_row_survives_startup_load(
         engine.dispose()
 
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     loaded = graph_lifecycle._initialize_graph()
 
@@ -265,7 +265,7 @@ def test_missing_schema_fails_without_fallback(
     """Configured persistence with missing tables should fail startup load."""
     database_url = _sqlite_url(tmp_path)
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
         graph_lifecycle._initialize_graph()
@@ -277,7 +277,7 @@ def test_invalid_configured_database_url_fails_without_leaking_url(
     """Invalid configured persistence should fail with sanitized lifecycle text."""
     raw_url = "not-a-sqlalchemy-url://user:secret@example.invalid/db"
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", raw_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     with pytest.raises(RuntimeError) as exc_info:
         graph_lifecycle._initialize_graph()
@@ -308,7 +308,7 @@ def test_malformed_asset_class_persisted_row_fails_without_fallback(
     engine.dispose()
 
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
         graph_lifecycle._initialize_graph()
@@ -322,9 +322,9 @@ def test_session_closes_on_success_empty_and_failure(
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _asset_only_graph())
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
     close_calls = 0
-    real_create_session_factory = graph_lifecycle.create_session_factory
+    real_create_session_factory = graph_lifecycle_providers.create_session_factory
 
     def tracking_session_factory(engine: Any) -> Any:
         real_factory = real_create_session_factory(engine)
@@ -349,20 +349,20 @@ def test_session_closes_on_success_empty_and_failure(
             close_calls += 1
             self._session.close()
 
-    monkeypatch.setattr(graph_lifecycle, "create_session_factory", tracking_session_factory)
+    monkeypatch.setattr(graph_lifecycle_providers, "create_session_factory", tracking_session_factory)
     graph_lifecycle._initialize_graph()
     assert close_calls == 1
 
     empty_url = _sqlite_url(tmp_path, "empty.db")
     _init_empty_db(empty_url)
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", empty_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
     graph_lifecycle._initialize_graph()
     assert close_calls == 2
 
     missing_schema_url = _sqlite_url(tmp_path, "missing.db")
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", missing_schema_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
     with pytest.raises(RuntimeError):
         graph_lifecycle._initialize_graph()
     assert close_calls == 3
@@ -376,7 +376,7 @@ def test_reset_reloads_persisted_graph_without_saving(
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _asset_only_graph())
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
         raise AssertionError("reset/startup load must not save graph data")
@@ -399,7 +399,7 @@ def test_api_main_and_router_helper_compatibility(
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _asset_only_graph())
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     import api.main as api_main
     import api.router_helpers as router_helpers
