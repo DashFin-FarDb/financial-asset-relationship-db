@@ -64,9 +64,12 @@ This is the current startup hook to document. This PR does not change it.
 Current `_initialize_graph()` source order:
 
 1. Use `graph_state.graph_factory` when present.
-2. Use `GRAPH_CACHE_PATH` through `RealDataFetcher` when configured.
-3. Use `USE_REAL_DATA_FETCHER` with `REAL_DATA_CACHE_PATH` when enabled.
-4. Fall back to `create_sample_database()`.
+2. Otherwise, if `GRAPH_CACHE_PATH` is configured, initialize from that path
+   (and this branch may still enable `RealDataFetcher` network behavior when
+   `USE_REAL_DATA_FETCHER` is true).
+3. Otherwise, if `GRAPH_CACHE_PATH` is not configured, use
+   `USE_REAL_DATA_FETCHER` with `REAL_DATA_CACHE_PATH` when enabled.
+4. Otherwise, fall back to `create_sample_database()`.
 
 This is the key integration seam for future `AssetGraphRepository.load_graph()`
 work.
