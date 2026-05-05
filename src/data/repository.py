@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Tuple, TypedDict
+from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
 
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, selectinload
@@ -86,7 +86,7 @@ class _BaseAssetKwargs(TypedDict):
     currency: str
 
 
-GRAPH_RELATIONSHIP_ROWS = Dict[str, List[Tuple[str, str, float]]]
+GraphRelationshipRows: TypeAlias = Dict[str, List[Tuple[str, str, float]]]
 
 
 class AssetGraphRepository:
@@ -149,11 +149,11 @@ class AssetGraphRepository:
             graph.add_asset(asset)
         for event in self.list_regulatory_events():
             graph.add_regulatory_event(event)
-        persisted_relationships = self.list_relationships()
+        persisted_ = self.list_()
         explicit_relationship_keys = {
-            (rel.source_id, rel.target_id, rel.relationship_type) for rel in persisted_relationships
+            (rel.source_id, rel.target_id, rel.relationship_type) for rel in persisted_
         }
-        for relationship in persisted_relationships:
+        for relationship in persisted_:
             expand_reverse = (
                 relationship.bidirectional
                 and (
@@ -221,9 +221,9 @@ class AssetGraphRepository:
 
         self.upsert_assets(incoming_assets)
 
-    def replace_relationships_from_graph(
+    def replace__from_graph(
         self,
-        relationships: GRAPH_RELATIONSHIP_ROWS,
+        relationships: GraphRelationshipRows,
     ) -> None:
         """
         Replace all persisted relationships with directed adjacency data.
@@ -282,6 +282,20 @@ class AssetGraphRepository:
             SQLAlchemyError: If the active database session fails while deleting or
                 staging event rows.
         """
+        incoming_events = list(events)
+        seen_event_ids: set[str] = set()
+        duplicate_event_ids: set[str] = set()
+        for event in incoming_events:
+            if event.id in seen_event_ids:
+                duplicate_event_ids.add(event.id)
+            seen_event_ids.add(event.id)
+        if duplicate_event_ids:
+            duplicate_ids = ", ".join(sorted(duplicate_event_ids))
+            raise ValueError(
+                "replace_regulatory_events() received duplicate event IDs: "
+                f"{duplicate_ids}"
+            )
+
         self.session.execute(
             delete(RegulatoryEventAssetORM),
             execution_options={"synchronize_session": "fetch"},
@@ -291,7 +305,7 @@ class AssetGraphRepository:
             execution_options={"synchronize_session": "fetch"},
         )
         self.session.flush()
-        for event in events:
+        for event in incoming_events:
             event_orm = RegulatoryEventORM(
                 id=event.id,
                 asset_id=event.asset_id,
