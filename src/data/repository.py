@@ -150,9 +150,7 @@ class AssetGraphRepository:
         for event in self.list_regulatory_events():
             graph.add_regulatory_event(event)
         persisted_ = self.list_()
-        explicit_relationship_keys = {
-            (rel.source_id, rel.target_id, rel.relationship_type) for rel in persisted_
-        }
+        explicit_relationship_keys = {(rel.source_id, rel.target_id, rel.relationship_type) for rel in persisted_}
         for relationship in persisted_:
             expand_reverse = (
                 relationship.bidirectional
@@ -291,10 +289,7 @@ class AssetGraphRepository:
             seen_event_ids.add(event.id)
         if duplicate_event_ids:
             duplicate_ids = ", ".join(sorted(duplicate_event_ids))
-            raise ValueError(
-                "replace_regulatory_events() received duplicate event IDs: "
-                f"{duplicate_ids}"
-            )
+            raise ValueError(f"replace_regulatory_events() received duplicate event IDs: {duplicate_ids}")
 
         self.session.execute(
             delete(RegulatoryEventAssetORM),
