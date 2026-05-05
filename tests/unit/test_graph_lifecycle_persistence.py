@@ -228,14 +228,25 @@ def test_persistence_disabled_preserves_sample_fallback(
     assert graph.assets
 
 
-def test_empty_configured_db_falls_back_without_saving(
+@pytest.mark.parametrize(
+    ("env_name", "env_value", "provider_attr"),
+    [
+        ("GRAPH_CACHE_PATH", "/tmp/graph-cache.json", "load_graph_from_cache_path"),
+        ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher"),
+    ],
+)
+def test_empty_configured_db_honors_configured_source_before_sample_fallback(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    env_name: str,
+    env_value: str,
+    provider_attr: str,
 ) -> None:
-    """A schema-ready empty graph store should fall through to current fallback."""
+    """An empty configured persistence store must still honor higher-precedence configured sources."""
     database_url = _sqlite_url(tmp_path)
     _init_empty_db(database_url)
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
+    monkeypatch.setenv(env_name, env_value)
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
@@ -246,12 +257,22 @@ def test_empty_configured_db_falls_back_without_saving(
         """
         raise AssertionError("startup load must not save graph data")
 
+    configured_graph = _asset_only_graph()
+
+    def load_configured_graph(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+        return configured_graph
+
     monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
+    monkeypatch.setattr(
+        graph_lifecycle_providers,
+        provider_attr,
+        load_configured_graph,
+    )
 
     graph = graph_lifecycle._initialize_graph()
 
-    assert graph.assets
-    assert "ASSET_ONLY" not in graph.assets
+    assert graph is configured_graph
+    assert set(graph.assets) == {"ASSET_ONLY"}
 
 
 def test_persisted_asset_only_graph_loads(
