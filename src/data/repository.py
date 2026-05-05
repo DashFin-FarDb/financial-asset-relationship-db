@@ -165,12 +165,18 @@ class AssetGraphRepository:
         """
         incoming_assets = list(assets)
         incoming_ids = {asset.id for asset in incoming_assets}
-        persisted_ids = set(self.session.execute(select(AssetORM.id)).scalars().all())
+        persisted_ids = set(
+            self.session.execute(select(AssetORM.id)).scalars().all()
+        )
         stale_ids = persisted_ids - incoming_ids
 
         if stale_ids:
             stale_event_ids = set(
-                self.session.execute(select(RegulatoryEventORM.id).where(RegulatoryEventORM.asset_id.in_(stale_ids)))
+                self.session.execute(
+                    select(RegulatoryEventORM.id).where(
+                        RegulatoryEventORM.asset_id.in_(stale_ids)
+                    )
+                )
                 .scalars()
                 .all()
             )
@@ -183,17 +189,23 @@ class AssetGraphRepository:
                 execution_options={"synchronize_session": "fetch"},
             )
             self.session.execute(
-                delete(RegulatoryEventAssetORM).where(RegulatoryEventAssetORM.asset_id.in_(stale_ids)),
+                delete(RegulatoryEventAssetORM).where(
+                    RegulatoryEventAssetORM.asset_id.in_(stale_ids)
+                ),
                 execution_options={"synchronize_session": "fetch"},
             )
 
             if stale_event_ids:
                 self.session.execute(
-                    delete(RegulatoryEventAssetORM).where(RegulatoryEventAssetORM.event_id.in_(stale_event_ids)),
+                    delete(RegulatoryEventAssetORM).where(
+                        RegulatoryEventAssetORM.event_id.in_(stale_event_ids)
+                    ),
                     execution_options={"synchronize_session": "fetch"},
                 )
                 self.session.execute(
-                    delete(RegulatoryEventORM).where(RegulatoryEventORM.id.in_(stale_event_ids)),
+                    delete(RegulatoryEventORM).where(
+                        RegulatoryEventORM.id.in_(stale_event_ids)
+                    ),
                     execution_options={"synchronize_session": "fetch"},
                 )
 
@@ -233,18 +245,19 @@ class AssetGraphRepository:
             execution_options={"synchronize_session": "fetch"},
         )
         self.session.flush()
-        for source_id, outgoing_relationships in relationships.items():
-            for target_id, relationship_type, strength in outgoing_relationships:
-                normalized_strength = self._validate_relationship_strength(strength)
-                self.session.add(
-                    AssetRelationshipORM(
-                        source_asset_id=source_id,
-                        target_asset_id=target_id,
-                        relationship_type=relationship_type,
-                        strength=normalized_strength,
-                        bidirectional=False,
-                    )
-                )
+        relationship_rows = [
+            AssetRelationshipORM(
+                source_asset_id=source_id,
+                target_asset_id=target_id,
+                relationship_type=relationship_type,
+                strength=self._validate_relationship_strength(strength),
+                bidirectional=False,
+            )
+            for source_id, outgoing_relationships in relationships.items()
+            for target_id, relationship_type, strength in outgoing_relationships
+        ]
+        if relationship_rows:
+            self.session.add_all(relationship_rows)
 
     def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
         """
@@ -284,7 +297,9 @@ class AssetGraphRepository:
                 impact_score=event.impact_score,
             )
             for related_id in dict.fromkeys(event.related_assets):
-                event_orm.related_assets.append(RegulatoryEventAssetORM(asset_id=related_id))
+                event_orm.related_assets.append(
+                    RegulatoryEventAssetORM(asset_id=related_id)
+                )
             self.session.add(event_orm)
 
     # ------------------------------------------------------------------
@@ -330,7 +345,11 @@ class AssetGraphRepository:
         incoming_ids = list(dict.fromkeys(asset.id for asset in incoming_assets))
         existing_assets = {
             orm.id: orm
-            for orm in self.session.execute(select(AssetORM).where(AssetORM.id.in_(incoming_ids))).scalars().all()
+            for orm in self.session.execute(
+                select(AssetORM).where(AssetORM.id.in_(incoming_ids))
+            )
+            .scalars()
+            .all()
         }
 
         for asset in incoming_assets:
@@ -350,7 +369,11 @@ class AssetGraphRepository:
                 representing all assets in the database,
                 ordered by asset id.
         """
-        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        result = (
+            self.session.execute(select(AssetORM).order_by(AssetORM.id))
+            .scalars()
+            .all()
+        )
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> dict[str, Asset]:
@@ -631,7 +654,9 @@ class AssetGraphRepository:
         existing.impact_score = event.impact_score
         existing.related_assets.clear()
         for related_id in dict.fromkeys(event.related_assets):
-            existing.related_assets.append(RegulatoryEventAssetORM(asset_id=related_id))
+            existing.related_assets.append(
+                RegulatoryEventAssetORM(asset_id=related_id)
+            )
 
         self.session.add(existing)
 
@@ -688,7 +713,9 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap) if asset.market_cap is not None else None
+        )
         orm.currency = asset.currency
 
         orm.pe_ratio = getattr(asset, "pe_ratio", None)
