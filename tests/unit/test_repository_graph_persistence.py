@@ -1,7 +1,9 @@
 """Unit tests for repository graph persistence helpers."""
 
 import pytest
-from sqlalchemy import create_engine
+
+_sqlalchemy = pytest.importorskip("sqlalchemy")
+create_engine = _sqlalchemy.create_engine
 
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
