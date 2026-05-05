@@ -105,24 +105,20 @@ def reset_graph() -> None:
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Initialize the global AssetRelationshipGraph using the configured factory or settings-driven data sources.
-
-    Initialization order:
-        - If `graph_state.graph_factory` is set, return the factory result.
-        - If `settings.asset_graph_database_url` is set and the configured
-          store has at least one persisted asset row, load and return the graph
-          through the lifecycle provider. Configured-persistence failures raise
-          ``RuntimeError`` and do not fall through to later steps.
-        - If `settings.graph_cache_path` is set, create a real-data graph
-          through the lifecycle provider. Network access is enabled when
-          `settings.use_real_data_fetcher` is enabled.
-        - If `settings.graph_cache_path` is not set, but
-          `settings.use_real_data_fetcher` is enabled, create a real-data graph
-          through the lifecycle provider with network access enabled.
-        - Otherwise, return the sample in-memory graph.
-
+    Constructs the global AssetRelationshipGraph according to the configured factory and lifecycle settings.
+    
+    Initialization precedence:
+    1. If a custom `graph_state.graph_factory` is configured, return its result.
+    2. If `settings.asset_graph_database_url` is configured, attempt to load a persisted graph via the lifecycle provider and return it if found; persistence loading failures propagate as errors.
+    3. If `settings.graph_cache_path` is configured, load and return a graph from that cache (network access enabled when `settings.use_real_data_fetcher` is true).
+    4. If no cache path but `settings.use_real_data_fetcher` is true, build and return a graph from the real-data fetcher (using `settings.real_data_cache_path`).
+    5. Otherwise, return the sample in-memory graph provided by the lifecycle provider.
+    
     Returns:
         AssetRelationshipGraph: The initialized graph instance.
+    
+    Raises:
+        RuntimeError: If configured persistence is enabled but loading the persisted graph fails.
     """
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory()
