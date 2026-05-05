@@ -1,7 +1,7 @@
 """Unit tests for repository graph persistence helpers."""
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine  # pylint: disable=import-error
 
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository

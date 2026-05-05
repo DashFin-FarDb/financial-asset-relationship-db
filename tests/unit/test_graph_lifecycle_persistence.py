@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import importlib
-from collections.abc import Iterator
+import logging
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
 
 import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as graph_lifecycle_providers
@@ -40,6 +41,11 @@ def reset_lifecycle(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     graph_lifecycle.reset_graph()
 
 
+# ---------------------------------------------------------------------------
+# Module-level helpers and data builders
+# ---------------------------------------------------------------------------
+
+
 def _equity(asset_id: str, symbol: str) -> Equity:
     """Build a minimal equity asset for lifecycle persistence tests."""
     return Equity(
@@ -53,17 +59,7 @@ def _equity(asset_id: str, symbol: str) -> Equity:
 
 
 def _event(event_id: str, asset_id: str, related_assets: list[str] | None = None) -> RegulatoryEvent:
-    """
-    Constructs a RegulatoryEvent with sensible default fields used by persistence tests.
-
-    Parameters:
-        event_id (str): Unique identifier for the event.
-        asset_id (str): ID of the asset the event is associated with.
-        related_assets (list[str] | None): Optional list of related asset IDs; defaults to an empty list when None.
-
-    Returns:
-        RegulatoryEvent: A RegulatoryEvent populated with the provided IDs, a fixed SEC filing type and date, a short description, and an impact score.
-    """
+    """Build a regulatory event for persistence tests."""
     return RegulatoryEvent(
         id=event_id,
         asset_id=asset_id,
@@ -81,15 +77,7 @@ def _relationship_strength(
     target_id: str,
     relationship_type: str,
 ) -> float:
-    """
-    Retrieve the stored strength of the relationship from source_id to target_id for the given relationship_type.
-
-    Returns:
-        float: The relationship strength.
-
-    Raises:
-        AssertionError: If no matching relationship exists in the graph.
-    """
+    """Return the stored relationship strength."""
     for target, rel_type, strength in graph.relationships.get(source_id, []):
         if target == target_id and rel_type == relationship_type:
             return strength
@@ -97,26 +85,12 @@ def _relationship_strength(
 
 
 def _sqlite_url(tmp_path: Path, name: str = "asset_graph.db") -> str:
-    """
-    Build a file-backed SQLite connection URL located under the given directory.
-
-    Parameters:
-        tmp_path (Path): Directory in which to place the SQLite database file.
-        name (str): Filename for the SQLite database (defaults to "asset_graph.db").
-
-    Returns:
-        sqlite_url (str): A SQLite connection URL pointing to the file at tmp_path / name.
-    """
+    """Build a file-backed SQLite URL under tmp_path."""
     return f"sqlite:///{tmp_path / name}"
 
 
 def _init_empty_db(database_url: str) -> None:
-    """
-    Initialize the database schema at the given database URL.
-
-    Parameters:
-        database_url (str): SQLAlchemy connection URL for the target database; the function will create the necessary tables/schema at this location.
-    """
+    """Create the graph database schema without graph rows."""
     engine = create_engine(database_url)
     try:
         init_db(engine)
@@ -125,13 +99,7 @@ def _init_empty_db(database_url: str) -> None:
 
 
 def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
-    """
-    Persist a graph snapshot into the database at the given SQLAlchemy URL.
-
-    Parameters:
-        database_url (str): SQLAlchemy connection URL for the target database.
-        graph (AssetRelationshipGraph): AssetRelationshipGraph instance to persist.
-    """
+    """Persist a graph snapshot to a test database."""
     engine = create_engine(database_url)
     init_db(engine)
     session = create_session_factory(engine)()
@@ -144,24 +112,14 @@ def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
 
 
 def _asset_only_graph() -> AssetRelationshipGraph:
-    """
-    Builds an AssetRelationshipGraph containing a single equity asset and no relationships or events.
-
-    Returns:
-        AssetRelationshipGraph: Graph containing one asset with id "ASSET_ONLY" and symbol "ONLY".
-    """
+    """Build a graph containing one asset and no relationships."""
     graph = AssetRelationshipGraph()
     graph.add_asset(_equity("ASSET_ONLY", "ONLY"))
     return graph
 
 
 def _full_graph() -> AssetRelationshipGraph:
-    """
-    Create an AssetRelationshipGraph containing three equities, two directed relationships, and one regulatory event.
-
-    Returns:
-        graph (AssetRelationshipGraph): Graph with assets "ASSET_A", "ASSET_B", and "ASSET_C"; relationships "ASSET_A" -> "ASSET_B" with `directed_alpha` 0.4 and "ASSET_B" -> "ASSET_A" with `directed_alpha` 0.9; and a regulatory event "EVENT_A" attached to "ASSET_A" referencing "ASSET_B" and "ASSET_C".
-    """
+    """Build a graph with assets, relationships, and one event."""
     graph = AssetRelationshipGraph()
     for asset in (
         _equity("ASSET_A", "A"),
@@ -175,6 +133,104 @@ def _full_graph() -> AssetRelationshipGraph:
     return graph
 
 
+def _initialize_graph_for_test() -> AssetRelationshipGraph:
+    """Initialize the graph through the lifecycle test seam."""
+    return graph_lifecycle._initialize_graph()  # pylint: disable=protected-access
+
+
+# ---------------------------------------------------------------------------
+# Session-close tracking proxy and patch helper
+# ---------------------------------------------------------------------------
+
+
+class _ClosingSessionProxy:
+    """Proxy a SQLAlchemy session and count close calls."""
+
+    def __init__(self, session: Any, close_counter: Callable[[], None]) -> None:
+        self._session = session
+        self._close_counter = close_counter
+
+    def __getattr__(self, name: str) -> Any:
+        """Delegate attribute access to the underlying session."""
+        return getattr(self._session, name)
+
+    def close(self) -> None:
+        """Increment the close counter and close the underlying session."""
+        self._close_counter()
+        self._session.close()
+
+
+def _patch_session_close_counter(monkeypatch: pytest.MonkeyPatch) -> Callable[[], int]:
+    """Patch startup session creation and return the close-call count."""
+    close_calls = 0
+    real_create_session_factory = graph_lifecycle_providers.create_session_factory
+
+    def increment_close_calls() -> None:
+        nonlocal close_calls
+        close_calls += 1
+
+    def tracking_session_factory(engine: Any) -> Any:
+        """Create sessions wrapped with a close-counting proxy."""
+        real_factory = real_create_session_factory(engine)
+
+        def make_session() -> Any:
+            """Create a close-counting session proxy."""
+            return _ClosingSessionProxy(real_factory(), increment_close_calls)
+
+        return make_session
+
+    monkeypatch.setattr(
+        graph_lifecycle_providers,
+        "create_session_factory",
+        tracking_session_factory,
+    )
+    return lambda: close_calls
+
+
+# ---------------------------------------------------------------------------
+# Empty-persistence fallback helper
+# ---------------------------------------------------------------------------
+
+
+def _assert_empty_db_uses_configured_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    provider_attr: str,
+) -> None:
+    """Assert empty persistence falls through to a configured graph source."""
+    database_url = _sqlite_url(tmp_path)
+    _init_empty_db(database_url)
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
+
+    def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
+        """Fail if startup attempts to save graph data."""
+        raise AssertionError("startup load must not save graph data")
+
+    configured_graph = _asset_only_graph()
+
+    def load_configured_graph(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+        """Return the configured fallback graph."""
+        return configured_graph
+
+    monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
+    monkeypatch.setattr(
+        graph_lifecycle_providers,
+        provider_attr,
+        load_configured_graph,
+    )
+
+    graph = _initialize_graph_for_test()
+
+    assert graph is configured_graph
+    assert set(graph.assets) == {"ASSET_ONLY"}
+
+
+# ---------------------------------------------------------------------------
+# Tests: factory and persistence-disabled precedence
+# ---------------------------------------------------------------------------
+
+
 def test_factory_precedence_skips_persistence_load(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -185,19 +241,14 @@ def test_factory_precedence_skips_persistence_load(
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
 
     def fail_create_engine(_url: str) -> Any:
-        """
-        Always raise an AssertionError to signal that engine creation must not be attempted.
-
-        Raises:
-            AssertionError: Always raised with the message "persistence load should not be attempted".
-        """
+        """Fail if persistence load is attempted when a factory is set."""
         raise AssertionError("persistence load should not be attempted")
 
     factory_graph = AssetRelationshipGraph()
     graph_lifecycle.set_graph_factory(lambda: factory_graph)
     monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
 
-    assert graph_lifecycle._initialize_graph() is factory_graph
+    assert _initialize_graph_for_test() is factory_graph
 
 
 @pytest.mark.parametrize("configured_value", [None, "", "   "])
@@ -213,17 +264,12 @@ def test_persistence_disabled_preserves_sample_fallback(
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_create_engine(_url: str) -> Any:
-        """
-        Always raise an AssertionError to signal that engine creation must not be attempted.
-
-        Raises:
-            AssertionError: Always raised with the message "persistence load should not be attempted".
-        """
+        """Fail if engine creation is attempted for a disabled persistence URL."""
         raise AssertionError("persistence load should not be attempted")
 
     monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
 
-    graph = graph_lifecycle._initialize_graph()
+    graph = _initialize_graph_for_test()
 
     assert graph.assets
 
@@ -245,60 +291,50 @@ def test_in_memory_sqlite_url_skips_persistence_load(
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_create_engine(_url: str) -> Any:
+        """Fail if in-memory SQLite attempts engine creation."""
         raise AssertionError("engine creation must not be attempted for in-memory URL")
 
     monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
 
-    graph = graph_lifecycle._initialize_graph()
+    graph = _initialize_graph_for_test()
 
     assert graph.assets  # falls back to sample data
 
 
-@pytest.mark.parametrize(
-    ("env_name", "env_value", "provider_attr"),
-    [
-        ("GRAPH_CACHE_PATH", "/tmp/graph-cache.json", "load_graph_from_cache_path"),
-        ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher"),
-    ],
-)
-def test_empty_configured_db_honors_configured_source_before_sample_fallback(
+# ---------------------------------------------------------------------------
+# Tests: empty-store fallback honors configured sources
+# ---------------------------------------------------------------------------
+
+
+def test_empty_configured_db_honors_graph_cache_path_before_sample_fallback(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    env_name: str,
-    env_value: str,
-    provider_attr: str,
 ) -> None:
-    """An empty configured persistence store must still honor higher-precedence configured sources."""
-    database_url = _sqlite_url(tmp_path)
-    _init_empty_db(database_url)
-    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
-    monkeypatch.setenv(env_name, env_value)
-    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
-
-    def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
-        """
-        Raise an AssertionError to fail the test if an attempt is made to save the graph during startup.
-
-        This helper always raises AssertionError("startup load must not save graph data") to indicate that saving persisted graph data during initialization is unexpected.
-        """
-        raise AssertionError("startup load must not save graph data")
-
-    configured_graph = _asset_only_graph()
-
-    def load_configured_graph(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
-        return configured_graph
-
-    monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
-    monkeypatch.setattr(
-        graph_lifecycle_providers,
-        provider_attr,
-        load_configured_graph,
+    """Empty persistence should fall through to GRAPH_CACHE_PATH."""
+    monkeypatch.setenv("GRAPH_CACHE_PATH", "/tmp/graph-cache.json")
+    _assert_empty_db_uses_configured_source(
+        tmp_path,
+        monkeypatch,
+        "load_graph_from_cache_path",
     )
 
-    graph = graph_lifecycle._initialize_graph()
 
-    assert graph is configured_graph
-    assert set(graph.assets) == {"ASSET_ONLY"}
+def test_empty_configured_db_honors_real_data_fetcher_before_sample_fallback(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Empty persistence should fall through to USE_REAL_DATA_FETCHER."""
+    monkeypatch.setenv("USE_REAL_DATA_FETCHER", "1")
+    _assert_empty_db_uses_configured_source(
+        tmp_path,
+        monkeypatch,
+        "load_graph_from_real_data_fetcher",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Tests: successful persisted loads
+# ---------------------------------------------------------------------------
 
 
 def test_persisted_asset_only_graph_loads(
@@ -311,7 +347,7 @@ def test_persisted_asset_only_graph_loads(
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
-    loaded = graph_lifecycle._initialize_graph()
+    loaded = _initialize_graph_for_test()
 
     assert set(loaded.assets) == {"ASSET_ONLY"}
     assert not loaded.relationships
@@ -328,7 +364,7 @@ def test_persisted_full_graph_loads(
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
-    loaded = graph_lifecycle._initialize_graph()
+    loaded = _initialize_graph_for_test()
 
     assert set(loaded.assets) == {"ASSET_A", "ASSET_B", "ASSET_C"}
     assert _relationship_strength(loaded, "ASSET_A", "ASSET_B", "directed_alpha") == pytest.approx(0.4)
@@ -364,10 +400,15 @@ def test_legacy_bidirectional_row_survives_startup_load(
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
-    loaded = graph_lifecycle._initialize_graph()
+    loaded = _initialize_graph_for_test()
 
     assert _relationship_strength(loaded, "LEGACY_A", "LEGACY_B", "same_sector") == pytest.approx(0.7)
     assert _relationship_strength(loaded, "LEGACY_B", "LEGACY_A", "same_sector") == pytest.approx(0.7)
+
+
+# ---------------------------------------------------------------------------
+# Tests: failure paths
+# ---------------------------------------------------------------------------
 
 
 def test_missing_schema_fails_without_fallback(
@@ -380,25 +421,29 @@ def test_missing_schema_fails_without_fallback(
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
-        graph_lifecycle._initialize_graph()
+        _initialize_graph_for_test()
 
 
 def test_invalid_configured_database_url_fails_without_leaking_url(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Invalid configured persistence should fail with sanitized lifecycle text."""
-    raw_url = "not-a-sqlalchemy-url://user:secret@example.invalid/db"
+    raw_url = "not-a-real-driver://user:secret@example.invalid/db"
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", raw_url)
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
-    with pytest.raises(RuntimeError) as exc_info:
-        graph_lifecycle._initialize_graph()
+    with caplog.at_level(logging.DEBUG), pytest.raises(RuntimeError) as exc_info:
+        _initialize_graph_for_test()
 
-    assert exc_info.value.__context__ is None
+    assert exc_info.value.__suppress_context__ is True
     message = str(exc_info.value)
     assert "Failed to load persisted graph during startup" in message
     assert "secret" not in message
     assert raw_url not in message
+    log_output = " ".join(record.getMessage() for record in caplog.records)
+    assert "secret" not in log_output
+    assert raw_url not in log_output
 
 
 def test_malformed_asset_class_persisted_row_fails_without_fallback(
@@ -423,100 +468,65 @@ def test_malformed_asset_class_persisted_row_fails_without_fallback(
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
-        graph_lifecycle._initialize_graph()
+        _initialize_graph_for_test()
 
 
-def test_session_closes_on_success_empty_and_failure(
+# ---------------------------------------------------------------------------
+# Tests: session cleanup
+# ---------------------------------------------------------------------------
+
+
+def test_session_closes_on_persisted_load_success(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Startup load should close its short-lived session in every path."""
+    """Startup load should close the session after persisted load."""
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _asset_only_graph())
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
-    close_calls = 0
-    real_create_session_factory = graph_lifecycle_providers.create_session_factory
+    close_count = _patch_session_close_counter(monkeypatch)
 
-    def tracking_session_factory(engine: Any) -> Any:
-        """
-        Create a session factory whose sessions are wrapped with ClosingSessionProxy.
+    _initialize_graph_for_test()
 
-        Parameters:
-            engine: The database engine used to build the underlying session factory.
+    assert close_count() == 1
 
-        Returns:
-            A callable that, when invoked, returns a session proxy delegating to a real session created from `engine`, with `close()` proxied for tracking.
-        """
-        real_factory = real_create_session_factory(engine)
 
-        def make_session() -> Any:
-            """
-            Create a new database session wrapped by a ClosingSessionProxy.
-
-            Returns:
-                ClosingSessionProxy: A proxy around the newly created session that delegates session operations to the real session and exposes a close() implementation suitable for tracking/overriding close calls.
-            """
-            session = real_factory()
-            return ClosingSessionProxy(session)
-
-        return make_session
-
-    class ClosingSessionProxy:
-        """Proxy a SQLAlchemy session and count close calls."""
-
-        def __init__(self, session: Any) -> None:
-            """
-            Initialize the repository with a database session.
-
-            Parameters:
-                session (Any): A database session instance used for persistence operations (short-lived SQLAlchemy
-                    session or equivalent). The repository retains this session for its lifetime.
-            """
-            self._session = session
-
-        def __getattr__(self, name: str) -> Any:
-            """
-            Delegate attribute access to the proxied session.
-
-            Forward attribute lookups to self._session so that attributes and methods on the underlying session
-            are accessible through this proxy.
-
-            Parameters:
-                name (str): Name of the attribute being accessed.
-
-            Returns:
-                Any: The attribute value from the underlying session.
-            """
-            return getattr(self._session, name)
-
-        def close(self) -> None:
-            """
-            Increment the external close counter and close the proxied session.
-
-            Increments the nonlocal `close_calls` counter used by tests and delegates to the wrapped session's `close()` method.
-            """
-            nonlocal close_calls
-            close_calls += 1
-            self._session.close()
-
-    monkeypatch.setattr(graph_lifecycle_providers, "create_session_factory", tracking_session_factory)
-    graph_lifecycle._initialize_graph()
-    assert close_calls == 1
-
-    empty_url = _sqlite_url(tmp_path, "empty.db")
-    _init_empty_db(empty_url)
-    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", empty_url)
+def test_session_closes_on_empty_persistence_fallback(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Startup load should close the session before empty-store fallback."""
+    database_url = _sqlite_url(tmp_path)
+    _init_empty_db(database_url)
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
-    graph_lifecycle._initialize_graph()
-    assert close_calls == 2
+    close_count = _patch_session_close_counter(monkeypatch)
 
-    missing_schema_url = _sqlite_url(tmp_path, "missing.db")
-    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", missing_schema_url)
+    _initialize_graph_for_test()
+
+    assert close_count() == 1
+
+
+def test_session_closes_on_persistence_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Startup load should close the session after load failure."""
+    database_url = _sqlite_url(tmp_path)
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
+    close_count = _patch_session_close_counter(monkeypatch)
+
     with pytest.raises(RuntimeError):
-        graph_lifecycle._initialize_graph()
-    assert close_calls == 3
+        _initialize_graph_for_test()
+
+    assert close_count() == 1
+
+
+# ---------------------------------------------------------------------------
+# Tests: reset and compatibility
+# ---------------------------------------------------------------------------
 
 
 def test_reset_reloads_persisted_graph_without_saving(
@@ -530,15 +540,7 @@ def test_reset_reloads_persisted_graph_without_saving(
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
-        """
-        Fail the test if a graph save is attempted during reset or startup load.
-
-        This helper unconditionally raises an AssertionError to ensure code paths invoked
-        during reset/startup do not attempt to persist graph data.
-
-        Raises:
-            AssertionError: with message "reset/startup load must not save graph data".
-        """
+        """Fail if reset or startup load attempts to save graph data."""
         raise AssertionError("reset/startup load must not save graph data")
 
     monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
@@ -561,8 +563,8 @@ def test_api_main_and_router_helper_compatibility(
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
-    import api.main as api_main
-    import api.router_helpers as router_helpers
+    import api.main as api_main  # pylint: disable=import-outside-toplevel
+    import api.router_helpers as router_helpers  # pylint: disable=import-outside-toplevel
 
     api_main = importlib.reload(api_main)
     try:
