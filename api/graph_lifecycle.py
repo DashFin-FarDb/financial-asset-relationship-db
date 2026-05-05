@@ -189,6 +189,6 @@ def _load_persisted_graph_if_available(
             engine.dispose()
 
 
-def _has_persisted_graph_rows(session) -> bool:
+def _has_persisted_graph_rows(session: Session) -> bool:
     """Return whether the asset graph store contains at least one asset row."""
     return session.execute(select(AssetORM.id).limit(1)).scalar_one_or_none() is not None
