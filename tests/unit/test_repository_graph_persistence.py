@@ -13,22 +13,28 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-pytest.importorskip("sqlalchemy")
-
 pytestmark = pytest.mark.unit
 
 
 @pytest.fixture
-def repository(tmp_path):
-    """Create an AssetGraphRepository backed by a temporary SQLite database."""
+def repository_factory(tmp_path):
+    """Create fresh repositories backed by one temporary SQLite database."""
     db_path = tmp_path / "graph_persistence.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
     factory = create_session_factory(engine)
-    session = factory()
-    repo = AssetGraphRepository(session)
-    yield repo
-    session.close()
+    sessions = []
+
+    def make_repository() -> AssetGraphRepository:
+        """Create a repository with a fresh SQLAlchemy session."""
+        session = factory()
+        sessions.append(session)
+        return AssetGraphRepository(session)
+
+    yield make_repository
+
+    for session in sessions:
+        session.close()
     engine.dispose()
 
 
@@ -74,15 +80,30 @@ def _relationship_strength(
     raise AssertionError(f"Missing relationship {source_id}->{target_id} ({relationship_type})")
 
 
+def _relationship_count(
+    graph: AssetRelationshipGraph,
+    source_id: str,
+    target_id: str,
+    relationship_type: str,
+) -> int:
+    """Return the number of matching graph relationships."""
+    return sum(
+        1
+        for target, rel_type, _ in graph.relationships.get(source_id, [])
+        if target == target_id and rel_type == relationship_type
+    )
+
+
 @pytest.mark.unit
 class TestGraphPersistenceRoundTrip:
     """Test graph snapshot persistence and reconstruction."""
 
     @staticmethod
     def test_save_load_graph_round_trip_preserves_assets_relationships_and_events(
-        repository,
+        repository_factory,
     ) -> None:
         """Save and load graph truth without deriving extra relationships."""
+        repository = repository_factory()
         graph = AssetRelationshipGraph()
         for asset in (
             _equity("ASSET_A", "A"),
@@ -99,24 +120,31 @@ class TestGraphPersistenceRoundTrip:
         repository.save_graph(graph)
         repository.session.commit()
 
-        loaded = repository.load_graph()
+        reader = repository_factory()
+        loaded = reader.load_graph()
 
         assert set(loaded.assets) == {"ASSET_A", "ASSET_B", "ASSET_C"}
-        assert _relationship_strength(loaded, "ASSET_A", "ASSET_B", "directed_alpha") == 0.4
-        assert _relationship_strength(loaded, "ASSET_B", "ASSET_A", "directed_alpha") == 0.9
-        assert _relationship_strength(loaded, "ASSET_A", "ASSET_C", "directed_beta") == -0.2
+        assert _relationship_strength(loaded, "ASSET_A", "ASSET_B", "directed_alpha") == pytest.approx(0.4)
+        assert _relationship_strength(loaded, "ASSET_B", "ASSET_A", "directed_alpha") == pytest.approx(0.9)
+        assert _relationship_strength(loaded, "ASSET_A", "ASSET_C", "directed_beta") == pytest.approx(-0.2)
         assert "ASSET_C" not in loaded.relationships
 
         assert len(loaded.regulatory_events) == 1
         loaded_event = loaded.regulatory_events[0]
         assert loaded_event.id == "EVENT_A"
+        assert loaded_event.asset_id == "ASSET_A"
+        assert loaded_event.event_type == RegulatoryActivity.SEC_FILING
+        assert loaded_event.date == "2024-01-15"
+        assert loaded_event.description == "EVENT_A filing"
+        assert loaded_event.impact_score == pytest.approx(0.5)
         assert loaded_event.related_assets == ["ASSET_B", "ASSET_C"]
 
     @staticmethod
     def test_save_graph_replaces_previous_snapshot_and_removes_stale_rows(
-        repository,
+        repository_factory,
     ) -> None:
         """Save a smaller graph and remove rows absent from the new snapshot."""
+        repository = repository_factory()
         first_graph = AssetRelationshipGraph()
         for asset in (
             _equity("KEEP", "KEEP"),
@@ -139,9 +167,10 @@ class TestGraphPersistenceRoundTrip:
         repository.save_graph(second_graph)
         repository.session.commit()
 
-        loaded = repository.load_graph()
-        relationships = repository.list_relationships()
-        events = repository.list_regulatory_events()
+        reader = repository_factory()
+        loaded = reader.load_graph()
+        relationships = reader.list_relationships()
+        events = reader.list_regulatory_events()
 
         assert set(loaded.assets) == {"KEEP", "RELATED"}
         assert "REMOVE" not in loaded.assets
@@ -154,9 +183,10 @@ class TestGraphPersistenceRoundTrip:
 
     @staticmethod
     def test_load_graph_expands_legacy_bidirectional_row_without_explicit_reverse(
-        repository,
+        repository_factory,
     ) -> None:
         """Expand one legacy bidirectional row when no explicit reverse exists."""
+        repository = repository_factory()
         repository.upsert_asset(_equity("LEGACY_A", "LA"))
         repository.upsert_asset(_equity("LEGACY_B", "LB"))
         repository.add_or_update_relationship(
@@ -168,16 +198,18 @@ class TestGraphPersistenceRoundTrip:
         )
         repository.session.commit()
 
-        loaded = repository.load_graph()
+        reader = repository_factory()
+        loaded = reader.load_graph()
 
-        assert _relationship_strength(loaded, "LEGACY_A", "LEGACY_B", "same_sector") == 0.7
-        assert _relationship_strength(loaded, "LEGACY_B", "LEGACY_A", "same_sector") == 0.7
+        assert _relationship_strength(loaded, "LEGACY_A", "LEGACY_B", "same_sector") == pytest.approx(0.7)
+        assert _relationship_strength(loaded, "LEGACY_B", "LEGACY_A", "same_sector") == pytest.approx(0.7)
 
     @staticmethod
     def test_load_graph_preserves_explicit_reverse_strength_over_legacy_expansion(
-        repository,
+        repository_factory,
     ) -> None:
         """Keep an explicit reverse row instead of synthesizing a duplicate."""
+        repository = repository_factory()
         repository.upsert_asset(_equity("PAIR_A", "PA"))
         repository.upsert_asset(_equity("PAIR_B", "PB"))
         repository.add_or_update_relationship(
@@ -196,32 +228,45 @@ class TestGraphPersistenceRoundTrip:
         )
         repository.session.commit()
 
-        loaded = repository.load_graph()
+        reader = repository_factory()
+        loaded = reader.load_graph()
 
-        assert _relationship_strength(loaded, "PAIR_A", "PAIR_B", "same_sector") == 0.7
-        assert _relationship_strength(loaded, "PAIR_B", "PAIR_A", "same_sector") == 0.2
-        assert loaded.relationships["PAIR_A"].count(("PAIR_B", "same_sector", 0.7)) == 1
-        assert loaded.relationships["PAIR_B"].count(("PAIR_A", "same_sector", 0.2)) == 1
+        assert _relationship_count(loaded, "PAIR_A", "PAIR_B", "same_sector") == 1
+        assert _relationship_count(loaded, "PAIR_B", "PAIR_A", "same_sector") == 1
+        assert _relationship_strength(loaded, "PAIR_A", "PAIR_B", "same_sector") == pytest.approx(0.7)
+        assert _relationship_strength(loaded, "PAIR_B", "PAIR_A", "same_sector") == pytest.approx(0.2)
 
-        repository.save_graph(loaded)
-        repository.session.commit()
+        normalizer = repository_factory()
+        normalizer.save_graph(loaded)
+        normalizer.session.commit()
 
-        relationship_records = repository.list_relationships()
+        verifier = repository_factory()
+        relationship_records = verifier.list_relationships()
         assert len(relationship_records) == 2
         assert all(not record.bidirectional for record in relationship_records)
-        assert {
-            (record.source_id, record.target_id, record.relationship_type, record.strength)
+        persisted_strengths = {
+            (record.source_id, record.target_id, record.relationship_type): record.strength
             for record in relationship_records
-        } == {
-            ("PAIR_A", "PAIR_B", "same_sector", 0.7),
-            ("PAIR_B", "PAIR_A", "same_sector", 0.2),
         }
+        assert persisted_strengths.keys() == {
+            ("PAIR_A", "PAIR_B", "same_sector"),
+            ("PAIR_B", "PAIR_A", "same_sector"),
+        }
+        assert persisted_strengths[("PAIR_A", "PAIR_B", "same_sector")] == pytest.approx(0.7)
+        assert persisted_strengths[("PAIR_B", "PAIR_A", "same_sector")] == pytest.approx(0.2)
+
+        reloaded = verifier.load_graph()
+        assert _relationship_count(reloaded, "PAIR_A", "PAIR_B", "same_sector") == 1
+        assert _relationship_count(reloaded, "PAIR_B", "PAIR_A", "same_sector") == 1
+        assert _relationship_strength(reloaded, "PAIR_A", "PAIR_B", "same_sector") == pytest.approx(0.7)
+        assert _relationship_strength(reloaded, "PAIR_B", "PAIR_A", "same_sector") == pytest.approx(0.2)
 
     @staticmethod
     def test_replace_regulatory_events_rejects_duplicate_ids_before_deleting_existing_rows(
-        repository,
+        repository_factory,
     ) -> None:
         """Reject duplicate incoming event IDs before destructive replacement."""
+        repository = repository_factory()
         repository.upsert_asset(_equity("EVENT_ASSET", "EA"))
         repository.upsert_regulatory_event(_event("EXISTING_EVENT", "EVENT_ASSET"))
         repository.session.commit()
@@ -230,6 +275,7 @@ class TestGraphPersistenceRoundTrip:
             repository.replace_regulatory_events(
                 [
                     _event("DUP_EVENT", "EVENT_ASSET"),
+                    _event("OTHER_EVENT", "EVENT_ASSET"),
                     _event("DUP_EVENT", "EVENT_ASSET"),
                 ]
             )
@@ -240,9 +286,10 @@ class TestGraphPersistenceRoundTrip:
 
     @staticmethod
     def test_upsert_assets_reuses_created_orm_for_duplicate_incoming_ids(
-        repository,
+        repository_factory,
     ) -> None:
         """Use one ORM row for duplicate incoming IDs and keep last value."""
+        repository = repository_factory()
         first_asset = _equity("DUP_ASSET", "FIRST")
         second_asset = _equity("DUP_ASSET", "SECOND", sector="Finance")
         second_asset.price = 250.0
@@ -257,4 +304,4 @@ class TestGraphPersistenceRoundTrip:
         assert assets[0].symbol == "SECOND"
         assert assets[0].name == "Second Equity"
         assert assets[0].sector == "Finance"
-        assert assets[0].price == 250.0
+        assert assets[0].price == pytest.approx(250.0)
