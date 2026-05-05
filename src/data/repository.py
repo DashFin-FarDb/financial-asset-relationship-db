@@ -151,15 +151,18 @@ class AssetGraphRepository:
             graph.add_regulatory_event(event)
         persisted_relationships = self.list_relationships()
         explicit_relationship_keys = {
-            (rel.source_id, rel.target_id, rel.relationship_type)
-            for rel in persisted_relationships
+            (rel.source_id, rel.target_id, rel.relationship_type) for rel in persisted_relationships
         }
         for relationship in persisted_relationships:
-            expand_reverse = relationship.bidirectional and (
-                relationship.target_id,
-                relationship.source_id,
-                relationship.relationship_type,
-            ) not in explicit_relationship_keys
+            expand_reverse = (
+                relationship.bidirectional
+                and (
+                    relationship.target_id,
+                    relationship.source_id,
+                    relationship.relationship_type,
+                )
+                not in explicit_relationship_keys
+            )
             graph.add_relationship(
                 relationship.source_id,
                 relationship.target_id,
