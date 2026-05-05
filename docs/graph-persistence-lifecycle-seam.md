@@ -194,7 +194,7 @@ Future startup loading must not:
 
 - overwrite persisted graph truth;
 - regenerate sample data and immediately persist it;
-- save on read-only endpoints;
+- trigger `save_graph()` during requests to read-only endpoints;
 - persist layout or visualization state;
 - silently change reset or reinitialize semantics.
 
