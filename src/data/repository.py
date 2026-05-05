@@ -134,8 +134,11 @@ class AssetGraphRepository:
 
         Loads only durable persisted data; does not derive relationships from other
         sources or restore visualization/layout metadata. Legacy persisted rows with
-        bidirectional=True are expanded through AssetRelationshipGraph semantics for
-        compatibility; save_graph() persists the resulting graph as directed rows.
+        bidirectional=True are expanded through AssetRelationshipGraph semantics only
+        when no explicit reverse row of the same (target, source, relationship_type) is
+        also persisted; an explicit reverse row always wins and is loaded as a directed
+        edge so its strength is preserved. save_graph() persists the resulting graph
+        back as directed rows.
 
         Returns:
             AssetRelationshipGraph: The reconstructed graph containing persisted assets,
@@ -146,13 +149,23 @@ class AssetGraphRepository:
             graph.add_asset(asset)
         for event in self.list_regulatory_events():
             graph.add_regulatory_event(event)
-        for relationship in self.list_relationships():
+        persisted_relationships = self.list_relationships()
+        explicit_relationship_keys = {
+            (rel.source_id, rel.target_id, rel.relationship_type)
+            for rel in persisted_relationships
+        }
+        for relationship in persisted_relationships:
+            expand_reverse = relationship.bidirectional and (
+                relationship.target_id,
+                relationship.source_id,
+                relationship.relationship_type,
+            ) not in explicit_relationship_keys
             graph.add_relationship(
                 relationship.source_id,
                 relationship.target_id,
                 relationship.relationship_type,
                 relationship.strength,
-                bidirectional=relationship.bidirectional,
+                bidirectional=expand_reverse,
             )
         return graph
 
@@ -233,18 +246,19 @@ class AssetGraphRepository:
             execution_options={"synchronize_session": "fetch"},
         )
         self.session.flush()
-        for source_id, outgoing_relationships in relationships.items():
-            for target_id, relationship_type, strength in outgoing_relationships:
-                normalized_strength = self._validate_relationship_strength(strength)
-                self.session.add(
-                    AssetRelationshipORM(
-                        source_asset_id=source_id,
-                        target_asset_id=target_id,
-                        relationship_type=relationship_type,
-                        strength=normalized_strength,
-                        bidirectional=False,
-                    )
-                )
+        relationship_rows = [
+            AssetRelationshipORM(
+                source_asset_id=source_id,
+                target_asset_id=target_id,
+                relationship_type=relationship_type,
+                strength=self._validate_relationship_strength(strength),
+                bidirectional=False,
+            )
+            for source_id, outgoing_relationships in relationships.items()
+            for target_id, relationship_type, strength in outgoing_relationships
+        ]
+        if relationship_rows:
+            self.session.add_all(relationship_rows)
 
     def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
         """
