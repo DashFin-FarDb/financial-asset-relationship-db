@@ -160,30 +160,30 @@ this document are descriptive, not prescriptive.
 
 The implementation PR must answer these before coding:
 
-1. Which setting governs graph persistence?
+1. **Which setting governs graph persistence?**
    - `DATABASE_URL`
    - `ASSET_GRAPH_DATABASE_URL`
    - `POSTGRES_URL`
    - a new explicit setting
    - current repository/session-factory defaults
-2. What counts as an existing persisted graph?
+2. **What counts as an existing persisted graph?**
    - at least one asset row;
    - any relationship row;
    - any regulatory event row;
    - any graph-owned table row.
-3. What happens when persistence is configured but empty?
-4. What happens when persistence is configured but unreachable or the schema is missing?
-5. Should the startup path automatically call `init_db()` if persistence is enabled?
-6. How does persisted graph loading interact with:
+3. **What happens when persistence is configured but empty?**
+4. **What happens when persistence is configured but unreachable or the schema is missing?**
+5. **Should the startup path automatically call `init_db()` if persistence is enabled?**
+6. **How does persisted graph loading interact with:**
    - `GRAPH_CACHE_PATH`;
    - `USE_REAL_DATA_FETCHER`;
    - sample fallback;
    - `set_graph_factory()` tests;
    - `reset_graph()`;
    - `api.main.graph` compatibility.
-7. How do we ensure startup load never triggers destructive
-   `save_graph()` snapshot replacement?
-8. How is the database session managed during the one-off startup load?
+7. **How do we ensure startup load never triggers destructive
+   `save_graph()` snapshot replacement?**
+8. **How is the database session managed during the one-off startup load?**
    - Should startup loading create a short-lived session from the existing
      session factory?
    - Where is that session closed?
@@ -292,3 +292,64 @@ This seam note does not implement:
 3. Extend hosted readiness to prove persisted graph loading.
 4. Defer migrations until schema evolution becomes a concrete blocker.
 5. Defer layout persistence until graph-truth lifecycle behavior is stable.
+
+## Appendix: Current implementation anchors
+
+These snippets are included only as audit anchors for the next implementation
+PR. They are not a second source of truth for runtime behavior; implementation
+work must still verify the live source before changing code.
+
+### `api/app_factory.py` startup hook
+
+```python
+@asynccontextmanager
+async def lifespan(_fastapi_app: FastAPI):
+    try:
+        get_graph()
+        logger.info("Application startup complete - graph initialized")
+    except Exception:
+        logger.exception("Failed to initialize graph during startup")
+        raise
+
+    yield
+
+    logger.info("Application shutdown")
+```
+
+### `api/graph_lifecycle.py` initialization order
+
+```python
+def _initialize_graph() -> AssetRelationshipGraph:
+    if graph_state.graph_factory is not None:
+        return graph_state.graph_factory()
+
+    settings = get_settings()
+    cache_path = settings.graph_cache_path
+    use_real_data = settings.use_real_data_fetcher
+
+    if cache_path:
+        fetcher = RealDataFetcher(
+            cache_path=cache_path,
+            enable_network=use_real_data,
+        )
+        return fetcher.create_real_database()
+
+    if use_real_data:
+        real_data_cache_path = settings.real_data_cache_path
+        fetcher = RealDataFetcher(
+            cache_path=real_data_cache_path,
+            enable_network=True,
+        )
+        return fetcher.create_real_database()
+
+    return create_sample_database()
+```
+
+### Relevant settings names
+
+- `asset_graph_database_url`
+- `database_url`
+- `postgres_url`
+- `graph_cache_path`
+- `real_data_cache_path`
+- `use_real_data_fetcher`
