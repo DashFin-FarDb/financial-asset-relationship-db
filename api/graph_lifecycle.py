@@ -179,9 +179,9 @@ def _load_persisted_graph_if_available(
         if not _has_persisted_graph_rows(session):
             return None
         return AssetGraphRepository(session).load_graph()
-    except Exception as exc:
-        logger.exception("Failed to load persisted graph during startup")
-        raise RuntimeError("Failed to load persisted graph during startup") from exc
+except Exception:
+        logger.error("Failed to load persisted graph during startup (sanitized)")
+        raise RuntimeError("Failed to load persisted graph during startup")
     finally:
         if session is not None:
             session.close()
