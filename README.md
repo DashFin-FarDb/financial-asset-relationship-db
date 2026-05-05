@@ -107,4 +107,3 @@ If `/api/health` fails, fix the backend startup first. If `/api/health` works bu
 ### Demo/Internal UI: Gradio (Non-Production)
 
 The Gradio UI (`app.py`) is available for demos, internal testing, and rapid prototyping. It is **not recommended for production deployment**.
-
