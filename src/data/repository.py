@@ -196,12 +196,7 @@ class AssetGraphRepository:
                     delete(RegulatoryEventAssetORM).where(RegulatoryEventAssetORM.event_id.in_(stale_event_ids)),
                     execution_options={"synchronize_session": "fetch"},
                 )
-                self.session.execute(
-                    delete(RegulatoryEventORM).where(RegulatoryEventORM.id.in_(stale_event_ids)),
-                    execution_options={"synchronize_session": "fetch"},
-                )
-            self.session.flush()
-        self.upsert_assets(incoming_assets)
+                self.session.flush()
 
     def replace_relationships_from_graph(
         self,
