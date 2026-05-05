@@ -149,9 +149,11 @@ class AssetGraphRepository:
             graph.add_asset(asset)
         for event in self.list_regulatory_events():
             graph.add_regulatory_event(event)
-        persisted_ = self.list_()
-        explicit_relationship_keys = {(rel.source_id, rel.target_id, rel.relationship_type) for rel in persisted_}
-        for relationship in persisted_:
+        persisted_relationships = self.list_relationships()
+        explicit_relationship_keys = {
+            (rel.source_id, rel.target_id, rel.relationship_type) for rel in persisted_relationships
+        }
+        for relationship in persisted_relationships:
             expand_reverse = (
                 relationship.bidirectional
                 and (
@@ -219,7 +221,7 @@ class AssetGraphRepository:
 
         self.upsert_assets(incoming_assets)
 
-    def replace__from_graph(
+    def replace_relationships_from_graph(
         self,
         relationships: GraphRelationshipRows,
     ) -> None:
