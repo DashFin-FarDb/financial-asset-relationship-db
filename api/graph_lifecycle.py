@@ -9,6 +9,7 @@ import threading
 from collections.abc import Callable
 
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from src.config.settings import Settings, get_settings
 from src.data.database import create_engine_from_url, create_session_factory
