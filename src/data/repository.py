@@ -87,6 +87,24 @@ class _BaseAssetKwargs(TypedDict):
 
 
 GraphRelationshipRows: TypeAlias = Dict[str, List[Tuple[str, str, float]]]
+_IN_CLAUSE_CHUNK_SIZE = 400
+
+
+def _iter_id_chunks(values: Iterable[str]) -> Generator[tuple[str, ...], None, None]:
+    """
+    Yield stable-size chunks for SQL IN predicates.
+
+    The chunk size stays below common SQLite variable limits even when a query
+    uses the same chunk in more than one IN predicate.
+    """
+    batch: list[str] = []
+    for value in values:
+        batch.append(value)
+        if len(batch) == _IN_CLAUSE_CHUNK_SIZE:
+            yield tuple(batch)
+            batch = []
+    if batch:
+        yield tuple(batch)
 
 
 class AssetGraphRepository:
@@ -185,38 +203,46 @@ class AssetGraphRepository:
         stale_ids = persisted_ids - incoming_ids
 
         if stale_ids:
-            stale_event_ids = set(
-                self.session.execute(select(RegulatoryEventORM.id).where(RegulatoryEventORM.asset_id.in_(stale_ids)))
-                .scalars()
-                .all()
-            )
+            stale_event_ids: set[str] = set()
+            for stale_id_chunk in _iter_id_chunks(stale_ids):
+                stale_event_ids.update(
+                    self.session.execute(
+                        select(RegulatoryEventORM.id).where(RegulatoryEventORM.asset_id.in_(stale_id_chunk))
+                    )
+                    .scalars()
+                    .all()
+                )
 
-            self.session.execute(
-                delete(AssetRelationshipORM).where(
-                    (AssetRelationshipORM.source_asset_id.in_(stale_ids))
-                    | (AssetRelationshipORM.target_asset_id.in_(stale_ids))
-                ),
-                execution_options={"synchronize_session": "fetch"},
-            )
-            self.session.execute(
-                delete(RegulatoryEventAssetORM).where(RegulatoryEventAssetORM.asset_id.in_(stale_ids)),
-                execution_options={"synchronize_session": "fetch"},
-            )
+                self.session.execute(
+                    delete(AssetRelationshipORM).where(
+                        (AssetRelationshipORM.source_asset_id.in_(stale_id_chunk))
+                        | (AssetRelationshipORM.target_asset_id.in_(stale_id_chunk))
+                    ),
+                    execution_options={"synchronize_session": "fetch"},
+                )
+                self.session.execute(
+                    delete(RegulatoryEventAssetORM).where(RegulatoryEventAssetORM.asset_id.in_(stale_id_chunk)),
+                    execution_options={"synchronize_session": "fetch"},
+                )
 
             if stale_event_ids:
-                self.session.execute(
-                    delete(RegulatoryEventAssetORM).where(RegulatoryEventAssetORM.event_id.in_(stale_event_ids)),
-                    execution_options={"synchronize_session": "fetch"},
-                )
-                self.session.execute(
-                    delete(RegulatoryEventORM).where(RegulatoryEventORM.id.in_(stale_event_ids)),
-                    execution_options={"synchronize_session": "fetch"},
-                )
+                for stale_event_id_chunk in _iter_id_chunks(stale_event_ids):
+                    self.session.execute(
+                        delete(RegulatoryEventAssetORM).where(
+                            RegulatoryEventAssetORM.event_id.in_(stale_event_id_chunk)
+                        ),
+                        execution_options={"synchronize_session": "fetch"},
+                    )
+                    self.session.execute(
+                        delete(RegulatoryEventORM).where(RegulatoryEventORM.id.in_(stale_event_id_chunk)),
+                        execution_options={"synchronize_session": "fetch"},
+                    )
 
-            self.session.execute(
-                delete(AssetORM).where(AssetORM.id.in_(stale_ids)),
-                execution_options={"synchronize_session": "fetch"},
-            )
+            for stale_id_chunk in _iter_id_chunks(stale_ids):
+                self.session.execute(
+                    delete(AssetORM).where(AssetORM.id.in_(stale_id_chunk)),
+                    execution_options={"synchronize_session": "fetch"},
+                )
             self.session.flush()
 
         self.upsert_assets(incoming_assets)
@@ -302,6 +328,7 @@ class AssetGraphRepository:
             execution_options={"synchronize_session": "fetch"},
         )
         self.session.flush()
+        event_rows: list[RegulatoryEventORM] = []
         for event in incoming_events:
             event_orm = RegulatoryEventORM(
                 id=event.id,
@@ -313,7 +340,9 @@ class AssetGraphRepository:
             )
             for related_id in dict.fromkeys(event.related_assets):
                 event_orm.related_assets.append(RegulatoryEventAssetORM(asset_id=related_id))
-            self.session.add(event_orm)
+            event_rows.append(event_orm)
+        if event_rows:
+            self.session.add_all(event_rows)
 
     # ------------------------------------------------------------------
     # Asset helpers
@@ -356,10 +385,16 @@ class AssetGraphRepository:
             return
 
         incoming_ids = list(dict.fromkeys(asset.id for asset in incoming_assets))
-        existing_assets = {
-            orm.id: orm
-            for orm in self.session.execute(select(AssetORM).where(AssetORM.id.in_(incoming_ids))).scalars().all()
-        }
+        existing_assets: dict[str, AssetORM] = {}
+        for incoming_id_chunk in _iter_id_chunks(incoming_ids):
+            existing_assets.update(
+                {
+                    orm.id: orm
+                    for orm in self.session.execute(select(AssetORM).where(AssetORM.id.in_(incoming_id_chunk)))
+                    .scalars()
+                    .all()
+                }
+            )
 
         for asset in incoming_assets:
             orm = existing_assets.get(asset.id)
@@ -741,7 +776,7 @@ class AssetGraphRepository:
     @staticmethod
     def _to_asset_model(orm: AssetORM) -> Asset:
         """
-        Constructs a domain Asset instance (specific subclass when applicable) from an AssetORM row.
+        Construct a domain Asset instance (specific subclass when applicable) from an AssetORM row.
 
         Parameters:
             orm (AssetORM): The persisted ORM row to convert.
