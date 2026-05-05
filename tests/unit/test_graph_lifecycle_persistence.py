@@ -6,7 +6,7 @@ import importlib
 import logging
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable  # noqa: UP035  # Callable from typing for Prospector/Pylint compatibility
 
 import pytest
 from sqlalchemy import create_engine, text  # pylint: disable=import-error
