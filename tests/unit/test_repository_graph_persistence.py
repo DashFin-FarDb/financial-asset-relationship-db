@@ -12,9 +12,6 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-_sqlalchemy = pytest.importorskip("sqlalchemy")
-create_engine = _sqlalchemy.create_engine
-
 
 pytestmark = pytest.mark.unit
 
@@ -25,6 +22,10 @@ def repository_factory(tmp_path):
     db_path = tmp_path / "graph_persistence.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
+_sqlalchemy = pytest.importorskip("sqlalchemy")
+create_engine = _sqlalchemy.create_engine
+
+
     factory = create_session_factory(engine)
     sessions = []
 
