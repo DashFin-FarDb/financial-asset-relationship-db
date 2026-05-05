@@ -136,16 +136,15 @@ def _initialize_graph() -> AssetRelationshipGraph:
     use_real_data = settings.use_real_data_fetcher
 
     if cache_path:
-        return graph_lifecycle_providers.create_real_data_graph(
+        return graph_lifecycle_providers.load_graph_from_cache_path(
             cache_path,
             enable_network=use_real_data,
         )
 
     if use_real_data:
         real_data_cache_path = settings.real_data_cache_path
-        return graph_lifecycle_providers.create_real_data_graph(
+        return graph_lifecycle_providers.load_graph_from_real_data_fetcher(
             real_data_cache_path,
-            enable_network=True,
         )
 
     return graph_lifecycle_providers.create_sample_graph()

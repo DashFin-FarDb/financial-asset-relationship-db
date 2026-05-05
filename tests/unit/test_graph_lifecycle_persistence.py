@@ -229,6 +229,32 @@ def test_persistence_disabled_preserves_sample_fallback(
 
 
 @pytest.mark.parametrize(
+    "in_memory_url",
+    [
+        "sqlite:///:memory:",
+        "sqlite:///:memory:?check_same_thread=false",
+        "sqlite:///file:testmem?mode=memory",
+    ],
+)
+def test_in_memory_sqlite_url_skips_persistence_load(
+    in_memory_url: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """In-memory SQLite URLs must be skipped rather than creating a fresh empty engine."""
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", in_memory_url)
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
+
+    def fail_create_engine(_url: str) -> Any:
+        raise AssertionError("engine creation must not be attempted for in-memory URL")
+
+    monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
+
+    graph = graph_lifecycle._initialize_graph()
+
+    assert graph.assets  # falls back to sample data
+
+
+@pytest.mark.parametrize(
     ("env_name", "env_value", "provider_attr"),
     [
         ("GRAPH_CACHE_PATH", "/tmp/graph-cache.json", "load_graph_from_cache_path"),

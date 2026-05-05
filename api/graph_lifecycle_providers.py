@@ -6,6 +6,8 @@ import logging
 from dataclasses import dataclass
 
 from sqlalchemy import select
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session
 
 from src.config.settings import get_settings
@@ -56,6 +58,11 @@ def load_persisted_graph_if_available(
     """
     Attempt to load a persisted AssetRelationshipGraph from the given database URL if the URL is configured and the store contains at least one persisted asset.
 
+    In-memory SQLite URLs (``sqlite:///:memory:`` and ``?mode=memory`` variants) are
+    skipped with a warning: a brand-new engine always connects to a fresh empty
+    in-memory store and cannot hold rows persisted by a previous engine or process.
+    Configure a file-based or network database URL for startup persistence.
+
     Parameters:
         database_url (str | None): Database URL for the persisted asset graph; when None or empty (after trimming) no load is attempted.
 
@@ -69,6 +76,15 @@ def load_persisted_graph_if_available(
     if not resolved_database_url:
         return None
 
+    if _is_in_memory_sqlite_url(resolved_database_url):
+        logger.warning(
+            "ASSET_GRAPH_DATABASE_URL points to an in-memory SQLite database; "
+            "a new engine always connects to a fresh empty in-memory store and cannot "
+            "load previously persisted rows. Configure a file-based or network database "
+            "URL for startup persistence. Skipping persisted graph load."
+        )
+        return None
+
     engine = None
     session = None
     load_error: RuntimeError | None = None
@@ -80,11 +96,8 @@ def load_persisted_graph_if_available(
         if not _has_persisted_graph_rows(session):
             return None
         persisted_graph = AssetGraphRepository(session).load_graph()
-    except Exception as exc:
-        logger.error(
-            "Failed to load persisted graph during startup: %s",
-            exc.__class__.__name__,
-        )
+    except Exception:
+        logger.exception("Failed to load persisted graph during startup")
         load_error = RuntimeError("Failed to load persisted graph during startup")
     finally:
         if session is not None:
@@ -120,6 +133,50 @@ def create_real_data_graph(
     return fetcher.create_real_database()
 
 
+def load_graph_from_cache_path(
+    cache_path: str,
+    *,
+    enable_network: bool,
+) -> AssetRelationshipGraph:
+    """
+    Load an AssetRelationshipGraph via the real-data fetcher using a configured cache path.
+
+    This provider is called when ``GRAPH_CACHE_PATH`` is set. It is a distinct
+    entry point from :func:`load_graph_from_real_data_fetcher` so that each
+    startup source can be individually patched in tests.
+
+    Parameters:
+        cache_path (str): Filesystem path used for caching fetched real data.
+        enable_network (bool): Whether network access is permitted during the load.
+
+    Returns:
+        AssetRelationshipGraph: Graph constructed from the cached or fetched real data.
+    """
+    fetcher = RealDataFetcher(cache_path=cache_path, enable_network=enable_network)
+    return fetcher.create_real_database()
+
+
+def load_graph_from_real_data_fetcher(
+    cache_path: str | None,
+) -> AssetRelationshipGraph:
+    """
+    Load an AssetRelationshipGraph via the real-data fetcher with network access enabled.
+
+    This provider is called when ``USE_REAL_DATA_FETCHER`` is set but
+    ``GRAPH_CACHE_PATH`` is not. It is a distinct entry point from
+    :func:`load_graph_from_cache_path` so that each startup source can be
+    individually patched in tests.
+
+    Parameters:
+        cache_path (str | None): Optional filesystem path for caching fetched real data.
+
+    Returns:
+        AssetRelationshipGraph: Graph constructed from the fetched real data.
+    """
+    fetcher = RealDataFetcher(cache_path=cache_path, enable_network=True)
+    return fetcher.create_real_database()
+
+
 def create_sample_graph() -> AssetRelationshipGraph:
     """
     Create an asset relationship graph populated with the default sample dataset.
@@ -138,3 +195,26 @@ def _has_persisted_graph_rows(session: Session) -> bool:
         True if the store has at least one asset row, False otherwise.
     """
     return session.execute(select(AssetORM.id).limit(1)).scalar_one_or_none() is not None
+
+
+def _is_in_memory_sqlite_url(url: str) -> bool:
+    """
+    Return True when *url* refers to an in-memory SQLite database.
+
+    In-memory SQLite databases (``sqlite:///:memory:`` and the
+    ``?mode=memory`` URI variant) are transient: each new SQLAlchemy engine
+    created from such a URL connects to a completely fresh, empty database.
+    Startup persistence loading must be skipped for these URLs because there
+    are no previously persisted rows to load.
+
+    Returns False for any non-SQLite URL or any URL that cannot be parsed.
+    """
+    try:
+        parsed = make_url(url)
+    except ArgumentError:
+        return False
+    if parsed.get_backend_name() != "sqlite":
+        return False
+    database = parsed.database or ""
+    query = parsed.query or {}
+    return database == ":memory:" or query.get("mode") == "memory"
