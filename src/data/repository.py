@@ -172,14 +172,22 @@ class AssetGraphRepository:
         """
         incoming_assets = list(assets)
         incoming_ids = {asset.id for asset in incoming_assets}
-        persisted_ids = set(self.session.execute(select(AssetORM.id)).scalars().all())
+        persisted_ids = set(
+            self.session.execute(select(AssetORM.id)).scalars().all()
+        )
         stale_ids = persisted_ids - incoming_ids
+
         if stale_ids:
             stale_event_ids = set(
-                self.session.execute(select(RegulatoryEventORM.id).where(RegulatoryEventORM.asset_id.in_(stale_ids)))
+                self.session.execute(
+                    select(RegulatoryEventORM.id).where(
+                        RegulatoryEventORM.asset_id.in_(stale_ids)
+                    )
+                )
                 .scalars()
                 .all()
             )
+
             self.session.execute(
                 delete(AssetRelationshipORM).where(
                     (AssetRelationshipORM.source_asset_id.in_(stale_ids))
@@ -188,15 +196,33 @@ class AssetGraphRepository:
                 execution_options={"synchronize_session": "fetch"},
             )
             self.session.execute(
-                delete(RegulatoryEventAssetORM).where(RegulatoryEventAssetORM.asset_id.in_(stale_ids)),
+                delete(RegulatoryEventAssetORM).where(
+                    RegulatoryEventAssetORM.asset_id.in_(stale_ids)
+                ),
                 execution_options={"synchronize_session": "fetch"},
             )
+
             if stale_event_ids:
                 self.session.execute(
-                    delete(RegulatoryEventAssetORM).where(RegulatoryEventAssetORM.event_id.in_(stale_event_ids)),
+                    delete(RegulatoryEventAssetORM).where(
+                        RegulatoryEventAssetORM.event_id.in_(stale_event_ids)
+                    ),
                     execution_options={"synchronize_session": "fetch"},
                 )
-                self.session.flush()
+                self.session.execute(
+                    delete(RegulatoryEventORM).where(
+                        RegulatoryEventORM.id.in_(stale_event_ids)
+                    ),
+                    execution_options={"synchronize_session": "fetch"},
+                )
+
+            self.session.execute(
+                delete(AssetORM).where(AssetORM.id.in_(stale_ids)),
+                execution_options={"synchronize_session": "fetch"},
+            )
+            self.session.flush()
+
+        self.upsert_assets(incoming_assets)
 
     def replace_relationships_from_graph(
         self,
@@ -323,7 +349,11 @@ class AssetGraphRepository:
         incoming_ids = list(dict.fromkeys(asset.id for asset in incoming_assets))
         existing_assets = {
             orm.id: orm
-            for orm in self.session.execute(select(AssetORM).where(AssetORM.id.in_(incoming_ids))).scalars().all()
+            for orm in self.session.execute(
+                select(AssetORM).where(AssetORM.id.in_(incoming_ids))
+            )
+            .scalars()
+            .all()
         }
 
         for asset in incoming_assets:
