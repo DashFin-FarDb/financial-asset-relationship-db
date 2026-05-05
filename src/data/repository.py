@@ -5,11 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, TypedDict
+from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session, selectinload
 
+from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     Asset,
     AssetClass,
@@ -85,11 +86,263 @@ class _BaseAssetKwargs(TypedDict):
     currency: str
 
 
+GraphRelationshipRows: TypeAlias = Dict[str, List[Tuple[str, str, float]]]
+_IN_CLAUSE_CHUNK_SIZE = 400
+
+
+def _iter_id_chunks(values: Iterable[str]) -> Generator[tuple[str, ...], None, None]:
+    """
+    Yield stable-size chunks for SQL IN predicates.
+
+    The chunk size stays below common SQLite variable limits even when a query
+    uses the same chunk in more than one IN predicate.
+    """
+    batch: list[str] = []
+    for value in values:
+        batch.append(value)
+        if len(batch) == _IN_CLAUSE_CHUNK_SIZE:
+            yield tuple(batch)
+            batch = []
+    if batch:
+        yield tuple(batch)
+
+
 class AssetGraphRepository:
     """Data access layer for the asset relationship graph."""
 
     def __init__(self, session: Session):
+        """
+        Initialize the repository with a SQLAlchemy session for database operations.
+
+        Parameters:
+            session (Session): SQLAlchemy Session used for all database access by this repository.
+        """
         self.session = session
+
+    # ------------------------------------------------------------------
+    # Graph persistence helpers
+    # ------------------------------------------------------------------
+    def save_graph(self, graph: AssetRelationshipGraph) -> None:
+        """
+        Persist an AssetRelationshipGraph snapshot to the database.
+
+        Stores the graph's assets, directed relationships, and regulatory events using
+        snapshot semantics. Layout and visualization metadata are intentionally not
+        persisted.
+
+        Args:
+            graph: In-memory graph whose assets, relationships, and regulatory events
+                replace the persisted state.
+
+        Returns:
+            None.
+
+        Raises:
+            SQLAlchemyError: If the active database session fails while staging
+                replacement rows.
+            ValueError: If a relationship strength is invalid.
+        """
+        self.replace_assets(graph.assets.values())
+        self.replace_relationships_from_graph(graph.relationships)
+        self.replace_regulatory_events(graph.regulatory_events)
+
+    def load_graph(self) -> AssetRelationshipGraph:
+        """
+        Reconstruct an in-memory asset relationship graph from persisted rows.
+
+        Loads only durable persisted data; does not derive relationships from other
+        sources or restore visualization/layout metadata. Legacy persisted rows with
+        bidirectional=True are expanded through AssetRelationshipGraph semantics only
+        when no explicit reverse row of the same (target, source, relationship_type) is
+        also persisted; an explicit reverse row always wins and is loaded as a directed
+        edge so its strength is preserved. save_graph() persists the resulting graph
+        back as directed rows.
+
+        Returns:
+            AssetRelationshipGraph: The reconstructed graph containing persisted assets,
+            relationship rows, and regulatory events.
+        """
+        graph = AssetRelationshipGraph()
+        for asset in self.list_assets():
+            graph.add_asset(asset)
+        for event in self.list_regulatory_events():
+            graph.add_regulatory_event(event)
+        persisted_relationships = self.list_relationships()
+        explicit_relationship_keys = {
+            (rel.source_id, rel.target_id, rel.relationship_type) for rel in persisted_relationships
+        }
+        for relationship in persisted_relationships:
+            expand_reverse = (
+                relationship.bidirectional
+                and (
+                    relationship.target_id,
+                    relationship.source_id,
+                    relationship.relationship_type,
+                )
+                not in explicit_relationship_keys
+            )
+            graph.add_relationship(
+                relationship.source_id,
+                relationship.target_id,
+                relationship.relationship_type,
+                relationship.strength,
+                bidirectional=expand_reverse,
+            )
+        return graph
+
+    def replace_assets(self, assets: Iterable[Asset]) -> None:
+        """
+        Replace persisted assets with the supplied graph asset collection.
+
+        Rows absent from the incoming graph are deleted so save/load behaves as
+        a graph snapshot operation rather than a partial upsert.
+        """
+        incoming_assets = list(assets)
+        incoming_ids = {asset.id for asset in incoming_assets}
+        persisted_ids = set(self.session.execute(select(AssetORM.id)).scalars().all())
+        stale_ids = persisted_ids - incoming_ids
+
+        if stale_ids:
+            stale_event_ids: set[str] = set()
+            for stale_id_chunk in _iter_id_chunks(stale_ids):
+                stale_event_ids.update(
+                    self.session.execute(
+                        select(RegulatoryEventORM.id).where(RegulatoryEventORM.asset_id.in_(stale_id_chunk))
+                    )
+                    .scalars()
+                    .all()
+                )
+
+                self.session.execute(
+                    delete(AssetRelationshipORM).where(
+                        (AssetRelationshipORM.source_asset_id.in_(stale_id_chunk))
+                        | (AssetRelationshipORM.target_asset_id.in_(stale_id_chunk))
+                    ),
+                    execution_options={"synchronize_session": "fetch"},
+                )
+                self.session.execute(
+                    delete(RegulatoryEventAssetORM).where(RegulatoryEventAssetORM.asset_id.in_(stale_id_chunk)),
+                    execution_options={"synchronize_session": "fetch"},
+                )
+
+            if stale_event_ids:
+                for stale_event_id_chunk in _iter_id_chunks(stale_event_ids):
+                    self.session.execute(
+                        delete(RegulatoryEventAssetORM).where(
+                            RegulatoryEventAssetORM.event_id.in_(stale_event_id_chunk)
+                        ),
+                        execution_options={"synchronize_session": "fetch"},
+                    )
+                    self.session.execute(
+                        delete(RegulatoryEventORM).where(RegulatoryEventORM.id.in_(stale_event_id_chunk)),
+                        execution_options={"synchronize_session": "fetch"},
+                    )
+
+            for stale_id_chunk in _iter_id_chunks(stale_ids):
+                self.session.execute(
+                    delete(AssetORM).where(AssetORM.id.in_(stale_id_chunk)),
+                    execution_options={"synchronize_session": "fetch"},
+                )
+            self.session.flush()
+
+        self.upsert_assets(incoming_assets)
+
+    def replace_relationships_from_graph(
+        self,
+        relationships: GraphRelationshipRows,
+    ) -> None:
+        """
+        Replace all persisted relationships with directed adjacency data.
+
+        Deletes existing relationship rows and inserts one new row for each outgoing
+        edge in `relationships`. Each outgoing tuple is interpreted as
+        `(target_id, relationship_type, strength)`. Inserted rows are stored as directed
+        edges with `bidirectional=False`.
+
+        Args:
+            relationships: Mapping from source asset ID to outgoing edge tuples.
+
+        Returns:
+            None.
+
+        Raises:
+            SQLAlchemyError: If the active database session fails while deleting or
+                staging relationship rows.
+            ValueError: If any relationship strength is invalid.
+        """
+        self.session.execute(
+            delete(AssetRelationshipORM),
+            execution_options={"synchronize_session": "fetch"},
+        )
+        self.session.flush()
+        relationship_rows = [
+            AssetRelationshipORM(
+                source_asset_id=source_id,
+                target_asset_id=target_id,
+                relationship_type=relationship_type,
+                strength=self._validate_relationship_strength(strength),
+                bidirectional=False,
+            )
+            for source_id, outgoing_relationships in relationships.items()
+            for target_id, relationship_type, strength in outgoing_relationships
+        ]
+        if relationship_rows:
+            self.session.add_all(relationship_rows)
+
+    def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
+        """
+        Replace all persisted regulatory events with the supplied collection.
+
+        Deletes existing regulatory events and event-asset link rows, flushes the
+        deletion, then inserts ORM rows for each provided event and related asset
+        association. Event IDs are used as the idempotency key for this compatibility
+        mode.
+
+        Args:
+            events: Regulatory events to persist as the complete event set.
+
+        Returns:
+            None.
+
+        Raises:
+            SQLAlchemyError: If the active database session fails while deleting or
+                staging event rows.
+        """
+        incoming_events = list(events)
+        seen_event_ids: set[str] = set()
+        duplicate_event_ids: set[str] = set()
+        for event in incoming_events:
+            if event.id in seen_event_ids:
+                duplicate_event_ids.add(event.id)
+            seen_event_ids.add(event.id)
+        if duplicate_event_ids:
+            duplicate_ids = ", ".join(sorted(duplicate_event_ids))
+            raise ValueError(f"replace_regulatory_events() received duplicate event IDs: {duplicate_ids}")
+
+        self.session.execute(
+            delete(RegulatoryEventAssetORM),
+            execution_options={"synchronize_session": "fetch"},
+        )
+        self.session.execute(
+            delete(RegulatoryEventORM),
+            execution_options={"synchronize_session": "fetch"},
+        )
+        self.session.flush()
+        event_rows: list[RegulatoryEventORM] = []
+        for event in incoming_events:
+            event_orm = RegulatoryEventORM(
+                id=event.id,
+                asset_id=event.asset_id,
+                event_type=event.event_type.value,
+                date=event.date,
+                description=event.description,
+                impact_score=event.impact_score,
+            )
+            for related_id in dict.fromkeys(event.related_assets):
+                event_orm.related_assets.append(RegulatoryEventAssetORM(asset_id=related_id))
+            event_rows.append(event_orm)
+        if event_rows:
+            self.session.add_all(event_rows)
 
     # ------------------------------------------------------------------
     # Asset helpers
@@ -98,16 +351,58 @@ class AssetGraphRepository:
         """
         Create or update the persistent record for a domain Asset.
 
-        Maps fields from the given domain `Asset` onto an `AssetORM` (creating one if needed) and stages the ORM instance on the repository session for persistence.
+        Maps fields from the given domain `Asset` onto an `AssetORM`, creating
+        one if needed, and stages the ORM instance on the repository session.
 
-        Parameters:
-            asset (Asset): Domain asset to persist or update.
+        Args:
+            asset: Domain asset to persist or update.
+
+        Returns:
+            None.
         """
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)
         self._update_asset_orm(existing, asset)
         self.session.add(existing)
+
+    def upsert_assets(self, assets: Iterable[Asset]) -> None:
+        """
+        Create or update multiple assets in a single repository session.
+
+        Args:
+            assets: Domain assets to create or update.
+
+        Returns:
+            None.
+
+        Raises:
+            SQLAlchemyError: If the active database session fails while loading or
+                staging asset rows.
+        """
+        incoming_assets = list(assets)
+        if not incoming_assets:
+            return
+
+        incoming_ids = list(dict.fromkeys(asset.id for asset in incoming_assets))
+        existing_assets: dict[str, AssetORM] = {}
+        for incoming_id_chunk in _iter_id_chunks(incoming_ids):
+            existing_assets.update(
+                {
+                    orm.id: orm
+                    for orm in self.session.execute(select(AssetORM).where(AssetORM.id.in_(incoming_id_chunk)))
+                    .scalars()
+                    .all()
+                }
+            )
+
+        for asset in incoming_assets:
+            orm = existing_assets.get(asset.id)
+            if orm is None:
+                orm = AssetORM(id=asset.id)
+                self.session.add(orm)
+                existing_assets[asset.id] = orm
+            self._update_asset_orm(orm, asset)
 
     def list_assets(self) -> list[Asset]:
         """
@@ -163,13 +458,16 @@ class AssetGraphRepository:
         """
         Create or update an asset relationship and stage it on the repository session.
 
-        Accepts either a single _RelationshipUpsertSpec or explicit fields (source_id, target_id, rel_type, strength[, bidirectional=False]).
-        Strength must be a numeric value between -1.0 and 1.0 inclusive; boolean values are rejected.
+        Accepts either a single _RelationshipUpsertSpec or explicit fields
+        (source_id, target_id, rel_type, strength[, bidirectional=False]).
+        Strength must be a numeric value between -1.0 and 1.0 inclusive; boolean
+        values are rejected.
 
         Parameters:
             *args: Either a single `_RelationshipUpsertSpec` or positional fields:
                 (source_id, target_id, rel_type, strength[, bidirectional]).
-            **kwargs: When not passing a `_RelationshipUpsertSpec`, may include `bidirectional` as a keyword.
+            **kwargs: When not passing a `_RelationshipUpsertSpec`, may include
+                `bidirectional` as a keyword.
         """
         relationship_spec = self._build_relationship_upsert_spec(
             *args,
@@ -309,9 +607,21 @@ class AssetGraphRepository:
         List all asset relationships stored in the repository.
 
         Returns:
-            List[RelationshipRecord]: A list of RelationshipRecord objects, each containing source_id, target_id, relationship_type, strength (float), and bidirectional (bool).
+            List[RelationshipRecord]: A list of RelationshipRecord objects, each
+                containing source_id, target_id, relationship_type, strength
+                (float), and bidirectional (bool).
         """
-        result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
+        result = (
+            self.session.execute(
+                select(AssetRelationshipORM).order_by(
+                    AssetRelationshipORM.source_asset_id,
+                    AssetRelationshipORM.target_asset_id,
+                    AssetRelationshipORM.relationship_type,
+                )
+            )
+            .scalars()
+            .all()
+        )
         return [
             RelationshipRecord(
                 source_id=rel.source_asset_id,
@@ -333,7 +643,8 @@ class AssetGraphRepository:
         Return the relationship between two assets for the given relationship type.
 
         Returns:
-            `RelationshipRecord` if a matching relationship exists (with `strength` converted to a `float`), `None` otherwise.
+            `RelationshipRecord` if a matching relationship exists
+            (with `strength` converted to a `float`), `None` otherwise.
         """
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
@@ -382,18 +693,43 @@ class AssetGraphRepository:
         existing.description = event.description
         existing.impact_score = event.impact_score
         existing.related_assets.clear()
-        for related_id in event.related_assets:
+        for related_id in dict.fromkeys(event.related_assets):
             existing.related_assets.append(RegulatoryEventAssetORM(asset_id=related_id))
 
         self.session.add(existing)
 
     def list_regulatory_events(self) -> list[RegulatoryEvent]:
-        """Return all regulatory events."""
-        result = self.session.execute(select(RegulatoryEventORM)).scalars().all()
+        """
+        Retrieve all persisted regulatory events ordered by date then id.
+
+        Each returned event includes its associated related_assets (eagerly loaded).
+
+        Returns:
+            events (list[RegulatoryEvent]): RegulatoryEvent models ordered by `date`,
+            then `id`, with `related_assets` populated.
+        """
+        result = (
+            self.session.execute(
+                select(RegulatoryEventORM)
+                .options(selectinload(RegulatoryEventORM.related_assets))
+                .order_by(
+                    RegulatoryEventORM.date,
+                    RegulatoryEventORM.id,
+                )
+            )
+            .scalars()
+            .all()
+        )
         return [self._to_regulatory_event_model(record) for record in result]
 
     def delete_regulatory_event(self, event_id: str) -> None:
-        """Delete a regulatory event."""
+        """
+        Delete the persisted regulatory event with the given id.
+
+        Parameters:
+            event_id (str): Primary key of the regulatory event to delete.
+            If no matching record exists, no action is taken.
+        """
         record = self.session.get(RegulatoryEventORM, event_id)
         if record is not None:
             self.session.delete(record)
@@ -440,13 +776,14 @@ class AssetGraphRepository:
     @staticmethod
     def _to_asset_model(orm: AssetORM) -> Asset:
         """
-        Constructs a domain Asset instance (specific subclass when applicable) from an AssetORM row.
+        Construct a domain Asset instance (specific subclass when applicable) from an AssetORM row.
 
         Parameters:
             orm (AssetORM): The persisted ORM row to convert.
 
         Returns:
-            Asset: A domain Asset. Returns an Equity, Bond, Commodity, or Currency instance when `orm.asset_class` indicates that class; otherwise returns a generic `Asset`.
+            Asset: A domain Asset. Returns an Equity, Bond, Commodity, or Currency instance when
+            `orm.asset_class` indicates that class; otherwise returns a generic `Asset`.
         """
         asset_class = AssetClass(orm.asset_class)
         base_kwargs: _BaseAssetKwargs = {
@@ -504,7 +841,7 @@ class AssetGraphRepository:
         Returns:
             RegulatoryEvent: Domain model built from the ORM row.
         """
-        related_assets = [assoc.asset_id for assoc in orm.related_assets]
+        related_assets = sorted(assoc.asset_id for assoc in orm.related_assets)
         return RegulatoryEvent(
             id=orm.id,
             asset_id=orm.asset_id,
