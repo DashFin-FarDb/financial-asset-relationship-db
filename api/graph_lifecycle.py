@@ -178,22 +178,31 @@ def _load_persisted_graph_if_available(
 
     engine = None
     session = None
+    load_error: RuntimeError | None = None
+    persisted_graph: AssetRelationshipGraph | None = None
     try:
         engine = create_engine_from_url(database_url)
         session_factory = create_session_factory(engine)
         session = session_factory()
         if not _has_persisted_graph_rows(session):
             return None
-        return AssetGraphRepository(session).load_graph()
-
-    except Exception:
-        logger.error("Failed to load persisted graph during startup (sanitized)")
-        raise RuntimeError("Failed to load persisted graph during startup")
+        persisted_graph = AssetGraphRepository(session).load_graph()
+    except Exception as exc:
+        logger.error(
+            "Failed to load persisted graph during startup: %s",
+            exc.__class__.__name__,
+        )
+        load_error = RuntimeError("Failed to load persisted graph during startup")
     finally:
         if session is not None:
             session.close()
         if engine is not None:
             engine.dispose()
+
+    if load_error is not None:
+        raise load_error
+
+    return persisted_graph
 
 
 def _has_persisted_graph_rows(session: Session) -> bool:

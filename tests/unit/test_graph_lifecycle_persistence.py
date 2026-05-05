@@ -282,6 +282,7 @@ def test_invalid_configured_database_url_fails_without_leaking_url(
     with pytest.raises(RuntimeError) as exc_info:
         graph_lifecycle._initialize_graph()
 
+    assert exc_info.value.__context__ is None
     message = str(exc_info.value)
     assert "Failed to load persisted graph during startup" in message
     assert "secret" not in message
