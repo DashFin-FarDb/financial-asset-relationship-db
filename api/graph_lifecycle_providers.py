@@ -30,7 +30,12 @@ class GraphLifecycleSettings:
 
 
 def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
-    """Return settings required by graph lifecycle initialization."""
+    """
+    Constructs a GraphLifecycleSettings instance populated from the application's settings.
+    
+    Returns:
+        GraphLifecycleSettings: Configuration containing `asset_graph_database_url`, `graph_cache_path`, `real_data_cache_path`, and `use_real_data_fetcher` taken from the global application settings.
+    """
     settings = get_settings()
     return GraphLifecycleSettings(
         asset_graph_database_url=settings.asset_graph_database_url,
@@ -49,12 +54,16 @@ def load_persisted_graph_if_available(
     database_url: str | None,
 ) -> AssetRelationshipGraph | None:
     """
-    Load a persisted graph when graph persistence is explicitly configured.
-
-    Returns ``None`` only when graph persistence is not configured or when the
-    configured store is reachable and schema-ready but has no persisted asset
-    rows. Configured load failures are raised so startup does not silently fall
-    back to sample or cache data.
+    Attempt to load a persisted AssetRelationshipGraph from the given database URL if the URL is configured and the store contains at least one persisted asset.
+    
+    Parameters:
+        database_url (str | None): Database URL for the persisted asset graph; when None or empty (after trimming) no load is attempted.
+    
+    Returns:
+        AssetRelationshipGraph | None: The loaded persisted graph if the configured store is reachable and contains persisted asset rows, otherwise `None`.
+    
+    Raises:
+        RuntimeError: If a configured load is attempted but fails (errors during engine/session creation, row-check, or graph load).
     """
     resolved_database_url = (database_url or "").strip()
     if not resolved_database_url:
@@ -94,7 +103,16 @@ def create_real_data_graph(
     *,
     enable_network: bool,
 ) -> AssetRelationshipGraph:
-    """Create a graph through the configured real-data fetcher."""
+    """
+    Create an AssetRelationshipGraph using the real-data fetcher.
+    
+    Parameters:
+    	cache_path (str | None): Optional filesystem path for caching fetched real data.
+    	enable_network (bool): Whether the fetcher is allowed to access the network.
+    
+    Returns:
+    	AssetRelationshipGraph: Graph constructed from the fetched real data.
+    """
     fetcher = RealDataFetcher(
         cache_path=cache_path,
         enable_network=enable_network,
@@ -103,10 +121,20 @@ def create_real_data_graph(
 
 
 def create_sample_graph() -> AssetRelationshipGraph:
-    """Create the default sample graph."""
+    """
+    Create an asset relationship graph populated with the default sample dataset.
+    
+    Returns:
+        AssetRelationshipGraph: A graph populated with the module's default sample data.
+    """
     return create_sample_database()
 
 
 def _has_persisted_graph_rows(session: Session) -> bool:
-    """Return whether the asset graph store contains at least one asset row."""
+    """
+    Determine whether the asset graph store contains at least one persisted asset row.
+    
+    Returns:
+        True if the store has at least one asset row, False otherwise.
+    """
     return session.execute(select(AssetORM.id).limit(1)).scalar_one_or_none() is not None

@@ -53,7 +53,17 @@ def _equity(asset_id: str, symbol: str) -> Equity:
 
 
 def _event(event_id: str, asset_id: str, related_assets: list[str] | None = None) -> RegulatoryEvent:
-    """Build a regulatory event for lifecycle persistence tests."""
+    """
+    Constructs a RegulatoryEvent with sensible default fields used by persistence tests.
+    
+    Parameters:
+        event_id (str): Unique identifier for the event.
+        asset_id (str): ID of the asset the event is associated with.
+        related_assets (list[str] | None): Optional list of related asset IDs; defaults to an empty list when None.
+    
+    Returns:
+        RegulatoryEvent: A RegulatoryEvent populated with the provided IDs, a fixed SEC filing type and date, a short description, and an impact score.
+    """
     return RegulatoryEvent(
         id=event_id,
         asset_id=asset_id,
@@ -71,7 +81,15 @@ def _relationship_strength(
     target_id: str,
     relationship_type: str,
 ) -> float:
-    """Return the strength for one graph relationship."""
+    """
+    Retrieve the stored strength of the relationship from source_id to target_id for the given relationship_type.
+    
+    Returns:
+        float: The relationship strength.
+    
+    Raises:
+        AssertionError: If no matching relationship exists in the graph.
+    """
     for target, rel_type, strength in graph.relationships.get(source_id, []):
         if target == target_id and rel_type == relationship_type:
             return strength
@@ -79,12 +97,26 @@ def _relationship_strength(
 
 
 def _sqlite_url(tmp_path: Path, name: str = "asset_graph.db") -> str:
-    """Return a temporary file-backed SQLite URL."""
+    """
+    Build a file-backed SQLite connection URL located under the given directory.
+    
+    Parameters:
+        tmp_path (Path): Directory in which to place the SQLite database file.
+        name (str): Filename for the SQLite database (defaults to "asset_graph.db").
+    
+    Returns:
+        sqlite_url (str): A SQLite connection URL pointing to the file at tmp_path / name.
+    """
     return f"sqlite:///{tmp_path / name}"
 
 
 def _init_empty_db(database_url: str) -> None:
-    """Create an empty schema-ready graph database."""
+    """
+    Initialize the database schema at the given database URL.
+    
+    Parameters:
+        database_url (str): SQLAlchemy connection URL for the target database; the function will create the necessary tables/schema at this location.
+    """
     engine = create_engine(database_url)
     try:
         init_db(engine)
@@ -93,7 +125,13 @@ def _init_empty_db(database_url: str) -> None:
 
 
 def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
-    """Persist a graph snapshot to a temporary graph database."""
+    """
+    Persist a graph snapshot into the database at the given SQLAlchemy URL.
+    
+    Parameters:
+        database_url (str): SQLAlchemy connection URL for the target database.
+        graph (AssetRelationshipGraph): AssetRelationshipGraph instance to persist.
+    """
     engine = create_engine(database_url)
     init_db(engine)
     session = create_session_factory(engine)()
@@ -106,14 +144,24 @@ def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
 
 
 def _asset_only_graph() -> AssetRelationshipGraph:
-    """Build a graph with one persisted asset and no relationships or events."""
+    """
+    Builds an AssetRelationshipGraph containing a single equity asset and no relationships or events.
+    
+    Returns:
+        AssetRelationshipGraph: Graph containing one asset with id "ASSET_ONLY" and symbol "ONLY".
+    """
     graph = AssetRelationshipGraph()
     graph.add_asset(_equity("ASSET_ONLY", "ONLY"))
     return graph
 
 
 def _full_graph() -> AssetRelationshipGraph:
-    """Build a graph with assets, directed relationships, and an event."""
+    """
+    Create an AssetRelationshipGraph containing three equities, two directed relationships, and one regulatory event.
+    
+    Returns:
+        graph (AssetRelationshipGraph): Graph with assets "ASSET_A", "ASSET_B", and "ASSET_C"; relationships "ASSET_A" -> "ASSET_B" with `directed_alpha` 0.4 and "ASSET_B" -> "ASSET_A" with `directed_alpha` 0.9; and a regulatory event "EVENT_A" attached to "ASSET_A" referencing "ASSET_B" and "ASSET_C".
+    """
     graph = AssetRelationshipGraph()
     for asset in (
         _equity("ASSET_A", "A"),
@@ -137,6 +185,12 @@ def test_factory_precedence_skips_persistence_load(
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
 
     def fail_create_engine(_url: str) -> Any:
+        """
+        Always raise an AssertionError to signal that engine creation must not be attempted.
+        
+        Raises:
+            AssertionError: Always raised with the message "persistence load should not be attempted".
+        """
         raise AssertionError("persistence load should not be attempted")
 
     factory_graph = AssetRelationshipGraph()
@@ -159,6 +213,12 @@ def test_persistence_disabled_preserves_sample_fallback(
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_create_engine(_url: str) -> Any:
+        """
+        Always raise an AssertionError to signal that engine creation must not be attempted.
+        
+        Raises:
+            AssertionError: Always raised with the message "persistence load should not be attempted".
+        """
         raise AssertionError("persistence load should not be attempted")
 
     monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
@@ -179,6 +239,11 @@ def test_empty_configured_db_falls_back_without_saving(
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
+        """
+        Raise an AssertionError to fail the test if an attempt is made to save the graph during startup.
+        
+        This helper always raises AssertionError("startup load must not save graph data") to indicate that saving persisted graph data during initialization is unexpected.
+        """
         raise AssertionError("startup load must not save graph data")
 
     monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
@@ -327,9 +392,24 @@ def test_session_closes_on_success_empty_and_failure(
     real_create_session_factory = graph_lifecycle_providers.create_session_factory
 
     def tracking_session_factory(engine: Any) -> Any:
+        """
+        Create a session factory whose sessions are wrapped with ClosingSessionProxy.
+        
+        Parameters:
+            engine: The database engine used to build the underlying session factory.
+        
+        Returns:
+            A callable that, when invoked, returns a session proxy delegating to a real session created from `engine`, with `close()` proxied for tracking.
+        """
         real_factory = real_create_session_factory(engine)
 
         def make_session() -> Any:
+            """
+            Create a new database session wrapped by a ClosingSessionProxy.
+            
+            Returns:
+                ClosingSessionProxy: A proxy around the newly created session that delegates session operations to the real session and exposes a close() implementation suitable for tracking/overriding close calls.
+            """
             session = real_factory()
             return ClosingSessionProxy(session)
 
@@ -339,12 +419,36 @@ def test_session_closes_on_success_empty_and_failure(
         """Proxy a SQLAlchemy session and count close calls."""
 
         def __init__(self, session: Any) -> None:
+            """
+            Initialize the repository with a database session.
+            
+            Parameters:
+                session (Any): A database session instance used for persistence operations (short-lived SQLAlchemy
+                    session or equivalent). The repository retains this session for its lifetime.
+            """
             self._session = session
 
         def __getattr__(self, name: str) -> Any:
+            """
+            Delegate attribute access to the proxied session.
+            
+            Forward attribute lookups to self._session so that attributes and methods on the underlying session
+            are accessible through this proxy.
+            
+            Parameters:
+                name (str): Name of the attribute being accessed.
+            
+            Returns:
+                Any: The attribute value from the underlying session.
+            """
             return getattr(self._session, name)
 
         def close(self) -> None:
+            """
+            Increment the external close counter and close the proxied session.
+            
+            Increments the nonlocal `close_calls` counter used by tests and delegates to the wrapped session's `close()` method.
+            """
             nonlocal close_calls
             close_calls += 1
             self._session.close()
@@ -379,6 +483,15 @@ def test_reset_reloads_persisted_graph_without_saving(
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
     def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
+        """
+        Fail the test if a graph save is attempted during reset or startup load.
+        
+        This helper unconditionally raises an AssertionError to ensure code paths invoked
+        during reset/startup do not attempt to persist graph data.
+        
+        Raises:
+            AssertionError: with message "reset/startup load must not save graph data".
+        """
         raise AssertionError("reset/startup load must not save graph data")
 
     monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
