@@ -183,6 +183,12 @@ The implementation PR must answer these before coding:
    - `api.main.graph` compatibility.
 7. How do we ensure startup load never triggers destructive
    `save_graph()` snapshot replacement?
+8. How is the database session managed during the one-off startup load?
+   - Should startup loading create a short-lived session from the existing
+     session factory?
+   - Where is that session closed?
+   - How are startup-load session failures reported without leaking database
+     connection details?
 
 ## Save behavior boundary
 
@@ -257,6 +263,12 @@ The startup-load implementation PR should include tests for:
 ### Failure handling
 
 - Configured unreachable database behavior is explicit and tested.
+
+### Startup session management
+
+- Startup graph loading uses a bounded, short-lived database session.
+- The session is closed after load success or failure.
+- Session creation/load failures follow the selected startup failure policy.
 
 ## Non-goals
 
