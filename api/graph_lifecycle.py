@@ -8,8 +8,13 @@ import logging
 import threading
 from collections.abc import Callable
 
-from src.config.settings import get_settings
+from sqlalchemy import select
+
+from src.config.settings import Settings, get_settings
+from src.data.database import create_engine_from_url, create_session_factory
+from src.data.db_models import AssetORM
 from src.data.real_data_fetcher import RealDataFetcher
+from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -124,6 +129,10 @@ def _initialize_graph() -> AssetRelationshipGraph:
         return graph_state.graph_factory()
 
     settings = get_settings()
+    persisted_graph = _load_persisted_graph_if_available(settings)
+    if persisted_graph is not None:
+        return persisted_graph
+
     cache_path = settings.graph_cache_path
     use_real_data = settings.use_real_data_fetcher
 
@@ -143,3 +152,42 @@ def _initialize_graph() -> AssetRelationshipGraph:
         return fetcher.create_real_database()
 
     return create_sample_database()
+
+
+def _load_persisted_graph_if_available(
+    settings: Settings,
+) -> AssetRelationshipGraph | None:
+    """
+    Load a persisted graph when graph persistence is explicitly configured.
+
+    Returns ``None`` only when graph persistence is not configured or when the
+    configured store is reachable and schema-ready but has no persisted asset
+    rows. Configured load failures are raised so startup does not silently fall
+    back to sample or cache data.
+    """
+    database_url = (settings.asset_graph_database_url or "").strip()
+    if not database_url:
+        return None
+
+    engine = None
+    session = None
+    try:
+        engine = create_engine_from_url(database_url)
+        session_factory = create_session_factory(engine)
+        session = session_factory()
+        if not _has_persisted_graph_rows(session):
+            return None
+        return AssetGraphRepository(session).load_graph()
+    except Exception as exc:
+        logger.exception("Failed to load persisted graph during startup")
+        raise RuntimeError("Failed to load persisted graph during startup") from exc
+    finally:
+        if session is not None:
+            session.close()
+        if engine is not None:
+            engine.dispose()
+
+
+def _has_persisted_graph_rows(session) -> bool:
+    """Return whether the asset graph store contains at least one asset row."""
+    return session.execute(select(AssetORM.id).limit(1)).scalar_one_or_none() is not None
