@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 import api.graph_lifecycle as graph_lifecycle
 from src.config.settings import get_settings
@@ -286,6 +286,31 @@ def test_invalid_configured_database_url_fails_without_leaking_url(
     assert "Failed to load persisted graph during startup" in message
     assert "secret" not in message
     assert raw_url not in message
+
+
+def test_malformed_asset_class_persisted_row_fails_without_fallback(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Configured persistence with a corrupt enum value should fail startup load."""
+    database_url = _sqlite_url(tmp_path)
+    engine = create_engine(database_url)
+    init_db(engine)
+    with engine.connect() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO assets (id, symbol, name, asset_class, sector, price, currency)"
+                " VALUES ('BAD_ASSET', 'BAD', 'Bad Asset', 'NOT_A_VALID_CLASS', 'Tech', 1.0, 'USD')"
+            )
+        )
+        conn.commit()
+    engine.dispose()
+
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
+    get_settings.cache_clear()
+
+    with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
+        graph_lifecycle._initialize_graph()
 
 
 def test_session_closes_on_success_empty_and_failure(

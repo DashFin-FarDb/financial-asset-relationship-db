@@ -116,6 +116,10 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
     Initialization order:
         - If `graph_state.graph_factory` is set, return the factory result.
+        - If `settings.asset_graph_database_url` is set and the configured
+          store has at least one persisted asset row, load and return the graph
+          via ``AssetGraphRepository``. Configured-persistence failures raise
+          ``RuntimeError`` and do not fall through to later steps.
         - If `settings.graph_cache_path` is set, create a `RealDataFetcher`
           with that path. Network access is enabled when
           `settings.use_real_data_fetcher` is enabled.
@@ -182,8 +186,7 @@ def _load_persisted_graph_if_available(
             return None
         return AssetGraphRepository(session).load_graph()
 
-
-except Exception:
+    except Exception:
         logger.error("Failed to load persisted graph during startup (sanitized)")
         raise RuntimeError("Failed to load persisted graph during startup")
     finally:
