@@ -379,17 +379,20 @@ def test_api_main_and_router_helper_compatibility(
     import api.router_helpers as router_helpers
 
     api_main = importlib.reload(api_main)
-    loaded = api_main.get_graph()
+    try:
+        loaded = api_main.get_graph()
 
-    assert set(loaded.assets) == {"ASSET_ONLY"}
-    assert graph_lifecycle.get_graph() is loaded
-    assert router_helpers.get_graph() is api_main.graph
+        assert set(loaded.assets) == {"ASSET_ONLY"}
+        assert graph_lifecycle.get_graph() is loaded
+        assert router_helpers.get_graph() is api_main.graph
 
-    api_main.reset_graph()
-    assert api_main.graph is None
-    reloaded = router_helpers.get_graph()
-    assert set(reloaded.assets) == {"ASSET_ONLY"}
+        api_main.reset_graph()
+        assert api_main.graph is None
+        reloaded = router_helpers.get_graph()
+        assert set(reloaded.assets) == {"ASSET_ONLY"}
 
-    custom_graph = AssetRelationshipGraph()
-    api_main.set_graph(custom_graph)
-    assert router_helpers.get_graph() is custom_graph
+        custom_graph = AssetRelationshipGraph()
+        api_main.set_graph(custom_graph)
+        assert router_helpers.get_graph() is custom_graph
+    finally:
+        api_main.reset_graph()
