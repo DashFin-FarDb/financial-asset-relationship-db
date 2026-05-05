@@ -165,9 +165,51 @@ class AssetGraphRepository:
         """
         incoming_assets = list(assets)
         incoming_ids = {asset.id for asset in incoming_assets}
-        persisted_ids = set(self.session.execute(select(AssetORM.id)).scalars().all())
+        persisted_ids = set(
+            self.session.execute(select(AssetORM.id)).scalars().all()
+        )
         stale_ids = persisted_ids - incoming_ids
         if stale_ids:
+            stale_event_ids = set(
+                self.session.execute(
+                    select(RegulatoryEventORM.id).where(
+                        RegulatoryEventORM.asset_id.in_(stale_ids)
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            self.session.execute(
+                delete(AssetRelationshipORM).where(
+                    AssetRelationshipORM.source_asset_id.in_(stale_ids)
+                ),
+                execution_options={"synchronize_session": "fetch"},
+            )
+            self.session.execute(
+                delete(AssetRelationshipORM).where(
+                    AssetRelationshipORM.target_asset_id.in_(stale_ids)
+                ),
+                execution_options={"synchronize_session": "fetch"},
+            )
+            self.session.execute(
+                delete(RegulatoryEventAssetORM).where(
+                    RegulatoryEventAssetORM.asset_id.in_(stale_ids)
+                ),
+                execution_options={"synchronize_session": "fetch"},
+            )
+            if stale_event_ids:
+                self.session.execute(
+                    delete(RegulatoryEventAssetORM).where(
+                        RegulatoryEventAssetORM.event_id.in_(stale_event_ids)
+                    ),
+                    execution_options={"synchronize_session": "fetch"},
+                )
+                self.session.execute(
+                    delete(RegulatoryEventORM).where(
+                        RegulatoryEventORM.id.in_(stale_event_ids)
+                    ),
+                    execution_options={"synchronize_session": "fetch"},
+                )
             self.session.execute(
                 delete(AssetORM).where(AssetORM.id.in_(stale_ids)),
                 execution_options={"synchronize_session": "fetch"},
@@ -253,8 +295,10 @@ class AssetGraphRepository:
                 description=event.description,
                 impact_score=event.impact_score,
             )
-            for related_id in event.related_assets:
-                event_orm.related_assets.append(RegulatoryEventAssetORM(asset_id=related_id))
+            for related_id in dict.fromkeys(event.related_assets):
+                event_orm.related_assets.append(
+                    RegulatoryEventAssetORM(asset_id=related_id)
+                )
             self.session.add(event_orm)
 
     # ------------------------------------------------------------------
@@ -297,10 +341,14 @@ class AssetGraphRepository:
         if not incoming_assets:
             return
 
-        incoming_ids = [asset.id for asset in incoming_assets]
+        incoming_ids = list(dict.fromkeys(asset.id for asset in incoming_assets))
         existing_assets = {
             orm.id: orm
-            for orm in self.session.execute(select(AssetORM).where(AssetORM.id.in_(incoming_ids))).scalars().all()
+            for orm in self.session.execute(
+                select(AssetORM).where(AssetORM.id.in_(incoming_ids))
+            )
+            .scalars()
+            .all()
         }
 
         for asset in incoming_assets:
@@ -308,6 +356,7 @@ class AssetGraphRepository:
             if orm is None:
                 orm = AssetORM(id=asset.id)
                 self.session.add(orm)
+                existing_assets[asset.id] = orm
             self._update_asset_orm(orm, asset)
 
     def list_assets(self) -> list[Asset]:
@@ -599,8 +648,10 @@ class AssetGraphRepository:
         existing.description = event.description
         existing.impact_score = event.impact_score
         existing.related_assets.clear()
-        for related_id in event.related_assets:
-            existing.related_assets.append(RegulatoryEventAssetORM(asset_id=related_id))
+        for related_id in dict.fromkeys(event.related_assets):
+            existing.related_assets.append(
+                RegulatoryEventAssetORM(asset_id=related_id)
+            )
 
         self.session.add(existing)
 
@@ -747,7 +798,7 @@ class AssetGraphRepository:
         Returns:
             RegulatoryEvent: Domain model built from the ORM row.
         """
-        related_assets = [assoc.asset_id for assoc in orm.related_assets]
+        related_assets = sorted(assoc.asset_id for assoc in orm.related_assets)
         return RegulatoryEvent(
             id=orm.id,
             asset_id=orm.asset_id,
