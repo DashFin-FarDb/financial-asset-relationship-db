@@ -7,7 +7,7 @@ import pytest
 from src.analysis.formulaic_analysis import FormulaicAnalyzer
 from src.analysis.formulaic_examples import calculate_dividend_examples, calculate_pb_examples
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import AssetClass
+from src.models.financial_models import AssetClass, Bond
 
 
 @pytest.mark.unit
@@ -70,3 +70,38 @@ def test_calculate_pb_examples_skips_assets_without_price() -> None:
     graph.assets = {"MISS": malformed_asset}
 
     assert calculate_pb_examples(graph).startswith("Example:")
+
+
+@pytest.mark.unit
+def test_analyze_graph_includes_ytm_for_fixed_income_only_graph() -> None:
+    """Bond-only portfolios should expose YTM in formulaic analysis."""
+    graph = AssetRelationshipGraph()
+    graph.add_asset(
+        Bond(
+            id="BOND_A",
+            symbol="BNDA",
+            name="Corporate Bond A",
+            asset_class=AssetClass.FIXED_INCOME,
+            sector="Corporate",
+            price=98.0,
+            yield_to_maturity=0.045,
+        )
+    )
+    graph.add_asset(
+        Bond(
+            id="BOND_B",
+            symbol="BNDB",
+            name="Corporate Bond B",
+            asset_class=AssetClass.FIXED_INCOME,
+            sector="Corporate",
+            price=101.0,
+            yield_to_maturity=0.0375,
+        )
+    )
+
+    result = FormulaicAnalyzer().analyze_graph(graph)
+    ytm_formula = next(formula for formula in result["formulas"] if formula.name == "Yield-to-Maturity")
+
+    assert ytm_formula.category == "Income"
+    assert ytm_formula.example_calculation == "BNDA: YTM ≈ 4.50%; BNDB: YTM ≈ 3.75%"
+    assert result["categories"]["Income"] >= 1
