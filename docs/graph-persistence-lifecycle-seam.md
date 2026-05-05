@@ -155,9 +155,10 @@ when unset.
 
 This seam note does not choose the final runtime setting for graph persistence.
 The next implementation PR must explicitly decide whether startup graph
-persistence is governed by `ASSET_GRAPH_DATABASE_URL`, `DATABASE_URL`,
-`POSTGRES_URL`, a new explicit setting, or current repository/session-factory
-defaults.
+persistence is governed by `asset_graph_database_url` (env:
+`ASSET_GRAPH_DATABASE_URL`), `database_url` (env: `DATABASE_URL`),
+`postgres_url` (env: `POSTGRES_URL`), a new explicit setting, or current
+repository/session-factory defaults.
 
 Until that implementation PR makes the decision, references to these settings in
 this document are descriptive, not prescriptive.
