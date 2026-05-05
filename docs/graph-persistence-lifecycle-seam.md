@@ -172,7 +172,8 @@ The implementation PR must answer these before coding:
    - any regulatory event row;
    - any graph-owned table row.
 3. What happens when persistence is configured but empty?
-4. What happens when persistence is configured but unreachable?
+4. What happens when persistence is configured but unreachable or the schema is missing?
+5. Should the startup path automatically call `init_db()` if persistence is enabled?
 5. How does persisted graph loading interact with:
    - `GRAPH_CACHE_PATH`;
    - `USE_REAL_DATA_FETCHER`;
