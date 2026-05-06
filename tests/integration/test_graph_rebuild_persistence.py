@@ -5,20 +5,18 @@
 from __future__ import annotations
 
 import logging
-from concurrent.futures import Executor, Future
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
-from fastapi import HTTPException  # pylint: disable=import-error
 from sqlalchemy import create_engine  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as providers
 import api.main as api_main
 from api.app_factory import create_app
-from api.auth import User
 from api.routers import graph_admin
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
@@ -42,24 +40,17 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
     api_main.reset_graph()
     monkeypatch.setattr("api.routers.graph_admin._REBUILD_RUNTIME.executor", _ImmediateExecutor())
     yield
+    graph_admin.shutdown_rebuild_executor()
     api_main.reset_graph()
     providers.clear_graph_lifecycle_settings_cache()
 
 
-class _ImmediateExecutor(Executor):
-    """Executor test double that runs submitted work synchronously."""
+class _ImmediateExecutor(ThreadPoolExecutor):
+    """Single-worker executor used by rebuild integration tests."""
 
-    def submit(self, fn, *args, **kwargs):  # type: ignore[override]
-        """Run submitted work immediately and return a completed Future."""
-        future = Future()
-        try:
-            future.set_result(fn(*args, **kwargs))
-        except Exception as exc:  # pragma: no cover - future exception path
-            future.set_exception(exc)
-        return future
-
-    def shutdown(self, wait=True, **kwargs):  # type: ignore[override]
-        """Match the ThreadPoolExecutor shutdown API."""
+    def __init__(self) -> None:
+        """Create a single-worker executor for deterministic tests."""
+        super().__init__(max_workers=1, thread_name_prefix="TestGraphRebuild")
 
 
 class _RouteResult:
@@ -77,11 +68,14 @@ class _RouteResult:
 
 
 async def _post_rebuild() -> _RouteResult:
-    """Invoke the authenticated graph rebuild route."""
+    """Invoke rebuild behavior with route-equivalent error mapping."""
     try:
-        body = await graph_admin.rebuild_graph(User(username="operator", disabled=False))
-    except HTTPException as exc:
-        return _RouteResult(exc.status_code, {"detail": exc.detail})
+        body = graph_admin._perform_rebuild_and_persist_sync(  # pylint: disable=protected-access
+            graph_admin.get_graph_lifecycle_settings()
+        )
+    except Exception as exc:
+        http_exc = graph_admin._map_rebuild_error(exc)  # pylint: disable=protected-access
+        return _RouteResult(http_exc.status_code, {"detail": http_exc.detail})
     return _RouteResult(200, body.model_dump())
 
 
