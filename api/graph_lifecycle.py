@@ -4,14 +4,15 @@ This module provides thread-safe initialization and management of the global
 AssetRelationshipGraph instance used by the API.
 """
 
+from __future__ import annotations
+
 import logging
 import threading
 from collections.abc import Callable
 
-from src.config.settings import get_settings
-from src.data.real_data_fetcher import RealDataFetcher
-from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
+
+from . import graph_lifecycle_providers
 
 logger = logging.getLogger(__name__)
 
@@ -98,48 +99,44 @@ def reset_graph() -> None:
     """
     # Clear settings cache to preserve reset semantics: environment variable
     # changes made after reset should be picked up on next initialization.
-    get_settings.cache_clear()
+    graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
     set_graph_factory(None)
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Initialize the global AssetRelationshipGraph using the configured factory or settings-driven data sources.
+    Initialize the graph from the configured startup source.
 
-    Initialization order:
-        - If `graph_state.graph_factory` is set, return the factory result.
-        - If `settings.graph_cache_path` is set, create a `RealDataFetcher`
-          with that path. Network access is enabled when
-          `settings.use_real_data_fetcher` is enabled.
-        - If `settings.graph_cache_path` is not set, but
-          `settings.use_real_data_fetcher` is enabled, create a
-          `RealDataFetcher` using `settings.real_data_cache_path` with network
-          access enabled.
-        - Otherwise, return the sample in-memory graph.
+    Precedence:
+    1. custom graph factory;
+    2. persisted graph when durable persistence is configured and populated;
+    3. graph cache path;
+    4. real-data fetcher;
+    5. sample graph.
 
-    Returns:
-        AssetRelationshipGraph: The initialized graph instance.
+    Configured persistence failures raise RuntimeError.
     """
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory()
 
-    settings = get_settings()
+    settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
+    persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(settings.asset_graph_database_url)
+    if persisted_graph is not None:
+        return persisted_graph
+
     cache_path = settings.graph_cache_path
     use_real_data = settings.use_real_data_fetcher
 
     if cache_path:
-        fetcher = RealDataFetcher(
-            cache_path=cache_path,
+        return graph_lifecycle_providers.load_graph_from_cache_path(
+            cache_path,
             enable_network=use_real_data,
         )
-        return fetcher.create_real_database()
 
     if use_real_data:
         real_data_cache_path = settings.real_data_cache_path
-        fetcher = RealDataFetcher(
-            cache_path=real_data_cache_path,
-            enable_network=True,
+        return graph_lifecycle_providers.load_graph_from_real_data_fetcher(
+            real_data_cache_path,
         )
-        return fetcher.create_real_database()
 
-    return create_sample_database()
+    return graph_lifecycle_providers.create_sample_graph()

@@ -1,6 +1,7 @@
 """Unit tests for repository graph persistence helpers."""
 
 import pytest
+from sqlalchemy import create_engine  # pylint: disable=import-error
 
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
@@ -12,21 +13,17 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-
 pytestmark = pytest.mark.unit
 
 
 @pytest.fixture
 def repository_factory(tmp_path):
-    """Create fresh repositories backed by one temporary SQLite database."""
+    """Provide a factory for creating repository instances."""
     db_path = tmp_path / "graph_persistence.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
-_sqlalchemy = pytest.importorskip("sqlalchemy")
-create_engine = _sqlalchemy.create_engine
-
-
     factory = create_session_factory(engine)
+
     sessions = []
 
     def make_repository() -> AssetGraphRepository:
