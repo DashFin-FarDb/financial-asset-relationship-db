@@ -113,7 +113,8 @@ def _resolve_persistence_database_url(database_url: str | None) -> str | None:
 
 def _log_in_memory_sqlite_persistence_skip() -> None:
     """
-    Emit a warning that an in-memory SQLite database URL was detected and persisted graph loading will be skipped because in-memory SQLite is not durable.
+    Emit a warning that an in-memory SQLite database URL was detected and persisted graph
+    loading will be skipped because in-memory SQLite is not durable.
     """
     logger.warning(
         "ASSET_GRAPH_DATABASE_URL points to an in-memory SQLite database; "
