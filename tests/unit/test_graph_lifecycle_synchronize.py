@@ -17,7 +17,7 @@ pytestmark = pytest.mark.unit
 def reset_lifecycle() -> Iterator[None]:
     """
     Reset the global lifecycle graph before each test and restore it after the test completes.
-    
+
     Calls `graph_lifecycle.reset_graph()` prior to the test and again after the test yields to ensure a clean lifecycle state for each case.
     """
     graph_lifecycle.reset_graph()

@@ -56,9 +56,9 @@ async def lifespan(_fastapi_app: FastAPI):
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application instance.
-    
+
     Configures the application lifespan handler, attaches the rate limiter and its global exception handler, applies CORS policy, and registers the authentication, system, graph admin, assets, relationships, metrics, and visualization routers.
-    
+
     Returns:
         FastAPI: The configured FastAPI application with lifespan handler, rate limiter, CORS, exception handler, and registered routers.
     """

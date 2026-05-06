@@ -39,10 +39,10 @@ async def rebuild_graph(
 ) -> GraphRebuildResponse:
     """
     Rebuilds the asset graph, persists it to durable storage, and synchronizes the in-memory runtime graph, serializing concurrent rebuild requests with a per-event-loop lock.
-    
+
     Returns:
         GraphRebuildResponse: Response with rebuild outcome and counts (`status`, `source`, `asset_count`, `relationship_count`, `regulatory_event_count`).
-    
+
     Raises:
         HTTPException: 409 CONFLICT if persistence is not configured or not durable.
         HTTPException: 500 INTERNAL SERVER ERROR if the rebuild source cannot be determined or saving the graph fails.
@@ -80,7 +80,7 @@ async def rebuild_graph(
 def _get_rebuild_lock() -> asyncio.Lock:
     """
     Get an asyncio.Lock bound to the current event loop, creating a new lock if none exists or the existing lock is bound to a different loop.
-    
+
     Returns:
         asyncio.Lock: Lock instance associated with the current event loop.
     """
@@ -97,10 +97,10 @@ def _perform_rebuild_and_persist_sync(
 ) -> GraphRebuildResponse:
     """
     Perform a full rebuild of the asset graph, persist it to durable storage, and synchronize the runtime graph state.
-    
+
     Parameters:
         settings (GraphLifecycleSettings): Configuration for graph lifecycle operations; must include the durable persistence URL or enough information to resolve it.
-    
+
     Returns:
         GraphRebuildResponse: Result summary with:
             - status: The final persistence status (e.g., "persisted").
