@@ -50,13 +50,12 @@ async def test_app_construction_with_graph_admin_router_succeeds() -> None:
 
 async def test_rebuild_returns_429_when_rebuild_already_running() -> None:
     """Concurrent rebuild requests should fail fast instead of queueing."""
-    lock = graph_admin._REBUILD_RUNTIME.get_lock()  # pylint: disable=protected-access
-    await lock.acquire()
+    graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
     try:
         with pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="operator", disabled=False))
     finally:
-        lock.release()
+        graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
     assert exc_info.value.status_code == 429
     assert exc_info.value.detail == "A graph rebuild is already in progress. Please try again later."

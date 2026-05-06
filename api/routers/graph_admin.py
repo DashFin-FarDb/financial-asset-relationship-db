@@ -37,6 +37,19 @@ class _RebuildRuntime:
         self.lock: asyncio.Lock | None = None
         self.lock_loop: asyncio.AbstractEventLoop | None = None
         self.executor: ThreadPoolExecutor | None = None
+        self.busy = False
+
+    def is_busy(self) -> bool:
+        """Return whether a rebuild is running or queued."""
+        return self.busy
+
+    def mark_busy(self) -> None:
+        """Mark rebuild execution as active."""
+        self.busy = True
+
+    def mark_idle(self) -> None:
+        """Mark rebuild execution as idle."""
+        self.busy = False
 
     def get_lock(self) -> asyncio.Lock:
         """Return a rebuild lock bound to the current event loop."""
@@ -74,23 +87,34 @@ async def rebuild_graph(
     loop = asyncio.get_running_loop()
     rebuild_lock = _REBUILD_RUNTIME.get_lock()
 
-    # No await occurs between locked() and acquire; this gives same-loop
-    # fail-fast behavior without queueing behind the active rebuild.
-    if rebuild_lock.locked():
+    if _REBUILD_RUNTIME.is_busy():
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="A graph rebuild is already in progress. Please try again later.",
         )
 
     async with rebuild_lock:
+        if _REBUILD_RUNTIME.is_busy():
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="A graph rebuild is already in progress. Please try again later.",
+            )
+
+        _REBUILD_RUNTIME.mark_busy()
         try:
             ctx = contextvars.copy_context()
-            return await loop.run_in_executor(
-                _REBUILD_RUNTIME.get_executor(),
-                ctx.run,
-                _perform_rebuild_and_persist_sync,
-                settings,
-            )
+            try:
+                future = loop.run_in_executor(
+                    _REBUILD_RUNTIME.get_executor(),
+                    ctx.run,
+                    _perform_rebuild_and_persist_sync,
+                    settings,
+                )
+            except Exception:
+                _REBUILD_RUNTIME.mark_idle()
+                raise
+            future.add_done_callback(lambda _future: _REBUILD_RUNTIME.mark_idle())
+            return await asyncio.shield(future)
         except Exception as exc:
             raise _map_rebuild_error(exc) from None
 
