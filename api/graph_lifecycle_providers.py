@@ -274,7 +274,9 @@ def _is_in_memory_sqlite_url(url: str) -> bool:
 
     database = parsed.database or ""
     mode = parsed.query.get("mode")
-    is_memory_mode = mode == "memory" or (isinstance(mode, tuple) and "memory" in mode)
+    is_memory_mode = mode == "memory" or (
+        isinstance(mode, tuple) and "memory" in mode
+    )
 
     if database in {"", ":memory:"}:
         return True
