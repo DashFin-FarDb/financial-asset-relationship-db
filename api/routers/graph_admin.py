@@ -27,6 +27,7 @@ from ..graph_lifecycle_providers import (
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+_REBUILD_IN_PROGRESS_MESSAGE = "A graph rebuild is already in progress. Please try again later."
 
 
 class _RebuildRuntime:
@@ -85,38 +86,53 @@ async def rebuild_graph(
     """Rebuild, persist, and synchronize graph state."""
     settings = get_graph_lifecycle_settings()
     loop = asyncio.get_running_loop()
-    rebuild_lock = _REBUILD_RUNTIME.get_lock()
-
-    if _REBUILD_RUNTIME.is_busy():
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="A graph rebuild is already in progress. Please try again later.",
-        )
+    rebuild_lock = _claim_rebuild_or_raise()
 
     async with rebuild_lock:
         if _REBUILD_RUNTIME.is_busy():
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="A graph rebuild is already in progress. Please try again later.",
-            )
+            raise _rebuild_in_progress_error()
 
         _REBUILD_RUNTIME.mark_busy()
         try:
-            ctx = contextvars.copy_context()
-            try:
-                future = loop.run_in_executor(
-                    _REBUILD_RUNTIME.get_executor(),
-                    ctx.run,
-                    _perform_rebuild_and_persist_sync,
-                    settings,
-                )
-            except Exception:
-                _REBUILD_RUNTIME.mark_idle()
-                raise
-            future.add_done_callback(lambda _future: _REBUILD_RUNTIME.mark_idle())
-            return await asyncio.shield(future)
+            return await _run_rebuild_in_executor(loop, settings)
         except Exception as exc:
             raise _map_rebuild_error(exc) from None
+
+
+def _rebuild_in_progress_error() -> HTTPException:
+    """Return the graph rebuild in-progress response."""
+    return HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail=_REBUILD_IN_PROGRESS_MESSAGE,
+    )
+
+
+def _claim_rebuild_or_raise() -> asyncio.Lock:
+    """Claim rebuild execution or raise a fail-fast HTTP error."""
+    rebuild_lock = _REBUILD_RUNTIME.get_lock()
+    if _REBUILD_RUNTIME.is_busy():
+        raise _rebuild_in_progress_error()
+    return rebuild_lock
+
+
+async def _run_rebuild_in_executor(
+    loop: asyncio.AbstractEventLoop,
+    settings: GraphLifecycleSettings,
+) -> GraphRebuildResponse:
+    """Run rebuild work in the dedicated executor."""
+    ctx = contextvars.copy_context()
+    try:
+        future = loop.run_in_executor(
+            _REBUILD_RUNTIME.get_executor(),
+            ctx.run,
+            _perform_rebuild_and_persist_sync,
+            settings,
+        )
+    except Exception:
+        _REBUILD_RUNTIME.mark_idle()
+        raise
+    future.add_done_callback(lambda _future: _REBUILD_RUNTIME.mark_idle())
+    return await asyncio.shield(future)
 
 
 def _map_rebuild_error(exc: Exception) -> HTTPException:

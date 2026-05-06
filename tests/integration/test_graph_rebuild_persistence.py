@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from concurrent.futures import Executor, Future
 from pathlib import Path
 from typing import Any
@@ -30,7 +30,7 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture(autouse=True)
-def reset_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+def reset_state(monkeypatch: pytest.MonkeyPatch):
     """Reset graph environment, caches, runtime state, and rebuild execution."""
     for name in (
         "ASSET_GRAPH_DATABASE_URL",
@@ -50,12 +50,17 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 class _ImmediateExecutor(Executor):
     """Executor test double that runs submitted work synchronously."""
 
-    def submit(self, fn: Callable[..., Any], /, *args: Any, **kwargs: Any) -> Future[Any]:
+    def submit(
+        self,
+        fn: Callable[..., Any],
+        *args: Any,
+        **kwargs: Any,
+    ) -> Future[Any]:
         """Run submitted work immediately and return a completed Future."""
         future: Future[Any] = Future()
         try:
             future.set_result(fn(*args, **kwargs))
-        except Exception as exc:  # pragma: no cover - exercised through future exception propagation
+        except Exception as exc:  # pragma: no cover - future exception path
             future.set_exception(exc)
         return future
 
@@ -198,14 +203,12 @@ async def _run_rebuild_with_known_graph(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     graph: AssetRelationshipGraph,
-    database_name: str = "asset_graph.db",
     existing_graph: AssetRelationshipGraph | None = None,
 ) -> tuple[_RouteResult, str]:
     """Configure durable persistence, patch rebuild source, and post rebuild."""
     database_url = _prepare_rebuild_database(
         tmp_path,
         monkeypatch,
-        database_name=database_name,
         existing_graph=existing_graph,
     )
     _patch_sample_graph(monkeypatch, graph)

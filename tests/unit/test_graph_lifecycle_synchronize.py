@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from typing import Iterator, cast  # noqa: UP035
+from typing import cast
 
 import pytest  # pylint: disable=import-error
 
@@ -13,7 +13,7 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.fixture(autouse=True)
-def reset_lifecycle() -> Iterator[None]:
+def reset_lifecycle():
     """Reset lifecycle graph state around each test."""
     graph_lifecycle.reset_graph()
     yield
