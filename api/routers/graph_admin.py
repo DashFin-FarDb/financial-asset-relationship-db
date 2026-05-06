@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-import threading
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,6 +12,7 @@ from ..api_models import GraphRebuildResponse
 from ..auth import User, get_current_active_user
 from ..graph_lifecycle import synchronize_runtime_graph
 from ..graph_lifecycle_providers import (
+    GraphLifecycleSettings,
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
     GraphPersistenceSaveError,
@@ -22,39 +24,68 @@ from ..graph_lifecycle_providers import (
 )
 
 router = APIRouter()
-_rebuild_lock = threading.Lock()
+
+_rebuild_lock = asyncio.Lock()
+_rebuild_executor = ThreadPoolExecutor(
+    max_workers=1,
+    thread_name_prefix="GraphRebuild",
+)
 
 
 @router.post("/api/graph/rebuild", response_model=GraphRebuildResponse)
-def rebuild_graph(
+async def rebuild_graph(
     _current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> GraphRebuildResponse:
-    """Build, persist, and publish a fresh graph snapshot."""
+    """Rebuild, persist, and synchronize graph state."""
     settings = get_graph_lifecycle_settings()
+    loop = asyncio.get_running_loop()
 
-    with _rebuild_lock:
+    async with _rebuild_lock:
         try:
-            resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-        except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError) as exc:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from None
-
-        try:
-            graph, source = build_rebuild_graph(settings)
+            return await loop.run_in_executor(
+                _rebuild_executor,
+                _perform_rebuild_and_persist_sync,
+                settings,
+            )
+        except (
+            GraphPersistenceNotConfiguredError,
+            GraphPersistenceNonDurableError,
+        ) as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=str(exc),
+            ) from None
         except GraphRebuildSourceError as exc:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from None
-
-        try:
-            save_graph_to_persistence(resolved_url, graph)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=str(exc),
+            ) from None
         except GraphPersistenceSaveError as exc:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from None
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=str(exc),
+            ) from None
 
-        synchronize_runtime_graph(graph)
 
-        regulatory_events = getattr(graph, "regulatory_events", []) or []
-        return GraphRebuildResponse(
-            status="persisted",
-            source=source,
-            asset_count=len(graph.assets),
-            relationship_count=sum(len(items) for items in graph.relationships.values()),
-            regulatory_event_count=len(regulatory_events),
-        )
+def _perform_rebuild_and_persist_sync(
+    settings: GraphLifecycleSettings,
+) -> GraphRebuildResponse:
+    """Run the blocking rebuild, persistence, and runtime sync workflow."""
+    resolved_url = resolve_durable_graph_persistence_url(
+        settings.asset_graph_database_url
+    )
+
+    graph, source = build_rebuild_graph(settings)
+
+    save_graph_to_persistence(resolved_url, graph)
+
+    synchronize_runtime_graph(graph)
+
+    regulatory_events = getattr(graph, "regulatory_events", []) or []
+    return GraphRebuildResponse(
+        status="persisted",
+        source=source,
+        asset_count=len(graph.assets),
+        relationship_count=sum(len(items) for items in graph.relationships.values()),
+        regulatory_event_count=len(regulatory_events),
+    )
