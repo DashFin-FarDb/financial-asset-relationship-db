@@ -7,6 +7,7 @@ AssetRelationshipGraph instance used by the API.
 from __future__ import annotations
 
 import logging
+import sys
 import threading
 from collections.abc import Callable
 
@@ -73,6 +74,19 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     with graph_lock:
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
+
+
+def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
+    """
+    Set the lifecycle graph and synchronize the legacy api.main graph mirror.
+
+    This avoids importing api.main from router modules while keeping
+    router_helpers.get_graph() compatible with older callers.
+    """
+    set_graph(graph_instance)
+    api_main = sys.modules.get("api.main")
+    if api_main is not None and hasattr(api_main, "graph"):
+        setattr(api_main, "graph", graph_instance)
 
 
 def set_graph_factory(

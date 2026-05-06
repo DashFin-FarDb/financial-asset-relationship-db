@@ -20,6 +20,7 @@ from .graph_lifecycle import get_graph
 from .rate_limit import limiter
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
+from .routers.graph_admin import router as graph_admin_router
 from .routers.metrics import router as metrics_router
 from .routers.relationships import router as relationships_router
 from .routers.system import router as system_router
@@ -75,6 +76,7 @@ def create_app() -> FastAPI:
 
     app.include_router(auth_router)
     app.include_router(system_router)
+    app.include_router(graph_admin_router)
     app.include_router(assets_router)
     app.include_router(relationships_router)
     app.include_router(metrics_router)
