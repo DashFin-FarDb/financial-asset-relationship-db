@@ -71,7 +71,9 @@ def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
 ) -> GraphRebuildResponse:
     """Run the blocking rebuild, persistence, and runtime sync workflow."""
-    resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    resolved_url = resolve_durable_graph_persistence_url(
+        settings.asset_graph_database_url
+    )
 
     graph, source = build_rebuild_graph(settings)
 
