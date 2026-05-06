@@ -311,9 +311,9 @@ def test_unreachable_persistence_fails_startup_with_sanitized_error(
     with (
         caplog.at_level(logging.ERROR),
         pytest.raises(RuntimeError, match="Failed to load persisted graph during startup") as exc_info,
+        TestClient(create_app()),
     ):
-        with TestClient(create_app()):
-            pass
+        pass
 
     message = str(exc_info.value)
     assert raw_url not in message
