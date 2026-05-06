@@ -113,7 +113,6 @@ def _initialize_graph() -> AssetRelationshipGraph:
     use_real_data = settings.use_real_data_fetcher
 
     if cache_path:
-        logger.info("Graph startup source: graph_cache_path")
         return graph_lifecycle_providers.load_graph_from_cache_path(
             cache_path,
             enable_network=use_real_data,
@@ -121,7 +120,6 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
     if use_real_data:
         real_data_cache_path = settings.real_data_cache_path
-        logger.info("Graph startup source: real_data_fetcher")
         return graph_lifecycle_providers.load_graph_from_real_data_fetcher(
             real_data_cache_path,
         )

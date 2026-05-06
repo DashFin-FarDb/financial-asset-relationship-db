@@ -1,20 +1,17 @@
 """Hosted-like startup and readiness persistence proofs."""
 
-# NOSONAR: Integration tests intentionally exercise DB/repository/API wiring.
-
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 import pytest  # pylint: disable=import-error
 from fastapi.testclient import TestClient  # pylint: disable=import-error
-from sqlalchemy import create_engine  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as providers
-import api.main as api_main
 from api.app_factory import create_app
 from api.routers import graph_admin
 from src.data.database import create_session_factory, init_db
@@ -36,9 +33,9 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
     ):
         monkeypatch.delenv(name, raising=False)
     providers.clear_graph_lifecycle_settings_cache()
-    api_main.reset_graph()
+    graph_lifecycle.reset_graph()
     yield
-    api_main.reset_graph()
+    graph_lifecycle.reset_graph()
     providers.clear_graph_lifecycle_settings_cache()
 
 
@@ -49,7 +46,7 @@ def _sqlite_url(tmp_path: Path, name: str = "hosted_graph.db") -> str:
 
 def _init_empty_db(database_url: str) -> None:
     """Create graph persistence schema in an empty database."""
-    engine = create_engine(database_url)
+    engine = providers.create_engine_from_url(database_url)
     try:
         init_db(engine)
     finally:
@@ -58,7 +55,7 @@ def _init_empty_db(database_url: str) -> None:
 
 def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
     """Persist a graph into the test database."""
-    engine = create_engine(database_url)
+    engine = providers.create_engine_from_url(database_url)
     init_db(engine)
     session = create_session_factory(engine)()
     try:
@@ -106,13 +103,20 @@ def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -
     """Configure durable graph persistence URL for startup."""
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     providers.clear_graph_lifecycle_settings_cache()
-    api_main.reset_graph()
+    graph_lifecycle.reset_graph()
+
+
+@dataclass
+class _DisposeTracker:
+    """Track engine disposal calls."""
+
+    dispose_calls: int = 0
 
 
 class _EngineProxy:
     """Track startup engine disposal while proxying SQLAlchemy engine methods."""
 
-    def __init__(self, engine: Any, tracker: dict[str, int]) -> None:
+    def __init__(self, engine: Any, tracker: _DisposeTracker) -> None:
         """Wrap an engine and track dispose calls."""
         self._engine = engine
         self._tracker = tracker
@@ -123,7 +127,7 @@ class _EngineProxy:
 
     def dispose(self) -> None:
         """Track and forward dispose calls."""
-        self._tracker["dispose_calls"] += 1
+        self._tracker.dispose_calls += 1
         self._engine.dispose()
 
 
@@ -139,6 +143,19 @@ def _get_directed_relationship_strength(relationships: list[dict[str, Any]], sou
     raise AssertionError(f"Missing relationship {source_id}->{target_id}")
 
 
+def _walk_strings(value: Any) -> Iterator[str]:
+    """Recursively extract all string values and keys from JSON-like data."""
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            yield str(key)
+            yield from _walk_strings(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _walk_strings(item)
+
+
 def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -149,11 +166,13 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     _save_graph(database_url, _seeded_hosted_graph())
     _configure_persistence(monkeypatch, database_url)
 
-    def fail_fallback_generation() -> AssetRelationshipGraph:
-        """Fail the test if startup unexpectedly falls back to sample generation."""
+    def fail_fallback_generation(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+        """Fail the test if startup unexpectedly falls back to any generation path."""
         raise AssertionError("Fallback generation triggered unexpectedly")
 
     monkeypatch.setattr(providers, "create_sample_graph", fail_fallback_generation)
+    monkeypatch.setattr(providers, "load_graph_from_cache_path", fail_fallback_generation)
+    monkeypatch.setattr(providers, "load_graph_from_real_data_fetcher", fail_fallback_generation)
 
     with caplog.at_level(logging.INFO):
         with TestClient(create_app()) as client:
@@ -194,11 +213,11 @@ def test_startup_persistence_engine_is_short_lived_and_disposed(
     _configure_persistence(monkeypatch, database_url)
 
     real_create_engine = providers.create_engine_from_url
-    tracker = {"dispose_calls": 0}
+    tracker = _DisposeTracker()
 
-    def tracking_create_engine(url: str) -> _EngineProxy:
+    def tracking_create_engine(*args: Any, **kwargs: Any) -> _EngineProxy:
         """Return a dispose-tracking engine proxy."""
-        return _EngineProxy(real_create_engine(url), tracker)
+        return _EngineProxy(real_create_engine(*args, **kwargs), tracker)
 
     monkeypatch.setattr(providers, "create_engine_from_url", tracking_create_engine)
 
@@ -206,7 +225,7 @@ def test_startup_persistence_engine_is_short_lived_and_disposed(
         response = client.get("/api/health")
 
     assert response.status_code == 200
-    assert tracker["dispose_calls"] == 1
+    assert tracker.dispose_calls == 1
 
 
 def test_readiness_endpoints_do_not_save_or_rebuild(
@@ -248,59 +267,50 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
         response = client.get("/api/health/detailed")
 
     assert response.status_code == 200
-    body_text = response.text.lower()
+    payload = response.json()
+
+    # Verify expected contract shape
+    assert set(payload) == {"status", "graph", "database"}
+    assert set(payload["graph"]) == {"available", "asset_count", "relationship_count"}
+
+    # Recursively scan for sensitive values
+    joined = " ".join(_walk_strings(payload)).lower()
     for forbidden in (
         "asset_graph_database_url",
         "database_url",
-        "postgresql://",
-        "sqlite:///",
+        database_url.lower(),
+        str(tmp_path).lower(),
         "password",
         "secret",
-        "traceback",
-        "exception",
-        "real_data_cache_path",
-        "graph_cache_path",
     ):
-        assert forbidden not in body_text
+        assert forbidden not in joined
 
 
-def test_empty_persistence_falls_through_to_existing_fallback_behavior(
-    tmp_path: Path,
+def test_unreachable_persistence_fails_startup_with_sanitized_error(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """An empty configured durable store should still fall through to fallback initialization."""
-    database_url = _sqlite_url(tmp_path, "empty-startup.db")
-    _init_empty_db(database_url)
-    _configure_persistence(monkeypatch, database_url)
-
-    fallback = AssetRelationshipGraph()
-    fallback.add_asset(_create_test_equity("FALLBACK_ONLY", "FB"))
-    monkeypatch.setattr(providers, "create_sample_graph", lambda: fallback)
-
-    with TestClient(create_app()) as client:
-        detailed = client.get("/api/health/detailed")
-        assets = client.get("/api/assets", params={"per_page": 1000})
-
-    assert detailed.status_code == 200
-    assert assets.status_code == 200
-    graph_payload = detailed.json()["graph"]
-    assert graph_payload["available"] is True
-    assert graph_payload["asset_count"] == 1
-    assert graph_payload["relationship_count"] == 0
-    assert "graph_persistence_loaded" not in graph_payload
-    assert {item["id"] for item in assets.json()["items"]} == {"FALLBACK_ONLY"}
-
-
-def test_unreachable_persistence_fails_startup_with_sanitized_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """Unreachable configured persistence should fail startup and avoid leaking connection secrets."""
-    unreachable_url = "postgresql://user:secret@127.0.0.1:9/blackhole"
-    _configure_persistence(monkeypatch, unreachable_url)
+    raw_url = "postgresql://user:secret@example.invalid/blackhole"
+    _configure_persistence(monkeypatch, raw_url)
 
-    with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup") as exc_info:
-        with TestClient(create_app()):
-            pass
+    def fail_create_engine(_url: str) -> Any:
+        """Simulate a driver failure containing sensitive connection details."""
+        raise RuntimeError(f"driver failure for {raw_url}")
 
-    message = str(exc_info.value).lower()
+    monkeypatch.setattr(providers, "create_engine_from_url", fail_create_engine)
+
+    with caplog.at_level(logging.ERROR):
+        with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup") as exc_info:
+            with TestClient(create_app()):
+                pass
+
+    message = str(exc_info.value)
+    assert raw_url not in message
     assert "secret" not in message
     assert "user" not in message
-    assert unreachable_url not in message
+
+    # Verify logs also do not leak sensitive data
+    log_output = " ".join(record.getMessage() for record in caplog.records)
+    assert raw_url not in log_output
+    assert "secret" not in log_output

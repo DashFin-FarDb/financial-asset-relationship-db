@@ -327,7 +327,7 @@ A degraded response still returns HTTP 200. Treat `status: "degraded"` as an ope
 
 ### Verifying persisted graph startup loading
 
-Use this hosted-safe flow to verify runtime startup loaded graph truth from durable persistence:
+Use this hosted-safe flow to verify runtime startup loaded graph truth from durable persistence (when INFO-level application logs are enabled):
 
 1. Configure a durable `ASSET_GRAPH_DATABASE_URL` (for hosted deployment, use PostgreSQL).
 2. Populate graph truth only through the authenticated `POST /api/graph/rebuild` route or a controlled operator seed.
