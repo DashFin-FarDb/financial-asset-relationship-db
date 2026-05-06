@@ -295,8 +295,16 @@ def _load_persisted_graph_from_configured_store(
         session = session_factory()
         try:
             if not _has_persisted_graph_rows(session):
+                logger.info("No persisted graph rows found; continuing with fallback graph startup source")
                 return None
-            return AssetGraphRepository(session).load_graph()
+            graph = AssetGraphRepository(session).load_graph()
+            logger.info(
+                "Loaded graph from durable persistence: assets=%d relationships=%d regulatory_events=%d",
+                len(graph.assets),
+                sum(len(items) for items in graph.relationships.values()),
+                len(graph.regulatory_events),
+            )
+            return graph
         finally:
             session.close()
     finally:
