@@ -37,7 +37,16 @@ _rebuild_executor = ThreadPoolExecutor(
 async def rebuild_graph(
     _current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> GraphRebuildResponse:
-    """Rebuild, persist, and synchronize graph state."""
+    """
+    Rebuilds the asset graph, persists it to durable storage, and synchronizes the in-memory runtime graph, serializing concurrent rebuild requests with a per-event-loop lock.
+    
+    Returns:
+        GraphRebuildResponse: Response with rebuild outcome and counts (`status`, `source`, `asset_count`, `relationship_count`, `regulatory_event_count`).
+    
+    Raises:
+        HTTPException: 409 CONFLICT if persistence is not configured or not durable.
+        HTTPException: 500 INTERNAL SERVER ERROR if the rebuild source cannot be determined or saving the graph fails.
+    """
     settings = get_graph_lifecycle_settings()
     loop = asyncio.get_running_loop()
 
@@ -69,7 +78,12 @@ async def rebuild_graph(
 
 
 def _get_rebuild_lock() -> asyncio.Lock:
-    """Return an asyncio lock bound to the current event loop."""
+    """
+    Get an asyncio.Lock bound to the current event loop, creating a new lock if none exists or the existing lock is bound to a different loop.
+    
+    Returns:
+        asyncio.Lock: Lock instance associated with the current event loop.
+    """
     global _rebuild_lock, _rebuild_lock_loop  # noqa: PLW0603
     loop = asyncio.get_running_loop()
     if _rebuild_lock is None or _rebuild_lock_loop is not loop:
@@ -81,7 +95,20 @@ def _get_rebuild_lock() -> asyncio.Lock:
 def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
 ) -> GraphRebuildResponse:
-    """Run the blocking rebuild, persistence, and runtime sync workflow."""
+    """
+    Perform a full rebuild of the asset graph, persist it to durable storage, and synchronize the runtime graph state.
+    
+    Parameters:
+        settings (GraphLifecycleSettings): Configuration for graph lifecycle operations; must include the durable persistence URL or enough information to resolve it.
+    
+    Returns:
+        GraphRebuildResponse: Result summary with:
+            - status: The final persistence status (e.g., "persisted").
+            - source: Identifier of the graph source produced during the rebuild.
+            - asset_count: Number of assets in the rebuilt graph.
+            - relationship_count: Total number of relationship entries across all relationship lists.
+            - regulatory_event_count: Number of regulatory events collected from the graph (0 if none).
+    """
     resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
 
     graph, source = build_rebuild_graph(settings)

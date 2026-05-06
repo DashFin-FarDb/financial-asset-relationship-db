@@ -78,10 +78,12 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
 
 def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
-    Set the lifecycle graph and synchronize the legacy api.main graph mirror.
-
-    This avoids importing api.main from router modules while keeping
-    router_helpers.get_graph() compatible with older callers.
+    Set the module-wide AssetRelationshipGraph and mirror it into the legacy api.main if present.
+    
+    This registers the provided graph as the global lifecycle graph (clearing any configured factory so subsequent retrievals return this instance). If a loaded module named `api.main` exposes a `graph` attribute, that attribute is updated to the same instance to maintain compatibility with older callers that import `api.main`.
+    
+    Parameters:
+        graph_instance (AssetRelationshipGraph): The graph instance to register as the global lifecycle graph and to mirror to `api.main.graph` when available.
     """
     with graph_lock:
         graph_state.graph = graph_instance

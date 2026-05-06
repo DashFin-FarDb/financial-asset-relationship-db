@@ -51,7 +51,12 @@ class GraphRebuildSourceError(RuntimeError):
 
 
 def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
-    """Construct a GraphLifecycleSettings instance from the application settings."""
+    """
+    Create a GraphLifecycleSettings populated from the application's settings.
+    
+    Returns:
+        GraphLifecycleSettings: Instance with values taken from get_settings(): `asset_graph_database_url`, `graph_cache_path`, `real_data_cache_path`, and `use_real_data_fetcher`.
+    """
     settings = get_settings()
     return GraphLifecycleSettings(
         asset_graph_database_url=settings.asset_graph_database_url,
@@ -112,21 +117,24 @@ def load_graph_from_real_data_fetcher(
 
 def create_sample_graph() -> AssetRelationshipGraph:
     """
-    Create a graph populated with the default sample dataset.
-
+    Create a graph populated with the module's default sample dataset.
+    
     Returns:
-        AssetRelationshipGraph: An asset relationship graph populated with the module's default sample data.
+        AssetRelationshipGraph: An asset relationship graph seeded with the module's default sample data.
     """
     return create_sample_database()
 
 
 def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
     """
-    Resolve and validate a durable graph persistence database URL.
-
+    Validate and return a durable database URL suitable for graph persistence.
+    
+    Returns:
+        The resolved durable database URL.
+    
     Raises:
-        GraphPersistenceNotConfiguredError: when the URL is unset or blank.
-        GraphPersistenceNonDurableError: when the URL points to in-memory SQLite.
+        GraphPersistenceNotConfiguredError: If the provided URL is unset or blank.
+        GraphPersistenceNonDurableError: If the resolved URL refers to an in-memory SQLite database.
     """
     resolved_url = _resolve_persistence_database_url(database_url)
     if resolved_url is None:
@@ -138,10 +146,18 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
 
 def build_rebuild_graph(settings: GraphLifecycleSettings) -> Tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """
-    Build a fresh graph from the configured rebuild source and report that source.
-
-    Rebuild intentionally excludes persisted-load because this path creates the
-    replacement snapshot that will be persisted.
+    Build a fresh AssetRelationshipGraph from the configured rebuild source and return it with the source identifier.
+    
+    If a graph cache path exists on disk, the graph is loaded from that cache and the source is "cache". If no cache is present and real-data fetching is enabled, the graph is constructed from real data and the source is "real_data". Otherwise a sample graph is created and the source is "sample". This function intentionally does not attempt to load a persisted graph; it produces the replacement snapshot that may later be persisted.
+    
+    Parameters:
+        settings (GraphLifecycleSettings): Configuration that controls cache paths and whether the real-data fetcher is used.
+    
+    Returns:
+        tuple[AssetRelationshipGraph, GraphRebuildSource]: The rebuilt graph and a literal source identifier: `"cache"`, `"real_data"`, or `"sample"`.
+    
+    Raises:
+        GraphRebuildSourceError: If any error occurs while constructing the rebuild graph.
     """
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
@@ -167,7 +183,18 @@ def save_graph_to_persistence(
     database_url: str | None,
     graph: AssetRelationshipGraph,
 ) -> None:
-    """Persist graph truth to a durable graph store."""
+    """
+    Persist an AssetRelationshipGraph to a durable database.
+    
+    Parameters:
+        database_url (str | None): URL of the persistence database; may be None to use configured defaults.
+        graph (AssetRelationshipGraph): Graph to persist.
+    
+    Raises:
+        GraphPersistenceNotConfiguredError: If no persistence URL is configured.
+        GraphPersistenceNonDurableError: If the configured URL points to a non-durable (in-memory) store.
+        GraphPersistenceSaveError: If saving the graph or creating the persistence engine/session fails.
+    """
     resolved_url = resolve_durable_graph_persistence_url(database_url)
     engine = _create_graph_persistence_engine(resolved_url)
     try:
@@ -177,7 +204,15 @@ def save_graph_to_persistence(
 
 
 def _create_graph_persistence_engine(database_url: str) -> Engine:
-    """Create a graph persistence engine with sanitized failure handling."""
+    """
+    Create a SQLAlchemy engine for graph persistence.
+    
+    Returns:
+        engine (Engine): Engine configured for the provided database URL.
+    
+    Raises:
+        GraphPersistenceSaveError: If the engine cannot be created for the given URL.
+    """
     try:
         return create_engine_from_url(database_url)
     except Exception as exc:
@@ -186,7 +221,16 @@ def _create_graph_persistence_engine(database_url: str) -> Engine:
 
 
 def _save_graph_with_engine(engine: Engine, graph: AssetRelationshipGraph) -> None:
-    """Persist graph with a short-lived session."""
+    """
+    Persist the provided asset relationship graph using a short-lived database session.
+    
+    Parameters:
+        engine (Engine): SQLAlchemy engine configured for the persistence store.
+        graph (AssetRelationshipGraph): Graph to be persisted.
+    
+    Raises:
+        GraphPersistenceSaveError: If preparing the persistence session fails or if saving the graph fails.
+    """
     try:
         session_factory = create_session_factory(engine)
         session = session_factory()
@@ -201,7 +245,16 @@ def _save_graph_with_engine(engine: Engine, graph: AssetRelationshipGraph) -> No
 
 
 def _save_graph_with_session(session: Session, graph: AssetRelationshipGraph) -> None:
-    """Save graph and commit, rolling back on failure."""
+    """
+    Persist the given AssetRelationshipGraph using the provided SQLAlchemy session and commit the transaction.
+    
+    Parameters:
+        session (Session): Active SQLAlchemy session used to persist the graph.
+        graph (AssetRelationshipGraph): Graph to persist.
+    
+    Raises:
+        GraphPersistenceSaveError: If saving or committing the graph fails; the session will be rolled back.
+    """
     try:
         AssetGraphRepository(session).save_graph(graph)
         session.commit()
@@ -273,7 +326,16 @@ def _has_persisted_graph_rows(session: Session) -> bool:
 
 
 def _is_in_memory_sqlite_url(url: str) -> bool:
-    """Return whether a SQLAlchemy URL points to in-memory SQLite."""
+    """
+    Determine whether a SQLAlchemy database URL refers to an in-memory SQLite database.
+    
+    Parameters:
+        url (str): SQLAlchemy database URL to evaluate.
+    
+    Returns:
+        bool: `True` if the URL targets an in-memory SQLite database (empty database component, `:memory:`,
+        `file::memory:`, or `file:` with query mode set to memory), `False` otherwise.
+    """
     try:
         parsed = make_url(url)
     except ArgumentError:
@@ -291,5 +353,13 @@ def _is_in_memory_sqlite_url(url: str) -> bool:
 
 
 def _query_mode_is_memory(mode: object) -> bool:
-    """Return whether a parsed SQLAlchemy query mode requests memory."""
+    """
+    Determine whether a parsed SQLAlchemy URL query `mode` requests an in-memory database.
+    
+    Parameters:
+    	mode (object): The parsed `mode` query value from a SQLAlchemy URL; typically a string or a tuple of strings.
+    
+    Returns:
+    	True if `mode` is the string `"memory"` or a tuple containing `"memory"`, False otherwise.
+    """
     return mode == "memory" or (isinstance(mode, tuple) and "memory" in mode)
