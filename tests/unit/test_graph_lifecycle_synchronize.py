@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Iterator
+from typing import Iterator, cast  # noqa: UP035
 
 import pytest  # pylint: disable=import-error
 
@@ -24,21 +24,27 @@ def test_synchronize_runtime_graph_updates_both_mirrors() -> None:
     """Runtime sync should update lifecycle state and api.main mirror."""
     import api.main as api_main  # pylint: disable=import-outside-toplevel
 
-    graph_instance = object()
+    graph_instance = cast(
+        graph_lifecycle.AssetRelationshipGraph,
+        object(),
+    )
 
-    graph_lifecycle.synchronize_runtime_graph(graph_instance)  # type: ignore[arg-type]
+    graph_lifecycle.synchronize_runtime_graph(graph_instance)
 
     assert graph_lifecycle.graph_state.graph is graph_instance
     assert api_main.graph is graph_instance
 
 
 def test_synchronize_runtime_graph_no_op_when_api_main_not_loaded() -> None:
-    """Synchronizing should not import api.main when it is absent from sys.modules."""
+    """Synchronizing should not import api.main when it is absent."""
     saved_api_main = sys.modules.pop("api.main", None)
-    graph_instance = object()
+    graph_instance = cast(
+        graph_lifecycle.AssetRelationshipGraph,
+        object(),
+    )
 
     try:
-        graph_lifecycle.synchronize_runtime_graph(graph_instance)  # type: ignore[arg-type]
+        graph_lifecycle.synchronize_runtime_graph(graph_instance)
     finally:
         if saved_api_main is not None:
             sys.modules["api.main"] = saved_api_main

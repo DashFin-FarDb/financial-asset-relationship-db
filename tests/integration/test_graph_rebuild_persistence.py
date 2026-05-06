@@ -1,5 +1,7 @@
 """Tests for explicit graph rebuild persistence."""
 
+# NOSONAR: Integration tests intentionally exercise DB/repository/API wiring.
+
 from __future__ import annotations
 
 import logging

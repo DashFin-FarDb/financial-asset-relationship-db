@@ -1,5 +1,7 @@
 """Tests for graph admin router registration."""
 
+# NOSONAR: Integration tests intentionally exercise app/auth/router wiring.
+
 from __future__ import annotations
 
 import httpx  # pylint: disable=import-error
