@@ -309,10 +309,9 @@ def test_unreachable_persistence_fails_startup_with_sanitized_error(
 
     monkeypatch.setattr(providers, "create_engine_from_url", fail_create_engine)
 
-    with (
-        caplog.at_level(logging.ERROR),
-        pytest.raises(RuntimeError, match="Failed to load persisted graph during startup") as exc_info,
-        TestClient(create_app()),
+    startup_error = "Failed to load persisted graph during startup"
+    with caplog.at_level(logging.ERROR), pytest.raises(RuntimeError, match=startup_error) as exc_info, TestClient(
+        create_app()
     ):
         pass
 
