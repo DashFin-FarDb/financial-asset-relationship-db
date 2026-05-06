@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import sys
 import threading
-from typing import Callable
+from collections.abc import Callable
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -25,13 +25,7 @@ class _GraphState:
     """Mutable container for module graph lifecycle state."""
 
     def __init__(self) -> None:
-        """
-        Create a container to manage a global AssetRelationshipGraph and an optional factory for its lazy initialization.
-
-        Attributes:
-            graph: Cached AssetRelationshipGraph instance or `None` if not yet initialized.
-            graph_factory: Optional callable that returns an AssetRelationshipGraph; when set, it will be used to construct `graph`.
-        """
+        """Create empty graph lifecycle state."""
         self.graph: AssetRelationshipGraph | None = None
         self.graph_factory: Callable[[], AssetRelationshipGraph] | None = None
 
@@ -41,17 +35,7 @@ graph_lock = threading.Lock()
 
 
 def get_graph() -> AssetRelationshipGraph:
-    """
-    Get the module-global AssetRelationshipGraph, initializing it if necessary.
-
-    If the graph is not yet set, it is created via a thread-safe lazy initialization. If initialization fails and the graph remains unset, an exception is raised.
-
-    Returns:
-        AssetRelationshipGraph: The initialized global asset relationship graph.
-
-    Raises:
-        RuntimeError: If the global graph could not be initialized and remains None.
-    """
+    """Get the module-global graph, initializing it when needed."""
     if graph_state.graph is None:
         with graph_lock:
             if graph_state.graph is None:
@@ -63,46 +47,27 @@ def get_graph() -> AssetRelationshipGraph:
 
 
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
-    """
-    Register a global AssetRelationshipGraph instance to be returned by get_graph().
-
-    Stores the provided graph as the canonical global instance and clears any configured graph factory so subsequent get_graph() calls return this instance until changed or reset.
-
-    Parameters:
-        graph_instance (AssetRelationshipGraph): The AssetRelationshipGraph to register as the global instance.
-    """
+    """Register a global graph instance returned by get_graph()."""
     with graph_lock:
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
 
 
 def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
-    """
-    Set the module-wide AssetRelationshipGraph and mirror it into the legacy api.main if present.
-
-    This registers the provided graph as the global lifecycle graph (clearing any configured factory so subsequent retrievals return this instance). If a loaded module named `api.main` exposes a `graph` attribute, that attribute is updated to the same instance to maintain compatibility with older callers that import `api.main`.
-
-    Parameters:
-        graph_instance (AssetRelationshipGraph): The graph instance to register as the global lifecycle graph and to mirror to `api.main.graph` when available.
-    """
+    """Set graph lifecycle state and mirror it into legacy api.main."""
     with graph_lock:
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
 
         api_main = sys.modules.get("api.main")
         if api_main is not None and hasattr(api_main, "graph"):
-            setattr(api_main, "graph", graph_instance)
+            api_main.graph = graph_instance
 
 
 def set_graph_factory(
     factory: Callable[[], AssetRelationshipGraph] | None,
 ) -> None:
-    """
-    Configure the callable used to construct the global AssetRelationshipGraph and clear any existing graph so it will be recreated on next access.
-
-    Parameters:
-        factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns a new AssetRelationshipGraph instance. If `None`, any configured factory is cleared and the graph will be reinitialized using settings-driven defaults or a sample database on next access.
-    """
+    """Configure the callable used to lazily construct the global graph."""
     with graph_lock:
         graph_state.graph_factory = factory
         graph_state.graph = None

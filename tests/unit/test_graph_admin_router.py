@@ -5,7 +5,31 @@ from __future__ import annotations
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
 
+import api.routers.graph_admin as graph_admin
+from api.auth import User, get_current_active_user
+
 pytestmark = pytest.mark.unit
+
+
+def _authorized_app():
+    """Create an app with an active test operator."""
+    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
+
+    app = create_app()
+
+    async def active_user() -> User:
+        """Return an active test user."""
+        return User(username="operator", disabled=False)
+
+    app.dependency_overrides[get_current_active_user] = active_user
+    return app
+
+
+async def _post_rebuild() -> httpx.Response:
+    """Post to the graph rebuild endpoint as an active operator."""
+    transport = httpx.ASGITransport(app=_authorized_app())
+    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
+        return await client.post("/api/graph/rebuild")
 
 
 async def test_app_construction_with_graph_admin_router_succeeds() -> None:
@@ -21,3 +45,16 @@ async def test_app_construction_with_graph_admin_router_succeeds() -> None:
         response = await client.post("/api/graph/rebuild")
 
     assert response.status_code == 401
+
+
+async def test_rebuild_returns_429_when_rebuild_already_running() -> None:
+    """Concurrent rebuild requests should fail fast instead of queueing."""
+    lock = graph_admin._get_rebuild_lock()  # pylint: disable=protected-access
+    await lock.acquire()
+    try:
+        response = await _post_rebuild()
+    finally:
+        lock.release()
+
+    assert response.status_code == 429
+    assert response.json() == {"detail": "A graph rebuild is already in progress. Please try again later."}

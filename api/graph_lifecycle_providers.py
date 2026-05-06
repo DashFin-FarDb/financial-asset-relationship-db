@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Tuple
+from typing import Literal
 
 from sqlalchemy import select  # pylint: disable=import-error
 from sqlalchemy.engine import Engine, make_url  # pylint: disable=import-error
@@ -51,12 +51,7 @@ class GraphRebuildSourceError(RuntimeError):
 
 
 def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
-    """
-    Create a GraphLifecycleSettings populated from the application's settings.
-
-    Returns:
-        GraphLifecycleSettings: Instance with values taken from get_settings(): `asset_graph_database_url`, `graph_cache_path`, `real_data_cache_path`, and `use_real_data_fetcher`.
-    """
+    """Create lifecycle settings from the application's settings."""
     settings = get_settings()
     return GraphLifecycleSettings(
         asset_graph_database_url=settings.asset_graph_database_url,
@@ -116,12 +111,7 @@ def load_graph_from_real_data_fetcher(
 
 
 def create_sample_graph() -> AssetRelationshipGraph:
-    """
-    Create a graph populated with the module's default sample dataset.
-
-    Returns:
-        AssetRelationshipGraph: An asset relationship graph seeded with the module's default sample data.
-    """
+    """Create a graph populated with the default sample dataset."""
     return create_sample_database()
 
 
@@ -144,21 +134,8 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
     return resolved_url
 
 
-def build_rebuild_graph(settings: GraphLifecycleSettings) -> Tuple[AssetRelationshipGraph, GraphRebuildSource]:
-    """
-    Build a fresh AssetRelationshipGraph from the configured rebuild source and return it with the source identifier.
-
-    If a graph cache path exists on disk, the graph is loaded from that cache and the source is "cache". If no cache is present and real-data fetching is enabled, the graph is constructed from real data and the source is "real_data". Otherwise a sample graph is created and the source is "sample". This function intentionally does not attempt to load a persisted graph; it produces the replacement snapshot that may later be persisted.
-
-    Parameters:
-        settings (GraphLifecycleSettings): Configuration that controls cache paths and whether the real-data fetcher is used.
-
-    Returns:
-        tuple[AssetRelationshipGraph, GraphRebuildSource]: The rebuilt graph and a literal source identifier: `"cache"`, `"real_data"`, or `"sample"`.
-
-    Raises:
-        GraphRebuildSourceError: If any error occurs while constructing the rebuild graph.
-    """
+def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
+    """Build a fresh graph from cache, real data, or sample data."""
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
             return (
@@ -259,7 +236,13 @@ def _save_graph_with_session(session: Session, graph: AssetRelationshipGraph) ->
         AssetGraphRepository(session).save_graph(graph)
         session.commit()
     except Exception as exc:
-        session.rollback()
+        try:
+            session.rollback()
+        except Exception as rollback_exc:
+            logger.error(
+                "Failed to roll back rebuilt graph persistence: %s",
+                rollback_exc.__class__.__name__,
+            )
         logger.error("Failed to persist rebuilt graph: %s", exc.__class__.__name__)
         raise GraphPersistenceSaveError("Failed to persist rebuilt graph.") from None
 
@@ -326,16 +309,7 @@ def _has_persisted_graph_rows(session: Session) -> bool:
 
 
 def _is_in_memory_sqlite_url(url: str) -> bool:
-    """
-    Determine whether a SQLAlchemy database URL refers to an in-memory SQLite database.
-
-    Parameters:
-        url (str): SQLAlchemy database URL to evaluate.
-
-    Returns:
-        bool: `True` if the URL targets an in-memory SQLite database (empty database component, `:memory:`,
-        `file::memory:`, or `file:` with query mode set to memory), `False` otherwise.
-    """
+    """Return whether a SQLAlchemy URL points to in-memory SQLite."""
     try:
         parsed = make_url(url)
     except ArgumentError:
@@ -353,13 +327,5 @@ def _is_in_memory_sqlite_url(url: str) -> bool:
 
 
 def _query_mode_is_memory(mode: object) -> bool:
-    """
-    Determine whether a parsed SQLAlchemy URL query `mode` requests an in-memory database.
-
-    Parameters:
-        mode (object): The parsed `mode` query value from a SQLAlchemy URL; typically a string or a tuple of strings.
-
-    Returns:
-        True if `mode` is the string `"memory"` or a tuple containing `"memory"`, False otherwise.
-    """
+    """Return whether a parsed SQLAlchemy URL query mode requests memory."""
     return mode == "memory" or (isinstance(mode, tuple) and "memory" in mode)

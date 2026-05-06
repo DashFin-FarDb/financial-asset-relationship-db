@@ -21,6 +21,7 @@ from .rate_limit import limiter
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
 from .routers.graph_admin import router as graph_admin_router
+from .routers.graph_admin import shutdown_rebuild_executor
 from .routers.metrics import router as metrics_router
 from .routers.relationships import router as relationships_router
 from .routers.system import router as system_router
@@ -34,13 +35,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
-    """
-    Manage application lifespan: initialize the shared asset relationship graph before startup and log shutdown.
-
-    If graph initialization fails, the original exception is propagated to abort application startup.
-    Raises:
-        Exception: Any error encountered during graph initialization is re-raised to stop startup.
-    """
+    """Initialize graph state and clean up rebuild resources."""
     try:
         get_graph()
         logger.info("Application startup complete - graph initialized")
@@ -50,18 +45,12 @@ async def lifespan(_fastapi_app: FastAPI):
 
     yield
 
+    shutdown_rebuild_executor()
     logger.info("Application shutdown")
 
 
 def create_app() -> FastAPI:
-    """
-    Create and configure the FastAPI application instance.
-
-    Configures the application lifespan handler, attaches the rate limiter and its global exception handler, applies CORS policy, and registers the authentication, system, graph admin, assets, relationships, metrics, and visualization routers.
-
-    Returns:
-        FastAPI: The configured FastAPI application with lifespan handler, rate limiter, CORS, exception handler, and registered routers.
-    """
+    """Create and configure the FastAPI application."""
     # Initialise FastAPI app with lifespan handler
     app = FastAPI(
         title="Financial Asset Relationship API",

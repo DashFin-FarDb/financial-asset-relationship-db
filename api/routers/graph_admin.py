@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import contextvars
+import logging
 from concurrent.futures import ThreadPoolExecutor
 from typing import Annotated
 
@@ -24,36 +26,34 @@ from ..graph_lifecycle_providers import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 _rebuild_lock: asyncio.Lock | None = None
 _rebuild_lock_loop: asyncio.AbstractEventLoop | None = None
-_rebuild_executor = ThreadPoolExecutor(
-    max_workers=1,
-    thread_name_prefix="GraphRebuild",
-)
+_rebuild_executor: ThreadPoolExecutor | None = None
 
 
 @router.post("/api/graph/rebuild", response_model=GraphRebuildResponse)
 async def rebuild_graph(
     _current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> GraphRebuildResponse:
-    """
-    Rebuilds the asset graph, persists it to durable storage, and synchronizes the in-memory runtime graph, serializing concurrent rebuild requests with a per-event-loop lock.
-
-    Returns:
-        GraphRebuildResponse: Response with rebuild outcome and counts (`status`, `source`, `asset_count`, `relationship_count`, `regulatory_event_count`).
-
-    Raises:
-        HTTPException: 409 CONFLICT if persistence is not configured or not durable.
-        HTTPException: 500 INTERNAL SERVER ERROR if the rebuild source cannot be determined or saving the graph fails.
-    """
+    """Rebuild, persist, and synchronize graph state."""
     settings = get_graph_lifecycle_settings()
     loop = asyncio.get_running_loop()
+    rebuild_lock = _get_rebuild_lock()
 
-    async with _get_rebuild_lock():
+    if rebuild_lock.locked():
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="A graph rebuild is already in progress. Please try again later.",
+        )
+
+    async with rebuild_lock:
         try:
+            ctx = contextvars.copy_context()
             return await loop.run_in_executor(
-                _rebuild_executor,
+                _get_rebuild_executor(),
+                ctx.run,
                 _perform_rebuild_and_persist_sync,
                 settings,
             )
@@ -75,15 +75,19 @@ async def rebuild_graph(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=str(exc),
             ) from None
+        except Exception as exc:
+            logger.error(
+                "Unexpected graph rebuild failure: %s",
+                exc.__class__.__name__,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Graph rebuild failed.",
+            ) from None
 
 
 def _get_rebuild_lock() -> asyncio.Lock:
-    """
-    Get an asyncio.Lock bound to the current event loop, creating a new lock if none exists or the existing lock is bound to a different loop.
-
-    Returns:
-        asyncio.Lock: Lock instance associated with the current event loop.
-    """
+    """Return a rebuild lock bound to the current event loop."""
     global _rebuild_lock, _rebuild_lock_loop  # noqa: PLW0603
     loop = asyncio.get_running_loop()
     if _rebuild_lock is None or _rebuild_lock_loop is not loop:
@@ -92,23 +96,29 @@ def _get_rebuild_lock() -> asyncio.Lock:
     return _rebuild_lock
 
 
+def _get_rebuild_executor() -> ThreadPoolExecutor:
+    """Return the process-local rebuild executor."""
+    global _rebuild_executor  # noqa: PLW0603
+    if _rebuild_executor is None:
+        _rebuild_executor = ThreadPoolExecutor(
+            max_workers=1,
+            thread_name_prefix="GraphRebuild",
+        )
+    return _rebuild_executor
+
+
+def shutdown_rebuild_executor() -> None:
+    """Shut down the process-local graph rebuild executor."""
+    global _rebuild_executor  # noqa: PLW0603
+    if _rebuild_executor is not None:
+        _rebuild_executor.shutdown(wait=True)
+        _rebuild_executor = None
+
+
 def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
 ) -> GraphRebuildResponse:
-    """
-    Perform a full rebuild of the asset graph, persist it to durable storage, and synchronize the runtime graph state.
-
-    Parameters:
-        settings (GraphLifecycleSettings): Configuration for graph lifecycle operations; must include the durable persistence URL or enough information to resolve it.
-
-    Returns:
-        GraphRebuildResponse: Result summary with:
-            - status: The final persistence status (e.g., "persisted").
-            - source: Identifier of the graph source produced during the rebuild.
-            - asset_count: Number of assets in the rebuilt graph.
-            - relationship_count: Total number of relationship entries across all relationship lists.
-            - regulatory_event_count: Number of regulatory events collected from the graph (0 if none).
-    """
+    """Rebuild the graph, persist it, then publish it to runtime state."""
     resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
 
     graph, source = build_rebuild_graph(settings)
