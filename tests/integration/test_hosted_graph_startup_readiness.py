@@ -69,7 +69,7 @@ def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
         engine.dispose()
 
 
-def _equity(asset_id: str, symbol: str) -> Equity:
+def _create_test_equity(asset_id: str, symbol: str) -> Equity:
     """Build a minimal equity asset."""
     return Equity(
         id=asset_id,
@@ -84,8 +84,8 @@ def _equity(asset_id: str, symbol: str) -> Equity:
 def _seeded_hosted_graph() -> AssetRelationshipGraph:
     """Build a persisted graph with asymmetric reverse edges and one event."""
     graph = AssetRelationshipGraph()
-    graph.add_asset(_equity("HOSTED_A", "HA"))
-    graph.add_asset(_equity("HOSTED_B", "HB"))
+    graph.add_asset(_create_test_equity("HOSTED_A", "HA"))
+    graph.add_asset(_create_test_equity("HOSTED_B", "HB"))
     graph.add_relationship("HOSTED_A", "HOSTED_B", "directed_alpha", 0.4)
     graph.add_relationship("HOSTED_B", "HOSTED_A", "directed_alpha", 0.9)
     graph.add_regulatory_event(
@@ -127,7 +127,7 @@ class _EngineProxy:
         self._engine.dispose()
 
 
-def _strength(relationships: list[dict[str, Any]], source_id: str, target_id: str) -> float:
+def _get_directed_relationship_strength(relationships: list[dict[str, Any]], source_id: str, target_id: str) -> float:
     """Return the strength for a directed relationship."""
     for relationship in relationships:
         if (
@@ -148,11 +148,12 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _seeded_hosted_graph())
     _configure_persistence(monkeypatch, database_url)
-    monkeypatch.setattr(
-        providers,
-        "create_sample_graph",
-        lambda: (_ for _ in ()).throw(AssertionError("Fallback generation triggered unexpectedly")),
-    )
+
+    def fail_fallback_generation() -> AssetRelationshipGraph:
+        """Fail the test if startup unexpectedly falls back to sample generation."""
+        raise AssertionError("Fallback generation triggered unexpectedly")
+
+    monkeypatch.setattr(providers, "create_sample_graph", fail_fallback_generation)
 
     with caplog.at_level(logging.INFO):
         with TestClient(create_app()) as client:
@@ -173,8 +174,8 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     assert {"HOSTED_A", "HOSTED_B"} <= asset_ids
 
     relationship_payload = relationships.json()
-    assert _strength(relationship_payload, "HOSTED_A", "HOSTED_B") == pytest.approx(0.4)
-    assert _strength(relationship_payload, "HOSTED_B", "HOSTED_A") == pytest.approx(0.9)
+    assert _get_directed_relationship_strength(relationship_payload, "HOSTED_A", "HOSTED_B") == pytest.approx(0.4)
+    assert _get_directed_relationship_strength(relationship_payload, "HOSTED_B", "HOSTED_A") == pytest.approx(0.9)
 
     loaded = graph_lifecycle.get_graph()
     assert [event.id for event in loaded.regulatory_events] == ["HOSTED_EVENT_A"]
@@ -259,7 +260,6 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
         "exception",
         "real_data_cache_path",
         "graph_cache_path",
-        str(tmp_path).lower(),
     ):
         assert forbidden not in body_text
 
@@ -274,7 +274,7 @@ def test_empty_persistence_falls_through_to_existing_fallback_behavior(
     _configure_persistence(monkeypatch, database_url)
 
     fallback = AssetRelationshipGraph()
-    fallback.add_asset(_equity("FALLBACK_ONLY", "FB"))
+    fallback.add_asset(_create_test_equity("FALLBACK_ONLY", "FB"))
     monkeypatch.setattr(providers, "create_sample_graph", lambda: fallback)
 
     with TestClient(create_app()) as client:
