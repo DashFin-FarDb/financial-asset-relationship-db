@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator
@@ -22,6 +23,14 @@ from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, 
 pytestmark = pytest.mark.integration
 
 
+def _reset_runtime_graph_state() -> None:
+    """Reset lifecycle graph state and any already-imported legacy api.main mirror."""
+    graph_lifecycle.reset_graph()
+    api_main = sys.modules.get("api.main")
+    if api_main is not None and hasattr(api_main, "graph"):
+        api_main.graph = None
+
+
 @pytest.fixture(autouse=True)
 def reset_state(monkeypatch: pytest.MonkeyPatch):
     """Reset graph environment, runtime state, and settings cache."""
@@ -33,9 +42,9 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
     ):
         monkeypatch.delenv(name, raising=False)
     providers.clear_graph_lifecycle_settings_cache()
-    graph_lifecycle.reset_graph()
+    _reset_runtime_graph_state()
     yield
-    graph_lifecycle.reset_graph()
+    _reset_runtime_graph_state()
     providers.clear_graph_lifecycle_settings_cache()
 
 
@@ -103,7 +112,7 @@ def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -
     """Configure durable graph persistence URL for startup."""
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     providers.clear_graph_lifecycle_settings_cache()
-    graph_lifecycle.reset_graph()
+    _reset_runtime_graph_state()
 
 
 @dataclass
@@ -174,11 +183,10 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     monkeypatch.setattr(providers, "load_graph_from_cache_path", fail_fallback_generation)
     monkeypatch.setattr(providers, "load_graph_from_real_data_fetcher", fail_fallback_generation)
 
-    with caplog.at_level(logging.INFO):
-        with TestClient(create_app()) as client:
-            detailed = client.get("/api/health/detailed")
-            assets = client.get("/api/assets", params={"per_page": 1000})
-            relationships = client.get("/api/relationships")
+    with caplog.at_level(logging.INFO), TestClient(create_app()) as client:
+        detailed = client.get("/api/health/detailed")
+        assets = client.get("/api/assets", params={"per_page": 1000})
+        relationships = client.get("/api/relationships")
 
     assert detailed.status_code == 200
     assert assets.status_code == 200
@@ -300,10 +308,12 @@ def test_unreachable_persistence_fails_startup_with_sanitized_error(
 
     monkeypatch.setattr(providers, "create_engine_from_url", fail_create_engine)
 
-    with caplog.at_level(logging.ERROR):
-        with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup") as exc_info:
-            with TestClient(create_app()):
-                pass
+    with (
+        caplog.at_level(logging.ERROR),
+        pytest.raises(RuntimeError, match="Failed to load persisted graph during startup") as exc_info,
+    ):
+        with TestClient(create_app()):
+            pass
 
     message = str(exc_info.value)
     assert raw_url not in message
