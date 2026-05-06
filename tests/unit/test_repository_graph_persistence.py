@@ -13,8 +13,6 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-pytest.importorskip("sqlalchemy")
-
 
 pytestmark = pytest.mark.unit
 
@@ -26,6 +24,9 @@ def repository_factory(tmp_path):
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
     factory = create_session_factory(engine)
+pytest.importorskip("sqlalchemy")
+
+
     sessions = []
 
     def make_repository() -> AssetGraphRepository:
