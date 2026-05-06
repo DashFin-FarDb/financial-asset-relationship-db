@@ -135,7 +135,11 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
 
 
 def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
-    """Build a fresh graph from cache, real data, or sample data."""
+    """Build a fresh graph from the selected rebuild source path.
+
+    The source reports the selected rebuild path. RealDataFetcher may
+    internally fall back to sample data if live fetching fails.
+    """
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
             return (
@@ -164,8 +168,8 @@ def save_graph_to_persistence(
     Persist an AssetRelationshipGraph to a durable database.
 
     Parameters:
-        database_url (str | None): URL of the persistence database; may be None to use configured defaults.
-        graph (AssetRelationshipGraph): Graph to persist.
+        database_url: Explicit persistence database URL. None or blank is rejected.
+        graph: Graph to persist.
 
     Raises:
         GraphPersistenceNotConfiguredError: If no persistence URL is configured.

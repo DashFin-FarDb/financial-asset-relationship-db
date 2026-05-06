@@ -42,6 +42,8 @@ async def rebuild_graph(
     loop = asyncio.get_running_loop()
     rebuild_lock = _get_rebuild_lock()
 
+    # No await occurs between locked() and acquire; this gives same-loop
+    # fail-fast behavior without queueing behind the active rebuild.
     if rebuild_lock.locked():
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -57,33 +59,31 @@ async def rebuild_graph(
                 _perform_rebuild_and_persist_sync,
                 settings,
             )
-        except (
-            GraphPersistenceNotConfiguredError,
-            GraphPersistenceNonDurableError,
-        ) as exc:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=str(exc),
-            ) from None
-        except GraphRebuildSourceError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(exc),
-            ) from None
-        except GraphPersistenceSaveError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(exc),
-            ) from None
         except Exception as exc:
-            logger.error(
-                "Unexpected graph rebuild failure: %s",
-                exc.__class__.__name__,
-            )
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Graph rebuild failed.",
-            ) from None
+            raise _map_rebuild_error(exc) from None
+
+
+def _map_rebuild_error(exc: Exception) -> HTTPException:
+    """Map rebuild domain errors to sanitized HTTP errors."""
+    if isinstance(
+        exc,
+        (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError),
+    ):
+        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    if isinstance(exc, (GraphRebuildSourceError, GraphPersistenceSaveError)):
+        return HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(exc),
+        )
+
+    logger.error(
+        "Unexpected graph rebuild failure: %s",
+        exc.__class__.__name__,
+    )
+    return HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Graph rebuild failed.",
+    )
 
 
 def _get_rebuild_lock() -> asyncio.Lock:

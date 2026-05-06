@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Iterator
-from concurrent.futures import Future
+from concurrent.futures import Executor, Future
 from pathlib import Path
 from typing import Any
 
@@ -47,7 +47,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     providers.clear_graph_lifecycle_settings_cache()
 
 
-class _ImmediateExecutor:
+class _ImmediateExecutor(Executor):
     """Executor test double that runs submitted work synchronously."""
 
     def submit(self, fn: Callable[..., Any], /, *args: Any, **kwargs: Any) -> Future[Any]:
@@ -59,7 +59,12 @@ class _ImmediateExecutor:
             future.set_exception(exc)
         return future
 
-    def shutdown(self, wait: bool = True) -> None:  # pylint: disable=unused-argument
+    def shutdown(
+        self,
+        wait: bool = True,
+        *,
+        cancel_futures: bool = False,
+    ) -> None:  # pylint: disable=unused-argument
         """Match the ThreadPoolExecutor shutdown API."""
 
 
@@ -168,16 +173,37 @@ def _patch_sample_graph(
     monkeypatch.setattr(providers, "create_sample_graph", lambda: graph)
 
 
+def _prepare_rebuild_database(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    database_name: str = "asset_graph.db",
+    existing_graph: AssetRelationshipGraph | None = None,
+) -> str:
+    """Prepare durable graph persistence and return its URL."""
+    database_url = _sqlite_url(tmp_path, database_name)
+    if existing_graph is None:
+        _init_empty_db(database_url)
+    else:
+        _save_graph(database_url, existing_graph)
+    _configure_persistence(monkeypatch, database_url)
+    return database_url
+
+
 async def _run_rebuild_with_known_graph(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     graph: AssetRelationshipGraph,
     database_name: str = "asset_graph.db",
+    existing_graph: AssetRelationshipGraph | None = None,
 ) -> tuple[httpx.Response, str]:
     """Configure durable persistence, patch rebuild source, and post rebuild."""
-    database_url = _sqlite_url(tmp_path, database_name)
-    _init_empty_db(database_url)
-    _configure_persistence(monkeypatch, database_url)
+    database_url = _prepare_rebuild_database(
+        tmp_path,
+        monkeypatch,
+        database_name=database_name,
+        existing_graph=existing_graph,
+    )
     _patch_sample_graph(monkeypatch, graph)
     return await _post_rebuild(), database_url
 
@@ -262,9 +288,7 @@ async def test_explicit_rebuild_persists_sample_graph(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A durable explicit rebuild should save and publish the sample graph."""
-    database_url = _sqlite_url(tmp_path)
-    _init_empty_db(database_url)
-    _configure_persistence(monkeypatch, database_url)
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
 
     response = await _post_rebuild()
 
@@ -284,12 +308,10 @@ async def test_rebuild_uses_cache_path_before_sample(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """GRAPH_CACHE_PATH should be the first rebuild source."""
-    database_url = _sqlite_url(tmp_path)
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
     cache_path = tmp_path / "cache.json"
     cache_path.write_text("{}", encoding="utf-8")
     known_graph = _graph_with_asset("CACHE_ASSET", "CACHE")
-    _init_empty_db(database_url)
-    _configure_persistence(monkeypatch, database_url)
     monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
     providers.clear_graph_lifecycle_settings_cache()
     monkeypatch.setattr(providers, "load_graph_from_cache_path", lambda *_args, **_kwargs: known_graph)
@@ -306,10 +328,8 @@ async def test_rebuild_skips_absent_cache_path_for_real_data_source(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A configured but absent cache path should not be reported as cache provenance."""
-    database_url = _sqlite_url(tmp_path)
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
     known_graph = _graph_with_asset("REAL_ASSET", "REAL")
-    _init_empty_db(database_url)
-    _configure_persistence(monkeypatch, database_url)
     monkeypatch.setenv("GRAPH_CACHE_PATH", str(tmp_path / "missing-cache.json"))
     monkeypatch.setenv("USE_REAL_DATA_FETCHER", "1")
     providers.clear_graph_lifecycle_settings_cache()
@@ -333,10 +353,8 @@ async def test_rebuild_uses_real_data_before_sample(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """USE_REAL_DATA_FETCHER should be used when no cache path is configured."""
-    database_url = _sqlite_url(tmp_path)
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
     known_graph = _graph_with_asset("REAL_ASSET", "REAL")
-    _init_empty_db(database_url)
-    _configure_persistence(monkeypatch, database_url)
     monkeypatch.setenv("USE_REAL_DATA_FETCHER", "1")
     providers.clear_graph_lifecycle_settings_cache()
     monkeypatch.setattr(providers, "load_graph_from_real_data_fetcher", lambda *_args, **_kwargs: known_graph)
@@ -395,12 +413,12 @@ async def test_destructive_snapshot_is_limited_to_explicit_rebuild(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Explicit rebuild should intentionally replace stale persisted graph rows."""
-    database_url = _sqlite_url(tmp_path)
-    _save_graph(database_url, _graph_with_asset("STALE_ASSET", "STALE"))
-    _configure_persistence(monkeypatch, database_url)
-    _patch_sample_graph(monkeypatch, _graph_with_asset("FRESH_ASSET", "FRESH"))
-
-    response = await _post_rebuild()
+    response, database_url = await _run_rebuild_with_known_graph(
+        tmp_path,
+        monkeypatch,
+        _graph_with_asset("FRESH_ASSET", "FRESH"),
+        existing_graph=_graph_with_asset("STALE_ASSET", "STALE"),
+    )
 
     assert response.status_code == 200
     assert set(_load_graph(database_url).assets) == {"FRESH_ASSET"}
@@ -457,12 +475,12 @@ async def test_duplicate_regulatory_events_preserve_prior_snapshot(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Duplicate event IDs should fail before destructive replacement."""
-    database_url = _sqlite_url(tmp_path)
-    _save_graph(database_url, _graph_with_asset("ORIGINAL_ASSET", "ORIGINAL"))
-    _configure_persistence(monkeypatch, database_url)
-    _patch_sample_graph(monkeypatch, _graph_with_duplicate_events())
-
-    response = await _post_rebuild()
+    response, database_url = await _run_rebuild_with_known_graph(
+        tmp_path,
+        monkeypatch,
+        _graph_with_duplicate_events(),
+        existing_graph=_graph_with_asset("ORIGINAL_ASSET", "ORIGINAL"),
+    )
 
     assert response.status_code == 500
     assert set(_load_graph(database_url).assets) == {"ORIGINAL_ASSET"}
