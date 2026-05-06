@@ -106,12 +106,14 @@ def _initialize_graph() -> AssetRelationshipGraph:
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
     persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(settings.asset_graph_database_url)
     if persisted_graph is not None:
+        logger.info("Graph startup source: persisted_graph_store")
         return persisted_graph
 
     cache_path = settings.graph_cache_path
     use_real_data = settings.use_real_data_fetcher
 
     if cache_path:
+        logger.info("Graph startup source: graph_cache_path")
         return graph_lifecycle_providers.load_graph_from_cache_path(
             cache_path,
             enable_network=use_real_data,
@@ -119,8 +121,10 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
     if use_real_data:
         real_data_cache_path = settings.real_data_cache_path
+        logger.info("Graph startup source: real_data_fetcher")
         return graph_lifecycle_providers.load_graph_from_real_data_fetcher(
             real_data_cache_path,
         )
 
+    logger.info("Graph startup source: sample_graph")
     return graph_lifecycle_providers.create_sample_graph()

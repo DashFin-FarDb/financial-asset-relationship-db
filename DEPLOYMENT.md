@@ -325,6 +325,19 @@ It must not expose:
 
 A degraded response still returns HTTP 200. Treat `status: "degraded"` as an operational readiness signal, not an HTTP transport failure. Automated monitoring tools should be configured to verify the status field in the JSON response body.
 
+### Verifying persisted graph startup loading
+
+Use this hosted-safe flow to verify runtime startup loaded graph truth from durable persistence:
+
+1. Configure a durable `ASSET_GRAPH_DATABASE_URL` (for hosted deployment, use PostgreSQL).
+2. Populate graph truth only through the authenticated `POST /api/graph/rebuild` route or a controlled operator seed.
+3. Restart/redeploy the API service.
+4. Check startup logs for `Graph startup source: persisted_graph_store`.
+5. Call `GET /api/health/detailed` and confirm bounded graph counts match your persisted baseline.
+6. Optionally verify expected sentinel assets and directed relationships via `GET /api/assets` and `GET /api/relationships`.
+
+Readiness and read-only checks must not trigger rebuilds, call persistence save flows, expose connection URLs or credentials, include raw exception text, or dump full graph data.
+
 ## Frontend Features
 
 The Next.js frontend includes:
