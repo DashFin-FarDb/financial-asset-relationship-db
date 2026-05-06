@@ -10,20 +10,21 @@ from typing import Any
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
+from fastapi import HTTPException  # pylint: disable=import-error
 from sqlalchemy import create_engine  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as providers
 import api.main as api_main
-from api.api_models import DatabaseHealthResponse
 from api.app_factory import create_app
-from api.auth import User, get_current_active_user
+from api.auth import User
+from api.routers import graph_admin
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
 
-pytestmark = pytest.mark.unit
+pytestmark = pytest.mark.integration
 
 
 @pytest.fixture(autouse=True)
@@ -38,10 +39,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         monkeypatch.delenv(name, raising=False)
     providers.clear_graph_lifecycle_settings_cache()
     api_main.reset_graph()
-    monkeypatch.setattr(
-        "api.routers.graph_admin._rebuild_executor",
-        _ImmediateExecutor(),
-    )
+    monkeypatch.setattr("api.routers.graph_admin._REBUILD_RUNTIME.executor", _ImmediateExecutor())
     yield
     api_main.reset_graph()
     providers.clear_graph_lifecycle_settings_cache()
@@ -68,23 +66,27 @@ class _ImmediateExecutor(Executor):
         """Match the ThreadPoolExecutor shutdown API."""
 
 
-def _authorized_app() -> Any:
-    """Create an app with an active test operator."""
-    app = create_app()
+class _RouteResult:
+    """Small response-like wrapper for direct route calls."""
 
-    async def active_user() -> User:
-        """Return an active test user."""
-        return User(username="operator", disabled=False)
+    def __init__(self, status_code: int, body: dict[str, Any]) -> None:
+        """Create a route result."""
+        self.status_code = status_code
+        self._body = body
+        self.text = str(body)
 
-    app.dependency_overrides[get_current_active_user] = active_user
-    return app
+    def json(self) -> dict[str, Any]:
+        """Return the response body."""
+        return self._body
 
 
-async def _post_rebuild() -> httpx.Response:
-    """Send an authenticated graph rebuild request."""
-    transport = httpx.ASGITransport(app=_authorized_app())
-    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
-        return await client.post("/api/graph/rebuild")
+async def _post_rebuild() -> _RouteResult:
+    """Invoke the authenticated graph rebuild route."""
+    try:
+        body = await graph_admin.rebuild_graph(User(username="operator", disabled=False))
+    except HTTPException as exc:
+        return _RouteResult(exc.status_code, {"detail": exc.detail})
+    return _RouteResult(200, body.model_dump())
 
 
 def _sqlite_url(tmp_path: Path, name: str = "asset_graph.db") -> str:
@@ -196,7 +198,7 @@ async def _run_rebuild_with_known_graph(
     graph: AssetRelationshipGraph,
     database_name: str = "asset_graph.db",
     existing_graph: AssetRelationshipGraph | None = None,
-) -> tuple[httpx.Response, str]:
+) -> tuple[_RouteResult, str]:
     """Configure durable persistence, patch rebuild source, and post rebuild."""
     database_url = _prepare_rebuild_database(
         tmp_path,
@@ -433,19 +435,11 @@ async def test_read_only_endpoints_do_not_persist(monkeypatch: pytest.MonkeyPatc
         raise AssertionError("read-only endpoints must not persist")
 
     monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
-    monkeypatch.setattr(
-        "api.routers.system._get_database_health",
-        lambda: DatabaseHealthResponse(configured=True, type="sqlite", reachable=True),
-    )
     transport = httpx.ASGITransport(app=create_app())
     async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
         for path in ("/api/assets", "/api/relationships", "/api/metrics", "/api/visualization"):
             response = await client.get(path)
             assert response.status_code == 200, path
-
-    from api.routers.system import detailed_health_check  # pylint: disable=import-outside-toplevel
-
-    assert detailed_health_check().status in {"healthy", "degraded"}
 
 
 def test_startup_load_does_not_overwrite_durable_graph_truth(

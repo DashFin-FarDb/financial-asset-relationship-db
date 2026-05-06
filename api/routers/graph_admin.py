@@ -28,19 +28,51 @@ from ..graph_lifecycle_providers import (
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-_rebuild_lock: asyncio.Lock | None = None
-_rebuild_lock_loop: asyncio.AbstractEventLoop | None = None
-_rebuild_executor: ThreadPoolExecutor | None = None
+
+class _RebuildRuntime:
+    """Process-local rebuild concurrency and executor state."""
+
+    def __init__(self) -> None:
+        """Create empty rebuild runtime state."""
+        self.lock: asyncio.Lock | None = None
+        self.lock_loop: asyncio.AbstractEventLoop | None = None
+        self.executor: ThreadPoolExecutor | None = None
+
+    def get_lock(self) -> asyncio.Lock:
+        """Return a rebuild lock bound to the current event loop."""
+        loop = asyncio.get_running_loop()
+        if self.lock is None or self.lock_loop is not loop:
+            self.lock = asyncio.Lock()
+            self.lock_loop = loop
+        return self.lock
+
+    def get_executor(self) -> ThreadPoolExecutor:
+        """Return the process-local rebuild executor."""
+        if self.executor is None:
+            self.executor = ThreadPoolExecutor(
+                max_workers=1,
+                thread_name_prefix="GraphRebuild",
+            )
+        return self.executor
+
+    def shutdown_executor(self) -> None:
+        """Shut down the process-local rebuild executor."""
+        if self.executor is not None:
+            self.executor.shutdown(wait=True)
+            self.executor = None
 
 
-@router.post("/api/graph/rebuild", response_model=GraphRebuildResponse)
+_REBUILD_RUNTIME = _RebuildRuntime()
+
+
+@router.post("/api/graph/rebuild")
 async def rebuild_graph(
     _current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> GraphRebuildResponse:
     """Rebuild, persist, and synchronize graph state."""
     settings = get_graph_lifecycle_settings()
     loop = asyncio.get_running_loop()
-    rebuild_lock = _get_rebuild_lock()
+    rebuild_lock = _REBUILD_RUNTIME.get_lock()
 
     # No await occurs between locked() and acquire; this gives same-loop
     # fail-fast behavior without queueing behind the active rebuild.
@@ -54,7 +86,7 @@ async def rebuild_graph(
         try:
             ctx = contextvars.copy_context()
             return await loop.run_in_executor(
-                _get_rebuild_executor(),
+                _REBUILD_RUNTIME.get_executor(),
                 ctx.run,
                 _perform_rebuild_and_persist_sync,
                 settings,
@@ -86,33 +118,9 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
     )
 
 
-def _get_rebuild_lock() -> asyncio.Lock:
-    """Return a rebuild lock bound to the current event loop."""
-    global _rebuild_lock, _rebuild_lock_loop  # noqa: PLW0603
-    loop = asyncio.get_running_loop()
-    if _rebuild_lock is None or _rebuild_lock_loop is not loop:
-        _rebuild_lock = asyncio.Lock()
-        _rebuild_lock_loop = loop
-    return _rebuild_lock
-
-
-def _get_rebuild_executor() -> ThreadPoolExecutor:
-    """Return the process-local rebuild executor."""
-    global _rebuild_executor  # noqa: PLW0603
-    if _rebuild_executor is None:
-        _rebuild_executor = ThreadPoolExecutor(
-            max_workers=1,
-            thread_name_prefix="GraphRebuild",
-        )
-    return _rebuild_executor
-
-
 def shutdown_rebuild_executor() -> None:
     """Shut down the process-local graph rebuild executor."""
-    global _rebuild_executor  # noqa: PLW0603
-    if _rebuild_executor is not None:
-        _rebuild_executor.shutdown(wait=True)
-        _rebuild_executor = None
+    _REBUILD_RUNTIME.shutdown_executor()
 
 
 def _perform_rebuild_and_persist_sync(

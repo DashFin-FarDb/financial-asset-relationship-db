@@ -22,6 +22,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 logger = logging.getLogger(__name__)
 
 GraphRebuildSource = Literal["cache", "real_data", "sample"]
+_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
 
 
 @dataclass(frozen=True)
@@ -198,7 +199,7 @@ def _create_graph_persistence_engine(database_url: str) -> Engine:
         return create_engine_from_url(database_url)
     except Exception as exc:
         logger.error("Failed to prepare graph persistence engine: %s", exc.__class__.__name__)
-        raise GraphPersistenceSaveError("Failed to persist rebuilt graph.") from None
+        raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
 
 
 def _save_graph_with_engine(engine: Engine, graph: AssetRelationshipGraph) -> None:
@@ -217,7 +218,7 @@ def _save_graph_with_engine(engine: Engine, graph: AssetRelationshipGraph) -> No
         session = session_factory()
     except Exception as exc:
         logger.error("Failed to prepare graph persistence session: %s", exc.__class__.__name__)
-        raise GraphPersistenceSaveError("Failed to persist rebuilt graph.") from None
+        raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
 
     try:
         _save_graph_with_session(session, graph)
@@ -248,7 +249,7 @@ def _save_graph_with_session(session: Session, graph: AssetRelationshipGraph) ->
                 rollback_exc.__class__.__name__,
             )
         logger.error("Failed to persist rebuilt graph: %s", exc.__class__.__name__)
-        raise GraphPersistenceSaveError("Failed to persist rebuilt graph.") from None
+        raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
 
 
 def _resolve_persistence_database_url(database_url: str | None) -> str | None:

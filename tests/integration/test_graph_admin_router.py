@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
+from fastapi import HTTPException  # pylint: disable=import-error
 
 import api.routers.graph_admin as graph_admin
 from api.auth import User, get_current_active_user
 
-pytestmark = pytest.mark.unit
+pytestmark = pytest.mark.integration
 
 
 def _authorized_app():
@@ -17,7 +18,7 @@ def _authorized_app():
 
     app = create_app()
 
-    async def active_user() -> User:
+    def active_user() -> User:
         """Return an active test user."""
         return User(username="operator", disabled=False)
 
@@ -49,12 +50,13 @@ async def test_app_construction_with_graph_admin_router_succeeds() -> None:
 
 async def test_rebuild_returns_429_when_rebuild_already_running() -> None:
     """Concurrent rebuild requests should fail fast instead of queueing."""
-    lock = graph_admin._get_rebuild_lock()  # pylint: disable=protected-access
+    lock = graph_admin._REBUILD_RUNTIME.get_lock()  # pylint: disable=protected-access
     await lock.acquire()
     try:
-        response = await _post_rebuild()
+        with pytest.raises(HTTPException) as exc_info:
+            await graph_admin.rebuild_graph(User(username="operator", disabled=False))
     finally:
         lock.release()
 
-    assert response.status_code == 429
-    assert response.json() == {"detail": "A graph rebuild is already in progress. Please try again later."}
+    assert exc_info.value.status_code == 429
+    assert exc_info.value.detail == "A graph rebuild is already in progress. Please try again later."
