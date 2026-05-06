@@ -140,16 +140,16 @@ class _EngineProxy:
         self._engine.dispose()
 
 
-def _get_directed_relationship_strength(relationships: list[dict[str, Any]], source_id: str, target_id: str) -> float:
-    """Return the strength for a directed relationship."""
-    for relationship in relationships:
-        if (
-            relationship["source_id"] == source_id
-            and relationship["target_id"] == target_id
-            and relationship["relationship_type"] == "directed_alpha"
-        ):
-            return relationship["strength"]
-    raise AssertionError(f"Missing relationship {source_id}->{target_id}")
+def _relationship_strengths(relationships: list[dict[str, Any]]) -> dict[tuple[str, str, str], float]:
+    """Index directed relationships by source, target, and type."""
+    return {
+        (
+            relationship["source_id"],
+            relationship["target_id"],
+            relationship["relationship_type"],
+        ): relationship["strength"]
+        for relationship in relationships
+    }
 
 
 def _walk_strings(value: Any) -> Iterator[str]:
@@ -201,8 +201,9 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     assert {"HOSTED_A", "HOSTED_B"} <= asset_ids
 
     relationship_payload = relationships.json()
-    assert _get_directed_relationship_strength(relationship_payload, "HOSTED_A", "HOSTED_B") == pytest.approx(0.4)
-    assert _get_directed_relationship_strength(relationship_payload, "HOSTED_B", "HOSTED_A") == pytest.approx(0.9)
+    relationship_strengths = _relationship_strengths(relationship_payload)
+    assert relationship_strengths[("HOSTED_A", "HOSTED_B", "directed_alpha")] == pytest.approx(0.4)
+    assert relationship_strengths[("HOSTED_B", "HOSTED_A", "directed_alpha")] == pytest.approx(0.9)
 
     loaded = graph_lifecycle.get_graph()
     assert [event.id for event in loaded.regulatory_events] == ["HOSTED_EVENT_A"]
