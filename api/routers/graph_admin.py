@@ -26,7 +26,7 @@ _rebuild_lock = threading.Lock()
 
 
 @router.post("/api/graph/rebuild", response_model=GraphRebuildResponse)
-async def rebuild_graph(
+def rebuild_graph(
     _current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> GraphRebuildResponse:
     """Build, persist, and publish a fresh graph snapshot."""
