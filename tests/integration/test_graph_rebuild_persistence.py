@@ -5,7 +5,6 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from concurrent.futures import Executor, Future
 from pathlib import Path
 from typing import Any
@@ -50,39 +49,29 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
 class _ImmediateExecutor(Executor):
     """Executor test double that runs submitted work synchronously."""
 
-    def submit(
-        self,
-        fn: Callable[..., Any],
-        *args: Any,
-        **kwargs: Any,
-    ) -> Future[Any]:
+    def submit(self, fn, *args, **kwargs):  # type: ignore[override]
         """Run submitted work immediately and return a completed Future."""
-        future: Future[Any] = Future()
+        future = Future()
         try:
             future.set_result(fn(*args, **kwargs))
         except Exception as exc:  # pragma: no cover - future exception path
             future.set_exception(exc)
         return future
 
-    def shutdown(
-        self,
-        wait: bool = True,
-        *,
-        cancel_futures: bool = False,
-    ) -> None:  # pylint: disable=unused-argument
+    def shutdown(self, wait=True, **kwargs):  # type: ignore[override]
         """Match the ThreadPoolExecutor shutdown API."""
 
 
 class _RouteResult:
     """Small response-like wrapper for direct route calls."""
 
-    def __init__(self, status_code: int, body: dict[str, Any]) -> None:
+    def __init__(self, status_code: int, body: dict) -> None:
         """Create a route result."""
         self.status_code = status_code
         self._body = body
         self.text = str(body)
 
-    def json(self) -> dict[str, Any]:
+    def json(self) -> dict:
         """Return the response body."""
         return self._body
 
@@ -204,7 +193,7 @@ async def _run_rebuild_with_known_graph(
     monkeypatch: pytest.MonkeyPatch,
     graph: AssetRelationshipGraph,
     existing_graph: AssetRelationshipGraph | None = None,
-) -> tuple[_RouteResult, str]:
+) -> tuple:
     """Configure durable persistence, patch rebuild source, and post rebuild."""
     database_url = _prepare_rebuild_database(
         tmp_path,
@@ -236,7 +225,7 @@ async def test_unset_or_blank_persistence_returns_409_without_building(
 
     def fail_build(
         _settings: providers.GraphLifecycleSettings,
-    ) -> tuple[AssetRelationshipGraph, providers.GraphRebuildSource]:
+    ):
         """Fail if validation does not short-circuit."""
         raise AssertionError("build should not be attempted")
 
@@ -266,7 +255,7 @@ async def test_in_memory_sqlite_persistence_returns_409_without_building(
 
     def fail_build(
         _settings: providers.GraphLifecycleSettings,
-    ) -> tuple[AssetRelationshipGraph, providers.GraphRebuildSource]:
+    ):
         """Fail if validation does not short-circuit."""
         raise AssertionError("build should not be attempted")
 
@@ -680,7 +669,7 @@ async def test_unexpected_rebuild_failure_returns_sanitized_500(
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
 
-    def fail_build(_settings: providers.GraphLifecycleSettings) -> Any:
+    def fail_build(_settings: providers.GraphLifecycleSettings):
         """Raise an unexpected rebuild error."""
         raise RuntimeError(raw_detail)
 
