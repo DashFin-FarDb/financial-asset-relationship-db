@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Literal
+from pathlib import Path
+from typing import Literal, Tuple
 
 from sqlalchemy import select  # pylint: disable=import-error
-from sqlalchemy.engine import make_url  # pylint: disable=import-error
+from sqlalchemy.engine import Engine, make_url  # pylint: disable=import-error
 from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
 from sqlalchemy.orm import Session  # pylint: disable=import-error
 
@@ -135,7 +136,7 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
     return resolved_url
 
 
-def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
+def build_rebuild_graph(settings: GraphLifecycleSettings) -> Tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """
     Build a fresh graph from the configured rebuild source and report that source.
 
@@ -143,7 +144,7 @@ def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelation
     replacement snapshot that will be persisted.
     """
     try:
-        if settings.graph_cache_path:
+        if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
             return (
                 load_graph_from_cache_path(
                     settings.graph_cache_path,
@@ -166,39 +167,48 @@ def save_graph_to_persistence(
     database_url: str | None,
     graph: AssetRelationshipGraph,
 ) -> None:
-    """
-    Persist graph truth to a durable graph store using a short-lived session.
-
-    The URL is validated defensively so callers can pass either raw settings
-    values or a previously resolved URL.
-    """
+    """Persist graph truth to a durable graph store."""
     resolved_url = resolve_durable_graph_persistence_url(database_url)
+    engine = _create_graph_persistence_engine(resolved_url)
     try:
-        engine = create_engine_from_url(resolved_url)
+        _save_graph_with_engine(engine, graph)
+    finally:
+        engine.dispose()
+
+
+def _create_graph_persistence_engine(database_url: str) -> Engine:
+    """Create a graph persistence engine with sanitized failure handling."""
+    try:
+        return create_engine_from_url(database_url)
     except Exception as exc:
         logger.error("Failed to prepare graph persistence engine: %s", exc.__class__.__name__)
         raise GraphPersistenceSaveError("Failed to persist rebuilt graph.") from None
 
+
+def _save_graph_with_engine(engine: Engine, graph: AssetRelationshipGraph) -> None:
+    """Persist graph with a short-lived session."""
     try:
-        try:
-            session_factory = create_session_factory(engine)
-            session = session_factory()
-            try:
-                AssetGraphRepository(session).save_graph(graph)
-                session.commit()
-            except Exception as exc:
-                session.rollback()
-                logger.error("Failed to persist rebuilt graph: %s", exc.__class__.__name__)
-                raise GraphPersistenceSaveError("Failed to persist rebuilt graph.") from None
-            finally:
-                session.close()
-        except GraphPersistenceSaveError:
-            raise
-        except Exception as exc:
-            logger.error("Failed to prepare graph persistence session: %s", exc.__class__.__name__)
-            raise GraphPersistenceSaveError("Failed to persist rebuilt graph.") from None
+        session_factory = create_session_factory(engine)
+        session = session_factory()
+    except Exception as exc:
+        logger.error("Failed to prepare graph persistence session: %s", exc.__class__.__name__)
+        raise GraphPersistenceSaveError("Failed to persist rebuilt graph.") from None
+
+    try:
+        _save_graph_with_session(session, graph)
     finally:
-        engine.dispose()
+        session.close()
+
+
+def _save_graph_with_session(session: Session, graph: AssetRelationshipGraph) -> None:
+    """Save graph and commit, rolling back on failure."""
+    try:
+        AssetGraphRepository(session).save_graph(graph)
+        session.commit()
+    except Exception as exc:
+        session.rollback()
+        logger.error("Failed to persist rebuilt graph: %s", exc.__class__.__name__)
+        raise GraphPersistenceSaveError("Failed to persist rebuilt graph.") from None
 
 
 def _resolve_persistence_database_url(database_url: str | None) -> str | None:
@@ -273,11 +283,13 @@ def _is_in_memory_sqlite_url(url: str) -> bool:
         return False
 
     database = parsed.database or ""
-    mode = parsed.query.get("mode")
-    is_memory_mode = mode == "memory" or (isinstance(mode, tuple) and "memory" in mode)
-
     if database in {"", ":memory:"}:
         return True
     if database.startswith("file::memory:"):
         return True
-    return database.startswith("file:") and is_memory_mode
+    return database.startswith("file:") and _query_mode_is_memory(parsed.query.get("mode"))
+
+
+def _query_mode_is_memory(mode: object) -> bool:
+    """Return whether a parsed SQLAlchemy query mode requests memory."""
+    return mode == "memory" or (isinstance(mode, tuple) and "memory" in mode)

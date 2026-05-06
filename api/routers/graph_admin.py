@@ -6,7 +6,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
 
 from ..api_models import GraphRebuildResponse
 from ..auth import User, get_current_active_user
@@ -25,7 +25,8 @@ from ..graph_lifecycle_providers import (
 
 router = APIRouter()
 
-_rebuild_lock = asyncio.Lock()
+_rebuild_lock: asyncio.Lock | None = None
+_rebuild_lock_loop: asyncio.AbstractEventLoop | None = None
 _rebuild_executor = ThreadPoolExecutor(
     max_workers=1,
     thread_name_prefix="GraphRebuild",
@@ -40,7 +41,7 @@ async def rebuild_graph(
     settings = get_graph_lifecycle_settings()
     loop = asyncio.get_running_loop()
 
-    async with _rebuild_lock:
+    async with _get_rebuild_lock():
         try:
             return await loop.run_in_executor(
                 _rebuild_executor,
@@ -65,6 +66,16 @@ async def rebuild_graph(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=str(exc),
             ) from None
+
+
+def _get_rebuild_lock() -> asyncio.Lock:
+    """Return an asyncio lock bound to the current event loop."""
+    global _rebuild_lock, _rebuild_lock_loop  # noqa: PLW0603
+    loop = asyncio.get_running_loop()
+    if _rebuild_lock is None or _rebuild_lock_loop is not loop:
+        _rebuild_lock = asyncio.Lock()
+        _rebuild_lock_loop = loop
+    return _rebuild_lock
 
 
 def _perform_rebuild_and_persist_sync(

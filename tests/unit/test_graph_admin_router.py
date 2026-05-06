@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import httpx
-import pytest
+import httpx  # pylint: disable=import-error
+import pytest  # pylint: disable=import-error
 
 pytestmark = pytest.mark.unit
 
@@ -17,7 +17,7 @@ async def test_app_construction_with_graph_admin_router_succeeds() -> None:
 
     assert "/api/graph/rebuild" in routes
     transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
         response = await client.post("/api/graph/rebuild")
 
     assert response.status_code == 401

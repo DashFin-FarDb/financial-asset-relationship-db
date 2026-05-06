@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Iterator
+from concurrent.futures import Future
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Iterator, Tuple
 
-import httpx
-import pytest
-from sqlalchemy import create_engine
+import httpx  # pylint: disable=import-error
+import pytest  # pylint: disable=import-error
+from sqlalchemy import create_engine  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as providers
@@ -37,9 +37,26 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         monkeypatch.delenv(name, raising=False)
     providers.clear_graph_lifecycle_settings_cache()
     api_main.reset_graph()
+    monkeypatch.setattr(
+        "api.routers.graph_admin._rebuild_executor",
+        _ImmediateExecutor(),
+    )
     yield
     api_main.reset_graph()
     providers.clear_graph_lifecycle_settings_cache()
+
+
+class _ImmediateExecutor:
+    """Executor test double that runs submitted work synchronously."""
+
+    def submit(self, fn: Callable[..., Any], /, *args: Any, **kwargs: Any) -> Future[Any]:
+        """Return a completed Future for the submitted callable."""
+        future: Future[Any] = Future()
+        try:
+            future.set_result(fn(*args, **kwargs))
+        except Exception as exc:  # pragma: no cover - exercised through future exception propagation
+            future.set_exception(exc)
+        return future
 
 
 def _authorized_app() -> Any:
@@ -57,7 +74,7 @@ def _authorized_app() -> Any:
 async def _post_rebuild() -> httpx.Response:
     """POST to the rebuild endpoint with auth overridden."""
     transport = httpx.ASGITransport(app=_authorized_app())
-    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
         return await client.post("/api/graph/rebuild")
 
 
@@ -139,10 +156,32 @@ def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -
     providers.clear_graph_lifecycle_settings_cache()
 
 
+def _patch_sample_graph(
+    monkeypatch: pytest.MonkeyPatch,
+    graph: AssetRelationshipGraph,
+) -> None:
+    """Patch sample graph creation to return a known graph."""
+    monkeypatch.setattr(providers, "create_sample_graph", lambda: graph)
+
+
+async def _run_rebuild_with_known_graph(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    graph: AssetRelationshipGraph,
+    database_name: str = "asset_graph.db",
+) -> Tuple[httpx.Response, str]:
+    """Configure durable persistence, patch rebuild graph, and run rebuild."""
+    database_url = _sqlite_url(tmp_path, database_name)
+    _init_empty_db(database_url)
+    _configure_persistence(monkeypatch, database_url)
+    _patch_sample_graph(monkeypatch, graph)
+    return await _post_rebuild(), database_url
+
+
 async def test_unauthenticated_rebuild_request_is_rejected() -> None:
     """The rebuild endpoint requires authentication."""
     transport = httpx.ASGITransport(app=create_app())
-    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
         response = await client.post("/api/graph/rebuild")
 
     assert response.status_code == 401
@@ -160,7 +199,7 @@ async def test_unset_or_blank_persistence_returns_409_without_building(
 
     def fail_build(
         _settings: providers.GraphLifecycleSettings,
-    ) -> tuple[AssetRelationshipGraph, providers.GraphRebuildSource]:
+    ) -> Tuple[AssetRelationshipGraph, providers.GraphRebuildSource]:
         """Fail if validation does not short-circuit before build."""
         raise AssertionError("build should not be attempted")
 
@@ -190,7 +229,7 @@ async def test_in_memory_sqlite_persistence_returns_409_without_building(
 
     def fail_build(
         _settings: providers.GraphLifecycleSettings,
-    ) -> tuple[AssetRelationshipGraph, providers.GraphRebuildSource]:
+    ) -> Tuple[AssetRelationshipGraph, providers.GraphRebuildSource]:
         """Fail if validation does not short-circuit before build."""
         raise AssertionError("build should not be attempted")
 
@@ -242,10 +281,12 @@ async def test_rebuild_uses_cache_path_before_sample(
 ) -> None:
     """GRAPH_CACHE_PATH should be the first rebuild source."""
     database_url = _sqlite_url(tmp_path)
+    cache_path = tmp_path / "cache.json"
+    cache_path.write_text("{}", encoding="utf-8")
     known_graph = _graph_with_asset("CACHE_ASSET", "CACHE")
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
-    monkeypatch.setenv("GRAPH_CACHE_PATH", "/tmp/cache.json")
+    monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
     providers.clear_graph_lifecycle_settings_cache()
     monkeypatch.setattr(providers, "load_graph_from_cache_path", lambda *_args, **_kwargs: known_graph)
 
@@ -254,6 +295,33 @@ async def test_rebuild_uses_cache_path_before_sample(
     assert response.status_code == 200
     assert response.json()["source"] == "cache"
     assert set(_load_graph(database_url).assets) == {"CACHE_ASSET"}
+
+
+async def test_rebuild_skips_absent_cache_path_for_real_data_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A configured but absent cache path should not be reported as cache provenance."""
+    database_url = _sqlite_url(tmp_path)
+    known_graph = _graph_with_asset("REAL_ASSET", "REAL")
+    _init_empty_db(database_url)
+    _configure_persistence(monkeypatch, database_url)
+    monkeypatch.setenv("GRAPH_CACHE_PATH", str(tmp_path / "missing-cache.json"))
+    monkeypatch.setenv("USE_REAL_DATA_FETCHER", "1")
+    providers.clear_graph_lifecycle_settings_cache()
+
+    def fail_cache_load(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+        """Fail if an absent cache path is treated as the rebuild source."""
+        raise AssertionError("absent cache path must not be used")
+
+    monkeypatch.setattr(providers, "load_graph_from_cache_path", fail_cache_load)
+    monkeypatch.setattr(providers, "load_graph_from_real_data_fetcher", lambda *_args, **_kwargs: known_graph)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 200
+    assert response.json()["source"] == "real_data"
+    assert set(_load_graph(database_url).assets) == {"REAL_ASSET"}
 
 
 async def test_rebuild_uses_real_data_before_sample(
@@ -287,7 +355,7 @@ async def test_runtime_graph_updates_only_after_success(
     api_main.set_graph(graph_a)
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
-    monkeypatch.setattr(providers, "create_sample_graph", lambda: graph_b)
+    _patch_sample_graph(monkeypatch, graph_b)
 
     def fail_save(*_args: Any, **_kwargs: Any) -> None:
         """Force the explicit save operation to fail."""
@@ -306,19 +374,16 @@ async def test_runtime_graph_and_main_mirror_update_after_success(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A successful save should update both lifecycle state and api.main.graph."""
-    database_url = _sqlite_url(tmp_path)
     graph_a = _graph_with_asset("GRAPH_A", "A")
     graph_b = _graph_with_asset("GRAPH_B", "B")
     api_main.set_graph(graph_a)
-    _init_empty_db(database_url)
-    _configure_persistence(monkeypatch, database_url)
-    monkeypatch.setattr(providers, "create_sample_graph", lambda: graph_b)
 
-    response = await _post_rebuild()
+    response, database_url = await _run_rebuild_with_known_graph(tmp_path, monkeypatch, graph_b)
 
     assert response.status_code == 200
     assert graph_lifecycle.get_graph() is graph_b
     assert api_main.graph is graph_b
+    assert set(_load_graph(database_url).assets) == {"GRAPH_B"}
 
 
 async def test_destructive_snapshot_is_limited_to_explicit_rebuild(
@@ -329,7 +394,7 @@ async def test_destructive_snapshot_is_limited_to_explicit_rebuild(
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _graph_with_asset("STALE_ASSET", "STALE"))
     _configure_persistence(monkeypatch, database_url)
-    monkeypatch.setattr(providers, "create_sample_graph", lambda: _graph_with_asset("FRESH_ASSET", "FRESH"))
+    _patch_sample_graph(monkeypatch, _graph_with_asset("FRESH_ASSET", "FRESH"))
 
     response = await _post_rebuild()
 
@@ -351,7 +416,7 @@ async def test_read_only_endpoints_do_not_persist(monkeypatch: pytest.MonkeyPatc
         lambda: DatabaseHealthResponse(configured=True, type="sqlite", reachable=True),
     )
     transport = httpx.ASGITransport(app=create_app())
-    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
         for path in ("/api/assets", "/api/relationships", "/api/metrics", "/api/visualization"):
             response = await client.get(path)
             assert response.status_code == 200, path
@@ -391,7 +456,7 @@ async def test_duplicate_regulatory_events_preserve_prior_snapshot(
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _graph_with_asset("ORIGINAL_ASSET", "ORIGINAL"))
     _configure_persistence(monkeypatch, database_url)
-    monkeypatch.setattr(providers, "create_sample_graph", _graph_with_duplicate_events)
+    _patch_sample_graph(monkeypatch, _graph_with_duplicate_events())
 
     response = await _post_rebuild()
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import sys
 import threading
-from collections.abc import Callable
+from typing import Callable
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -83,10 +83,13 @@ def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
     This avoids importing api.main from router modules while keeping
     router_helpers.get_graph() compatible with older callers.
     """
-    set_graph(graph_instance)
-    api_main = sys.modules.get("api.main")
-    if api_main is not None and hasattr(api_main, "graph"):
-        setattr(api_main, "graph", graph_instance)
+    with graph_lock:
+        graph_state.graph = graph_instance
+        graph_state.graph_factory = None
+
+        api_main = sys.modules.get("api.main")
+        if api_main is not None and hasattr(api_main, "graph"):
+            setattr(api_main, "graph", graph_instance)
 
 
 def set_graph_factory(

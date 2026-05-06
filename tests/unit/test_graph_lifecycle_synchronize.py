@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Iterator
+from typing import Iterator
 
-import pytest
+import pytest  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
 from src.logic.asset_graph import AssetRelationshipGraph
