@@ -382,6 +382,56 @@ def test_persisted_full_graph_loads(
     assert [event.id for event in loaded.regulatory_events] == ["EVENT_A"]
 
 
+def test_populated_persistence_wins_over_graph_cache_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Populated persistence should win over GRAPH_CACHE_PATH."""
+    database_url = _sqlite_url(tmp_path)
+    _save_graph(database_url, _asset_only_graph())
+    _configure_persistence_url(monkeypatch, database_url)
+    monkeypatch.setenv("GRAPH_CACHE_PATH", "/tmp/graph-cache.json")
+
+    def fail_cache_load(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+        """Fail if cache fallback is used before persistence."""
+        raise AssertionError("cache fallback must not run when persistence is populated")
+
+    monkeypatch.setattr(
+        graph_lifecycle_providers,
+        "load_graph_from_cache_path",
+        fail_cache_load,
+    )
+
+    loaded = _initialize_graph_for_test()
+
+    assert set(loaded.assets) == {"ASSET_ONLY"}
+
+
+def test_populated_persistence_wins_over_real_data_fetcher(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Populated persistence should win over USE_REAL_DATA_FETCHER."""
+    database_url = _sqlite_url(tmp_path)
+    _save_graph(database_url, _asset_only_graph())
+    _configure_persistence_url(monkeypatch, database_url)
+    monkeypatch.setenv("USE_REAL_DATA_FETCHER", "1")
+
+    def fail_real_data_load(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+        """Fail if real-data fallback is used before persistence."""
+        raise AssertionError("real-data fallback must not run when persistence is populated")
+
+    monkeypatch.setattr(
+        graph_lifecycle_providers,
+        "load_graph_from_real_data_fetcher",
+        fail_real_data_load,
+    )
+
+    loaded = _initialize_graph_for_test()
+
+    assert set(loaded.assets) == {"ASSET_ONLY"}
+
+
 def test_legacy_bidirectional_row_survives_startup_load(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
