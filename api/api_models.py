@@ -113,3 +113,15 @@ class DetailedHealthResponse(BaseModel):
     status: Literal["healthy", "degraded"]
     graph: GraphHealthResponse
     database: DatabaseHealthResponse
+
+
+class GraphRebuildResponse(BaseModel):
+    """Response model for explicit graph rebuild persistence."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["persisted"] = "persisted"
+    source: Literal["cache", "real_data", "sample"]
+    asset_count: int = Field(ge=0)
+    relationship_count: int = Field(ge=0)
+    regulatory_event_count: int = Field(ge=0)
