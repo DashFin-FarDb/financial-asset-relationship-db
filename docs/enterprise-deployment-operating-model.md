@@ -1,6 +1,9 @@
 # Enterprise Deployment Operating Model
 
-This document defines how the Financial Asset Relationship Database (FarDb) is deployed, promoted, verified, rolled back, and operated across environments. It distinguishes between basic service readiness and the stronger durable graph-persistence verification required for staging and production promotion.
+This document defines how the Financial Asset Relationship Database (FarDb) is deployed,
+promoted, verified, rolled back, and operated across environments. It distinguishes
+between basic service readiness and the stronger durable graph-persistence verification
+required for staging and production promotion.
 
 ## Operating Topology
 
@@ -8,8 +11,12 @@ The current selected initial topology is:
 
 - **Frontend host**: Vercel-hosted Next.js frontend.
 - **Backend host**: Vercel serverless FastAPI entrypoint using the monorepo deployment model.
-- **Graph persistence store**: PostgreSQL-compatible durable store for hosted graph truth. Provider choice remains flexible unless selected by a later child issue.
-- **Application database store**: PostgreSQL-compatible store for auth/application state in staging and production. SQLite is acceptable for local development and explicitly labelled non-durable preview/demo deployments only; it must not be treated as staging/production durable persistence.
+- **Graph persistence store**: PostgreSQL-compatible durable store for hosted graph truth.
+  Provider choice remains flexible unless selected by a later child issue.
+- **Application database store**: PostgreSQL-compatible store for auth/application state in
+  staging and production. SQLite is acceptable for local development and explicitly labelled
+  non-durable preview/demo deployments only; it must not be treated as staging/production
+  durable persistence.
 - **Secret source**: Vercel environment variables for hosted deployments.
 
 ### Environment Separation
