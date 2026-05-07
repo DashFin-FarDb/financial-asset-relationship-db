@@ -345,7 +345,11 @@ For staging and production deployment acceptance, use this hosted-safe flow to v
 5. Call `GET /api/health/detailed` and confirm bounded graph counts match your persisted baseline.
 6. If an approved sentinel baseline exists, verify expected sentinel assets and directed relationships via `GET /api/assets` and `GET /api/relationships`.
 
-For staging and production, step 5 is required promotion evidence. Step 6 is recommended diagnostic evidence when an approved sentinel baseline exists. A healthy detailed-readiness response alone is not sufficient for staging/production promotion because startup can still serve fallback graph state when durable graph persistence is not configured or not loaded.
+For staging and production, step 5 is required promotion evidence. Step 6 is
+recommended diagnostic evidence when an approved sentinel baseline exists.
+A healthy detailed-readiness response alone is not sufficient for
+staging/production promotion because startup can still serve fallback graph
+state when durable graph persistence is not configured or not loaded.
 
 `DATABASE_URL` and `ASSET_GRAPH_DATABASE_URL` represent different boundaries:
 
