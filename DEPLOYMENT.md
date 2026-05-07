@@ -280,7 +280,10 @@ The response is intentionally bounded and non-secret. It reports:
 - auth database configured/reachable status
 - auth database type: `sqlite`, `postgresql`, or `unknown`
 
-`GET /api/health/detailed` is a readiness signal only. It confirms bounded in-memory graph availability and auth/application database reachability. It does **not** prove the runtime graph was loaded from durable persisted graph truth, and it does not prove `ASSET_GRAPH_DATABASE_URL` is configured.
+`GET /api/health/detailed` is a readiness signal only. It confirms bounded
+in-memory graph availability and auth/application database reachability. It
+does **not** prove the runtime graph was loaded from durable persisted graph
+truth, and it does not prove `ASSET_GRAPH_DATABASE_URL` is configured.
 
 Example healthy response:
 
