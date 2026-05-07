@@ -6,7 +6,9 @@ This guide explains how to deploy the Financial Asset Relationship Database usin
 
 **For the hosted deployment and durable persistence decision, see [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).**
 
-**For the full enterprise deployment operating model (including promotion, rollback, and environment boundaries), see [docs/enterprise-deployment-operating-model.md](docs/enterprise-deployment-operating-model.md).**
+**For the full enterprise deployment operating model
+(including promotion, rollback, and environment boundaries), see
+[docs/enterprise-deployment-operating-model.md](docs/enterprise-deployment-operating-model.md).**
 
 **Note:** The Gradio UI (`app.py`) is available for demos, and internal testing, but is **not recommended for production deployment**. This guide focuses on the production architecture.
 
