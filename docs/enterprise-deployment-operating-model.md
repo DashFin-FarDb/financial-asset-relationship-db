@@ -1,6 +1,9 @@
 # Enterprise Deployment Operating Model
 
-This document defines how the Financial Asset Relationship Database (FarDb) is deployed, promoted, verified, rolled back, and operated across environments. It distinguishes between basic service readiness and the stronger durable graph-persistence verification required for staging and production promotion.
+This document defines how the Financial Asset Relationship Database (FarDb) is deployed,
+promoted, verified, rolled back, and operated across environments. It distinguishes
+between basic service readiness and the stronger durable graph-persistence verification
+required for staging and production promotion.
 
 ## Operating Topology
 
