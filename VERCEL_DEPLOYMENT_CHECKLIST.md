@@ -174,7 +174,20 @@ vercel --prod
 - [ ] Verify detailed readiness: `https://your-project.vercel.app/api/health/detailed`
 - [ ] Confirm detailed readiness returns only bounded non-secret fields: `status`, `graph`, and `database`
 - [ ] Confirm the response does not expose environment names, database URLs, paths, hostnames, usernames, provider names, exception messages, or secrets
+- [ ] Treat `GET /api/health/detailed` as a readiness check only, not as proof of durable graph-persistence startup
 - [ ] Test API docs: `https://your-project.vercel.app/docs`
+
+### 1a. Staging/Production Durable Graph-Persistence Verification
+
+Run this subsection for staging and production promotions. Do not use basic readiness alone as durable graph-persistence proof.
+
+- [ ] Confirm `ASSET_GRAPH_DATABASE_URL` is configured in the target environment
+- [ ] Perform an authenticated graph rebuild/persist operation, or use an approved persisted baseline
+- [ ] Restart or redeploy the backend after persistence is written
+- [ ] Verify startup logs include `Graph startup source: persisted_graph_store`
+- [ ] Verify `GET /api/health/detailed` returns `status: "healthy"` and bounded graph counts match the expected persisted baseline
+- [ ] Verify sentinel asset IDs through `GET /api/assets`
+- [ ] Verify sentinel directed relationships through `GET /api/relationships`
 
 ### 2. Test Functionality
 
@@ -336,12 +349,15 @@ If deployment fails or has issues:
 - [ ] Navigate to Deployments
 - [ ] Find previous working deployment
 - [ ] Click "Promote to Production"
+- [ ] Re-run readiness checks after rollback
+- [ ] For staging/production, re-run the durable graph-persistence verification checklist after rollback
+- [ ] Treat deployment rollback as code/config rollback only, not automatic data restore
 
-### Local Fallback
+### Local Non-Production Fallback
 
-- [ ] Keep Gradio UI as fallback: `python app.py`
-- [ ] Document how to switch between UIs
-- [ ] Maintain both deployment methods
+- [ ] Use Gradio (`python app.py`) only for demos or internal non-production testing
+- [ ] Do not present Gradio as a production rollback or backup mechanism
+- [ ] Refer to `docs/enterprise-deployment-operating-model.md` for production rollback boundaries
 
 ## Resources
 
