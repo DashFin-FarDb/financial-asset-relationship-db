@@ -1,6 +1,6 @@
 """System and metadata API routes."""
 
-from typing import Any, Literal, NoReturn, cast
+from typing import Any, Literal, NoReturn, cast, get_args
 
 from fastapi import APIRouter, HTTPException
 
@@ -13,14 +13,7 @@ from ..router_helpers import get_graph, logger
 router = APIRouter()
 
 SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
-SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES: set[GraphStartupSource] = {
-    "persisted_graph_store",
-    "sample_graph",
-    "cache",
-    "real_data",
-    "explicit_factory",
-    "unknown",
-}
+SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES: frozenset[str] = frozenset(get_args(GraphStartupSource))
 
 
 @router.get("/")
@@ -48,8 +41,7 @@ async def health_check() -> dict[str, Any]:
 def _get_graph_health() -> GraphHealthResponse:
     """Return bounded, non-secret graph readiness details."""
     try:
-        graph = get_graph()
-        startup_source = graph_lifecycle.get_graph_startup_source()
+        graph, startup_source = graph_lifecycle.get_graph_with_startup_source()
         assets = getattr(graph, "assets", {})
         relationships = getattr(graph, "relationships", {})
 

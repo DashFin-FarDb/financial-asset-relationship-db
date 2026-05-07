@@ -138,6 +138,11 @@ def _initialize_graph_for_test() -> AssetRelationshipGraph:
     return graph_lifecycle._initialize_graph()  # pylint: disable=protected-access
 
 
+def _get_graph_with_source_for_test() -> tuple[AssetRelationshipGraph, str | None]:
+    """Get the active graph and tracked startup source via the public lifecycle helper."""
+    return graph_lifecycle.get_graph_with_startup_source()
+
+
 # ---------------------------------------------------------------------------
 # Session-close tracking proxy and patch helper
 # ---------------------------------------------------------------------------
@@ -231,11 +236,11 @@ def _assert_empty_db_uses_configured_source(
         load_configured_graph,
     )
 
-    graph = _initialize_graph_for_test()
+    graph, startup_source = _get_graph_with_source_for_test()
 
     assert graph is configured_graph
     assert set(graph.assets) == {"ASSET_ONLY"}
-    assert graph_lifecycle.get_graph_startup_source() == expected_source
+    assert startup_source == expected_source
 
 
 # ---------------------------------------------------------------------------
@@ -260,8 +265,10 @@ def test_factory_precedence_skips_persistence_load(
     graph_lifecycle.set_graph_factory(lambda: factory_graph)
     monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
 
-    assert _initialize_graph_for_test() is factory_graph
-    assert graph_lifecycle.get_graph_startup_source() == "explicit_factory"
+    graph, startup_source = _get_graph_with_source_for_test()
+
+    assert graph is factory_graph
+    assert startup_source == "explicit_factory"
 
 
 @pytest.mark.parametrize("configured_value", [None, "", "   "])
@@ -284,7 +291,20 @@ def test_persistence_disabled_preserves_sample_fallback(
     graph = _initialize_graph_for_test()
 
     assert graph.assets
-    assert graph_lifecycle.get_graph_startup_source() == "sample_graph"
+    assert graph_lifecycle.get_graph_startup_source() is None
+
+
+def test_initialize_graph_does_not_commit_startup_source_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Direct `_initialize_graph()` calls should not mutate active lifecycle source state."""
+    monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
+
+    graph = _initialize_graph_for_test()
+
+    assert graph.assets
+    assert graph_lifecycle.graph_state.graph is None
+    assert graph_lifecycle.get_graph_startup_source() is None
 
 
 @pytest.mark.parametrize(
@@ -364,12 +384,12 @@ def test_persisted_asset_only_graph_loads(
     _save_graph(database_url, _asset_only_graph())
     _configure_persistence_url(monkeypatch, database_url)
 
-    loaded = _initialize_graph_for_test()
+    loaded, startup_source = _get_graph_with_source_for_test()
 
     assert set(loaded.assets) == {"ASSET_ONLY"}
     assert not loaded.relationships
     assert not loaded.regulatory_events
-    assert graph_lifecycle.get_graph_startup_source() == "persisted_graph_store"
+    assert startup_source == "persisted_graph_store"
 
 
 def test_persisted_full_graph_loads(
@@ -381,13 +401,13 @@ def test_persisted_full_graph_loads(
     _save_graph(database_url, _full_graph())
     _configure_persistence_url(monkeypatch, database_url)
 
-    loaded = _initialize_graph_for_test()
+    loaded, startup_source = _get_graph_with_source_for_test()
 
     assert set(loaded.assets) == {"ASSET_A", "ASSET_B", "ASSET_C"}
     assert _relationship_strength(loaded, "ASSET_A", "ASSET_B", "directed_alpha") == pytest.approx(0.4)
     assert _relationship_strength(loaded, "ASSET_B", "ASSET_A", "directed_alpha") == pytest.approx(0.9)
     assert [event.id for event in loaded.regulatory_events] == ["EVENT_A"]
-    assert graph_lifecycle.get_graph_startup_source() == "persisted_graph_store"
+    assert startup_source == "persisted_graph_store"
 
 
 def test_populated_persistence_wins_over_graph_cache_path(
