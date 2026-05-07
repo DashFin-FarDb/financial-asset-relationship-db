@@ -106,6 +106,7 @@ def _initialize_graph() -> AssetRelationshipGraph:
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
     persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(settings.asset_graph_database_url)
     if persisted_graph is not None:
+        logger.info("Graph startup source: persisted_graph_store")
         return persisted_graph
 
     cache_path = settings.graph_cache_path
@@ -123,4 +124,5 @@ def _initialize_graph() -> AssetRelationshipGraph:
             real_data_cache_path,
         )
 
+    logger.info("Graph startup source: sample_graph")
     return graph_lifecycle_providers.create_sample_graph()
