@@ -88,8 +88,8 @@ Required evidence:
 
 Recommended diagnostic evidence, when an approved sentinel baseline exists:
 
-6. Sentinel assets are visible through `GET /api/assets`.
-7. Directed relationship strengths are visible through `GET /api/relationships`.
+1. Sentinel assets are visible through `GET /api/assets`.
+2. Directed relationship strengths are visible through `GET /api/relationships`.
 
 ### Gate Interpretation Rules
 
