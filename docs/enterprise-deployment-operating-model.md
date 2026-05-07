@@ -62,9 +62,10 @@ Operators verify deployment readiness using the `GET /api/health/detailed` endpo
 
 Acceptance criteria for a healthy deployment:
 
-* Returns `status: "healthy"`.
-* Graph availability is confirmed with non-zero asset and relationship counts (if graph is seeded).
-* Application database connection is reported as reachable.
+- Returns `status: "healthy"`.
+- Graph availability is confirmed with non-zero asset and relationship counts (if graph is seeded).
+- Application database connection is reported as reachable.
+
 ## Rollback Process
 
 - **Deployment Rollback**: Vercel allows instant rollbacks to a previous deployment. Document deployment rollback expectations, including Vercel deployment promotion/rollback boundaries.
