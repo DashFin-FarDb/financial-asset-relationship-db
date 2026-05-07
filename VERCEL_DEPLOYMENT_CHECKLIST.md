@@ -3,7 +3,7 @@
 Use this checklist to ensure a smooth deployment to Vercel.
 
 **Database Support:** The API database layer supports both SQLite (local/dev) and PostgreSQL (production).
-See [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md) for the deployment strategy and [docs/enterprise-deployment-operating-model.md](docs/enterprise-deployment-operating-model.md) for the full operating model.
+See [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md) for the deployment strategy.
 
 ## Pre-Deployment Checklist
 
