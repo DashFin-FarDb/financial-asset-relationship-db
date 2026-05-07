@@ -396,7 +396,7 @@ class TestPydanticModels:
                 available=True,
                 asset_count=1,
                 relationship_count=0,
-                graph_startup_source="postgresql://secret@example.invalid/db",
+                graph_startup_source="invalid-startup-source://redacted",
             )
 
 
