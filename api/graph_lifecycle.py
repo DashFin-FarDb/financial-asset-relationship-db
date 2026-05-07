@@ -14,6 +14,7 @@ from collections.abc import Callable
 from src.logic.asset_graph import AssetRelationshipGraph
 
 from . import graph_lifecycle_providers
+from .api_models import GraphStartupSource
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ class _GraphState:
         """Create empty graph lifecycle state."""
         self.graph: AssetRelationshipGraph | None = None
         self.graph_factory: Callable[[], AssetRelationshipGraph] | None = None
+        self.startup_source: GraphStartupSource | None = None
 
 
 graph_state = _GraphState()
@@ -51,6 +53,7 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     with graph_lock:
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
+        graph_state.startup_source = "unknown"
 
 
 def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
@@ -58,6 +61,7 @@ def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
     with graph_lock:
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
+        graph_state.startup_source = "unknown"
 
         api_main = sys.modules.get("api.main")
         if api_main is not None and hasattr(api_main, "graph"):
@@ -71,6 +75,13 @@ def set_graph_factory(
     with graph_lock:
         graph_state.graph_factory = factory
         graph_state.graph = None
+        graph_state.startup_source = None
+
+
+def get_graph_startup_source() -> GraphStartupSource | None:
+    """Return the currently tracked startup source for the module-global graph."""
+    with graph_lock:
+        return graph_state.startup_source
 
 
 def reset_graph() -> None:
@@ -101,11 +112,14 @@ def _initialize_graph() -> AssetRelationshipGraph:
     Configured persistence failures raise RuntimeError.
     """
     if graph_state.graph_factory is not None:
-        return graph_state.graph_factory()
+        graph = graph_state.graph_factory()
+        graph_state.startup_source = "explicit_factory"
+        return graph
 
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
     persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(settings.asset_graph_database_url)
     if persisted_graph is not None:
+        graph_state.startup_source = "persisted_graph_store"
         logger.info("Graph startup source: persisted_graph_store")
         return persisted_graph
 
@@ -113,16 +127,21 @@ def _initialize_graph() -> AssetRelationshipGraph:
     use_real_data = settings.use_real_data_fetcher
 
     if cache_path:
-        return graph_lifecycle_providers.load_graph_from_cache_path(
+        graph = graph_lifecycle_providers.load_graph_from_cache_path(
             cache_path,
             enable_network=use_real_data,
         )
+        graph_state.startup_source = "cache"
+        return graph
 
     if use_real_data:
         real_data_cache_path = settings.real_data_cache_path
-        return graph_lifecycle_providers.load_graph_from_real_data_fetcher(
+        graph = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
             real_data_cache_path,
         )
+        graph_state.startup_source = "real_data"
+        return graph
 
+    graph_state.startup_source = "sample_graph"
     logger.info("Graph startup source: sample_graph")
     return graph_lifecycle_providers.create_sample_graph()

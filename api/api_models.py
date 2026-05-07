@@ -4,6 +4,15 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+GraphStartupSource = Literal[
+    "persisted_graph_store",
+    "sample_graph",
+    "cache",
+    "real_data",
+    "explicit_factory",
+    "unknown",
+]
+
 
 class AssetResponse(BaseModel):
     """Response model for asset data."""
@@ -93,6 +102,7 @@ class GraphHealthResponse(BaseModel):
     available: bool
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
+    graph_startup_source: GraphStartupSource | None = None
 
 
 class DatabaseHealthResponse(BaseModel):

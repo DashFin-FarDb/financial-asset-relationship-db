@@ -207,6 +207,7 @@ def _assert_empty_db_uses_configured_source(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     provider_attr: str,
+    expected_source: str,
 ) -> None:
     """Verify empty DB falls through to configured provider."""
     database_url = _sqlite_url(tmp_path)
@@ -234,6 +235,7 @@ def _assert_empty_db_uses_configured_source(
 
     assert graph is configured_graph
     assert set(graph.assets) == {"ASSET_ONLY"}
+    assert graph_lifecycle.get_graph_startup_source() == expected_source
 
 
 # ---------------------------------------------------------------------------
@@ -259,6 +261,7 @@ def test_factory_precedence_skips_persistence_load(
     monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
 
     assert _initialize_graph_for_test() is factory_graph
+    assert graph_lifecycle.get_graph_startup_source() == "explicit_factory"
 
 
 @pytest.mark.parametrize("configured_value", [None, "", "   "])
@@ -281,6 +284,7 @@ def test_persistence_disabled_preserves_sample_fallback(
     graph = _initialize_graph_for_test()
 
     assert graph.assets
+    assert graph_lifecycle.get_graph_startup_source() == "sample_graph"
 
 
 @pytest.mark.parametrize(
@@ -328,6 +332,7 @@ def test_empty_configured_db_honors_graph_cache_path_before_sample_fallback(
         tmp_path,
         monkeypatch,
         "load_graph_from_cache_path",
+        "cache",
     )
 
 
@@ -341,6 +346,7 @@ def test_empty_configured_db_honors_real_data_fetcher_before_sample_fallback(
         tmp_path,
         monkeypatch,
         "load_graph_from_real_data_fetcher",
+        "real_data",
     )
 
 
@@ -363,6 +369,7 @@ def test_persisted_asset_only_graph_loads(
     assert set(loaded.assets) == {"ASSET_ONLY"}
     assert not loaded.relationships
     assert not loaded.regulatory_events
+    assert graph_lifecycle.get_graph_startup_source() == "persisted_graph_store"
 
 
 def test_persisted_full_graph_loads(
@@ -380,6 +387,7 @@ def test_persisted_full_graph_loads(
     assert _relationship_strength(loaded, "ASSET_A", "ASSET_B", "directed_alpha") == pytest.approx(0.4)
     assert _relationship_strength(loaded, "ASSET_B", "ASSET_A", "directed_alpha") == pytest.approx(0.9)
     assert [event.id for event in loaded.regulatory_events] == ["EVENT_A"]
+    assert graph_lifecycle.get_graph_startup_source() == "persisted_graph_store"
 
 
 def test_populated_persistence_wins_over_graph_cache_path(
@@ -598,11 +606,14 @@ def test_reset_reloads_persisted_graph_without_saving(
     monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
 
     first = graph_lifecycle.get_graph()
+    assert graph_lifecycle.get_graph_startup_source() == "persisted_graph_store"
     graph_lifecycle.reset_graph()
+    assert graph_lifecycle.get_graph_startup_source() is None
     second = graph_lifecycle.get_graph()
 
     assert first is not second
     assert set(second.assets) == {"ASSET_ONLY"}
+    assert graph_lifecycle.get_graph_startup_source() == "persisted_graph_store"
 
 
 def test_api_main_and_router_helper_compatibility(
