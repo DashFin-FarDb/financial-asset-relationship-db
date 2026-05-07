@@ -60,7 +60,7 @@ To promote a release from preview to staging, and staging to production, the fol
 Operators verify deployment readiness using the `GET /api/health/detailed` endpoint. This endpoint provides bounded, non-secret diagnostics.
 
 Acceptance criteria for a healthy deployment:
-
+* **Deployment Rollback**: Vercel allows instant rollbacks to a previous deployment.
 - Returns `status: "healthy"`.
 - Graph availability is confirmed with non-zero asset and relationship counts (if graph is seeded).
 - Application database connection is reported as reachable.
