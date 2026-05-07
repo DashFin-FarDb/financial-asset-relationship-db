@@ -6,11 +6,11 @@ This document defines how the Financial Asset Relationship Database (FarDb) is d
 
 The current selected initial topology is:
 
-- **Frontend host**: Vercel-hosted Next.js frontend.
-- **Backend host**: Vercel serverless FastAPI entrypoint using the monorepo deployment model.
-- **Graph persistence store**: PostgreSQL-compatible durable store for hosted graph truth. Provider choice remains flexible unless selected by a later child issue.
-- **Application database store**: PostgreSQL-compatible store for auth/application state in staging and production. SQLite remains local-development only.
-- **Secret source**: Vercel environment variables for hosted deployments.
+* **Frontend host**: Vercel-hosted Next.js frontend.
+* **Backend host**: Vercel serverless FastAPI entrypoint using the monorepo deployment model.
+* **Graph persistence store**: PostgreSQL-compatible durable store for hosted graph truth. Provider choice remains flexible unless selected by a later child issue.
+* **Application database store**: PostgreSQL-compatible store for auth/application state in staging and production. SQLite is acceptable for local development and explicitly labelled non-durable preview/demo deployments only; it must not be treated as staging/production durable persistence.
+* **Secret source**: Vercel environment variables for hosted deployments.
 
 ### Environment Separation
 
@@ -36,10 +36,11 @@ The current selected initial topology is:
 
 The application database stores user credentials and other API-level state.
 
-- `DATABASE_URL`: Connection string for the auth/application database.
-  - Local/dev: SQLite is acceptable.
-  - Staging/production: PostgreSQL-compatible durable database is required.
-- `POSTGRES_URL`: Provider fallback used only when `DATABASE_URL` is not set.
+* `DATABASE_URL`: Connection string for the auth/application database.
+  * Local/dev: SQLite is acceptable.
+  * Preview/demo: SQLite may be used only when the deployment is explicitly labelled non-durable. PostgreSQL-compatible storage is required when preview is used to validate durable persistence behaviour.
+  * Staging/production: PostgreSQL-compatible durable database is required.
+* `POSTGRES_URL`: Provider fallback used only when `DATABASE_URL` is not set.
 
 ### Graph Persistence
 
@@ -84,7 +85,11 @@ Required evidence:
 3. Backend is restarted or redeployed after persistence is written.
 4. Startup evidence confirms persisted graph load rather than fallback generation.
 5. Bounded graph counts match the expected persisted baseline.
-6. Sentinel assets and directed relationships match the expected persisted baseline.
+
+Recommended diagnostic evidence, when an approved sentinel baseline exists:
+
+6. Sentinel assets are visible through `GET /api/assets`.
+7. Directed relationship strengths are visible through `GET /api/relationships`.
 
 ### Gate Interpretation Rules
 
@@ -102,11 +107,11 @@ For staging and production deployment acceptance, operators must run this durabl
 3. Restart or redeploy the backend.
 4. Verify startup logs contain `Graph startup source: persisted_graph_store`.
 5. Call `GET /api/health/detailed` and confirm:
-   - `status` is `healthy`
-   - graph counts match the expected persisted baseline
-   - auth/application database is reachable
-6. Call `GET /api/assets` and confirm known sentinel asset IDs are present.
-7. Call `GET /api/relationships` and confirm known directed relationship strengths are present.
+   * `status` is `healthy`
+   * graph counts match the expected persisted baseline
+   * auth/application database is reachable
+6. If an approved sentinel baseline exists, call `GET /api/assets` and confirm known sentinel asset IDs are present.
+7. If an approved sentinel baseline exists, call `GET /api/relationships` and confirm known directed relationship strengths are present.
 8. Record bounded evidence only. Do not capture secrets, raw connection strings, full graph dumps, or raw exception text.
 
 ## Rollback Process

@@ -186,8 +186,8 @@ Run this subsection for staging and production promotions. Do not use basic read
 - [ ] Restart or redeploy the backend after persistence is written
 - [ ] Verify startup logs include `Graph startup source: persisted_graph_store`
 - [ ] Verify `GET /api/health/detailed` returns `status: "healthy"` and bounded graph counts match the expected persisted baseline
-- [ ] Verify sentinel asset IDs through `GET /api/assets`
-- [ ] Verify sentinel directed relationships through `GET /api/relationships`
+- [ ] If an approved sentinel baseline exists, verify sentinel asset IDs through `GET /api/assets`
+- [ ] If an approved sentinel baseline exists, verify sentinel directed relationships through `GET /api/relationships`
 
 ### 2. Test Functionality
 
