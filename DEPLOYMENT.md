@@ -6,6 +6,10 @@ This guide explains how to deploy the Financial Asset Relationship Database usin
 
 **For the hosted deployment and durable persistence decision, see [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).**
 
+**For the full enterprise deployment operating model
+(including promotion, rollback, and environment boundaries), see
+[docs/enterprise-deployment-operating-model.md](docs/enterprise-deployment-operating-model.md).**
+
 **Note:** The Gradio UI (`app.py`) is available for demos, and internal testing, but is **not recommended for production deployment**. This guide focuses on the production architecture.
 
 ## Architecture Overview
@@ -50,7 +54,7 @@ Optional backend runtime settings:
 - `GRAPH_CACHE_PATH` — graph cache path
 - `REAL_DATA_CACHE_PATH` — real-data cache path
 - `USE_REAL_DATA_FETCHER` — truthy value enables real-data fetcher mode
-- `ASSET_GRAPH_DATABASE_URL` — graph persistence URL when used by graph repository flows; this does not replace the API auth/database `DATABASE_URL` requirement
+- `ASSET_GRAPH_DATABASE_URL` — graph persistence URL for durable graph-truth persistence; this does not replace the API auth/database `DATABASE_URL` requirement
 - `POSTGRES_URL` — Vercel Postgres provider fallback; used only if `DATABASE_URL` is not set
 
 ### Database Configuration
@@ -276,6 +280,11 @@ The response is intentionally bounded and non-secret. It reports:
 - auth database configured/reachable status
 - auth database type: `sqlite`, `postgresql`, or `unknown`
 
+`GET /api/health/detailed` is a readiness signal only. It confirms bounded
+in-memory graph availability and auth/application database reachability. It
+does **not** prove the runtime graph was loaded from durable persisted graph
+truth, and it does not prove `ASSET_GRAPH_DATABASE_URL` is configured.
+
 Example healthy response:
 
 ```json
@@ -327,14 +336,26 @@ A degraded response still returns HTTP 200. Treat `status: "degraded"` as an ope
 
 ### Verifying persisted graph startup loading
 
-Use this hosted-safe flow to verify runtime startup loaded graph truth from durable persistence (when INFO-level application logs are enabled):
+For staging and production deployment acceptance, use this hosted-safe flow to verify runtime startup loaded graph truth from durable persistence (when INFO-level application logs are enabled):
 
 1. Configure a durable `ASSET_GRAPH_DATABASE_URL` (for hosted deployment, use PostgreSQL).
 2. Populate graph truth only through the authenticated `POST /api/graph/rebuild` route or a controlled operator seed.
 3. Restart/redeploy the API service.
 4. Check startup logs for `Graph startup source: persisted_graph_store`.
 5. Call `GET /api/health/detailed` and confirm bounded graph counts match your persisted baseline.
-6. Optionally verify expected sentinel assets and directed relationships via `GET /api/assets` and `GET /api/relationships`.
+6. If an approved sentinel baseline exists, verify expected sentinel assets and directed relationships via `GET /api/assets` and `GET /api/relationships`.
+
+For staging and production, step 5 is required promotion evidence. Step 6 is
+recommended diagnostic evidence when an approved sentinel baseline exists.
+A healthy detailed-readiness response alone is not sufficient for
+staging/production promotion because startup can still serve fallback graph
+state when durable graph persistence is not configured or not loaded.
+
+`DATABASE_URL` and `ASSET_GRAPH_DATABASE_URL` represent different boundaries:
+
+- `DATABASE_URL` covers auth/application database configuration and reachability.
+- `ASSET_GRAPH_DATABASE_URL` covers durable graph-truth persistence.
+- Successful auth/application database readiness does not imply graph persistence is configured or loaded.
 
 Readiness and read-only checks must not trigger rebuilds, call persistence save flows, expose connection URLs or credentials, include raw exception text, or dump full graph data.
 
