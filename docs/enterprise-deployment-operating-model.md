@@ -38,7 +38,8 @@ The application database stores user credentials and other API-level state.
 
 ### Graph Persistence
 
-The graph database stores durable assets, relationships, and evidence metadata.
+The graph persistence store currently holds durable assets, relationships, and regulatory events.
+Evidence/metadata persistence is not yet implemented in the current schema/ORM and remains deferred as future work.
 
 - `ASSET_GRAPH_DATABASE_URL`: Connection string for graph persistence. This is explicitly distinguished from `DATABASE_URL` to allow independent scaling or separate databases.
 
