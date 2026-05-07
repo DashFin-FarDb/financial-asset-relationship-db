@@ -97,7 +97,10 @@ In the Vercel dashboard, add:
   - [ ] `ADMIN_USERNAME`
   - [ ] `ADMIN_PASSWORD`
   - [ ] Optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
-- [ ] Optional: `ASSET_GRAPH_DATABASE_URL` if using graph repository persistence flows
+- [ ] `ASSET_GRAPH_DATABASE_URL` = graph persistence connection string
+  - Optional only for local or explicitly non-durable preview/demo deployments
+  - Required for staging and production durable graph-persistence promotion
+  - For hosted staging/production, use a durable PostgreSQL-compatible URL
 - [ ] Optional backend settings as needed: `ENV`, `ALLOWED_ORIGINS`, `GRAPH_CACHE_PATH`, `REAL_DATA_CACHE_PATH`, `USE_REAL_DATA_FETCHER`
 
 #### Step 5: Deploy
@@ -152,6 +155,9 @@ vercel env add NEXT_PUBLIC_API_URL production
 # Minimum backend runtime variables
 vercel env add DATABASE_URL production
 vercel env add SECRET_KEY production
+
+# Required for staging/production durable graph-persistence promotion
+vercel env add ASSET_GRAPH_DATABASE_URL production
 
 # Bootstrap credentials, only if the configured database does not already contain a usable user
 vercel env add ADMIN_USERNAME production
