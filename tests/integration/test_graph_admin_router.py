@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import logging
+
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
 from fastapi import HTTPException  # pylint: disable=import-error
@@ -50,14 +52,31 @@ async def test_app_construction_with_graph_admin_router_succeeds() -> None:
     assert response.status_code == 401
 
 
-async def test_rebuild_returns_429_when_rebuild_already_running() -> None:
+async def test_rebuild_returns_429_when_rebuild_already_running(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Concurrent rebuild requests should fail fast instead of queueing."""
     graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
     try:
-        with pytest.raises(HTTPException) as exc_info:
+        with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="operator", disabled=False))
     finally:
         graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
     assert exc_info.value.status_code == 429
     assert exc_info.value.detail == "A graph rebuild is already in progress. Please try again later."
+
+    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    requested_records = [
+        record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_requested"
+    ]
+    rejected_records = [
+        record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_rejected"
+    ]
+
+    assert len(requested_records) == 1
+    assert len(rejected_records) == 1
+    assert requested_records[0].user_ref == "operator"
+    assert requested_records[0].path == "/api/graph/rebuild"
+    assert rejected_records[0].reason == "rebuild_in_progress"
+    assert rejected_records[0].status_code == 429
