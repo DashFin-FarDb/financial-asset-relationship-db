@@ -203,11 +203,13 @@ async def _run_rebuild_in_executor(
 def _map_rebuild_error(exc: Exception) -> HTTPException:
     """Map rebuild domain errors to sanitized HTTP errors."""
     root_exc = _unwrap_rebuild_error(exc)
+    
     if isinstance(
         root_exc,
         (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError),
     ):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(root_exc))
+
     if isinstance(root_exc, (GraphRebuildSourceError, GraphPersistenceSaveError)):
         return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -218,6 +220,7 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
         "Unexpected graph rebuild failure: %s",
         root_exc.__class__.__name__,
     )
+    
     return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Graph rebuild failed.",
