@@ -98,7 +98,7 @@ class _RebuildExecutionError(Exception):
         self.cause = cause
 
 
-@router.post("/api/graph/rebuild")
+@router.post(_REBUILD_PATH)
 async def rebuild_graph(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> GraphRebuildResponse:
@@ -117,21 +117,23 @@ async def rebuild_graph(
             _log_rebuild_rejected(user_ref=user_ref)
         raise
 
-    async with rebuild_lock:
-        if _REBUILD_RUNTIME.is_busy():
-            _log_rebuild_rejected(user_ref=user_ref)
-            raise _rebuild_in_progress_error()
-
-        _REBUILD_RUNTIME.mark_busy()
-        try:
-            return await _run_rebuild_in_executor(
-                loop,
-                settings,
-                user_ref=user_ref,
-                started_at=started_at,
-            )
-        except Exception as exc:
-            raise _map_rebuild_error(exc) from None
+    future_submitted = False
+    try:
+        async with rebuild_lock:
+            try:
+                future_submitted = True
+                return await _run_rebuild_in_executor(
+                    loop,
+                    settings,
+                    user_ref=user_ref,
+                    started_at=started_at,
+                )
+            except Exception as exc:
+                raise _map_rebuild_error(exc) from None
+    except asyncio.CancelledError:
+        if not future_submitted:
+            _REBUILD_RUNTIME.mark_idle()
+        raise
 
 
 def _rebuild_in_progress_error() -> HTTPException:
@@ -147,6 +149,7 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
     rebuild_lock = _REBUILD_RUNTIME.get_lock()
     if _REBUILD_RUNTIME.is_busy() or rebuild_lock.locked():
         raise _rebuild_in_progress_error()
+    _REBUILD_RUNTIME.mark_busy()
     return rebuild_lock
 
 
