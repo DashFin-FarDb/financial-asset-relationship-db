@@ -232,29 +232,26 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
 def _rebuild_status_code(exc: Exception) -> int:
     """Return sanitized rebuild status code for audit logging without side effects."""
     root_exc = _unwrap_rebuild_error(exc)
-    
+
     if isinstance(
         root_exc,
         (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError),
     ):
         return status.HTTP_409_CONFLICT
-        
+
     return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 def _resolve_user_ref(user: User) -> str:
     """Return the bounded user reference used in rebuild audit logs."""
     username = user.username or ""
-    
+
     # Clean and normalize the username
-    normalized = "".join(
-        char if char.isprintable() and char not in "\r\n\t" else "_" 
-        for char in username.strip()
-    )
-    
+    normalized = "".join(char if char.isprintable() and char not in "\r\n\t" else "_" for char in username.strip())
+
     if not normalized:
         return "unknown"
-        
+
     return normalized[:_MAX_AUDIT_USER_REF_LENGTH]
 
 
@@ -369,9 +366,7 @@ def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
 ) -> GraphRebuildResponse:
     """Rebuild the graph, persist it, then publish it to runtime state."""
-    resolved_url = resolve_durable_graph_persistence_url(
-        settings.asset_graph_database_url
-    )
+    resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
 
     graph, source = build_rebuild_graph(settings)
 
@@ -382,7 +377,7 @@ def _perform_rebuild_and_persist_sync(
         raise _RebuildExecutionError(source, exc) from exc
 
     regulatory_events = getattr(graph, "regulatory_events", []) or []
-    
+
     return GraphRebuildResponse(
         status="persisted",
         source=source,
