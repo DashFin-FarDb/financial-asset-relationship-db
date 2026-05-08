@@ -86,14 +86,14 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
 
 def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
     """User references should be printable, single-line, and length bounded."""
-    malicious_username = "operator\nFORGED=1\t" + ("x" * 200)
+    malicious_username = "operator\nFORGED=1\r\t" + ("x" * 200)
     resolved = graph_admin._resolve_user_ref(User(username=malicious_username, disabled=False))  # pylint: disable=protected-access
 
     assert "\n" not in resolved
     assert "\r" not in resolved
     assert "\t" not in resolved
     assert len(resolved) <= 64
-    assert resolved.startswith("operator_FORGED=1_")
+    assert resolved.startswith("operator_FORGED=1__")
 
 
 async def test_rebuild_outcome_logging_survives_request_cancellation(

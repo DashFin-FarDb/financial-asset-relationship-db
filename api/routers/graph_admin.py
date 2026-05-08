@@ -166,8 +166,14 @@ async def _run_rebuild_in_executor(
             _perform_rebuild_and_persist_sync,
             settings,
         )
-    except Exception:
+    except Exception as exc:
         _REBUILD_RUNTIME.mark_idle()
+        _log_rebuild_failed(
+            user_ref=user_ref,
+            exc=exc,
+            status_code=_rebuild_status_code(exc),
+            duration_ms=_duration_ms(started_at),
+        )
         raise
 
     def on_done(done_future: asyncio.Future[GraphRebuildResponse]) -> None:
@@ -176,11 +182,10 @@ async def _run_rebuild_in_executor(
         try:
             response = done_future.result()
         except Exception as exc:
-            mapped_error = _map_rebuild_error(exc)
             _log_rebuild_failed(
                 user_ref=user_ref,
                 exc=exc,
-                status_code=mapped_error.status_code,
+                status_code=_rebuild_status_code(exc),
                 duration_ms=_duration_ms(started_at),
             )
             return
@@ -217,6 +222,17 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Graph rebuild failed.",
     )
+
+
+def _rebuild_status_code(exc: Exception) -> int:
+    """Return sanitized rebuild status code for audit logging without side effects."""
+    root_exc = _unwrap_rebuild_error(exc)
+    if isinstance(
+        root_exc,
+        (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError),
+    ):
+        return status.HTTP_409_CONFLICT
+    return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 def _resolve_user_ref(user: User) -> str:
@@ -273,6 +289,7 @@ def _log_rebuild_succeeded(*, user_ref: str, response: GraphRebuildResponse, dur
         extra={
             "event": _REBUILD_AUDIT_SUCCEEDED,
             "user_ref": user_ref,
+            "path": _REBUILD_PATH,
             "status_code": status.HTTP_200_OK,
             "source": response.source,
             "duration_ms": duration_ms,
@@ -312,6 +329,7 @@ def _log_rebuild_failed(*, user_ref: str, exc: Exception, status_code: int, dura
         extra={
             "event": _REBUILD_AUDIT_FAILED,
             "user_ref": user_ref,
+            "path": _REBUILD_PATH,
             "failure_category": _rebuild_failure_category(exc),
             "status_code": status_code,
             "duration_ms": duration_ms,
