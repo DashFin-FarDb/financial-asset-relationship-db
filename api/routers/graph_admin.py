@@ -8,7 +8,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from time import perf_counter
-from typing import Annotated
+from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
 
@@ -156,11 +156,14 @@ async def _run_rebuild_in_executor(
     """Run rebuild work in the dedicated executor."""
     ctx = contextvars.copy_context()
     try:
-        future = loop.run_in_executor(
-            _REBUILD_RUNTIME.get_executor(),
-            ctx.run,
-            _perform_rebuild_and_persist_sync,
-            settings,
+        future = cast(
+            asyncio.Future[GraphRebuildResponse],
+            loop.run_in_executor(
+                _REBUILD_RUNTIME.get_executor(),
+                ctx.run,
+                _perform_rebuild_and_persist_sync,
+                settings,
+            ),
         )
     except Exception as exc:
         _REBUILD_RUNTIME.mark_idle()
