@@ -22,10 +22,14 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
         """Record shutdown invocation."""
         shutdown_calls.append(True)
 
-    monkeypatch.setattr(app_factory, "get_graph", object)
+    def fake_get_graph() -> object:
+        """Return a non-None graph placeholder for lifespan startup."""
+        return object()
+
+    monkeypatch.setattr(app_factory, "get_graph", fake_get_graph)
     monkeypatch.setattr(app_factory, "shutdown_rebuild_executor", fake_shutdown)
 
     async with app_factory.lifespan(app):
         assert len(shutdown_calls) == 0
 
-    assert len(shutdown_calls) == 1
+    assert shutdown_calls == [True]

@@ -134,8 +134,6 @@ async def rebuild_graph(
             raise
         except Exception as exc:
             raise _map_rebuild_error(exc) from None
-        finally:
-            _REBUILD_RUNTIME.mark_idle()
 
 
 def _rebuild_in_progress_error() -> HTTPException:
@@ -149,7 +147,7 @@ def _rebuild_in_progress_error() -> HTTPException:
 def _claim_rebuild_or_raise() -> asyncio.Lock:
     """Claim rebuild execution or raise a fail-fast HTTP error."""
     rebuild_lock = _REBUILD_RUNTIME.get_lock()
-    if _REBUILD_RUNTIME.is_busy():
+    if _REBUILD_RUNTIME.is_busy() or rebuild_lock.locked():
         raise _rebuild_in_progress_error()
     return rebuild_lock
 
@@ -171,6 +169,7 @@ async def _run_rebuild_in_executor(
             settings,
         )
     except Exception as exc:
+        _REBUILD_RUNTIME.mark_idle()
         _log_rebuild_failed(
             user_ref=user_ref,
             exc=exc,
@@ -180,7 +179,8 @@ async def _run_rebuild_in_executor(
         raise
 
     def on_done(done_future: asyncio.Future[GraphRebuildResponse]) -> None:
-        """Emit outcome audit logs when executor work completes."""
+        """Finalize rebuild state and emit outcome audit logs."""
+        _REBUILD_RUNTIME.mark_idle()
         try:
             response = done_future.result()
         except Exception as exc:

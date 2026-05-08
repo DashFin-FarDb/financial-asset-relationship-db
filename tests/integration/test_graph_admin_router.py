@@ -111,10 +111,12 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
         regulatory_event_count=0,
     )
 
-    def slow_success(_settings: graph_admin.GraphLifecycleSettings) -> graph_admin.GraphRebuildResponse:
-    """Simulate rebuild work that completes after await cancellation."""
-    time.sleep(0.05)
-    return response
+    def slow_success(
+        _settings: graph_admin.GraphLifecycleSettings,
+    ) -> graph_admin.GraphRebuildResponse:
+        """Simulate rebuild work that completes after await cancellation."""
+        time.sleep(0.05)
+        return response
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", slow_success)
 
@@ -151,20 +153,13 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
-    audit_records = [
-        record for record in caplog.records
-        if record.getMessage() == "graph_rebuild_audit"
-    ]
+    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
 
     succeeded_records = [
-        record for record in audit_records
-        if getattr(record, "event", None) == "graph_rebuild_succeeded"
+        record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_succeeded"
     ]
 
-    failed_records = [
-        record for record in audit_records
-        if getattr(record, "event", None) == "graph_rebuild_failed"
-    ]
+    failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
 
     assert len(succeeded_records) == 1
     assert len(failed_records) == 0
