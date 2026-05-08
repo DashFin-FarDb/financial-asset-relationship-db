@@ -117,16 +117,16 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
     return response
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", slow_success)
-    
+
     settings = graph_admin.GraphLifecycleSettings(
         asset_graph_database_url=None,
         graph_cache_path=None,
         real_data_cache_path=None,
         use_real_data_fetcher=False,
     )
-    
+
     graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
-    
+
     try:
         loop = asyncio.get_running_loop()
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
@@ -140,32 +140,32 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
             )
             await asyncio.sleep(0.005)
             task.cancel()
-    
+
             with pytest.raises(asyncio.CancelledError):
                 await task
-    
+
             # Allow time for the executor thread to finish and log
             await asyncio.sleep(0.08)
     finally:
         graph_admin.shutdown_rebuild_executor()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
-    
+
     audit_records = [
         record for record in caplog.records
         if record.getMessage() == "graph_rebuild_audit"
     ]
-    
+
     succeeded_records = [
         record for record in audit_records
         if getattr(record, "event", None) == "graph_rebuild_succeeded"
     ]
-    
+
     failed_records = [
         record for record in audit_records
         if getattr(record, "event", None) == "graph_rebuild_failed"
     ]
-    
+
     assert len(succeeded_records) == 1
     assert len(failed_records) == 0
     assert succeeded_records[0].user_ref == "operator"
