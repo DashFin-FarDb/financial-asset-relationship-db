@@ -139,9 +139,12 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
             with pytest.raises(asyncio.CancelledError):
                 await task
             await asyncio.sleep(0.08)
+
+        assert graph_admin._REBUILD_RUNTIME.is_busy() is False  # pylint: disable=protected-access
     finally:
         graph_admin.shutdown_rebuild_executor()
-        graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
+        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
     succeeded_records = [
@@ -153,4 +156,3 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
     assert len(failed_records) == 0
     assert succeeded_records[0].user_ref == "operator"
     assert succeeded_records[0].status_code == 200
-    assert graph_admin._REBUILD_RUNTIME.is_busy() is False  # pylint: disable=protected-access
