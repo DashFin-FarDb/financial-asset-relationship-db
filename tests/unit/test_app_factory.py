@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import pytest  # pylint: disable=import-error
-from fastapi import FastAPI
-
 from api import app_factory
+from fastapi import FastAPI
 
 pytestmark = pytest.mark.unit
 
