@@ -6,7 +6,7 @@ import asyncio
 import contextvars
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated
 
@@ -36,6 +36,7 @@ _REBUILD_AUDIT_REJECTED = "graph_rebuild_rejected"
 _REBUILD_AUDIT_SUCCEEDED = "graph_rebuild_succeeded"
 _REBUILD_AUDIT_FAILED = "graph_rebuild_failed"
 _REBUILD_PATH = "/api/graph/rebuild"
+_MAX_AUDIT_USER_REF_LENGTH = 64
 
 
 class _RebuildRuntime:
@@ -87,6 +88,16 @@ class _RebuildRuntime:
 _REBUILD_RUNTIME = _RebuildRuntime()
 
 
+class _RebuildExecutionError(Exception):
+    """Wrap rebuild execution errors with bounded audit source context."""
+
+    def __init__(self, source: GraphRebuildSource, cause: Exception) -> None:
+        """Store source and underlying failure without exposing raw details."""
+        super().__init__(cause.__class__.__name__)
+        self.source = source
+        self.cause = cause
+
+
 @router.post("/api/graph/rebuild")
 async def rebuild_graph(
     current_user: Annotated[User, Depends(get_current_active_user)],
@@ -113,22 +124,14 @@ async def rebuild_graph(
 
         _REBUILD_RUNTIME.mark_busy()
         try:
-            rebuild_response = await _run_rebuild_in_executor(loop, settings)
-            _log_rebuild_succeeded(
+            return await _run_rebuild_in_executor(
+                loop,
+                settings,
                 user_ref=user_ref,
-                response=rebuild_response,
-                duration_ms=_duration_ms(started_at),
+                started_at=started_at,
             )
-            return rebuild_response
         except Exception as exc:
-            mapped_error = _map_rebuild_error(exc)
-            _log_rebuild_failed(
-                user_ref=user_ref,
-                exc=exc,
-                status_code=mapped_error.status_code,
-                duration_ms=_duration_ms(started_at),
-            )
-            raise mapped_error from None
+            raise _map_rebuild_error(exc) from None
 
 
 def _rebuild_in_progress_error() -> HTTPException:
@@ -150,6 +153,9 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
 async def _run_rebuild_in_executor(
     loop: asyncio.AbstractEventLoop,
     settings: GraphLifecycleSettings,
+    *,
+    user_ref: str,
+    started_at: float,
 ) -> GraphRebuildResponse:
     """Run rebuild work in the dedicated executor."""
     ctx = contextvars.copy_context()
@@ -163,26 +169,49 @@ async def _run_rebuild_in_executor(
     except Exception:
         _REBUILD_RUNTIME.mark_idle()
         raise
-    future.add_done_callback(lambda _future: _REBUILD_RUNTIME.mark_idle())
+
+    def on_done(done_future: asyncio.Future[GraphRebuildResponse]) -> None:
+        """Finalize rebuild state and emit outcome audit logs."""
+        _REBUILD_RUNTIME.mark_idle()
+        try:
+            response = done_future.result()
+        except Exception as exc:
+            mapped_error = _map_rebuild_error(exc)
+            _log_rebuild_failed(
+                user_ref=user_ref,
+                exc=exc,
+                status_code=mapped_error.status_code,
+                duration_ms=_duration_ms(started_at),
+            )
+            return
+
+        _log_rebuild_succeeded(
+            user_ref=user_ref,
+            response=response,
+            duration_ms=_duration_ms(started_at),
+        )
+
+    future.add_done_callback(on_done)
     return await asyncio.shield(future)
 
 
 def _map_rebuild_error(exc: Exception) -> HTTPException:
     """Map rebuild domain errors to sanitized HTTP errors."""
+    root_exc = _unwrap_rebuild_error(exc)
     if isinstance(
-        exc,
+        root_exc,
         (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError),
     ):
-        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
-    if isinstance(exc, (GraphRebuildSourceError, GraphPersistenceSaveError)):
+        return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(root_exc))
+    if isinstance(root_exc, (GraphRebuildSourceError, GraphPersistenceSaveError)):
         return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(exc),
+            detail=str(root_exc),
         )
 
     logger.error(
         "Unexpected graph rebuild failure: %s",
-        exc.__class__.__name__,
+        root_exc.__class__.__name__,
     )
     return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -192,12 +221,16 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
 
 def _resolve_user_ref(user: User) -> str:
     """Return the bounded user reference used in rebuild audit logs."""
-    return user.username
+    username = user.username or ""
+    normalized = "".join(char if char.isprintable() and char not in "\r\n\t" else "_" for char in username.strip())
+    if not normalized:
+        return "unknown"
+    return normalized[:_MAX_AUDIT_USER_REF_LENGTH]
 
 
 def _audit_timestamp() -> str:
     """Return a UTC timestamp string for audit log records."""
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()  # noqa: UP017 - Python 3.10 compatibility
 
 
 def _duration_ms(started_at: float) -> int:
@@ -240,6 +273,7 @@ def _log_rebuild_succeeded(*, user_ref: str, response: GraphRebuildResponse, dur
         extra={
             "event": _REBUILD_AUDIT_SUCCEEDED,
             "user_ref": user_ref,
+            "status_code": status.HTTP_200_OK,
             "source": response.source,
             "duration_ms": duration_ms,
             "asset_count": response.asset_count,
@@ -252,22 +286,22 @@ def _log_rebuild_succeeded(*, user_ref: str, response: GraphRebuildResponse, dur
 
 def _rebuild_failure_category(exc: Exception) -> str:
     """Return a bounded failure category for rebuild audit logs."""
-    if isinstance(exc, GraphPersistenceNotConfiguredError):
+    root_exc = _unwrap_rebuild_error(exc)
+    if isinstance(root_exc, GraphPersistenceNotConfiguredError):
         return "persistence_not_configured"
-    if isinstance(exc, GraphPersistenceNonDurableError):
+    if isinstance(root_exc, GraphPersistenceNonDurableError):
         return "persistence_non_durable"
-    if isinstance(exc, GraphRebuildSourceError):
+    if isinstance(root_exc, GraphRebuildSourceError):
         return "rebuild_source_error"
-    if isinstance(exc, GraphPersistenceSaveError):
+    if isinstance(root_exc, GraphPersistenceSaveError):
         return "persistence_save_error"
     return "unexpected_error"
 
 
 def _rebuild_source_from_exception(exc: Exception) -> GraphRebuildSource | None:
-    """Return a bounded rebuild source from exception metadata when available."""
-    source = getattr(exc, "rebuild_source", None)
-    if source in {"cache", "real_data", "sample"}:
-        return source
+    """Return bounded rebuild source from wrapped execution errors when available."""
+    if isinstance(exc, _RebuildExecutionError):
+        return exc.source
     return None
 
 
@@ -287,6 +321,13 @@ def _log_rebuild_failed(*, user_ref: str, exc: Exception, status_code: int, dura
     )
 
 
+def _unwrap_rebuild_error(exc: Exception) -> Exception:
+    """Return the underlying rebuild error for mapping and audit categorization."""
+    if isinstance(exc, _RebuildExecutionError):
+        return exc.cause
+    return exc
+
+
 def shutdown_rebuild_executor() -> None:
     """Shut down the process-local graph rebuild executor."""
     _REBUILD_RUNTIME.shutdown_executor()
@@ -304,9 +345,7 @@ def _perform_rebuild_and_persist_sync(
         save_graph_to_persistence(resolved_url, graph)
         synchronize_runtime_graph(graph)
     except Exception as exc:
-        # Preserve bounded rebuild source context for audit logging.
-        exc.rebuild_source = source
-        raise
+        raise _RebuildExecutionError(source, exc) from exc
 
     regulatory_events = getattr(graph, "regulatory_events", []) or []
     return GraphRebuildResponse(

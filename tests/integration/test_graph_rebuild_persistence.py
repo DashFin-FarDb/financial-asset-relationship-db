@@ -340,6 +340,7 @@ async def test_successful_rebuild_emits_bounded_audit_log(
     assert requested_records[0].user_ref == "operator"
     assert requested_records[0].path == "/api/graph/rebuild"
     assert succeeded_records[0].user_ref == "operator"
+    assert succeeded_records[0].status_code == 200
     assert succeeded_records[0].source == payload["source"]
     assert succeeded_records[0].asset_count == payload["asset_count"]
     assert succeeded_records[0].relationship_count == payload["relationship_count"]
