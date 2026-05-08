@@ -130,6 +130,8 @@ async def rebuild_graph(
                 user_ref=user_ref,
                 started_at=started_at,
             )
+        except asyncio.CancelledError:
+            raise
         except Exception as exc:
             raise _map_rebuild_error(exc) from None
 
