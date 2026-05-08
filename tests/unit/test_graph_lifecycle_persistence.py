@@ -291,7 +291,7 @@ def test_persistence_disabled_preserves_sample_fallback(
     graph = _initialize_graph_for_test()
 
     assert graph.assets
-    assert graph_lifecycle.get_graph_startup_source() is None
+    assert graph_lifecycle.graph_state.startup_source is None
 
 
 def test_initialize_graph_does_not_commit_startup_source_state(
@@ -304,7 +304,7 @@ def test_initialize_graph_does_not_commit_startup_source_state(
 
     assert graph.assets
     assert graph_lifecycle.graph_state.graph is None
-    assert graph_lifecycle.get_graph_startup_source() is None
+    assert graph_lifecycle.graph_state.startup_source is None
 
 
 @pytest.mark.parametrize(
@@ -625,15 +625,15 @@ def test_reset_reloads_persisted_graph_without_saving(
 
     monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
 
-    first = graph_lifecycle.get_graph()
-    assert graph_lifecycle.get_graph_startup_source() == "persisted_graph_store"
+    first, first_startup_source = graph_lifecycle.get_graph_with_startup_source()
+    assert first_startup_source == "persisted_graph_store"
     graph_lifecycle.reset_graph()
-    assert graph_lifecycle.get_graph_startup_source() is None
-    second = graph_lifecycle.get_graph()
+    assert graph_lifecycle.graph_state.startup_source is None
+    second, second_startup_source = graph_lifecycle.get_graph_with_startup_source()
 
     assert first is not second
     assert set(second.assets) == {"ASSET_ONLY"}
-    assert graph_lifecycle.get_graph_startup_source() == "persisted_graph_store"
+    assert second_startup_source == "persisted_graph_store"
 
 
 def test_api_main_and_router_helper_compatibility(

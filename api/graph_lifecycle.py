@@ -87,12 +87,6 @@ def set_graph_factory(
         graph_state.startup_source = None
 
 
-def get_graph_startup_source() -> GraphStartupSource | None:
-    """Return the currently tracked startup source for the module-global graph."""
-    with graph_lock:
-        return graph_state.startup_source
-
-
 def reset_graph() -> None:
     """
     Reset module-level graph state so the graph will be recreated on next access.
