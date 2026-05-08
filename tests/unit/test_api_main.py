@@ -480,7 +480,10 @@ class TestAPIEndpoints:
         bare_client: TestClient,
     ) -> None:
         """Detailed health reports degraded when graph readiness fails."""
-        with patch("api.routers.system.get_graph", side_effect=RuntimeError("graph boom")):
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            side_effect=RuntimeError("graph boom"),
+        ):
             response = bare_client.get("/api/health/detailed")
 
         assert response.status_code == 200
@@ -503,7 +506,10 @@ class TestAPIEndpoints:
         graph.assets = []
         graph.relationships = []
 
-        with patch("api.routers.system.get_graph", return_value=graph):
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            return_value=(graph, "unknown"),
+        ):
             response = bare_client.get("/api/health/detailed")
 
         assert response.status_code == 200
@@ -526,12 +532,9 @@ class TestAPIEndpoints:
         graph.assets = {"A": object()}
         graph.relationships = {"A": []}
 
-        with (
-            patch("api.routers.system.get_graph", return_value=graph),
-            patch(
-                "api.routers.system.graph_lifecycle.get_graph_startup_source",
-                return_value="sqlite:///C:/secret/path.db",
-            ),
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            return_value=(graph, "sqlite:///C:/secret/path.db"),
         ):
             response = bare_client.get("/api/health/detailed")
 
