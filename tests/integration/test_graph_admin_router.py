@@ -143,7 +143,7 @@ try:
 
         with pytest.raises(asyncio.CancelledError):
             await task
-            
+
         # Allow time for the executor thread to finish and log
         await asyncio.sleep(0.08)
 finally:
@@ -152,17 +152,17 @@ finally:
         graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
 audit_records = [
-    record for record in caplog.records 
+    record for record in caplog.records
     if record.getMessage() == "graph_rebuild_audit"
 ]
 
 succeeded_records = [
-    record for record in audit_records 
+    record for record in audit_records
     if getattr(record, "event", None) == "graph_rebuild_succeeded"
 ]
 
 failed_records = [
-    record for record in audit_records 
+    record for record in audit_records
     if getattr(record, "event", None) == "graph_rebuild_failed"
 ]
 
