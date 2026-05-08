@@ -38,6 +38,9 @@ graph_lock = threading.Lock()
 
 def get_graph() -> AssetRelationshipGraph:
     """Get the module-global graph, initializing it when needed."""
+    if graph_state.graph is not None:
+        return graph_state.graph
+
     graph, _startup_source = get_graph_with_startup_source()
     return graph
 
