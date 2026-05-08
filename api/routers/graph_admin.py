@@ -244,15 +244,9 @@ def _rebuild_status_code(exc: Exception) -> int:
 
 def _resolve_user_ref(user: User) -> str:
     """Return the bounded user reference used in rebuild audit logs."""
-    username = user.username or ""
-
-    # Clean and normalize the username
-    normalized = "".join(char if char.isprintable() and char not in "\r\n\t" else "_" for char in username.strip())
-
-    if not normalized:
-        return "unknown"
-
-    return normalized[:_MAX_AUDIT_USER_REF_LENGTH]
+    username = (user.username or "").strip()[:_MAX_AUDIT_USER_REF_LENGTH]
+    normalized = "".join(char if char.isprintable() else "_" for char in username)
+    return normalized or "unknown"
 
 
 def _audit_timestamp() -> str:

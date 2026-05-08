@@ -30,6 +30,6 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
     monkeypatch.setattr(app_factory, "shutdown_rebuild_executor", fake_shutdown)
 
     async with app_factory.lifespan(app):
-        assert len(shutdown_calls) == 0
+        assert shutdown_calls == []
 
     assert shutdown_calls == [True]

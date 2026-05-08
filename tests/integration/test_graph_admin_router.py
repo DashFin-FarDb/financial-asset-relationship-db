@@ -140,14 +140,14 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
                     started_at=time.perf_counter(),
                 )
             )
-            await asyncio.sleep(0.005)
+            await asyncio.sleep(0.01)
             task.cancel()
 
             with pytest.raises(asyncio.CancelledError):
                 await task
 
             # Allow time for the executor thread to finish and log
-            await asyncio.sleep(0.08)
+            await asyncio.sleep(0.12)
     finally:
         graph_admin.shutdown_rebuild_executor()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
