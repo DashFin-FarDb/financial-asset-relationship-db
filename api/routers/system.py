@@ -1,17 +1,19 @@
 """System and metadata API routes."""
 
-from typing import Any, Literal, NoReturn, cast
+from typing import Any, Literal, NoReturn, cast, get_args
 
 from fastapi import APIRouter, HTTPException
 
 from src.models.financial_models import AssetClass
 
-from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse
+from .. import graph_lifecycle
+from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse, GraphStartupSource
 from ..router_helpers import get_graph, logger
 
 router = APIRouter()
 
 SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
+SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES: frozenset[str] = frozenset(get_args(GraphStartupSource))
 
 
 @router.get("/")
@@ -39,7 +41,7 @@ async def health_check() -> dict[str, Any]:
 def _get_graph_health() -> GraphHealthResponse:
     """Return bounded, non-secret graph readiness details."""
     try:
-        graph = get_graph()
+        graph, startup_source = graph_lifecycle.get_graph_with_startup_source()
         assets = getattr(graph, "assets", {})
         relationships = getattr(graph, "relationships", {})
 
@@ -54,12 +56,14 @@ def _get_graph_health() -> GraphHealthResponse:
                 available=False,
                 asset_count=0,
                 relationship_count=0,
+                graph_startup_source=None,
             )
 
         return GraphHealthResponse(
             available=True,
             asset_count=len(assets),
             relationship_count=sum(len(items) for items in relationships.values()),
+            graph_startup_source=_bound_graph_startup_source(startup_source),
         )
     except Exception:
         logger.warning("Detailed health graph check failed")
@@ -67,7 +71,15 @@ def _get_graph_health() -> GraphHealthResponse:
             available=False,
             asset_count=0,
             relationship_count=0,
+            graph_startup_source=None,
         )
+
+
+def _bound_graph_startup_source(value: object) -> GraphStartupSource:
+    """Return a bounded startup-source label safe for the public health response."""
+    if value in SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES:
+        return cast(GraphStartupSource, value)
+    return "unknown"
 
 
 def _get_database_health() -> DatabaseHealthResponse:

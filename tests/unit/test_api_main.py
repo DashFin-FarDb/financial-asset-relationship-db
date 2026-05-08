@@ -308,6 +308,7 @@ class TestPydanticModels:
                 available=True,
                 asset_count=19,
                 relationship_count=57,
+                graph_startup_source="sample_graph",
             ),
             database=DatabaseHealthResponse(
                 configured=True,
@@ -319,6 +320,7 @@ class TestPydanticModels:
         assert response.status == "healthy"
         assert response.graph.available is True
         assert response.graph.asset_count == 19
+        assert response.graph.graph_startup_source == "sample_graph"
         assert response.database.type == "sqlite"
 
     def test_detailed_health_response_rejects_extra_fields(self) -> None:
@@ -387,6 +389,16 @@ class TestPydanticModels:
                 relationship_count=-1,
             )
 
+    def test_graph_health_response_rejects_invalid_startup_source(self) -> None:
+        """GraphHealthResponse restricts public startup-source values."""
+        with pytest.raises(ValueError):
+            GraphHealthResponse(
+                available=True,
+                asset_count=1,
+                relationship_count=0,
+                graph_startup_source="invalid-startup-source://redacted",
+            )
+
 
 @pytest.mark.unit
 class TestAPIEndpoints:
@@ -452,10 +464,11 @@ class TestAPIEndpoints:
         assert set(data) == {"status", "graph", "database"}
         assert data["status"] == "healthy"
 
-        assert set(data["graph"]) == {"available", "asset_count", "relationship_count"}
+        assert set(data["graph"]) == {"available", "asset_count", "relationship_count", "graph_startup_source"}
         assert data["graph"]["available"] is True
         assert data["graph"]["asset_count"] > 0
         assert data["graph"]["relationship_count"] >= 0
+        assert data["graph"]["graph_startup_source"] == "unknown"
 
         assert set(data["database"]) == {"configured", "type", "reachable"}
         assert data["database"]["configured"] is True
@@ -467,7 +480,10 @@ class TestAPIEndpoints:
         bare_client: TestClient,
     ) -> None:
         """Detailed health reports degraded when graph readiness fails."""
-        with patch("api.routers.system.get_graph", side_effect=RuntimeError("graph boom")):
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            side_effect=RuntimeError("graph boom"),
+        ):
             response = bare_client.get("/api/health/detailed")
 
         assert response.status_code == 200
@@ -478,6 +494,7 @@ class TestAPIEndpoints:
             "available": False,
             "asset_count": 0,
             "relationship_count": 0,
+            "graph_startup_source": None,
         }
 
     def test_detailed_health_degraded_when_graph_containers_are_unsupported(
@@ -489,7 +506,10 @@ class TestAPIEndpoints:
         graph.assets = []
         graph.relationships = []
 
-        with patch("api.routers.system.get_graph", return_value=graph):
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            return_value=(graph, "unknown"),
+        ):
             response = bare_client.get("/api/health/detailed")
 
         assert response.status_code == 200
@@ -500,7 +520,29 @@ class TestAPIEndpoints:
             "available": False,
             "asset_count": 0,
             "relationship_count": 0,
+            "graph_startup_source": None,
         }
+
+    def test_detailed_health_bounds_invalid_graph_startup_source(
+        self,
+        bare_client: TestClient,
+    ) -> None:
+        """Detailed health should bound unsafe startup-source values to unknown."""
+        graph = Mock()
+        graph.assets = {"A": object()}
+        graph.relationships = {"A": []}
+
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            return_value=(graph, "sqlite:///C:/secret/path.db"),
+        ):
+            response = bare_client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["graph"]["graph_startup_source"] == "unknown"
+        assert "secret" not in str(data["graph"]).lower()
 
     def test_detailed_health_degraded_when_database_check_fails(
         self,
