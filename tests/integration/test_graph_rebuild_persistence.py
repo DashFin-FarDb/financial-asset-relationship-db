@@ -379,8 +379,16 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
 
     assert response.status_code == 500
 
-    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
-    failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
+    audit_records = [
+        record 
+        for record in caplog.records 
+        if record.getMessage() == "graph_rebuild_audit"
+    ]
+    failed_records = [
+        record
+        for record in audit_records
+        if record.levelname == "ERROR"
+    ]
 
     assert len(failed_records) == 1
     assert failed_records[0].user_ref == "operator"
