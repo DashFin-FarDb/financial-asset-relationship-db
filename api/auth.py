@@ -435,7 +435,7 @@ def get_current_rebuild_operator_user(
     Allows only the configured admin username from settings; denies other active
     users with a bounded forbidden response.
     """
-    configured_admin = settings.admin_username
+    configured_admin = (settings.admin_username or "").strip()
 
     if not configured_admin:
         raise HTTPException(
