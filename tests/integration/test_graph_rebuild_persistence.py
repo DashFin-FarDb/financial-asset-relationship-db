@@ -377,7 +377,7 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
         response = await _post_rebuild_http(monkeypatch)
-            await asyncio.sleep(0.01)
+        await asyncio.sleep(0.01)
 
     assert response.status_code == 500
 
