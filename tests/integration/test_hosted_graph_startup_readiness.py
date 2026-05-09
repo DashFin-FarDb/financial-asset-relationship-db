@@ -118,12 +118,14 @@ def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -
 
 
 def _authorized_operator_app():
-    """Create an app with an active operator user dependency override."""
+    """Create an app with an active test operator."""
+    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
+
     app = create_app()
 
     def active_user() -> User:
-        """Return an active test operator user."""
-        return User(username="operator", disabled=False)
+        """Return an active test user matching the default ADMIN_USERNAME."""
+        return User(username="admin", disabled=False) # <-- Changed from "operator" to "admin"
 
     app.dependency_overrides[get_current_active_user] = active_user
     return app
