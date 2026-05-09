@@ -11,13 +11,13 @@ from typing import Any
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
+from api.config import get_settings
 from fastapi import HTTPException, status  # pylint: disable=import-error
 from fastapi.testclient import TestClient  # pylint: disable=import-error
 
 import api.routers.graph_admin as graph_admin
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user
-from api.config import get_settings
 
 pytestmark = pytest.mark.integration
 
@@ -60,9 +60,7 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
     """Concurrent rebuild requests should fail fast instead of queueing."""
     graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
     try:
-        with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(
-            HTTPException
-        ) as exc_info:
+        with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="system_operator", disabled=False))
     finally:
         graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
