@@ -17,6 +17,7 @@ import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as providers
 import api.main as api_main
 from api.app_factory import create_app
+from api.auth import User, get_current_active_user
 from api.routers import graph_admin
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
@@ -77,6 +78,25 @@ async def _post_rebuild() -> _RouteResult:
         http_exc = graph_admin._map_rebuild_error(exc)  # pylint: disable=protected-access
         return _RouteResult(http_exc.status_code, {"detail": http_exc.detail})
     return _RouteResult(200, body.model_dump())
+
+
+def _authorized_app():
+    """Create an app with an active test operator."""
+    app = create_app()
+
+    def active_user() -> User:
+        """Return an active test user."""
+        return User(username="operator", disabled=False)
+
+    app.dependency_overrides[get_current_active_user] = active_user
+    return app
+
+
+async def _post_rebuild_http() -> httpx.Response:
+    """Post to rebuild through the HTTP route with an authorized user."""
+    transport = httpx.ASGITransport(app=_authorized_app())
+    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
+        return await client.post("/api/graph/rebuild")
 
 
 def _sqlite_url(tmp_path: Path, name: str = "asset_graph.db") -> str:
@@ -291,6 +311,77 @@ async def test_explicit_rebuild_persists_sample_graph(
     assert body["relationship_count"] == sum(len(items) for items in saved.relationships.values())
     assert body["regulatory_event_count"] == len(saved.regulatory_events)
     assert api_main.get_graph().assets.keys() == saved.assets.keys()
+
+
+async def test_successful_rebuild_emits_bounded_audit_log(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A successful rebuild should emit bounded requested/succeeded audit logs."""
+    _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
+        response = await _post_rebuild_http()
+
+    assert response.status_code == 200
+    payload = response.json()
+
+    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    requested_records = [
+        record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_requested"
+    ]
+    succeeded_records = [
+        record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_succeeded"
+    ]
+
+    assert len(requested_records) == 1
+    assert len(succeeded_records) == 1
+    assert requested_records[0].user_ref == "operator"
+    assert requested_records[0].path == "/api/graph/rebuild"
+    assert succeeded_records[0].user_ref == "operator"
+    assert succeeded_records[0].status_code == 200
+    assert succeeded_records[0].source == payload["source"]
+    assert succeeded_records[0].asset_count == payload["asset_count"]
+    assert succeeded_records[0].relationship_count == payload["relationship_count"]
+    assert succeeded_records[0].regulatory_event_count == payload["regulatory_event_count"]
+    assert succeeded_records[0].duration_ms >= 0
+
+
+async def test_failed_rebuild_emits_secret_safe_audit_log(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A failed rebuild should emit bounded secret-safe failure audit logs."""
+    raw_url = "postgresql://operator:secret@example.invalid/asset_graph"
+    _configure_persistence(monkeypatch, raw_url)
+
+    def fail_save(_database_url: str | None, _graph: AssetRelationshipGraph) -> None:
+        """Simulate persistence save failure with a sanitized exception."""
+        raise providers.GraphPersistenceSaveError("Failed to persist rebuilt graph.")
+
+    monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
+
+    with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
+        response = await _post_rebuild_http()
+
+    assert response.status_code == 500
+
+    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
+
+    assert len(failed_records) == 1
+    assert failed_records[0].user_ref == "operator"
+    assert failed_records[0].failure_category == "persistence_save_error"
+    assert failed_records[0].status_code == 500
+    assert failed_records[0].source == "sample"
+    assert failed_records[0].duration_ms >= 0
+
+    serialized_records = " ".join(str(record.__dict__) for record in audit_records)
+    assert raw_url not in response.text
+    assert "secret" not in response.text
+    assert raw_url not in serialized_records
+    assert "secret" not in serialized_records
 
 
 async def test_rebuild_uses_cache_path_before_sample(
