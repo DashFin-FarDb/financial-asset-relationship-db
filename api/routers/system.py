@@ -8,6 +8,12 @@ from src.models.financial_models import AssetClass
 
 from .. import graph_lifecycle
 from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse, GraphStartupSource
+from ..graph_lifecycle_providers import (
+    GraphPersistenceNonDurableError,
+    GraphPersistenceNotConfiguredError,
+    get_graph_lifecycle_settings,
+    resolve_durable_graph_persistence_url,
+)
 from ..router_helpers import get_graph, logger
 
 router = APIRouter()
@@ -122,6 +128,19 @@ def _get_database_health() -> DatabaseHealthResponse:
     )
 
 
+def _get_graph_persistence_configured() -> bool:
+    """Return whether durable graph persistence is explicitly configured."""
+    try:
+        settings = get_graph_lifecycle_settings()
+        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        return True
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+        return False
+    except Exception:
+        logger.warning("Detailed health graph persistence configuration check failed")
+        return False
+
+
 @router.get("/api/health/detailed")
 def detailed_health_check() -> DetailedHealthResponse:
     """Return bounded, non-secret readiness information for hosted deployment."""
@@ -132,6 +151,7 @@ def detailed_health_check() -> DetailedHealthResponse:
 
     return DetailedHealthResponse(
         status=status_value,
+        graph_persistence_configured=_get_graph_persistence_configured(),
         graph=graph_health,
         database=database_health,
     )

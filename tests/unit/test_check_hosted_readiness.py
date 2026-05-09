@@ -28,6 +28,7 @@ def _healthy_detailed_payload() -> dict[str, Any]:
     """Return a healthy detailed-readiness payload for tests."""
     return {
         "status": "healthy",
+        "graph_persistence_configured": True,
         "graph": {"available": True, "asset_count": 19, "relationship_count": 57},
         "database": {"configured": True, "type": "postgresql", "reachable": True},
     }
@@ -210,7 +211,8 @@ def test_detailed_readiness_rejects_missing_top_level_fields(monkeypatch: pytest
     failures = script.check_detailed_readiness("https://example.com", 5.0)
 
     assert (
-        "/api/health/detailed returned top-level field mismatch: missing=['database', 'graph'], unexpected=[]"
+        "/api/health/detailed returned top-level field mismatch: "
+        "missing=['database', 'graph', 'graph_persistence_configured'], unexpected=[]"
     ) in failures
 
 
@@ -222,6 +224,7 @@ def test_detailed_readiness_rejects_non_object_graph_or_database(monkeypatch: py
         """Return a detailed readiness response with non-object fields."""
         return 200, {
             "status": "healthy",
+            "graph_persistence_configured": True,
             "graph": [],
             "database": [],
         }
@@ -232,6 +235,25 @@ def test_detailed_readiness_rejects_non_object_graph_or_database(monkeypatch: py
 
     assert "/api/health/detailed graph field is not an object" in failures
     assert "/api/health/detailed database field is not an object" in failures
+
+
+def test_detailed_readiness_rejects_non_boolean_graph_persistence_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Detailed readiness check rejects non-boolean graph_persistence_configured values."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a detailed readiness response with an invalid persistence-configured type."""
+        payload = _healthy_detailed_payload()
+        payload["graph_persistence_configured"] = "true"
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+
+    failures = script.check_detailed_readiness("https://example.com", 5.0)
+
+    assert "/api/health/detailed graph_persistence_configured field is not a boolean" in failures
 
 
 def test_run_checks_returns_failure_on_runtime_error(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -321,7 +343,7 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
 
         status = 200
 
-        def __enter__(self) -> "FakeResponse":
+        def __enter__(self) -> FakeResponse:
             """Enter the fake response context."""
             return self
 
