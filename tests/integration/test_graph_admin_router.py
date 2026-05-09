@@ -7,7 +7,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from collections.abc import Generator
+from typing import Generator
 from typing import Any
 
 import httpx  # pylint: disable=import-error
