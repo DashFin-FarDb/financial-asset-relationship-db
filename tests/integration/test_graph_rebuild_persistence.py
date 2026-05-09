@@ -385,7 +385,13 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
         response = await _post_rebuild_http(monkeypatch)
-        await asyncio.sleep(0.01)
+        deadline = time.monotonic() + 1.0
+
+        while graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            if time.monotonic() >= deadline:
+                pytest.fail("Timed out waiting for rebuild runtime to become idle")
+
+            await asyncio.sleep(0)
 
     assert response.status_code == 500
 
