@@ -5,9 +5,9 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Iterator
 import logging
 import time
+from collections.abc import Iterator
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
