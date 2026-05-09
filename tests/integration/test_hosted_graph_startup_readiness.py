@@ -18,6 +18,7 @@ import api.graph_lifecycle_providers as providers
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user
 from api.routers import graph_admin
+from src.config.settings import get_settings
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -42,6 +43,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
         "GRAPH_CACHE_PATH",
         "REAL_DATA_CACHE_PATH",
         "USE_REAL_DATA_FETCHER",
+        "ADMIN_USERNAME",
     ):
         monkeypatch.delenv(name, raising=False)
     providers.clear_graph_lifecycle_settings_cache()
@@ -118,8 +120,14 @@ def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -
     _reset_runtime_graph_state()
 
 
-def _authorized_active_user_app():
-    """Create an app with an active authenticated test user."""
+def _authorized_active_user_app(monkeypatch: pytest.MonkeyPatch):
+    """Create an app with an active authenticated test user and pinned admin configuration."""
+    # Force the environment state
+    monkeypatch.setenv("ADMIN_USERNAME", "admin")
+    
+    # Ensure create_app() picks up the newly injected environment variable
+    get_settings.cache_clear()
+    
     app = create_app()
 
     def active_user() -> User:
@@ -321,7 +329,7 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
 
-    with TestClient(_authorized_active_user_app()) as client:
+    with TestClient(_authorized_active_user_app(monkeypatch)) as client:
         rebuild_response = client.post("/api/graph/rebuild")
 
     assert rebuild_response.status_code == 200
