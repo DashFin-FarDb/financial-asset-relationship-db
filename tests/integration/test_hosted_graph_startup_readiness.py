@@ -7,7 +7,8 @@ import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, cast
+from types import ModuleType
+from typing import Any
 
 import pytest  # pylint: disable=import-error
 from fastapi.testclient import TestClient  # pylint: disable=import-error
@@ -28,9 +29,9 @@ pytestmark = pytest.mark.integration
 def _reset_runtime_graph_state() -> None:
     """Reset lifecycle graph state and any already-imported legacy api.main mirror."""
     graph_lifecycle.reset_graph()
-    api_main = cast(Any, sys.modules.get("api.main"))
-    if api_main is not None and hasattr(api_main, "graph"):
-        api_main.graph = None
+    api_main = sys.modules.get("api.main")
+    if isinstance(api_main, ModuleType) and "graph" in api_main.__dict__:
+        api_main.__dict__["graph"] = None
 
 
 @pytest.fixture(autouse=True)
