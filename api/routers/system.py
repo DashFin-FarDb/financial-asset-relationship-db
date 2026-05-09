@@ -141,9 +141,13 @@ def _get_graph_persistence_configured() -> bool:
     except ArgumentError:
         logger.warning("Detailed health graph persistence configuration check failed (%s)", ArgumentError.__name__)
         return False
-    except Exception as exc:
-        logger.warning(
-            "Detailed health graph persistence configuration check failed (%s)",
+def _get_graph_persistence_configured() -> bool:
+    try:
+        settings = get_graph_lifecycle_settings()
+        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        return True
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+        return False
             type(exc).__name__,
         )
         return False
