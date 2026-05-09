@@ -136,8 +136,11 @@ def _get_graph_persistence_configured() -> bool:
         return True
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return False
-    except Exception:
-        logger.warning("Detailed health graph persistence configuration check failed")
+    except Exception as exc:
+        logger.warning(
+            "Detailed health graph persistence configuration check failed (%s)",
+            type(exc).__name__,
+        )
         return False
 
 
