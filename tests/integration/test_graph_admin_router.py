@@ -48,6 +48,7 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None
     """Ensure the expected admin username is set via env vars and clear cache."""
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     get_settings.cache_clear()
+    assert get_settings().admin_username == "admin"
     yield
     get_settings.cache_clear()
 
