@@ -5,10 +5,9 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterator
 import logging
 import time
-from collections.abc import Generator
-from unittest.mock import AsyncMock
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
@@ -27,44 +26,25 @@ from src.config.settings import get_settings
 pytestmark = pytest.mark.integration
 
 
-def _authorized_app():
-    """Create an app with an active test operator."""
-    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
-
-    app = create_app()
-
-    def active_user() -> User:
-        """Return an active test user."""
-        return User(username="admin", disabled=False)
-
-    app.dependency_overrides[get_current_active_user] = active_user
-    return app
-
-
-async def _post_rebuild() -> httpx.Response:
-    """Post to the graph rebuild endpoint as an active operator."""
-    transport = httpx.ASGITransport(app=_authorized_app())
-    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
-        return await client.post("/api/graph/rebuild")
-
-
 def _configure_test_operator(monkeypatch: pytest.MonkeyPatch) -> None:
     """Configure the test operator username and refresh cached settings."""
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     get_settings.cache_clear()
 
 
-@pytest.fixture
-def non_operator_client(monkeypatch: pytest.MonkeyPatch) -> Generator[TestClient, None, None]:
-    """Client authenticated as a standard, non-operator active user."""
+def _client_with_active_user(
+    monkeypatch: pytest.MonkeyPatch,
+    username: str,
+) -> Iterator[TestClient]:
+    """Create a client whose active user has the supplied username."""
     _configure_test_operator(monkeypatch)
     from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
 
     app = create_app()
 
     def active_user() -> User:
-        """Return a mock standard active user."""
-        return User(username="standard_analyst", disabled=False)
+        """Return a mock active user."""
+        return User(username=username, disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
 
@@ -76,24 +56,15 @@ def non_operator_client(monkeypatch: pytest.MonkeyPatch) -> Generator[TestClient
 
 
 @pytest.fixture
-def operator_client(monkeypatch: pytest.MonkeyPatch) -> Generator[TestClient, None, None]:
+def non_operator_client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+    """Client authenticated as a standard, non-operator active user."""
+    yield from _client_with_active_user(monkeypatch, "standard_analyst")
+
+
+@pytest.fixture
+def operator_client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     """Client authenticated as the authorized operator user."""
-    _configure_test_operator(monkeypatch)
-    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
-
-    app = create_app()
-
-    def active_operator() -> User:
-        """Return a mock authorized operator user."""
-        return User(username="admin", disabled=False)
-
-    app.dependency_overrides[get_current_active_user] = active_operator
-
-    try:
-        with TestClient(app) as client:
-            yield client
-    finally:
-        get_settings.cache_clear()
+    yield from _client_with_active_user(monkeypatch, "admin")
 
 
 async def test_app_construction_with_graph_admin_router_succeeds() -> None:
@@ -123,20 +94,28 @@ def test_rebuild_allows_active_authorized_operator_user(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Authorized operator should retain rebuild happy path behavior."""
-    fake_rebuild = AsyncMock(
-        return_value=graph_admin.GraphRebuildResponse(
+
+    def fake_rebuild(
+        _settings: graph_admin.GraphLifecycleSettings,
+    ) -> graph_admin.GraphRebuildResponse:
+        """Return a mock successful GraphRebuildResponse."""
+        return graph_admin.GraphRebuildResponse(
             status="persisted",
             source="sample",
             asset_count=0,
             relationship_count=0,
             regulatory_event_count=0,
         )
-    )
 
-    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_rebuild)
+    monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", fake_rebuild)
 
-    response = operator_client.post("/api/graph/rebuild")
-    fake_rebuild.assert_awaited_once()
+    try:
+        response = operator_client.post("/api/graph/rebuild")
+    finally:
+        graph_admin.shutdown_rebuild_executor()
+        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
+
     assert response.status_code == 200
     assert response.json() == {
         "status": "persisted",
@@ -147,13 +126,19 @@ def test_rebuild_allows_active_authorized_operator_user(
     }
 
 
+@pytest.mark.parametrize("configured_admin", [None, "", "   "])
 def test_rebuild_returns_503_when_operator_authorization_not_configured(
     monkeypatch: pytest.MonkeyPatch,
+    configured_admin: str | None,
 ) -> None:
     """Rebuild should fail closed when no operator username is configured."""
     from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
 
-    monkeypatch.delenv("ADMIN_USERNAME", raising=False)
+    if configured_admin is None:
+        monkeypatch.delenv("ADMIN_USERNAME", raising=False)
+    else:
+        monkeypatch.setenv("ADMIN_USERNAME", configured_admin)
+
     get_settings.cache_clear()
     app = create_app()
 
