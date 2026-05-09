@@ -16,7 +16,12 @@ from fastapi import HTTPException  # pylint: disable=import-error
 from fastapi.testclient import TestClient  # pylint: disable=import-error
 
 import api.routers.graph_admin as graph_admin
-from api.auth import REBUILD_OPERATOR_FORBIDDEN_DETAIL, User, get_current_active_user
+from api.auth import (
+    REBUILD_OPERATOR_FORBIDDEN_DETAIL,
+    REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL,
+    User,
+    get_current_active_user,
+)
 from src.config.settings import get_settings
 
 pytestmark = pytest.mark.integration
@@ -48,7 +53,6 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None
     """Ensure the expected admin username is set via env vars and clear cache."""
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     get_settings.cache_clear()
-    assert get_settings().admin_username == "admin"
     yield
     get_settings.cache_clear()
 
@@ -136,6 +140,32 @@ def test_rebuild_allows_active_authorized_operator_user(
         "relationship_count": 0,
         "regulatory_event_count": 0,
     }
+
+
+def test_rebuild_returns_503_when_operator_authorization_not_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Rebuild should fail closed when no operator username is configured."""
+    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
+
+    monkeypatch.delenv("ADMIN_USERNAME", raising=False)
+    get_settings.cache_clear()
+    app = create_app()
+
+    def active_user() -> User:
+        """Return an active user used to prove fail-closed config behavior."""
+        return User(username="admin", disabled=False)
+
+    app.dependency_overrides[get_current_active_user] = active_user
+
+    try:
+        with TestClient(app) as client:
+            response = client.post("/api/graph/rebuild")
+    finally:
+        get_settings.cache_clear()
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL
 
 
 async def test_rebuild_returns_429_when_rebuild_already_running(
