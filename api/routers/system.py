@@ -3,6 +3,8 @@
 from typing import Any, Literal, NoReturn, cast, get_args
 
 from fastapi import APIRouter, HTTPException
+from sqlalchemy.engine import make_url  # pylint: disable=import-error
+from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
 
