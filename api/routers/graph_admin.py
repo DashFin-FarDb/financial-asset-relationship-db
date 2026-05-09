@@ -117,16 +117,23 @@ async def rebuild_graph(
             _log_rebuild_rejected(user_ref=user_ref)
         raise
 
-    async with rebuild_lock:
-        try:
-            return await _run_rebuild_in_executor(
-                loop,
-                settings,
-                user_ref=user_ref,
-                started_at=started_at,
-            )
-        except Exception as exc:
-            raise _map_rebuild_error(exc) from None
+    lock_acquired = False
+    try:
+        async with rebuild_lock:
+            lock_acquired = True
+            try:
+                return await _run_rebuild_in_executor(
+                    loop,
+                    settings,
+                    user_ref=user_ref,
+                    started_at=started_at,
+                )
+            except Exception as exc:
+                raise _map_rebuild_error(exc) from None
+    except asyncio.CancelledError:
+        if not lock_acquired:
+            _REBUILD_RUNTIME.mark_idle()
+        raise
 
 
 def _rebuild_in_progress_error() -> HTTPException:
