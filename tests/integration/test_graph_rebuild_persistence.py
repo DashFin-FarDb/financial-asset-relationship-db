@@ -114,6 +114,29 @@ async def _post_rebuild_http(
         return await client.post("/api/graph/rebuild")
 
 
+async def _wait_for_runtime_idle_and_audit_event(
+    caplog: pytest.LogCaptureFixture,
+    event_name: str,
+    timeout_seconds: float = 1.0,
+) -> None:
+    """Wait until rebuild runtime is idle and the expected audit event is captured."""
+    deadline = time.monotonic() + timeout_seconds
+
+    while True:
+        runtime_busy = graph_admin._REBUILD_RUNTIME.is_busy()  # pylint: disable=protected-access
+        event_seen = any(
+            record.getMessage() == "graph_rebuild_audit" and getattr(record, "event", None) == event_name
+            for record in caplog.records
+        )
+
+        if not runtime_busy and event_seen:
+            return
+        if time.monotonic() >= deadline:
+            pytest.fail(f"Timed out waiting for rebuild runtime idle and audit event: {event_name}")
+
+        await asyncio.sleep(0.005)
+
+
 def _sqlite_url(tmp_path: Path, name: str = "asset_graph.db") -> str:
     """Build a file-backed SQLite database URL."""
     return f"sqlite:///{tmp_path / name}"
@@ -338,13 +361,7 @@ async def test_successful_rebuild_emits_bounded_audit_log(
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
         response = await _post_rebuild_http(monkeypatch)
-        deadline = time.monotonic() + 1.0
-
-        while graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            if time.monotonic() >= deadline:
-                pytest.fail("Timed out waiting for rebuild runtime to become idle")
-
-            await asyncio.sleep(0)
+        await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_succeeded")
 
     assert response.status_code == 200
     payload = response.json()
@@ -386,13 +403,7 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
         response = await _post_rebuild_http(monkeypatch)
-        deadline = time.monotonic() + 1.0
-
-        while graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            if time.monotonic() >= deadline:
-                pytest.fail("Timed out waiting for rebuild runtime to become idle")
-
-            await asyncio.sleep(0)
+        await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_failed")
 
     assert response.status_code == 500
 
