@@ -13,7 +13,7 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from api.models import User, UserInDB
-from src.config.settings import Settings, get_settings, load_settings
+from src.config.settings import Settings, load_settings
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
@@ -339,26 +339,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
     if user is None:
         raise credentials_exception
     return user
-
-
-async def get_current_rebuild_operator_user(
-    current_user: User = Depends(get_current_active_user),
-    settings: Settings = Depends(get_settings),
-) -> User:
-    """
-    Dependency to enforce operator-level authorization for destructive actions.
-    Validates that the active user matches the configured system admin identity.
-    """
-    # Fallback to "admin" if settings.admin_username is undefined or falsy (e.g., None)
-    configured_admin = getattr(settings, "admin_username", None) or "admin"
-
-    if current_user.username != configured_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to perform destructive actions.",
-        )
-
-    return current_user
 
 
 def _build_credentials_exception() -> HTTPException:

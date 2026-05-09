@@ -13,7 +13,7 @@ from typing import Annotated, cast
 from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
 
 from ..api_models import GraphRebuildResponse
-from ..auth import User, get_current_rebuild_operator_user
+from ..auth import User, get_current_active_user
 from ..graph_lifecycle import synchronize_runtime_graph
 from ..graph_lifecycle_providers import (
     GraphLifecycleSettings,
@@ -100,7 +100,7 @@ class _RebuildExecutionError(Exception):
 
 @router.post(_REBUILD_PATH)
 async def rebuild_graph(
-    current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> GraphRebuildResponse:
     """Rebuild, persist, and synchronize graph state."""
     settings = get_graph_lifecycle_settings()

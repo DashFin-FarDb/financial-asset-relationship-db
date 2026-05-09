@@ -7,7 +7,7 @@ import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest  # pylint: disable=import-error
 from fastapi.testclient import TestClient  # pylint: disable=import-error
@@ -28,7 +28,7 @@ pytestmark = pytest.mark.integration
 def _reset_runtime_graph_state() -> None:
     """Reset lifecycle graph state and any already-imported legacy api.main mirror."""
     graph_lifecycle.reset_graph()
-    api_main = sys.modules.get("api.main")
+    api_main = cast(Any, sys.modules.get("api.main"))
     if api_main is not None and hasattr(api_main, "graph"):
         api_main.graph = None
 
@@ -117,14 +117,13 @@ def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -
     _reset_runtime_graph_state()
 
 
-def _authorized_operator_app():
-    """Create an app with an active test operator."""
-
+def _authorized_active_user_app():
+    """Create an app with an active authenticated test user."""
     app = create_app()
 
     def active_user() -> User:
-        """Return an active test user matching the default ADMIN_USERNAME."""
-        return User(username="admin", disabled=False)  # <-- Changed from "operator" to "admin"
+        """Return an active test user."""
+        return User(username="operator", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
     return app
@@ -321,7 +320,7 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
 
-    with TestClient(_authorized_operator_app()) as client:
+    with TestClient(_authorized_active_user_app()) as client:
         rebuild_response = client.post("/api/graph/rebuild")
 
     assert rebuild_response.status_code == 200
