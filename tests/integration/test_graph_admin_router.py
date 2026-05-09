@@ -30,7 +30,7 @@ def _authorized_app():
 
     def active_user() -> User:
         """Return an active test user."""
-        return User(username="system_operator", disabled=False)
+        return User(username="admin", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
     return app
@@ -46,7 +46,7 @@ async def _post_rebuild() -> httpx.Response:
 @pytest.fixture
 def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
     """Ensure the expected admin username is set via env vars and clear cache."""
-    monkeypatch.setenv("ADMIN_USERNAME", "system_operator")
+    monkeypatch.setenv("ADMIN_USERNAME", "admin")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
@@ -78,7 +78,7 @@ def operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
 
     def active_operator() -> User:
         """Return a mock authorized operator user."""
-        return User(username="system_operator", disabled=False)
+        return User(username="admin", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_operator
 
@@ -145,7 +145,7 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
     graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
     try:
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(HTTPException) as exc_info:
-            await graph_admin.rebuild_graph(User(username="system_operator", disabled=False))
+            await graph_admin.rebuild_graph(User(username="admin", disabled=False))
     finally:
         graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
@@ -162,7 +162,7 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
 
     assert len(requested_records) == 1
     assert len(rejected_records) == 1
-    assert requested_records[0].user_ref == "system_operator"
+    assert requested_records[0].user_ref == "admin"
     assert requested_records[0].path == "/api/graph/rebuild"
     assert rejected_records[0].reason == "rebuild_in_progress"
     assert rejected_records[0].status_code == 429
@@ -221,7 +221,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
                 graph_admin._run_rebuild_in_executor(  # pylint: disable=protected-access
                     loop,
                     settings,
-                    user_ref="system_operator",
+                    user_ref="admin",
                     started_at=time.perf_counter(),
                 )
             )
@@ -248,5 +248,5 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
 
     assert len(succeeded_records) == 1
     assert len(failed_records) == 0
-    assert succeeded_records[0].user_ref == "system_operator"
+    assert succeeded_records[0].user_ref == "admin"
     assert succeeded_records[0].status_code == 200
