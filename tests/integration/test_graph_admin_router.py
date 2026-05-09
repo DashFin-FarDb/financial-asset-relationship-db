@@ -175,9 +175,9 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ensure the expected admin username is set via env vars and clear cache."""
     monkeypatch.setenv("ADMIN_USERNAME", "system_operator")
     get_settings.cache_clear()
-    
+
     yield
-    
+
     # Clean up the cache after the test
     get_settings.cache_clear()
 
@@ -234,7 +234,7 @@ class TestGraphAdminOperatorBoundary:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """The configured operator user is authorized to trigger a rebuild."""
-        
+
         # Mock a valid Pydantic response to pass FastAPI serialization
         def fake_success(*args: Any, **kwargs: Any) -> graph_admin.GraphRebuildResponse:
             return graph_admin.GraphRebuildResponse(
