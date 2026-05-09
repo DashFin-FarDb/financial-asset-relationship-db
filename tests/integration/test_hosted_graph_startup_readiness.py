@@ -124,7 +124,7 @@ def _authorized_active_user_app():
 
     def active_user() -> User:
         """Return a generic authenticated test user for the existing rebuild auth contract."""
-        return User(username="operator", disabled=False)
+        return User(username="admin", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
     return app

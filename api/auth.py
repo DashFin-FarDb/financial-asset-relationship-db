@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import TypedDict
+from typing import Annotated, TypedDict
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -13,7 +13,7 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from api.models import User, UserInDB
-from src.config.settings import Settings, load_settings
+from src.config.settings import Settings, get_settings, load_settings
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
@@ -420,4 +420,25 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     """
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+def get_current_rebuild_operator_user(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> User:
+    """
+    Enforce operator authorization for destructive graph rebuild actions.
+
+    Allows only the configured admin username from settings; denies other active
+    users with a bounded forbidden response.
+    """
+    configured_admin = settings.admin_username or "admin"
+
+    if current_user.username != configured_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform destructive actions.",
+        )
+
     return current_user

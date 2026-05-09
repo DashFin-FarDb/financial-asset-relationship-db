@@ -86,7 +86,7 @@ def _authorized_app():
 
     def active_user() -> User:
         """Return an active test user."""
-        return User(username="operator", disabled=False)
+        return User(username="admin", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
     return app
@@ -337,9 +337,9 @@ async def test_successful_rebuild_emits_bounded_audit_log(
 
     assert len(requested_records) == 1
     assert len(succeeded_records) == 1
-    assert requested_records[0].user_ref == "operator"
+    assert requested_records[0].user_ref == "admin"
     assert requested_records[0].path == "/api/graph/rebuild"
-    assert succeeded_records[0].user_ref == "operator"
+    assert succeeded_records[0].user_ref == "admin"
     assert succeeded_records[0].status_code == 200
     assert succeeded_records[0].source == payload["source"]
     assert succeeded_records[0].asset_count == payload["asset_count"]
@@ -371,7 +371,7 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
 
     assert len(failed_records) == 1
-    assert failed_records[0].user_ref == "operator"
+    assert failed_records[0].user_ref == "admin"
     assert failed_records[0].failure_category == "persistence_save_error"
     assert failed_records[0].status_code == 500
     assert failed_records[0].source == "sample"
