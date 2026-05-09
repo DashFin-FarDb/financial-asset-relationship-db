@@ -3,6 +3,8 @@
 from typing import Any, Literal, NoReturn, cast, get_args
 
 from fastapi import APIRouter, HTTPException
+from sqlalchemy.engine import make_url  # pylint: disable=import-error
+from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
 
@@ -132,9 +134,12 @@ def _get_graph_persistence_configured() -> bool:
     """Return whether durable graph persistence is explicitly configured."""
     try:
         settings = get_graph_lifecycle_settings()
-        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        make_url(resolve_durable_graph_persistence_url(settings.asset_graph_database_url))
         return True
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+        return False
+    except ArgumentError:
+        logger.warning("Detailed health graph persistence configuration check failed (%s)", ArgumentError.__name__)
         return False
     except Exception as exc:
         logger.warning(
