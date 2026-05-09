@@ -341,7 +341,7 @@ async def test_successful_rebuild_emits_bounded_audit_log(
     while graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
         if time.monotonic() >= deadline:
             pytest.fail("Timed out waiting for rebuild runtime to become idle")
-    
+
         await asyncio.sleep(0)
 
     assert response.status_code == 200
