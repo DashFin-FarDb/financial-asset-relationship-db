@@ -135,17 +135,15 @@ def _get_graph_persistence_configured() -> bool:
     try:
         settings = get_graph_lifecycle_settings()
         url_str = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-
-        # Validation: Ensure the string is actually a parseable URL
         make_url(url_str)
         return True
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError, ArgumentError):
-        # Known cases: explicitly missing, non-durable (memory), or malformed
         return False
     except Exception as exc:
-        # Unexpected programming/system errors are logged but don't crash health
+        # Removed exc_info=True to prevent leaking connection secrets in tracebacks
         logger.error(
-            "Unexpected error checking graph persistence configuration (%s)", type(exc).__name__, exc_info=True
+            "Unexpected error checking graph persistence configuration (%s)",
+            type(exc).__name__,
         )
         return False
 
