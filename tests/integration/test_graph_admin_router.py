@@ -123,7 +123,6 @@ def test_rebuild_allows_active_authorized_operator_user(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Authorized operator should retain rebuild happy path behavior."""
-
     fake_rebuild = AsyncMock(
         return_value=graph_admin.GraphRebuildResponse(
             status="persisted",
