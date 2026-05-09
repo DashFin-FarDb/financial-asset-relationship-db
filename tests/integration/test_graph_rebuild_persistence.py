@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
+import asyncio
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
 from sqlalchemy import create_engine  # pylint: disable=import-error
