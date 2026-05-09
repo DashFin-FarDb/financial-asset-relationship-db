@@ -119,7 +119,6 @@ def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -
 
 def _authorized_operator_app():
     """Create an app with an active test operator."""
-    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
 
     app = create_app()
 
