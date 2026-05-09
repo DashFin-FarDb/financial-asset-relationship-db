@@ -335,6 +335,7 @@ async def test_successful_rebuild_emits_bounded_audit_log(
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
         response = await _post_rebuild_http(monkeypatch)
+        await asyncio.sleep(0.01)
 
     assert response.status_code == 200
     payload = response.json()
@@ -375,12 +376,22 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-        response = await _post_rebuild_http(monkeypatch)
-
+    response = await _post_rebuild_http(monkeypatch)
+        await asyncio.sleep(0.01)
+    
     assert response.status_code == 500
-
-    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
-    failed_records = [record for record in audit_records if record.levelname == "ERROR"]
+    
+    audit_records = [
+        record
+        for record in caplog.records
+        if record.getMessage() == "graph_rebuild_audit"
+    ]
+    
+    failed_records = [
+        record
+        for record in audit_records
+        if getattr(record, "event", None) == "graph_rebuild_failed"
+    ]
 
     assert len(failed_records) == 1
     assert failed_records[0].user_ref == "operator"
