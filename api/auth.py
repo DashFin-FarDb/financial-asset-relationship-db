@@ -23,6 +23,8 @@ SECRET_KEY = _AUTH_SETTINGS.required_secret_key
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REBUILD_OPERATOR_FORBIDDEN_DETAIL = "You do not have permission to perform destructive actions."
+REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL = "Rebuild operator authorization is not configured."
 
 # Password hashing
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -433,12 +435,18 @@ def get_current_rebuild_operator_user(
     Allows only the configured admin username from settings; denies other active
     users with a bounded forbidden response.
     """
-    configured_admin = settings.admin_username or "admin"
+    configured_admin = settings.admin_username
+
+    if not configured_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL,
+        )
 
     if current_user.username != configured_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to perform destructive actions.",
+            detail=REBUILD_OPERATOR_FORBIDDEN_DETAIL,
         )
 
     return current_user

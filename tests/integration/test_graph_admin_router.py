@@ -16,7 +16,7 @@ from fastapi import HTTPException  # pylint: disable=import-error
 from fastapi.testclient import TestClient  # pylint: disable=import-error
 
 import api.routers.graph_admin as graph_admin
-from api.auth import User, get_current_active_user
+from api.auth import REBUILD_OPERATOR_FORBIDDEN_DETAIL, User, get_current_active_user
 from src.config.settings import get_settings
 
 pytestmark = pytest.mark.integration
@@ -105,7 +105,7 @@ def test_rebuild_returns_403_for_active_non_operator_user(non_operator_client: T
     """Active authenticated users who are not operator-authorized should be forbidden."""
     response = non_operator_client.post("/api/graph/rebuild")
     assert response.status_code == 403
-    assert response.json()["detail"] == "You do not have permission to perform destructive actions."
+    assert response.json()["detail"] == REBUILD_OPERATOR_FORBIDDEN_DETAIL
 
 
 def test_rebuild_allows_active_authorized_operator_user(
