@@ -351,13 +351,13 @@ async def get_current_rebuild_operator_user(
     """
     # Fallback to "admin" if settings.admin_username is undefined or falsy (e.g., None)
     configured_admin = getattr(settings, "admin_username", None) or "admin"
-    
+
     if current_user.username != configured_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to perform destructive actions.",
         )
-        
+
     return current_user
 
 
