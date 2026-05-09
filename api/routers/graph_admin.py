@@ -337,7 +337,7 @@ def _log_rebuild_failed(*, user_ref: str, exc: Exception, status_code: int, dura
     logger.error(
         "graph_rebuild_audit",
         extra={
-            "event": "graph_rebuild_failed",
+            "event": _REBUILD_AUDIT_FAILED,
             "user_ref": user_ref,
             "path": _REBUILD_PATH,
             "failure_category": _rebuild_failure_category(exc),
