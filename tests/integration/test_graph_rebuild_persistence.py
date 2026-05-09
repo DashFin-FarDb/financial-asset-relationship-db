@@ -21,6 +21,7 @@ import api.main as api_main
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user
 from api.routers import graph_admin
+from src.config.settings import get_settings
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -39,6 +40,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
         "USE_REAL_DATA_FETCHER",
     ):
         monkeypatch.delenv(name, raising=False)
+    get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
     api_main.reset_graph()
     monkeypatch.setattr("api.routers.graph_admin._REBUILD_RUNTIME.executor", _ImmediateExecutor())
@@ -46,6 +48,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
     graph_admin.shutdown_rebuild_executor()
     api_main.reset_graph()
     providers.clear_graph_lifecycle_settings_cache()
+    get_settings.cache_clear()
 
 
 class _ImmediateExecutor(ThreadPoolExecutor):
@@ -85,8 +88,6 @@ async def _post_rebuild() -> _RouteResult:
 def _authorized_app(monkeypatch: pytest.MonkeyPatch):
     """Create an app with an active authorized operator."""
     monkeypatch.setenv("ADMIN_USERNAME", "operator")
-    from src.config.settings import get_settings
-
     get_settings.cache_clear()
 
     app = create_app()
