@@ -125,7 +125,7 @@ def _authorized_operator_app():
 
     def active_user() -> User:
         """Return an active test user matching the default ADMIN_USERNAME."""
-        return User(username="admin", disabled=False) # <-- Changed from "operator" to "admin"
+        return User(username="admin", disabled=False)  # <-- Changed from "operator" to "admin"
 
     app.dependency_overrides[get_current_active_user] = active_user
     return app
