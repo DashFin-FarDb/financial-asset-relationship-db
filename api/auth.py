@@ -340,6 +340,25 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
         raise credentials_exception
     return user
 
+async def get_current_rebuild_operator_user(
+    current_user: User = Depends(get_current_active_user),
+    settings: getattr(get_settings, "__annotations__", {}).get("return", type(None)) = Depends(get_settings),
+) -> User:
+    """
+    Dependency to enforce operator-level authorization for destructive actions.
+    Validates that the active user matches the configured system admin identity.
+    """
+    # Fallback to "admin" if settings.admin_username isn't explicitly defined yet
+    configured_admin = getattr(settings, "admin_username", "admin")
+    
+    if current_user.username != configured_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform destructive actions.",
+        )
+        
+    return current_user
+
 
 def _build_credentials_exception() -> HTTPException:
     """
