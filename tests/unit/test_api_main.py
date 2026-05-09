@@ -492,13 +492,13 @@ class TestAPIEndpoints:
         """Detailed health reports graph persistence as unconfigured for unset/blank/in-memory URLs."""
         with patch(
             "api.routers.system.get_graph_lifecycle_settings",
-            return_value=GraphLifecycleSettings(
-                asset_graph_database_url=configured_url,
-                graph_cache_path=None,
-                real_data_cache_path=None,
-                use_real_data_fetcher=False,
-            ),
-        ):
+                return_value=GraphLifecycleSettings(
+                    asset_graph_database_url=configured_url,
+                    graph_cache_path=None,
+                    real_data_cache_path=None,
+                    use_real_data_fetcher=False,
+                ),
+            ):
             response = client.get("/api/health/detailed")
 
         assert response.status_code == 200
