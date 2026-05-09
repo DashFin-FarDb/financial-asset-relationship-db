@@ -80,8 +80,11 @@ async def _post_rebuild() -> _RouteResult:
     return _RouteResult(200, body.model_dump())
 
 
-def _authorized_app():
-    """Create an app with an active test operator."""
+def _authorized_app(monkeypatch: pytest.MonkeyPatch):
+    """Create an app with an active authorized operator."""
+    monkeypatch.setenv("ADMIN_USERNAME", "operator")
+    get_settings.cache_clear()
+
     app = create_app()
 
     def active_user() -> User:
@@ -89,13 +92,20 @@ def _authorized_app():
         return User(username="operator", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
+
     return app
 
 
-async def _post_rebuild_http() -> httpx.Response:
+async def _post_rebuild_http(
+    monkeypatch: pytest.MonkeyPatch,
+) -> httpx.Response:
     """Post to rebuild through the HTTP route with an authorized user."""
-    transport = httpx.ASGITransport(app=_authorized_app())
-    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
+    transport = httpx.ASGITransport(app=_authorized_app(monkeypatch))
+
+    async with httpx.AsyncClient(
+        transport=transport,
+        base_url="https://testserver",
+    ) as client:
         return await client.post("/api/graph/rebuild")
 
 
@@ -322,7 +332,7 @@ async def test_successful_rebuild_emits_bounded_audit_log(
     _prepare_rebuild_database(tmp_path, monkeypatch)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-        response = await _post_rebuild_http()
+        response = await _post_rebuild_http(monkeypatch)
 
     assert response.status_code == 200
     payload = response.json()
@@ -363,7 +373,7 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-        response = await _post_rebuild_http()
+        response = await _post_rebuild_http(monkeypatch)
 
     assert response.status_code == 500
 
