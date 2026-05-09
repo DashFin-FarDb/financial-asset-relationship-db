@@ -442,11 +442,10 @@ def get_current_rebuild_operator_user(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL,
         )
-
-    if current_user.username != configured_admin:
+    
+    if current_user.username.strip() != configured_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=REBUILD_OPERATOR_FORBIDDEN_DETAIL,
         )
-
     return current_user
