@@ -234,7 +234,6 @@ class TestGraphAdminOperatorBoundary:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """The configured operator user is authorized to trigger a rebuild."""
-
         # Mock a valid Pydantic response to pass FastAPI serialization
         def fake_success(*args: Any, **kwargs: Any) -> graph_admin.GraphRebuildResponse:
             return graph_admin.GraphRebuildResponse(
