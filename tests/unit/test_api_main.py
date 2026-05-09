@@ -504,6 +504,16 @@ class TestAPIEndpoints:
         assert response.status_code == 200
         assert response.json()["graph_persistence_configured"] is False
 
+   def test_detailed_health_graph_persistence_configured_false_on_settings_error(client): 
+        """Ensure the health endpoint stays available and reports persistence as 
+        unconfigured when settings retrieval fails.
+        """
+        with patch("api.routers.system.get_graph_lifecycle_settings", side_effect=RuntimeError("config failure")):
+        response = client.get("/api/health/detailed")
+    
+        assert response.status_code == 200
+        assert response.json()["graph_persistence_configured"] is False
+    
     def test_detailed_health_graph_persistence_configured_true_for_durable_url(
         self,
         client: TestClient,
