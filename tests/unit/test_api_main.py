@@ -509,7 +509,7 @@ class TestAPIEndpoints:
         unconfigured when settings retrieval fails.
         """
         with patch("api.routers.system.get_graph_lifecycle_settings", side_effect=RuntimeError("config failure")):
-        response = client.get("/api/health/detailed")
+            response = client.get("/api/health/detailed")
 
         assert response.status_code == 200
         assert response.json()["graph_persistence_configured"] is False
