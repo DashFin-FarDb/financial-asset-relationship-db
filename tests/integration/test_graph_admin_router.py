@@ -13,11 +13,11 @@ import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
 from fastapi import HTTPException, status  # pylint: disable=import-error
 from fastapi.testclient import TestClient  # pylint: disable=import-error
-from src.config.settings import get_settings
 
 import api.routers.graph_admin as graph_admin
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user
+from src.config.settings import get_settings
 
 pytestmark = pytest.mark.integration
 
