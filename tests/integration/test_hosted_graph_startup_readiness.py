@@ -124,10 +124,10 @@ def _authorized_active_user_app(monkeypatch: pytest.MonkeyPatch):
     """Create an app with an active authenticated test user and pinned admin configuration."""
     # Force the environment state
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
-    
+
     # Ensure create_app() picks up the newly injected environment variable
     get_settings.cache_clear()
-    
+
     app = create_app()
 
     def active_user() -> User:
