@@ -7,26 +7,28 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from typing import Any
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
-from fastapi import HTTPException  # pylint: disable=import-error
+from fastapi import HTTPException, status  # pylint: disable=import-error
+from fastapi.testclient import TestClient  # pylint: disable=import-error
 
 import api.routers.graph_admin as graph_admin
+from api.app_factory import create_app
 from api.auth import User, get_current_active_user
+from api.config import get_settings
 
 pytestmark = pytest.mark.integration
 
 
 def _authorized_app():
     """Create an app with an active test operator."""
-    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
-
     app = create_app()
 
     def active_user() -> User:
         """Return an active test user."""
-        return User(username="operator", disabled=False)
+        return User(username="system_operator", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
     return app
@@ -41,8 +43,6 @@ async def _post_rebuild() -> httpx.Response:
 
 async def test_app_construction_with_graph_admin_router_succeeds() -> None:
     """The graph admin router must not introduce an app construction import cycle."""
-    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
-
     app = create_app()
     routes = {getattr(route, "path", "") for route in app.routes}
 
@@ -60,8 +60,10 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
     """Concurrent rebuild requests should fail fast instead of queueing."""
     graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
     try:
-        with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(HTTPException) as exc_info:
-            await graph_admin.rebuild_graph(User(username="operator", disabled=False))
+        with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(
+            HTTPException
+        ) as exc_info:
+            await graph_admin.rebuild_graph(User(username="system_operator", disabled=False))
     finally:
         graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
@@ -78,7 +80,7 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
 
     assert len(requested_records) == 1
     assert len(rejected_records) == 1
-    assert requested_records[0].user_ref == "operator"
+    assert requested_records[0].user_ref == "system_operator"
     assert requested_records[0].path == "/api/graph/rebuild"
     assert rejected_records[0].reason == "rebuild_in_progress"
     assert rejected_records[0].status_code == 429
@@ -86,7 +88,7 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
 
 def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
     """User references should be printable, single-line, and length bounded."""
-    malicious_username = "operator\nFORGED=1\r\t" + ("x" * 200)
+    malicious_username = "system_operator\nFORGED=1\r\t" + ("x" * 200)
     resolved = graph_admin._resolve_user_ref(  # pylint: disable=protected-access
         User(username=malicious_username, disabled=False)
     )
@@ -95,7 +97,7 @@ def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
     assert "\r" not in resolved
     assert "\t" not in resolved
     assert len(resolved) <= 64
-    assert resolved.startswith("operator_FORGED=1__")
+    assert resolved.startswith("system_operator_FORGED=1__")
 
 
 async def test_rebuild_outcome_logging_survives_request_cancellation(
@@ -136,7 +138,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
                 graph_admin._run_rebuild_in_executor(  # pylint: disable=protected-access
                     loop,
                     settings,
-                    user_ref="operator",
+                    user_ref="system_operator",
                     started_at=time.perf_counter(),
                 )
             )
@@ -163,5 +165,81 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
 
     assert len(succeeded_records) == 1
     assert len(failed_records) == 0
-    assert succeeded_records[0].user_ref == "operator"
+    assert succeeded_records[0].user_ref == "system_operator"
     assert succeeded_records[0].status_code == 200
+
+
+# --- Operator Authorization Boundary Tests ---
+
+
+@pytest.fixture
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Any:
+    """Ensure the expected admin username is set for the test environment."""
+    settings = get_settings()
+    # Force the admin username so tests are deterministic regardless of local .env
+    monkeypatch.setattr(settings, "admin_username", "system_operator", raising=False)
+    return settings
+
+
+@pytest.fixture
+def non_operator_client(mock_settings: Any) -> TestClient:
+    """Client authenticated as a standard, non-operator active user."""
+    app = create_app()
+
+    def active_user() -> User:
+        return User(username="standard_analyst", disabled=False)
+
+    app.dependency_overrides[get_current_active_user] = active_user
+
+    with TestClient(app) as client:
+        yield client
+
+
+@pytest.fixture
+def operator_client(mock_settings: Any) -> TestClient:
+    """Client authenticated as the authorized operator user."""
+    app = create_app()
+
+    def active_operator() -> User:
+        return User(username="system_operator", disabled=False)
+
+    app.dependency_overrides[get_current_active_user] = active_operator
+
+    with TestClient(app) as client:
+        yield client
+
+
+class TestGraphAdminOperatorBoundary:
+    """Verify operator boundaries on destructive graph endpoints."""
+
+    def test_rebuild_graph_unauthenticated_returns_401(self) -> None:
+        """Unauthenticated requests must be rejected immediately."""
+        app = create_app()
+        with TestClient(app) as client:
+            response = client.post("/api/graph/rebuild")
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_rebuild_graph_forbidden_for_non_operator(self, non_operator_client: TestClient) -> None:
+        """An active user who is not the operator must receive a 403."""
+        response = non_operator_client.post("/api/graph/rebuild")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "permission" in response.json().get("detail", "").lower()
+
+    def test_rebuild_graph_allowed_for_operator(
+        self,
+        operator_client: TestClient,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """The configured operator user is authorized to trigger a rebuild."""
+        # Mock the underlying execution to prevent actual rebuilds during auth boundary tests
+        monkeypatch.setattr(
+            "api.routers.graph_admin._perform_rebuild_and_persist_sync",
+            lambda *args, **kwargs: None,
+        )
+
+        response = operator_client.post("/api/graph/rebuild")
+
+        # Assert the request passed the auth boundary
+        assert response.status_code in (status.HTTP_200_OK, status.HTTP_202_ACCEPTED)
