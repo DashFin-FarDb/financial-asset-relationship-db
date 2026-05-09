@@ -376,8 +376,8 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-    response = await _post_rebuild_http(monkeypatch)
-        await asyncio.sleep(0.01)
+        response = await _post_rebuild_http(monkeypatch)
+            await asyncio.sleep(0.01)
 
     assert response.status_code == 500
 
