@@ -7,8 +7,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import Generator
-from typing import Any
+from typing import Any, Generator
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
@@ -49,7 +48,7 @@ async def _post_rebuild() -> httpx.Response:
 
 
 @pytest.fixture
-def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]: # pylint: disable=unused-argument
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:  # pylint: disable=unused-argument
     """Ensure the expected admin username is set via env vars and clear cache."""
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     get_settings.cache_clear()
