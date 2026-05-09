@@ -7,7 +7,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from typing import Any, Generator
+from typing import Generator
+from typing import Any
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
@@ -48,7 +49,7 @@ async def _post_rebuild() -> httpx.Response:
 
 
 @pytest.fixture
-def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]: # pylint: disable=unused-argument
     """Ensure the expected admin username is set via env vars and clear cache."""
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     get_settings.cache_clear()
@@ -118,7 +119,7 @@ def test_rebuild_allows_active_authorized_operator_user(
 ) -> None:
     """Authorized operator should retain rebuild happy path behavior."""
 
-    def fake_success(*args: Any, **kwargs: Any) -> graph_admin.GraphRebuildResponse:
+    def fake_success(*_args: Any, **_kwargs: Any) -> graph_admin.GraphRebuildResponse:
         """Return a mock successful GraphRebuildResponse."""
         return graph_admin.GraphRebuildResponse(
             status="persisted",
