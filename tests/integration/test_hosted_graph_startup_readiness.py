@@ -31,7 +31,7 @@ def _reset_runtime_graph_state() -> None:
     graph_lifecycle.reset_graph()
     api_main = sys.modules.get("api.main")
     if isinstance(api_main, ModuleType) and "graph" in api_main.__dict__:
-        api_main.__dict__["graph"] = None
+        setattr(api_main, "graph", None)  # noqa: B010
 
 
 @pytest.fixture(autouse=True)
@@ -123,7 +123,7 @@ def _authorized_active_user_app():
     app = create_app()
 
     def active_user() -> User:
-        """Return an active test user."""
+        """Return a generic authenticated test user for the existing rebuild auth contract."""
         return User(username="operator", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
