@@ -119,7 +119,7 @@ def test_rebuild_allows_active_authorized_operator_user(
 ) -> None:
     """Authorized operator should retain rebuild happy path behavior."""
 
-    async def fake_success(*args: Any, **kwargs: Any) -> graph_admin.GraphRebuildResponse:
+    def fake_success(*args: Any, **kwargs: Any) -> graph_admin.GraphRebuildResponse:
         """Return a mock successful GraphRebuildResponse."""
         return graph_admin.GraphRebuildResponse(
             status="persisted",
