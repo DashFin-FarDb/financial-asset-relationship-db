@@ -13,7 +13,7 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from api.models import User, UserInDB
-from src.config.settings import Settings, load_settings
+from src.config.settings import Settings, get_settings, load_settings
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
@@ -343,7 +343,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
 
 async def get_current_rebuild_operator_user(
     current_user: User = Depends(get_current_active_user),
-    settings: getattr(get_settings, "__annotations__", {}).get("return", type(None)) = Depends(get_settings),
+    settings: Settings = Depends(get_settings),
 ) -> User:
     """
     Dependency to enforce operator-level authorization for destructive actions.
