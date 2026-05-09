@@ -29,6 +29,8 @@ from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, 
 
 pytestmark = pytest.mark.integration
 
+_REBUILD_AUDIT_POLL_INTERVAL_SECONDS = 0.005
+
 
 @pytest.fixture(autouse=True)
 def reset_state(monkeypatch: pytest.MonkeyPatch):
@@ -134,7 +136,7 @@ async def _wait_for_runtime_idle_and_audit_event(
         if time.monotonic() >= deadline:
             pytest.fail(f"Timed out waiting for rebuild runtime idle and audit event: {event_name}")
 
-        await asyncio.sleep(0.005)
+        await asyncio.sleep(_REBUILD_AUDIT_POLL_INTERVAL_SECONDS)
 
 
 def _sqlite_url(tmp_path: Path, name: str = "asset_graph.db") -> str:
