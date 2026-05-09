@@ -134,22 +134,9 @@ def _get_graph_persistence_configured() -> bool:
     """Return whether durable graph persistence is explicitly configured."""
     try:
         settings = get_graph_lifecycle_settings()
-        make_url(resolve_durable_graph_persistence_url(settings.asset_graph_database_url))
-        return True
-    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
-        return False
-    except ArgumentError:
-        logger.warning("Detailed health graph persistence configuration check failed (%s)", ArgumentError.__name__)
-        return False
-def _get_graph_persistence_configured() -> bool:
-    try:
-        settings = get_graph_lifecycle_settings()
         resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
         return True
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
-        return False
-            type(exc).__name__,
-        )
         return False
 
 
