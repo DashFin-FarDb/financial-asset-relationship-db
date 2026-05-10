@@ -391,12 +391,13 @@ async def test_successful_rebuild_emits_bounded_audit_log(
 
 
 async def test_failed_rebuild_emits_secret_safe_audit_log(
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A failed rebuild should emit bounded secret-safe failure audit logs."""
     raw_url = "postgresql://operator:secret@example.invalid/asset_graph"
-    _configure_persistence(monkeypatch, raw_url)
+    _prepare_rebuild_database(tmp_path, monkeypatch)
 
     def fail_save(_database_url: str | None, _graph: AssetRelationshipGraph) -> None:
         """Simulate persistence save failure with a sanitized exception."""
@@ -435,7 +436,11 @@ async def test_rebuild_fails_closed_when_job_creation_persistence_fails(
     """Rebuild must fail closed if durable rebuild-job creation cannot persist."""
     _prepare_rebuild_database(tmp_path, monkeypatch)
 
-    def fail_create_job(self: AssetGraphRepository, requested_by: str, source: str | None = None) -> str:
+    def fail_create_job(
+        self: AssetGraphRepository,
+        requested_by: str,
+        _source: str | None = None,
+    ) -> str:
         """Simulate job creation persistence failure."""
         raise RuntimeError("create failed")
 

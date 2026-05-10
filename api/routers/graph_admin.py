@@ -15,6 +15,7 @@ from typing import Annotated, cast
 from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
 from sqlalchemy.orm import Session
 
+from src.logic.asset_graph import AssetRelationshipGraph
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.repository import AssetGraphRepository, session_scope
 
@@ -49,8 +50,9 @@ _REBUILD_AUDIT_SUCCEEDED = "graph_rebuild_succeeded"
 _REBUILD_AUDIT_FAILED = "graph_rebuild_failed"
 _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_AUDIT_USER_REF_LENGTH = 64
-# Regex to detect and redact URL/DSN-like patterns from failure messages, including
-# malformed DSNs that still contain credential segments.
+# Regex to detect and redact URL/DSN-like patterns from failure messages, including:
+# - postgresql+asyncpg://user:pass@host/db
+# - malformed postgresql:user:pass@host/db
 _URL_PATTERN = re.compile(
     r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z][a-z0-9+\-.]*:[^\s/@]+:[^\s/@]+@\S+)",
     re.IGNORECASE,
@@ -473,7 +475,7 @@ def _build_graph_or_persist_failure(
     session_factory: Callable[[], Session],
     job_id: str,
     job_started_at: float,
-) -> tuple:
+) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """Build graph for rebuild and persist failed state before re-raising on error."""
     try:
         return build_rebuild_graph(settings)
@@ -486,7 +488,7 @@ def _save_and_publish_or_persist_failure(
     *,
     source: GraphRebuildSource,
     resolved_url: str,
-    graph: object,
+    graph: AssetRelationshipGraph,
     session_factory: Callable[[], Session],
     job_id: str,
     job_started_at: float,
