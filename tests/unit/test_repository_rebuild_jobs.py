@@ -1,7 +1,5 @@
 """Unit tests for AssetGraphRepository rebuild job methods."""
 
-import time
-
 import pytest
 from sqlalchemy import create_engine
 
@@ -279,18 +277,13 @@ class TestRebuildJobRepository:
         assert jobs == []
 
     def test_list_rebuild_jobs(self, repository_factory):
-        """Test listing multiple rebuild jobs ordered by created_at descending."""
+        """Test listing multiple rebuild jobs ordered by created_at and job_id descending."""
         repo = repository_factory()
 
-        # Insert jobs with small sleeps to guarantee distinct created_at timestamps
         job_id_1 = repo.create_rebuild_job(requested_by="user1", source="sample")
         repo.session.commit()
-
-        time.sleep(0.1)
         job_id_2 = repo.create_rebuild_job(requested_by="user2", source="cache")
         repo.session.commit()
-
-        time.sleep(0.1)
         job_id_3 = repo.create_rebuild_job(requested_by="user3", source="real_data")
         repo.session.commit()
 
@@ -298,10 +291,14 @@ class TestRebuildJobRepository:
         jobs = reader.list_rebuild_jobs()
 
         assert len(jobs) == 3
-        # Most recent first
-        assert jobs[0].job_id == job_id_3
-        assert jobs[1].job_id == job_id_2
-        assert jobs[2].job_id == job_id_1
+        assert {j.job_id for j in jobs} == {job_id_1, job_id_2, job_id_3}
+        # Verify ordering matches (created_at DESC, job_id DESC)
+        expected_order = sorted(
+            jobs,
+            key=lambda j: (j.created_at, j.job_id),
+            reverse=True,
+        )
+        assert [j.job_id for j in jobs] == [j.job_id for j in expected_order]
 
     def test_list_rebuild_jobs_with_limit(self, repository_factory):
         """Test listing rebuild jobs with a limit."""
@@ -342,3 +339,9 @@ class TestRebuildJobRepository:
 
         failed_jobs = repo.list_rebuild_jobs(status="failed")
         assert len(failed_jobs) == 0
+
+    def test_list_rebuild_jobs_invalid_status_raises(self, repository_factory):
+        """Test that an invalid status value raises ValueError."""
+        repo = repository_factory()
+        with pytest.raises(ValueError, match="Invalid rebuild job status"):
+            repo.list_rebuild_jobs(status="invalid_status")

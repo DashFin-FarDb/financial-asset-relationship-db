@@ -473,6 +473,10 @@ def _perform_rebuild_and_persist_sync(
 
         job_id = _create_job_safe(session_factory, user_ref)
 
+        # Mark the job running immediately so started_at is set before graph build begins
+        if job_id is not None:
+            _mark_job_running_safe(session_factory, job_id)
+
         # Build graph — catch to persist failed state before re-raising
         try:
             graph, source = build_rebuild_graph(settings)
@@ -481,10 +485,9 @@ def _perform_rebuild_and_persist_sync(
                 _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
             raise
 
-        # Source is now known — update and mark running
+        # Source is now known — update job record
         if job_id is not None:
             _update_job_source_safe(session_factory, job_id, str(source))
-            _mark_job_running_safe(session_factory, job_id)
 
         try:
             save_graph_to_persistence(resolved_url, graph)

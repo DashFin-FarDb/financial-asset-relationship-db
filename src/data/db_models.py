@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import enum
 from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     UniqueConstraint,
@@ -24,6 +27,21 @@ from src.data.base import Base
 ASSET_ID_FK = "assets.id"
 REGULATORY_EVENT_ID_FK = "regulatory_events.id"
 CASCADE_DELETE_ORPHAN = "all, delete-orphan"
+
+
+class RebuildJobStatus(str, enum.Enum):
+    """Valid status values for a RebuildJobORM record."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Return the list of all valid status string values."""
+        return [m.value for m in cls]
 
 
 class AssetORM(Base):
@@ -200,6 +218,14 @@ class RebuildJobORM(Base):
     """Persistent rebuild job record tracking graph rebuild operations."""
 
     __tablename__ = "rebuild_jobs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled')",
+            name="ck_rebuild_jobs_status",
+        ),
+        Index("ix_rebuild_jobs_created_at", "created_at"),
+        Index("ix_rebuild_jobs_status_created_at", "status", "created_at"),
+    )
 
     job_id: Mapped[str] = mapped_column(String, primary_key=True)
     requested_by: Mapped[str] = mapped_column(String(64), nullable=False)
