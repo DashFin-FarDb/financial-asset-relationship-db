@@ -476,7 +476,14 @@ def _build_graph_or_persist_failure(
     job_id: str,
     job_started_at: float,
 ) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
-    """Build graph for rebuild and persist failed state before re-raising on error."""
+    """Build graph and persist failed job state before re-raising.
+
+    Args:
+        settings: Lifecycle settings used to resolve rebuild data source.
+        session_factory: Session factory used to persist job transitions.
+        job_id: Durable rebuild job identifier.
+        job_started_at: Monotonic start time used for duration calculation.
+    """
     try:
         return build_rebuild_graph(settings)
     except Exception as exc:
@@ -493,7 +500,16 @@ def _save_and_publish_or_persist_failure(
     job_id: str,
     job_started_at: float,
 ) -> None:
-    """Persist graph data and runtime state; on failure persist failed job state."""
+    """Persist graph + runtime state; persist failed job state on error.
+
+    Args:
+        source: Rebuild source used for wrapped execution error context.
+        resolved_url: Durable graph persistence database URL.
+        graph: Rebuilt graph instance to persist and publish.
+        session_factory: Session factory used to persist job transitions.
+        job_id: Durable rebuild job identifier.
+        job_started_at: Monotonic start time used for duration calculation.
+    """
     try:
         save_graph_to_persistence(resolved_url, graph)
         synchronize_runtime_graph(graph)
@@ -509,7 +525,14 @@ def _persist_rebuild_success(
     response: GraphRebuildResponse,
     job_started_at: float,
 ) -> None:
-    """Persist successful rebuild metadata."""
+    """Persist successful rebuild job metadata.
+
+    Args:
+        session_factory: Session factory used to persist job transitions.
+        job_id: Durable rebuild job identifier.
+        response: Rebuild response containing node/edge counts.
+        job_started_at: Monotonic start time used for duration calculation.
+    """
     _mark_job_succeeded_safe(
         session_factory,
         job_id,
