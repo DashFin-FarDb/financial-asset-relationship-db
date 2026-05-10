@@ -496,11 +496,13 @@ class TestAPIEndpoints:
         data = response.json()
 
         assert data["status"] == "degraded"
-        assert "available" in data["graph"]
-        assert "lifecycle_state" in data["graph"]
-        assert "asset_count" in data["graph"]
-        assert "relationship_count" in data["graph"]
-        assert "graph_startup_source" in data["graph"]
+        assert set(data["graph"]) == {
+            "available",
+            "lifecycle_state",
+            "asset_count",
+            "relationship_count",
+            "graph_startup_source",
+        }
         assert data["graph"]["available"] is False
         assert data["graph"]["asset_count"] == 0
         assert data["graph"]["relationship_count"] == 0
