@@ -397,7 +397,7 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
 ) -> None:
     """A failed rebuild should emit bounded secret-safe failure audit logs."""
     raw_url = "postgresql://operator:secret@example.invalid/asset_graph"
-    _prepare_rebuild_database(tmp_path, monkeypatch)
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
 
     def fail_save(_database_url: str | None, _graph: AssetRelationshipGraph) -> None:
         """Simulate persistence save failure with a sanitized exception."""
@@ -427,6 +427,17 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     assert "secret" not in response.text
     assert raw_url not in serialized_records
     assert "secret" not in serialized_records
+
+    # Verify failed-state persistence is durable in the rebuild_jobs table.
+    engine = create_engine(database_url)
+    session = create_session_factory(engine)()
+    try:
+        jobs = AssetGraphRepository(session).list_rebuild_jobs(limit=1)
+        assert len(jobs) == 1
+        assert jobs[0].status == "failed"
+    finally:
+        session.close()
+        engine.dispose()
 
 
 async def test_rebuild_fails_closed_when_job_creation_persistence_fails(

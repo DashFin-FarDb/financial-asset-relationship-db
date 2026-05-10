@@ -54,6 +54,8 @@ _MAX_AUDIT_USER_REF_LENGTH = 64
 # - postgresql+asyncpg://user:pass@host/db
 # - malformed postgresql:user:pass@host/db
 # - https://example.com/path
+# First alternation matches standard scheme:// URLs.
+# Second alternation matches malformed DSN-like credentials without //.
 _URL_PATTERN = re.compile(
     r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z][a-z0-9+\-.]*:[^\s/@]+:[^\s/@]+@\S+)",
     re.IGNORECASE,
@@ -390,8 +392,15 @@ def shutdown_rebuild_executor() -> None:
     _REBUILD_RUNTIME.shutdown_executor()
 
 
-def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str | None:
-    """Create a rebuild job record in pending status."""
+def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
+    """Create a rebuild job record in pending status.
+
+    Returns:
+        str: Durable rebuild job identifier.
+
+    Raises:
+        GraphPersistenceSaveError: If the job record cannot be durably created.
+    """
     try:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
@@ -402,7 +411,11 @@ def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> s
 
 
 def _update_job_source_safe(session_factory: Callable[[], Session], job_id: str, source: str) -> None:
-    """Update rebuild job source."""
+    """Update rebuild job source.
+
+    Raises:
+        GraphPersistenceSaveError: If the source update cannot be durably persisted.
+    """
     try:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
@@ -413,7 +426,11 @@ def _update_job_source_safe(session_factory: Callable[[], Session], job_id: str,
 
 
 def _mark_job_running_safe(session_factory: Callable[[], Session], job_id: str) -> None:
-    """Mark rebuild job as running."""
+    """Mark rebuild job as running.
+
+    Raises:
+        GraphPersistenceSaveError: If the running transition cannot be durably persisted.
+    """
     try:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
@@ -430,7 +447,11 @@ def _mark_job_succeeded_safe(
     edge_count: int,
     duration_ms: int,
 ) -> None:
-    """Mark rebuild job as succeeded."""
+    """Mark rebuild job as succeeded.
+
+    Raises:
+        GraphPersistenceSaveError: If success metadata cannot be durably persisted.
+    """
     try:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
@@ -451,7 +472,11 @@ def _mark_job_failed_safe(
     exc: Exception,
     duration_ms: int,
 ) -> None:
-    """Mark a rebuild job as failed."""
+    """Mark a rebuild job as failed.
+
+    Raises:
+        GraphPersistenceSaveError: If failed-state metadata cannot be durably persisted.
+    """
     try:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
