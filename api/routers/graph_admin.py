@@ -394,9 +394,7 @@ def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> s
         return None
 
 
-def _update_job_source_safe(
-    session_factory: Callable[[], Session], job_id: str, source: str
-) -> None:
+def _update_job_source_safe(session_factory: Callable[[], Session], job_id: str, source: str) -> None:
     """Update rebuild job source, suppressing persistence errors."""
     try:
         with session_scope(session_factory) as session:

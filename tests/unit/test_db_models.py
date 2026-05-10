@@ -859,4 +859,3 @@ class TestRebuildJobORM:
         assert retrieved.duration_ms == 1000
         assert retrieved.node_count == 50
         assert retrieved.edge_count == 100
-
