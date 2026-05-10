@@ -97,6 +97,8 @@ def test_rebuild_allows_active_authorized_operator_user(
 
     def fake_rebuild(
         _settings: graph_admin.GraphLifecycleSettings,
+        *,
+        user_ref: str,
     ) -> graph_admin.GraphRebuildResponse:
         """Return a mock successful GraphRebuildResponse."""
         return graph_admin.GraphRebuildResponse(
@@ -217,6 +219,8 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
 
     def slow_success(
         _settings: graph_admin.GraphLifecycleSettings,
+        *,
+        user_ref: str,
     ) -> graph_admin.GraphRebuildResponse:
         """Simulate rebuild work that completes after await cancellation."""
         time.sleep(0.05)
