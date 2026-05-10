@@ -14,13 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable
 
 from ..api_models import GraphRebuildResponse
 from ..auth import User, get_current_rebuild_operator_user
-from ..graph_lifecycle import (
-    GraphRuntimeLifecycleState,
-    begin_rebuild,
-    complete_rebuild,
-    get_runtime_lifecycle_state,
-    synchronize_runtime_graph,
-)
+from ..graph_lifecycle import synchronize_runtime_graph
 from ..graph_lifecycle_providers import (
     GraphLifecycleSettings,
     GraphPersistenceNonDurableError,
@@ -53,23 +47,19 @@ class _RebuildRuntime:
         self.lock: asyncio.Lock | None = None
         self.lock_loop: asyncio.AbstractEventLoop | None = None
         self.executor: ThreadPoolExecutor | None = None
+        self.busy = False
 
     def is_busy(self) -> bool:
         """Return whether a rebuild is running or queued."""
-        return get_runtime_lifecycle_state() == GraphRuntimeLifecycleState.REBUILDING
+        return self.busy
 
     def mark_busy(self) -> None:
         """Mark rebuild execution as active."""
-        begin_rebuild()
+        self.busy = True
 
-    def mark_idle(self, *, succeeded: bool) -> None:
-        """Finalize lifecycle after rebuild via complete_rebuild().
-
-        Args:
-            succeeded: True if the rebuild completed successfully (→ READY),
-                False if it failed (→ FAILED).
-        """
-        complete_rebuild(succeeded=succeeded)
+    def mark_idle(self) -> None:
+        """Mark rebuild execution as idle."""
+        self.busy = False
 
     def get_lock(self) -> asyncio.Lock:
         """Return a rebuild lock bound to the current event loop."""
@@ -144,7 +134,7 @@ async def rebuild_graph(
         if lock_acquired:
             rebuild_lock.release()
         else:
-            _REBUILD_RUNTIME.mark_idle(succeeded=False)
+            _REBUILD_RUNTIME.mark_idle()
 
 
 def _rebuild_in_progress_error() -> HTTPException:
@@ -184,7 +174,7 @@ async def _run_rebuild_in_executor(
             ),
         )
     except Exception as exc:
-        _REBUILD_RUNTIME.mark_idle(succeeded=False)
+        _REBUILD_RUNTIME.mark_idle()
         _log_rebuild_failed(
             user_ref=user_ref,
             exc=exc,
@@ -195,10 +185,10 @@ async def _run_rebuild_in_executor(
 
     def on_done(done_future: asyncio.Future[GraphRebuildResponse]) -> None:
         """Finalize rebuild state and emit outcome audit logs."""
+        _REBUILD_RUNTIME.mark_idle()
         try:
             response = done_future.result()
         except Exception as exc:
-            _REBUILD_RUNTIME.mark_idle(succeeded=False)
             _log_rebuild_failed(
                 user_ref=user_ref,
                 exc=exc,
@@ -207,7 +197,6 @@ async def _run_rebuild_in_executor(
             )
             return
 
-        _REBUILD_RUNTIME.mark_idle(succeeded=True)
         _log_rebuild_succeeded(
             user_ref=user_ref,
             response=response,

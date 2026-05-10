@@ -114,7 +114,7 @@ def test_rebuild_allows_active_authorized_operator_user(
     finally:
         graph_admin.shutdown_rebuild_executor()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
     assert response.status_code == 200
     assert response.json() == {
@@ -167,7 +167,7 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="admin", disabled=False))
     finally:
-        graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
     assert exc_info.value.status_code == 429
     assert exc_info.value.detail == "A graph rebuild is already in progress. Please try again later."
@@ -255,7 +255,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
     finally:
         graph_admin.shutdown_rebuild_executor()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle()  # pylint: disable=protected-access
 
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
 

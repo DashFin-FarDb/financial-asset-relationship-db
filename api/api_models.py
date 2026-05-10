@@ -100,7 +100,6 @@ class GraphHealthResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     available: bool
-    lifecycle_state: str = "UNINITIALIZED"
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
     graph_startup_source: GraphStartupSource | None = None
