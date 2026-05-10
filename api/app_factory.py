@@ -16,7 +16,7 @@ from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-foun
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 
 from .cors_policy import configure_cors
-from .graph_lifecycle import get_graph
+from .graph_lifecycle import begin_shutdown, get_graph
 from .rate_limit import limiter
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
@@ -45,6 +45,7 @@ async def lifespan(_fastapi_app: FastAPI):
 
     yield
 
+    begin_shutdown()
     shutdown_rebuild_executor()
     logger.info("Application shutdown")
 
