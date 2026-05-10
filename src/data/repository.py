@@ -859,6 +859,29 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     # Rebuild job helpers
     # ------------------------------------------------------------------
+    @staticmethod
+    def _validate_non_negative_metrics(
+        *,
+        duration_ms: int,
+        node_count: int | None = None,
+        edge_count: int | None = None,
+    ) -> None:
+        """Validate non-negative rebuild metrics."""
+        if duration_ms < 0:
+            raise ValueError("duration_ms must be non-negative")
+        if node_count is not None and node_count < 0:
+            raise ValueError("node_count must be non-negative")
+        if edge_count is not None and edge_count < 0:
+            raise ValueError("edge_count must be non-negative")
+
+    @staticmethod
+    def _validate_failure_metadata(*, failure_category: str, failure_message: str) -> None:
+        """Validate bounded failure metadata."""
+        if len(failure_category) > 64:
+            raise ValueError("failure_category must not exceed 64 characters")
+        if len(failure_message) > 512:
+            raise ValueError("failure_message must not exceed 512 characters")
+
     def create_rebuild_job(
         self,
         *,
@@ -962,6 +985,12 @@ class AssetGraphRepository:
         Raises:
             ValueError: If the job does not exist or is not in running status.
         """
+        self._validate_non_negative_metrics(
+            duration_ms=duration_ms,
+            node_count=node_count,
+            edge_count=edge_count,
+        )
+
         job = self.session.get(RebuildJobORM, job_id)
         if job is None:
             raise ValueError(f"Rebuild job {job_id} not found")
@@ -998,10 +1027,11 @@ class AssetGraphRepository:
             ValueError: If the job does not exist, is not in running/pending status,
                 or failure metadata exceeds bounds.
         """
-        if len(failure_category) > 64:
-            raise ValueError("failure_category must not exceed 64 characters")
-        if len(failure_message) > 512:
-            raise ValueError("failure_message must not exceed 512 characters")
+        self._validate_failure_metadata(
+            failure_category=failure_category,
+            failure_message=failure_message,
+        )
+        self._validate_non_negative_metrics(duration_ms=duration_ms)
 
         job = self.session.get(RebuildJobORM, job_id)
         if job is None:

@@ -105,6 +105,29 @@ def test_asset_crud_flow(db_session: Session) -> None:
     assert "EQ1" not in assets  # nosec B101
 
 
+def test_rebuild_job_crud_flow_with_migration_schema(db_session: Session) -> None:
+    """Rebuild-job repository methods should work against migration-initialized schema."""
+    repo = AssetGraphRepository(db_session)
+
+    job_id = repo.create_rebuild_job(requested_by="operator", source="sample")
+    repo.mark_rebuild_job_running(job_id)
+    repo.mark_rebuild_job_succeeded(
+        job_id,
+        node_count=5,
+        edge_count=8,
+        duration_ms=123,
+    )
+    db_session.commit()
+    db_session.expire_all()
+
+    job = repo.get_rebuild_job(job_id)
+    assert job is not None  # nosec B101
+    assert job.status == "succeeded"  # nosec B101
+    assert job.node_count == 5  # nosec B101
+    assert job.edge_count == 8  # nosec B101
+    assert job.duration_ms == 123  # nosec B101
+
+
 def test_relationship_and_event_crud_flow(db_session: Session) -> None:
     """CRUD operations for relationships and regulatory events."""
     repo = AssetGraphRepository(db_session)

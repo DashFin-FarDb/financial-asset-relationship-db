@@ -169,6 +169,37 @@ class TestRebuildJobRepository:
                 duration_ms=0,
             )
 
+    def test_mark_rebuild_job_succeeded_negative_metrics(self, repository_factory):
+        """Negative success metrics should raise ValueError."""
+        repo = repository_factory()
+        job_id = repo.create_rebuild_job(requested_by="test_user")
+        repo.mark_rebuild_job_running(job_id)
+        repo.session.flush()
+
+        with pytest.raises(ValueError, match="node_count must be non-negative"):
+            repo.mark_rebuild_job_succeeded(
+                job_id,
+                node_count=-1,
+                edge_count=0,
+                duration_ms=0,
+            )
+
+        with pytest.raises(ValueError, match="edge_count must be non-negative"):
+            repo.mark_rebuild_job_succeeded(
+                job_id,
+                node_count=0,
+                edge_count=-1,
+                duration_ms=0,
+            )
+
+        with pytest.raises(ValueError, match="duration_ms must be non-negative"):
+            repo.mark_rebuild_job_succeeded(
+                job_id,
+                node_count=0,
+                edge_count=0,
+                duration_ms=-1,
+            )
+
     def test_mark_rebuild_job_failed(self, repository_factory):
         """Test marking a rebuild job as failed with sanitized failure metadata."""
         repo = repository_factory()
@@ -262,6 +293,21 @@ class TestRebuildJobRepository:
                 failure_category="error",
                 failure_message="test",
                 duration_ms=0,
+            )
+
+    def test_mark_rebuild_job_failed_negative_duration(self, repository_factory):
+        """Negative failure duration should raise ValueError."""
+        repo = repository_factory()
+        job_id = repo.create_rebuild_job(requested_by="test_user")
+        repo.mark_rebuild_job_running(job_id)
+        repo.session.flush()
+
+        with pytest.raises(ValueError, match="duration_ms must be non-negative"):
+            repo.mark_rebuild_job_failed(
+                job_id,
+                failure_category="error",
+                failure_message="test",
+                duration_ms=-1,
             )
 
     def test_get_rebuild_job_not_found(self, repository_factory):

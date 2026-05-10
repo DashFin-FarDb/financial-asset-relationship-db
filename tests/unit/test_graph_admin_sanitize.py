@@ -56,6 +56,26 @@ class TestSanitizeFailureMessage:
         assert "s3cr3t" not in result
         assert "[REDACTED_URL]" in result
 
+    def test_uncommon_sqlalchemy_dialect_prefix_is_redacted(self) -> None:
+        """SQLAlchemy dialect+driver DSNs are redacted."""
+        exc = GraphPersistenceSaveError(
+            "Persist failed for postgresql+asyncpg://admin:s3cr3t@example.invalid/asset_graph"
+        )
+        result = _sanitize_failure_message(exc)
+        assert "s3cr3t" not in result
+        assert "postgresql+asyncpg://" not in result
+        assert "[REDACTED_URL]" in result
+
+    def test_malformed_dsn_with_credentials_is_redacted(self) -> None:
+        """Malformed DSN credential segments are still redacted."""
+        exc = GraphPersistenceSaveError(
+            "Persist failed for postgresql:admin:s3cr3t@example.invalid/asset_graph"
+        )
+        result = _sanitize_failure_message(exc)
+        assert "s3cr3t" not in result
+        assert "admin:" not in result
+        assert "[REDACTED_URL]" in result
+
     def test_empty_message_falls_back_to_class_name(self) -> None:
         """An empty message on a known exception falls back to the class name."""
         exc = GraphPersistenceNotConfiguredError("")

@@ -428,6 +428,63 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     assert "secret" not in serialized_records
 
 
+async def test_rebuild_fails_closed_when_job_creation_persistence_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Rebuild must fail closed if durable rebuild-job creation cannot persist."""
+    _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_create_job(self: AssetGraphRepository, requested_by: str, source: str | None = None) -> str:
+        """Simulate job creation persistence failure."""
+        raise RuntimeError("create failed")
+
+    def fail_if_build_called(_settings: providers.GraphLifecycleSettings):
+        """Assert rebuild does not proceed when job creation fails."""
+        raise AssertionError("build should not be attempted when job creation fails")
+
+    monkeypatch.setattr(AssetGraphRepository, "create_rebuild_job", fail_create_job)
+    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_if_build_called)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to create rebuild job record."}
+
+
+async def test_rebuild_failure_state_persistence_errors_are_not_suppressed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If failed-state persistence fails, surface a deterministic persistence failure."""
+    _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_build(
+        _settings: providers.GraphLifecycleSettings,
+    ) -> tuple[AssetRelationshipGraph, providers.GraphRebuildSource]:
+        """Simulate rebuild source failure to trigger failed-state persistence."""
+        raise providers.GraphRebuildSourceError("Failed to build rebuild graph.")
+
+    def fail_mark_failed(
+        self: AssetGraphRepository,
+        job_id: str,
+        *,
+        failure_category: str,
+        failure_message: str,
+        duration_ms: int,
+    ) -> None:
+        """Simulate failed-state persistence error."""
+        raise RuntimeError("mark failed write failed")
+
+    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_build)
+    monkeypatch.setattr(AssetGraphRepository, "mark_rebuild_job_failed", fail_mark_failed)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to persist rebuild job failure state."}
+
+
 async def test_rebuild_uses_cache_path_before_sample(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
