@@ -464,7 +464,13 @@ class TestAPIEndpoints:
         assert set(data) == {"status", "graph", "database"}
         assert data["status"] == "healthy"
 
-        assert set(data["graph"]) == {"available", "lifecycle_state", "asset_count", "relationship_count", "graph_startup_source"}
+        assert set(data["graph"]) == {
+            "available",
+            "lifecycle_state",
+            "asset_count",
+            "relationship_count",
+            "graph_startup_source",
+        }
         assert data["graph"]["available"] is True
         assert data["graph"]["asset_count"] > 0
         assert data["graph"]["relationship_count"] >= 0
