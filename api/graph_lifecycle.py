@@ -10,6 +10,7 @@ import logging
 import sys
 import threading
 from collections.abc import Callable
+from enum import Enum
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -22,6 +23,117 @@ logger = logging.getLogger(__name__)
 # factory.
 
 
+class GraphRuntimeLifecycleState(str, Enum):  # noqa: UP037 - StrEnum requires Python 3.11+
+    """Explicit hosted graph runtime lifecycle states."""
+
+    UNINITIALIZED = "UNINITIALIZED"
+    INITIALIZING = "INITIALIZING"
+    READY = "READY"
+    REBUILDING = "REBUILDING"
+    FAILED = "FAILED"
+    SHUTTING_DOWN = "SHUTTING_DOWN"
+    STOPPED = "STOPPED"
+
+
+_VALID_LIFECYCLE_TRANSITIONS: dict[GraphRuntimeLifecycleState, frozenset[GraphRuntimeLifecycleState]] = {
+    GraphRuntimeLifecycleState.UNINITIALIZED: frozenset(
+        {
+            GraphRuntimeLifecycleState.INITIALIZING,
+            GraphRuntimeLifecycleState.REBUILDING,
+            GraphRuntimeLifecycleState.SHUTTING_DOWN,
+        }
+    ),
+    GraphRuntimeLifecycleState.INITIALIZING: frozenset(
+        {
+            GraphRuntimeLifecycleState.READY,
+            GraphRuntimeLifecycleState.FAILED,
+            GraphRuntimeLifecycleState.SHUTTING_DOWN,
+        }
+    ),
+    GraphRuntimeLifecycleState.READY: frozenset(
+        {
+            GraphRuntimeLifecycleState.REBUILDING,
+            GraphRuntimeLifecycleState.SHUTTING_DOWN,
+        }
+    ),
+    GraphRuntimeLifecycleState.REBUILDING: frozenset(
+        {
+            GraphRuntimeLifecycleState.READY,
+            GraphRuntimeLifecycleState.FAILED,
+            GraphRuntimeLifecycleState.SHUTTING_DOWN,
+        }
+    ),
+    GraphRuntimeLifecycleState.FAILED: frozenset(
+        {
+            GraphRuntimeLifecycleState.INITIALIZING,
+            GraphRuntimeLifecycleState.REBUILDING,
+            GraphRuntimeLifecycleState.SHUTTING_DOWN,
+        }
+    ),
+    # SHUTTING_DOWN progresses to STOPPED (normal shutdown) only.
+    GraphRuntimeLifecycleState.SHUTTING_DOWN: frozenset({GraphRuntimeLifecycleState.STOPPED}),
+    # STOPPED is terminal for the normal production lifecycle.
+    # The only permitted outgoing transition is an explicit reset to UNINITIALIZED,
+    # which is reserved for test isolation and administrative restart paths.
+    GraphRuntimeLifecycleState.STOPPED: frozenset({GraphRuntimeLifecycleState.UNINITIALIZED}),
+}
+
+
+def _transition_lifecycle_state(next_state: GraphRuntimeLifecycleState) -> None:
+    """Transition runtime lifecycle state while graph_lock is held."""
+    current_state = graph_state.lifecycle_state
+    if current_state == next_state:
+        return
+
+    if next_state not in _VALID_LIFECYCLE_TRANSITIONS[current_state]:
+        raise RuntimeError(f"Invalid graph runtime lifecycle transition: {current_state.value} -> {next_state.value}")
+
+    graph_state.lifecycle_state = next_state
+
+
+def _normalize_shutdown_state() -> None:
+    """Complete any in-progress shutdown sequence by advancing to UNINITIALIZED.
+
+    SHUTTING_DOWN progresses to STOPPED, then STOPPED progresses to UNINITIALIZED,
+    following the validated transition matrix. Used internally by restart/reset paths.
+    Must be called while holding graph_lock.
+    """
+    if graph_state.lifecycle_state == GraphRuntimeLifecycleState.SHUTTING_DOWN:
+        _transition_lifecycle_state(GraphRuntimeLifecycleState.STOPPED)
+    if graph_state.lifecycle_state == GraphRuntimeLifecycleState.STOPPED:
+        _transition_lifecycle_state(GraphRuntimeLifecycleState.UNINITIALIZED)
+
+
+def _shutdown_to_uninitialized() -> None:
+    """Return lifecycle to UNINITIALIZED from any non-UNINITIALIZED state.
+
+    States already in the shutdown sequence (SHUTTING_DOWN, STOPPED) skip the
+    initial transition to SHUTTING_DOWN and resume from their current position.
+    Reserved for administrative reset and test isolation; must be called while
+    holding graph_lock.
+    """
+    if graph_state.lifecycle_state == GraphRuntimeLifecycleState.UNINITIALIZED:
+        return
+    if graph_state.lifecycle_state not in (
+        GraphRuntimeLifecycleState.SHUTTING_DOWN,
+        GraphRuntimeLifecycleState.STOPPED,
+    ):
+        _transition_lifecycle_state(GraphRuntimeLifecycleState.SHUTTING_DOWN)
+    _normalize_shutdown_state()
+
+
+def get_runtime_lifecycle_state() -> GraphRuntimeLifecycleState:
+    """Return the current hosted graph runtime lifecycle state via graph_lock."""
+    with graph_lock:
+        return graph_state.lifecycle_state
+
+
+def transition_runtime_lifecycle_state(next_state: GraphRuntimeLifecycleState) -> None:
+    """Transition runtime lifecycle to the provided state with validation."""
+    with graph_lock:
+        _transition_lifecycle_state(next_state)
+
+
 class _GraphState:
     """Mutable container for module graph lifecycle state."""
 
@@ -30,6 +142,7 @@ class _GraphState:
         self.graph: AssetRelationshipGraph | None = None
         self.graph_factory: Callable[[], AssetRelationshipGraph] | None = None
         self.startup_source: GraphStartupSource | None = None
+        self.lifecycle_state = GraphRuntimeLifecycleState.UNINITIALIZED
 
 
 graph_state = _GraphState()
@@ -49,9 +162,16 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartu
     """Return the module-global graph and its tracked startup source atomically."""
     with graph_lock:
         if graph_state.graph is None:
-            graph, startup_source = _initialize_graph_with_source()
+            _normalize_shutdown_state()
+            _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
+            try:
+                graph, startup_source = _initialize_graph_with_source()
+            except Exception:
+                _transition_lifecycle_state(GraphRuntimeLifecycleState.FAILED)
+                raise
             graph_state.graph = graph
             graph_state.startup_source = startup_source
+            _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
             logger.info("Graph initialized successfully")
 
         if graph_state.graph is None:
@@ -63,21 +183,42 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartu
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """Register a global graph instance returned by get_graph()."""
     with graph_lock:
+        _normalize_shutdown_state()
+        if graph_state.lifecycle_state in (
+            GraphRuntimeLifecycleState.UNINITIALIZED,
+            GraphRuntimeLifecycleState.FAILED,
+        ):
+            _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
         graph_state.startup_source = "unknown"
+        _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
 
 
 def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
-    """Set graph lifecycle state and mirror it into legacy api.main."""
+    """Publish a runtime graph and mirror it into legacy api.main.
+
+    Rebuild callers publish the freshly persisted graph while lifecycle state is
+    still REBUILDING. Preserve that state so complete_rebuild() remains the
+    single transition point for REBUILDING -> READY/FAILED.
+    """
     with graph_lock:
+        _normalize_shutdown_state()
+        preserve_rebuild = graph_state.lifecycle_state == GraphRuntimeLifecycleState.REBUILDING
+        if graph_state.lifecycle_state in (
+            GraphRuntimeLifecycleState.UNINITIALIZED,
+            GraphRuntimeLifecycleState.FAILED,
+        ):
+            _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
         graph_state.startup_source = "unknown"
+        if not preserve_rebuild:
+            _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
 
         api_main = sys.modules.get("api.main")
         if api_main is not None and hasattr(api_main, "graph"):
-            api_main.graph = graph_instance
+            api_main.graph = graph_instance  # type: ignore[attr-defined]
 
 
 def set_graph_factory(
@@ -88,6 +229,7 @@ def set_graph_factory(
         graph_state.graph_factory = factory
         graph_state.graph = None
         graph_state.startup_source = None
+        _shutdown_to_uninitialized()
 
 
 def reset_graph() -> None:
@@ -101,7 +243,57 @@ def reset_graph() -> None:
     # Clear settings cache to preserve reset semantics: environment variable
     # changes made after reset should be picked up on next initialization.
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
-    set_graph_factory(None)
+    with graph_lock:
+        graph_state.graph_factory = None
+        graph_state.graph = None
+        graph_state.startup_source = None
+        _shutdown_to_uninitialized()
+
+
+def begin_rebuild() -> None:
+    """Transition lifecycle state to REBUILDING before rebuild execution."""
+    with graph_lock:
+        # Rebuild can be the first hosted lifecycle operation after process start
+        # (UNINITIALIZED), or a recovery path after startup/rebuild failure (FAILED).
+        # Normalize those states through INITIALIZING->READY before entering REBUILDING.
+        _normalize_shutdown_state()
+        if graph_state.lifecycle_state in (
+            GraphRuntimeLifecycleState.UNINITIALIZED,
+            GraphRuntimeLifecycleState.FAILED,
+        ):
+            _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
+            _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
+        _transition_lifecycle_state(GraphRuntimeLifecycleState.REBUILDING)
+
+
+def complete_rebuild(*, succeeded: bool) -> None:
+    """Finalize lifecycle state for rebuild completion.
+
+    Calls outside REBUILDING are ignored with a warning because shutdown or
+    cancellation cleanup can race with executor callbacks; callers should still
+    treat the warning as evidence of an unexpected lifecycle ordering issue.
+    """
+    with graph_lock:
+        if graph_state.lifecycle_state != GraphRuntimeLifecycleState.REBUILDING:
+            logger.warning(
+                "Ignoring complete_rebuild outside REBUILDING state: %s",
+                graph_state.lifecycle_state,
+            )
+            return
+        if succeeded:
+            _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
+            return
+        _transition_lifecycle_state(GraphRuntimeLifecycleState.FAILED)
+
+
+def begin_shutdown() -> None:
+    """Transition lifecycle state to SHUTTING_DOWN then STOPPED."""
+    with graph_lock:
+        if graph_state.lifecycle_state == GraphRuntimeLifecycleState.STOPPED:
+            return
+        if graph_state.lifecycle_state != GraphRuntimeLifecycleState.SHUTTING_DOWN:
+            _transition_lifecycle_state(GraphRuntimeLifecycleState.SHUTTING_DOWN)
+        _transition_lifecycle_state(GraphRuntimeLifecycleState.STOPPED)
 
 
 def _initialize_graph() -> AssetRelationshipGraph:

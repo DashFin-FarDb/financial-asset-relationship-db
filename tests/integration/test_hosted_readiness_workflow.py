@@ -200,7 +200,7 @@ class TestHostedReadinessWorkflowInputs:
         assert required is False, "base_url input must not be required (allows using secret instead)"
 
     def test_timeout_input_configuration(self, hosted_readiness_workflow):
-        """timeout input must exist with a string default."""
+        """Timeout input must exist with a string default."""
         inputs = hosted_readiness_workflow["on"]["workflow_dispatch"]["inputs"]
         assert "timeout" in inputs, "workflow_dispatch inputs must include 'timeout'"
         timeout_input = inputs["timeout"]
