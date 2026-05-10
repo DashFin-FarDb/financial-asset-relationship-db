@@ -4,7 +4,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
@@ -19,12 +21,15 @@ import api.main as api_main
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user
 from api.routers import graph_admin
+from src.config.settings import get_settings
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
 
 pytestmark = pytest.mark.integration
+
+_REBUILD_AUDIT_POLL_INTERVAL_SECONDS = 0.005
 
 
 @pytest.fixture(autouse=True)
@@ -37,6 +42,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
         "USE_REAL_DATA_FETCHER",
     ):
         monkeypatch.delenv(name, raising=False)
+    get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
     api_main.reset_graph()
     monkeypatch.setattr("api.routers.graph_admin._REBUILD_RUNTIME.executor", _ImmediateExecutor())
@@ -44,6 +50,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
     graph_admin.shutdown_rebuild_executor()
     api_main.reset_graph()
     providers.clear_graph_lifecycle_settings_cache()
+    get_settings.cache_clear()
 
 
 class _ImmediateExecutor(ThreadPoolExecutor):
@@ -80,8 +87,11 @@ async def _post_rebuild() -> _RouteResult:
     return _RouteResult(200, body.model_dump())
 
 
-def _authorized_app():
-    """Create an app with an active test operator."""
+def _authorized_app(monkeypatch: pytest.MonkeyPatch):
+    """Create an app with an active authorized operator."""
+    monkeypatch.setenv("ADMIN_USERNAME", "operator")
+    get_settings.cache_clear()
+
     app = create_app()
 
     def active_user() -> User:
@@ -89,14 +99,44 @@ def _authorized_app():
         return User(username="operator", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
+
     return app
 
 
-async def _post_rebuild_http() -> httpx.Response:
+async def _post_rebuild_http(
+    monkeypatch: pytest.MonkeyPatch,
+) -> httpx.Response:
     """Post to rebuild through the HTTP route with an authorized user."""
-    transport = httpx.ASGITransport(app=_authorized_app())
-    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
+    transport = httpx.ASGITransport(app=_authorized_app(monkeypatch))
+
+    async with httpx.AsyncClient(
+        transport=transport,
+        base_url="https://testserver",
+    ) as client:
         return await client.post("/api/graph/rebuild")
+
+
+async def _wait_for_runtime_idle_and_audit_event(
+    caplog: pytest.LogCaptureFixture,
+    event_name: str,
+    timeout_seconds: float = 1.0,
+) -> None:
+    """Wait until rebuild runtime is idle and the expected audit event is captured."""
+    deadline = time.monotonic() + timeout_seconds
+
+    while True:
+        runtime_busy = graph_admin._REBUILD_RUNTIME.is_busy()  # pylint: disable=protected-access
+        event_seen = any(
+            record.getMessage() == "graph_rebuild_audit" and getattr(record, "event", None) == event_name
+            for record in caplog.records
+        )
+
+        if not runtime_busy and event_seen:
+            return
+        if time.monotonic() >= deadline:
+            pytest.fail(f"Timed out waiting for rebuild runtime idle and audit event: {event_name}")
+
+        await asyncio.sleep(_REBUILD_AUDIT_POLL_INTERVAL_SECONDS)
 
 
 def _sqlite_url(tmp_path: Path, name: str = "asset_graph.db") -> str:
@@ -322,7 +362,8 @@ async def test_successful_rebuild_emits_bounded_audit_log(
     _prepare_rebuild_database(tmp_path, monkeypatch)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-        response = await _post_rebuild_http()
+        response = await _post_rebuild_http(monkeypatch)
+        await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_succeeded")
 
     assert response.status_code == 200
     payload = response.json()
@@ -363,11 +404,13 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-        response = await _post_rebuild_http()
+        response = await _post_rebuild_http(monkeypatch)
+        await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_failed")
 
     assert response.status_code == 500
 
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+
     failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
 
     assert len(failed_records) == 1

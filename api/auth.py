@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import TypedDict
+from typing import Annotated, TypedDict
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -13,7 +13,7 @@ from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleS
 from pydantic import BaseModel
 
 from api.models import User, UserInDB
-from src.config.settings import Settings, load_settings
+from src.config.settings import Settings, get_settings, load_settings
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
 
@@ -23,6 +23,8 @@ SECRET_KEY = _AUTH_SETTINGS.required_secret_key
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REBUILD_OPERATOR_FORBIDDEN_DETAIL = "You do not have permission to perform destructive actions."
+REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL = "Rebuild operator authorization is not configured."
 
 # Password hashing
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -420,4 +422,30 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     """
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+def get_current_rebuild_operator_user(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> User:
+    """
+    Enforce operator authorization for destructive graph rebuild actions.
+
+    Allows only the configured admin username from settings; denies other active
+    users with a bounded forbidden response.
+    """
+    configured_admin = (settings.admin_username or "").strip()
+
+    if not configured_admin:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL,
+        )
+
+    if current_user.username.strip() != configured_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=REBUILD_OPERATOR_FORBIDDEN_DETAIL,
+        )
     return current_user
