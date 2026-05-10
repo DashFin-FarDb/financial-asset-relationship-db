@@ -12,6 +12,9 @@ from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
 
+from src.data.database import create_engine_from_url, create_session_factory
+from src.data.repository import AssetGraphRepository, session_scope
+
 from ..api_models import GraphRebuildResponse
 from ..auth import User, get_current_rebuild_operator_user
 from ..graph_lifecycle import (
@@ -173,14 +176,17 @@ async def _run_rebuild_in_executor(
 ) -> GraphRebuildResponse:
     """Run rebuild work in the dedicated executor."""
     ctx = contextvars.copy_context()
+
+    def rebuild_with_context() -> GraphRebuildResponse:
+        return _perform_rebuild_and_persist_sync(settings, user_ref=user_ref)
+
     try:
         future = cast(
             asyncio.Future[GraphRebuildResponse],
             loop.run_in_executor(
                 _REBUILD_RUNTIME.get_executor(),
                 ctx.run,
-                _perform_rebuild_and_persist_sync,
-                settings,
+                rebuild_with_context,
             ),
         )
     except Exception as exc:
@@ -372,26 +378,105 @@ def shutdown_rebuild_executor() -> None:
     _REBUILD_RUNTIME.shutdown_executor()
 
 
+def _create_rebuild_job_repository(database_url: str) -> AssetGraphRepository:
+    """Create a repository instance for rebuild job persistence."""
+    engine = create_engine_from_url(database_url)
+    session_factory = create_session_factory(engine)
+    session = session_factory()
+    return AssetGraphRepository(session)
+
+
 def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
+    *,
+    user_ref: str,
 ) -> GraphRebuildResponse:
     """Rebuild the graph, persist it, then publish it to runtime state."""
     resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
 
+    # Create rebuild job record
+    job_id: str | None = None
+    try:
+        with session_scope(lambda: _create_rebuild_job_repository(resolved_url).session) as session:
+            repo = AssetGraphRepository(session)
+            job_id = repo.create_rebuild_job(requested_by=user_ref)
+    except Exception as exc:
+        logger.warning(
+            "Failed to create rebuild job record: %s",
+            exc.__class__.__name__,
+        )
+
     graph, source = build_rebuild_graph(settings)
+
+    # Mark job as running if we successfully created it
+    if job_id is not None:
+        try:
+            with session_scope(lambda: _create_rebuild_job_repository(resolved_url).session) as session:
+                repo = AssetGraphRepository(session)
+                repo.mark_rebuild_job_running(job_id)
+        except Exception as exc:
+            logger.warning(
+                "Failed to mark rebuild job %s as running: %s",
+                job_id,
+                exc.__class__.__name__,
+            )
 
     try:
         save_graph_to_persistence(resolved_url, graph)
         synchronize_runtime_graph(graph)
     except Exception as exc:
+        # Mark job as failed if we created one
+        if job_id is not None:
+            try:
+                with session_scope(lambda: _create_rebuild_job_repository(resolved_url).session) as session:
+                    repo = AssetGraphRepository(session)
+                    repo.mark_rebuild_job_failed(
+                        job_id,
+                        failure_category=_rebuild_failure_category(exc),
+                        failure_message=_sanitize_failure_message(exc),
+                        duration_ms=0,  # Duration tracked elsewhere
+                    )
+            except Exception as inner_exc:
+                logger.warning(
+                    "Failed to mark rebuild job %s as failed: %s",
+                    job_id,
+                    inner_exc.__class__.__name__,
+                )
         raise _RebuildExecutionError(source, exc) from exc
 
     regulatory_events = getattr(graph, "regulatory_events", []) or []
-
-    return GraphRebuildResponse(
+    response = GraphRebuildResponse(
         status="persisted",
         source=source,
         asset_count=len(graph.assets),
         relationship_count=sum(len(items) for items in graph.relationships.values()),
         regulatory_event_count=len(regulatory_events),
     )
+
+    # Mark job as succeeded if we created one
+    if job_id is not None:
+        try:
+            with session_scope(lambda: _create_rebuild_job_repository(resolved_url).session) as session:
+                repo = AssetGraphRepository(session)
+                repo.mark_rebuild_job_succeeded(
+                    job_id,
+                    node_count=response.asset_count,
+                    edge_count=response.relationship_count,
+                    duration_ms=0,  # Duration tracked elsewhere
+                )
+        except Exception as exc:
+            logger.warning(
+                "Failed to mark rebuild job %s as succeeded: %s",
+                job_id,
+                exc.__class__.__name__,
+            )
+
+    return response
+
+
+def _sanitize_failure_message(exc: Exception) -> str:
+    """Return a bounded, sanitized failure message for job persistence."""
+    root_exc = _unwrap_rebuild_error(exc)
+    message = str(root_exc) if str(root_exc) else root_exc.__class__.__name__
+    # Truncate to 512 chars max
+    return message[:512]

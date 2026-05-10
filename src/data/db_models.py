@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from sqlalchemy import (
     Boolean,
+    DateTime,
     Float,
     ForeignKey,
     Integer,
@@ -191,3 +194,29 @@ class RegulatoryEventAssetORM(Base):
         back_populates="related_assets",
     )
     asset: Mapped[AssetORM] = relationship("AssetORM")
+
+
+class RebuildJobORM(Base):
+    """Persistent rebuild job record tracking graph rebuild operations."""
+
+    __tablename__ = "rebuild_jobs"
+
+    job_id: Mapped[str] = mapped_column(String, primary_key=True)
+    requested_by: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    source: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    node_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    edge_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sanitized_failure_category: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+    )
+    sanitized_failure_message: Mapped[str | None] = mapped_column(
+        String(512),
+        nullable=True,
+    )
