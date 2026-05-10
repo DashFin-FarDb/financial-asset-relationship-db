@@ -75,8 +75,8 @@ CREATE TABLE IF NOT EXISTS rebuild_jobs (
         CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled'))
 );
 
-CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at
+CREATE INDEX ix_rebuild_jobs_created_at
     ON rebuild_jobs (created_at);
 
-CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
+CREATE INDEX ix_rebuild_jobs_status_created_at
     ON rebuild_jobs (status, created_at);
