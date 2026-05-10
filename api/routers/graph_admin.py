@@ -53,6 +53,7 @@ _MAX_AUDIT_USER_REF_LENGTH = 64
 # Regex to detect and redact URL/DSN-like patterns from failure messages, including:
 # - postgresql+asyncpg://user:pass@host/db
 # - malformed postgresql:user:pass@host/db
+# - https://example.com/path
 _URL_PATTERN = re.compile(
     r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z][a-z0-9+\-.]*:[^\s/@]+:[^\s/@]+@\S+)",
     re.IGNORECASE,
@@ -483,6 +484,9 @@ def _build_graph_or_persist_failure(
         session_factory: Session factory used to persist job transitions.
         job_id: Durable rebuild job identifier.
         job_started_at: Monotonic start time used for duration calculation.
+
+    Returns:
+        tuple[AssetRelationshipGraph, GraphRebuildSource]: Rebuilt graph instance and source marker.
     """
     try:
         return build_rebuild_graph(settings)
@@ -509,6 +513,10 @@ def _save_and_publish_or_persist_failure(
         session_factory: Session factory used to persist job transitions.
         job_id: Durable rebuild job identifier.
         job_started_at: Monotonic start time used for duration calculation.
+
+    Raises:
+        GraphPersistenceSaveError: If failed-state persistence cannot be recorded.
+        _RebuildExecutionError: If graph save/sync fails after failed-state persistence succeeds.
     """
     try:
         save_graph_to_persistence(resolved_url, graph)
