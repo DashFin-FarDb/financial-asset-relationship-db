@@ -79,7 +79,8 @@ async def _post_rebuild() -> _RouteResult:
     """Invoke rebuild behavior with route-equivalent error mapping."""
     try:
         body = graph_admin._perform_rebuild_and_persist_sync(  # pylint: disable=protected-access
-            graph_admin.get_graph_lifecycle_settings()
+            graph_admin.get_graph_lifecycle_settings(),
+            user_ref="test_user",
         )
     except Exception as exc:
         http_exc = graph_admin._map_rebuild_error(exc)  # pylint: disable=protected-access
