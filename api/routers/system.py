@@ -54,6 +54,7 @@ def _get_graph_health() -> GraphHealthResponse:
             logger.warning("Detailed health graph check found unsupported graph container shape")
             return GraphHealthResponse(
                 available=False,
+                lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
                 asset_count=0,
                 relationship_count=0,
                 graph_startup_source=None,
@@ -61,6 +62,7 @@ def _get_graph_health() -> GraphHealthResponse:
 
         return GraphHealthResponse(
             available=True,
+            lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
             asset_count=len(assets),
             relationship_count=sum(len(items) for items in relationships.values()),
             graph_startup_source=_bound_graph_startup_source(startup_source),
@@ -69,6 +71,7 @@ def _get_graph_health() -> GraphHealthResponse:
         logger.warning("Detailed health graph check failed")
         return GraphHealthResponse(
             available=False,
+            lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
             asset_count=0,
             relationship_count=0,
             graph_startup_source=None,

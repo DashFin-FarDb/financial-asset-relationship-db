@@ -282,7 +282,7 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
 
     # Verify expected contract shape
     assert set(payload) == {"status", "graph", "database"}
-    assert set(payload["graph"]) == {"available", "asset_count", "relationship_count", "graph_startup_source"}
+    assert set(payload["graph"]) == {"available", "lifecycle_state", "asset_count", "relationship_count", "graph_startup_source"}
 
     # Recursively scan for sensitive values
     joined = " ".join(_walk_strings(payload)).lower()
