@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # factory.
 
 
-class GraphRuntimeLifecycleState(str, Enum): # noqa: UP042 - StrEnum requires Python 3.11+
+class GraphRuntimeLifecycleState(str, Enum):  # noqa: UP042 - StrEnum requires Python 3.11+
     """Explicit hosted graph runtime lifecycle states."""
 
     UNINITIALIZED = "UNINITIALIZED"
