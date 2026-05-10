@@ -1,15 +1,12 @@
 """Unit tests for AssetGraphRepository rebuild job methods."""
 
-from datetime import datetime, timezone
+import time
 
 import pytest
 from sqlalchemy import create_engine
 
 from src.data.database import create_session_factory, init_db
-from src.data.db_models import RebuildJobORM
 from src.data.repository import AssetGraphRepository
-
-pytest.importorskip("sqlalchemy")
 
 
 @pytest.fixture
@@ -285,13 +282,15 @@ class TestRebuildJobRepository:
         """Test listing multiple rebuild jobs ordered by created_at descending."""
         repo = repository_factory()
 
-        # Create jobs with different timestamps
+        # Insert jobs with small sleeps to guarantee distinct created_at timestamps
         job_id_1 = repo.create_rebuild_job(requested_by="user1", source="sample")
         repo.session.commit()
 
+        time.sleep(0.1)
         job_id_2 = repo.create_rebuild_job(requested_by="user2", source="cache")
         repo.session.commit()
 
+        time.sleep(0.1)
         job_id_3 = repo.create_rebuild_job(requested_by="user3", source="real_data")
         repo.session.commit()
 

@@ -897,6 +897,28 @@ class AssetGraphRepository:
         self.session.flush()  # Flush to ensure job is visible to subsequent queries
         return job_id
 
+    def update_rebuild_job_source(self, job_id: str, source: str | None) -> None:
+        """
+        Update the source field on a rebuild job record.
+
+        Args:
+            job_id: The job identifier to update.
+            source: Rebuild source identifier (max 32 chars), or None to clear.
+
+        Raises:
+            ValueError: If the job does not exist or source exceeds 32 characters.
+        """
+        if source is not None and len(source) > 32:
+            raise ValueError("source must not exceed 32 characters")
+
+        job = self.session.get(RebuildJobORM, job_id)
+        if job is None:
+            raise ValueError(f"Rebuild job {job_id} not found")
+
+        job.source = source
+        job.updated_at = datetime.now(timezone.utc)  # noqa: UP017
+        self.session.add(job)
+
     def mark_rebuild_job_running(self, job_id: str) -> None:
         """
         Transition rebuild job from pending to running status.
@@ -1023,7 +1045,10 @@ class AssetGraphRepository:
         Returns:
             list[RebuildJobORM]: List of rebuild job records matching the filters.
         """
-        stmt = select(RebuildJobORM).order_by(RebuildJobORM.created_at.desc())
+        stmt = select(RebuildJobORM).order_by(
+            RebuildJobORM.created_at.desc(),
+            RebuildJobORM.job_id.desc(),
+        )
         if status is not None:
             stmt = stmt.where(RebuildJobORM.status == status)
         if limit is not None:
