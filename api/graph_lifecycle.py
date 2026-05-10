@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # factory.
 
 
-class GraphRuntimeLifecycleState(str, Enum):  # noqa: UP042 - StrEnum requires Python 3.11+
+class GraphRuntimeLifecycleState(str, Enum):  # noqa: UP037 - StrEnum requires Python 3.11+
     """Explicit hosted graph runtime lifecycle states."""
 
     UNINITIALIZED = "UNINITIALIZED"
@@ -218,7 +218,7 @@ def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
 
         api_main = sys.modules.get("api.main")
         if api_main is not None and hasattr(api_main, "graph"):
-            setattr(api_main, "graph", graph_instance)
+            api_main.graph = graph_instance  # type: ignore[attr-defined]
 
 
 def set_graph_factory(
