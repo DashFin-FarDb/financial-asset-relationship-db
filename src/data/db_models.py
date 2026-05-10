@@ -40,7 +40,7 @@ class RebuildJobStatus(str, enum.Enum):
 
     @classmethod
     def values(cls) -> list[str]:
-        """Return the list of all valid status string values."""
+        """Return the list of all valid status string values (e.g. ['pending', 'running', ...])."""
         return [m.value for m in cls]
 
 

@@ -1050,9 +1050,7 @@ class AssetGraphRepository:
             ValueError: If an invalid status value is provided.
         """
         if status is not None:
-            try:
-                RebuildJobStatus(status)
-            except ValueError:
+            if status not in RebuildJobStatus.values():
                 raise ValueError(
                     f"Invalid rebuild job status {status!r}. "
                     f"Must be one of: {RebuildJobStatus.values()}"
