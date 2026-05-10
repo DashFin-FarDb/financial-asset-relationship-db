@@ -469,10 +469,10 @@ def _perform_rebuild_and_persist_sync(
     """Rebuild the graph, persist it, then publish it to runtime state."""
     resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(resolved_url)
-    session_factory = create_session_factory(engine)
-    job_started_at = perf_counter()
-
     try:
+        session_factory = create_session_factory(engine)
+        job_started_at = perf_counter()
+
         job_id = _create_job_safe(session_factory, user_ref)
 
         # Build graph — catch to persist failed state before re-raising
