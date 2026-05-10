@@ -464,7 +464,13 @@ class TestAPIEndpoints:
         assert set(data) == {"status", "graph", "database"}
         assert data["status"] == "healthy"
 
-        assert set(data["graph"]) == {"available", "asset_count", "relationship_count", "graph_startup_source"}
+        assert set(data["graph"]) == {
+            "available",
+            "lifecycle_state",
+            "asset_count",
+            "relationship_count",
+            "graph_startup_source",
+        }
         assert data["graph"]["available"] is True
         assert data["graph"]["asset_count"] > 0
         assert data["graph"]["relationship_count"] >= 0
@@ -490,12 +496,17 @@ class TestAPIEndpoints:
         data = response.json()
 
         assert data["status"] == "degraded"
-        assert data["graph"] == {
-            "available": False,
-            "asset_count": 0,
-            "relationship_count": 0,
-            "graph_startup_source": None,
+        assert set(data["graph"]) == {
+            "available",
+            "lifecycle_state",
+            "asset_count",
+            "relationship_count",
+            "graph_startup_source",
         }
+        assert data["graph"]["available"] is False
+        assert data["graph"]["asset_count"] == 0
+        assert data["graph"]["relationship_count"] == 0
+        assert data["graph"]["graph_startup_source"] is None
 
     def test_detailed_health_degraded_when_graph_containers_are_unsupported(
         self,
@@ -516,12 +527,17 @@ class TestAPIEndpoints:
         data = response.json()
 
         assert data["status"] == "degraded"
-        assert data["graph"] == {
-            "available": False,
-            "asset_count": 0,
-            "relationship_count": 0,
-            "graph_startup_source": None,
+        assert set(data["graph"]) == {
+            "available",
+            "lifecycle_state",
+            "asset_count",
+            "relationship_count",
+            "graph_startup_source",
         }
+        assert data["graph"]["available"] is False
+        assert data["graph"]["asset_count"] == 0
+        assert data["graph"]["relationship_count"] == 0
+        assert data["graph"]["graph_startup_source"] is None
 
     def test_detailed_health_bounds_invalid_graph_startup_source(
         self,
