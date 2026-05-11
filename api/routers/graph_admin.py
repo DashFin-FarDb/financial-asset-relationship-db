@@ -6,8 +6,9 @@ import asyncio
 import contextvars
 import logging
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, cast
@@ -16,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable
 from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
+from src.data.db_models import RebuildJobORM
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -644,11 +646,12 @@ def _sanitize_failure_message(exc: Exception) -> str:
     return message[:512]
 
 
-def _get_rebuild_persistence_session_factory() -> Callable[..., Session]:
-    """Create session factory for rebuild persistence database access.
+@contextmanager
+def _rebuild_persistence_session() -> Generator[Session, None, None]:
+    """Create a managed session for rebuild persistence database access.
 
-    Returns:
-        Session factory for accessing rebuild job persistence.
+    Yields:
+        Session for accessing rebuild job persistence.
 
     Raises:
         HTTPException: 503 if persistence database is not configured.
@@ -661,11 +664,17 @@ def _get_rebuild_persistence_session_factory() -> Callable[..., Session]:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Graph persistence database not configured",
         ) from exc
+
     engine = create_engine_from_url(persistence_url)
-    return create_session_factory(engine)
+    try:
+        session_factory = create_session_factory(engine)
+        with session_scope(session_factory) as session:
+            yield session
+    finally:
+        engine.dispose()
 
 
-def _orm_to_response(job_orm: object) -> RebuildJobResponse:
+def _orm_to_response(job_orm: RebuildJobORM) -> RebuildJobResponse:
     """Convert RebuildJobORM to bounded RebuildJobResponse.
 
     Args:
@@ -675,19 +684,19 @@ def _orm_to_response(job_orm: object) -> RebuildJobResponse:
         RebuildJobResponse with sanitized bounded fields.
     """
     return RebuildJobResponse(
-        job_id=job_orm.job_id,  # type: ignore[attr-defined]
-        status=job_orm.status,  # type: ignore[attr-defined]
-        source=job_orm.source,  # type: ignore[attr-defined]
-        requested_by=job_orm.requested_by,  # type: ignore[attr-defined]
-        created_at=job_orm.created_at,  # type: ignore[attr-defined]
-        updated_at=job_orm.updated_at,  # type: ignore[attr-defined]
-        started_at=job_orm.started_at,  # type: ignore[attr-defined]
-        completed_at=job_orm.completed_at,  # type: ignore[attr-defined]
-        duration_ms=job_orm.duration_ms,  # type: ignore[attr-defined]
-        node_count=job_orm.node_count,  # type: ignore[attr-defined]
-        edge_count=job_orm.edge_count,  # type: ignore[attr-defined]
-        failure_category=job_orm.sanitized_failure_category,  # type: ignore[attr-defined]
-        failure_message=job_orm.sanitized_failure_message,  # type: ignore[attr-defined]
+        job_id=job_orm.job_id,
+        status=job_orm.status,
+        source=job_orm.source,
+        requested_by=job_orm.requested_by,
+        created_at=job_orm.created_at,
+        updated_at=job_orm.updated_at,
+        started_at=job_orm.started_at,
+        completed_at=job_orm.completed_at,
+        duration_ms=job_orm.duration_ms,
+        node_count=job_orm.node_count,
+        edge_count=job_orm.edge_count,
+        failure_category=job_orm.sanitized_failure_category,
+        failure_message=job_orm.sanitized_failure_message,
     )
 
 
@@ -711,8 +720,7 @@ def get_rebuild_job(
     Raises:
         HTTPException: 404 if job not found, 503 if persistence not configured.
     """
-    session_factory = _get_rebuild_persistence_session_factory()
-    with session_scope(session_factory) as session:
+    with _rebuild_persistence_session() as session:
         repo = AssetGraphRepository(session)
         job_orm = repo.get_rebuild_job(job_id)
         if job_orm is None:
@@ -741,8 +749,7 @@ def list_rebuild_jobs(
     Raises:
         HTTPException: 503 if persistence not configured.
     """
-    session_factory = _get_rebuild_persistence_session_factory()
-    with session_scope(session_factory) as session:
+    with _rebuild_persistence_session() as session:
         repo = AssetGraphRepository(session)
         jobs_orm = repo.list_rebuild_jobs()
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]

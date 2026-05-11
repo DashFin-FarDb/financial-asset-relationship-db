@@ -373,20 +373,23 @@ def test_get_rebuild_job_succeeds_for_operator(
 
     settings = get_settings_uncached()
     engine = create_engine_from_url(settings.asset_graph_database_url)
-    init_db(engine)
-    session_factory = create_session_factory(engine)
+    try:
+        init_db(engine)
+        session_factory = create_session_factory(engine)
 
-    with session_scope(session_factory) as session:
-        repo = AssetGraphRepository(session)
-        job_id = repo.create_rebuild_job(requested_by="operator", source="test")
-        repo.mark_rebuild_job_running(job_id)
-        repo.mark_rebuild_job_succeeded(
-            job_id,
-            node_count=100,
-            edge_count=250,
-            duration_ms=5000,
-        )
-        session.commit()
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            job_id = repo.create_rebuild_job(requested_by="operator", source="test")
+            repo.mark_rebuild_job_running(job_id)
+            repo.mark_rebuild_job_succeeded(
+                job_id,
+                node_count=100,
+                edge_count=250,
+                duration_ms=5000,
+            )
+            session.commit()
+    finally:
+        engine.dispose()
 
     response = operator_client.get(f"/api/graph/rebuild/jobs/{job_id}")
     assert response.status_code == 200
@@ -428,20 +431,23 @@ def test_get_rebuild_job_exposes_sanitized_failure_fields(
 
     settings = get_settings_uncached()
     engine = create_engine_from_url(settings.asset_graph_database_url)
-    init_db(engine)
-    session_factory = create_session_factory(engine)
+    try:
+        init_db(engine)
+        session_factory = create_session_factory(engine)
 
-    with session_scope(session_factory) as session:
-        repo = AssetGraphRepository(session)
-        job_id = repo.create_rebuild_job(requested_by="operator", source="test")
-        repo.mark_rebuild_job_running(job_id)
-        repo.mark_rebuild_job_failed(
-            job_id,
-            failure_category="database_error",
-            failure_message="Connection timeout",
-            duration_ms=2000,
-        )
-        session.commit()
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            job_id = repo.create_rebuild_job(requested_by="operator", source="test")
+            repo.mark_rebuild_job_running(job_id)
+            repo.mark_rebuild_job_failed(
+                job_id,
+                failure_category="database_error",
+                failure_message="Connection timeout",
+                duration_ms=2000,
+            )
+            session.commit()
+    finally:
+        engine.dispose()
 
     response = operator_client.get(f"/api/graph/rebuild/jobs/{job_id}")
     assert response.status_code == 200
@@ -474,15 +480,18 @@ def test_list_rebuild_jobs_succeeds_for_operator(
 
     settings = get_settings_uncached()
     engine = create_engine_from_url(settings.asset_graph_database_url)
-    init_db(engine)
-    session_factory = create_session_factory(engine)
+    try:
+        init_db(engine)
+        session_factory = create_session_factory(engine)
 
-    # Create multiple test jobs
-    with session_scope(session_factory) as session:
-        repo = AssetGraphRepository(session)
-        repo.create_rebuild_job(requested_by="operator", source="test1")
-        repo.create_rebuild_job(requested_by="operator", source="test2")
-        session.commit()
+        # Create multiple test jobs
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            repo.create_rebuild_job(requested_by="operator", source="test1")
+            repo.create_rebuild_job(requested_by="operator", source="test2")
+            session.commit()
+    finally:
+        engine.dispose()
 
     response = operator_client.get("/api/graph/rebuild/jobs")
     assert response.status_code == 200
@@ -522,17 +531,20 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
 
     settings = get_settings_uncached()
     engine = create_engine_from_url(settings.asset_graph_database_url)
-    init_db(engine)
-    session_factory = create_session_factory(engine)
+    try:
+        init_db(engine)
+        session_factory = create_session_factory(engine)
 
-    job_ids = []
-    with session_scope(session_factory) as session:
-        repo = AssetGraphRepository(session)
-        for i in range(3):
-            job_id = repo.create_rebuild_job(requested_by="operator", source=f"test{i}")
-            job_ids.append(job_id)
-            session.commit()
-            time.sleep(0.01)  # Ensure different created_at timestamps
+        job_ids = []
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            for i in range(3):
+                job_id = repo.create_rebuild_job(requested_by="operator", source=f"test{i}")
+                job_ids.append(job_id)
+                session.commit()
+                time.sleep(0.01)  # Ensure different created_at timestamps
+    finally:
+        engine.dispose()
 
     response = operator_client.get("/api/graph/rebuild/jobs")
     assert response.status_code == 200
