@@ -8,6 +8,7 @@ import asyncio
 import logging
 import time
 from collections.abc import Iterator
+from pathlib import Path
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
@@ -273,3 +274,298 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
     assert len(failed_records) == 0
     assert succeeded_records[0].user_ref == "admin"
     assert succeeded_records[0].status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Rebuild Job Status Endpoints Tests
+# ---------------------------------------------------------------------------
+
+
+def test_get_rebuild_job_returns_403_for_non_operator(
+    non_operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """GET /jobs/{job_id} must reject non-operator users."""
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///:memory:")
+    get_settings.cache_clear()
+    response = non_operator_client.get("/api/graph/rebuild/jobs/test-job-id")
+    assert response.status_code == 403
+    assert response.json()["detail"] == REBUILD_OPERATOR_FORBIDDEN_DETAIL
+
+
+def test_list_rebuild_jobs_returns_403_for_non_operator(
+    non_operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """GET /jobs must reject non-operator users."""
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///:memory:")
+    get_settings.cache_clear()
+    response = non_operator_client.get("/api/graph/rebuild/jobs")
+    assert response.status_code == 403
+    assert response.json()["detail"] == REBUILD_OPERATOR_FORBIDDEN_DETAIL
+
+
+def test_get_rebuild_job_returns_503_when_persistence_not_configured(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """GET /jobs/{job_id} must fail closed when persistence DB not configured."""
+    monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
+    get_settings.cache_clear()
+    response = operator_client.get("/api/graph/rebuild/jobs/test-job-id")
+    assert response.status_code == 503
+    assert "not configured" in response.json()["detail"].lower()
+
+
+def test_list_rebuild_jobs_returns_503_when_persistence_not_configured(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """GET /jobs must fail closed when persistence DB not configured."""
+    monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
+    get_settings.cache_clear()
+    response = operator_client.get("/api/graph/rebuild/jobs")
+    assert response.status_code == 503
+    assert "not configured" in response.json()["detail"].lower()
+
+
+def test_get_rebuild_job_returns_404_for_unknown_job(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """GET /jobs/{job_id} must return 404 for unknown job IDs."""
+    from src.data.database import create_engine_from_url, init_db
+
+    db_file = tmp_path / "test.db"
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
+    get_settings.cache_clear()
+
+    # Initialize schema
+    from src.config.settings import get_settings as get_settings_uncached
+
+    settings = get_settings_uncached()
+    engine = create_engine_from_url(settings.asset_graph_database_url)
+    init_db(engine)
+    engine.dispose()
+
+    response = operator_client.get("/api/graph/rebuild/jobs/unknown-job-id")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Rebuild job not found"
+
+
+def test_get_rebuild_job_succeeds_for_operator(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """GET /jobs/{job_id} must return bounded job state for operator."""
+
+    from src.data.database import create_engine_from_url, create_session_factory, init_db
+    from src.data.repository import AssetGraphRepository, session_scope
+
+    db_file = tmp_path / "test.db"
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
+    get_settings.cache_clear()
+
+    # Create a test rebuild job
+    from src.config.settings import get_settings as get_settings_uncached
+
+    settings = get_settings_uncached()
+    engine = create_engine_from_url(settings.asset_graph_database_url)
+    init_db(engine)
+    session_factory = create_session_factory(engine)
+
+    with session_scope(session_factory) as session:
+        repo = AssetGraphRepository(session)
+        job_id = repo.create_rebuild_job(requested_by="operator", source="test")
+        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_succeeded(
+            job_id,
+            node_count=100,
+            edge_count=250,
+            duration_ms=5000,
+        )
+        session.commit()
+
+    response = operator_client.get(f"/api/graph/rebuild/jobs/{job_id}")
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verify bounded fields
+    assert data["job_id"] == job_id
+    assert data["status"] == "succeeded"
+    assert data["source"] == "test"
+    assert data["requested_by"] == "operator"
+    assert data["node_count"] == 100
+    assert data["edge_count"] == 250
+    assert data["duration_ms"] == 5000
+    assert data["failure_category"] is None
+    assert data["failure_message"] is None
+
+    # Verify datetime fields are present and serialized
+    assert "created_at" in data
+    assert "updated_at" in data
+    assert "started_at" in data
+    assert "completed_at" in data
+
+
+def test_get_rebuild_job_exposes_sanitized_failure_fields(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """GET /jobs/{job_id} must expose sanitized failure metadata only."""
+
+    from src.data.database import create_engine_from_url, create_session_factory, init_db
+    from src.data.repository import AssetGraphRepository, session_scope
+
+    db_file = tmp_path / "test.db"
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
+    get_settings.cache_clear()
+
+    from src.config.settings import get_settings as get_settings_uncached
+
+    settings = get_settings_uncached()
+    engine = create_engine_from_url(settings.asset_graph_database_url)
+    init_db(engine)
+    session_factory = create_session_factory(engine)
+
+    with session_scope(session_factory) as session:
+        repo = AssetGraphRepository(session)
+        job_id = repo.create_rebuild_job(requested_by="operator", source="test")
+        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_failed(
+            job_id,
+            failure_category="database_error",
+            failure_message="Connection timeout",
+            duration_ms=2000,
+        )
+        session.commit()
+
+    response = operator_client.get(f"/api/graph/rebuild/jobs/{job_id}")
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["status"] == "failed"
+    assert data["failure_category"] == "database_error"
+    assert data["failure_message"] == "Connection timeout"
+    assert data["duration_ms"] == 2000
+    # Verify no raw exceptions or stack traces
+    assert "traceback" not in str(data).lower()
+    assert "exception" not in str(data).lower()
+
+
+def test_list_rebuild_jobs_succeeds_for_operator(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """GET /jobs must return bounded list structure for operator."""
+
+    from src.data.database import create_engine_from_url, create_session_factory, init_db
+    from src.data.repository import AssetGraphRepository, session_scope
+
+    db_file = tmp_path / "test.db"
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
+    get_settings.cache_clear()
+
+    from src.config.settings import get_settings as get_settings_uncached
+
+    settings = get_settings_uncached()
+    engine = create_engine_from_url(settings.asset_graph_database_url)
+    init_db(engine)
+    session_factory = create_session_factory(engine)
+
+    # Create multiple test jobs
+    with session_scope(session_factory) as session:
+        repo = AssetGraphRepository(session)
+        repo.create_rebuild_job(requested_by="operator", source="test1")
+        repo.create_rebuild_job(requested_by="operator", source="test2")
+        session.commit()
+
+    response = operator_client.get("/api/graph/rebuild/jobs")
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verify pagination-ready structure
+    assert "jobs" in data
+    assert "count" in data
+    assert isinstance(data["jobs"], list)
+    assert data["count"] == 2
+    assert len(data["jobs"]) == 2
+
+    # Verify each job has bounded fields
+    for job in data["jobs"]:
+        assert "job_id" in job
+        assert "status" in job
+        assert "requested_by" in job
+        assert "created_at" in job
+
+
+def test_list_rebuild_jobs_returns_newest_first_ordering(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """GET /jobs must return jobs in deterministic newest-first order."""
+    import time
+
+    from src.data.database import create_engine_from_url, create_session_factory, init_db
+    from src.data.repository import AssetGraphRepository, session_scope
+
+    db_file = tmp_path / "test.db"
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
+    get_settings.cache_clear()
+
+    from src.config.settings import get_settings as get_settings_uncached
+
+    settings = get_settings_uncached()
+    engine = create_engine_from_url(settings.asset_graph_database_url)
+    init_db(engine)
+    session_factory = create_session_factory(engine)
+
+    job_ids = []
+    with session_scope(session_factory) as session:
+        repo = AssetGraphRepository(session)
+        for i in range(3):
+            job_id = repo.create_rebuild_job(requested_by="operator", source=f"test{i}")
+            job_ids.append(job_id)
+            session.commit()
+            time.sleep(0.01)  # Ensure different created_at timestamps
+
+    response = operator_client.get("/api/graph/rebuild/jobs")
+    assert response.status_code == 200
+    data = response.json()
+
+    # Verify newest-first ordering (reverse creation order)
+    returned_ids = [job["job_id"] for job in data["jobs"]]
+    assert returned_ids == list(reversed(job_ids))
+
+
+def test_list_rebuild_jobs_returns_empty_list_when_no_jobs(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """GET /jobs must return empty list when no jobs exist."""
+    from src.data.database import create_engine_from_url, init_db
+
+    db_file = tmp_path / "test.db"
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
+    get_settings.cache_clear()
+
+    # Initialize schema
+    from src.config.settings import get_settings as get_settings_uncached
+
+    settings = get_settings_uncached()
+    engine = create_engine_from_url(settings.asset_graph_database_url)
+    init_db(engine)
+    engine.dispose()
+
+    response = operator_client.get("/api/graph/rebuild/jobs")
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["jobs"] == []
+    assert data["count"] == 0

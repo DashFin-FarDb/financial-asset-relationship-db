@@ -1,5 +1,6 @@
 """Pydantic response models for API endpoints."""
 
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -136,3 +137,39 @@ class GraphRebuildResponse(BaseModel):
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
     regulatory_event_count: int = Field(ge=0)
+
+
+class RebuildJobResponse(BaseModel):
+    """Response model for rebuild job status.
+
+    Exposes bounded sanitized rebuild job state only.
+    No raw exceptions, stack traces, DB URLs, credentials, or ORM internals.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    job_id: str
+    status: Literal["pending", "running", "succeeded", "failed", "cancelled"]
+    source: str | None
+    requested_by: str
+    created_at: datetime
+    updated_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    duration_ms: int | None
+    node_count: int | None
+    edge_count: int | None
+    failure_category: str | None
+    failure_message: str | None
+
+
+class RebuildJobListResponse(BaseModel):
+    """Response model for rebuild job listing.
+
+    Pagination-ready bounded list structure.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    jobs: list[RebuildJobResponse]
+    count: int = Field(ge=0)

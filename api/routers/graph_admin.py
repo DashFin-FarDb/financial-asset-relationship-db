@@ -19,7 +19,7 @@ from src.data.database import create_engine_from_url, create_session_factory
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 
-from ..api_models import GraphRebuildResponse
+from ..api_models import GraphRebuildResponse, RebuildJobListResponse, RebuildJobResponse
 from ..auth import User, get_current_rebuild_operator_user
 from ..graph_lifecycle import (
     GraphRuntimeLifecycleState,
@@ -642,3 +642,108 @@ def _sanitize_failure_message(exc: Exception) -> str:
     # Redact any URL-like patterns as a defence-in-depth measure
     message = _URL_PATTERN.sub("[REDACTED_URL]", message)
     return message[:512]
+
+
+def _get_rebuild_persistence_session_factory() -> Callable[..., Session]:
+    """Create session factory for rebuild persistence database access.
+
+    Returns:
+        Session factory for accessing rebuild job persistence.
+
+    Raises:
+        HTTPException: 503 if persistence database is not configured.
+    """
+    settings = get_graph_lifecycle_settings()
+    try:
+        persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database not configured",
+        ) from exc
+    engine = create_engine_from_url(persistence_url)
+    return create_session_factory(engine)
+
+
+def _orm_to_response(job_orm: object) -> RebuildJobResponse:
+    """Convert RebuildJobORM to bounded RebuildJobResponse.
+
+    Args:
+        job_orm: The RebuildJobORM instance.
+
+    Returns:
+        RebuildJobResponse with sanitized bounded fields.
+    """
+    return RebuildJobResponse(
+        job_id=job_orm.job_id,  # type: ignore[attr-defined]
+        status=job_orm.status,  # type: ignore[attr-defined]
+        source=job_orm.source,  # type: ignore[attr-defined]
+        requested_by=job_orm.requested_by,  # type: ignore[attr-defined]
+        created_at=job_orm.created_at,  # type: ignore[attr-defined]
+        updated_at=job_orm.updated_at,  # type: ignore[attr-defined]
+        started_at=job_orm.started_at,  # type: ignore[attr-defined]
+        completed_at=job_orm.completed_at,  # type: ignore[attr-defined]
+        duration_ms=job_orm.duration_ms,  # type: ignore[attr-defined]
+        node_count=job_orm.node_count,  # type: ignore[attr-defined]
+        edge_count=job_orm.edge_count,  # type: ignore[attr-defined]
+        failure_category=job_orm.sanitized_failure_category,  # type: ignore[attr-defined]
+        failure_message=job_orm.sanitized_failure_message,  # type: ignore[attr-defined]
+    )
+
+
+@router.get("/api/graph/rebuild/jobs/{job_id}")
+def get_rebuild_job(
+    job_id: str,
+    current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+) -> RebuildJobResponse:
+    """Get rebuild job status by job ID.
+
+    Operator-authenticated read-only endpoint returning bounded sanitized
+    rebuild job state.
+
+    Args:
+        job_id: The rebuild job identifier.
+        current_user: Authenticated operator user.
+
+    Returns:
+        RebuildJobResponse with bounded job state.
+
+    Raises:
+        HTTPException: 404 if job not found, 503 if persistence not configured.
+    """
+    session_factory = _get_rebuild_persistence_session_factory()
+    with session_scope(session_factory) as session:
+        repo = AssetGraphRepository(session)
+        job_orm = repo.get_rebuild_job(job_id)
+        if job_orm is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Rebuild job not found",
+            )
+        return _orm_to_response(job_orm)
+
+
+@router.get("/api/graph/rebuild/jobs")
+def list_rebuild_jobs(
+    current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+) -> RebuildJobListResponse:
+    """List rebuild jobs ordered newest-first.
+
+    Operator-authenticated read-only endpoint returning bounded sanitized
+    rebuild job summaries in deterministic newest-first order.
+
+    Args:
+        current_user: Authenticated operator user.
+
+    Returns:
+        RebuildJobListResponse with pagination-ready bounded list structure.
+
+    Raises:
+        HTTPException: 503 if persistence not configured.
+    """
+    session_factory = _get_rebuild_persistence_session_factory()
+    with session_scope(session_factory) as session:
+        repo = AssetGraphRepository(session)
+        jobs_orm = repo.list_rebuild_jobs()
+        jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
+        return RebuildJobListResponse(jobs=jobs, count=len(jobs))
