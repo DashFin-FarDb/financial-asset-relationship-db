@@ -5,6 +5,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.data.db_models import RebuildJobStatus
+
 GraphStartupSource = Literal[
     "persisted_graph_store",
     "sample_graph",
@@ -149,7 +151,7 @@ class RebuildJobResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     job_id: str
-    status: Literal["pending", "running", "succeeded", "failed", "cancelled"]
+    status: RebuildJobStatus
     source: str | None
     requested_by: str
     created_at: datetime

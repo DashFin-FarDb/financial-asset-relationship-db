@@ -52,6 +52,7 @@ _REBUILD_AUDIT_SUCCEEDED = "graph_rebuild_succeeded"
 _REBUILD_AUDIT_FAILED = "graph_rebuild_failed"
 _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_AUDIT_USER_REF_LENGTH = 64
+_MAX_REBUILD_JOB_LIST_RESULTS = 100
 # Regex to detect and redact URL/DSN-like patterns from failure messages, including:
 # - postgresql+asyncpg://user:pass@host/db
 # - malformed postgresql:user:pass@host/db
@@ -751,6 +752,6 @@ def list_rebuild_jobs(
     """
     with _rebuild_persistence_session() as session:
         repo = AssetGraphRepository(session)
-        jobs_orm = repo.list_rebuild_jobs()
+        jobs_orm = repo.list_rebuild_jobs(limit=_MAX_REBUILD_JOB_LIST_RESULTS)
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
         return RebuildJobListResponse(jobs=jobs, count=len(jobs))

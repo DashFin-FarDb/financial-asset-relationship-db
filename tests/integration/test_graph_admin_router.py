@@ -83,6 +83,20 @@ async def test_app_construction_with_graph_admin_router_succeeds() -> None:
     assert response.status_code == 401
 
 
+async def test_rebuild_job_endpoints_require_authentication() -> None:
+    """Rebuild job read endpoints must reject unauthenticated requests."""
+    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
+
+    app = create_app()
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
+        job_response = await client.get("/api/graph/rebuild/jobs/test-job-id")
+        list_response = await client.get("/api/graph/rebuild/jobs")
+
+    assert job_response.status_code == 401
+    assert list_response.status_code == 401
+
+
 def test_rebuild_returns_403_for_active_non_operator_user(non_operator_client: TestClient) -> None:
     """Active authenticated users who are not operator-authorized should be forbidden."""
     response = non_operator_client.post("/api/graph/rebuild")
@@ -518,8 +532,6 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
     tmp_path: Path,
 ) -> None:
     """GET /jobs must return jobs in deterministic newest-first order."""
-    import time
-
     from src.data.database import create_engine_from_url, create_session_factory, init_db
     from src.data.repository import AssetGraphRepository, session_scope
 
