@@ -726,7 +726,9 @@ def get_rebuild_job(
         RebuildJobResponse with bounded job state.
 
     Raises:
-        HTTPException: 404 if job not found, 503 if persistence not configured.
+        HTTPException:
+            404 if the rebuild job does not exist.
+            503 if rebuild-job persistence is unavailable or not configured.
     """
     with _rebuild_persistence_session() as session:
         repo = AssetGraphRepository(session)
