@@ -508,9 +508,8 @@ async def test_rebuild_marks_job_failed_when_source_persistence_fails(
     """Source-persistence failures should finalize the durable job as failed."""
     database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
 
-    def fail_update_source(self: AssetGraphRepository, job_id: str, source: str) -> None:
+    def fail_update_source(self: AssetGraphRepository, _job_id: str, _source: str) -> None:
         """Simulate source persistence failure after the job has started."""
-        del job_id, source
         raise RuntimeError("source write failed")
 
     monkeypatch.setattr(AssetGraphRepository, "update_rebuild_job_source", fail_update_source)
@@ -542,14 +541,13 @@ async def test_rebuild_marks_job_failed_when_success_persistence_fails(
 
     def fail_mark_succeeded(
         self: AssetGraphRepository,
-        job_id: str,
+        _job_id: str,
         *,
-        node_count: int,
-        edge_count: int,
-        duration_ms: int,
+        _node_count: int,
+        _edge_count: int,
+        _duration_ms: int,
     ) -> None:
         """Simulate success-state persistence failure after the rebuild succeeds."""
-        del job_id, node_count, edge_count, duration_ms
         raise RuntimeError("success write failed")
 
     monkeypatch.setattr(AssetGraphRepository, "mark_rebuild_job_succeeded", fail_mark_succeeded)

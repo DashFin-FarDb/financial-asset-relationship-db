@@ -587,6 +587,8 @@ def _perform_rebuild_and_persist_sync(
     try:
         session_factory = create_session_factory(engine)
         job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
+        # Build failures occur before a source is available; keep it nullable so
+        # post-build failures can still preserve wrapped source context.
         source: GraphRebuildSource | None = None
         try:
             graph, source = build_rebuild_graph(settings)
