@@ -539,11 +539,11 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
     get_settings.cache_clear()
 
-    from datetime import UTC, datetime, timedelta
+    from datetime import datetime, timedelta, timezone
 
     from src.config.settings import get_settings as get_settings_uncached
 
-    base = datetime.now(UTC)
+    base = datetime.now(timezone.utc)
 
     settings = get_settings_uncached()
     engine = create_engine_from_url(settings.asset_graph_database_url)
