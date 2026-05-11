@@ -752,6 +752,8 @@ def list_rebuild_jobs(
     """
     with _rebuild_persistence_session() as session:
         repo = AssetGraphRepository(session)
-        jobs_orm = repo.list_rebuild_jobs(limit=_MAX_REBUILD_JOB_LIST_RESULTS)
+        jobs_orm = repo.list_rebuild_jobs(
+            limit=_MAX_REBUILD_JOB_LIST_RESULTS,
+        )
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
         return RebuildJobListResponse(jobs=jobs, count=len(jobs))
