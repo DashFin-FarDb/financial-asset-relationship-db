@@ -408,7 +408,7 @@ def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> s
             repo = AssetGraphRepository(session)
             return repo.create_rebuild_job(requested_by=user_ref)
     except Exception as exc:
-        logger.error("Failed to create rebuild job record: %s", exc.__class__.__name__)
+        logger.exception("Failed to create rebuild job record")
         raise GraphPersistenceSaveError("Failed to create rebuild job record.") from exc
 
 
