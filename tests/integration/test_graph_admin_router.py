@@ -528,6 +528,9 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
     get_settings.cache_clear()
 
     from src.config.settings import get_settings as get_settings_uncached
+    from datetime import UTC, datetime, timedelta
+
+    base = datetime.now(UTC)
 
     settings = get_settings_uncached()
     engine = create_engine_from_url(settings.asset_graph_database_url)
@@ -535,14 +538,30 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
         init_db(engine)
         session_factory = create_session_factory(engine)
 
-        job_ids = []
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
+        
+            job_ids = []
+        
             for i in range(3):
-                job_id = repo.create_rebuild_job(requested_by="operator", source=f"test{i}")
+                job_id = repo.create_rebuild_job(
+                    requested_by="operator",
+                    source=f"test{i}",
+                )
                 job_ids.append(job_id)
-                session.commit()
-                time.sleep(0.01)  # Ensure different created_at timestamps
+        
+            jobs = []
+
+            for job_id in job_ids:
+                job = repo.get_rebuild_job(job_id)
+                assert job is not None
+                jobs.append(job)
+        
+            jobs[0].created_at = base
+            jobs[1].created_at = base + timedelta(seconds=1)
+            jobs[2].created_at = base + timedelta(seconds=2)
+        
+            session.commit()
     finally:
         engine.dispose()
 
