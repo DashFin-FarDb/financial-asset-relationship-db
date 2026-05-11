@@ -15,9 +15,9 @@ from typing import Annotated, cast
 from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
 from sqlalchemy.orm import Session
 
-from src.logic.asset_graph import AssetRelationshipGraph
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.repository import AssetGraphRepository, session_scope
+from src.logic.asset_graph import AssetRelationshipGraph
 
 from ..api_models import GraphRebuildResponse
 from ..auth import User, get_current_rebuild_operator_user

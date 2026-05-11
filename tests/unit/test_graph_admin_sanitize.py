@@ -3,8 +3,8 @@
 import pytest
 
 from api.graph_lifecycle_providers import (
-    GraphPersistenceNotConfiguredError,
     GraphPersistenceNonDurableError,
+    GraphPersistenceNotConfiguredError,
     GraphPersistenceSaveError,
     GraphRebuildSourceError,
 )
