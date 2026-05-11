@@ -5,7 +5,9 @@ from __future__ import annotations
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
+from uuid import uuid4
 
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, selectinload
@@ -25,6 +27,8 @@ from src.models.financial_models import (
 from .db_models import (
     AssetORM,
     AssetRelationshipORM,
+    RebuildJobORM,
+    RebuildJobStatus,
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
@@ -851,3 +855,244 @@ class AssetGraphRepository:
             impact_score=orm.impact_score,
             related_assets=related_assets,
         )
+
+    # ------------------------------------------------------------------
+    # Rebuild job helpers
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _validate_non_negative_metrics(
+        *,
+        duration_ms: int,
+        node_count: int | None = None,
+        edge_count: int | None = None,
+    ) -> None:
+        """Validate non-negative rebuild metrics."""
+        named_values: dict[str, int] = {"duration_ms": duration_ms}
+        if node_count is not None:
+            named_values["node_count"] = node_count
+        if edge_count is not None:
+            named_values["edge_count"] = edge_count
+        invalid = [name for name, value in named_values.items() if value < 0]
+        if invalid:
+            raise ValueError(f"{invalid[0]} must be non-negative")
+
+    @staticmethod
+    def _validate_failure_metadata(*, failure_category: str, failure_message: str) -> None:
+        """Validate bounded failure metadata."""
+        if len(failure_category) > 64:
+            raise ValueError("failure_category must not exceed 64 characters")
+        if len(failure_message) > 512:
+            raise ValueError("failure_message must not exceed 512 characters")
+
+    def create_rebuild_job(
+        self,
+        *,
+        requested_by: str,
+        source: str | None = None,
+    ) -> str:
+        """
+        Create a new rebuild job record in pending status.
+
+        Args:
+            requested_by: Bounded username of the rebuild operator (max 64 chars).
+            source: Optional rebuild source identifier (max 32 chars).
+
+        Returns:
+            str: The generated job_id (UUID format).
+
+        Raises:
+            ValueError: If requested_by exceeds 64 characters or source exceeds 32 characters.
+        """
+        if len(requested_by) > 64:
+            raise ValueError("requested_by must not exceed 64 characters")
+        if source is not None and len(source) > 32:
+            raise ValueError("source must not exceed 32 characters")
+
+        job_id = str(uuid4())
+        now = datetime.now(timezone.utc)  # noqa: UP017
+
+        job = RebuildJobORM(
+            job_id=job_id,
+            requested_by=requested_by,
+            status=RebuildJobStatus.PENDING,
+            source=source,
+            created_at=now,
+            updated_at=now,
+        )
+        self.session.add(job)
+        self.session.flush()  # Flush to ensure job is visible to subsequent queries
+        return job_id
+
+    def update_rebuild_job_source(self, job_id: str, source: str | None) -> None:
+        """
+        Update the source field on a rebuild job record.
+
+        Args:
+            job_id: The job identifier to update.
+            source: Rebuild source identifier (max 32 chars), or None to clear.
+
+        Raises:
+            ValueError: If the job does not exist or source exceeds 32 characters.
+        """
+        if source is not None and len(source) > 32:
+            raise ValueError("source must not exceed 32 characters")
+
+        job = self.session.get(RebuildJobORM, job_id)
+        if job is None:
+            raise ValueError(f"Rebuild job {job_id} not found")
+
+        job.source = source
+        job.updated_at = datetime.now(timezone.utc)  # noqa: UP017
+        self.session.add(job)
+
+    def mark_rebuild_job_running(self, job_id: str) -> None:
+        """
+        Transition rebuild job from pending to running status.
+
+        Args:
+            job_id: The job identifier to update.
+
+        Raises:
+            ValueError: If the job does not exist or is not in pending status.
+        """
+        job = self.session.get(RebuildJobORM, job_id)
+        if job is None:
+            raise ValueError(f"Rebuild job {job_id} not found")
+        if job.status != RebuildJobStatus.PENDING:
+            raise ValueError(f"Cannot transition job {job_id} from {job.status} to running")
+
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        job.status = RebuildJobStatus.RUNNING
+        job.started_at = now
+        job.updated_at = now
+        self.session.add(job)
+
+    def mark_rebuild_job_succeeded(
+        self,
+        job_id: str,
+        *,
+        node_count: int,
+        edge_count: int,
+        duration_ms: int,
+    ) -> None:
+        """
+        Mark rebuild job as succeeded and persist success metadata.
+
+        Args:
+            job_id: The job identifier to update.
+            node_count: Number of nodes/assets in the rebuilt graph.
+            edge_count: Number of edges/relationships in the rebuilt graph.
+            duration_ms: Total rebuild duration in milliseconds.
+
+        Raises:
+            ValueError: If the job does not exist or is not in running status.
+        """
+        self._validate_non_negative_metrics(
+            duration_ms=duration_ms,
+            node_count=node_count,
+            edge_count=edge_count,
+        )
+
+        job = self.session.get(RebuildJobORM, job_id)
+        if job is None:
+            raise ValueError(f"Rebuild job {job_id} not found")
+        if job.status != RebuildJobStatus.RUNNING:
+            raise ValueError(f"Cannot transition job {job_id} from {job.status} to succeeded")
+
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        job.status = RebuildJobStatus.SUCCEEDED
+        job.completed_at = now
+        job.updated_at = now
+        job.node_count = node_count
+        job.edge_count = edge_count
+        job.duration_ms = duration_ms
+        self.session.add(job)
+
+    def mark_rebuild_job_failed(
+        self,
+        job_id: str,
+        *,
+        failure_category: str,
+        failure_message: str,
+        duration_ms: int,
+    ) -> None:
+        """
+        Mark rebuild job as failed and persist sanitized failure metadata.
+
+        Args:
+            job_id: The job identifier to update.
+            failure_category: Sanitized failure category (max 64 chars).
+            failure_message: Sanitized failure message (max 512 chars).
+            duration_ms: Total rebuild duration in milliseconds.
+
+        Raises:
+            ValueError: If the job does not exist, is not in running/pending status,
+                or failure metadata exceeds bounds.
+        """
+        self._validate_failure_metadata(
+            failure_category=failure_category,
+            failure_message=failure_message,
+        )
+        self._validate_non_negative_metrics(duration_ms=duration_ms)
+
+        job = self.session.get(RebuildJobORM, job_id)
+        if job is None:
+            raise ValueError(f"Rebuild job {job_id} not found")
+        if job.status not in (RebuildJobStatus.RUNNING, RebuildJobStatus.PENDING):
+            raise ValueError(f"Cannot transition job {job_id} from {job.status} to failed")
+
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        job.status = RebuildJobStatus.FAILED
+        job.completed_at = now
+        job.updated_at = now
+        job.sanitized_failure_category = failure_category
+        job.sanitized_failure_message = failure_message
+        job.duration_ms = duration_ms
+        self.session.add(job)
+
+    def get_rebuild_job(self, job_id: str) -> RebuildJobORM | None:
+        """
+        Retrieve a rebuild job by its ID.
+
+        Args:
+            job_id: The job identifier to retrieve.
+
+        Returns:
+            RebuildJobORM | None: The job record if found, None otherwise.
+        """
+        return self.session.get(RebuildJobORM, job_id)
+
+    def list_rebuild_jobs(
+        self,
+        *,
+        limit: int | None = None,
+        status: str | None = None,
+    ) -> list[RebuildJobORM]:
+        """
+        List rebuild jobs ordered by created_at descending (most recent first).
+
+        Args:
+            limit: Optional maximum number of jobs to return.
+            status: Optional status filter (pending, running, succeeded, failed, cancelled).
+
+        Returns:
+            list[RebuildJobORM]: List of rebuild job records matching the filters.
+
+        Raises:
+            ValueError: If an invalid status value is provided.
+        """
+        if status is not None:
+            if status not in RebuildJobStatus.values():
+                raise ValueError(
+                    f"Invalid rebuild job status {status!r}. "
+                    f"Must be one of: {RebuildJobStatus.values()}"
+                )
+        stmt = select(RebuildJobORM).order_by(
+            RebuildJobORM.created_at.desc(),
+            RebuildJobORM.job_id.desc(),
+        )
+        if status is not None:
+            stmt = stmt.where(RebuildJobORM.status == status)
+        if limit is not None:
+            stmt = stmt.limit(limit)
+        return list(self.session.execute(stmt).scalars().all())

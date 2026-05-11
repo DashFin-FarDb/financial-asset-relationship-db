@@ -79,7 +79,8 @@ async def _post_rebuild() -> _RouteResult:
     """Invoke rebuild behavior with route-equivalent error mapping."""
     try:
         body = graph_admin._perform_rebuild_and_persist_sync(  # pylint: disable=protected-access
-            graph_admin.get_graph_lifecycle_settings()
+            graph_admin.get_graph_lifecycle_settings(),
+            user_ref="test_user",
         )
     except Exception as exc:
         http_exc = graph_admin._map_rebuild_error(exc)  # pylint: disable=protected-access
@@ -390,12 +391,13 @@ async def test_successful_rebuild_emits_bounded_audit_log(
 
 
 async def test_failed_rebuild_emits_secret_safe_audit_log(
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A failed rebuild should emit bounded secret-safe failure audit logs."""
     raw_url = "postgresql://operator:secret@example.invalid/asset_graph"
-    _configure_persistence(monkeypatch, raw_url)
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
 
     def fail_save(_database_url: str | None, _graph: AssetRelationshipGraph) -> None:
         """Simulate persistence save failure with a sanitized exception."""
@@ -425,6 +427,153 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     assert "secret" not in response.text
     assert raw_url not in serialized_records
     assert "secret" not in serialized_records
+
+    # Verify failed-state persistence is durable in the rebuild_jobs table.
+    engine = create_engine(database_url)
+    session = create_session_factory(engine)()
+    try:
+        jobs = AssetGraphRepository(session).list_rebuild_jobs(limit=1)
+        assert len(jobs) == 1
+        assert jobs[0].status == "failed"
+    finally:
+        session.close()
+        engine.dispose()
+
+
+async def test_rebuild_fails_closed_when_job_creation_persistence_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Rebuild must fail closed if durable rebuild-job creation cannot persist."""
+    _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_create_job(
+        self: AssetGraphRepository,
+        requested_by: str,
+        _source: str | None = None,
+    ) -> str:
+        """Simulate job creation persistence failure."""
+        raise RuntimeError("create failed")
+
+    def fail_if_build_called(_settings: providers.GraphLifecycleSettings):
+        """Assert rebuild does not proceed when job creation fails."""
+        raise AssertionError("build should not be attempted when job creation fails")
+
+    monkeypatch.setattr(AssetGraphRepository, "create_rebuild_job", fail_create_job)
+    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_if_build_called)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to create rebuild job record."}
+
+
+async def test_rebuild_failure_state_persistence_errors_are_not_suppressed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If failed-state persistence fails, surface a deterministic persistence failure."""
+    _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_build(
+        _settings: providers.GraphLifecycleSettings,
+    ) -> tuple[AssetRelationshipGraph, providers.GraphRebuildSource]:
+        """Simulate rebuild source failure to trigger failed-state persistence."""
+        raise providers.GraphRebuildSourceError("Failed to build rebuild graph.")
+
+    def fail_mark_failed(
+        self: AssetGraphRepository,
+        job_id: str,
+        *,
+        failure_category: str,
+        failure_message: str,
+        duration_ms: int,
+    ) -> None:
+        """Simulate failed-state persistence error."""
+        raise RuntimeError("mark failed write failed")
+
+    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_build)
+    monkeypatch.setattr(AssetGraphRepository, "mark_rebuild_job_failed", fail_mark_failed)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to persist rebuild job failure state."}
+
+
+async def test_rebuild_marks_job_failed_when_source_persistence_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Source-persistence failures should finalize the durable job as failed."""
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_update_source(self: AssetGraphRepository, job_id: str, source: str) -> None:
+        """Simulate source persistence failure after the job has started."""
+        _ = job_id
+        _ = source
+        raise RuntimeError("source write failed")
+
+    monkeypatch.setattr(AssetGraphRepository, "update_rebuild_job_source", fail_update_source)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to update rebuild job source."}
+
+    engine = create_engine(database_url)
+    session = create_session_factory(engine)()
+    try:
+        jobs = AssetGraphRepository(session).list_rebuild_jobs(limit=1)
+        assert len(jobs) == 1
+        assert jobs[0].status == "failed"
+        assert jobs[0].sanitized_failure_category == "persistence_save_error"
+        assert jobs[0].sanitized_failure_message == "Failed to update rebuild job source."
+    finally:
+        session.close()
+        engine.dispose()
+
+
+async def test_rebuild_marks_job_failed_when_success_persistence_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Success-state persistence failures should not leave the durable job RUNNING."""
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_mark_succeeded(
+        self: AssetGraphRepository,
+        job_id: str,
+        *,
+        node_count: int,
+        edge_count: int,
+        duration_ms: int,
+    ) -> None:
+        """Simulate success-state persistence failure after the rebuild succeeds."""
+        _ = job_id
+        _ = node_count
+        _ = edge_count
+        _ = duration_ms
+        raise RuntimeError("success write failed")
+
+    monkeypatch.setattr(AssetGraphRepository, "mark_rebuild_job_succeeded", fail_mark_succeeded)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to persist rebuild job success state."}
+
+    engine = create_engine(database_url)
+    session = create_session_factory(engine)()
+    try:
+        jobs = AssetGraphRepository(session).list_rebuild_jobs(limit=1)
+        assert len(jobs) == 1
+        assert jobs[0].status == "failed"
+        assert jobs[0].sanitized_failure_category == "persistence_save_error"
+        assert jobs[0].sanitized_failure_message == "Failed to persist rebuild job success state."
+    finally:
+        session.close()
+        engine.dispose()
 
 
 async def test_rebuild_uses_cache_path_before_sample(

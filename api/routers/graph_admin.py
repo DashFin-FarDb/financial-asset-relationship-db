@@ -5,12 +5,19 @@ from __future__ import annotations
 import asyncio
 import contextvars
 import logging
+import re
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
+from sqlalchemy.orm import Session
+
+from src.data.database import create_engine_from_url, create_session_factory
+from src.data.repository import AssetGraphRepository, session_scope
+from src.logic.asset_graph import AssetRelationshipGraph
 
 from ..api_models import GraphRebuildResponse
 from ..auth import User, get_current_rebuild_operator_user
@@ -43,6 +50,16 @@ _REBUILD_AUDIT_SUCCEEDED = "graph_rebuild_succeeded"
 _REBUILD_AUDIT_FAILED = "graph_rebuild_failed"
 _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_AUDIT_USER_REF_LENGTH = 64
+# Regex to detect and redact URL/DSN-like patterns from failure messages, including:
+# - postgresql+asyncpg://user:pass@host/db
+# - malformed postgresql:user:pass@host/db
+# - https://example.com/path
+# First alternation matches standard scheme:// URLs.
+# Second alternation matches malformed DSN-like credentials without //.
+_URL_PATTERN = re.compile(
+    r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z][a-z0-9+\-.]*:[^\s/@]+:[^\s/@]+@\S+)",
+    re.IGNORECASE,
+)
 
 
 class _RebuildRuntime:
@@ -173,14 +190,17 @@ async def _run_rebuild_in_executor(
 ) -> GraphRebuildResponse:
     """Run rebuild work in the dedicated executor."""
     ctx = contextvars.copy_context()
+
+    def rebuild_with_context() -> GraphRebuildResponse:
+        return _perform_rebuild_and_persist_sync(settings, user_ref=user_ref)
+
     try:
         future = cast(
             asyncio.Future[GraphRebuildResponse],
             loop.run_in_executor(
                 _REBUILD_RUNTIME.get_executor(),
                 ctx.run,
-                _perform_rebuild_and_persist_sync,
-                settings,
+                rebuild_with_context,
             ),
         )
     except Exception as exc:
@@ -372,26 +392,253 @@ def shutdown_rebuild_executor() -> None:
     _REBUILD_RUNTIME.shutdown_executor()
 
 
-def _perform_rebuild_and_persist_sync(
-    settings: GraphLifecycleSettings,
-) -> GraphRebuildResponse:
-    """Rebuild the graph, persist it, then publish it to runtime state."""
-    resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
+    """Create a rebuild job record in pending status.
 
-    graph, source = build_rebuild_graph(settings)
+    Returns:
+        str: Durable rebuild job identifier.
 
+    Raises:
+        GraphPersistenceSaveError: If the job record cannot be durably created.
+    """
     try:
-        save_graph_to_persistence(resolved_url, graph)
-        synchronize_runtime_graph(graph)
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            return repo.create_rebuild_job(requested_by=user_ref)
     except Exception as exc:
-        raise _RebuildExecutionError(source, exc) from exc
+        logger.error("Failed to create rebuild job record: %s", exc.__class__.__name__)
+        raise GraphPersistenceSaveError("Failed to create rebuild job record.") from exc
 
+
+def _run_job_update(
+    session_factory: Callable[[], Session],
+    job_id: str,
+    action: Callable[[AssetGraphRepository], None],
+    error_message: str,
+) -> None:
+    """Execute a repository job-update action; raise GraphPersistenceSaveError on failure."""
+    try:
+        with session_scope(session_factory) as session:
+            action(AssetGraphRepository(session))
+    except Exception as exc:
+        logger.error("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
+        raise GraphPersistenceSaveError(error_message) from exc
+
+
+def _update_job_source_safe(session_factory: Callable[[], Session], job_id: str, source: str) -> None:
+    """Update rebuild job source.
+
+    Raises:
+        GraphPersistenceSaveError: If the source update cannot be durably persisted.
+    """
+    _run_job_update(
+        session_factory,
+        job_id,
+        lambda repo: repo.update_rebuild_job_source(job_id, source),
+        "Failed to update rebuild job source.",
+    )
+
+
+def _mark_job_running_safe(session_factory: Callable[[], Session], job_id: str) -> None:
+    """Mark rebuild job as running.
+
+    Raises:
+        GraphPersistenceSaveError: If the running transition cannot be durably persisted.
+    """
+    _run_job_update(
+        session_factory,
+        job_id,
+        lambda repo: repo.mark_rebuild_job_running(job_id),
+        "Failed to mark rebuild job as running.",
+    )
+
+
+def _mark_job_succeeded_safe(
+    session_factory: Callable[[], Session],
+    job_id: str,
+    node_count: int,
+    edge_count: int,
+    duration_ms: int,
+) -> None:
+    """Mark rebuild job as succeeded.
+
+    Raises:
+        GraphPersistenceSaveError: If success metadata cannot be durably persisted.
+    """
+    _run_job_update(
+        session_factory,
+        job_id,
+        lambda repo: repo.mark_rebuild_job_succeeded(
+            job_id,
+            node_count=node_count,
+            edge_count=edge_count,
+            duration_ms=duration_ms,
+        ),
+        "Failed to persist rebuild job success state.",
+    )
+
+
+def _mark_job_failed_safe(
+    session_factory: Callable[[], Session],
+    job_id: str,
+    exc: Exception,
+    duration_ms: int,
+) -> None:
+    """Mark a rebuild job as failed.
+
+    Raises:
+        GraphPersistenceSaveError: If failed-state metadata cannot be durably persisted.
+    """
+    _run_job_update(
+        session_factory,
+        job_id,
+        lambda repo: repo.mark_rebuild_job_failed(
+            job_id,
+            failure_category=_rebuild_failure_category(exc),
+            failure_message=_sanitize_failure_message(exc),
+            duration_ms=duration_ms,
+        ),
+        "Failed to persist rebuild job failure state.",
+    )
+
+
+def _create_and_start_rebuild_job(
+    session_factory: Callable[[], Session],
+    user_ref: str,
+) -> tuple[str, float]:
+    """Create a rebuild job record and transition it to running.
+
+    Args:
+        session_factory: Session factory for persistence operations.
+        user_ref: Operator username recorded on the job record.
+
+    Returns:
+        tuple[str, float]: (job_id, job_started_at monotonic timestamp).
+
+    Raises:
+        GraphPersistenceSaveError: If job creation or running transition fails.
+    """
+    job_id = _create_job_safe(session_factory, user_ref)
+    job_started_at = perf_counter()
+    _mark_job_running_safe(session_factory, job_id)
+    return job_id, job_started_at
+
+
+def _finalize_rebuild_success(
+    *,
+    session_factory: Callable[[], Session],
+    job_id: str,
+    graph: AssetRelationshipGraph,
+    source: GraphRebuildSource,
+    job_started_at: float,
+) -> GraphRebuildResponse:
+    """Build the rebuild response payload and persist success job state.
+
+    Args:
+        session_factory: Session factory used to persist job transitions.
+        job_id: Durable rebuild job identifier.
+        graph: Rebuilt graph instance used to derive response counts.
+        source: Rebuild source marker included in the response.
+        job_started_at: Monotonic start time used for duration calculation.
+
+    Returns:
+        GraphRebuildResponse: The rebuild outcome response.
+
+    Raises:
+        GraphPersistenceSaveError: If success metadata cannot be durably persisted.
+    """
     regulatory_events = getattr(graph, "regulatory_events", []) or []
-
-    return GraphRebuildResponse(
+    response = GraphRebuildResponse(
         status="persisted",
         source=source,
         asset_count=len(graph.assets),
         relationship_count=sum(len(items) for items in graph.relationships.values()),
         regulatory_event_count=len(regulatory_events),
     )
+    _mark_job_succeeded_safe(
+        session_factory,
+        job_id,
+        node_count=response.asset_count,
+        edge_count=response.relationship_count,
+        duration_ms=_duration_ms(job_started_at),
+    )
+    return response
+
+
+def _finalize_rebuild_failure(
+    *,
+    session_factory: Callable[[], Session],
+    job_id: str,
+    exc: Exception,
+    job_started_at: float,
+) -> None:
+    """Persist failed rebuild terminal state."""
+    _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
+
+
+def _perform_rebuild_and_persist_sync(
+    settings: GraphLifecycleSettings,
+    *,
+    user_ref: str,
+) -> GraphRebuildResponse:
+    """Rebuild the graph, persist it, then publish it to runtime state."""
+    resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    engine = create_engine_from_url(resolved_url)
+    try:
+        session_factory = create_session_factory(engine)
+        job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
+        # Build failures occur before a source is available; keep it nullable so
+        # post-build failures can still preserve wrapped source context.
+        source: GraphRebuildSource | None = None
+        try:
+            graph, source = build_rebuild_graph(settings)
+            _update_job_source_safe(session_factory, job_id, str(source))
+            save_graph_to_persistence(resolved_url, graph)
+            synchronize_runtime_graph(graph)
+            return _finalize_rebuild_success(
+                session_factory=session_factory,
+                job_id=job_id,
+                graph=graph,
+                source=source,
+                job_started_at=job_started_at,
+            )
+        except Exception as exc:
+            _finalize_rebuild_failure(
+                session_factory=session_factory,
+                job_id=job_id,
+                exc=exc,
+                job_started_at=job_started_at,
+            )
+            if source is not None:
+                raise _RebuildExecutionError(source, exc) from exc
+            raise
+    finally:
+        engine.dispose()
+
+
+def _sanitize_failure_message(exc: Exception) -> str:
+    """Return a bounded, sanitized failure message for job persistence.
+
+    For known safe domain exceptions the message text is retained.
+    For unknown exceptions only the class name is stored to avoid
+    leaking secrets, connection strings, or credentials.
+    URL-like patterns are redacted as an additional safety layer.
+    """
+    root_exc = _unwrap_rebuild_error(exc)
+    if isinstance(
+        root_exc,
+        (
+            GraphPersistenceNotConfiguredError,
+            GraphPersistenceNonDurableError,
+            GraphRebuildSourceError,
+            GraphPersistenceSaveError,
+        ),
+    ):
+        # Known safe domain exceptions — message is intentionally bounded
+        message = str(root_exc) if str(root_exc) else root_exc.__class__.__name__
+    else:
+        # Unknown exception — use only class name to prevent secret leakage
+        message = root_exc.__class__.__name__
+    # Redact any URL-like patterns as a defence-in-depth measure
+    message = _URL_PATTERN.sub("[REDACTED_URL]", message)
+    return message[:512]
