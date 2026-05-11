@@ -406,7 +406,7 @@ def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> s
             repo = AssetGraphRepository(session)
             return repo.create_rebuild_job(requested_by=user_ref)
     except Exception as exc:
-        logger.warning("Failed to create rebuild job record: %s", exc.__class__.__name__)
+        logger.error("Failed to create rebuild job record: %s", exc.__class__.__name__)
         raise GraphPersistenceSaveError("Failed to create rebuild job record.") from exc
 
 
@@ -421,7 +421,7 @@ def _run_job_update(
         with session_scope(session_factory) as session:
             action(AssetGraphRepository(session))
     except Exception as exc:
-        logger.warning("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
+        logger.error("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
         raise GraphPersistenceSaveError(error_message) from exc
 
 
@@ -502,86 +502,6 @@ def _mark_job_failed_safe(
     )
 
 
-def _build_graph_or_persist_failure(
-    settings: GraphLifecycleSettings,
-    *,
-    session_factory: Callable[[], Session],
-    job_id: str,
-    job_started_at: float,
-) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
-    """Build graph and persist failed job state before re-raising.
-
-    Args:
-        settings: Lifecycle settings used to resolve rebuild data source.
-        session_factory: Session factory used to persist job transitions.
-        job_id: Durable rebuild job identifier.
-        job_started_at: Monotonic start time used for duration calculation.
-
-    Returns:
-        tuple[AssetRelationshipGraph, GraphRebuildSource]: Rebuilt graph instance and source marker.
-    """
-    try:
-        return build_rebuild_graph(settings)
-    except Exception as exc:
-        _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
-        raise
-
-
-def _save_and_publish_or_persist_failure(
-    *,
-    source: GraphRebuildSource,
-    resolved_url: str,
-    graph: AssetRelationshipGraph,
-    session_factory: Callable[[], Session],
-    job_id: str,
-    job_started_at: float,
-) -> None:
-    """Persist graph + runtime state; persist failed job state on error.
-
-    Args:
-        source: Rebuild source used for wrapped execution error context.
-        resolved_url: Durable graph persistence database URL.
-        graph: Rebuilt graph instance to persist and publish.
-        session_factory: Session factory used to persist job transitions.
-        job_id: Durable rebuild job identifier.
-        job_started_at: Monotonic start time used for duration calculation.
-
-    Raises:
-        GraphPersistenceSaveError: If failed-state persistence cannot be recorded.
-        _RebuildExecutionError: If graph save/sync fails after failed-state persistence succeeds.
-    """
-    try:
-        save_graph_to_persistence(resolved_url, graph)
-        synchronize_runtime_graph(graph)
-    except Exception as exc:
-        _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
-        raise _RebuildExecutionError(source, exc) from exc
-
-
-def _persist_rebuild_success(
-    *,
-    session_factory: Callable[[], Session],
-    job_id: str,
-    response: GraphRebuildResponse,
-    job_started_at: float,
-) -> None:
-    """Persist successful rebuild job metadata.
-
-    Args:
-        session_factory: Session factory used to persist job transitions.
-        job_id: Durable rebuild job identifier.
-        response: Rebuild response containing node/edge counts.
-        job_started_at: Monotonic start time used for duration calculation.
-    """
-    _mark_job_succeeded_safe(
-        session_factory,
-        job_id,
-        node_count=response.asset_count,
-        edge_count=response.relationship_count,
-        duration_ms=_duration_ms(job_started_at),
-    )
-
-
 def _create_and_start_rebuild_job(
     session_factory: Callable[[], Session],
     user_ref: str,
@@ -604,7 +524,7 @@ def _create_and_start_rebuild_job(
     return job_id, job_started_at
 
 
-def _build_and_persist_rebuild_success(
+def _finalize_rebuild_success(
     *,
     session_factory: Callable[[], Session],
     job_id: str,
@@ -635,13 +555,25 @@ def _build_and_persist_rebuild_success(
         relationship_count=sum(len(items) for items in graph.relationships.values()),
         regulatory_event_count=len(regulatory_events),
     )
-    _persist_rebuild_success(
-        session_factory=session_factory,
-        job_id=job_id,
-        response=response,
-        job_started_at=job_started_at,
+    _mark_job_succeeded_safe(
+        session_factory,
+        job_id,
+        node_count=response.asset_count,
+        edge_count=response.relationship_count,
+        duration_ms=_duration_ms(job_started_at),
     )
     return response
+
+
+def _finalize_rebuild_failure(
+    *,
+    session_factory: Callable[[], Session],
+    job_id: str,
+    exc: Exception,
+    job_started_at: float,
+) -> None:
+    """Persist failed rebuild terminal state."""
+    _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
 
 
 def _perform_rebuild_and_persist_sync(
@@ -655,28 +587,29 @@ def _perform_rebuild_and_persist_sync(
     try:
         session_factory = create_session_factory(engine)
         job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
-        graph, source = _build_graph_or_persist_failure(
-            settings,
-            session_factory=session_factory,
-            job_id=job_id,
-            job_started_at=job_started_at,
-        )
-        _update_job_source_safe(session_factory, job_id, str(source))
-        _save_and_publish_or_persist_failure(
-            source=source,
-            resolved_url=resolved_url,
-            graph=graph,
-            session_factory=session_factory,
-            job_id=job_id,
-            job_started_at=job_started_at,
-        )
-        return _build_and_persist_rebuild_success(
-            session_factory=session_factory,
-            job_id=job_id,
-            graph=graph,
-            source=source,
-            job_started_at=job_started_at,
-        )
+        source: GraphRebuildSource | None = None
+        try:
+            graph, source = build_rebuild_graph(settings)
+            _update_job_source_safe(session_factory, job_id, str(source))
+            save_graph_to_persistence(resolved_url, graph)
+            synchronize_runtime_graph(graph)
+            return _finalize_rebuild_success(
+                session_factory=session_factory,
+                job_id=job_id,
+                graph=graph,
+                source=source,
+                job_started_at=job_started_at,
+            )
+        except Exception as exc:
+            _finalize_rebuild_failure(
+                session_factory=session_factory,
+                job_id=job_id,
+                exc=exc,
+                job_started_at=job_started_at,
+            )
+            if source is not None:
+                raise _RebuildExecutionError(source, exc) from exc
+            raise
     finally:
         engine.dispose()
 
