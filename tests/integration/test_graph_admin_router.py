@@ -330,6 +330,13 @@ def test_get_rebuild_job_returns_503_when_persistence_not_configured(
     assert response.status_code == 503
     assert "not configured" in response.json()["detail"].lower()
 
+def test_get_rebuild_job_requires_authentication(client):
+    response = client.get(
+        "/api/graph/rebuild/jobs/test-job-id"
+    )
+
+    assert response.status_code == 401
+
 
 def test_list_rebuild_jobs_returns_503_when_persistence_not_configured(
     operator_client: TestClient,
@@ -524,6 +531,13 @@ def test_list_rebuild_jobs_succeeds_for_operator(
         assert "status" in job
         assert "requested_by" in job
         assert "created_at" in job
+
+def test_list_rebuild_jobs_requires_authentication(client):
+    response = client.get(
+        "/api/graph/rebuild/jobs"
+    )
+
+    assert response.status_code == 401
 
 
 def test_list_rebuild_jobs_returns_newest_first_ordering(
