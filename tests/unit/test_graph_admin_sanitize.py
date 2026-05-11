@@ -49,9 +49,7 @@ class TestSanitizeFailureMessage:
 
     def test_url_in_known_exception_message_is_redacted(self) -> None:
         """URL-like patterns in known domain exception messages are redacted."""
-        exc = GraphPersistenceNotConfiguredError(
-            "Connection refused at postgresql://admin:s3cr3t@host:5432/db"
-        )
+        exc = GraphPersistenceNotConfiguredError("Connection refused at postgresql://admin:s3cr3t@host:5432/db")
         result = _sanitize_failure_message(exc)
         assert "s3cr3t" not in result
         assert "[REDACTED_URL]" in result
@@ -68,9 +66,7 @@ class TestSanitizeFailureMessage:
 
     def test_malformed_dsn_with_credentials_is_redacted(self) -> None:
         """Malformed DSN credential segments are still redacted."""
-        exc = GraphPersistenceSaveError(
-            "Persist failed for postgresql:admin:s3cr3t@example.invalid/asset_graph"
-        )
+        exc = GraphPersistenceSaveError("Persist failed for postgresql:admin:s3cr3t@example.invalid/asset_graph")
         result = _sanitize_failure_message(exc)
         assert "s3cr3t" not in result
         assert "admin:" not in result
