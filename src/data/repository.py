@@ -1042,10 +1042,7 @@ class AssetGraphRepository:
             RebuildJobStatus.RUNNING,
             RebuildJobStatus.PENDING,
         ):
-            raise ValueError(
-                f"Cannot transition job {job_id} "
-                f"from {job.status} to {RebuildJobStatus.FAILED.value}"
-            )
+            raise ValueError(f"Cannot transition job {job_id} " f"from {job.status} to {RebuildJobStatus.FAILED.value}")
 
         now = datetime.now(timezone.utc)  # noqa: UP017
         job.status = RebuildJobStatus.FAILED
