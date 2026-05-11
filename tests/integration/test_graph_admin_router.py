@@ -527,8 +527,9 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
     get_settings.cache_clear()
 
-    from src.config.settings import get_settings as get_settings_uncached
     from datetime import UTC, datetime, timedelta
+
+    from src.config.settings import get_settings as get_settings_uncached
 
     base = datetime.now(UTC)
 
@@ -540,27 +541,27 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
 
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
-        
+
             job_ids = []
-        
+
             for i in range(3):
                 job_id = repo.create_rebuild_job(
                     requested_by="operator",
                     source=f"test{i}",
                 )
                 job_ids.append(job_id)
-        
+
             jobs = []
 
             for job_id in job_ids:
                 job = repo.get_rebuild_job(job_id)
                 assert job is not None
                 jobs.append(job)
-        
+
             jobs[0].created_at = base
             jobs[1].created_at = base + timedelta(seconds=1)
             jobs[2].created_at = base + timedelta(seconds=2)
-        
+
             session.commit()
     finally:
         engine.dispose()
