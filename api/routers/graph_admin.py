@@ -423,7 +423,7 @@ def _run_job_update(
         with session_scope(session_factory) as session:
             action(AssetGraphRepository(session))
     except Exception as exc:
-        logger.error("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
+        logger.exception("Rebuild job %s update failed", job_id)
         raise GraphPersistenceSaveError(error_message) from exc
 
 
