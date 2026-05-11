@@ -867,12 +867,14 @@ class AssetGraphRepository:
         edge_count: int | None = None,
     ) -> None:
         """Validate non-negative rebuild metrics."""
-        if duration_ms < 0:
-            raise ValueError("duration_ms must be non-negative")
-        if node_count is not None and node_count < 0:
-            raise ValueError("node_count must be non-negative")
-        if edge_count is not None and edge_count < 0:
-            raise ValueError("edge_count must be non-negative")
+        named_values: dict[str, int] = {"duration_ms": duration_ms}
+        if node_count is not None:
+            named_values["node_count"] = node_count
+        if edge_count is not None:
+            named_values["edge_count"] = edge_count
+        invalid = [name for name, value in named_values.items() if value < 0]
+        if invalid:
+            raise ValueError(f"{invalid[0]} must be non-negative")
 
     @staticmethod
     def _validate_failure_metadata(*, failure_category: str, failure_message: str) -> None:
