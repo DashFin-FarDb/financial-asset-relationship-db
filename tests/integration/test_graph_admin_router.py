@@ -30,12 +30,14 @@ pytestmark = pytest.mark.integration
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import sessionmaker
+
     from src.data.repository import AssetGraphRepository
 
 
 # ---------------------------------------------------------------------------
 # Test Helpers & Fixtures
 # ---------------------------------------------------------------------------
+
 
 def _configure_test_operator(monkeypatch: pytest.MonkeyPatch) -> None:
     """Configure the test operator username and refresh cached settings."""
@@ -85,10 +87,7 @@ def _assert_successful_json_response(response: httpx.Response) -> dict[str, Any]
 
 
 @contextlib.contextmanager
-def _rebuild_jobs_db_context(
-    tmp_path: Path, 
-    monkeypatch: pytest.MonkeyPatch
-) -> Iterator[sessionmaker]:
+def _rebuild_jobs_db_context(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[sessionmaker]:
     """Provide a clean, initialized database and session factory for tests."""
     from src.config.settings import get_settings as get_settings_uncached
     from src.data.database import create_engine_from_url, create_session_factory, init_db
@@ -129,6 +128,7 @@ def _create_rebuild_jobs(
 # ---------------------------------------------------------------------------
 # Rebuild Action Endpoints Tests
 # ---------------------------------------------------------------------------
+
 
 async def test_app_construction_with_graph_admin_router_succeeds() -> None:
     """The graph admin router must not introduce an app construction import cycle."""
@@ -354,6 +354,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
 # Rebuild Job Status Endpoints Tests
 # ---------------------------------------------------------------------------
 
+
 def test_get_rebuild_job_returns_403_for_non_operator(
     non_operator_client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
@@ -410,7 +411,7 @@ def test_get_rebuild_job_returns_404_for_unknown_job(
     """GET /jobs/{job_id} must return 404 for unknown job IDs."""
     with _rebuild_jobs_db_context(tmp_path, monkeypatch):
         response = operator_client.get("/api/graph/rebuild/jobs/unknown-job-id")
-        
+
     assert response.status_code == 404
     assert response.json()["detail"] == "Rebuild job not found"
 
@@ -485,7 +486,7 @@ def test_get_rebuild_job_exposes_sanitized_failure_fields(
     assert data["failure_category"] == "database_error"
     assert data["failure_message"] == "Connection timeout"
     assert data["duration_ms"] == 2000
-    
+
     # Verify no raw exceptions or stack traces
     assert "traceback" not in str(data).lower()
     assert "exception" not in str(data).lower()
@@ -530,6 +531,7 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
 ) -> None:
     """GET /jobs must return jobs in deterministic newest-first order."""
     from datetime import UTC, datetime, timedelta
+
     from src.data.repository import AssetGraphRepository, session_scope
 
     base = datetime.now(UTC)
@@ -548,7 +550,7 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
             jobs[0].created_at = base
             jobs[1].created_at = base + timedelta(seconds=1)
             jobs[2].created_at = base + timedelta(seconds=2)
-            
+
             # Explicit commit guarantees the ORM changes persist before the client requests them
             session.commit()
 
