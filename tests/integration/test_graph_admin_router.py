@@ -536,8 +536,6 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
 
     from src.data.repository import AssetGraphRepository, session_scope
 
-    base = datetime.now(UTC)
-
     with _rebuild_jobs_db_context(tmp_path, monkeypatch) as session_factory:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
