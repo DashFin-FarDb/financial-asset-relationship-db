@@ -401,7 +401,6 @@ def test_get_rebuild_job_succeeds_for_operator(
                 edge_count=250,
                 duration_ms=5000,
             )
-            session.commit()
     finally:
         engine.dispose()
 
