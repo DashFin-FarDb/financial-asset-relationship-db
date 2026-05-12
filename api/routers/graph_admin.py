@@ -656,22 +656,12 @@ def _sanitize_failure_message(exc: Exception) -> str:
 
 @contextmanager
 def _rebuild_persistence_session() -> Generator[Session, None, None]:
-    settings = get_settings()
-
-    if not settings.graph_persistence_enabled:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence is not configured",
-        )
-
-    persistence_url = settings.asset_graph_database_url
-    if persistence_url is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence is not configured",
-        )
+    settings = get_graph_lifecycle_settings()
 
     try:
+        persistence_url = resolve_durable_graph_persistence_url(
+            settings.asset_graph_database_url,
+        )
         engine = create_engine_from_url(persistence_url)
         session_factory = create_session_factory(engine)
 
@@ -680,6 +670,12 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
 
     except HTTPException:
         raise
+
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database not configured",
+        ) from exc
 
     except Exception as exc:
         logger.error(
