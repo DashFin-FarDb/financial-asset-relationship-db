@@ -657,6 +657,7 @@ def _sanitize_failure_message(exc: Exception) -> str:
 @contextmanager
 def _rebuild_persistence_session() -> Generator[Session, None, None]:
     settings = get_graph_lifecycle_settings()
+    engine = None
 
     try:
         persistence_url = resolve_durable_graph_persistence_url(
@@ -689,7 +690,7 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
         ) from exc
 
     finally:
-        if "engine" in locals():
+        if engine is not None:
             engine.dispose()
 
 
