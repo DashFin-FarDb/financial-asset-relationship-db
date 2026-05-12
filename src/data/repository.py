@@ -1043,9 +1043,7 @@ class AssetGraphRepository:
             RebuildJobStatus.PENDING,
         ):
             current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else job.status
-            raise ValueError(
-                f"Cannot transition job {job_id} from {current_status} to {RebuildJobStatus.FAILED.value}"
-            )
+            raise ValueError(f"Cannot transition job {job_id} from {current_status} to {RebuildJobStatus.FAILED.value}")
 
         now = datetime.now(timezone.utc)  # noqa: UP017
         job.status = RebuildJobStatus.FAILED
