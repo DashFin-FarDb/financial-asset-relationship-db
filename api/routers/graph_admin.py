@@ -6,8 +6,9 @@ import asyncio
 import contextvars
 import logging
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, cast
@@ -16,10 +17,11 @@ from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable
 from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
+from src.data.db_models import RebuildJobORM
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 
-from ..api_models import GraphRebuildResponse
+from ..api_models import GraphRebuildResponse, RebuildJobListResponse, RebuildJobResponse
 from ..auth import User, get_current_rebuild_operator_user
 from ..graph_lifecycle import (
     GraphRuntimeLifecycleState,
@@ -50,6 +52,7 @@ _REBUILD_AUDIT_SUCCEEDED = "graph_rebuild_succeeded"
 _REBUILD_AUDIT_FAILED = "graph_rebuild_failed"
 _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_AUDIT_USER_REF_LENGTH = 64
+_MAX_REBUILD_JOB_LIST_RESULTS = 100
 # Regex to detect and redact URL/DSN-like patterns from failure messages, including:
 # - postgresql+asyncpg://user:pass@host/db
 # - malformed postgresql:user:pass@host/db
@@ -406,7 +409,10 @@ def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> s
             repo = AssetGraphRepository(session)
             return repo.create_rebuild_job(requested_by=user_ref)
     except Exception as exc:
-        logger.error("Failed to create rebuild job record: %s", exc.__class__.__name__)
+        logger.error(
+            "Failed to create rebuild job record: %s",
+            exc.__class__.__name__,
+        )
         raise GraphPersistenceSaveError("Failed to create rebuild job record.") from exc
 
 
@@ -421,7 +427,11 @@ def _run_job_update(
         with session_scope(session_factory) as session:
             action(AssetGraphRepository(session))
     except Exception as exc:
-        logger.error("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
+        logger.error(
+            "Rebuild job %s update failed: %s",
+            job_id,
+            exc.__class__.__name__,
+        )
         raise GraphPersistenceSaveError(error_message) from exc
 
 
@@ -642,3 +652,133 @@ def _sanitize_failure_message(exc: Exception) -> str:
     # Redact any URL-like patterns as a defence-in-depth measure
     message = _URL_PATTERN.sub("[REDACTED_URL]", message)
     return message[:512]
+
+
+@contextmanager
+def _rebuild_persistence_session() -> Generator[Session, None, None]:
+    settings = get_graph_lifecycle_settings()
+
+    engine = None
+
+    try:
+        persistence_url = resolve_durable_graph_persistence_url(
+            settings.asset_graph_database_url,
+        )
+        engine = create_engine_from_url(persistence_url)
+        session_factory = create_session_factory(engine)
+
+        with session_scope(session_factory) as session:
+            yield session
+
+    except HTTPException:
+        raise
+
+    except (
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+    ) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database not configured",
+        ) from exc
+
+    except Exception as exc:
+        logger.error(
+            "Rebuild persistence operation failed: %s",
+            exc.__class__.__name__,
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database unavailable",
+        ) from exc
+
+    finally:
+        if engine is not None:
+            engine.dispose()
+
+
+def _orm_to_response(job_orm: RebuildJobORM) -> RebuildJobResponse:
+    """Convert RebuildJobORM to bounded RebuildJobResponse.
+
+    Args:
+        job_orm: The RebuildJobORM instance.
+
+    Returns:
+        RebuildJobResponse with sanitized bounded fields.
+    """
+    return RebuildJobResponse(
+        job_id=job_orm.job_id,
+        status=job_orm.status,
+        source=job_orm.source,
+        requested_by=job_orm.requested_by,
+        created_at=job_orm.created_at,
+        updated_at=job_orm.updated_at,
+        started_at=job_orm.started_at,
+        completed_at=job_orm.completed_at,
+        duration_ms=job_orm.duration_ms,
+        node_count=job_orm.node_count,
+        edge_count=job_orm.edge_count,
+        failure_category=job_orm.sanitized_failure_category,
+        failure_message=job_orm.sanitized_failure_message,
+    )
+
+
+@router.get("/api/graph/rebuild/jobs/{job_id}")
+def get_rebuild_job(
+    job_id: str,
+    current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+) -> RebuildJobResponse:
+    """Get rebuild job status by job ID.
+
+    Operator-authenticated read-only endpoint returning bounded sanitized
+    rebuild job state.
+
+    Args:
+        job_id: The rebuild job identifier.
+        current_user: Authenticated operator user.
+
+    Returns:
+        RebuildJobResponse with bounded job state.
+
+    Raises:
+        HTTPException:
+            404 if the rebuild job does not exist.
+            503 if rebuild-job persistence is unavailable or not configured.
+    """
+    with _rebuild_persistence_session() as session:
+        repo = AssetGraphRepository(session)
+        job_orm = repo.get_rebuild_job(job_id)
+        if job_orm is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Rebuild job not found",
+            )
+        return _orm_to_response(job_orm)
+
+
+@router.get("/api/graph/rebuild/jobs")
+def list_rebuild_jobs(
+    current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+) -> RebuildJobListResponse:
+    """List rebuild jobs ordered newest-first.
+
+    Operator-authenticated read-only endpoint returning bounded sanitized
+    rebuild job summaries in deterministic newest-first order.
+
+    Args:
+        current_user: Authenticated operator user.
+
+    Returns:
+        RebuildJobListResponse with pagination-ready bounded list structure.
+
+    Raises:
+        HTTPException: 503 if persistence not configured.
+    """
+    with _rebuild_persistence_session() as session:
+        repo = AssetGraphRepository(session)
+        jobs_orm = repo.list_rebuild_jobs(
+            limit=_MAX_REBUILD_JOB_LIST_RESULTS,
+        )
+        jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
+        return RebuildJobListResponse(jobs=jobs, count=len(jobs))

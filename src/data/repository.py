@@ -1038,8 +1038,12 @@ class AssetGraphRepository:
         job = self.session.get(RebuildJobORM, job_id)
         if job is None:
             raise ValueError(f"Rebuild job {job_id} not found")
-        if job.status not in (RebuildJobStatus.RUNNING, RebuildJobStatus.PENDING):
-            raise ValueError(f"Cannot transition job {job_id} from {job.status} to failed")
+        if job.status not in (
+            RebuildJobStatus.RUNNING,
+            RebuildJobStatus.PENDING,
+        ):
+            current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else job.status
+            raise ValueError(f"Cannot transition job {job_id} from {current_status} to {RebuildJobStatus.FAILED.value}")
 
         now = datetime.now(timezone.utc)  # noqa: UP017
         job.status = RebuildJobStatus.FAILED
@@ -1083,10 +1087,8 @@ class AssetGraphRepository:
         """
         if status is not None:
             if status not in RebuildJobStatus.values():
-                raise ValueError(
-                    f"Invalid rebuild job status {status!r}. "
-                    f"Must be one of: {RebuildJobStatus.values()}"
-                )
+                valid = RebuildJobStatus.values()
+                raise ValueError(f"Invalid rebuild job status {status!r}. Must be one of: {valid}")
         stmt = select(RebuildJobORM).order_by(
             RebuildJobORM.created_at.desc(),
             RebuildJobORM.job_id.desc(),
