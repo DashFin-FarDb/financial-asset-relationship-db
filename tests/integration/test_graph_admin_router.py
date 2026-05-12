@@ -302,11 +302,13 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
 
 @contextmanager
 @contextmanager
-def _rebuild_jobs_db_context(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> Iterator["AssetGraphRepository"]:
+def _rebuild_jobs_db_context(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator["AssetGraphRepository"]:
     """Configure persistence schema and yield a repository for job seeding."""
-    from src.data.database import create_engine_from_url, create_session_factory, init_db  # pylint: disable=import-outside-toplevel
+    from src.data.database import (
+        create_engine_from_url,
+        create_session_factory,
+        init_db,
+    )  # pylint: disable=import-outside-toplevel
     from src.data.repository import AssetGraphRepository, session_scope  # pylint: disable=import-outside-toplevel
 
     db_file = tmp_path / "test.db"
@@ -316,7 +318,7 @@ def _rebuild_jobs_db_context(
     # get_settings is imported globally at the top of the file.
     # Because we just cleared the cache, this safely gets the new uncached settings.
     settings = get_settings()
-    
+
     engine = create_engine_from_url(settings.asset_graph_database_url)
     try:
         init_db(engine)
