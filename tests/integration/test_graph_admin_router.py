@@ -538,7 +538,7 @@ def test_list_rebuild_jobs_returns_empty_list_when_no_jobs(
     tmp_path: Path,
 ) -> None:
     """GET /jobs must return empty list when no jobs exist."""
-    
+
     # Action moved inside the context manager to drop the 'pass'
     with _rebuild_jobs_db_context(tmp_path, monkeypatch):
         response = operator_client.get("/api/graph/rebuild/jobs")
