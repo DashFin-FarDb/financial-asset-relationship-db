@@ -458,7 +458,6 @@ def test_get_rebuild_job_exposes_sanitized_failure_fields(
                 failure_message="Connection timeout",
                 duration_ms=2000,
             )
-            session.commit()
     finally:
         engine.dispose()
 
@@ -502,7 +501,6 @@ def test_list_rebuild_jobs_succeeds_for_operator(
             repo = AssetGraphRepository(session)
             repo.create_rebuild_job(requested_by="operator", source="test1")
             repo.create_rebuild_job(requested_by="operator", source="test2")
-            session.commit()
     finally:
         engine.dispose()
 
@@ -572,8 +570,6 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
             jobs[0].created_at = base
             jobs[1].created_at = base + timedelta(seconds=1)
             jobs[2].created_at = base + timedelta(seconds=2)
-
-            session.commit()
     finally:
         engine.dispose()
 
