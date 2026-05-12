@@ -530,7 +530,8 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
     tmp_path: Path,
 ) -> None:
     """GET /jobs must return jobs in deterministic newest-first order."""
-    from datetime import UTC, datetime, timedelta
+    from datetime import datetime, timedelta, timezone
+    base = datetime.now(timezone.utc)
 
     from src.data.repository import AssetGraphRepository, session_scope
 
