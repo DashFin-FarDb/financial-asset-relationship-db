@@ -299,14 +299,13 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
 # Rebuild Job Status Endpoints Tests
 # ---------------------------------------------------------------------------
 
+
 @contextmanager
-def _rebuild_jobs_db_context(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> Iterator["AssetGraphRepository"]:
+def _rebuild_jobs_db_context(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator["AssetGraphRepository"]:
     """Configure persistence schema and yield a repository for job seeding."""
+    from src.config.settings import get_settings as get_settings_uncached
     from src.data.database import create_engine_from_url, create_session_factory, init_db
     from src.data.repository import AssetGraphRepository, session_scope
-    from src.config.settings import get_settings as get_settings_uncached
 
     db_file = tmp_path / "test.db"
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
