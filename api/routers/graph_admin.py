@@ -697,7 +697,6 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
             engine.dispose()
 
 
-
 def _orm_to_response(job_orm: RebuildJobORM) -> RebuildJobResponse:
     """Convert RebuildJobORM to bounded RebuildJobResponse.
 
