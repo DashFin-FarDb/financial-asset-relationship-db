@@ -401,10 +401,10 @@ def test_get_rebuild_job_returns_404_for_unknown_job(
     tmp_path: Path,
 ) -> None:
     """GET /jobs/{job_id} must return 404 for unknown job IDs."""
-    with _rebuild_jobs_db_context(tmp_path, monkeypatch):
-        pass
 
-    response = operator_client.get("/api/graph/rebuild/jobs/unknown-job-id")
+    with _rebuild_jobs_db_context(tmp_path, monkeypatch):
+        response = operator_client.get("/api/graph/rebuild/jobs/unknown-job-id")
+
     assert response.status_code == 404
     assert response.json()["detail"] == "Rebuild job not found"
 
@@ -538,10 +538,11 @@ def test_list_rebuild_jobs_returns_empty_list_when_no_jobs(
     tmp_path: Path,
 ) -> None:
     """GET /jobs must return empty list when no jobs exist."""
+    
+    # Action moved inside the context manager to drop the 'pass'
     with _rebuild_jobs_db_context(tmp_path, monkeypatch):
-        pass
+        response = operator_client.get("/api/graph/rebuild/jobs")
 
-    response = operator_client.get("/api/graph/rebuild/jobs")
     data = _assert_successful_json_response(response)
 
     assert data["jobs"] == []
