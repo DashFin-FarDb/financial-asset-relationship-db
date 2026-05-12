@@ -9,6 +9,7 @@ import logging
 import time
 from collections.abc import Iterator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
@@ -25,6 +26,9 @@ from api.auth import (
 from src.config.settings import get_settings
 
 pytestmark = pytest.mark.integration
+
+if TYPE_CHECKING:
+    from src.data.repository import AssetGraphRepository
 
 
 def _configure_test_operator(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -368,6 +372,25 @@ def test_get_rebuild_job_returns_404_for_unknown_job(
     assert response.json()["detail"] == "Rebuild job not found"
 
 
+def _create_rebuild_jobs(
+    repo: AssetGraphRepository,
+    count: int,
+    *,
+    source_prefix: str = "test",
+    numbered_sources: bool = True,
+) -> list[str]:
+    """Create rebuild jobs for endpoint tests and return IDs in creation order."""
+    job_ids: list[str] = []
+    for index in range(count):
+        source = f"{source_prefix}{index}" if numbered_sources else source_prefix
+        job_id = repo.create_rebuild_job(
+            requested_by="operator",
+            source=source,
+        )
+        job_ids.append(job_id)
+    return job_ids
+
+
 def test_get_rebuild_job_succeeds_for_operator(
     operator_client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
@@ -393,7 +416,7 @@ def test_get_rebuild_job_succeeds_for_operator(
 
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
-            job_id = repo.create_rebuild_job(requested_by="operator", source="test")
+            job_id = _create_rebuild_jobs(repo, 1, numbered_sources=False)[0]
             repo.mark_rebuild_job_running(job_id)
             repo.mark_rebuild_job_succeeded(
                 job_id,
@@ -450,7 +473,7 @@ def test_get_rebuild_job_exposes_sanitized_failure_fields(
 
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
-            job_id = repo.create_rebuild_job(requested_by="operator", source="test")
+            job_id = _create_rebuild_jobs(repo, 1, numbered_sources=False)[0]
             repo.mark_rebuild_job_running(job_id)
             repo.mark_rebuild_job_failed(
                 job_id,
@@ -499,8 +522,7 @@ def test_list_rebuild_jobs_succeeds_for_operator(
         # Create multiple test jobs
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
-            repo.create_rebuild_job(requested_by="operator", source="test1")
-            repo.create_rebuild_job(requested_by="operator", source="test2")
+            _create_rebuild_jobs(repo, 2)
     finally:
         engine.dispose()
 
@@ -536,11 +558,11 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
     get_settings.cache_clear()
 
-    from datetime import datetime, timedelta, timezone
+    from datetime import UTC, datetime, timedelta
 
     from src.config.settings import get_settings as get_settings_uncached
 
-    base = datetime.now(timezone.utc)
+    base = datetime.now(UTC)
 
     settings = get_settings_uncached()
     engine = create_engine_from_url(settings.asset_graph_database_url)
@@ -550,15 +572,7 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
 
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
-
-            job_ids = []
-
-            for i in range(3):
-                job_id = repo.create_rebuild_job(
-                    requested_by="operator",
-                    source=f"test{i}",
-                )
-                job_ids.append(job_id)
+            job_ids = _create_rebuild_jobs(repo, 3)
 
             jobs = []
 
