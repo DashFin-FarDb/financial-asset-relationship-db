@@ -656,30 +656,46 @@ def _sanitize_failure_message(exc: Exception) -> str:
 
 @contextmanager
 def _rebuild_persistence_session() -> Generator[Session, None, None]:
-    """Create a managed session for rebuild persistence database access.
+    settings = get_settings()
 
-    Yields:
-        Session for accessing rebuild job persistence.
-
-    Raises:
-        HTTPException: 503 if persistence database is not configured.
-    """
-    settings = get_graph_lifecycle_settings()
-    try:
-        persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError) as exc:
+    if not settings.graph_persistence_enabled:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence database not configured",
-        ) from exc
+            detail="Graph persistence is not configured",
+        )
 
-    engine = create_engine_from_url(persistence_url)
+    persistence_url = settings.asset_graph_database_url
+    if persistence_url is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence is not configured",
+        )
+
     try:
+        engine = create_engine_from_url(persistence_url)
         session_factory = create_session_factory(engine)
+
         with session_scope(session_factory) as session:
             yield session
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        logger.error(
+            "Rebuild persistence operation failed: %s",
+            exc.__class__.__name__,
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database unavailable",
+        ) from exc
+
     finally:
-        engine.dispose()
+        if "engine" in locals():
+            engine.dispose()
+
 
 
 def _orm_to_response(job_orm: RebuildJobORM) -> RebuildJobResponse:
