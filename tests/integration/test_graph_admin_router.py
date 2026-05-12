@@ -301,17 +301,22 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
 
 
 @contextmanager
-def _rebuild_jobs_db_context(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator["AssetGraphRepository"]:
+@contextmanager
+def _rebuild_jobs_db_context(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> Iterator["AssetGraphRepository"]:
     """Configure persistence schema and yield a repository for job seeding."""
-    from src.config.settings import get_settings as get_settings_uncached
-    from src.data.database import create_engine_from_url, create_session_factory, init_db
-    from src.data.repository import AssetGraphRepository, session_scope
+    from src.data.database import create_engine_from_url, create_session_factory, init_db  # pylint: disable=import-outside-toplevel
+    from src.data.repository import AssetGraphRepository, session_scope  # pylint: disable=import-outside-toplevel
 
     db_file = tmp_path / "test.db"
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
     get_settings.cache_clear()
 
-    settings = get_settings_uncached()
+    # get_settings is imported globally at the top of the file.
+    # Because we just cleared the cache, this safely gets the new uncached settings.
+    settings = get_settings()
+    
     engine = create_engine_from_url(settings.asset_graph_database_url)
     try:
         init_db(engine)
@@ -507,9 +512,10 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
     tmp_path: Path,
 ) -> None:
     """GET /jobs must return jobs in deterministic newest-first order."""
-    from datetime import UTC, datetime, timedelta
+    from datetime import datetime, timedelta, timezone  # pylint: disable=import-outside-toplevel
 
-    base = datetime.now(UTC)
+    # Use timezone.utc for Python 3.10+ compatibility
+    base = datetime.now(timezone.utc)
 
     with _rebuild_jobs_db_context(tmp_path, monkeypatch) as repo:
         job_ids = _create_rebuild_jobs(repo, 3)
