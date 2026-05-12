@@ -301,7 +301,6 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
 
 
 @contextmanager
-@contextmanager
 def _rebuild_jobs_db_context(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator["AssetGraphRepository"]:
     """Configure persistence schema and yield a repository for job seeding."""
     from src.data.database import (
