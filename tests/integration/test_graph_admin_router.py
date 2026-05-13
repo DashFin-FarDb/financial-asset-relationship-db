@@ -81,6 +81,16 @@ def operator_client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     yield from _client_with_active_user(monkeypatch, "admin")
 
 
+@pytest.fixture(autouse=True)
+def _reset_graph_lifecycle_state() -> Iterator[None]:
+    """Keep global graph runtime lifecycle isolated across tests."""
+    reset_graph()
+    try:
+        yield
+    finally:
+        reset_graph()
+
+
 def _assert_successful_json_response(response: httpx.Response) -> dict[str, Any]:
     """Assert response is 200 OK and return the parsed JSON."""
     assert response.status_code == 200
