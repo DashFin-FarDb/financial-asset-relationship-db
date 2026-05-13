@@ -39,12 +39,7 @@ class DistributedLock:
         self.holder_id = holder_id or str(uuid.uuid4())
         self.ttl_seconds = ttl_seconds
 
-    def acquire(
-        self,
-        *,
-        retry_interval_seconds: float = 1.0,
-        max_retries: int = 0
-    ) -> bool:
+    def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> bool:
         """
         Acquire the distributed lock with optional retries.
         """
