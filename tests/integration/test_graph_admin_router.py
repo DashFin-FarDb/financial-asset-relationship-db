@@ -205,6 +205,41 @@ def test_rebuild_allows_active_authorized_operator_user(
     }
 
 
+def test_rebuild_lock_contention_does_not_mark_runtime_failed(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Distributed lock contention should return 429 while leaving runtime healthy."""
+
+    def fake_rebuild(
+        _settings: graph_admin.GraphLifecycleSettings,
+        *,
+        user_ref: str,
+    ) -> graph_admin.GraphRebuildResponse:
+        raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
+
+    monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", fake_rebuild)
+
+    try:
+        with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
+            response = operator_client.post("/api/graph/rebuild")
+    finally:
+        graph_admin.shutdown_rebuild_executor()
+        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+
+    assert response.status_code == 429
+    assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
+
+    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    rejected_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_rejected"]
+    failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
+
+    assert len(rejected_records) >= 1
+    assert len(failed_records) == 0
+
+
 @pytest.mark.parametrize("configured_admin", [None, "", "   "])
 def test_rebuild_returns_503_when_operator_authorization_not_configured(
     monkeypatch: pytest.MonkeyPatch,

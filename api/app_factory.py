@@ -17,7 +17,13 @@ from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-foun
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 
 from .cors_policy import configure_cors
-from .graph_lifecycle import begin_shutdown, get_graph, sync_with_latest_rebuild
+from .graph_lifecycle import (
+    GraphRuntimeLifecycleState,
+    begin_shutdown,
+    get_graph,
+    get_runtime_lifecycle_state,
+    sync_with_latest_rebuild,
+)
 from .rate_limit import limiter
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
@@ -65,6 +71,11 @@ async def _run_graph_sync_loop(interval_seconds: int = 60) -> None:
     while True:
         try:
             await asyncio.sleep(interval_seconds)
+            if get_runtime_lifecycle_state() in (
+                GraphRuntimeLifecycleState.SHUTTING_DOWN,
+                GraphRuntimeLifecycleState.STOPPED,
+            ):
+                return
             await asyncio.to_thread(sync_with_latest_rebuild)
         except asyncio.CancelledError:
             raise

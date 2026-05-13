@@ -72,9 +72,8 @@ class DistributedLock:
                     self.lock_name,
                     type(exc).__name__,
                 )
-
-            if retries >= max_retries:
-                break
+                if retries >= max_retries:
+                    raise
 
             retries += 1
             sleep(retry_interval_seconds)

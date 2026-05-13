@@ -233,13 +233,17 @@ async def _run_rebuild_in_executor(
         try:
             response = done_future.result()
         except Exception as exc:
-            _REBUILD_RUNTIME.mark_idle(succeeded=False)
-            _log_rebuild_failed(
-                user_ref=user_ref,
-                exc=exc,
-                status_code=_rebuild_status_code(exc),
-                duration_ms=_duration_ms(started_at),
-            )
+            if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError):
+                _REBUILD_RUNTIME.mark_idle(succeeded=True)
+                _log_rebuild_rejected(user_ref=user_ref)
+            else:
+                _REBUILD_RUNTIME.mark_idle(succeeded=False)
+                _log_rebuild_failed(
+                    user_ref=user_ref,
+                    exc=exc,
+                    status_code=_rebuild_status_code(exc),
+                    duration_ms=_duration_ms(started_at),
+                )
             return
 
         _REBUILD_RUNTIME.mark_idle(succeeded=True)
