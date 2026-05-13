@@ -456,7 +456,7 @@ def sync_with_latest_rebuild() -> None:
                 repo = AssetGraphRepository(session)
                 new_graph = repo.load_graph()
             from .metrics import update_graph_metrics
-                        
+
             if synchronize_runtime_graph(
                 new_graph,
                 job_id=latest_job_id,
