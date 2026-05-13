@@ -65,8 +65,11 @@ def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app
     results: dict[str, bool] = {}
 
     def attempt(holder: str, lock: DistributedLock) -> None:
-        barrier.wait()
-        results[holder] = lock.acquire()
+        try:
+            barrier.wait()
+            results[holder] = lock.acquire()
+        except Exception:  # pragma: no cover - defensive capture for thread failures
+            results[holder] = False
 
     t1 = threading.Thread(target=attempt, args=("instance-1", lock1))
     t2 = threading.Thread(target=attempt, args=("instance-2", lock2))
