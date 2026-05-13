@@ -68,8 +68,11 @@ async def _run_graph_sync_loop(interval_seconds: int = 60) -> None:
             await asyncio.to_thread(sync_with_latest_rebuild)
         except asyncio.CancelledError:
             raise
-        except Exception:
-            logger.exception("Unexpected error in graph synchronization loop")
+        except Exception as exc:  # noqa: BLE001 - bounded logging below
+            logger.warning(
+                "Unexpected error in graph synchronization loop: %s",
+                type(exc).__name__,
+            )
 
 
 def create_app() -> FastAPI:
