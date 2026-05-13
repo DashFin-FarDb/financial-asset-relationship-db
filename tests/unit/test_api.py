@@ -431,37 +431,25 @@ class TestMetricsEndpoint:
 
     @patch("api.main.graph")
     def test_get_metrics(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test retrieving network metrics."""
+        """Test that /api/metrics returns Prometheus/OpenMetrics text format."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         response = client.get("/api/metrics")
         assert response.status_code == 200
-        data = response.json()
-
-        assert "total_assets" in data
-        assert "total_relationships" in data
-        assert "asset_classes" in data
-        assert "avg_degree" in data
-        assert "max_degree" in data
-        assert "network_density" in data
-
-        assert data["total_assets"] == 4
-        assert isinstance(data["asset_classes"], dict)
-        assert data["avg_degree"] >= 0
-        assert data["network_density"] >= 0
+        assert "text/plain" in response.headers["content-type"]
+        body = response.text
+        assert "graph_rebuild_requests_total" in body
+        assert "graph_assets_count" in body
+        assert "graph_relationships_count" in body
 
     @patch("api.main.graph")
     def test_metrics_asset_class_distribution(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test asset class distribution in metrics."""
+        """Test that /api/metrics is a Prometheus text endpoint (not JSON with asset_classes)."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         response = client.get("/api/metrics")
-        data = response.json()
-
-        assert "Equity" in data["asset_classes"]
-        assert "Fixed Income" in data["asset_classes"]
-        assert data["asset_classes"]["Equity"] == 1
-        assert data["asset_classes"]["Fixed Income"] == 1
+        assert response.status_code == 200
+        assert "text/plain" in response.headers["content-type"]
 
 
 @pytest.mark.unit
@@ -579,9 +567,7 @@ class TestEdgeCases:
 
         response = client.get("/api/metrics")
         assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["total_relationships"] == 0
+        assert "text/plain" in response.headers["content-type"]
 
     @patch("api.main.graph")
     def test_special_characters_in_asset_id(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
@@ -1024,18 +1010,17 @@ class TestNegativeScenarios:
     @staticmethod
     @patch("api.main.graph")
     def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
-        """Negative: Metrics with empty graph should not cause division by zero."""
+        """Negative: Prometheus metrics endpoint does not raise ZeroDivisionError on empty graph."""
         empty_graph = AssetRelationshipGraph()
         mock_graph_instance.assets = empty_graph.assets
         mock_graph_instance.relationships = empty_graph.relationships
         mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
 
-        # Should not raise ZeroDivisionError
+        # /api/metrics is a Prometheus endpoint; it does not call calculate_metrics()
+        # and is therefore immune to division-by-zero in graph-level calculations.
         response = client.get("/api/metrics")
         assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["network_density"] == 0
+        assert "text/plain" in response.headers["content-type"]
 
 
 class TestUserInDBClassRefactoring:

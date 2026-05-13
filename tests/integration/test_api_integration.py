@@ -81,25 +81,14 @@ class TestCompleteAPIFlow:
 
     @staticmethod
     def test_metrics_consistency(client):
-        """Test that metrics are consistent with actual data."""
-        # Get metrics
+        """Test that /api/metrics returns Prometheus/OpenMetrics text format."""
         metrics_response = client.get("/api/metrics")
         assert metrics_response.status_code == 200
-        metrics = metrics_response.json()
-
-        # Get all assets
-        assets = all_asset_items(client)
-
-        # Verify metrics match actual counts
-        assert metrics["total_assets"] == len(assets)
-
-        # Verify asset class counts
-        asset_class_counts = {}
-        for asset in assets:
-            ac = asset["asset_class"]
-            asset_class_counts[ac] = asset_class_counts.get(ac, 0) + 1
-
-        assert metrics["asset_classes"] == asset_class_counts
+        assert "text/plain" in metrics_response.headers["content-type"]
+        body = metrics_response.text
+        assert "graph_rebuild_requests_total" in body
+        assert "graph_assets_count" in body
+        assert "graph_relationships_count" in body
 
     @staticmethod
     def test_visualization_data_consistency(client):
