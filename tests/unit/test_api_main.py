@@ -405,7 +405,7 @@ class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
     @staticmethod
-    def _assert_prometheus_metrics_format(response) -> None:
+    def _assert_prometheus_metrics_format(response: Any) -> None:
         """Assert that the response is valid Prometheus/OpenMetrics text format.
 
         Args:
@@ -733,6 +733,11 @@ class TestAPIEndpoints:
         body = response.text
         assert "# HELP graph_rebuild_requests_total" in body
         assert "# TYPE graph_rebuild_requests_total counter" in body
+        # Verify metric values are exported (lines with metric name followed by a number)
+        assert any(
+            line.startswith("graph_rebuild_requests_total") and not line.startswith("# ")
+            for line in body.splitlines()
+        )
 
     def test_get_metrics_no_assets(self, bare_client: TestClient) -> None:
         """Metrics endpoint returns Prometheus text format regardless of graph state."""
