@@ -75,19 +75,20 @@ def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app
 
     t1 = threading.Thread(target=attempt, args=("instance-1", lock1))
     t2 = threading.Thread(target=attempt, args=("instance-2", lock2))
-    t1.start()
-    t2.start()
-    t1.join()
-    t2.join()
-
-    assert sorted(results.values()) == [False, True]
-
-    if results["instance-1"]:
-        lock1.release()
-    if results["instance-2"]:
-        lock2.release()
-    engine1.dispose()
-    engine2.dispose()
+    try:
+        t1.start()
+        t2.start()
+        t1.join(timeout=10)
+        t2.join(timeout=10)
+        assert not t1.is_alive() and not t2.is_alive()
+        assert sorted(results.values()) == [False, True]
+    finally:
+        if results.get("instance-1"):
+            lock1.release()
+        if results.get("instance-2"):
+            lock2.release()
+        engine1.dispose()
+        engine2.dispose()
 
 
 @pytest.mark.integration
