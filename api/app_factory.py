@@ -67,7 +67,7 @@ async def _run_graph_sync_loop(interval_seconds: int = 60) -> None:
             await asyncio.sleep(interval_seconds)
             await asyncio.to_thread(sync_with_latest_rebuild)
         except asyncio.CancelledError:
-            break
+            raise
         except Exception:
             logger.exception("Unexpected error in graph synchronization loop")
 
