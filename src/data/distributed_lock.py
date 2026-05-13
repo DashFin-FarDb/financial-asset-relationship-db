@@ -51,7 +51,6 @@ class DistributedLock:
             bool: True if the lock was acquired, False otherwise.
         """
         retries = 0
-        while True:
             try:
                 with session_scope(self.session_factory) as session:
                     repo = AssetGraphRepository(session)
@@ -72,8 +71,11 @@ class DistributedLock:
                     self.lock_name,
                     type(exc).__name__,
                 )
-                if retries >= max_retries:
-                    raise
+            
+            raise
+            
+            if retries >= max_retries:
+                break
 
             retries += 1
             sleep(retry_interval_seconds)
