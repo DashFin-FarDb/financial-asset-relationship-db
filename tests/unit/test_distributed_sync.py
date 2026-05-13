@@ -37,7 +37,7 @@ class TestDistributedSync:
             sync_with_latest_rebuild()
             mock_get.assert_not_called()
 
-    def test_sync_rebuilding_state(self, mock_graph_state):
+    def test_sync_rebuilding_state(self, mock_settings, mock_graph_state):
         """Test sync does nothing if currently rebuilding."""
         with patch("api.graph_lifecycle.get_runtime_lifecycle_state") as mock_state:
             mock_state.return_value = GraphRuntimeLifecycleState.REBUILDING
