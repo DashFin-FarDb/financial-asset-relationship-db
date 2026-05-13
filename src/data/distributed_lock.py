@@ -70,7 +70,7 @@ class DistributedLock:
                 logger.error(
                     "Failed to acquire distributed lock '%s': %s",
                     self.lock_name,
-                    exc,
+                    type(exc).__name__,
                 )
 
             if retries >= max_retries:
