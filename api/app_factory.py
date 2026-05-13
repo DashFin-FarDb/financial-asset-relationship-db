@@ -59,6 +59,7 @@ async def lifespan(_fastapi_app: FastAPI):
     try:
         await sync_task
     except asyncio.CancelledError:
+        # Expected during shutdown after sync_task.cancel(); suppress intentionally.
         pass
 
     begin_shutdown()
