@@ -65,7 +65,7 @@ async def _run_graph_sync_loop(interval_seconds: int = 60) -> None:
     while True:
         try:
             await asyncio.sleep(interval_seconds)
-            sync_with_latest_rebuild()
+            await asyncio.to_thread(sync_with_latest_rebuild)
         except asyncio.CancelledError:
             break
         except Exception:
