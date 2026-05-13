@@ -24,6 +24,7 @@ from api.auth import (
     User,
     get_current_active_user,
 )
+from api.graph_lifecycle import reset_graph
 from src.config.settings import get_settings
 
 pytestmark = pytest.mark.integration
@@ -319,8 +320,6 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
-    from api.graph_lifecycle import reset_graph  # pylint: disable=import-outside-toplevel
-
     try:
         with pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="admin", disabled=False))
