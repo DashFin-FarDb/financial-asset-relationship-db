@@ -1139,6 +1139,8 @@ class AssetGraphRepository:
         Returns:
             bool: True if the lock was acquired or refreshed, False otherwise.
         """
+        if ttl_seconds <= 0:
+            raise ValueError("ttl_seconds must be greater than 0")
         now = datetime.now(timezone.utc)
         expires_at = now + timedelta(seconds=ttl_seconds)
 
