@@ -319,12 +319,18 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
+    from api.graph_lifecycle import reset_graph  # pylint: disable=import-outside-toplevel
 
-    with pytest.raises(HTTPException) as exc_info:
-        await graph_admin.rebuild_graph(User(username="admin", disabled=False))
-
-    assert exc_info.value.status_code == 429
-    assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
+    try:
+        with pytest.raises(HTTPException) as exc_info:
+            await graph_admin.rebuild_graph(User(username="admin", disabled=False))
+        assert exc_info.value.status_code == 429
+        assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
+    finally:
+        graph_admin.shutdown_rebuild_executor()
+        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        reset_graph()
 
 
 def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
