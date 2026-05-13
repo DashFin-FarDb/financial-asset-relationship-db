@@ -1191,6 +1191,9 @@ class AssetGraphRepository:
             lock_name: Unique name of the lock.
             holder_id: Identifier of the process/instance that held the lock.
         """
-        lock = self.session.get(DistributedLockORM, lock_name)
-        if lock is not None and lock.holder_id == holder_id:
-            self.session.delete(lock)
+        self.session.execute(
+            delete(DistributedLockORM).where(
+                DistributedLockORM.lock_name == lock_name,
+                DistributedLockORM.holder_id == holder_id,
+            )
+        )
