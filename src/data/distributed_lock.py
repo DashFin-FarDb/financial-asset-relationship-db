@@ -40,9 +40,9 @@ class DistributedLock:
         self.ttl_seconds = ttl_seconds
 
     def acquire(
-    self, 
-    *, 
-    retry_interval_seconds: float = 1.0, 
+    self,
+    *,
+    retry_interval_seconds: float = 1.0,
     max_retries: int = 0
 ) -> bool:
     """
