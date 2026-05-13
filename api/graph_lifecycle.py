@@ -455,11 +455,17 @@ def sync_with_latest_rebuild() -> None:
             with session_scope(session_factory) as session:
                 repo = AssetGraphRepository(session)
                 new_graph = repo.load_graph()
-            synchronize_runtime_graph(
+            from .metrics import update_graph_metrics
+                        
+            if synchronize_runtime_graph(
                 new_graph,
                 job_id=latest_job_id,
                 expected_last_synced_job_id=expected_last_synced_job_id,
-            )
+            ):
+                update_graph_metrics(
+                    len(new_graph.assets),
+                    sum(len(items) for items in new_graph.relationships.values()),
+                )
         finally:
             engine.dispose()
     except Exception as exc:
