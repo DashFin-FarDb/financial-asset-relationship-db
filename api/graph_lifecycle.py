@@ -11,6 +11,7 @@ import sys
 import threading
 from collections.abc import Callable
 from enum import Enum
+from typing import Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -148,7 +149,20 @@ class _GraphState:
 
 graph_state = _GraphState()
 graph_lock = threading.Lock()
-_UNSET_LAST_SYNC = object()
+
+
+class _UnsetLastSyncedJobId:
+    """Sentinel marker for omitted expected_last_synced_job_id."""
+
+
+UNSET_LAST_SYNC: Final = _UnsetLastSyncedJobId()
+
+
+def _sync_state_changed(expected_last_synced_job_id: str | None | _UnsetLastSyncedJobId) -> bool:
+    """Return whether sync state has changed from the expected value."""
+    if isinstance(expected_last_synced_job_id, _UnsetLastSyncedJobId):
+        return False
+    return graph_state.last_synced_job_id != expected_last_synced_job_id
 
 
 def get_graph() -> AssetRelationshipGraph:
@@ -201,7 +215,7 @@ def synchronize_runtime_graph(
     graph_instance: AssetRelationshipGraph,
     *,
     job_id: str | None = None,
-    expected_last_synced_job_id: str | None | object = _UNSET_LAST_SYNC,
+    expected_last_synced_job_id: str | None | _UnsetLastSyncedJobId = UNSET_LAST_SYNC,
 ) -> bool:
     """Publish a runtime graph and mirror it into legacy api.main.
 
@@ -215,10 +229,7 @@ def synchronize_runtime_graph(
             GraphRuntimeLifecycleState.STOPPED,
         ):
             return False
-        if (
-            expected_last_synced_job_id is not _UNSET_LAST_SYNC
-            and graph_state.last_synced_job_id != expected_last_synced_job_id
-        ):
+        if _sync_state_changed(expected_last_synced_job_id):
             return False
         preserve_rebuild = graph_state.lifecycle_state == GraphRuntimeLifecycleState.REBUILDING
         if graph_state.lifecycle_state in (
