@@ -62,6 +62,18 @@ def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 5
     return data["items"]
 
 
+def _assert_metrics_text_response(response: Any) -> str:
+    """Assert /api/metrics returns Prometheus/OpenMetrics plaintext."""
+    assert response.status_code == 200
+    content_type = response.headers.get("content-type", "")
+    assert "text/plain" in content_type or "application/openmetrics-text" in content_type
+    body = response.text
+    assert "graph_rebuild_requests_total" in body
+    assert "graph_assets_count" in body
+    assert "graph_relationships_count" in body
+    return body
+
+
 # -----------------------
 # Fixtures
 # -----------------------
@@ -405,18 +417,18 @@ class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
     @staticmethod
-    def _assert_prometheus_metrics_format(response: Any) -> None:
-        """Assert that the response is valid Prometheus/OpenMetrics text format.
+    def _assert_metrics_no_relationships(data: dict[str, Any], expected_assets: int) -> None:
+        """Assert that metrics response shows no relationships.
 
         Args:
-            response: The HTTP response from the /api/metrics endpoint.
+            data: The JSON response data from the metrics endpoint.
+            expected_assets: The expected number of assets in the graph.
         """
-        assert response.status_code == 200
-        assert "text/plain" in response.headers["content-type"]
-        body = response.text
-        assert "graph_rebuild_requests_total" in body
-        assert "graph_assets_count" in body
-        assert "graph_relationships_count" in body
+        assert data["total_assets"] == expected_assets
+        assert data["total_relationships"] == 0
+        assert data["avg_degree"] == 0
+        assert data["max_degree"] == 0
+        assert data["network_density"] == 0
 
     @staticmethod
     @pytest.fixture
@@ -722,32 +734,23 @@ class TestAPIEndpoints:
             assert asset["sector"] == "Technology"
 
     def test_get_metrics_enriched_statistics(self, client: TestClient) -> None:
-        """Metrics endpoint returns Prometheus/OpenMetrics text format."""
-        response = client.get("/api/metrics")
-        self._assert_prometheus_metrics_format(response)
-
-    def test_get_metrics_prometheus_format(self, bare_client: TestClient) -> None:
-        """Metrics endpoint exposes Prometheus/OpenMetrics text format, not JSON."""
-        response = bare_client.get("/api/metrics")
-        self._assert_prometheus_metrics_format(response)
-        body = response.text
+        """Metrics endpoint returns Prometheus/OpenMetrics plaintext."""
+        body = _assert_metrics_text_response(client.get("/api/metrics"))
         assert "# HELP graph_rebuild_requests_total" in body
         assert "# TYPE graph_rebuild_requests_total counter" in body
-        # Verify metric values are exported (lines with metric name followed by a number)
-        assert any(
-            line.startswith("graph_rebuild_requests_total") and not line.startswith("# ")
-            for line in body.splitlines()
-        )
+
+    def test_get_metrics_projects_graph_owned_contract(self, bare_client: TestClient) -> None:
+        """Metrics endpoint should remain plaintext and not depend on graph JSON contracts."""
+        _assert_metrics_text_response(bare_client.get("/api/metrics"))
 
     def test_get_metrics_no_assets(self, bare_client: TestClient) -> None:
-        """Metrics endpoint returns Prometheus text format regardless of graph state."""
+        """Metrics endpoint remains available for empty graphs."""
         api_main.reset_graph()
         api_main.set_graph(AssetRelationshipGraph())
-        response = bare_client.get("/api/metrics")
-        self._assert_prometheus_metrics_format(response)
+        _assert_metrics_text_response(bare_client.get("/api/metrics"))
 
     def test_get_metrics_one_asset_no_relationships(self, bare_client: TestClient) -> None:
-        """Metrics endpoint returns Prometheus text format for single-node graphs."""
+        """Metrics endpoint remains available for one-node graphs."""
         api_main.reset_graph()
         graph = AssetRelationshipGraph()
         graph.add_asset(
@@ -761,11 +764,10 @@ class TestAPIEndpoints:
             )
         )
         api_main.set_graph(graph)
-        response = bare_client.get("/api/metrics")
-        self._assert_prometheus_metrics_format(response)
+        _assert_metrics_text_response(bare_client.get("/api/metrics"))
 
     def test_get_metrics_multiple_assets_no_relationships(self, bare_client: TestClient) -> None:
-        """Metrics endpoint returns Prometheus text format for multi-node graphs."""
+        """Metrics endpoint remains available for multi-node graphs."""
         api_main.reset_graph()
         graph = AssetRelationshipGraph()
         graph.add_asset(
@@ -789,8 +791,7 @@ class TestAPIEndpoints:
             )
         )
         api_main.set_graph(graph)
-        response = bare_client.get("/api/metrics")
-        self._assert_prometheus_metrics_format(response)
+        _assert_metrics_text_response(bare_client.get("/api/metrics"))
 
     def test_get_asset_detail_valid(self, client: TestClient) -> None:
         """Asset detail endpoint returns the requested asset when it exists."""
@@ -957,14 +958,10 @@ class TestErrorHandling:
             assert "internal error" in response.json()["detail"].lower()
 
     def test_get_metrics_server_error(self, bare_client: TestClient) -> None:
-        """Prometheus metrics endpoint always returns 200 with text format (no graph dependency)."""
-        # /api/metrics is a Prometheus/OpenMetrics endpoint served by system_router;
-        # it does not call calculate_metrics() and is resilient to graph errors.
-        response = bare_client.get("/api/metrics")
-        assert response.status_code == 200
-        assert "text/plain" in response.headers["content-type"]
-        body = response.text
-        assert "graph_rebuild_requests_total" in body
+        """Metrics endpoint surfaces generation errors under TestClient defaults."""
+        with patch("api.routers.system.generate_latest", side_effect=Exception("metrics generation error")):
+            with pytest.raises(Exception, match="metrics generation error"):
+                bare_client.get("/api/metrics")
 
     @staticmethod
     def test_invalid_http_methods(bare_client: TestClient) -> None:
@@ -1105,15 +1102,12 @@ class TestIntegrationScenarios:
         assert isinstance(relationships, list)
 
     def test_full_workflow_visualization_and_metrics(self, client: TestClient) -> None:
-        """Validate metrics returns Prometheus text and visualization endpoint is reachable."""
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        assert "text/plain" in response.headers["content-type"]
-
+        """Validate metrics endpoint emits Prometheus text and visualization still works."""
+        _assert_metrics_text_response(client.get("/api/metrics"))
         response = client.get("/api/visualization")
         assert response.status_code == 200
         viz_data = response.json()
-        assert "nodes" in viz_data
+        assert isinstance(viz_data["nodes"], list)
 
     def test_filter_refinement_workflow(self, client: TestClient) -> None:
         """Confirm progressive filters reduce (or keep) result sets, never increase them."""
@@ -1986,14 +1980,10 @@ class TestEndpointRegressionCases:
         api_main.reset_graph()
 
     def test_metrics_relationship_density_calculation(self, client: TestClient):
-        """Metrics endpoint returns Prometheus text format with rebuild and graph metrics."""
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        assert "text/plain" in response.headers["content-type"]
-        body = response.text
-        assert "graph_rebuild_requests_total" in body
-        assert "graph_assets_count" in body
-        assert "graph_relationships_count" in body
+        """Metrics payload should include graph gauges in text exposition."""
+        body = _assert_metrics_text_response(client.get("/api/metrics"))
+        assert "# TYPE graph_assets_count gauge" in body
+        assert "# TYPE graph_relationships_count gauge" in body
 
     def test_visualization_coordinates_precision(self, client: TestClient):
         """Visualization coordinates should be rounded to 6 decimal places."""

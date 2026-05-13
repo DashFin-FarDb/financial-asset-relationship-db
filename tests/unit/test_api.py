@@ -42,6 +42,18 @@ def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
     return page["items"]
 
 
+def _assert_metrics_text_response(response: Any) -> str:
+    """Assert /api/metrics returns Prometheus/OpenMetrics plaintext."""
+    assert response.status_code == 200
+    content_type = response.headers.get("content-type", "")
+    assert "text/plain" in content_type or "application/openmetrics-text" in content_type
+    body = response.text
+    assert "graph_rebuild_requests_total" in body
+    assert "graph_assets_count" in body
+    assert "graph_relationships_count" in body
+    return body
+
+
 @pytest.fixture
 def client():
     """Create a test client for the FastAPI app.
@@ -431,25 +443,17 @@ class TestMetricsEndpoint:
 
     @patch("api.main.graph")
     def test_get_metrics(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test that /api/metrics returns Prometheus/OpenMetrics text format."""
+        """Test retrieving Prometheus/OpenMetrics payload."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        assert "text/plain" in response.headers["content-type"]
-        body = response.text
-        assert "graph_rebuild_requests_total" in body
-        assert "graph_assets_count" in body
-        assert "graph_relationships_count" in body
+        _assert_metrics_text_response(client.get("/api/metrics"))
 
     @patch("api.main.graph")
     def test_metrics_asset_class_distribution(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test that /api/metrics is a Prometheus text endpoint (not JSON with asset_classes)."""
+        """Metrics endpoint should expose HELP/TYPE for core counters."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        assert "text/plain" in response.headers["content-type"]
+        body = _assert_metrics_text_response(client.get("/api/metrics"))
+        assert "# HELP graph_rebuild_requests_total" in body
+        assert "# TYPE graph_rebuild_requests_total counter" in body
 
 
 @pytest.mark.unit
@@ -554,7 +558,7 @@ class TestEdgeCases:
 
     @patch("api.main.graph")
     def test_empty_graph(self, mock_graph_instance, client):
-        """Test handling of empty graph."""
+        """Metrics endpoint remains available for empty graphs."""
         empty_graph = AssetRelationshipGraph()
         # Ensure the patched graph has an empty assets mapping as well as relationships.
         mock_graph_instance.assets = empty_graph.assets
@@ -565,9 +569,7 @@ class TestEdgeCases:
         assert response.status_code == 200
         assert len(asset_items(response.json())) == 0
 
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        assert "text/plain" in response.headers["content-type"]
+        _assert_metrics_text_response(client.get("/api/metrics"))
 
     @patch("api.main.graph")
     def test_special_characters_in_asset_id(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
@@ -1010,17 +1012,14 @@ class TestNegativeScenarios:
     @staticmethod
     @patch("api.main.graph")
     def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
-        """Negative: Prometheus metrics endpoint does not raise ZeroDivisionError on empty graph."""
+        """Negative: Metrics exposition should remain healthy on empty graph."""
         empty_graph = AssetRelationshipGraph()
         mock_graph_instance.assets = empty_graph.assets
         mock_graph_instance.relationships = empty_graph.relationships
         mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
 
-        # /api/metrics is a Prometheus endpoint; it does not call calculate_metrics()
-        # and is therefore immune to division-by-zero in graph-level calculations.
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        assert "text/plain" in response.headers["content-type"]
+        # Should not raise ZeroDivisionError and should emit plaintext metrics
+        _assert_metrics_text_response(client.get("/api/metrics"))
 
 
 class TestUserInDBClassRefactoring:

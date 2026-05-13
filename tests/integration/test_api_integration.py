@@ -81,10 +81,10 @@ class TestCompleteAPIFlow:
 
     @staticmethod
     def test_metrics_consistency(client):
-        """Test that /api/metrics returns Prometheus/OpenMetrics text format."""
+        """Test that metrics endpoint exposes Prometheus/OpenMetrics text."""
         metrics_response = client.get("/api/metrics")
         assert metrics_response.status_code == 200
-        assert "text/plain" in metrics_response.headers["content-type"]
+        assert "text/plain" in metrics_response.headers.get("content-type", "")
         body = metrics_response.text
         assert "graph_rebuild_requests_total" in body
         assert "graph_assets_count" in body
