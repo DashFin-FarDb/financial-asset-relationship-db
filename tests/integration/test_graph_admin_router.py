@@ -304,6 +304,29 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
     assert rejected_records[0].status_code == 429
 
 
+async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_executor_raises_directly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Direct contention exceptions should not leave runtime lifecycle in FAILED."""
+
+    async def fake_executor(
+        _loop: asyncio.AbstractEventLoop,
+        _settings: graph_admin.GraphLifecycleSettings,
+        *,
+        user_ref: str,
+        started_at: float,
+    ) -> graph_admin.GraphRebuildResponse:
+        raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
+
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await graph_admin.rebuild_graph(User(username="admin", disabled=False))
+
+    assert exc_info.value.status_code == 429
+    assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
+
+
 def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
     """User references should be printable, single-line, and length bounded."""
     malicious_username = "operator\nFORGED=1\r\t" + ("x" * 200)
