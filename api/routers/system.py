@@ -132,13 +132,9 @@ def detailed_health_check() -> DetailedHealthResponse:
     graph_health = _get_graph_health()
     database_health = _get_database_health()
     settings = graph_lifecycle.graph_lifecycle_providers.get_graph_lifecycle_settings()
-    persistence_configured = bool(
-        settings.asset_graph_database_url and settings.asset_graph_database_url.strip()
-    )
+    persistence_configured = bool(settings.asset_graph_database_url and settings.asset_graph_database_url.strip())
 
-    status_value = (
-        "healthy" if graph_health.available and database_health.reachable else "degraded"
-    )
+    status_value = "healthy" if graph_health.available and database_health.reachable else "degraded"
 
     return DetailedHealthResponse(
         status=status_value,
