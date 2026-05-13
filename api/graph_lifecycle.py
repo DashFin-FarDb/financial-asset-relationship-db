@@ -425,6 +425,5 @@ def sync_with_latest_rebuild() -> None:
     except Exception as exc:
         logger.warning(
             "Failed to sync with latest rebuild from database: %s",
-            type(exc).__name__),
-           
-            )
+            type(exc).__name__,
+        )
