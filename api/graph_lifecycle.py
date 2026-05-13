@@ -350,8 +350,11 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, GraphStartu
                         graph_state.last_synced_job_id = latest_job.job_id
             finally:
                 engine.dispose()
-        except Exception:
-            logger.warning("Failed to initialize last_synced_job_id during graph startup")
+        except Exception as exc:
+            logger.warning(
+                "Failed to initialize last_synced_job_id during graph startup: %s",
+                type(exc).__name__,
+            )
 
         return persisted_graph, "persisted_graph_store"
 
@@ -418,5 +421,9 @@ def sync_with_latest_rebuild() -> None:
 
         finally:
             engine.dispose()
-    except Exception:
-        logger.warning("Failed to sync with latest rebuild from database")
+    except Exception as exc:
+        logger.warning(
+            "Failed to sync with latest rebuild from database: %s",
+            type(exc).__name__),
+           
+            )
