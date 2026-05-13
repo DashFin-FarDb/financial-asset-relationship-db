@@ -627,7 +627,7 @@ def _perform_rebuild_and_persist_sync(
         dist_lock = DistributedLock(session_factory, "graph_rebuild")
         if not dist_lock.acquire():
             raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
-
+        lock_acquired = True
         try:
             job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
             # Build failures occur before a source is available; keep it nullable so
@@ -637,7 +637,7 @@ def _perform_rebuild_and_persist_sync(
                 graph, source = build_rebuild_graph(settings)
                 _update_job_source_safe(session_factory, job_id, str(source))
                 save_graph_to_persistence(resolved_url, graph)
-                synchronize_runtime_graph(graph)
+                synchronize_runtime_graph(graph, job_id=job_id)
                 return _finalize_rebuild_success(
                     session_factory=session_factory,
                     job_id=job_id,
@@ -656,7 +656,8 @@ def _perform_rebuild_and_persist_sync(
                     raise _RebuildExecutionError(source, exc) from exc
                 raise
         finally:
-            dist_lock.release()
+            if lock_acquired:
+                dist_lock.release()
     finally:
         engine.dispose()
 
