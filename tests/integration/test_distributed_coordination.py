@@ -1,15 +1,16 @@
 """Integration tests for distributed rebuild coordination and synchronization."""
 
 import threading
+
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 
+import api.graph_lifecycle_providers as providers
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user
-from api.graph_lifecycle import reset_graph, get_graph, sync_with_latest_rebuild, graph_state
-import api.graph_lifecycle_providers as providers
+from api.graph_lifecycle import get_graph, graph_state, reset_graph, sync_with_latest_rebuild
 from src.config.settings import get_settings
 from src.data.database import create_session_factory, init_db
 from src.data.distributed_lock import DistributedLock
@@ -23,19 +24,19 @@ def authorized_app(monkeypatch, tmp_path):
     """Create an app with an authorized operator and file-backed SQLite."""
     db_path = tmp_path / "asset_graph.db"
     db_url = f"sqlite:///{db_path}"
-    
+
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", db_url)
     monkeypatch.setenv("ADMIN_USERNAME", "operator")
-    
+
     # Initialize DB
     engine = create_engine(db_url)
     init_db(engine)
     engine.dispose()
-    
+
     get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
     reset_graph()
-    
+
     app = create_app()
 
     def active_user() -> User:
@@ -44,7 +45,7 @@ def authorized_app(monkeypatch, tmp_path):
     app.dependency_overrides[get_current_active_user] = active_user
 
     yield app
-    
+
     reset_graph()
     providers.clear_graph_lifecycle_settings_cache()
     get_settings.cache_clear()
@@ -94,11 +95,11 @@ def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app
 async def test_instance_synchronization_detects_new_job(authorized_app):
     """Verify that sync_with_latest_rebuild detects and loads a new graph."""
     db_url = get_settings().asset_graph_database_url
-    
+
     # 1. Initially, we have some graph
     graph1 = AssetRelationshipGraph()
     graph1.add_asset(Equity(id="A1", symbol="A1", name="A1", asset_class=AssetClass.EQUITY, sector="S1", price=10.0))
-    
+
     # Manually persist it as a successful job
     engine = create_engine(db_url)
     session_factory = create_session_factory(engine)
@@ -108,29 +109,29 @@ async def test_instance_synchronization_detects_new_job(authorized_app):
         job_id = repo.create_rebuild_job(requested_by="user1", source="sample")
         repo.mark_rebuild_job_running(job_id)
         repo.mark_rebuild_job_succeeded(job_id, node_count=1, edge_count=0, duration_ms=100)
-    
+
     # Load it into the app
     sync_with_latest_rebuild()
     assert "A1" in get_graph().assets
     assert graph_state.last_synced_job_id == job_id
-    
+
     # 2. Simulate another instance performing a rebuild
     graph2 = AssetRelationshipGraph()
     graph2.add_asset(Equity(id="A2", symbol="A2", name="A2", asset_class=AssetClass.EQUITY, sector="S2", price=20.0))
-    
+
     with session_scope(session_factory) as session:
         repo = AssetGraphRepository(session)
         repo.save_graph(graph2)
         job_id2 = repo.create_rebuild_job(requested_by="user2", source="sample")
         repo.mark_rebuild_job_running(job_id2)
         repo.mark_rebuild_job_succeeded(job_id2, node_count=1, edge_count=0, duration_ms=200)
-        
+
     # 3. Trigger sync and verify it updated
     sync_with_latest_rebuild()
     assert "A2" in get_graph().assets
     assert "A1" not in get_graph().assets
     assert graph_state.last_synced_job_id == job_id2
-    
+
     engine.dispose()
 
 

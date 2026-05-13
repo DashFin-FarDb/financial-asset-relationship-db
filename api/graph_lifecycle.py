@@ -209,9 +209,7 @@ def synchronize_runtime_graph(
     """
     with graph_lock:
         _normalize_shutdown_state()
-        preserve_rebuild = (
-            graph_state.lifecycle_state == GraphRuntimeLifecycleState.REBUILDING
-        )
+        preserve_rebuild = graph_state.lifecycle_state == GraphRuntimeLifecycleState.REBUILDING
         if graph_state.lifecycle_state in (
             GraphRuntimeLifecycleState.UNINITIALIZED,
             GraphRuntimeLifecycleState.FAILED,
@@ -352,8 +350,7 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, GraphStartu
                 engine.dispose()
         except Exception as exc:
             logger.warning(
-                "Failed to initialize last_synced_job_id during graph startup "
-                "(exception_type=%s)",
+                "Failed to initialize last_synced_job_id during graph startup " "(exception_type=%s)",
                 type(exc).__name__,
             )
 

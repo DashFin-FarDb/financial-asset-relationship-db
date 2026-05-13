@@ -1181,7 +1181,6 @@ class AssetGraphRepository:
             retry_result = self.session.execute(update_stmt)
             return bool(retry_result.rowcount and retry_result.rowcount > 0)
 
-
     def release_distributed_lock(self, *, lock_name: str, holder_id: str) -> None:
         """
         Release a distributed lock if held by the specified holder.

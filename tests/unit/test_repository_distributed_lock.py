@@ -1,6 +1,7 @@
 """Unit tests for AssetGraphRepository distributed lock and latest job methods."""
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+
 import pytest
 from sqlalchemy import create_engine
 
@@ -47,10 +48,11 @@ class TestDistributedLockRepository:
         # Verify persisted state
         reader = repository_factory()
         from src.data.db_models import DistributedLockORM
+
         lock = reader.session.get(DistributedLockORM, "test_lock")
         assert lock is not None
         assert lock.holder_id == "holder1"
-        
+
         lock_expires_at = lock.expires_at
         if lock_expires_at.tzinfo is None:
             lock_expires_at = lock_expires_at.replace(tzinfo=timezone.utc)
@@ -96,8 +98,9 @@ class TestDistributedLockRepository:
 
         reader = repository_factory()
         from src.data.db_models import DistributedLockORM
+
         lock = reader.session.get(DistributedLockORM, "test_lock")
-        
+
         lock_expires_at = lock.expires_at
         if lock_expires_at.tzinfo is None:
             lock_expires_at = lock_expires_at.replace(tzinfo=timezone.utc)
@@ -109,6 +112,7 @@ class TestDistributedLockRepository:
         # Create expired lock manually or by setting very short TTL and waiting?
         # Better to set expires_at in the past via DB.
         from src.data.db_models import DistributedLockORM
+
         now = datetime.now(timezone.utc)
         expired_lock = DistributedLockORM(
             lock_name="test_lock",
@@ -133,7 +137,7 @@ class TestDistributedLockRepository:
         reader = repository_factory()
         lock = reader.session.get(DistributedLockORM, "test_lock")
         assert lock.holder_id == "holder2"
-        
+
         lock_expires_at = lock.expires_at
         if lock_expires_at.tzinfo is None:
             lock_expires_at = lock_expires_at.replace(tzinfo=timezone.utc)
@@ -154,6 +158,7 @@ class TestDistributedLockRepository:
 
         reader = repository_factory()
         from src.data.db_models import DistributedLockORM
+
         lock = reader.session.get(DistributedLockORM, "test_lock")
         assert lock is None
 
@@ -173,6 +178,7 @@ class TestDistributedLockRepository:
 
         reader = repository_factory()
         from src.data.db_models import DistributedLockORM
+
         lock = reader.session.get(DistributedLockORM, "test_lock")
         assert lock is not None
         assert lock.holder_id == "holder1"
@@ -192,12 +198,12 @@ class TestLatestRebuildJobRepository:
         """Test retrieving the most recent successful job."""
         repo = repository_factory()
         from src.data.db_models import RebuildJobORM
-        
+
         # 1. Old successful job
         id1 = repo.create_rebuild_job(requested_by="user1")
         repo.mark_rebuild_job_running(id1)
         repo.mark_rebuild_job_succeeded(id1, node_count=1, edge_count=1, duration_ms=1)
-        
+
         # Manually adjust completed_at for id1 to be older
         job1 = repo.session.get(RebuildJobORM, id1)
         job1.completed_at = datetime.now(timezone.utc) - timedelta(hours=1)
