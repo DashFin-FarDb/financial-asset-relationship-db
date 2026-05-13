@@ -40,75 +40,75 @@ class DistributedLock:
         self.ttl_seconds = ttl_seconds
 
     def acquire(
-    self,
-    *,
-    retry_interval_seconds: float = 1.0,
-    max_retries: int = 0
-) -> bool:
-    """
-    Acquire the distributed lock with optional retries.
-    """
-    retries = 0
-    while True:
+        self,
+        *,
+        retry_interval_seconds: float = 1.0,
+        max_retries: int = 0
+    ) -> bool:
+        """
+        Acquire the distributed lock with optional retries.
+        """
+        retries = 0
+        while True:
+            try:
+                with session_scope(self.session_factory) as session:
+                    repo = AssetGraphRepository(session)
+                    if repo.try_acquire_distributed_lock(
+                        lock_name=self.lock_name,
+                        holder_id=self.holder_id,
+                        ttl_seconds=self.ttl_seconds,
+                    ):
+                        logger.debug(
+                            "Acquired distributed lock '%s' for holder '%s'",
+                            self.lock_name,
+                            self.holder_id,
+                        )
+                        return True
+            except Exception as exc:
+                logger.error(
+                    "Failed to acquire distributed lock '%s': %s",
+                    self.lock_name,
+                    type(exc).__name__,
+                )
+                # If we've hit the retry limit, propagate the exception
+                if retries >= max_retries:
+                    raise
+
+            # Check if we should stop retrying if the lock was simply unavailable
+            if retries >= max_retries:
+                break
+
+            retries += 1
+            logger.info(
+                "Retrying lock acquisition for '%s' (%d/%d)...",
+                self.lock_name,
+                retries,
+                max_retries,
+            )
+            sleep(retry_interval_seconds)
+
+        return False
+
+    def release(self) -> None:
+        """Release the distributed lock."""
         try:
             with session_scope(self.session_factory) as session:
                 repo = AssetGraphRepository(session)
-                if repo.try_acquire_distributed_lock(
+                repo.release_distributed_lock(
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
-                    ttl_seconds=self.ttl_seconds,
-                ):
-                    logger.debug(
-                        "Acquired distributed lock '%s' for holder '%s'",
-                        self.lock_name,
-                        self.holder_id,
-                    )
-                    return True
+                )
+                logger.debug(
+                    "Released distributed lock '%s' for holder '%s'",
+                    self.lock_name,
+                    self.holder_id,
+                )
         except Exception as exc:
             logger.error(
-                "Failed to acquire distributed lock '%s': %s",
+                "Failed to release distributed lock '%s': %s",
                 self.lock_name,
                 type(exc).__name__,
             )
-            # If we've hit the retry limit, propagate the exception
-            if retries >= max_retries:
-                raise
-
-        # Check if we should stop retrying if the lock was simply unavailable
-        if retries >= max_retries:
-            break
-
-        retries += 1
-        logger.info(
-            "Retrying lock acquisition for '%s' (%d/%d)...",
-            self.lock_name,
-            retries,
-            max_retries,
-        )
-        sleep(retry_interval_seconds)
-
-    return False
-
-def release(self) -> None:
-    """Release the distributed lock."""
-    try:
-        with session_scope(self.session_factory) as session:
-            repo = AssetGraphRepository(session)
-            repo.release_distributed_lock(
-                lock_name=self.lock_name,
-                holder_id=self.holder_id,
-            )
-            logger.debug(
-                "Released distributed lock '%s' for holder '%s'",
-                self.lock_name,
-                self.holder_id,
-            )
-    except Exception as exc:
-        logger.error(
-            "Failed to release distributed lock '%s': %s",
-            self.lock_name,
-            type(exc).__name__,
-        )
 
     def __enter__(self) -> DistributedLock:
         """Context manager entry point."""
