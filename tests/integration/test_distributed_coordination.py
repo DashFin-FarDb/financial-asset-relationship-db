@@ -90,7 +90,7 @@ async def test_concurrent_rebuild_requests_coordinated_by_distributed_lock(autho
 @pytest.mark.asyncio
 async def test_instance_synchronization_detects_new_job(authorized_app, monkeypatch, tmp_path):
     """Verify that sync_with_latest_rebuild detects and loads a new graph."""
-    db_url = authorized_app.dependency_overrides.get("ASSET_GRAPH_DATABASE_URL") or get_settings().asset_graph_database_url
+    db_url = get_settings().asset_graph_database_url
     
     # 1. Initially, we have some graph
     graph1 = AssetRelationshipGraph()
