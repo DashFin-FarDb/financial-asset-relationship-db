@@ -6,7 +6,6 @@ from prometheus_client import Counter, Gauge, Histogram
 REBUILD_REQUESTS = Counter(
     "graph_rebuild_requests_total",
     "Total number of graph rebuild requests received.",
-    ["user_ref"],
 )
 
 REBUILD_SUCCESS = Counter(
