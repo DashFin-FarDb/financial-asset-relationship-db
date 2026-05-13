@@ -9,7 +9,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
 from uuid import uuid4
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, insert, or_, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -1141,34 +1142,41 @@ class AssetGraphRepository:
         now = datetime.now(timezone.utc)
         expires_at = now + timedelta(seconds=ttl_seconds)
 
-        lock = self.session.get(DistributedLockORM, lock_name)
-
-        if lock is None:
-            # Create new lock
-            lock = DistributedLockORM(
-                lock_name=lock_name,
+        update_stmt = (
+            update(DistributedLockORM)
+            .where(
+                DistributedLockORM.lock_name == lock_name,
+                or_(
+                    DistributedLockORM.holder_id == holder_id,
+                    DistributedLockORM.expires_at < now,
+                ),
+            )
+            .values(
                 holder_id=holder_id,
                 expires_at=expires_at,
-                created_at=now,
                 updated_at=now,
             )
-            self.session.add(lock)
+        )
+        update_result = self.session.execute(update_stmt)
+        if update_result.rowcount and update_result.rowcount > 0:
             return True
 
-        # Ensure comparison is possible even if DB returns naive datetime
-        lock_expires_at = lock.expires_at
-        if lock_expires_at.tzinfo is None:
-            lock_expires_at = lock_expires_at.replace(tzinfo=timezone.utc)
-
-        if lock.holder_id == holder_id or lock_expires_at < now:
-            # Refresh or take over expired lock
-            lock.holder_id = holder_id
-            lock.expires_at = expires_at
-            lock.updated_at = now
-            self.session.add(lock)
+        try:
+            self.session.execute(
+                insert(DistributedLockORM).values(
+                    lock_name=lock_name,
+                    holder_id=holder_id,
+                    expires_at=expires_at,
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
             return True
+        except IntegrityError:
+            self.session.rollback()
+            retry_result = self.session.execute(update_stmt)
+            return bool(retry_result.rowcount and retry_result.rowcount > 0)
 
-        return False
 
     def release_distributed_lock(self, *, lock_name: str, holder_id: str) -> None:
         """

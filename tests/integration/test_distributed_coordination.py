@@ -1,6 +1,6 @@
 """Integration tests for distributed rebuild coordination and synchronization."""
 
-import asyncio
+import threading
 import pytest
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import create_engine
@@ -8,10 +8,10 @@ from sqlalchemy import create_engine
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user
 from api.graph_lifecycle import reset_graph, get_graph, sync_with_latest_rebuild, graph_state
-from api.routers import graph_admin
 import api.graph_lifecycle_providers as providers
 from src.config.settings import get_settings
 from src.data.database import create_session_factory, init_db
+from src.data.distributed_lock import DistributedLock
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
@@ -50,45 +50,44 @@ def authorized_app(monkeypatch, tmp_path):
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
-async def test_concurrent_rebuild_requests_coordinated_by_distributed_lock(authorized_app, monkeypatch):
-    """Verify that only one rebuild can proceed even across multiple requests."""
-    transport = ASGITransport(app=authorized_app)
-    
-    # Mock build_rebuild_graph to take some time
-    original_build = providers.build_rebuild_graph
-    
-    # We use a real executor for this test to allow concurrency
-    from concurrent.futures import ThreadPoolExecutor
-    executor = ThreadPoolExecutor(max_workers=2)
-    monkeypatch.setattr(graph_admin._REBUILD_RUNTIME, "executor", executor)
+def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app):
+    """Verify two independent holders cannot both acquire the same distributed lock."""
+    db_url = get_settings().asset_graph_database_url
+    connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
+    engine1 = create_engine(db_url, connect_args=connect_args)
+    engine2 = create_engine(db_url, connect_args=connect_args)
+    session_factory1 = create_session_factory(engine1)
+    session_factory2 = create_session_factory(engine2)
+    lock1 = DistributedLock(session_factory1, "graph_rebuild", holder_id="instance-1", ttl_seconds=60)
+    lock2 = DistributedLock(session_factory2, "graph_rebuild", holder_id="instance-2", ttl_seconds=60)
 
-    # Inject a delay in build_rebuild_graph
-    def delayed_build(*args, **kwargs):
-        import time
-        time.sleep(1)
-        return original_build(*args, **kwargs)
-    
-    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", delayed_build)
+    barrier = threading.Barrier(2)
+    results: dict[str, bool] = {}
 
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        responses = await asyncio.gather(
-            client.post("/api/graph/rebuild"),
-            client.post("/api/graph/rebuild"),
-            return_exceptions=True
-        )
-        
-        status_codes = [r.status_code for r in responses if not isinstance(r, Exception)]
-        
-        assert 200 in status_codes
-        assert 429 in status_codes
-        
-    executor.shutdown()
+    def attempt(holder: str, lock: DistributedLock) -> None:
+        barrier.wait()
+        results[holder] = lock.acquire()
+
+    t1 = threading.Thread(target=attempt, args=("instance-1", lock1))
+    t2 = threading.Thread(target=attempt, args=("instance-2", lock2))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    assert sorted(results.values()) == [False, True]
+
+    if results["instance-1"]:
+        lock1.release()
+    if results["instance-2"]:
+        lock2.release()
+    engine1.dispose()
+    engine2.dispose()
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_instance_synchronization_detects_new_job(authorized_app, monkeypatch, tmp_path):
+async def test_instance_synchronization_detects_new_job(authorized_app):
     """Verify that sync_with_latest_rebuild detects and loads a new graph."""
     db_url = get_settings().asset_graph_database_url
     
@@ -137,7 +136,7 @@ async def test_metrics_endpoint_returns_prometheus_data(authorized_app):
     """Verify that the /metrics endpoint is accessible and returns Prometheus format."""
     transport = ASGITransport(app=authorized_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get("/metrics")
+        response = await client.get("/api/metrics")
         assert response.status_code == 200
         assert "graph_rebuild_requests_total" in response.text
         assert "graph_assets_count" in response.text

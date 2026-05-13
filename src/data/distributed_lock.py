@@ -99,7 +99,7 @@ class DistributedLock:
             logger.error(
                 "Failed to release distributed lock '%s': %s",
                 self.lock_name,
-                exc,
+                type(exc).__name__,
             )
 
     def __enter__(self) -> DistributedLock:
