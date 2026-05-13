@@ -619,53 +619,67 @@ def _perform_rebuild_and_persist_sync(
     user_ref: str,
 ) -> GraphRebuildResponse:
     """Rebuild the graph, persist it, then publish it to runtime state."""
-    resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    resolved_url = resolve_durable_graph_persistence_url(
+        settings.asset_graph_database_url
+    )
     engine = create_engine_from_url(resolved_url)
+    
+    # Initialize variables outside try to prevent UnboundLocalError in finally
+    lock_acquired = False
+    dist_lock = None
+    
     try:
         session_factory = create_session_factory(engine)
 
-        lock_ttl_seconds = getattr(settings, "rebuild_lock_ttl_seconds", 300)
-        if not isinstance(lock_ttl_seconds, int) or lock_ttl_seconds <= 0:
-            lock_ttl_seconds = 300
+        lock_ttl = getattr(settings, "rebuild_lock_ttl_seconds", 300)
+        if not isinstance(lock_ttl, int) or lock_ttl <= 0:
+            lock_ttl = 300
+
         dist_lock = DistributedLock(
             session_factory,
             "graph_rebuild",
-            ttl_seconds=lock_ttl_seconds,
+            ttl_seconds=lock_ttl,
         )
+
         if not dist_lock.acquire():
-            raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
+            raise _DistributedLockAcquisitionError(
+                "Could not acquire distributed rebuild lock."
+            )
+        
         lock_acquired = True
+        job_id, job_started_at = _create_and_start_rebuild_job(
+            session_factory, user_ref
+        )
+        
+        source: GraphRebuildSource | None = None
         try:
-            job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
-            # Build failures occur before a source is available; keep it nullable so
-            # post-build failures can still preserve wrapped source context.
-            source: GraphRebuildSource | None = None
-            try:
-                graph, source = build_rebuild_graph(settings)
-                _update_job_source_safe(session_factory, job_id, str(source))
-                save_graph_to_persistence(resolved_url, graph)
-                synchronize_runtime_graph(graph, job_id=job_id)
-                return _finalize_rebuild_success(
-                    session_factory=session_factory,
-                    job_id=job_id,
-                    graph=graph,
-                    source=source,
-                    job_started_at=job_started_at,
-                )
-            except Exception as exc:
-                _finalize_rebuild_failure(
-                    session_factory=session_factory,
-                    job_id=job_id,
-                    exc=exc,
-                    job_started_at=job_started_at,
-                )
-                if source is not None:
-                    raise _RebuildExecutionError(source, exc) from exc
-                raise
-        finally:
-            if lock_acquired:
-                dist_lock.release()
+            graph, source = build_rebuild_graph(settings)
+            _update_job_source_safe(session_factory, job_id, str(source))
+            save_graph_to_persistence(resolved_url, graph)
+            synchronize_runtime_graph(graph, job_id=job_id)
+            
+            return _finalize_rebuild_success(
+                session_factory=session_factory,
+                job_id=job_id,
+                graph=graph,
+                source=source,
+                job_started_at=job_started_at,
+            )
+        except Exception as exc:
+            _finalize_rebuild_failure(
+                session_factory=session_factory,
+                job_id=job_id,
+                exc=exc,
+                job_started_at=job_started_at,
+            )
+            # Re-wrap if source context exists, otherwise re-raise original
+            if source is not None:
+                raise _RebuildExecutionError(source, exc) from exc
+            raise
+
     finally:
+        if lock_acquired and dist_lock:
+            dist_lock.release()
         engine.dispose()
 
 
