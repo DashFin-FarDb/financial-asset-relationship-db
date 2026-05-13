@@ -7,8 +7,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from src.data.db_models import RebuildJobStatus
 
-GraphStartupSource = Literal[
+AssetGraphSource = Literal[
     "persisted_graph_store",
+    "sample",
     "sample_graph",
     "cache",
     "real_data",
@@ -106,7 +107,7 @@ class GraphHealthResponse(BaseModel):
     lifecycle_state: str = "UNINITIALIZED"
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
-    graph_startup_source: GraphStartupSource | None = None
+    graph_startup_source: AssetGraphSource | None = None
 
 
 class DatabaseHealthResponse(BaseModel):
@@ -127,6 +128,7 @@ class DetailedHealthResponse(BaseModel):
     status: Literal["healthy", "degraded"]
     graph: GraphHealthResponse
     database: DatabaseHealthResponse
+    graph_persistence_configured: bool
 
 
 class GraphRebuildResponse(BaseModel):
@@ -135,7 +137,7 @@ class GraphRebuildResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status: Literal["persisted"] = "persisted"
-    source: Literal["cache", "real_data", "sample"]
+    source: AssetGraphSource
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
     regulatory_event_count: int = Field(ge=0)

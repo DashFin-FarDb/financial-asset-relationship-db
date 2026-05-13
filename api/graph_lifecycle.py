@@ -16,7 +16,7 @@ from typing import Final
 from src.logic.asset_graph import AssetRelationshipGraph
 
 from . import graph_lifecycle_providers
-from .api_models import GraphStartupSource
+from .api_models import AssetGraphSource
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +174,7 @@ def get_graph() -> AssetRelationshipGraph:
     return graph
 
 
-def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartupSource | None]:
+def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphSource | None]:
     """Return the module-global graph and its tracked startup source atomically."""
     with graph_lock:
         if graph_state.graph is None:
@@ -353,7 +353,7 @@ def _initialize_graph() -> AssetRelationshipGraph:
     return graph
 
 
-def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, GraphStartupSource]:
+def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphSource]:
     """
     Initialize a graph and return the selected startup source.
 
@@ -404,8 +404,8 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, GraphStartu
         )
         return graph, "real_data"
 
-    logger.info("Graph startup source: sample_graph")
-    return graph_lifecycle_providers.create_sample_graph(), "sample_graph"
+    logger.info("Graph startup source: sample")
+    return graph_lifecycle_providers.create_sample_graph(), "sample"
 
 
 def sync_with_latest_rebuild() -> None:

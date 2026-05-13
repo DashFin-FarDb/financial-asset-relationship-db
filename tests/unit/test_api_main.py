@@ -320,7 +320,7 @@ class TestPydanticModels:
                 available=True,
                 asset_count=19,
                 relationship_count=57,
-                graph_startup_source="sample_graph",
+                graph_startup_source="sample",
             ),
             database=DatabaseHealthResponse(
                 configured=True,
@@ -332,7 +332,7 @@ class TestPydanticModels:
         assert response.status == "healthy"
         assert response.graph.available is True
         assert response.graph.asset_count == 19
-        assert response.graph.graph_startup_source == "sample_graph"
+        assert response.graph.graph_startup_source == "sample"
         assert response.database.type == "sqlite"
 
     def test_detailed_health_response_rejects_extra_fields(self) -> None:

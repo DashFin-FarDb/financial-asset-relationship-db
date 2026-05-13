@@ -8,13 +8,13 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from src.models.financial_models import AssetClass
 
 from .. import graph_lifecycle
-from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse, GraphStartupSource
+from ..api_models import AssetGraphSource, DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse
 from ..router_helpers import get_graph, logger
 
 router = APIRouter()
 
 SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
-SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES: frozenset[str] = frozenset(get_args(GraphStartupSource))
+SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES: frozenset[str] = frozenset(get_args(AssetGraphSource))
 
 
 @router.get("/")
@@ -79,10 +79,10 @@ def _get_graph_health() -> GraphHealthResponse:
         )
 
 
-def _bound_graph_startup_source(value: object) -> GraphStartupSource:
+def _bound_graph_startup_source(value: object) -> AssetGraphSource:
     """Return a bounded startup-source label safe for the public health response."""
     if value in SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES:
-        return cast(GraphStartupSource, value)
+        return cast(AssetGraphSource, value)
     return "unknown"
 
 
@@ -131,13 +131,20 @@ def detailed_health_check() -> DetailedHealthResponse:
     """Return bounded, non-secret readiness information for hosted deployment."""
     graph_health = _get_graph_health()
     database_health = _get_database_health()
+    settings = graph_lifecycle.graph_lifecycle_providers.get_graph_lifecycle_settings()
+    persistence_configured = bool(
+        settings.asset_graph_database_url and settings.asset_graph_database_url.strip()
+    )
 
-    status_value = "healthy" if graph_health.available and database_health.reachable else "degraded"
+    status_value = (
+        "healthy" if graph_health.available and database_health.reachable else "degraded"
+    )
 
     return DetailedHealthResponse(
         status=status_value,
         graph=graph_health,
         database=database_health,
+        graph_persistence_configured=persistence_configured,
     )
 
 

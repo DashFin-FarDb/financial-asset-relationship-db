@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, cast
 
-from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
+from fastapi import APIRouter, Depends, HTTPException, Query, status  # pylint: disable=import-error
 from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
@@ -428,6 +428,11 @@ def shutdown_rebuild_executor() -> None:
     _REBUILD_RUNTIME.shutdown_executor()
 
 
+def init_rebuild_executor() -> None:
+    """Explicitly initialize the process-local graph rebuild executor."""
+    _REBUILD_RUNTIME.get_executor()
+
+
 def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
     """Create a rebuild job record in pending status.
 
@@ -817,6 +822,9 @@ def get_rebuild_job(
 @router.get("/api/graph/rebuild/jobs")
 def list_rebuild_jobs(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    limit: int = Query(default=10, ge=1, le=_MAX_REBUILD_JOB_LIST_RESULTS),
+    offset: int = Query(default=0, ge=0),
+    status: str | None = Query(default=None),
 ) -> RebuildJobListResponse:
     """List rebuild jobs ordered newest-first.
 
@@ -825,6 +833,9 @@ def list_rebuild_jobs(
 
     Args:
         current_user: Authenticated operator user.
+        limit: Maximum number of jobs to return.
+        offset: Number of jobs to skip.
+        status: Optional status filter.
 
     Returns:
         RebuildJobListResponse with pagination-ready bounded list structure.
@@ -834,8 +845,16 @@ def list_rebuild_jobs(
     """
     with _rebuild_persistence_session() as session:
         repo = AssetGraphRepository(session)
-        jobs_orm = repo.list_rebuild_jobs(
-            limit=_MAX_REBUILD_JOB_LIST_RESULTS,
-        )
+        try:
+            jobs_orm = repo.list_rebuild_jobs(
+                limit=limit,
+                offset=offset,
+                status=status,
+            )
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(exc),
+            ) from exc
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
         return RebuildJobListResponse(jobs=jobs, count=len(jobs))

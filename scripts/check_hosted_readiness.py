@@ -258,7 +258,7 @@ def check_liveness(base_url: str, timeout: float) -> list[str]:
 
 def _record_top_level_contract_failures(payload: dict[str, Any], failures: list[str]) -> None:
     """Record top-level detailed-readiness contract failures."""
-    expected_top_level = {"status", "graph", "database"}
+    expected_top_level = {"status", "graph", "database", "graph_persistence_configured"}
     actual_top_level = set(payload)
     missing_top_level = sorted(expected_top_level - actual_top_level)
     unexpected_top_level = sorted(actual_top_level - expected_top_level)

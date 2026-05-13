@@ -28,7 +28,7 @@ from .rate_limit import limiter
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
 from .routers.graph_admin import router as graph_admin_router
-from .routers.graph_admin import shutdown_rebuild_executor
+from .routers.graph_admin import init_rebuild_executor, shutdown_rebuild_executor
 from .routers.metrics import router as metrics_router
 from .routers.relationships import router as relationships_router
 from .routers.system import router as system_router
@@ -45,7 +45,10 @@ async def lifespan(_fastapi_app: FastAPI):
     """Initialize graph state and clean up rebuild resources."""
     try:
         get_graph()
-        logger.info("Application startup complete - graph initialized")
+        init_rebuild_executor()
+        logger.info(
+            "Application startup complete - graph and rebuild executor initialized"
+        )
     except Exception:
         logger.exception("Failed to initialize graph during startup")
         raise

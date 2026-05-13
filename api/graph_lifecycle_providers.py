@@ -19,9 +19,11 @@ from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 
+from .api_models import AssetGraphSource
+
 logger = logging.getLogger(__name__)
 
-GraphRebuildSource = Literal["cache", "real_data", "sample"]
+GraphRebuildSource = AssetGraphSource
 _GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
 
 

@@ -1072,6 +1072,7 @@ class AssetGraphRepository:
         self,
         *,
         limit: int | None = None,
+        offset: int | None = None,
         status: str | None = None,
     ) -> list[RebuildJobORM]:
         """
@@ -1079,6 +1080,7 @@ class AssetGraphRepository:
 
         Args:
             limit: Optional maximum number of jobs to return.
+            offset: Optional number of jobs to skip.
             status: Optional status filter (pending, running, succeeded, failed, cancelled).
 
         Returns:
@@ -1099,6 +1101,8 @@ class AssetGraphRepository:
             stmt = stmt.where(RebuildJobORM.status == status)
         if limit is not None:
             stmt = stmt.limit(limit)
+        if offset is not None:
+            stmt = stmt.offset(offset)
         return list(self.session.execute(stmt).scalars().all())
 
     def get_latest_successful_rebuild_job(self) -> RebuildJobORM | None:
