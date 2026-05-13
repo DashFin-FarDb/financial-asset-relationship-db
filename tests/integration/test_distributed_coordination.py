@@ -65,12 +65,16 @@ def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app
 
     barrier = threading.Barrier(2)
     results: dict[str, bool] = {}
+    errors: dict[str, Exception] = {}
 
     def attempt(holder: str, lock: DistributedLock) -> None:
         try:
             barrier.wait()
             results[holder] = lock.acquire()
-        except (SQLAlchemyError, threading.BrokenBarrierError):
+        except threading.BrokenBarrierError:
+            results[holder] = False
+        except SQLAlchemyError as exc:
+            errors[holder] = exc
             results[holder] = False
 
     t1 = threading.Thread(target=attempt, args=("instance-1", lock1))
@@ -81,6 +85,7 @@ def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app
         t1.join(timeout=10)
         t2.join(timeout=10)
         assert not t1.is_alive() and not t2.is_alive()
+        assert not errors, f"Unexpected SQLAlchemy error(s): {errors}"
         assert sorted(results.values()) == [False, True]
     finally:
         if results.get("instance-1"):
