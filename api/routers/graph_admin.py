@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM
+from src.data.distributed_lock import DistributedLock
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -41,6 +42,13 @@ from ..graph_lifecycle_providers import (
     get_graph_lifecycle_settings,
     resolve_durable_graph_persistence_url,
     save_graph_to_persistence,
+)
+from ..metrics import (
+    REBUILD_DURATION,
+    REBUILD_FAILURE,
+    REBUILD_REQUESTS,
+    REBUILD_SUCCESS,
+    update_graph_metrics,
 )
 
 router = APIRouter()
@@ -126,6 +134,10 @@ class _RebuildExecutionError(Exception):
         super().__init__(cause.__class__.__name__)
         self.source = source
         self.cause = cause
+
+
+class _DistributedLockAcquisitionError(Exception):
+    """Raised when the distributed lock cannot be acquired."""
 
 
 @router.post(_REBUILD_PATH)
@@ -245,6 +257,9 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
     """Map rebuild domain errors to sanitized HTTP errors."""
     root_exc = _unwrap_rebuild_error(exc)
 
+    if isinstance(root_exc, _DistributedLockAcquisitionError):
+        return _rebuild_in_progress_error()
+
     if isinstance(
         root_exc,
         (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError),
@@ -271,6 +286,9 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
 def _rebuild_status_code(exc: Exception) -> int:
     """Return sanitized rebuild status code for audit logging without side effects."""
     root_exc = _unwrap_rebuild_error(exc)
+
+    if isinstance(root_exc, _DistributedLockAcquisitionError):
+        return status.HTTP_429_TOO_MANY_REQUESTS
 
     if isinstance(
         root_exc,
@@ -300,6 +318,7 @@ def _duration_ms(started_at: float) -> int:
 
 def _log_rebuild_requested(*, user_ref: str) -> None:
     """Emit a bounded audit event for rebuild request start."""
+    REBUILD_REQUESTS.labels(user_ref=user_ref).inc()
     logger.info(
         "graph_rebuild_audit",
         extra={
@@ -328,6 +347,9 @@ def _log_rebuild_rejected(*, user_ref: str) -> None:
 
 def _log_rebuild_succeeded(*, user_ref: str, response: GraphRebuildResponse, duration_ms: int) -> None:
     """Emit a bounded audit event for successful rebuild completion."""
+    REBUILD_SUCCESS.labels(source=response.source).inc()
+    REBUILD_DURATION.observe(duration_ms / 1000.0)
+    update_graph_metrics(response.asset_count, response.relationship_count)
     logger.info(
         "graph_rebuild_audit",
         extra={
@@ -348,6 +370,8 @@ def _log_rebuild_succeeded(*, user_ref: str, response: GraphRebuildResponse, dur
 def _rebuild_failure_category(exc: Exception) -> str:
     """Return a bounded failure category for rebuild audit logs."""
     root_exc = _unwrap_rebuild_error(exc)
+    if isinstance(root_exc, _DistributedLockAcquisitionError):
+        return "distributed_lock_acquisition_failed"
     if isinstance(root_exc, GraphPersistenceNotConfiguredError):
         return "persistence_not_configured"
     if isinstance(root_exc, GraphPersistenceNonDurableError):
@@ -368,6 +392,9 @@ def _rebuild_source_from_exception(exc: Exception) -> GraphRebuildSource | None:
 
 def _log_rebuild_failed(*, user_ref: str, exc: Exception, status_code: int, duration_ms: int) -> None:
     """Emit a bounded audit event for rebuild failure."""
+    category = _rebuild_failure_category(exc)
+    REBUILD_FAILURE.labels(category=category).inc()
+    REBUILD_DURATION.observe(duration_ms / 1000.0)
     logger.error(
         "graph_rebuild_audit",
         extra={
@@ -596,32 +623,40 @@ def _perform_rebuild_and_persist_sync(
     engine = create_engine_from_url(resolved_url)
     try:
         session_factory = create_session_factory(engine)
-        job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
-        # Build failures occur before a source is available; keep it nullable so
-        # post-build failures can still preserve wrapped source context.
-        source: GraphRebuildSource | None = None
+
+        dist_lock = DistributedLock(session_factory, "graph_rebuild")
+        if not dist_lock.acquire():
+            raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
+
         try:
-            graph, source = build_rebuild_graph(settings)
-            _update_job_source_safe(session_factory, job_id, str(source))
-            save_graph_to_persistence(resolved_url, graph)
-            synchronize_runtime_graph(graph)
-            return _finalize_rebuild_success(
-                session_factory=session_factory,
-                job_id=job_id,
-                graph=graph,
-                source=source,
-                job_started_at=job_started_at,
-            )
-        except Exception as exc:
-            _finalize_rebuild_failure(
-                session_factory=session_factory,
-                job_id=job_id,
-                exc=exc,
-                job_started_at=job_started_at,
-            )
-            if source is not None:
-                raise _RebuildExecutionError(source, exc) from exc
-            raise
+            job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
+            # Build failures occur before a source is available; keep it nullable so
+            # post-build failures can still preserve wrapped source context.
+            source: GraphRebuildSource | None = None
+            try:
+                graph, source = build_rebuild_graph(settings)
+                _update_job_source_safe(session_factory, job_id, str(source))
+                save_graph_to_persistence(resolved_url, graph)
+                synchronize_runtime_graph(graph)
+                return _finalize_rebuild_success(
+                    session_factory=session_factory,
+                    job_id=job_id,
+                    graph=graph,
+                    source=source,
+                    job_started_at=job_started_at,
+                )
+            except Exception as exc:
+                _finalize_rebuild_failure(
+                    session_factory=session_factory,
+                    job_id=job_id,
+                    exc=exc,
+                    job_started_at=job_started_at,
+                )
+                if source is not None:
+                    raise _RebuildExecutionError(source, exc) from exc
+                raise
+        finally:
+            dist_lock.release()
     finally:
         engine.dispose()
 

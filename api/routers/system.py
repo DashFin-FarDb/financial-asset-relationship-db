@@ -2,7 +2,8 @@
 
 from typing import Any, Literal, NoReturn, cast, get_args
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from src.models.financial_models import AssetClass
 
@@ -138,6 +139,12 @@ def detailed_health_check() -> DetailedHealthResponse:
         graph=graph_health,
         database=database_health,
     )
+
+
+@router.get("/metrics")
+async def metrics() -> Response:
+    """Expose Prometheus metrics."""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:

@@ -246,3 +246,15 @@ class RebuildJobORM(Base):
         String(512),
         nullable=True,
     )
+
+
+class DistributedLockORM(Base):
+    """Persistent representation of a distributed lock."""
+
+    __tablename__ = "distributed_locks"
+
+    lock_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    holder_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

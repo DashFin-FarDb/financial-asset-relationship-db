@@ -6,6 +6,7 @@ and router registration logic.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -16,7 +17,7 @@ from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-foun
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 
 from .cors_policy import configure_cors
-from .graph_lifecycle import begin_shutdown, get_graph
+from .graph_lifecycle import begin_shutdown, get_graph, sync_with_latest_rebuild
 from .rate_limit import limiter
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
@@ -43,11 +44,32 @@ async def lifespan(_fastapi_app: FastAPI):
         logger.exception("Failed to initialize graph during startup")
         raise
 
+    # Start background synchronization task
+    sync_task = asyncio.create_task(_run_graph_sync_loop())
+
     yield
+
+    sync_task.cancel()
+    try:
+        await sync_task
+    except asyncio.CancelledError:
+        pass
 
     begin_shutdown()
     shutdown_rebuild_executor()
     logger.info("Application shutdown")
+
+
+async def _run_graph_sync_loop(interval_seconds: int = 60) -> None:
+    """Run the graph synchronization loop in the background."""
+    while True:
+        try:
+            await asyncio.sleep(interval_seconds)
+            sync_with_latest_rebuild()
+        except asyncio.CancelledError:
+            break
+        except Exception:
+            logger.exception("Unexpected error in graph synchronization loop")
 
 
 def create_app() -> FastAPI:

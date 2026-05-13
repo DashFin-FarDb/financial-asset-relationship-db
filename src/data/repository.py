@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
 from uuid import uuid4
 
@@ -27,6 +27,7 @@ from src.models.financial_models import (
 from .db_models import (
     AssetORM,
     AssetRelationshipORM,
+    DistributedLockORM,
     RebuildJobORM,
     RebuildJobStatus,
     RegulatoryEventAssetORM,
@@ -1098,3 +1099,85 @@ class AssetGraphRepository:
         if limit is not None:
             stmt = stmt.limit(limit)
         return list(self.session.execute(stmt).scalars().all())
+
+    def get_latest_successful_rebuild_job(self) -> RebuildJobORM | None:
+        """
+        Retrieve the most recent successfully completed rebuild job.
+
+        Returns:
+            RebuildJobORM | None: The most recent succeeded job record, or None.
+        """
+        stmt = (
+            select(RebuildJobORM)
+            .where(RebuildJobORM.status == RebuildJobStatus.SUCCEEDED)
+            .order_by(RebuildJobORM.completed_at.desc(), RebuildJobORM.job_id.desc())
+            .limit(1)
+        )
+        return self.session.execute(stmt).scalar_one_or_none()
+
+    def try_acquire_distributed_lock(
+        self,
+        *,
+        lock_name: str,
+        holder_id: str,
+        ttl_seconds: int,
+    ) -> bool:
+        """
+        Try to acquire or refresh a distributed lock in the database.
+
+        If the lock does not exist, it is created.
+        If the lock exists and is expired, it is acquired by the new holder.
+        If the lock exists and is held by the same holder, it is refreshed.
+        If the lock exists and is held by another holder and not expired, acquisition fails.
+
+        Args:
+            lock_name: Unique name of the lock.
+            holder_id: Identifier of the process/instance seeking the lock.
+            ttl_seconds: Time-to-live for the lock in seconds.
+
+        Returns:
+            bool: True if the lock was acquired or refreshed, False otherwise.
+        """
+        now = datetime.now(timezone.utc)
+        expires_at = now + timedelta(seconds=ttl_seconds)
+
+        lock = self.session.get(DistributedLockORM, lock_name)
+
+        if lock is None:
+            # Create new lock
+            lock = DistributedLockORM(
+                lock_name=lock_name,
+                holder_id=holder_id,
+                expires_at=expires_at,
+                created_at=now,
+                updated_at=now,
+            )
+            self.session.add(lock)
+            return True
+
+        # Ensure comparison is possible even if DB returns naive datetime
+        lock_expires_at = lock.expires_at
+        if lock_expires_at.tzinfo is None:
+            lock_expires_at = lock_expires_at.replace(tzinfo=timezone.utc)
+
+        if lock.holder_id == holder_id or lock_expires_at < now:
+            # Refresh or take over expired lock
+            lock.holder_id = holder_id
+            lock.expires_at = expires_at
+            lock.updated_at = now
+            self.session.add(lock)
+            return True
+
+        return False
+
+    def release_distributed_lock(self, *, lock_name: str, holder_id: str) -> None:
+        """
+        Release a distributed lock if held by the specified holder.
+
+        Args:
+            lock_name: Unique name of the lock.
+            holder_id: Identifier of the process/instance that held the lock.
+        """
+        lock = self.session.get(DistributedLockORM, lock_name)
+        if lock is not None and lock.holder_id == holder_id:
+            self.session.delete(lock)
