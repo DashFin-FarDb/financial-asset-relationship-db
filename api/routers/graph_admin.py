@@ -624,7 +624,14 @@ def _perform_rebuild_and_persist_sync(
     try:
         session_factory = create_session_factory(engine)
 
-        dist_lock = DistributedLock(session_factory, "graph_rebuild")
+        lock_ttl_seconds = getattr(settings, "rebuild_lock_ttl_seconds", 300)
+         if not isinstance(lock_ttl_seconds, int) or lock_ttl_seconds <= 0:
+             lock_ttl_seconds = 300
+         dist_lock = DistributedLock(
+             session_factory,
+             "graph_rebuild",
+             ttl_seconds=lock_ttl_seconds,
+         )
         if not dist_lock.acquire():
             raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
         lock_acquired = True
