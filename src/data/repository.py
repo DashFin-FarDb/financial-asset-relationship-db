@@ -1177,6 +1177,8 @@ class AssetGraphRepository:
             # Another contender may have inserted first; retrying the conditional
             # update is best-effort and may still return False if that holder kept
             # a valid, unexpired lock.
+            # Persistence is committed by the existing caller transaction boundary
+            # (session_scope or explicit session.commit()).
             retry_result = self.session.execute(update_stmt)
             return bool(retry_result.rowcount and retry_result.rowcount > 0)
 
