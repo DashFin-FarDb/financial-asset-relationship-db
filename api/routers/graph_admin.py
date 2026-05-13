@@ -324,7 +324,7 @@ def _duration_ms(started_at: float) -> int:
 
 def _log_rebuild_requested(*, user_ref: str) -> None:
     """Emit a bounded audit event for rebuild request start."""
-    REBUILD_REQUESTS.labels(user_ref=user_ref).inc()
+    REBUILD_REQUESTS.inc() # label-free; operator identity captured in audit log below
     logger.info(
         "graph_rebuild_audit",
         extra={
