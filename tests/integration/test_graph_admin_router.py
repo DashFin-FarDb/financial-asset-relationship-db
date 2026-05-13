@@ -233,7 +233,9 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
     assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
 
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
-    rejected_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_rejected"]
+    rejected_records = [
+        record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_rejected"
+    ]
     failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
 
     assert len(rejected_records) >= 1

@@ -258,9 +258,7 @@ def _query_latest_successful_rebuild_job_id(
     from src.data.database import create_engine_from_url, create_session_factory
     from src.data.repository import AssetGraphRepository, session_scope
 
-    resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(
-        settings.asset_graph_database_url
-    )
+    resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(resolved_url)
     try:
         session_factory = create_session_factory(engine)
