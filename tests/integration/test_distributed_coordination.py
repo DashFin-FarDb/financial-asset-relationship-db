@@ -61,7 +61,7 @@ async def test_concurrent_rebuild_requests_coordinated_by_distributed_lock(autho
     # We use a real executor for this test to allow concurrency
     from concurrent.futures import ThreadPoolExecutor
     executor = ThreadPoolExecutor(max_workers=2)
-    monkeypatch.setattr("api.routers.graph_admin._REBUILD_RUNTIME.executor", executor)
+    monkeypatch.setattr(graph_admin._REBUILD_RUNTIME, "executor", executor)
 
     # Inject a delay in build_rebuild_graph
     def delayed_build(*args, **kwargs):
