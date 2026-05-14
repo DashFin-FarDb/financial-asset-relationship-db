@@ -14,17 +14,6 @@ from ..router_helpers import get_graph, logger
 router = APIRouter()
 
 SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
-_FALLBACK_METRICS_TEXT = (
-    "# HELP graph_rebuild_requests_total Total number of graph rebuild requests received.\n"
-    "# TYPE graph_rebuild_requests_total counter\n"
-    "graph_rebuild_requests_total 0\n"
-    "# HELP graph_assets_count Current number of assets in the graph.\n"
-    "# TYPE graph_assets_count gauge\n"
-    "graph_assets_count 0\n"
-    "# HELP graph_relationships_count Current number of relationships in the graph.\n"
-    "# TYPE graph_relationships_count gauge\n"
-    "graph_relationships_count 0\n"
-)
 
 
 @router.get("/")
@@ -143,14 +132,15 @@ def detailed_health_check() -> DetailedHealthResponse:
 
 @router.get("/api/metrics")
 async def metrics() -> Response:
-    """Expose Prometheus metrics and fail scrape requests on generation errors."""
+    """Expose Prometheus metrics in OpenMetrics format.
+    
+    Returns HTTP 500 on generation errors to fail scrape requests and surface
+    operational issues immediately rather than masking them with stale data.
+    """
     try:
         return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
     except Exception:
-        logger.exception(
-            "Error generating metrics; returning HTTP 500 instead of fallback payload (fallback_bytes=%d)",
-            len(_FALLBACK_METRICS_TEXT),
-        )
+        logger.exception("Error generating Prometheus metrics; failing scrape request")
         return Response(status_code=500, content="metrics generation error", media_type="text/plain")
 
 
