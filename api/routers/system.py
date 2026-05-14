@@ -133,7 +133,7 @@ def detailed_health_check() -> DetailedHealthResponse:
 @router.get("/api/metrics")
 async def metrics() -> Response:
     """Expose Prometheus metrics in OpenMetrics format.
-    
+
     Returns HTTP 500 on generation errors to fail scrape requests and surface
     operational issues immediately rather than masking them with stale data.
     """
