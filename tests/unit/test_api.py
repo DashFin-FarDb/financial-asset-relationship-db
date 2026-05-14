@@ -1,6 +1,6 @@
 """Comprehensive unit tests for FastAPI backend.
 
-This module tests all API endpoints, listed below, excluding, `api/metrics`:
+This module tests all API endpoints listed below, excluding `/api/metrics`:
 - Health checks and root endpoint
 - Asset retrieval with filtering
 - Asset details and relationships
