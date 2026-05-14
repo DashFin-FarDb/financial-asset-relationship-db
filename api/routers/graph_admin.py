@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, cast
 
-from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
@@ -830,7 +830,7 @@ def list_rebuild_jobs(
         current_user: Authenticated operator user.
 
     Returns:
-        RebuildJobListResponse with bounded list structure.
+        RebuildJobListResponse with up to _MAX_REBUILD_JOB_LIST_RESULTS newest jobs.
 
     Raises:
         HTTPException: 503 if persistence not configured.
