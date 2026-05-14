@@ -146,6 +146,12 @@ class _GraphState:
         self.lifecycle_state = GraphRuntimeLifecycleState.UNINITIALIZED
         self.last_synced_job_id: str | None = None
 
+    def clear_graph_runtime_state(self) -> None:
+        """Clear graph instance state that must not survive lifecycle resets."""
+        self.graph = None
+        self.startup_source = None
+        self.last_synced_job_id = None
+
 
 graph_state = _GraphState()
 graph_lock = threading.Lock()
