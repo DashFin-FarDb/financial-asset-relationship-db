@@ -15,6 +15,17 @@ router = APIRouter()
 
 SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
 SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES: frozenset[str] = frozenset(get_args(AssetGraphSource))
+_FALLBACK_METRICS_PAYLOAD = (
+    "# HELP graph_rebuild_requests_total Total number of graph rebuild requests received.\n"
+    "# TYPE graph_rebuild_requests_total counter\n"
+    "graph_rebuild_requests_total 0\n"
+    "# HELP graph_assets_count Current number of assets in the graph.\n"
+    "# TYPE graph_assets_count gauge\n"
+    "graph_assets_count 0\n"
+    "# HELP graph_relationships_count Current number of relationships in the graph.\n"
+    "# TYPE graph_relationships_count gauge\n"
+    "graph_relationships_count 0\n"
+).encode("utf-8")
 
 
 @router.get("/")
@@ -143,11 +154,12 @@ def detailed_health_check() -> DetailedHealthResponse:
 
 @router.get("/api/metrics")
 async def metrics() -> Response:
-    """Expose Prometheus metrics."""
+    """Expose Prometheus metrics; degrade to a safe payload on generation errors."""
     try:
         return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
-    except Exception as e:
-        _raise_system_route_error("Error generating metrics:", e)
+    except Exception:
+        logger.exception("Error generating metrics; returning fallback payload")
+        return Response(content=_FALLBACK_METRICS_PAYLOAD, media_type=CONTENT_TYPE_LATEST)
 
 
 def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:

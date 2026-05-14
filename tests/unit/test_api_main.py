@@ -958,12 +958,12 @@ class TestErrorHandling:
             assert "internal error" in response.json()["detail"].lower()
 
     def test_get_metrics_server_error(self, bare_client: TestClient) -> None:
-        """Metrics endpoint returns 500 when generation fails."""
+        """Metrics endpoint degrades to fallback payload when generation fails."""
         with patch("api.routers.system.generate_latest", side_effect=Exception("metrics generation error")):
             response = bare_client.get("/api/metrics")
 
-            assert response.status_code == 500
-            assert response.json()["detail"] == "An internal error occurred. Please try again later."
+            body = _assert_metrics_text_response(response)
+            assert "graph_rebuild_requests_total" in body
 
     @staticmethod
     def test_invalid_http_methods(bare_client: TestClient) -> None:

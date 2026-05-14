@@ -659,15 +659,15 @@ def _perform_rebuild_and_persist_sync(
             graph, source = build_rebuild_graph(settings)
             _update_job_source_safe(session_factory, job_id, str(source))
             save_graph_to_persistence(resolved_url, graph)
-            synchronize_runtime_graph(graph, job_id=job_id)
-
-            return _finalize_rebuild_success(
+            response = _finalize_rebuild_success(
                 session_factory=session_factory,
                 job_id=job_id,
                 graph=graph,
                 source=source,
                 job_started_at=job_started_at,
             )
+            synchronize_runtime_graph(graph, job_id=job_id)
+            return response
         except Exception as exc:
             _finalize_rebuild_failure(
                 session_factory=session_factory,
