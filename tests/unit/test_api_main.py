@@ -961,7 +961,7 @@ class TestErrorHandling:
         """Metrics endpoint returns 500 when generation fails."""
         with patch("api.routers.system.generate_latest", side_effect=Exception("metrics generation error")):
             response = bare_client.get("/api/metrics")
-    
+
             assert response.status_code == 500
             assert response.json()["detail"] == "An internal error occurred. Please try again later."
 
