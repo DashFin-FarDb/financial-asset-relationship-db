@@ -99,6 +99,10 @@ class _RebuildRuntime:
         """
         complete_rebuild(succeeded=succeeded)
 
+    def clear_busy_after_contention(self) -> None:
+        """Clear transient REBUILDING state when work was rejected before execution."""
+        complete_rebuild(succeeded=True)
+
     def get_lock(self) -> asyncio.Lock:
         """Return a rebuild lock bound to the current event loop."""
         loop = asyncio.get_running_loop()
@@ -172,7 +176,7 @@ async def rebuild_graph(
             )
         except Exception as exc:
             if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError) and _REBUILD_RUNTIME.is_busy():
-                _REBUILD_RUNTIME.mark_idle(succeeded=True)
+                _REBUILD_RUNTIME.clear_busy_after_contention()
             raise _map_rebuild_error(exc) from None
     finally:
         if lock_acquired:

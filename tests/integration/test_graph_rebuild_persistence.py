@@ -578,6 +578,7 @@ async def test_rebuild_marks_job_failed_when_success_persistence_fails(
     # Success-state persistence failure must not overwrite durable graph content.
     persisted_graph = _load_graph(database_url)
     assert persisted_graph.assets == {}
+    assert persisted_graph.relationships == {}
 
 
 async def test_rebuild_uses_cache_path_before_sample(
