@@ -23,7 +23,7 @@ from .api_models import AssetGraphSource
 
 logger = logging.getLogger(__name__)
 
-GraphRebuildSource = AssetGraphSource
+GraphRebuildSource = Literal["cache", "real_data", "sample"]
 _GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
 
 
