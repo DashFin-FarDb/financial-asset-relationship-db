@@ -178,7 +178,9 @@ async def rebuild_graph(
             HTTPException,
             _RebuildExecutionError,
             _DistributedLockAcquisitionError,
-            GraphPersistenceError,
+            GraphPersistenceNonDurableError,
+            GraphPersistenceNotConfiguredError,
+            GraphPersistenceSaveError,
             GraphRebuildSourceError,
         ) as exc:
             # Defensive cleanup for direct contention exceptions (e.g. tests that
@@ -251,7 +253,9 @@ async def _run_rebuild_in_executor(
             HTTPException,
             _RebuildExecutionError,
             _DistributedLockAcquisitionError,
-            GraphPersistenceError,
+            GraphPersistenceNonDurableError,
+            GraphPersistenceNotConfiguredError,
+            GraphPersistenceSaveError,
             GraphRebuildSourceError,
         ) as exc:
             if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError):
