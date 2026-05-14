@@ -395,7 +395,7 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
                 graph_state.last_synced_job_id = latest_job_id
         except Exception as exc:
             logger.warning(
-                "Failed to initialize last_synced_job_id during graph startup " "(exception_type=%s)",
+                "Failed to initialize last_synced_job_id during graph startup (exception_type=%s)",
                 type(exc).__name__,
             )
 

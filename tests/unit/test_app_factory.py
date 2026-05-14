@@ -42,8 +42,8 @@ async def test_sync_loop_stops_without_syncing_when_shutting_down(
     """Background sync loop should exit cleanly once shutdown state is observed."""
 
     async def immediate_sleep(_seconds: int) -> None:
-        """Avoid real delay in test."""
-        return None
+        """Avoid real delay in test - returns immediately."""
+        pass
 
     monkeypatch.setattr(app_factory.asyncio, "sleep", immediate_sleep)
     monkeypatch.setattr(
@@ -55,6 +55,7 @@ async def test_sync_loop_stops_without_syncing_when_shutting_down(
     sync_calls: list[bool] = []
 
     async def fake_to_thread(_fn):
+        """Mock asyncio.to_thread - returns immediately."""
         sync_calls.append(True)
         return None
 

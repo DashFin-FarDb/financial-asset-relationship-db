@@ -174,7 +174,13 @@ async def rebuild_graph(
                 user_ref=user_ref,
                 started_at=started_at,
             )
-        except Exception as exc:
+        except (
+            HTTPException,
+            _RebuildExecutionError,
+            _DistributedLockAcquisitionError,
+            GraphPersistenceError,
+            GraphRebuildSourceError,
+        ) as exc:
             # Defensive cleanup for direct contention exceptions (e.g. tests that
             # monkeypatch executor paths): normal contention paths already clear
             # REBUILDING in the executor completion callback.
@@ -241,7 +247,13 @@ async def _run_rebuild_in_executor(
         """Finalize rebuild state and emit outcome audit logs."""
         try:
             response = done_future.result()
-        except Exception as exc:
+        except (
+            HTTPException,
+            _RebuildExecutionError,
+            _DistributedLockAcquisitionError,
+            GraphPersistenceError,
+            GraphRebuildSourceError,
+        ) as exc:
             if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError):
                 _REBUILD_RUNTIME.mark_idle(succeeded=True)
                 _log_rebuild_rejected(user_ref=user_ref)
@@ -650,6 +662,36 @@ def _restore_persisted_graph_snapshot(
         logger.exception("Failed to restore persisted graph snapshot after rebuild persistence failure")
 
 
+def _handle_rebuild_failure(
+    session_factory,
+    job_id: str,
+    exc: Exception,
+    job_started_at: float,
+    success_persisted: bool,
+    graph_saved: bool,
+    graph_snapshot: AssetRelationshipGraph | None,
+    resolved_url: str,
+    source: GraphRebuildSource | None,
+) -> None:
+    """Handle rebuild failure with rollback and persistence."""
+    if not success_persisted:
+        if graph_saved:
+            if graph_snapshot is not None:
+                _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
+            else:
+                logger.warning("Skipped graph rollback because no snapshot was available")
+        _finalize_rebuild_failure(
+            session_factory=session_factory,
+            job_id=job_id,
+            exc=exc,
+            job_started_at=job_started_at,
+        )
+    # Re-wrap if source context exists, otherwise re-raise original
+    if source is not None:
+        raise _RebuildExecutionError(source, exc) from exc
+    raise
+
+
 def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
     *,
@@ -705,22 +747,17 @@ def _perform_rebuild_and_persist_sync(
             synchronize_runtime_graph(graph, job_id=job_id)
             return response
         except Exception as exc:
-            if not success_persisted:
-                if graph_saved:
-                    if graph_snapshot is not None:
-                        _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
-                    else:
-                        logger.warning("Skipped graph rollback because no snapshot was available")
-                _finalize_rebuild_failure(
-                    session_factory=session_factory,
-                    job_id=job_id,
-                    exc=exc,
-                    job_started_at=job_started_at,
-                )
-            # Re-wrap if source context exists, otherwise re-raise original
-            if source is not None:
-                raise _RebuildExecutionError(source, exc) from exc
-            raise
+            _handle_rebuild_failure(
+                session_factory=session_factory,
+                job_id=job_id,
+                exc=exc,
+                job_started_at=job_started_at,
+                success_persisted=success_persisted,
+                graph_saved=graph_saved,
+                graph_snapshot=graph_snapshot,
+                resolved_url=resolved_url,
+                source=source,
+            )
 
     finally:
         if lock_acquired and dist_lock:

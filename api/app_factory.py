@@ -61,10 +61,10 @@ async def lifespan(_fastapi_app: FastAPI):
     except asyncio.CancelledError:
         # Expected during shutdown after sync_task.cancel(); suppress intentionally.
         pass
-
-    begin_shutdown()
-    shutdown_rebuild_executor()
-    logger.info("Application shutdown")
+    finally:
+        begin_shutdown()
+        shutdown_rebuild_executor()
+        logger.info("Application shutdown")
 
 
 async def _run_graph_sync_loop(interval_seconds: int = 60) -> None:

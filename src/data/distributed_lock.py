@@ -59,11 +59,10 @@ class DistributedLock:
                             self.holder_id,
                         )
                         return True
-            except Exception as exc:
-                logger.error(
-                    "Failed to acquire distributed lock '%s': %s",
+            except Exception:
+                logger.exception(
+                    "Failed to acquire distributed lock '%s'",
                     self.lock_name,
-                    type(exc).__name__,
                 )
                 # If we've hit the retry limit, propagate the exception
                 if retries >= max_retries:
@@ -98,11 +97,10 @@ class DistributedLock:
                     self.lock_name,
                     self.holder_id,
                 )
-        except Exception as exc:
-            logger.error(
-                "Failed to release distributed lock '%s': %s",
+        except Exception:
+            logger.exception(
+                "Failed to release distributed lock '%s'",
                 self.lock_name,
-                type(exc).__name__,
             )
 
     def __enter__(self) -> DistributedLock:
