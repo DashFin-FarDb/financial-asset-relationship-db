@@ -26,7 +26,7 @@ def _assert_metrics_text_response(response) -> str:
 @pytest.fixture
 def client() -> TestClient:
     """Create an isolated TestClient for /api/metrics tests with automatic teardown."""
-    with TestClient(app, base_url="http://testserver") as test_client:
+    with TestClient(app, base_url="https://testserver") as test_client:
         yield test_client
 
 

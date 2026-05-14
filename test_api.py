@@ -35,16 +35,18 @@ def _test_assets(client: TestClient) -> None:
     print(f"   ✅ Assets endpoint passed (found {len(assets)} assets)")
 
 
-def _test_metrics(client):
+def _test_metrics(client: TestClient) -> None:
     response = client.get("/api/metrics")
-
-    assert response.status_code == 200
+    _assert_ok(response, "Metrics endpoint")
 
     body = response.text
 
-    assert "# HELP" in body
-    assert "# TYPE" in body
-    assert "graph_rebuild_requests_total" in body
+    if "# HELP" not in body:
+        raise AssertionError("Metrics payload missing HELP metadata")
+    if "# TYPE" not in body:
+        raise AssertionError("Metrics payload missing TYPE metadata")
+    if "graph_rebuild_requests_total" not in body:
+        raise AssertionError("Metrics payload missing graph_rebuild_requests_total")
 
 
 def _test_visualization(client: TestClient) -> None:
