@@ -171,8 +171,6 @@ async def rebuild_graph(
                 started_at=started_at,
             )
         except Exception as exc:
-            if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError):
-                _REBUILD_RUNTIME.mark_idle(succeeded=True)
             raise _map_rebuild_error(exc) from None
     finally:
         if lock_acquired:
