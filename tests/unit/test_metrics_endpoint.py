@@ -26,7 +26,8 @@ def _assert_metrics_text_response(response) -> str:
 @pytest.fixture
 def client() -> TestClient:
     """Create a TestClient for /api/metrics endpoint tests."""
-    return TestClient(app, base_url="http://testserver")
+    with TestClient(app, base_url="http://testserver") as test_client:
+        yield test_client
 
 
 @pytest.mark.unit
