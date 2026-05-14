@@ -12,7 +12,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import app
+from api.app_factory import create_app
 
 
 def _assert_metrics_text_response(response) -> str:
@@ -36,7 +36,7 @@ def _assert_metrics_text_response(response) -> str:
 @pytest.fixture
 def client() -> TestClient:
     """Create an isolated TestClient for /api/metrics tests with automatic teardown."""
-    with TestClient(app, base_url="https://testserver") as test_client:
+    with TestClient(create_app(), base_url="https://testserver") as test_client:
         yield test_client
 
 
