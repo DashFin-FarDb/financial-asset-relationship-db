@@ -35,14 +35,16 @@ def _test_assets(client: TestClient) -> None:
     print(f"   ✅ Assets endpoint passed (found {len(assets)} assets)")
 
 
-def _test_metrics(client: TestClient) -> None:
-    print("4. Testing metrics endpoint...")
+def _test_metrics(client):
     response = client.get("/api/metrics")
-    _assert_ok(response, "Metrics endpoint")
-    metrics = response.json()
-    print("   ✅ Metrics endpoint passed")
-    print(f"      - Total assets: {metrics['total_assets']}")
-    print(f"      - Total relationships: {metrics['total_relationships']}")
+
+    assert response.status_code == 200
+
+    body = response.text
+
+    assert "# HELP" in body
+    assert "# TYPE" in body
+    assert "graph_rebuild_requests_total" in body
 
 
 def _test_visualization(client: TestClient) -> None:
