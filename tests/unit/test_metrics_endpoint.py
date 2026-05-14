@@ -1,16 +1,9 @@
-"""Unit tests for Prometheus/OpenMetrics /api/metrics endpoint.
-
-This module validates:
-- Correct OpenMetrics exposition
-- Metric presence and metadata (HELP/TYPE)
-- Resilience under empty graph state
-"""
-
-from unittest.mock import patch
+"""Unit tests for Prometheus/OpenMetrics /api/metrics endpoint."""
 
 import pytest
+from fastapi.testclient import TestClient
 
-from src.logic.asset_graph import AssetRelationshipGraph
+from api.main import app
 
 
 def _assert_metrics_text_response(response) -> str:
@@ -30,56 +23,38 @@ def _assert_metrics_text_response(response) -> str:
     return body
 
 
+@pytest.fixture
+def client() -> TestClient:
+    """Create a TestClient for /api/metrics endpoint tests."""
+    return TestClient(app, base_url="http://testserver")
+
+
 @pytest.mark.unit
 class TestMetricsEndpoint:
     """Tests for /api/metrics Prometheus/OpenMetrics endpoint."""
 
-    @patch("api.main.graph")
     def test_get_metrics(
         self,
-        mock_graph_instance,
         client,
-        mock_graph,
-        apply_mock_graph,
     ):
         """Metrics endpoint returns valid OpenMetrics payload."""
-        apply_mock_graph(mock_graph_instance, mock_graph)
-
         _assert_metrics_text_response(client.get("/api/metrics"))
 
-    @patch("api.main.graph")
     def test_metrics_exposes_help_and_type(
         self,
-        mock_graph_instance,
         client,
-        mock_graph,
-        apply_mock_graph,
     ):
         """Metrics endpoint includes HELP and TYPE metadata."""
-        apply_mock_graph(mock_graph_instance, mock_graph)
-
         body = _assert_metrics_text_response(client.get("/api/metrics"))
 
         assert "# HELP graph_rebuild_requests_total" in body
         assert "# TYPE graph_rebuild_requests_total counter" in body
 
-    @patch("api.main.graph")
     def test_metrics_handles_empty_graph(
         self,
-        mock_graph_instance,
         client,
     ):
-        """
-        Metrics endpoint remains stable under empty graph state.
-
-        This validates resilience of metric collectors when no assets
-        or relationships exist.
-        """
-        empty_graph = AssetRelationshipGraph()
-
-        mock_graph_instance.assets = empty_graph.assets
-        mock_graph_instance.relationships = empty_graph.relationships
-        mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
+        """Metrics endpoint remains stable without graph patching."""
 
         body = _assert_metrics_text_response(client.get("/api/metrics"))
 

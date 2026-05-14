@@ -222,6 +222,11 @@ def synchronize_runtime_graph(
     Rebuild callers publish the freshly persisted graph while lifecycle state is
     still REBUILDING. Preserve that state so complete_rebuild() remains the
     single transition point for REBUILDING -> READY/FAILED.
+
+    Returns:
+        bool: True when the graph is published; False when publishing is skipped
+        because runtime is SHUTTING_DOWN/STOPPED or because
+        expected_last_synced_job_id no longer matches current sync state.
     """
     with graph_lock:
         if graph_state.lifecycle_state in (

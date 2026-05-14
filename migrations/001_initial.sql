@@ -84,7 +84,7 @@ CREATE INDEX ix_rebuild_jobs_status_created_at
 CREATE TABLE IF NOT EXISTS distributed_locks (
     lock_name TEXT PRIMARY KEY,
     holder_id TEXT NOT NULL,
-    expires_at TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
 );
