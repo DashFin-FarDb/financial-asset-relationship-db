@@ -175,6 +175,9 @@ async def rebuild_graph(
                 started_at=started_at,
             )
         except Exception as exc:
+            # Defensive cleanup for direct contention exceptions (e.g. tests that
+            # monkeypatch executor paths): normal contention paths already clear
+            # REBUILDING in the executor completion callback.
             if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError) and _REBUILD_RUNTIME.is_busy():
                 _REBUILD_RUNTIME.clear_busy_after_contention()
             raise _map_rebuild_error(exc) from None
@@ -686,6 +689,8 @@ def _perform_rebuild_and_persist_sync(
         try:
             graph, source = build_rebuild_graph(settings)
             _update_job_source_safe(session_factory, job_id, str(source))
+            # Load rollback snapshot before any durable write. If snapshot loading
+            # fails, the rebuild fails closed before persistence is modified.
             graph_snapshot = _load_persisted_graph_snapshot(session_factory)
             save_graph_to_persistence(resolved_url, graph)
             graph_saved = True
@@ -701,8 +706,11 @@ def _perform_rebuild_and_persist_sync(
             return response
         except Exception as exc:
             if not success_persisted:
-                if graph_saved and graph_snapshot is not None:
-                    _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
+                if graph_saved:
+                    if graph_snapshot is not None:
+                        _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
+                    else:
+                        logger.warning("Skipped graph rollback because no snapshot was available")
                 _finalize_rebuild_failure(
                     session_factory=session_factory,
                     job_id=job_id,
