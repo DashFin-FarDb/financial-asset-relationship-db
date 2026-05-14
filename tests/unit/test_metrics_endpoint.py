@@ -2,9 +2,8 @@
 
 Contract:
 - Endpoint must never require JSON parsing
-- Endpoint must never raise exceptions to caller
-- Endpoint must always return a valid OpenMetrics payload
-- Failures degrade into fallback metrics, not HTTP errors
+- Happy-path responses return valid OpenMetrics payload
+- Metric generation failures return HTTP 500 plaintext errors
 """
 
 from unittest.mock import patch
@@ -51,9 +50,9 @@ class TestMetricsEndpoint:
         assert "# TYPE graph_rebuild_requests_total counter" in body
 
     def test_metrics_degrades_when_generation_fails(self, client: TestClient) -> None:
-        """Metrics generation failures return a degraded OpenMetrics payload, not an HTTP error."""
+        """Metrics generation failures return HTTP 500 plaintext errors."""
         with patch("api.routers.system.generate_latest", side_effect=Exception("metrics generation error")):
-            body = _assert_metrics_text_response(client.get("/api/metrics"))
-        assert "graph_rebuild_requests_total" in body
-        assert "graph_assets_count" in body
-        assert "graph_relationships_count" in body
+            response = client.get("/api/metrics")
+        assert response.status_code == 500
+        assert "text/plain" in response.headers.get("content-type", "")
+        assert response.text == "metrics generation error"

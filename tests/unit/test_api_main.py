@@ -919,12 +919,12 @@ class TestErrorHandling:
             assert "internal error" in response.json()["detail"].lower()
 
     def test_get_metrics_server_error(self, bare_client: TestClient) -> None:
-        """Metrics endpoint degrades to fallback payload when generation fails."""
+        """Metrics endpoint returns plaintext HTTP 500 when generation fails."""
         with patch("api.routers.system.generate_latest", side_effect=Exception("metrics generation error")):
             response = bare_client.get("/api/metrics")
-
-            body = _assert_metrics_text_response(response)
-            assert "graph_rebuild_requests_total" in body
+            assert response.status_code == 500
+            assert "text/plain" in response.headers.get("content-type", "")
+            assert response.text == "metrics generation error"
 
     @staticmethod
     def test_invalid_http_methods(bare_client: TestClient) -> None:

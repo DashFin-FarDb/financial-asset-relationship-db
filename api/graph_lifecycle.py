@@ -214,6 +214,7 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
         graph_state.startup_source = "unknown"
+        graph_state.last_synced_job_id = None
         _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
 
 
@@ -291,6 +292,7 @@ def set_graph_factory(
         graph_state.graph_factory = factory
         graph_state.graph = None
         graph_state.startup_source = None
+        graph_state.last_synced_job_id = None
         _shutdown_to_uninitialized()
 
 
@@ -309,6 +311,7 @@ def reset_graph() -> None:
         graph_state.graph_factory = None
         graph_state.graph = None
         graph_state.startup_source = None
+        graph_state.last_synced_job_id = None
         _shutdown_to_uninitialized()
 
 

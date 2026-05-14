@@ -102,6 +102,22 @@ def test_lifecycle_state_is_uninitialized_after_reset() -> None:
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.UNINITIALIZED
 
 
+def test_runtime_state_resets_clear_last_synced_job_id() -> None:
+    """Runtime reset/swap operations should clear sync marker state."""
+    graph_lifecycle.graph_state.last_synced_job_id = "job-123"
+
+    graph_lifecycle.set_graph(cast(graph_lifecycle.AssetRelationshipGraph, object()))
+    assert graph_lifecycle.graph_state.last_synced_job_id is None
+
+    graph_lifecycle.graph_state.last_synced_job_id = "job-456"
+    graph_lifecycle.set_graph_factory(lambda: cast(graph_lifecycle.AssetRelationshipGraph, object()))
+    assert graph_lifecycle.graph_state.last_synced_job_id is None
+
+    graph_lifecycle.graph_state.last_synced_job_id = "job-789"
+    graph_lifecycle.reset_graph()
+    assert graph_lifecycle.graph_state.last_synced_job_id is None
+
+
 @pytest.mark.parametrize(
     ("transitions", "next_state"),
     [

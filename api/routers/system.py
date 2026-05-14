@@ -143,12 +143,15 @@ def detailed_health_check() -> DetailedHealthResponse:
 
 @router.get("/api/metrics")
 async def metrics() -> Response:
-    """Expose Prometheus metrics; degrade to a safe payload on generation errors."""
+    """Expose Prometheus metrics and fail scrape requests on generation errors."""
     try:
         return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
     except Exception:
-        logger.exception("Error generating metrics; returning fallback payload")
-        return Response(content=_FALLBACK_METRICS_TEXT.encode("utf-8"), media_type=CONTENT_TYPE_LATEST)
+        logger.exception(
+            "Error generating metrics; returning HTTP 500 instead of fallback payload (fallback_bytes=%d)",
+            len(_FALLBACK_METRICS_TEXT),
+        )
+        return Response(status_code=500, content="metrics generation error", media_type="text/plain")
 
 
 def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:
