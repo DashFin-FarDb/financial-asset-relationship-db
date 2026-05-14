@@ -49,7 +49,7 @@ class TestMetricsEndpoint:
         assert "# HELP graph_rebuild_requests_total" in body
         assert "# TYPE graph_rebuild_requests_total counter" in body
 
-    def test_metrics_degrades_when_generation_fails(self, client: TestClient) -> None:
+    def test_metrics_returns_error_when_generation_fails(self, client: TestClient) -> None:
         """Metrics generation failures return HTTP 500 plaintext errors."""
         with patch("api.routers.system.generate_latest", side_effect=Exception("metrics generation error")):
             response = client.get("/api/metrics")
