@@ -55,3 +55,5 @@ class TestMetricsEndpoint:
         with patch("api.routers.system.generate_latest", side_effect=Exception("metrics generation error")):
             body = _assert_metrics_text_response(client.get("/api/metrics"))
         assert "graph_rebuild_requests_total" in body
+        assert "graph_assets_count" in body
+        assert "graph_relationships_count" in body
