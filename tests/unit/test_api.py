@@ -537,7 +537,6 @@ class TestEdgeCases:
         assert response.status_code == 200
         assert len(asset_items(response.json())) == 0
 
-
     @patch("api.main.graph")
     def test_special_characters_in_asset_id(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test handling of special characters in asset IDs."""
