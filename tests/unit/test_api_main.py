@@ -399,6 +399,7 @@ class TestPydanticModels:
                 relationship_count=-1,
             )
 
+
 @pytest.mark.unit
 class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
