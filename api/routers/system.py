@@ -131,8 +131,6 @@ def detailed_health_check() -> DetailedHealthResponse:
     """Return bounded, non-secret readiness information for hosted deployment."""
     graph_health = _get_graph_health()
     database_health = _get_database_health()
-    settings = graph_lifecycle.graph_lifecycle_providers.get_graph_lifecycle_settings()
-    persistence_configured = bool(settings.asset_graph_database_url and settings.asset_graph_database_url.strip())
 
     status_value = "healthy" if graph_health.available and database_health.reachable else "degraded"
 
@@ -140,7 +138,6 @@ def detailed_health_check() -> DetailedHealthResponse:
         status=status_value,
         graph=graph_health,
         database=database_health,
-        graph_persistence_configured=persistence_configured,
     )
 
 

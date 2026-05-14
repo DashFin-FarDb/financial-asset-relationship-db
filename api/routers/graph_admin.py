@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, cast
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status  # pylint: disable=import-error
+from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
 from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
@@ -820,9 +820,6 @@ def get_rebuild_job(
 @router.get("/api/graph/rebuild/jobs")
 def list_rebuild_jobs(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
-    limit: int = Query(default=10, ge=1, le=_MAX_REBUILD_JOB_LIST_RESULTS),
-    offset: int = Query(default=0, ge=0),
-    status_filter: str | None = Query(default=None, alias="status"),
 ) -> RebuildJobListResponse:
     """List rebuild jobs ordered newest-first.
 
@@ -831,28 +828,15 @@ def list_rebuild_jobs(
 
     Args:
         current_user: Authenticated operator user.
-        limit: Maximum number of jobs to return.
-        offset: Number of jobs to skip.
-        status_filter: Optional status filter.
 
     Returns:
-        RebuildJobListResponse with pagination-ready bounded list structure.
+        RebuildJobListResponse with bounded list structure.
 
     Raises:
         HTTPException: 503 if persistence not configured.
     """
     with _rebuild_persistence_session() as session:
         repo = AssetGraphRepository(session)
-        try:
-            jobs_orm = repo.list_rebuild_jobs(
-                limit=limit,
-                offset=offset,
-                status=status_filter,
-            )
-        except ValueError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=str(exc),
-            ) from exc
+        jobs_orm = repo.list_rebuild_jobs(limit=_MAX_REBUILD_JOB_LIST_RESULTS)
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
         return RebuildJobListResponse(jobs=jobs, count=len(jobs))

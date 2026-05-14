@@ -17,6 +17,12 @@ AssetGraphSource = Literal[
     "unknown",
 ]
 
+GraphRebuildSource = Literal[
+    "cache",
+    "real_data",
+    "sample",
+]
+
 
 class AssetResponse(BaseModel):
     """Response model for asset data."""
@@ -128,7 +134,6 @@ class DetailedHealthResponse(BaseModel):
     status: Literal["healthy", "degraded"]
     graph: GraphHealthResponse
     database: DatabaseHealthResponse
-    graph_persistence_configured: bool
 
 
 class GraphRebuildResponse(BaseModel):
@@ -137,7 +142,7 @@ class GraphRebuildResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status: Literal["persisted"] = "persisted"
-    source: AssetGraphSource
+    source: GraphRebuildSource
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
     regulatory_event_count: int = Field(ge=0)
@@ -170,7 +175,7 @@ class RebuildJobResponse(BaseModel):
 class RebuildJobListResponse(BaseModel):
     """Response model for rebuild job listing.
 
-    Pagination-ready bounded list structure.
+    Bounded rebuild job list structure.
     """
 
     model_config = ConfigDict(extra="forbid")
