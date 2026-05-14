@@ -142,7 +142,7 @@ class _GraphState:
         """Create empty graph lifecycle state."""
         self.graph: AssetRelationshipGraph | None = None
         self.graph_factory: Callable[[], AssetRelationshipGraph] | None = None
-        self.startup_source: GraphStartupSource | None = None
+        self.startup_source: AssetGraphSource | None = None
         self.lifecycle_state = GraphRuntimeLifecycleState.UNINITIALIZED
         self.last_synced_job_id: str | None = None
 
