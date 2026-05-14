@@ -197,7 +197,6 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     assert graph_payload["available"] is True
     assert graph_payload["asset_count"] == 2
     assert graph_payload["relationship_count"] == 2
-    assert graph_payload["graph_startup_source"] == "persisted_graph_store"
 
     asset_ids = {item["id"] for item in assets.json()["items"]}
     assert {"HOSTED_A", "HOSTED_B"} <= asset_ids
@@ -287,7 +286,6 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
         "lifecycle_state",
         "asset_count",
         "relationship_count",
-        "graph_startup_source",
     }
 
     # Recursively scan for sensitive values

@@ -171,6 +171,8 @@ async def rebuild_graph(
                 started_at=started_at,
             )
         except Exception as exc:
+            if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError) and _REBUILD_RUNTIME.is_busy():
+                _REBUILD_RUNTIME.mark_idle(succeeded=True)
             raise _map_rebuild_error(exc) from None
     finally:
         if lock_acquired:
@@ -622,6 +624,25 @@ def _finalize_rebuild_failure(
     _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
 
 
+def _load_persisted_graph_snapshot(
+    session_factory: Callable[[], Session],
+) -> AssetRelationshipGraph:
+    """Load the currently persisted graph snapshot for rollback safety."""
+    with session_scope(session_factory) as session:
+        return AssetGraphRepository(session).load_graph()
+
+
+def _restore_persisted_graph_snapshot(
+    persistence_url: str,
+    snapshot: AssetRelationshipGraph,
+) -> None:
+    """Best-effort rollback of durable graph state when success persistence fails."""
+    try:
+        save_graph_to_persistence(persistence_url, snapshot)
+    except Exception:
+        logger.exception("Failed to restore persisted graph snapshot after rebuild persistence failure")
+
+
 def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
     *,
@@ -655,10 +676,15 @@ def _perform_rebuild_and_persist_sync(
         job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
 
         source: GraphRebuildSource | None = None
+        success_persisted = False
+        graph_snapshot: AssetRelationshipGraph | None = None
+        graph_saved = False
         try:
             graph, source = build_rebuild_graph(settings)
             _update_job_source_safe(session_factory, job_id, str(source))
+            graph_snapshot = _load_persisted_graph_snapshot(session_factory)
             save_graph_to_persistence(resolved_url, graph)
+            graph_saved = True
             response = _finalize_rebuild_success(
                 session_factory=session_factory,
                 job_id=job_id,
@@ -666,15 +692,19 @@ def _perform_rebuild_and_persist_sync(
                 source=source,
                 job_started_at=job_started_at,
             )
+            success_persisted = True
             synchronize_runtime_graph(graph, job_id=job_id)
             return response
         except Exception as exc:
-            _finalize_rebuild_failure(
-                session_factory=session_factory,
-                job_id=job_id,
-                exc=exc,
-                job_started_at=job_started_at,
-            )
+            if not success_persisted:
+                if graph_saved and graph_snapshot is not None:
+                    _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
+                _finalize_rebuild_failure(
+                    session_factory=session_factory,
+                    job_id=job_id,
+                    exc=exc,
+                    job_started_at=job_started_at,
+                )
             # Re-wrap if source context exists, otherwise re-raise original
             if source is not None:
                 raise _RebuildExecutionError(source, exc) from exc

@@ -10,7 +10,6 @@ from src.data.db_models import RebuildJobStatus
 AssetGraphSource = Literal[
     "persisted_graph_store",
     "sample",
-    "sample_graph",
     "cache",
     "real_data",
     "explicit_factory",
@@ -113,7 +112,6 @@ class GraphHealthResponse(BaseModel):
     lifecycle_state: str = "UNINITIALIZED"
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
-    graph_startup_source: AssetGraphSource | None = None
 
 
 class DatabaseHealthResponse(BaseModel):

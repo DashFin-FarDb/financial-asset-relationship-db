@@ -1,6 +1,6 @@
 """System and metadata API routes."""
 
-from typing import Any, Literal, NoReturn, cast, get_args
+from typing import Any, Literal, NoReturn, cast
 
 from fastapi import APIRouter, HTTPException, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
@@ -8,13 +8,12 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from src.models.financial_models import AssetClass
 
 from .. import graph_lifecycle
-from ..api_models import AssetGraphSource, DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse
+from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse
 from ..router_helpers import get_graph, logger
 
 router = APIRouter()
 
 SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
-SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES: frozenset[str] = frozenset(get_args(AssetGraphSource))
 _FALLBACK_METRICS_TEXT = (
     "# HELP graph_rebuild_requests_total Total number of graph rebuild requests received.\n"
     "# TYPE graph_rebuild_requests_total counter\n"
@@ -53,7 +52,7 @@ async def health_check() -> dict[str, Any]:
 def _get_graph_health() -> GraphHealthResponse:
     """Return bounded, non-secret graph readiness details."""
     try:
-        graph, startup_source = graph_lifecycle.get_graph_with_startup_source()
+        graph, _startup_source = graph_lifecycle.get_graph_with_startup_source()
         assets = getattr(graph, "assets", {})
         relationships = getattr(graph, "relationships", {})
 
@@ -69,7 +68,6 @@ def _get_graph_health() -> GraphHealthResponse:
                 lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
                 asset_count=0,
                 relationship_count=0,
-                graph_startup_source=None,
             )
 
         return GraphHealthResponse(
@@ -77,7 +75,6 @@ def _get_graph_health() -> GraphHealthResponse:
             lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
             asset_count=len(assets),
             relationship_count=sum(len(items) for items in relationships.values()),
-            graph_startup_source=_bound_graph_startup_source(startup_source),
         )
     except Exception:
         logger.warning("Detailed health graph check failed")
@@ -86,15 +83,7 @@ def _get_graph_health() -> GraphHealthResponse:
             lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
             asset_count=0,
             relationship_count=0,
-            graph_startup_source=None,
         )
-
-
-def _bound_graph_startup_source(value: object) -> AssetGraphSource:
-    """Return a bounded startup-source label safe for the public health response."""
-    if value in SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES:
-        return cast(AssetGraphSource, value)
-    return "unknown"
 
 
 def _get_database_health() -> DatabaseHealthResponse:
