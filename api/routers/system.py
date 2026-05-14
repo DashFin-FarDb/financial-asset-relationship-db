@@ -144,7 +144,10 @@ def detailed_health_check() -> DetailedHealthResponse:
 @router.get("/api/metrics")
 async def metrics() -> Response:
     """Expose Prometheus metrics."""
-    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    try:
+        return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    except Exception as e:
+        _raise_system_route_error("Error generating metrics:", e)
 
 
 def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:
