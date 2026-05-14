@@ -18,8 +18,8 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
     app = FastAPI()
     shutdown_calls = []
 
-    def fake_shutdown() -> None:
-        """Record shutdown invocation."""
+    async def fake_shutdown() -> None:
+        """Record shutdown invocation (async to match actual signature)."""
         shutdown_calls.append(True)
 
     def fake_get_graph() -> object:

@@ -202,7 +202,7 @@ def test_rebuild_allows_active_authorized_operator_user(
     try:
         response = operator_client.post("/api/graph/rebuild")
     finally:
-        graph_admin.shutdown_rebuild_executor()
+        graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
@@ -236,7 +236,7 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
             response = operator_client.post("/api/graph/rebuild")
     finally:
-        graph_admin.shutdown_rebuild_executor()
+        graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
@@ -336,7 +336,7 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
         assert exc_info.value.status_code == 429
         assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
     finally:
-        graph_admin.shutdown_rebuild_executor()
+        graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
         reset_graph()
@@ -409,7 +409,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
             # Allow time for the executor thread to finish and log
             await asyncio.sleep(0.12)
     finally:
-        graph_admin.shutdown_rebuild_executor()
+        graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 

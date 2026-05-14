@@ -63,7 +63,7 @@ async def lifespan(_fastapi_app: FastAPI):
         pass
     finally:
         begin_shutdown()
-        shutdown_rebuild_executor()
+        await shutdown_rebuild_executor()
         logger.info("Application shutdown")
 
 
