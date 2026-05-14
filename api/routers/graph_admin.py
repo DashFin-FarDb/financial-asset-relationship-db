@@ -824,7 +824,7 @@ def list_rebuild_jobs(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
     limit: int = Query(default=10, ge=1, le=_MAX_REBUILD_JOB_LIST_RESULTS),
     offset: int = Query(default=0, ge=0),
-    status: str | None = Query(default=None),
+    status_filter: str | None = Query(default=None, alias="status"),
 ) -> RebuildJobListResponse:
     """List rebuild jobs ordered newest-first.
 
@@ -835,7 +835,7 @@ def list_rebuild_jobs(
         current_user: Authenticated operator user.
         limit: Maximum number of jobs to return.
         offset: Number of jobs to skip.
-        status: Optional status filter.
+        status_filter: Optional status filter.
 
     Returns:
         RebuildJobListResponse with pagination-ready bounded list structure.
@@ -849,7 +849,7 @@ def list_rebuild_jobs(
             jobs_orm = repo.list_rebuild_jobs(
                 limit=limit,
                 offset=offset,
-                status=status,
+                status=status_filter,
             )
         except ValueError as exc:
             raise HTTPException(

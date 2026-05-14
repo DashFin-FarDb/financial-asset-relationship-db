@@ -651,3 +651,16 @@ def test_list_rebuild_jobs_returns_empty_list_when_no_jobs(
 
     assert data["jobs"] == []
     assert data["count"] == 0
+
+
+def test_list_rebuild_jobs_invalid_status_returns_400(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """GET /jobs should return 400 for invalid status filters."""
+    with _rebuild_jobs_db_context(tmp_path, monkeypatch):
+        response = operator_client.get("/api/graph/rebuild/jobs?status=not_a_valid_status")
+
+    assert response.status_code == 400
+    assert "Invalid rebuild job status" in response.json()["detail"]
