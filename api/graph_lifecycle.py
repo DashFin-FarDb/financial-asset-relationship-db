@@ -224,9 +224,8 @@ def synchronize_runtime_graph(
     single transition point for REBUILDING -> READY/FAILED.
 
     Returns:
-        bool: True when the graph is successfully published to runtime and
-        mirrored into legacy api.main; False when publishing is skipped because
-        runtime is SHUTTING_DOWN/STOPPED or because
+        bool: True when the graph is successfully published to runtime and mirrored into legacy api.main;
+        False when publishing is skipped because runtime is SHUTTING_DOWN/STOPPED or because
         expected_last_synced_job_id no longer matches current sync state.
     """
     with graph_lock:
