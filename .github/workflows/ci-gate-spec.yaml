@@ -23,10 +23,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@ac12edf5a54b7e2d3b29b192a06bf3cdb1915a25
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@75aca1d77c62e08e5cb1d5e5d3e9fa49b6c3520a
         with:
           python-version: "3.11"
 
@@ -76,10 +76,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@ac12edf5a54b7e2d3b29b192a06bf3cdb1915a25
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@75aca1d77c62e08e5cb1d5e5d3e9fa49b6c3520a
         with:
           python-version: "3.11"
 
@@ -122,10 +122,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@ac12edf5a54b7e2d3b29b192a06bf3cdb1915a25
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@75aca1d77c62e08e5cb1d5e5d3e9fa49b6c3520a
         with:
           python-version: "3.11"
 
