@@ -5,6 +5,9 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 concurrency:
   group: stage-5c-${{ github.ref }}
   cancel-in-progress: true
