@@ -65,7 +65,7 @@ def scan_file(path: Path) -> list[str]:
     violations: list[str] = []
 
     for name, pattern in FORBIDDEN_PATTERNS.items():
-        if name == "MULTIPLE_OWNERSHIP_ASSIGNMENT" and str(path) in OWNERSHIP_MUTATION_ALLOWED_WRITERS:
+        if name == "MULTIPLE_OWNERSHIP_ASSIGNMENT" and path.as_posix() in OWNERSHIP_MUTATION_ALLOWED_WRITERS:
             continue
         if pattern.search(content):
             violations.append(f"{name} violation in {path}")
