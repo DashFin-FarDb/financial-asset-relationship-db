@@ -161,11 +161,12 @@ def detect_rebuild_inconsistency(
     It runs all detection checks and returns the highest-priority inconsistency
     found (if any).
 
-    Priority order:
-    1. Orphaned running state (most critical - immediate divergence)
-    2. Crash suspicion (indicates probable executor crash)
-    3. Stale ownership (indicates lock/heartbeat expiry)
-    4. None (consistent state)
+    Priority order depends on whether a DB job exists:
+    1. Zombie executor (runtime has an active executor but no DB job exists)
+    2. Orphaned running state (most critical - immediate divergence)
+    3. Crash suspicion (indicates probable executor crash)
+    4. Stale ownership (indicates lock/heartbeat expiry)
+    5. None (consistent state)
 
     Args:
         job: Current rebuild job from DB (None if no job exists).
