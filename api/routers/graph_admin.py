@@ -122,7 +122,7 @@ class _RebuildRuntime:
 
     def shutdown_executor(self) -> None:
         """Shut down the process-local rebuild executor.
-        
+
         This is a blocking call that waits for threads to complete.
         Should be called via asyncio.to_thread() in async contexts.
         """
@@ -452,7 +452,7 @@ def _unwrap_rebuild_error(exc: Exception) -> Exception:
 
 async def shutdown_rebuild_executor() -> None:
     """Shut down the process-local graph rebuild executor.
-    
+
     Uses asyncio.to_thread to avoid blocking the event loop during
     ThreadPoolExecutor.shutdown(wait=True).
     """
@@ -461,7 +461,7 @@ async def shutdown_rebuild_executor() -> None:
 
 def shutdown_rebuild_executor_sync() -> None:
     """Synchronous wrapper for shutdown_rebuild_executor.
-    
+
     For use in sync test cleanup and other sync contexts.
     Prefer the async version in production async contexts.
     """
