@@ -9,7 +9,6 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
-from src.data.db_models import RebuildJobORM
 from src.logic.rebuild_failure_detection import (
     InconsistencyType,
     RebuildInconsistency,
