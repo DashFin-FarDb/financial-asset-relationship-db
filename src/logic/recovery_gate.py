@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Callable
 
+from sqlalchemy import exc as sqlalchemy_exc
 from sqlalchemy.orm import Session
 
 from src.data.distributed_lock import DistributedLock, LockState
@@ -84,13 +85,37 @@ class RecoveryGate:
             try:
                 job = repo.get_active_rebuild_state()
             except ValueError as exc:
+                # Business logic error: multiple running jobs detected
                 exc_type = type(exc).__name__
-                # Sanitize message: log only exception type, not full details that may contain DB internals
                 logger.warning("Execution blocked: %s (active rebuild state query failed)", exc_type)
                 self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
                 return RecoveryDecision(
                     action=RecoveryAction.UNSAFE,
                     reason=f"{exc_type}: active rebuild state query failed",
+                    inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
+                    safe_to_execute=False,
+                )
+            except sqlalchemy_exc.SQLAlchemyError as exc:
+                # Database error: connection lost, timeout, etc.
+                # Treat as UNSAFE (fail-closed) - cannot verify rebuild state
+                exc_type = type(exc).__name__
+                logger.warning("Execution blocked: %s (database error during rebuild state query)", exc_type)
+                self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
+                return RecoveryDecision(
+                    action=RecoveryAction.UNSAFE,
+                    reason=f"{exc_type}: database error during rebuild state query",
+                    inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
+                    safe_to_execute=False,
+                )
+            except Exception as exc:
+                # Unexpected error: treat as UNSAFE (fail-closed)
+                # This catches any other errors (e.g., bugs in repository code)
+                exc_type = type(exc).__name__
+                logger.error("Execution blocked: %s (unexpected error during rebuild state query)", exc_type)
+                self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
+                return RecoveryDecision(
+                    action=RecoveryAction.UNSAFE,
+                    reason=f"{exc_type}: unexpected error during rebuild state query",
                     inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
                     safe_to_execute=False,
                 )
