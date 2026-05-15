@@ -1289,7 +1289,7 @@ class AssetGraphRepository:
             )
         )
         result = self.session.execute(stmt)
-        
+
         # If no rows were updated, another worker already owns this job
         if result.rowcount == 0:
             # Refresh to get current owner
