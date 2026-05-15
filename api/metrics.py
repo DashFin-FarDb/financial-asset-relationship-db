@@ -74,8 +74,7 @@ def update_rebuild_state_metric(status: str) -> None:
     """
     # Define an explicit mapping
     mapping = {
-        "unknown"
-        "none": 0,
+        "unknown" "none": 0,
         "pending": 1,
         "running": 2,
         "succeeded": 3,
@@ -89,8 +88,8 @@ def update_rebuild_state_metric(status: str) -> None:
 
     if gauge_value is None:
         logger.error(f"Inconsistency Detected: Received unknown job status '{status}'. Mapping to UNKNOWN_STATE (-1).")
-        return -1 
-    
+        return -1
+
     return gauge_value
 
 
