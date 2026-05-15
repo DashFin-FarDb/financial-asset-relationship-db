@@ -92,7 +92,9 @@ def test_recovery_gate_blocks_on_orphan_with_valid_lock(mock_session_factory, mo
             gate.ensure_safe_to_execute()
 
 
-def test_recovery_gate_increments_recovery_metric_on_detected_inconsistency(mock_session_factory, mock_lock):
+def test_recovery_gate_increments_recovery_metric_on_detected_inconsistency(
+    mock_session_factory, mock_lock, monkeypatch
+):
     """Detected inconsistencies should increment recovery trigger metrics."""
     mock_lock.check_state.return_value = LockState.VALID
     gate = RecoveryGate(
@@ -107,15 +109,14 @@ def test_recovery_gate_increments_recovery_metric_on_detected_inconsistency(mock
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
 
-    with pytest.MonkeyPatch.context() as m:
-        metric_calls: list[str] = []
-        m.setattr("src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob())
-        m.setattr("src.logic.recovery_gate.increment_recovery_trigger", lambda inc_type: metric_calls.append(inc_type))
-        assert gate.evaluate_state() == RecoveryAction.UNSAFE
-        assert metric_calls == [InconsistencyType.ORPHANED_RUNNING.value]
+    metric_calls: list[str] = []
+    monkeypatch.setattr("src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob())
+    monkeypatch.setattr("src.logic.recovery_gate.increment_recovery_trigger", lambda inc_type: metric_calls.append(inc_type))
+    assert gate.evaluate_state() == RecoveryAction.UNSAFE
+    assert metric_calls == [InconsistencyType.ORPHANED_RUNNING.value]
 
 
-def test_recovery_gate_blocks_when_multiple_running_jobs_detected(mock_session_factory, mock_lock):
+def test_recovery_gate_blocks_when_multiple_running_jobs_detected(mock_session_factory, mock_lock, monkeypatch):
     """Multiple running DB jobs should block execution as unsafe."""
     mock_lock.check_state.return_value = LockState.VALID
     gate = RecoveryGate(
@@ -124,12 +125,11 @@ def test_recovery_gate_blocks_when_multiple_running_jobs_detected(mock_session_f
         runtime_has_active_executor=False,
     )
 
-    with pytest.MonkeyPatch.context() as m:
-        metric_calls: list[str] = []
-        m.setattr(
-            "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state",
-            lambda self: (_ for _ in ()).throw(ValueError("Multiple rebuild jobs are in RUNNING state")),
-        )
-        m.setattr("src.logic.recovery_gate.increment_recovery_trigger", lambda inc_type: metric_calls.append(inc_type))
-        assert gate.evaluate_state() == RecoveryAction.UNSAFE
-        assert metric_calls == [InconsistencyType.ORPHANED_RUNNING.value]
+    metric_calls: list[str] = []
+    monkeypatch.setattr(
+        "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state",
+        lambda self: (_ for _ in ()).throw(ValueError("Multiple rebuild jobs are in RUNNING state")),
+    )
+    monkeypatch.setattr("src.logic.recovery_gate.increment_recovery_trigger", lambda inc_type: metric_calls.append(inc_type))
+    assert gate.evaluate_state() == RecoveryAction.UNSAFE
+    assert metric_calls == [InconsistencyType.ORPHANED_RUNNING.value]

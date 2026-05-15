@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class ExecutionBlockedError(Exception):
     """Raised when execution is blocked by the recovery gate."""
 
-    ...
+    pass
 
 
 class RecoveryGate:
