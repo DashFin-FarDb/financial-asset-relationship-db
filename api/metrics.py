@@ -68,7 +68,7 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
 
     Maps rebuild status to numeric gauge value for monitoring:
     - unknown: -1
-    - none: 0 
+    - none: 0
     - pending: 1
     - running: 2
     - succeeded: 3
