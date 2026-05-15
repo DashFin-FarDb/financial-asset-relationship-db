@@ -50,6 +50,7 @@ from ..metrics import (
     REBUILD_REQUESTS,
     REBUILD_SUCCESS,
     update_graph_metrics,
+    update_rebuild_state_metric,
 )
 
 router = APIRouter()
@@ -618,8 +619,10 @@ def _create_and_start_rebuild_job(
         GraphPersistenceSaveError: If job creation or running transition fails.
     """
     job_id = _create_job_safe(session_factory, user_ref)
+    update_rebuild_state_metric("pending")
     job_started_at = perf_counter()
     _mark_job_running_safe(session_factory, job_id)
+    update_rebuild_state_metric("running")
     return job_id, job_started_at
 
 
@@ -661,6 +664,7 @@ def _finalize_rebuild_success(
         edge_count=response.relationship_count,
         duration_ms=_duration_ms(job_started_at),
     )
+    update_rebuild_state_metric("succeeded")
     return response
 
 
@@ -673,6 +677,7 @@ def _finalize_rebuild_failure(
 ) -> None:
     """Persist failed rebuild terminal state."""
     _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
+    update_rebuild_state_metric("failed")
 
 
 def _load_persisted_graph_snapshot(

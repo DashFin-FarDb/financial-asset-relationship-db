@@ -7,9 +7,11 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
+from api.metrics import increment_recovery_trigger
 from src.data.distributed_lock import DistributedLock, LockState
 from src.data.repository import AssetGraphRepository
 from src.logic.rebuild_failure_detection import (
+    InconsistencyType,
     detect_rebuild_inconsistency,
 )
 from src.logic.rebuild_recovery import RecoveryAction, determine_recovery_action
@@ -19,8 +21,6 @@ logger = logging.getLogger(__name__)
 
 class ExecutionBlockedError(Exception):
     """Raised when execution is blocked by the recovery gate."""
-
-    pass
 
 
 class RecoveryGate:
@@ -67,7 +67,12 @@ class RecoveryGate:
 
         with self.session_factory() as session:
             repo = AssetGraphRepository(session)
-            job = repo.get_active_rebuild_state()
+            try:
+                job = repo.get_active_rebuild_state()
+            except ValueError as exc:
+                logger.warning("Execution blocked: %s", exc)
+                increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
+                return RecoveryAction.UNSAFE
 
         inconsistency = detect_rebuild_inconsistency(
             job=job,
@@ -79,6 +84,9 @@ class RecoveryGate:
             inconsistency=inconsistency,
             lock_is_valid=lock_is_valid,
         )
+
+        if inconsistency.inconsistency_type != InconsistencyType.NONE:
+            increment_recovery_trigger(inconsistency.inconsistency_type.value)
 
         if not decision.safe_to_execute:
             logger.warning("Execution blocked: %s", decision.reason)
