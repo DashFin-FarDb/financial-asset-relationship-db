@@ -1259,8 +1259,10 @@ class AssetGraphRepository:
             worker_id: The worker/instance ID sending the heartbeat.
 
         Raises:
-            ValueError: If the job does not exist or is not in running status.
+            ValueError: If the job does not exist, is not in running status,
+                or is owned by a different worker.
         """
+        # First verify the job exists and is in RUNNING status
         job = self.session.get(RebuildJobORM, job_id)
         if job is None:
             raise ValueError(f"Rebuild job {job_id} not found")
@@ -1268,18 +1270,35 @@ class AssetGraphRepository:
             current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
             raise ValueError(f"Cannot update heartbeat for job {job_id} with status {current_status} (must be running)")
 
-        if job.active_worker_id is not None and job.active_worker_id != worker_id:
+        # Atomic conditional update: only succeeds if active_worker_id is NULL or matches worker_id
+        # This prevents race conditions where two workers try to claim ownership simultaneously
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        stmt = (
+            update(RebuildJobORM)
+            .where(RebuildJobORM.job_id == job_id)
+            .where(
+                or_(
+                    RebuildJobORM.active_worker_id.is_(None),
+                    RebuildJobORM.active_worker_id == worker_id,
+                )
+            )
+            .values(
+                active_worker_id=worker_id,
+                last_heartbeat_at=now,
+                updated_at=now,
+            )
+        )
+        result = self.session.execute(stmt)
+        
+        # If no rows were updated, another worker already owns this job
+        if result.rowcount == 0:
+            # Refresh to get current owner
+            self.session.expire(job)
+            current_owner = job.active_worker_id
             raise ValueError(
-                f"Cannot update heartbeat for job {job_id}: active worker is {job.active_worker_id}, not {worker_id}. "
+                f"Cannot update heartbeat for job {job_id}: active worker is {current_owner}, not {worker_id}. "
                 "Worker ownership has already been claimed."
             )
-
-        now = datetime.now(timezone.utc)  # noqa: UP017
-        job.last_heartbeat_at = now
-        if job.active_worker_id is None:
-            job.active_worker_id = worker_id
-        job.updated_at = now
-        self.session.add(job)
 
     def get_active_rebuild_state(self) -> RebuildJobORM | None:
         """
