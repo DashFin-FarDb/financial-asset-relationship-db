@@ -57,7 +57,7 @@ def detect_stale_ownership(
     Returns:
         True if ownership is stale, False otherwise.
     """
-    if job.status != "running":
+    if job.status != RebuildJobStatus.RUNNING.value:
         return False
 
     if job.last_heartbeat_at is None:
@@ -87,7 +87,7 @@ def detect_orphaned_running_state(
     Returns:
         True if state is orphaned (running in DB, no executor in runtime).
     """
-    if job.status != "running":
+    if job.status != RebuildJobStatus.RUNNING.value:
         return False
 
     return not runtime_has_active_executor
@@ -119,7 +119,7 @@ def detect_crash_suspicion(
     Returns:
         True if crash is suspected, False otherwise.
     """
-    if job.status != "running":
+    if job.status != RebuildJobStatus.RUNNING.value:
         return False
 
     if not job.active_worker_id:
