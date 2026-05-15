@@ -1,0 +1,165 @@
+name: Stage 5C - Distributed Coordination Safety Gates
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: stage-5c-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # -----------------------------
+  # Gate A — Static Invariant Analysis
+  # -----------------------------
+  static-coordination-gates:
+    name: Gate A - Static Coordination Invariants
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install ruff mypy
+
+      - name: Run type checking (mypy)
+        run: mypy src/
+
+      - name: Run linting (ruff strict mode)
+        run: ruff check src/
+
+      - name: Coordination invariant scan (custom static rules)
+        run: |
+          python tools/ci/check_coordination_invariants.py
+
+          # Expected checks enforced in script:
+          # - single ownership writer enforcement
+          # - no bypass of RecoveryGate
+          # - no duplicate execution entrypoints
+          # - no unsafe lock fallback logic
+
+  # -----------------------------
+  # Gate B — Multi-Worker Simulation
+  # -----------------------------
+  multi-worker-simulation:
+    name: Gate B - Multi-Worker Coordination Simulation
+    runs-on: ubuntu-latest
+    needs: static-coordination-gates
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-xdist
+
+      - name: Run multi-worker coordination tests
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+        run: |
+          pytest tests/coordination \
+            -n 4 \
+            --maxfail=1 \
+            -q
+
+          # Required enforced assertions inside tests:
+          # - single active owner invariant
+          # - no overlapping rebuild execution
+          # - monotonic ownership transitions
+
+  # -----------------------------
+  # Gate C — Failure Injection Tests
+  # -----------------------------
+  failure-injection-gates:
+    name: Gate C - Failure Mode Injection
+    runs-on: ubuntu-latest
+    needs: multi-worker-simulation
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run failure injection test suite
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          COORDINATION_FAILURE_MODES: "enabled"
+        run: |
+          pytest tests/failure_injection \
+            -q \
+            --maxfail=1
+
+          # Must include:
+          # - lock expiry mid-execution
+          # - worker crash simulation
+          # - DB latency/partition simulation
+          # - cancellation during execution
+          # - restart storm simulation
+
+  # -----------------------------
+  # Final Aggregation Gate
+  # -----------------------------
+  coordination-safety-summary:
+    name: Final Coordination Safety Gate
+    runs-on: ubuntu-latest
+    needs:
+      - static-coordination-gates
+      - multi-worker-simulation
+      - failure-injection-gates
+
+    steps:
+      - name: Verify all gates passed
+        run: |
+          echo "All Stage 5C coordination safety gates passed."
+          echo "System is safe for merge under distributed coordination invariants."
