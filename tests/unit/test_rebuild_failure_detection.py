@@ -168,7 +168,7 @@ class TestDetectRebuildInconsistency:
         assert inconsistency.inconsistency_type == InconsistencyType.NONE
         assert inconsistency.job_id is None
 
-    def test_detects_orphaned_running_when_no_job_but_executor_active(self):
+    def test_detects_zombie_executor_when_no_job_but_executor_active(self):
         """Zombie executor state when executor exists but no DB job."""
         inconsistency = detect_rebuild_inconsistency(
             job=None,
