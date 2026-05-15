@@ -97,6 +97,7 @@ jobs:
       - name: Run multi-worker coordination tests
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          ASSET_GRAPH_DATABASE_URL: postgresql://test:test@localhost:5432/test_db
         run: |
           if [ -d tests/coordination ]; then
             pytest tests/coordination \
