@@ -97,7 +97,7 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
         "cancelled": 5,
     }
 
-    normalised_status = status.lower()
+    normalised_status = status_str.lower()
     gauge_value = mapping.get(normalised_status, -1)
 
     if gauge_value == -1 and normalised_status != "unknown":
