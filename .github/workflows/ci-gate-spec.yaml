@@ -131,7 +131,11 @@ jobs:
           POSTGRES_DB: test_db
         ports:
           - 5432:5432
-
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
