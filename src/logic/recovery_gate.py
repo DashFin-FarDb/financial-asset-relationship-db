@@ -98,23 +98,29 @@ class RecoveryGate:
         """
         from src.logic.rebuild_recovery import RecoveryDecision
 
-        if (
-            inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING
-            and lock_is_valid
-            and job is not None
-            and job.active_worker_id != self.lock.holder_id
-        ):
-            return RecoveryDecision(
-                action=RecoveryAction.RESET,
-                reason=(
-                    "Orphaned running rebuild detected with owner mismatch: "
-                    f"job worker_id={job.active_worker_id!r}, "
-                    f"current lock holder_id={self.lock.holder_id!r}"
-                ),
-                inconsistency_type=decision.inconsistency_type,
-                safe_to_execute=decision.safe_to_execute,
-            )
-        return decision
+        # Early return if not orphaned running state
+        if inconsistency.inconsistency_type != InconsistencyType.ORPHANED_RUNNING:
+            return decision
+        
+        # Early return if lock is invalid or no job
+        if not lock_is_valid or job is None:
+            return decision
+        
+        # Early return if owner matches
+        if job.active_worker_id == self.lock.holder_id:
+            return decision
+        
+        # Owner mismatch detected - override to RESET
+        return RecoveryDecision(
+            action=RecoveryAction.RESET,
+            reason=(
+                "Orphaned running rebuild detected with owner mismatch: "
+                f"job worker_id={job.active_worker_id!r}, "
+                f"current lock holder_id={self.lock.holder_id!r}"
+            ),
+            inconsistency_type=decision.inconsistency_type,
+            safe_to_execute=decision.safe_to_execute,
+        )
 
     def _evaluate_decision(self):
         """
