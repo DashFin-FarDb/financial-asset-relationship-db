@@ -54,11 +54,12 @@ def determine_recovery_action(
 
     2. RESET (must reset before execution):
        - Orphaned running state with no valid lock for this process
-       - Crash suspicion detected
+       - Crash suspicion detected when this process does not hold a valid lock
        - Stale ownership with no valid lock for this process
 
     3. WAIT (must wait for stabilization):
        - Inconsistency detected but this process still holds a valid lock
+       - Crash suspicion detected while this process still holds a valid lock
        - Transitional states that may resolve
 
     4. RESUME (safe to proceed):
