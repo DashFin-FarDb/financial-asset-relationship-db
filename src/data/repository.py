@@ -1267,7 +1267,7 @@ class AssetGraphRepository:
         if job.status != RebuildJobStatus.RUNNING:
             current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else job.status
             raise ValueError(
-                f"Cannot update heartbeat for job {job_id} " f"with status {current_status} (must be running)"
+                f"Cannot update heartbeat for job {job_id} with status {current_status} (must be running)"
             )
 
         now = datetime.now(timezone.utc)  # noqa: UP017
