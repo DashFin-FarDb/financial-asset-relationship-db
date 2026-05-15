@@ -183,7 +183,8 @@ def _cov_plugin_available() -> bool:
 def _register_dummy_cov_options(parser: Any) -> None:
     """Register dummy --cov and --cov-report options."""
     group = parser.getgroup("cov")
-    group.addoption(
+    _safe_addoption(
+        group,
         "--cov",
         action="append",
         dest="cov",
@@ -191,7 +192,8 @@ def _register_dummy_cov_options(parser: Any) -> None:
         metavar="path",
         help="Dummy option registered when pytest-cov is unavailable.",
     )
-    group.addoption(
+    _safe_addoption(
+        group,
         "--cov-report",
         action="append",
         dest="cov_report",
@@ -199,6 +201,15 @@ def _register_dummy_cov_options(parser: Any) -> None:
         metavar="type",
         help="Dummy option registered when pytest-cov is unavailable.",
     )
+
+
+def _safe_addoption(group: Any, *names: str, **kwargs: object) -> None:
+    """Add a pytest option while ignoring duplicate-registration conflicts."""
+    try:
+        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
+    except ValueError as exc:
+        if "already added" not in str(exc):
+            raise
 
 
 @pytest.fixture
