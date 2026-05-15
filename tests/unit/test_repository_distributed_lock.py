@@ -6,6 +6,7 @@ import pytest
 from sqlalchemy import create_engine
 
 from src.data.database import create_session_factory, init_db
+from src.data.db_models import DistributedLockORM
 from src.data.distributed_lock import LockState
 from src.data.repository import AssetGraphRepository
 
@@ -192,7 +193,6 @@ class TestDistributedLockRepository:
     def test_check_distributed_lock_state_returns_expired_for_stale_lock(self, repository_factory):
         """Expired lock rows should be classified as EXPIRED."""
         repo = repository_factory()
-        from src.data.db_models import DistributedLockORM
 
         now = datetime.now(timezone.utc)
         repo.session.add(

@@ -38,7 +38,7 @@ FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
 # rather than as a single regex, so placement of RecoveryGate in the file
 # does not affect correctness.
 _EXECUTION_PATTERN = "|".join(_EXECUTION_ENTRYPOINTS)
-_EXECUTION_CALL_RE = re.compile(rf"def\s+({_EXECUTION_PATTERN})\s*\(")
+_EXECUTION_CALL_RE = re.compile(rf"\b({_EXECUTION_PATTERN})\b")
 _RECOVERY_GATE_RE = re.compile(r"\bRecoveryGate\b")
 
 

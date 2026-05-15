@@ -73,6 +73,7 @@ def test_recovery_gate_resume_on_clean_state(mock_session_factory, mock_lock):
 def test_recovery_gate_blocks_on_orphan_with_valid_lock(mock_session_factory, mock_lock):
     """Test that RecoveryGate blocks if there's an orphan running job but we hold the lock."""
     mock_lock.check_state.return_value = LockState.VALID
+    mock_lock.holder_id = "worker-1"
 
     gate = RecoveryGate(
         session_factory=mock_session_factory,
@@ -99,6 +100,7 @@ def test_recovery_gate_increments_recovery_metric_on_detected_inconsistency(
 ):
     """Detected inconsistencies should increment recovery trigger metrics."""
     mock_lock.check_state.return_value = LockState.VALID
+    mock_lock.holder_id = "worker-1"
     metric_calls: list[str] = []
     gate = RecoveryGate(
         session_factory=mock_session_factory,
@@ -146,6 +148,7 @@ def test_recovery_gate_blocks_when_multiple_running_jobs_detected(mock_session_f
 def test_recovery_gate_error_message_includes_decision_reason(mock_session_factory, mock_lock, monkeypatch):
     """Blocked executions should include actionable reason details."""
     mock_lock.check_state.return_value = LockState.VALID
+    mock_lock.holder_id = "worker-1"
     gate = RecoveryGate(
         session_factory=mock_session_factory,
         lock=mock_lock,
@@ -169,6 +172,7 @@ def test_recovery_gate_error_message_includes_decision_reason(mock_session_facto
 def test_recovery_gate_orphaned_with_new_lock_owner_returns_reset(mock_session_factory, mock_lock, monkeypatch):
     """Orphaned jobs owned by another worker should remain recoverable via RESET."""
     mock_lock.check_state.return_value = LockState.VALID
+    mock_lock.holder_id = "new-worker"
     gate = RecoveryGate(
         session_factory=mock_session_factory,
         lock=mock_lock,
