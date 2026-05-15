@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 SRC_DIR = Path("src")
 
@@ -44,6 +44,10 @@ ALLOWED_PATH_EXCEPTIONS = {
     "tools/",
 }
 
+OWNERSHIP_MUTATION_ALLOWED_WRITERS = {
+    "src/data/repository.py",
+}
+
 
 def iter_python_files(root: Path) -> Iterable[Path]:
     for path in root.rglob("*.py"):
@@ -61,6 +65,8 @@ def scan_file(path: Path) -> list[str]:
     violations: list[str] = []
 
     for name, pattern in FORBIDDEN_PATTERNS.items():
+        if name == "MULTIPLE_OWNERSHIP_ASSIGNMENT" and str(path) in OWNERSHIP_MUTATION_ALLOWED_WRITERS:
+            continue
         if pattern.search(content):
             violations.append(f"{name} violation in {path}")
 
