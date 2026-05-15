@@ -188,18 +188,18 @@ def detect_rebuild_inconsistency(
 
     # Check for state divergence (highest priority)
     is_db_running = job.status == RebuildJobStatus.RUNNING.value
-    
+
     if runtime_has_active_executor != is_db_running:
         # This covers both directions:
         # 1. Runtime active + DB NOT running (Zombie)
         # 2. Runtime inactive + DB says running (Ghost/Orphan)
-        
+
         divergence_detail = (
             f"active executor found but DB is '{job.status}'"
-            if runtime_has_active_executor else
-            f"DB is 'RUNNING' but no active executor found"
+            if runtime_has_active_executor
+            else f"DB is 'RUNNING' but no active executor found"
         )
-        
+
         return RebuildInconsistency(
             inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
             job_id=job.job_id,
