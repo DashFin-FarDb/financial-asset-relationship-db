@@ -61,6 +61,7 @@ def update_rebuild_state_metric(status: str) -> None:
     Update rebuild state status metric.
 
     Maps rebuild status to numeric gauge value for monitoring:
+    - unknown -1 (invalid or new jobs)
     - none: 0 (no active job)
     - pending: 1
     - running: 2
@@ -71,15 +72,26 @@ def update_rebuild_state_metric(status: str) -> None:
     Args:
         status: Current rebuild job status.
     """
-    status_map = {
+    # Define an explicit mapping
+    mapping = {
+        "unknown"
         "none": 0,
         "pending": 1,
         "running": 2,
         "succeeded": 3,
         "failed": 4,
-        "cancelled": 5,
+        # Add other known statuses here
     }
-    REBUILD_STATE_STATUS.set(status_map.get(status, 0))
+
+    # Use a dedicated 'unknown' value (e.g., -1) that triggers alerts
+    # rather than defaulting to 0 (none).
+    gauge_value = mapping.get(status.lower())
+
+    if gauge_value is None:
+        logger.error(f"Inconsistency Detected: Received unknown job status '{status}'. Mapping to UNKNOWN_STATE (-1).")
+        return -1 
+    
+    return gauge_value
 
 
 def increment_recovery_trigger(inconsistency_type: str) -> None:
