@@ -56,6 +56,10 @@ def test_migration_adds_rebuild_recovery_columns_for_existing_tables(tmp_path: P
                 sanitized_failure_category TEXT,
                 sanitized_failure_message TEXT
             );
+            CREATE INDEX ix_rebuild_jobs_created_at
+                ON rebuild_jobs (created_at);
+            CREATE INDEX ix_rebuild_jobs_status_created_at
+                ON rebuild_jobs (status, created_at);
             """)
 
     _apply_migration(db_path)

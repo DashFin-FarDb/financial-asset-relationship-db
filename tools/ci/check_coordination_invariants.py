@@ -7,7 +7,7 @@ import sys
 from collections.abc import Iterable
 from pathlib import Path
 
-SRC_DIR = Path("src")
+SCAN_ROOT_DIRS = (Path("src"), Path("api"))
 
 # -----------------------------
 # Forbidden structural patterns
@@ -31,7 +31,7 @@ FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
 # Order-independent gate check: these two are tested together in scan_file
 # rather than as a single regex, so placement of RecoveryGate in the file
 # does not affect correctness.
-_EXECUTION_CALL_RE = re.compile(r"\b(execute_rebuild|start_rebuild)\b")
+_EXECUTION_CALL_RE = re.compile(r"def\s+(execute_rebuild|start_rebuild|rebuild_graph|_perform_rebuild_and_persist_sync)\s*\(")
 _RECOVERY_GATE_RE = re.compile(r"\bRecoveryGate\b")
 
 
@@ -80,15 +80,17 @@ def scan_file(path: Path) -> list[str]:
 
 
 def main() -> None:
-    if not SRC_DIR.exists():
-        print("src/ directory not found — failing invariant check.")
+    missing_roots = [root.as_posix() for root in SCAN_ROOT_DIRS if not root.exists()]
+    if missing_roots:
+        print(f"Required scan root(s) not found: {', '.join(missing_roots)} — failing invariant check.")
         sys.exit(1)
 
     all_violations: list[str] = []
 
-    for file_path in iter_python_files(SRC_DIR):
-        violations = scan_file(file_path)
-        all_violations.extend(violations)
+    for root in SCAN_ROOT_DIRS:
+        for file_path in iter_python_files(root):
+            violations = scan_file(file_path)
+            all_violations.extend(violations)
 
     unique_violations = sorted(set(all_violations))
 

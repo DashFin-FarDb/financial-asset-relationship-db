@@ -49,6 +49,7 @@ from ..metrics import (
     REBUILD_FAILURE,
     REBUILD_REQUESTS,
     REBUILD_SUCCESS,
+    increment_recovery_trigger,
     update_graph_metrics,
     update_rebuild_state_metric,
 )
@@ -765,6 +766,7 @@ def _perform_rebuild_and_persist_sync(
         gate = RecoveryGate(
             session_factory=session_factory,
             lock=dist_lock,
+            increment_recovery_trigger=increment_recovery_trigger,
             runtime_has_active_executor=False,
             lock_ttl_seconds=lock_ttl,
         )

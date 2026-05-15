@@ -78,10 +78,10 @@ CREATE TABLE IF NOT EXISTS rebuild_jobs (
 ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id TEXT;
 ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TEXT;
 
-CREATE INDEX ix_rebuild_jobs_created_at
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at
     ON rebuild_jobs (created_at);
 
-CREATE INDEX ix_rebuild_jobs_status_created_at
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
     ON rebuild_jobs (status, created_at);
 
 CREATE TABLE IF NOT EXISTS distributed_locks (

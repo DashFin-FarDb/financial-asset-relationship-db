@@ -1265,12 +1265,18 @@ class AssetGraphRepository:
         if job is None:
             raise ValueError(f"Rebuild job {job_id} not found")
         if job.status != RebuildJobStatus.RUNNING:
-            current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else job.status
+            current_status = str(job.status)
             raise ValueError(f"Cannot update heartbeat for job {job_id} with status {current_status} (must be running)")
+
+        if job.active_worker_id is not None and job.active_worker_id != worker_id:
+            raise ValueError(
+                f"Cannot update heartbeat for job {job_id}: active worker is {job.active_worker_id}, not {worker_id}"
+            )
 
         now = datetime.now(timezone.utc)  # noqa: UP017
         job.last_heartbeat_at = now
-        job.active_worker_id = worker_id
+        if job.active_worker_id is None:
+            job.active_worker_id = worker_id
         job.updated_at = now
         self.session.add(job)
 
