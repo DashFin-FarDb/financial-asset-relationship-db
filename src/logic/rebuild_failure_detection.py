@@ -132,11 +132,8 @@ def detect_crash_suspicion(
     Returns:
         True if crash is suspected, False otherwise.
     """
-    if job.status != RebuildJobStatus.RUNNING:
-        return False
-
-    if not job.active_worker_id:
-        # No worker assigned - not a crash, just not started
+    if job.status != RebuildJobStatus.RUNNING or not job.active_worker_id:
+        # Not running or no worker assigned - not a crash
         return False
 
     if job.last_heartbeat_at is None:
