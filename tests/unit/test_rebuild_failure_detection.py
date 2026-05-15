@@ -66,7 +66,7 @@ class TestDetectStaleOwnership:
         assert detect_stale_ownership(running_job, ttl_seconds=300, now=now) is False
 
     def test_boundary_condition_at_exactly_ttl(self, running_job):
-        """Heartbeat exactly at TTL threshold should be stale."""
+        """Heartbeat exactly at TTL threshold is not stale."""
         now = datetime.now(timezone.utc)
         running_job.last_heartbeat_at = now - timedelta(seconds=300)
         # At exactly TTL, age equals TTL, should NOT be stale (>= would make it stale)
