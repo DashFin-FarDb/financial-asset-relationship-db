@@ -68,6 +68,8 @@ def test_migration_adds_rebuild_recovery_columns_for_existing_tables(tmp_path: P
         columns = [row[1] for row in connection.execute("PRAGMA table_info(rebuild_jobs)")]
     assert "active_worker_id" in columns  # nosec B101
     assert "last_heartbeat_at" in columns  # nosec B101
+
+
 @pytest.fixture()
 def db_session(tmp_path: Path) -> Generator[Session, None, None]:
     """
