@@ -28,31 +28,18 @@ SRC_DIR = Path("src")
 
 FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
     # Direct ownership mutation outside coordinator context
-    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(
-        r"(active_worker_id\s*=|owner_id\s*=).*"
-    ),
-
+    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"(active_worker_id\s*=|owner_id\s*=).*"),
     # Bypass of recovery gate
-    "RECOVERY_GATE_BYPASS": re.compile(
-        r"(execute_rebuild|start_rebuild).*(?!.*RecoveryGate)"
-    ),
-
+    "RECOVERY_GATE_BYPASS": re.compile(r"(execute_rebuild|start_rebuild).*(?!.*RecoveryGate)"),
     # Direct execution entrypoints outside coordinator
-    "DIRECT_EXECUTION_ENTRY": re.compile(
-        r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("
-    ),
-
+    "DIRECT_EXECUTION_ENTRY": re.compile(r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("),
     # Unsafe fallback lock acquisition logic
-    "UNSAFE_LOCK_FALLBACK": re.compile(
-        r"(lock|advisory_lock).*(fallback|force|override)"
-    ),
-
+    "UNSAFE_LOCK_FALLBACK": re.compile(r"(lock|advisory_lock).*(fallback|force|override)"),
     # Duplicate execution control paths (heuristic)
     "DUPLICATE_EXECUTION_PATH": re.compile(
         r"(execute_rebuild).*?(execute_rebuild)",
         re.DOTALL,
     ),
-
     # Missing explicit gating usage (heuristic)
     "MISSING_RECOVERY_GATE": re.compile(
         r"execute_rebuild(?!.*RecoveryGate)",
@@ -118,9 +105,7 @@ def main() -> None:
         )
         sys.exit(1)
 
-    print(
-        "✅ Coordination invariants passed: no split-brain risks detected."
-    )
+    print("✅ Coordination invariants passed: no split-brain risks detected.")
 
 
 if __name__ == "__main__":
