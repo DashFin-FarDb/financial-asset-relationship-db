@@ -53,7 +53,13 @@ class RecoveryGate:
         self.lock_ttl_seconds = lock_ttl_seconds
 
     def _evaluate_decision(self):
-        """Evaluate state and return the full recovery decision."""
+        """
+        Evaluate lock, DB, and runtime state and return a recovery decision.
+
+        Returns:
+            RecoveryDecision: Deterministic decision used by both
+                evaluate_state() and ensure_safe_to_execute().
+        """
         from src.logic.rebuild_recovery import RecoveryDecision
 
         lock_state = self.lock.check_state()

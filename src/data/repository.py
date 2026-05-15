@@ -1265,7 +1265,7 @@ class AssetGraphRepository:
         if job is None:
             raise ValueError(f"Rebuild job {job_id} not found")
         if job.status != RebuildJobStatus.RUNNING:
-            current_status = str(job.status)
+            current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
             raise ValueError(f"Cannot update heartbeat for job {job_id} with status {current_status} (must be running)")
 
         if job.active_worker_id is not None and job.active_worker_id != worker_id:
