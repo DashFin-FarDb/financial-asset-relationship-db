@@ -110,8 +110,12 @@ def test_recovery_gate_increments_recovery_metric_on_detected_inconsistency(
         job_id = "job-1"
 
     metric_calls: list[str] = []
-    monkeypatch.setattr("src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob())
-    monkeypatch.setattr("src.logic.recovery_gate.increment_recovery_trigger", lambda inc_type: metric_calls.append(inc_type))
+    monkeypatch.setattr(
+        "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob()
+    )
+    monkeypatch.setattr(
+        "src.logic.recovery_gate.increment_recovery_trigger", lambda inc_type: metric_calls.append(inc_type)
+    )
     assert gate.evaluate_state() == RecoveryAction.UNSAFE
     assert metric_calls == [InconsistencyType.ORPHANED_RUNNING.value]
 
@@ -130,6 +134,8 @@ def test_recovery_gate_blocks_when_multiple_running_jobs_detected(mock_session_f
         "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state",
         lambda self: (_ for _ in ()).throw(ValueError("Multiple rebuild jobs are in RUNNING state")),
     )
-    monkeypatch.setattr("src.logic.recovery_gate.increment_recovery_trigger", lambda inc_type: metric_calls.append(inc_type))
+    monkeypatch.setattr(
+        "src.logic.recovery_gate.increment_recovery_trigger", lambda inc_type: metric_calls.append(inc_type)
+    )
     assert gate.evaluate_state() == RecoveryAction.UNSAFE
     assert metric_calls == [InconsistencyType.ORPHANED_RUNNING.value]
