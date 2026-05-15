@@ -37,8 +37,8 @@ jobs:
 
       - name: Run type checking (mypy)
         run: |
-          # Gate A validates the invariant scanner itself; repository-wide
-          # typing debt is tracked in separate workflows.
+          # Gate A intentionally validates the invariant scanner itself only.
+          # Repository-wide typing debt is tracked in separate workflows.
           # --follow-imports=silent keeps this gate focused on the target file
           # instead of failing on unrelated imported-module type issues.
           mypy --follow-imports=silent tools/ci/check_coordination_invariants.py
