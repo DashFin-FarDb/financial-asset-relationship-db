@@ -1,17 +1,4 @@
-"""
-tools/ci/check_coordination_invariants.py
-
-Stage 5C — Static Coordination Invariant Enforcement
-
-This script enforces structural invariants to prevent:
-- split-brain rebuild execution
-- multiple ownership assignment paths
-- bypass of RecoveryGate
-- unsafe lock fallback logic
-- duplicate execution entrypoints
-
-It is designed to fail fast in CI.
-"""
+# tools/ci/check_coordination_invariants.py
 
 from __future__ import annotations
 
@@ -27,25 +14,31 @@ SRC_DIR = Path("src")
 # -----------------------------
 
 FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
-    # Direct ownership mutation outside coordinator context
-    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"(active_worker_id\s*=|owner_id\s*=).*"),
-    # Bypass of recovery gate
-    "RECOVERY_GATE_BYPASS": re.compile(r"(execute_rebuild|start_rebuild).*(?!.*RecoveryGate)"),
+    # Direct ownership mutation outside coordinator context.
+    # \b and (?!=) prevent matching equality comparisons (==).
+    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(
+        r"\b(active_worker_id|owner_id)\s*=(?!=)"
+    ),
     # Direct execution entrypoints outside coordinator
-    "DIRECT_EXECUTION_ENTRY": re.compile(r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("),
+    "DIRECT_EXECUTION_ENTRY": re.compile(
+        r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("
+    ),
     # Unsafe fallback lock acquisition logic
-    "UNSAFE_LOCK_FALLBACK": re.compile(r"(lock|advisory_lock).*(fallback|force|override)"),
+    "UNSAFE_LOCK_FALLBACK": re.compile(
+        r"(lock|advisory_lock).*(fallback|force|override)"
+    ),
     # Duplicate execution control paths (heuristic)
     "DUPLICATE_EXECUTION_PATH": re.compile(
         r"(execute_rebuild).*?(execute_rebuild)",
         re.DOTALL,
     ),
-    # Missing explicit gating usage (heuristic)
-    "MISSING_RECOVERY_GATE": re.compile(
-        r"execute_rebuild(?!.*RecoveryGate)",
-        re.DOTALL,
-    ),
 }
+
+# Order-independent gate check: these two are tested together in scan_file
+# rather than as a single regex, so placement of RecoveryGate in the file
+# does not affect correctness.
+_EXECUTION_CALL_RE = re.compile(r"\b(execute_rebuild|start_rebuild)\b")
+_RECOVERY_GATE_RE = re.compile(r"\bRecoveryGate\b")
 
 
 # -----------------------------
@@ -60,10 +53,9 @@ ALLOWED_PATH_EXCEPTIONS = {
 
 def iter_python_files(root: Path) -> Iterable[Path]:
     for path in root.rglob("*.py"):
-        rel = path.relative_to(root).as_posix()
-        if any(rel.startswith(exc) for exc in ALLOWED_PATH_EXCEPTIONS):
-             continue
-         yield path
+        if any(str(path).startswith(exc) for exc in ALLOWED_PATH_EXCEPTIONS):
+            continue
+        yield path
 
 
 def scan_file(path: Path) -> list[str]:
@@ -77,6 +69,11 @@ def scan_file(path: Path) -> list[str]:
     for name, pattern in FORBIDDEN_PATTERNS.items():
         if pattern.search(content):
             violations.append(f"{name} violation in {path}")
+
+    # Order-independent check: flag any file that calls execute_rebuild /
+    # start_rebuild but contains no reference to RecoveryGate anywhere.
+    if _EXECUTION_CALL_RE.search(content) and not _RECOVERY_GATE_RE.search(content):
+        violations.append(f"MISSING_RECOVERY_GATE violation in {path}")
 
     return violations
 
@@ -92,7 +89,6 @@ def main() -> None:
         violations = scan_file(file_path)
         all_violations.extend(violations)
 
-    # Deduplicate for readability
     unique_violations = sorted(set(all_violations))
 
     if unique_violations:
