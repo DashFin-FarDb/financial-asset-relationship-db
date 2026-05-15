@@ -101,15 +101,15 @@ class RecoveryGate:
         # Early return if not orphaned running state
         if inconsistency.inconsistency_type != InconsistencyType.ORPHANED_RUNNING:
             return decision
-        
+
         # Early return if lock is invalid or no job
         if not lock_is_valid or job is None:
             return decision
-        
+
         # Early return if owner matches
         if job.active_worker_id == self.lock.holder_id:
             return decision
-        
+
         # Owner mismatch detected - override to RESET
         return RecoveryDecision(
             action=RecoveryAction.RESET,
