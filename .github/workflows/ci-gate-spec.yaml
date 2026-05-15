@@ -105,7 +105,8 @@ jobs:
               --maxfail=1 \
               -q
           else
-            echo "Skipping multi-worker coordination tests: tests/coordination directory not found."
+            echo "Required multi-worker coordination test suite not found: tests/coordination" >&2
+            exit 1
           fi
 
           # Required enforced assertions inside tests:
