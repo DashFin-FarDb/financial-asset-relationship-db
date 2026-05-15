@@ -49,21 +49,21 @@ def determine_recovery_action(
     Decision logic:
 
     1. UNSAFE (highest priority - never execute):
-       - Orphaned running state with valid lock held by someone else
+       - Orphaned running state while this process still holds a valid lock
        - Any state where execution could cause corruption
 
     2. RESET (must reset before execution):
-       - Orphaned running state with no valid lock
+       - Orphaned running state with no valid lock for this process
        - Crash suspicion detected
-       - Stale ownership with no valid lock
+       - Stale ownership with no valid lock for this process
 
     3. WAIT (must wait for stabilization):
-       - Inconsistency detected but lock is valid (potential race)
+       - Inconsistency detected but this process still holds a valid lock
        - Transitional states that may resolve
 
     4. RESUME (safe to proceed):
        - No inconsistency detected
-       - Valid lock held
+       - Valid lock held by this process
        - State is consistent
 
     Args:
