@@ -53,6 +53,69 @@ class RecoveryGate:
         self.runtime_has_active_executor = runtime_has_active_executor
         self.lock_ttl_seconds = lock_ttl_seconds
 
+    def _create_unsafe_decision_from_error(self, exc: Exception, error_context: str, log_level: str = "warning"):
+        """
+        Create an UNSAFE decision from an exception with sanitized logging.
+
+        Args:
+            exc: The exception that occurred.
+            error_context: Context string (e.g., "active rebuild state query failed").
+            log_level: Logging level ("warning" or "error").
+
+        Returns:
+            RecoveryDecision with UNSAFE action.
+        """
+        from src.logic.rebuild_recovery import RecoveryDecision
+
+        exc_type = type(exc).__name__
+        reason = f"{exc_type}: {error_context}"
+        
+        if log_level == "error":
+            logger.error("Execution blocked: %s (%s)", exc_type, error_context)
+        else:
+            logger.warning("Execution blocked: %s (%s)", exc_type, error_context)
+        
+        self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
+        return RecoveryDecision(
+            action=RecoveryAction.UNSAFE,
+            reason=reason,
+            inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
+            safe_to_execute=False,
+        )
+
+    def _apply_owner_mismatch_override(self, decision, inconsistency, lock_is_valid, job):
+        """
+        Override decision to RESET if orphaned job has wrong owner.
+
+        Args:
+            decision: Original recovery decision.
+            inconsistency: Detected inconsistency.
+            lock_is_valid: Whether lock state is valid.
+            job: The rebuild job (may be None).
+
+        Returns:
+            Modified decision if owner mismatch detected, otherwise original.
+        """
+        from src.logic.rebuild_recovery import RecoveryDecision
+
+        if (
+            inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING
+            and lock_is_valid
+            and job is not None
+            and job.active_worker_id != self.lock.holder_id
+        ):
+            return RecoveryDecision(
+                action=RecoveryAction.RESET,
+                reason=(
+                    "Orphaned running rebuild detected with owner mismatch: "
+                    f"job worker_id={job.active_worker_id!r}, "
+                    f"current lock holder_id={self.lock.holder_id!r}"
+                ),
+                inconsistency_type=decision.inconsistency_type,
+                safe_to_execute=decision.safe_to_execute,
+            )
+        return decision
+
     def _evaluate_decision(self):
         """
         Evaluate lock, DB, and runtime state and return a recovery decision.
@@ -67,10 +130,7 @@ class RecoveryGate:
         job = None
 
         if lock_state in (LockState.UNKNOWN, LockState.LOST):
-            logger.warning(
-                "Execution blocked: Lock state is %s",
-                lock_state.value,
-            )
+            logger.warning("Execution blocked: Lock state is %s", lock_state.value)
             return RecoveryDecision(
                 action=RecoveryAction.UNSAFE,
                 reason=f"Lock state is {lock_state.value}",
@@ -85,40 +145,11 @@ class RecoveryGate:
             try:
                 job = repo.get_active_rebuild_state()
             except ValueError as exc:
-                # Business logic error: multiple running jobs detected
-                exc_type = type(exc).__name__
-                logger.warning("Execution blocked: %s (active rebuild state query failed)", exc_type)
-                self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
-                return RecoveryDecision(
-                    action=RecoveryAction.UNSAFE,
-                    reason=f"{exc_type}: active rebuild state query failed",
-                    inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
-                    safe_to_execute=False,
-                )
+                return self._create_unsafe_decision_from_error(exc, "active rebuild state query failed")
             except sqlalchemy_exc.SQLAlchemyError as exc:
-                # Database error: connection lost, timeout, etc.
-                # Treat as UNSAFE (fail-closed) - cannot verify rebuild state
-                exc_type = type(exc).__name__
-                logger.warning("Execution blocked: %s (database error during rebuild state query)", exc_type)
-                self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
-                return RecoveryDecision(
-                    action=RecoveryAction.UNSAFE,
-                    reason=f"{exc_type}: database error during rebuild state query",
-                    inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
-                    safe_to_execute=False,
-                )
+                return self._create_unsafe_decision_from_error(exc, "database error during rebuild state query")
             except Exception as exc:
-                # Unexpected error: treat as UNSAFE (fail-closed)
-                # This catches any other errors (e.g., bugs in repository code)
-                exc_type = type(exc).__name__
-                logger.error("Execution blocked: %s (unexpected error during rebuild state query)", exc_type)
-                self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
-                return RecoveryDecision(
-                    action=RecoveryAction.UNSAFE,
-                    reason=f"{exc_type}: unexpected error during rebuild state query",
-                    inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
-                    safe_to_execute=False,
-                )
+                return self._create_unsafe_decision_from_error(exc, "unexpected error during rebuild state query", "error")
 
         inconsistency = detect_rebuild_inconsistency(
             job=job,
@@ -126,31 +157,12 @@ class RecoveryGate:
             lock_ttl_seconds=self.lock_ttl_seconds,
         )
 
-        owner_mismatch = (
-            inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING
-            and lock_is_valid
-            and job is not None
-            and job.active_worker_id != self.lock.holder_id
-        )
-
         decision = determine_recovery_action(
             inconsistency=inconsistency,
             lock_is_valid=lock_is_valid,
         )
 
-        if owner_mismatch:
-            from src.logic.rebuild_recovery import RecoveryDecision
-
-            decision = RecoveryDecision(
-                action=RecoveryAction.RESET,
-                reason=(
-                    "Orphaned running rebuild detected with owner mismatch: "
-                    f"job worker_id={job.active_worker_id!r}, "
-                    f"current lock holder_id={self.lock.holder_id!r}"
-                ),
-                inconsistency_type=decision.inconsistency_type,
-                safe_to_execute=decision.safe_to_execute,
-            )
+        decision = self._apply_owner_mismatch_override(decision, inconsistency, lock_is_valid, job)
 
         if inconsistency.inconsistency_type != InconsistencyType.NONE:
             self.increment_recovery_trigger(inconsistency.inconsistency_type.value)
