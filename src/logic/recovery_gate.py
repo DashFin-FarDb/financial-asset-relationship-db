@@ -69,12 +69,12 @@ class RecoveryGate:
 
         exc_type = type(exc).__name__
         reason = f"{exc_type}: {error_context}"
-        
+
         if log_level == "error":
             logger.error("Execution blocked: %s (%s)", exc_type, error_context)
         else:
             logger.warning("Execution blocked: %s (%s)", exc_type, error_context)
-        
+
         self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
         return RecoveryDecision(
             action=RecoveryAction.UNSAFE,
@@ -149,7 +149,9 @@ class RecoveryGate:
             except sqlalchemy_exc.SQLAlchemyError as exc:
                 return self._create_unsafe_decision_from_error(exc, "database error during rebuild state query")
             except Exception as exc:
-                return self._create_unsafe_decision_from_error(exc, "unexpected error during rebuild state query", "error")
+                return self._create_unsafe_decision_from_error(
+                    exc, "unexpected error during rebuild state query", "error"
+                )
 
         inconsistency = detect_rebuild_inconsistency(
             job=job,
