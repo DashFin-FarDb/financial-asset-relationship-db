@@ -1230,13 +1230,14 @@ class AssetGraphRepository:
         if lock_orm is None:
             return LockState.UNKNOWN
 
-        if lock_orm.holder_id == holder_id:
-            expires_at = lock_orm.expires_at
-            if expires_at.tzinfo is None:
-                expires_at = expires_at.replace(tzinfo=timezone.utc)
-            if expires_at > now:
-                return LockState.VALID
+        expires_at = lock_orm.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at <= now:
             return LockState.EXPIRED
+
+        if lock_orm.holder_id == holder_id:
+            return LockState.VALID
 
         return LockState.UNKNOWN
 
