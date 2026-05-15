@@ -141,6 +141,4 @@ class RecoveryGate:
         """
         decision = self._evaluate_decision()
         if decision.action != RecoveryAction.RESUME:
-            raise ExecutionBlockedError(
-                f"Execution blocked: action={decision.action.value}, reason={decision.reason}"
-            )
+            raise ExecutionBlockedError(f"Execution blocked: action={decision.action.value}, reason={decision.reason}")
