@@ -99,21 +99,31 @@ class RecoveryGate:
             lock_ttl_seconds=self.lock_ttl_seconds,
         )
 
-        if (
+        owner_mismatch = (
             inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING
             and lock_is_valid
             and job is not None
             and job.active_worker_id != self.lock.holder_id
-        ):
-            # Lock validity reflects current lock-row ownership. If the DB job
-            # owner differs from this lock holder (or is unset), treat this as a
-            # takeover/reset condition rather than an in-process split-brain.
-            lock_is_valid = False
+        )
 
         decision = determine_recovery_action(
             inconsistency=inconsistency,
             lock_is_valid=lock_is_valid,
         )
+
+        if owner_mismatch:
+            from src.logic.rebuild_recovery import RecoveryDecision
+
+            decision = RecoveryDecision(
+                action=decision.action,
+                reason=(
+                    "Orphaned running rebuild detected with owner mismatch: "
+                    f"job worker_id={job.active_worker_id!r}, "
+                    f"current lock holder_id={self.lock.holder_id!r}"
+                ),
+                inconsistency_type=decision.inconsistency_type,
+                safe_to_execute=decision.safe_to_execute,
+            )
 
         if inconsistency.inconsistency_type != InconsistencyType.NONE:
             self.increment_recovery_trigger(inconsistency.inconsistency_type.value)
