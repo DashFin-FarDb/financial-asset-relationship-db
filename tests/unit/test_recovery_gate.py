@@ -159,7 +159,9 @@ def test_recovery_gate_error_message_includes_decision_reason(mock_session_facto
         job_id = "job-1"
         active_worker_id = "other-worker"
 
-    monkeypatch.setattr("src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob())
+    monkeypatch.setattr(
+        "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob()
+    )
     with pytest.raises(ExecutionBlockedError, match="Reason:"):
         gate.ensure_safe_to_execute()
 
@@ -180,5 +182,7 @@ def test_recovery_gate_orphaned_with_new_lock_owner_returns_reset(mock_session_f
         job_id = "job-1"
         active_worker_id = "stale-worker"
 
-    monkeypatch.setattr("src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob())
+    monkeypatch.setattr(
+        "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob()
+    )
     assert gate.evaluate_state() == RecoveryAction.RESET

@@ -31,7 +31,9 @@ FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
 # Order-independent gate check: these two are tested together in scan_file
 # rather than as a single regex, so placement of RecoveryGate in the file
 # does not affect correctness.
-_EXECUTION_CALL_RE = re.compile(r"def\s+(execute_rebuild|start_rebuild|rebuild_graph|_perform_rebuild_and_persist_sync)\s*\(")
+_EXECUTION_CALL_RE = re.compile(
+    r"def\s+(execute_rebuild|start_rebuild|rebuild_graph|_perform_rebuild_and_persist_sync)\s*\("
+)
 _RECOVERY_GATE_RE = re.compile(r"\bRecoveryGate\b")
 
 
