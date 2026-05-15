@@ -191,20 +191,13 @@ def detect_rebuild_inconsistency(
         return RebuildInconsistency(
             inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
             job_id=job.job_id,
-            reason=(
-                f"Job {job.job_id} is 'running' in DB "
-                f"but no active executor in runtime"
-            ),
+            reason=(f"Job {job.job_id} is 'running' in DB " f"but no active executor in runtime"),
             detected_at=current_time,
         )
 
     # Check for crash suspicion (second priority)
     if detect_crash_suspicion(job, heartbeat_threshold, now=current_time):
-        age_seconds = (
-            (current_time - job.last_heartbeat_at).total_seconds()
-            if job.last_heartbeat_at
-            else None
-        )
+        age_seconds = (current_time - job.last_heartbeat_at).total_seconds() if job.last_heartbeat_at else None
         reason = (
             f"Job {job.job_id} worker {job.active_worker_id} "
             f"has stale heartbeat (age: {age_seconds}s, threshold: {heartbeat_threshold}s)"
@@ -220,14 +213,9 @@ def detect_rebuild_inconsistency(
 
     # Check for stale ownership (third priority)
     if detect_stale_ownership(job, lock_ttl_seconds, now=current_time):
-        age_seconds = (
-            (current_time - job.last_heartbeat_at).total_seconds()
-            if job.last_heartbeat_at
-            else None
-        )
+        age_seconds = (current_time - job.last_heartbeat_at).total_seconds() if job.last_heartbeat_at else None
         reason = (
-            f"Job {job.job_id} ownership stale "
-            f"(heartbeat age: {age_seconds}s > TTL: {lock_ttl_seconds}s)"
+            f"Job {job.job_id} ownership stale " f"(heartbeat age: {age_seconds}s > TTL: {lock_ttl_seconds}s)"
             if age_seconds is not None
             else f"Job {job.job_id} ownership stale (no heartbeat recorded)"
         )

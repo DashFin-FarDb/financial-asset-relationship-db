@@ -72,11 +72,7 @@ class TestDetermineRecoveryActionDeterminism:
 
         assert decision1.action == decision2.action == decision3.action
         assert decision1.reason == decision2.reason == decision3.reason
-        assert (
-            decision1.safe_to_execute
-            == decision2.safe_to_execute
-            == decision3.safe_to_execute
-        )
+        assert decision1.safe_to_execute == decision2.safe_to_execute == decision3.safe_to_execute
 
     def test_all_combinations_are_deterministic(
         self,
@@ -129,9 +125,7 @@ class TestOrphanedRunningDecisions:
 
     def test_unsafe_when_orphaned_with_valid_lock(self, orphaned_inconsistency):
         """Should be UNSAFE when orphaned state detected while holding lock."""
-        decision = determine_recovery_action(
-            orphaned_inconsistency, lock_is_valid=True
-        )
+        decision = determine_recovery_action(orphaned_inconsistency, lock_is_valid=True)
 
         assert decision.action == RecoveryAction.UNSAFE
         assert decision.safe_to_execute is False
@@ -140,9 +134,7 @@ class TestOrphanedRunningDecisions:
 
     def test_reset_when_orphaned_without_lock(self, orphaned_inconsistency):
         """Should RESET when orphaned state detected without lock."""
-        decision = determine_recovery_action(
-            orphaned_inconsistency, lock_is_valid=False
-        )
+        decision = determine_recovery_action(orphaned_inconsistency, lock_is_valid=False)
 
         assert decision.action == RecoveryAction.RESET
         assert decision.safe_to_execute is False
@@ -201,9 +193,7 @@ class TestSafeToExecuteFlag:
     ):
         """Only RESUME action should have safe_to_execute=True."""
         # RESUME case
-        decision_resume = determine_recovery_action(
-            no_inconsistency, lock_is_valid=True
-        )
+        decision_resume = determine_recovery_action(no_inconsistency, lock_is_valid=True)
         assert decision_resume.action == RecoveryAction.RESUME
         assert decision_resume.safe_to_execute is True
 
@@ -227,9 +217,7 @@ class TestRecoveryActionPriority:
 
     def test_unsafe_is_highest_priority(self, orphaned_inconsistency):
         """UNSAFE action should be used for split-brain conditions."""
-        decision = determine_recovery_action(
-            orphaned_inconsistency, lock_is_valid=True
-        )
+        decision = determine_recovery_action(orphaned_inconsistency, lock_is_valid=True)
         assert decision.action == RecoveryAction.UNSAFE
 
     def test_reset_for_recoverable_failures_without_lock(
@@ -244,9 +232,7 @@ class TestRecoveryActionPriority:
             decision = determine_recovery_action(inconsistency, lock_is_valid=False)
             assert decision.action == RecoveryAction.RESET
 
-    def test_wait_for_transitional_states(
-        self, crash_inconsistency, stale_inconsistency
-    ):
+    def test_wait_for_transitional_states(self, crash_inconsistency, stale_inconsistency):
         """WAIT should be used for transitional states with valid lock."""
         for inconsistency in [crash_inconsistency, stale_inconsistency]:
             decision = determine_recovery_action(inconsistency, lock_is_valid=True)

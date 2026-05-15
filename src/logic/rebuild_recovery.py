@@ -110,10 +110,7 @@ def determine_recovery_action(
         # No valid lock - can safely reset
         return RecoveryDecision(
             action=RecoveryAction.RESET,
-            reason=(
-                "Orphaned running state detected without valid lock - "
-                "state must be reset before execution"
-            ),
+            reason=("Orphaned running state detected without valid lock - " "state must be reset before execution"),
             inconsistency_type=inconsistency_type,
             safe_to_execute=False,
         )
@@ -124,20 +121,14 @@ def determine_recovery_action(
             # We have lock but detected crash - WAIT for lock expiry
             return RecoveryDecision(
                 action=RecoveryAction.WAIT,
-                reason=(
-                    "Crash suspected but lock still valid - "
-                    "wait for lock expiry before reset"
-                ),
+                reason=("Crash suspected but lock still valid - " "wait for lock expiry before reset"),
                 inconsistency_type=inconsistency_type,
                 safe_to_execute=False,
             )
         # No valid lock - can safely reset
         return RecoveryDecision(
             action=RecoveryAction.RESET,
-            reason=(
-                "Crash suspected and lock expired - "
-                "state must be reset before execution"
-            ),
+            reason=("Crash suspected and lock expired - " "state must be reset before execution"),
             inconsistency_type=inconsistency_type,
             safe_to_execute=False,
         )
@@ -148,29 +139,20 @@ def determine_recovery_action(
             # Lock valid despite stale ownership - transitional state, WAIT
             return RecoveryDecision(
                 action=RecoveryAction.WAIT,
-                reason=(
-                    "Stale ownership detected but lock is valid - "
-                    "wait for state stabilization"
-                ),
+                reason=("Stale ownership detected but lock is valid - " "wait for state stabilization"),
                 inconsistency_type=inconsistency_type,
                 safe_to_execute=False,
             )
         # No valid lock - can safely reset
         return RecoveryDecision(
             action=RecoveryAction.RESET,
-            reason=(
-                "Stale ownership detected and lock expired - "
-                "state must be reset before execution"
-            ),
+            reason=("Stale ownership detected and lock expired - " "state must be reset before execution"),
             inconsistency_type=inconsistency_type,
             safe_to_execute=False,
         )
 
     # Unknown inconsistency type - be conservative
-    logger.warning(
-        f"Unknown inconsistency type {inconsistency_type} - "
-        f"defaulting to UNSAFE action"
-    )
+    logger.warning(f"Unknown inconsistency type {inconsistency_type} - " f"defaulting to UNSAFE action")
     return RecoveryDecision(
         action=RecoveryAction.UNSAFE,
         reason=f"Unknown inconsistency type: {inconsistency_type}",

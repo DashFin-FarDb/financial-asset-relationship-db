@@ -82,26 +82,15 @@ class TestDetectOrphanedRunningState:
 
     def test_returns_false_for_non_running_job(self, pending_job):
         """Non-running jobs cannot be orphaned."""
-        assert (
-            detect_orphaned_running_state(pending_job, runtime_has_active_executor=False)
-            is False
-        )
+        assert detect_orphaned_running_state(pending_job, runtime_has_active_executor=False) is False
 
     def test_returns_false_when_executor_active(self, running_job):
         """Running job with active executor is not orphaned."""
-        assert (
-            detect_orphaned_running_state(running_job, runtime_has_active_executor=True)
-            is False
-        )
+        assert detect_orphaned_running_state(running_job, runtime_has_active_executor=True) is False
 
     def test_returns_true_when_running_without_executor(self, running_job):
         """Running job without active executor is orphaned."""
-        assert (
-            detect_orphaned_running_state(
-                running_job, runtime_has_active_executor=False
-            )
-            is True
-        )
+        assert detect_orphaned_running_state(running_job, runtime_has_active_executor=False) is True
 
 
 class TestDetectCrashSuspicion:
@@ -177,9 +166,7 @@ class TestDetectRebuildInconsistency:
         assert inconsistency.job_id is None
         assert "no DB job exists" in inconsistency.reason
 
-    def test_detects_orphaned_running_when_job_running_but_no_executor(
-        self, running_job
-    ):
+    def test_detects_orphaned_running_when_job_running_but_no_executor(self, running_job):
         """Orphaned running state when job running but no executor."""
         inconsistency = detect_rebuild_inconsistency(
             job=running_job,
@@ -190,9 +177,7 @@ class TestDetectRebuildInconsistency:
         assert inconsistency.job_id == running_job.job_id
         assert "no active executor" in inconsistency.reason
 
-    def test_detects_crash_suspicion_when_worker_assigned_no_heartbeat(
-        self, running_job
-    ):
+    def test_detects_crash_suspicion_when_worker_assigned_no_heartbeat(self, running_job):
         """Crash suspicion when worker assigned but no heartbeat."""
         running_job.active_worker_id = "worker-1"
         running_job.last_heartbeat_at = None
