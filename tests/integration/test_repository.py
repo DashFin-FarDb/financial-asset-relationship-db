@@ -24,8 +24,11 @@ pytest.importorskip("sqlalchemy")
 
 def _apply_migration(database_path: Path) -> None:
     """
-    Apply database migrations by executing the initial SQL script.
-
+    Apply database migrations idempotently.
+    
+    For fresh databases: executes the entire 001_initial.sql script.
+    For existing databases: adds missing columns that were added in later versions.
+    
     The migration script is static/trusted (repository-owned), not user-controlled.
     """
     migrations_path = Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
@@ -34,6 +37,21 @@ def _apply_migration(database_path: Path) -> None:
     # executescript() is required for multi-statement DDL migrations.
     with sqlite3.connect(database_path) as connection:
         connection.executescript(sql)  # nosec pythonsecurity:S3649
+        
+        # Handle upgrade scenarios: add columns that might be missing in existing tables
+        # (SQLite's ALTER TABLE ADD COLUMN is not idempotent, so we check first)
+        cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
+        existing_columns = {row[1] for row in cursor}
+        
+        upgrade_columns = [
+            ("active_worker_id", "TEXT"),
+            ("last_heartbeat_at", "TEXT"),
+        ]
+        
+        for col_name, col_type in upgrade_columns:
+            if col_name not in existing_columns:
+                connection.execute(f"ALTER TABLE rebuild_jobs ADD COLUMN {col_name} {col_type}")
+                connection.commit()
 
 
 def test_migration_adds_rebuild_recovery_columns_for_existing_tables(tmp_path: Path) -> None:
