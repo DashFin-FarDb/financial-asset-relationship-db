@@ -5,9 +5,6 @@ on:
   push:
     branches: [ main ]
 
-permissions:
-  contents: read
-
 concurrency:
   group: stage-5c-${{ github.ref }}
   cancel-in-progress: true
@@ -20,6 +17,8 @@ jobs:
   static-coordination-gates:
     name: Gate A - Static Coordination Invariants
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
@@ -62,6 +61,8 @@ jobs:
   multi-worker-simulation:
     name: Gate B - Multi-Worker Coordination Simulation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: static-coordination-gates
 
     services:
@@ -117,6 +118,8 @@ jobs:
   failure-injection-gates:
     name: Gate C - Failure Mode Injection
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: multi-worker-simulation
 
     services:
@@ -169,6 +172,8 @@ jobs:
   coordination-safety-summary:
     name: Final Coordination Safety Gate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs:
       - static-coordination-gates
       - multi-worker-simulation
