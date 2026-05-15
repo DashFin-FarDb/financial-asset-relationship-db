@@ -168,7 +168,7 @@ def detect_rebuild_inconsistency(
         RebuildInconsistency describing the detected issue or NONE.
     """
     current_time = now or datetime.now(timezone.utc)
-    result = heartbeat_threshold_seconds if heartbeat_threshold_seconds is not None else lock_ttl_seconds
+    heartbeat_threshold = heartbeat_threshold_seconds if heartbeat_threshold_seconds is not None else lock_ttl_seconds
 
     # No job in DB - check if runtime thinks it's running
     if job is None:

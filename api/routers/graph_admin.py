@@ -758,7 +758,7 @@ def _perform_rebuild_and_persist_sync(
         gate = RecoveryGate(
             session_factory=session_factory,
             lock=dist_lock,
-            runtime_has_active_executor=_REBUILD_RUNTIME.is_busy(),
+            runtime_has_active_executor=False,
             lock_ttl_seconds=lock_ttl,
         )
         gate.ensure_safe_to_execute()
