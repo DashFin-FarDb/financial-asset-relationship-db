@@ -46,7 +46,7 @@ GRAPH_RELATIONSHIPS = Gauge(
 # Stage 5C.1: Recovery state metrics
 REBUILD_STATE_STATUS = Gauge(
     "graph_rebuild_state_status",
-    "Current rebuild state status (0=none, 1=pending, 2=running, 3=succeeded, 4=failed, 5=cancelled).",
+    "Current rebuild state status (-1=unknown, 0=none, 1=pending, 2=running, 3=succeeded, 4=failed, 5=cancelled).",
 )
 
 REBUILD_RECOVERY_TRIGGERS = Counter(
