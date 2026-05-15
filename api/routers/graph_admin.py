@@ -13,11 +13,12 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, cast
 
-from fastapi import APIRouter, Depends, HTTPException, status  # pylint: disable=import-error
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM
+from src.data.distributed_lock import DistributedLock
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -41,6 +42,13 @@ from ..graph_lifecycle_providers import (
     get_graph_lifecycle_settings,
     resolve_durable_graph_persistence_url,
     save_graph_to_persistence,
+)
+from ..metrics import (
+    REBUILD_DURATION,
+    REBUILD_FAILURE,
+    REBUILD_REQUESTS,
+    REBUILD_SUCCESS,
+    update_graph_metrics,
 )
 
 router = APIRouter()
@@ -91,6 +99,10 @@ class _RebuildRuntime:
         """
         complete_rebuild(succeeded=succeeded)
 
+    def clear_busy_after_contention(self) -> None:
+        """Clear transient REBUILDING state when work was rejected before execution."""
+        complete_rebuild(succeeded=True)
+
     def get_lock(self) -> asyncio.Lock:
         """Return a rebuild lock bound to the current event loop."""
         loop = asyncio.get_running_loop()
@@ -109,7 +121,11 @@ class _RebuildRuntime:
         return self.executor
 
     def shutdown_executor(self) -> None:
-        """Shut down the process-local rebuild executor."""
+        """Shut down the process-local rebuild executor.
+
+        This is a blocking call that waits for threads to complete.
+        Should be called via asyncio.to_thread() in async contexts.
+        """
         if self.executor is not None:
             self.executor.shutdown(wait=True)
             self.executor = None
@@ -126,6 +142,10 @@ class _RebuildExecutionError(Exception):
         super().__init__(cause.__class__.__name__)
         self.source = source
         self.cause = cause
+
+
+class _DistributedLockAcquisitionError(Exception):
+    """Raised when the distributed lock cannot be acquired."""
 
 
 @router.post(_REBUILD_PATH)
@@ -158,7 +178,20 @@ async def rebuild_graph(
                 user_ref=user_ref,
                 started_at=started_at,
             )
-        except Exception as exc:
+        except (
+            HTTPException,
+            _RebuildExecutionError,
+            _DistributedLockAcquisitionError,
+            GraphPersistenceNonDurableError,
+            GraphPersistenceNotConfiguredError,
+            GraphPersistenceSaveError,
+            GraphRebuildSourceError,
+        ) as exc:
+            # Defensive cleanup for direct contention exceptions (e.g. tests that
+            # monkeypatch executor paths): normal contention paths already clear
+            # REBUILDING in the executor completion callback.
+            if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError) and _REBUILD_RUNTIME.is_busy():
+                _REBUILD_RUNTIME.clear_busy_after_contention()
             raise _map_rebuild_error(exc) from None
     finally:
         if lock_acquired:
@@ -220,14 +253,26 @@ async def _run_rebuild_in_executor(
         """Finalize rebuild state and emit outcome audit logs."""
         try:
             response = done_future.result()
-        except Exception as exc:
-            _REBUILD_RUNTIME.mark_idle(succeeded=False)
-            _log_rebuild_failed(
-                user_ref=user_ref,
-                exc=exc,
-                status_code=_rebuild_status_code(exc),
-                duration_ms=_duration_ms(started_at),
-            )
+        except (
+            HTTPException,
+            _RebuildExecutionError,
+            _DistributedLockAcquisitionError,
+            GraphPersistenceNonDurableError,
+            GraphPersistenceNotConfiguredError,
+            GraphPersistenceSaveError,
+            GraphRebuildSourceError,
+        ) as exc:
+            if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError):
+                _REBUILD_RUNTIME.mark_idle(succeeded=True)
+                _log_rebuild_rejected(user_ref=user_ref)
+            else:
+                _REBUILD_RUNTIME.mark_idle(succeeded=False)
+                _log_rebuild_failed(
+                    user_ref=user_ref,
+                    exc=exc,
+                    status_code=_rebuild_status_code(exc),
+                    duration_ms=_duration_ms(started_at),
+                )
             return
 
         _REBUILD_RUNTIME.mark_idle(succeeded=True)
@@ -244,6 +289,9 @@ async def _run_rebuild_in_executor(
 def _map_rebuild_error(exc: Exception) -> HTTPException:
     """Map rebuild domain errors to sanitized HTTP errors."""
     root_exc = _unwrap_rebuild_error(exc)
+
+    if isinstance(root_exc, _DistributedLockAcquisitionError):
+        return _rebuild_in_progress_error()
 
     if isinstance(
         root_exc,
@@ -271,6 +319,9 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
 def _rebuild_status_code(exc: Exception) -> int:
     """Return sanitized rebuild status code for audit logging without side effects."""
     root_exc = _unwrap_rebuild_error(exc)
+
+    if isinstance(root_exc, _DistributedLockAcquisitionError):
+        return status.HTTP_429_TOO_MANY_REQUESTS
 
     if isinstance(
         root_exc,
@@ -300,6 +351,7 @@ def _duration_ms(started_at: float) -> int:
 
 def _log_rebuild_requested(*, user_ref: str) -> None:
     """Emit a bounded audit event for rebuild request start."""
+    REBUILD_REQUESTS.inc()  # label-free; operator identity captured in audit log below
     logger.info(
         "graph_rebuild_audit",
         extra={
@@ -328,6 +380,9 @@ def _log_rebuild_rejected(*, user_ref: str) -> None:
 
 def _log_rebuild_succeeded(*, user_ref: str, response: GraphRebuildResponse, duration_ms: int) -> None:
     """Emit a bounded audit event for successful rebuild completion."""
+    REBUILD_SUCCESS.labels(source=response.source).inc()
+    REBUILD_DURATION.observe(duration_ms / 1000.0)
+    update_graph_metrics(response.asset_count, response.relationship_count)
     logger.info(
         "graph_rebuild_audit",
         extra={
@@ -348,6 +403,8 @@ def _log_rebuild_succeeded(*, user_ref: str, response: GraphRebuildResponse, dur
 def _rebuild_failure_category(exc: Exception) -> str:
     """Return a bounded failure category for rebuild audit logs."""
     root_exc = _unwrap_rebuild_error(exc)
+    if isinstance(root_exc, _DistributedLockAcquisitionError):
+        return "distributed_lock_acquisition_failed"
     if isinstance(root_exc, GraphPersistenceNotConfiguredError):
         return "persistence_not_configured"
     if isinstance(root_exc, GraphPersistenceNonDurableError):
@@ -368,6 +425,9 @@ def _rebuild_source_from_exception(exc: Exception) -> GraphRebuildSource | None:
 
 def _log_rebuild_failed(*, user_ref: str, exc: Exception, status_code: int, duration_ms: int) -> None:
     """Emit a bounded audit event for rebuild failure."""
+    category = _rebuild_failure_category(exc)
+    REBUILD_FAILURE.labels(category=category).inc()
+    REBUILD_DURATION.observe(duration_ms / 1000.0)
     logger.error(
         "graph_rebuild_audit",
         extra={
@@ -390,9 +450,27 @@ def _unwrap_rebuild_error(exc: Exception) -> Exception:
     return exc
 
 
-def shutdown_rebuild_executor() -> None:
-    """Shut down the process-local graph rebuild executor."""
+async def shutdown_rebuild_executor() -> None:
+    """Shut down the process-local graph rebuild executor.
+
+    Uses asyncio.to_thread to avoid blocking the event loop during
+    ThreadPoolExecutor.shutdown(wait=True).
+    """
+    await asyncio.to_thread(_REBUILD_RUNTIME.shutdown_executor)
+
+
+def shutdown_rebuild_executor_sync() -> None:
+    """Synchronous wrapper for shutdown_rebuild_executor.
+
+    For use in sync test cleanup and other sync contexts.
+    Prefer the async version in production async contexts.
+    """
     _REBUILD_RUNTIME.shutdown_executor()
+
+
+def init_rebuild_executor() -> None:
+    """Explicitly initialize the process-local graph rebuild executor."""
+    _REBUILD_RUNTIME.get_executor()
 
 
 def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
@@ -586,6 +664,55 @@ def _finalize_rebuild_failure(
     _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
 
 
+def _load_persisted_graph_snapshot(
+    session_factory: Callable[[], Session],
+) -> AssetRelationshipGraph:
+    """Load the currently persisted graph snapshot for rollback safety."""
+    with session_scope(session_factory) as session:
+        return AssetGraphRepository(session).load_graph()
+
+
+def _restore_persisted_graph_snapshot(
+    persistence_url: str,
+    snapshot: AssetRelationshipGraph,
+) -> None:
+    """Best-effort rollback of durable graph state when success persistence fails."""
+    try:
+        save_graph_to_persistence(persistence_url, snapshot)
+    except Exception:
+        logger.exception("Failed to restore persisted graph snapshot after rebuild persistence failure")
+
+
+def _handle_rebuild_failure(
+    session_factory,
+    job_id: str,
+    exc: Exception,
+    job_started_at: float,
+    success_persisted: bool,
+    graph_saved: bool,
+    graph_snapshot: AssetRelationshipGraph | None,
+    resolved_url: str,
+    source: GraphRebuildSource | None,
+) -> None:
+    """Handle rebuild failure with rollback and persistence."""
+    if not success_persisted:
+        if graph_saved:
+            if graph_snapshot is not None:
+                _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
+            else:
+                logger.warning("Skipped graph rollback because no snapshot was available")
+        _finalize_rebuild_failure(
+            session_factory=session_factory,
+            job_id=job_id,
+            exc=exc,
+            job_started_at=job_started_at,
+        )
+    # Re-wrap if source context exists, otherwise re-raise original
+    if source is not None:
+        raise _RebuildExecutionError(source, exc) from exc
+    raise
+
+
 def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
     *,
@@ -594,35 +721,68 @@ def _perform_rebuild_and_persist_sync(
     """Rebuild the graph, persist it, then publish it to runtime state."""
     resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(resolved_url)
+
+    # Initialize variables outside try to prevent UnboundLocalError in finally
+    lock_acquired = False
+    dist_lock = None
+
     try:
         session_factory = create_session_factory(engine)
+
+        lock_ttl = getattr(settings, "rebuild_lock_ttl_seconds", 300)
+        if not isinstance(lock_ttl, int) or lock_ttl <= 0:
+            lock_ttl = 300
+
+        dist_lock = DistributedLock(
+            session_factory,
+            "graph_rebuild",
+            ttl_seconds=lock_ttl,
+        )
+
+        if not dist_lock.acquire():
+            raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
+
+        lock_acquired = True
         job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
-        # Build failures occur before a source is available; keep it nullable so
-        # post-build failures can still preserve wrapped source context.
+
         source: GraphRebuildSource | None = None
+        success_persisted = False
+        graph_snapshot: AssetRelationshipGraph | None = None
+        graph_saved = False
         try:
             graph, source = build_rebuild_graph(settings)
             _update_job_source_safe(session_factory, job_id, str(source))
+            # Load rollback snapshot before any durable write. If snapshot loading
+            # fails, the rebuild fails closed before persistence is modified.
+            graph_snapshot = _load_persisted_graph_snapshot(session_factory)
             save_graph_to_persistence(resolved_url, graph)
-            synchronize_runtime_graph(graph)
-            return _finalize_rebuild_success(
+            graph_saved = True
+            response = _finalize_rebuild_success(
                 session_factory=session_factory,
                 job_id=job_id,
                 graph=graph,
                 source=source,
                 job_started_at=job_started_at,
             )
+            success_persisted = True
+            synchronize_runtime_graph(graph, job_id=job_id)
+            return response
         except Exception as exc:
-            _finalize_rebuild_failure(
+            _handle_rebuild_failure(
                 session_factory=session_factory,
                 job_id=job_id,
                 exc=exc,
                 job_started_at=job_started_at,
+                success_persisted=success_persisted,
+                graph_saved=graph_saved,
+                graph_snapshot=graph_snapshot,
+                resolved_url=resolved_url,
+                source=source,
             )
-            if source is not None:
-                raise _RebuildExecutionError(source, exc) from exc
-            raise
+
     finally:
+        if lock_acquired and dist_lock:
+            dist_lock.release()
         engine.dispose()
 
 
@@ -770,15 +930,13 @@ def list_rebuild_jobs(
         current_user: Authenticated operator user.
 
     Returns:
-        RebuildJobListResponse with pagination-ready bounded list structure.
+        RebuildJobListResponse with up to _MAX_REBUILD_JOB_LIST_RESULTS newest jobs.
 
     Raises:
         HTTPException: 503 if persistence not configured.
     """
     with _rebuild_persistence_session() as session:
         repo = AssetGraphRepository(session)
-        jobs_orm = repo.list_rebuild_jobs(
-            limit=_MAX_REBUILD_JOB_LIST_RESULTS,
-        )
+        jobs_orm = repo.list_rebuild_jobs(limit=_MAX_REBUILD_JOB_LIST_RESULTS)
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
         return RebuildJobListResponse(jobs=jobs, count=len(jobs))

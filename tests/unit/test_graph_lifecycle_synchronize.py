@@ -52,6 +52,34 @@ def test_synchronize_runtime_graph_preserves_rebuild_until_completion() -> None:
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.READY
 
 
+def test_synchronize_runtime_graph_skips_when_stopped() -> None:
+    """Synchronize should not publish while runtime is STOPPED."""
+    graph_instance = cast(
+        graph_lifecycle.AssetRelationshipGraph,
+        object(),
+    )
+    graph_lifecycle.begin_shutdown()
+    applied = graph_lifecycle.synchronize_runtime_graph(graph_instance)
+    assert applied is False
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.STOPPED
+
+
+def test_synchronize_runtime_graph_honors_expected_last_synced_job_id() -> None:
+    """Synchronize should reject stale publishes when sync state changed."""
+    graph_lifecycle.graph_state.last_synced_job_id = "newer-job"
+    graph_instance = cast(
+        graph_lifecycle.AssetRelationshipGraph,
+        object(),
+    )
+    applied = graph_lifecycle.synchronize_runtime_graph(
+        graph_instance,
+        job_id="older-job",
+        expected_last_synced_job_id="older-job",
+    )
+    assert applied is False
+    assert graph_lifecycle.graph_state.last_synced_job_id == "newer-job"
+
+
 def test_synchronize_runtime_graph_no_op_when_api_main_not_loaded() -> None:
     """Synchronizing should not import api.main when it is absent."""
     saved_api_main = sys.modules.pop("api.main", None)
@@ -72,6 +100,22 @@ def test_synchronize_runtime_graph_no_op_when_api_main_not_loaded() -> None:
 def test_lifecycle_state_is_uninitialized_after_reset() -> None:
     """Reset lifecycle should return runtime state to UNINITIALIZED."""
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.UNINITIALIZED
+
+
+def test_runtime_state_resets_clear_last_synced_job_id() -> None:
+    """Runtime reset/swap operations should clear sync marker state."""
+    graph_lifecycle.graph_state.last_synced_job_id = "job-123"
+
+    graph_lifecycle.set_graph(cast(graph_lifecycle.AssetRelationshipGraph, object()))
+    assert graph_lifecycle.graph_state.last_synced_job_id is None
+
+    graph_lifecycle.graph_state.last_synced_job_id = "job-456"
+    graph_lifecycle.set_graph_factory(lambda: cast(graph_lifecycle.AssetRelationshipGraph, object()))
+    assert graph_lifecycle.graph_state.last_synced_job_id is None
+
+    graph_lifecycle.graph_state.last_synced_job_id = "job-789"
+    graph_lifecycle.reset_graph()
+    assert graph_lifecycle.graph_state.last_synced_job_id is None
 
 
 @pytest.mark.parametrize(

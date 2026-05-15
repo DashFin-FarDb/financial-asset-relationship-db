@@ -24,6 +24,7 @@ from api.auth import (
     User,
     get_current_active_user,
 )
+from api.graph_lifecycle import reset_graph
 from src.config.settings import get_settings
 
 pytestmark = pytest.mark.integration
@@ -78,6 +79,16 @@ def non_operator_client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]
 def operator_client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     """Client authenticated as the authorized operator user."""
     yield from _client_with_active_user(monkeypatch, "admin")
+
+
+@pytest.fixture(autouse=True)
+def _reset_graph_lifecycle_state() -> Iterator[None]:
+    """Keep global graph runtime lifecycle isolated across tests."""
+    reset_graph()
+    try:
+        yield
+    finally:
+        reset_graph()
 
 
 def _assert_successful_json_response(response: httpx.Response) -> dict[str, Any]:
@@ -191,7 +202,7 @@ def test_rebuild_allows_active_authorized_operator_user(
     try:
         response = operator_client.post("/api/graph/rebuild")
     finally:
-        graph_admin.shutdown_rebuild_executor()
+        graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
@@ -203,6 +214,43 @@ def test_rebuild_allows_active_authorized_operator_user(
         "relationship_count": 0,
         "regulatory_event_count": 0,
     }
+
+
+def test_rebuild_lock_contention_does_not_mark_runtime_failed(
+    operator_client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Distributed lock contention should return 429 while leaving runtime healthy."""
+
+    def fake_rebuild(
+        _settings: graph_admin.GraphLifecycleSettings,
+        *,
+        user_ref: str,
+    ) -> graph_admin.GraphRebuildResponse:
+        raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
+
+    monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", fake_rebuild)
+
+    try:
+        with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
+            response = operator_client.post("/api/graph/rebuild")
+    finally:
+        graph_admin.shutdown_rebuild_executor_sync()
+        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+
+    assert response.status_code == 429
+    assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
+
+    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    rejected_records = [
+        record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_rejected"
+    ]
+    failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
+
+    assert len(rejected_records) >= 1
+    assert len(failed_records) == 0
 
 
 @pytest.mark.parametrize("configured_admin", [None, "", "   "])
@@ -265,6 +313,33 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
     assert requested_records[0].path == "/api/graph/rebuild"
     assert rejected_records[0].reason == "rebuild_in_progress"
     assert rejected_records[0].status_code == 429
+
+
+async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_executor_raises_directly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Direct contention exceptions should not leave runtime lifecycle in FAILED."""
+
+    async def fake_executor(
+        _loop: asyncio.AbstractEventLoop,
+        _settings: graph_admin.GraphLifecycleSettings,
+        *,
+        user_ref: str,
+        started_at: float,
+    ) -> graph_admin.GraphRebuildResponse:
+        raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
+
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
+    try:
+        with pytest.raises(HTTPException) as exc_info:
+            await graph_admin.rebuild_graph(User(username="admin", disabled=False))
+        assert exc_info.value.status_code == 429
+        assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
+    finally:
+        graph_admin.shutdown_rebuild_executor_sync()
+        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        reset_graph()
 
 
 def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
@@ -334,7 +409,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
             # Allow time for the executor thread to finish and log
             await asyncio.sleep(0.12)
     finally:
-        graph_admin.shutdown_rebuild_executor()
+        graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 

@@ -11,11 +11,12 @@ import sys
 import threading
 from collections.abc import Callable
 from enum import Enum
+from typing import Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
 from . import graph_lifecycle_providers
-from .api_models import GraphStartupSource
+from .api_models import AssetGraphSource
 
 logger = logging.getLogger(__name__)
 
@@ -141,12 +142,33 @@ class _GraphState:
         """Create empty graph lifecycle state."""
         self.graph: AssetRelationshipGraph | None = None
         self.graph_factory: Callable[[], AssetRelationshipGraph] | None = None
-        self.startup_source: GraphStartupSource | None = None
+        self.startup_source: AssetGraphSource | None = None
         self.lifecycle_state = GraphRuntimeLifecycleState.UNINITIALIZED
+        self.last_synced_job_id: str | None = None
+
+    def clear_graph_runtime_state(self) -> None:
+        """Clear graph instance state that must not survive lifecycle resets."""
+        self.graph = None
+        self.startup_source = None
+        self.last_synced_job_id = None
 
 
 graph_state = _GraphState()
 graph_lock = threading.Lock()
+
+
+class _UnsetLastSyncedJobId:
+    """Sentinel marker for omitted expected_last_synced_job_id."""
+
+
+UNSET_LAST_SYNC: Final = _UnsetLastSyncedJobId()
+
+
+def _sync_state_changed(expected_last_synced_job_id: str | None | _UnsetLastSyncedJobId) -> bool:
+    """Return whether sync state has changed from the expected value."""
+    if isinstance(expected_last_synced_job_id, _UnsetLastSyncedJobId):
+        return False
+    return graph_state.last_synced_job_id != expected_last_synced_job_id
 
 
 def get_graph() -> AssetRelationshipGraph:
@@ -158,7 +180,7 @@ def get_graph() -> AssetRelationshipGraph:
     return graph
 
 
-def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartupSource | None]:
+def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphSource | None]:
     """Return the module-global graph and its tracked startup source atomically."""
     with graph_lock:
         if graph_state.graph is None:
@@ -192,18 +214,35 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
         graph_state.startup_source = "unknown"
+        graph_state.last_synced_job_id = None
         _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
 
 
-def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
+def synchronize_runtime_graph(
+    graph_instance: AssetRelationshipGraph,
+    *,
+    job_id: str | None = None,
+    expected_last_synced_job_id: str | None | _UnsetLastSyncedJobId = UNSET_LAST_SYNC,
+) -> bool:
     """Publish a runtime graph and mirror it into legacy api.main.
 
     Rebuild callers publish the freshly persisted graph while lifecycle state is
     still REBUILDING. Preserve that state so complete_rebuild() remains the
     single transition point for REBUILDING -> READY/FAILED.
+
+    Returns:
+        bool: True if the graph is successfully published to runtime and mirrored into legacy api.main.
+        False if publishing is skipped because runtime is SHUTTING_DOWN/STOPPED or
+        expected_last_synced_job_id no longer matches current sync state.
     """
     with graph_lock:
-        _normalize_shutdown_state()
+        if graph_state.lifecycle_state in (
+            GraphRuntimeLifecycleState.SHUTTING_DOWN,
+            GraphRuntimeLifecycleState.STOPPED,
+        ):
+            return False
+        if _sync_state_changed(expected_last_synced_job_id):
+            return False
         preserve_rebuild = graph_state.lifecycle_state == GraphRuntimeLifecycleState.REBUILDING
         if graph_state.lifecycle_state in (
             GraphRuntimeLifecycleState.UNINITIALIZED,
@@ -213,12 +252,36 @@ def synchronize_runtime_graph(graph_instance: AssetRelationshipGraph) -> None:
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
         graph_state.startup_source = "unknown"
+        if job_id:
+            graph_state.last_synced_job_id = job_id
         if not preserve_rebuild:
             _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
 
         api_main = sys.modules.get("api.main")
         if api_main is not None and hasattr(api_main, "graph"):
             setattr(api_main, "graph", graph_instance)
+        return True
+
+
+def _query_latest_successful_rebuild_job_id(
+    settings: graph_lifecycle_providers.GraphLifecycleSettings,
+) -> str | None:
+    """Return the latest successful rebuild job id using durable persistence."""
+    from src.data.database import create_engine_from_url, create_session_factory
+    from src.data.repository import AssetGraphRepository, session_scope
+
+    resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    engine = create_engine_from_url(resolved_url)
+    try:
+        session_factory = create_session_factory(engine)
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            latest_job = repo.get_latest_successful_rebuild_job()
+            if latest_job is None:
+                return None
+            return latest_job.job_id
+    finally:
+        engine.dispose()
 
 
 def set_graph_factory(
@@ -229,6 +292,7 @@ def set_graph_factory(
         graph_state.graph_factory = factory
         graph_state.graph = None
         graph_state.startup_source = None
+        graph_state.last_synced_job_id = None
         _shutdown_to_uninitialized()
 
 
@@ -247,6 +311,7 @@ def reset_graph() -> None:
         graph_state.graph_factory = None
         graph_state.graph = None
         graph_state.startup_source = None
+        graph_state.last_synced_job_id = None
         _shutdown_to_uninitialized()
 
 
@@ -302,7 +367,7 @@ def _initialize_graph() -> AssetRelationshipGraph:
     return graph
 
 
-def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, GraphStartupSource]:
+def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphSource]:
     """
     Initialize a graph and return the selected startup source.
 
@@ -322,6 +387,18 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, GraphStartu
     persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(settings.asset_graph_database_url)
     if persisted_graph is not None:
         logger.info("Graph startup source: persisted_graph_store")
+
+        # Initialize last_synced_job_id from DB if possible
+        try:
+            latest_job_id = _query_latest_successful_rebuild_job_id(settings)
+            if latest_job_id:
+                graph_state.last_synced_job_id = latest_job_id
+        except Exception as exc:
+            logger.warning(
+                "Failed to initialize last_synced_job_id during graph startup (exception_type=%s)",
+                type(exc).__name__,
+            )
+
         return persisted_graph, "persisted_graph_store"
 
     cache_path = settings.graph_cache_path
@@ -341,5 +418,72 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, GraphStartu
         )
         return graph, "real_data"
 
-    logger.info("Graph startup source: sample_graph")
-    return graph_lifecycle_providers.create_sample_graph(), "sample_graph"
+    logger.info("Graph startup source: sample")
+    return graph_lifecycle_providers.create_sample_graph(), "sample"
+
+
+def sync_with_latest_rebuild() -> None:
+    """Check database for newer successful rebuild and synchronize if found."""
+    settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
+    if not settings.asset_graph_database_url:
+        return
+
+    # Don't sync while we're already rebuilding locally
+    if get_runtime_lifecycle_state() == GraphRuntimeLifecycleState.REBUILDING:
+        return
+    if get_runtime_lifecycle_state() in (
+        GraphRuntimeLifecycleState.SHUTTING_DOWN,
+        GraphRuntimeLifecycleState.STOPPED,
+    ):
+        return
+
+    try:
+        from src.data.database import create_engine_from_url, create_session_factory
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        latest_job_id = _query_latest_successful_rebuild_job_id(settings)
+        if not latest_job_id:
+            return
+
+        with graph_lock:
+            if graph_state.lifecycle_state in (
+                GraphRuntimeLifecycleState.SHUTTING_DOWN,
+                GraphRuntimeLifecycleState.STOPPED,
+            ):
+                return
+            if latest_job_id == graph_state.last_synced_job_id:
+                return
+            expected_last_synced_job_id = graph_state.last_synced_job_id
+
+        logger.info(
+            "New successful rebuild detected (job_id: %s). Synchronizing...",
+            latest_job_id,
+        )
+
+        resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(
+            settings.asset_graph_database_url
+        )
+        engine = create_engine_from_url(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                new_graph = repo.load_graph()
+            from .metrics import update_graph_metrics
+
+            if synchronize_runtime_graph(
+                new_graph,
+                job_id=latest_job_id,
+                expected_last_synced_job_id=expected_last_synced_job_id,
+            ):
+                update_graph_metrics(
+                    len(new_graph.assets),
+                    sum(len(items) for items in new_graph.relationships.values()),
+                )
+        finally:
+            engine.dispose()
+    except Exception as exc:
+        logger.warning(
+            "Failed to sync with latest rebuild from database: %s",
+            type(exc).__name__,
+        )

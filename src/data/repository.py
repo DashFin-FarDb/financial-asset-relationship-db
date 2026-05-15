@@ -5,11 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
 from uuid import uuid4
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, insert, or_, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -27,6 +28,7 @@ from src.models.financial_models import (
 from .db_models import (
     AssetORM,
     AssetRelationshipORM,
+    DistributedLockORM,
     RebuildJobORM,
     RebuildJobStatus,
     RegulatoryEventAssetORM,
@@ -1070,6 +1072,7 @@ class AssetGraphRepository:
         self,
         *,
         limit: int | None = None,
+        offset: int | None = None,
         status: str | None = None,
     ) -> list[RebuildJobORM]:
         """
@@ -1077,6 +1080,7 @@ class AssetGraphRepository:
 
         Args:
             limit: Optional maximum number of jobs to return.
+            offset: Optional number of jobs to skip.
             status: Optional status filter (pending, running, succeeded, failed, cancelled).
 
         Returns:
@@ -1097,4 +1101,103 @@ class AssetGraphRepository:
             stmt = stmt.where(RebuildJobORM.status == status)
         if limit is not None:
             stmt = stmt.limit(limit)
+        if offset is not None:
+            stmt = stmt.offset(offset)
         return list(self.session.execute(stmt).scalars().all())
+
+    def get_latest_successful_rebuild_job(self) -> RebuildJobORM | None:
+        """
+        Retrieve the most recent successfully completed rebuild job.
+
+        Returns:
+            RebuildJobORM | None: The most recent succeeded job record, or None.
+        """
+        stmt = (
+            select(RebuildJobORM)
+            .where(RebuildJobORM.status == RebuildJobStatus.SUCCEEDED)
+            .order_by(RebuildJobORM.completed_at.desc(), RebuildJobORM.job_id.desc())
+            .limit(1)
+        )
+        return self.session.execute(stmt).scalar_one_or_none()
+
+    def try_acquire_distributed_lock(
+        self,
+        *,
+        lock_name: str,
+        holder_id: str,
+        ttl_seconds: int,
+    ) -> bool:
+        """
+        Try to acquire or refresh a distributed lock in the database.
+
+        If the lock does not exist, it is created.
+        If the lock exists and is expired, it is acquired by the new holder.
+        If the lock exists and is held by the same holder, it is refreshed.
+        If the lock exists and is held by another holder and not expired, acquisition fails.
+
+        Args:
+            lock_name: Unique name of the lock.
+            holder_id: Identifier of the process/instance seeking the lock.
+            ttl_seconds: Time-to-live for the lock in seconds.
+
+        Returns:
+            bool: True if the lock was acquired or refreshed, False otherwise.
+        """
+        if ttl_seconds <= 0:
+            raise ValueError("ttl_seconds must be greater than 0")
+        now = datetime.now(timezone.utc)
+        expires_at = now + timedelta(seconds=ttl_seconds)
+
+        update_stmt = (
+            update(DistributedLockORM)
+            .where(
+                DistributedLockORM.lock_name == lock_name,
+                or_(
+                    DistributedLockORM.holder_id == holder_id,
+                    DistributedLockORM.expires_at < now,
+                ),
+            )
+            .values(
+                holder_id=holder_id,
+                expires_at=expires_at,
+                updated_at=now,
+            )
+        )
+        update_result = self.session.execute(update_stmt)
+        if update_result.rowcount and update_result.rowcount > 0:
+            return True
+
+        try:
+            with self.session.begin_nested():
+                self.session.execute(
+                    insert(DistributedLockORM).values(
+                        lock_name=lock_name,
+                        holder_id=holder_id,
+                        expires_at=expires_at,
+                        created_at=now,
+                        updated_at=now,
+                    )
+                )
+            return True
+        except IntegrityError:
+            # Another contender may have inserted first; retrying the conditional
+            # update covers "same holder" refresh and "expired holder" takeover
+            # after that insert race. It is still best-effort and can return False
+            # if another holder keeps a valid, unexpired lock.
+            retry_result = self.session.execute(update_stmt)
+            return bool(retry_result.rowcount and retry_result.rowcount > 0)
+
+    def release_distributed_lock(self, *, lock_name: str, holder_id: str) -> None:
+        """
+        Release a distributed lock if held by the specified holder.
+
+        Args:
+            lock_name: Unique name of the lock.
+            holder_id: Identifier of the process/instance that held the lock.
+        """
+        self.session.execute(
+            delete(DistributedLockORM).where(
+                DistributedLockORM.lock_name == lock_name,
+                DistributedLockORM.holder_id == holder_id,
+            )
+        )
