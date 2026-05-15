@@ -54,8 +54,11 @@ async def lifespan(_fastapi_app: FastAPI):
         if has_durable_graph_persistence:
             try:
                 await asyncio.to_thread(sync_with_latest_rebuild)
-            except Exception as e:
-                logger.warning("Startup graph reconciliation failed: %s", e)
+            except Exception as exc:  # noqa: BLE001 - bounded logging below
+                logger.warning(
+                    "Startup graph reconciliation failed: %s",
+                    type(exc).__name__,
+                )
 
         logger.info("Application startup complete - graph and rebuild executor initialized")
     except Exception:
