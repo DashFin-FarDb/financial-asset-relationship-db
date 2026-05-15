@@ -40,8 +40,7 @@ def test_migration_adds_rebuild_recovery_columns_for_existing_tables(tmp_path: P
     """Applying migration to an existing rebuild_jobs table should add recovery columns."""
     db_path = tmp_path / "migration_upgrade.db"
     with sqlite3.connect(db_path) as connection:
-        connection.executescript(
-            """
+        connection.executescript("""
             CREATE TABLE rebuild_jobs (
                 job_id TEXT PRIMARY KEY,
                 requested_by TEXT NOT NULL,
@@ -57,8 +56,7 @@ def test_migration_adds_rebuild_recovery_columns_for_existing_tables(tmp_path: P
                 sanitized_failure_category TEXT,
                 sanitized_failure_message TEXT
             );
-            """
-        )
+            """)
 
     _apply_migration(db_path)
 

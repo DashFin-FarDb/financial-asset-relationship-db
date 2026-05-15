@@ -217,7 +217,9 @@ def detect_rebuild_inconsistency(
 
     # Check for crash suspicion (second priority)
     if detect_crash_suspicion(job, heartbeat_threshold, now=current_time):
-        age_seconds = (current_time - _to_aware_utc(job.last_heartbeat_at)).total_seconds() if job.last_heartbeat_at else None
+        age_seconds = (
+            (current_time - _to_aware_utc(job.last_heartbeat_at)).total_seconds() if job.last_heartbeat_at else None
+        )
         reason = (
             f"Job {job.job_id} worker {job.active_worker_id} "
             f"has stale heartbeat (age: {age_seconds}s, threshold: {heartbeat_threshold}s)"
@@ -233,7 +235,9 @@ def detect_rebuild_inconsistency(
 
     # Check for stale ownership (third priority)
     if detect_stale_ownership(job, lock_ttl_seconds, now=current_time):
-        age_seconds = (current_time - _to_aware_utc(job.last_heartbeat_at)).total_seconds() if job.last_heartbeat_at else None
+        age_seconds = (
+            (current_time - _to_aware_utc(job.last_heartbeat_at)).total_seconds() if job.last_heartbeat_at else None
+        )
         reason = (
             f"Job {job.job_id} ownership stale " f"(heartbeat age: {age_seconds}s > TTL: {lock_ttl_seconds}s)"
             if age_seconds is not None
