@@ -60,9 +60,10 @@ ALLOWED_PATH_EXCEPTIONS = {
 
 def iter_python_files(root: Path) -> Iterable[Path]:
     for path in root.rglob("*.py"):
-        if any(str(path).startswith(exc) for exc in ALLOWED_PATH_EXCEPTIONS):
-            continue
-        yield path
+        rel = path.relative_to(root).as_posix()
+        if any(rel.startswith(exc) for exc in ALLOWED_PATH_EXCEPTIONS):
+             continue
+         yield path
 
 
 def scan_file(path: Path) -> list[str]:
