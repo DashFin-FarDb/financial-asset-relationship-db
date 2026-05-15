@@ -1230,13 +1230,14 @@ class AssetGraphRepository:
         if lock_orm is None:
             return LockState.UNKNOWN
 
-        if lock_orm.holder_id == holder_id:
-            expires_at = lock_orm.expires_at
-            if expires_at.tzinfo is None:
-                expires_at = expires_at.replace(tzinfo=timezone.utc)
-            if expires_at > now:
-                return LockState.VALID
+        expires_at = lock_orm.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at <= now:
             return LockState.EXPIRED
+
+        if lock_orm.holder_id == holder_id:
+            return LockState.VALID
 
         return LockState.UNKNOWN
 
@@ -1279,20 +1280,30 @@ class AssetGraphRepository:
         """
         Get the current authoritative rebuild state from the database.
 
-        Returns the most recent job in 'running' status, or None if no
+        Returns the running job when exactly one is active, or None if no
         rebuild is currently active.
 
         Returns:
             The active rebuild job, or None if no job is running.
+
+        Raises:
+            ValueError: If multiple rebuild jobs are simultaneously in running
+                status.
         """
         stmt = (
             select(RebuildJobORM)
             .where(RebuildJobORM.status == RebuildJobStatus.RUNNING)
             .order_by(RebuildJobORM.created_at.desc())
-            .limit(1)
+            # Fetch up to two rows to detect invalid multi-running state.
+            .limit(2)
         )
         result = self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        running_jobs = list(result.scalars())
+        if len(running_jobs) > 1:
+            raise ValueError("Multiple rebuild jobs are in RUNNING state")
+        if not running_jobs:
+            return None
+        return running_jobs[0]
 
     def get_last_successful_rebuild(self) -> RebuildJobORM | None:
         """

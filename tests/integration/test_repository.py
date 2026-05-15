@@ -36,6 +36,36 @@ def _apply_migration(database_path: Path) -> None:
         connection.executescript(sql)  # nosec pythonsecurity:S3649
 
 
+def test_migration_adds_rebuild_recovery_columns_for_existing_tables(tmp_path: Path) -> None:
+    """Applying migration to an existing rebuild_jobs table should add recovery columns."""
+    db_path = tmp_path / "migration_upgrade.db"
+    with sqlite3.connect(db_path) as connection:
+        connection.executescript("""
+            CREATE TABLE rebuild_jobs (
+                job_id TEXT PRIMARY KEY,
+                requested_by TEXT NOT NULL,
+                status TEXT NOT NULL,
+                source TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                started_at TEXT,
+                completed_at TEXT,
+                duration_ms INTEGER,
+                node_count INTEGER,
+                edge_count INTEGER,
+                sanitized_failure_category TEXT,
+                sanitized_failure_message TEXT
+            );
+            """)
+
+    _apply_migration(db_path)
+
+    with sqlite3.connect(db_path) as connection:
+        columns = [row[1] for row in connection.execute("PRAGMA table_info(rebuild_jobs)")]
+    assert "active_worker_id" in columns  # nosec B101
+    assert "last_heartbeat_at" in columns  # nosec B101
+
+
 @pytest.fixture()
 def db_session(tmp_path: Path) -> Generator[Session, None, None]:
     """

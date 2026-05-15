@@ -114,6 +114,15 @@ def determine_recovery_action(
             safe_to_execute=False,
         )
 
+    # Runtime active with DB not running - never safe to proceed
+    if inconsistency_type == InconsistencyType.ZOMBIE_EXECUTOR:
+        return RecoveryDecision(
+            action=RecoveryAction.UNSAFE,
+            reason="Runtime executor active while DB is not running - execution unsafe",
+            inconsistency_type=inconsistency_type,
+            safe_to_execute=False,
+        )
+
     # Crash suspicion - executor likely crashed
     if inconsistency_type == InconsistencyType.CRASH_SUSPICION:
         if lock_is_valid:
@@ -151,7 +160,7 @@ def determine_recovery_action(
         )
 
     # Unknown inconsistency type - be conservative
-    logger.warning(f"Unknown inconsistency type {inconsistency_type} - " f"defaulting to UNSAFE action")
+    logger.warning("Unknown inconsistency type %s - defaulting to UNSAFE action", inconsistency_type)
     return RecoveryDecision(
         action=RecoveryAction.UNSAFE,
         reason=f"Unknown inconsistency type: {inconsistency_type}",

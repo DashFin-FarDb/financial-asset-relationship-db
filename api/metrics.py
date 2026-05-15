@@ -46,7 +46,7 @@ GRAPH_RELATIONSHIPS = Gauge(
 # Stage 5C.1: Recovery state metrics
 REBUILD_STATE_STATUS = Gauge(
     "graph_rebuild_state_status",
-    "Current rebuild state status (0=none, 1=pending, 2=running, 3=succeeded, 4=failed, 5=cancelled).",
+    "Current rebuild state status (-1=unknown, 0=none, 1=pending, 2=running, 3=succeeded, 4=failed, 5=cancelled).",
 )
 
 REBUILD_RECOVERY_TRIGGERS = Counter(
@@ -97,10 +97,10 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
         "cancelled": 5,
     }
 
-    normalised_status = status_str.lower()
-    gauge_value = mapping.get(normalised_status, -1)
+    normalized_status = status_str.lower()
+    gauge_value = mapping.get(normalized_status, -1)
 
-    if gauge_value == -1 and normalised_status != "unknown":
+    if gauge_value == -1 and normalized_status != "unknown":
         logger.error(
             "Inconsistency detected: received unknown job status '%s'. Mapping to UNKNOWN_STATE (-1).",
             status,

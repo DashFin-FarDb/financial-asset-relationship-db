@@ -20,6 +20,7 @@ class InconsistencyType(str, Enum):
 
     STALE_OWNERSHIP = "stale_ownership"
     ORPHANED_RUNNING = "orphaned_running"
+    ZOMBIE_EXECUTOR = "zombie_executor"
     CRASH_SUSPICION = "crash_suspicion"
     NONE = "none"
 
@@ -32,6 +33,17 @@ class RebuildInconsistency:
     job_id: str | None
     reason: str
     detected_at: datetime
+
+
+def _to_aware_utc(value: datetime) -> datetime:
+    """Normalize naive datetimes to timezone-aware UTC (assuming naive inputs are UTC).
+
+    Note: If a naive persisted value was originally stored in a non-UTC timezone,
+    this normalization would misinterpret the instant.
+    """
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value
 
 
 def detect_stale_ownership(
@@ -65,7 +77,8 @@ def detect_stale_ownership(
         return True
 
     current_time = now or datetime.now(timezone.utc)
-    age = current_time - job.last_heartbeat_at
+    heartbeat_at = _to_aware_utc(job.last_heartbeat_at)
+    age = current_time - heartbeat_at
     return age.total_seconds() > ttl_seconds
 
 
@@ -131,7 +144,8 @@ def detect_crash_suspicion(
         return True
 
     current_time = now or datetime.now(timezone.utc)
-    age = current_time - job.last_heartbeat_at
+    heartbeat_at = _to_aware_utc(job.last_heartbeat_at)
+    age = current_time - heartbeat_at
     return age.total_seconds() > heartbeat_stale_threshold_seconds
 
 
@@ -174,7 +188,7 @@ def detect_rebuild_inconsistency(
     if job is None:
         if runtime_has_active_executor:
             return RebuildInconsistency(
-                inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
+                inconsistency_type=InconsistencyType.ZOMBIE_EXECUTOR,
                 job_id=None,
                 reason="Runtime has active executor but no DB job exists",
                 detected_at=current_time,
@@ -189,27 +203,27 @@ def detect_rebuild_inconsistency(
     # Check for state divergence (highest priority)
     is_db_running = job.status == RebuildJobStatus.RUNNING
 
-    if runtime_has_active_executor != is_db_running:
-        # This covers both directions:
-        # 1. Runtime active + DB NOT running (Zombie)
-        # 2. Runtime inactive + DB says running (Ghost/Orphan)
-
-        divergence_detail = (
-            f"active executor found but DB is '{job.status}'"
-            if runtime_has_active_executor
-            else f"DB is 'RUNNING' but no active executor found"
-        )
-
+    if is_db_running and not runtime_has_active_executor:
         return RebuildInconsistency(
             inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
             job_id=job.job_id,
-            reason=f"Job {job.job_id} divergence: {divergence_detail}",
+            reason=f"Job {job.job_id} divergence: DB is 'RUNNING' but no active executor found",
+            detected_at=current_time,
+        )
+
+    if runtime_has_active_executor and not is_db_running:
+        return RebuildInconsistency(
+            inconsistency_type=InconsistencyType.ZOMBIE_EXECUTOR,
+            job_id=job.job_id,
+            reason=f"Job {job.job_id} divergence: active executor found but DB is '{job.status}'",
             detected_at=current_time,
         )
 
     # Check for crash suspicion (second priority)
     if detect_crash_suspicion(job, heartbeat_threshold, now=current_time):
-        age_seconds = (current_time - job.last_heartbeat_at).total_seconds() if job.last_heartbeat_at else None
+        age_seconds = (
+            (current_time - _to_aware_utc(job.last_heartbeat_at)).total_seconds() if job.last_heartbeat_at else None
+        )
         reason = (
             f"Job {job.job_id} worker {job.active_worker_id} "
             f"has stale heartbeat (age: {age_seconds}s, threshold: {heartbeat_threshold}s)"
@@ -225,7 +239,9 @@ def detect_rebuild_inconsistency(
 
     # Check for stale ownership (third priority)
     if detect_stale_ownership(job, lock_ttl_seconds, now=current_time):
-        age_seconds = (current_time - job.last_heartbeat_at).total_seconds() if job.last_heartbeat_at else None
+        age_seconds = (
+            (current_time - _to_aware_utc(job.last_heartbeat_at)).total_seconds() if job.last_heartbeat_at else None
+        )
         reason = (
             f"Job {job.job_id} ownership stale " f"(heartbeat age: {age_seconds}s > TTL: {lock_ttl_seconds}s)"
             if age_seconds is not None

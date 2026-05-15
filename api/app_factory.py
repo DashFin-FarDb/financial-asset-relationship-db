@@ -43,39 +43,20 @@ logger = logging.getLogger(__name__)
 async def lifespan(_fastapi_app: FastAPI):
     """Initialize graph state and clean up rebuild resources."""
     try:
-        from src.data.database import create_engine_from_url, create_session_factory
-        from src.data.distributed_lock import DistributedLock
-        from src.logic.recovery_gate import RecoveryAction, RecoveryGate
-
-        from .graph_lifecycle_providers import get_graph_lifecycle_settings, resolve_durable_graph_persistence_url
+        from .graph_lifecycle_providers import get_graph_lifecycle_settings
 
         settings = get_graph_lifecycle_settings()
-        if settings.asset_graph_database_url:
-            resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-            engine = create_engine_from_url(resolved_url)
-            try:
-                session_factory = create_session_factory(engine)
-                dist_lock = DistributedLock(
-                    session_factory,
-                    "graph_rebuild",
-                    ttl_seconds=getattr(settings, "rebuild_lock_ttl_seconds", 300),
-                )
-                gate = RecoveryGate(
-                    session_factory=session_factory,
-                    lock=dist_lock,
-                    runtime_has_active_executor=False,
-                    lock_ttl_seconds=getattr(settings, "rebuild_lock_ttl_seconds", 300),
-                )
-                action = gate.evaluate_state()
-                if action != RecoveryAction.RESUME:
-                    logger.warning("Startup reconciliation required. Action: %s", action.value)
-            except Exception as e:
-                logger.warning("RecoveryGate check failed during startup: %s", e)
-            finally:
-                engine.dispose()
+        has_durable_graph_persistence = bool(settings.asset_graph_database_url)
 
         get_graph()
         init_rebuild_executor()
+
+        if has_durable_graph_persistence:
+            try:
+                await asyncio.to_thread(sync_with_latest_rebuild)
+            except Exception as e:
+                logger.warning("Startup graph reconciliation failed: %s", e)
+
         logger.info("Application startup complete - graph and rebuild executor initialized")
     except Exception:
         logger.exception("Failed to initialize graph during startup")

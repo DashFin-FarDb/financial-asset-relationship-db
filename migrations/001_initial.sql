@@ -71,11 +71,12 @@ CREATE TABLE IF NOT EXISTS rebuild_jobs (
     edge_count INTEGER,
     sanitized_failure_category TEXT,
     sanitized_failure_message TEXT,
-    active_worker_id TEXT,
-    last_heartbeat_at TEXT,
     CONSTRAINT ck_rebuild_jobs_status
         CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled'))
 );
+
+ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id TEXT;
+ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TEXT;
 
 CREATE INDEX ix_rebuild_jobs_created_at
     ON rebuild_jobs (created_at);

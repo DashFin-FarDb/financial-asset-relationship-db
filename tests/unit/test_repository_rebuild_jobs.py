@@ -391,3 +391,16 @@ class TestRebuildJobRepository:
         repo = repository_factory()
         with pytest.raises(ValueError, match="Invalid rebuild job status"):
             repo.list_rebuild_jobs(status="invalid_status")
+
+    def test_get_active_rebuild_state_raises_when_multiple_running_jobs_exist(self, repository_factory):
+        """Multiple running jobs should be surfaced as an invalid state."""
+        repo = repository_factory()
+        first_job = repo.create_rebuild_job(requested_by="user1")
+        second_job = repo.create_rebuild_job(requested_by="user2")
+        repo.mark_rebuild_job_running(first_job)
+        repo.mark_rebuild_job_running(second_job)
+        repo.session.commit()
+
+        reader = repository_factory()
+        with pytest.raises(ValueError, match="Multiple rebuild jobs are in RUNNING state"):
+            reader.get_active_rebuild_state()

@@ -59,6 +59,12 @@ class TestDetectStaleOwnership:
         running_job.last_heartbeat_at = now - timedelta(seconds=400)
         assert detect_stale_ownership(running_job, ttl_seconds=300, now=now) is True
 
+    def test_handles_naive_heartbeat_timestamp(self, running_job):
+        """Naive SQLite heartbeat timestamps are normalized before comparison."""
+        now = datetime.now(timezone.utc)
+        running_job.last_heartbeat_at = (now - timedelta(seconds=400)).replace(tzinfo=None)
+        assert detect_stale_ownership(running_job, ttl_seconds=300, now=now) is True
+
     def test_returns_false_when_heartbeat_within_ttl(self, running_job):
         """Running job with recent heartbeat is not stale."""
         now = datetime.now(timezone.utc)
@@ -66,7 +72,7 @@ class TestDetectStaleOwnership:
         assert detect_stale_ownership(running_job, ttl_seconds=300, now=now) is False
 
     def test_boundary_condition_at_exactly_ttl(self, running_job):
-        """Heartbeat exactly at TTL threshold should be stale."""
+        """Heartbeat exactly at TTL threshold is not stale."""
         now = datetime.now(timezone.utc)
         running_job.last_heartbeat_at = now - timedelta(seconds=300)
         # At exactly TTL, age equals TTL, should NOT be stale (>= would make it stale)
@@ -127,6 +133,13 @@ class TestDetectCrashSuspicion:
             is True
         )
 
+    def test_handles_naive_heartbeat_timestamp(self, running_job):
+        """Naive SQLite heartbeat timestamps are normalized before comparison."""
+        now = datetime.now(timezone.utc)
+        running_job.active_worker_id = "worker-1"
+        running_job.last_heartbeat_at = (now - timedelta(seconds=120)).replace(tzinfo=None)
+        assert detect_crash_suspicion(running_job, heartbeat_stale_threshold_seconds=60, now=now) is True
+
     def test_returns_false_when_heartbeat_fresh(self, running_job):
         """Worker with recent heartbeat is not crashed."""
         now = datetime.now(timezone.utc)
@@ -156,13 +169,13 @@ class TestDetectRebuildInconsistency:
         assert inconsistency.job_id is None
 
     def test_detects_orphaned_running_when_no_job_but_executor_active(self):
-        """Orphaned running state when executor exists but no DB job."""
+        """Zombie executor state when executor exists but no DB job."""
         inconsistency = detect_rebuild_inconsistency(
             job=None,
             runtime_has_active_executor=True,
             lock_ttl_seconds=300,
         )
-        assert inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING
+        assert inconsistency.inconsistency_type == InconsistencyType.ZOMBIE_EXECUTOR
         assert inconsistency.job_id is None
         assert "no DB job exists" in inconsistency.reason
 
@@ -176,6 +189,17 @@ class TestDetectRebuildInconsistency:
         assert inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING
         assert inconsistency.job_id == running_job.job_id
         assert "no active executor" in inconsistency.reason
+
+    def test_detects_zombie_executor_when_runtime_active_but_db_not_running(self, pending_job):
+        """Runtime active while DB job is not running should be zombie executor."""
+        inconsistency = detect_rebuild_inconsistency(
+            job=pending_job,
+            runtime_has_active_executor=True,
+            lock_ttl_seconds=300,
+        )
+        assert inconsistency.inconsistency_type == InconsistencyType.ZOMBIE_EXECUTOR
+        assert inconsistency.job_id == pending_job.job_id
+        assert "active executor found but DB is" in inconsistency.reason
 
     def test_detects_crash_suspicion_when_worker_assigned_no_heartbeat(self, running_job):
         """Crash suspicion when worker assigned but no heartbeat."""
