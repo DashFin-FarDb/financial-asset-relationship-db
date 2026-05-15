@@ -619,6 +619,8 @@ def _create_and_start_rebuild_job(
         GraphPersistenceSaveError: If job creation or running transition fails.
     """
     job_id = _create_job_safe(session_factory, user_ref)
+    # Reflect persisted status immediately after job creation; if transition to
+    # running fails the durable job remains pending.
     update_rebuild_state_metric("pending")
     job_started_at = perf_counter()
     _mark_job_running_safe(session_factory, job_id)

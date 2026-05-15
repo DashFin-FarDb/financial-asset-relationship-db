@@ -36,7 +36,11 @@ class RebuildInconsistency:
 
 
 def _to_aware_utc(value: datetime) -> datetime:
-    """Normalize naive datetimes to timezone-aware UTC (assuming naive inputs are UTC)."""
+    """Normalize naive datetimes to timezone-aware UTC (assuming naive inputs are UTC).
+
+    Note: If a naive persisted value was originally stored in a non-UTC timezone,
+    this normalization would misinterpret the instant.
+    """
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
     return value

@@ -1294,6 +1294,7 @@ class AssetGraphRepository:
             select(RebuildJobORM)
             .where(RebuildJobORM.status == RebuildJobStatus.RUNNING)
             .order_by(RebuildJobORM.created_at.desc())
+            # Fetch up to two rows to detect invalid multi-running state.
             .limit(2)
         )
         result = self.session.execute(stmt)
