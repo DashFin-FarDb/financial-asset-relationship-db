@@ -1311,11 +1311,4 @@ class AssetGraphRepository:
             The most recent succeeded rebuild job, or None if no successful
             rebuild has been recorded.
         """
-        stmt = (
-            select(RebuildJobORM)
-            .where(RebuildJobORM.status == RebuildJobStatus.SUCCEEDED)
-            .order_by(RebuildJobORM.completed_at.desc())
-            .limit(1)
-        )
-        result = self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        return self.get_latest_successful_rebuild_job()
