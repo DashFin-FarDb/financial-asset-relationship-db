@@ -51,12 +51,8 @@ OWNERSHIP_MUTATION_ALLOWED_WRITERS = {
 
 def iter_python_files(root: Path) -> Iterable[Path]:
     for path in root.rglob("*.py"):
-<<<<<<< HEAD
         rel = path.relative_to(root).as_posix()
         if any(rel.startswith(exc.rstrip("/")) for exc in ALLOWED_PATH_EXCEPTIONS):
-=======
-        if any(str(path).startswith(exc) for exc in ALLOWED_PATH_EXCEPTIONS):
->>>>>>> dae1f07bb8148d0ce480cbd710c46117b8622310
             continue
         yield path
 
