@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 class ExecutionBlockedError(Exception):
     """Raised when execution is blocked by the recovery gate."""
 
+    ...
+
 
 class RecoveryGate:
     """Blocks execution unless the system state is consistent or safely recoverable."""
