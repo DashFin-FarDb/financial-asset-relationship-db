@@ -146,6 +146,98 @@ def detect_crash_suspicion(
     return age.total_seconds() > heartbeat_stale_threshold_seconds
 
 
+def _create_crash_suspicion_reason(job: RebuildJobORM, age_seconds: float | None, threshold: int) -> str:
+    """Generate reason message for crash suspicion inconsistency."""
+    if age_seconds is not None:
+        return (
+            f"Job {job.job_id} worker {job.active_worker_id} "
+            f"has stale heartbeat (age: {age_seconds}s, threshold: {threshold}s)"
+        )
+    return f"Job {job.job_id} worker {job.active_worker_id} never sent heartbeat"
+
+
+def _create_stale_ownership_reason(job: RebuildJobORM, age_seconds: float | None, ttl: int) -> str:
+    """Generate reason message for stale ownership inconsistency."""
+    if age_seconds is not None:
+        return f"Job {job.job_id} ownership stale (heartbeat age: {age_seconds}s > TTL: {ttl}s)"
+    return f"Job {job.job_id} ownership stale (no heartbeat recorded)"
+
+
+def _check_no_job_scenario(runtime_has_active_executor: bool, current_time: datetime) -> RebuildInconsistency:
+    """Handle scenario when no job exists in DB."""
+    if runtime_has_active_executor:
+        return RebuildInconsistency(
+            inconsistency_type=InconsistencyType.ZOMBIE_EXECUTOR,
+            job_id=None,
+            reason="Runtime has active executor but no DB job exists",
+            detected_at=current_time,
+        )
+    return RebuildInconsistency(
+        inconsistency_type=InconsistencyType.NONE,
+        job_id=None,
+        reason="No inconsistency detected",
+        detected_at=current_time,
+    )
+
+
+def _check_divergence(
+    job: RebuildJobORM,
+    runtime_has_active_executor: bool,
+    current_time: datetime,
+) -> RebuildInconsistency | None:
+    """Check for orphaned running or zombie executor divergence. Returns None if no divergence."""
+    is_db_running = job.status == RebuildJobStatus.RUNNING
+
+    if is_db_running and not runtime_has_active_executor:
+        return RebuildInconsistency(
+            inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
+            job_id=job.job_id,
+            reason=f"Job {job.job_id} divergence: DB is 'RUNNING' but no active executor found",
+            detected_at=current_time,
+        )
+
+    if runtime_has_active_executor and not is_db_running:
+        return RebuildInconsistency(
+            inconsistency_type=InconsistencyType.ZOMBIE_EXECUTOR,
+            job_id=job.job_id,
+            reason=f"Job {job.job_id} divergence: active executor found but DB is '{job.status}'",
+            detected_at=current_time,
+        )
+
+    return None
+
+
+def _check_heartbeat_issues(
+    job: RebuildJobORM,
+    heartbeat_threshold: int,
+    lock_ttl: int,
+    current_time: datetime,
+) -> RebuildInconsistency | None:
+    """Check for crash suspicion and stale ownership. Returns None if no issues."""
+    heartbeat_at = _to_aware_utc(job.last_heartbeat_at) if job.last_heartbeat_at else None
+    age_seconds = (current_time - heartbeat_at).total_seconds() if heartbeat_at else None
+
+    # Crash suspicion (uses tighter threshold)
+    if detect_crash_suspicion(job, heartbeat_threshold, now=current_time):
+        return RebuildInconsistency(
+            inconsistency_type=InconsistencyType.CRASH_SUSPICION,
+            job_id=job.job_id,
+            reason=_create_crash_suspicion_reason(job, age_seconds, heartbeat_threshold),
+            detected_at=current_time,
+        )
+
+    # Stale ownership (uses full lock TTL)
+    if detect_stale_ownership(job, lock_ttl, now=current_time):
+        return RebuildInconsistency(
+            inconsistency_type=InconsistencyType.STALE_OWNERSHIP,
+            job_id=job.job_id,
+            reason=_create_stale_ownership_reason(job, age_seconds, lock_ttl),
+            detected_at=current_time,
+        )
+
+    return None
+
+
 def detect_rebuild_inconsistency(
     job: RebuildJobORM | None,
     runtime_has_active_executor: bool,
@@ -184,73 +276,17 @@ def detect_rebuild_inconsistency(
 
     # No job in DB - check if runtime thinks it's running
     if job is None:
-        if runtime_has_active_executor:
-            return RebuildInconsistency(
-                inconsistency_type=InconsistencyType.ZOMBIE_EXECUTOR,
-                job_id=None,
-                reason="Runtime has active executor but no DB job exists",
-                detected_at=current_time,
-            )
-        return RebuildInconsistency(
-            inconsistency_type=InconsistencyType.NONE,
-            job_id=None,
-            reason="No inconsistency detected",
-            detected_at=current_time,
-        )
+        return _check_no_job_scenario(runtime_has_active_executor, current_time)
 
     # Check for state divergence (highest priority)
-    is_db_running = job.status == RebuildJobStatus.RUNNING
+    divergence = _check_divergence(job, runtime_has_active_executor, current_time)
+    if divergence is not None:
+        return divergence
 
-    if is_db_running and not runtime_has_active_executor:
-        return RebuildInconsistency(
-            inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
-            job_id=job.job_id,
-            reason=f"Job {job.job_id} divergence: DB is 'RUNNING' but no active executor found",
-            detected_at=current_time,
-        )
-
-    if runtime_has_active_executor and not is_db_running:
-        return RebuildInconsistency(
-            inconsistency_type=InconsistencyType.ZOMBIE_EXECUTOR,
-            job_id=job.job_id,
-            reason=f"Job {job.job_id} divergence: active executor found but DB is '{job.status}'",
-            detected_at=current_time,
-        )
-
-    # Check for crash suspicion (second priority)
-    if detect_crash_suspicion(job, heartbeat_threshold, now=current_time):
-        age_seconds = (
-            (current_time - _to_aware_utc(job.last_heartbeat_at)).total_seconds() if job.last_heartbeat_at else None
-        )
-        reason = (
-            f"Job {job.job_id} worker {job.active_worker_id} "
-            f"has stale heartbeat (age: {age_seconds}s, threshold: {heartbeat_threshold}s)"
-            if age_seconds is not None
-            else f"Job {job.job_id} worker {job.active_worker_id} never sent heartbeat"
-        )
-        return RebuildInconsistency(
-            inconsistency_type=InconsistencyType.CRASH_SUSPICION,
-            job_id=job.job_id,
-            reason=reason,
-            detected_at=current_time,
-        )
-
-    # Check for stale ownership (third priority)
-    if detect_stale_ownership(job, lock_ttl_seconds, now=current_time):
-        age_seconds = (
-            (current_time - _to_aware_utc(job.last_heartbeat_at)).total_seconds() if job.last_heartbeat_at else None
-        )
-        reason = (
-            f"Job {job.job_id} ownership stale " f"(heartbeat age: {age_seconds}s > TTL: {lock_ttl_seconds}s)"
-            if age_seconds is not None
-            else f"Job {job.job_id} ownership stale (no heartbeat recorded)"
-        )
-        return RebuildInconsistency(
-            inconsistency_type=InconsistencyType.STALE_OWNERSHIP,
-            job_id=job.job_id,
-            reason=reason,
-            detected_at=current_time,
-        )
+    # Check for heartbeat-based issues (Crash Suspicion or Stale Ownership)
+    heartbeat_issue = _check_heartbeat_issues(job, heartbeat_threshold, lock_ttl_seconds, current_time)
+    if heartbeat_issue is not None:
+        return heartbeat_issue
 
     # No inconsistency detected
     return RebuildInconsistency(
