@@ -36,7 +36,10 @@ jobs:
           pip install ruff mypy
 
       - name: Run type checking (mypy)
-        run: mypy --follow-imports=silent tools/ci/check_coordination_invariants.py
+        run: |
+          # Gate A validates the invariant scanner itself; repository-wide
+          # typing debt is tracked in separate workflows.
+          mypy --follow-imports=silent tools/ci/check_coordination_invariants.py
 
       - name: Run linting (ruff strict mode)
         run: ruff check tools/ci/check_coordination_invariants.py
