@@ -43,11 +43,12 @@ logger = logging.getLogger(__name__)
 async def lifespan(_fastapi_app: FastAPI):
     """Initialize graph state and clean up rebuild resources."""
     try:
-        from .graph_lifecycle_providers import get_graph_lifecycle_settings, resolve_durable_graph_persistence_url
         from src.data.database import create_engine_from_url, create_session_factory
         from src.data.distributed_lock import DistributedLock
-        from src.logic.recovery_gate import RecoveryGate, RecoveryAction
-        
+        from src.logic.recovery_gate import RecoveryAction, RecoveryGate
+
+        from .graph_lifecycle_providers import get_graph_lifecycle_settings, resolve_durable_graph_persistence_url
+
         settings = get_graph_lifecycle_settings()
         if settings.asset_graph_database_url:
             resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)

@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class ExecutionBlockedError(Exception):
     """Raised when execution is blocked by the recovery gate."""
+
     pass
 
 
@@ -62,7 +63,7 @@ class RecoveryGate:
             )
             return RecoveryAction.UNSAFE
 
-        lock_is_valid = (lock_state == LockState.VALID)
+        lock_is_valid = lock_state == LockState.VALID
 
         with self.session_factory() as session:
             repo = AssetGraphRepository(session)

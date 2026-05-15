@@ -79,7 +79,7 @@ def test_recovery_gate_blocks_on_orphan_with_valid_lock(mock_session_factory, mo
     )
 
     from src.data.db_models import RebuildJobStatus
-    
+
     class DummyJob:
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"

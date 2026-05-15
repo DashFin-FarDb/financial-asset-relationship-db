@@ -295,7 +295,7 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
 
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return _rebuild_in_progress_error()
-        
+
     if isinstance(root_exc, ExecutionBlockedError):
         return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(root_exc))
 
@@ -328,7 +328,7 @@ def _rebuild_status_code(exc: Exception) -> int:
 
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return status.HTTP_429_TOO_MANY_REQUESTS
-        
+
     if isinstance(root_exc, ExecutionBlockedError):
         return status.HTTP_503_SERVICE_UNAVAILABLE
 

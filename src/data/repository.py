@@ -1222,14 +1222,14 @@ class AssetGraphRepository:
             LockState: The current state of the lock.
         """
         from src.data.distributed_lock import LockState
-        
+
         now = datetime.now(timezone.utc)
         stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
         lock_orm = self.session.execute(stmt).scalar_one_or_none()
-        
+
         if lock_orm is None:
             return LockState.UNKNOWN
-            
+
         if lock_orm.holder_id == holder_id:
             expires_at = lock_orm.expires_at
             if expires_at.tzinfo is None:
@@ -1237,7 +1237,7 @@ class AssetGraphRepository:
             if expires_at > now:
                 return LockState.VALID
             return LockState.EXPIRED
-            
+
         return LockState.UNKNOWN
 
     # Stage 5C.1: Recovery state tracking methods

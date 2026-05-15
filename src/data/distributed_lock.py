@@ -116,13 +116,14 @@ class DistributedLock:
     def check_state(self) -> LockState:
         """
         Check the current state of this distributed lock.
-        
+
         Returns:
             LockState: The current state (VALID, EXPIRED, UNKNOWN, LOST).
         """
         try:
             with session_scope(self.session_factory) as session:
                 from src.data.repository import AssetGraphRepository
+
                 repo = AssetGraphRepository(session)
                 return repo.check_distributed_lock_state(
                     lock_name=self.lock_name,
