@@ -38,7 +38,7 @@ def test_recovery_gate_blocks_on_unknown_lock(mock_session_factory, mock_lock):
 
     assert gate.evaluate_state() == RecoveryAction.UNSAFE
 
-    with pytest.raises(ExecutionBlockedError, match="Execution is blocked"):
+    with pytest.raises(ExecutionBlockedError, match="Execution blocked"):
         gate.ensure_safe_to_execute()
 
 
@@ -91,7 +91,7 @@ def test_recovery_gate_blocks_on_orphan_with_valid_lock(mock_session_factory, mo
     with pytest.MonkeyPatch.context() as m:
         m.setattr("src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob())
         assert gate.evaluate_state() == RecoveryAction.UNSAFE
-        with pytest.raises(ExecutionBlockedError, match="Execution is blocked"):
+        with pytest.raises(ExecutionBlockedError, match="Execution blocked"):
             gate.ensure_safe_to_execute()
 
 
@@ -165,7 +165,7 @@ def test_recovery_gate_error_message_includes_decision_reason(mock_session_facto
     monkeypatch.setattr(
         "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob()
     )
-    with pytest.raises(ExecutionBlockedError, match="Reason:"):
+    with pytest.raises(ExecutionBlockedError, match=r"action=.*reason="):
         gate.ensure_safe_to_execute()
 
 

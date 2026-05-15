@@ -1270,7 +1270,8 @@ class AssetGraphRepository:
 
         if job.active_worker_id is not None and job.active_worker_id != worker_id:
             raise ValueError(
-                f"Cannot update heartbeat for job {job_id}: active worker is {job.active_worker_id}, not {worker_id}"
+                f"Cannot update heartbeat for job {job_id}: active worker is {job.active_worker_id}, not {worker_id}. "
+                "Worker ownership has already been claimed."
             )
 
         now = datetime.now(timezone.utc)  # noqa: UP017
