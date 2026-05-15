@@ -115,7 +115,7 @@ class RecoveryGate:
             from src.logic.rebuild_recovery import RecoveryDecision
 
             decision = RecoveryDecision(
-                action=decision.action,
+                action=RecoveryAction.RESET,
                 reason=(
                     "Orphaned running rebuild detected with owner mismatch: "
                     f"job worker_id={job.active_worker_id!r}, "
