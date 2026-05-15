@@ -10,7 +10,7 @@ This module tests:
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 
 import pytest
@@ -952,7 +952,7 @@ class TestGetCurrentUserEdgeCases:
         from api.auth import ALGORITHM, SECRET_KEY
 
         # Create token without 'sub'
-        token_data = {"exp": datetime.utcnow() + timedelta(minutes=30)}
+        token_data = {"exp": datetime.now(timezone.utc) + timedelta(minutes=30)}
         token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
 
         with pytest.raises(HTTPException) as exc_info:
