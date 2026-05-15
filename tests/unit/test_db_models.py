@@ -20,6 +20,7 @@ from src.data.db_models import (
     AssetORM,
     AssetRelationshipORM,
     RebuildJobORM,
+    RebuildJobStatus,
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
@@ -699,7 +700,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-123",
             requested_by="test_user",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             source="sample",
             created_at=now,
             updated_at=now,
@@ -710,7 +711,7 @@ class TestRebuildJobORM:
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-123").first()
         assert retrieved is not None
         assert retrieved.requested_by == "test_user"
-        assert retrieved.status == "pending"
+        assert retrieved.status == RebuildJobStatus.PENDING
         assert retrieved.source == "sample"
         assert retrieved.started_at is None
         assert retrieved.completed_at is None
@@ -727,7 +728,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-456",
             requested_by="test_user",
-            status="succeeded",
+            status=RebuildJobStatus.SUCCEEDED,
             source="real_data",
             created_at=now,
             updated_at=now,
@@ -742,7 +743,7 @@ class TestRebuildJobORM:
 
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-456").first()
         assert retrieved is not None
-        assert retrieved.status == "succeeded"
+        assert retrieved.status == RebuildJobStatus.SUCCEEDED
         assert retrieved.source == "real_data"
         assert retrieved.duration_ms == 1234
         assert retrieved.node_count == 100
@@ -757,7 +758,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-789",
             requested_by="test_user",
-            status="failed",
+            status=RebuildJobStatus.FAILED,
             source="cache",
             created_at=now,
             updated_at=now,
@@ -772,7 +773,7 @@ class TestRebuildJobORM:
 
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-789").first()
         assert retrieved is not None
-        assert retrieved.status == "failed"
+        assert retrieved.status == RebuildJobStatus.FAILED
         assert retrieved.sanitized_failure_category == "rebuild_source_error"
         assert retrieved.sanitized_failure_message == "Failed to load graph from cache"
         assert retrieved.node_count is None
@@ -784,7 +785,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-required",
             requested_by="test_user",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             created_at=datetime.now(timezone.utc),  # noqa: UP017
             updated_at=datetime.now(timezone.utc),  # noqa: UP017
         )
@@ -802,7 +803,7 @@ class TestRebuildJobORM:
         job1 = RebuildJobORM(
             job_id="duplicate-id",
             requested_by="user1",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             created_at=now,
             updated_at=now,
         )
@@ -812,7 +813,7 @@ class TestRebuildJobORM:
         job2 = RebuildJobORM(
             job_id="duplicate-id",
             requested_by="user2",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             created_at=now,
             updated_at=now,
         )
@@ -828,7 +829,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-update",
             requested_by="test_user",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             created_at=now,
             updated_at=now,
         )
@@ -836,17 +837,17 @@ class TestRebuildJobORM:
         db_session.commit()
 
         # Update to running
-        job.status = "running"
+        job.status = RebuildJobStatus.RUNNING
         job.started_at = now
         job.updated_at = datetime.now(timezone.utc)  # noqa: UP017
         db_session.commit()
 
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-update").first()
-        assert retrieved.status == "running"
+        assert retrieved.status == RebuildJobStatus.RUNNING
         assert retrieved.started_at is not None
 
         # Update to succeeded
-        job.status = "succeeded"
+        job.status = RebuildJobStatus.SUCCEEDED
         job.completed_at = datetime.now(timezone.utc)  # noqa: UP017
         job.duration_ms = 1000
         job.node_count = 50
@@ -854,7 +855,7 @@ class TestRebuildJobORM:
         db_session.commit()
 
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-update").first()
-        assert retrieved.status == "succeeded"
+        assert retrieved.status == RebuildJobStatus.SUCCEEDED
         assert retrieved.completed_at is not None
         assert retrieved.duration_ms == 1000
         assert retrieved.node_count == 50

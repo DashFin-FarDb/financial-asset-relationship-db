@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from src.data.db_models import RebuildJobORM
+from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.logic.rebuild_failure_detection import (
     InconsistencyType,
     detect_crash_suspicion,
@@ -21,7 +21,7 @@ def running_job():
     return RebuildJobORM(
         job_id="test-job-1",
         requested_by="operator@example.com",
-        status="running",
+        status=RebuildJobStatus.RUNNING,
         created_at=now - timedelta(minutes=10),
         updated_at=now - timedelta(minutes=5),
         started_at=now - timedelta(minutes=5),
@@ -35,7 +35,7 @@ def pending_job():
     return RebuildJobORM(
         job_id="test-job-2",
         requested_by="operator@example.com",
-        status="pending",
+        status=RebuildJobStatus.PENDING,
         created_at=now - timedelta(minutes=5),
         updated_at=now - timedelta(minutes=5),
     )
