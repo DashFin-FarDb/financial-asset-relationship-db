@@ -16,17 +16,11 @@ SRC_DIR = Path("src")
 FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
     # Direct ownership mutation outside coordinator context.
     # \b and (?!=) prevent matching equality comparisons (==).
-    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(
-        r"\b(active_worker_id|owner_id)\s*=(?!=)"
-    ),
+    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"\b(active_worker_id|owner_id)\s*=(?!=)"),
     # Direct execution entrypoints outside coordinator
-    "DIRECT_EXECUTION_ENTRY": re.compile(
-        r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("
-    ),
+    "DIRECT_EXECUTION_ENTRY": re.compile(r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("),
     # Unsafe fallback lock acquisition logic
-    "UNSAFE_LOCK_FALLBACK": re.compile(
-        r"(lock|advisory_lock).*(fallback|force|override)"
-    ),
+    "UNSAFE_LOCK_FALLBACK": re.compile(r"(lock|advisory_lock).*(fallback|force|override)"),
     # Duplicate execution control paths (heuristic)
     "DUPLICATE_EXECUTION_PATH": re.compile(
         r"(execute_rebuild).*?(execute_rebuild)",
