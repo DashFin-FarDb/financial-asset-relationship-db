@@ -6,8 +6,11 @@ from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from src.data.distributed_lock import LockState
 
 from sqlalchemy import delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
@@ -1201,6 +1204,38 @@ class AssetGraphRepository:
                 DistributedLockORM.holder_id == holder_id,
             )
         )
+
+    def check_distributed_lock_state(
+        self,
+        *,
+        lock_name: str,
+        holder_id: str,
+    ) -> LockState:
+        """
+        Check the current state of a distributed lock.
+
+        Args:
+            lock_name: Unique name of the lock.
+            holder_id: Identifier of the process/instance holding the lock.
+
+        Returns:
+            LockState: The current state of the lock.
+        """
+        from src.data.distributed_lock import LockState
+        
+        now = datetime.now(timezone.utc)
+        stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
+        lock_orm = self.session.execute(stmt).scalar_one_or_none()
+        
+        if lock_orm is None:
+            return LockState.UNKNOWN
+            
+        if lock_orm.holder_id == holder_id:
+            if lock_orm.expires_at > now:
+                return LockState.VALID
+            return LockState.EXPIRED
+            
+        return LockState.UNKNOWN
 
     # Stage 5C.1: Recovery state tracking methods
 

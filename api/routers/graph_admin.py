@@ -21,6 +21,7 @@ from src.data.db_models import RebuildJobORM
 from src.data.distributed_lock import DistributedLock
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
 from ..api_models import GraphRebuildResponse, RebuildJobListResponse, RebuildJobResponse
 from ..auth import User, get_current_rebuild_operator_user
@@ -186,6 +187,7 @@ async def rebuild_graph(
             GraphPersistenceNotConfiguredError,
             GraphPersistenceSaveError,
             GraphRebuildSourceError,
+            ExecutionBlockedError,
         ) as exc:
             # Defensive cleanup for direct contention exceptions (e.g. tests that
             # monkeypatch executor paths): normal contention paths already clear
@@ -261,6 +263,7 @@ async def _run_rebuild_in_executor(
             GraphPersistenceNotConfiguredError,
             GraphPersistenceSaveError,
             GraphRebuildSourceError,
+            ExecutionBlockedError,
         ) as exc:
             if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError):
                 _REBUILD_RUNTIME.mark_idle(succeeded=True)
@@ -292,6 +295,9 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
 
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return _rebuild_in_progress_error()
+        
+    if isinstance(root_exc, ExecutionBlockedError):
+        return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(root_exc))
 
     if isinstance(
         root_exc,
@@ -322,6 +328,9 @@ def _rebuild_status_code(exc: Exception) -> int:
 
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return status.HTTP_429_TOO_MANY_REQUESTS
+        
+    if isinstance(root_exc, ExecutionBlockedError):
+        return status.HTTP_503_SERVICE_UNAVAILABLE
 
     if isinstance(
         root_exc,
@@ -405,6 +414,8 @@ def _rebuild_failure_category(exc: Exception) -> str:
     root_exc = _unwrap_rebuild_error(exc)
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return "distributed_lock_acquisition_failed"
+    if isinstance(root_exc, ExecutionBlockedError):
+        return "execution_blocked_by_recovery_gate"
     if isinstance(root_exc, GraphPersistenceNotConfiguredError):
         return "persistence_not_configured"
     if isinstance(root_exc, GraphPersistenceNonDurableError):
@@ -743,6 +754,15 @@ def _perform_rebuild_and_persist_sync(
             raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
 
         lock_acquired = True
+
+        gate = RecoveryGate(
+            session_factory=session_factory,
+            lock=dist_lock,
+            runtime_has_active_executor=_REBUILD_RUNTIME.is_busy(),
+            lock_ttl_seconds=lock_ttl,
+        )
+        gate.ensure_safe_to_execute()
+
         job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
 
         source: GraphRebuildSource | None = None
@@ -802,6 +822,7 @@ def _sanitize_failure_message(exc: Exception) -> str:
             GraphPersistenceNonDurableError,
             GraphRebuildSourceError,
             GraphPersistenceSaveError,
+            ExecutionBlockedError,
         ),
     ):
         # Known safe domain exceptions — message is intentionally bounded

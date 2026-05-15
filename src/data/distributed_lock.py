@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import uuid
 from collections.abc import Callable
+from enum import Enum
 from time import sleep
 
 from sqlalchemy.orm import Session
@@ -12,6 +13,15 @@ from sqlalchemy.orm import Session
 from src.data.repository import AssetGraphRepository, session_scope
 
 logger = logging.getLogger(__name__)
+
+
+class LockState(str, Enum):
+    """Explicit states of a distributed lock."""
+
+    VALID = "valid"
+    EXPIRED = "expired"
+    UNKNOWN = "unknown"
+    LOST = "lost"
 
 
 class DistributedLock:
@@ -102,6 +112,28 @@ class DistributedLock:
                 "Failed to release distributed lock '%s'",
                 self.lock_name,
             )
+
+    def check_state(self) -> LockState:
+        """
+        Check the current state of this distributed lock.
+        
+        Returns:
+            LockState: The current state (VALID, EXPIRED, UNKNOWN, LOST).
+        """
+        try:
+            with session_scope(self.session_factory) as session:
+                from src.data.repository import AssetGraphRepository
+                repo = AssetGraphRepository(session)
+                return repo.check_distributed_lock_state(
+                    lock_name=self.lock_name,
+                    holder_id=self.holder_id,
+                )
+        except Exception:
+            logger.exception(
+                "Lost database connectivity while checking lock '%s'",
+                self.lock_name,
+            )
+            return LockState.LOST
 
     def __enter__(self) -> DistributedLock:
         """Context manager entry point."""
