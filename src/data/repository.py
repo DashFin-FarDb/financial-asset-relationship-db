@@ -1201,3 +1201,75 @@ class AssetGraphRepository:
                 DistributedLockORM.holder_id == holder_id,
             )
         )
+
+    # Stage 5C.1: Recovery state tracking methods
+
+    def update_rebuild_heartbeat(
+        self,
+        job_id: str,
+        worker_id: str,
+    ) -> None:
+        """
+        Update the heartbeat timestamp for an active rebuild job.
+
+        This is used to track rebuild executor liveness and detect stale
+        ownership or crash conditions.
+
+        Args:
+            job_id: The rebuild job ID to update.
+            worker_id: The worker/instance ID sending the heartbeat.
+
+        Raises:
+            ValueError: If the job does not exist or is not in running status.
+        """
+        job = self.session.get(RebuildJobORM, job_id)
+        if job is None:
+            raise ValueError(f"Rebuild job {job_id} not found")
+        if job.status != RebuildJobStatus.RUNNING:
+            current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else job.status
+            raise ValueError(
+                f"Cannot update heartbeat for job {job_id} "
+                f"with status {current_status} (must be running)"
+            )
+
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        job.last_heartbeat_at = now
+        job.active_worker_id = worker_id
+        job.updated_at = now
+        self.session.add(job)
+
+    def get_active_rebuild_state(self) -> RebuildJobORM | None:
+        """
+        Get the current authoritative rebuild state from the database.
+
+        Returns the most recent job in 'running' status, or None if no
+        rebuild is currently active.
+
+        Returns:
+            The active rebuild job, or None if no job is running.
+        """
+        stmt = (
+            select(RebuildJobORM)
+            .where(RebuildJobORM.status == RebuildJobStatus.RUNNING)
+            .order_by(RebuildJobORM.created_at.desc())
+            .limit(1)
+        )
+        result = self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    def get_last_successful_rebuild(self) -> RebuildJobORM | None:
+        """
+        Get the most recent successfully completed rebuild job.
+
+        Returns:
+            The most recent succeeded rebuild job, or None if no successful
+            rebuild has been recorded.
+        """
+        stmt = (
+            select(RebuildJobORM)
+            .where(RebuildJobORM.status == RebuildJobStatus.SUCCEEDED)
+            .order_by(RebuildJobORM.completed_at.desc())
+            .limit(1)
+        )
+        result = self.session.execute(stmt)
+        return result.scalar_one_or_none()

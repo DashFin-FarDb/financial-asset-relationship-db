@@ -246,6 +246,12 @@ class RebuildJobORM(Base):
         String(512),
         nullable=True,
     )
+    # Stage 5C.1: Recovery state tracking
+    active_worker_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    last_heartbeat_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
 
 class DistributedLockORM(Base):
