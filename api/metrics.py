@@ -67,7 +67,8 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
     Update rebuild state status metric.
 
     Maps rebuild status to numeric gauge value for monitoring:
-    - none/unknown: 0 (no active job or unknown status)
+    - unknown: -1
+    - none: 0 
     - pending: 1
     - running: 2
     - succeeded: 3
@@ -87,19 +88,23 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
 
     # Define an explicit mapping using enum values for type safety
     mapping = {
+        "unknown": -1,
         "none": 0,
-        RebuildJobStatus.PENDING.value: 1,
-        RebuildJobStatus.RUNNING.value: 2,
-        RebuildJobStatus.SUCCEEDED.value: 3,
-        RebuildJobStatus.FAILED.value: 4,
-        RebuildJobStatus.CANCELLED.value: 5,
+        "pending": 1,
+        "running": 2,
+        "succeeded": 3,
+        "failed": 4,
+        "cancelled": 5,
     }
 
-    gauge_value = mapping.get(status_str.lower())
+    normalised_status = status.lower()
+    gauge_value = mapping.get(normalised_status, -1)
 
-    if gauge_value is None:
-        logger.error(f"Inconsistency Detected: Received unknown job status '{status_str}'. " f"Mapping to none (0).")
-        gauge_value = 0
+    if gauge_value == -1 and normalised_status != "unknown":
+        logger.error(
+            "Inconsistency detected: received unknown job status '%s'. Mapping to UNKNOWN_STATE (-1).",
+            status,
+        )
 
     REBUILD_STATE_STATUS.set(gauge_value)
 
