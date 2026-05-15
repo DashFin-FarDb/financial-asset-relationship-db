@@ -84,11 +84,13 @@ class RecoveryGate:
             try:
                 job = repo.get_active_rebuild_state()
             except ValueError as exc:
-                logger.warning("Execution blocked: %s", exc)
+                exc_type = type(exc).__name__
+                # Sanitize message: log only exception type, not full details that may contain DB internals
+                logger.warning("Execution blocked: %s (active rebuild state query failed)", exc_type)
                 self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
                 return RecoveryDecision(
                     action=RecoveryAction.UNSAFE,
-                    reason=str(exc),
+                    reason=f"{exc_type}: active rebuild state query failed",
                     inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
                     safe_to_execute=False,
                 )
