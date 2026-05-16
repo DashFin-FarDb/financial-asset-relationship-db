@@ -89,7 +89,7 @@ class RecoveryGate:
         return RecoveryDecision(
             action=RecoveryAction.UNSAFE,
             reason=reason,
-            inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
+            inconsistency_type=None,
             safe_to_execute=False,
         )
 
