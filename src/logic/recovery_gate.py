@@ -156,7 +156,7 @@ class RecoveryGate:
                     self.lock.holder_id,
                 )
                 return RecoveryDecision(
-                    action=RecoveryAction.BLOCK,
+                    action=RecoveryAction.UNSAFE,
                     reason=(
                         "Running rebuild is owned by a different worker with a fresh heartbeat "
                         f"(job worker_id={job.active_worker_id!r}, "
