@@ -21,9 +21,11 @@ _EXECUTION_ENTRYPOINTS = (
 
 FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
     # Direct ownership mutation outside coordinator context.
-    # Negative lookahead MUST come BEFORE consuming = to exclude both = and ==
-    # Fixed regex: (?!=) checks ahead before the = is matched
-    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"\b(active_worker_id|owner_id)\s*(?!=)=(?!=)"),
+    # Match a single assignment operator regardless of spacing, while excluding
+    # equality/comparison operators such as ==, !=, <=, and >=.
+    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(
+        r"\b(active_worker_id|owner_id)\s*(?<![=!<>])=(?!=)"
+    ),
     # Direct execution entrypoints outside coordinator
     "DIRECT_EXECUTION_ENTRY": re.compile(r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("),
     # Unsafe fallback lock acquisition logic
