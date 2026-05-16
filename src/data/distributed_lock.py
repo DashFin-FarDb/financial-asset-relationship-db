@@ -182,6 +182,7 @@ class DistributedLock:
                 )
         except (SQLAlchemyError, OSError, TimeoutError) as exc:
             # Expected DB connectivity failure during lock state check
+            # Use bounded logging to prevent DSN/credential leakage in tracebacks
             logger.warning(
                 "Lost database connectivity while checking lock '%s': %s",
                 self.lock_name,
@@ -191,7 +192,7 @@ class DistributedLock:
         except Exception:
             # Unexpected error - this indicates a programming bug, not connectivity loss
             # Re-raise to surface the issue rather than masking it as LOST state
-            logger.exception(
+            logger.warning(
                 "Unexpected error checking lock '%s' state - re-raising",
                 self.lock_name,
             )
