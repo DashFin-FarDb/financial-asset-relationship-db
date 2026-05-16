@@ -695,8 +695,7 @@ def _heartbeat_keeper(
             # Refresh the distributed lock TTL
             if not dist_lock.refresh():
                 logger.error(
-                    "Heartbeat keeper lost distributed lock for job %s (worker %s). "
-                    "Signaling main thread to abort.",
+                    "Heartbeat keeper lost distributed lock for job %s (worker %s). " "Signaling main thread to abort.",
                     job_id,
                     worker_id,
                 )
@@ -897,24 +896,24 @@ def _perform_rebuild_and_persist_sync(
             # Check if heartbeat keeper lost lock before expensive operations
             if lock_lost.is_set():
                 raise RuntimeError("Lost distributed lock during rebuild initialization")
-            
+
             graph, source = build_rebuild_graph(settings)
             _update_job_source_safe(session_factory, job_id, str(source))
-            
+
             # Check lock status before persisting
             if lock_lost.is_set():
                 raise RuntimeError("Lost distributed lock before graph persistence")
-            
+
             # Load rollback snapshot before any durable write. If snapshot loading
             # fails, the rebuild fails closed before persistence is modified.
             graph_snapshot = _load_persisted_graph_snapshot(session_factory)
             save_graph_to_persistence(resolved_url, graph)
             graph_saved = True
-            
+
             # Final lock check before success persistence
             if lock_lost.is_set():
                 raise RuntimeError("Lost distributed lock before success persistence")
-            
+
             response = _finalize_rebuild_success(
                 session_factory=session_factory,
                 job_id=job_id,

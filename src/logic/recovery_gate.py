@@ -133,11 +133,11 @@ class RecoveryGate:
             heartbeat_time = job.last_heartbeat_at
             if isinstance(heartbeat_time, str):
                 heartbeat_time = datetime.fromisoformat(heartbeat_time)
-            
+
             # Ensure timezone-aware comparison
             if heartbeat_time.tzinfo is None:
                 heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
-            
+
             now = datetime.now(timezone.utc)
             heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
 
