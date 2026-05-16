@@ -219,18 +219,31 @@ class RecoveryGate:
                 # After successful reset, re-evaluate to confirm safe to proceed
                 decision = self._evaluate_decision()
                 if decision.action != RecoveryAction.RESUME:
+                    # Post-reset state still unsafe - use bounded reason to avoid leaking DB details
                     raise ExecutionBlockedError(
-                        f"Reset recovery completed but state still unsafe: "
-                        f"action={decision.action.value}, reason={decision.reason}"
+                        f"Reset recovery completed but state still unsafe: action={decision.action.value}"
                     )
                 logger.info("Reset recovery successful - execution can proceed")
+            except ExecutionBlockedError:
+                # Re-raise ExecutionBlockedError as-is (already sanitized above)
+                raise
             except Exception as exc:
-                # Reset failed - block execution
+                # Reset failed - block execution with bounded exception type only
                 raise ExecutionBlockedError(
-                    f"Reset recovery failed: {type(exc).__name__}. " f"Original reason: {decision.reason}"
+                    f"Reset recovery failed: {type(exc).__name__}"
                 ) from exc
         elif decision.action != RecoveryAction.RESUME:
-            raise ExecutionBlockedError(f"Execution blocked: action={decision.action.value}, reason={decision.reason}")
+            # Execution blocked - log full reason but expose only bounded info in exception
+            logger.warning(
+                "Execution blocked by recovery gate: action=%s, inconsistency=%s",
+                decision.action.value,
+                decision.inconsistency_type.value if decision.inconsistency_type else "unknown"
+            )
+            raise ExecutionBlockedError(
+                f"Execution blocked: action={decision.action.value}, "
+                f"inconsistency={decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}"
+            )
+
 
     def _perform_reset_recovery(self) -> None:
         """
