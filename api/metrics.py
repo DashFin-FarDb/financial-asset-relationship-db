@@ -160,14 +160,14 @@ def initialize_rebuild_state_metric_from_db(
             )
     except ValueError as exc:
         # Multiple running jobs detected - this is an inconsistent state
-        logger.error(
+        logger.exception(
             "Cannot initialize rebuild state metric: %s. Setting to unknown.",
             type(exc).__name__,
         )
         update_rebuild_state_metric("unknown")
     except Exception as exc:  # noqa: BLE001
         # DB read failure - fail gracefully
-        logger.error(
+        logger.exception(
             "Failed to initialize rebuild state metric from DB: %s (%s). Setting to unknown.",
             type(exc).__name__,
             str(exc),
