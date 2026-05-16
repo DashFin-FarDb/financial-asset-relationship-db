@@ -30,7 +30,7 @@ def apply_migrations(db_path: Path | str) -> None:
         _apply_sql_migration(connection, migrations_dir / "001_initial.sql")
 
         # Migration 002: Add heartbeat columns (conditional, check first)
-        _apply_upgrade_002_heartbeat_columns(connection, migrations_dir / "002_add_heartbeat_columns.sql")
+        _apply_upgrade_002_heartbeat_columns(connection)
 
 
 def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -> None:
@@ -63,7 +63,7 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
     connection.executescript(sql)
 
 
-def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection, migration_file: Path) -> None:
+def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None:
     """
     Apply migration 002 (add heartbeat columns) conditionally.
 
@@ -72,7 +72,6 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection, migrati
 
     Args:
         connection: SQLite connection.
-        migration_file: Path to the SQL file.
     """
     # Check which columns already exist
     cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
