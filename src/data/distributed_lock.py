@@ -180,8 +180,9 @@ class DistributedLock:
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
                 )
-        except (SQLAlchemyError, OSError, TimeoutError) as exc:
-            # Expected DB connectivity failure during lock state check
+        except Exception as exc:
+            # DB connectivity failure during lock state check (covers SQLAlchemy, OS, and
+            # runtime errors such as connection pool exhaustion or pool timeout)
             # Use bounded logging to prevent DSN/credential leakage in tracebacks
             logger.warning(
                 "Lost database connectivity while checking lock '%s': %s",
@@ -189,14 +190,6 @@ class DistributedLock:
                 type(exc).__name__,
             )
             return LockState.LOST
-        except Exception:
-            # Unexpected error - this indicates a programming bug, not connectivity loss
-            # Re-raise to surface the issue rather than masking it as LOST state
-            logger.warning(
-                "Unexpected error checking lock '%s' state - re-raising",
-                self.lock_name,
-            )
-            raise
 
     def __enter__(self) -> DistributedLock:
         """Context manager entry point."""
