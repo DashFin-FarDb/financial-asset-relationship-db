@@ -23,9 +23,7 @@ FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
     # Direct ownership mutation outside coordinator context.
     # Match a single assignment operator regardless of spacing, while excluding
     # equality/comparison operators such as ==, !=, <=, and >=.
-    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(
-        r"\b(active_worker_id|owner_id)\s*(?<![=!<>])=(?!=)"
-    ),
+    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"\b(active_worker_id|owner_id)\s*(?<![=!<>])=(?!=)"),
     # Direct execution entrypoints outside coordinator
     "DIRECT_EXECUTION_ENTRY": re.compile(r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("),
     # Unsafe fallback lock acquisition logic
