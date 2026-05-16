@@ -71,6 +71,10 @@ async def lifespan(_fastapi_app: FastAPI):
                 persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
                 engine = create_engine_from_url(persistence_url)
                 try:
+                    # Run migrations to ensure schema is up-to-date before querying heartbeat columns
+                    from src.data.database import init_db  # noqa: C0415
+                    await asyncio.to_thread(init_db, engine)
+                    
                     session_factory = create_session_factory(engine)
                     await asyncio.to_thread(initialize_rebuild_state_metric_from_db, session_factory)
                 finally:

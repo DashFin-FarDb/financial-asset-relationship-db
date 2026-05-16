@@ -913,6 +913,7 @@ def _perform_rebuild_and_persist_sync(
             
             # Final lock check before success persistence
             if lock_lost.is_set():
+                graph_saved = False  # Prevent unsafe rollback without lock
                 raise RuntimeError("Lost distributed lock before success persistence")
             
             response = _finalize_rebuild_success(
