@@ -606,12 +606,14 @@ def _mark_job_failed_safe(
 def _create_and_start_rebuild_job(
     session_factory: Callable[[], Session],
     user_ref: str,
+    worker_id: str,
 ) -> tuple[str, float]:
     """Create a rebuild job record and transition it to running.
 
     Args:
         session_factory: Session factory for persistence operations.
         user_ref: Operator username recorded on the job record.
+        worker_id: Worker/instance identifier (must match distributed lock holder_id).
 
     Returns:
         tuple[str, float]: (job_id, job_started_at monotonic timestamp).
@@ -633,15 +635,15 @@ def _create_and_start_rebuild_job(
     try:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
-            # worker_id must match the lock holder_id used elsewhere in this rebuild
-            # For now, use job_id as a stable identifier (future: hostname/pod ID)
-            worker_id = f"rebuild-{job_id}"
+            # worker_id MUST match the lock holder_id to ensure RecoveryGate
+            # owner mismatch detection works correctly (see recovery_gate.py:119)
             repo.update_rebuild_heartbeat(job_id, worker_id)
     except Exception as exc:
         logger.warning(
-            "Failed to record initial rebuild heartbeat: %s (job_id=%s)",
+            "Failed to record initial rebuild heartbeat: %s (job_id=%s, worker_id=%s)",
             type(exc).__name__,
             job_id,
+            worker_id,
         )
         # Non-fatal - rebuild can proceed but liveness tracking may be incomplete
 
@@ -791,7 +793,9 @@ def _perform_rebuild_and_persist_sync(
         )
         gate.ensure_safe_to_execute()
 
-        job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
+        job_id, job_started_at = _create_and_start_rebuild_job(
+            session_factory, user_ref, dist_lock.holder_id
+        )
 
         source: GraphRebuildSource | None = None
         success_persisted = False
