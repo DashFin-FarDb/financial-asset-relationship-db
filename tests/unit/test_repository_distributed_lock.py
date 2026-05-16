@@ -6,6 +6,8 @@ import pytest
 from sqlalchemy import create_engine
 
 from src.data.database import create_session_factory, init_db
+from src.data.db_models import DistributedLockORM
+from src.data.distributed_lock import LockState
 from src.data.repository import AssetGraphRepository
 
 
@@ -182,6 +184,48 @@ class TestDistributedLockRepository:
         lock = reader.session.get(DistributedLockORM, "test_lock")
         assert lock is not None
         assert lock.holder_id == "holder1"
+
+    def test_check_distributed_lock_state_returns_unknown_when_missing(self, repository_factory):
+        """Missing lock rows should be reported as UNKNOWN."""
+        repo = repository_factory()
+        assert repo.check_distributed_lock_state(lock_name="missing", holder_id="holder1") == LockState.UNKNOWN
+
+    def test_check_distributed_lock_state_returns_expired_for_stale_lock(self, repository_factory):
+        """Expired lock rows should be classified as EXPIRED."""
+        repo = repository_factory()
+
+        now = datetime.now(timezone.utc)
+        repo.session.add(
+            DistributedLockORM(
+                lock_name="test_lock",
+                holder_id="holder1",
+                expires_at=now - timedelta(seconds=1),
+                created_at=now - timedelta(seconds=60),
+                updated_at=now - timedelta(seconds=60),
+            )
+        )
+        repo.session.commit()
+
+        reader = repository_factory()
+        assert reader.check_distributed_lock_state(lock_name="test_lock", holder_id="holder1") == LockState.EXPIRED
+
+    def test_check_distributed_lock_state_returns_valid_for_current_holder(self, repository_factory):
+        """Current holder with unexpired lock should be VALID."""
+        repo = repository_factory()
+        repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=60)
+        repo.session.commit()
+
+        reader = repository_factory()
+        assert reader.check_distributed_lock_state(lock_name="test_lock", holder_id="holder1") == LockState.VALID
+
+    def test_check_distributed_lock_state_returns_unknown_for_other_holder(self, repository_factory):
+        """Different holder with unexpired lock should be UNKNOWN."""
+        repo = repository_factory()
+        repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=60)
+        repo.session.commit()
+
+        reader = repository_factory()
+        assert reader.check_distributed_lock_state(lock_name="test_lock", holder_id="holder2") == LockState.UNKNOWN
 
 
 @pytest.mark.unit

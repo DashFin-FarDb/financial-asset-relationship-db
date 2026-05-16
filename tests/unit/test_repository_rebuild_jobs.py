@@ -391,3 +391,43 @@ class TestRebuildJobRepository:
         repo = repository_factory()
         with pytest.raises(ValueError, match="Invalid rebuild job status"):
             repo.list_rebuild_jobs(status="invalid_status")
+
+    def test_get_active_rebuild_state_raises_when_multiple_running_jobs_exist(self, repository_factory):
+        """Multiple running jobs should be surfaced as an invalid state."""
+        repo = repository_factory()
+        first_job = repo.create_rebuild_job(requested_by="user1")
+        second_job = repo.create_rebuild_job(requested_by="user2")
+        repo.mark_rebuild_job_running(first_job)
+        repo.mark_rebuild_job_running(second_job)
+        repo.session.commit()
+
+        reader = repository_factory()
+        with pytest.raises(ValueError, match="Multiple rebuild jobs are in RUNNING state"):
+            reader.get_active_rebuild_state()
+
+    def test_update_rebuild_heartbeat_sets_initial_owner(self, repository_factory):
+        """Heartbeat should assign owner once when job has no active worker."""
+        repo = repository_factory()
+        job_id = repo.create_rebuild_job(requested_by="user1")
+        repo.mark_rebuild_job_running(job_id)
+        repo.session.commit()
+
+        repo.update_rebuild_heartbeat(job_id, "worker-a")
+        repo.session.commit()
+
+        reader = repository_factory()
+        job = reader.get_rebuild_job(job_id)
+        assert job is not None
+        assert job.active_worker_id == "worker-a"
+        assert job.last_heartbeat_at is not None
+
+    def test_update_rebuild_heartbeat_rejects_different_owner(self, repository_factory):
+        """Heartbeat from a different worker should fail to preserve ownership."""
+        repo = repository_factory()
+        job_id = repo.create_rebuild_job(requested_by="user1")
+        repo.mark_rebuild_job_running(job_id)
+        repo.update_rebuild_heartbeat(job_id, "worker-a")
+        repo.session.commit()
+
+        with pytest.raises(ValueError, match="active worker is worker-a"):
+            repo.update_rebuild_heartbeat(job_id, "worker-b")

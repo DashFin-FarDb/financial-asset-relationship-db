@@ -295,6 +295,22 @@ class TestDatabaseInitialization:
             assert result is not None  # nosec B101
             assert result.value == "persisted"  # nosec B101
 
+    def test_init_db_applies_postgres_heartbeat_migration(self) -> None:
+        """init_db should invoke PostgreSQL compatibility migration for postgres engines."""
+        engine = Mock(spec=Engine)
+        engine.url = "postgresql://user:pass@localhost/testdb"
+
+        with (
+            patch("src.data.database.Base.metadata.create_all") as create_all,
+            patch("src.data.migrations.apply_migrations") as apply_sqlite_migrations,
+            patch("src.data.migrations.apply_postgresql_heartbeat_migration") as apply_postgres_migration,
+        ):
+            init_db(engine)
+
+        create_all.assert_called_once_with(engine)
+        apply_postgres_migration.assert_called_once_with(engine)
+        apply_sqlite_migrations.assert_not_called()
+
 
 # ---------------------------------------------------------------------------
 # Transaction scope tests

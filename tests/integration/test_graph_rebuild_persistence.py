@@ -399,7 +399,7 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     raw_url = "postgresql://operator:secret@example.invalid/asset_graph"
     database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
 
-    def fail_save(_database_url: str | None, _graph: AssetRelationshipGraph) -> None:
+    def fail_save(*_args: Any, **_kwargs: Any) -> None:
         """Simulate persistence save failure with a sanitized exception."""
         raise providers.GraphPersistenceSaveError("Failed to persist rebuilt graph.")
 
@@ -921,7 +921,7 @@ async def test_failure_response_and_logs_do_not_leak_database_url(
     raw_url = "postgresql://user:secret@example.invalid/db"
     _configure_persistence(monkeypatch, raw_url)
 
-    def fail_save(_database_url: str | None, _graph: AssetRelationshipGraph) -> None:
+    def fail_save(*_args: Any, **_kwargs: Any) -> None:
         """Simulate a sanitized provider failure."""
         logging.getLogger("api.graph_lifecycle_providers").error("Failed to persist rebuilt graph: RuntimeError")
         raise providers.GraphPersistenceSaveError("Failed to persist rebuilt graph.")

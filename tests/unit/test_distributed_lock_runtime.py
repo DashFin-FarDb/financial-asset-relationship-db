@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.data.distributed_lock import DistributedLock
+from src.data.distributed_lock import DistributedLock, LockState
 
 
 @pytest.mark.unit
@@ -23,3 +23,20 @@ def test_acquire_raises_on_persistence_error(monkeypatch: pytest.MonkeyPatch) ->
 
     with pytest.raises(RuntimeError, match="db unavailable"):
         lock.acquire()
+
+
+@pytest.mark.unit
+def test_check_state_returns_lost_on_database_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """check_state should classify DB access failures as LOST."""
+
+    class _FailingScope:
+        def __enter__(self):
+            raise RuntimeError("db unavailable")
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    monkeypatch.setattr("src.data.distributed_lock.session_scope", lambda _factory: _FailingScope())
+    lock = DistributedLock(lambda: None, "graph_rebuild")  # type: ignore[arg-type]
+
+    assert lock.check_state() == LockState.LOST

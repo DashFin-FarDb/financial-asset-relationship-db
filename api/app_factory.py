@@ -43,8 +43,55 @@ logger = logging.getLogger(__name__)
 async def lifespan(_fastapi_app: FastAPI):
     """Initialize graph state and clean up rebuild resources."""
     try:
+        from src.data.database import create_engine_from_url, create_session_factory  # noqa: C0415
+
+        from .graph_lifecycle_providers import (  # noqa: C0415 - avoid circular import
+            get_graph_lifecycle_settings,
+            resolve_durable_graph_persistence_url,
+        )
+        from .metrics import initialize_rebuild_state_metric_from_db  # noqa: C0415
+
+        settings = get_graph_lifecycle_settings()
+        has_durable_graph_persistence = bool(settings.asset_graph_database_url)
+
         get_graph()
         init_rebuild_executor()
+
+        if has_durable_graph_persistence:
+            try:
+                await asyncio.to_thread(sync_with_latest_rebuild)
+            except Exception as exc:  # noqa: BLE001 - bounded logging below
+                logger.warning(
+                    "Startup graph reconciliation failed: %s",
+                    type(exc).__name__,
+                )
+
+            # Initialize rebuild state metric from DB after graph reconciliation
+            try:
+                persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+                engine = create_engine_from_url(persistence_url)
+                try:
+                    # Run migrations to ensure schema is up-to-date before querying heartbeat columns
+                    from src.data.database import init_db  # noqa: C0415
+
+                    await asyncio.to_thread(init_db, engine)
+
+                    session_factory = create_session_factory(engine)
+                    await asyncio.to_thread(initialize_rebuild_state_metric_from_db, session_factory)
+                finally:
+                    # Dispose engine after metric initialization to prevent connection leak
+                    engine.dispose()
+            except Exception as exc:  # noqa: BLE001 - bounded logging below
+                logger.warning(
+                    "Failed to initialize rebuild state metric: %s",
+                    type(exc).__name__,
+                )
+                # Set metric to unknown state instead of default 0 (none) to avoid
+                # misleading healthy state when persistence is unavailable/misconfigured
+                from api.metrics import REBUILD_STATE_STATUS  # noqa: C0415
+
+                REBUILD_STATE_STATUS.set(-1)  # -1 = unknown
+
         logger.info("Application startup complete - graph and rebuild executor initialized")
     except Exception:
         logger.exception("Failed to initialize graph during startup")

@@ -6,6 +6,7 @@ import asyncio
 import contextvars
 import logging
 import re
+import threading
 from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -21,6 +22,7 @@ from src.data.db_models import RebuildJobORM
 from src.data.distributed_lock import DistributedLock
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
 from ..api_models import GraphRebuildResponse, RebuildJobListResponse, RebuildJobResponse
 from ..auth import User, get_current_rebuild_operator_user
@@ -48,7 +50,9 @@ from ..metrics import (
     REBUILD_FAILURE,
     REBUILD_REQUESTS,
     REBUILD_SUCCESS,
+    increment_recovery_trigger,
     update_graph_metrics,
+    update_rebuild_state_metric,
 )
 
 router = APIRouter()
@@ -186,6 +190,7 @@ async def rebuild_graph(
             GraphPersistenceNotConfiguredError,
             GraphPersistenceSaveError,
             GraphRebuildSourceError,
+            ExecutionBlockedError,
         ) as exc:
             # Defensive cleanup for direct contention exceptions (e.g. tests that
             # monkeypatch executor paths): normal contention paths already clear
@@ -261,6 +266,7 @@ async def _run_rebuild_in_executor(
             GraphPersistenceNotConfiguredError,
             GraphPersistenceSaveError,
             GraphRebuildSourceError,
+            ExecutionBlockedError,
         ) as exc:
             if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError):
                 _REBUILD_RUNTIME.mark_idle(succeeded=True)
@@ -293,6 +299,9 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return _rebuild_in_progress_error()
 
+    if isinstance(root_exc, ExecutionBlockedError):
+        return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(root_exc))
+
     if isinstance(
         root_exc,
         (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError),
@@ -322,6 +331,9 @@ def _rebuild_status_code(exc: Exception) -> int:
 
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return status.HTTP_429_TOO_MANY_REQUESTS
+
+    if isinstance(root_exc, ExecutionBlockedError):
+        return status.HTTP_503_SERVICE_UNAVAILABLE
 
     if isinstance(
         root_exc,
@@ -405,6 +417,8 @@ def _rebuild_failure_category(exc: Exception) -> str:
     root_exc = _unwrap_rebuild_error(exc)
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return "distributed_lock_acquisition_failed"
+    if isinstance(root_exc, ExecutionBlockedError):
+        return "execution_blocked_by_recovery_gate"
     if isinstance(root_exc, GraphPersistenceNotConfiguredError):
         return "persistence_not_configured"
     if isinstance(root_exc, GraphPersistenceNonDurableError):
@@ -593,12 +607,14 @@ def _mark_job_failed_safe(
 def _create_and_start_rebuild_job(
     session_factory: Callable[[], Session],
     user_ref: str,
+    worker_id: str,
 ) -> tuple[str, float]:
     """Create a rebuild job record and transition it to running.
 
     Args:
         session_factory: Session factory for persistence operations.
         user_ref: Operator username recorded on the job record.
+        worker_id: Worker/instance identifier (must match distributed lock holder_id).
 
     Returns:
         tuple[str, float]: (job_id, job_started_at monotonic timestamp).
@@ -607,9 +623,103 @@ def _create_and_start_rebuild_job(
         GraphPersistenceSaveError: If job creation or running transition fails.
     """
     job_id = _create_job_safe(session_factory, user_ref)
+    # Reflect persisted status immediately after job creation; if transition to
+    # running fails the durable job remains pending.
+    update_rebuild_state_metric("pending")
     job_started_at = perf_counter()
     _mark_job_running_safe(session_factory, job_id)
+    update_rebuild_state_metric("running")
+
+    # Record initial heartbeat to establish ownership and enable liveness tracking
+    # This must be called after transitioning to RUNNING so recovery logic can
+    # distinguish real rebuilds from missing instrumentation
+    #
+    # CRITICAL: If heartbeat write fails, we must fail closed. Proceeding without
+    # reliable owner/liveness data allows unsafe recovery (healthy rebuild could
+    # be classified as orphaned and reset by another worker).
+    try:
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            # worker_id MUST match the lock holder_id to ensure RecoveryGate
+            # owner mismatch detection works correctly (see recovery_gate.py:119)
+            repo.update_rebuild_heartbeat(job_id, worker_id)
+    except Exception as exc:
+        logger.error(
+            "Failed to record initial rebuild heartbeat: %s (job_id=%s, worker_id=%s). "
+            "Failing closed to prevent unsafe recovery.",
+            type(exc).__name__,
+            job_id,
+            worker_id,
+        )
+        # Mark job as failed since we cannot track its liveness
+        _finalize_rebuild_failure(
+            session_factory=session_factory,
+            job_id=job_id,
+            exc=exc,
+            job_started_at=job_started_at,
+        )
+        # Raise to abort rebuild execution
+        raise GraphPersistenceSaveError(
+            f"Cannot track rebuild liveness: initial heartbeat failed ({type(exc).__name__})"
+        ) from exc
+
     return job_id, job_started_at
+
+
+def _heartbeat_keeper(
+    *,
+    session_factory: Callable[[], Session],
+    dist_lock: DistributedLock,
+    job_id: str,
+    worker_id: str,
+    stop_event: threading.Event,
+    lock_lost_event: threading.Event,
+    interval_seconds: int,
+) -> None:
+    """
+    Background thread that periodically refreshes both the distributed lock and rebuild heartbeat.
+
+    Prevents lock expiry and stale heartbeat detection during long-running rebuilds.
+
+    Args:
+        session_factory: Session factory for DB operations.
+        dist_lock: Distributed lock to refresh.
+        job_id: Rebuild job ID for heartbeat updates.
+        worker_id: Worker/instance identifier.
+        stop_event: Threading event to signal shutdown.
+        lock_lost_event: Threading event to signal lock loss to main thread.
+        interval_seconds: Refresh interval in seconds.
+    """
+    while not stop_event.wait(timeout=interval_seconds):
+        try:
+            # Refresh the distributed lock TTL
+            if not dist_lock.refresh():
+                logger.error(
+                    "Heartbeat keeper lost distributed lock for job %s (worker %s). " "Signaling main thread to abort.",
+                    job_id,
+                    worker_id,
+                )
+                lock_lost_event.set()  # Signal lock loss to main thread
+                return
+
+            # Update rebuild job heartbeat
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                repo.update_rebuild_heartbeat(job_id, worker_id)
+
+            logger.debug(
+                "Heartbeat keeper refreshed lock and heartbeat for job %s",
+                job_id,
+            )
+        except Exception as exc:
+            logger.error(
+                "Heartbeat keeper failed for job %s (worker %s): %s. " "Signaling main thread to abort.",
+                job_id,
+                worker_id,
+                type(exc).__name__,
+            )
+            lock_lost_event.set()
+            return
 
 
 def _finalize_rebuild_success(
@@ -650,6 +760,7 @@ def _finalize_rebuild_success(
         edge_count=response.relationship_count,
         duration_ms=_duration_ms(job_started_at),
     )
+    update_rebuild_state_metric("succeeded")
     return response
 
 
@@ -662,6 +773,7 @@ def _finalize_rebuild_failure(
 ) -> None:
     """Persist failed rebuild terminal state."""
     _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
+    update_rebuild_state_metric("failed")
 
 
 def _load_persisted_graph_snapshot(
@@ -725,6 +837,8 @@ def _perform_rebuild_and_persist_sync(
     # Initialize variables outside try to prevent UnboundLocalError in finally
     lock_acquired = False
     dist_lock = None
+    stop_heartbeat = None
+    heartbeat_thread = None
 
     try:
         session_factory = create_session_factory(engine)
@@ -743,20 +857,75 @@ def _perform_rebuild_and_persist_sync(
             raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
 
         lock_acquired = True
-        job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref)
+
+        gate = RecoveryGate(
+            session_factory=session_factory,
+            lock=dist_lock,
+            increment_recovery_trigger=increment_recovery_trigger,
+            runtime_has_active_executor=False,
+            lock_ttl_seconds=lock_ttl,
+        )
+        gate.ensure_safe_to_execute()
+
+        job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref, dist_lock.holder_id)
+
+        # Start background heartbeat keeper thread to prevent lock expiry
+        # and stale heartbeat detection during long rebuilds
+        stop_heartbeat = threading.Event()
+        lock_lost = threading.Event()  # Signaled if heartbeat keeper loses lock
+        heartbeat_interval = max(1, lock_ttl // 3)  # Refresh at 1/3 TTL, at least 1s
+        heartbeat_thread = threading.Thread(
+            target=_heartbeat_keeper,
+            kwargs={
+                "session_factory": session_factory,
+                "dist_lock": dist_lock,
+                "job_id": job_id,
+                "worker_id": dist_lock.holder_id,
+                "stop_event": stop_heartbeat,
+                "lock_lost_event": lock_lost,
+                "interval_seconds": heartbeat_interval,
+            },
+            daemon=True,
+            name=f"heartbeat-keeper-{job_id}",
+        )
+        heartbeat_thread.start()
 
         source: GraphRebuildSource | None = None
         success_persisted = False
         graph_snapshot: AssetRelationshipGraph | None = None
         graph_saved = False
         try:
+            # Check if heartbeat keeper lost lock before expensive operations
+            if lock_lost.is_set():
+                raise RuntimeError("Lost distributed lock during rebuild initialization")
+
             graph, source = build_rebuild_graph(settings)
             _update_job_source_safe(session_factory, job_id, str(source))
+
+            # Check lock status before persisting
+            if lock_lost.is_set():
+                raise RuntimeError("Lost distributed lock before graph persistence")
+
             # Load rollback snapshot before any durable write. If snapshot loading
             # fails, the rebuild fails closed before persistence is modified.
             graph_snapshot = _load_persisted_graph_snapshot(session_factory)
-            save_graph_to_persistence(resolved_url, graph)
+
+            def _ensure_lock_not_lost_before_commit() -> None:
+                if lock_lost.is_set():
+                    raise RuntimeError("Lost distributed lock during graph persistence")
+
+            save_graph_to_persistence(
+                resolved_url,
+                graph,
+                pre_commit_check=_ensure_lock_not_lost_before_commit,
+            )
             graph_saved = True
+
+            # Final lock check before success persistence
+            if lock_lost.is_set():
+                graph_saved = False  # Prevent unsafe rollback without lock
+                raise RuntimeError("Lost distributed lock before success persistence")
+
             response = _finalize_rebuild_success(
                 session_factory=session_factory,
                 job_id=job_id,
@@ -781,6 +950,12 @@ def _perform_rebuild_and_persist_sync(
             )
 
     finally:
+        # Stop heartbeat keeper thread
+        if stop_heartbeat is not None:
+            stop_heartbeat.set()
+        if heartbeat_thread is not None and heartbeat_thread.is_alive():
+            heartbeat_thread.join(timeout=2.0)
+
         if lock_acquired and dist_lock:
             dist_lock.release()
         engine.dispose()
@@ -802,6 +977,7 @@ def _sanitize_failure_message(exc: Exception) -> str:
             GraphPersistenceNonDurableError,
             GraphRebuildSourceError,
             GraphPersistenceSaveError,
+            ExecutionBlockedError,
         ),
     ):
         # Known safe domain exceptions — message is intentionally bounded

@@ -6,8 +6,11 @@ from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from src.data.distributed_lock import LockState
 
 from sqlalchemy import delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
@@ -1201,3 +1204,174 @@ class AssetGraphRepository:
                 DistributedLockORM.holder_id == holder_id,
             )
         )
+
+    def check_distributed_lock_state(
+        self,
+        *,
+        lock_name: str,
+        holder_id: str,
+    ) -> LockState:
+        """
+        Check the current state of a distributed lock.
+
+        Args:
+            lock_name: Unique name of the lock.
+            holder_id: Identifier of the process/instance holding the lock.
+
+        Returns:
+            LockState: The current state of the lock.
+        """
+        from src.data.distributed_lock import LockState
+
+        now = datetime.now(timezone.utc)
+        stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
+        lock_orm = self.session.execute(stmt).scalar_one_or_none()
+
+        if lock_orm is None:
+            return LockState.UNKNOWN
+
+        expires_at = lock_orm.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at <= now:
+            return LockState.EXPIRED
+
+        if lock_orm.holder_id == holder_id:
+            return LockState.VALID
+
+        return LockState.UNKNOWN
+
+    # Stage 5C.1: Recovery state tracking methods
+
+    def update_rebuild_heartbeat(
+        self,
+        job_id: str,
+        worker_id: str,
+    ) -> None:
+        """
+        Update the heartbeat timestamp for an active rebuild job.
+
+        This is used to track rebuild executor liveness and detect stale
+        ownership or crash conditions.
+
+        Args:
+            job_id: The rebuild job ID to update.
+            worker_id: The worker/instance ID sending the heartbeat.
+
+        Raises:
+            ValueError: If worker_id exceeds String(64) column constraint, or if
+                the job does not exist, is not in running status, or is owned by
+                a different worker.
+        """
+        # Validate worker_id length before database write
+        # Column is String(64), must enforce to avoid backend-specific errors
+        if len(worker_id) > 64:
+            raise ValueError(f"worker_id exceeds maximum length of 64 characters: {len(worker_id)} chars")
+
+        # First verify the job exists and is in RUNNING status
+        job = self.session.get(RebuildJobORM, job_id)
+        if job is None:
+            raise ValueError(f"Rebuild job {job_id} not found")
+        if job.status != RebuildJobStatus.RUNNING:
+            current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
+            raise ValueError(f"Cannot update heartbeat for job {job_id} with status {current_status} (must be running)")
+
+        # Flush any pending ORM changes to ensure UPDATE sees current state
+        self.session.flush()
+
+        # Atomic conditional update: only succeeds if:
+        # 1. Job is still in RUNNING status (prevents updates to completed jobs)
+        # 2. active_worker_id is NULL or matches worker_id (prevents ownership conflicts)
+        # This prevents race conditions where:
+        # - Two workers try to claim ownership simultaneously
+        # - A heartbeat arrives after job transitions to terminal state
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        stmt = (
+            update(RebuildJobORM)
+            .where(RebuildJobORM.job_id == job_id)
+            .where(RebuildJobORM.status == RebuildJobStatus.RUNNING)
+            .where(
+                or_(
+                    RebuildJobORM.active_worker_id.is_(None),
+                    RebuildJobORM.active_worker_id == worker_id,
+                )
+            )
+            .values(
+                active_worker_id=worker_id,
+                last_heartbeat_at=now,
+                updated_at=now,
+            )
+        )
+        result = self.session.execute(stmt)
+
+        # If no rows were updated, check why
+        if result.rowcount == 0:
+            # Refresh to get current state
+            self.session.expire(job)
+
+            # Check if status changed (most specific error message)
+            if job.status != RebuildJobStatus.RUNNING:
+                current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
+                raise ValueError(
+                    f"Cannot update heartbeat for job {job_id}: job status changed to {current_status} "
+                    "(job is no longer running)"
+                )
+
+            # Otherwise it's an ownership conflict
+            current_owner = job.active_worker_id
+            raise ValueError(
+                f"Cannot update heartbeat for job {job_id}: active worker is {current_owner}, not {worker_id}. "
+                "Worker ownership has already been claimed."
+            )
+
+    def get_active_rebuild_state(self) -> RebuildJobORM | None:
+        """
+        Get the current authoritative rebuild state from the database.
+
+        Returns the running job when exactly one is active, or None if no
+        rebuild is currently active.
+
+        Returns:
+            The active rebuild job, or None if no job is running.
+
+        Raises:
+            ValueError: If multiple rebuild jobs are simultaneously in running
+                status.
+        """
+        stmt = (
+            select(RebuildJobORM)
+            .where(RebuildJobORM.status == RebuildJobStatus.RUNNING)
+            .order_by(RebuildJobORM.created_at.desc())
+            # Fetch up to two rows to detect invalid multi-running state.
+            .limit(2)
+        )
+        result = self.session.execute(stmt)
+        running_jobs = list(result.scalars())
+        if len(running_jobs) > 1:
+            raise ValueError("Multiple rebuild jobs are in RUNNING state")
+        if not running_jobs:
+            return None
+        return running_jobs[0]
+
+    def get_last_successful_rebuild(self) -> RebuildJobORM | None:
+        """
+        Get the most recent successfully completed rebuild job.
+
+        Returns:
+            The most recent succeeded rebuild job, or None if no successful
+            rebuild has been recorded.
+        """
+        return self.get_latest_successful_rebuild_job()
+
+    def get_latest_rebuild_job(self) -> RebuildJobORM | None:
+        """
+        Get the most recent rebuild job regardless of status.
+
+        This is used for metrics initialization to preserve terminal states
+        across service restarts.
+
+        Returns:
+            The most recent rebuild job, or None if no jobs exist.
+        """
+        stmt = select(RebuildJobORM).order_by(RebuildJobORM.created_at.desc(), RebuildJobORM.job_id.desc()).limit(1)
+        return self.session.execute(stmt).scalar_one_or_none()
