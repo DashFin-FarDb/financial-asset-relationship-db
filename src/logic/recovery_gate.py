@@ -173,9 +173,14 @@ class RecoveryGate:
             safe_to_execute=decision.safe_to_execute,
         )
 
-    def _evaluate_decision(self):
+    def _evaluate_decision(self, increment_metric: bool = True):
         """
         Evaluate lock, DB, and runtime state and return a recovery decision.
+
+        Args:
+            increment_metric: If True, increment recovery trigger metric when
+                inconsistency is detected. Set to False on re-evaluation after
+                recovery to avoid double-counting.
 
         Returns:
             RecoveryDecision: Deterministic decision used by both
@@ -223,7 +228,7 @@ class RecoveryGate:
 
         decision = self._apply_owner_mismatch_override(decision, inconsistency, lock_is_valid, job)
 
-        if inconsistency.inconsistency_type != InconsistencyType.NONE:
+        if increment_metric and inconsistency.inconsistency_type != InconsistencyType.NONE:
             self.increment_recovery_trigger(inconsistency.inconsistency_type.value)
 
         if not decision.safe_to_execute:
@@ -259,7 +264,8 @@ class RecoveryGate:
             try:
                 self._perform_reset_recovery()
                 # After successful reset, re-evaluate to confirm safe to proceed
-                decision = self._evaluate_decision()
+                # Skip metric increment on re-evaluation to avoid double-counting
+                decision = self._evaluate_decision(increment_metric=False)
                 if decision.action != RecoveryAction.RESUME:
                     # Post-reset state still unsafe - use bounded reason to avoid leaking DB details
                     raise ExecutionBlockedError(

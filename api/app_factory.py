@@ -85,6 +85,10 @@ async def lifespan(_fastapi_app: FastAPI):
                     "Failed to initialize rebuild state metric: %s",
                     type(exc).__name__,
                 )
+                # Set metric to unknown state instead of default 0 (none) to avoid
+                # misleading healthy state when persistence is unavailable/misconfigured
+                from api.metrics import REBUILD_STATE_STATUS  # noqa: C0415
+                REBUILD_STATE_STATUS.set(-1)  # -1 = unknown
 
         logger.info("Application startup complete - graph and rebuild executor initialized")
     except Exception:
