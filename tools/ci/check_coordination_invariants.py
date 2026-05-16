@@ -21,8 +21,9 @@ _EXECUTION_ENTRYPOINTS = (
 
 FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
     # Direct ownership mutation outside coordinator context.
-    # \b and (?!=) prevent matching equality comparisons (==).
-    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"\b(active_worker_id|owner_id)\s*=(?!=)"),
+    # Negative lookahead MUST come BEFORE consuming = to exclude both = and ==
+    # Fixed regex: (?!=) checks ahead before the = is matched
+    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"\b(active_worker_id|owner_id)\s*(?!=)=(?!=)"),
     # Direct execution entrypoints outside coordinator
     "DIRECT_EXECUTION_ENTRY": re.compile(r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("),
     # Unsafe fallback lock acquisition logic
@@ -78,10 +79,14 @@ def scan_file(path: Path) -> list[str]:
         if pattern.search(content):
             violations.append(f"{name} violation in {path}")
 
-    # Order-independent check: flag any file that calls execute_rebuild /
-    # start_rebuild but contains no reference to RecoveryGate anywhere.
-    if _EXECUTION_CALL_RE.search(content) and not _RECOVERY_GATE_RE.search(content):
-        violations.append(f"MISSING_RECOVERY_GATE violation in {path}")
+    # Strengthened check: flag any file that calls execution entrypoint
+    # but does NOT actually call RecoveryGate.ensure_safe_to_execute().
+    # This prevents bypass via unused import or unrelated reference.
+    has_execution_call = _EXECUTION_CALL_RE.search(content)
+    has_recovery_gate_call = ".ensure_safe_to_execute()" in content
+
+    if has_execution_call and not has_recovery_gate_call:
+        violations.append(f"MISSING_RECOVERY_GATE_CALL violation in {path}")
 
     return violations
 

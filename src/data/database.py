@@ -93,8 +93,14 @@ def init_db(engine: Engine) -> None:
     Create database tables for all ORM models declared on Base.metadata.
 
     Creates any missing tables in the database referenced by the provided SQLAlchemy Engine.
+    Also applies any pending SQL migrations to ensure schema is up-to-date.
 
     Parameters:
         engine (Engine): SQLAlchemy Engine connected to the target database where tables will be created.
     """
+    from .migrations import apply_migrations
+
     Base.metadata.create_all(engine)
+    # Apply SQL migrations (e.g., adding heartbeat columns to rebuild_jobs)
+    # This ensures production databases receive schema updates
+    apply_migrations(engine)

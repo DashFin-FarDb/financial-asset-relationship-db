@@ -1259,9 +1259,17 @@ class AssetGraphRepository:
             worker_id: The worker/instance ID sending the heartbeat.
 
         Raises:
-            ValueError: If the job does not exist, is not in running status,
-                or is owned by a different worker.
+            ValueError: If worker_id exceeds String(64) column constraint, or if
+                the job does not exist, is not in running status, or is owned by
+                a different worker.
         """
+        # Validate worker_id length before database write
+        # Column is String(64), must enforce to avoid backend-specific errors
+        if len(worker_id) > 64:
+            raise ValueError(
+                f"worker_id exceeds maximum length of 64 characters: {len(worker_id)} chars"
+            )
+
         # First verify the job exists and is in RUNNING status
         job = self.session.get(RebuildJobORM, job_id)
         if job is None:

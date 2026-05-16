@@ -161,6 +161,7 @@ def test_recovery_gate_error_message_includes_decision_reason(mock_session_facto
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "other-worker"
+        last_heartbeat_at = None  # Missing heartbeat = stale/orphaned
 
     # Mock the repository to return orphaned job for initial check
     monkeypatch.setattr(
@@ -192,6 +193,7 @@ def test_recovery_gate_orphaned_with_new_lock_owner_returns_reset(mock_session_f
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "stale-worker"
+        last_heartbeat_at = None  # Missing heartbeat = stale/orphaned
 
     monkeypatch.setattr(
         "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob()

@@ -94,7 +94,12 @@ class RecoveryGate:
 
     def _apply_owner_mismatch_override(self, decision, inconsistency, lock_is_valid, job):
         """
-        Override decision to RESET if orphaned job has wrong owner.
+        Override decision to RESET if orphaned job has wrong owner AND stale heartbeat.
+
+        A different active_worker_id alone is NOT sufficient to downgrade to RESET
+        because a healthy remote worker will have a different ID. We must also verify
+        that the heartbeat is stale or missing to distinguish a crash from an active
+        remote rebuild.
 
         Args:
             decision: Original recovery decision.
@@ -119,13 +124,43 @@ class RecoveryGate:
         if job.active_worker_id == self.lock.holder_id:
             return decision
 
-        # Owner mismatch detected - override to RESET
+        # Owner mismatch detected - check heartbeat staleness before downgrading to RESET
+        # A different worker_id + fresh heartbeat = healthy remote worker (UNSAFE)
+        # A different worker_id + stale/missing heartbeat = orphaned job (RESET)
+        if job.last_heartbeat_at:
+            heartbeat_time = datetime.fromisoformat(job.last_heartbeat_at)
+            if heartbeat_time.tzinfo is None:
+                heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
+            now = datetime.now(timezone.utc)
+            heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
+
+            # Heartbeat is stale if older than lock TTL threshold
+            if heartbeat_age_seconds < self.lock_ttl_seconds:
+                # Fresh heartbeat from different worker = active remote rebuild
+                # Do NOT reset - this would cause split-brain
+                logger.warning(
+                    "Owner mismatch with FRESH heartbeat (age=%.1fs): "
+                    "job.active_worker_id=%s, lock.holder_id=%s. Keeping %s decision.",
+                    heartbeat_age_seconds,
+                    job.active_worker_id,
+                    self.lock.holder_id,
+                    decision.action.value,
+                )
+                return decision
+
+        # Stale or missing heartbeat with owner mismatch = orphaned job
+        logger.info(
+            "Owner mismatch with STALE/MISSING heartbeat detected: "
+            "job.active_worker_id=%s, lock.holder_id=%s. Downgrading to RESET.",
+            job.active_worker_id,
+            self.lock.holder_id,
+        )
         return RecoveryDecision(
             action=RecoveryAction.RESET,
             reason=(
-                "Orphaned running rebuild detected with owner mismatch: "
+                "Orphaned running rebuild with stale heartbeat (owner mismatch: "
                 f"job worker_id={job.active_worker_id!r}, "
-                f"current lock holder_id={self.lock.holder_id!r}"
+                f"current lock holder_id={self.lock.holder_id!r})"
             ),
             inconsistency_type=decision.inconsistency_type,
             safe_to_execute=decision.safe_to_execute,
@@ -246,10 +281,27 @@ class RecoveryGate:
         """
         Reset an orphaned rebuild job to allow new execution.
 
+        CRITICAL: Must reacquire lock if expired before mutating RUNNING job state.
+        Without a valid lock, multiple workers can perform concurrent reset operations
+        leading to database corruption.
+
         This transitions the orphaned RUNNING job to FAILED with a clear
         marker that it was recovered/cleaned up by the recovery system.
         """
         from src.data.db_models import RebuildJobStatus
+
+        # Check lock state and reacquire if expired
+        lock_state = self.lock.check_state()
+        if lock_state != LockState.VALID:
+            logger.warning(
+                "Lock state is %s before RESET recovery, attempting reacquisition...",
+                lock_state.value,
+            )
+            if not self.lock.acquire():
+                msg = f"Cannot perform RESET recovery without valid lock (state={lock_state.value})"
+                logger.error("%s: %s", type(ExecutionBlockedError).__name__, msg)
+                raise ExecutionBlockedError(msg)
+            logger.info("Successfully reacquired lock for RESET recovery")
 
         try:
             session = self.session_factory()

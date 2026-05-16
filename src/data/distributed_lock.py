@@ -93,6 +93,40 @@ class DistributedLock:
 
         return False
 
+    def refresh(self) -> bool:
+        """
+        Refresh the distributed lock to extend its TTL.
+
+        Returns:
+            bool: True if the lock was successfully refreshed, False otherwise.
+        """
+        try:
+            with session_scope(self.session_factory) as session:
+                repo = AssetGraphRepository(session)
+                if repo.try_acquire_distributed_lock(
+                    lock_name=self.lock_name,
+                    holder_id=self.holder_id,
+                    ttl_seconds=self.ttl_seconds,
+                ):
+                    logger.debug(
+                        "Refreshed distributed lock '%s' for holder '%s'",
+                        self.lock_name,
+                        self.holder_id,
+                    )
+                    return True
+                logger.warning(
+                    "Failed to refresh distributed lock '%s' (may have been taken by another holder)",
+                    self.lock_name,
+                )
+                return False
+        except Exception as exc:
+            logger.warning(
+                "Error refreshing distributed lock '%s': %s",
+                self.lock_name,
+                type(exc).__name__,
+            )
+            return False
+
     def release(self) -> None:
         """Release the distributed lock."""
         try:
