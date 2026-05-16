@@ -793,9 +793,7 @@ def _perform_rebuild_and_persist_sync(
         )
         gate.ensure_safe_to_execute()
 
-        job_id, job_started_at = _create_and_start_rebuild_job(
-            session_factory, user_ref, dist_lock.holder_id
-        )
+        job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref, dist_lock.holder_id)
 
         source: GraphRebuildSource | None = None
         success_persisted = False
