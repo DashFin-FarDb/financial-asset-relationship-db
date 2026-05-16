@@ -147,5 +147,6 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
             # Execute pre-validated DDL statement from hardcoded constant
             # SECURITY: alter_statement comes from HEARTBEAT_COLUMNS dict above
             # which is hardcoded in this file, not read from external source
+            # Do not commit here; let the surrounding transaction apply all
+            # column additions atomically or roll them back together.
             connection.execute(alter_statement)  # noqa: S3649
-            connection.commit()
