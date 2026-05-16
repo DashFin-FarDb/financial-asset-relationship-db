@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -164,6 +165,7 @@ def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelation
 def save_graph_to_persistence(
     database_url: str | None,
     graph: AssetRelationshipGraph,
+    pre_commit_check: Callable[[], None] | None = None,
 ) -> None:
     """
     Persist an AssetRelationshipGraph to a durable database.
@@ -180,7 +182,7 @@ def save_graph_to_persistence(
     resolved_url = resolve_durable_graph_persistence_url(database_url)
     engine = _create_graph_persistence_engine(resolved_url)
     try:
-        _save_graph_with_engine(engine, graph)
+        _save_graph_with_engine(engine, graph, pre_commit_check=pre_commit_check)
     finally:
         engine.dispose()
 
@@ -202,7 +204,12 @@ def _create_graph_persistence_engine(database_url: str) -> Engine:
         raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
 
 
-def _save_graph_with_engine(engine: Engine, graph: AssetRelationshipGraph) -> None:
+def _save_graph_with_engine(
+    engine: Engine,
+    graph: AssetRelationshipGraph,
+    *,
+    pre_commit_check: Callable[[], None] | None = None,
+) -> None:
     """
     Persist the provided asset relationship graph using a short-lived database session.
 
@@ -221,12 +228,17 @@ def _save_graph_with_engine(engine: Engine, graph: AssetRelationshipGraph) -> No
         raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
 
     try:
-        _save_graph_with_session(session, graph)
+        _save_graph_with_session(session, graph, pre_commit_check=pre_commit_check)
     finally:
         session.close()
 
 
-def _save_graph_with_session(session: Session, graph: AssetRelationshipGraph) -> None:
+def _save_graph_with_session(
+    session: Session,
+    graph: AssetRelationshipGraph,
+    *,
+    pre_commit_check: Callable[[], None] | None = None,
+) -> None:
     """
     Persist the given AssetRelationshipGraph using the provided SQLAlchemy session and commit the transaction.
 
@@ -239,6 +251,8 @@ def _save_graph_with_session(session: Session, graph: AssetRelationshipGraph) ->
     """
     try:
         AssetGraphRepository(session).save_graph(graph)
+        if pre_commit_check is not None:
+            pre_commit_check()
         session.commit()
     except Exception as exc:
         try:

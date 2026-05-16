@@ -98,7 +98,7 @@ def init_db(engine: Engine) -> None:
     Parameters:
         engine (Engine): SQLAlchemy Engine connected to the target database where tables will be created.
     """
-    from .migrations import apply_migrations
+    from .migrations import apply_migrations, apply_postgresql_heartbeat_migration
 
     Base.metadata.create_all(engine)
 
@@ -106,5 +106,8 @@ def init_db(engine: Engine) -> None:
     # Extract database path from engine URL for SQLite databases
     # For non-SQLite or in-memory databases, skip migrations (they use create_all only)
     url = make_url(engine.url)
-    if url.get_backend_name() == "sqlite" and url.database and url.database != ":memory:":
+    backend = url.get_backend_name()
+    if backend == "sqlite" and url.database and url.database != ":memory:":
         apply_migrations(url.database)
+    elif backend == "postgresql":
+        apply_postgresql_heartbeat_migration(engine)

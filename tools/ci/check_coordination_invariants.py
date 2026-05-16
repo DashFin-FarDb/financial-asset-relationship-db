@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import re
 import sys
 from collections.abc import Iterable
@@ -21,9 +22,8 @@ _EXECUTION_ENTRYPOINTS = (
 
 FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
     # Direct ownership mutation outside coordinator context.
-    # Match a single assignment operator regardless of spacing, while excluding
-    # equality/comparison operators such as ==, !=, <=, and >=.
-    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"\b(active_worker_id|owner_id)\s*(?<![=!<>])=(?!=)"),
+    # Match single assignment while excluding equality checks (==).
+    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"\b(active_worker_id|owner_id)\s*=(?!=)"),
     # Direct execution entrypoints outside coordinator
     "DIRECT_EXECUTION_ENTRY": re.compile(r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("),
     # Unsafe fallback lock acquisition logic
@@ -81,14 +81,31 @@ def scan_file(path: Path) -> list[str]:
 
     # Strengthened check: flag any file that calls execution entrypoint
     # but does NOT actually call RecoveryGate.ensure_safe_to_execute().
-    # This prevents bypass via unused import or unrelated reference.
+    # Uses AST call matching to prevent bypass via comments/string literals.
     has_execution_call = _EXECUTION_CALL_RE.search(content)
-    has_recovery_gate_call = ".ensure_safe_to_execute()" in content
+    has_recovery_gate_call = _contains_ensure_safe_to_execute_call(content)
 
     if has_execution_call and not has_recovery_gate_call:
         violations.append(f"MISSING_RECOVERY_GATE_CALL violation in {path}")
 
     return violations
+
+
+def _contains_ensure_safe_to_execute_call(content: str) -> bool:
+    """Return True when file contains a real ensure_safe_to_execute() call expression."""
+    try:
+        parsed = ast.parse(content)
+    except SyntaxError:
+        return False
+
+    for node in ast.walk(parsed):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "ensure_safe_to_execute"
+        ):
+            return True
+    return False
 
 
 def main() -> None:

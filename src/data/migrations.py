@@ -1,12 +1,9 @@
 """
-SQL migration runner for SQLite databases.
+SQL migration helpers for rebuild schema compatibility.
 
-This module provides a lightweight migration system for SQLite databases only.
-For PostgreSQL or other database backends, use Alembic or a similar migration tool.
-
-IMPORTANT: This migration runner is SQLite-specific and uses sqlite3.connect().
-It does not support PostgreSQL, MySQL, or other SQL databases. The init_db()
-function in database.py automatically skips migrations for non-SQLite backends.
+This module provides a lightweight migration runner for SQLite file databases
+and a targeted compatibility migration for PostgreSQL heartbeat columns.
+For broader cross-backend schema management, use Alembic or a similar tool.
 
 Security:
     All SQL migrations are read from trusted version-controlled files in the
@@ -18,6 +15,9 @@ from __future__ import annotations
 import logging
 import sqlite3
 from pathlib import Path
+
+from sqlalchemy import inspect, text
+from sqlalchemy.engine import Engine
 
 logger = logging.getLogger(__name__)
 
@@ -150,3 +150,29 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
             # Do not commit here; let the surrounding transaction apply all
             # column additions atomically or roll them back together.
             connection.execute(alter_statement)  # noqa: S3649
+
+
+def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
+    """
+    Ensure heartbeat columns exist for PostgreSQL rebuild_jobs tables.
+
+    This is an idempotent compatibility migration used during startup for
+    existing PostgreSQL databases that predate heartbeat tracking columns.
+    """
+    inspector = inspect(engine)
+    if "rebuild_jobs" not in inspector.get_table_names():
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("rebuild_jobs")}
+    statements: list[str] = []
+    if "active_worker_id" not in existing_columns:
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id VARCHAR")
+    if "last_heartbeat_at" not in existing_columns:
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TIMESTAMPTZ")
+
+    if not statements:
+        return
+
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))

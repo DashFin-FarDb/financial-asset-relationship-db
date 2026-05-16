@@ -149,7 +149,7 @@ class RecoveryGate:
                 # Do NOT reset - this would cause split-brain
                 logger.warning(
                     "Owner mismatch with FRESH heartbeat (age=%.1fs): "
-                    "job.active_worker_id=%s, lock.holder_id=%s. "
+                    "job.active_worker_id:%s, lock.holder_id:%s. "
                     "Forcing unsafe/blocking decision to avoid resetting a healthy remote worker.",
                     heartbeat_age_seconds,
                     job.active_worker_id,
@@ -170,7 +170,7 @@ class RecoveryGate:
         # Stale or missing heartbeat with owner mismatch = orphaned job
         logger.info(
             "Owner mismatch with STALE/MISSING heartbeat detected: "
-            "job.active_worker_id=%s, lock.holder_id=%s. Downgrading to RESET.",
+            "job.active_worker_id:%s, lock.holder_id:%s. Downgrading to RESET.",
             job.active_worker_id,
             self.lock.holder_id,
         )
@@ -324,7 +324,7 @@ class RecoveryGate:
             )
             if not self.lock.acquire():
                 msg = f"Cannot perform RESET recovery without valid lock (state={lock_state.value})"
-                logger.error("%s: %s", type(ExecutionBlockedError).__name__, msg)
+                logger.error("%s: %s", ExecutionBlockedError.__name__, msg)
                 raise ExecutionBlockedError(msg)
             logger.info("Successfully reacquired lock for RESET recovery")
 

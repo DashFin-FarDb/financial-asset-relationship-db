@@ -909,7 +909,16 @@ def _perform_rebuild_and_persist_sync(
             # Load rollback snapshot before any durable write. If snapshot loading
             # fails, the rebuild fails closed before persistence is modified.
             graph_snapshot = _load_persisted_graph_snapshot(session_factory)
-            save_graph_to_persistence(resolved_url, graph)
+
+            def _ensure_lock_not_lost_before_commit() -> None:
+                if lock_lost.is_set():
+                    raise RuntimeError("Lost distributed lock during graph persistence")
+
+            save_graph_to_persistence(
+                resolved_url,
+                graph,
+                pre_commit_check=_ensure_lock_not_lost_before_commit,
+            )
             graph_saved = True
 
             # Final lock check before success persistence
