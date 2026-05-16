@@ -159,18 +159,21 @@ def initialize_rebuild_state_metric_from_db(
                 active_job.job_id,
             )
     except ValueError as exc:
-        # Multiple running jobs detected - this is an inconsistent state
-        logger.exception(
+        # Multiple running jobs — business-logic inconsistency, no credentials at risk
+        # S8572: Using logger.warning with bounded format to prevent credential leakage
+        # (repository convention from PR #1161 - DB errors can embed DSN in tracebacks)
+        logger.warning(  # noqa: S8572
             "Cannot initialize rebuild state metric: %s. Setting to unknown.",
             type(exc).__name__,
         )
         update_rebuild_state_metric("unknown")
     except Exception as exc:  # noqa: BLE001
-        # DB read failure - fail gracefully
-        logger.exception(
-            "Failed to initialize rebuild state metric from DB: %s (%s). Setting to unknown.",
+        # DB read failure — SQLAlchemy errors can embed DSN/credentials in tracebacks
+        # S8572: Using logger.warning with bounded format to prevent credential leakage
+        # (repository convention from PR #1161 - avoids stack traces with DB connection details)
+        logger.warning(  # noqa: S8572
+            "Failed to initialize rebuild state metric from DB: %s. Setting to unknown.",
             type(exc).__name__,
-            str(exc),
         )
         update_rebuild_state_metric("unknown")
     finally:
