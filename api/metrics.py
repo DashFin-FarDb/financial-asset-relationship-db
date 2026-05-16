@@ -142,14 +142,16 @@ def initialize_rebuild_state_metric_from_db(
         session = session_factory()
         repo = AssetGraphRepository(session)
         active_job = repo.get_active_rebuild_state()
-        
+
         if active_job is None:
             # No active rebuild job - set to "none"
             update_rebuild_state_metric(None)
             logger.debug("Initialized rebuild state metric: none (no active job)")
         else:
             # Active rebuild job exists - use its status
-            status_value = active_job.status.value if isinstance(active_job.status, RebuildJobStatus) else str(active_job.status)
+            status_value = (
+                active_job.status.value if isinstance(active_job.status, RebuildJobStatus) else str(active_job.status)
+            )
             update_rebuild_state_metric(active_job.status)
             logger.info(
                 "Initialized rebuild state metric from DB: %s (job_id=%s)",

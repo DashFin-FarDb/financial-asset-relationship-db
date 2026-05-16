@@ -61,7 +61,7 @@ async def lifespan(_fastapi_app: FastAPI):
                     "Startup graph reconciliation failed: %s",
                     type(exc).__name__,
                 )
-            
+
             # Initialize rebuild state metric from DB after graph reconciliation
             try:
                 session_factory = get_session_factory()
