@@ -107,7 +107,11 @@ def init_db(engine: Engine) -> None:
     # For non-SQLite or in-memory databases, skip migrations (they use create_all only)
     url = make_url(engine.url)
     backend = url.get_backend_name()
-    if backend == "sqlite" and url.database and url.database != ":memory:":
+    query = url.query or {}
+    is_sqlite_memory = backend == "sqlite" and (
+        url.database == ":memory:" or query.get("mode") == "memory"
+    )
+    if backend == "sqlite" and url.database and not is_sqlite_memory:
         apply_migrations(url.database)
     elif backend == "postgresql":
         apply_postgresql_heartbeat_migration(engine)
