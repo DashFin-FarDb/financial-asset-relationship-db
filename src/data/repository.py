@@ -1270,12 +1270,20 @@ class AssetGraphRepository:
             current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
             raise ValueError(f"Cannot update heartbeat for job {job_id} with status {current_status} (must be running)")
 
-        # Atomic conditional update: only succeeds if active_worker_id is NULL or matches worker_id
-        # This prevents race conditions where two workers try to claim ownership simultaneously
+        # Flush any pending ORM changes to ensure UPDATE sees current state
+        self.session.flush()
+
+        # Atomic conditional update: only succeeds if:
+        # 1. Job is still in RUNNING status (prevents updates to completed jobs)
+        # 2. active_worker_id is NULL or matches worker_id (prevents ownership conflicts)
+        # This prevents race conditions where:
+        # - Two workers try to claim ownership simultaneously
+        # - A heartbeat arrives after job transitions to terminal state
         now = datetime.now(timezone.utc)  # noqa: UP017
         stmt = (
             update(RebuildJobORM)
             .where(RebuildJobORM.job_id == job_id)
+            .where(RebuildJobORM.status == RebuildJobStatus.RUNNING)
             .where(
                 or_(
                     RebuildJobORM.active_worker_id.is_(None),
@@ -1290,10 +1298,20 @@ class AssetGraphRepository:
         )
         result = self.session.execute(stmt)
 
-        # If no rows were updated, another worker already owns this job
+        # If no rows were updated, check why
         if result.rowcount == 0:
-            # Refresh to get current owner
+            # Refresh to get current state
             self.session.expire(job)
+            
+            # Check if status changed (most specific error message)
+            if job.status != RebuildJobStatus.RUNNING:
+                current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
+                raise ValueError(
+                    f"Cannot update heartbeat for job {job_id}: job status changed to {current_status} "
+                    "(job is no longer running)"
+                )
+            
+            # Otherwise it's an ownership conflict
             current_owner = job.active_worker_id
             raise ValueError(
                 f"Cannot update heartbeat for job {job_id}: active worker is {current_owner}, not {worker_id}. "
