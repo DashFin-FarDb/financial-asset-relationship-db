@@ -11,7 +11,8 @@
 -- For idempotency: The Python wrapper checks PRAGMA table_info(rebuild_jobs)
 -- and only adds columns that don't exist. This ensures safe re-runs and
 -- handles both fresh deploys (columns from 001) and legacy deploys (needs 002).
-
--- These ALTER TABLE statements are conditionally executed by Python wrapper:
--- ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id TEXT;
--- ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TEXT;
+--
+-- Intentionally a no-op when executed as an ordered SQL migration artifact.
+-- Legacy databases that still need these columns are handled by the Python
+-- migration runner, which performs existence checks before altering the table.
+SELECT 1;
