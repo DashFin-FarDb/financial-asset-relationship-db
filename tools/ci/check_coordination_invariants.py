@@ -37,7 +37,6 @@ FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
 # does not affect correctness.
 _EXECUTION_PATTERN = "|".join(_EXECUTION_ENTRYPOINTS)
 _EXECUTION_CALL_RE = re.compile(rf"\b({_EXECUTION_PATTERN})\b")
-_RECOVERY_GATE_RE = re.compile(r"\bRecoveryGate\b")
 
 
 # -----------------------------
