@@ -1373,9 +1373,5 @@ class AssetGraphRepository:
         Returns:
             The most recent rebuild job, or None if no jobs exist.
         """
-        stmt = (
-            select(RebuildJobORM)
-            .order_by(RebuildJobORM.created_at.desc(), RebuildJobORM.job_id.desc())
-            .limit(1)
-        )
+        stmt = select(RebuildJobORM).order_by(RebuildJobORM.created_at.desc(), RebuildJobORM.job_id.desc()).limit(1)
         return self.session.execute(stmt).scalar_one_or_none()
