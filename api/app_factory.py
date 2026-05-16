@@ -39,6 +39,62 @@ from .routers.visualization import router as visualization_router
 logger = logging.getLogger(__name__)
 
 
+def _run_startup_reconciliation(settings) -> None:
+    """
+    Run recovery gate validation before executor initialization.
+
+    Stage 5C.2: Startup reconciliation hook ensures no rebuild execution
+    can begin without passing recovery gate validation.
+
+    Blocks startup if:
+    - Lock state is UNKNOWN or LOST
+    - Unresolved recovery state detected (UNSAFE, WAIT)
+
+    Allows startup after:
+    - Successful RESET recovery
+    - RESUME decision (consistent state)
+
+    Args:
+        settings: Graph lifecycle settings containing persistence configuration.
+
+    Raises:
+        ExecutionBlockedError: If recovery gate blocks execution.
+        Exception: If recovery gate evaluation fails.
+    """
+    from src.data.database import create_engine_from_url, create_session_factory
+    from src.data.distributed_lock import DistributedLock
+    from src.logic.recovery_gate import RecoveryGate
+
+    from .graph_lifecycle_providers import resolve_durable_graph_persistence_url
+    from .metrics import increment_recovery_trigger
+
+    persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    engine = create_engine_from_url(persistence_url)
+    try:
+        session_factory = create_session_factory(engine)
+        lock = DistributedLock(
+            session_factory=session_factory,
+            lock_name="graph_rebuild",
+            ttl_seconds=300,
+        )
+
+        gate = RecoveryGate(
+            session_factory=session_factory,
+            lock=lock,
+            increment_recovery_trigger=increment_recovery_trigger,
+            runtime_has_active_executor=False,  # No executor yet at startup
+            lock_ttl_seconds=300,
+        )
+
+        # This will raise ExecutionBlockedError if unsafe
+        # or perform RESET recovery if needed
+        gate.ensure_safe_to_execute()
+
+        logger.info("Startup reconciliation passed - executor initialization allowed")
+    finally:
+        engine.dispose()
+
+
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
     """Initialize graph state and clean up rebuild resources."""
@@ -55,6 +111,20 @@ async def lifespan(_fastapi_app: FastAPI):
         has_durable_graph_persistence = bool(settings.asset_graph_database_url)
 
         get_graph()
+
+        # Stage 5C.2: Run recovery gate before executor initialization
+        # Blocks startup if state is unsafe or performs RESET recovery if needed
+        if has_durable_graph_persistence:
+            try:
+                await asyncio.to_thread(_run_startup_reconciliation, settings)
+            except Exception as exc:
+                logger.error(
+                    "Startup reconciliation failed - executor will not be initialized: %s",
+                    type(exc).__name__,
+                )
+                raise  # Block startup on recovery gate failure
+
+        # Only initialize executor after successful reconciliation
         init_rebuild_executor()
 
         if has_durable_graph_persistence:

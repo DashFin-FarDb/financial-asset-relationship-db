@@ -865,6 +865,10 @@ def _perform_rebuild_and_persist_sync(
             runtime_has_active_executor=False,
             lock_ttl_seconds=lock_ttl,
         )
+
+        # Stage 5C.2: CRITICAL recovery gate enforcement point
+        # Blocks execution if state is unsafe (UNKNOWN/LOST lock, unresolved recovery state)
+        # or performs RESET recovery if needed before allowing rebuild to proceed
         gate.ensure_safe_to_execute()
 
         job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref, dist_lock.holder_id)
