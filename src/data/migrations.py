@@ -53,13 +53,11 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
         # Ensure the file is within migrations directory
         resolved_file.relative_to(migrations_dir)
     except (ValueError, OSError) as exc:
-        raise ValueError(
-            f"Migration file {migration_file} is not within trusted migrations directory"
-        ) from exc
-    
+        raise ValueError(f"Migration file {migration_file} is not within trusted migrations directory") from exc
+
     if not resolved_file.is_file():
         raise ValueError(f"Migration file {migration_file} does not exist")
-    
+
     # Read and execute the trusted SQL file
     sql = resolved_file.read_text(encoding="utf-8")
     connection.executescript(sql)
