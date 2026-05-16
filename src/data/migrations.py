@@ -10,6 +10,13 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+# Explicit whitelist of allowed migration files
+# Only migrations listed here can be executed (defense in depth)
+ALLOWED_MIGRATIONS = frozenset([
+    "001_initial.sql",
+])
+
+
 def apply_migrations(db_path: Path | str) -> None:
     """
     Apply all pending migrations to the database.
@@ -39,10 +46,12 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
 
     Args:
         connection: SQLite connection.
-        migration_file: Path to the SQL file. Must be within the migrations directory.
+        migration_file: Path to the SQL file. Must be within the migrations directory
+            and listed in the ALLOWED_MIGRATIONS whitelist.
 
     Raises:
-        ValueError: If migration file path is invalid or outside migrations directory.
+        ValueError: If migration file path is invalid, outside migrations directory,
+            or not in the allowed migrations whitelist.
     """
     # Validate that migration_file is within the expected migrations directory
     # to prevent path traversal attacks if this function is ever called with
@@ -57,22 +66,36 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
 
     if not resolved_file.is_file():
         raise ValueError(f"Migration file {migration_file} does not exist")
-
+    
     # Validate file extension is .sql (trusted migration files only)
     if resolved_file.suffix.lower() != ".sql":
         raise ValueError(f"Migration file {migration_file} must have .sql extension")
-
+    
+    # Validate file is in the explicit whitelist of allowed migrations
+    # This is the ultimate security barrier: only known, hardcoded migration files can execute
+    if resolved_file.name not in ALLOWED_MIGRATIONS:
+        raise ValueError(
+            f"Migration file {resolved_file.name} is not in the allowed migrations whitelist. "
+            f"Allowed: {sorted(ALLOWED_MIGRATIONS)}"
+        )
+    
     # Read migration SQL from validated trusted file
     # Security note: This is safe because:
     # 1. File path validated to be within migrations/ directory (no path traversal)
     # 2. File extension validated to be .sql
-    # 3. migrations/ directory is source-controlled, not user-writable
-    # 4. This function is internal and only called with hardcoded migration paths
+    # 3. File name validated against hardcoded whitelist (ALLOWED_MIGRATIONS)
+    # 4. migrations/ directory is source-controlled, not user-writable
+    # 5. This function is internal and only called with hardcoded migration paths
     trusted_migration_sql = resolved_file.read_text(encoding="utf-8")
-
+    
     # Execute validated migration from trusted source
-    # nosec B608: SQL content from version-controlled migration files, not user input
-    connection.executescript(trusted_migration_sql)
+    # SECURITY: This is NOT user-controlled data. The SQL content comes from:
+    # - A file that passed all validation checks above
+    # - A filename that is hardcoded in ALLOWED_MIGRATIONS constant
+    # - A directory that is source-controlled (migrations/)
+    # - Version control system (git), not runtime user input
+    # Suppressing false positive: nosec B608, noqa: S608
+    connection.executescript(trusted_migration_sql)  # nosec B608
 
 
 def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None:
