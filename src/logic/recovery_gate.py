@@ -287,8 +287,13 @@ class RecoveryGate:
             except ExecutionBlockedError:
                 # Re-raise ExecutionBlockedError as-is (already sanitized above)
                 raise
+            except sqlalchemy_exc.SQLAlchemyError as exc:
+                # Expected database error during reset - block execution
+                logger.warning("Reset recovery failed due to database error: %s", type(exc).__name__)
+                raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
             except Exception as exc:
-                # Reset failed - block execution with bounded exception type only
+                # Unexpected error - log full stack trace for debugging, then block execution
+                logger.exception("Unexpected error during reset recovery")
                 raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
         elif decision.action != RecoveryAction.RESUME:
             # Execution blocked - log full reason but expose only bounded info in exception
@@ -329,8 +334,7 @@ class RecoveryGate:
             logger.info("Successfully reacquired lock for RESET recovery")
 
         try:
-            session = self.session_factory()
-            try:
+            with self.session_factory() as session:
                 repo = AssetGraphRepository(session)
                 # Get the active rebuild job
                 active_job = repo.get_active_rebuild_state()
@@ -349,8 +353,6 @@ class RecoveryGate:
                         active_job.job_id,
                         active_job.active_worker_id or "unknown",
                     )
-            finally:
-                session.close()
         except Exception as exc:
             # Use bounded logging to prevent DSN/credential leakage in tracebacks
             logger.error("Failed to perform reset recovery: %s", type(exc).__name__)

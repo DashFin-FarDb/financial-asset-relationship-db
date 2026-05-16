@@ -54,6 +54,10 @@ def _run_startup_reconciliation(settings) -> None:
     - Successful RESET recovery
     - RESUME decision (consistent state)
 
+    Note: The lock created here is ephemeral and only validates state consistency.
+    It does not reserve execution rights. The actual rebuild executor will create
+    its own lock instance when rebuild is requested.
+
     Args:
         settings: Graph lifecycle settings containing persistence configuration.
 
@@ -68,6 +72,11 @@ def _run_startup_reconciliation(settings) -> None:
     from .graph_lifecycle_providers import resolve_durable_graph_persistence_url
     from .metrics import increment_recovery_trigger
 
+    # Extract and validate lock TTL from settings (same logic as runtime execution)
+    lock_ttl = getattr(settings, "rebuild_lock_ttl_seconds", 300)
+    if not isinstance(lock_ttl, int) or lock_ttl <= 0:
+        lock_ttl = 300
+
     persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(persistence_url)
     try:
@@ -75,7 +84,7 @@ def _run_startup_reconciliation(settings) -> None:
         lock = DistributedLock(
             session_factory=session_factory,
             lock_name="graph_rebuild",
-            ttl_seconds=300,
+            ttl_seconds=lock_ttl,
         )
 
         gate = RecoveryGate(
@@ -83,7 +92,7 @@ def _run_startup_reconciliation(settings) -> None:
             lock=lock,
             increment_recovery_trigger=increment_recovery_trigger,
             runtime_has_active_executor=False,  # No executor yet at startup
-            lock_ttl_seconds=300,
+            lock_ttl_seconds=lock_ttl,
         )
 
         # This will raise ExecutionBlockedError if unsafe
@@ -118,9 +127,12 @@ async def lifespan(_fastapi_app: FastAPI):
             try:
                 await asyncio.to_thread(_run_startup_reconciliation, settings)
             except Exception as exc:
+                # Log exception type and bounded message for debugging without leaking sensitive data
+                exc_msg = str(exc)[:100] if exc else "unknown error"
                 logger.error(
-                    "Startup reconciliation failed - executor will not be initialized: %s",
+                    "Startup reconciliation failed - executor will not be initialized: %s: %s",
                     type(exc).__name__,
+                    exc_msg,
                 )
                 raise  # Block startup on recovery gate failure
 

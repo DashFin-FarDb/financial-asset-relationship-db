@@ -43,7 +43,7 @@ def test_recovery_gate_blocks_on_unknown_lock(mock_session_factory, mock_lock):
 
 
 def test_recovery_gate_blocks_on_lost_lock(mock_session_factory, mock_lock):
-    """Test that RecoveryGate blocks execution when lock state is LOST (decision API)."""
+    """Test that RecoveryGate blocks execution when lock state is LOST."""
     mock_lock.check_state.return_value = LockState.LOST
     gate = RecoveryGate(
         session_factory=mock_session_factory,
@@ -51,7 +51,11 @@ def test_recovery_gate_blocks_on_lost_lock(mock_session_factory, mock_lock):
         runtime_has_active_executor=False,
     )
 
+    # Verify both decision API and execution blocking
     assert gate.evaluate_state() == RecoveryAction.UNSAFE
+    
+    with pytest.raises(ExecutionBlockedError, match="Execution blocked"):
+        gate.ensure_safe_to_execute()
 
 
 def test_recovery_gate_lost_state_blocks_with_execution_blocked_error(mock_session_factory, mock_lock):
@@ -71,6 +75,7 @@ def test_recovery_gate_lost_state_does_not_attempt_reset(mock_session_factory, m
     """Test that RecoveryGate does not attempt RESET recovery when lock state is LOST.
     
     LOST state indicates DB connectivity failure, so we cannot safely mutate state.
+    This test verifies LOST-specific behavior: immediate blocking without state queries.
     """
     mock_lock.check_state.return_value = LockState.LOST
     mock_lock.acquire = MagicMock()  # Should never be called
@@ -81,10 +86,11 @@ def test_recovery_gate_lost_state_does_not_attempt_reset(mock_session_factory, m
         runtime_has_active_executor=False,
     )
 
-    with pytest.raises(ExecutionBlockedError):
+    # LOST state should block with action=unsafe
+    with pytest.raises(ExecutionBlockedError, match="action=unsafe"):
         gate.ensure_safe_to_execute()
     
-    # Verify lock acquisition was never attempted (no RESET recovery)
+    # LOST-specific verification: no lock reacquisition attempted (no RESET recovery)
     mock_lock.acquire.assert_not_called()
 
 

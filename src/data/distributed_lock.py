@@ -188,14 +188,14 @@ class DistributedLock:
                 type(exc).__name__,
             )
             return LockState.LOST
-        except Exception as exc:
-            # Unexpected error - treat as lost connectivity to be safe
-            logger.error(
-                "Unexpected error checking lock '%s' state, treating as LOST: %s",
+        except Exception:
+            # Unexpected error - this indicates a programming bug, not connectivity loss
+            # Re-raise to surface the issue rather than masking it as LOST state
+            logger.exception(
+                "Unexpected error checking lock '%s' state - re-raising",
                 self.lock_name,
-                type(exc).__name__,
             )
-            return LockState.LOST
+            raise
 
     def __enter__(self) -> DistributedLock:
         """Context manager entry point."""
