@@ -166,12 +166,12 @@ def test_recovery_gate_error_message_includes_decision_reason(mock_session_facto
     monkeypatch.setattr(
         "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob()
     )
-    
+
     # Mock session.get() to fail the mark_rebuild_job_failed call
     # This simulates reset recovery failure
     mock_session = mock_session_factory.return_value
     mock_session.get.return_value = None  # Job not found - causes ValueError
-    
+
     with pytest.raises(ExecutionBlockedError, match=r"Reset recovery failed"):
         gate.ensure_safe_to_execute()
 

@@ -84,7 +84,7 @@ class RecoveryGate:
         else:
             # Other errors during state evaluation likely indicate logic issues
             self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
-        
+
         return RecoveryDecision(
             action=RecoveryAction.UNSAFE,
             reason=reason,
@@ -210,13 +210,10 @@ class RecoveryGate:
                 after any automatic recovery attempts.
         """
         decision = self._evaluate_decision()
-        
+
         if decision.action == RecoveryAction.RESET:
             # Attempt automatic recovery by resetting the orphaned job
-            logger.info(
-                "Recovery action RESET: attempting to reset orphaned job state. Reason: %s",
-                decision.reason
-            )
+            logger.info("Recovery action RESET: attempting to reset orphaned job state. Reason: %s", decision.reason)
             try:
                 self._perform_reset_recovery()
                 # After successful reset, re-evaluate to confirm safe to proceed
@@ -230,8 +227,7 @@ class RecoveryGate:
             except Exception as exc:
                 # Reset failed - block execution
                 raise ExecutionBlockedError(
-                    f"Reset recovery failed: {type(exc).__name__}. "
-                    f"Original reason: {decision.reason}"
+                    f"Reset recovery failed: {type(exc).__name__}. " f"Original reason: {decision.reason}"
                 ) from exc
         elif decision.action != RecoveryAction.RESUME:
             raise ExecutionBlockedError(f"Execution blocked: action={decision.action.value}, reason={decision.reason}")
@@ -251,24 +247,23 @@ class RecoveryGate:
                 repo = AssetGraphRepository(session)
                 # Get the active rebuild job
                 active_job = repo.get_active_rebuild_state()
-                
+
                 if active_job and active_job.status == RebuildJobStatus.RUNNING:
                     # Transition to FAILED with recovery marker
                     repo.mark_rebuild_job_failed(
                         active_job.job_id,
                         failure_category="recovery_reset",
                         failure_message="Recovered from orphaned state by RecoveryGate",
-                        duration_ms=0  # Unknown duration for orphaned job
+                        duration_ms=0,  # Unknown duration for orphaned job
                     )
                     session.commit()
                     logger.warning(
                         "Reset orphaned rebuild job %s (previous owner: %s)",
                         active_job.job_id,
-                        active_job.active_worker_id or "unknown"
+                        active_job.active_worker_id or "unknown",
                     )
             finally:
                 session.close()
         except Exception:
             logger.exception("Failed to perform reset recovery")
             raise
-

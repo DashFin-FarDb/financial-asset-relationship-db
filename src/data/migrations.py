@@ -5,7 +5,6 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-
 # Explicit whitelist of allowed migration files
 # Only migrations listed here can be executed (defense in depth)
 ALLOWED_MIGRATIONS = frozenset(
@@ -115,14 +114,14 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
     # Read SQL from the migration file (maintains single source of truth)
     migrations_dir = Path(__file__).resolve().parents[2] / "migrations"
     migration_file = migrations_dir / "002_add_heartbeat_columns.sql"
-    
+
     # Parse the SQL to extract individual ALTER statements
     # The file contains two ALTER TABLE statements, one per column
     migration_sql = migration_file.read_text(encoding="utf-8")
-    
+
     # Expected columns from migration 002
     required_columns = ["active_worker_id", "last_heartbeat_at"]
-    
+
     for col_name in required_columns:
         if col_name not in existing_columns:
             # Extract and execute the specific ALTER statement for this column
@@ -135,4 +134,3 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
                     connection.execute(line.strip().rstrip(";"))  # noqa: S3649
                     connection.commit()
                     break
-
