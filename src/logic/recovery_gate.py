@@ -326,6 +326,7 @@ class RecoveryGate:
                     )
             finally:
                 session.close()
-        except Exception:
-            logger.exception("Failed to perform reset recovery")
+        except Exception as exc:
+            # Use bounded logging to prevent DSN/credential leakage in tracebacks
+            logger.error("Failed to perform reset recovery: %s", type(exc).__name__)
             raise

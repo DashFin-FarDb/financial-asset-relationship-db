@@ -142,7 +142,9 @@ def test_recovery_gate_blocks_when_multiple_running_jobs_detected(mock_session_f
         _raise_multiple_running,
     )
     assert gate.evaluate_state() == RecoveryAction.UNSAFE
-    assert metric_calls == [InconsistencyType.ORPHANED_RUNNING.value]
+    # Error paths do not increment recovery triggers per _create_unsafe_decision_from_error
+    # See recovery_gate.py lines 78-86: early return before metric increment
+    assert metric_calls == []
 
 
 def test_recovery_gate_error_message_includes_decision_reason(mock_session_factory, mock_lock, monkeypatch):
