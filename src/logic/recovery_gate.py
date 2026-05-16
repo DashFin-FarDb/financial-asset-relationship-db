@@ -75,15 +75,18 @@ class RecoveryGate:
         else:
             logger.warning("Execution blocked: %s (%s)", exc_type, error_context)
 
-        # Only increment recovery trigger for SQLAlchemy connectivity/DB errors
-        # to avoid polluting orphaned_running metrics with general exceptions
+        # Do not increment orphaned-running metrics from this generic error path.
+        # At this point we only know state evaluation failed; we do not know that
+        # an ORPHANED_RUNNING inconsistency was actually detected.
         if isinstance(exc, sqlalchemy_exc.SQLAlchemyError):
-            # DB connectivity failures - don't increment metrics since we can't
-            # determine actual state
-            logger.debug("DB error prevented state evaluation - not incrementing recovery trigger")
+            logger.debug(
+                "DB error prevented state evaluation - not incrementing recovery trigger"
+            )
         else:
-            # Other errors during state evaluation likely indicate logic issues
-            self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
+            logger.debug(
+                "Unexpected error prevented state evaluation - not incrementing "
+                "orphaned_running recovery trigger"
+            )
 
         return RecoveryDecision(
             action=RecoveryAction.UNSAFE,
