@@ -108,9 +108,7 @@ def init_db(engine: Engine) -> None:
     url = make_url(engine.url)
     backend = url.get_backend_name()
     query = url.query or {}
-    is_sqlite_memory = backend == "sqlite" and (
-        url.database == ":memory:" or query.get("mode") == "memory"
-    )
+    is_sqlite_memory = backend == "sqlite" and (url.database == ":memory:" or query.get("mode") == "memory")
     if backend == "sqlite" and url.database and not is_sqlite_memory:
         apply_migrations(url.database)
     elif backend == "postgresql":
