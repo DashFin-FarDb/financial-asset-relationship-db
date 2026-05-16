@@ -117,8 +117,10 @@ class RecoveryGate:
         if inconsistency.inconsistency_type != InconsistencyType.ORPHANED_RUNNING:
             return decision
 
-        # Early return if lock is invalid or no job
-        if not lock_is_valid or job is None:
+        # Without a job there is nothing to compare. Do not skip the owner/heartbeat
+        # safety check merely because the current lock is invalid; an expired local
+        # lock is exactly when we must avoid resetting a healthy remote worker.
+        if job is None:
             return decision
 
         # Early return if owner matches
