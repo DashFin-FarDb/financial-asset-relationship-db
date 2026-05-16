@@ -149,13 +149,23 @@ class RecoveryGate:
                 # Do NOT reset - this would cause split-brain
                 logger.warning(
                     "Owner mismatch with FRESH heartbeat (age=%.1fs): "
-                    "job.active_worker_id=%s, lock.holder_id=%s. Keeping %s decision.",
+                    "job.active_worker_id=%s, lock.holder_id=%s. "
+                    "Forcing unsafe/blocking decision to avoid resetting a healthy remote worker.",
                     heartbeat_age_seconds,
                     job.active_worker_id,
                     self.lock.holder_id,
-                    decision.action.value,
                 )
-                return decision
+                return RecoveryDecision(
+                    action=RecoveryAction.BLOCK,
+                    reason=(
+                        "Running rebuild is owned by a different worker with a fresh heartbeat "
+                        f"(job worker_id={job.active_worker_id!r}, "
+                        f"current lock holder_id={self.lock.holder_id!r}); "
+                        "local recovery is unsafe"
+                    ),
+                    inconsistency_type=decision.inconsistency_type,
+                    safe_to_execute=False,
+                )
 
         # Stale or missing heartbeat with owner mismatch = orphaned job
         logger.info(
