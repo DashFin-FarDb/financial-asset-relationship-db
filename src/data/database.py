@@ -101,7 +101,7 @@ def init_db(engine: Engine) -> None:
     from .migrations import apply_migrations
 
     Base.metadata.create_all(engine)
-    
+
     # Apply SQL migrations (e.g., adding heartbeat columns to rebuild_jobs)
     # Extract database path from engine URL for SQLite databases
     # For non-SQLite or in-memory databases, skip migrations (they use create_all only)
