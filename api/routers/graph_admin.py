@@ -712,12 +712,15 @@ def _heartbeat_keeper(
                 job_id,
             )
         except Exception as exc:
-            logger.warning(
-                "Heartbeat keeper error for job %s: %s",
+            logger.error(
+                "Heartbeat keeper failed for job %s (worker %s): %s. "
+                "Signaling main thread to abort.",
                 job_id,
+                worker_id,
                 type(exc).__name__,
             )
-            # Continue trying unless stop_event is set
+            lock_lost_event.set()
+            return
 
 
 def _finalize_rebuild_success(
