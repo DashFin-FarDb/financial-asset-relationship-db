@@ -871,7 +871,7 @@ def _perform_rebuild_and_persist_sync(
         # and stale heartbeat detection during long rebuilds
         stop_heartbeat = threading.Event()
         lock_lost = threading.Event()  # Signaled if heartbeat keeper loses lock
-        heartbeat_interval = max(lock_ttl // 3, 10)  # Refresh at 1/3 TTL, min 10s
+        heartbeat_interval = max(1, lock_ttl // 3)  # Refresh at 1/3 TTL, at least 1s
         heartbeat_thread = threading.Thread(
             target=_heartbeat_keeper,
             kwargs={
