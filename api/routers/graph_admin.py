@@ -713,8 +713,7 @@ def _heartbeat_keeper(
             )
         except Exception as exc:
             logger.error(
-                "Heartbeat keeper failed for job %s (worker %s): %s. "
-                "Signaling main thread to abort.",
+                "Heartbeat keeper failed for job %s (worker %s): %s. " "Signaling main thread to abort.",
                 job_id,
                 worker_id,
                 type(exc).__name__,
