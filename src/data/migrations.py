@@ -52,12 +52,15 @@ def apply_migrations(db_path: Path | str) -> None:
     # migrations/ is at repository root, not under src/
     migrations_dir = Path(__file__).resolve().parents[2] / "migrations"
 
-    with sqlite3.connect(db_path) as connection:
-        # Migration 001: Base schema (always safe to run, uses IF NOT EXISTS)
-        _apply_sql_migration(connection, migrations_dir / "001_initial.sql")
+    from contextlib import closing
 
-        # Migration 002: Add heartbeat columns (conditional, check first)
-        _apply_upgrade_002_heartbeat_columns(connection)
+    with closing(sqlite3.connect(db_path)) as connection:
+        with connection:
+            # Migration 001: Base schema (always safe to run, uses IF NOT EXISTS)
+            _apply_sql_migration(connection, migrations_dir / "001_initial.sql")
+
+            # Migration 002: Add heartbeat columns (conditional, check first)
+            _apply_upgrade_002_heartbeat_columns(connection)
 
 
 def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -> None:
