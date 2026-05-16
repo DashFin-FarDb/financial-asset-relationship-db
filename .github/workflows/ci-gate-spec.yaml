@@ -204,12 +204,12 @@ jobs:
           echo "Gate B (Multi-Worker Simulation): ${{ needs.multi-worker-simulation.outputs.tests_ran == 'true' && '✅ PASSED' || '⚠️  SKIPPED (tests/coordination not implemented)' }}"
           echo "Gate C (Failure Mode Injection): ${{ needs.failure-injection-gates.outputs.tests_ran == 'true' && '✅ PASSED' || '⚠️  SKIPPED (tests/failure_injection not implemented)' }}"
           echo ""
-          
+
           # Gate A is always required (static invariants)
           # Gates B and C are aspirational for this PR stage
           gate_b_status="${{ needs.multi-worker-simulation.outputs.tests_ran }}"
           gate_c_status="${{ needs.failure-injection-gates.outputs.tests_ran }}"
-          
+
           if [ "$gate_b_status" == "true" ] && [ "$gate_c_status" == "true" ]; then
             echo "✅ All coordination safety gates PASSED with full test coverage."
             echo "System is safe for merge under distributed coordination invariants."
