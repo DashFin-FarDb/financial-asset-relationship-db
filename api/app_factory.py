@@ -43,12 +43,13 @@ logger = logging.getLogger(__name__)
 async def lifespan(_fastapi_app: FastAPI):
     """Initialize graph state and clean up rebuild resources."""
     try:
+        from src.data.database import create_engine_from_url, create_session_factory  # noqa: C0415
+
         from .graph_lifecycle_providers import (  # noqa: C0415 - avoid circular import
             get_graph_lifecycle_settings,
             resolve_durable_graph_persistence_url,
         )
         from .metrics import initialize_rebuild_state_metric_from_db  # noqa: C0415
-        from src.data.database import create_engine_from_url, create_session_factory  # noqa: C0415
 
         settings = get_graph_lifecycle_settings()
         has_durable_graph_persistence = bool(settings.asset_graph_database_url)
@@ -64,12 +65,10 @@ async def lifespan(_fastapi_app: FastAPI):
                     "Startup graph reconciliation failed: %s",
                     type(exc).__name__,
                 )
-            
+
             # Initialize rebuild state metric from DB after graph reconciliation
             try:
-                persistence_url = resolve_durable_graph_persistence_url(
-                    settings.asset_graph_database_url
-                )
+                persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
                 engine = create_engine_from_url(persistence_url)
                 session_factory = create_session_factory(engine)
                 await asyncio.to_thread(initialize_rebuild_state_metric_from_db, session_factory)
