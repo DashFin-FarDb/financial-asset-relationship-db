@@ -101,6 +101,10 @@ def init_db(engine: Engine) -> None:
     from .migrations import apply_migrations
 
     Base.metadata.create_all(engine)
+    
     # Apply SQL migrations (e.g., adding heartbeat columns to rebuild_jobs)
-    # This ensures production databases receive schema updates
-    apply_migrations(engine)
+    # Extract database path from engine URL for SQLite databases
+    # For non-SQLite or in-memory databases, skip migrations (they use create_all only)
+    url = make_url(engine.url)
+    if url.get_backend_name() == "sqlite" and url.database and url.database != ":memory:":
+        apply_migrations(url.database)
