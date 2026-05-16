@@ -1,9 +1,25 @@
-"""Database migration utilities for schema evolution."""
+"""
+SQL migration runner for SQLite databases.
+
+This module provides a lightweight migration system for SQLite databases only.
+For PostgreSQL or other database backends, use Alembic or a similar migration tool.
+
+IMPORTANT: This migration runner is SQLite-specific and uses sqlite3.connect().
+It does not support PostgreSQL, MySQL, or other SQL databases. The init_db()
+function in database.py automatically skips migrations for non-SQLite backends.
+
+Security:
+    All SQL migrations are read from trusted version-controlled files in the
+    migrations/ directory and validated against an ALLOWED_MIGRATIONS whitelist.
+"""
 
 from __future__ import annotations
 
+import logging
 import sqlite3
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Explicit whitelist of allowed migration files
 # Only migrations listed here can be executed (defense in depth)
@@ -17,7 +33,10 @@ ALLOWED_MIGRATIONS = frozenset(
 
 def apply_migrations(db_path: Path | str) -> None:
     """
-    Apply all pending migrations to the database.
+    Apply all pending SQL migrations to a SQLite database.
+
+    This function is SQLite-specific and will not work with PostgreSQL or other databases.
+    For non-SQLite databases, use Alembic or implement backend-specific migrations.
 
     This function applies migrations in order:
     1. 001_initial.sql - Base schema (idempotent via IF NOT EXISTS)
@@ -25,6 +44,9 @@ def apply_migrations(db_path: Path | str) -> None:
 
     Args:
         db_path: Path to the SQLite database file.
+
+    Raises:
+        ValueError: If db_path is not a valid SQLite database path.
     """
     db_path = Path(db_path)
     # migrations/ is at repository root, not under src/

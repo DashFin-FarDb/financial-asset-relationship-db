@@ -673,6 +673,7 @@ def _heartbeat_keeper(
     job_id: str,
     worker_id: str,
     stop_event: threading.Event,
+    lock_lost_event: threading.Event,
     interval_seconds: int,
 ) -> None:
     """
@@ -686,6 +687,7 @@ def _heartbeat_keeper(
         job_id: Rebuild job ID for heartbeat updates.
         worker_id: Worker/instance identifier.
         stop_event: Threading event to signal shutdown.
+        lock_lost_event: Threading event to signal lock loss to main thread.
         interval_seconds: Refresh interval in seconds.
     """
     while not stop_event.wait(timeout=interval_seconds):
@@ -693,10 +695,12 @@ def _heartbeat_keeper(
             # Refresh the distributed lock TTL
             if not dist_lock.refresh():
                 logger.error(
-                    "Heartbeat keeper lost distributed lock for job %s (worker %s)",
+                    "Heartbeat keeper lost distributed lock for job %s (worker %s). "
+                    "Signaling main thread to abort.",
                     job_id,
                     worker_id,
                 )
+                lock_lost_event.set()  # Signal lock loss to main thread
                 return
 
             # Update rebuild job heartbeat
@@ -867,6 +871,7 @@ def _perform_rebuild_and_persist_sync(
         # Start background heartbeat keeper thread to prevent lock expiry
         # and stale heartbeat detection during long rebuilds
         stop_heartbeat = threading.Event()
+        lock_lost = threading.Event()  # Signaled if heartbeat keeper loses lock
         heartbeat_interval = max(lock_ttl // 3, 10)  # Refresh at 1/3 TTL, min 10s
         heartbeat_thread = threading.Thread(
             target=_heartbeat_keeper,
@@ -876,6 +881,7 @@ def _perform_rebuild_and_persist_sync(
                 "job_id": job_id,
                 "worker_id": dist_lock.holder_id,
                 "stop_event": stop_heartbeat,
+                "lock_lost_event": lock_lost,
                 "interval_seconds": heartbeat_interval,
             },
             daemon=True,
@@ -888,13 +894,27 @@ def _perform_rebuild_and_persist_sync(
         graph_snapshot: AssetRelationshipGraph | None = None
         graph_saved = False
         try:
+            # Check if heartbeat keeper lost lock before expensive operations
+            if lock_lost.is_set():
+                raise RuntimeError("Lost distributed lock during rebuild initialization")
+            
             graph, source = build_rebuild_graph(settings)
             _update_job_source_safe(session_factory, job_id, str(source))
+            
+            # Check lock status before persisting
+            if lock_lost.is_set():
+                raise RuntimeError("Lost distributed lock before graph persistence")
+            
             # Load rollback snapshot before any durable write. If snapshot loading
             # fails, the rebuild fails closed before persistence is modified.
             graph_snapshot = _load_persisted_graph_snapshot(session_factory)
             save_graph_to_persistence(resolved_url, graph)
             graph_saved = True
+            
+            # Final lock check before success persistence
+            if lock_lost.is_set():
+                raise RuntimeError("Lost distributed lock before success persistence")
+            
             response = _finalize_rebuild_success(
                 session_factory=session_factory,
                 job_id=job_id,

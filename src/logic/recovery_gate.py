@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from datetime import datetime, timezone
 
 from sqlalchemy import exc as sqlalchemy_exc
 from sqlalchemy.orm import Session
@@ -128,9 +129,15 @@ class RecoveryGate:
         # A different worker_id + fresh heartbeat = healthy remote worker (UNSAFE)
         # A different worker_id + stale/missing heartbeat = orphaned job (RESET)
         if job.last_heartbeat_at:
-            heartbeat_time = datetime.fromisoformat(job.last_heartbeat_at)
+            # Handle both datetime (from ORM) and string (from raw SQL) types
+            heartbeat_time = job.last_heartbeat_at
+            if isinstance(heartbeat_time, str):
+                heartbeat_time = datetime.fromisoformat(heartbeat_time)
+            
+            # Ensure timezone-aware comparison
             if heartbeat_time.tzinfo is None:
                 heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
+            
             now = datetime.now(timezone.utc)
             heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
 
