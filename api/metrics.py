@@ -127,8 +127,8 @@ def initialize_rebuild_state_metric_from_db(
     Initialize rebuild state metric from authoritative DB state on startup.
 
     This ensures the Prometheus gauge reflects the actual persisted rebuild
-    state after process restarts, rather than showing default/stale values
-    that could hide orphaned or crashed rebuild jobs.
+    state after process restarts, including terminal states (succeeded/failed),
+    rather than showing default/stale values that could hide crashed jobs.
 
     Called during application startup to reconcile metrics with DB reality.
 
@@ -141,23 +141,40 @@ def initialize_rebuild_state_metric_from_db(
     try:
         session = session_factory()
         repo = AssetGraphRepository(session)
+        
+        # First check for active RUNNING job
         active_job = repo.get_active_rebuild_state()
-
-        if active_job is None:
-            # No active rebuild job - set to "none"
-            update_rebuild_state_metric(None)
-            logger.debug("Initialized rebuild state metric: none (no active job)")
-        else:
+        
+        if active_job is not None:
             # Active rebuild job exists - use its status
             status_value = (
                 active_job.status.value if isinstance(active_job.status, RebuildJobStatus) else str(active_job.status)
             )
             update_rebuild_state_metric(active_job.status)
             logger.info(
-                "Initialized rebuild state metric from DB: %s (job_id=%s)",
+                "Initialized rebuild state metric from active job: %s (job_id=%s)",
                 status_value,
                 active_job.job_id,
             )
+        else:
+            # No active job - check latest job to preserve terminal state
+            latest_job = repo.get_latest_rebuild_job()
+            if latest_job is not None:
+                status_value = (
+                    latest_job.status.value
+                    if isinstance(latest_job.status, RebuildJobStatus)
+                    else str(latest_job.status)
+                )
+                update_rebuild_state_metric(latest_job.status)
+                logger.info(
+                    "Initialized rebuild state metric from latest job: %s (job_id=%s)",
+                    status_value,
+                    latest_job.job_id,
+                )
+            else:
+                # No rebuild jobs at all - set to "none"
+                update_rebuild_state_metric(None)
+                logger.debug("Initialized rebuild state metric: none (no rebuild jobs)")
     except ValueError as exc:
         # Multiple running jobs — business-logic inconsistency, no credentials at risk
         # S8572: Using logger.warning with bounded format to prevent credential leakage

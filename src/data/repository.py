@@ -1356,3 +1356,16 @@ class AssetGraphRepository:
             rebuild has been recorded.
         """
         return self.get_latest_successful_rebuild_job()
+
+    def get_latest_rebuild_job(self) -> RebuildJobORM | None:
+        """
+        Get the most recent rebuild job regardless of status.
+
+        This is used for metrics initialization to preserve terminal states
+        across service restarts.
+
+        Returns:
+            The most recent rebuild job, or None if no jobs exist.
+        """
+        stmt = select(RebuildJobORM).order_by(RebuildJobORM.created_at.desc()).limit(1)
+        return self.session.execute(stmt).scalar_one_or_none()

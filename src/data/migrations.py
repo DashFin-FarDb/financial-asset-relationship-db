@@ -4,10 +4,6 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 # Explicit whitelist of allowed migration files
@@ -15,6 +11,7 @@ if TYPE_CHECKING:
 ALLOWED_MIGRATIONS = frozenset(
     [
         "001_initial.sql",
+        "002_add_heartbeat_columns.sql",
     ]
 )
 
@@ -104,8 +101,9 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
     """
     Apply migration 002 (add heartbeat columns) conditionally.
 
-    Checks if columns exist before running ALTER TABLE statements,
-    since SQLite's ALTER TABLE ADD COLUMN is not idempotent.
+    Reads SQL from migrations/002_add_heartbeat_columns.sql but checks if
+    columns exist before running ALTER TABLE statements, since SQLite's
+    ALTER TABLE ADD COLUMN is not idempotent.
 
     Args:
         connection: SQLite connection.
@@ -114,17 +112,27 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
     cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
     existing_columns = {row[1] for row in cursor}
 
-    # Hardcoded safe column definitions (not user-controlled)
-    # Each tuple: (column_name, column_definition)
-    # Using explicit constants prevents any injection risk
-    HEARTBEAT_COLUMNS = {
-        "active_worker_id": "ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id TEXT",
-        "last_heartbeat_at": "ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TEXT",
-    }
-
-    for col_name, alter_statement in HEARTBEAT_COLUMNS.items():
+    # Read SQL from the migration file (maintains single source of truth)
+    migrations_dir = Path(__file__).resolve().parents[2] / "migrations"
+    migration_file = migrations_dir / "002_add_heartbeat_columns.sql"
+    
+    # Parse the SQL to extract individual ALTER statements
+    # The file contains two ALTER TABLE statements, one per column
+    migration_sql = migration_file.read_text(encoding="utf-8")
+    
+    # Expected columns from migration 002
+    required_columns = ["active_worker_id", "last_heartbeat_at"]
+    
+    for col_name in required_columns:
         if col_name not in existing_columns:
-            # Execute pre-validated DDL statement (not constructed from runtime data)
-            # SECURITY: alter_statement comes from hardcoded HEARTBEAT_COLUMNS dict above
-            connection.execute(alter_statement)  # noqa: S3649
-            connection.commit()
+            # Extract and execute the specific ALTER statement for this column
+            # Look for the line containing this column name
+            for line in migration_sql.splitlines():
+                if col_name in line and line.strip().startswith("ALTER TABLE"):
+                    # Execute pre-validated DDL statement from trusted migration file
+                    # SECURITY: SQL comes from version-controlled migration file
+                    # that passed whitelist validation
+                    connection.execute(line.strip().rstrip(";"))  # noqa: S3649
+                    connection.commit()
+                    break
+

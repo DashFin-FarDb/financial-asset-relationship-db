@@ -75,7 +75,16 @@ class RecoveryGate:
         else:
             logger.warning("Execution blocked: %s (%s)", exc_type, error_context)
 
-        self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
+        # Only increment recovery trigger for SQLAlchemy connectivity/DB errors
+        # to avoid polluting orphaned_running metrics with general exceptions
+        if isinstance(exc, sqlalchemy_exc.SQLAlchemyError):
+            # DB connectivity failures - don't increment metrics since we can't
+            # determine actual state
+            logger.debug("DB error prevented state evaluation - not incrementing recovery trigger")
+        else:
+            # Other errors during state evaluation likely indicate logic issues
+            self.increment_recovery_trigger(InconsistencyType.ORPHANED_RUNNING.value)
+        
         return RecoveryDecision(
             action=RecoveryAction.UNSAFE,
             reason=reason,
@@ -191,11 +200,75 @@ class RecoveryGate:
 
     def ensure_safe_to_execute(self) -> None:
         """
-        Enforce execution blocking rules.
+        Enforce execution blocking rules and perform recovery actions.
+
+        For RESET decisions, this automatically resets the orphaned job state
+        before allowing execution to proceed.
 
         Raises:
-            ExecutionBlockedError: If the execution is not safe (e.g. UNSAFE, WAIT, RESET).
+            ExecutionBlockedError: If the execution is not safe (UNSAFE, WAIT)
+                after any automatic recovery attempts.
         """
         decision = self._evaluate_decision()
-        if decision.action != RecoveryAction.RESUME:
+        
+        if decision.action == RecoveryAction.RESET:
+            # Attempt automatic recovery by resetting the orphaned job
+            logger.info(
+                "Recovery action RESET: attempting to reset orphaned job state. Reason: %s",
+                decision.reason
+            )
+            try:
+                self._perform_reset_recovery()
+                # After successful reset, re-evaluate to confirm safe to proceed
+                decision = self._evaluate_decision()
+                if decision.action != RecoveryAction.RESUME:
+                    raise ExecutionBlockedError(
+                        f"Reset recovery completed but state still unsafe: "
+                        f"action={decision.action.value}, reason={decision.reason}"
+                    )
+                logger.info("Reset recovery successful - execution can proceed")
+            except Exception as exc:
+                # Reset failed - block execution
+                raise ExecutionBlockedError(
+                    f"Reset recovery failed: {type(exc).__name__}. "
+                    f"Original reason: {decision.reason}"
+                ) from exc
+        elif decision.action != RecoveryAction.RESUME:
             raise ExecutionBlockedError(f"Execution blocked: action={decision.action.value}, reason={decision.reason}")
+
+    def _perform_reset_recovery(self) -> None:
+        """
+        Reset an orphaned rebuild job to allow new execution.
+
+        This transitions the orphaned RUNNING job to FAILED with a clear
+        marker that it was recovered/cleaned up by the recovery system.
+        """
+        from src.data.db_models import RebuildJobStatus
+
+        try:
+            session = self.session_factory()
+            try:
+                repo = AssetGraphRepository(session)
+                # Get the active rebuild job
+                active_job = repo.get_active_rebuild_state()
+                
+                if active_job and active_job.status == RebuildJobStatus.RUNNING:
+                    # Transition to FAILED with recovery marker
+                    repo.mark_rebuild_job_failed(
+                        active_job.job_id,
+                        failure_category="recovery_reset",
+                        failure_message="Recovered from orphaned state by RecoveryGate",
+                        duration_ms=0  # Unknown duration for orphaned job
+                    )
+                    session.commit()
+                    logger.warning(
+                        "Reset orphaned rebuild job %s (previous owner: %s)",
+                        active_job.job_id,
+                        active_job.active_worker_id or "unknown"
+                    )
+            finally:
+                session.close()
+        except Exception:
+            logger.exception("Failed to perform reset recovery")
+            raise
+

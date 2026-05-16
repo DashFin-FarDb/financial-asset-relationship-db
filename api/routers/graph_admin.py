@@ -626,6 +626,25 @@ def _create_and_start_rebuild_job(
     job_started_at = perf_counter()
     _mark_job_running_safe(session_factory, job_id)
     update_rebuild_state_metric("running")
+   
+    # Record initial heartbeat to establish ownership and enable liveness tracking
+    # This must be called after transitioning to RUNNING so recovery logic can
+    # distinguish real rebuilds from missing instrumentation
+    try:
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            # worker_id must match the lock holder_id used elsewhere in this rebuild
+            # For now, use job_id as a stable identifier (future: hostname/pod ID)
+            worker_id = f"rebuild-{job_id}"
+            repo.update_rebuild_heartbeat(job_id, worker_id)
+    except Exception as exc:
+        logger.warning(
+            "Failed to record initial rebuild heartbeat: %s (job_id=%s)",
+            type(exc).__name__,
+            job_id,
+        )
+        # Non-fatal - rebuild can proceed but liveness tracking may be incomplete
+    
     return job_id, job_started_at
 
 

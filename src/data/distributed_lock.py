@@ -129,10 +129,13 @@ class DistributedLock:
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
                 )
-        except Exception:
-            logger.exception(
-                "Lost database connectivity while checking lock '%s'",
+        except Exception as exc:
+            # DB connectivity failure during lock state check
+            # Use bounded logging to prevent DSN/credential leakage in tracebacks
+            logger.warning(
+                "Lost database connectivity while checking lock '%s': %s",
                 self.lock_name,
+                type(exc).__name__,
             )
             return LockState.LOST
 

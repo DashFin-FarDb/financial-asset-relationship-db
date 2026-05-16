@@ -70,8 +70,12 @@ async def lifespan(_fastapi_app: FastAPI):
             try:
                 persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
                 engine = create_engine_from_url(persistence_url)
-                session_factory = create_session_factory(engine)
-                await asyncio.to_thread(initialize_rebuild_state_metric_from_db, session_factory)
+                try:
+                    session_factory = create_session_factory(engine)
+                    await asyncio.to_thread(initialize_rebuild_state_metric_from_db, session_factory)
+                finally:
+                    # Dispose engine after metric initialization to prevent connection leak
+                    engine.dispose()
             except Exception as exc:  # noqa: BLE001 - bounded logging below
                 logger.warning(
                     "Failed to initialize rebuild state metric: %s",
