@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import importlib.util
+from pathlib import Path
 
 import pytest
 
@@ -11,9 +11,7 @@ import pytest
 @pytest.fixture()
 def invariants_module():
     """Load coordination invariant scanner module by file path."""
-    module_path = (
-        Path(__file__).resolve().parents[2] / "tools" / "ci" / "check_coordination_invariants.py"
-    )
+    module_path = Path(__file__).resolve().parents[2] / "tools" / "ci" / "check_coordination_invariants.py"
     spec = importlib.util.spec_from_file_location("check_coordination_invariants", module_path)
     assert spec is not None and spec.loader is not None  # nosec B101
     module = importlib.util.module_from_spec(spec)
