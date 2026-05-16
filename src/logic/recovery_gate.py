@@ -89,7 +89,7 @@ class RecoveryGate:
         return RecoveryDecision(
             action=RecoveryAction.UNSAFE,
             reason=reason,
-            inconsistency_type=InconsistencyType.ORPHANED_RUNNING,
+            inconsistency_type=None,
             safe_to_execute=False,
         )
 
@@ -117,8 +117,10 @@ class RecoveryGate:
         if inconsistency.inconsistency_type != InconsistencyType.ORPHANED_RUNNING:
             return decision
 
-        # Early return if lock is invalid or no job
-        if not lock_is_valid or job is None:
+        # Without a job there is nothing to compare. Do not skip the owner/heartbeat
+        # safety check merely because the current lock is invalid; an expired local
+        # lock is exactly when we must avoid resetting a healthy remote worker.
+        if job is None:
             return decision
 
         # Early return if owner matches
@@ -133,11 +135,11 @@ class RecoveryGate:
             heartbeat_time = job.last_heartbeat_at
             if isinstance(heartbeat_time, str):
                 heartbeat_time = datetime.fromisoformat(heartbeat_time)
-            
+
             # Ensure timezone-aware comparison
             if heartbeat_time.tzinfo is None:
                 heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
-            
+
             now = datetime.now(timezone.utc)
             heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
 
