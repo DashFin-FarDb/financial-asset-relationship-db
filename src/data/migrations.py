@@ -35,13 +35,33 @@ def apply_migrations(db_path: Path | str) -> None:
 
 def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -> None:
     """
-    Apply a SQL migration script.
+    Apply a SQL migration script from a trusted file path.
 
     Args:
         connection: SQLite connection.
-        migration_file: Path to the SQL file.
+        migration_file: Path to the SQL file. Must be within the migrations directory.
+
+    Raises:
+        ValueError: If migration file path is invalid or outside migrations directory.
     """
-    sql = migration_file.read_text(encoding="utf-8")
+    # Validate that migration_file is within the expected migrations directory
+    # to prevent path traversal attacks if this function is ever called with
+    # untrusted input (defense in depth)
+    migrations_dir = Path(__file__).resolve().parents[2] / "migrations"
+    try:
+        resolved_file = migration_file.resolve()
+        # Ensure the file is within migrations directory
+        resolved_file.relative_to(migrations_dir)
+    except (ValueError, OSError) as exc:
+        raise ValueError(
+            f"Migration file {migration_file} is not within trusted migrations directory"
+        ) from exc
+    
+    if not resolved_file.is_file():
+        raise ValueError(f"Migration file {migration_file} does not exist")
+    
+    # Read and execute the trusted SQL file
+    sql = resolved_file.read_text(encoding="utf-8")
     connection.executescript(sql)
 
 
@@ -60,12 +80,16 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection, migrati
     cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
     existing_columns = {row[1] for row in cursor}
 
-    columns_to_add = [
-        ("active_worker_id", "TEXT"),
-        ("last_heartbeat_at", "TEXT"),
-    ]
+    # Hardcoded safe column definitions (not user-controlled)
+    # Each tuple: (column_name, column_definition)
+    # Using explicit constants prevents any injection risk
+    HEARTBEAT_COLUMNS = {
+        "active_worker_id": "ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id TEXT",
+        "last_heartbeat_at": "ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TEXT",
+    }
 
-    for col_name, col_type in columns_to_add:
+    for col_name, alter_statement in HEARTBEAT_COLUMNS.items():
         if col_name not in existing_columns:
-            connection.execute(f"ALTER TABLE rebuild_jobs ADD COLUMN {col_name} {col_type}")
+            # Execute pre-validated DDL statement (not constructed from runtime data)
+            connection.execute(alter_statement)
             connection.commit()
