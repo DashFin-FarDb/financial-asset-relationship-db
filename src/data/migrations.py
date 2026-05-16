@@ -88,7 +88,7 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
     # 3. File name validated against hardcoded whitelist (ALLOWED_MIGRATIONS)
     # 4. migrations/ directory is source-controlled, not user-writable
     # 5. This function is internal and only called with hardcoded migration paths
-    trusted_migration_sql = resolved_file.read_text(encoding="utf-8")
+    trusted_migration_sql = resolved_file.read_text(encoding="utf-8")  # noqa: S3649
 
     # Execute validated migration from trusted source
     # SECURITY: This is NOT user-controlled data. The SQL content comes from:
@@ -96,8 +96,8 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
     # - A filename that is hardcoded in ALLOWED_MIGRATIONS constant
     # - A directory that is source-controlled (migrations/)
     # - Version control system (git), not runtime user input
-    # Suppressing false positive: nosec B608, noqa: S608
-    connection.executescript(trusted_migration_sql)  # nosec B608
+    # Suppressing false positive security warnings (B608, S608, S3649)
+    connection.executescript(trusted_migration_sql)  # nosec B608  # noqa: S3649
 
 
 def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None:
@@ -125,5 +125,6 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
     for col_name, alter_statement in HEARTBEAT_COLUMNS.items():
         if col_name not in existing_columns:
             # Execute pre-validated DDL statement (not constructed from runtime data)
-            connection.execute(alter_statement)
+            # SECURITY: alter_statement comes from hardcoded HEARTBEAT_COLUMNS dict above
+            connection.execute(alter_statement)  # noqa: S3649
             connection.commit()
