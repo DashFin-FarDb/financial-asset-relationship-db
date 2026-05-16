@@ -12,9 +12,11 @@ if TYPE_CHECKING:
 
 # Explicit whitelist of allowed migration files
 # Only migrations listed here can be executed (defense in depth)
-ALLOWED_MIGRATIONS = frozenset([
-    "001_initial.sql",
-])
+ALLOWED_MIGRATIONS = frozenset(
+    [
+        "001_initial.sql",
+    ]
+)
 
 
 def apply_migrations(db_path: Path | str) -> None:
@@ -66,11 +68,11 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
 
     if not resolved_file.is_file():
         raise ValueError(f"Migration file {migration_file} does not exist")
-    
+
     # Validate file extension is .sql (trusted migration files only)
     if resolved_file.suffix.lower() != ".sql":
         raise ValueError(f"Migration file {migration_file} must have .sql extension")
-    
+
     # Validate file is in the explicit whitelist of allowed migrations
     # This is the ultimate security barrier: only known, hardcoded migration files can execute
     if resolved_file.name not in ALLOWED_MIGRATIONS:
@@ -78,7 +80,7 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
             f"Migration file {resolved_file.name} is not in the allowed migrations whitelist. "
             f"Allowed: {sorted(ALLOWED_MIGRATIONS)}"
         )
-    
+
     # Read migration SQL from validated trusted file
     # Security note: This is safe because:
     # 1. File path validated to be within migrations/ directory (no path traversal)
@@ -87,7 +89,7 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
     # 4. migrations/ directory is source-controlled, not user-writable
     # 5. This function is internal and only called with hardcoded migration paths
     trusted_migration_sql = resolved_file.read_text(encoding="utf-8")
-    
+
     # Execute validated migration from trusted source
     # SECURITY: This is NOT user-controlled data. The SQL content comes from:
     # - A file that passed all validation checks above
