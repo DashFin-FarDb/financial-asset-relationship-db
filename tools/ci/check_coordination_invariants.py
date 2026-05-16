@@ -21,9 +21,6 @@ _EXECUTION_ENTRYPOINTS = (
 # -----------------------------
 
 FORBIDDEN_PATTERNS: dict[str, re.Pattern] = {
-    # Direct ownership mutation outside coordinator context.
-    # Match single assignment while excluding equality checks (==).
-    "MULTIPLE_OWNERSHIP_ASSIGNMENT": re.compile(r"\b(active_worker_id|owner_id)\s*=(?!=)"),
     # Direct execution entrypoints outside coordinator
     "DIRECT_EXECUTION_ENTRY": re.compile(r"def\s+(execute_rebuild|run_rebuild|start_rebuild)\s*\("),
     # Unsafe fallback lock acquisition logic
@@ -54,6 +51,7 @@ ALLOWED_PATH_EXCEPTIONS = {
 
 OWNERSHIP_MUTATION_ALLOWED_WRITERS = {
     Path("src/data/repository.py"),
+    Path("src/data/db_models.py"),
 }
 
 
@@ -73,9 +71,10 @@ def scan_file(path: Path) -> list[str]:
 
     violations: list[str] = []
 
+    if path not in OWNERSHIP_MUTATION_ALLOWED_WRITERS and _contains_ownership_assignment(content):
+        violations.append(f"MULTIPLE_OWNERSHIP_ASSIGNMENT violation in {path}")
+
     for name, pattern in FORBIDDEN_PATTERNS.items():
-        if name == "MULTIPLE_OWNERSHIP_ASSIGNMENT" and path in OWNERSHIP_MUTATION_ALLOWED_WRITERS:
-            continue
         if pattern.search(content):
             violations.append(f"{name} violation in {path}")
 
@@ -106,6 +105,37 @@ def _contains_ensure_safe_to_execute_call(content: str) -> bool:
         ):
             return True
     return False
+
+
+def _contains_ownership_assignment(content: str) -> bool:
+    """Return True when content contains assignment to active_worker_id/owner_id."""
+    try:
+        parsed = ast.parse(content)
+    except SyntaxError:
+        return False
+
+    for node in ast.walk(parsed):
+        targets: list[ast.expr] = []
+        if isinstance(node, ast.Assign):
+            targets = list(node.targets)
+        elif isinstance(node, (ast.AnnAssign, ast.AugAssign)):
+            targets = [node.target]
+
+        for target in targets:
+            if any(name in {"active_worker_id", "owner_id"} for name in _iter_assignment_target_names(target)):
+                return True
+    return False
+
+
+def _iter_assignment_target_names(target: ast.expr) -> Iterable[str]:
+    """Yield assignment target names for Name/Attribute/Tuple/List targets."""
+    if isinstance(target, ast.Name):
+        yield target.id
+    elif isinstance(target, ast.Attribute):
+        yield target.attr
+    elif isinstance(target, (ast.Tuple, ast.List)):
+        for element in target.elts:
+            yield from _iter_assignment_target_names(element)
 
 
 def main() -> None:

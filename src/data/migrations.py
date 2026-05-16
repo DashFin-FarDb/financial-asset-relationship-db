@@ -1,7 +1,7 @@
 """
 SQL migration helpers for rebuild schema compatibility.
 
-This module provides a lightweight migration runner for SQLite file databases
+This module provides a lightweight migration runner for SQLite databases
 and a targeted compatibility migration for PostgreSQL heartbeat columns.
 For broader cross-backend schema management, use Alembic or a similar tool.
 
