@@ -1302,7 +1302,7 @@ class AssetGraphRepository:
         if result.rowcount == 0:
             # Refresh to get current state
             self.session.expire(job)
-            
+
             # Check if status changed (most specific error message)
             if job.status != RebuildJobStatus.RUNNING:
                 current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
@@ -1310,7 +1310,7 @@ class AssetGraphRepository:
                     f"Cannot update heartbeat for job {job_id}: job status changed to {current_status} "
                     "(job is no longer running)"
                 )
-            
+
             # Otherwise it's an ownership conflict
             current_owner = job.active_worker_id
             raise ValueError(
