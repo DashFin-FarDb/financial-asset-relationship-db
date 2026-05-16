@@ -1,14 +1,17 @@
 -- Migration 002: Add heartbeat tracking columns to rebuild_jobs
--- This migration adds columns for tracking rebuild executor liveness.
--- Safe to run multiple times (idempotent) - uses Python wrapper to check for column existence.
+-- NOTE: This migration is SUPERSEDED by updates to 001_initial.sql
+-- The heartbeat columns (active_worker_id, last_heartbeat_at) were added
+-- directly to the initial schema in commit 250925f6, making this migration
+-- redundant for new deployments.
+--
+-- This file is preserved for historical reference and is handled by the
+-- Python migration runner (_apply_upgrade_002_heartbeat_columns) which
+-- checks column existence before attempting any ALTER TABLE operations.
+--
+-- For idempotency: The Python wrapper checks PRAGMA table_info(rebuild_jobs)
+-- and only adds columns that don't exist. This ensures safe re-runs and
+-- handles both fresh deploys (columns from 001) and legacy deploys (needs 002).
 
--- Note: SQLite does not support "ADD COLUMN IF NOT EXISTS" until version 3.35.0,
--- and even then it's not widely available. This migration must be applied via
--- a Python wrapper that checks column existence before executing ALTER TABLE.
-
--- These ALTER TABLE statements will fail if columns already exist.
--- The Python migration runner (see src/data/migrations.py or equivalent)
--- must check PRAGMA table_info(rebuild_jobs) before running these.
-
-ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id TEXT;
-ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TEXT;
+-- These ALTER TABLE statements are conditionally executed by Python wrapper:
+-- ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id TEXT;
+-- ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TEXT;
