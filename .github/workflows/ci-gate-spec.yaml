@@ -1,10 +1,9 @@
+---
 name: Stage 5C - Distributed Coordination Safety Gates
-
 on:
   pull_request:
   push:
-    branches: [ main ]
-
+    branches: [main]
 concurrency:
   group: stage-5c-${{ github.ref }}
   cancel-in-progress: true
