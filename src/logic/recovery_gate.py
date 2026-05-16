@@ -293,7 +293,7 @@ class RecoveryGate:
                 raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
             except Exception as exc:
                 # Unexpected error - block execution with bounded exception type only
-                logger.warning("Unexpected error during reset recovery: %s", type(exc).__name__)
+                logger.error("Unexpected error during reset recovery: %s", type(exc).__name__)
                 raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
         elif decision.action != RecoveryAction.RESUME:
             # Execution blocked - log full reason but expose only bounded info in exception
