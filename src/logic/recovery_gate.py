@@ -79,13 +79,10 @@ class RecoveryGate:
         # At this point we only know state evaluation failed; we do not know that
         # an ORPHANED_RUNNING inconsistency was actually detected.
         if isinstance(exc, sqlalchemy_exc.SQLAlchemyError):
-            logger.debug(
-                "DB error prevented state evaluation - not incrementing recovery trigger"
-            )
+            logger.debug("DB error prevented state evaluation - not incrementing recovery trigger")
         else:
             logger.debug(
-                "Unexpected error prevented state evaluation - not incrementing "
-                "orphaned_running recovery trigger"
+                "Unexpected error prevented state evaluation - not incrementing " "orphaned_running recovery trigger"
             )
 
         return RecoveryDecision(
