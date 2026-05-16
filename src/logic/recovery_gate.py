@@ -229,21 +229,18 @@ class RecoveryGate:
                 raise
             except Exception as exc:
                 # Reset failed - block execution with bounded exception type only
-                raise ExecutionBlockedError(
-                    f"Reset recovery failed: {type(exc).__name__}"
-                ) from exc
+                raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
         elif decision.action != RecoveryAction.RESUME:
             # Execution blocked - log full reason but expose only bounded info in exception
             logger.warning(
                 "Execution blocked by recovery gate: action=%s, inconsistency=%s",
                 decision.action.value,
-                decision.inconsistency_type.value if decision.inconsistency_type else "unknown"
+                decision.inconsistency_type.value if decision.inconsistency_type else "unknown",
             )
             raise ExecutionBlockedError(
                 f"Execution blocked: action={decision.action.value}, "
                 f"inconsistency={decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}"
             )
-
 
     def _perform_reset_recovery(self) -> None:
         """
