@@ -118,3 +118,59 @@ def increment_recovery_trigger(inconsistency_type: str) -> None:
             (stale_ownership, orphaned_running, crash_suspicion, etc.).
     """
     REBUILD_RECOVERY_TRIGGERS.labels(inconsistency_type=inconsistency_type).inc()
+
+
+def initialize_rebuild_state_metric_from_db(
+    session_factory,
+) -> None:
+    """
+    Initialize rebuild state metric from authoritative DB state on startup.
+
+    This ensures the Prometheus gauge reflects the actual persisted rebuild
+    state after process restarts, rather than showing default/stale values
+    that could hide orphaned or crashed rebuild jobs.
+
+    Called during application startup to reconcile metrics with DB reality.
+
+    Args:
+        session_factory: Callable that returns a SQLAlchemy session.
+    """
+    from src.data.repository import AssetGraphRepository
+
+    session = None
+    try:
+        session = session_factory()
+        repo = AssetGraphRepository(session)
+        active_job = repo.get_active_rebuild_state()
+        
+        if active_job is None:
+            # No active rebuild job - set to "none"
+            update_rebuild_state_metric(None)
+            logger.debug("Initialized rebuild state metric: none (no active job)")
+        else:
+            # Active rebuild job exists - use its status
+            status_value = active_job.status.value if isinstance(active_job.status, RebuildJobStatus) else str(active_job.status)
+            update_rebuild_state_metric(active_job.status)
+            logger.info(
+                "Initialized rebuild state metric from DB: %s (job_id=%s)",
+                status_value,
+                active_job.job_id,
+            )
+    except ValueError as exc:
+        # Multiple running jobs detected - this is an inconsistent state
+        logger.error(
+            "Cannot initialize rebuild state metric: %s. Setting to unknown.",
+            type(exc).__name__,
+        )
+        update_rebuild_state_metric("unknown")
+    except Exception as exc:  # noqa: BLE001
+        # DB read failure - fail gracefully
+        logger.error(
+            "Failed to initialize rebuild state metric from DB: %s (%s). Setting to unknown.",
+            type(exc).__name__,
+            str(exc),
+        )
+        update_rebuild_state_metric("unknown")
+    finally:
+        if session is not None:
+            session.close()
