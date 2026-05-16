@@ -73,8 +73,9 @@ async def lifespan(_fastapi_app: FastAPI):
                 try:
                     # Run migrations to ensure schema is up-to-date before querying heartbeat columns
                     from src.data.database import init_db  # noqa: C0415
+
                     await asyncio.to_thread(init_db, engine)
-                    
+
                     session_factory = create_session_factory(engine)
                     await asyncio.to_thread(initialize_rebuild_state_metric_from_db, session_factory)
                 finally:
@@ -88,6 +89,7 @@ async def lifespan(_fastapi_app: FastAPI):
                 # Set metric to unknown state instead of default 0 (none) to avoid
                 # misleading healthy state when persistence is unavailable/misconfigured
                 from api.metrics import REBUILD_STATE_STATUS  # noqa: C0415
+
                 REBUILD_STATE_STATUS.set(-1)  # -1 = unknown
 
         logger.info("Application startup complete - graph and rebuild executor initialized")
