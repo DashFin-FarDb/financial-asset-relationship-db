@@ -252,7 +252,14 @@ def _save_graph_with_session(
     try:
         AssetGraphRepository(session).save_graph(graph)
         if pre_commit_check is not None:
-            pre_commit_check()
+            try:
+                pre_commit_check()
+            except Exception as pre_commit_exc:
+                logger.error(
+                    "Pre-commit persistence safety check failed: %s",
+                    pre_commit_exc.__class__.__name__,
+                )
+                raise
         session.commit()
     except Exception as exc:
         try:

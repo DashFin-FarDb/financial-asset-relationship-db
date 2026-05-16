@@ -71,6 +71,8 @@ def scan_file(path: Path) -> list[str]:
 
     violations: list[str] = []
 
+    # Ownership mutation is intentionally checked via AST (not regex) to avoid
+    # false positives in comments/strings and false negatives in spacing variants.
     if path not in OWNERSHIP_MUTATION_ALLOWED_WRITERS and _contains_ownership_assignment(content):
         violations.append(f"MULTIPLE_OWNERSHIP_ASSIGNMENT violation in {path}")
 
