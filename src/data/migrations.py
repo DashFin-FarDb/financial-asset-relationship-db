@@ -57,11 +57,11 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
 
     if not resolved_file.is_file():
         raise ValueError(f"Migration file {migration_file} does not exist")
-    
+
     # Validate file extension is .sql (trusted migration files only)
     if resolved_file.suffix.lower() != ".sql":
         raise ValueError(f"Migration file {migration_file} must have .sql extension")
-    
+
     # Read migration SQL from validated trusted file
     # Security note: This is safe because:
     # 1. File path validated to be within migrations/ directory (no path traversal)
@@ -69,7 +69,7 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
     # 3. migrations/ directory is source-controlled, not user-writable
     # 4. This function is internal and only called with hardcoded migration paths
     trusted_migration_sql = resolved_file.read_text(encoding="utf-8")
-    
+
     # Execute validated migration from trusted source
     # nosec B608: SQL content from version-controlled migration files, not user input
     connection.executescript(trusted_migration_sql)
