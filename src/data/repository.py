@@ -1266,9 +1266,7 @@ class AssetGraphRepository:
         # Validate worker_id length before database write
         # Column is String(64), must enforce to avoid backend-specific errors
         if len(worker_id) > 64:
-            raise ValueError(
-                f"worker_id exceeds maximum length of 64 characters: {len(worker_id)} chars"
-            )
+            raise ValueError(f"worker_id exceeds maximum length of 64 characters: {len(worker_id)} chars")
 
         # First verify the job exists and is in RUNNING status
         job = self.session.get(RebuildJobORM, job_id)
