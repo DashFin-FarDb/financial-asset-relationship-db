@@ -303,11 +303,17 @@ async def _run_rebuild_in_executor(
             )
             return
         except Exception as exc:
-            # Catch-all for unexpected errors from rebuild execution.
-            # Log and mark failed.  Re-raising inside an add_done_callback does not
-            # propagate to the awaiter (the future result is already consumed above);
-            # it would only produce a noisy unhandled-exception-in-callback log line,
-            # so we intentionally do not re-raise here.
+            # Catch-all for unexpected (programming-bug) errors from rebuild execution.
+            # Emit a prominently-visible error-level log with the exception type so that
+            # unexpected failures are easy to find during incident triage; the structured
+            # audit log from _log_rebuild_failed records only the bounded category.
+            # Re-raising inside an add_done_callback does not propagate to the awaiter
+            # (the future result is already consumed above), so we intentionally do not
+            # re-raise here.
+            logger.error(
+                "Unexpected error in rebuild on_done callback: %s",
+                type(exc).__name__,
+            )
             _REBUILD_RUNTIME.mark_idle(succeeded=False)
             _log_rebuild_failed(
                 user_ref=user_ref,

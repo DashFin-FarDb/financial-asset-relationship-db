@@ -166,7 +166,11 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     existing_columns = {column["name"] for column in inspector.get_columns("rebuild_jobs")}
     statements: list[str] = []
     if "active_worker_id" not in existing_columns:
-        # Use VARCHAR(64) to match application schema (String(64) in db_models.py)
+        # VARCHAR(64) matches the ORM column definition for new installations.
+        # Existing PostgreSQL deployments that previously migrated with a different
+        # column width will retain their original type; this is intentional — no
+        # ALTER COLUMN is issued here because truncation risk cannot be assessed
+        # generically.
         statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)")
     if "last_heartbeat_at" not in existing_columns:
         statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ")

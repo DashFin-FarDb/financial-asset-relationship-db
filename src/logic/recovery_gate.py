@@ -21,9 +21,25 @@ logger = logging.getLogger(__name__)
 
 
 class ExecutionBlockedError(Exception):
-    """Raised when execution is blocked by the recovery gate."""
+    """Raised when execution is blocked by the recovery gate.
 
-    pass
+    The ``action`` attribute carries the string value of the ``RecoveryAction``
+    that triggered the block (e.g. ``"wait"``, ``"unsafe"``).  Callers that need
+    to distinguish between specific blocking reasons — without re-running the
+    gate evaluation — can inspect this attribute instead of parsing the message.
+    """
+
+    def __init__(self, message: str, action: str | None = None) -> None:
+        """Initialize with message and optional action for caller inspection.
+
+        Args:
+            message: Human-readable description of why execution was blocked.
+            action: String value of the ``RecoveryAction`` that triggered the block
+                (e.g. ``"wait"``, ``"unsafe"``).  ``None`` when the blocking path
+                does not correspond to a single named action (e.g. reset failures).
+        """
+        super().__init__(message)
+        self.action = action
 
 
 class RecoveryGate:
@@ -321,7 +337,8 @@ class RecoveryGate:
             )
             raise ExecutionBlockedError(
                 f"Execution blocked: action={decision.action.value}, "
-                f"inconsistency={decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}"
+                f"inconsistency={decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}",
+                action=decision.action.value,
             )
 
     def _perform_reset_recovery(self) -> None:

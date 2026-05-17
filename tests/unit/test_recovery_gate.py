@@ -27,8 +27,13 @@ def mock_lock():
     return lock
 
 
-def test_recovery_gate_blocks_on_unknown_lock(mock_session_factory, mock_lock):
-    """Test that RecoveryGate allows execution when lock state is UNKNOWN with no active job (clean install)."""
+def test_recovery_gate_waits_on_unknown_lock_with_no_active_job(mock_session_factory, mock_lock):
+    """Test that RecoveryGate returns WAIT (allowing startup) when lock is UNKNOWN and no active job exists.
+
+    UNKNOWN lock + no active job indicates a clean install or naturally-expired lock.
+    The gate returns WAIT to allow the executor to acquire the lock before the first
+    rebuild, rather than blocking startup.
+    """
     from unittest.mock import patch
 
     mock_lock.check_state.return_value = LockState.UNKNOWN
@@ -47,9 +52,26 @@ def test_recovery_gate_blocks_on_unknown_lock(mock_session_factory, mock_lock):
         # UNKNOWN with no job should return WAIT (needs to acquire lock but safe to proceed)
         assert gate.evaluate_state() == RecoveryAction.WAIT
 
-        # Should block with WAIT action (needs lock acquisition)
-        with pytest.raises(ExecutionBlockedError, match="action=wait"):
+        # ensure_safe_to_execute blocks with WAIT action; startup handles this via exc.action
+        with pytest.raises(ExecutionBlockedError, match="action=wait") as exc_info:
             gate.ensure_safe_to_execute()
+        # Verify the action attribute is set so callers don't need to parse the message
+        assert exc_info.value.action == "wait"
+
+
+def test_execution_blocked_error_exposes_action_for_unsafe(mock_session_factory, mock_lock):
+    """ExecutionBlockedError.action is set for UNSAFE decisions so callers can branch without re-evaluating."""
+    mock_lock.check_state.return_value = LockState.LOST
+    gate = RecoveryGate(
+        session_factory=mock_session_factory,
+        lock=mock_lock,
+        runtime_has_active_executor=False,
+    )
+
+    # LOST → UNSAFE; the exception's action attribute should be "unsafe".
+    with pytest.raises(ExecutionBlockedError) as exc_info:
+        gate.ensure_safe_to_execute()
+    assert exc_info.value.action == "unsafe"
 
 
 def test_recovery_gate_blocks_on_lost_lock(mock_session_factory, mock_lock):

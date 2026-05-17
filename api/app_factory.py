@@ -88,8 +88,8 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """
     from src.data.database import create_engine_from_url, create_session_factory, init_db
     from src.data.distributed_lock import DistributedLock, LockState
-    from src.logic.rebuild_recovery import RecoveryAction
     from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+    from sqlalchemy.exc import SQLAlchemyError
 
     from .graph_lifecycle_providers import resolve_durable_graph_persistence_url
     from .metrics import increment_recovery_trigger
@@ -125,12 +125,20 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         #   acquire the lock before any rebuild, so this is safe to allow.
         # - UNSAFE: block startup.
         #
-        # Use ensure_safe_to_execute() as the single authoritative decision path so
-        # RESET inconsistencies are only evaluated once for metric purposes.
+        # ensure_safe_to_execute() handles RESET automatically and exposes the
+        # blocking action via ExecutionBlockedError.action so the WAIT case can be
+        # allowed here without a second gate evaluation (which would double-count metrics).
         try:
             gate.ensure_safe_to_execute()
-        except ExecutionBlockedError:
-            raise
+        except ExecutionBlockedError as exc:
+            if exc.action == "wait":
+                # WAIT at startup means no inconsistency but lock not yet acquired.
+                # Allow startup; the executor will acquire the lock before any rebuild.
+                logger.info(
+                    "Startup reconciliation allowing WAIT state; executor will acquire lock before rebuild"
+                )
+            else:
+                raise
 
         logger.info("Startup reconciliation passed - executor initialization allowed")
     finally:
@@ -144,7 +152,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
                 if lock.check_state() == LockState.VALID:
                     lock.release()
                     logger.debug("Released startup reconciliation lock after recovery")
-            except Exception as exc:
+            except (SQLAlchemyError, OSError, TimeoutError) as exc:
                 logger.warning(
                     "Failed to release startup reconciliation lock: %s",
                     type(exc).__name__,
