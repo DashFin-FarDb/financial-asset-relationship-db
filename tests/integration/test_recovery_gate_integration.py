@@ -14,10 +14,16 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 
-from src.data.database import create_session_factory, init_db
-from src.data.distributed_lock import DistributedLock, LockState
-from src.data.repository import AssetGraphRepository, session_scope
-from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+from tests.integration.facade import (
+    AssetGraphRepository,
+    DistributedLock,
+    ExecutionBlockedError,
+    LockState,
+    RecoveryGate,
+    create_session_factory,
+    init_db,
+    session_scope,
+)
 
 # Mark all tests in this module as integration tests
 pytestmark = pytest.mark.integration

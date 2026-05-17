@@ -308,16 +308,13 @@ async def _run_rebuild_in_executor(
             return
         except Exception as exc:
             # Catch-all for unexpected (programming-bug) errors from rebuild execution.
-            # Emit a prominently-visible error-level log with the exception type so that
-            # unexpected failures are easy to find during incident triage; the structured
-            # audit log from _log_rebuild_failed records only the bounded category.
+            # Emit an explicit sentinel alert so unexpected failures are easy to
+            # find during incident triage; the structured audit log from
+            # _log_rebuild_failed records only the bounded category.
             # Re-raising inside an add_done_callback does not propagate to the awaiter
             # (the future result is already consumed above), so we intentionally do not
             # re-raise here.
-            logger.error(
-                "Unexpected error in rebuild on_done callback: %s",
-                type(exc).__name__,
-            )
+            _log_unexpected_rebuild_callback_exception(user_ref=user_ref, exc=exc)
             _REBUILD_RUNTIME.mark_idle(succeeded=False)
             _log_rebuild_failed(
                 user_ref=user_ref,
@@ -506,6 +503,20 @@ def _log_rebuild_failed(*, user_ref: str, exc: Exception, status_code: int, dura
             "status_code": status_code,
             "duration_ms": duration_ms,
             "source": _rebuild_source_from_exception(exc),
+            "timestamp": _audit_timestamp(),
+        },
+    )
+
+
+def _log_unexpected_rebuild_callback_exception(*, user_ref: str, exc: Exception) -> None:
+    """Emit a sentinel alert log for unexpected callback failures."""
+    logger.critical(
+        "graph_rebuild_unexpected_exception",
+        extra={
+            "event": "graph_rebuild_unexpected_exception",
+            "user_ref": user_ref,
+            "path": _REBUILD_PATH,
+            "exception_type": type(exc).__name__,
             "timestamp": _audit_timestamp(),
         },
     )
