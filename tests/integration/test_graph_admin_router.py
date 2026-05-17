@@ -376,8 +376,13 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
         # 3. Aggressive teardown to prevent deadlocking subsequent tests
         try:
             graph_admin.shutdown_rebuild_executor_sync()
-        except Exception:
-            pass
+        except Exception as exc:
+            # Keep teardown non-fatal for tests but ensure the exception is visible during triage
+            logging.getLogger("api.routers.graph_admin").debug(
+                "Suppressed non-fatal exception during test executor shutdown teardown: %s",
+                exc,
+                exc_info=True,
+            )
 
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=False)  # pylint: disable=protected-access
