@@ -8,6 +8,7 @@ import pytest  # pylint: disable=import-error
 from fastapi import FastAPI
 
 from api import app_factory
+from src.data.database import init_db as database_init_db
 from src.logic.recovery_gate import ExecutionBlockedError
 
 pytestmark = pytest.mark.unit
@@ -133,7 +134,7 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
     )
 
     async def fake_to_thread(fn, *args, **kwargs):
-        if getattr(fn, "__name__", "") == "init_db":
+        if fn is database_init_db:
             raise RuntimeError("init_db failed")
         return fn(*args, **kwargs)
 

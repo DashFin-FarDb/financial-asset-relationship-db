@@ -185,9 +185,8 @@ async def lifespan(_fastapi_app: FastAPI):
             except ExecutionBlockedError:
                 raise
             except Exception as exc:
-                # Keep startup resilient to non-blocking reconciliation failures,
-                # but ensure schema init still runs before executor start.
-                # Log only exception types to avoid DSN/credential leakage.
+                # Ensure schema init runs before executor start; log only exception
+                # types to avoid DSN/credential leakage.
                 logger.warning(
                     "Startup reconciliation failed; attempting defensive init: %s",
                     type(exc).__name__,
