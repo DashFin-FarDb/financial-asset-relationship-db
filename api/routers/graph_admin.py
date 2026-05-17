@@ -315,6 +315,7 @@ async def _run_rebuild_in_executor(
                 status_code=500,
                 duration_ms=_duration_ms(started_at),
             )
+            return
 
         _REBUILD_RUNTIME.mark_idle(succeeded=True)
         _log_rebuild_succeeded(
