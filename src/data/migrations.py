@@ -63,8 +63,6 @@ def apply_migrations(db_path: Path | str) -> None:
             _apply_upgrade_002_heartbeat_columns(connection)
 
 
-# src/data/migrations.py  (insert after apply_migrations(), before the PostgreSQL helpers section)
-
 # ---------------------------------------------------------------------------
 # Private helpers for apply_migrations (SQLite)
 # ---------------------------------------------------------------------------
