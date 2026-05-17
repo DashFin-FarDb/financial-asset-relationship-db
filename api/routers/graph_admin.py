@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from time import perf_counter
-from typing import Annotated, cast
+from typing import Annotated, NoReturn, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -782,7 +782,7 @@ def _handle_rebuild_failure(
     graph_snapshot: AssetRelationshipGraph | None,
     resolved_url: str,
     source: GraphRebuildSource | None,
-) -> None:
+) -> NoReturn:
     """Handle rebuild failure with rollback and persistence."""
     if not success_persisted:
         if graph_saved and graph_snapshot is not None:
