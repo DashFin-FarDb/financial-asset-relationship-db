@@ -152,6 +152,17 @@ class _DistributedLockAcquisitionError(Exception):
     """Raised when the distributed lock cannot be acquired."""
 
 
+class _DistributedLockLostError(Exception):
+    """Raised when the distributed lock is lost mid-rebuild.
+
+    Using a distinct exception class (rather than a plain RuntimeError) allows
+    handlers to match by type instead of by error-message substring, making the
+    code robust to any future rewording of the message text.  Lock loss is an
+    expected operational condition (TTL expiry, DB connectivity), not a
+    programming error, so this inherits from Exception rather than RuntimeError.
+    """
+
+
 @router.post(_REBUILD_PATH)
 async def rebuild_graph(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
@@ -280,22 +291,23 @@ async def _run_rebuild_in_executor(
                     duration_ms=_duration_ms(started_at),
                 )
             return
-        except RuntimeError as exc:
-            # Only catch lock-loss RuntimeErrors (message contains "Lost distributed lock")
-            if "Lost distributed lock" in str(exc):
-                _REBUILD_RUNTIME.mark_idle(succeeded=False)
-                _log_rebuild_failed(
-                    user_ref=user_ref,
-                    exc=exc,
-                    status_code=503,
-                    duration_ms=_duration_ms(started_at),
-                )
-                return
-            # Re-raise other RuntimeErrors
-            raise
+        except _DistributedLockLostError as exc:
+            # Lock lost mid-rebuild: mark failure with 503, heartbeat keeper already
+            # signaled abort so no further cleanup is needed here.
+            _REBUILD_RUNTIME.mark_idle(succeeded=False)
+            _log_rebuild_failed(
+                user_ref=user_ref,
+                exc=exc,
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                duration_ms=_duration_ms(started_at),
+            )
+            return
         except Exception as exc:
-            # Catch-all for unexpected errors from rebuild execution
-            # Log and mark failed, but re-raise to surface lifecycle/finalization errors
+            # Catch-all for unexpected errors from rebuild execution.
+            # Log and mark failed.  Re-raising inside an add_done_callback does not
+            # propagate to the awaiter (the future result is already consumed above);
+            # it would only produce a noisy unhandled-exception-in-callback log line,
+            # so we intentionally do not re-raise here.
             _REBUILD_RUNTIME.mark_idle(succeeded=False)
             _log_rebuild_failed(
                 user_ref=user_ref,
@@ -303,8 +315,6 @@ async def _run_rebuild_in_executor(
                 status_code=500,
                 duration_ms=_duration_ms(started_at),
             )
-            # Re-raise to avoid swallowing lifecycle-critical errors
-            raise
 
         _REBUILD_RUNTIME.mark_idle(succeeded=True)
         _log_rebuild_succeeded(
@@ -357,7 +367,7 @@ def _rebuild_status_code(exc: Exception) -> int:
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return status.HTTP_429_TOO_MANY_REQUESTS
 
-    if isinstance(root_exc, ExecutionBlockedError):
+    if isinstance(root_exc, (_DistributedLockLostError, ExecutionBlockedError)):
         return status.HTTP_503_SERVICE_UNAVAILABLE
 
     if isinstance(
@@ -926,14 +936,14 @@ def _perform_rebuild_and_persist_sync(
         try:
             # Check if heartbeat keeper lost lock before expensive operations
             if lock_lost.is_set():
-                raise RuntimeError("Lost distributed lock during rebuild initialization")
+                raise _DistributedLockLostError("Lost distributed lock at stage=initialization")
 
             graph, source = build_rebuild_graph(settings)
             _update_job_source_safe(session_factory, job_id, str(source))
 
             # Check lock status before persisting
             if lock_lost.is_set():
-                raise RuntimeError("Lost distributed lock before graph persistence")
+                raise _DistributedLockLostError("Lost distributed lock at stage=pre-persistence")
 
             # Load rollback snapshot before any durable write. If snapshot loading
             # fails, the rebuild fails closed before persistence is modified.
@@ -941,7 +951,7 @@ def _perform_rebuild_and_persist_sync(
 
             def _ensure_lock_not_lost_before_commit() -> None:
                 if lock_lost.is_set():
-                    raise RuntimeError("Lost distributed lock during graph persistence")
+                    raise _DistributedLockLostError("Lost distributed lock at stage=graph-commit")
 
             save_graph_to_persistence(
                 resolved_url,
@@ -953,7 +963,7 @@ def _perform_rebuild_and_persist_sync(
             # Final lock check before success persistence
             if lock_lost.is_set():
                 graph_saved = False  # Prevent unsafe rollback without lock
-                raise RuntimeError("Lost distributed lock before success persistence")
+                raise _DistributedLockLostError("Lost distributed lock at stage=pre-success-write")
 
             response = _finalize_rebuild_success(
                 session_factory=session_factory,
