@@ -190,7 +190,7 @@ async def rebuild_graph(
             ExecutionBlockedError,
         ) as exc:
             root_exc = _unwrap_rebuild_error(exc)
-            
+
             # If it's a lock contention error, handle it cleanly as a rejection
             if isinstance(root_exc, _DistributedLockAcquisitionError):
                 _REBUILD_RUNTIME.clear_busy_after_contention()
