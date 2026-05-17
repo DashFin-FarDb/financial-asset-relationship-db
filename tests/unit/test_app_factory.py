@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest  # pylint: disable=import-error
 from fastapi import FastAPI
 
 from api import app_factory
+from src.logic.recovery_gate import ExecutionBlockedError
 
 pytestmark = pytest.mark.unit
 
@@ -63,3 +66,44 @@ async def test_sync_loop_stops_without_syncing_when_shutting_down(
 
     await app_factory._run_graph_sync_loop(interval_seconds=0)  # pylint: disable=protected-access
     assert sync_calls == []
+
+
+@pytest.mark.asyncio
+async def test_lifespan_blocks_startup_when_reconciliation_is_execution_blocked(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Lifespan should propagate recovery-gate execution blocks at startup."""
+    app = FastAPI()
+    init_calls: list[bool] = []
+
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
+        lambda: SimpleNamespace(asset_graph_database_url="sqlite:///./test.db"),
+    )
+    monkeypatch.setattr(app_factory, "get_graph", lambda: object())
+    monkeypatch.setattr(
+        app_factory,
+        "init_rebuild_executor",
+        lambda: init_calls.append(True),
+    )
+
+    async def fake_to_thread(fn, *args, **kwargs):
+        return fn(*args, **kwargs)
+
+    monkeypatch.setattr(app_factory.asyncio, "to_thread", fake_to_thread)
+
+    def _raise_block(*_args, **_kwargs):
+        raise ExecutionBlockedError(
+            "blocked at startup",
+            action="unsafe",
+            inconsistency_type="stale_ownership",
+        )
+
+    monkeypatch.setattr(app_factory, "_run_startup_reconciliation", _raise_block)
+
+    with pytest.raises(ExecutionBlockedError):
+        async with app_factory.lifespan(app):
+            pass
+
+    if init_calls:
+        raise AssertionError("executor should not initialize when startup reconciliation is blocked")

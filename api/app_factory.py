@@ -181,6 +181,7 @@ async def lifespan(_fastapi_app: FastAPI):
     """Initialize graph state and clean up rebuild resources."""
     try:
         from src.data.database import create_engine_from_url, create_session_factory  # noqa: C0415
+        from src.logic.recovery_gate import ExecutionBlockedError  # noqa: C0415
 
         from .graph_lifecycle_providers import (  # noqa: C0415 - avoid circular import
             get_graph_lifecycle_settings,
@@ -194,12 +195,13 @@ async def lifespan(_fastapi_app: FastAPI):
         get_graph()
 
         # Stage 5C.2: Run recovery gate before executor initialization
-        # If reconciliation fails unexpectedly, log a bounded warning and
-        # continue startup rather than broadening startup failure semantics
-        # for migration/init errors that may originate inside reconciliation.
+        # Block startup on explicit recovery-gate safety blocks; only unexpected
+        # reconciliation failures are downgraded to bounded warnings.
         if has_durable_graph_persistence:
             try:
                 await asyncio.to_thread(_run_startup_reconciliation, settings)
+            except ExecutionBlockedError:
+                raise
             except Exception as exc:
                 # Log only the exception type to prevent DSN/credential leakage
                 # from SQLAlchemy exception messages (per repo convention).

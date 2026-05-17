@@ -188,6 +188,8 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
     Acquire a table lock before re-checking widths so concurrent writers
     cannot insert or update values that would cause the subsequent ALTER
     COLUMN to fail. The in-transaction re-check is authoritative.
+    The explicit ACCESS EXCLUSIVE lock is scoped to this helper only (re-check
+    plus optional ALTER); ADD COLUMN statements run before this call.
     """
     if not needs_width_normalization:
         return

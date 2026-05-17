@@ -211,21 +211,15 @@ async def rebuild_graph(
             if isinstance(root_exc, _DistributedLockAcquisitionError) and _REBUILD_RUNTIME.is_busy():
                 _REBUILD_RUNTIME.clear_busy_after_contention()
             elif isinstance(root_exc, _DistributedLockLostError) and _REBUILD_RUNTIME.is_busy():
-                # Covers direct executor raises (e.g. monkeypatched test paths)
-                # where the on_done callback did not mark the runtime idle.
+                # Fallback for direct/test executor raises where the on_done
+                # callback path did not run cleanup. Normal future-based lock-loss
+                # cleanup is handled in on_done.
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
             raise _map_rebuild_error(exc) from None
         except Exception as exc:
             runtime_was_busy = _REBUILD_RUNTIME.is_busy()
             if runtime_was_busy:
                 _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
-                logger.critical(
-                    "Unexpected exception in rebuild_graph synchronous execution path",
-                    extra={
-                        "exception_type": type(exc).__name__,
-                        "path": _REBUILD_PATH,
-                    },
-                )
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
             raise _map_rebuild_error(exc) from None
     finally:
