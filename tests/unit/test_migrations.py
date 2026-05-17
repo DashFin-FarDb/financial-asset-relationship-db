@@ -181,7 +181,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         # This triggers both the ALTER COLUMN and ADD COLUMN paths.
         cols_with_wide = [_make_col("active_worker_id", length=255)]
         begin_conn, _ = self._run(["rebuild_jobs"], cols_with_wide, max_length_scalar=10)
-        
+
         # Both statements must be batched in the same engine.begin() block
         assert begin_conn.execute.call_count == 2
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
