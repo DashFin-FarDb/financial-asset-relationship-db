@@ -181,9 +181,7 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
             with engine.begin() as connection:
                 max_length = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
                 if max_length is None or max_length <= 64:
-                    connection.execute(
-                        text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)")
-                    )
+                    connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
                 else:
                     logger.warning(
                         "Skipping active_worker_id width normalization: max length=%s exceeds 64",

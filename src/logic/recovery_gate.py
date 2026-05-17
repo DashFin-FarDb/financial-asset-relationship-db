@@ -261,8 +261,7 @@ class RecoveryGate:
             # is explicitly acquired by rebuild execution path.
             if job is None:
                 logger.info(
-                    "Lock state is UNKNOWN with no active job; treating as clean-install WAIT "
-                    "until lock is acquired"
+                    "Lock state is UNKNOWN with no active job; treating as clean-install WAIT " "until lock is acquired"
                 )
                 lock_is_valid = False
             else:
