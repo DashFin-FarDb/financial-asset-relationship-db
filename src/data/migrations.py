@@ -191,13 +191,9 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
             # when the table is empty or all active_worker_id values are NULL.
             # max_length=None is treated as safe to normalize (no values to truncate).
             with engine.connect() as connection:
-                max_length = connection.execute(
-                    text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")
-                ).scalar()
+                max_length = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
             if max_length is None or max_length <= 64:
-                statements.append(
-                    "ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"
-                )
+                statements.append("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)")
             else:
                 logger.warning(
                     "Skipping active_worker_id width normalization: max length=%s exceeds 64",
