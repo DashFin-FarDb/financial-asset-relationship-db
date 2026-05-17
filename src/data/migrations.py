@@ -101,6 +101,13 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
         )
 
     trusted_migration_sql = resolved_file.read_text(encoding="utf-8")  # noqa: S3649
+    # Execute validated migration from trusted source
+    # SECURITY: This is NOT user-controlled data. The SQL content comes from:
+    # - A file that passed all validation checks above
+    # - A filename that is hardcoded in ALLOWED_MIGRATIONS constant
+    # - A directory that is source-controlled (migrations/)
+    # - Version control system (git), not runtime user input
+    # Suppressing false positive security warnings (B608, S608, S3649)
     connection.executescript(trusted_migration_sql)  # nosec B608  # noqa: S3649
 
 
