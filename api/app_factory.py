@@ -130,13 +130,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         try:
             gate.ensure_safe_to_execute()
         except ExecutionBlockedError:
-            action = gate.evaluate_state()
-            if action == RecoveryAction.WAIT:
-                logger.info("Startup reconciliation allowing WAIT state; executor will acquire lock before rebuild")
-            elif action == RecoveryAction.UNSAFE:
-                raise ExecutionBlockedError("Startup blocked: recovery gate returned UNSAFE")
-            else:
-                raise
+            raise
 
         logger.info("Startup reconciliation passed - executor initialization allowed")
     finally:
