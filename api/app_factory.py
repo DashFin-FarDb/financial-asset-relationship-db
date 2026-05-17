@@ -125,12 +125,12 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         #   acquire the lock before any rebuild, so this is safe to allow.
         # - UNSAFE: block startup.
         #
-        # Use ensure_safe_to_execute() as the single authoritative decision path so
-        # RESET inconsistencies are only evaluated once for metric purposes.
-        try:
+        # Evaluate the startup state explicitly so WAIT can be treated as safe for
+        # clean installs with no active job. All other actions continue through
+        # ensure_safe_to_execute() so existing recovery/blocking behavior is preserved.
+        decision = gate.evaluate_state()
+        if getattr(decision.action, "name", None) != "WAIT":
             gate.ensure_safe_to_execute()
-        except ExecutionBlockedError:
-            raise
 
         logger.info("Startup reconciliation passed - executor initialization allowed")
     finally:
