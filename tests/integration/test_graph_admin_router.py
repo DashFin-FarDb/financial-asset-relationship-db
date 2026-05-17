@@ -369,7 +369,7 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
             await graph_admin.rebuild_graph(User(username="admin", disabled=False))
 
         assert exc_info.value.status_code == 503
-        
+
         # Verify structured dictionary contract fields
         detail = exc_info.value.detail
         if isinstance(detail, dict):
@@ -377,7 +377,7 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
             assert detail["message"] == "Distributed lock lost during rebuild."
         else:
             assert detail == "Distributed lock lost during rebuild."
-            
+
         assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.FAILED
 
     finally:
@@ -418,6 +418,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
     # Intercept the completion loop to notify the test when on_done finishes
     original_run_in_executor = graph_admin._run_rebuild_in_executor
+
     async def track_executor_completion(*args, **kwargs):
         try:
             return await original_run_in_executor(*args, **kwargs)
@@ -449,7 +450,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
                     tracking_state={"audit_logged": False},
                 )
             )
-            
+
             # Wait cleanly until thread is safely active inside executor
             await loop.run_in_executor(None, thread_reached.wait)
             task.cancel()
@@ -459,10 +460,10 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
             # Let the background synchronous worker proceed and finish up
             proceed_thread.set()
-            
+
             # Safely await the execution completion without fragile frame hacking
             await asyncio.wait_for(callback_completed.wait(), timeout=2.0)
-            
+
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():
