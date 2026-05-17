@@ -106,3 +106,41 @@ async def test_lifespan_blocks_startup_when_reconciliation_is_execution_blocked(
             pass
 
     assert not init_calls, "executor should not initialize when startup reconciliation is blocked"
+
+
+@pytest.mark.asyncio
+async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Lifespan must fail startup if defensive init_db also fails."""
+    app = FastAPI()
+    init_calls: list[bool] = []
+
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
+        lambda: SimpleNamespace(asset_graph_database_url="sqlite:///./test-startup.db"),
+    )
+    monkeypatch.setattr(app_factory, "get_graph", object)
+    monkeypatch.setattr(
+        app_factory,
+        "init_rebuild_executor",
+        lambda: init_calls.append(True),
+    )
+    monkeypatch.setattr(
+        app_factory,
+        "_run_startup_reconciliation",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("reconciliation failed")),
+    )
+
+    async def fake_to_thread(fn, *args, **kwargs):
+        if getattr(fn, "__name__", "") == "init_db":
+            raise RuntimeError("init_db failed")
+        return fn(*args, **kwargs)
+
+    monkeypatch.setattr(app_factory.asyncio, "to_thread", fake_to_thread)
+
+    with pytest.raises(RuntimeError, match="init_db failed"):
+        async with app_factory.lifespan(app):
+            pass
+
+    assert not init_calls, "executor should not initialize when defensive init_db fails"
