@@ -325,12 +325,16 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
         return HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={
-                "code": "distributed_lock_lost_during_rebuild"
-                if isinstance(root_exc, _DistributedLockLostError)
-                else "execution_blocked",
-                "message": "Distributed lock lost during rebuild."
-                if isinstance(root_exc, _DistributedLockLostError)
-                else str(root_exc),
+                "code": (
+                    "distributed_lock_lost_during_rebuild"
+                    if isinstance(root_exc, _DistributedLockLostError)
+                    else "execution_blocked"
+                ),
+                "message": (
+                    "Distributed lock lost during rebuild."
+                    if isinstance(root_exc, _DistributedLockLostError)
+                    else str(root_exc)
+                ),
             },
         )
 
@@ -896,9 +900,7 @@ def _perform_rebuild_and_persist_sync(
         job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref, dist_lock.holder_id)
 
         with _orchestrate_heartbeat(session_factory, dist_lock, job_id, lock_ttl) as lock_lost:
-            return _execute_rebuild_pipeline(
-                session_factory, settings, resolved_url, job_id, job_started_at, lock_lost
-            )
+            return _execute_rebuild_pipeline(session_factory, settings, resolved_url, job_id, job_started_at, lock_lost)
     finally:
         if lock_acquired and dist_lock:
             dist_lock.release()
