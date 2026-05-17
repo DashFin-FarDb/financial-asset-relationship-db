@@ -18,36 +18,6 @@ def _make_col(name: str, length: int | None = None) -> dict:
     return {"name": name, "type": col_type}
 
 
-def _make_engine(
-    table_names: list[str],
-    columns: list[dict],
-    max_length_scalar: int | None = None,
-) -> MagicMock:
-    """
-    Build a mock Engine whose inspector, connect(), and begin() return
-    the supplied table/column metadata and scalar value.
-    """
-    engine = MagicMock()
-
-    inspector = MagicMock()
-    inspector.get_table_names.return_value = table_names
-    inspector.get_columns.return_value = columns
-
-    # engine.connect() context manager → connection
-    connect_conn = MagicMock()
-    connect_conn.execute.return_value.scalar.return_value = max_length_scalar
-    engine.connect.return_value.__enter__ = MagicMock(return_value=connect_conn)
-    engine.connect.return_value.__exit__ = MagicMock(return_value=False)
-
-    # engine.begin() context manager → connection
-    begin_conn = MagicMock()
-    engine.begin.return_value.__enter__ = MagicMock(return_value=begin_conn)
-    engine.begin.return_value.__exit__ = MagicMock(return_value=False)
-
-    with patch("src.data.migrations.inspect", return_value=inspector):
-        yield engine, begin_conn, connect_conn
-
-
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
