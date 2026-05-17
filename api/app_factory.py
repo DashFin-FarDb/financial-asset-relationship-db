@@ -133,8 +133,10 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
             gate.ensure_safe_to_execute()
         except ExecutionBlockedError as exc:
             if exc.action == "wait" and exc.inconsistency_type == "none":
-                # WAIT with no inconsistency means the lock is not yet acquired but
-                # the system state is clean (clean install or naturally-expired lock).
+                # WAIT with no detected inconsistency means the system state is clean
+                # but this process has not yet acquired the distributed lock.
+                # This occurs on clean installs (no prior lock record) and when the
+                # previous lock expired naturally between two rebuild attempts.
                 # Allow startup; the executor will acquire the lock before any rebuild.
                 # WAIT from genuine inconsistencies (e.g. CRASH_SUSPICION, STALE_OWNERSHIP)
                 # still blocks startup via the else branch below.

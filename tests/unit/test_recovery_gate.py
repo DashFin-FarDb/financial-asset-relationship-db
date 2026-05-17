@@ -73,7 +73,8 @@ def test_execution_blocked_error_exposes_action_for_unsafe(mock_session_factory,
     with pytest.raises(ExecutionBlockedError) as exc_info:
         gate.ensure_safe_to_execute()
     assert exc_info.value.action == "unsafe"
-    # LOST path returns None inconsistency_type (not a named inconsistency type).
+    # LOST is a LockState, not an InconsistencyType; the early-return path sets
+    # inconsistency_type=None since no named inconsistency detection was performed.
     assert exc_info.value.inconsistency_type is None
 
 
