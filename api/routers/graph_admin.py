@@ -207,8 +207,11 @@ async def rebuild_graph(
             # Defensive cleanup for direct contention exceptions (e.g. tests that
             # monkeypatch executor paths): normal contention paths already clear
             # REBUILDING in the executor completion callback.
-            if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError) and _REBUILD_RUNTIME.is_busy():
+            root_exc = _unwrap_rebuild_error(exc)
+            if isinstance(root_exc, _DistributedLockAcquisitionError) and _REBUILD_RUNTIME.is_busy():
                 _REBUILD_RUNTIME.clear_busy_after_contention()
+            elif isinstance(root_exc, _DistributedLockLostError) and _REBUILD_RUNTIME.is_busy():
+                _REBUILD_RUNTIME.mark_idle(succeeded=False)
             raise _map_rebuild_error(exc) from None
     finally:
         if lock_acquired:
