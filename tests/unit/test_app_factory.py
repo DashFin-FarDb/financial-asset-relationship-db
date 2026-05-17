@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import pytest  # pylint: disable=import-error
 from fastapi import FastAPI
@@ -149,3 +150,57 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
             pass
 
     assert not init_calls, "executor should not initialize when defensive init_db fails"
+
+
+def test_startup_reconciliation_does_not_release_lock_without_reset_reacquire(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Startup reconciliation should skip release when RESET did not reacquire."""
+    fake_engine = SimpleNamespace(dispose=lambda: None)
+    fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
+
+    class _GateNoReacquire:
+        def __init__(self, **_kwargs) -> None:
+            self.lock_was_reacquired = False
+
+        def ensure_safe_to_execute(self) -> None:
+            raise ExecutionBlockedError("wait", action="wait", inconsistency_type="none")
+
+    monkeypatch.setattr("api.graph_lifecycle_providers.resolve_durable_graph_persistence_url", lambda _url: "sqlite:///x")
+    monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
+    monkeypatch.setattr("src.data.database.init_db", lambda _engine: None)
+    monkeypatch.setattr("src.data.database.create_session_factory", lambda _engine: object())
+    monkeypatch.setattr("src.data.distributed_lock.DistributedLock", lambda **_kwargs: fake_lock)
+    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", _GateNoReacquire)
+
+    settings = SimpleNamespace(asset_graph_database_url="sqlite:///x")
+    app_factory._run_startup_reconciliation(settings)  # pylint: disable=protected-access
+
+    fake_lock.release.assert_not_called()
+
+
+def test_startup_reconciliation_releases_lock_when_reset_reacquired(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Startup reconciliation should release lock when RESET reacquired it."""
+    fake_engine = SimpleNamespace(dispose=lambda: None)
+    fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
+
+    class _GateReacquired:
+        def __init__(self, **_kwargs) -> None:
+            self.lock_was_reacquired = True
+
+        def ensure_safe_to_execute(self) -> None:
+            return None
+
+    monkeypatch.setattr("api.graph_lifecycle_providers.resolve_durable_graph_persistence_url", lambda _url: "sqlite:///x")
+    monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
+    monkeypatch.setattr("src.data.database.init_db", lambda _engine: None)
+    monkeypatch.setattr("src.data.database.create_session_factory", lambda _engine: object())
+    monkeypatch.setattr("src.data.distributed_lock.DistributedLock", lambda **_kwargs: fake_lock)
+    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", _GateReacquired)
+
+    settings = SimpleNamespace(asset_graph_database_url="sqlite:///x")
+    app_factory._run_startup_reconciliation(settings)  # pylint: disable=protected-access
+
+    fake_lock.release.assert_called_once()

@@ -166,7 +166,7 @@ def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
     return statements, active_worker_col
 
 
-def _check_width_normalization_needed(active_worker_col: dict | None) -> bool:
+def _active_worker_id_declared_too_wide(active_worker_col: dict | None) -> bool:
     """
     Return True when active_worker_id is wider than VARCHAR(64) and may need
     narrowing.
@@ -223,12 +223,16 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
         return
 
     statements, active_worker_col = _inspect_rebuild_jobs_columns(inspector)
-    needs_width_normalization = _check_width_normalization_needed(active_worker_col)
+    needs_width_normalization = _active_worker_id_declared_too_wide(active_worker_col)
 
     if not statements and not needs_width_normalization:
         return
 
-    with engine.begin() as connection:
-        for statement in statements:
-            connection.execute(text(statement))
-        _apply_normalization_in_transaction(connection, needs_width_normalization)
+    if statements:
+        with engine.begin() as connection:
+            for statement in statements:
+                connection.execute(text(statement))
+
+    if needs_width_normalization:
+        with engine.begin() as connection:
+            _apply_normalization_in_transaction(connection, needs_width_normalization)

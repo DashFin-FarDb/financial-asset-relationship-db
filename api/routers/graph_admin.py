@@ -215,6 +215,8 @@ async def rebuild_graph(
                 # callback path did not run cleanup (e.g. synchronous raises
                 # before/around future completion in monkeypatched tests).
                 # Normal future-based lock-loss cleanup is handled in on_done.
+                # mark_idle() is intentionally idempotent because callback-vs-
+                # awaiter ordering can vary across event loop implementations.
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
             raise _map_rebuild_error(exc) from None
         except Exception as exc:

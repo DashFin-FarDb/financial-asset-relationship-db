@@ -86,6 +86,7 @@ class RecoveryGate:
         self.increment_recovery_trigger = increment_recovery_trigger or (lambda _: None)
         self.runtime_has_active_executor = runtime_has_active_executor
         self.lock_ttl_seconds = lock_ttl_seconds
+        self.lock_was_reacquired = False
 
     def _create_unsafe_decision_from_error(self, exc: Exception, error_context: str, log_level: str = "warning"):
         """
@@ -325,6 +326,7 @@ class RecoveryGate:
             ExecutionBlockedError: If the execution is not safe (UNSAFE, WAIT)
                 after any automatic recovery attempts.
         """
+        self.lock_was_reacquired = False
         decision = self._evaluate_decision()
 
         if decision.action == RecoveryAction.RESET:
@@ -392,6 +394,7 @@ class RecoveryGate:
                 msg = f"Cannot perform RESET recovery without valid lock (state={lock_state.value})"
                 logger.error("%s: %s", ExecutionBlockedError.__name__, msg)
                 raise ExecutionBlockedError(msg)
+            self.lock_was_reacquired = True
             logger.info("Successfully reacquired lock for RESET recovery")
 
         try:

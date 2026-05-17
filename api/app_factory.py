@@ -96,6 +96,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(persistence_url)
     lock = None
+    gate = None
 
     try:
         # Apply schema migrations BEFORE running the gate so ORM queries succeed on
@@ -137,8 +138,8 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         logger.info("Startup reconciliation passed - executor initialization allowed")
 
     finally:
-        # Release the lock if RESET recovery acquired it.
-        if lock is not None:
+        # Release only if RESET recovery reacquired this process's startup lock.
+        if lock is not None and gate is not None and gate.lock_was_reacquired:
             try:
                 lock.release()
                 logger.debug("Released startup reconciliation lock after recovery")
