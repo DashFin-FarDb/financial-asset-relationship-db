@@ -187,7 +187,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert any("ADD COLUMN IF NOT EXISTS last_heartbeat_at" in s for s in executed_sql)
         assert any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql)
-                assert begin_conn.execute.call_count >= 1
+        assert begin_conn.execute.call_count >= 1
         from src.data.migrations import apply_postgresql_heartbeat_migration as fn  # noqa
 
         # Verify engine.begin was used (not engine.connect) for DDL
