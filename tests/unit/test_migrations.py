@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from src.data.migrations import apply_postgresql_heartbeat_migration
 
 # ---------------------------------------------------------------------------
@@ -16,6 +18,12 @@ def _make_col(name: str, length: int | None = None) -> dict:
     col_type = MagicMock()
     col_type.length = length
     return {"name": name, "type": col_type}
+
+
+def _expect_true(condition: bool, message: str) -> None:
+    """Fail the test with a readable message when condition is false."""
+    if not condition:
+        pytest.fail(message)
 
 
 # ---------------------------------------------------------------------------
@@ -107,8 +115,14 @@ class TestApplyPostgresqlHeartbeatMigration:
 
         # ALTER COLUMN TYPE must be part of the atomic DDL batch
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
-        assert any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql)
-        assert sum("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql) == 1
+        _expect_true(
+            any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql),
+            "Expected normalization ALTER to be executed.",
+        )
+        _expect_true(
+            sum("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql) == 1,
+            "Expected exactly one normalization ALTER execution.",
+        )
 
     def test_wide_column_short_data_normalises(self):
         """
@@ -120,8 +134,14 @@ class TestApplyPostgresqlHeartbeatMigration:
 
         connect_conn.execute.assert_called_once()
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
-        assert any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql)
-        assert sum("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql) == 1
+        _expect_true(
+            any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql),
+            "Expected normalization ALTER to be executed.",
+        )
+        _expect_true(
+            sum("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql) == 1,
+            "Expected exactly one normalization ALTER execution.",
+        )
 
     def test_wide_column_long_data_skips_normalisation_and_warns(self, caplog):
         """
@@ -153,6 +173,15 @@ class TestApplyPostgresqlHeartbeatMigration:
 
         # DDL statements must be batched in the same engine.begin() block
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
-        assert any("ADD COLUMN IF NOT EXISTS last_heartbeat_at" in s for s in executed_sql)
-        assert any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql)
-        assert sum("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql) == 1
+        _expect_true(
+            any("ADD COLUMN IF NOT EXISTS last_heartbeat_at" in s for s in executed_sql),
+            "Expected last_heartbeat_at ADD COLUMN statement in DDL batch.",
+        )
+        _expect_true(
+            any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql),
+            "Expected normalization ALTER statement in DDL batch.",
+        )
+        _expect_true(
+            sum("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql) == 1,
+            "Expected exactly one normalization ALTER execution in DDL batch.",
+        )
