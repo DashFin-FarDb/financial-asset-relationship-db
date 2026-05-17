@@ -318,7 +318,7 @@ async def _run_rebuild_in_executor(
             _log_rebuild_failed(
                 user_ref=user_ref,
                 exc=exc,
-                status_code=500,
+                status_code=_rebuild_status_code(exc),
                 duration_ms=_duration_ms(started_at),
             )
             return

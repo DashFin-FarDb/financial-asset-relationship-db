@@ -73,8 +73,8 @@ def test_recovery_gate_passes_with_clean_db(session_factory):
     finally:
         lock.release()
 
-    # Lock should have been released.
-    assert lock.check_state() != LockState.VALID
+    # Lock should have been released — row is deleted on release, so state is UNKNOWN.
+    assert lock.check_state() == LockState.UNKNOWN
 
 
 def test_recovery_gate_resets_orphaned_running_job(session_factory):

@@ -132,9 +132,12 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         try:
             gate.ensure_safe_to_execute()
         except ExecutionBlockedError as exc:
-            if exc.action == "wait":
-                # WAIT at startup means no inconsistency but lock not yet acquired.
+            if exc.action == "wait" and exc.inconsistency_type == "none":
+                # WAIT with no inconsistency means the lock is not yet acquired but
+                # the system state is clean (clean install or naturally-expired lock).
                 # Allow startup; the executor will acquire the lock before any rebuild.
+                # WAIT from genuine inconsistencies (e.g. CRASH_SUSPICION, STALE_OWNERSHIP)
+                # still blocks startup via the else branch below.
                 logger.info("Startup reconciliation allowing WAIT state; executor will acquire lock before rebuild")
             else:
                 raise
@@ -182,12 +185,11 @@ async def lifespan(_fastapi_app: FastAPI):
             try:
                 await asyncio.to_thread(_run_startup_reconciliation, settings)
             except Exception as exc:
-                # Log exception type and bounded message for debugging without leaking sensitive data
-                exc_msg = str(exc)[:100] if exc else "unknown error"
+                # Log only the exception type to prevent DSN/credential leakage
+                # from SQLAlchemy exception messages (per repo convention).
                 logger.error(
-                    "Startup reconciliation failed - executor will not be initialized: %s: %s",
+                    "Startup reconciliation failed - executor will not be initialized: %s",
                     type(exc).__name__,
-                    exc_msg,
                 )
                 raise  # Block startup on recovery gate failure
 

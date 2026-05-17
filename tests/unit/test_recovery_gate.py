@@ -55,8 +55,9 @@ def test_recovery_gate_waits_on_unknown_lock_with_no_active_job(mock_session_fac
         # ensure_safe_to_execute blocks with WAIT action; startup handles this via exc.action
         with pytest.raises(ExecutionBlockedError, match="action=wait") as exc_info:
             gate.ensure_safe_to_execute()
-        # Verify the action attribute is set so callers don't need to parse the message
+        # Verify both attributes so startup can safely allow clean-install WAIT
         assert exc_info.value.action == "wait"
+        assert exc_info.value.inconsistency_type == "none"
 
 
 def test_execution_blocked_error_exposes_action_for_unsafe(mock_session_factory, mock_lock):
@@ -68,10 +69,12 @@ def test_execution_blocked_error_exposes_action_for_unsafe(mock_session_factory,
         runtime_has_active_executor=False,
     )
 
-    # LOST → UNSAFE; the exception's action attribute should be "unsafe".
+    # LOST → UNSAFE; verify action and inconsistency_type attributes.
     with pytest.raises(ExecutionBlockedError) as exc_info:
         gate.ensure_safe_to_execute()
     assert exc_info.value.action == "unsafe"
+    # LOST path returns None inconsistency_type (not a named inconsistency type).
+    assert exc_info.value.inconsistency_type is None
 
 
 def test_recovery_gate_blocks_on_lost_lock(mock_session_factory, mock_lock):

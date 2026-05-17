@@ -27,19 +27,29 @@ class ExecutionBlockedError(Exception):
     that triggered the block (e.g. ``"wait"``, ``"unsafe"``).  Callers that need
     to distinguish between specific blocking reasons — without re-running the
     gate evaluation — can inspect this attribute instead of parsing the message.
+
+    The ``inconsistency_type`` attribute carries the string value of the detected
+    ``InconsistencyType`` (e.g. ``"none"``, ``"orphaned_running"``).  Together
+    with ``action``, it allows callers to determine whether a ``WAIT`` block is
+    a benign clean-install case (``action="wait", inconsistency_type="none"``) or
+    a genuine inconsistency that should block execution.
     """
 
-    def __init__(self, message: str, action: str | None = None) -> None:
-        """Initialize with message and optional action for caller inspection.
+    def __init__(self, message: str, action: str | None = None, inconsistency_type: str | None = None) -> None:
+        """Initialize with message and optional caller-inspection attributes.
 
         Args:
             message: Human-readable description of why execution was blocked.
             action: String value of the ``RecoveryAction`` that triggered the block
                 (e.g. ``"wait"``, ``"unsafe"``).  ``None`` when the blocking path
                 does not correspond to a single named action (e.g. reset failures).
+            inconsistency_type: String value of the detected ``InconsistencyType``
+                (e.g. ``"none"``, ``"crash_suspicion"``).  ``None`` when the blocking
+                path does not have a known inconsistency (e.g. reset failures).
         """
         super().__init__(message)
         self.action = action
+        self.inconsistency_type = inconsistency_type
 
 
 class RecoveryGate:
@@ -339,6 +349,7 @@ class RecoveryGate:
                 f"Execution blocked: action={decision.action.value}, "
                 f"inconsistency={decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}",
                 action=decision.action.value,
+                inconsistency_type=decision.inconsistency_type.value if decision.inconsistency_type else None,
             )
 
     def _perform_reset_recovery(self) -> None:

@@ -52,9 +52,10 @@ def test_startup_reconciliation_passes_with_consistent_state(mock_session_factor
 def test_startup_reconciliation_allows_unknown_lock_with_no_active_job(mock_session_factory, mock_lock):
     """Test that the gate returns WAIT for UNKNOWN lock + no active job (clean install).
 
-    The gate itself raises ExecutionBlockedError(action="wait") for this case.
-    The startup reconciliation catches this specific action and allows startup to
-    proceed (see _run_startup_reconciliation in app_factory.py).
+    The gate itself raises ExecutionBlockedError(action="wait", inconsistency_type="none") for
+    this case.  The startup reconciliation catches this specific action+inconsistency combination
+    and allows startup to proceed (see _run_startup_reconciliation in app_factory.py).
+    Other WAIT cases (e.g. CRASH_SUSPICION+valid-lock) still block startup.
     """
     # Setup: clean install / startup path with no active job in DB
     mock_repo = MagicMock()
@@ -74,10 +75,12 @@ def test_startup_reconciliation_allows_unknown_lock_with_no_active_job(mock_sess
         # The gate returns WAIT — no inconsistency, but lock not yet acquired.
         assert gate.evaluate_state() == RecoveryAction.WAIT
 
-        # ensure_safe_to_execute raises with action="wait"; startup catches this.
+        # ensure_safe_to_execute raises with action="wait" AND inconsistency_type="none";
+        # startup only bypasses the block when both match (clean-install semantics).
         with pytest.raises(ExecutionBlockedError) as exc_info:
             gate.ensure_safe_to_execute()
         assert exc_info.value.action == "wait"
+        assert exc_info.value.inconsistency_type == "none"
 
 
 def test_startup_reconciliation_performs_reset_for_orphaned_job(mock_session_factory, mock_lock):
