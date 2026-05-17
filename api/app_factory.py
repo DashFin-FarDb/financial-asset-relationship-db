@@ -155,7 +155,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         # entire cleanup path and log only the exception type.
         try:
             if lock is not None:
-        # Release unconditionally - release() is safe if lock not held
+                # Release unconditionally - release() is safe if lock not held
                 # and avoids leak if check_state() throws
                 try:
                     lock.release()
