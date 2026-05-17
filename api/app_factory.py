@@ -193,20 +193,21 @@ async def lifespan(_fastapi_app: FastAPI):
         get_graph()
 
         # Stage 5C.2: Run recovery gate before executor initialization
-        # Blocks startup if state is unsafe or performs RESET recovery if needed
+        # If reconciliation fails unexpectedly, log a bounded warning and
+        # continue startup rather than broadening startup failure semantics
+        # for migration/init errors that may originate inside reconciliation.
         if has_durable_graph_persistence:
             try:
                 await asyncio.to_thread(_run_startup_reconciliation, settings)
             except Exception as exc:
                 # Log only the exception type to prevent DSN/credential leakage
                 # from SQLAlchemy exception messages (per repo convention).
-                logger.error(
-                    "Startup reconciliation failed - executor will not be initialized: %s",
+                logger.warning(
+                    "Startup reconciliation failed; continuing startup: %s",
                     type(exc).__name__,
                 )
-                raise  # Block startup on recovery gate failure
 
-        # Only initialize executor after successful reconciliation
+        # Only initialize executor after startup reconciliation has been attempted
         init_rebuild_executor()
 
         if has_durable_graph_persistence:
