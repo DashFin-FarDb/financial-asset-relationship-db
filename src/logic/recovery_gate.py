@@ -327,8 +327,12 @@ class RecoveryGate:
                 if decision.action != RecoveryAction.RESUME:
                     # Post-reset state still unsafe - use bounded reason to avoid leaking DB details
                     raise ExecutionBlockedError(
-                        f"Reset recovery completed but state still unsafe: action={decision.action.value}"
-                    )
+                        f"Reset recovery completed but state still unsafe: action={decision.action.value}",
+                        action=decision.action.value,
+                        inconsistency_type=(
+                            decision.inconsistency_type.value if decision.inconsistency_type else None
+                        ),
+                     )
                 logger.info("Reset recovery successful - execution can proceed")
             except ExecutionBlockedError:
                 # Re-raise ExecutionBlockedError as-is (already sanitized above)
