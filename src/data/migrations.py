@@ -192,9 +192,7 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
             # when the table is empty or all active_worker_id values are NULL.
             # max_length=None is treated as safe to normalize (no values to truncate).
             with engine.connect() as connection:
-                max_length = connection.execute(
-                    text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")
-                ).scalar()
+                max_length = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
             if max_length is None or max_length <= 64:
                 needs_width_normalization = True
             else:
@@ -213,13 +211,9 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
             # Re-check inside the DDL transaction to narrow the race window:
             # a concurrent session could have inserted a longer value between
             # the pre-check above and the ACCESS EXCLUSIVE lock acquired here.
-            recheck = connection.execute(
-                text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")
-            ).scalar()
+            recheck = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
             if recheck is None or recheck <= 64:
-                connection.execute(
-                    text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)")
-                )
+                connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
             else:
                 logger.warning(
                     "Skipping active_worker_id width normalization: max length=%s exceeds 64 (re-check)",
