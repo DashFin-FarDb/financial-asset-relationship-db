@@ -1,4 +1,5 @@
 """Unit tests for src/data/migrations.py — apply_postgresql_heartbeat_migration."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, call, patch
@@ -7,10 +8,10 @@ import pytest
 
 from src.data.migrations import apply_postgresql_heartbeat_migration
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_col(name: str, length: int | None = None) -> dict:
     """Return a minimal column-info dict like SQLAlchemy's inspector produces."""
@@ -52,6 +53,7 @@ def _make_engine(
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestApplyPostgresqlHeartbeatMigration:
 
@@ -155,6 +157,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         statement must NOT be batched, and a warning must be logged.
         """
         import logging
+
         cols = [_make_col("active_worker_id", length=255), _make_col("last_heartbeat_at")]
 
         with caplog.at_level(logging.WARNING, logger="src.data.migrations"):
@@ -184,5 +187,6 @@ class TestApplyPostgresqlHeartbeatMigration:
         # — engine.begin() called exactly once
         assert begin_conn.execute.call_count >= 1
         from src.data.migrations import apply_postgresql_heartbeat_migration as fn  # noqa
+
         # Verify engine.begin was used (not engine.connect) for DDL
         # This is implicit: begin_conn.execute was called; connect_conn is separate
