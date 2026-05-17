@@ -280,6 +280,31 @@ async def _run_rebuild_in_executor(
                     duration_ms=_duration_ms(started_at),
                 )
             return
+        except RuntimeError as exc:
+            # Only catch lock-loss RuntimeErrors (message contains "Lost distributed lock")
+            if "Lost distributed lock" in str(exc):
+                _REBUILD_RUNTIME.mark_idle(succeeded=False)
+                _log_rebuild_failed(
+                    user_ref=user_ref,
+                    exc=exc,
+                    status_code=503,
+                    duration_ms=_duration_ms(started_at),
+                )
+                return
+            # Re-raise other RuntimeErrors
+            raise
+        except Exception as exc:
+            # Catch-all for unexpected errors from rebuild execution
+            # Log and mark failed, but re-raise to surface lifecycle/finalization errors
+            _REBUILD_RUNTIME.mark_idle(succeeded=False)
+            _log_rebuild_failed(
+                user_ref=user_ref,
+                exc=exc,
+                status_code=500,
+                duration_ms=_duration_ms(started_at),
+            )
+            # Re-raise to avoid swallowing lifecycle-critical errors
+            raise
 
         _REBUILD_RUNTIME.mark_idle(succeeded=True)
         _log_rebuild_succeeded(

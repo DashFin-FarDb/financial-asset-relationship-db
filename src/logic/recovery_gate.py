@@ -203,11 +203,12 @@ class RecoveryGate:
         lock_state = self.lock.check_state()
         job = None
 
-        if lock_state in (LockState.UNKNOWN, LockState.LOST):
-            logger.warning("Execution blocked: Lock state is %s", lock_state.value)
+        # LOST state always blocks - cannot determine lock ownership due to DB error
+        if lock_state == LockState.LOST:
+            logger.warning("Execution blocked: Lock state is LOST (database connectivity failure)")
             return RecoveryDecision(
                 action=RecoveryAction.UNSAFE,
-                reason=f"Lock state is {lock_state.value}",
+                reason="Lock state is lost (database connectivity failure)",
                 inconsistency_type=None,
                 safe_to_execute=False,
             )
@@ -225,6 +226,24 @@ class RecoveryGate:
             except Exception as exc:
                 return self._create_unsafe_decision_from_error(
                     exc, "unexpected error during rebuild state query", "error"
+                )
+
+        # UNKNOWN state handling: distinguish between clean install vs wrong owner
+        if lock_state == LockState.UNKNOWN:
+            # If no active job exists, UNKNOWN lock is safe (clean install or expired lock)
+            # If active job exists, UNKNOWN lock means wrong owner - unsafe
+            if job is None:
+                logger.info("Lock state is UNKNOWN but no active job - allowing execution (clean install)")
+                lock_is_valid = False  # Will need to acquire lock
+            else:
+                logger.warning(
+                    "Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)"
+                )
+                return RecoveryDecision(
+                    action=RecoveryAction.UNSAFE,
+                    reason="Lock state is unknown with active rebuild job",
+                    inconsistency_type=None,
+                    safe_to_execute=False,
                 )
 
         inconsistency = detect_rebuild_inconsistency(

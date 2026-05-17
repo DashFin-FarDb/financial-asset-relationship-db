@@ -166,9 +166,10 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     existing_columns = {column["name"] for column in inspector.get_columns("rebuild_jobs")}
     statements: list[str] = []
     if "active_worker_id" not in existing_columns:
-        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id VARCHAR(255)")
+        # Use VARCHAR(64) to match application schema (String(64) in db_models.py)
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)")
     if "last_heartbeat_at" not in existing_columns:
-        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TIMESTAMPTZ")
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ")
 
     if not statements:
         return

@@ -66,7 +66,7 @@ def _run_startup_reconciliation(settings) -> None:
         Exception: If recovery gate evaluation fails.
     """
     from src.data.database import create_engine_from_url, create_session_factory
-    from src.data.distributed_lock import DistributedLock
+    from src.data.distributed_lock import DistributedLock, LockState
     from src.logic.recovery_gate import RecoveryGate
 
     from .graph_lifecycle_providers import resolve_durable_graph_persistence_url
@@ -79,6 +79,8 @@ def _run_startup_reconciliation(settings) -> None:
 
     persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(persistence_url)
+    lock = None
+    lock_acquired_by_us = False
     try:
         session_factory = create_session_factory(engine)
         lock = DistributedLock(
@@ -86,6 +88,9 @@ def _run_startup_reconciliation(settings) -> None:
             lock_name="graph_rebuild",
             ttl_seconds=lock_ttl,
         )
+
+        # Track initial lock state before recovery
+        initial_lock_state = lock.check_state()
 
         gate = RecoveryGate(
             session_factory=session_factory,
@@ -96,11 +101,27 @@ def _run_startup_reconciliation(settings) -> None:
         )
 
         # This will raise ExecutionBlockedError if unsafe
-        # or perform RESET recovery if needed
+        # or perform RESET recovery if needed (which may acquire lock)
         gate.ensure_safe_to_execute()
+        
+        # Track if lock was acquired during RESET recovery by comparing states
+        # Only release if we transitioned from non-VALID to VALID (we acquired it)
+        final_lock_state = lock.check_state()
+        lock_acquired_by_us = (
+            initial_lock_state != LockState.VALID and final_lock_state == LockState.VALID
+        )
 
         logger.info("Startup reconciliation passed - executor initialization allowed")
     finally:
+        # Only release lock if WE acquired it during recovery
+        if lock is not None and lock_acquired_by_us:
+            try:
+                lock.release()
+            except Exception as exc:
+                logger.warning(
+                    "Failed to release startup reconciliation lock: %s",
+                    type(exc).__name__,
+                )
         engine.dispose()
 
 
