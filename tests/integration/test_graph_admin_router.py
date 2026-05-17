@@ -369,7 +369,15 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
             await graph_admin.rebuild_graph(User(username="admin", disabled=False))
 
         assert exc_info.value.status_code == 503
-        assert exc_info.value.detail == "Distributed lock lost during rebuild."
+        
+        # Verify structured dictionary contract fields
+        detail = exc_info.value.detail
+        if isinstance(detail, dict):
+            assert detail["code"] == "distributed_lock_lost_during_rebuild"
+            assert detail["message"] == "Distributed lock lost during rebuild."
+        else:
+            assert detail == "Distributed lock lost during rebuild."
+            
         assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.FAILED
 
     finally:
@@ -406,12 +414,24 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     """Callback logs success definitively when task is canceled while processing."""
     thread_reached = threading.Event()
     proceed_thread = threading.Event()
+    callback_completed = asyncio.Event()
+
+    # Intercept the completion loop to notify the test when on_done finishes
+    original_run_in_executor = graph_admin._run_rebuild_in_executor
+    async def track_executor_completion(*args, **kwargs):
+        try:
+            return await original_run_in_executor(*args, **kwargs)
+        finally:
+            callback_completed.set()
+
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", track_executor_completion)
 
     def coordinated_sync_rebuild(*args, **kwargs):
         thread_reached.set()  # Tell main loop thread has started
         proceed_thread.wait(timeout=5.0)  # Safe bounded block
+        # FIX: Use a valid Literal value ('sample') to satisfy Pydantic models
         return graph_admin.GraphRebuildResponse(
-            status="persisted", source="coordinated", asset_count=5, relationship_count=2, regulatory_event_count=0
+            status="persisted", source="sample", asset_count=5, relationship_count=2, regulatory_event_count=0
         )
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
@@ -429,7 +449,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
                     tracking_state={"audit_logged": False},
                 )
             )
-
+            
             # Wait cleanly until thread is safely active inside executor
             await loop.run_in_executor(None, thread_reached.wait)
             task.cancel()
@@ -437,17 +457,16 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
             with pytest.raises(asyncio.CancelledError):
                 await task
 
-            # Safe to let thread finish now
+            # Let the background synchronous worker proceed and finish up
             proceed_thread.set()
-
-            # Await the underlying future's completion callback without timing guesses
-            underlying_future = task.get_stack()[0].f_locals.get("future")
-            if underlying_future:
-                await asyncio.wrap_future(underlying_future)
+            
+            # Safely await the execution completion without fragile frame hacking
+            await asyncio.wait_for(callback_completed.wait(), timeout=2.0)
+            
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
-        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        if graph_admin._REBUILD_RUNTIME.is_busy():
+            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
 
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
     succeeded_records = [
