@@ -95,9 +95,9 @@ async def lifespan(_fastapi_app: FastAPI):
     """Initialize graph state and clean up rebuild resources."""
     try:
         # ... existing imports and setup ...
-        
+
         get_graph()
-        
+
         # NEW: Run recovery gate before executor initialization
         if has_durable_graph_persistence:
             try:
@@ -108,10 +108,10 @@ async def lifespan(_fastapi_app: FastAPI):
                     type(exc).__name__,
                 )
                 raise  # Block startup on recovery gate failure
-        
+
         # Only initialize executor after successful reconciliation
         init_rebuild_executor()
-        
+
         # ... rest of existing startup logic ...
 ```
 
@@ -121,15 +121,15 @@ async def lifespan(_fastapi_app: FastAPI):
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """
     Run recovery gate validation before executor initialization.
-    
+
     Blocks startup if:
     - Lock state is UNKNOWN or LOST
     - Unresolved recovery state detected
-    
+
     Allows startup after:
     - Successful RESET recovery
     - RESUME decision (consistent state)
-    
+
     Raises:
         ExecutionBlockedError: If recovery gate blocks execution
         Exception: If recovery gate evaluation fails
@@ -138,7 +138,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     from src.data.distributed_lock import DistributedLock
     from src.logic.recovery_gate import RecoveryGate
     from api.metrics import increment_recovery_trigger
-    
+
     persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(persistence_url)
     try:
@@ -148,7 +148,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
             lock_name="graph_rebuild",
             ttl_seconds=300,
         )
-        
+
         gate = RecoveryGate(
             session_factory=session_factory,
             lock=lock,
@@ -156,11 +156,11 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
             runtime_has_active_executor=False,  # No executor yet at startup
             lock_ttl_seconds=300,
         )
-        
+
         # This will raise ExecutionBlockedError if unsafe
         # or perform RESET recovery if needed
         gate.ensure_safe_to_execute()
-        
+
         logger.info("Startup reconciliation passed - executor initialization allowed")
     finally:
         engine.dispose()
@@ -172,7 +172,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 
 **Verification in [`api/routers/graph_admin.py`](../../api/routers/graph_admin.py):**
 
-Current code already calls `gate.ensure_safe_to_execute()` in `_perform_rebuild_and_persist_sync()`. 
+Current code already calls `gate.ensure_safe_to_execute()` in `_perform_rebuild_and_persist_sync()`.
 
 **Action:** Add explicit comment documenting this is the enforcement point:
 
@@ -180,11 +180,11 @@ Current code already calls `gate.ensure_safe_to_execute()` in `_perform_rebuild_
 def _perform_rebuild_and_persist_sync(...) -> GraphRebuildResponse:
     """..."""
     # ... existing setup ...
-    
+
     # CRITICAL: Recovery gate enforcement point
     # Blocks execution if state is unsafe or performs RESET recovery
     gate.ensure_safe_to_execute()
-    
+
     # ... rest of rebuild logic ...
 ```
 
@@ -198,21 +198,21 @@ def _perform_rebuild_and_persist_sync(...) -> GraphRebuildResponse:
 def check_state(self) -> LockState:
     """
     Check the current state of this distributed lock.
-    
+
     State Classification:
     - VALID: Lock exists, not expired, held by this holder_id
     - EXPIRED: Lock exists but TTL has passed
     - UNKNOWN: Lock doesn't exist OR held by different holder_id
     - LOST: Database connectivity failure during state check
-    
+
     LOST vs UNKNOWN:
     - UNKNOWN = deterministic state (no lock record or wrong owner)
     - LOST = transient failure (cannot determine state due to DB error)
-    
+
     Recovery implications:
     - UNKNOWN: May allow reacquisition if lock truly doesn't exist
     - LOST: Must not proceed - cannot safely determine ownership
-    
+
     Returns:
         LockState: The current state (VALID, EXPIRED, UNKNOWN, LOST).
     """

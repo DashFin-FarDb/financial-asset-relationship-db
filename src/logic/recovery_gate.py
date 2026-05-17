@@ -236,9 +236,7 @@ class RecoveryGate:
                 logger.info("Lock state is UNKNOWN but no active job - allowing execution (clean install)")
                 lock_is_valid = False  # Will need to acquire lock
             else:
-                logger.warning(
-                    "Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)"
-                )
+                logger.warning("Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)")
                 return RecoveryDecision(
                     action=RecoveryAction.UNSAFE,
                     reason="Lock state is unknown with active rebuild job",

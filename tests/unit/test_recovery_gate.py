@@ -30,14 +30,14 @@ def mock_lock():
 def test_recovery_gate_blocks_on_unknown_lock(mock_session_factory, mock_lock):
     """Test that RecoveryGate allows execution when lock state is UNKNOWN with no active job (clean install)."""
     from unittest.mock import patch
-    
+
     mock_lock.check_state.return_value = LockState.UNKNOWN
-    
+
     # Mock repository to return no active job (clean install scenario)
-    with patch('src.logic.recovery_gate.AssetGraphRepository') as mock_repo_class:
+    with patch("src.logic.recovery_gate.AssetGraphRepository") as mock_repo_class:
         mock_repo = mock_repo_class.return_value
         mock_repo.get_active_rebuild_state.return_value = None
-        
+
         gate = RecoveryGate(
             session_factory=mock_session_factory,
             lock=mock_lock,
@@ -46,7 +46,7 @@ def test_recovery_gate_blocks_on_unknown_lock(mock_session_factory, mock_lock):
 
         # UNKNOWN with no job should return WAIT (needs to acquire lock but safe to proceed)
         assert gate.evaluate_state() == RecoveryAction.WAIT
-        
+
         # Should block with WAIT action (needs lock acquisition)
         with pytest.raises(ExecutionBlockedError, match="action=wait"):
             gate.ensure_safe_to_execute()

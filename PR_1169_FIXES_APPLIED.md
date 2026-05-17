@@ -8,8 +8,8 @@ This document summarizes the fixes applied to address critical and high-priority
 
 ### Critical Issue #1: Lock Not Released After RESET Recovery in Startup ✅
 
-**File:** `api/app_factory.py`  
-**Lines:** 82-115  
+**File:** `api/app_factory.py`
+**Lines:** 82-115
 **Priority:** P1 (Critical - Production Blocking)
 
 **Problem:** Startup reconciliation could leave the distributed rebuild lock held after RESET recovery, blocking rebuilds until TTL expiry (default 5 minutes).
@@ -37,8 +37,8 @@ finally:
 
 ### Critical Issue #2: Lock Loss Race Leaves Rebuild State Stuck ✅
 
-**File:** `api/routers/graph_admin.py`  
-**Lines:** 257-270  
+**File:** `api/routers/graph_admin.py`
+**Lines:** 257-270
 **Priority:** P1 (Critical - Production Blocking)
 
 **Problem:** `RuntimeError` exceptions raised during lock loss were not caught in the `on_done` callback, preventing `mark_idle()` from being called and leaving the rebuild lifecycle state stuck busy.
@@ -65,8 +65,8 @@ except (
 
 ### Critical Issue #3: LockState.UNKNOWN Blocks Clean Installs ✅
 
-**File:** `src/logic/recovery_gate.py`  
-**Lines:** 203-247  
+**File:** `src/logic/recovery_gate.py`
+**Lines:** 203-247
 **Priority:** P1 (Critical - User-Facing)
 
 **Problem:** `LockState.UNKNOWN` was treated as immediately `UNSAFE`, but this state occurs in two scenarios:
@@ -117,8 +117,8 @@ if lock_state == LockState.UNKNOWN:
 
 ### High Priority Issue #4: PostgreSQL Migration Race Condition ✅
 
-**File:** `src/data/migrations.py`  
-**Lines:** 166-183  
+**File:** `src/data/migrations.py`
+**Lines:** 166-183
 **Priority:** P2 (High - Production Deployment)
 
 **Problem:** Concurrent instances could both attempt `ADD COLUMN` and fail with duplicate-column errors during PostgreSQL migrations.
@@ -155,8 +155,8 @@ with engine.begin() as connection:
 
 ### High Priority Issue #5: Column Width Mismatch in Migration ✅
 
-**File:** `src/data/migrations.py`  
-**Line:** 169  
+**File:** `src/data/migrations.py`
+**Line:** 169
 **Priority:** P2 (High - Schema Consistency)
 
 **Problem:** Migration created `active_worker_id` as `VARCHAR(255)` but application schema uses `String(64)`.
@@ -173,8 +173,8 @@ statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_work
 
 ### High Priority Issue #6: Unexpected Error Handling Reconciliation ✅
 
-**File:** `src/data/distributed_lock.py`  
-**Lines:** 191-198  
+**File:** `src/data/distributed_lock.py`
+**Lines:** 191-198
 **Priority:** P2 (High - Error Handling)
 
 **Decision:** **NO CHANGES NEEDED**
@@ -229,9 +229,9 @@ tests/unit/test_recovery_gate_startup.py::test_startup_reconciliation_reacquires
 
 ## Summary
 
-**Fixed:** 5 critical and high-priority issues  
-**Test Status:** All 17 recovery gate tests passing  
-**Production Impact:** Resolves 3 production-blocking bugs  
-**User Impact:** Fixes clean installation failure  
+**Fixed:** 5 critical and high-priority issues
+**Test Status:** All 17 recovery gate tests passing
+**Production Impact:** Resolves 3 production-blocking bugs
+**User Impact:** Fixes clean installation failure
 
 All changes maintain backward compatibility and improve system robustness, error handling, and deployment reliability.

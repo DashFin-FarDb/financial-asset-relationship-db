@@ -13,9 +13,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ## Critical Blocking Issues (Must Fix Before Merge)
 
 ### 1. Lock Not Released After RESET Recovery in Startup
-**Source:** cubic-dev-ai  
-**File:** `api/app_factory.py:100`  
-**Priority:** P1 (Critical)  
+**Source:** cubic-dev-ai
+**File:** `api/app_factory.py:100`
+**Priority:** P1 (Critical)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Startup reconciliation can leave the distributed rebuild lock held after RESET recovery, blocking rebuilds until TTL expiry.
@@ -29,9 +29,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 2. Lock Loss Race Can Leave Rebuild State Stuck
-**Source:** cubic-dev-ai  
-**File:** `api/routers/graph_admin.py:904`  
-**Priority:** P1 (Critical)  
+**Source:** cubic-dev-ai
+**File:** `api/routers/graph_admin.py:904`
+**Priority:** P1 (Critical)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** New `RuntimeError` path is not included in rebuild error handling, so a lock-loss race can bypass `mark_idle` and leave rebuild lifecycle state stuck busy.
@@ -45,9 +45,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 3. LockState.UNKNOWN Blocks Clean Installs
-**Source:** cubic-dev-ai  
-**File:** `src/logic/recovery_gate.py:206`  
-**Priority:** P1 (Critical)  
+**Source:** cubic-dev-ai
+**File:** `src/logic/recovery_gate.py:206`
+**Priority:** P1 (Critical)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Treating `LockState.UNKNOWN` as immediate `UNSAFE` decision causes startup reconciliation to fail on clean installs where no lock row exists.
@@ -63,9 +63,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ## High Priority Issues (Should Fix)
 
 ### 4. PostgreSQL Migration Race Condition
-**Source:** cubic-dev-ai  
-**File:** `src/data/migrations.py:169`  
-**Priority:** P2 (High)  
+**Source:** cubic-dev-ai
+**File:** `src/data/migrations.py:169`
+**Priority:** P2 (High)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** PostgreSQL migration is vulnerable to a startup race: concurrent instances can both attempt `ADD COLUMN` and fail with duplicate-column errors.
@@ -77,9 +77,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 5. Column Width Mismatch in Migration
-**Source:** coderabbitai  
-**File:** `src/data/migrations.py:167-170`  
-**Priority:** P2 (High)  
+**Source:** coderabbitai
+**File:** `src/data/migrations.py:167-170`
+**Priority:** P2 (High)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Migration creates `active_worker_id` as VARCHAR(255) but application uses String(64)
@@ -91,9 +91,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 6. Unexpected Error Re-raise in Lock Check
-**Source:** cubic-dev-ai (original), coderabbitai (follow-up)  
-**File:** `src/data/distributed_lock.py:183-198`  
-**Priority:** P2 (High)  
+**Source:** cubic-dev-ai (original), coderabbitai (follow-up)
+**File:** `src/data/distributed_lock.py:183-198`
+**Priority:** P2 (High)
 **Status:** ⚠️ PARTIALLY RESOLVED (needs improvement)
 
 **Issue:** Current except Exception handler re-raises unexpected errors, but `RuntimeError("db unavailable")` should trigger recovery path, not escape.
@@ -109,9 +109,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ## Medium Priority Issues (Consider Fixing)
 
 ### 7. Execution Entrypoint Detection Uses Regex
-**Source:** cubic-dev-ai  
-**File:** `tools/ci/check_coordination_invariants.py:85`  
-**Priority:** P2 (Medium)  
+**Source:** cubic-dev-ai
+**File:** `tools/ci/check_coordination_invariants.py:85`
+**Priority:** P2 (Medium)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Text regex can incorrectly trigger `MISSING_RECOVERY_GATE_CALL` on comments/definitions
@@ -123,9 +123,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 8. Gate B Points to Non-Existent Path
-**Source:** cubic-dev-ai  
-**File:** `.github/workflows/ci-gate-spec.yaml:104`  
-**Priority:** P2 (Medium)  
+**Source:** cubic-dev-ai
+**File:** `.github/workflows/ci-gate-spec.yaml:104`
+**Priority:** P2 (Medium)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Gate B is wired to a non-existent test path, so it skips instead of running
@@ -137,9 +137,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 9. Integration Tests Are Skipped
-**Source:** cubic-dev-ai, coderabbitai  
-**File:** `tests/integration/test_recovery_gate_integration.py:9`  
-**Priority:** P2 (Medium)  
+**Source:** cubic-dev-ai, coderabbitai
+**File:** `tests/integration/test_recovery_gate_integration.py:9`
+**Priority:** P2 (Medium)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Entire integration test file contains only TODO/pass placeholders
@@ -151,9 +151,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 10. Exception Logging May Expose Sensitive Data
-**Source:** Bob's review (from initial review)  
-**File:** `src/logic/recovery_gate.py:295`  
-**Priority:** P2 (Medium)  
+**Source:** Bob's review (from initial review)
+**File:** `src/logic/recovery_gate.py:295`
+**Priority:** P2 (Medium)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** `logger.exception()` logs full stack trace which could expose sensitive information
@@ -167,9 +167,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ## Low Priority / Nitpick Issues (Can Defer)
 
 ### 11. Magic Numbers
-**Source:** Bob's review, REVIEW_FIXES_SUMMARY.md  
-**Files:** `api/app_factory.py:77,78,130`  
-**Priority:** P3 (Low)  
+**Source:** Bob's review, REVIEW_FIXES_SUMMARY.md
+**Files:** `api/app_factory.py:77,78,130`
+**Priority:** P3 (Low)
 **Status:** ❌ UNRESOLVED (acknowledged in REVIEW_FIXES_SUMMARY.md)
 
 **Issue:** Magic numbers 300 (TTL) and 100 (message truncation) should be constants
@@ -179,9 +179,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 12. Markdown Formatting Issues
-**Source:** coderabbitai  
-**File:** `REVIEW_FIXES_SUMMARY.md`  
-**Priority:** P3 (Low)  
+**Source:** coderabbitai
+**File:** `REVIEW_FIXES_SUMMARY.md`
+**Priority:** P3 (Low)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** MD022, MD031, MD047 violations (missing blank lines, no trailing newline)
@@ -191,9 +191,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 13. Typo in Documentation
-**Source:** coderabbitai  
-**File:** `docs/plans/PR_5C2_RECOVERY_GATE_HARDENING.md:20`  
-**Priority:** P3 (Low)  
+**Source:** coderabbitai
+**File:** `docs/plans/PR_5C2_RECOVERY_GATE_HARDENING.md:20`
+**Priority:** P3 (Low)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** "RecoverayGate" should be "RecoveryGate"
@@ -203,9 +203,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 14. Plan Status Not Updated
-**Source:** coderabbitai  
-**File:** `docs/plans/PR_5C2_RECOVERY_GATE_HARDENING.md:331`  
-**Priority:** P3 (Low)  
+**Source:** coderabbitai
+**File:** `docs/plans/PR_5C2_RECOVERY_GATE_HARDENING.md:331`
+**Priority:** P3 (Low)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Plan status says "Ready for implementation" but should say "Implemented"
@@ -215,9 +215,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 15. Test Ordering Not Verified
-**Source:** coderabbitai  
-**File:** `tests/unit/test_graph_lifecycle_providers.py:27-29`  
-**Priority:** P3 (Low)  
+**Source:** coderabbitai
+**File:** `tests/unit/test_graph_lifecycle_providers.py:27-29`
+**Priority:** P3 (Low)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Test doesn't verify `pre_commit_check()` runs before `commit()`
@@ -227,9 +227,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 16. Missing pytest.mark.unit
-**Source:** coderabbitai  
-**Files:** Multiple test files  
-**Priority:** P3 (Low)  
+**Source:** coderabbitai
+**Files:** Multiple test files
+**Priority:** P3 (Low)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Some test modules missing `pytestmark = pytest.mark.unit`
@@ -239,9 +239,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 17. Hyphenation in Summary
-**Source:** coderabbitai  
-**File:** `REVIEW_FIXES_SUMMARY.md:148`  
-**Priority:** P3 (Low)  
+**Source:** coderabbitai
+**File:** `REVIEW_FIXES_SUMMARY.md:148`
+**Priority:** P3 (Low)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** "error handling" should be "error-handling"
@@ -251,9 +251,9 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 18. Exception Type in Re-raise Warning
-**Source:** coderabbitai (latest review)  
-**File:** `src/data/distributed_lock.py:193-200`  
-**Priority:** P3 (Low)  
+**Source:** coderabbitai (latest review)
+**File:** `src/data/distributed_lock.py:193-200`
+**Priority:** P3 (Low)
 **Status:** ❌ UNRESOLVED
 
 **Issue:** Warning should include exception type for better diagnostics
@@ -265,8 +265,8 @@ This document analyzes all review comments on PR #1169 to identify:
 ## Stale/Resolved Comments
 
 ### 19. Coordination Safety Summary Job
-**Source:** coderabbitai  
-**File:** `.github/workflows/ci-gate-spec.yaml:188-227`  
+**Source:** coderabbitai
+**File:** `.github/workflows/ci-gate-spec.yaml:188-227`
 **Status:** ✅ STALE - Not in current commit
 
 **Reason:** This file was not changed in the current commit (e30c3571)
@@ -274,8 +274,8 @@ This document analyzes all review comments on PR #1169 to identify:
 ---
 
 ### 20. DUPLICATE_EXECUTION_PATH Regex
-**Source:** coderabbitai  
-**File:** `tools/ci/check_coordination_invariants.py:23-33`  
+**Source:** coderabbitai
+**File:** `tools/ci/check_coordination_invariants.py:23-33`
 **Status:** ✅ STALE - Not in current commit
 
 **Reason:** This file was not changed in the current commit
@@ -286,7 +286,7 @@ This document analyzes all review comments on PR #1169 to identify:
 
 ### Must Fix Before Merge (3 issues)
 1. ✅ **Lock not released after RESET recovery** - Critical production bug
-2. ✅ **Lock loss race leaves state stuck** - Critical lifecycle bug  
+2. ✅ **Lock loss race leaves state stuck** - Critical lifecycle bug
 3. ✅ **LockState.UNKNOWN blocks clean installs** - Critical user-facing bug
 
 ### Should Fix Before Merge (3 issues)
