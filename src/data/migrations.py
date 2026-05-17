@@ -163,17 +163,32 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     if "rebuild_jobs" not in inspector.get_table_names():
         return
 
-    existing_columns = {column["name"] for column in inspector.get_columns("rebuild_jobs")}
+    columns = inspector.get_columns("rebuild_jobs")
+    existing_columns = {column["name"] for column in columns}
     statements: list[str] = []
     if "active_worker_id" not in existing_columns:
-        # VARCHAR(64) matches the ORM column definition for new installations.
-        # Existing PostgreSQL deployments that previously migrated with a different
-        # column width will retain their original type; this is intentional — no
-        # ALTER COLUMN is issued here because truncation risk cannot be assessed
-        # generically.
         statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)")
     if "last_heartbeat_at" not in existing_columns:
         statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ")
+
+    # Normalize legacy widened active_worker_id columns (for example VARCHAR(255))
+    # to the ORM width only when safe, avoiding truncation.
+    active_worker_col = next((column for column in columns if column["name"] == "active_worker_id"), None)
+    if active_worker_col is not None:
+        col_type = active_worker_col.get("type")
+        col_length = getattr(col_type, "length", None)
+        if isinstance(col_length, int) and col_length > 64:
+            with engine.begin() as connection:
+                max_length = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
+                if max_length is None or max_length <= 64:
+                    connection.execute(
+                        text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)")
+                    )
+                else:
+                    logger.warning(
+                        "Skipping active_worker_id width normalization: max length=%s exceeds 64",
+                        max_length,
+                    )
 
     if not statements:
         return

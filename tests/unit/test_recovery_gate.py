@@ -94,19 +94,6 @@ def test_recovery_gate_blocks_on_lost_lock(mock_session_factory, mock_lock):
         gate.ensure_safe_to_execute()
 
 
-def test_recovery_gate_lost_state_blocks_with_execution_blocked_error(mock_session_factory, mock_lock):
-    """Test that RecoveryGate raises ExecutionBlockedError when lock state is LOST."""
-    mock_lock.check_state.return_value = LockState.LOST
-    gate = RecoveryGate(
-        session_factory=mock_session_factory,
-        lock=mock_lock,
-        runtime_has_active_executor=False,
-    )
-
-    with pytest.raises(ExecutionBlockedError, match="Execution blocked"):
-        gate.ensure_safe_to_execute()
-
-
 def test_recovery_gate_lost_state_does_not_attempt_reset(mock_session_factory, mock_lock):
     """Test that RecoveryGate does not attempt RESET recovery when lock state is LOST.
 

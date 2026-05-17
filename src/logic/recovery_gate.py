@@ -256,11 +256,15 @@ class RecoveryGate:
 
         # UNKNOWN state handling: distinguish between clean install vs wrong owner
         if lock_state == LockState.UNKNOWN:
-            # If no active job exists, UNKNOWN lock is safe (clean install or expired lock)
-            # If active job exists, UNKNOWN lock means wrong owner - unsafe
+            # If no active job exists, UNKNOWN lock can be a clean install with no lock row yet.
+            # Keep lock_is_valid=False so deterministic decision logic returns WAIT until lock
+            # is explicitly acquired by rebuild execution path.
             if job is None:
-                logger.info("Lock state is UNKNOWN but no active job - allowing execution (clean install)")
-                lock_is_valid = False  # Will need to acquire lock
+                logger.info(
+                    "Lock state is UNKNOWN with no active job; treating as clean-install WAIT "
+                    "until lock is acquired"
+                )
+                lock_is_valid = False
             else:
                 logger.warning("Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)")
                 return RecoveryDecision(
