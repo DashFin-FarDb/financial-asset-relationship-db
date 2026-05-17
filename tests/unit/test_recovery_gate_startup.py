@@ -192,7 +192,6 @@ def test_startup_reconciliation_blocks_on_fresh_remote_heartbeat(mock_session_fa
         last_heartbeat_at=datetime.now(timezone.utc),  # Fresh heartbeat
     )
 
-    mock_session = mock_session_factory.return_value.__enter__.return_value
     mock_repo = MagicMock()
     mock_repo.get_active_rebuild_state.return_value = remote_job
 
