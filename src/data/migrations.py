@@ -190,7 +190,7 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
     COLUMN to fail. The in-transaction re-check is authoritative.
     The explicit ACCESS EXCLUSIVE lock is scoped to this helper only (re-check
     plus optional ALTER); ADD COLUMN statements run before this call. While
-    held, PostgreSQL readers/writers of rebuild_jobs are serialized.
+    held, PostgreSQL blocks all concurrent readers and writers of rebuild_jobs.
     """
     if not needs_width_normalization:
         return
