@@ -183,6 +183,12 @@ async def lifespan(_fastapi_app: FastAPI):
                 engine = create_engine_from_url(persistence_url)
                 try:
                     await asyncio.to_thread(init_db, engine)
+                except Exception as init_exc:
+                    logger.warning(
+                        "Startup defensive init failed; aborting startup: %s",
+                        type(init_exc).__name__,
+                    )
+                    raise
                 finally:
                     engine.dispose()
                 logger.warning(

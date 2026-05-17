@@ -138,7 +138,7 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
     )
 
     async def fake_to_thread(fn, *args, **kwargs):
-        if fn is database_init_db:
+        if getattr(fn, "__module__", "") == database_init_db.__module__ and getattr(fn, "__name__", "") == "init_db":
             raise RuntimeError("init_db failed")
         return fn(*args, **kwargs)
 
