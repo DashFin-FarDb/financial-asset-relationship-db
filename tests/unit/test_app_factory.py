@@ -127,6 +127,7 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
         "init_rebuild_executor",
         lambda: init_calls.append(True),
     )
+
     def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
         raise RuntimeError("reconciliation failed")
 
