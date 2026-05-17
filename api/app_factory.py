@@ -154,17 +154,25 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         # lock.check_state() may now re-raise unexpected exceptions, so bound the
         # entire cleanup path and log only the exception type.
         try:
+            if lock is not None:
+                try:
+                    if lock.check_state() == LockState.VALID:
+                        lock.release()
+                        logger.debug("Released startup reconciliation lock after recovery")
+                except Exception as exc:
+                    logger.warning(
+                        "Failed startup reconciliation lock cleanup for %s: %s",
+                        lock.lock_name,
+                        type(exc).__name__,
+                    )
+        finally:
             try:
-                if lock is not None and lock.check_state() == LockState.VALID:
-                    lock.release()
-                    logger.debug("Released startup reconciliation lock after recovery")
-            finally:
                 engine.dispose()
-        except Exception as exc:
-            logger.warning(
-                "Failed during startup reconciliation cleanup: %s",
-                type(exc).__name__,
-            )
+            except Exception as exc:
+                logger.warning(
+                    "Failed during startup reconciliation cleanup: %s",
+                    type(exc).__name__,
+                )
 
 
 @asynccontextmanager

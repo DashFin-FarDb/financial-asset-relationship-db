@@ -200,7 +200,7 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
 
     Acquire a table lock before re-checking widths so concurrent writers
     cannot insert or update values that would cause the subsequent ALTER
-    COLUMN to fail.
+    COLUMN to fail. The in-transaction re-check is authoritative.
     """
     if not needs_width_normalization:
         return
@@ -214,15 +214,6 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
             "Skipping active_worker_id width normalization: max length=%s exceeds 64 (re-check)",
             recheck,
         )
-    try:
-        with connection.begin_nested():
-            connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
-    except Exception as e:
-        logger.warning(
-            "Skipping active_worker_id width normalization: constraints violated (%s)",
-            e,
-        )
-        return
 
 
 # ---------------------------------------------------------------------------

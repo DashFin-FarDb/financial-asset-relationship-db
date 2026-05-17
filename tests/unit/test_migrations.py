@@ -108,6 +108,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         # ALTER COLUMN TYPE must be part of the atomic DDL batch
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql)
+        assert sum("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql) == 1
 
     def test_wide_column_short_data_normalises(self):
         """
@@ -120,6 +121,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         connect_conn.execute.assert_called_once()
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql)
+        assert sum("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql) == 1
 
     def test_wide_column_long_data_skips_normalisation_and_warns(self, caplog):
         """
@@ -153,3 +155,4 @@ class TestApplyPostgresqlHeartbeatMigration:
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert any("ADD COLUMN IF NOT EXISTS last_heartbeat_at" in s for s in executed_sql)
         assert any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql)
+        assert sum("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql) == 1
