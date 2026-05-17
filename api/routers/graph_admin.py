@@ -212,8 +212,9 @@ async def rebuild_graph(
                 _REBUILD_RUNTIME.clear_busy_after_contention()
             elif isinstance(root_exc, _DistributedLockLostError) and _REBUILD_RUNTIME.is_busy():
                 # Fallback for direct/test executor raises where the on_done
-                # callback path did not run cleanup. Normal future-based lock-loss
-                # cleanup is handled in on_done.
+                # callback path did not run cleanup (e.g. synchronous raises
+                # before/around future completion in monkeypatched tests).
+                # Normal future-based lock-loss cleanup is handled in on_done.
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
             raise _map_rebuild_error(exc) from None
         except Exception as exc:

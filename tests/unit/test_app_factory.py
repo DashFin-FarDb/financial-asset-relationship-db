@@ -78,7 +78,7 @@ async def test_lifespan_blocks_startup_when_reconciliation_is_execution_blocked(
 
     monkeypatch.setattr(
         "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
-        lambda: SimpleNamespace(asset_graph_database_url="sqlite:///./test.db"),
+        lambda: SimpleNamespace(asset_graph_database_url="sqlite:///:memory:"),
     )
     monkeypatch.setattr(app_factory, "get_graph", lambda: object())
     monkeypatch.setattr(
