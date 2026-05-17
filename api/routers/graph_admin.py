@@ -223,7 +223,7 @@ async def rebuild_graph(
             runtime_was_busy = _REBUILD_RUNTIME.is_busy()
             if runtime_was_busy:
                 _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
-                _log_rebuild_failed(user_ref=user_ref, error=str(exc))
+                _log_rebuild_failed(user_ref=user_ref, reason=str(exc))
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
             raise _map_rebuild_error(exc) from None
     finally:
