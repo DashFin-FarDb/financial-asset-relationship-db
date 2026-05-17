@@ -162,16 +162,21 @@ async def rebuild_graph(
             _log_rebuild_rejected(user_ref=user_ref)
         raise
 
+    # A mutable reference container to share logging states across async frames
+    tracking_state = {"audit_logged": False}
     lock_acquired = False
+    
     try:
         await rebuild_lock.acquire()
         lock_acquired = True
+        
         try:
             return await _run_rebuild_in_executor(
                 loop,
                 settings,
                 user_ref=user_ref,
                 started_at=started_at,
+                tracking_state=tracking_state,
             )
         except (
             HTTPException,
@@ -185,21 +190,40 @@ async def rebuild_graph(
             ExecutionBlockedError,
         ) as exc:
             root_exc = _unwrap_rebuild_error(exc)
-            if isinstance(root_exc, _DistributedLockAcquisitionError) and _REBUILD_RUNTIME.is_busy():
+            
+            # Defensive cleanups if the executor failed prematurely or was direct-raised
+            if isinstance(root_exc, _DistributedLockAcquisitionError):
                 _REBUILD_RUNTIME.clear_busy_after_contention()
-            elif isinstance(root_exc, _DistributedLockLostError) and _REBUILD_RUNTIME.is_busy():
+            else:
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
-            raise _map_rebuild_error(exc) from None
-        except Exception as exc:
-            if _REBUILD_RUNTIME.is_busy():
-                _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
+
+            # If the callback never completed to write the audit trace, write it now
+            if not tracking_state["audit_logged"]:
                 _log_rebuild_failed(
                     user_ref=user_ref,
                     exc=exc,
                     status_code=_rebuild_status_code(exc),
                     duration_ms=_duration_ms(started_at),
                 )
-                _REBUILD_RUNTIME.mark_idle(succeeded=False)
+                tracking_state["audit_logged"] = True
+
+            raise _map_rebuild_error(exc) from None
+            
+        except Exception as exc:
+            # Emit the structured critical alert sentinel identically to the callback path
+            _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
+            _REBUILD_RUNTIME.mark_idle(succeeded=False)
+            
+            # Ensure structural audit coverage for general unexpected programming errors
+            if not tracking_state["audit_logged"]:
+                _log_rebuild_failed(
+                    user_ref=user_ref,
+                    exc=exc,
+                    status_code=_rebuild_status_code(exc),
+                    duration_ms=_duration_ms(started_at),
+                )
+                tracking_state["audit_logged"] = True
+                
             raise _map_rebuild_error(exc) from None
     finally:
         if lock_acquired:
@@ -208,29 +232,13 @@ async def rebuild_graph(
             _REBUILD_RUNTIME.mark_idle(succeeded=False)
 
 
-def _rebuild_in_progress_error() -> HTTPException:
-    """Return the graph rebuild in-progress response."""
-    return HTTPException(
-        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-        detail=_REBUILD_IN_PROGRESS_MESSAGE,
-    )
-
-
-def _claim_rebuild_or_raise() -> asyncio.Lock:
-    """Claim rebuild execution or raise a fail-fast HTTP error."""
-    rebuild_lock = _REBUILD_RUNTIME.get_lock()
-    if _REBUILD_RUNTIME.is_busy() or rebuild_lock.locked():
-        raise _rebuild_in_progress_error()
-    _REBUILD_RUNTIME.mark_busy()
-    return rebuild_lock
-
-
 async def _run_rebuild_in_executor(
     loop: asyncio.AbstractEventLoop,
     settings: GraphLifecycleSettings,
     *,
     user_ref: str,
     started_at: float,
+    tracking_state: dict[str, bool],
 ) -> GraphRebuildResponse:
     """Run rebuild work in the dedicated executor."""
     ctx = contextvars.copy_context()
@@ -255,6 +263,7 @@ async def _run_rebuild_in_executor(
             status_code=_rebuild_status_code(exc),
             duration_ms=_duration_ms(started_at),
         )
+        tracking_state["audit_logged"] = True
         raise
 
     def on_done(done_future: asyncio.Future[GraphRebuildResponse]) -> None:
@@ -282,6 +291,7 @@ async def _run_rebuild_in_executor(
                     status_code=_rebuild_status_code(exc),
                     duration_ms=_duration_ms(started_at),
                 )
+            tracking_state["audit_logged"] = True
             return
         except _DistributedLockLostError as exc:
             _REBUILD_RUNTIME.mark_idle(succeeded=False)
@@ -291,6 +301,7 @@ async def _run_rebuild_in_executor(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 duration_ms=_duration_ms(started_at),
             )
+            tracking_state["audit_logged"] = True
             return
         except Exception as exc:
             _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
@@ -300,7 +311,8 @@ async def _run_rebuild_in_executor(
                 exc=exc,
                 status_code=_rebuild_status_code(exc),
                 duration_ms=_duration_ms(started_at),
-            )
+                )
+            tracking_state["audit_logged"] = True
             return
 
         _REBUILD_RUNTIME.mark_idle(succeeded=True)
@@ -309,9 +321,27 @@ async def _run_rebuild_in_executor(
             response=response,
             duration_ms=_duration_ms(started_at),
         )
+        tracking_state["audit_logged"] = True
 
     future.add_done_callback(on_done)
     return await asyncio.shield(future)
+
+
+def _rebuild_in_progress_error() -> HTTPException:
+    """Return the graph rebuild in-progress response."""
+    return HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail=_REBUILD_IN_PROGRESS_MESSAGE,
+    )
+
+
+def _claim_rebuild_or_raise() -> asyncio.Lock:
+    """Claim rebuild execution or raise a fail-fast HTTP error."""
+    rebuild_lock = _REBUILD_RUNTIME.get_lock()
+    if _REBUILD_RUNTIME.is_busy() or rebuild_lock.locked():
+        raise _rebuild_in_progress_error()
+    _REBUILD_RUNTIME.mark_busy()
+    return rebuild_lock
 
 
 def _map_rebuild_error(exc: Exception) -> HTTPException:
