@@ -530,6 +530,7 @@ def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception) -> None:
     """Emit a sentinel alert log for unexpected rebuild failures."""
     logger.critical(
         "graph_rebuild_unexpected_exception",
+        exc_info=exc,  # <-- ADD/ENSURE THIS IS HERE to retain the full stack trace for triage
         extra={
             "event": "graph_rebuild_unexpected_exception",
             "user_ref": user_ref,
