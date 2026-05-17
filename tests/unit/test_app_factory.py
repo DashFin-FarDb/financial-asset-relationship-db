@@ -127,10 +127,13 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
         "init_rebuild_executor",
         lambda: init_calls.append(True),
     )
+    def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
+        raise RuntimeError("reconciliation failed")
+
     monkeypatch.setattr(
         app_factory,
         "_run_startup_reconciliation",
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("reconciliation failed")),
+        _raise_reconciliation_failure,
     )
 
     async def fake_to_thread(fn, *args, **kwargs):
