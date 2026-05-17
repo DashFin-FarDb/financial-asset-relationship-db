@@ -250,9 +250,7 @@ class RecoveryGate:
         except sqlalchemy_exc.SQLAlchemyError as exc:
             return self._create_unsafe_decision_from_error(exc, "database error during rebuild state query")
         except Exception as exc:
-            return self._create_unsafe_decision_from_error(
-                exc, "unexpected error during rebuild state query", "error"
-            )
+            return self._create_unsafe_decision_from_error(exc, "unexpected error during rebuild state query", "error")
 
         # UNKNOWN state handling: distinguish between clean install vs wrong owner
         if lock_state == LockState.UNKNOWN:
