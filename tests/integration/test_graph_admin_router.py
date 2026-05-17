@@ -367,7 +367,7 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=False)  # pylint: disable=protected-access
         reset_graph()
 
 
