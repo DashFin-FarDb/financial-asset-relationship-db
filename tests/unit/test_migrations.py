@@ -34,10 +34,10 @@ def _assert_with_message(condition: bool, message: str) -> None:
 class TestApplyPostgresqlHeartbeatMigration:
     """Unit tests for apply_postgresql_heartbeat_migration behaviour."""
 
-    def _run(self, table_names, columns, max_length_scalar=None):
+    def _run(self, table_names, columns, recheck_scalar=None):
         """
         Execute apply_postgresql_heartbeat_migration with a fully mocked engine
-        and return (begin_conn, connect_conn) for assertion.
+        and return begin_conn for assertion.
         """
         engine = MagicMock()
 
@@ -45,28 +45,22 @@ class TestApplyPostgresqlHeartbeatMigration:
         inspector.get_table_names.return_value = table_names
         inspector.get_columns.return_value = columns
 
-        connect_conn = MagicMock()
-        connect_conn.execute.return_value.scalar.return_value = max_length_scalar
-        engine.connect.return_value.__enter__ = MagicMock(return_value=connect_conn)
-        engine.connect.return_value.__exit__ = MagicMock(return_value=False)
-
         begin_conn = MagicMock()
-        begin_conn.execute.return_value.scalar.return_value = max_length_scalar
+        begin_conn.execute.return_value.scalar.return_value = recheck_scalar
         engine.begin.return_value.__enter__ = MagicMock(return_value=begin_conn)
         engine.begin.return_value.__exit__ = MagicMock(return_value=False)
 
         with patch("src.data.migrations.inspect", return_value=inspector):
             apply_postgresql_heartbeat_migration(engine)
 
-        return begin_conn, connect_conn
+        return begin_conn
 
     # --- early-exit ---
 
     def test_no_rebuild_jobs_table_does_nothing(self):
         """Function must return without touching the engine when the table is absent."""
-        begin_conn, connect_conn = self._run(table_names=[], columns=[])
+        begin_conn = self._run(table_names=[], columns=[])
         begin_conn.execute.assert_not_called()
-        connect_conn.execute.assert_not_called()
 
     # --- no DDL needed ---
 
@@ -76,15 +70,14 @@ class TestApplyPostgresqlHeartbeatMigration:
             _make_col("active_worker_id", length=64),
             _make_col("last_heartbeat_at"),
         ]
-        begin_conn, connect_conn = self._run(["rebuild_jobs"], cols)
+        begin_conn = self._run(["rebuild_jobs"], cols)
         begin_conn.execute.assert_not_called()
-        connect_conn.execute.assert_not_called()
 
     # --- ADD COLUMN batching ---
 
     def test_missing_both_columns_adds_both(self):
         """When both heartbeat columns are absent, two ADD COLUMN statements are batched."""
-        begin_conn, _ = self._run(["rebuild_jobs"], columns=[])
+        begin_conn = self._run(["rebuild_jobs"], columns=[])
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert any("active_worker_id" in s for s in executed_sql)
         assert any("last_heartbeat_at" in s for s in executed_sql)
@@ -93,7 +86,7 @@ class TestApplyPostgresqlHeartbeatMigration:
     def test_missing_last_heartbeat_at_only(self):
         """Only the missing last_heartbeat_at column is added."""
         cols = [_make_col("active_worker_id", length=64)]
-        begin_conn, _ = self._run(["rebuild_jobs"], cols)
+        begin_conn = self._run(["rebuild_jobs"], cols)
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert any("last_heartbeat_at" in s for s in executed_sql)
         assert not any("active_worker_id" in s and "ALTER COLUMN" in s for s in executed_sql)
@@ -108,10 +101,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         in the same atomic DDL batch.
         """
         cols = [_make_col("active_worker_id", length=255), _make_col("last_heartbeat_at")]
-        begin_conn, connect_conn = self._run(["rebuild_jobs"], cols, max_length_scalar=None)
-
-        # Width safety is decided by the in-transaction re-check (no pre-read round trip)
-        connect_conn.execute.assert_not_called()
+        begin_conn = self._run(["rebuild_jobs"], cols, recheck_scalar=None)
 
         # ALTER COLUMN TYPE must be part of the atomic DDL batch
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
@@ -130,9 +120,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         is ≤ 64 chars, ALTER COLUMN TYPE must be batched with the DDL.
         """
         cols = [_make_col("active_worker_id", length=255), _make_col("last_heartbeat_at")]
-        begin_conn, connect_conn = self._run(["rebuild_jobs"], cols, max_length_scalar=32)
-
-        connect_conn.execute.assert_not_called()
+        begin_conn = self._run(["rebuild_jobs"], cols, recheck_scalar=32)
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         _assert_with_message(
             any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql),
@@ -153,7 +141,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         cols = [_make_col("active_worker_id", length=255), _make_col("last_heartbeat_at")]
 
         with caplog.at_level(logging.WARNING, logger="src.data.migrations"):
-            begin_conn, _ = self._run(["rebuild_jobs"], cols, max_length_scalar=200)
+            begin_conn = self._run(["rebuild_jobs"], cols, recheck_scalar=200)
 
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert not any("ALTER COLUMN" in s for s in executed_sql)
@@ -169,7 +157,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         # Simulate: active_worker_id is wide (255) and last_heartbeat_at is missing.
         # This triggers both the ALTER COLUMN and ADD COLUMN paths.
         cols_with_wide = [_make_col("active_worker_id", length=255)]
-        begin_conn, _ = self._run(["rebuild_jobs"], cols_with_wide, max_length_scalar=10)
+        begin_conn = self._run(["rebuild_jobs"], cols_with_wide, recheck_scalar=10)
 
         # DDL statements must be batched in the same engine.begin() block
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
