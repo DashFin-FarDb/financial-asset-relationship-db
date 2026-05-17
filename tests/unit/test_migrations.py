@@ -24,6 +24,7 @@ def _make_col(name: str, length: int | None = None) -> dict:
 
 
 class TestApplyPostgresqlHeartbeatMigration:
+    """Unit tests for apply_postgresql_heartbeat_migration behaviour."""
 
     def _run(self, table_names, columns, max_length_scalar=None):
         """
