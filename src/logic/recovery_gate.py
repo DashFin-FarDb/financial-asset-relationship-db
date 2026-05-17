@@ -260,9 +260,7 @@ class RecoveryGate:
             # Keep lock_is_valid=False so deterministic decision logic returns WAIT until lock
             # is explicitly acquired by rebuild execution path.
             if job is None:
-                logger.info(
-                    "Lock state is UNKNOWN with no active job; treating as clean-install WAIT " "until lock is acquired"
-                )
+                logger.info("Lock state is UNKNOWN with no active job; treating as clean install WAIT until lock is acquired")
                 lock_is_valid = False
             else:
                 logger.warning("Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)")

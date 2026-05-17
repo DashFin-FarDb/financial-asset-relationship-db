@@ -164,7 +164,13 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
         return
 
     columns = inspector.get_columns("rebuild_jobs")
-    existing_columns = {column["name"] for column in columns}
+    existing_columns = set()
+    active_worker_col = None
+    for column in columns:
+        name = column["name"]
+        existing_columns.add(name)
+        if name == "active_worker_id":
+            active_worker_col = column
     statements: list[str] = []
     if "active_worker_id" not in existing_columns:
         statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)")
@@ -173,12 +179,15 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
 
     # Normalize legacy widened active_worker_id columns (for example VARCHAR(255))
     # to the ORM width only when safe, avoiding truncation.
-    active_worker_col = next((column for column in columns if column["name"] == "active_worker_id"), None)
     if active_worker_col is not None:
         col_type = active_worker_col.get("type")
         col_length = getattr(col_type, "length", None)
         if isinstance(col_length, int) and col_length > 64:
             with engine.begin() as connection:
+                # MAX(LENGTH(...)) ignores NULL rows in PostgreSQL and returns None
+                # when the table is empty or all active_worker_id values are NULL.
+                # This is handled safely below: max_length=None is treated as safe
+                # to normalize because there are no values to truncate.
                 max_length = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
                 if max_length is None or max_length <= 64:
                     connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
