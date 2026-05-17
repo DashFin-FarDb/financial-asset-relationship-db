@@ -213,6 +213,10 @@ async def rebuild_graph(
             elif isinstance(root_exc, _DistributedLockLostError) and _REBUILD_RUNTIME.is_busy():
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
             raise _map_rebuild_error(exc) from None
+        except Exception as exc:
+            if _REBUILD_RUNTIME.is_busy():
+                _REBUILD_RUNTIME.mark_idle(succeeded=False)
+            raise _map_rebuild_error(exc) from None
     finally:
         if lock_acquired:
             rebuild_lock.release()
