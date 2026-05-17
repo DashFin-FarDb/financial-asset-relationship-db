@@ -214,6 +214,10 @@ async def rebuild_graph(
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
             raise _map_rebuild_error(exc) from None
         except Exception as exc:
+            logger.critical(
+                "Unexpected exception in rebuild_graph synchronous execution path",
+                exc_info=exc,
+            )
             if _REBUILD_RUNTIME.is_busy():
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
             raise _map_rebuild_error(exc) from None
