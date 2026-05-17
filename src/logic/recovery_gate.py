@@ -241,18 +241,18 @@ class RecoveryGate:
 
         lock_is_valid = lock_state == LockState.VALID
 
-        with self.session_factory() as session:
-            repo = AssetGraphRepository(session)
-            try:
+        try:
+            with self.session_factory() as session:
+                repo = AssetGraphRepository(session)
                 job = repo.get_active_rebuild_state()
-            except ValueError as exc:
-                return self._create_unsafe_decision_from_error(exc, "active rebuild state query failed")
-            except sqlalchemy_exc.SQLAlchemyError as exc:
-                return self._create_unsafe_decision_from_error(exc, "database error during rebuild state query")
-            except Exception as exc:
-                return self._create_unsafe_decision_from_error(
-                    exc, "unexpected error during rebuild state query", "error"
-                )
+        except ValueError as exc:
+            return self._create_unsafe_decision_from_error(exc, "active rebuild state query failed")
+        except sqlalchemy_exc.SQLAlchemyError as exc:
+            return self._create_unsafe_decision_from_error(exc, "database error during rebuild state query")
+        except Exception as exc:
+            return self._create_unsafe_decision_from_error(
+                exc, "unexpected error during rebuild state query", "error"
+            )
 
         # UNKNOWN state handling: distinguish between clean install vs wrong owner
         if lock_state == LockState.UNKNOWN:
