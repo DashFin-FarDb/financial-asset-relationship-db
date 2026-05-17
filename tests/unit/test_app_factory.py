@@ -166,7 +166,9 @@ def test_startup_reconciliation_does_not_release_lock_without_reset_reacquire(
         def ensure_safe_to_execute(self) -> None:
             raise ExecutionBlockedError("wait", action="wait", inconsistency_type="none")
 
-    monkeypatch.setattr("api.graph_lifecycle_providers.resolve_durable_graph_persistence_url", lambda _url: "sqlite:///x")
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.resolve_durable_graph_persistence_url", lambda _url: "sqlite:///x"
+    )
     monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
     monkeypatch.setattr("src.data.database.init_db", lambda _engine: None)
     monkeypatch.setattr("src.data.database.create_session_factory", lambda _engine: object())
@@ -193,7 +195,9 @@ def test_startup_reconciliation_releases_lock_when_reset_reacquired(
         def ensure_safe_to_execute(self) -> None:
             return None
 
-    monkeypatch.setattr("api.graph_lifecycle_providers.resolve_durable_graph_persistence_url", lambda _url: "sqlite:///x")
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.resolve_durable_graph_persistence_url", lambda _url: "sqlite:///x"
+    )
     monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
     monkeypatch.setattr("src.data.database.init_db", lambda _engine: None)
     monkeypatch.setattr("src.data.database.create_session_factory", lambda _engine: object())
