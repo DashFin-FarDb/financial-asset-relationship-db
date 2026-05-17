@@ -93,24 +93,22 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     from .graph_lifecycle_providers import resolve_durable_graph_persistence_url
     from .metrics import increment_recovery_trigger
 
-    persistence_url = resolve_durable_graph_persistence_url(
-        settings.asset_graph_database_url
-    )
+    persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(persistence_url)
     lock = None
-    
+
     try:
         # Apply schema migrations BEFORE running the gate so ORM queries succeed on
         # fresh installs and legacy databases lacking the heartbeat columns.
         init_db(engine)
-    
+
         session_factory = create_session_factory(engine)
         lock = DistributedLock(
             session_factory=session_factory,
             lock_name="graph_rebuild",
             ttl_seconds=_STARTUP_LOCK_TTL_SECONDS,
         )
-    
+
         gate = RecoveryGate(
             session_factory=session_factory,
             lock=lock,
@@ -118,7 +116,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
             runtime_has_active_executor=False,  # No executor yet at startup
             lock_ttl_seconds=_STARTUP_LOCK_TTL_SECONDS,
         )
-    
+
         # Evaluate state and act based on startup semantics:
         # - RESUME: consistent state, proceed.
         # - RESET: perform recovery then re-evaluate via ensure_safe_to_execute().
@@ -132,15 +130,12 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
             if exc.action == "wait" and exc.inconsistency_type == "none":
                 # WAIT with no detected inconsistency means the system state is clean
                 # but this process has not yet acquired the distributed lock.
-                logger.info(
-                    "Startup reconciliation allowing WAIT state; "
-                    "executor will acquire lock before rebuild"
-                )
+                logger.info("Startup reconciliation allowing WAIT state; " "executor will acquire lock before rebuild")
             else:
                 raise
-    
+
         logger.info("Startup reconciliation passed - executor initialization allowed")
-    
+
     finally:
         # Release the lock if RESET recovery acquired it.
         if lock is not None:
@@ -153,7 +148,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
                     lock.lock_name,
                     type(exc).__name__,
                 )
-    
+
         try:
             engine.dispose()
         except Exception as exc:  # pylint: disable=broad-exception-caught
