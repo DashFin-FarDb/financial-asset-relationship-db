@@ -218,7 +218,7 @@ async def rebuild_graph(
         except Exception as exc:
             runtime_was_busy = _REBUILD_RUNTIME.is_busy()
             if runtime_was_busy:
-                _log_unexpected_rebuild_callback_exception(user_ref=user_ref, exc=exc)
+                _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
                 logger.critical(
                     "Unexpected exception in rebuild_graph synchronous execution path",
                     extra={
@@ -330,7 +330,7 @@ async def _run_rebuild_in_executor(
             # Re-raising inside an add_done_callback does not propagate to the awaiter
             # (the future result is already consumed above), so we intentionally do not
             # re-raise here.
-            _log_unexpected_rebuild_callback_exception(user_ref=user_ref, exc=exc)
+            _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
             _REBUILD_RUNTIME.mark_idle(succeeded=False)
             _log_rebuild_failed(
                 user_ref=user_ref,
@@ -524,8 +524,8 @@ def _log_rebuild_failed(*, user_ref: str, exc: Exception, status_code: int, dura
     )
 
 
-def _log_unexpected_rebuild_callback_exception(*, user_ref: str, exc: Exception) -> None:
-    """Emit a sentinel alert log for unexpected callback failures."""
+def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception) -> None:
+    """Emit a sentinel alert log for unexpected rebuild failures."""
     logger.critical(
         "graph_rebuild_unexpected_exception",
         extra={
