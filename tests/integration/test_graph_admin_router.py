@@ -354,6 +354,7 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
         user_ref: str,
         started_at: float,
     ) -> graph_admin.GraphRebuildResponse:
+        """Simulate an executor that immediately raises a lock-loss error."""
         raise graph_admin._DistributedLockLostError("lost")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
