@@ -399,58 +399,51 @@ def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
     assert resolved.startswith("operator_FORGED=1__")
 
 
-async def test_rebuild_outcome_logging_survives_request_cancellation(
+async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Executor callback should log success even when the awaiting task is cancelled."""
-    response = graph_admin.GraphRebuildResponse(
-        status="persisted",
-        source="sample",
-        asset_count=1,
-        relationship_count=0,
-        regulatory_event_count=0,
-    )
+    """Callback logs success definitively when task is canceled while processing."""
+    thread_reached = threading.Event()
+    proceed_thread = threading.Event()
 
-    def slow_success(
-        _settings: graph_admin.GraphLifecycleSettings,
-        *,
-        user_ref: str,
-    ) -> graph_admin.GraphRebuildResponse:
-        """Simulate rebuild work that completes after await cancellation."""
-        time.sleep(0.05)
-        return response
+    def coordinated_sync_rebuild(*args, **kwargs):
+        thread_reached.set()  # Tell main loop thread has started
+        proceed_thread.wait(timeout=5.0)  # Safe bounded block
+        return graph_admin.GraphRebuildResponse(
+            status="persisted", source="coordinated", asset_count=5, relationship_count=2, regulatory_event_count=0
+        )
 
-    monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", slow_success)
-
-    settings = graph_admin.GraphLifecycleSettings(
-        asset_graph_database_url=None,
-        graph_cache_path=None,
-        real_data_cache_path=None,
-        use_real_data_fetcher=False,
-    )
-
-    graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
+    monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
+    graph_admin._REBUILD_RUNTIME.mark_busy()
 
     try:
         loop = asyncio.get_running_loop()
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
             task = asyncio.create_task(
-                graph_admin._run_rebuild_in_executor(  # pylint: disable=protected-access
-                    loop,
-                    settings,
-                    user_ref="admin",
+                graph_admin._run_rebuild_in_executor(
+                    loop, 
+                    graph_admin.get_graph_lifecycle_settings(), 
+                    user_ref="admin", 
                     started_at=time.perf_counter(),
+                    tracking_state={"audit_logged": False}
                 )
             )
-            await asyncio.sleep(0.01)
+            
+            # Wait cleanly until thread is safely active inside executor
+            await loop.run_in_executor(None, thread_reached.wait)
             task.cancel()
 
             with pytest.raises(asyncio.CancelledError):
                 await task
 
-            # Allow time for the executor thread to finish and log
-            await asyncio.sleep(0.12)
+            # Safe to let thread finish now
+            proceed_thread.set()
+            
+            # Await the underlying future's completion callback without timing guesses
+            underlying_future = task.get_stack()[0].f_locals.get('future') 
+            if underlying_future:
+                await asyncio.wrap_future(underlying_future)
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
@@ -467,6 +460,38 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
     assert succeeded_records[0].user_ref == "admin"
     assert succeeded_records[0].status_code == 200
 
+
+async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A raw programming error must emit an unexpected sentinel and exactly one audit log."""
+    async def fake_executor_bug(*args, **kwargs):
+        # Simulate a programming bug (e.g. referencing a missing attribute)
+        raise AttributeError("NoneType object has no attribute 'assets'")
+
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor_bug)
+
+    try:
+        with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(HTTPException) as exc_info:
+            await graph_admin.rebuild_graph(User(username="admin", disabled=False))
+        
+        assert exc_info.value.status_code == 500
+        
+        # Verify the explicit sentinel alert log was captured
+        sentinel_logs = [r for r in caplog.records if r.getMessage() == "graph_rebuild_unexpected_exception"]
+        assert len(sentinel_logs) == 1
+        assert sentinel_logs[0].levelname == "CRITICAL"
+        assert getattr(sentinel_logs[0], "exception_type") == "AttributeError"
+
+        # Verify exactly one failure audit event log was broadcast
+        audit_logs = [r for r in caplog.records if r.getMessage() == "graph_rebuild_audit"]
+        failed_audits = [r for r in audit_logs if getattr(r, "event", None) == "graph_rebuild_failed"]
+        assert len(failed_audits) == 1
+        assert failed_audits[0].failure_category == "unexpected_error"
+        
+    finally:
+        graph_admin.shutdown_rebuild_executor_sync()
 
 # ---------------------------------------------------------------------------
 # Rebuild Job Status Endpoints Tests
