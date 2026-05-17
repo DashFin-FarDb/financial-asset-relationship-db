@@ -422,14 +422,14 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
             task = asyncio.create_task(
                 graph_admin._run_rebuild_in_executor(
-                    loop, 
-                    graph_admin.get_graph_lifecycle_settings(), 
-                    user_ref="admin", 
+                    loop,
+                    graph_admin.get_graph_lifecycle_settings(),
+                    user_ref="admin",
                     started_at=time.perf_counter(),
-                    tracking_state={"audit_logged": False}
+                    tracking_state={"audit_logged": False},
                 )
             )
-            
+
             # Wait cleanly until thread is safely active inside executor
             await loop.run_in_executor(None, thread_reached.wait)
             task.cancel()
@@ -439,9 +439,9 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
             # Safe to let thread finish now
             proceed_thread.set()
-            
+
             # Await the underlying future's completion callback without timing guesses
-            underlying_future = task.get_stack()[0].f_locals.get('future') 
+            underlying_future = task.get_stack()[0].f_locals.get("future")
             if underlying_future:
                 await asyncio.wrap_future(underlying_future)
     finally:
@@ -466,6 +466,7 @@ async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A raw programming error must emit an unexpected sentinel and exactly one audit log."""
+
     async def fake_executor_bug(*args, **kwargs):
         # Simulate a programming bug (e.g. referencing a missing attribute)
         raise AttributeError("NoneType object has no attribute 'assets'")
@@ -475,9 +476,9 @@ async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
     try:
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="admin", disabled=False))
-        
+
         assert exc_info.value.status_code == 500
-        
+
         # Verify the explicit sentinel alert log was captured
         sentinel_logs = [r for r in caplog.records if r.getMessage() == "graph_rebuild_unexpected_exception"]
         assert len(sentinel_logs) == 1
@@ -489,9 +490,10 @@ async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
         failed_audits = [r for r in audit_logs if getattr(r, "event", None) == "graph_rebuild_failed"]
         assert len(failed_audits) == 1
         assert failed_audits[0].failure_category == "unexpected_error"
-        
+
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
+
 
 # ---------------------------------------------------------------------------
 # Rebuild Job Status Endpoints Tests
