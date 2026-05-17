@@ -357,11 +357,20 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
     if isinstance(root_exc, _DistributedLockLostError):
         return HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Distributed lock lost during rebuild.",
+            detail={
+                "code": "distributed_lock_lost_during_rebuild",
+                "message": "Distributed lock lost during rebuild.",
+            },
         )
 
     if isinstance(root_exc, ExecutionBlockedError):
-        return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(root_exc))
+        return HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "code": "execution_blocked",
+                "message": str(root_exc),
+            },
+        )
 
     if isinstance(
         root_exc,
