@@ -155,13 +155,14 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         # entire cleanup path and log only the exception type.
         try:
             if lock is not None:
+        # Release unconditionally - release() is safe if lock not held
+                # and avoids leak if check_state() throws
                 try:
-                    if lock.check_state() == LockState.VALID:
-                        lock.release()
-                        logger.debug("Released startup reconciliation lock after recovery")
+                    lock.release()
+                    logger.debug("Released startup reconciliation lock after recovery")
                 except Exception as exc:
                     logger.warning(
-                        "Failed startup reconciliation lock cleanup for %s: %s",
+                        "Failed startup reconciliation lock release for %s: %s",
                         lock.lock_name,
                         type(exc).__name__,
                     )
