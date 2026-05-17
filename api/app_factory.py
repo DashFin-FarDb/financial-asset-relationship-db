@@ -179,18 +179,6 @@ async def lifespan(_fastapi_app: FastAPI):
         # Stage 5C.2: Run recovery gate before executor initialization
         # Block startup on explicit recovery-gate safety blocks; only unexpected
         # reconciliation failures are downgraded to bounded warnings.
-        if has_durable_graph_persistence:
-            try:
-                await asyncio.to_thread(_run_startup_reconciliation, settings)
-            except ExecutionBlockedError:
-                raise
-            except Exception as exc:
-                # Ensure schema init runs before executor start; log only exception
-                # types to avoid DSN/credential leakage.
-                logger.warning(
-                    "Startup reconciliation failed; attempting defensive init: %s",
-                    type(exc).__name__,
-                )
                 persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
                 engine = create_engine_from_url(persistence_url)
                 try:
