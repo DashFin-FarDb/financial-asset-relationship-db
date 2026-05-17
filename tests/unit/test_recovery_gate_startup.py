@@ -49,9 +49,7 @@ def test_startup_reconciliation_passes_with_consistent_state(mock_session_factor
         gate.ensure_safe_to_execute()
 
 
-def test_startup_reconciliation_allows_unknown_lock_with_no_active_job(
-    mock_session_factory, mock_lock
-):
+def test_startup_reconciliation_allows_unknown_lock_with_no_active_job(mock_session_factory, mock_lock):
     """Test that startup reconciliation allows UNKNOWN lock state with no active job."""
     # Setup: clean install / startup path with no active job in DB
     mock_session = mock_session_factory.return_value.__enter__.return_value
