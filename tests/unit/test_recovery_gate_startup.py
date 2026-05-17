@@ -247,5 +247,3 @@ def test_startup_reconciliation_reacquires_lock_before_reset(mock_session_factor
         mock_lock.acquire.assert_called_once()
         # Verify RESET was performed
         mock_repo.mark_rebuild_job_failed.assert_called_once()
-
-
