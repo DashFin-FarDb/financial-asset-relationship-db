@@ -291,7 +291,14 @@ async def _run_rebuild_in_executor(
                     duration_ms=_duration_ms(started_at),
                 )
                 return
-            # Re-raise other RuntimeErrors
+            _REBUILD_RUNTIME.mark_idle(succeeded=False)
+            _log_rebuild_failed(
+                user_ref=user_ref,
+                exc=exc,
+                status_code=500,
+                duration_ms=_duration_ms(started_at),
+            )
+            # Re-raise to avoid swallowing unexpected runtime failures
             raise
         except Exception as exc:
             # Catch-all for unexpected errors from rebuild execution
