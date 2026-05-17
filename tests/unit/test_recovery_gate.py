@@ -113,6 +113,7 @@ def test_recovery_gate_lost_state_does_not_attempt_reset(mock_session_factory, m
     with pytest.raises(ExecutionBlockedError, match="action=unsafe"):
         gate.ensure_safe_to_execute()
 
+    mock_session_factory.assert_not_called()
     # LOST-specific verification: no lock reacquisition attempted (no RESET recovery)
     mock_lock.acquire.assert_not_called()
 
