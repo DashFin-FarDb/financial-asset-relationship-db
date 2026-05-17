@@ -511,18 +511,25 @@ def _rebuild_source_from_exception(exc: Exception) -> GraphRebuildSource | None:
     return None
 
 
-def _log_rebuild_failed(*, user_ref: str, exc: Exception, status_code: int, duration_ms: int) -> None:
+def _log_rebuild_failed(
+    *,
+    user_ref: str,
+    exc: Exception,
+    status_code: int,
+    duration_ms: int,
+) -> None:
     """Emit a bounded audit event for rebuild failure."""
     category = _rebuild_failure_category(exc)
     REBUILD_FAILURE.labels(category=category).inc()
     REBUILD_DURATION.observe(duration_ms / 1000.0)
+
     logger.error(
         "graph_rebuild_audit",
         extra={
             "event": _REBUILD_AUDIT_FAILED,
             "user_ref": user_ref,
             "path": _REBUILD_PATH,
-            "failure_category": _rebuild_failure_category(exc),
+            "failure_category": category,  # Reused the computed variable
             "status_code": status_code,
             "duration_ms": duration_ms,
             "source": _rebuild_source_from_exception(exc),
