@@ -165,11 +165,11 @@ async def rebuild_graph(
     # A mutable reference container to share logging states across async frames
     tracking_state = {"audit_logged": False}
     lock_acquired = False
-    
+
     try:
         await rebuild_lock.acquire()
         lock_acquired = True
-        
+
         try:
             return await _run_rebuild_in_executor(
                 loop,
@@ -190,7 +190,7 @@ async def rebuild_graph(
             ExecutionBlockedError,
         ) as exc:
             root_exc = _unwrap_rebuild_error(exc)
-            
+
             # Defensive cleanups if the executor failed prematurely or was direct-raised
             if isinstance(root_exc, _DistributedLockAcquisitionError):
                 _REBUILD_RUNTIME.clear_busy_after_contention()
@@ -208,12 +208,12 @@ async def rebuild_graph(
                 tracking_state["audit_logged"] = True
 
             raise _map_rebuild_error(exc) from None
-            
+
         except Exception as exc:
             # Emit the structured critical alert sentinel identically to the callback path
             _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
             _REBUILD_RUNTIME.mark_idle(succeeded=False)
-            
+
             # Ensure structural audit coverage for general unexpected programming errors
             if not tracking_state["audit_logged"]:
                 _log_rebuild_failed(
@@ -223,7 +223,7 @@ async def rebuild_graph(
                     duration_ms=_duration_ms(started_at),
                 )
                 tracking_state["audit_logged"] = True
-                
+
             raise _map_rebuild_error(exc) from None
     finally:
         if lock_acquired:
@@ -311,7 +311,7 @@ async def _run_rebuild_in_executor(
                 exc=exc,
                 status_code=_rebuild_status_code(exc),
                 duration_ms=_duration_ms(started_at),
-                )
+            )
             tracking_state["audit_logged"] = True
             return
 
