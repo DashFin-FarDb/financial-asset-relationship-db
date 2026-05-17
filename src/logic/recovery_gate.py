@@ -28,11 +28,18 @@ class ExecutionBlockedError(Exception):
     to distinguish between specific blocking reasons — without re-running the
     gate evaluation — can inspect this attribute instead of parsing the message.
 
-    The ``inconsistency_type`` attribute carries the string value of the detected
-    ``InconsistencyType`` (e.g. ``"none"``, ``"orphaned_running"``).  Together
-    with ``action``, it allows callers to determine whether a ``WAIT`` block is
-    a benign clean-install case (``action="wait", inconsistency_type="none"``) or
-    a genuine inconsistency that should block execution.
+    The ``inconsistency_type`` attribute usually carries the string value of the
+    detected ``InconsistencyType`` (e.g. ``"none"``, ``"orphaned_running"``).
+    Together with ``action``, it allows callers to determine whether a ``WAIT``
+    block is a benign clean-install case
+    (``action="wait", inconsistency_type="none"``) or a genuine inconsistency
+    that should block execution.
+
+    Note that ``inconsistency_type`` may legitimately be ``None`` for early-return
+    blocking paths that do not have a specific inconsistency classification,
+    including LOST, UNKNOWN-with-active-job, and reset-failure/error paths.
+    Callers should therefore treat ``None`` distinctly rather than assuming every
+    blocking decision uses a string such as ``"none"``.
     """
 
     def __init__(self, message: str, action: str | None = None, inconsistency_type: str | None = None) -> None:
