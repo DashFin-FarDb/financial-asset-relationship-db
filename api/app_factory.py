@@ -130,7 +130,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
             if exc.action == "wait" and exc.inconsistency_type == "none":
                 # WAIT with no detected inconsistency means the system state is clean
                 # but this process has not yet acquired the distributed lock.
-                logger.info("Startup reconciliation allowing WAIT state; " "executor will acquire lock before rebuild")
+                logger.info("Startup reconciliation allowing WAIT state; executor will acquire lock before rebuild")
             else:
                 raise
 
