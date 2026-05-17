@@ -190,14 +190,17 @@ async def rebuild_graph(
             ExecutionBlockedError,
         ) as exc:
             root_exc = _unwrap_rebuild_error(exc)
-
-            # Defensive cleanups if the executor failed prematurely or was direct-raised
+            
+            # If it's a lock contention error, handle it cleanly as a rejection
             if isinstance(root_exc, _DistributedLockAcquisitionError):
                 _REBUILD_RUNTIME.clear_busy_after_contention()
+                # Intercept here: on_done has already handled the _log_rebuild_rejected event.
+                # Flag it as accounted for so the general fallback failure block doesn't trigger.
+                tracking_state["audit_logged"] = True
             else:
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
 
-            # If the callback never completed to write the audit trace, write it now
+            # Defensive safety net: If the callback never completed to write any audit trace, write it now
             if not tracking_state["audit_logged"]:
                 _log_rebuild_failed(
                     user_ref=user_ref,
