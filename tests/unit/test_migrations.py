@@ -177,15 +177,17 @@ class TestApplyPostgresqlHeartbeatMigration:
         # Only last_heartbeat_at is present; active_worker_id is VARCHAR(255)
         cols = [_make_col("last_heartbeat_at")]
 
-        # Simulate: active_worker_id discovered via inspector columns list
-        # but reported as wide — achieved by returning it with length=255
-        # yet absent from existing_columns (we omit it from cols above)
-        cols_with_wide = [_make_col("active_worker_id", length=255), _make_col("last_heartbeat_at")]
+        # Simulate: active_worker_id is wide (255) and last_heartbeat_at is missing.
+        # This triggers both the ALTER COLUMN and ADD COLUMN paths.
+        cols_with_wide = [_make_col("active_worker_id", length=255)]
         begin_conn, _ = self._run(["rebuild_jobs"], cols_with_wide, max_length_scalar=10)
-
-        # Both ALTER COLUMN TYPE (normalise) must be in the same begin() block
-        # — engine.begin() called exactly once
-        assert begin_conn.execute.call_count >= 1
+        
+        # Both statements must be batched in the same engine.begin() block
+        assert begin_conn.execute.call_count == 2
+        executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
+        assert any("ADD COLUMN IF NOT EXISTS last_heartbeat_at" in s for s in executed_sql)
+        assert any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql)
+                assert begin_conn.execute.call_count >= 1
         from src.data.migrations import apply_postgresql_heartbeat_migration as fn  # noqa
 
         # Verify engine.begin was used (not engine.connect) for DDL
