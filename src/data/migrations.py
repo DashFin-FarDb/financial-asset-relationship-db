@@ -191,11 +191,16 @@ def _check_width_normalization_needed(engine: Engine, active_worker_col: dict | 
 def _apply_normalization_in_transaction(connection, needs_width_normalization: bool) -> None:
     """
     Conditionally narrow active_worker_id to VARCHAR(64) inside an open
-    DDL transaction, with a re-check to close the race window.
+    DDL transaction.
+
+    Acquire a table lock before re-checking widths so concurrent writers
+    cannot insert or update values that would cause the subsequent ALTER
+    COLUMN to fail.
     """
     if not needs_width_normalization:
         return
 
+    connection.execute(text("LOCK TABLE rebuild_jobs IN ACCESS EXCLUSIVE MODE"))
     recheck = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
     if recheck is None or recheck <= 64:
         connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
