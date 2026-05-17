@@ -17,7 +17,7 @@ Stage 5C.1 established:
 - `RecoveryGate` blocks execution on UNKNOWN/LOST lock states
 - `LockState` enum includes all required states (VALID, EXPIRED, UNKNOWN, LOST)
 - `check_distributed_lock_state()` returns appropriate states
-- `RecoverayGate.ensure_safe_to_execute()` performs RESET recovery automatically
+- `RecoveryGate.ensure_safe_to_execute()` performs RESET recovery automatically
 - Lock reacquisition before RESET operations (prevents split-brain)
 - Owner mismatch detection with heartbeat validation
 
