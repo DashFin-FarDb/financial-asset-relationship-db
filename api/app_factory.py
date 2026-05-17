@@ -93,21 +93,24 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     from .graph_lifecycle_providers import resolve_durable_graph_persistence_url
     from .metrics import increment_recovery_trigger
 
-    persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    persistence_url = resolve_durable_graph_persistence_url(
+        settings.asset_graph_database_url
+    )
     engine = create_engine_from_url(persistence_url)
     lock = None
+    
     try:
         # Apply schema migrations BEFORE running the gate so ORM queries succeed on
         # fresh installs and legacy databases lacking the heartbeat columns.
         init_db(engine)
-
+    
         session_factory = create_session_factory(engine)
         lock = DistributedLock(
             session_factory=session_factory,
             lock_name="graph_rebuild",
             ttl_seconds=_STARTUP_LOCK_TTL_SECONDS,
         )
-
+    
         gate = RecoveryGate(
             session_factory=session_factory,
             lock=lock,
@@ -115,65 +118,49 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
             runtime_has_active_executor=False,  # No executor yet at startup
             lock_ttl_seconds=_STARTUP_LOCK_TTL_SECONDS,
         )
-
+    
         # Evaluate state and act based on startup semantics:
         # - RESUME: consistent state, proceed.
         # - RESET: perform recovery then re-evaluate via ensure_safe_to_execute().
         # - WAIT: at startup, WAIT always means "no inconsistency but lock not yet acquired"
-        #   (clean install or previous lock expired naturally).  The executor will
+        #   (clean install or previous lock expired naturally). The executor will
         #   acquire the lock before any rebuild, so this is safe to allow.
         # - UNSAFE: block startup.
-        #
-        # ensure_safe_to_execute() handles RESET automatically and exposes the
-        # blocking action via ExecutionBlockedError.action so the WAIT case can be
-        # allowed here without a second gate evaluation (which would double-count metrics).
         try:
             gate.ensure_safe_to_execute()
         except ExecutionBlockedError as exc:
             if exc.action == "wait" and exc.inconsistency_type == "none":
                 # WAIT with no detected inconsistency means the system state is clean
                 # but this process has not yet acquired the distributed lock.
-                # This occurs on clean installs (no prior lock record) and when the
-                # previous lock expired naturally between two rebuild attempts.
-                # Allow startup; the executor will acquire the lock before any rebuild.
-                # WAIT from genuine inconsistencies (e.g. CRASH_SUSPICION, STALE_OWNERSHIP)
-                # still blocks startup via the else branch below.
-                logger.info("Startup reconciliation allowing WAIT state; executor will acquire lock before rebuild")
+                logger.info(
+                    "Startup reconciliation allowing WAIT state; "
+                    "executor will acquire lock before rebuild"
+                )
             else:
                 raise
-
+    
         logger.info("Startup reconciliation passed - executor initialization allowed")
+    
     finally:
-        # Release the lock if RESET recovery acquired it.  check_state() returns
-        # VALID only when *our* holder_id owns the current lock row, so this is
-        # safe even if another process holds the lock.  Releasing here ensures
-        # the service does not block rebuild requests for up to TTL seconds after
-        # a successful recovery.
-        #
-        # Cleanup must never override the primary startup failure.  In particular,
-        # lock.check_state() may now re-raise unexpected exceptions, so bound the
-        # entire cleanup path and log only the exception type.
-        try:
-            if lock is not None:
-                # Release unconditionally - release() is safe if lock not held
-                # and avoids leak if check_state() throws
-                try:
-                    lock.release()
-                    logger.debug("Released startup reconciliation lock after recovery")
-                except Exception as exc:
-                    logger.warning(
-                        "Failed startup reconciliation lock release for %s: %s",
-                        lock.lock_name,
-                        type(exc).__name__,
-                    )
-        finally:
+        # Release the lock if RESET recovery acquired it.
+        if lock is not None:
             try:
-                engine.dispose()
-            except Exception as exc:
+                lock.release()
+                logger.debug("Released startup reconciliation lock after recovery")
+            except Exception as exc:  # pylint: disable=broad-exception-caught
                 logger.warning(
-                    "Failed during startup reconciliation cleanup: %s",
+                    "Failed startup reconciliation lock release for %s: %s",
+                    lock.lock_name,
                     type(exc).__name__,
                 )
+    
+        try:
+            engine.dispose()
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            logger.warning(
+                "Failed during startup reconciliation cleanup: %s",
+                type(exc).__name__,
+            )
 
 
 @asynccontextmanager
