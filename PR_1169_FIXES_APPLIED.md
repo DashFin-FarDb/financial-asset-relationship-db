@@ -1,64 +1,7 @@
-# PR #1169 Review Comment Fixes - Implementation Summary
+# Removed PR-specific review tracking
 
-## Overview
-
-This document summarizes the fixes applied to address critical and high-priority issues identified in the code review of PR #1169 (Recovery Gate and Lock Failure Hardening).
-
-## Fixes Applied
-
-### Critical Issue #1: Lock Not Released After RESET Recovery in Startup ✅
-
-**File:** `api/app_factory.py`
-**Lines:** 82-115
-**Priority:** P1 (Critical - Production Blocking)
-
-**Problem:** Startup reconciliation could leave the distributed rebuild lock held after RESET recovery, blocking rebuilds until TTL expiry (default 5 minutes).
-
-**Solution:** Added explicit lock release in the `finally` block of `_run_startup_reconciliation()`:
-
-```python
-finally:
-    # Release lock if it was acquired during RESET recovery
-    # This prevents blocking rebuilds until TTL expiry
-    if lock is not None:
-        try:
-            lock.release()
-        except Exception as exc:
-            logger.warning(
-                "Failed to release startup reconciliation lock: %s",
-                type(exc).__name__,
-            )
-    engine.dispose()
-```
-
-**Impact:** Prevents production rebuild operations from being blocked after startup reconciliation performs RESET recovery.
-
----
-
-### Critical Issue #2: Lock Loss Race Leaves Rebuild State Stuck ✅
-
-**File:** `api/routers/graph_admin.py`
-**Lines:** 257-270
-**Priority:** P1 (Critical - Production Blocking)
-
-**Problem:** `RuntimeError` exceptions raised during lock loss were not caught in the `on_done` callback, preventing `mark_idle()` from being called and leaving the rebuild lifecycle state stuck busy.
-
-**Solution:** Added `RuntimeError` to the exception tuple in the `on_done` callback:
-
-```python
-except (
-    HTTPException,
-    _RebuildExecutionError,
-    _DistributedLockAcquisitionError,
-    GraphPersistenceNonDurableError,
-    GraphPersistenceNotConfiguredError,
-    GraphPersistenceSaveError,
-    GraphRebuildSourceError,
-    ExecutionBlockedError,
-    RuntimeError,  # Catch lock-loss RuntimeErrors to ensure mark_idle is called
-) as exc:
-```
-
+This file previously contained PR-specific review and fix-tracking notes.
+Such transient implementation history should live in the PR discussion or review tools rather than in committed repository documentation.
 **Impact:** Ensures rebuild lifecycle state is properly cleaned up even when lock is lost during execution.
 
 ---
