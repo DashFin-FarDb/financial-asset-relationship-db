@@ -88,9 +88,7 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
         resolved_file = migration_file.resolve()
         resolved_file.relative_to(migrations_dir)
     except (ValueError, OSError) as exc:
-        raise ValueError(
-            f"Migration file {migration_file} is not within trusted migrations directory"
-        ) from exc
+        raise ValueError(f"Migration file {migration_file} is not within trusted migrations directory") from exc
 
     if not resolved_file.is_file():
         raise ValueError(f"Migration file {migration_file} does not exist")
@@ -129,6 +127,7 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
     for col_name, alter_statement in HEARTBEAT_COLUMNS.items():
         if col_name not in existing_columns:
             connection.execute(alter_statement)  # noqa: S3649
+
 
 # ---------------------------------------------------------------------------
 # Private helpers for apply_postgresql_heartbeat_migration
