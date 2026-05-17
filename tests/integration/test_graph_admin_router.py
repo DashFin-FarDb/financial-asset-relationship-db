@@ -178,15 +178,15 @@ def test_rebuild_returns_403_for_active_non_operator_user(non_operator_client: T
 
 
 def test_rebuild_allows_active_authorized_operator_user(
-    operator_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
+        operator_client: TestClient,
+        monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Authorized operator should retain rebuild happy path behavior."""
 
     def fake_rebuild(
-        _settings: graph_admin.GraphLifecycleSettings,
-        *,
-        user_ref: str,
+            _settings: graph_admin.GraphLifecycleSettings,
+            *,
+            user_ref: str,
     ) -> graph_admin.GraphRebuildResponse:
         """Return a mock successful GraphRebuildResponse."""
         return graph_admin.GraphRebuildResponse(
