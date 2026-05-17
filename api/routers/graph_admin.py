@@ -899,6 +899,7 @@ def _execute_rebuild_pipeline(
             resolved_url=resolved_url,
             source=source,
         )
+        raise
 
 
 def _perform_rebuild_and_persist_sync(
