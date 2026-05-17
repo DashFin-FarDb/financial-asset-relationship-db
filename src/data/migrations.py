@@ -67,6 +67,7 @@ def apply_migrations(db_path: Path | str) -> None:
 # Private helpers for apply_postgresql_heartbeat_migration
 # ---------------------------------------------------------------------------
 
+
 def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
     """
     Return (add_column_statements, active_worker_col_meta).
@@ -88,13 +89,9 @@ def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
 
     statements: list[str] = []
     if "active_worker_id" not in existing:
-        statements.append(
-            "ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)"
-        )
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)")
     if "last_heartbeat_at" not in existing:
-        statements.append(
-            "ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ"
-        )
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ")
     return statements, active_worker_col
 
 
@@ -113,9 +110,7 @@ def _check_width_normalization_needed(engine: Engine, active_worker_col: dict | 
         return False
 
     with engine.connect() as conn:
-        max_length = conn.execute(
-            text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")
-        ).scalar()
+        max_length = conn.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
 
     if max_length is None or max_length <= 64:
         return True
@@ -135,13 +130,9 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
     if not needs_width_normalization:
         return
 
-    recheck = connection.execute(
-        text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")
-    ).scalar()
+    recheck = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
     if recheck is None or recheck <= 64:
-        connection.execute(
-            text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)")
-        )
+        connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
     else:
         logger.warning(
             "Skipping active_worker_id width normalization: max length=%s exceeds 64 (re-check)",
@@ -152,6 +143,7 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     """
