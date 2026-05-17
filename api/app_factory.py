@@ -86,8 +86,6 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         ExecutionBlockedError: If recovery gate blocks execution.
         Exception: If recovery gate evaluation fails.
     """
-    from sqlalchemy.exc import SQLAlchemyError
-
     from src.data.database import create_engine_from_url, create_session_factory, init_db
     from src.data.distributed_lock import DistributedLock, LockState
     from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
