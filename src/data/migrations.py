@@ -183,6 +183,7 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     # transaction so its result can be used to decide whether to enqueue the ALTER
     # COLUMN statement.  All DDL (ADD COLUMN and ALTER COLUMN TYPE) then runs
     # atomically inside the single engine.begin() block below.
+    needs_width_normalization = False
     if active_worker_col is not None:
         col_type = active_worker_col.get("type")
         col_length = getattr(col_type, "length", None)
@@ -191,18 +192,36 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
             # when the table is empty or all active_worker_id values are NULL.
             # max_length=None is treated as safe to normalize (no values to truncate).
             with engine.connect() as connection:
-                max_length = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
+                max_length = connection.execute(
+                    text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")
+                ).scalar()
             if max_length is None or max_length <= 64:
-                statements.append("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)")
+                needs_width_normalization = True
             else:
                 logger.warning(
                     "Skipping active_worker_id width normalization: max length=%s exceeds 64",
                     max_length,
                 )
 
-    if not statements:
+    if not statements and not needs_width_normalization:
         return
 
     with engine.begin() as connection:
         for statement in statements:
             connection.execute(text(statement))
+        if needs_width_normalization:
+            # Re-check inside the DDL transaction to narrow the race window:
+            # a concurrent session could have inserted a longer value between
+            # the pre-check above and the ACCESS EXCLUSIVE lock acquired here.
+            recheck = connection.execute(
+                text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")
+            ).scalar()
+            if recheck is None or recheck <= 64:
+                connection.execute(
+                    text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)")
+                )
+            else:
+                logger.warning(
+                    "Skipping active_worker_id width normalization: max length=%s exceeds 64 (re-check)",
+                    recheck,
+                )
