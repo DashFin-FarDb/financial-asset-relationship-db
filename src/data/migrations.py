@@ -63,6 +63,73 @@ def apply_migrations(db_path: Path | str) -> None:
             _apply_upgrade_002_heartbeat_columns(connection)
 
 
+# src/data/migrations.py  (insert after apply_migrations(), before the PostgreSQL helpers section)
+
+# ---------------------------------------------------------------------------
+# Private helpers for apply_migrations (SQLite)
+# ---------------------------------------------------------------------------
+
+
+def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -> None:
+    """
+    Apply a SQL migration script from a trusted file path.
+
+    Args:
+        connection: SQLite connection.
+        migration_file: Path to the SQL file. Must be within the migrations directory
+            and listed in the ALLOWED_MIGRATIONS whitelist.
+
+    Raises:
+        ValueError: If migration file path is invalid, outside migrations directory,
+            or not in the allowed migrations whitelist.
+    """
+    migrations_dir = Path(__file__).resolve().parents[2] / "migrations"
+    try:
+        resolved_file = migration_file.resolve()
+        resolved_file.relative_to(migrations_dir)
+    except (ValueError, OSError) as exc:
+        raise ValueError(
+            f"Migration file {migration_file} is not within trusted migrations directory"
+        ) from exc
+
+    if not resolved_file.is_file():
+        raise ValueError(f"Migration file {migration_file} does not exist")
+
+    if resolved_file.suffix.lower() != ".sql":
+        raise ValueError(f"Migration file {migration_file} must have .sql extension")
+
+    if resolved_file.name not in ALLOWED_MIGRATIONS:
+        raise ValueError(
+            f"Migration file {resolved_file.name} is not in the allowed migrations whitelist. "
+            f"Allowed: {sorted(ALLOWED_MIGRATIONS)}"
+        )
+
+    trusted_migration_sql = resolved_file.read_text(encoding="utf-8")  # noqa: S3649
+    connection.executescript(trusted_migration_sql)  # nosec B608  # noqa: S3649
+
+
+def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None:
+    """
+    Apply migration 002 (add heartbeat columns) conditionally.
+
+    Checks if columns exist before running ALTER TABLE statements,
+    since SQLite's ALTER TABLE ADD COLUMN is not idempotent.
+
+    Args:
+        connection: SQLite connection.
+    """
+    cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
+    existing_columns = {row[1] for row in cursor}
+
+    HEARTBEAT_COLUMNS = {
+        "active_worker_id": "ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id TEXT",
+        "last_heartbeat_at": "ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TEXT",
+    }
+
+    for col_name, alter_statement in HEARTBEAT_COLUMNS.items():
+        if col_name not in existing_columns:
+            connection.execute(alter_statement)  # noqa: S3649
+
 # ---------------------------------------------------------------------------
 # Private helpers for apply_postgresql_heartbeat_migration
 # ---------------------------------------------------------------------------
