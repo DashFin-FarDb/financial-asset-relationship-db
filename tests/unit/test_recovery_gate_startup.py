@@ -160,7 +160,6 @@ def test_startup_reconciliation_blocks_on_db_error(mock_session_factory, mock_lo
     """Test that startup reconciliation blocks when DB query fails."""
     from sqlalchemy.exc import OperationalError
 
-    mock_session = mock_session_factory.return_value.__enter__.return_value
     mock_repo = MagicMock()
     mock_repo.get_active_rebuild_state.side_effect = OperationalError(
         "DB connection failed", params=None, orig=Exception("Connection error")
