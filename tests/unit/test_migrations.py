@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, call, patch
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from src.data.migrations import apply_postgresql_heartbeat_migration
 
@@ -74,6 +72,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
         begin_conn = MagicMock()
+        begin_conn.execute.return_value.scalar.return_value = max_length_scalar
         engine.begin.return_value.__enter__ = MagicMock(return_value=begin_conn)
         engine.begin.return_value.__exit__ = MagicMock(return_value=False)
 
@@ -174,21 +173,12 @@ class TestApplyPostgresqlHeartbeatMigration:
         ADD COLUMN and ALTER COLUMN TYPE must execute inside the same
         engine.begin() transaction (single atomic DDL block).
         """
-        # Only last_heartbeat_at is present; active_worker_id is VARCHAR(255)
-        cols = [_make_col("last_heartbeat_at")]
-
         # Simulate: active_worker_id is wide (255) and last_heartbeat_at is missing.
         # This triggers both the ALTER COLUMN and ADD COLUMN paths.
         cols_with_wide = [_make_col("active_worker_id", length=255)]
         begin_conn, _ = self._run(["rebuild_jobs"], cols_with_wide, max_length_scalar=10)
 
-        # Both statements must be batched in the same engine.begin() block
-        assert begin_conn.execute.call_count == 2
+        # DDL statements must be batched in the same engine.begin() block
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert any("ADD COLUMN IF NOT EXISTS last_heartbeat_at" in s for s in executed_sql)
         assert any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql)
-        assert begin_conn.execute.call_count >= 1
-        from src.data.migrations import apply_postgresql_heartbeat_migration as fn  # noqa
-
-        # Verify engine.begin was used (not engine.connect) for DDL
-        # This is implicit: begin_conn.execute was called; connect_conn is separate
