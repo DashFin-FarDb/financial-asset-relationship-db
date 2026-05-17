@@ -138,18 +138,22 @@ def test_startup_reconciliation_blocks_on_lost_lock_state(mock_session_factory, 
 
 
 def test_startup_reconciliation_blocks_on_unknown_lock_state(mock_session_factory, mock_lock):
-    """Test that startup reconciliation blocks when lock state is UNKNOWN."""
+    """Test that startup reconciliation blocks when lock state is UNKNOWN and a job is active."""
     mock_lock.check_state.return_value = LockState.UNKNOWN
 
-    gate = RecoveryGate(
-        session_factory=mock_session_factory,
-        lock=mock_lock,
-        runtime_has_active_executor=False,
-        lock_ttl_seconds=300,
-    )
+    mock_repo = MagicMock()
+    mock_repo.get_active_rebuild_state.return_value = MagicMock(spec=RebuildJobORM)
 
-    with pytest.raises(ExecutionBlockedError, match="Execution blocked"):
-        gate.ensure_safe_to_execute()
+    with patch("src.logic.recovery_gate.AssetGraphRepository", return_value=mock_repo):
+        gate = RecoveryGate(
+            session_factory=mock_session_factory,
+            lock=mock_lock,
+            runtime_has_active_executor=False,
+            lock_ttl_seconds=300,
+        )
+
+        with pytest.raises(ExecutionBlockedError, match=r"Execution blocked: action=unsafe"):
+            gate.ensure_safe_to_execute()
 
 
 def test_startup_reconciliation_blocks_on_db_error(mock_session_factory, mock_lock):
