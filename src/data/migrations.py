@@ -224,6 +224,7 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
         )
         return
 
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
