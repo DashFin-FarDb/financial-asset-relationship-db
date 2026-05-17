@@ -414,12 +414,13 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     """Callback logs success definitively when task is canceled while processing."""
     thread_reached = threading.Event()
     proceed_thread = threading.Event()
-    
+
     # An event to guarantee the loop has executed the background future's completion callback
     callback_completed = asyncio.Event()
 
     # We safely intercept the logging function to signal when the background callback has fully run
     original_log_success = graph_admin._log_rebuild_succeeded
+
     def track_log_success(*args, **kwargs):
         try:
             return original_log_success(*args, **kwargs)
@@ -432,18 +433,14 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     def coordinated_sync_rebuild(*args, **kwargs):
         thread_reached.set()  # Tell main loop thread has safely started inside the executor
         proceed_thread.wait(timeout=5.0)  # Safe bounded block to let the test cancel the coroutine
-        
+
         # Valid Literal value ('sample') to satisfy Pydantic models
         return graph_admin.GraphRebuildResponse(
-            status="persisted", 
-            source="sample", 
-            asset_count=5, 
-            relationship_count=2, 
-            regulatory_event_count=0
+            status="persisted", source="sample", asset_count=5, relationship_count=2, regulatory_event_count=0
         )
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
-    
+
     # Secure the initialization environment state
     if graph_admin._REBUILD_RUNTIME.is_busy():
         graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
@@ -461,10 +458,10 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
                     tracking_state={"audit_logged": False},
                 )
             )
-            
+
             # 1. Wait cleanly until the thread pool is actively execution-locked
             await loop.run_in_executor(None, thread_reached.wait)
-            
+
             # 2. Fire the web request cancellation on the async task frame
             task.cancel()
 
@@ -473,7 +470,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
             # 3. Release the synchronous thread lock so the background worker can run to completion
             proceed_thread.set()
-            
+
             # 4. Await until the background execution thread completes its on_done callback loop safely
             await asyncio.wait_for(callback_completed.wait(), timeout=3.0)
 
