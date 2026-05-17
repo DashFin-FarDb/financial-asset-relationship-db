@@ -190,12 +190,13 @@ class DistributedLock:
                 type(exc).__name__,
             )
             return LockState.LOST
-        except Exception:
+        except Exception as exc:
             # Unexpected error - this indicates a programming bug, not connectivity loss
             # Re-raise to surface the issue rather than masking it as LOST state
-            logger.warning(
-                "Unexpected error checking lock '%s' state - re-raising",
+            logger.error(
+                "Unexpected error checking lock '%s' state (%s) - re-raising",
                 self.lock_name,
+                type(exc).__name__,
             )
             raise
 
