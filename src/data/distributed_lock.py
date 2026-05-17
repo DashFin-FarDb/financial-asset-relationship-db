@@ -180,9 +180,8 @@ class DistributedLock:
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
                 )
-        except (SQLAlchemyError, OSError, RuntimeError) as exc:
-            # DB connectivity failure during lock state check (covers SQLAlchemy, OS,
-            # timeout, and runtime errors such as connection pool exhaustion)
+        except (SQLAlchemyError, OSError) as exc:
+            # DB connectivity failure during lock state check (SQLAlchemy/DBAPI and OS-layer I/O)
             # Use bounded logging to prevent DSN/credential leakage in tracebacks
             logger.warning(
                 "Lost database connectivity while checking lock '%s': %s",

@@ -166,31 +166,18 @@ def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
     return statements, active_worker_col
 
 
-def _check_width_normalization_needed(engine: Engine, active_worker_col: dict | None) -> bool:
+def _check_width_normalization_needed(active_worker_col: dict | None) -> bool:
     """
-    Return True when active_worker_id is wider than VARCHAR(64) and all
-    existing values safely fit within 64 characters.
+    Return True when active_worker_id is wider than VARCHAR(64) and may need
+    narrowing.
 
-    The MAX(LENGTH(...)) query is a read-only pre-check executed *outside*
-    the DDL transaction so the result can gate the ALTER COLUMN statement.
+    Safety is determined only by the authoritative in-transaction re-check in
+    _apply_normalization_in_transaction(), after taking an exclusive lock.
     """
     if active_worker_col is None:
         return False
     col_length = getattr(active_worker_col.get("type"), "length", None)
-    if not (isinstance(col_length, int) and col_length > 64):
-        return False
-
-    with engine.connect() as conn:
-        max_length = conn.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
-
-    if max_length is None or max_length <= 64:
-        return True
-
-    logger.warning(
-        "Skipping active_worker_id width normalization: max length=%s exceeds 64",
-        max_length,
-    )
-    return False
+    return isinstance(col_length, int) and col_length > 64
 
 
 def _apply_normalization_in_transaction(connection, needs_width_normalization: bool) -> None:
@@ -233,7 +220,7 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
         return
 
     statements, active_worker_col = _inspect_rebuild_jobs_columns(inspector)
-    needs_width_normalization = _check_width_normalization_needed(engine, active_worker_col)
+    needs_width_normalization = _check_width_normalization_needed(active_worker_col)
 
     if not statements and not needs_width_normalization:
         return

@@ -49,7 +49,7 @@ def test_startup_reconciliation_passes_with_consistent_state(mock_session_factor
         gate.ensure_safe_to_execute()
 
 
-def test_startup_reconciliation_allows_unknown_lock_with_no_active_job(mock_session_factory, mock_lock):
+def test_gate_waits_on_unknown_lock_with_no_active_job(mock_session_factory, mock_lock):
     """Test that the gate returns WAIT for UNKNOWN lock + no active job (clean install).
 
     The gate itself raises ExecutionBlockedError(action="wait", inconsistency_type="none") for

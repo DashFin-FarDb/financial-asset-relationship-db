@@ -310,8 +310,9 @@ async def _run_rebuild_in_executor(
                 )
             return
         except _DistributedLockLostError as exc:
-            # Lock lost mid-rebuild: mark failure with 503, heartbeat keeper already
-            # signaled abort so no further cleanup is needed here.
+            # Lock lost mid-rebuild: heartbeat keeper has already signaled abort to
+            # the worker; this branch still finalizes runtime state and emits
+            # failure audit logging with a 503 status.
             _REBUILD_RUNTIME.mark_idle(succeeded=False)
             _log_rebuild_failed(
                 user_ref=user_ref,

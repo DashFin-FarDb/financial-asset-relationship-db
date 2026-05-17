@@ -110,8 +110,8 @@ class TestApplyPostgresqlHeartbeatMigration:
         cols = [_make_col("active_worker_id", length=255), _make_col("last_heartbeat_at")]
         begin_conn, connect_conn = self._run(["rebuild_jobs"], cols, max_length_scalar=None)
 
-        # Read-only pre-check was performed outside the transaction
-        connect_conn.execute.assert_called_once()
+        # Width safety is decided by the in-transaction re-check (no pre-read round trip)
+        connect_conn.execute.assert_not_called()
 
         # ALTER COLUMN TYPE must be part of the atomic DDL batch
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
@@ -132,7 +132,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         cols = [_make_col("active_worker_id", length=255), _make_col("last_heartbeat_at")]
         begin_conn, connect_conn = self._run(["rebuild_jobs"], cols, max_length_scalar=32)
 
-        connect_conn.execute.assert_called_once()
+        connect_conn.execute.assert_not_called()
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         _assert_with_message(
             any("ALTER COLUMN active_worker_id TYPE VARCHAR(64)" in s for s in executed_sql),
