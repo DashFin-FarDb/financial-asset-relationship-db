@@ -261,7 +261,6 @@ class RecoveryGate:
                 logger.info(
                     "Lock state is UNKNOWN with no active job; treating as clean install WAIT until lock is acquired"
                 )
-                lock_is_valid = False
             else:
                 logger.warning("Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)")
                 return RecoveryDecision(
