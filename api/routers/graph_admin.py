@@ -197,6 +197,7 @@ async def rebuild_graph(
             HTTPException,
             _RebuildExecutionError,
             _DistributedLockAcquisitionError,
+            _DistributedLockLostError,
             GraphPersistenceNonDurableError,
             GraphPersistenceNotConfiguredError,
             GraphPersistenceSaveError,
@@ -341,6 +342,12 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return _rebuild_in_progress_error()
 
+    if isinstance(root_exc, _DistributedLockLostError):
+        return HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Distributed lock lost during rebuild.",
+        )
+
     if isinstance(root_exc, ExecutionBlockedError):
         return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(root_exc))
 
@@ -459,6 +466,8 @@ def _rebuild_failure_category(exc: Exception) -> str:
     root_exc = _unwrap_rebuild_error(exc)
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return "distributed_lock_acquisition_failed"
+    if isinstance(root_exc, _DistributedLockLostError):
+        return "distributed_lock_lost"
     if isinstance(root_exc, ExecutionBlockedError):
         return "execution_blocked_by_recovery_gate"
     if isinstance(root_exc, GraphPersistenceNotConfiguredError):
