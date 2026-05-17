@@ -89,8 +89,9 @@ def _run_startup_reconciliation(settings) -> None:
             ttl_seconds=lock_ttl,
         )
 
-        # Track initial lock state before recovery
+        # Track initial lock state and holder_id before recovery
         initial_lock_state = lock.check_state()
+        initial_holder_id = lock.holder_id
 
         gate = RecoveryGate(
             session_factory=session_factory,
@@ -103,12 +104,15 @@ def _run_startup_reconciliation(settings) -> None:
         # This will raise ExecutionBlockedError if unsafe
         # or perform RESET recovery if needed (which may acquire lock)
         gate.ensure_safe_to_execute()
-        
+
         # Track if lock was acquired during RESET recovery by comparing states
         # Only release if we transitioned from non-VALID to VALID (we acquired it)
+        # AND the holder_id hasn't changed (preventing release of another process's lock)
         final_lock_state = lock.check_state()
         lock_acquired_by_us = (
-            initial_lock_state != LockState.VALID and final_lock_state == LockState.VALID
+            initial_lock_state != LockState.VALID
+            and final_lock_state == LockState.VALID
+            and lock.holder_id == initial_holder_id
         )
 
         logger.info("Startup reconciliation passed - executor initialization allowed")
