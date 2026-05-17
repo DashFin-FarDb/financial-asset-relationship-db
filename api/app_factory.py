@@ -88,7 +88,6 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """
     from src.data.database import create_engine_from_url, create_session_factory, init_db
     from src.data.distributed_lock import DistributedLock, LockState
-    from src.logic.rebuild_recovery import RecoveryAction
     from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
     from .graph_lifecycle_providers import resolve_durable_graph_persistence_url
