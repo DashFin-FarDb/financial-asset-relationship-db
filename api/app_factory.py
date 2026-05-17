@@ -9,8 +9,12 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
+
+if TYPE_CHECKING:
+    from .graph_lifecycle_providers import GraphLifecycleSettings
 
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
@@ -38,25 +42,42 @@ from .routers.visualization import router as visualization_router
 
 logger = logging.getLogger(__name__)
 
+# Startup reconciliation uses a fixed TTL. GraphLifecycleSettings does not carry
+# a configurable lock TTL, so using a named constant makes the intentional choice
+# explicit rather than hiding it behind a getattr fallback.
+_STARTUP_LOCK_TTL_SECONDS = 300
 
-def _run_startup_reconciliation(settings) -> None:
+
+def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """
     Run recovery gate validation before executor initialization.
 
     Stage 5C.2: Startup reconciliation hook ensures no rebuild execution
     can begin without passing recovery gate validation.
 
+    Applies schema migrations before running the gate so that ORM queries
+    succeed on fresh installs and legacy databases that pre-date the heartbeat
+    columns.  Without this ordering, the gate's SELECT against the ``rebuild_jobs``
+    table would raise an ``OperationalError`` (table or column missing) and be
+    classified as UNSAFE, permanently blocking startup.
+
     Blocks startup if:
-    - Lock state is UNKNOWN or LOST
-    - Unresolved recovery state detected (UNSAFE, WAIT)
+    - Lock state is LOST (DB connectivity failure)
+    - Recovery gate returns UNSAFE (unresolvable inconsistency)
 
     Allows startup after:
-    - Successful RESET recovery
-    - RESUME decision (consistent state)
+    - Successful RESET recovery (orphaned job cleaned up)
+    - RESUME decision (consistent state, lock held)
+    - WAIT decision with no active job (clean install / lock not yet acquired;
+      the executor will acquire the lock before any rebuild)
 
-    Note: The lock created here is ephemeral and only validates state consistency.
-    It does not reserve execution rights. The actual rebuild executor will create
-    its own lock instance when rebuild is requested.
+    The lock TTL used here is the module-level ``_STARTUP_LOCK_TTL_SECONDS``
+    constant (300 s).  ``GraphLifecycleSettings`` does not carry a configurable
+    lock TTL, so a fixed value is used intentionally rather than a ``getattr``
+    that would silently always fall through to the same default.
+
+    If RESET recovery reacquires the lock, it is released before this function
+    returns so that subsequent rebuild requests are not blocked until TTL expiry.
 
     Args:
         settings: Graph lifecycle settings containing persistence configuration.
@@ -65,62 +86,64 @@ def _run_startup_reconciliation(settings) -> None:
         ExecutionBlockedError: If recovery gate blocks execution.
         Exception: If recovery gate evaluation fails.
     """
-    from src.data.database import create_engine_from_url, create_session_factory
+    from src.data.database import create_engine_from_url, create_session_factory, init_db
     from src.data.distributed_lock import DistributedLock, LockState
-    from src.logic.recovery_gate import RecoveryGate
+    from src.logic.rebuild_recovery import RecoveryAction
+    from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
     from .graph_lifecycle_providers import resolve_durable_graph_persistence_url
     from .metrics import increment_recovery_trigger
 
-    # Extract and validate lock TTL from settings (same logic as runtime execution)
-    lock_ttl = getattr(settings, "rebuild_lock_ttl_seconds", 300)
-    if not isinstance(lock_ttl, int) or lock_ttl <= 0:
-        lock_ttl = 300
-
     persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(persistence_url)
     lock = None
-    lock_acquired_by_us = False
     try:
+        # Apply schema migrations BEFORE running the gate so ORM queries succeed on
+        # fresh installs and legacy databases lacking the heartbeat columns.
+        init_db(engine)
+
         session_factory = create_session_factory(engine)
         lock = DistributedLock(
             session_factory=session_factory,
             lock_name="graph_rebuild",
-            ttl_seconds=lock_ttl,
+            ttl_seconds=_STARTUP_LOCK_TTL_SECONDS,
         )
-
-        # Track initial lock state and holder_id before recovery
-        initial_lock_state = lock.check_state()
-        initial_holder_id = lock.holder_id
 
         gate = RecoveryGate(
             session_factory=session_factory,
             lock=lock,
             increment_recovery_trigger=increment_recovery_trigger,
             runtime_has_active_executor=False,  # No executor yet at startup
-            lock_ttl_seconds=lock_ttl,
+            lock_ttl_seconds=_STARTUP_LOCK_TTL_SECONDS,
         )
 
-        # This will raise ExecutionBlockedError if unsafe
-        # or perform RESET recovery if needed (which may acquire lock)
-        gate.ensure_safe_to_execute()
-
-        # Track if lock was acquired during RESET recovery by comparing states
-        # Only release if we transitioned from non-VALID to VALID (we acquired it)
-        # AND the holder_id hasn't changed (preventing release of another process's lock)
-        final_lock_state = lock.check_state()
-        lock_acquired_by_us = (
-            initial_lock_state != LockState.VALID
-            and final_lock_state == LockState.VALID
-            and lock.holder_id == initial_holder_id
-        )
+        # Evaluate state and act based on startup semantics:
+        # - RESUME: consistent state, proceed.
+        # - RESET: perform recovery then re-evaluate via ensure_safe_to_execute().
+        # - WAIT: at startup, WAIT always means "no inconsistency but lock not yet acquired"
+        #   (clean install or previous lock expired naturally).  The executor will
+        #   acquire the lock before any rebuild, so this is safe to allow.
+        # - UNSAFE: block startup.
+        action = gate.evaluate_state()
+        if action == RecoveryAction.RESET:
+            # ensure_safe_to_execute handles RESET + post-reset re-evaluation
+            gate.ensure_safe_to_execute()
+        elif action == RecoveryAction.UNSAFE:
+            raise ExecutionBlockedError("Startup blocked: recovery gate returned UNSAFE")
+        # RESUME and WAIT (no inconsistency, lock not yet held) both allow startup.
 
         logger.info("Startup reconciliation passed - executor initialization allowed")
     finally:
-        # Only release lock if WE acquired it during recovery
-        if lock is not None and lock_acquired_by_us:
+        # Release the lock if RESET recovery acquired it.  check_state() returns
+        # VALID only when *our* holder_id owns the current lock row, so this is
+        # safe even if another process holds the lock.  Releasing here ensures
+        # the service does not block rebuild requests for up to TTL seconds after
+        # a successful recovery.
+        if lock is not None:
             try:
-                lock.release()
+                if lock.check_state() == LockState.VALID:
+                    lock.release()
+                    logger.debug("Released startup reconciliation lock after recovery")
             except Exception as exc:
                 logger.warning(
                     "Failed to release startup reconciliation lock: %s",
@@ -173,16 +196,13 @@ async def lifespan(_fastapi_app: FastAPI):
                     type(exc).__name__,
                 )
 
-            # Initialize rebuild state metric from DB after graph reconciliation
+            # Initialize rebuild state metric from DB after graph reconciliation.
+            # init_db has already run inside _run_startup_reconciliation above, so
+            # the schema is guaranteed to be up-to-date at this point.
             try:
                 persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
                 engine = create_engine_from_url(persistence_url)
                 try:
-                    # Run migrations to ensure schema is up-to-date before querying heartbeat columns
-                    from src.data.database import init_db  # noqa: C0415
-
-                    await asyncio.to_thread(init_db, engine)
-
                     session_factory = create_session_factory(engine)
                     await asyncio.to_thread(initialize_rebuild_state_metric_from_db, session_factory)
                 finally:
