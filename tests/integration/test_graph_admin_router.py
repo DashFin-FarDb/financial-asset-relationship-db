@@ -343,16 +343,16 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
 
 
 async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
-    monkeypatch: pytest.MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Lock-loss exceptions should map to HTTP 503 with failed lifecycle state."""
 
     async def fake_executor(
-        _loop: asyncio.AbstractEventLoop,
-        _settings: graph_admin.GraphLifecycleSettings,
-        *,
-        user_ref: str,
-        started_at: float,
+            _loop: asyncio.AbstractEventLoop,
+            _settings: graph_admin.GraphLifecycleSettings,
+            *,
+            user_ref: str,
+            started_at: float,
     ) -> graph_admin.GraphRebuildResponse:
         """Simulate an executor that immediately raises a lock-loss error."""
         raise graph_admin._DistributedLockLostError("lost")  # pylint: disable=protected-access
@@ -367,9 +367,9 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            # Changed to succeeded=False to reflect the actual state and unlock runtime
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=False)  # pylint: disable=protected-access
         reset_graph()
-
 
 def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
     """User references should be printable, single-line, and length bounded."""
