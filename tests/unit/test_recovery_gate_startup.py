@@ -49,6 +49,37 @@ def test_startup_reconciliation_passes_with_consistent_state(mock_session_factor
         gate.ensure_safe_to_execute()
 
 
+def test_startup_reconciliation_allows_unknown_lock_with_no_active_job(mock_session_factory, mock_lock):
+    """Test that the gate returns WAIT for UNKNOWN lock + no active job (clean install).
+
+    The gate itself raises ExecutionBlockedError(action="wait") for this case.
+    The startup reconciliation catches this specific action and allows startup to
+    proceed (see _run_startup_reconciliation in app_factory.py).
+    """
+    # Setup: clean install / startup path with no active job in DB
+    mock_repo = MagicMock()
+    mock_repo.get_active_rebuild_state.return_value = None
+    mock_lock.check_state.return_value = LockState.UNKNOWN
+
+    from src.logic.rebuild_recovery import RecoveryAction
+
+    with patch("src.logic.recovery_gate.AssetGraphRepository", return_value=mock_repo):
+        gate = RecoveryGate(
+            session_factory=mock_session_factory,
+            lock=mock_lock,
+            runtime_has_active_executor=False,
+            lock_ttl_seconds=300,
+        )
+
+        # The gate returns WAIT — no inconsistency, but lock not yet acquired.
+        assert gate.evaluate_state() == RecoveryAction.WAIT
+
+        # ensure_safe_to_execute raises with action="wait"; startup catches this.
+        with pytest.raises(ExecutionBlockedError) as exc_info:
+            gate.ensure_safe_to_execute()
+        assert exc_info.value.action == "wait"
+
+
 def test_startup_reconciliation_performs_reset_for_orphaned_job(mock_session_factory, mock_lock):
     """Test that startup reconciliation performs RESET recovery for orphaned job."""
     from datetime import datetime, timezone
