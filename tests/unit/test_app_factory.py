@@ -105,5 +105,4 @@ async def test_lifespan_blocks_startup_when_reconciliation_is_execution_blocked(
         async with app_factory.lifespan(app):
             pass
 
-    if init_calls:
-        raise AssertionError("executor should not initialize when startup reconciliation is blocked")
+    assert not init_calls, "executor should not initialize when startup reconciliation is blocked"
