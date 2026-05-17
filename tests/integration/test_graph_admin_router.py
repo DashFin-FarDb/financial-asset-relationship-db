@@ -7,6 +7,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import threading
 import time
 from collections.abc import Iterator
 from pathlib import Path
@@ -326,6 +327,7 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
         *,
         user_ref: str,
         started_at: float,
+        tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
     ) -> graph_admin.GraphRebuildResponse:
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
@@ -346,20 +348,18 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Lock-loss exceptions should map to HTTP 503 with failed lifecycle state."""
-    # 1. FORCE RESET BEFORE RUNNING (Prevents bleeding state from other tests)
     reset_graph()
     if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
         graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
-    # 2. Match the exact sync/async signature expected by your framework
     async def fake_executor(
         _loop: asyncio.AbstractEventLoop,
         _settings: graph_admin.GraphLifecycleSettings,
         *,
         user_ref: str,
         started_at: float,
+        tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
     ) -> graph_admin.GraphRebuildResponse:
-        """Simulate an executor that immediately raises a lock-loss error."""
         raise graph_admin._DistributedLockLostError("lost")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
@@ -373,20 +373,15 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
         assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.FAILED
 
     finally:
-        # 3. Aggressive teardown to prevent deadlocking subsequent tests
         try:
             graph_admin.shutdown_rebuild_executor_sync()
         except Exception as exc:
-            # Keep teardown non-fatal for tests but ensure the exception is visible during triage
             logging.getLogger("api.routers.graph_admin").debug(
-                "Suppressed non-fatal exception during test executor shutdown teardown: %s",
-                exc,
-                exc_info=True,
+                "Suppressed non-fatal exception during test executor shutdown teardown: %s", exc
             )
 
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=False)  # pylint: disable=protected-access
-
         reset_graph()
 
 
