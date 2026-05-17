@@ -86,10 +86,11 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         ExecutionBlockedError: If recovery gate blocks execution.
         Exception: If recovery gate evaluation fails.
     """
+    from sqlalchemy.exc import SQLAlchemyError
+
     from src.data.database import create_engine_from_url, create_session_factory, init_db
     from src.data.distributed_lock import DistributedLock, LockState
     from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
-    from sqlalchemy.exc import SQLAlchemyError
 
     from .graph_lifecycle_providers import resolve_durable_graph_persistence_url
     from .metrics import increment_recovery_trigger
@@ -134,9 +135,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
             if exc.action == "wait":
                 # WAIT at startup means no inconsistency but lock not yet acquired.
                 # Allow startup; the executor will acquire the lock before any rebuild.
-                logger.info(
-                    "Startup reconciliation allowing WAIT state; executor will acquire lock before rebuild"
-                )
+                logger.info("Startup reconciliation allowing WAIT state; executor will acquire lock before rebuild")
             else:
                 raise
 
