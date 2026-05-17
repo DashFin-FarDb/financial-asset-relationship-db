@@ -63,6 +63,11 @@ def apply_migrations(db_path: Path | str) -> None:
             _apply_upgrade_002_heartbeat_columns(connection)
 
 
+# ---------------------------------------------------------------------------
+# Private helpers for apply_migrations (SQLite)
+# ---------------------------------------------------------------------------
+
+
 def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -> None:
     """
     Apply a SQL migration script from a trusted file path.
@@ -76,13 +81,9 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
         ValueError: If migration file path is invalid, outside migrations directory,
             or not in the allowed migrations whitelist.
     """
-    # Validate that migration_file is within the expected migrations directory
-    # to prevent path traversal attacks if this function is ever called with
-    # untrusted input (defense in depth)
     migrations_dir = Path(__file__).resolve().parents[2] / "migrations"
     try:
         resolved_file = migration_file.resolve()
-        # Ensure the file is within migrations directory
         resolved_file.relative_to(migrations_dir)
     except (ValueError, OSError) as exc:
         raise ValueError(f"Migration file {migration_file} is not within trusted migrations directory") from exc
@@ -90,27 +91,16 @@ def _apply_sql_migration(connection: sqlite3.Connection, migration_file: Path) -
     if not resolved_file.is_file():
         raise ValueError(f"Migration file {migration_file} does not exist")
 
-    # Validate file extension is .sql (trusted migration files only)
     if resolved_file.suffix.lower() != ".sql":
         raise ValueError(f"Migration file {migration_file} must have .sql extension")
 
-    # Validate file is in the explicit whitelist of allowed migrations
-    # This is the ultimate security barrier: only known, hardcoded migration files can execute
     if resolved_file.name not in ALLOWED_MIGRATIONS:
         raise ValueError(
             f"Migration file {resolved_file.name} is not in the allowed migrations whitelist. "
             f"Allowed: {sorted(ALLOWED_MIGRATIONS)}"
         )
 
-    # Read migration SQL from validated trusted file
-    # Security note: This is safe because:
-    # 1. File path validated to be within migrations/ directory (no path traversal)
-    # 2. File extension validated to be .sql
-    # 3. File name validated against hardcoded whitelist (ALLOWED_MIGRATIONS)
-    # 4. migrations/ directory is source-controlled, not user-writable
-    # 5. This function is internal and only called with hardcoded migration paths
     trusted_migration_sql = resolved_file.read_text(encoding="utf-8")  # noqa: S3649
-
     # Execute validated migration from trusted source
     # SECURITY: This is NOT user-controlled data. The SQL content comes from:
     # - A file that passed all validation checks above
@@ -131,12 +121,9 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
     Args:
         connection: SQLite connection.
     """
-    # Check which columns already exist
     cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
     existing_columns = {row[1] for row in cursor}
 
-    # Hardcoded safe column definitions from migration 002
-    # Using explicit constants prevents injection and avoids fragile file parsing
     HEARTBEAT_COLUMNS = {
         "active_worker_id": "ALTER TABLE rebuild_jobs ADD COLUMN active_worker_id TEXT",
         "last_heartbeat_at": "ALTER TABLE rebuild_jobs ADD COLUMN last_heartbeat_at TEXT",
@@ -144,12 +131,94 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
 
     for col_name, alter_statement in HEARTBEAT_COLUMNS.items():
         if col_name not in existing_columns:
-            # Execute pre-validated DDL statement from hardcoded constant
-            # SECURITY: alter_statement comes from HEARTBEAT_COLUMNS dict above
-            # which is hardcoded in this file, not read from external source
-            # Do not commit here; let the surrounding transaction apply all
-            # column additions atomically or roll them back together.
             connection.execute(alter_statement)  # noqa: S3649
+
+
+# ---------------------------------------------------------------------------
+# Private helpers for apply_postgresql_heartbeat_migration
+# ---------------------------------------------------------------------------
+
+
+def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
+    """
+    Return (add_column_statements, active_worker_col_meta).
+
+    Scans rebuild_jobs columns once and produces:
+    - The list of ADD COLUMN IF NOT EXISTS statements needed for missing
+      heartbeat columns.
+    - The SQLAlchemy column metadata dict for active_worker_id, or None
+      if the column does not yet exist.
+    """
+    columns = inspector.get_columns("rebuild_jobs")
+    existing: set[str] = set()
+    active_worker_col = None
+    for col in columns:
+        name = col["name"]
+        existing.add(name)
+        if name == "active_worker_id":
+            active_worker_col = col
+
+    statements: list[str] = []
+    if "active_worker_id" not in existing:
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)")
+    if "last_heartbeat_at" not in existing:
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ")
+    return statements, active_worker_col
+
+
+def _check_width_normalization_needed(engine: Engine, active_worker_col: dict | None) -> bool:
+    """
+    Return True when active_worker_id is wider than VARCHAR(64) and all
+    existing values safely fit within 64 characters.
+
+    The MAX(LENGTH(...)) query is a read-only pre-check executed *outside*
+    the DDL transaction so the result can gate the ALTER COLUMN statement.
+    """
+    if active_worker_col is None:
+        return False
+    col_length = getattr(active_worker_col.get("type"), "length", None)
+    if not (isinstance(col_length, int) and col_length > 64):
+        return False
+
+    with engine.connect() as conn:
+        max_length = conn.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
+
+    if max_length is None or max_length <= 64:
+        return True
+
+    logger.warning(
+        "Skipping active_worker_id width normalization: max length=%s exceeds 64",
+        max_length,
+    )
+    return False
+
+
+def _apply_normalization_in_transaction(connection, needs_width_normalization: bool) -> None:
+    """
+    Conditionally narrow active_worker_id to VARCHAR(64) inside an open
+    DDL transaction.
+
+    Acquire a table lock before re-checking widths so concurrent writers
+    cannot insert or update values that would cause the subsequent ALTER
+    COLUMN to fail.
+    """
+    if not needs_width_normalization:
+        return
+
+    connection.execute(text("LOCK TABLE rebuild_jobs IN ACCESS EXCLUSIVE MODE"))
+    recheck = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
+    if recheck is None or recheck <= 64:
+        connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
+    else:
+        logger.warning(
+            "Skipping active_worker_id width normalization: max length=%s exceeds 64 (re-check)",
+            recheck,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 
 def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
@@ -163,43 +232,13 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     if "rebuild_jobs" not in inspector.get_table_names():
         return
 
-    columns = inspector.get_columns("rebuild_jobs")
-    existing_columns = set()
-    active_worker_col = None
-    for column in columns:
-        name = column["name"]
-        existing_columns.add(name)
-        if name == "active_worker_id":
-            active_worker_col = column
-    statements: list[str] = []
-    if "active_worker_id" not in existing_columns:
-        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)")
-    if "last_heartbeat_at" not in existing_columns:
-        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ")
+    statements, active_worker_col = _inspect_rebuild_jobs_columns(inspector)
+    needs_width_normalization = _check_width_normalization_needed(engine, active_worker_col)
 
-    # Normalize legacy widened active_worker_id columns (for example VARCHAR(255))
-    # to the ORM width only when safe, avoiding truncation.
-    if active_worker_col is not None:
-        col_type = active_worker_col.get("type")
-        col_length = getattr(col_type, "length", None)
-        if isinstance(col_length, int) and col_length > 64:
-            with engine.begin() as connection:
-                # MAX(LENGTH(...)) ignores NULL rows in PostgreSQL and returns None
-                # when the table is empty or all active_worker_id values are NULL.
-                # This is handled safely below: max_length=None is treated as safe
-                # to normalize because there are no values to truncate.
-                max_length = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
-                if max_length is None or max_length <= 64:
-                    connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
-                else:
-                    logger.warning(
-                        "Skipping active_worker_id width normalization: max length=%s exceeds 64",
-                        max_length,
-                    )
-
-    if not statements:
+    if not statements and not needs_width_normalization:
         return
 
     with engine.begin() as connection:
         for statement in statements:
             connection.execute(text(statement))
+        _apply_normalization_in_transaction(connection, needs_width_normalization)
