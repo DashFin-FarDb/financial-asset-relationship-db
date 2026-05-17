@@ -228,7 +228,6 @@ def test_startup_reconciliation_reacquires_lock_before_reset(mock_session_factor
     mock_lock.check_state.side_effect = [LockState.EXPIRED, LockState.EXPIRED, LockState.VALID]
     mock_lock.acquire.return_value = True
 
-    mock_session = mock_session_factory.return_value.__enter__.return_value
     mock_repo = MagicMock()
     # Calls: 1) initial eval, 2) inside _perform_reset_recovery, 3) re-eval after RESET
     mock_repo.get_active_rebuild_state.side_effect = [orphaned_job, orphaned_job, None]
