@@ -218,10 +218,11 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
         with connection.begin_nested():
             connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
     except Exception as e:
-    logger.warning(
-        "Skipping active_worker_id width normalization: constraints violated (%s)",
-        e,
-    )
+        logger.warning(
+            "Skipping active_worker_id width normalization: constraints violated (%s)",
+            e,
+        )
+        return
 
 # ---------------------------------------------------------------------------
 # Public API
