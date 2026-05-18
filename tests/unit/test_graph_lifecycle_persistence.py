@@ -552,7 +552,7 @@ def test_malformed_asset_class_persisted_row_fails_without_fallback(
         (_init_empty_db, False),
         (lambda db_url: None, True),
     ],
-    ids=["persisted_load_success", "empty_persistence_fallback", "persistence_failure"]
+    ids=["persisted_load_success", "empty_persistence_fallback", "persistence_failure"],
 )
 def test_session_closes_during_startup_load(
     setup_fn: Callable[[str], None],

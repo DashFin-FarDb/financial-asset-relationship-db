@@ -314,6 +314,7 @@ def test_unreachable_persistence_fails_startup_with_sanitized_error(
         raise RuntimeError(f"driver failure for {raw_url}")
 
     import src.data.database
+
     monkeypatch.setattr(src.data.database, "create_engine_from_url", fail_create_engine)
     monkeypatch.setattr(providers, "create_engine_from_url", fail_create_engine)
 
