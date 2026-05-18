@@ -152,7 +152,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         try:
             await sync_task
         except asyncio.CancelledError:
-            pass
+            # Expected during teardown after explicit task cancellation.
+            # Intentionally suppressed so lifespan shutdown can proceed cleanly.
+            logger.debug("Graph synchronization task cancelled during shutdown.")
 
     if has_durable_graph_persistence:
         shutdown_rebuild_executor()
