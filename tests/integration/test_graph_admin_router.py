@@ -436,11 +436,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
         # Valid Literal value ('sample') to satisfy Pydantic models
         return graph_admin.GraphRebuildResponse(
-            status="persisted", 
-            source="external_api", 
-            asset_count=5,
-            relationship_count=2,
-            regulatory_event_count=0
+            status="persisted", source="external_api", asset_count=5, relationship_count=2, regulatory_event_count=0
         )
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
