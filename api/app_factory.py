@@ -42,11 +42,10 @@ _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """Run database consistency reconciliation during application startup."""
-    from src.data.database import create_session_factory, init_db
-    from src.data.distributed_lock import DistributedLock
+    from src.data.database import init_db, create_session_factory
     from src.data.repository import AssetGraphRepository, session_scope
+    from src.data.distributed_lock import DistributedLock
     from src.logic.recovery_gate import RecoveryGate
-
     from .graph_lifecycle_providers import create_engine_from_url, resolve_durable_graph_persistence_url
 
     url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
@@ -57,15 +56,16 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         session_factory = create_session_factory(engine)
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
+            # FIX: Pass session positionally to avoid kwargs signature mismatch
             lock = DistributedLock(
-                session=session,
-                lock_id="startup_reconciliation",
+                session,
+                "startup_reconciliation",
                 ttl_seconds=_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS,
             )
             gate = RecoveryGate(repo=repo, lock=lock)
             gate.evaluate_and_reconcile()
     finally:
-        # Fix: Ensure short-lived startup verification engines are cleanly disposed
+        # Ensure short-lived startup verification engines are cleanly disposed
         engine.dispose()
 
 
