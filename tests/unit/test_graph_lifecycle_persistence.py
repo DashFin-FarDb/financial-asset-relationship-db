@@ -342,31 +342,29 @@ def test_in_memory_sqlite_url_skips_persistence_load(
 # ---------------------------------------------------------------------------
 
 
-def test_empty_configured_db_honors_graph_cache_path_before_sample_fallback(
+@pytest.mark.parametrize(
+    ("env_var", "env_val", "provider_attr", "expected_source"),
+    [
+        ("GRAPH_CACHE_PATH", "/tmp/graph-cache.json", "load_graph_from_cache_path", "cache"),
+        ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher", "real_data"),
+    ],
+)
+def test_empty_configured_db_honors_fallback_provider(
+    env_var: str,
+    env_val: str,
+    provider_attr: str,
+    expected_source: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Empty persistence should fall through to GRAPH_CACHE_PATH."""
-    monkeypatch.setenv("GRAPH_CACHE_PATH", "/tmp/graph-cache.json")
+    # pylint: disable=too-many-positional-arguments
+    """Empty persistence should fall through to configured fallback providers before sample data."""
+    monkeypatch.setenv(env_var, env_val)
     _assert_empty_db_uses_configured_source(
         tmp_path,
         monkeypatch,
-        "load_graph_from_cache_path",
-        "cache",
-    )
-
-
-def test_empty_configured_db_honors_real_data_fetcher_before_sample_fallback(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Empty persistence should fall through to USE_REAL_DATA_FETCHER."""
-    monkeypatch.setenv("USE_REAL_DATA_FETCHER", "1")
-    _assert_empty_db_uses_configured_source(
-        tmp_path,
-        monkeypatch,
-        "load_graph_from_real_data_fetcher",
-        "real_data",
+        provider_attr,
+        expected_source,
     )
 
 
@@ -410,49 +408,36 @@ def test_persisted_full_graph_loads(
     assert startup_source == "persisted_graph_store"
 
 
-def test_populated_persistence_wins_over_graph_cache_path(
+@pytest.mark.parametrize(
+    ("env_var", "env_val", "provider_attr", "fallback_name"),
+    [
+        ("GRAPH_CACHE_PATH", "/tmp/graph-cache.json", "load_graph_from_cache_path", "cache"),
+        ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher", "real-data"),
+    ],
+)
+def test_populated_persistence_wins_over_fallback_provider(
+    env_var: str,
+    env_val: str,
+    provider_attr: str,
+    fallback_name: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Populated persistence should win over GRAPH_CACHE_PATH."""
+    # pylint: disable=too-many-positional-arguments
+    """Populated persistence should win over configured fallback providers."""
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _asset_only_graph())
     _configure_persistence_url(monkeypatch, database_url)
-    monkeypatch.setenv("GRAPH_CACHE_PATH", "/tmp/graph-cache.json")
+    monkeypatch.setenv(env_var, env_val)
 
-    def fail_cache_load(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
-        """Fail if cache fallback is used before persistence."""
-        raise AssertionError("cache fallback must not run when persistence is populated")
-
-    monkeypatch.setattr(
-        graph_lifecycle_providers,
-        "load_graph_from_cache_path",
-        fail_cache_load,
-    )
-
-    loaded = _initialize_graph_for_test()
-
-    assert set(loaded.assets) == {"ASSET_ONLY"}
-
-
-def test_populated_persistence_wins_over_real_data_fetcher(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Populated persistence should win over USE_REAL_DATA_FETCHER."""
-    database_url = _sqlite_url(tmp_path)
-    _save_graph(database_url, _asset_only_graph())
-    _configure_persistence_url(monkeypatch, database_url)
-    monkeypatch.setenv("USE_REAL_DATA_FETCHER", "1")
-
-    def fail_real_data_load(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
-        """Fail if real-data fallback is used before persistence."""
-        raise AssertionError("real-data fallback must not run when persistence is populated")
+    def fail_fallback_load(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+        """Fail if fallback is used before persistence."""
+        raise AssertionError(f"{fallback_name} fallback must not run when persistence is populated")
 
     monkeypatch.setattr(
         graph_lifecycle_providers,
-        "load_graph_from_real_data_fetcher",
-        fail_real_data_load,
+        provider_attr,
+        fail_fallback_load,
     )
 
     loaded = _initialize_graph_for_test()
@@ -560,46 +545,31 @@ def test_malformed_asset_class_persisted_row_fails_without_fallback(
 # ---------------------------------------------------------------------------
 
 
-def test_session_closes_on_persisted_load_success(
+@pytest.mark.parametrize(
+    ("setup_fn", "expect_error"),
+    [
+        (lambda db_url: _save_graph(db_url, _asset_only_graph()), False),
+        (_init_empty_db, False),
+        (lambda db_url: None, True),
+    ],
+    ids=["persisted_load_success", "empty_persistence_fallback", "persistence_failure"],
+)
+def test_session_closes_during_startup_load(
+    setup_fn: Callable[[str], None],
+    expect_error: bool,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Startup load should close the session after persisted load."""
+    """Startup load should close the session regardless of load outcome."""
     database_url = _sqlite_url(tmp_path)
-    _save_graph(database_url, _asset_only_graph())
+    setup_fn(database_url)
     _configure_persistence_url(monkeypatch, database_url)
     close_count = _patch_session_close_counter(monkeypatch)
 
-    _initialize_graph_for_test()
-
-    assert close_count() == 1
-
-
-def test_session_closes_on_empty_persistence_fallback(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Startup load should close the session before empty-store fallback."""
-    database_url = _sqlite_url(tmp_path)
-    _init_empty_db(database_url)
-    _configure_persistence_url(monkeypatch, database_url)
-    close_count = _patch_session_close_counter(monkeypatch)
-
-    _initialize_graph_for_test()
-
-    assert close_count() == 1
-
-
-def test_session_closes_on_persistence_failure(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Startup load should close the session after load failure."""
-    database_url = _sqlite_url(tmp_path)
-    _configure_persistence_url(monkeypatch, database_url)
-    close_count = _patch_session_close_counter(monkeypatch)
-
-    with pytest.raises(RuntimeError):
+    if expect_error:
+        with pytest.raises(RuntimeError):
+            _initialize_graph_for_test()
+    else:
         _initialize_graph_for_test()
 
     assert close_count() == 1

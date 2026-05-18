@@ -21,9 +21,42 @@ logger = logging.getLogger(__name__)
 
 
 class ExecutionBlockedError(Exception):
-    """Raised when execution is blocked by the recovery gate."""
+    """Raised when execution is blocked by the recovery gate.
 
-    pass
+    The ``action`` attribute carries the string value of the ``RecoveryAction``
+    that triggered the block (e.g. ``"wait"``, ``"unsafe"``).  Callers that need
+    to distinguish between specific blocking reasons — without re-running the
+    gate evaluation — can inspect this attribute instead of parsing the message.
+
+    The ``inconsistency_type`` attribute usually carries the string value of the
+    detected ``InconsistencyType`` (e.g. ``"none"``, ``"orphaned_running"``).
+    Together with ``action``, it allows callers to determine whether a ``WAIT``
+    block is a benign clean-install case
+    (``action="wait", inconsistency_type="none"``) or a genuine inconsistency
+    that should block execution.
+
+    Note that ``inconsistency_type`` may legitimately be ``None`` for early-return
+    blocking paths that do not have a specific inconsistency classification,
+    including LOST, UNKNOWN-with-active-job, and reset-failure/error paths.
+    Callers should therefore treat ``None`` distinctly rather than assuming every
+    blocking decision uses a string such as ``"none"``.
+    """
+
+    def __init__(self, message: str, action: str | None = None, inconsistency_type: str | None = None) -> None:
+        """Initialize with message and optional caller-inspection attributes.
+
+        Args:
+            message: Human-readable description of why execution was blocked.
+            action: String value of the ``RecoveryAction`` that triggered the block
+                (e.g. ``"wait"``, ``"unsafe"``).  ``None`` when the blocking path
+                does not correspond to a single named action (e.g. reset failures).
+            inconsistency_type: String value of the detected ``InconsistencyType``
+                (e.g. ``"none"``, ``"crash_suspicion"``).  ``None`` when the blocking
+                path does not have a known inconsistency (e.g. reset failures).
+        """
+        super().__init__(message)
+        self.action = action
+        self.inconsistency_type = inconsistency_type
 
 
 class RecoveryGate:
@@ -53,6 +86,7 @@ class RecoveryGate:
         self.increment_recovery_trigger = increment_recovery_trigger or (lambda _: None)
         self.runtime_has_active_executor = runtime_has_active_executor
         self.lock_ttl_seconds = lock_ttl_seconds
+        self.lock_was_reacquired = False
 
     def _create_unsafe_decision_from_error(self, exc: Exception, error_context: str, log_level: str = "warning"):
         """
@@ -203,28 +237,52 @@ class RecoveryGate:
         lock_state = self.lock.check_state()
         job = None
 
-        if lock_state in (LockState.UNKNOWN, LockState.LOST):
-            logger.warning("Execution blocked: Lock state is %s", lock_state.value)
+        # LOST state always blocks - cannot determine lock ownership due to DB error
+        if lock_state == LockState.LOST:
+            logger.warning("Execution blocked: Lock state is LOST (database connectivity failure)")
             return RecoveryDecision(
                 action=RecoveryAction.UNSAFE,
-                reason=f"Lock state is {lock_state.value}",
+                reason="Lock state is lost (database connectivity failure)",
                 inconsistency_type=None,
                 safe_to_execute=False,
             )
 
         lock_is_valid = lock_state == LockState.VALID
 
-        with self.session_factory() as session:
-            repo = AssetGraphRepository(session)
-            try:
+        try:
+            with self.session_factory() as session:
+                repo = AssetGraphRepository(session)
                 job = repo.get_active_rebuild_state()
-            except ValueError as exc:
-                return self._create_unsafe_decision_from_error(exc, "active rebuild state query failed")
-            except sqlalchemy_exc.SQLAlchemyError as exc:
-                return self._create_unsafe_decision_from_error(exc, "database error during rebuild state query")
-            except Exception as exc:
-                return self._create_unsafe_decision_from_error(
-                    exc, "unexpected error during rebuild state query", "error"
+        except ValueError as exc:
+            return self._create_unsafe_decision_from_error(exc, "active rebuild state query failed")
+        except sqlalchemy_exc.SQLAlchemyError as exc:
+            return self._create_unsafe_decision_from_error(exc, "database error during rebuild state query")
+        except Exception as exc:
+            return self._create_unsafe_decision_from_error(exc, "unexpected error during rebuild state query", "error")
+
+        # UNKNOWN state handling: distinguish between clean install vs wrong owner
+        if lock_state == LockState.UNKNOWN:
+            # If no active job exists, UNKNOWN lock can be a clean install with no lock row yet.
+            # Return WAIT directly so this branch's behavior does not silently depend on
+            # downstream inconsistency detection rules continuing to treat `job is None`
+            # as a no-inconsistency case.
+            if job is None:
+                logger.info(
+                    "Lock state is UNKNOWN with no active job; treating as clean install WAIT until lock is acquired"
+                )
+                return RecoveryDecision(
+                    action=RecoveryAction.WAIT,
+                    reason="Lock state is unknown with no active rebuild job; waiting until lock is acquired",
+                    inconsistency_type=InconsistencyType.NONE,
+                    safe_to_execute=False,
+                )
+            else:
+                logger.warning("Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)")
+                return RecoveryDecision(
+                    action=RecoveryAction.UNSAFE,
+                    reason="Lock state is unknown with active rebuild job",
+                    inconsistency_type=None,
+                    safe_to_execute=False,
                 )
 
         inconsistency = detect_rebuild_inconsistency(
@@ -268,6 +326,7 @@ class RecoveryGate:
             ExecutionBlockedError: If the execution is not safe (UNSAFE, WAIT)
                 after any automatic recovery attempts.
         """
+        self.lock_was_reacquired = False
         decision = self._evaluate_decision()
 
         if decision.action == RecoveryAction.RESET:
@@ -281,14 +340,21 @@ class RecoveryGate:
                 if decision.action != RecoveryAction.RESUME:
                     # Post-reset state still unsafe - use bounded reason to avoid leaking DB details
                     raise ExecutionBlockedError(
-                        f"Reset recovery completed but state still unsafe: action={decision.action.value}"
+                        f"Reset recovery completed but state still unsafe: action={decision.action.value}",
+                        action=decision.action.value,
+                        inconsistency_type=(decision.inconsistency_type.value if decision.inconsistency_type else None),
                     )
                 logger.info("Reset recovery successful - execution can proceed")
             except ExecutionBlockedError:
                 # Re-raise ExecutionBlockedError as-is (already sanitized above)
                 raise
+            except sqlalchemy_exc.SQLAlchemyError as exc:
+                # Expected database error during reset - block execution
+                logger.warning("Reset recovery failed due to database error: %s", type(exc).__name__)
+                raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
             except Exception as exc:
-                # Reset failed - block execution with bounded exception type only
+                # Unexpected error - block execution with bounded exception type only
+                logger.error("Unexpected error during reset recovery: %s", type(exc).__name__)
                 raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
         elif decision.action != RecoveryAction.RESUME:
             # Execution blocked - log full reason but expose only bounded info in exception
@@ -299,7 +365,9 @@ class RecoveryGate:
             )
             raise ExecutionBlockedError(
                 f"Execution blocked: action={decision.action.value}, "
-                f"inconsistency={decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}"
+                f"inconsistency={decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}",
+                action=decision.action.value,
+                inconsistency_type=decision.inconsistency_type.value if decision.inconsistency_type else None,
             )
 
     def _perform_reset_recovery(self) -> None:
@@ -326,11 +394,11 @@ class RecoveryGate:
                 msg = f"Cannot perform RESET recovery without valid lock (state={lock_state.value})"
                 logger.error("%s: %s", ExecutionBlockedError.__name__, msg)
                 raise ExecutionBlockedError(msg)
+            self.lock_was_reacquired = True
             logger.info("Successfully reacquired lock for RESET recovery")
 
         try:
-            session = self.session_factory()
-            try:
+            with self.session_factory() as session:
                 repo = AssetGraphRepository(session)
                 # Get the active rebuild job
                 active_job = repo.get_active_rebuild_state()
@@ -349,8 +417,6 @@ class RecoveryGate:
                         active_job.job_id,
                         active_job.active_worker_id or "unknown",
                     )
-            finally:
-                session.close()
         except Exception as exc:
             # Use bounded logging to prevent DSN/credential leakage in tracebacks
             logger.error("Failed to perform reset recovery: %s", type(exc).__name__)

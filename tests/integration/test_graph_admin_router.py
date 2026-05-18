@@ -1,5 +1,7 @@
 """Tests for graph admin router registration."""
 
+# pylint: disable=redefined-outer-name
+
 # NOSONAR: Integration tests intentionally exercise app/auth/router wiring.
 
 from __future__ import annotations
@@ -7,8 +9,10 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import threading
 import time
 from collections.abc import Iterator
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -17,7 +21,6 @@ import pytest  # pylint: disable=import-error
 from fastapi import HTTPException  # pylint: disable=import-error
 from fastapi.testclient import TestClient  # pylint: disable=import-error
 
-import api.routers.graph_admin as graph_admin
 from api.auth import (
     REBUILD_OPERATOR_FORBIDDEN_DETAIL,
     REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL,
@@ -25,14 +28,15 @@ from api.auth import (
     get_current_active_user,
 )
 from api.graph_lifecycle import reset_graph
+from api.routers import graph_admin
 from src.config.settings import get_settings
+from src.data.database import create_engine_from_url, create_session_factory, init_db
+from src.data.repository import AssetGraphRepository, session_scope
 
 pytestmark = pytest.mark.integration
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import sessionmaker
-
-    from src.data.repository import AssetGraphRepository
 
 
 # ---------------------------------------------------------------------------
@@ -100,14 +104,11 @@ def _assert_successful_json_response(response: httpx.Response) -> dict[str, Any]
 @contextlib.contextmanager
 def _rebuild_jobs_db_context(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[sessionmaker]:
     """Provide a clean, initialized database and session factory for tests."""
-    from src.config.settings import get_settings as get_settings_uncached
-    from src.data.database import create_engine_from_url, create_session_factory, init_db
-
     db_file = tmp_path / "test.db"
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_file}")
     get_settings.cache_clear()
 
-    settings = get_settings_uncached()
+    settings = get_settings()
     engine = create_engine_from_url(settings.asset_graph_database_url)
     try:
         init_db(engine)
@@ -189,6 +190,7 @@ def test_rebuild_allows_active_authorized_operator_user(
         user_ref: str,
     ) -> graph_admin.GraphRebuildResponse:
         """Return a mock successful GraphRebuildResponse."""
+        _ = user_ref
         return graph_admin.GraphRebuildResponse(
             status="persisted",
             source="sample",
@@ -228,6 +230,7 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
         *,
         user_ref: str,
     ) -> graph_admin.GraphRebuildResponse:
+        _ = user_ref
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", fake_rebuild)
@@ -326,6 +329,7 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
         *,
         user_ref: str,
         started_at: float,
+        tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
     ) -> graph_admin.GraphRebuildResponse:
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
@@ -339,6 +343,55 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
         graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        reset_graph()
+
+
+async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Lock-loss exceptions should map to HTTP 503 with failed lifecycle state."""
+    reset_graph()
+    if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+        graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+
+    async def fake_executor(
+        _loop: asyncio.AbstractEventLoop,
+        _settings: graph_admin.GraphLifecycleSettings,
+        *,
+        user_ref: str,
+        started_at: float,
+        tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
+    ) -> graph_admin.GraphRebuildResponse:
+        raise graph_admin._DistributedLockLostError("lost")  # pylint: disable=protected-access
+
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
+
+    try:
+        with pytest.raises(HTTPException) as exc_info:
+            await graph_admin.rebuild_graph(User(username="admin", disabled=False))
+
+        assert exc_info.value.status_code == 503
+
+        # Verify structured dictionary contract fields
+        detail = exc_info.value.detail
+        if isinstance(detail, dict):
+            assert detail["code"] == "distributed_lock_lost_during_rebuild"
+            assert detail["message"] == "Distributed lock lost during rebuild."
+        else:
+            assert detail == "Distributed lock lost during rebuild."
+
+        assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.FAILED
+
+    finally:
+        try:
+            graph_admin.shutdown_rebuild_executor_sync()
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            logging.getLogger("api.routers.graph_admin").debug(
+                "Suppressed non-fatal exception during test executor shutdown teardown: %s", exc
+            )
+
+        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=False)  # pylint: disable=protected-access
         reset_graph()
 
 
@@ -356,62 +409,66 @@ def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
     assert resolved.startswith("operator_FORGED=1__")
 
 
-async def test_rebuild_outcome_logging_survives_request_cancellation(
+async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Executor callback should log success even when the awaiting task is cancelled."""
-    response = graph_admin.GraphRebuildResponse(
-        status="persisted",
-        source="sample",
-        asset_count=1,
-        relationship_count=0,
-        regulatory_event_count=0,
-    )
+    """Callback logs outcome metrics layout correctly when task context cancellation occurs."""
+    thread_reached = threading.Event()
+    proceed_thread = threading.Event()
+    callback_completed = asyncio.Event()
+    loop = asyncio.get_running_loop()
 
-    def slow_success(
-        _settings: graph_admin.GraphLifecycleSettings,
-        *,
-        user_ref: str,
-    ) -> graph_admin.GraphRebuildResponse:
-        """Simulate rebuild work that completes after await cancellation."""
-        time.sleep(0.05)
-        return response
+    # Track logging directly so we only finish when the thread genuinely concludes
+    original_log = graph_admin._log_rebuild_succeeded  # noqa: F841
 
-    monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", slow_success)
+    def track_log(*args, **kwargs):
+        try:
+            return original_log(*args, **kwargs)
+        finally:
+            loop.call_soon_threadsafe(callback_completed.set)
 
-    settings = graph_admin.GraphLifecycleSettings(
-        asset_graph_database_url=None,
-        graph_cache_path=None,
-        real_data_cache_path=None,
-        use_real_data_fetcher=False,
-    )
+    monkeypatch.setattr(graph_admin, "_log_rebuild_succeeded", track_log)
 
-    graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
+    def coordinated_sync_rebuild(*_args, **_kwargs):
+        thread_reached.set()
+        proceed_thread.wait(timeout=5.0)
+        return graph_admin.GraphRebuildResponse(
+            status="persisted", source="sample", asset_count=5, relationship_count=2, regulatory_event_count=0
+        )
+
+    monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
+
+    if graph_admin._REBUILD_RUNTIME.is_busy():
+        graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
+    graph_admin._REBUILD_RUNTIME.mark_busy()
 
     try:
-        loop = asyncio.get_running_loop()
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
             task = asyncio.create_task(
-                graph_admin._run_rebuild_in_executor(  # pylint: disable=protected-access
+                graph_admin._run_rebuild_in_executor(
                     loop,
-                    settings,
+                    graph_admin.get_graph_lifecycle_settings(),
                     user_ref="admin",
                     started_at=time.perf_counter(),
+                    tracking_state={"audit_logged": False},
                 )
             )
-            await asyncio.sleep(0.01)
+
+            await loop.run_in_executor(None, thread_reached.wait)
             task.cancel()
 
             with pytest.raises(asyncio.CancelledError):
                 await task
 
-            # Allow time for the executor thread to finish and log
-            await asyncio.sleep(0.12)
+            proceed_thread.set()
+            await asyncio.wait_for(callback_completed.wait(), timeout=3.0)
+
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
-        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        if graph_admin._REBUILD_RUNTIME.is_busy():
+            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
+        reset_graph()
 
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
     succeeded_records = [
@@ -425,55 +482,81 @@ async def test_rebuild_outcome_logging_survives_request_cancellation(
     assert succeeded_records[0].status_code == 200
 
 
+async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A raw programming error must emit an unexpected sentinel and exactly one audit log."""
+
+    async def fake_executor_bug(*args, **kwargs):
+        # Simulate a programming bug (e.g. referencing a missing attribute)
+        raise AttributeError("NoneType object has no attribute 'assets'")
+
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor_bug)
+
+    try:
+        with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(HTTPException) as exc_info:
+            await graph_admin.rebuild_graph(User(username="admin", disabled=False))
+
+        assert exc_info.value.status_code == 500
+
+        # Verify the explicit sentinel alert log was captured
+        sentinel_logs = [r for r in caplog.records if r.getMessage() == "graph_rebuild_unexpected_exception"]
+        assert len(sentinel_logs) == 1
+        assert sentinel_logs[0].levelname == "CRITICAL"
+        assert sentinel_logs[0].__dict__.get("exception_type") == "AttributeError"
+
+        # Verify exactly one failure audit event log was broadcast
+        audit_logs = [r for r in caplog.records if r.getMessage() == "graph_rebuild_audit"]
+        failed_audits = [r for r in audit_logs if r.__dict__.get("event") == "graph_rebuild_failed"]
+        assert len(failed_audits) == 1
+        assert failed_audits[0].__dict__.get("failure_category") == "unexpected_error"
+
+    finally:
+        graph_admin.shutdown_rebuild_executor_sync()
+
+
 # ---------------------------------------------------------------------------
 # Rebuild Job Status Endpoints Tests
 # ---------------------------------------------------------------------------
 
 
-def test_get_rebuild_job_returns_403_for_non_operator(
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/graph/rebuild/jobs/test-job-id",
+        "/api/graph/rebuild/jobs",
+    ],
+)
+def test_rebuild_jobs_endpoints_return_403_for_non_operator(
     non_operator_client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
+    path: str,
 ) -> None:
-    """GET /jobs/{job_id} must reject non-operator users."""
+    """GET /jobs/{job_id} and GET /jobs must reject non-operator users."""
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///:memory:")
     get_settings.cache_clear()
-    response = non_operator_client.get("/api/graph/rebuild/jobs/test-job-id")
+    response = non_operator_client.get(path)
     assert response.status_code == 403
     assert response.json()["detail"] == REBUILD_OPERATOR_FORBIDDEN_DETAIL
 
 
-def test_list_rebuild_jobs_returns_403_for_non_operator(
-    non_operator_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """GET /jobs must reject non-operator users."""
-    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///:memory:")
-    get_settings.cache_clear()
-    response = non_operator_client.get("/api/graph/rebuild/jobs")
-    assert response.status_code == 403
-    assert response.json()["detail"] == REBUILD_OPERATOR_FORBIDDEN_DETAIL
-
-
-def test_get_rebuild_job_returns_503_when_persistence_not_configured(
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/graph/rebuild/jobs/test-job-id",
+        "/api/graph/rebuild/jobs",
+    ],
+)
+def test_rebuild_jobs_endpoints_return_503_when_persistence_not_configured(
     operator_client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
+    path: str,
 ) -> None:
-    """GET /jobs/{job_id} must fail closed when persistence DB not configured."""
+    """GET /jobs/{job_id} and GET /jobs must fail closed when persistence DB not configured."""
     monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     get_settings.cache_clear()
-    response = operator_client.get("/api/graph/rebuild/jobs/test-job-id")
-    assert response.status_code == 503
-    assert "not configured" in response.json()["detail"].lower()
-
-
-def test_list_rebuild_jobs_returns_503_when_persistence_not_configured(
-    operator_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """GET /jobs must fail closed when persistence DB not configured."""
-    monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
-    get_settings.cache_clear()
-    response = operator_client.get("/api/graph/rebuild/jobs")
+    response = operator_client.get(path)
     assert response.status_code == 503
     assert "not configured" in response.json()["detail"].lower()
 
@@ -497,8 +580,6 @@ def test_get_rebuild_job_succeeds_for_operator(
     tmp_path: Path,
 ) -> None:
     """GET /jobs/{job_id} must return bounded job state for operator."""
-    from src.data.repository import AssetGraphRepository, session_scope
-
     with _rebuild_jobs_db_context(tmp_path, monkeypatch) as session_factory:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
@@ -539,8 +620,6 @@ def test_get_rebuild_job_exposes_sanitized_failure_fields(
     tmp_path: Path,
 ) -> None:
     """GET /jobs/{job_id} must expose sanitized failure metadata only."""
-    from src.data.repository import AssetGraphRepository, session_scope
-
     with _rebuild_jobs_db_context(tmp_path, monkeypatch) as session_factory:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
@@ -573,8 +652,6 @@ def test_list_rebuild_jobs_succeeds_for_operator(
     tmp_path: Path,
 ) -> None:
     """GET /jobs must return bounded list structure for operator."""
-    from src.data.repository import AssetGraphRepository, session_scope
-
     with _rebuild_jobs_db_context(tmp_path, monkeypatch) as session_factory:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
@@ -605,11 +682,7 @@ def test_list_rebuild_jobs_returns_newest_first_ordering(
     tmp_path: Path,
 ) -> None:
     """GET /jobs must return jobs in deterministic newest-first order."""
-    from datetime import datetime, timedelta, timezone
-
-    base = datetime.now(timezone.utc)
-
-    from src.data.repository import AssetGraphRepository, session_scope
+    base = datetime.now(timezone.utc)  # noqa: UP017
 
     with _rebuild_jobs_db_context(tmp_path, monkeypatch) as session_factory:
         with session_scope(session_factory) as session:

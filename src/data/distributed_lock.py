@@ -8,6 +8,7 @@ from collections.abc import Callable
 from enum import Enum
 from time import sleep
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.data.repository import AssetGraphRepository, session_scope
@@ -151,20 +152,36 @@ class DistributedLock:
         """
         Check the current state of this distributed lock.
 
+        State Classification:
+        - VALID: Lock exists, not expired, held by this holder_id
+        - EXPIRED: Lock exists but TTL has passed
+        - UNKNOWN: Lock doesn't exist OR held by different holder_id
+        - LOST: Database connectivity failure during state check
+
+        LOST vs UNKNOWN Distinction:
+        - UNKNOWN = deterministic state (no lock record or wrong owner)
+          May allow reacquisition if lock truly doesn't exist
+        - LOST = transient failure (cannot determine state due to DB error)
+          Must not proceed - cannot safely determine ownership
+
+        Recovery Implications:
+        - UNKNOWN: RecoveryGate may allow reacquisition or RESET recovery
+        - LOST: RecoveryGate blocks execution (UNSAFE action)
+        - EXPIRED: Allows reacquisition by any holder
+        - VALID: Normal operation continues
+
         Returns:
             LockState: The current state (VALID, EXPIRED, UNKNOWN, LOST).
         """
         try:
             with session_scope(self.session_factory) as session:
-                from src.data.repository import AssetGraphRepository
-
                 repo = AssetGraphRepository(session)
                 return repo.check_distributed_lock_state(
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
                 )
-        except Exception as exc:
-            # DB connectivity failure during lock state check
+        except (SQLAlchemyError, OSError) as exc:
+            # DB connectivity failure during lock state check (SQLAlchemy/DBAPI and OS-layer I/O)
             # Use bounded logging to prevent DSN/credential leakage in tracebacks
             logger.warning(
                 "Lost database connectivity while checking lock '%s': %s",
@@ -172,6 +189,15 @@ class DistributedLock:
                 type(exc).__name__,
             )
             return LockState.LOST
+        except Exception as exc:
+            # Unexpected error - this indicates a programming bug, not connectivity loss
+            # Re-raise to surface the issue rather than masking it as LOST state
+            logger.error(
+                "Unexpected error checking lock '%s' state (%s) - re-raising",
+                self.lock_name,
+                type(exc).__name__,
+            )
+            raise
 
     def __enter__(self) -> DistributedLock:
         """Context manager entry point."""

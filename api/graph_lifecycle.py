@@ -164,6 +164,13 @@ class _UnsetLastSyncedJobId:
 UNSET_LAST_SYNC: Final = _UnsetLastSyncedJobId()
 
 
+def _settings_asset_graph_database_url(
+    settings: graph_lifecycle_providers.GraphLifecycleSettings,
+) -> str | None:
+    """Return the durable graph database URL across old/new settings shapes."""
+    return getattr(settings, "asset_graph_database_url", getattr(settings, "database_url", None))
+
+
 def _sync_state_changed(expected_last_synced_job_id: str | None | _UnsetLastSyncedJobId) -> bool:
     """Return whether sync state has changed from the expected value."""
     if isinstance(expected_last_synced_job_id, _UnsetLastSyncedJobId):
@@ -270,7 +277,9 @@ def _query_latest_successful_rebuild_job_id(
     from src.data.database import create_engine_from_url, create_session_factory
     from src.data.repository import AssetGraphRepository, session_scope
 
-    resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(
+        _settings_asset_graph_database_url(settings)
+    )
     engine = create_engine_from_url(resolved_url)
     try:
         session_factory = create_session_factory(engine)
@@ -384,7 +393,9 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
         return graph_state.graph_factory(), "explicit_factory"
 
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
-    persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(settings.asset_graph_database_url)
+    persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(
+        _settings_asset_graph_database_url(settings)
+    )
     if persisted_graph is not None:
         logger.info("Graph startup source: persisted_graph_store")
 
@@ -401,8 +412,8 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
 
         return persisted_graph, "persisted_graph_store"
 
-    cache_path = settings.graph_cache_path
-    use_real_data = settings.use_real_data_fetcher
+    cache_path = getattr(settings, "graph_cache_path", None)
+    use_real_data = bool(getattr(settings, "use_real_data_fetcher", False))
 
     if cache_path:
         graph = graph_lifecycle_providers.load_graph_from_cache_path(
@@ -412,7 +423,7 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
         return graph, "cache"
 
     if use_real_data:
-        real_data_cache_path = settings.real_data_cache_path
+        real_data_cache_path = getattr(settings, "real_data_cache_path", None)
         graph = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
             real_data_cache_path,
         )
@@ -425,7 +436,7 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
 def sync_with_latest_rebuild() -> None:
     """Check database for newer successful rebuild and synchronize if found."""
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
-    if not settings.asset_graph_database_url:
+    if not _settings_asset_graph_database_url(settings):
         return
 
     # Don't sync while we're already rebuilding locally
@@ -461,7 +472,7 @@ def sync_with_latest_rebuild() -> None:
         )
 
         resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(
-            settings.asset_graph_database_url
+            _settings_asset_graph_database_url(settings)
         )
         engine = create_engine_from_url(resolved_url)
         try:

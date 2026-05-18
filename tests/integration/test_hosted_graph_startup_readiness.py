@@ -29,7 +29,7 @@ def _reset_runtime_graph_state() -> None:
     graph_lifecycle.reset_graph()
     api_main = sys.modules.get("api.main")
     if api_main is not None and hasattr(api_main, "graph"):
-        api_main.graph = None
+        api_main.graph = None  # type: ignore[attr-defined]
 
 
 @pytest.fixture(autouse=True)
@@ -313,6 +313,9 @@ def test_unreachable_persistence_fails_startup_with_sanitized_error(
         """Simulate a driver failure containing sensitive connection details."""
         raise RuntimeError(f"driver failure for {raw_url}")
 
+    import src.data.database
+
+    monkeypatch.setattr(src.data.database, "create_engine_from_url", fail_create_engine)
     monkeypatch.setattr(providers, "create_engine_from_url", fail_create_engine)
 
     startup_error = "Failed to load persisted graph during startup"

@@ -1,13 +1,11 @@
 """Tests for explicit graph rebuild persistence."""
 
-# NOSONAR: Integration tests intentionally exercise DB/repository/API wiring.
-
 from __future__ import annotations
 
 import asyncio
 import logging
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor  # pylint: disable=no-name-in-module
 from pathlib import Path
 from typing import Any
 
@@ -47,7 +45,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
     api_main.reset_graph()
     monkeypatch.setattr("api.routers.graph_admin._REBUILD_RUNTIME.executor", _ImmediateExecutor())
     yield
-    graph_admin.shutdown_rebuild_executor()
+    graph_admin.shutdown_rebuild_executor_sync()
     api_main.reset_graph()
     providers.clear_graph_lifecycle_settings_cache()
     get_settings.cache_clear()
@@ -77,12 +75,13 @@ class _RouteResult:
 
 async def _post_rebuild() -> _RouteResult:
     """Invoke rebuild behavior with route-equivalent error mapping."""
+    await asyncio.sleep(0)
     try:
         body = graph_admin._perform_rebuild_and_persist_sync(  # pylint: disable=protected-access
             graph_admin.get_graph_lifecycle_settings(),
             user_ref="test_user",
         )
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-exception-caught  # noqa: BLE001 # NOSONAR
         http_exc = graph_admin._map_rebuild_error(exc)  # pylint: disable=protected-access
         return _RouteResult(http_exc.status_code, {"detail": http_exc.detail})
     return _RouteResult(200, body.model_dump())
@@ -379,15 +378,15 @@ async def test_successful_rebuild_emits_bounded_audit_log(
 
     assert len(requested_records) == 1
     assert len(succeeded_records) == 1
-    assert requested_records[0].user_ref == "operator"
-    assert requested_records[0].path == "/api/graph/rebuild"
-    assert succeeded_records[0].user_ref == "operator"
-    assert succeeded_records[0].status_code == 200
-    assert succeeded_records[0].source == payload["source"]
-    assert succeeded_records[0].asset_count == payload["asset_count"]
-    assert succeeded_records[0].relationship_count == payload["relationship_count"]
-    assert succeeded_records[0].regulatory_event_count == payload["regulatory_event_count"]
-    assert succeeded_records[0].duration_ms >= 0
+    assert requested_records[0].__dict__.get("user_ref") == "operator"
+    assert requested_records[0].__dict__.get("path") == "/api/graph/rebuild"
+    assert succeeded_records[0].__dict__.get("user_ref") == "operator"
+    assert succeeded_records[0].__dict__.get("status_code") == 200
+    assert succeeded_records[0].__dict__.get("source") == payload["source"]
+    assert succeeded_records[0].__dict__.get("asset_count") == payload["asset_count"]
+    assert succeeded_records[0].__dict__.get("relationship_count") == payload["relationship_count"]
+    assert succeeded_records[0].__dict__.get("regulatory_event_count") == payload["regulatory_event_count"]
+    assert succeeded_records[0].__dict__.get("duration_ms") >= 0
 
 
 async def test_failed_rebuild_emits_secret_safe_audit_log(
@@ -416,11 +415,11 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
 
     assert len(failed_records) == 1
-    assert failed_records[0].user_ref == "operator"
-    assert failed_records[0].failure_category == "persistence_save_error"
-    assert failed_records[0].status_code == 500
-    assert failed_records[0].source == "sample"
-    assert failed_records[0].duration_ms >= 0
+    assert failed_records[0].user_ref == "operator"  # type: ignore[attr-defined]
+    assert failed_records[0].failure_category == "persistence_save_error"  # type: ignore[attr-defined]
+    assert failed_records[0].status_code == 500  # type: ignore[attr-defined]
+    assert failed_records[0].source == "sample"  # type: ignore[attr-defined]
+    assert failed_records[0].duration_ms >= 0  # type: ignore[attr-defined]
 
     serialized_records = " ".join(str(record.__dict__) for record in audit_records)
     assert raw_url not in response.text
@@ -508,7 +507,7 @@ async def test_rebuild_marks_job_failed_when_source_persistence_fails(
     """Source-persistence failures should finalize the durable job as failed."""
     database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
 
-    def fail_update_source(self: AssetGraphRepository, job_id: str, source: str) -> None:
+    def fail_update_source(_self: AssetGraphRepository, job_id: str, source: str) -> None:
         """Simulate source persistence failure after the job has started."""
         _ = job_id
         _ = source
@@ -542,7 +541,7 @@ async def test_rebuild_marks_job_failed_when_success_persistence_fails(
     database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
 
     def fail_mark_succeeded(
-        self: AssetGraphRepository,
+        _self: AssetGraphRepository,
         job_id: str,
         *,
         node_count: int,
@@ -577,8 +576,8 @@ async def test_rebuild_marks_job_failed_when_success_persistence_fails(
 
     # Success-state persistence failure must not overwrite durable graph content.
     persisted_graph = _load_graph(database_url)
-    assert persisted_graph.assets == {}
-    assert persisted_graph.relationships == {}
+    assert not persisted_graph.assets
+    assert not persisted_graph.relationships
 
 
 async def test_rebuild_uses_cache_path_before_sample(
@@ -587,10 +586,10 @@ async def test_rebuild_uses_cache_path_before_sample(
 ) -> None:
     """GRAPH_CACHE_PATH should be the first rebuild source."""
     database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
-    cache_path = tmp_path / "cache.json"
+    cache_path = tmp_path / "cache.json"  # nosec # NOSONAR
     cache_path.write_text("{}", encoding="utf-8")
     known_graph = _graph_with_asset("CACHE_ASSET", "CACHE")
-    monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+    monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))  # nosec # NOSONAR
     providers.clear_graph_lifecycle_settings_cache()
     monkeypatch.setattr(providers, "load_graph_from_cache_path", lambda *_args, **_kwargs: known_graph)
 
