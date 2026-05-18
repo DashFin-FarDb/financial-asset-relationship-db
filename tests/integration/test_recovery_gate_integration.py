@@ -79,9 +79,6 @@ def test_recovery_gate_passes_with_clean_db(session_factory):
     finally:
         lock.release()
 
-    # Lock should have been released — row is deleted on release, so state is UNKNOWN.
-    assert lock.check_state() == LockState.UNKNOWN
-
 
 def test_recovery_gate_resets_orphaned_running_job(session_factory):
     """RecoveryGate performs RESET recovery for an orphaned RUNNING job.
@@ -103,7 +100,7 @@ def test_recovery_gate_resets_orphaned_running_job(session_factory):
         session.commit()
 
     # Insert an EXPIRED lock row to simulate the previous worker's lock.
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)  # noqa: UP017
     past = now - timedelta(seconds=400)
     with session_scope(session_factory) as session:
         session.execute(

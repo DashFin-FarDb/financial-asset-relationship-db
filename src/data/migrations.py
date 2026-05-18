@@ -228,11 +228,7 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     if not statements and not needs_width_normalization:
         return
 
-    if statements:
-        with engine.begin() as connection:
-            for statement in statements:
-                connection.execute(text(statement))
-
-    if needs_width_normalization:
-        with engine.begin() as connection:
-            _apply_normalization_in_transaction(connection, needs_width_normalization)
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
+        _apply_normalization_in_transaction(connection, needs_width_normalization)

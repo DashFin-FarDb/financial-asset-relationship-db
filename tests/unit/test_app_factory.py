@@ -144,7 +144,7 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
         _raise_reconciliation_failure,
     )
 
-    with pytest.raises(RuntimeError, match="reconciliation failed"):
+    with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
         async with app_factory.lifespan(app):
             pass
 

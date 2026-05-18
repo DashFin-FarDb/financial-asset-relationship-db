@@ -416,7 +416,7 @@ def _resolve_user_ref(user: User) -> str:
 
 def _audit_timestamp() -> str:
     """Return a UTC timestamp string for audit log records."""
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(timezone.utc).isoformat()  # noqa: UP017
 
 
 def _duration_ms(started_at: float) -> int:
@@ -496,7 +496,7 @@ def _rebuild_failure_category(exc: Exception) -> str:
 
 
 def _rebuild_source_from_exception(exc: Exception) -> GraphRebuildSource | None:
-    """Return bounded rebuild source from wrapped execution errors when available."""
+    """Return the bounded rebuild source, if one is available on the exception."""
     if isinstance(exc, _RebuildExecutionError):
         return exc.source
     return None
@@ -533,7 +533,7 @@ def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception) -> None:
     """Emit a sentinel alert log for unexpected rebuild failures."""
     logger.critical(
         "graph_rebuild_unexpected_exception",
-        exc_info=exc,  # <-- ADD/ENSURE THIS IS HERE to retain the full stack trace for triage
+        exc_info=True,
         extra={
             "event": "graph_rebuild_unexpected_exception",
             "user_ref": user_ref,
@@ -551,18 +551,13 @@ def _unwrap_rebuild_error(exc: Exception) -> Exception:
     return exc
 
 
-async def shutdown_rebuild_executor() -> None:
-    """Shut down the process-local graph rebuild executor contextually."""
-    await asyncio.to_thread(_REBUILD_RUNTIME.shutdown_executor)
-
-
 def shutdown_rebuild_executor_sync() -> None:
     """Synchronous wrapper for shutdown_rebuild_executor."""
     _REBUILD_RUNTIME.shutdown_executor()
 
 
-def init_rebuild_executor() -> None:
-    """Explicitly initialize the process-local graph rebuild executor."""
+def init_rebuild_executor(_settings: GraphLifecycleSettings | None = None) -> None:
+    """Explicitly initialize the process-local rebuild executor."""
     _REBUILD_RUNTIME.get_executor()
 
 

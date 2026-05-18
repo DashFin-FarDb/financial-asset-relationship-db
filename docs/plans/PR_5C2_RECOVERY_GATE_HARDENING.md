@@ -194,7 +194,6 @@ def _perform_rebuild_and_persist_sync(...) -> GraphRebuildResponse:
 
 **Enhanced docstring in [`src/data/distributed_lock.py`](../../src/data/distributed_lock.py:150):**
 
-```python
 def check_state(self) -> LockState:
     """
     Check the current state of this distributed lock.
@@ -209,6 +208,10 @@ def check_state(self) -> LockState:
     - UNKNOWN = deterministic state (no lock record or wrong owner)
     - LOST = transient failure (cannot determine state due to DB error)
 
+    Exception handling:
+    - Database connectivity failures → LOST
+    - Unexpected exceptions → re-raised (not masked as LOST)
+
     Recovery implications:
     - UNKNOWN: May allow reacquisition if lock truly doesn't exist
     - LOST: Must not proceed - cannot safely determine ownership
@@ -216,7 +219,6 @@ def check_state(self) -> LockState:
     Returns:
         LockState: The current state (VALID, EXPIRED, UNKNOWN, LOST).
     """
-```
 
 ### Phase 4: Test Coverage
 
@@ -326,7 +328,5 @@ pytest tests/integration/test_app_lifecycle.py -v -k startup
 - [Rebuild Failure Detection](../../src/logic/rebuild_failure_detection.py)
 - [Distributed Lock](../../src/data/distributed_lock.py)
 
----
-
 **Plan Status:** ✅ IMPLEMENTED
-**Next Step:** No further action required in this planning document; startup reconciliation hook implementation is complete in this PR.
+**Next Step:** No further action required; implementation was completed across PRs 1-15 as documented in this plan.
