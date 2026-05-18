@@ -206,6 +206,6 @@ def test_startup_reconciliation_releases_lock_when_reset_reacquired(
     monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", _GateReacquired)
 
     app_factory._run_startup_reconciliation(base_settings)  # pylint: disable=protected-access
-    
+
     # Asserting correct functional delegation across boundaries
     assert fake_lock.lock_name == "graph_rebuild"
