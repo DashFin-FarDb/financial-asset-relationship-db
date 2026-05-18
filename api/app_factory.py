@@ -68,9 +68,11 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     # Ensure database schema initialization runs early inside reconciliation path
     engine = create_engine_from_url(settings.database_url)
     from src.data.database import init_db
+
     init_db(engine)
 
     from src.data.database import create_session_factory
+
     session_factory = create_session_factory(engine)
 
     with session_scope(session_factory) as session:
@@ -80,7 +82,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
             lock_id="startup_reconciliation",
             ttl_seconds=_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS,
         )
-        
+
         # Enforce structural integrity analysis via recovery gate
         gate = RecoveryGate(repo=repo, lock=lock)
         gate.evaluate_and_reconcile()
@@ -89,8 +91,9 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application runtime setup and teardown lifecycles cleanly."""
-    from .graph_lifecycle_providers import get_graph_lifecycle_settings
     from src.logic.recovery_gate import ExecutionBlockedError
+
+    from .graph_lifecycle_providers import get_graph_lifecycle_settings
 
     settings = get_graph_lifecycle_settings()
     has_durable_graph_persistence = settings.has_durable_graph_persistence
@@ -119,6 +122,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
         # 2. Idempotent secondary database safety verification guard
         from src.data.database import create_engine_from_url, init_db
+
         try:
             init_db(create_engine_from_url(settings.database_url))
         except Exception as db_exc:
@@ -134,9 +138,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
         # 4. Spawn graph synchronization looping routine
         sync_task = asyncio.create_task(
-            _graph_synchronization_loop(
-                interval_seconds=settings.graph_sync_interval_seconds
-            )
+            _graph_synchronization_loop(interval_seconds=settings.graph_sync_interval_seconds)
         )
 
     yield
