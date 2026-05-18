@@ -134,7 +134,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             raise db_exc
 
         # 3. Initialize background threading execution pool safely
-        init_rebuild_executor(settings)
+        init_rebuild_executor()
 
         # 4. Spawn graph synchronization looping routine
         sync_task = asyncio.create_task(
