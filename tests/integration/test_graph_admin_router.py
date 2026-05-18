@@ -412,36 +412,37 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Callback logs outcome metrics layout correctly when task context cancellation occurs."""
+    import time
+    
     thread_reached = threading.Event()
     proceed_thread = threading.Event()
     callback_completed = asyncio.Event()
-
     loop = asyncio.get_running_loop()
 
-    # Intercept the core wrapper engine function to confidently signal task resolution
-    original_run_in_executor = graph_admin._run_rebuild_in_executor
+    # Track logging directly so we only finish when the thread genuinely concludes
+    original_log = graph_admin._log_rebuild_succeeded
 
-    async def track_executor_completion(*args, **kwargs):
+    def track_log(*args, **kwargs):
         try:
-            return await original_run_in_executor(*args, **kwargs)
+            return original_log(*args, **kwargs)
         finally:
-            # Assures the test loop wakes up under any terminal state (success, fail, or cancel)
-            callback_completed.set()
+            loop.call_soon_threadsafe(callback_completed.set)
 
-    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", track_executor_completion)
+    monkeypatch.setattr(graph_admin, "_log_rebuild_succeeded", track_log)
 
     def coordinated_sync_rebuild(*args, **kwargs):
-        thread_reached.set()  # Tell main loop thread has safely started inside the executor
-        proceed_thread.wait(timeout=5.0)  # Safe bounded block to let the test cancel the coroutine
-
-        # Valid Literal value ('sample') to satisfy Pydantic models
+        thread_reached.set()
+        proceed_thread.wait(timeout=5.0)
         return graph_admin.GraphRebuildResponse(
-            status="persisted", source="sample", asset_count=5, relationship_count=2, regulatory_event_count=0
+            status="persisted", 
+            source="sample", 
+            asset_count=5, 
+            relationship_count=2, 
+            regulatory_event_count=0
         )
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
 
-    # Secure the initialization environment state
     if graph_admin._REBUILD_RUNTIME.is_busy():
         graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
     graph_admin._REBUILD_RUNTIME.mark_busy()
@@ -458,19 +459,13 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
                 )
             )
 
-            # 1. Wait cleanly until the thread pool is actively execution-locked
             await loop.run_in_executor(None, thread_reached.wait)
-
-            # 2. Fire the web request cancellation on the async task frame
             task.cancel()
 
             with pytest.raises(asyncio.CancelledError):
                 await task
 
-            # 3. Release the synchronous thread lock so the background worker can run to completion
             proceed_thread.set()
-
-            # 4. Await until the background execution thread completes its on_done callback loop safely
             await asyncio.wait_for(callback_completed.wait(), timeout=3.0)
 
     finally:
@@ -479,7 +474,6 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
         reset_graph()
 
-    # Extract logs and perform assertions
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
     succeeded_records = [
         record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_succeeded"
