@@ -91,19 +91,18 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application runtime setup and teardown lifecycles cleanly."""
-    from .graph_lifecycle_providers import get_graph_lifecycle_settings
     from src.logic.recovery_gate import ExecutionBlockedError
 
+    from .graph_lifecycle_providers import get_graph_lifecycle_settings
+
     settings = get_graph_lifecycle_settings()
-    
+
     # FIX: Safely infer durability checking based on the existence of database configuration
     # or look up settings attributes cleanly to avoid structural property drift.
     has_durable_graph_persistence = (
         hasattr(settings, "has_durable_graph_persistence") and settings.has_durable_graph_persistence
-    ) or (
-        hasattr(settings, "database_url") and bool(settings.database_url)
-    )
-    
+    ) or (hasattr(settings, "database_url") and bool(settings.database_url))
+
     sync_task: asyncio.Task | None = None
 
     if has_durable_graph_persistence:
@@ -129,6 +128,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
         # 2. Idempotent secondary database safety verification guard
         from src.data.database import create_engine_from_url, init_db
+
         try:
             init_db(create_engine_from_url(settings.database_url))
         except Exception as db_exc:
@@ -144,9 +144,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
         # 4. Spawn graph synchronization looping routine
         sync_task = asyncio.create_task(
-            _graph_synchronization_loop(
-                interval_seconds=settings.graph_sync_interval_seconds
-            )
+            _graph_synchronization_loop(interval_seconds=settings.graph_sync_interval_seconds)
         )
 
     yield
