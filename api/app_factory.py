@@ -1,15 +1,11 @@
-"""FastAPI application factory for the Financial Asset Relationship Database API.
-
-This module contains the FastAPI application construction, middleware setup,
-and router registration logic.
-"""
+"""FastAPI application factory for the Financial Asset Relationship Database API."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, AsyncGenerator
 
 from fastapi import FastAPI
 
@@ -41,76 +37,51 @@ from .routers.visualization import router as visualization_router
 
 logger = logging.getLogger(__name__)
 
-# Startup reconciliation uses a fixed TTL. GraphLifecycleSettings does not carry
-# a configurable lock TTL, so using a reasonable baseline default of 10s.
 _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 
 
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
-    """Run database consistency reconciliation during application startup.
-
-    This function sets up a transient transactional scope to check for active
-    locks or dirty state markers left over from an ungraceful crash or hard terminating
-    sigkill. It coordinates state recovery before background queues spin up.
-
-    Args:
-        settings: Initialized GraphLifecycleSettings object.
-
-    Raises:
-        ExecutionBlockedError: If the RecoveryGate identifies an unresolvable data
-            inconsistency or a distributed lock state that is definitively LOST.
-    """
-    from src.data.database import create_engine_from_url
-    from src.data.distributed_lock import DistributedLock
+    """Run database consistency reconciliation during application startup."""
+    from src.data.database import init_db, create_session_factory
     from src.data.repository import AssetGraphRepository, session_scope
-    from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+    from src.data.distributed_lock import DistributedLock
+    from src.logic.recovery_gate import RecoveryGate
+    from .graph_lifecycle_providers import create_engine_from_url, resolve_durable_graph_persistence_url
 
-    # Ensure database schema initialization runs early inside reconciliation path
-    engine = create_engine_from_url(settings.database_url)
-    from src.data.database import init_db
-
-    init_db(engine)
-
-    from src.data.database import create_session_factory
-
-    session_factory = create_session_factory(engine)
-
-    with session_scope(session_factory) as session:
-        repo = AssetGraphRepository(session)
-        lock = DistributedLock(
-            db_session=session,
-            lock_id="startup_reconciliation",
-            ttl_seconds=_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS,
-        )
-
-        # Enforce structural integrity analysis via recovery gate
-        gate = RecoveryGate(repository=repo, lock=lock)
-        gate.evaluate_and_reconcile()
+    url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    engine = create_engine_from_url(url)
+    try:
+        # Schema guarantee runs safely isolated here before gate evaluations
+        init_db(engine)
+        session_factory = create_session_factory(engine)
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            lock = DistributedLock(
+                session=session,
+                lock_id="startup_reconciliation",
+                ttl_seconds=_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS,
+            )
+            gate = RecoveryGate(repo=repo, lock=lock)
+            gate.evaluate_and_reconcile()
+    finally:
+        # Fix: Ensure short-lived startup verification engines are cleanly disposed
+        engine.dispose()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application runtime setup and teardown lifecycles cleanly."""
+    from .graph_lifecycle_providers import get_graph_lifecycle_settings
     from src.logic.recovery_gate import ExecutionBlockedError
 
-    from .graph_lifecycle_providers import get_graph_lifecycle_settings
-
     settings = get_graph_lifecycle_settings()
-
-    # FIX: Safely infer durability checking based on the existence of database configuration
-    # or look up settings attributes cleanly to avoid structural property drift.
-    has_durable_graph_persistence = (
-        hasattr(settings, "has_durable_graph_persistence") and settings.has_durable_graph_persistence
-    ) or (hasattr(settings, "database_url") and bool(settings.database_url))
-
+    has_durable_graph_persistence = bool(getattr(settings, "asset_graph_database_url", None))
     sync_task: asyncio.Task | None = None
 
     if has_durable_graph_persistence:
         try:
-            # 1. Run startup reconciliation and audit safety assertions
             _run_startup_reconciliation(settings)
         except ExecutionBlockedError as exc:
-            # CRITICAL: Crash startup cleanly if safety gates block execution invariants
             logger.critical(
                 "Application startup BLOCKED by RecoveryGate safety invariant: %s",
                 exc,
@@ -118,38 +89,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             )
             raise exc from None
         except Exception as exc:
-            # CRITICAL: Prevent boot if migrations or infrastructure layers fail
             logger.critical(
-                "Fatal infrastructure initialization failure during startup reconciliation: %s",
+                "Fatal infrastructure initialization failure during startup: %s",
                 type(exc).__name__,
                 exc_info=True,
             )
-            raise exc
+            # Sanitized to hide raw connection string secrets during start crashes
+            raise RuntimeError("Failed to load persisted graph during startup") from exc
 
-        # 2. Idempotent secondary database safety verification guard
-        from src.data.database import create_engine_from_url, init_db
-
-        try:
-            init_db(create_engine_from_url(settings.database_url))
-        except Exception as db_exc:
-            logger.critical(
-                "Failed to verify database schema initialization: %s",
-                db_exc,
-                exc_info=True,
-            )
-            raise db_exc
-
-        # 3. Initialize background threading execution pool safely
         init_rebuild_executor(settings)
-
-        # 4. Spawn graph synchronization looping routine
+        interval = getattr(settings, "graph_sync_interval_seconds", 60.0)
         sync_task = asyncio.create_task(
-            _graph_synchronization_loop(interval_seconds=settings.graph_sync_interval_seconds)
+            _graph_synchronization_loop(interval_seconds=interval)
         )
+
+    # Required initialization for all environments to ensure state validity
+    get_graph()
 
     yield
 
-    # Clean application teardown processing path
     logger.info("Initiating orderly application lifespan teardown processing...")
     begin_shutdown()
 
@@ -198,11 +156,8 @@ def create_app() -> FastAPI:
 
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-    # Attach core cross-origin policies
     configure_cors(app)
 
-    # Route configuration registrations
     app.include_router(auth_router)
     app.include_router(system_router)
     app.include_router(graph_admin_router)
@@ -213,5 +168,4 @@ def create_app() -> FastAPI:
     return app
 
 
-# Instantiate the root app layer variable object hook
 app = create_app()
