@@ -84,7 +84,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         )
 
         # Enforce structural integrity analysis via recovery gate
-        gate = RecoveryGate(repo=repo, lock=lock)
+        gate = RecoveryGate(repository=repo, lock=lock)
         gate.evaluate_and_reconcile()
 
 
