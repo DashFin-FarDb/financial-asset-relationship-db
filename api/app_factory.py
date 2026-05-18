@@ -42,10 +42,11 @@ _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """Run database consistency reconciliation during application startup."""
-    from src.data.database import init_db, create_session_factory
-    from src.data.repository import AssetGraphRepository, session_scope
+    from src.data.database import create_session_factory, init_db
     from src.data.distributed_lock import DistributedLock
+    from src.data.repository import AssetGraphRepository, session_scope
     from src.logic.recovery_gate import RecoveryGate
+
     from .graph_lifecycle_providers import create_engine_from_url, resolve_durable_graph_persistence_url
 
     url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
@@ -71,8 +72,9 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application runtime setup and teardown lifecycles cleanly."""
-    from .graph_lifecycle_providers import get_graph_lifecycle_settings
     from src.logic.recovery_gate import ExecutionBlockedError
+
+    from .graph_lifecycle_providers import get_graph_lifecycle_settings
 
     settings = get_graph_lifecycle_settings()
     has_durable_graph_persistence = bool(getattr(settings, "asset_graph_database_url", None))
@@ -99,9 +101,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
         init_rebuild_executor(settings)
         interval = getattr(settings, "graph_sync_interval_seconds", 60.0)
-        sync_task = asyncio.create_task(
-            _graph_synchronization_loop(interval_seconds=interval)
-        )
+        sync_task = asyncio.create_task(_graph_synchronization_loop(interval_seconds=interval))
 
     # Required initialization for all environments to ensure state validity
     get_graph()
