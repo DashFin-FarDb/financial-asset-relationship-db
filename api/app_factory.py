@@ -78,7 +78,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     with session_scope(session_factory) as session:
         repo = AssetGraphRepository(session)
         lock = DistributedLock(
-            session=session,
+            db_session=session,
             lock_id="startup_reconciliation",
             ttl_seconds=_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS,
         )
