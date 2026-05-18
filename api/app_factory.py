@@ -42,10 +42,11 @@ _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """Run database consistency reconciliation during application startup."""
-    from src.data.database import init_db, create_session_factory
-    from src.data.repository import AssetGraphRepository, session_scope
+    from src.data.database import create_session_factory, init_db
     from src.data.distributed_lock import DistributedLock
+    from src.data.repository import AssetGraphRepository, session_scope
     from src.logic.recovery_gate import RecoveryGate
+
     from .graph_lifecycle_providers import create_engine_from_url, resolve_durable_graph_persistence_url
 
     url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
