@@ -411,32 +411,36 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Callback logs success definitively when task is canceled while processing."""
+    """Callback logs outcome metrics layout correctly when task context cancellation occurs."""
     thread_reached = threading.Event()
     proceed_thread = threading.Event()
-
-    # An event to guarantee the loop has executed the background future's completion callback
     callback_completed = asyncio.Event()
 
-    # We safely intercept the logging function to signal when the background callback has fully run
-    original_log_success = graph_admin._log_rebuild_succeeded
+    loop = asyncio.get_running_loop()
 
-    def track_log_success(*args, **kwargs):
+    # Intercept the core wrapper engine function to confidently signal task resolution
+    original_run_in_executor = graph_admin._run_rebuild_in_executor
+
+    async def track_executor_completion(*args, **kwargs):
         try:
-            return original_log_success(*args, **kwargs)
+            return await original_run_in_executor(*args, **kwargs)
         finally:
-            # Wake up the test main loop frame – logging has occurred!
-            loop.call_soon_threadsafe(callback_completed.set)
+            # Assures the test loop wakes up under any terminal state (success, fail, or cancel)
+            callback_completed.set()
 
-    monkeypatch.setattr(graph_admin, "_log_rebuild_succeeded", track_log_success)
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", track_executor_completion)
 
     def coordinated_sync_rebuild(*args, **kwargs):
         thread_reached.set()  # Tell main loop thread has safely started inside the executor
         proceed_thread.wait(timeout=5.0)  # Safe bounded block to let the test cancel the coroutine
-
+        
         # Valid Literal value ('sample') to satisfy Pydantic models
         return graph_admin.GraphRebuildResponse(
-            status="persisted", source="external_api", asset_count=5, relationship_count=2, regulatory_event_count=0
+            status="persisted", 
+            source="sample", 
+            asset_count=5, 
+            relationship_count=2, 
+            regulatory_event_count=0
         )
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
@@ -447,7 +451,6 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     graph_admin._REBUILD_RUNTIME.mark_busy()
 
     try:
-        loop = asyncio.get_running_loop()
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
             task = asyncio.create_task(
                 graph_admin._run_rebuild_in_executor(
