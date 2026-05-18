@@ -413,7 +413,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 ) -> None:
     """Callback logs outcome metrics layout correctly when task context cancellation occurs."""
     import time
-    
+
     thread_reached = threading.Event()
     proceed_thread = threading.Event()
     callback_completed = asyncio.Event()
@@ -434,11 +434,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
         thread_reached.set()
         proceed_thread.wait(timeout=5.0)
         return graph_admin.GraphRebuildResponse(
-            status="persisted", 
-            source="sample", 
-            asset_count=5, 
-            relationship_count=2, 
-            regulatory_event_count=0
+            status="persisted", source="sample", asset_count=5, relationship_count=2, regulatory_event_count=0
         )
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
