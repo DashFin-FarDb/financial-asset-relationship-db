@@ -195,7 +195,8 @@ if desired_state.graph_version is not None and (
         if desired_state.require_runtime_healthy and not observed_state.runtime_healthy:
             return DriftEvaluation(
                 drift_type=DriftType.RUNTIME_UNHEALTHY,
-                severity=Severity.CRITICAL,
+# Delete lines 155-195 entirely — the evaluate() logic above is already complete and correct.
+# The class body should end after the first `return DriftEvaluation(drift_type=DriftType.NONE, ...)` block.
                 reason="Runtime is unhealthy while desired state requires healthy runtime",
             )
 
