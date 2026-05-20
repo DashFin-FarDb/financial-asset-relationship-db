@@ -99,7 +99,7 @@ class ReconciliationEngine(Protocol):
 
 
 class DefaultDriftEvaluator:
-     """Default deterministic drift evaluator for desired and observed states."""
+    """Default deterministic drift evaluator for desired and observed states."""
 
     def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
         """Evaluate drift according to deterministic priority rules.
