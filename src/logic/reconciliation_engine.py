@@ -95,7 +95,12 @@ class ReconciliationEngine(Protocol):
     """Contract for deterministic plan generation."""
 
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
-        """Generate a plan without executing side effects."""
+        """Generate a deterministic plan; execution is always delegated."""
+        drift = self._drift_evaluator.evaluate(desired_state, observed_state)
+        action = self._ACTION_MAP.get(drift.drift_type, ActionType.ALERT_ONLY)
+    
+        return ReconciliationPlan(
+            drift_type=drift.drift_type,
 
 
 class DefaultDriftEvaluator:
@@ -173,7 +178,6 @@ class DeterministicReconciliationEngine:
 
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
         """Generate a deterministic plan; execution is always delegated."""
-        drift = self._drift_evaluator.evaluate(desired_state, observed_state)
         action = self._ACTION_MAP.get(drift.drift_type, ActionType.ALERT_ONLY)
 
         return ReconciliationPlan(
