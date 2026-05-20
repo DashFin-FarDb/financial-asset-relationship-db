@@ -112,7 +112,7 @@ class DefaultDriftEvaluator:
         5) aligned (no drift)
         """
         observed_version = observed_state.graph_version
-        if desired_state.graph_version and (
+if desired_state.graph_version is not None and (
             observed_version is None or observed_version != desired_state.graph_version
         ):
             return DriftEvaluation(
