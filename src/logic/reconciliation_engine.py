@@ -80,7 +80,17 @@ class ReconciliationPlan:
     severity: Severity
     actions: tuple[ActionType, ...]
 @dataclass(frozen=True)
+@dataclass(frozen=True)
 class ReconciliationPlan:
+    """Plan-only reconciliation output; execution is delegated."""
+
+    drift_type: DriftType
+    severity: Severity
+    actions: tuple[ActionType, ...]
+    target_state: DesiredState
+    execution_mode: ExecutionMode
+    reason: str
+    observed_state: ObservedState | None = None
     """Plan-only reconciliation output; execution is delegated."""
 
     drift_type: DriftType
@@ -120,7 +130,17 @@ class ReconciliationPlan:
     severity: Severity
     actions: tuple[ActionType, ...]
     target_state: DesiredState
+@dataclass(frozen=True)
+class ReconciliationPlan:
+    """Plan-only reconciliation output; execution is delegated."""
+
+    drift_type: DriftType
+    severity: Severity
+    actions: tuple[ActionType, ...]
+    target_state: DesiredState
     execution_mode: ExecutionMode
+    reason: str
+    observed_state: ObservedState | None = None
     reason: str
     observed_state: ObservedState | None = None
     reason: str
@@ -146,7 +166,17 @@ class ReconciliationPlan:
     actions: tuple[ActionType, ...]
     target_state: DesiredState
 # Removed duplicate field declarations
+@dataclass(frozen=True)
+class ReconciliationPlan:
+    """Plan-only reconciliation output; execution is delegated."""
 
+    drift_type: DriftType
+    severity: Severity
+    actions: tuple[ActionType, ...]
+    target_state: DesiredState
+    execution_mode: ExecutionMode
+    reason: str
+    observed_state: ObservedState | None = None
 
 class DriftEvaluator(Protocol):
     """Contract for converting state into normalized drift."""
@@ -160,7 +190,17 @@ class ReconciliationPlan:
     """Plan-only reconciliation output; execution is delegated."""
 
     drift_type: DriftType
+@dataclass(frozen=True)
+class ReconciliationPlan:
+    """Plan-only reconciliation output; execution is delegated."""
+
+    drift_type: DriftType
     severity: Severity
+    actions: tuple[ActionType, ...]
+    target_state: DesiredState
+    execution_mode: ExecutionMode
+    reason: str
+    observed_state: ObservedState | None = None
     actions: tuple[ActionType, ...]
     target_state: DesiredState
     execution_mode: ExecutionMode
@@ -190,10 +230,6 @@ class ReconciliationPlan:
         3) runtime health drift
         4) non-critical degradation
         5) aligned (no drift)
-    def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
-        """
-        Evaluate drift according to deterministic priority rules.
-        ...
         """
         observed_version = observed_state.graph_version
         if desired_state.graph_version is not None and (
@@ -234,20 +270,19 @@ class ReconciliationPlan:
             severity=Severity.NONE,
             reason="Desired and observed state are aligned",
         )
-        observed_version = observed_state.graph_version
-        if desired_state.graph_version and observed_version != desired_state.graph_version:
-            return DriftEvaluation(
-                drift_type=DriftType.VERSION_MISMATCH,
-                severity=Severity.HIGH,
-                reason=(
-                    f'Observed graph version {observed_version!r} does not match desired '
-                    f'version {desired_state.graph_version!r}'
-                ),
-            )
+class ReconciliationEngine(Protocol):
+    """Contract for deterministic plan generation."""
+
 class ReconciliationEngine(Protocol):
     """Contract for deterministic plan generation."""
 
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
+        """Generate a deterministic plan; execution is always delegated."""
+        ...
+
+    def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
+        """Evaluate drift between desired and observed state."""
+        ...
         """Generate a deterministic plan; execution is always delegated."""
         ...
                 reason=(
@@ -305,6 +340,24 @@ class DefaultDriftEvaluator:
     """Default drift evaluator implementing deterministic priority-order rules."""
 # Remove lines 196-230 entirely. The correct DefaultDriftEvaluator.evaluate() implementation
 # already exists below at lines ~232-265. Only that copy should be retained.
+# Delete the second verbatim copy of the evaluate() body (from the second
+# `observed_version = observed_state.graph_version` down to the second
+# `return DriftEvaluation(drift_type=DriftType.NONE, ...)`)
+# Keep only the first complete evaluate() implementation.
+    """Default deterministic drift evaluator."""
+
+    def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
+        """Evaluate drift according to deterministic priority rules."""
+        observed_version = observed_state.graph_version
+        if desired_state.graph_version is not None and (
+            observed_version is None or observed_version != desired_state.graph_version
+        ):
+            return DriftEvaluation(
+                drift_type=DriftType.VERSION_MISMATCH,
+                severity=Severity.HIGH,
+                reason=(
+                    f"Observed graph version {observed_version!r} does not match desired "
+                    f"version {desired_state.graph_version!r}"
 class DefaultDriftEvaluator:
     """Default deterministic drift evaluator."""
 
@@ -321,6 +374,30 @@ class DefaultDriftEvaluator:
                     f"Observed graph version {observed_version!r} does not match desired "
                     f"version {desired_state.graph_version!r}"
                 ),
+            )
+        if desired_state.require_persistence_healthy and not observed_state.persistence_healthy:
+            return DriftEvaluation(
+                drift_type=DriftType.PERSISTENCE_UNHEALTHY,
+                severity=Severity.HIGH,
+                reason="Persistence layer is unhealthy while desired state requires healthy persistence",
+            )
+        if desired_state.require_runtime_healthy and not observed_state.runtime_healthy:
+            return DriftEvaluation(
+                drift_type=DriftType.RUNTIME_UNHEALTHY,
+                severity=Severity.CRITICAL,
+                reason="Runtime is unhealthy while desired state requires healthy runtime",
+            )
+        if observed_state.health_degraded:
+            return DriftEvaluation(
+                drift_type=DriftType.HEALTH_DEGRADED,
+                severity=Severity.MEDIUM,
+                reason="Observed state indicates non-critical health degradation",
+            )
+        return DriftEvaluation(
+            drift_type=DriftType.NONE,
+            severity=Severity.NONE,
+            reason="Desired and observed state are aligned",
+        )
             )
         if desired_state.require_persistence_healthy and not observed_state.persistence_healthy:
             return DriftEvaluation(
@@ -361,7 +438,18 @@ class DefaultDriftEvaluator:
         if desired_state.require_persistence_healthy and not observed_state.persistence_healthy:
             return DriftEvaluation(
                 drift_type=DriftType.PERSISTENCE_UNHEALTHY,
-                severity=Severity.HIGH,
+    def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
+        """Generate a deterministic plan; execution is always delegated."""
+        drift = self._drift_evaluator.evaluate(desired_state, observed_state)
+        action = self._ACTION_MAP.get(drift.drift_type, ActionType.ALERT_ONLY)
+        return ReconciliationPlan(
+            drift_type=drift.drift_type,
+            severity=drift.severity,
+            actions=(action,),
+            target_state=desired_state,
+            execution_mode=ExecutionMode.DELEGATE_TO_JOB_SYSTEM,
+            reason=drift.reason,
+        )
                 reason="Persistence layer is unhealthy while desired state requires healthy persistence",
             )
         if desired_state.require_runtime_healthy and not observed_state.runtime_healthy:
