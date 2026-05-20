@@ -59,3 +59,21 @@ def test_reconcile_is_deterministic_for_identical_inputs() -> None:
     plan_two = engine.reconcile(desired, observed)
 
     assert plan_one == plan_two
+
+
+def test_reconcile_treats_missing_observed_version_as_version_mismatch() -> None:
+    """Missing observed version should still drift when desired version is fixed."""
+    engine = DeterministicReconciliationEngine()
+    desired = DesiredState(graph_version="v3")
+    observed = ObservedState(graph_version=None)
+
+    plan = engine.reconcile(desired, observed)
+
+    assert plan.drift_type == DriftType.VERSION_MISMATCH
+    assert plan.actions == (ActionType.REBUILD_GRAPH,)
+
+
+def test_reconciliation_action_map_covers_all_drift_types() -> None:
+    """Every defined DriftType must have an explicit action mapping."""
+    mapped_drift_types = set(DeterministicReconciliationEngine._ACTION_MAP)  # pylint: disable=protected-access
+    assert mapped_drift_types == set(DriftType)

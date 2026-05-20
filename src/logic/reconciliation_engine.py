@@ -103,12 +103,15 @@ class DefaultDriftEvaluator:
 
     def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
         """Evaluate drift according to deterministic priority rules."""
-        if desired_state.graph_version and observed_state.graph_version != desired_state.graph_version:
+        observed_version = observed_state.graph_version
+        if desired_state.graph_version and (
+            observed_version is None or observed_version != desired_state.graph_version
+        ):
             return DriftEvaluation(
                 drift_type=DriftType.VERSION_MISMATCH,
                 severity=Severity.HIGH,
                 reason=(
-                    f"Observed graph version {observed_state.graph_version!r} does not match desired "
+                    f"Observed graph version {observed_version!r} does not match desired "
                     f"version {desired_state.graph_version!r}"
                 ),
             )
