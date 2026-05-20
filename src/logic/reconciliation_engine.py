@@ -92,7 +92,6 @@ class DriftEvaluator(Protocol):
         Returns:
             Tuple of (drift_type, severity, metadata)
         """
-        ...
 
 
 class ReconciliationEngine:
@@ -149,8 +148,7 @@ class ReconciliationEngine:
         plan = self._drift_to_plan(drift_type, severity, metadata)
 
         logger.info(
-            "Generated reconciliation plan: drift_type=%s, severity=%s, "
-            "actions=%s, execution_mode=%s",
+            "Generated reconciliation plan: drift_type=%s, severity=%s, actions=%s, execution_mode=%s",
             plan.drift_type,
             plan.severity.value,
             [a.value for a in plan.actions],
@@ -207,7 +205,7 @@ class ReconciliationEngine:
         # Map specific drift types to actions
         return self._map_drift_type_to_plan(drift_type, severity, metadata)
 
-    def _map_drift_type_to_plan(
+    def _map_drift_type_to_plan(  # pylint: disable=too-many-return-statements
         self,
         drift_type: str,
         severity: Severity,
@@ -320,7 +318,7 @@ class ReconciliationEngine:
             created_at=datetime.now(timezone.utc),
         )
 
-    def _create_reset_plan(
+    def _create_reset_plan(  # pylint: disable=too-many-positional-arguments
         self,
         drift_type: str,
         severity: Severity,

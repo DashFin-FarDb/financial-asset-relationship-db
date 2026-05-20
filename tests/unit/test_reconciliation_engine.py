@@ -353,6 +353,7 @@ class TestDriftEvaluatorProtocol:
 
     def test_protocol_compatibility_with_engine(self) -> None:
         """Test that any DriftEvaluator implementation works with engine."""
+
         # Create a minimal protocol-compliant evaluator
         class MinimalEvaluator:
             def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | bool | None]]:

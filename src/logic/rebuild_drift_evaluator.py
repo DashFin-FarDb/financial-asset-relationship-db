@@ -112,14 +112,14 @@ class RebuildDriftEvaluator:
             with self.session_factory() as session:
                 repo = AssetGraphRepository(session)
                 return repo.get_active_rebuild_state()
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-exception-caught
             logger.warning(
                 "Failed to retrieve active rebuild job: %s",
                 type(exc).__name__,
             )
             return None
 
-    def _classify_severity(
+    def _classify_severity(  # pylint: disable=too-many-return-statements
         self,
         inconsistency_type: InconsistencyType,
         lock_is_valid: bool,
