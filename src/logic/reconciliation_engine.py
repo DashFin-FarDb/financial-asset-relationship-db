@@ -67,7 +67,7 @@ class ReconciliationPlan:
     target_state: str  # Description of desired end state
     execution_mode: ExecutionMode
     reason: str
-    metadata: dict[str, str | int | bool | None]
+    metadata: dict[str, str | int | float | bool | None]
     created_at: datetime
 
     def __post_init__(self) -> None:
@@ -86,7 +86,7 @@ class DriftEvaluator(Protocol):
     different subsystems (graph state, persistence, runtime, etc).
     """
 
-    def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | bool | None]]:
+    def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
         """Evaluate current drift between desired and observed states.
 
         Returns:
@@ -145,7 +145,8 @@ class ReconciliationEngine:
             metadata,
         )
 
-        plan = self._drift_to_plan(drift_type, severity, metadata)
+        # Copy metadata to ensure immutability of the plan
+        plan = self._drift_to_plan(drift_type, severity, dict(metadata))
 
         logger.info(
             "Generated reconciliation plan: drift_type=%s, severity=%s, actions=%s, execution_mode=%s",
@@ -161,7 +162,7 @@ class ReconciliationEngine:
         self,
         drift_type: str,
         severity: Severity,
-        metadata: dict[str, str | int | bool | None],
+        metadata: dict[str, str | int | float | bool | None],
     ) -> ReconciliationPlan:
         """Translate drift into actionable reconciliation plan.
 
@@ -205,11 +206,11 @@ class ReconciliationEngine:
         # Map specific drift types to actions
         return self._map_drift_type_to_plan(drift_type, severity, metadata)
 
-    def _map_drift_type_to_plan(  # pylint: disable=too-many-return-statements
+    def _map_drift_type_to_plan(  # pylint: disable=too-many-return-statements  # Each drift type requires distinct plan; table-driven refactor deferred to Phase 2
         self,
         drift_type: str,
         severity: Severity,
-        metadata: dict[str, str | int | bool | None],
+        metadata: dict[str, str | int | float | bool | None],
     ) -> ReconciliationPlan:
         """Map specific drift types to concrete reconciliation plans."""
         # Orphaned running state - reset required
@@ -318,11 +319,11 @@ class ReconciliationEngine:
             created_at=datetime.now(timezone.utc),
         )
 
-    def _create_reset_plan(  # pylint: disable=too-many-positional-arguments
+    def _create_reset_plan(  # pylint: disable=too-many-positional-arguments  # Explicit params preferred over dataclass for internal helper; Phase 2 may consolidate
         self,
         drift_type: str,
         severity: Severity,
-        metadata: dict[str, str | int | bool | None],
+        metadata: dict[str, str | int | float | bool | None],
         reason: str,
         target_state: str,
     ) -> ReconciliationPlan:

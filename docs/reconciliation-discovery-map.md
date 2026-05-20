@@ -129,7 +129,7 @@ The Financial Asset Relationship Database already contains sophisticated **impli
 
 ### Before (Implicit)
 
-```
+```text
 ┌─────────────────────────┐
 │ Drift Detection         │ ← detect_rebuild_inconsistency()
 ├─────────────────────────┤
@@ -145,7 +145,7 @@ The Financial Asset Relationship Database already contains sophisticated **impli
 
 ### After (Explicit)
 
-```
+```text
 ┌─────────────────────────┐
 │ DriftEvaluator          │ ← RebuildDriftEvaluator (new)
 │ (protocol)              │    wraps detect_rebuild_inconsistency()

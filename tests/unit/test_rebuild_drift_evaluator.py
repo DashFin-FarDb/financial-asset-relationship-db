@@ -277,8 +277,10 @@ class TestRebuildDriftEvaluator:
 
     def test_handles_session_factory_error_gracefully(self) -> None:
         """Test that evaluator handles session factory errors gracefully."""
+        from sqlalchemy.exc import SQLAlchemyError
+
         session_factory = Mock()
-        session_factory.side_effect = Exception("DB connection failed")
+        session_factory.side_effect = SQLAlchemyError("DB connection failed")
 
         lock = Mock()
         lock.check_state.return_value = LockState.VALID
@@ -297,3 +299,53 @@ class TestRebuildDriftEvaluator:
         # No job + no executor = no drift
         assert drift_type == "none"
         assert severity == Severity.NONE
+
+    def test_propagates_value_error_on_integrity_violation(self) -> None:
+        """Test that ValueError from DB integrity violation is propagated."""
+        session_factory = Mock()
+
+        # Mock session that raises ValueError (e.g., multiple RUNNING jobs)
+        mock_session = MagicMock()
+        mock_repo = MagicMock()
+        mock_repo.get_active_rebuild_state.side_effect = ValueError("Multiple RUNNING jobs found")
+        mock_session.__enter__.return_value = mock_session
+        session_factory.return_value.__enter__ = Mock(return_value=mock_session)
+        session_factory.return_value.__exit__ = Mock(return_value=None)
+
+        lock = Mock()
+        lock.check_state.return_value = LockState.VALID
+
+        with pytest.MonkeyPatch.context() as mp:
+            mp.setattr("src.logic.rebuild_drift_evaluator.AssetGraphRepository", lambda session: mock_repo)
+
+            evaluator = RebuildDriftEvaluator(
+                session_factory=session_factory,
+                lock=lock,
+                runtime_has_active_executor=False,
+                lock_ttl_seconds=300,
+            )
+
+            # Should raise ValueError (DB integrity violation)
+            with pytest.raises(ValueError, match="Multiple RUNNING jobs found"):
+                evaluator.evaluate_drift()
+
+    def test_lock_lost_is_critical_drift(self) -> None:
+        """Test that LOST lock state is treated as CRITICAL drift."""
+        session_factory = Mock()
+        lock = Mock()
+        lock.check_state.return_value = LockState.LOST
+
+        evaluator = RebuildDriftEvaluator(
+            session_factory=session_factory,
+            lock=lock,
+            runtime_has_active_executor=False,
+            lock_ttl_seconds=300,
+        )
+
+        drift_type, severity, metadata = evaluator.evaluate_drift()
+
+        assert drift_type == "lock_lost"
+        assert severity == Severity.CRITICAL
+        assert metadata["lock_state"] == "lost"
+        assert metadata["lock_is_valid"] is False
+        assert "lost" in metadata["reason"].lower()

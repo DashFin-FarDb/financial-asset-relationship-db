@@ -54,7 +54,7 @@ class RebuildDriftEvaluator:
         self.runtime_has_active_executor = runtime_has_active_executor
         self.lock_ttl_seconds = lock_ttl_seconds
 
-    def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | bool | None]]:
+    def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
         """Evaluate drift between desired and observed rebuild states.
 
         Returns:
@@ -62,6 +62,20 @@ class RebuildDriftEvaluator:
         """
         # Check lock state first
         lock_state = self.lock.check_state()
+
+        # Handle LOST lock state as critical drift
+        if lock_state == LockState.LOST:
+            return (
+                "lock_lost",
+                Severity.CRITICAL,
+                {
+                    "lock_state": lock_state.value,
+                    "lock_is_valid": False,
+                    "reason": "Distributed lock was lost during operation",
+                    "runtime_has_active_executor": self.runtime_has_active_executor,
+                },
+            )
+
         lock_is_valid = lock_state == LockState.VALID
 
         # Get current rebuild job from DB
@@ -79,7 +93,7 @@ class RebuildDriftEvaluator:
         severity = self._classify_severity(inconsistency.inconsistency_type, lock_is_valid)
 
         # Build metadata
-        metadata: dict[str, str | int | bool | None] = {
+        metadata: dict[str, str | int | float | bool | None] = {
             "job_id": inconsistency.job_id,
             "reason": inconsistency.reason,
             "lock_state": lock_state.value,
@@ -89,11 +103,19 @@ class RebuildDriftEvaluator:
         }
 
         if job:
+            # Handle heartbeat safely - check if it has isoformat before calling
+            heartbeat_str: str | None = None
+            if job.last_heartbeat_at is not None:
+                if hasattr(job.last_heartbeat_at, "isoformat"):
+                    heartbeat_str = job.last_heartbeat_at.isoformat()
+                else:
+                    heartbeat_str = str(job.last_heartbeat_at)
+
             metadata.update(
                 {
                     "job_status": job.status.value if hasattr(job.status, "value") else str(job.status),
                     "active_worker_id": job.active_worker_id,
-                    "last_heartbeat_at": job.last_heartbeat_at.isoformat() if job.last_heartbeat_at else None,
+                    "last_heartbeat_at": heartbeat_str,
                 }
             )
 
@@ -107,19 +129,29 @@ class RebuildDriftEvaluator:
         return drift_type, severity, metadata
 
     def _get_active_rebuild_job(self) -> RebuildJobORM | None:
-        """Get active rebuild job from database."""
+        """Get active rebuild job from database.
+
+        Raises:
+            ValueError: If database integrity constraint violated (e.g., multiple RUNNING jobs)
+        """
+        from sqlalchemy.exc import SQLAlchemyError
+
         try:
             with self.session_factory() as session:
                 repo = AssetGraphRepository(session)
                 return repo.get_active_rebuild_state()
-        except Exception as exc:  # pylint: disable=broad-exception-caught
+        except ValueError:
+            # DB integrity violation - let it propagate as this indicates serious state corruption
+            raise
+        except (SQLAlchemyError, OSError) as exc:
+            # Transient DB errors - log and treat as "no job" to allow graceful degradation
             logger.warning(
                 "Failed to retrieve active rebuild job: %s",
                 type(exc).__name__,
             )
             return None
 
-    def _classify_severity(  # pylint: disable=too-many-return-statements
+    def _classify_severity(  # pylint: disable=too-many-return-statements  # Each inconsistency type requires distinct severity mapping; table-driven refactor deferred to Phase 2
         self,
         inconsistency_type: InconsistencyType,
         lock_is_valid: bool,

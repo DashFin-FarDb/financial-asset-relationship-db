@@ -1,13 +1,11 @@
 """Tests for the Reconciliation Engine core abstraction."""
 
 from datetime import datetime, timezone
-from unittest.mock import Mock
 
 import pytest
 
 from src.logic.reconciliation_engine import (
     ActionType,
-    DriftEvaluator,
     ExecutionMode,
     ReconciliationEngine,
     ReconciliationPlan,
@@ -22,14 +20,14 @@ class MockDriftEvaluator:
         self,
         drift_type: str,
         severity: Severity,
-        metadata: dict[str, str | int | bool | None] | None = None,
+        metadata: dict[str, str | int | float | bool | None] | None = None,
     ) -> None:
         """Initialize mock evaluator with predetermined drift."""
         self.drift_type = drift_type
         self.severity = severity
         self.metadata = metadata or {}
 
-    def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | bool | None]]:
+    def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
         """Return predetermined drift evaluation."""
         return self.drift_type, self.severity, self.metadata
 
