@@ -93,18 +93,6 @@ class DriftEvaluator(Protocol):
 
 
 class ReconciliationEngine(Protocol):
-class ReconciliationEngine(Protocol):
-    """Contract for deterministic plan generation."""
-
-    def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
-class ReconciliationEngine(Protocol):
-    """Contract for deterministic plan generation."""
-
-    def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
-        """Generate a deterministic plan; execution is always delegated."""
-
-    def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
-class ReconciliationEngine(Protocol):
     """Contract for deterministic plan generation."""
 
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
