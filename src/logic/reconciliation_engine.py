@@ -25,7 +25,7 @@ class ActionType(str, Enum):
     """Types of corrective actions that can be planned."""
 
     NOOP = "noop"  # Already converged, no action needed
-    REBUILD_GRAPH = "rebuild_graph"  # Graph rebuild required
+    REBUILD_GRAPH = "graph_rebuild"  # Graph rebuild required
     ROLLBACK_VERSION = "rollback_version"  # Rollback to previous version
     REPAIR_PERSISTENCE = "repair_persistence"  # Repair persistence layer
     RESTART_RUNTIME = "restart_runtime"  # Runtime restart required
