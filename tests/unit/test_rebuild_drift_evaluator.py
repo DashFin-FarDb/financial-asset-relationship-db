@@ -14,176 +14,98 @@ from src.logic.reconciliation_engine import Severity
 class TestRebuildDriftEvaluator:
     """Tests for RebuildDriftEvaluator."""
 
-    def test_no_job_no_executor_evaluates_as_none(self) -> None:
-        """Test that no job + no executor evaluates as no drift."""
-        session_factory = Mock()
-        lock = Mock()
-        lock.check_state.return_value = LockState.VALID
+    @pytest.mark.parametrize(
+        "lock_state,job_status,has_executor,expected_drift,expected_severity,test_description",
+        [
+            # No job, no executor = no drift
+            (LockState.VALID, None, False, "none", Severity.NONE, "no_job_no_executor"),
+            # Orphaned running without lock
+            (LockState.EXPIRED, RebuildJobStatus.RUNNING, False, "orphaned_running", Severity.HIGH, "orphaned_no_lock"),
+            # Orphaned running with valid lock (split-brain risk)
+            (LockState.VALID, RebuildJobStatus.RUNNING, False, "orphaned_running", Severity.CRITICAL, "orphaned_with_lock"),
+            # Zombie executor (runtime active, DB shows completed)
+            (LockState.VALID, RebuildJobStatus.SUCCEEDED, True, "zombie_executor", Severity.CRITICAL, "zombie_executor"),
+        ],
+        ids=lambda x: x if isinstance(x, str) else "",
+    )
+    def test_drift_type_and_severity_combinations(
+        self,
+        mock_session_factory,
+        mock_lock,
+        mock_rebuild_job,
+        lock_state,
+        job_status,
+        has_executor,
+        expected_drift,
+        expected_severity,
+        test_description,
+    ) -> None:
+        """Test various drift type and severity combinations using parametrization.
 
-        # Mock session that returns None for active rebuild job
-        mock_session = MagicMock()
+        This consolidates the repetitive pattern of testing different drift scenarios
+        with the same mock setup structure.
+        """
+        session_factory, mock_session = mock_session_factory
+        mock_lock.check_state.return_value = lock_state
+
+        # Setup mock repository
         mock_repo = MagicMock()
-        mock_repo.get_active_rebuild_state.return_value = None
-        mock_session.__enter__.return_value = mock_session
-        mock_session.return_value = mock_session
-        session_factory.return_value.__enter__ = Mock(return_value=mock_session)
-        session_factory.return_value.__exit__ = Mock(return_value=None)
-
-        # Patch AssetGraphRepository
-        with pytest.MonkeyPatch.context() as mp:
-            mp.setattr("src.logic.rebuild_drift_evaluator.AssetGraphRepository", lambda session: mock_repo)
-
-            evaluator = RebuildDriftEvaluator(
-                session_factory=session_factory,
-                lock=lock,
-                runtime_has_active_executor=False,
-                lock_ttl_seconds=300,
+        if job_status is None:
+            mock_repo.get_active_rebuild_state.return_value = None
+        else:
+            job = mock_rebuild_job(
+                job_id=f"test-job-{test_description}",
+                status=job_status,
+                active_worker_id="worker-456" if job_status == RebuildJobStatus.RUNNING else None,
+                heartbeat_at=datetime.now(timezone.utc),
             )
-
-            drift_type, severity, metadata = evaluator.evaluate_drift()
-
-            assert drift_type == "none"
-            assert severity == Severity.NONE
-            assert metadata["lock_is_valid"] is True
-
-    def test_orphaned_running_without_lock_is_high_severity(self) -> None:
-        """Test that orphaned running state without lock is HIGH severity."""
-        session_factory = Mock()
-        lock = Mock()
-        lock.check_state.return_value = LockState.EXPIRED
-
-        # Mock running job
-        mock_job = Mock()
-        mock_job.job_id = "test-job-123"
-        mock_job.status = RebuildJobStatus.RUNNING
-        mock_job.active_worker_id = "worker-456"
-        mock_job.last_heartbeat_at = datetime.now(timezone.utc)
-
-        mock_session = MagicMock()
-        mock_repo = MagicMock()
-        mock_repo.get_active_rebuild_state.return_value = mock_job
-        mock_session.__enter__.return_value = mock_session
-        session_factory.return_value.__enter__ = Mock(return_value=mock_session)
-        session_factory.return_value.__exit__ = Mock(return_value=None)
-
-        with pytest.MonkeyPatch.context() as mp:
-            mp.setattr("src.logic.rebuild_drift_evaluator.AssetGraphRepository", lambda session: mock_repo)
-
-            evaluator = RebuildDriftEvaluator(
-                session_factory=session_factory,
-                lock=lock,
-                runtime_has_active_executor=False,  # No executor
-                lock_ttl_seconds=300,
-            )
-
-            drift_type, severity, metadata = evaluator.evaluate_drift()
-
-            assert drift_type == "orphaned_running"
-            assert severity == Severity.HIGH
-            assert metadata["job_id"] == "test-job-123"
-            assert metadata["lock_is_valid"] is False
-
-    def test_orphaned_running_with_valid_lock_is_critical(self) -> None:
-        """Test that orphaned running with valid lock is CRITICAL (split-brain)."""
-        session_factory = Mock()
-        lock = Mock()
-        lock.check_state.return_value = LockState.VALID  # Valid lock
-
-        # Mock running job
-        mock_job = Mock()
-        mock_job.job_id = "test-job-789"
-        mock_job.status = RebuildJobStatus.RUNNING
-        mock_job.active_worker_id = "worker-xyz"
-        mock_job.last_heartbeat_at = datetime.now(timezone.utc)
-
-        mock_session = MagicMock()
-        mock_repo = MagicMock()
-        mock_repo.get_active_rebuild_state.return_value = mock_job
-        mock_session.__enter__.return_value = mock_session
-        session_factory.return_value.__enter__ = Mock(return_value=mock_session)
-        session_factory.return_value.__exit__ = Mock(return_value=None)
+            mock_repo.get_active_rebuild_state.return_value = job
 
         with pytest.MonkeyPatch.context() as mp:
             mp.setattr("src.logic.rebuild_drift_evaluator.AssetGraphRepository", lambda session: mock_repo)
 
             evaluator = RebuildDriftEvaluator(
                 session_factory=session_factory,
-                lock=lock,
-                runtime_has_active_executor=False,  # No executor but lock valid
+                lock=mock_lock,
+                runtime_has_active_executor=has_executor,
                 lock_ttl_seconds=300,
             )
 
             drift_type, severity, metadata = evaluator.evaluate_drift()
 
-            assert drift_type == "orphaned_running"
-            assert severity == Severity.CRITICAL  # Critical due to split-brain risk
-            assert metadata["lock_is_valid"] is True
+            assert drift_type == expected_drift, f"Expected drift {expected_drift}, got {drift_type}"
+            assert severity == expected_severity, f"Expected severity {expected_severity}, got {severity}"
+            assert metadata["lock_state"] == lock_state.value
+            assert metadata["lock_is_valid"] == (lock_state == LockState.VALID)
 
-    def test_zombie_executor_is_critical(self) -> None:
-        """Test that zombie executor (runtime active, DB not running) is CRITICAL."""
-        session_factory = Mock()
-        lock = Mock()
-        lock.check_state.return_value = LockState.VALID
-
-        # Mock completed job (DB not running)
-        mock_job = Mock()
-        mock_job.job_id = "test-job-completed"
-        mock_job.status = RebuildJobStatus.SUCCEEDED
-        mock_job.active_worker_id = None
-        mock_job.last_heartbeat_at = datetime.now(timezone.utc)
-
-        mock_session = MagicMock()
-        mock_repo = MagicMock()
-        mock_repo.get_active_rebuild_state.return_value = mock_job
-        mock_session.__enter__.return_value = mock_session
-        session_factory.return_value.__enter__ = Mock(return_value=mock_session)
-        session_factory.return_value.__exit__ = Mock(return_value=None)
-
-        with pytest.MonkeyPatch.context() as mp:
-            mp.setattr("src.logic.rebuild_drift_evaluator.AssetGraphRepository", lambda session: mock_repo)
-
-            evaluator = RebuildDriftEvaluator(
-                session_factory=session_factory,
-                lock=lock,
-                runtime_has_active_executor=True,  # Runtime says executing!
-                lock_ttl_seconds=300,
-            )
-
-            drift_type, severity, metadata = evaluator.evaluate_drift()
-
-            assert drift_type == "zombie_executor"
-            assert severity == Severity.CRITICAL
-
-    def test_crash_suspicion_is_high_severity(self) -> None:
+    def test_crash_suspicion_is_high_severity(
+        self, mock_session_factory, mock_lock, mock_rebuild_job
+    ) -> None:
         """Test that stale heartbeat with no executor is classified as HIGH severity.
 
         Note: Orphaned running takes priority over crash suspicion in detection logic.
         """
-        session_factory = Mock()
-        lock = Mock()
-        lock.check_state.return_value = LockState.EXPIRED
+        session_factory, mock_session = mock_session_factory
+        mock_lock.check_state.return_value = LockState.EXPIRED
 
         # Mock job with stale heartbeat
         old_heartbeat = datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
-        mock_job = Mock()
-        mock_job.job_id = "test-job-stale"
-        mock_job.status = RebuildJobStatus.RUNNING
-        mock_job.active_worker_id = "worker-crashed"
-        mock_job.last_heartbeat_at = old_heartbeat  # Very old
+        job = mock_rebuild_job(
+            job_id="test-job-stale",
+            status=RebuildJobStatus.RUNNING,
+            active_worker_id="worker-crashed",
+            heartbeat_at=old_heartbeat,  # Very old
+        )
 
-        mock_session = MagicMock()
         mock_repo = MagicMock()
-        mock_repo.get_active_rebuild_state.return_value = mock_job
-        mock_session.__enter__.return_value = mock_session
-        session_factory.return_value.__enter__ = Mock(return_value=mock_session)
-        session_factory.return_value.__exit__ = Mock(return_value=None)
+        mock_repo.get_active_rebuild_state.return_value = job
 
         with pytest.MonkeyPatch.context() as mp:
             mp.setattr("src.logic.rebuild_drift_evaluator.AssetGraphRepository", lambda session: mock_repo)
 
             evaluator = RebuildDriftEvaluator(
                 session_factory=session_factory,
-                lock=lock,
+                lock=mock_lock,
                 runtime_has_active_executor=False,
                 lock_ttl_seconds=300,
             )
@@ -194,38 +116,34 @@ class TestRebuildDriftEvaluator:
             assert drift_type == "orphaned_running"
             assert severity == Severity.HIGH
 
-    def test_stale_ownership_is_medium_severity(self) -> None:
+    def test_stale_ownership_is_medium_severity(
+        self, mock_session_factory, mock_lock, mock_rebuild_job
+    ) -> None:
         """Test that stale ownership is classified as MEDIUM or HIGH severity.
 
         Note: Orphaned running (RUNNING status + no executor) takes priority
         over stale_ownership/crash_suspicion in the detection hierarchy.
         """
-        session_factory = Mock()
-        lock = Mock()
-        lock.check_state.return_value = LockState.EXPIRED
+        session_factory, mock_session = mock_session_factory
+        mock_lock.check_state.return_value = LockState.EXPIRED
 
-        # Mock job with stale heartbeat (beyond TTL but not crash threshold)
-        # This would be detected as stale_ownership rather than crash_suspicion
-        # based on the specific detection logic
-        mock_job = Mock()
-        mock_job.job_id = "test-job-stale-owner"
-        mock_job.status = RebuildJobStatus.RUNNING
-        mock_job.active_worker_id = "worker-stale"
-        mock_job.last_heartbeat_at = None  # No heartbeat at all
+        # Mock job with no heartbeat
+        job = mock_rebuild_job(
+            job_id="test-job-stale-owner",
+            status=RebuildJobStatus.RUNNING,
+            active_worker_id="worker-stale",
+            heartbeat_at=None,  # No heartbeat at all
+        )
 
-        mock_session = MagicMock()
         mock_repo = MagicMock()
-        mock_repo.get_active_rebuild_state.return_value = mock_job
-        mock_session.__enter__.return_value = mock_session
-        session_factory.return_value.__enter__ = Mock(return_value=mock_session)
-        session_factory.return_value.__exit__ = Mock(return_value=None)
+        mock_repo.get_active_rebuild_state.return_value = job
 
         with pytest.MonkeyPatch.context() as mp:
             mp.setattr("src.logic.rebuild_drift_evaluator.AssetGraphRepository", lambda session: mock_repo)
 
             evaluator = RebuildDriftEvaluator(
                 session_factory=session_factory,
-                lock=lock,
+                lock=mock_lock,
                 runtime_has_active_executor=False,
                 lock_ttl_seconds=300,
             )
@@ -237,32 +155,30 @@ class TestRebuildDriftEvaluator:
             assert drift_type in ("orphaned_running", "crash_suspicion", "stale_ownership")
             assert severity in (Severity.MEDIUM, Severity.HIGH)
 
-    def test_metadata_includes_job_details(self) -> None:
+    def test_metadata_includes_job_details(
+        self, mock_session_factory, mock_lock, mock_rebuild_job
+    ) -> None:
         """Test that metadata includes relevant job details."""
-        session_factory = Mock()
-        lock = Mock()
-        lock.check_state.return_value = LockState.VALID
+        session_factory, mock_session = mock_session_factory
+        mock_lock.check_state.return_value = LockState.VALID
 
         heartbeat_time = datetime.now(timezone.utc)
-        mock_job = Mock()
-        mock_job.job_id = "test-job-details"
-        mock_job.status = RebuildJobStatus.RUNNING
-        mock_job.active_worker_id = "worker-123"
-        mock_job.last_heartbeat_at = heartbeat_time
+        job = mock_rebuild_job(
+            job_id="test-job-details",
+            status=RebuildJobStatus.RUNNING,
+            active_worker_id="worker-123",
+            heartbeat_at=heartbeat_time,
+        )
 
-        mock_session = MagicMock()
         mock_repo = MagicMock()
-        mock_repo.get_active_rebuild_state.return_value = mock_job
-        mock_session.__enter__.return_value = mock_session
-        session_factory.return_value.__enter__ = Mock(return_value=mock_session)
-        session_factory.return_value.__exit__ = Mock(return_value=None)
+        mock_repo.get_active_rebuild_state.return_value = job
 
         with pytest.MonkeyPatch.context() as mp:
             mp.setattr("src.logic.rebuild_drift_evaluator.AssetGraphRepository", lambda session: mock_repo)
 
             evaluator = RebuildDriftEvaluator(
                 session_factory=session_factory,
-                lock=lock,
+                lock=mock_lock,
                 runtime_has_active_executor=False,
                 lock_ttl_seconds=300,
             )
@@ -275,19 +191,20 @@ class TestRebuildDriftEvaluator:
             assert "job_status" in metadata
             assert metadata["lock_state"] == "valid"
 
-    def test_handles_session_factory_error_gracefully(self) -> None:
+    def test_handles_session_factory_error_gracefully(
+        self, mock_lock
+    ) -> None:
         """Test that evaluator handles session factory errors gracefully."""
         from sqlalchemy.exc import SQLAlchemyError
 
         session_factory = Mock()
         session_factory.side_effect = SQLAlchemyError("DB connection failed")
 
-        lock = Mock()
-        lock.check_state.return_value = LockState.VALID
+        mock_lock.check_state.return_value = LockState.VALID
 
         evaluator = RebuildDriftEvaluator(
             session_factory=session_factory,
-            lock=lock,
+            lock=mock_lock,
             runtime_has_active_executor=False,
             lock_ttl_seconds=300,
         )
@@ -300,27 +217,24 @@ class TestRebuildDriftEvaluator:
         assert drift_type == "none"
         assert severity == Severity.NONE
 
-    def test_propagates_value_error_on_integrity_violation(self) -> None:
+    def test_propagates_value_error_on_integrity_violation(
+        self, mock_session_factory, mock_lock
+    ) -> None:
         """Test that ValueError from DB integrity violation is propagated."""
-        session_factory = Mock()
+        session_factory, mock_session = mock_session_factory
 
         # Mock session that raises ValueError (e.g., multiple RUNNING jobs)
-        mock_session = MagicMock()
         mock_repo = MagicMock()
         mock_repo.get_active_rebuild_state.side_effect = ValueError("Multiple RUNNING jobs found")
-        mock_session.__enter__.return_value = mock_session
-        session_factory.return_value.__enter__ = Mock(return_value=mock_session)
-        session_factory.return_value.__exit__ = Mock(return_value=None)
 
-        lock = Mock()
-        lock.check_state.return_value = LockState.VALID
+        mock_lock.check_state.return_value = LockState.VALID
 
         with pytest.MonkeyPatch.context() as mp:
             mp.setattr("src.logic.rebuild_drift_evaluator.AssetGraphRepository", lambda session: mock_repo)
 
             evaluator = RebuildDriftEvaluator(
                 session_factory=session_factory,
-                lock=lock,
+                lock=mock_lock,
                 runtime_has_active_executor=False,
                 lock_ttl_seconds=300,
             )
@@ -329,15 +243,14 @@ class TestRebuildDriftEvaluator:
             with pytest.raises(ValueError, match="Multiple RUNNING jobs found"):
                 evaluator.evaluate_drift()
 
-    def test_lock_lost_is_critical_drift(self) -> None:
+    def test_lock_lost_is_critical_drift(self, mock_session_factory, mock_lock) -> None:
         """Test that LOST lock state is treated as CRITICAL drift."""
-        session_factory = Mock()
-        lock = Mock()
-        lock.check_state.return_value = LockState.LOST
+        session_factory, _ = mock_session_factory
+        mock_lock.check_state.return_value = LockState.LOST
 
         evaluator = RebuildDriftEvaluator(
             session_factory=session_factory,
-            lock=lock,
+            lock=mock_lock,
             runtime_has_active_executor=False,
             lock_ttl_seconds=300,
         )

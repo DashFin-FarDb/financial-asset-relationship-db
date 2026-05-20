@@ -234,3 +234,58 @@ def dividend_stock():
         dividend_yield=0.04,
         earnings_per_share=6.67,
     )
+
+
+# Fixtures for rebuild drift evaluator tests
+
+
+@pytest.fixture
+def mock_session_factory():
+    """Create a mock session factory for drift evaluator tests."""
+    from unittest.mock import MagicMock, Mock
+
+    session_factory = Mock()
+    mock_session = MagicMock()
+    mock_session.__enter__.return_value = mock_session
+    session_factory.return_value.__enter__ = Mock(return_value=mock_session)
+    session_factory.return_value.__exit__ = Mock(return_value=None)
+    return session_factory, mock_session
+
+
+@pytest.fixture
+def mock_lock():
+    """Create a mock distributed lock for drift evaluator tests."""
+    from unittest.mock import Mock
+
+    return Mock()
+
+
+@pytest.fixture
+def mock_rebuild_job():
+    """Factory fixture to create mock rebuild jobs with specific configurations."""
+    from datetime import datetime, timezone
+    from unittest.mock import Mock
+
+    def _make_job(
+        job_id: str = "test-job-123",
+        status=None,
+        active_worker_id: str | None = "worker-456",
+        heartbeat_at: datetime | None = None,
+    ):
+        from src.data.db_models import RebuildJobStatus
+
+        if status is None:
+            from src.data.db_models import RebuildJobStatus
+
+            status = RebuildJobStatus.RUNNING
+        if heartbeat_at is None:
+            heartbeat_at = datetime.now(timezone.utc)
+
+        job = Mock()
+        job.job_id = job_id
+        job.status = status
+        job.active_worker_id = active_worker_id
+        job.last_heartbeat_at = heartbeat_at
+        return job
+
+    return _make_job
