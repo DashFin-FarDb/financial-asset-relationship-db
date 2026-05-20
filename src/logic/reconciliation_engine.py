@@ -100,7 +100,11 @@ class ReconciliationEngine(Protocol):
         """Generate a deterministic plan; execution is always delegated."""
 
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
-        """Generate a plan without executing side effects."""
+class ReconciliationEngine(Protocol):
+    """Contract for deterministic plan generation."""
+
+    def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
+        """Generate a deterministic plan; execution is always delegated."""
 
 class DefaultDriftEvaluator:
     """Default deterministic drift evaluator for desired and observed states."""
