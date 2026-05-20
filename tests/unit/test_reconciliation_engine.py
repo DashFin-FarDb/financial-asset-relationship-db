@@ -75,5 +75,5 @@ def test_reconcile_treats_missing_observed_version_as_version_mismatch() -> None
 
 def test_reconciliation_action_map_covers_all_drift_types() -> None:
     """Every defined DriftType must have an explicit action mapping."""
-    mapped_drift_types = set(DeterministicReconciliationEngine._ACTION_MAP)  # pylint: disable=protected-access
+    mapped_drift_types = DeterministicReconciliationEngine.supported_drift_types()
     assert mapped_drift_types == set(DriftType)

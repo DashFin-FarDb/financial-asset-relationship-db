@@ -102,7 +102,15 @@ class DefaultDriftEvaluator:
     """Default deterministic drift evaluator for desired-state vs observed-state inputs."""
 
     def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
-        """Evaluate drift according to deterministic priority rules."""
+        """Evaluate drift according to deterministic priority rules.
+
+        Priority order:
+        1) version mismatch
+        2) persistence health drift
+        3) runtime health drift
+        4) non-critical degradation
+        5) aligned (none)
+        """
         observed_version = observed_state.graph_version
         if desired_state.graph_version and (
             observed_version is None or observed_version != desired_state.graph_version
@@ -158,9 +166,16 @@ class DeterministicReconciliationEngine:
     def __init__(self, drift_evaluator: DriftEvaluator | None = None) -> None:
         self._drift_evaluator = drift_evaluator or DefaultDriftEvaluator()
 
+    @classmethod
+    def supported_drift_types(cls) -> set[DriftType]:
+        """Return the drift types this planner can convert into actions."""
+        return set(cls._ACTION_MAP)
+
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
         """Generate a deterministic plan; execution is always delegated."""
         drift = self._drift_evaluator.evaluate(desired_state, observed_state)
+        # Defensive check: ensures unknown future drift types fail loudly instead
+        # of silently choosing a possibly incorrect action.
         if drift.drift_type not in self._ACTION_MAP:
             raise ValueError(f"Unsupported drift type for reconciliation planning: {drift.drift_type}")
         action = self._ACTION_MAP[drift.drift_type]
