@@ -99,7 +99,7 @@ class ReconciliationEngine(Protocol):
 
 
 class DefaultDriftEvaluator:
-    """Default deterministic drift evaluator for current dual-state inputs."""
+    """Default deterministic drift evaluator for desired-state vs observed-state inputs."""
 
     def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
         """Evaluate drift according to deterministic priority rules."""
@@ -158,7 +158,9 @@ class DeterministicReconciliationEngine:
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
         """Generate a deterministic plan; execution is always delegated."""
         drift = self._drift_evaluator.evaluate(desired_state, observed_state)
-        action = self._ACTION_MAP.get(drift.drift_type, ActionType.ALERT_ONLY)
+        if drift.drift_type not in self._ACTION_MAP:
+            raise ValueError(f"Unsupported drift type for reconciliation planning: {drift.drift_type}")
+        action = self._ACTION_MAP[drift.drift_type]
 
         return ReconciliationPlan(
             drift_type=drift.drift_type,
