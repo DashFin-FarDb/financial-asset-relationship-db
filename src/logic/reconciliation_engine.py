@@ -194,7 +194,16 @@ class ReconciliationEngine(Protocol):
             )
                 severity=Severity.HIGH,
                 reason=(
-                    f"Observed graph version {observed_version!r} does not match desired "
+class ReconciliationEngine(Protocol):
+    """Contract for deterministic plan generation."""
+
+    def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
+        """Generate a deterministic plan; execution is always delegated."""
+        ...
+
+    def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
+        """Evaluate drift between desired and observed state."""
+        ...
                     f"version {desired_state.graph_version!r}"
                 ),
             )
