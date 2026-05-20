@@ -77,8 +77,8 @@ class ReconciliationPlan:
     """Plan-only reconciliation output; execution is delegated."""
 
     drift_type: DriftType
-    severity: Severity
-    actions: tuple[ActionType, ...]
+    severity: Severity = Severity.NONE
+    actions: tuple[ActionType, ...] = (ActionType.ALERT_ONLY,)
 @dataclass(frozen=True)
 class ReconciliationPlan:
     """Plan-only reconciliation output; execution is delegated."""
