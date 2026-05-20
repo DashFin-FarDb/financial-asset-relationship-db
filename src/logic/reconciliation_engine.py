@@ -331,7 +331,7 @@ class ReconciliationEngine:
         # Determine execution mode based on severity and configuration
         if severity == Severity.HIGH and self.enable_automatic_execution:
             execution_mode = ExecutionMode.AUTOMATIC
-        elif severity in (Severity.MEDIUM, Severity.HIGH):
+        elif severity in (Severity.LOW, Severity.MEDIUM, Severity.HIGH):
             execution_mode = ExecutionMode.DEFERRED
         else:
             execution_mode = ExecutionMode.MANUAL
