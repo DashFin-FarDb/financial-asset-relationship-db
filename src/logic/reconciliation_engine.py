@@ -86,19 +86,7 @@ class ReconciliationPlan:
     drift_type: DriftType
     severity: Severity
     actions: tuple[ActionType, ...]
-@dataclass(frozen=True)
-class ReconciliationPlan:
-    """Plan-only reconciliation output; execution is delegated."""
-
-    drift_type: DriftType
-    severity: Severity
-@dataclass(frozen=True)
-class ReconciliationPlan:
-    """Plan-only reconciliation output; execution is delegated."""
-
-    drift_type: DriftType
-    severity: Severity
-    actions: tuple[ActionType, ...]
+# Duplicate ReconciliationPlan block removed
     target_state: DesiredState
     execution_mode: ExecutionMode
     reason: str
@@ -157,12 +145,7 @@ class ReconciliationPlan:
     severity: Severity
     actions: tuple[ActionType, ...]
     target_state: DesiredState
-    execution_mode: ExecutionMode
-    reason: str
-    observed_state: ObservedState | None = None
-    execution_mode: ExecutionMode
-    reason: str
-    observed_state: ObservedState | None = None  # Optional: preserve backward compatibility
+# Removed duplicate field declarations
 
 
 class DriftEvaluator(Protocol):
@@ -273,22 +256,7 @@ class ReconciliationEngine(Protocol):
 
 # Remove everything between the closing `...` of ReconciliationEngine.reconcile()
 # and the start of DefaultDriftEvaluator. The Protocol should be:
-
-class ReconciliationEngine(Protocol):
-    """Contract for deterministic plan generation."""
-
-    def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
-        """Generate a deterministic plan; execution is always delegated."""
-        ...
-        """Generate a deterministic plan; execution is always delegated."""
-        ...
-
-    def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
-        """Evaluate drift between desired and observed state."""
-        ...
-                    f"version {desired_state.graph_version!r}"
-                ),
-            )
+                    f\"Observed graph version {observed_version!r} does not match desired \"\n                    f\"version {desired_state.graph_version!r}\"\n                ),
                     f"version {desired_state.graph_version!r}"
                 ),
             )
@@ -370,22 +338,23 @@ class DefaultDriftEvaluator:
             return DriftEvaluation(
                 drift_type=DriftType.HEALTH_DEGRADED,
                 severity=Severity.MEDIUM,
-                reason="Observed state indicates non-critical health degradation",
-            )
         return DriftEvaluation(
             drift_type=DriftType.NONE,
             severity=Severity.NONE,
             reason="Desired and observed state are aligned",
         )
-        observed_version = observed_state.graph_version
-        if desired_state.graph_version is not None and (
-            observed_version is None or observed_version != desired_state.graph_version
-        ):
+
+
+class DefaultDriftEvaluator:
+    """Default deterministic drift evaluator for desired and observed states."""
+
+    def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
+        if desired_state.graph_version and observed_state.graph_version != desired_state.graph_version:
             return DriftEvaluation(
                 drift_type=DriftType.VERSION_MISMATCH,
                 severity=Severity.HIGH,
                 reason=(
-                    f"Observed graph version {observed_version!r} does not match desired "
+                    f"Observed graph version {observed_state.graph_version!r} does not match desired "
                     f"version {desired_state.graph_version!r}"
                 ),
             )
@@ -412,12 +381,6 @@ class DefaultDriftEvaluator:
             severity=Severity.NONE,
             reason="Desired and observed state are aligned",
         )
-            severity=Severity.NONE,
-            reason="Desired and observed state are aligned",
-        )
-
-
-class DeterministicReconciliationEngine:
     """Deterministic planner that emits plan-only reconciliation output."""
 
     _ACTION_MAP: dict[DriftType, ActionType] = {
@@ -470,7 +433,17 @@ class ReconciliationPlan:
     execution_mode: ExecutionMode
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
         """Generate a deterministic plan; execution is always delegated."""
-        drift = self._drift_evaluator.evaluate(desired_state, observed_state)
+        try:
+            drift = self._drift_evaluator.evaluate(desired_state, observed_state)
+        except Exception as exc:
+            return ReconciliationPlan(
+                drift_type=DriftType.HEALTH_DEGRADED,
+                severity=Severity.CRITICAL,
+                actions=(ActionType.ALERT_ONLY,),
+                target_state=desired_state,
+                execution_mode=ExecutionMode.DELEGATE_TO_JOB_SYSTEM,
+                reason=f'Drift evaluation failed: {exc}',
+            )
         action = self._ACTION_MAP.get(drift.drift_type, ActionType.ALERT_ONLY)
 
         return ReconciliationPlan(
