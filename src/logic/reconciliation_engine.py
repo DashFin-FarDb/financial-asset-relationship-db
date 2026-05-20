@@ -94,7 +94,17 @@ class ReconciliationPlan:
     severity: Severity
     actions: tuple[ActionType, ...]
     target_state: DesiredState
+@dataclass(frozen=True)
+class ReconciliationPlan:
+    """Plan-only reconciliation output; execution is delegated."""
+
+    drift_type: DriftType
+    severity: Severity
+    actions: tuple[ActionType, ...]
+    target_state: DesiredState
     execution_mode: ExecutionMode
+    reason: str
+    observed_state: ObservedState | None = None
     reason: str
     observed_state: ObservedState | None = None  # Optional: preserve backward compatibility
     execution_mode: ExecutionMode
