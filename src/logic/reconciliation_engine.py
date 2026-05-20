@@ -167,7 +167,17 @@ if desired_state.graph_version is not None and (
                 drift_type=DriftType.VERSION_MISMATCH,
                 severity=Severity.HIGH,
                 reason=(
+        if desired_state.graph_version is not None and (
+            observed_version is None or observed_version != desired_state.graph_version
+        ):
+            return DriftEvaluation(
+                drift_type=DriftType.VERSION_MISMATCH,
+                severity=Severity.HIGH,
+                reason=(
                     f"Observed graph version {observed_version!r} does not match desired "
+                    f"version {desired_state.graph_version!r}"
+                ),
+            )
                     f"version {desired_state.graph_version!r}"
                 ),
             )
