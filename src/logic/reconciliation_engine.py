@@ -109,7 +109,7 @@ class DefaultDriftEvaluator:
         2) persistence health drift
         3) runtime health drift
         4) non-critical degradation
-        5) aligned (none)
+        5) aligned (no drift)
         """
         observed_version = observed_state.graph_version
         if desired_state.graph_version and (
@@ -169,7 +169,7 @@ class DeterministicReconciliationEngine:
     @classmethod
     def supported_drift_types(cls) -> set[DriftType]:
         """Return the drift types this planner can convert into actions."""
-        return set(cls._ACTION_MAP)
+        return frozenset(cls._ACTION_MAP.keys())
 
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
         """Generate a deterministic plan; execution is always delegated."""
