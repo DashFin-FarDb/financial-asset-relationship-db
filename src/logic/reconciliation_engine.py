@@ -241,7 +241,17 @@ class DeterministicReconciliationEngine:
         return frozenset(cls._ACTION_MAP.keys())
 
     def reconcile(self, desired_state: DesiredState, observed_state: ObservedState) -> ReconciliationPlan:
-        """Generate a deterministic plan; execution is always delegated."""
+# Add the missing fields to the ReconciliationPlan dataclass:
+@dataclass(frozen=True)
+class ReconciliationPlan:
+    """Plan-only reconciliation output; execution is delegated."""
+    drift_type: DriftType
+    severity: Severity
+    actions: tuple[ActionType, ...]
+    target_state: DesiredState
+    execution_mode: ExecutionMode
+    reason: str
+    observed_state: ObservedState | None = None
         action = self._ACTION_MAP.get(drift.drift_type, ActionType.ALERT_ONLY)
 
         return ReconciliationPlan(
