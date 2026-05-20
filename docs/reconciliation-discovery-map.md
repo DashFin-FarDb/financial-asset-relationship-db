@@ -29,4 +29,3 @@
   - `determine_recovery_action(...)` converts drift into deterministic recovery actions.
 - `src/logic/recovery_gate.py`
   - `evaluate_and_reconcile(...)` / `ensure_safe_to_execute(...)` applies decision outcomes during control-plane checks.
-
