@@ -7,8 +7,8 @@ import pytest
 
 from src.data.db_models import RebuildJobStatus
 from src.data.distributed_lock import LockState
-from src.logic.reconciliation_engine import Severity
 from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
+from src.logic.reconciliation_engine import Severity
 
 
 class TestRebuildDriftEvaluator:
