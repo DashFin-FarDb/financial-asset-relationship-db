@@ -329,9 +329,9 @@ class ReconciliationEngine:
     ) -> ReconciliationPlan:
         """Create a standardized reset plan."""
         # Determine execution mode based on severity and configuration
-        if severity == Severity.HIGH and self.enable_automatic_execution:
-            execution_mode = ExecutionMode.AUTOMATIC
-        elif severity in (Severity.LOW, Severity.MEDIUM, Severity.HIGH):
+        if severity == Severity.HIGH:
+            execution_mode = ExecutionMode.AUTOMATIC if self.enable_automatic_execution else ExecutionMode.DEFERRED
+        elif severity in (Severity.MEDIUM, Severity.LOW):
             execution_mode = ExecutionMode.DEFERRED
         else:
             execution_mode = ExecutionMode.MANUAL
