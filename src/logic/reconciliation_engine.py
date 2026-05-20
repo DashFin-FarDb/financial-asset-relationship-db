@@ -80,7 +80,7 @@ class ReconciliationPlan:
     severity: Severity
     actions: tuple[ActionType, ...]
     target_state: DesiredState
-    observed_state: ObservedState  # Added for context
+    observed_state: ObservedState | None = None  # Optional: preserve backward compatibility
     execution_mode: ExecutionMode
     reason: str
 
