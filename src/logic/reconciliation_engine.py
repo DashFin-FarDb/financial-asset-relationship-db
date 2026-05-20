@@ -115,7 +115,50 @@ class ReconciliationEngine(Protocol):
         3) runtime health drift
         4) non-critical degradation
         5) aligned (no drift)
+    def evaluate(self, desired_state: DesiredState, observed_state: ObservedState) -> DriftEvaluation:
         """
+        Evaluate drift according to deterministic priority rules.
+        ...
+        """
+        observed_version = observed_state.graph_version
+        if desired_state.graph_version is not None and (
+            observed_version is None or observed_version != desired_state.graph_version
+        ):
+            return DriftEvaluation(
+                drift_type=DriftType.VERSION_MISMATCH,
+                severity=Severity.HIGH,
+                reason=(
+                    f"Observed graph version {observed_version!r} does not match desired "
+                    f"version {desired_state.graph_version!r}"
+                ),
+            )
+
+        if desired_state.require_persistence_healthy and not observed_state.persistence_healthy:
+            return DriftEvaluation(
+                drift_type=DriftType.PERSISTENCE_UNHEALTHY,
+                severity=Severity.HIGH,
+                reason="Persistence layer is unhealthy while desired state requires healthy persistence",
+            )
+
+        if desired_state.require_runtime_healthy and not observed_state.runtime_healthy:
+            return DriftEvaluation(
+                drift_type=DriftType.RUNTIME_UNHEALTHY,
+                severity=Severity.CRITICAL,
+                reason="Runtime is unhealthy while desired state requires healthy runtime",
+            )
+
+        if observed_state.health_degraded:
+            return DriftEvaluation(
+                drift_type=DriftType.HEALTH_DEGRADED,
+                severity=Severity.MEDIUM,
+                reason="Observed state indicates non-critical health degradation",
+            )
+
+        return DriftEvaluation(
+            drift_type=DriftType.NONE,
+            severity=Severity.NONE,
+            reason="Desired and observed state are aligned",
+        )
         observed_version = observed_state.graph_version
 if desired_state.graph_version is not None and (
             observed_version is None or observed_version != desired_state.graph_version
