@@ -80,6 +80,7 @@ class ReconciliationPlan:
     severity: Severity
     actions: tuple[ActionType, ...]
     target_state: DesiredState
+    observed_state: ObservedState  # Added for context
     execution_mode: ExecutionMode
     reason: str
 
@@ -98,7 +99,7 @@ class ReconciliationEngine(Protocol):
         """Generate a deterministic plan; execution is always delegated."""
         drift = self._drift_evaluator.evaluate(desired_state, observed_state)
         action = self._ACTION_MAP.get(drift.drift_type, ActionType.ALERT_ONLY)
-
+    
         return ReconciliationPlan(
             drift_type=drift.drift_type,
 
