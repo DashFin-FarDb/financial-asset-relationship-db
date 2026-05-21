@@ -177,7 +177,6 @@ class RebuildDriftEvaluator:
             if heartbeat_time.tzinfo is None:
                 heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
             return heartbeat_time
-            logger.warning(
         except (ValueError, AttributeError, TypeError) as exc:
             # Unparseable heartbeat treated as None (caller will treat as stale)
             logger.warning(
