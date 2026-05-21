@@ -257,4 +257,3 @@ class TestRebuildDriftEvaluator:
         assert metadata["lock_state"] == "lost"
         assert metadata["lock_is_valid"] is False
         assert "lost" in metadata["reason"].lower()
-
