@@ -168,8 +168,8 @@ class RebuildDriftEvaluator:
             if isinstance(heartbeat_time, str):
                 # Normalize trailing 'Z' to '+00:00' for compatibility with fromisoformat
                 heartbeat_str = (
-                    heartbeat_time.replace("Z", "+00:00")
-                    if heartbeat_time.endswith("Z")
+                    heartbeat_time[:-1] + "+00:00"
+                    if heartbeat_time.upper().endswith("Z")
                     else heartbeat_time
                 )
                 heartbeat_time = datetime.fromisoformat(heartbeat_str)
@@ -181,8 +181,8 @@ class RebuildDriftEvaluator:
         except (ValueError, AttributeError, TypeError) as exc:
             # Unparseable heartbeat treated as None (caller will treat as stale)
             logger.warning(
-                "Failed to parse heartbeat timestamp, treating as stale: %s",
-                type(exc).__name__,
+                "Failed to parse heartbeat timestamp, treating as stale: %s", 
+                exc, exc_info=True
             )
             return None
 
