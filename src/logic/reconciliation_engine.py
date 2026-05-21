@@ -93,14 +93,19 @@ class ReconciliationPlan:
         if not self.actions:
             raise ValueError("ReconciliationPlan must contain at least one action")
         # Validate all actions are valid ActionType enum values
-        # Validate all actions are valid ActionType enum values (allow values convertible to ActionType)
-        for action in self.actions:
-            if isinstance(action, ActionType):
-                continue
-            try:
-                ActionType(action)
-            except (ValueError, TypeError):
-                raise ValueError(f"Invalid action type: {action!r}. Must be an ActionType enum value.")
+        # Validate all actions are valid ActionType enum values and ensure sequence type (reject plain strings)
+        if isinstance(self.actions, (str, bytes)):
+            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values, not a string")
+        try:
+            actions_list = list(self.actions)
+        except TypeError:
+            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")
+        for action in actions_list:
+            if not isinstance(action, ActionType):
+                raise ValueError(f"Invalid action type: {action}. Must be an ActionType enum value.")
+        # Normalize actions to a list for deterministic comparisons later
+        object.__setattr__(self, "actions", actions_list)
+        if self.severity == Severity.NONE and self.actions != [ActionType.NOOP]:
             raise ValueError("Severity NONE requires NOOP action")
 
 
