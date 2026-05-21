@@ -65,7 +65,7 @@ class ExecutionSafety(str, Enum):
     INTEGRITY_COMPROMISED = "integrity_compromised"
     # Evaluation failed indicates the evaluator raised an unexpected runtime error; the engine
     # returns a CRITICAL ALERT_ONLY plan requiring manual intervention.
-    EVALUATION_FAILED = "evaluation_failed
+    EVALUATION_FAILED = "evaluation_failed"
 
 
 @dataclass(frozen=True)
@@ -227,8 +227,25 @@ class ReconciliationEngine:
         Returns:
             ReconciliationPlan with specific actions and execution mode
         """
-        # No drift - NOOP
+        # No drift - NOOP (but execution safety depends on lock state)
         if severity == Severity.NONE:
+            lock_is_valid = self._parse_lock_is_valid(metadata.get("lock_is_valid"))
+
+            # Drift converged, but lock invalid → WAIT for lock before execution
+            if not lock_is_valid:
+                return ReconciliationPlan(
+                    drift_type=drift_type,
+                    severity=severity,
+                    actions=[ActionType.NOOP],
+                    target_state="Current state is aligned with desired state",
+                    execution_mode=ExecutionMode.DEFERRED,
+                    safety_state=ExecutionSafety.WAIT_REQUIRED,
+                    reason="No drift detected, but execution gated on lock acquisition",
+                    metadata=metadata,
+                    created_at=datetime.now(timezone.utc),
+                )
+
+            # Drift converged AND lock valid → SAFE to execute
             return ReconciliationPlan(
                 drift_type=drift_type,
                 severity=severity,
@@ -363,7 +380,7 @@ class ReconciliationEngine:
 
         return ExecutionSafety.MANUAL_INVESTIGATION
 
-    def _parse_lock_is_valid(value) -> bool:
+    def _parse_lock_is_valid(self, value) -> bool:
         if isinstance(value, bool):
             return value
         if isinstance(value, (int, float)):

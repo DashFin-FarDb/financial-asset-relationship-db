@@ -135,7 +135,7 @@ class TestReconciliationEngine:
 
     def test_no_drift_produces_noop_plan(self) -> None:
         """Test that no drift produces a NOOP plan."""
-        evaluator = MockDriftEvaluator("none", Severity.NONE)
+        evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": True})
         engine = ReconciliationEngine(evaluator)
 
         plan = engine.generate_reconciliation_plan()
@@ -145,6 +145,19 @@ class TestReconciliationEngine:
         assert plan.execution_mode == ExecutionMode.AUTOMATIC
         assert plan.safety_state == ExecutionSafety.CONVERGED
         assert "converged" in plan.reason.lower()
+
+    def test_no_drift_invalid_lock_waits(self) -> None:
+        """Test that no drift with invalid lock returns WAIT plan."""
+        evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": False})
+        engine = ReconciliationEngine(evaluator)
+
+        plan = engine.generate_reconciliation_plan()
+
+        assert plan.severity == Severity.NONE
+        assert plan.actions == [ActionType.NOOP]
+        assert plan.execution_mode == ExecutionMode.DEFERRED
+        assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
+        assert "gated on lock" in plan.reason.lower()
 
     def test_critical_drift_produces_alert_only(self) -> None:
         """Test that critical drift produces ALERT_ONLY plan."""
