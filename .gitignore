@@ -33,6 +33,10 @@ venv.bak/
 # IDE
 .vscode/
 .idea/
+.refact/
+# One-time: remove currently tracked runtime files from git index
+#   git rm -r --cached .refact && git commit -m 'Remove tracked .refact runtime files'
+# If tooling requires a placeholder directory, add .refact/.keep and commit
 *.swp
 *.swo
 *~
