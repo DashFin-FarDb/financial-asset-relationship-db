@@ -154,7 +154,7 @@ class ReconciliationEngine:
         """
         try:
             drift_type, severity, metadata = self.evaluator.evaluate_drift()
-        except ValueError:
+        except ValueError:  # Consider defining a dedicated integrity exception (e.g. DriftIntegrityError) instead of using ValueError to avoid unintentionally catching unrelated ValueErrors
             # Invariant violation / integrity issue: allow callers to treat as fatal.
             raise
         except Exception as exc:  # noqa: BLE001 - explicit boundary contract: unexpected failures become explicit plans
@@ -197,7 +197,8 @@ class ReconciliationEngine:
             reason="Unable to evaluate drift; reconciliation planning failed",
             metadata={
                 "error_type": type(exc).__name__,
-                "error_message": str(exc),
+                # Do not include full exception messages (may contain sensitive data); include a short sanitized message instead
+                "error_message": (str(exc)[:200] if str(exc) else None),
             },
             created_at=datetime.now(timezone.utc),
         )
