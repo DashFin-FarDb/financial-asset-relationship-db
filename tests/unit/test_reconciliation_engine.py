@@ -155,7 +155,7 @@ class TestReconciliationEngine:
         assert plan.safety_state == ExecutionSafety.CONVERGED
         assert plan.execution_mode == ExecutionMode.AUTOMATIC
 
-    @pytest.mark.parametrize("false_value", ["false", "False", "FALSE", "0", "no", "n", "f", ""])
+    @pytest.mark.parametrize("false_value", ["false", "False", "FALSE", "0", "no", "n", "f", ""], ids=repr)
     def test_lock_is_valid_string_falsy_variants(self, false_value) -> None:
         """Test that lock_is_valid parsing handles common falsy string representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": false_value})
@@ -164,7 +164,7 @@ class TestReconciliationEngine:
         assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
         assert plan.execution_mode == ExecutionMode.DEFERRED
 
-    @pytest.mark.parametrize("true_value", [1, 1.0, 42, -1])
+    @pytest.mark.parametrize("true_value", [1, 1.0, 42, -1], ids=repr)
     def test_lock_is_valid_number_truthy_variants(self, true_value) -> None:
         """Test that lock_is_valid parsing handles numeric truthy representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": true_value})
@@ -187,6 +187,8 @@ class TestReconciliationEngine:
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": None})
         engine = ReconciliationEngine(evaluator)
         plan = engine.generate_reconciliation_plan()
+        assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
+        assert plan.execution_mode == ExecutionMode.DEFERRED
         assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
         assert plan.execution_mode == ExecutionMode.DEFERRED
 
