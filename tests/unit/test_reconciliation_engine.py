@@ -350,8 +350,11 @@ class TestReconciliationEngine:
 
         plan = engine.generate_reconciliation_plan()
 
-        assert plan.metadata == test_metadata
+        # Metadata will include lock_is_valid (normalized from missing value)
         assert plan.metadata["job_id"] == "test-job-123"
+        assert plan.metadata["lock_state"] == "valid"
+        assert plan.metadata["worker_id"] == "worker-456"
+        assert "lock_is_valid" in plan.metadata  # Added by normalization
 
     def test_plan_timestamp_is_recent(self) -> None:
         """Test that plan creation timestamp is recent."""

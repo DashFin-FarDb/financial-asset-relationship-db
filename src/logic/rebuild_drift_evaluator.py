@@ -107,16 +107,40 @@ class RebuildDriftEvaluator:
         # Map inconsistency to drift classification
         drift_type = inconsistency.inconsistency_type.value
 
-        # Detect owner mismatch early for severity classification
-        owner_mismatch = False
+        # Detect owner mismatch with stale heartbeat for severity classification
+        # This preserves RecoveryGate's resettable orphaned-owner mismatch path
+        owner_mismatch_with_stale_heartbeat = False
         if job and inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING:
             owner_mismatch = (
                 job.active_worker_id is not None
                 and self.lock.holder_id is not None
                 and job.active_worker_id != self.lock.holder_id
             )
+            if owner_mismatch:
+                # Check if heartbeat is stale or missing
+                from datetime import timezone
 
-        severity = self._classify_severity(inconsistency.inconsistency_type, lock_is_valid, owner_mismatch)
+                heartbeat_is_stale = True  # Default to stale if missing
+                if job.last_heartbeat_at is not None:
+                    heartbeat_time = job.last_heartbeat_at
+                    if isinstance(heartbeat_time, str):
+                        from datetime import datetime
+
+                        heartbeat_time = datetime.fromisoformat(heartbeat_time)
+                    # Ensure timezone-aware
+                    if heartbeat_time.tzinfo is None:
+                        heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
+                    from datetime import datetime
+
+                    now = datetime.now(timezone.utc)
+                    heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
+                    heartbeat_is_stale = heartbeat_age_seconds >= self.lock_ttl_seconds
+
+                owner_mismatch_with_stale_heartbeat = heartbeat_is_stale
+
+        severity = self._classify_severity(
+            inconsistency.inconsistency_type, lock_is_valid, owner_mismatch_with_stale_heartbeat
+        )
 
         # Build metadata
         metadata: dict[str, str | int | float | bool | None] = {
@@ -180,15 +204,16 @@ class RebuildDriftEvaluator:
         self,
         inconsistency_type: InconsistencyType,
         lock_is_valid: bool,
-        owner_mismatch: bool = False,
+        owner_mismatch_with_stale_heartbeat: bool = False,
     ) -> Severity:
         """Classify severity based on inconsistency type and lock state.
 
         Args:
             inconsistency_type: Detected inconsistency type
             lock_is_valid: Whether distributed lock is currently valid
-            owner_mismatch: Whether job.active_worker_id differs from lock.holder_id
-                (only relevant for ORPHANED_RUNNING)
+            owner_mismatch_with_stale_heartbeat: Whether job.active_worker_id differs
+                from lock.holder_id AND heartbeat is stale/missing (only relevant for
+                ORPHANED_RUNNING). When True, allows RecoveryGate to downgrade to RESET.
 
         Returns:
             Severity classification
@@ -198,10 +223,10 @@ class RebuildDriftEvaluator:
             return Severity.NONE
 
         # Critical: Orphaned running with valid lock (split-brain risk)
-        # BUT downgrade to HIGH if owner mismatch detected (resettable path)
+        # BUT downgrade to HIGH if owner mismatch with stale heartbeat (resettable path)
         if inconsistency_type == InconsistencyType.ORPHANED_RUNNING and lock_is_valid:
-            if owner_mismatch:
-                # Owner mismatch allows RecoveryGate to downgrade to RESET
+            if owner_mismatch_with_stale_heartbeat:
+                # Owner mismatch + stale heartbeat allows RecoveryGate to downgrade to RESET
                 # This preserves the auto-recoverable path
                 return Severity.HIGH
             return Severity.CRITICAL

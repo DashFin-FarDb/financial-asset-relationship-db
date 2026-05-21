@@ -288,6 +288,9 @@ class ReconciliationEngine:
         metadata: dict[str, str | int | float | bool | None],
     ) -> ReconciliationPlan:
         """Map specific drift types to concrete reconciliation plans."""
+        # Extract normalized lock_is_valid (set by _drift_to_plan)
+        lock_is_valid = metadata.get("lock_is_valid", False)
+
         # Orphaned running state - reset required
         if drift_type == InconsistencyType.ORPHANED_RUNNING.value:
             return self._create_reset_plan(
