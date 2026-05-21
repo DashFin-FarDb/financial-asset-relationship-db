@@ -44,11 +44,11 @@ class ActionType(str, Enum):
         legacy_rebuild = "rebuild" + "_graph"  # Split to avoid CI pattern match
         if isinstance(value, str) and value == legacy_rebuild:
             logger.warning(
-            "Received deprecated ActionType value %r (type=%s); mapping to %s",
-            value,
-            type(value).__name__,
-            cls.REBUILD_GRAPH.value,
-        )
+                "Received deprecated ActionType value %r (type=%s); mapping to %s",
+                value,
+                type(value).__name__,
+                cls.REBUILD_GRAPH.value,
+            )
             return cls.REBUILD_GRAPH
         return None
 
@@ -107,11 +107,7 @@ class DriftEvaluator(Protocol):
 
     def evaluate_drift(
         self,
-    ) -> tuple[
-        str, 
-        Severity, 
-        dict[str, str | int | float | bool | None]
-    ]:
+    ) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
         """Evaluate current drift between desired and observed states.
 
         Returns:
@@ -288,10 +284,7 @@ class ReconciliationEngine:
                 severity=severity,
                 actions=[ActionType.REBUILD_GRAPH],
                 target_state="Graph rebuilt to latest version",
-                execution_mode=(
-                    ExecutionMode.DEFERRED if severity == Severity.LOW 
-                    else ExecutionMode.IMMEDIATE
-                ),
+                execution_mode=(ExecutionMode.DEFERRED if severity == Severity.LOW else ExecutionMode.IMMEDIATE),
                 reason="Version mismatch detected between desired and observed state",
                 metadata=metadata,
                 created_at=datetime.now(timezone.utc),
@@ -358,10 +351,7 @@ class ReconciliationEngine:
         """Create a standardized reset plan."""
         # Determine execution mode based on severity and configuration
         if severity == Severity.HIGH:
-            execution_mode = (
-                ExecutionMode.AUTOMATIC if self.enable_automatic_execution
-                else ExecutionMode.DEFERRED
-            )
+            execution_mode = ExecutionMode.AUTOMATIC if self.enable_automatic_execution else ExecutionMode.DEFERRED
         elif severity in (Severity.MEDIUM, Severity.LOW):
             execution_mode = ExecutionMode.DEFERRED
         else:
