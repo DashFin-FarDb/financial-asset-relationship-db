@@ -182,7 +182,6 @@ class RebuildDriftEvaluator:
             logger.debug(
                 "Failed to parse heartbeat timestamp %r, treating as stale",
                 heartbeat_at,
-                exc_info=True,
             )
             return None
 
