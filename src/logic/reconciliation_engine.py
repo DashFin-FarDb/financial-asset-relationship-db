@@ -42,7 +42,7 @@ class ActionType(str, Enum):
         """
         # Map legacy graph rebuild string to current enum member
         legacy_rebuild = "rebuild" + "_graph"  # Split to avoid CI pattern match
-        if value == legacy_rebuild:
+        if isinstance(value, str) and value == legacy_rebuild:
             return cls.REBUILD_GRAPH
         return None
 
