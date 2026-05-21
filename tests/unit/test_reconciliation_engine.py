@@ -100,6 +100,36 @@ class TestReconciliationPlan:
                 created_at=datetime.now(timezone.utc),
             )
 
+    def test_plan_rejects_invalid_action_types(self) -> None:
+        """Test that plan creation fails with invalid action types."""
+        # Test with string that's not an ActionType enum value
+        with pytest.raises(ValueError, match="Invalid action type.*Must be an ActionType enum value"):
+            ReconciliationPlan(
+                drift_type="test_drift",
+                severity=Severity.MEDIUM,
+                actions=["invalid_action"],  # type: ignore[list-item]  # Intentional for test
+                target_state="Target state",
+                execution_mode=ExecutionMode.DEFERRED,
+                safety_state=ExecutionSafety.RESET_REQUIRED,
+                reason="Test",
+                metadata={},
+                created_at=datetime.now(timezone.utc),
+            )
+
+        # Test with mixed valid and invalid action types
+        with pytest.raises(ValueError, match="Invalid action type.*Must be an ActionType enum value"):
+            ReconciliationPlan(
+                drift_type="test_drift",
+                severity=Severity.HIGH,
+                actions=[ActionType.RESET_STATE, "invalid_action"],  # type: ignore[list-item]  # Intentional for test
+                target_state="Target state",
+                execution_mode=ExecutionMode.DEFERRED,
+                safety_state=ExecutionSafety.RESET_REQUIRED,
+                reason="Test",
+                metadata={},
+                created_at=datetime.now(timezone.utc),
+            )
+
 
 class TestReconciliationEngine:
     """Tests for ReconciliationEngine core functionality."""

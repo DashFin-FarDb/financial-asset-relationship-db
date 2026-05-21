@@ -92,6 +92,10 @@ class ReconciliationPlan:
         """Validate plan consistency."""
         if not self.actions:
             raise ValueError("ReconciliationPlan must contain at least one action")
+        # Validate all actions are valid ActionType enum values
+        for action in self.actions:
+            if not isinstance(action, ActionType):
+                raise ValueError(f"Invalid action type: {action}. Must be an ActionType enum value.")
         if self.severity == Severity.NONE and self.actions != [ActionType.NOOP]:
             raise ValueError("Severity NONE requires NOOP action")
 
