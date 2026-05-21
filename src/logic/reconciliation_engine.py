@@ -118,7 +118,7 @@ class ReconciliationPlan:
 
         object.__setattr__(self, "actions", tuple(normalized_actions))
 
-        if self.severity == Severity.NONE and normalized_actions != [ActionType.NOOP]:
+        if self.severity == Severity.NONE and self.actions != (ActionType.NOOP,):
             raise ValueError("Severity NONE requires NOOP action")
 
 
