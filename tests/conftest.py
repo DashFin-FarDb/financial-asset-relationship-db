@@ -246,8 +246,9 @@ def mock_session_factory():
 
     session_factory = Mock()
     mock_session = MagicMock()
-    session_factory.return_value.__enter__ = Mock(return_value=mock_session)
-    session_factory.return_value.__exit__ = Mock(return_value=None)
+    session_factory.return_value = mock_session
+    mock_session.__enter__.return_value = mock_session
+    mock_session.__exit__.return_value = None
     return session_factory, mock_session
 
 
