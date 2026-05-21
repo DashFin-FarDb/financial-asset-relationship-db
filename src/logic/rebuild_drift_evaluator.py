@@ -178,8 +178,11 @@ class RebuildDriftEvaluator:
             return heartbeat_time
         except (ValueError, AttributeError, TypeError) as exc:
             # Unparseable heartbeat treated as None (caller will treat as stale)
-            logger.warning("Failed to parse heartbeat timestamp, treating as stale", exc_info=True)
-            return None
+            logger.warning(
+                "Failed to parse heartbeat timestamp %r, treating as stale",
+                heartbeat_at,
+                exc_info=True,
+            )
 
     def _is_heartbeat_stale(self, heartbeat_at: datetime | str | None) -> bool:
         """Check if heartbeat timestamp is stale or missing.
