@@ -162,8 +162,9 @@ class ReconciliationEngine:
         except Exception as exc:  # noqa: BLE001 - explicit boundary contract: unexpected failures become explicit plans
             plan = self._evaluation_failure_plan(exc)
             logger.exception(
-                "Drift evaluation failed; returning explicit failure plan. error_type=%s",
+                "Drift evaluation failed; returning explicit failure plan. error_type=%s, error_message=%s",
                 type(exc).__name__,
+                str(exc),
             )
             return plan
 
@@ -344,7 +345,7 @@ class ReconciliationEngine:
     ) -> ExecutionSafety:
         """Classify machine-readable safety intent for CRITICAL drift."""
 
-        lock_is_valid = _parse_lock_is_valid(metadata.get("lock_is_valid"))
+        lock_is_valid = self._parse_lock_is_valid(metadata.get("lock_is_valid"))
 
         if drift_type == "lock_lost":
             return ExecutionSafety.INTEGRITY_COMPROMISED
