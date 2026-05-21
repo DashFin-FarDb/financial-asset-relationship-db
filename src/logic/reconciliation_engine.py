@@ -63,7 +63,9 @@ class ExecutionSafety(str, Enum):
     UNSAFE_SPLIT_BRAIN = "unsafe_split_brain"
     OBSERVABILITY_FAILURE = "observability_failure"
     INTEGRITY_COMPROMISED = "integrity_compromised"
-    EVALUATION_FAILED = "evaluation_failed"
+    # Evaluation failed indicates the evaluator raised an unexpected runtime error; the engine
+    # returns a CRITICAL ALERT_ONLY plan requiring manual intervention.
+    EVALUATION_FAILED = "evaluation_failed
 
 
 @dataclass(frozen=True)
