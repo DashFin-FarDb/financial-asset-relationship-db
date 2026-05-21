@@ -246,7 +246,6 @@ def mock_session_factory():
 
     session_factory = Mock()
     mock_session = MagicMock()
-    mock_session.__enter__.return_value = mock_session
     session_factory.return_value.__enter__ = Mock(return_value=mock_session)
     session_factory.return_value.__exit__ = Mock(return_value=None)
     return session_factory, mock_session
@@ -266,17 +265,15 @@ def mock_rebuild_job():
     from datetime import datetime, timezone
     from unittest.mock import Mock
 
+    from src.data.db_models import RebuildJobStatus
+
     def _make_job(
         job_id: str = "test-job-123",
         status=None,
         active_worker_id: str | None = "worker-456",
         heartbeat_at: datetime | None = None,
     ):
-        from src.data.db_models import RebuildJobStatus
-
         if status is None:
-            from src.data.db_models import RebuildJobStatus
-
             status = RebuildJobStatus.RUNNING
         if heartbeat_at is None:
             heartbeat_at = datetime.now(timezone.utc)

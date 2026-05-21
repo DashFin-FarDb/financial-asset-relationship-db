@@ -26,7 +26,7 @@ class TestRebuildDriftEvaluator:
             # Zombie executor (runtime active, DB shows completed)
             (LockState.VALID, RebuildJobStatus.SUCCEEDED, True, "zombie_executor", Severity.CRITICAL, "zombie_executor"),
         ],
-        ids=lambda x: x if isinstance(x, str) else "",
+        ids=lambda params: params[-1] if isinstance(params, tuple) else str(params),
     )
     def test_drift_type_and_severity_combinations(
         self,

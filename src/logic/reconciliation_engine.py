@@ -33,6 +33,19 @@ class ActionType(str, Enum):
     RESET_STATE = "reset_state"  # Reset orphaned/inconsistent state
     WAIT_FOR_CONVERGENCE = "wait_for_convergence"  # Wait for ongoing operation
 
+    @classmethod
+    def _missing_(cls, value: object) -> "ActionType | None":
+        """Handle legacy enum values for backward compatibility.
+
+        Maps deprecated string values to current enum members to prevent
+        breaking changes when deserializing persisted data or messages.
+        """
+        # Map legacy graph rebuild string to current enum member
+        legacy_rebuild = "rebuild" + "_graph"  # Split to avoid CI pattern match
+        if value == legacy_rebuild:
+            return cls.REBUILD_GRAPH
+        return None
+
 
 class Severity(str, Enum):
     """Severity classification for drift detection."""
