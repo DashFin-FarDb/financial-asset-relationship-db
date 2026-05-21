@@ -335,18 +335,36 @@ class ReconciliationEngine:
         )
 
     def _critical_safety_state(
-        self, drift_type: str, metadata: dict[str, str | int | float | bool | None]
+        self,
+        drift_type: str,
+        metadata: dict[str, str | int | float | bool | None],
     ) -> ExecutionSafety:
         """Classify machine-readable safety intent for CRITICAL drift."""
+    
+        lock_is_valid = _parse_lock_is_valid(metadata.get("lock_is_valid"))
+    
         if drift_type == "lock_lost":
             return ExecutionSafety.INTEGRITY_COMPROMISED
+    
         if drift_type == "persistence_unavailable":
             return ExecutionSafety.OBSERVABILITY_FAILURE
+    
         if drift_type == "zombie_executor":
             return ExecutionSafety.UNSAFE_SPLIT_BRAIN
-        if drift_type == "orphaned_running" and bool(metadata.get("lock_is_valid")):
+    
+        if drift_type == "orphaned_running" and lock_is_valid:
             return ExecutionSafety.UNSAFE_SPLIT_BRAIN
+    
         return ExecutionSafety.MANUAL_INVESTIGATION
+
+    def _parse_lock_is_valid(value) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return value != 0
+        if isinstance(value, str):
+            return value.strip().lower() in ("1", "true", "yes", "y", "t")
+        return False
 
     def _create_wait_plan(
         self,
