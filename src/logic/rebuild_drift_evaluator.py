@@ -179,7 +179,7 @@ class RebuildDriftEvaluator:
             return heartbeat_time
         except (ValueError, AttributeError, TypeError):
             # Unparseable heartbeat treated as None (caller will treat as stale)
-            logger.warning(
+            logger.debug(
                 "Failed to parse heartbeat timestamp %r, treating as stale",
                 heartbeat_at,
                 exc_info=True,
