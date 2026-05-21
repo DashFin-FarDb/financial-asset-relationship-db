@@ -185,6 +185,7 @@ class RebuildDriftEvaluator:
                 exc_info=True,
             )
             return None
+
     def _is_heartbeat_stale(self, heartbeat_at: datetime | str | None) -> bool:
         """Check if heartbeat timestamp is stale or missing.
 
