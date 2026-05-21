@@ -19,23 +19,37 @@ class TestRebuildDriftEvaluator:
         [
             # No job, no executor = no drift
             pytest.param(
-                LockState.VALID, None, False, "none", Severity.NONE, "no_job_no_executor",
-                id="no_job_no_executor"
+                LockState.VALID, None, False, "none", Severity.NONE, "no_job_no_executor", id="no_job_no_executor"
             ),
             # Orphaned running without lock
             pytest.param(
-                LockState.EXPIRED, RebuildJobStatus.RUNNING, False, "orphaned_running", Severity.HIGH, "orphaned_no_lock",
-                id="orphaned_no_lock"
+                LockState.EXPIRED,
+                RebuildJobStatus.RUNNING,
+                False,
+                "orphaned_running",
+                Severity.HIGH,
+                "orphaned_no_lock",
+                id="orphaned_no_lock",
             ),
             # Orphaned running with valid lock (split-brain risk)
             pytest.param(
-                LockState.VALID, RebuildJobStatus.RUNNING, False, "orphaned_running", Severity.CRITICAL, "orphaned_with_lock",
-                id="orphaned_with_lock"
+                LockState.VALID,
+                RebuildJobStatus.RUNNING,
+                False,
+                "orphaned_running",
+                Severity.CRITICAL,
+                "orphaned_with_lock",
+                id="orphaned_with_lock",
             ),
             # Zombie executor (runtime active, DB shows completed)
             pytest.param(
-                LockState.VALID, RebuildJobStatus.SUCCEEDED, True, "zombie_executor", Severity.CRITICAL, "zombie_executor",
-                id="zombie_executor"
+                LockState.VALID,
+                RebuildJobStatus.SUCCEEDED,
+                True,
+                "zombie_executor",
+                Severity.CRITICAL,
+                "zombie_executor",
+                id="zombie_executor",
             ),
         ],
     )
