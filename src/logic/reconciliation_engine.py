@@ -89,17 +89,7 @@ class ReconciliationPlan:
     created_at: datetime
 
     def __post_init__(self) -> None:
-        """Validate plan consistency."""
-        if not self.actions:
-            raise ValueError("ReconciliationPlan must contain at least one action")
-        if isinstance(self.actions, (str, bytes)):
-            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes")
-        try:
-            actions_list = list(self.actions)
-        except TypeError:
-            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")
-        if not actions_list:
-            raise ValueError("ReconciliationPlan must contain at least one action")
+        """Validate plan consistency."""\n        if isinstance(self.actions, (str, bytes)):\n            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes")\n        try:\n            actions_list = list(self.actions)\n        except TypeError:\n            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")\n        if not actions_list:\n            raise ValueError("ReconciliationPlan must contain at least one action")
         normalized_actions: list[ActionType] = []
         for action in actions_list:
             if isinstance(action, ActionType):
