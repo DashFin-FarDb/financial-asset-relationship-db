@@ -154,7 +154,9 @@ class ReconciliationEngine:
         """
         try:
             drift_type, severity, metadata = self.evaluator.evaluate_drift()
-        except ValueError:  # Consider defining a dedicated integrity exception (e.g. DriftIntegrityError) instead of using ValueError to avoid unintentionally catching unrelated ValueErrors
+        except (
+            ValueError
+        ):  # Consider defining a dedicated integrity exception (e.g. DriftIntegrityError) instead of using ValueError to avoid unintentionally catching unrelated ValueErrors
             # Invariant violation / integrity issue: allow callers to treat as fatal.
             raise
         except Exception as exc:  # noqa: BLE001 - explicit boundary contract: unexpected failures become explicit plans
