@@ -233,9 +233,12 @@ class ReconciliationEngine:
         lock_is_valid = self._parse_lock_is_valid(metadata.get("lock_is_valid"))
         # Update metadata with normalized boolean
         metadata = {**metadata, "lock_is_valid": lock_is_valid}
-
-        # No drift - NOOP (but execution safety depends on lock state)
         if severity == Severity.NONE:
+            lock_is_valid = self._parse_lock_is_valid(metadata.get("lock_is_valid"))
+            # Normalize metadata value so downstream checks (which may use metadata.get("lock_is_valid"))
+            # continue to behave correctly for string/int inputs.
+            metadata["lock_is_valid"] = lock_is_valid
+
             # Drift converged, but lock invalid → WAIT for lock before execution
             if not lock_is_valid:
                 return ReconciliationPlan(
