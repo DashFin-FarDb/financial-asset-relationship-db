@@ -108,47 +108,10 @@ class RebuildDriftEvaluator:
         # Map inconsistency to drift classification
         drift_type = inconsistency.inconsistency_type.value
 
-        # Detect owner mismatch for orphaned running jobs (used for both severity and metadata)
-        owner_mismatch = False
-        owner_mismatch_with_stale_heartbeat = False
-        if job and inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING:
-            owner_mismatch = (
-                job.active_worker_id is not None
-                and self.lock.holder_id is not None
-                and job.active_worker_id != self.lock.holder_id
-            )
-            if owner_mismatch:
-                # Check if heartbeat is stale or missing
-                # This preserves RecoveryGate's resettable orphaned-owner mismatch path
-                heartbeat_is_stale = True  # Default to stale if missing or unparseable
-                if job.last_heartbeat_at is not None:
-                    try:
-                        heartbeat_time = job.last_heartbeat_at
-                        if isinstance(heartbeat_time, str):
-                            # Normalize trailing 'Z' to '+00:00' for compatibility with fromisoformat
-                            heartbeat_str = (
-                                heartbeat_time.replace("Z", "+00:00")
-                                if heartbeat_time.endswith("Z")
-                                else heartbeat_time
-                            )
-                            heartbeat_time = datetime.fromisoformat(heartbeat_str)
-                        # Ensure timezone-aware
-                        # Note: Assumes DB returns UTC-naive datetimes or timezone-aware UTC datetimes
-                        if heartbeat_time.tzinfo is None:
-                            heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
-
-                        now = datetime.now(timezone.utc)
-                        heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
-                        heartbeat_is_stale = heartbeat_age_seconds >= self.lock_ttl_seconds
-                    except (ValueError, AttributeError, TypeError) as exc:
-                        # Unparseable heartbeat treated as stale (safer for RecoveryGate's reset path)
-                        logger.warning(
-                            "Failed to parse heartbeat timestamp, treating as stale: %s",
-                            type(exc).__name__,
-                        )
-                        heartbeat_is_stale = True
-
-                owner_mismatch_with_stale_heartbeat = heartbeat_is_stale
+        # Detect owner mismatch for orphaned running jobs
+        owner_mismatch, owner_mismatch_with_stale_heartbeat = self._detect_owner_mismatch(
+            job, inconsistency.inconsistency_type
+        )
 
         severity = self._classify_severity(
             inconsistency.inconsistency_type, lock_is_valid, owner_mismatch_with_stale_heartbeat
@@ -164,25 +127,8 @@ class RebuildDriftEvaluator:
             "detected_at": inconsistency.detected_at.isoformat(),
         }
 
-        if job:
-            # Handle heartbeat safely - check if it has isoformat before calling
-            heartbeat_str: str | None = None
-            if job.last_heartbeat_at is not None:
-                if hasattr(job.last_heartbeat_at, "isoformat"):
-                    heartbeat_str = job.last_heartbeat_at.isoformat()
-                else:
-                    heartbeat_str = str(job.last_heartbeat_at)
-
-            # Reuse owner_mismatch calculated earlier for metadata
-            metadata.update(
-                {
-                    "job_status": job.status.value if hasattr(job.status, "value") else str(job.status),
-                    "active_worker_id": job.active_worker_id,
-                    "last_heartbeat_at": heartbeat_str,
-                    "owner_mismatch": owner_mismatch,
-                    "lock_holder_id": self.lock.holder_id,
-                }
-            )
+        # Add job-specific metadata
+        metadata.update(self._build_job_metadata(job, owner_mismatch))
 
         logger.debug(
             "Drift evaluation completed: type=%s, severity=%s, lock_valid=%s",
@@ -204,6 +150,118 @@ class RebuildDriftEvaluator:
         with self.session_factory() as session:
             repo = AssetGraphRepository(session)
             return repo.get_active_rebuild_state()
+
+    def _parse_heartbeat_time(self, heartbeat_at: datetime | str | None) -> datetime | None:
+        """Parse heartbeat timestamp from various formats.
+
+        Args:
+            heartbeat_at: Heartbeat timestamp (datetime, ISO string, or None)
+
+        Returns:
+            Timezone-aware datetime or None if unparseable or missing
+        """
+        if heartbeat_at is None:
+            return None
+
+        try:
+            heartbeat_time = heartbeat_at
+            if isinstance(heartbeat_time, str):
+                # Normalize trailing 'Z' to '+00:00' for compatibility with fromisoformat
+                heartbeat_str = (
+                    heartbeat_time.replace("Z", "+00:00")
+                    if heartbeat_time.endswith("Z")
+                    else heartbeat_time
+                )
+                heartbeat_time = datetime.fromisoformat(heartbeat_str)
+            # Ensure timezone-aware
+            # Note: Assumes DB returns UTC-naive datetimes or timezone-aware UTC datetimes
+            if heartbeat_time.tzinfo is None:
+                heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
+            return heartbeat_time
+        except (ValueError, AttributeError, TypeError) as exc:
+            # Unparseable heartbeat treated as None (caller will treat as stale)
+            logger.warning(
+                "Failed to parse heartbeat timestamp, treating as stale: %s",
+                type(exc).__name__,
+            )
+            return None
+
+    def _is_heartbeat_stale(self, heartbeat_at: datetime | str | None) -> bool:
+        """Check if heartbeat timestamp is stale or missing.
+
+        Args:
+            heartbeat_at: Heartbeat timestamp to check
+
+        Returns:
+            True if stale or unparseable, False if fresh
+        """
+        heartbeat_time = self._parse_heartbeat_time(heartbeat_at)
+        if heartbeat_time is None:
+            return True  # Missing or unparseable is considered stale
+
+        now = datetime.now(timezone.utc)
+        heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
+        return heartbeat_age_seconds >= self.lock_ttl_seconds
+
+    def _detect_owner_mismatch(
+        self, job: RebuildJobORM | None, inconsistency_type: InconsistencyType
+    ) -> tuple[bool, bool]:
+        """Detect owner mismatch between job and lock holder.
+
+        Args:
+            job: Current rebuild job (or None)
+            inconsistency_type: Detected inconsistency type
+
+        Returns:
+            Tuple of (owner_mismatch, owner_mismatch_with_stale_heartbeat)
+        """
+        if not job or inconsistency_type != InconsistencyType.ORPHANED_RUNNING:
+            return False, False
+
+        owner_mismatch = (
+            job.active_worker_id is not None
+            and self.lock.holder_id is not None
+            and job.active_worker_id != self.lock.holder_id
+        )
+
+        if not owner_mismatch:
+            return False, False
+
+        # Check if heartbeat is stale or missing
+        # This preserves RecoveryGate's resettable orphaned-owner mismatch path
+        heartbeat_is_stale = self._is_heartbeat_stale(job.last_heartbeat_at)
+        owner_mismatch_with_stale_heartbeat = heartbeat_is_stale
+
+        return owner_mismatch, owner_mismatch_with_stale_heartbeat
+
+    def _build_job_metadata(self, job: RebuildJobORM | None, owner_mismatch: bool) -> dict[str, str | int | float | bool | None]:
+        """Build metadata dictionary for job state.
+
+        Args:
+            job: Current rebuild job (or None)
+            owner_mismatch: Whether job owner mismatches lock holder
+
+        Returns:
+            Metadata dictionary with job details
+        """
+        if not job:
+            return {}
+
+        # Handle heartbeat safely - check if it has isoformat before calling
+        heartbeat_str: str | None = None
+        if job.last_heartbeat_at is not None:
+            if hasattr(job.last_heartbeat_at, "isoformat"):
+                heartbeat_str = job.last_heartbeat_at.isoformat()
+            else:
+                heartbeat_str = str(job.last_heartbeat_at)
+
+        return {
+            "job_status": job.status.value if hasattr(job.status, "value") else str(job.status),
+            "active_worker_id": job.active_worker_id,
+            "last_heartbeat_at": heartbeat_str,
+            "owner_mismatch": owner_mismatch,
+            "lock_holder_id": self.lock.holder_id,
+        }
 
     def _classify_severity(  # pylint: disable=too-many-return-statements  # Each inconsistency type requires distinct severity mapping; table-driven refactor deferred to Phase 2
         self,
