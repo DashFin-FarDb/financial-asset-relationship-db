@@ -181,8 +181,8 @@ class RebuildDriftEvaluator:
         except (ValueError, AttributeError, TypeError) as exc:
             # Unparseable heartbeat treated as None (caller will treat as stale)
             logger.warning(
-                "Failed to parse heartbeat timestamp, treating as stale: %s", 
-                exc, exc_info=True
+                "Failed to parse heartbeat timestamp, treating as stale", 
+                exc_info=True
             )
             return None
 
