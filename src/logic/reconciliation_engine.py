@@ -34,7 +34,7 @@ class ActionType(str, Enum):
     WAIT_FOR_CONVERGENCE = "wait_for_convergence"  # Wait for ongoing operation
 
     @classmethod
-    def _missing_(cls, value: object) -> "ActionType | None":
+    def _missing_(cls, value: object) -> ActionType | None:
         """Handle legacy enum values for backward compatibility.
 
         Maps deprecated string values to current enum members to prevent
