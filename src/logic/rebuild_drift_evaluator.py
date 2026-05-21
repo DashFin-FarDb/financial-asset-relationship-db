@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -107,8 +108,8 @@ class RebuildDriftEvaluator:
         # Map inconsistency to drift classification
         drift_type = inconsistency.inconsistency_type.value
 
-        # Detect owner mismatch with stale heartbeat for severity classification
-        # This preserves RecoveryGate's resettable orphaned-owner mismatch path
+        # Detect owner mismatch for orphaned running jobs (used for both severity and metadata)
+        owner_mismatch = False
         owner_mismatch_with_stale_heartbeat = False
         if job and inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING:
             owner_mismatch = (
@@ -118,19 +119,15 @@ class RebuildDriftEvaluator:
             )
             if owner_mismatch:
                 # Check if heartbeat is stale or missing
-                from datetime import timezone
-
+                # This preserves RecoveryGate's resettable orphaned-owner mismatch path
                 heartbeat_is_stale = True  # Default to stale if missing
                 if job.last_heartbeat_at is not None:
                     heartbeat_time = job.last_heartbeat_at
                     if isinstance(heartbeat_time, str):
-                        from datetime import datetime
-
                         heartbeat_time = datetime.fromisoformat(heartbeat_time)
                     # Ensure timezone-aware
                     if heartbeat_time.tzinfo is None:
                         heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
-                    from datetime import datetime
 
                     now = datetime.now(timezone.utc)
                     heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
@@ -161,14 +158,7 @@ class RebuildDriftEvaluator:
                 else:
                     heartbeat_str = str(job.last_heartbeat_at)
 
-            # Detect owner mismatch for orphaned running jobs
-            # This allows RecoveryGate's downgrade logic to be preserved
-            owner_mismatch = (
-                job.active_worker_id is not None
-                and self.lock.holder_id is not None
-                and job.active_worker_id != self.lock.holder_id
-            )
-
+            # Reuse owner_mismatch calculated earlier for metadata
             metadata.update(
                 {
                     "job_status": job.status.value if hasattr(job.status, "value") else str(job.status),
