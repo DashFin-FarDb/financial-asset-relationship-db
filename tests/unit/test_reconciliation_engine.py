@@ -189,8 +189,6 @@ class TestReconciliationEngine:
         plan = engine.generate_reconciliation_plan()
         assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
         assert plan.execution_mode == ExecutionMode.DEFERRED
-        assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
-        assert plan.execution_mode == ExecutionMode.DEFERRED
 
     def test_no_drift_invalid_lock_waits(self) -> None:
         """Test that no drift with invalid lock returns WAIT plan."""
