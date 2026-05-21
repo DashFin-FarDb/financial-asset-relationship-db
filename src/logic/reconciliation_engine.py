@@ -63,6 +63,7 @@ class ExecutionSafety(str, Enum):
     UNSAFE_SPLIT_BRAIN = "unsafe_split_brain"
     OBSERVABILITY_FAILURE = "observability_failure"
     INTEGRITY_COMPROMISED = "integrity_compromised"
+    EVALUATION_FAILED = "evaluation_failed"
 
 
 @dataclass(frozen=True)
@@ -151,7 +152,18 @@ class ReconciliationEngine:
         Returns:
             ReconciliationPlan describing the corrective actions needed
         """
-        drift_type, severity, metadata = self.evaluator.evaluate_drift()
+        try:
+            drift_type, severity, metadata = self.evaluator.evaluate_drift()
+        except ValueError:
+            # Invariant violation / integrity issue: allow callers to treat as fatal.
+            raise
+        except Exception as exc:  # noqa: BLE001 - explicit boundary contract: unexpected failures become explicit plans
+            plan = self._evaluation_failure_plan(exc)
+            logger.exception(
+                "Drift evaluation failed; returning explicit failure plan. error_type=%s",
+                type(exc).__name__,
+            )
+            return plan
 
         logger.debug(
             "Drift evaluation: type=%s, severity=%s, metadata=%s",
@@ -172,6 +184,23 @@ class ReconciliationEngine:
         )
 
         return plan
+
+    def _evaluation_failure_plan(self, exc: Exception) -> ReconciliationPlan:
+        """Return an explicit reconciliation plan representing evaluator failure."""
+        return ReconciliationPlan(
+            drift_type="drift_evaluation_failed",
+            severity=Severity.CRITICAL,
+            actions=[ActionType.ALERT_ONLY],
+            target_state="Manual intervention required",
+            execution_mode=ExecutionMode.MANUAL,
+            safety_state=ExecutionSafety.EVALUATION_FAILED,
+            reason="Unable to evaluate drift; reconciliation planning failed",
+            metadata={
+                "error_type": type(exc).__name__,
+                "error_message": str(exc),
+            },
+            created_at=datetime.now(timezone.utc),
+        )
 
     def _drift_to_plan(
         self,

@@ -104,6 +104,35 @@ class TestReconciliationPlan:
 class TestReconciliationEngine:
     """Tests for ReconciliationEngine core functionality."""
 
+    def test_evaluator_runtime_error_returns_failure_plan(self) -> None:
+        """Unexpected evaluator exceptions become explicit CRITICAL plans."""
+
+        class FailingEvaluator:
+            def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
+                raise RuntimeError("lock subsystem unavailable")
+
+        engine = ReconciliationEngine(FailingEvaluator())
+        plan = engine.generate_reconciliation_plan()
+
+        assert plan.drift_type == "drift_evaluation_failed"
+        assert plan.severity == Severity.CRITICAL
+        assert plan.actions == [ActionType.ALERT_ONLY]
+        assert plan.execution_mode == ExecutionMode.MANUAL
+        assert plan.safety_state == ExecutionSafety.EVALUATION_FAILED
+        assert plan.metadata["error_type"] == "RuntimeError"
+
+    def test_evaluator_value_error_propagates(self) -> None:
+        """Invariant/integrity failures intentionally propagate."""
+
+        class IntegrityFailEvaluator:
+            def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
+                raise ValueError("multiple RUNNING jobs found")
+
+        engine = ReconciliationEngine(IntegrityFailEvaluator())
+
+        with pytest.raises(ValueError, match="multiple RUNNING jobs found"):
+            engine.generate_reconciliation_plan()
+
     def test_no_drift_produces_noop_plan(self) -> None:
         """Test that no drift produces a NOOP plan."""
         evaluator = MockDriftEvaluator("none", Severity.NONE)
