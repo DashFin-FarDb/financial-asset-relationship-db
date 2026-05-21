@@ -126,7 +126,11 @@ class RebuildDriftEvaluator:
                         heartbeat_time = job.last_heartbeat_at
                         if isinstance(heartbeat_time, str):
                             # Normalize trailing 'Z' to '+00:00' for compatibility with fromisoformat
-                            heartbeat_str = heartbeat_time.replace("Z", "+00:00") if heartbeat_time.endswith("Z") else heartbeat_time
+                            heartbeat_str = (
+                                heartbeat_time.replace("Z", "+00:00")
+                                if heartbeat_time.endswith("Z")
+                                else heartbeat_time
+                            )
                             heartbeat_time = datetime.fromisoformat(heartbeat_str)
                         # Ensure timezone-aware
                         # Note: Assumes DB returns UTC-naive datetimes or timezone-aware UTC datetimes
