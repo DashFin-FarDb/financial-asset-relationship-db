@@ -40,7 +40,7 @@ class TestReconciliationPlan:
         plan = ReconciliationPlan(
             drift_type="test_drift",
             severity=Severity.MEDIUM,
-            actions=[ActionType.REBUILD_GRAPH],
+            actions=[ActionType.RESET_STATE],
             target_state="Target state description",
             execution_mode=ExecutionMode.DEFERRED,
             reason="Test reason",
@@ -50,7 +50,7 @@ class TestReconciliationPlan:
 
         assert plan.drift_type == "test_drift"
         assert plan.severity == Severity.MEDIUM
-        assert plan.actions == [ActionType.REBUILD_GRAPH]
+        assert plan.actions == [ActionType.RESET_STATE]
         assert plan.execution_mode == ExecutionMode.DEFERRED
 
     def test_plan_requires_actions(self) -> None:
@@ -87,7 +87,7 @@ class TestReconciliationPlan:
             ReconciliationPlan(
                 drift_type="none",
                 severity=Severity.NONE,
-                actions=[ActionType.REBUILD_GRAPH],  # Wrong action for NONE severity
+                actions=[ActionType.ALERT_ONLY],  # Wrong action for NONE severity
                 target_state="Target",
                 execution_mode=ExecutionMode.AUTOMATIC,
                 reason="Test",
@@ -170,6 +170,21 @@ class TestReconciliationEngine:
         assert ActionType.RESET_STATE in plan.actions
         assert "crash" in plan.reason.lower()
 
+    def test_crash_suspicion_with_valid_lock_produces_wait_plan(self) -> None:
+        """Test that crash suspicion waits while the lock remains valid."""
+        evaluator = MockDriftEvaluator(
+            "crash_suspicion",
+            Severity.HIGH,
+            metadata={"job_id": "test-789", "lock_is_valid": True},
+        )
+        engine = ReconciliationEngine(evaluator)
+
+        plan = engine.generate_reconciliation_plan()
+
+        assert plan.actions == [ActionType.WAIT_FOR_CONVERGENCE]
+        assert plan.execution_mode == ExecutionMode.DEFERRED
+        assert "wait" in plan.target_state.lower()
+
     def test_zombie_executor_produces_alert_only(self) -> None:
         """Test that zombie executor produces ALERT_ONLY plan (split-brain risk)."""
         evaluator = MockDriftEvaluator(
@@ -187,65 +202,20 @@ class TestReconciliationEngine:
         # Critical severity triggers generic critical path, so reason mentions "critical" not "zombie"
         assert "critical" in plan.reason.lower() or "unsafe" in plan.reason.lower()
 
-    def test_version_mismatch_produces_rebuild_plan(self) -> None:
-        """Test that version mismatch produces REBUILD plan."""
+    def test_stale_ownership_with_valid_lock_produces_wait_plan(self) -> None:
+        """Test that stale ownership waits while the lock remains valid."""
         evaluator = MockDriftEvaluator(
-            "version_mismatch",
+            "stale_ownership",
             Severity.MEDIUM,
-            metadata={"expected_version": "1.2.3", "actual_version": "1.2.2"},
+            metadata={"job_id": "test-456", "lock_is_valid": True},
         )
         engine = ReconciliationEngine(evaluator)
 
         plan = engine.generate_reconciliation_plan()
 
-        assert plan.drift_type == "version_mismatch"
-        assert ActionType.REBUILD_GRAPH in plan.actions
-        assert "version" in plan.reason.lower()
-
-    def test_low_health_degradation_produces_alert_only(self) -> None:
-        """Test that low-severity health degradation produces ALERT_ONLY."""
-        evaluator = MockDriftEvaluator(
-            "health_degradation",
-            Severity.LOW,
-            metadata={"health_score": 0.85},
-        )
-        engine = ReconciliationEngine(evaluator)
-
-        plan = engine.generate_reconciliation_plan()
-
-        assert plan.drift_type == "health_degradation"
-        assert plan.actions == [ActionType.ALERT_ONLY]
-        assert plan.execution_mode == ExecutionMode.AUTOMATIC
-
-    def test_high_health_degradation_produces_restart_plan(self) -> None:
-        """Test that high-severity health degradation produces RESTART plan."""
-        evaluator = MockDriftEvaluator(
-            "health_degradation",
-            Severity.HIGH,
-            metadata={"health_score": 0.3},
-        )
-        engine = ReconciliationEngine(evaluator)
-
-        plan = engine.generate_reconciliation_plan()
-
-        assert plan.drift_type == "health_degradation"
-        assert ActionType.RESTART_RUNTIME in plan.actions
+        assert plan.actions == [ActionType.WAIT_FOR_CONVERGENCE]
         assert plan.execution_mode == ExecutionMode.DEFERRED
-
-    def test_persistence_inconsistency_produces_repair_plan(self) -> None:
-        """Test that persistence inconsistency produces REPAIR plan."""
-        evaluator = MockDriftEvaluator(
-            "persistence_inconsistency",
-            Severity.MEDIUM,
-            metadata={"inconsistency_details": "checksum mismatch"},
-        )
-        engine = ReconciliationEngine(evaluator)
-
-        plan = engine.generate_reconciliation_plan()
-
-        assert plan.drift_type == "persistence_inconsistency"
-        assert ActionType.REPAIR_PERSISTENCE in plan.actions
-        assert plan.execution_mode == ExecutionMode.MANUAL
+        assert "wait" in plan.target_state.lower()
 
     def test_unknown_drift_type_produces_alert_only(self) -> None:
         """Test that unknown drift type produces ALERT_ONLY plan."""

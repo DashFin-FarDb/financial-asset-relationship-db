@@ -25,32 +25,9 @@ class ActionType(str, Enum):
     """Types of corrective actions that can be planned."""
 
     NOOP = "noop"  # Already converged, no action needed
-    REBUILD_GRAPH = "graph_rebuild"  # Graph rebuild required
-    ROLLBACK_VERSION = "rollback_version"  # Rollback to previous version
-    REPAIR_PERSISTENCE = "repair_persistence"  # Repair persistence layer
-    RESTART_RUNTIME = "restart_runtime"  # Runtime restart required
     ALERT_ONLY = "alert_only"  # Non-critical, alert but don't act
     RESET_STATE = "reset_state"  # Reset orphaned/inconsistent state
     WAIT_FOR_CONVERGENCE = "wait_for_convergence"  # Wait for ongoing operation
-
-    @classmethod
-    def _missing_(cls, value: object) -> ActionType | None:
-        """Handle legacy enum values for backward compatibility.
-
-        Maps deprecated string values to current enum members to prevent
-        breaking changes when deserializing persisted data or messages.
-        """
-        # Map legacy graph rebuild string to current enum member
-        legacy_rebuild = "rebuild" + "_graph"  # Split to avoid CI pattern match
-        if isinstance(value, str) and value == legacy_rebuild:
-            logger.warning(
-                "Received deprecated ActionType value %r (type=%s); mapping to %s",
-                value,
-                type(value).__name__,
-                cls.REBUILD_GRAPH.value,
-            )
-            return cls.REBUILD_GRAPH
-        return None
 
 
 class Severity(str, Enum):
@@ -246,6 +223,14 @@ class ReconciliationEngine:
 
         # Stale ownership - reset when lock expired
         if drift_type == "stale_ownership":
+            if metadata.get("lock_is_valid"):
+                return self._create_wait_plan(
+                    drift_type,
+                    severity,
+                    metadata,
+                    "Stale ownership detected but lock is still valid",
+                    "Wait for state stabilization before taking action",
+                )
             return self._create_reset_plan(
                 drift_type,
                 severity,
@@ -256,6 +241,14 @@ class ReconciliationEngine:
 
         # Crash suspicion - reset recommended
         if drift_type == "crash_suspicion":
+            if metadata.get("lock_is_valid"):
+                return self._create_wait_plan(
+                    drift_type,
+                    severity,
+                    metadata,
+                    "Crash suspicion detected but lock is still valid",
+                    "Wait for lock expiry before resetting state",
+                )
             return self._create_reset_plan(
                 drift_type,
                 severity,
@@ -277,56 +270,6 @@ class ReconciliationEngine:
                 created_at=datetime.now(timezone.utc),
             )
 
-        # Version mismatch - rebuild required
-        if drift_type == "version_mismatch":
-            return ReconciliationPlan(
-                drift_type=drift_type,
-                severity=severity,
-                actions=[ActionType.REBUILD_GRAPH],
-                target_state="Graph rebuilt to latest version",
-                execution_mode=(ExecutionMode.DEFERRED if severity == Severity.LOW else ExecutionMode.IMMEDIATE),
-                reason="Version mismatch detected between desired and observed state",
-                metadata=metadata,
-                created_at=datetime.now(timezone.utc),
-            )
-
-        # Health degradation - alert for low severity, action for higher
-        if drift_type == "health_degradation":
-            if severity == Severity.LOW:
-                return ReconciliationPlan(
-                    drift_type=drift_type,
-                    severity=severity,
-                    actions=[ActionType.ALERT_ONLY],
-                    target_state="Monitor for further degradation",
-                    execution_mode=ExecutionMode.AUTOMATIC,
-                    reason="Minor health degradation detected - monitoring",
-                    metadata=metadata,
-                    created_at=datetime.now(timezone.utc),
-                )
-            return ReconciliationPlan(
-                drift_type=drift_type,
-                severity=severity,
-                actions=[ActionType.RESTART_RUNTIME],
-                target_state="Runtime restarted to restore health",
-                execution_mode=ExecutionMode.DEFERRED,
-                reason="Significant health degradation detected",
-                metadata=metadata,
-                created_at=datetime.now(timezone.utc),
-            )
-
-        # Persistence inconsistency - repair required
-        if drift_type == "persistence_inconsistency":
-            return ReconciliationPlan(
-                drift_type=drift_type,
-                severity=severity,
-                actions=[ActionType.REPAIR_PERSISTENCE],
-                target_state="Persistence layer repaired and consistent",
-                execution_mode=ExecutionMode.MANUAL,
-                reason="Persistence layer inconsistency detected",
-                metadata=metadata,
-                created_at=datetime.now(timezone.utc),
-            )
-
         # Unknown drift type - default to alert only
         logger.warning("Unknown drift type %s - defaulting to ALERT_ONLY", drift_type)
         return ReconciliationPlan(
@@ -336,6 +279,26 @@ class ReconciliationEngine:
             target_state="Investigation required",
             execution_mode=ExecutionMode.MANUAL,
             reason=f"Unknown drift type: {drift_type}",
+            metadata=metadata,
+            created_at=datetime.now(timezone.utc),
+        )
+
+    def _create_wait_plan(
+        self,
+        drift_type: str,
+        severity: Severity,
+        metadata: dict[str, str | int | float | bool | None],
+        reason: str,
+        target_state: str,
+    ) -> ReconciliationPlan:
+        """Create a standardized wait plan."""
+        return ReconciliationPlan(
+            drift_type=drift_type,
+            severity=severity,
+            actions=[ActionType.WAIT_FOR_CONVERGENCE],
+            target_state=target_state,
+            execution_mode=ExecutionMode.DEFERRED,
+            reason=reason,
             metadata=metadata,
             created_at=datetime.now(timezone.utc),
         )

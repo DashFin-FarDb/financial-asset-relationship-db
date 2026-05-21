@@ -11,6 +11,7 @@ import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.data.distributed_lock import DistributedLock, LockState
@@ -79,7 +80,22 @@ class RebuildDriftEvaluator:
         lock_is_valid = lock_state == LockState.VALID
 
         # Get current rebuild job from DB
-        job = self._get_active_rebuild_job()
+        try:
+            job = self._get_active_rebuild_job()
+        except ValueError:
+            raise
+        except (SQLAlchemyError, OSError) as exc:
+            return (
+                "persistence_unavailable",
+                Severity.CRITICAL,
+                {
+                    "error_type": type(exc).__name__,
+                    "lock_state": lock_state.value,
+                    "lock_is_valid": lock_is_valid,
+                    "reason": "Unable to read rebuild state from persistence",
+                    "runtime_has_active_executor": self.runtime_has_active_executor,
+                },
+            )
 
         # Detect inconsistency using existing logic
         inconsistency = detect_rebuild_inconsistency(
@@ -133,23 +149,12 @@ class RebuildDriftEvaluator:
 
         Raises:
             ValueError: If database integrity constraint violated (e.g., multiple RUNNING jobs)
+            SQLAlchemyError: If persistence cannot be queried
+            OSError: If the underlying database access fails
         """
-        from sqlalchemy.exc import SQLAlchemyError
-
-        try:
-            with self.session_factory() as session:
-                repo = AssetGraphRepository(session)
-                return repo.get_active_rebuild_state()
-        except ValueError:
-            # DB integrity violation - let it propagate as this indicates serious state corruption
-            raise
-        except (SQLAlchemyError, OSError) as exc:
-            # Transient DB errors - log and treat as "no job" to allow graceful degradation
-            logger.warning(
-                "Failed to retrieve active rebuild job: %s",
-                type(exc).__name__,
-            )
-            return None
+        with self.session_factory() as session:
+            repo = AssetGraphRepository(session)
+            return repo.get_active_rebuild_state()
 
     def _classify_severity(  # pylint: disable=too-many-return-statements  # Each inconsistency type requires distinct severity mapping; table-driven refactor deferred to Phase 2
         self,
