@@ -164,7 +164,15 @@ class TestReconciliationEngine:
         assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
         assert plan.execution_mode == ExecutionMode.DEFERRED
 
-    @pytest.mark.parametrize("true_value", [1, 1.0, 42, -1], ids=repr)
+    @pytest.mark.parametrize(
+        "true_value",
+        [
+            pytest.param(1, id="int_1"),
+            pytest.param(1.0, id="float_1.0"),
+            pytest.param(42, id="int_42"),
+            pytest.param(-1, id="int_-1"),
+        ],
+    )
     def test_lock_is_valid_number_truthy_variants(self, true_value) -> None:
         """Test that lock_is_valid parsing handles numeric truthy representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": true_value})
@@ -173,7 +181,13 @@ class TestReconciliationEngine:
         assert plan.safety_state == ExecutionSafety.CONVERGED
         assert plan.execution_mode == ExecutionMode.AUTOMATIC
 
-    @pytest.mark.parametrize("false_value", [0, 0.0], ids=repr)
+    @pytest.mark.parametrize(
+        "false_value",
+        [
+            pytest.param(0, id="int_0"),
+            pytest.param(0.0, id="float_0.0"),
+        ],
+    )
     def test_lock_is_valid_number_falsy_variants(self, false_value) -> None:
         """Test that lock_is_valid parsing handles numeric falsy representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": false_value})
