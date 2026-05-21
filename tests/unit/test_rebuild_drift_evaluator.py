@@ -19,37 +19,23 @@ class TestRebuildDriftEvaluator:
         [
             # No job, no executor = no drift
             pytest.param(
-                LockState.VALID, None, False, "none", Severity.NONE, "no_job_no_executor", id="no_job_no_executor"
+                LockState.VALID, None, False, "none", Severity.NONE, "no_job_no_executor",
+                id="no_job_no_executor"
             ),
             # Orphaned running without lock
             pytest.param(
-                LockState.EXPIRED,
-                RebuildJobStatus.RUNNING,
-                False,
-                "orphaned_running",
-                Severity.HIGH,
-                "orphaned_no_lock",
-                id="orphaned_no_lock",
+                LockState.EXPIRED, RebuildJobStatus.RUNNING, False, "orphaned_running", Severity.HIGH, "orphaned_no_lock",
+                id="orphaned_no_lock"
             ),
             # Orphaned running with valid lock (split-brain risk)
             pytest.param(
-                LockState.VALID,
-                RebuildJobStatus.RUNNING,
-                False,
-                "orphaned_running",
-                Severity.CRITICAL,
-                "orphaned_with_lock",
-                id="orphaned_with_lock",
+                LockState.VALID, RebuildJobStatus.RUNNING, False, "orphaned_running", Severity.CRITICAL, "orphaned_with_lock",
+                id="orphaned_with_lock"
             ),
             # Zombie executor (runtime active, DB shows completed)
             pytest.param(
-                LockState.VALID,
-                RebuildJobStatus.SUCCEEDED,
-                True,
-                "zombie_executor",
-                Severity.CRITICAL,
-                "zombie_executor",
-                id="zombie_executor",
+                LockState.VALID, RebuildJobStatus.SUCCEEDED, True, "zombie_executor", Severity.CRITICAL, "zombie_executor",
+                id="zombie_executor"
             ),
         ],
     )
@@ -70,7 +56,8 @@ class TestRebuildDriftEvaluator:
         This consolidates the repetitive pattern of testing different drift scenarios
         with the same mock setup structure.
         """
-        session_factory, mock_session = mock_session_factory
+        # SONAR FIX: Replaced unused mock_session with _
+        session_factory, _ = mock_session_factory
         mock_lock.check_state.return_value = lock_state
 
         # Setup mock repository
@@ -108,7 +95,8 @@ class TestRebuildDriftEvaluator:
 
         Note: Orphaned running takes priority over crash suspicion in detection logic.
         """
-        session_factory, mock_session = mock_session_factory
+        # SONAR FIX: Replaced unused mock_session with _
+        session_factory, _ = mock_session_factory
         mock_lock.check_state.return_value = LockState.EXPIRED
 
         # Mock job with stale heartbeat
@@ -145,7 +133,8 @@ class TestRebuildDriftEvaluator:
         Note: Orphaned running (RUNNING status + no executor) takes priority
         over stale_ownership/crash_suspicion in the detection hierarchy.
         """
-        session_factory, mock_session = mock_session_factory
+        # SONAR FIX: Replaced unused mock_session with _
+        session_factory, _ = mock_session_factory
         mock_lock.check_state.return_value = LockState.EXPIRED
 
         # Mock job with no heartbeat
@@ -178,7 +167,8 @@ class TestRebuildDriftEvaluator:
 
     def test_metadata_includes_job_details(self, mock_session_factory, mock_lock, mock_rebuild_job) -> None:
         """Test that metadata includes relevant job details."""
-        session_factory, mock_session = mock_session_factory
+        # SONAR FIX: Replaced unused mock_session with _
+        session_factory, _ = mock_session_factory
         mock_lock.check_state.return_value = LockState.VALID
 
         heartbeat_time = datetime.now(timezone.utc)
@@ -236,7 +226,8 @@ class TestRebuildDriftEvaluator:
 
     def test_propagates_value_error_on_integrity_violation(self, mock_session_factory, mock_lock) -> None:
         """Test that ValueError from DB integrity violation is propagated."""
-        session_factory, mock_session = mock_session_factory
+        # SONAR FIX: Replaced unused mock_session with _
+        session_factory, _ = mock_session_factory
 
         # Mock session that raises ValueError (e.g., multiple RUNNING jobs)
         mock_repo = MagicMock()
@@ -260,6 +251,7 @@ class TestRebuildDriftEvaluator:
 
     def test_lock_lost_is_critical_drift(self, mock_session_factory, mock_lock) -> None:
         """Test that LOST lock state is treated as CRITICAL drift."""
+        # SONAR FIX: Replaced unused mock_session with _
         session_factory, _ = mock_session_factory
         mock_lock.check_state.return_value = LockState.LOST
 
