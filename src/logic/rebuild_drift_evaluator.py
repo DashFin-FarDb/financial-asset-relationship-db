@@ -168,9 +168,7 @@ class RebuildDriftEvaluator:
             if isinstance(heartbeat_time, str):
                 # Normalize trailing 'Z' to '+00:00' for compatibility with fromisoformat
                 heartbeat_str = (
-                    heartbeat_time[:-1] + "+00:00"
-                    if heartbeat_time.upper().endswith("Z")
-                    else heartbeat_time
+                    heartbeat_time[:-1] + "+00:00" if heartbeat_time.upper().endswith("Z") else heartbeat_time
                 )
                 heartbeat_time = datetime.fromisoformat(heartbeat_str)
             # Ensure timezone-aware
@@ -180,10 +178,7 @@ class RebuildDriftEvaluator:
             return heartbeat_time
         except (ValueError, AttributeError, TypeError) as exc:
             # Unparseable heartbeat treated as None (caller will treat as stale)
-            logger.warning(
-                "Failed to parse heartbeat timestamp, treating as stale", 
-                exc_info=True
-            )
+            logger.warning("Failed to parse heartbeat timestamp, treating as stale", exc_info=True)
             return None
 
     def _is_heartbeat_stale(self, heartbeat_at: datetime | str | None) -> bool:
@@ -234,7 +229,9 @@ class RebuildDriftEvaluator:
 
         return owner_mismatch, owner_mismatch_with_stale_heartbeat
 
-    def _build_job_metadata(self, job: RebuildJobORM | None, owner_mismatch: bool) -> dict[str, str | int | float | bool | None]:
+    def _build_job_metadata(
+        self, job: RebuildJobORM | None, owner_mismatch: bool
+    ) -> dict[str, str | int | float | bool | None]:
         """Build metadata dictionary for job state.
 
         Args:
