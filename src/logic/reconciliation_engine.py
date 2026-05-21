@@ -90,35 +90,81 @@ class ReconciliationPlan:
 
     def __post_init__(self) -> None:
         """Validate plan consistency."""
+        # Convert and validate actions to normalized tuple - NO state mutation yet
+        normalized_actions = self._validate_and_normalize_actions(self.actions)
+
+        # Check all invariants BEFORE mutating state
+        self._check_severity_action_invariants(self.severity, normalized_actions)
+
+        # All validations passed - now safe to mutate frozen dataclass
+        object.__setattr__(self, "actions", normalized_actions)
+
+    def _validate_and_normalize_actions(
+        self, actions: ActionType | str | bytes | list | tuple
+    ) -> tuple[ActionType, ...]:
+        """Validate and normalize actions to a tuple of ActionType values.
+
+        Args:
+            actions: Single ActionType, iterable of actions, or invalid input
+
+        Returns:
+            Tuple of normalized ActionType values
+
+        Raises:
+            ValueError: If actions are invalid or cannot be normalized
+        """
         # Single ActionType: wrap in list (ActionType subclasses str, so check first)
-        if isinstance(self.actions, ActionType):
-            actions_list = [self.actions]
+        if isinstance(actions, ActionType):
+            actions_list = [actions]
         # Raw str/bytes: reject (even though ActionType inherits str, previous check caught ActionType)
-        elif isinstance(self.actions, (str, bytes)):
+        elif isinstance(actions, (str, bytes)):
             raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes")
         # Iterable: convert to list
         else:
             try:
-                actions_list = list(self.actions)
+                actions_list = list(actions)  # type: ignore[call-overload]
             except TypeError:
                 raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")
 
         if not actions_list:
             raise ValueError("ReconciliationPlan must contain at least one action")
 
+        return self._normalize_action_types(actions_list)
+
+    def _normalize_action_types(self, actions_list: list) -> tuple[ActionType, ...]:
+        """Normalize a list of actions to ActionType enum values.
+
+        Args:
+            actions_list: List of actions (ActionType instances or string values)
+
+        Returns:
+            Tuple of ActionType enum values
+
+        Raises:
+            ValueError: If any action cannot be converted to ActionType
+        """
         normalized_actions: list[ActionType] = []
         for action in actions_list:
             if isinstance(action, ActionType):
                 normalized_actions.append(action)
-                continue
-            try:
-                normalized_actions.append(ActionType(action))
-            except (ValueError, TypeError):
-                raise ValueError(f"Invalid action type: {action!r}. Must be an ActionType enum value.")
+            else:
+                try:
+                    normalized_actions.append(ActionType(action))
+                except (ValueError, TypeError):
+                    raise ValueError(f"Invalid action type: {action!r}. Must be an ActionType enum value.")
+        return tuple(normalized_actions)
 
-        object.__setattr__(self, "actions", tuple(normalized_actions))
+    def _check_severity_action_invariants(self, severity: Severity, normalized_actions: tuple[ActionType, ...]) -> None:
+        """Check invariants between severity and actions.
 
-        if self.severity == Severity.NONE and self.actions != (ActionType.NOOP,):
+        Args:
+            severity: The plan severity level
+            normalized_actions: Normalized tuple of actions
+
+        Raises:
+            ValueError: If invariants are violated
+        """
+        if severity == Severity.NONE and normalized_actions != (ActionType.NOOP,):
             raise ValueError("Severity NONE requires NOOP action")
 
 
