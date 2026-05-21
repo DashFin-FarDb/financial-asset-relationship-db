@@ -22,9 +22,23 @@ class TestRebuildDriftEvaluator:
             # Orphaned running without lock
             (LockState.EXPIRED, RebuildJobStatus.RUNNING, False, "orphaned_running", Severity.HIGH, "orphaned_no_lock"),
             # Orphaned running with valid lock (split-brain risk)
-            (LockState.VALID, RebuildJobStatus.RUNNING, False, "orphaned_running", Severity.CRITICAL, "orphaned_with_lock"),
+            (
+                LockState.VALID,
+                RebuildJobStatus.RUNNING,
+                False,
+                "orphaned_running",
+                Severity.CRITICAL,
+                "orphaned_with_lock",
+            ),
             # Zombie executor (runtime active, DB shows completed)
-            (LockState.VALID, RebuildJobStatus.SUCCEEDED, True, "zombie_executor", Severity.CRITICAL, "zombie_executor"),
+            (
+                LockState.VALID,
+                RebuildJobStatus.SUCCEEDED,
+                True,
+                "zombie_executor",
+                Severity.CRITICAL,
+                "zombie_executor",
+            ),
         ],
         ids=lambda params: params[-1] if isinstance(params, tuple) else str(params),
     )
@@ -78,9 +92,7 @@ class TestRebuildDriftEvaluator:
             assert metadata["lock_state"] == lock_state.value
             assert metadata["lock_is_valid"] == (lock_state == LockState.VALID)
 
-    def test_crash_suspicion_is_high_severity(
-        self, mock_session_factory, mock_lock, mock_rebuild_job
-    ) -> None:
+    def test_crash_suspicion_is_high_severity(self, mock_session_factory, mock_lock, mock_rebuild_job) -> None:
         """Test that stale heartbeat with no executor is classified as HIGH severity.
 
         Note: Orphaned running takes priority over crash suspicion in detection logic.
@@ -116,9 +128,7 @@ class TestRebuildDriftEvaluator:
             assert drift_type == "orphaned_running"
             assert severity == Severity.HIGH
 
-    def test_stale_ownership_is_medium_severity(
-        self, mock_session_factory, mock_lock, mock_rebuild_job
-    ) -> None:
+    def test_stale_ownership_is_medium_severity(self, mock_session_factory, mock_lock, mock_rebuild_job) -> None:
         """Test that stale ownership is classified as MEDIUM or HIGH severity.
 
         Note: Orphaned running (RUNNING status + no executor) takes priority
@@ -155,9 +165,7 @@ class TestRebuildDriftEvaluator:
             assert drift_type in ("orphaned_running", "crash_suspicion", "stale_ownership")
             assert severity in (Severity.MEDIUM, Severity.HIGH)
 
-    def test_metadata_includes_job_details(
-        self, mock_session_factory, mock_lock, mock_rebuild_job
-    ) -> None:
+    def test_metadata_includes_job_details(self, mock_session_factory, mock_lock, mock_rebuild_job) -> None:
         """Test that metadata includes relevant job details."""
         session_factory, mock_session = mock_session_factory
         mock_lock.check_state.return_value = LockState.VALID
@@ -191,9 +199,7 @@ class TestRebuildDriftEvaluator:
             assert "job_status" in metadata
             assert metadata["lock_state"] == "valid"
 
-    def test_handles_session_factory_error_gracefully(
-        self, mock_lock
-    ) -> None:
+    def test_handles_session_factory_error_gracefully(self, mock_lock) -> None:
         """Test that evaluator handles session factory errors gracefully."""
         from sqlalchemy.exc import SQLAlchemyError
 
@@ -217,9 +223,7 @@ class TestRebuildDriftEvaluator:
         assert drift_type == "none"
         assert severity == Severity.NONE
 
-    def test_propagates_value_error_on_integrity_violation(
-        self, mock_session_factory, mock_lock
-    ) -> None:
+    def test_propagates_value_error_on_integrity_violation(self, mock_session_factory, mock_lock) -> None:
         """Test that ValueError from DB integrity violation is propagated."""
         session_factory, mock_session = mock_session_factory
 
