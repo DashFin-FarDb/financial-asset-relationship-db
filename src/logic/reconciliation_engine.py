@@ -45,6 +45,7 @@ class ActionType(str, Enum):
         if isinstance(value, str) and value == legacy_rebuild:
             logger.warning("Received deprecated ActionType value %r; mapping to %s", value, cls.REBUILD_GRAPH.value)
             return cls.REBUILD_GRAPH
+        return None
 
 
 class Severity(str, Enum):
