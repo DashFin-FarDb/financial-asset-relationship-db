@@ -95,9 +95,7 @@ class ReconciliationPlan:
             actions_list = [self.actions]
         # Raw str/bytes: reject (even though ActionType inherits str, previous check caught ActionType)
         elif isinstance(self.actions, (str, bytes)):
-            raise ValueError(
-                "ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes"
-            )
+            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes")
         # Iterable: convert to list
         else:
             try:
