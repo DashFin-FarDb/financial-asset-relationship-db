@@ -90,14 +90,24 @@ class ReconciliationPlan:
 
     def __post_init__(self) -> None:
         """Validate plan consistency."""
-        if isinstance(self.actions, (str, bytes)):
-            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes")
-        try:
-            actions_list = list(self.actions)
-        except TypeError:
-            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")
+        # Single ActionType: wrap in list (ActionType subclasses str, so check first)
+        if isinstance(self.actions, ActionType):
+            actions_list = [self.actions]
+        # Raw str/bytes: reject (even though ActionType inherits str, previous check caught ActionType)
+        elif isinstance(self.actions, (str, bytes)):
+            raise ValueError(
+                "ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes"
+            )
+        # Iterable: convert to list
+        else:
+            try:
+                actions_list = list(self.actions)
+            except TypeError:
+                raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")
+
         if not actions_list:
             raise ValueError("ReconciliationPlan must contain at least one action")
+
         normalized_actions: list[ActionType] = []
         for action in actions_list:
             if isinstance(action, ActionType):
@@ -107,7 +117,9 @@ class ReconciliationPlan:
                 normalized_actions.append(ActionType(action))
             except (ValueError, TypeError):
                 raise ValueError(f"Invalid action type: {action!r}. Must be an ActionType enum value.")
+
         object.__setattr__(self, "actions", tuple(normalized_actions))
+
         if self.severity == Severity.NONE and normalized_actions != [ActionType.NOOP]:
             raise ValueError("Severity NONE requires NOOP action")
 
