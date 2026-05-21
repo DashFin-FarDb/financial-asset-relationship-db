@@ -120,18 +120,29 @@ class RebuildDriftEvaluator:
             if owner_mismatch:
                 # Check if heartbeat is stale or missing
                 # This preserves RecoveryGate's resettable orphaned-owner mismatch path
-                heartbeat_is_stale = True  # Default to stale if missing
+                heartbeat_is_stale = True  # Default to stale if missing or unparseable
                 if job.last_heartbeat_at is not None:
-                    heartbeat_time = job.last_heartbeat_at
-                    if isinstance(heartbeat_time, str):
-                        heartbeat_time = datetime.fromisoformat(heartbeat_time)
-                    # Ensure timezone-aware
-                    if heartbeat_time.tzinfo is None:
-                        heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
+                    try:
+                        heartbeat_time = job.last_heartbeat_at
+                        if isinstance(heartbeat_time, str):
+                            # Normalize trailing 'Z' to '+00:00' for compatibility with fromisoformat
+                            heartbeat_str = heartbeat_time.replace("Z", "+00:00") if heartbeat_time.endswith("Z") else heartbeat_time
+                            heartbeat_time = datetime.fromisoformat(heartbeat_str)
+                        # Ensure timezone-aware
+                        # Note: Assumes DB returns UTC-naive datetimes or timezone-aware UTC datetimes
+                        if heartbeat_time.tzinfo is None:
+                            heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
 
-                    now = datetime.now(timezone.utc)
-                    heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
-                    heartbeat_is_stale = heartbeat_age_seconds >= self.lock_ttl_seconds
+                        now = datetime.now(timezone.utc)
+                        heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
+                        heartbeat_is_stale = heartbeat_age_seconds >= self.lock_ttl_seconds
+                    except (ValueError, AttributeError, TypeError) as exc:
+                        # Unparseable heartbeat treated as stale (safer for RecoveryGate's reset path)
+                        logger.warning(
+                            "Failed to parse heartbeat timestamp, treating as stale: %s",
+                            type(exc).__name__,
+                        )
+                        heartbeat_is_stale = True
 
                 owner_mismatch_with_stale_heartbeat = heartbeat_is_stale
 

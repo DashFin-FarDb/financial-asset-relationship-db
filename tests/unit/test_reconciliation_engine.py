@@ -146,6 +146,49 @@ class TestReconciliationEngine:
         assert plan.safety_state == ExecutionSafety.CONVERGED
         assert "converged" in plan.reason.lower()
 
+    def test_lock_is_valid_string_variants(self) -> None:
+        """Test that lock_is_valid parsing handles common string representations."""
+        # Test string 'true' variants
+        for true_value in ["true", "True", "TRUE", "1", "yes", "y", "t"]:
+            evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": true_value})
+            engine = ReconciliationEngine(evaluator)
+            plan = engine.generate_reconciliation_plan()
+            assert plan.safety_state == ExecutionSafety.CONVERGED, f"Failed for {true_value!r}"
+            assert plan.execution_mode == ExecutionMode.AUTOMATIC, f"Failed for {true_value!r}"
+
+        # Test string 'false' variants
+        for false_value in ["false", "False", "FALSE", "0", "no", "n", "f", ""]:
+            evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": false_value})
+            engine = ReconciliationEngine(evaluator)
+            plan = engine.generate_reconciliation_plan()
+            assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED, f"Failed for {false_value!r}"
+            assert plan.execution_mode == ExecutionMode.DEFERRED, f"Failed for {false_value!r}"
+
+    def test_lock_is_valid_number_variants(self) -> None:
+        """Test that lock_is_valid parsing handles numeric representations."""
+        # Test truthy numbers
+        for true_value in [1, 1.0, 42, -1]:
+            evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": true_value})
+            engine = ReconciliationEngine(evaluator)
+            plan = engine.generate_reconciliation_plan()
+            assert plan.safety_state == ExecutionSafety.CONVERGED, f"Failed for {true_value!r}"
+            assert plan.execution_mode == ExecutionMode.AUTOMATIC, f"Failed for {true_value!r}"
+
+        # Test falsy numbers
+        for false_value in [0, 0.0]:
+            evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": false_value})
+            engine = ReconciliationEngine(evaluator)
+            plan = engine.generate_reconciliation_plan()
+            assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED, f"Failed for {false_value!r}"
+            assert plan.execution_mode == ExecutionMode.DEFERRED, f"Failed for {false_value!r}"
+
+        # Test None (should default to False)
+        evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": None})
+        engine = ReconciliationEngine(evaluator)
+        plan = engine.generate_reconciliation_plan()
+        assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
+        assert plan.execution_mode == ExecutionMode.DEFERRED
+
     def test_no_drift_invalid_lock_waits(self) -> None:
         """Test that no drift with invalid lock returns WAIT plan."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": False})
