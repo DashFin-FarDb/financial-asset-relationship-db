@@ -18,6 +18,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Protocol
 
+from src.logic.rebuild_failure_detection import InconsistencyType
+
 logger = logging.getLogger(__name__)
 
 
@@ -227,10 +229,13 @@ class ReconciliationEngine:
         Returns:
             ReconciliationPlan with specific actions and execution mode
         """
+        # Normalize lock_is_valid early to ensure consistent boolean handling
+        lock_is_valid = self._parse_lock_is_valid(metadata.get("lock_is_valid"))
+        # Update metadata with normalized boolean
+        metadata = {**metadata, "lock_is_valid": lock_is_valid}
+
         # No drift - NOOP (but execution safety depends on lock state)
         if severity == Severity.NONE:
-            lock_is_valid = self._parse_lock_is_valid(metadata.get("lock_is_valid"))
-
             # Drift converged, but lock invalid → WAIT for lock before execution
             if not lock_is_valid:
                 return ReconciliationPlan(
@@ -284,7 +289,7 @@ class ReconciliationEngine:
     ) -> ReconciliationPlan:
         """Map specific drift types to concrete reconciliation plans."""
         # Orphaned running state - reset required
-        if drift_type == "orphaned_running":
+        if drift_type == InconsistencyType.ORPHANED_RUNNING.value:
             return self._create_reset_plan(
                 drift_type,
                 severity,
@@ -294,8 +299,8 @@ class ReconciliationEngine:
             )
 
         # Stale ownership - reset when lock expired
-        if drift_type == "stale_ownership":
-            if metadata.get("lock_is_valid"):
+        if drift_type == InconsistencyType.STALE_OWNERSHIP.value:
+            if lock_is_valid:
                 return self._create_wait_plan(
                     drift_type,
                     severity,
@@ -312,8 +317,8 @@ class ReconciliationEngine:
             )
 
         # Crash suspicion - reset recommended
-        if drift_type == "crash_suspicion":
-            if metadata.get("lock_is_valid"):
+        if drift_type == InconsistencyType.CRASH_SUSPICION.value:
+            if lock_is_valid:
                 return self._create_wait_plan(
                     drift_type,
                     severity,
@@ -330,7 +335,7 @@ class ReconciliationEngine:
             )
 
         # Zombie executor - alert only (split-brain risk)
-        if drift_type == "zombie_executor":
+        if drift_type == InconsistencyType.ZOMBIE_EXECUTOR.value:
             return ReconciliationPlan(
                 drift_type=drift_type,
                 severity=severity,
@@ -372,15 +377,23 @@ class ReconciliationEngine:
         if drift_type == "persistence_unavailable":
             return ExecutionSafety.OBSERVABILITY_FAILURE
 
-        if drift_type == "zombie_executor":
+        if drift_type == InconsistencyType.ZOMBIE_EXECUTOR.value:
             return ExecutionSafety.UNSAFE_SPLIT_BRAIN
 
-        if drift_type == "orphaned_running" and lock_is_valid:
+        if drift_type == InconsistencyType.ORPHANED_RUNNING.value and lock_is_valid:
             return ExecutionSafety.UNSAFE_SPLIT_BRAIN
 
         return ExecutionSafety.MANUAL_INVESTIGATION
 
-    def _parse_lock_is_valid(self, value) -> bool:
+    def _parse_lock_is_valid(self, value: str | int | float | bool | None) -> bool:
+        """Parse lock_is_valid from various representations to boolean.
+
+        Args:
+            value: Lock validity indicator in various formats
+
+        Returns:
+            Boolean indicating lock validity
+        """
         if isinstance(value, bool):
             return value
         if isinstance(value, (int, float)):
