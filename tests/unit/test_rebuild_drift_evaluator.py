@@ -8,8 +8,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.db_models import RebuildJobStatus
 from src.data.distributed_lock import LockState
-from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
 from src.logic import reconciliation_engine
+from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
 
 
 class TestRebuildDriftEvaluator:
@@ -20,23 +20,43 @@ class TestRebuildDriftEvaluator:
         [
             # No job, no executor = no drift
             pytest.param(
-                LockState.VALID, None, False, "none", reconciliation_engine.Severity.NONE, "no_job_no_executor",
-                id="no_job_no_executor"
+                LockState.VALID,
+                None,
+                False,
+                "none",
+                reconciliation_engine.Severity.NONE,
+                "no_job_no_executor",
+                id="no_job_no_executor",
             ),
             # Orphaned running without lock
             pytest.param(
-                LockState.EXPIRED, RebuildJobStatus.RUNNING, False, "orphaned_running", reconciliation_engine.Severity.HIGH, "orphaned_no_lock",
-                id="orphaned_no_lock"
+                LockState.EXPIRED,
+                RebuildJobStatus.RUNNING,
+                False,
+                "orphaned_running",
+                reconciliation_engine.Severity.HIGH,
+                "orphaned_no_lock",
+                id="orphaned_no_lock",
             ),
             # Orphaned running with valid lock (split-brain risk)
             pytest.param(
-                LockState.VALID, RebuildJobStatus.RUNNING, False, "orphaned_running", reconciliation_engine.Severity.CRITICAL, "orphaned_with_lock",
-                id="orphaned_with_lock"
+                LockState.VALID,
+                RebuildJobStatus.RUNNING,
+                False,
+                "orphaned_running",
+                reconciliation_engine.Severity.CRITICAL,
+                "orphaned_with_lock",
+                id="orphaned_with_lock",
             ),
             # Zombie executor (runtime active, DB shows completed)
             pytest.param(
-                LockState.VALID, RebuildJobStatus.SUCCEEDED, True, "zombie_executor", reconciliation_engine.Severity.CRITICAL, "zombie_executor",
-                id="zombie_executor"
+                LockState.VALID,
+                RebuildJobStatus.SUCCEEDED,
+                True,
+                "zombie_executor",
+                reconciliation_engine.Severity.CRITICAL,
+                "zombie_executor",
+                id="zombie_executor",
             ),
         ],
     )
@@ -205,7 +225,7 @@ class TestRebuildDriftEvaluator:
 
     def test_verifies_lock_check_exception_handling_safely(self, mock_session_factory, mock_lock) -> None:
         """Verify security safety bounds when the coordination lock system breaks entirely.
-        
+
         Asserts that critical engine components do not silently swallow infrastructural or
         coordination backend failures, preventing invisible deadlocks or split-brain configurations.
         """
@@ -222,9 +242,7 @@ class TestRebuildDriftEvaluator:
         with pytest.raises(RuntimeError, match="Distributed lock backend unreachable"):
             evaluator.evaluate_drift()
 
-    def test_propagates_value_error_on_integrity_violation(
-        self, mock_session_factory, mock_lock, monkeypatch
-    ) -> None:
+    def test_propagates_value_error_on_integrity_violation(self, mock_session_factory, mock_lock, monkeypatch) -> None:
         """Test sequence stability assertions when data integrity layers throw state errors."""
         session_factory, _ = mock_session_factory
 
