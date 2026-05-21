@@ -106,7 +106,17 @@ class RebuildDriftEvaluator:
 
         # Map inconsistency to drift classification
         drift_type = inconsistency.inconsistency_type.value
-        severity = self._classify_severity(inconsistency.inconsistency_type, lock_is_valid)
+
+        # Detect owner mismatch early for severity classification
+        owner_mismatch = False
+        if job and inconsistency.inconsistency_type == InconsistencyType.ORPHANED_RUNNING:
+            owner_mismatch = (
+                job.active_worker_id is not None
+                and self.lock.holder_id is not None
+                and job.active_worker_id != self.lock.holder_id
+            )
+
+        severity = self._classify_severity(inconsistency.inconsistency_type, lock_is_valid, owner_mismatch)
 
         # Build metadata
         metadata: dict[str, str | int | float | bool | None] = {
@@ -127,11 +137,21 @@ class RebuildDriftEvaluator:
                 else:
                     heartbeat_str = str(job.last_heartbeat_at)
 
+            # Detect owner mismatch for orphaned running jobs
+            # This allows RecoveryGate's downgrade logic to be preserved
+            owner_mismatch = (
+                job.active_worker_id is not None
+                and self.lock.holder_id is not None
+                and job.active_worker_id != self.lock.holder_id
+            )
+
             metadata.update(
                 {
                     "job_status": job.status.value if hasattr(job.status, "value") else str(job.status),
                     "active_worker_id": job.active_worker_id,
                     "last_heartbeat_at": heartbeat_str,
+                    "owner_mismatch": owner_mismatch,
+                    "lock_holder_id": self.lock.holder_id,
                 }
             )
 
@@ -160,12 +180,15 @@ class RebuildDriftEvaluator:
         self,
         inconsistency_type: InconsistencyType,
         lock_is_valid: bool,
+        owner_mismatch: bool = False,
     ) -> Severity:
         """Classify severity based on inconsistency type and lock state.
 
         Args:
             inconsistency_type: Detected inconsistency type
             lock_is_valid: Whether distributed lock is currently valid
+            owner_mismatch: Whether job.active_worker_id differs from lock.holder_id
+                (only relevant for ORPHANED_RUNNING)
 
         Returns:
             Severity classification
@@ -175,7 +198,12 @@ class RebuildDriftEvaluator:
             return Severity.NONE
 
         # Critical: Orphaned running with valid lock (split-brain risk)
+        # BUT downgrade to HIGH if owner mismatch detected (resettable path)
         if inconsistency_type == InconsistencyType.ORPHANED_RUNNING and lock_is_valid:
+            if owner_mismatch:
+                # Owner mismatch allows RecoveryGate to downgrade to RESET
+                # This preserves the auto-recoverable path
+                return Severity.HIGH
             return Severity.CRITICAL
 
         # Critical: Zombie executor (runtime/DB divergence)
