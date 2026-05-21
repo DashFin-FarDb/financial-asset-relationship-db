@@ -146,7 +146,7 @@ class TestReconciliationEngine:
         assert plan.safety_state == ExecutionSafety.CONVERGED
         assert "converged" in plan.reason.lower()
 
-    @pytest.mark.parametrize("true_value", ["true", "True", "TRUE", "1", "yes", "y", "t"])
+    @pytest.mark.parametrize("true_value", ["true", "True", "TRUE", "1", "yes", "y", "t"], ids=repr)
     def test_lock_is_valid_string_truthy_variants(self, true_value) -> None:
         """Test that lock_is_valid parsing handles common truthy string representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": true_value})
