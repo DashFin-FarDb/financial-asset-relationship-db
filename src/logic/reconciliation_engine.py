@@ -95,6 +95,8 @@ class ReconciliationPlan:
         # Validate all actions are valid ActionType enum values
         # Validate all actions are valid ActionType enum values (allow values convertible to ActionType)
         normalized_actions = []
+        # Validate all actions are valid ActionType enum values (allow values convertible to ActionType)
+        normalized_actions = []
         for action in self.actions:
             if isinstance(action, ActionType):
                 normalized_actions.append(action)
