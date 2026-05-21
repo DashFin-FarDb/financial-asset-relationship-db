@@ -1,4 +1,5 @@
-"""Drift evaluator implementation for rebuild state reconciliation.
+"""
+Drift evaluator implementation for rebuild state reconciliation.
 
 This module adapts the existing rebuild failure detection logic to the
 ReconciliationEngine interface, bridging the gap between the legacy
