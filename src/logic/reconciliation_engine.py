@@ -121,7 +121,7 @@ class ReconciliationPlan:
             raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes")
         # Iterable: convert to list
         else:
-            try:
+                actions_list = list(actions)  # type: ignore[call-overload]  # actions may be any iterable (including Enum subclasses)
                 actions_list = list(actions)  # type: ignore[call-overload]
             except TypeError:
                 raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")
@@ -130,7 +130,7 @@ class ReconciliationPlan:
             raise ValueError("ReconciliationPlan must contain at least one action")
 
         return self._normalize_action_types(actions_list)
-
+    def _normalize_action_types(self, actions_list: list[ActionType | str]) -> tuple[ActionType, ...]:
     def _normalize_action_types(self, actions_list: list) -> tuple[ActionType, ...]:
         """Normalize a list of actions to ActionType enum values.
 
