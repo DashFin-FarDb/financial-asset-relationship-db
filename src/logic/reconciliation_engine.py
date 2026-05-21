@@ -123,8 +123,8 @@ class ReconciliationPlan:
         else:
             try:
                 actions_list = list(actions)  # type: ignore[call-overload]  # actions may be any iterable (including Enum subclasses)
-            except TypeError:
-                raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")
+            except TypeError as exc:
+                raise ValueError(f"ReconciliationPlan.actions must be an iterable of ActionType values; got {type(actions).__name__}") from exc
 
         if not actions_list:
             raise ValueError("ReconciliationPlan must contain at least one action")
