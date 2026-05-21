@@ -178,7 +178,7 @@ class RebuildDriftEvaluator:
                 heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
             return heartbeat_time
         except (ValueError, AttributeError, TypeError):
-            # Unparseable heartbeat treated as None (caller will treat as stale)
+            # Unparseable heartbeat treated as None (caller will treat as stale). Expected for string/non-datetime values; log at DEBUG to avoid noisy warnings
             logger.debug(
                 "Failed to parse heartbeat timestamp %r, treating as stale",
                 heartbeat_at,
