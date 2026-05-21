@@ -7,6 +7,7 @@ import pytest
 from src.logic.reconciliation_engine import (
     ActionType,
     ExecutionMode,
+    ExecutionSafety,
     ReconciliationEngine,
     ReconciliationPlan,
     Severity,
@@ -43,6 +44,7 @@ class TestReconciliationPlan:
             actions=[ActionType.RESET_STATE],
             target_state="Target state description",
             execution_mode=ExecutionMode.DEFERRED,
+            safety_state=ExecutionSafety.RESET_REQUIRED,
             reason="Test reason",
             metadata={"key": "value"},
             created_at=datetime.now(timezone.utc),
@@ -62,6 +64,7 @@ class TestReconciliationPlan:
                 actions=[],  # Empty actions list
                 target_state="Target state",
                 execution_mode=ExecutionMode.AUTOMATIC,
+                safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
                 reason="Test",
                 metadata={},
                 created_at=datetime.now(timezone.utc),
@@ -76,6 +79,7 @@ class TestReconciliationPlan:
             actions=[ActionType.NOOP],
             target_state="Already converged",
             execution_mode=ExecutionMode.AUTOMATIC,
+            safety_state=ExecutionSafety.CONVERGED,
             reason="No drift",
             metadata={},
             created_at=datetime.now(timezone.utc),
@@ -90,6 +94,7 @@ class TestReconciliationPlan:
                 actions=[ActionType.ALERT_ONLY],  # Wrong action for NONE severity
                 target_state="Target",
                 execution_mode=ExecutionMode.AUTOMATIC,
+                safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
                 reason="Test",
                 metadata={},
                 created_at=datetime.now(timezone.utc),
@@ -109,6 +114,7 @@ class TestReconciliationEngine:
         assert plan.severity == Severity.NONE
         assert plan.actions == [ActionType.NOOP]
         assert plan.execution_mode == ExecutionMode.AUTOMATIC
+        assert plan.safety_state == ExecutionSafety.CONVERGED
         assert "converged" in plan.reason.lower()
 
     def test_critical_drift_produces_alert_only(self) -> None:
@@ -121,7 +127,28 @@ class TestReconciliationEngine:
         assert plan.severity == Severity.CRITICAL
         assert plan.actions == [ActionType.ALERT_ONLY]
         assert plan.execution_mode == ExecutionMode.MANUAL
+        assert plan.safety_state == ExecutionSafety.MANUAL_INVESTIGATION
         assert "unsafe" in plan.reason.lower()
+
+    def test_critical_lock_lost_is_integrity_compromised(self) -> None:
+        evaluator = MockDriftEvaluator("lock_lost", Severity.CRITICAL, metadata={"lock_is_valid": False})
+        engine = ReconciliationEngine(evaluator)
+
+        plan = engine.generate_reconciliation_plan()
+
+        assert plan.actions == [ActionType.ALERT_ONLY]
+        assert plan.execution_mode == ExecutionMode.MANUAL
+        assert plan.safety_state == ExecutionSafety.INTEGRITY_COMPROMISED
+
+    def test_critical_persistence_unavailable_is_observability_failure(self) -> None:
+        evaluator = MockDriftEvaluator("persistence_unavailable", Severity.CRITICAL)
+        engine = ReconciliationEngine(evaluator)
+
+        plan = engine.generate_reconciliation_plan()
+
+        assert plan.actions == [ActionType.ALERT_ONLY]
+        assert plan.execution_mode == ExecutionMode.MANUAL
+        assert plan.safety_state == ExecutionSafety.OBSERVABILITY_FAILURE
 
     def test_orphaned_running_produces_reset_plan(self) -> None:
         """Test that orphaned running state produces RESET plan."""
@@ -138,6 +165,7 @@ class TestReconciliationEngine:
         assert plan.severity == Severity.HIGH
         assert ActionType.RESET_STATE in plan.actions
         assert plan.execution_mode == ExecutionMode.DEFERRED
+        assert plan.safety_state == ExecutionSafety.RESET_REQUIRED
         assert "orphaned" in plan.reason.lower()
 
     def test_stale_ownership_produces_reset_plan(self) -> None:
@@ -153,6 +181,7 @@ class TestReconciliationEngine:
 
         assert plan.drift_type == "stale_ownership"
         assert ActionType.RESET_STATE in plan.actions
+        assert plan.safety_state == ExecutionSafety.RESET_REQUIRED
         assert "stale" in plan.reason.lower()
 
     def test_crash_suspicion_produces_reset_plan(self) -> None:
@@ -168,6 +197,7 @@ class TestReconciliationEngine:
 
         assert plan.drift_type == "crash_suspicion"
         assert ActionType.RESET_STATE in plan.actions
+        assert plan.safety_state == ExecutionSafety.RESET_REQUIRED
         assert "crash" in plan.reason.lower()
 
     def test_crash_suspicion_with_valid_lock_produces_wait_plan(self) -> None:
@@ -183,6 +213,7 @@ class TestReconciliationEngine:
 
         assert plan.actions == [ActionType.WAIT_FOR_CONVERGENCE]
         assert plan.execution_mode == ExecutionMode.DEFERRED
+        assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
         assert "wait" in plan.target_state.lower()
 
     def test_zombie_executor_produces_alert_only(self) -> None:
@@ -199,6 +230,7 @@ class TestReconciliationEngine:
         assert plan.drift_type == "zombie_executor"
         assert plan.actions == [ActionType.ALERT_ONLY]
         assert plan.execution_mode == ExecutionMode.MANUAL
+        assert plan.safety_state == ExecutionSafety.UNSAFE_SPLIT_BRAIN
         # Critical severity triggers generic critical path, so reason mentions "critical" not "zombie"
         assert "critical" in plan.reason.lower() or "unsafe" in plan.reason.lower()
 
@@ -215,6 +247,7 @@ class TestReconciliationEngine:
 
         assert plan.actions == [ActionType.WAIT_FOR_CONVERGENCE]
         assert plan.execution_mode == ExecutionMode.DEFERRED
+        assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
         assert "wait" in plan.target_state.lower()
 
     def test_unknown_drift_type_produces_alert_only(self) -> None:
@@ -230,6 +263,7 @@ class TestReconciliationEngine:
         assert plan.drift_type == "completely_unknown_type"
         assert plan.actions == [ActionType.ALERT_ONLY]
         assert plan.execution_mode == ExecutionMode.MANUAL
+        assert plan.safety_state == ExecutionSafety.MANUAL_INVESTIGATION
         assert "unknown" in plan.reason.lower()
 
     def test_automatic_execution_mode_with_high_severity_reset(self) -> None:
@@ -243,6 +277,7 @@ class TestReconciliationEngine:
         plan = engine.generate_reconciliation_plan()
 
         assert plan.execution_mode == ExecutionMode.AUTOMATIC
+        assert plan.safety_state == ExecutionSafety.RESET_REQUIRED
 
     def test_deferred_execution_without_automatic_flag(self) -> None:
         """Test that deferred execution is used when automatic execution is disabled."""
@@ -255,6 +290,7 @@ class TestReconciliationEngine:
         plan = engine.generate_reconciliation_plan()
 
         assert plan.execution_mode == ExecutionMode.DEFERRED
+        assert plan.safety_state == ExecutionSafety.RESET_REQUIRED
 
     def test_plan_includes_metadata(self) -> None:
         """Test that generated plan includes metadata from drift evaluation."""
@@ -299,6 +335,7 @@ class TestReconciliationEngine:
         assert plan1.severity == plan2.severity
         assert plan1.actions == plan2.actions
         assert plan1.execution_mode == plan2.execution_mode
+        assert plan1.safety_state == plan2.safety_state
         assert plan1.reason == plan2.reason
 
 

@@ -49,6 +49,22 @@ class ExecutionMode(str, Enum):
     AUTOMATIC = "automatic"  # Can be automatically executed
 
 
+class ExecutionSafety(str, Enum):
+    """Machine-readable safety intent for downstream orchestration.
+
+    This preserves critical-state semantics even when `execution_mode` is MANUAL
+    and `actions` are limited to alerting, without prematurely wiring execution.
+    """
+
+    CONVERGED = "converged"
+    RESET_REQUIRED = "reset_required"
+    WAIT_REQUIRED = "wait_required"
+    MANUAL_INVESTIGATION = "manual_investigation"
+    UNSAFE_SPLIT_BRAIN = "unsafe_split_brain"
+    OBSERVABILITY_FAILURE = "observability_failure"
+    INTEGRITY_COMPROMISED = "integrity_compromised"
+
+
 @dataclass(frozen=True)
 class ReconciliationPlan:
     """Explicit structured output from reconciliation engine.
@@ -62,6 +78,7 @@ class ReconciliationPlan:
     actions: list[ActionType]
     target_state: str  # Description of desired end state
     execution_mode: ExecutionMode
+    safety_state: ExecutionSafety
     reason: str
     metadata: dict[str, str | int | float | bool | None]
     created_at: datetime
@@ -183,6 +200,7 @@ class ReconciliationEngine:
                 actions=[ActionType.NOOP],
                 target_state="Current state is aligned with desired state",
                 execution_mode=ExecutionMode.AUTOMATIC,
+                safety_state=ExecutionSafety.CONVERGED,
                 reason="No drift detected, system is converged",
                 metadata=metadata,
                 created_at=datetime.now(timezone.utc),
@@ -190,12 +208,14 @@ class ReconciliationEngine:
 
         # Critical severity - always alert only (unsafe to execute)
         if severity == Severity.CRITICAL:
+            safety_state = self._critical_safety_state(drift_type, metadata)
             return ReconciliationPlan(
                 drift_type=drift_type,
                 severity=severity,
                 actions=[ActionType.ALERT_ONLY],
                 target_state="Manual intervention required",
                 execution_mode=ExecutionMode.MANUAL,
+                safety_state=safety_state,
                 reason="Critical drift detected - execution is unsafe, manual intervention required",
                 metadata=metadata,
                 created_at=datetime.now(timezone.utc),
@@ -265,6 +285,7 @@ class ReconciliationEngine:
                 actions=[ActionType.ALERT_ONLY],
                 target_state="Manual investigation required",
                 execution_mode=ExecutionMode.MANUAL,
+                safety_state=ExecutionSafety.UNSAFE_SPLIT_BRAIN,
                 reason="Zombie executor detected - potential split-brain condition",
                 metadata=metadata,
                 created_at=datetime.now(timezone.utc),
@@ -278,10 +299,25 @@ class ReconciliationEngine:
             actions=[ActionType.ALERT_ONLY],
             target_state="Investigation required",
             execution_mode=ExecutionMode.MANUAL,
+            safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
             reason=f"Unknown drift type: {drift_type}",
             metadata=metadata,
             created_at=datetime.now(timezone.utc),
         )
+
+    def _critical_safety_state(
+        self, drift_type: str, metadata: dict[str, str | int | float | bool | None]
+    ) -> ExecutionSafety:
+        """Classify machine-readable safety intent for CRITICAL drift."""
+        if drift_type == "lock_lost":
+            return ExecutionSafety.INTEGRITY_COMPROMISED
+        if drift_type == "persistence_unavailable":
+            return ExecutionSafety.OBSERVABILITY_FAILURE
+        if drift_type == "zombie_executor":
+            return ExecutionSafety.UNSAFE_SPLIT_BRAIN
+        if drift_type == "orphaned_running" and bool(metadata.get("lock_is_valid")):
+            return ExecutionSafety.UNSAFE_SPLIT_BRAIN
+        return ExecutionSafety.MANUAL_INVESTIGATION
 
     def _create_wait_plan(
         self,
@@ -298,6 +334,7 @@ class ReconciliationEngine:
             actions=[ActionType.WAIT_FOR_CONVERGENCE],
             target_state=target_state,
             execution_mode=ExecutionMode.DEFERRED,
+            safety_state=ExecutionSafety.WAIT_REQUIRED,
             reason=reason,
             metadata=metadata,
             created_at=datetime.now(timezone.utc),
@@ -326,6 +363,7 @@ class ReconciliationEngine:
             actions=[ActionType.RESET_STATE],
             target_state=target_state,
             execution_mode=execution_mode,
+            safety_state=ExecutionSafety.RESET_REQUIRED,
             reason=reason,
             metadata=metadata,
             created_at=datetime.now(timezone.utc),
