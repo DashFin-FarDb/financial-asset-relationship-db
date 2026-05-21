@@ -162,16 +162,18 @@ class TestReconciliationEngine:
         engine = ReconciliationEngine(evaluator)
         plan = engine.generate_reconciliation_plan()
 
-        @pytest.mark.parametrize(
+        assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
+        assert plan.execution_mode == ExecutionMode.DEFERRED
+
+    @pytest.mark.parametrize(
         "true_value",
         [
             pytest.param(1, id="int_1"),
-            pytest.param(1.0, id="float_1_0"),
+            pytest.param(1.0, id="float_1.0"),
             pytest.param(42, id="int_42"),
             pytest.param(-1, id="int_-1"),
         ],
     )
-
     def test_lock_is_valid_number_truthy_variants(self, true_value) -> None:
         """Test that lock_is_valid parsing handles numeric truthy representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": true_value})
