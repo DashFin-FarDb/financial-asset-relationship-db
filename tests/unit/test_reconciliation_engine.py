@@ -173,7 +173,7 @@ class TestReconciliationEngine:
         assert plan.safety_state == ExecutionSafety.CONVERGED
         assert plan.execution_mode == ExecutionMode.AUTOMATIC
 
-    @pytest.mark.parametrize("false_value", [0, 0.0])
+    @pytest.mark.parametrize("false_value", [0, 0.0], ids=repr)
     def test_lock_is_valid_number_falsy_variants(self, false_value) -> None:
         """Test that lock_is_valid parsing handles numeric falsy representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": false_value})
