@@ -40,7 +40,7 @@ class TestRebuildDriftEvaluator:
                 "zombie_executor",
             ),
         ],
-        ids=lambda params: str(params[-1]) if isinstance(params, tuple) else str(params),
+        ids=lambda params: (params[-1].name if hasattr(params[-1], "name") else str(params[-1])) if isinstance(params, tuple) else str(params),
     )
     def test_drift_type_and_severity_combinations(
         self,
