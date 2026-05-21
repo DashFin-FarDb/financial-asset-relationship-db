@@ -52,7 +52,7 @@ class TestReconciliationPlan:
 
         assert plan.drift_type == "test_drift"
         assert plan.severity == Severity.MEDIUM
-        assert plan.actions == [ActionType.RESET_STATE]
+        assert plan.actions == (ActionType.RESET_STATE,)
         assert plan.execution_mode == ExecutionMode.DEFERRED
 
     def test_plan_requires_actions(self) -> None:
@@ -146,7 +146,7 @@ class TestReconciliationEngine:
 
         assert plan.drift_type == "drift_evaluation_failed"
         assert plan.severity == Severity.CRITICAL
-        assert plan.actions == [ActionType.ALERT_ONLY]
+        assert plan.actions == (ActionType.ALERT_ONLY,)
         assert plan.execution_mode == ExecutionMode.MANUAL
         assert plan.safety_state == ExecutionSafety.EVALUATION_FAILED
         assert plan.metadata["error_type"] == "RuntimeError"
@@ -171,7 +171,7 @@ class TestReconciliationEngine:
         plan = engine.generate_reconciliation_plan()
 
         assert plan.severity == Severity.NONE
-        assert plan.actions == [ActionType.NOOP]
+        assert plan.actions == (ActionType.NOOP,)
         assert plan.execution_mode == ExecutionMode.AUTOMATIC
         assert plan.safety_state == ExecutionSafety.CONVERGED
         assert "converged" in plan.reason.lower()
@@ -243,7 +243,7 @@ class TestReconciliationEngine:
         plan = engine.generate_reconciliation_plan()
 
         assert plan.severity == Severity.NONE
-        assert plan.actions == [ActionType.NOOP]
+        assert plan.actions == (ActionType.NOOP,)
         assert plan.execution_mode == ExecutionMode.DEFERRED
         assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
         assert "gated on lock" in plan.reason.lower()
@@ -256,7 +256,7 @@ class TestReconciliationEngine:
         plan = engine.generate_reconciliation_plan()
 
         assert plan.severity == Severity.CRITICAL
-        assert plan.actions == [ActionType.ALERT_ONLY]
+        assert plan.actions == (ActionType.ALERT_ONLY,)
         assert plan.execution_mode == ExecutionMode.MANUAL
         assert plan.safety_state == ExecutionSafety.MANUAL_INVESTIGATION
         assert "unsafe" in plan.reason.lower()
@@ -267,7 +267,7 @@ class TestReconciliationEngine:
 
         plan = engine.generate_reconciliation_plan()
 
-        assert plan.actions == [ActionType.ALERT_ONLY]
+        assert plan.actions == (ActionType.ALERT_ONLY,)
         assert plan.execution_mode == ExecutionMode.MANUAL
         assert plan.safety_state == ExecutionSafety.INTEGRITY_COMPROMISED
 
@@ -277,7 +277,7 @@ class TestReconciliationEngine:
 
         plan = engine.generate_reconciliation_plan()
 
-        assert plan.actions == [ActionType.ALERT_ONLY]
+        assert plan.actions == (ActionType.ALERT_ONLY,)
         assert plan.execution_mode == ExecutionMode.MANUAL
         assert plan.safety_state == ExecutionSafety.OBSERVABILITY_FAILURE
 
@@ -342,7 +342,7 @@ class TestReconciliationEngine:
 
         plan = engine.generate_reconciliation_plan()
 
-        assert plan.actions == [ActionType.WAIT_FOR_CONVERGENCE]
+        assert plan.actions == (ActionType.WAIT_FOR_CONVERGENCE,)
         assert plan.execution_mode == ExecutionMode.DEFERRED
         assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
         assert "wait" in plan.target_state.lower()
@@ -359,7 +359,7 @@ class TestReconciliationEngine:
         plan = engine.generate_reconciliation_plan()
 
         assert plan.drift_type == "zombie_executor"
-        assert plan.actions == [ActionType.ALERT_ONLY]
+        assert plan.actions == (ActionType.ALERT_ONLY,)
         assert plan.execution_mode == ExecutionMode.MANUAL
         assert plan.safety_state == ExecutionSafety.UNSAFE_SPLIT_BRAIN
         # Critical severity triggers generic critical path, so reason mentions "critical" not "zombie"
@@ -376,7 +376,7 @@ class TestReconciliationEngine:
 
         plan = engine.generate_reconciliation_plan()
 
-        assert plan.actions == [ActionType.WAIT_FOR_CONVERGENCE]
+        assert plan.actions == (ActionType.WAIT_FOR_CONVERGENCE,)
         assert plan.execution_mode == ExecutionMode.DEFERRED
         assert plan.safety_state == ExecutionSafety.WAIT_REQUIRED
         assert "wait" in plan.target_state.lower()
@@ -392,7 +392,7 @@ class TestReconciliationEngine:
         plan = engine.generate_reconciliation_plan()
 
         assert plan.drift_type == "completely_unknown_type"
-        assert plan.actions == [ActionType.ALERT_ONLY]
+        assert plan.actions == (ActionType.ALERT_ONLY,)
         assert plan.execution_mode == ExecutionMode.MANUAL
         assert plan.safety_state == ExecutionSafety.MANUAL_INVESTIGATION
         assert "unknown" in plan.reason.lower()

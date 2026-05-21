@@ -80,7 +80,7 @@ class ReconciliationPlan:
 
     drift_type: str
     severity: Severity
-    actions: list[ActionType]
+    actions: tuple[ActionType, ...]
     target_state: str  # Description of desired end state
     execution_mode: ExecutionMode
     safety_state: ExecutionSafety
@@ -89,7 +89,15 @@ class ReconciliationPlan:
     created_at: datetime
 
     def __post_init__(self) -> None:
-        """Validate plan consistency."""\n        if isinstance(self.actions, (str, bytes)):\n            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes")\n        try:\n            actions_list = list(self.actions)\n        except TypeError:\n            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")\n        if not actions_list:\n            raise ValueError("ReconciliationPlan must contain at least one action")
+        """Validate plan consistency."""
+        if isinstance(self.actions, (str, bytes)):
+            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values, not a string/bytes")
+        try:
+            actions_list = list(self.actions)
+        except TypeError:
+            raise ValueError("ReconciliationPlan.actions must be an iterable of ActionType values")
+        if not actions_list:
+            raise ValueError("ReconciliationPlan must contain at least one action")
         normalized_actions: list[ActionType] = []
         for action in actions_list:
             if isinstance(action, ActionType):
@@ -205,7 +213,7 @@ class ReconciliationEngine:
         return ReconciliationPlan(
             drift_type="drift_evaluation_failed",
             severity=Severity.CRITICAL,
-            actions=[ActionType.ALERT_ONLY],
+            actions=(ActionType.ALERT_ONLY,),
             target_state="Manual intervention required",
             execution_mode=ExecutionMode.MANUAL,
             safety_state=ExecutionSafety.EVALUATION_FAILED,
@@ -252,7 +260,7 @@ class ReconciliationEngine:
                 return ReconciliationPlan(
                     drift_type=drift_type,
                     severity=severity,
-                    actions=[ActionType.NOOP],
+                    actions=(ActionType.NOOP,),
                     target_state="Current state is aligned with desired state",
                     execution_mode=ExecutionMode.DEFERRED,
                     safety_state=ExecutionSafety.WAIT_REQUIRED,
@@ -265,7 +273,7 @@ class ReconciliationEngine:
             return ReconciliationPlan(
                 drift_type=drift_type,
                 severity=severity,
-                actions=[ActionType.NOOP],
+                actions=(ActionType.NOOP,),
                 target_state="Current state is aligned with desired state",
                 execution_mode=ExecutionMode.AUTOMATIC,
                 safety_state=ExecutionSafety.CONVERGED,
@@ -280,7 +288,7 @@ class ReconciliationEngine:
             return ReconciliationPlan(
                 drift_type=drift_type,
                 severity=severity,
-                actions=[ActionType.ALERT_ONLY],
+                actions=(ActionType.ALERT_ONLY,),
                 target_state="Manual intervention required",
                 execution_mode=ExecutionMode.MANUAL,
                 safety_state=safety_state,
@@ -353,7 +361,7 @@ class ReconciliationEngine:
             return ReconciliationPlan(
                 drift_type=drift_type,
                 severity=severity,
-                actions=[ActionType.ALERT_ONLY],
+                actions=(ActionType.ALERT_ONLY,),
                 target_state="Manual investigation required",
                 execution_mode=ExecutionMode.MANUAL,
                 safety_state=ExecutionSafety.UNSAFE_SPLIT_BRAIN,
@@ -367,7 +375,7 @@ class ReconciliationEngine:
         return ReconciliationPlan(
             drift_type=drift_type,
             severity=severity,
-            actions=[ActionType.ALERT_ONLY],
+            actions=(ActionType.ALERT_ONLY,),
             target_state="Investigation required",
             execution_mode=ExecutionMode.MANUAL,
             safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
@@ -428,7 +436,7 @@ class ReconciliationEngine:
         return ReconciliationPlan(
             drift_type=drift_type,
             severity=severity,
-            actions=[ActionType.WAIT_FOR_CONVERGENCE],
+            actions=(ActionType.WAIT_FOR_CONVERGENCE,),
             target_state=target_state,
             execution_mode=ExecutionMode.DEFERRED,
             safety_state=ExecutionSafety.WAIT_REQUIRED,
@@ -457,7 +465,7 @@ class ReconciliationEngine:
         return ReconciliationPlan(
             drift_type=drift_type,
             severity=severity,
-            actions=[ActionType.RESET_STATE],
+            actions=(ActionType.RESET_STATE,),
             target_state=target_state,
             execution_mode=execution_mode,
             safety_state=ExecutionSafety.RESET_REQUIRED,
