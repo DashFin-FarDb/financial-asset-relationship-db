@@ -174,9 +174,34 @@ make test
 make test-fast
 make lint
 make format
+make format-check
 make type-check
 make check
+make pre-commit         # install pre-commit hooks
+make pre-commit-run     # run pre-commit hooks on all files
+make run                # runs `python app.py` (Gradio - non-production)
+make clean              # remove caches, coverage, build artifacts
 ```
+
+Docker targets (Gradio image - non-production): `make docker-build`, `make docker-run`,
+`make docker-stop`, `make docker-clean`, `make docker-compose-up`, `make docker-compose-down`,
+`make docker-compose-logs`, `make docker-shell`, `make docker-dev`.
+
+Run `make help` for the full target list with descriptions.
+
+### Utility scripts (in `scripts/`)
+
+- `scripts/check_hosted_readiness.py` — Smoke-check a hosted deployment's
+  liveness/readiness endpoints. Usage:
+
+  ```pwsh
+  python scripts/check_hosted_readiness.py <base_url> [--timeout SECONDS]
+  ```
+
+- `scripts/validate_manifest.py` — Validate `.elastic-copilot/memory/systemManifest.md`
+  for duplicate level-2 headings (markdownlint MD024).
+- `scripts/deduplicate_manifest.py` — Remove duplicate sections from the same
+  manifest, keeping the last occurrence of each heading.
 
 ### Docker (Gradio app - NON-PRODUCTION)
 
@@ -194,6 +219,21 @@ Note: Docker configuration currently references Gradio. Aligning deployment arti
   - Defines the canonical **domain dataclasses**: `Asset` and subclasses (`Equity`, `Bond`, `Commodity`, `Currency`), plus `RegulatoryEvent`.
   - Enums: `AssetClass`, `RegulatoryActivity`.
   - `__post_init__` performs lightweight validation (e.g., currency code format, impact score range).
+
+### Reconciliation / rebuild control plane
+
+- `src/logic/reconciliation_engine.py` — Pure-functional engine that consumes
+  Desired State + Observed State, computes drift, and generates execution-agnostic
+  Reconciliation Plans (no side effects).
+- `src/logic/rebuild_failure_detection.py` — Drift/inconsistency detection
+  (orphaned-running, zombie executor, crash suspicion, stale ownership).
+- `src/logic/rebuild_recovery.py` — Maps detected drift to deterministic recovery
+  actions (RESUME, etc.).
+- `src/logic/rebuild_drift_evaluator.py` — Evaluator adapter between drift
+  detection and the reconciliation engine.
+- `src/logic/recovery_gate.py` — Recovery gate hardening for rebuild flows.
+- See `docs/reconciliation-discovery-map.md` for the mapping between the
+  pre-existing implicit reconciliation primitives and the formal engine.
 
 ### Relationship graph engine
 
