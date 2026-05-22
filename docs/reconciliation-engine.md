@@ -85,7 +85,15 @@ engine = ReconciliationEngine(
     enable_automatic_execution=False,
 )
 plan = engine.generate_reconciliation_plan()
-marked `DEFERRED` instead of `AUTOMATIC`. It does not gate any other plan kind.
+```
+
+`enable_automatic_execution` controls only the execution mode of `HIGH`
+severity `RESET_STATE` plans — when `False` (the default), high-severity
+resets are marked `DEFERRED` instead of `AUTOMATIC`. This applies to every
+drift type that routes through `_create_reset_plan` (`orphaned_running`,
+`stale_ownership` with an invalid lock, and `crash_suspicion` with an invalid
+lock). It does not gate `NOOP`, `WAIT_FOR_CONVERGENCE`, or `ALERT_ONLY`
+plans.
 
 ## Drift → plan decision matrix
 
@@ -107,6 +115,7 @@ The mapping in `ReconciliationEngine._drift_to_plan` /
 | `CRITICAL` | `persistence_unavailable` | any | `ALERT_ONLY` | `MANUAL` | `OBSERVABILITY_FAILURE` |
 | `CRITICAL` | `zombie_executor` | any | `ALERT_ONLY` | `MANUAL` | `UNSAFE_SPLIT_BRAIN` |
 | `CRITICAL` | `orphaned_running` | `True` | `ALERT_ONLY` | `MANUAL` | `UNSAFE_SPLIT_BRAIN` |
+| `CRITICAL` | `orphaned_running` | `False` | `ALERT_ONLY` | `MANUAL` | `MANUAL_INVESTIGATION` |
 | `CRITICAL` | other / evaluator failure | any | `ALERT_ONLY` | `MANUAL` | `MANUAL_INVESTIGATION` or `EVALUATION_FAILED` |
 | `HIGH` / `MEDIUM` / `LOW` | `orphaned_running` | any | `RESET_STATE` | see note¹ | `RESET_REQUIRED` |
 | any non-NONE | `stale_ownership` | `True` | `WAIT_FOR_CONVERGENCE` | `DEFERRED` | `WAIT_REQUIRED` |
