@@ -31,8 +31,8 @@ def _reset_runtime_graph_state() -> None:
     """Reset lifecycle graph state and any already-imported legacy api.main mirror."""
     graph_lifecycle.reset_graph()
     api_main = sys.modules.get("api.main")
-    if isinstance(api_main, ModuleType) and "graph" in api_main.__dict__:
-        setattr(api_main, "graph", None)  # noqa: B010
+    if api_main is not None and hasattr(api_main, "graph"):
+        api_main.graph = None  # type: ignore[attr-defined]
 
 
 @pytest.fixture(autouse=True)
@@ -219,7 +219,6 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     assert graph_payload["available"] is True
     assert graph_payload["asset_count"] == 2
     assert graph_payload["relationship_count"] == 2
-    assert graph_payload["graph_startup_source"] == "persisted_graph_store"
 
     asset_ids = {item["id"] for item in assets.json()["items"]}
     assert {"HOSTED_A", "HOSTED_B"} <= asset_ids
@@ -303,9 +302,13 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
     payload = response.json()
 
     # Verify expected contract shape
-    assert set(payload) == {"status", "graph_persistence_configured", "graph", "database"}
-    assert payload["graph_persistence_configured"] is True
-    assert set(payload["graph"]) == {"available", "asset_count", "relationship_count", "graph_startup_source"}
+    assert set(payload) == {"status", "graph", "database"}
+    assert set(payload["graph"]) == {
+        "available",
+        "lifecycle_state",
+        "asset_count",
+        "relationship_count",
+    }
 
     # Recursively scan for sensitive values
     joined = " ".join(_walk_strings(payload)).lower()
@@ -366,6 +369,9 @@ def test_unreachable_persistence_fails_startup_with_sanitized_error(
         """Simulate a driver failure containing sensitive connection details."""
         raise RuntimeError(f"driver failure for {raw_url}")
 
+    import src.data.database
+
+    monkeypatch.setattr(src.data.database, "create_engine_from_url", fail_create_engine)
     monkeypatch.setattr(providers, "create_engine_from_url", fail_create_engine)
 
     startup_error = "Failed to load persisted graph during startup"

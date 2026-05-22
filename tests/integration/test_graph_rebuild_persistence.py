@@ -1,11 +1,11 @@
 """Tests for explicit graph rebuild persistence."""
 
-# NOSONAR: Integration tests intentionally exercise DB/repository/API wiring.
-
 from __future__ import annotations
 
+import asyncio
 import logging
-from concurrent.futures import ThreadPoolExecutor
+import time
+from concurrent.futures import ThreadPoolExecutor  # pylint: disable=no-name-in-module
 from pathlib import Path
 from typing import Any
 
@@ -19,12 +19,15 @@ import api.main as api_main
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user
 from api.routers import graph_admin
+from src.config.settings import get_settings
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
 
 pytestmark = pytest.mark.integration
+
+_REBUILD_AUDIT_POLL_INTERVAL_SECONDS = 0.005
 
 
 @pytest.fixture(autouse=True)
@@ -37,13 +40,15 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
         "USE_REAL_DATA_FETCHER",
     ):
         monkeypatch.delenv(name, raising=False)
+    get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
     api_main.reset_graph()
     monkeypatch.setattr("api.routers.graph_admin._REBUILD_RUNTIME.executor", _ImmediateExecutor())
     yield
-    graph_admin.shutdown_rebuild_executor()
+    graph_admin.shutdown_rebuild_executor_sync()
     api_main.reset_graph()
     providers.clear_graph_lifecycle_settings_cache()
+    get_settings.cache_clear()
 
 
 class _ImmediateExecutor(ThreadPoolExecutor):
@@ -70,18 +75,23 @@ class _RouteResult:
 
 async def _post_rebuild() -> _RouteResult:
     """Invoke rebuild behavior with route-equivalent error mapping."""
+    await asyncio.sleep(0)
     try:
         body = graph_admin._perform_rebuild_and_persist_sync(  # pylint: disable=protected-access
-            graph_admin.get_graph_lifecycle_settings()
+            graph_admin.get_graph_lifecycle_settings(),
+            user_ref="test_user",
         )
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-exception-caught  # noqa: BLE001 # NOSONAR
         http_exc = graph_admin._map_rebuild_error(exc)  # pylint: disable=protected-access
         return _RouteResult(http_exc.status_code, {"detail": http_exc.detail})
     return _RouteResult(200, body.model_dump())
 
 
-def _authorized_app():
-    """Create an app with an active test operator."""
+def _authorized_app(monkeypatch: pytest.MonkeyPatch):
+    """Create an app with an active authorized operator."""
+    monkeypatch.setenv("ADMIN_USERNAME", "operator")
+    get_settings.cache_clear()
+
     app = create_app()
 
     def active_user() -> User:
@@ -89,14 +99,44 @@ def _authorized_app():
         return User(username="admin", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
+
     return app
 
 
-async def _post_rebuild_http() -> httpx.Response:
+async def _post_rebuild_http(
+    monkeypatch: pytest.MonkeyPatch,
+) -> httpx.Response:
     """Post to rebuild through the HTTP route with an authorized user."""
-    transport = httpx.ASGITransport(app=_authorized_app())
-    async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
+    transport = httpx.ASGITransport(app=_authorized_app(monkeypatch))
+
+    async with httpx.AsyncClient(
+        transport=transport,
+        base_url="https://testserver",
+    ) as client:
         return await client.post("/api/graph/rebuild")
+
+
+async def _wait_for_runtime_idle_and_audit_event(
+    caplog: pytest.LogCaptureFixture,
+    event_name: str,
+    timeout_seconds: float = 1.0,
+) -> None:
+    """Wait until rebuild runtime is idle and the expected audit event is captured."""
+    deadline = time.monotonic() + timeout_seconds
+
+    while True:
+        runtime_busy = graph_admin._REBUILD_RUNTIME.is_busy()  # pylint: disable=protected-access
+        event_seen = any(
+            record.getMessage() == "graph_rebuild_audit" and getattr(record, "event", None) == event_name
+            for record in caplog.records
+        )
+
+        if not runtime_busy and event_seen:
+            return
+        if time.monotonic() >= deadline:
+            pytest.fail(f"Timed out waiting for rebuild runtime idle and audit event: {event_name}")
+
+        await asyncio.sleep(_REBUILD_AUDIT_POLL_INTERVAL_SECONDS)
 
 
 def _sqlite_url(tmp_path: Path, name: str = "asset_graph.db") -> str:
@@ -322,7 +362,8 @@ async def test_successful_rebuild_emits_bounded_audit_log(
     _prepare_rebuild_database(tmp_path, monkeypatch)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-        response = await _post_rebuild_http()
+        response = await _post_rebuild_http(monkeypatch)
+        await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_succeeded")
 
     assert response.status_code == 200
     payload = response.json()
@@ -337,51 +378,206 @@ async def test_successful_rebuild_emits_bounded_audit_log(
 
     assert len(requested_records) == 1
     assert len(succeeded_records) == 1
-    assert requested_records[0].user_ref == "admin"
-    assert requested_records[0].path == "/api/graph/rebuild"
-    assert succeeded_records[0].user_ref == "admin"
-    assert succeeded_records[0].status_code == 200
-    assert succeeded_records[0].source == payload["source"]
-    assert succeeded_records[0].asset_count == payload["asset_count"]
-    assert succeeded_records[0].relationship_count == payload["relationship_count"]
-    assert succeeded_records[0].regulatory_event_count == payload["regulatory_event_count"]
-    assert succeeded_records[0].duration_ms >= 0
+    assert requested_records[0].__dict__.get("user_ref") == "operator"
+    assert requested_records[0].__dict__.get("path") == "/api/graph/rebuild"
+    assert succeeded_records[0].__dict__.get("user_ref") == "operator"
+    assert succeeded_records[0].__dict__.get("status_code") == 200
+    assert succeeded_records[0].__dict__.get("source") == payload["source"]
+    assert succeeded_records[0].__dict__.get("asset_count") == payload["asset_count"]
+    assert succeeded_records[0].__dict__.get("relationship_count") == payload["relationship_count"]
+    assert succeeded_records[0].__dict__.get("regulatory_event_count") == payload["regulatory_event_count"]
+    assert succeeded_records[0].__dict__.get("duration_ms") >= 0
 
 
 async def test_failed_rebuild_emits_secret_safe_audit_log(
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """A failed rebuild should emit bounded secret-safe failure audit logs."""
     raw_url = "postgresql://operator:secret@example.invalid/asset_graph"
-    _configure_persistence(monkeypatch, raw_url)
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
 
-    def fail_save(_database_url: str | None, _graph: AssetRelationshipGraph) -> None:
+    def fail_save(*_args: Any, **_kwargs: Any) -> None:
         """Simulate persistence save failure with a sanitized exception."""
         raise providers.GraphPersistenceSaveError("Failed to persist rebuilt graph.")
 
     monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-        response = await _post_rebuild_http()
+        response = await _post_rebuild_http(monkeypatch)
+        await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_failed")
 
     assert response.status_code == 500
 
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+
     failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
 
     assert len(failed_records) == 1
-    assert failed_records[0].user_ref == "admin"
-    assert failed_records[0].failure_category == "persistence_save_error"
-    assert failed_records[0].status_code == 500
-    assert failed_records[0].source == "sample"
-    assert failed_records[0].duration_ms >= 0
+    assert failed_records[0].user_ref == "operator"  # type: ignore[attr-defined]
+    assert failed_records[0].failure_category == "persistence_save_error"  # type: ignore[attr-defined]
+    assert failed_records[0].status_code == 500  # type: ignore[attr-defined]
+    assert failed_records[0].source == "sample"  # type: ignore[attr-defined]
+    assert failed_records[0].duration_ms >= 0  # type: ignore[attr-defined]
 
     serialized_records = " ".join(str(record.__dict__) for record in audit_records)
     assert raw_url not in response.text
     assert "secret" not in response.text
     assert raw_url not in serialized_records
     assert "secret" not in serialized_records
+
+    # Verify failed-state persistence is durable in the rebuild_jobs table.
+    engine = create_engine(database_url)
+    session = create_session_factory(engine)()
+    try:
+        jobs = AssetGraphRepository(session).list_rebuild_jobs(limit=1)
+        assert len(jobs) == 1
+        assert jobs[0].status == "failed"
+    finally:
+        session.close()
+        engine.dispose()
+
+
+async def test_rebuild_fails_closed_when_job_creation_persistence_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Rebuild must fail closed if durable rebuild-job creation cannot persist."""
+    _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_create_job(
+        self: AssetGraphRepository,
+        requested_by: str,
+        _source: str | None = None,
+    ) -> str:
+        """Simulate job creation persistence failure."""
+        raise RuntimeError("create failed")
+
+    def fail_if_build_called(_settings: providers.GraphLifecycleSettings):
+        """Assert rebuild does not proceed when job creation fails."""
+        raise AssertionError("build should not be attempted when job creation fails")
+
+    monkeypatch.setattr(AssetGraphRepository, "create_rebuild_job", fail_create_job)
+    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_if_build_called)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to create rebuild job record."}
+
+
+async def test_rebuild_failure_state_persistence_errors_are_not_suppressed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If failed-state persistence fails, surface a deterministic persistence failure."""
+    _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_build(
+        _settings: providers.GraphLifecycleSettings,
+    ) -> tuple[AssetRelationshipGraph, providers.GraphRebuildSource]:
+        """Simulate rebuild source failure to trigger failed-state persistence."""
+        raise providers.GraphRebuildSourceError("Failed to build rebuild graph.")
+
+    def fail_mark_failed(
+        self: AssetGraphRepository,
+        job_id: str,
+        *,
+        failure_category: str,
+        failure_message: str,
+        duration_ms: int,
+    ) -> None:
+        """Simulate failed-state persistence error."""
+        raise RuntimeError("mark failed write failed")
+
+    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_build)
+    monkeypatch.setattr(AssetGraphRepository, "mark_rebuild_job_failed", fail_mark_failed)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to persist rebuild job failure state."}
+
+
+async def test_rebuild_marks_job_failed_when_source_persistence_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Source-persistence failures should finalize the durable job as failed."""
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_update_source(_self: AssetGraphRepository, job_id: str, source: str) -> None:
+        """Simulate source persistence failure after the job has started."""
+        _ = job_id
+        _ = source
+        raise RuntimeError("source write failed")
+
+    monkeypatch.setattr(AssetGraphRepository, "update_rebuild_job_source", fail_update_source)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to update rebuild job source."}
+
+    engine = create_engine(database_url)
+    session = create_session_factory(engine)()
+    try:
+        jobs = AssetGraphRepository(session).list_rebuild_jobs(limit=1)
+        assert len(jobs) == 1
+        assert jobs[0].status == "failed"
+        assert jobs[0].sanitized_failure_category == "persistence_save_error"
+        assert jobs[0].sanitized_failure_message == "Failed to update rebuild job source."
+    finally:
+        session.close()
+        engine.dispose()
+
+
+async def test_rebuild_marks_job_failed_when_success_persistence_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Success-state persistence failures should not leave the durable job RUNNING."""
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_mark_succeeded(
+        _self: AssetGraphRepository,
+        job_id: str,
+        *,
+        node_count: int,
+        edge_count: int,
+        duration_ms: int,
+    ) -> None:
+        """Simulate success-state persistence failure after the rebuild succeeds."""
+        _ = job_id
+        _ = node_count
+        _ = edge_count
+        _ = duration_ms
+        raise RuntimeError("success write failed")
+
+    monkeypatch.setattr(AssetGraphRepository, "mark_rebuild_job_succeeded", fail_mark_succeeded)
+
+    response = await _post_rebuild()
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Failed to persist rebuild job success state."}
+
+    engine = create_engine(database_url)
+    session = create_session_factory(engine)()
+    try:
+        jobs = AssetGraphRepository(session).list_rebuild_jobs(limit=1)
+        assert len(jobs) == 1
+        assert jobs[0].status == "failed"
+        assert jobs[0].sanitized_failure_category == "persistence_save_error"
+        assert jobs[0].sanitized_failure_message == "Failed to persist rebuild job success state."
+    finally:
+        session.close()
+        engine.dispose()
+
+    # Success-state persistence failure must not overwrite durable graph content.
+    persisted_graph = _load_graph(database_url)
+    assert not persisted_graph.assets
+    assert not persisted_graph.relationships
 
 
 async def test_rebuild_uses_cache_path_before_sample(
@@ -390,10 +586,10 @@ async def test_rebuild_uses_cache_path_before_sample(
 ) -> None:
     """GRAPH_CACHE_PATH should be the first rebuild source."""
     database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
-    cache_path = tmp_path / "cache.json"
+    cache_path = tmp_path / "cache.json"  # nosec # NOSONAR
     cache_path.write_text("{}", encoding="utf-8")
     known_graph = _graph_with_asset("CACHE_ASSET", "CACHE")
-    monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+    monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))  # nosec # NOSONAR
     providers.clear_graph_lifecycle_settings_cache()
     monkeypatch.setattr(providers, "load_graph_from_cache_path", lambda *_args, **_kwargs: known_graph)
 
@@ -724,7 +920,7 @@ async def test_failure_response_and_logs_do_not_leak_database_url(
     raw_url = "postgresql://user:secret@example.invalid/db"
     _configure_persistence(monkeypatch, raw_url)
 
-    def fail_save(_database_url: str | None, _graph: AssetRelationshipGraph) -> None:
+    def fail_save(*_args: Any, **_kwargs: Any) -> None:
         """Simulate a sanitized provider failure."""
         logging.getLogger("api.graph_lifecycle_providers").error("Failed to persist rebuilt graph: RuntimeError")
         raise providers.GraphPersistenceSaveError("Failed to persist rebuilt graph.")

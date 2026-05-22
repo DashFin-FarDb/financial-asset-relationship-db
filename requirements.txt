@@ -35,6 +35,9 @@ PyJWT>=2.8.0
 passlib[bcrypt]>=1.7.4
 slowapi>=0.1.4
 
+# Observability dependencies
+prometheus_client>=0.19.0
+
 # Security override pins (not directly imported; pinned to satisfy vulnerability advisories)
 urllib3>=2.6.3  # pinned by Snyk advisory; transitive dep of requests/httpx
 zipp>=3.19.1  # pinned by Snyk advisory; transitive dep of several packages

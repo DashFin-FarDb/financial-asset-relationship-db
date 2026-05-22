@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -336,7 +336,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     lines: list[str] = [
         "# Financial Asset Relationship Database Schema & Rules",
         "",
-        f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d')}",
+        f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
         "",
         "## Schema Overview",
         "",

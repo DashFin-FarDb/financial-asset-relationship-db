@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, TypedDict
 
 import jwt
@@ -311,9 +311,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     """
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(UTC) + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -435,7 +435,7 @@ def get_current_rebuild_operator_user(
     Allows only the configured admin username from settings; denies other active
     users with a bounded forbidden response.
     """
-    configured_admin = settings.admin_username
+    configured_admin = (settings.admin_username or "").strip()
 
     if not configured_admin:
         raise HTTPException(
@@ -443,10 +443,9 @@ def get_current_rebuild_operator_user(
             detail=REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL,
         )
 
-    if current_user.username != configured_admin:
+    if current_user.username.strip() != configured_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=REBUILD_OPERATOR_FORBIDDEN_DETAIL,
         )
-
     return current_user

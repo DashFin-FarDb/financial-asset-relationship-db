@@ -1,16 +1,25 @@
 """Pydantic response models for API endpoints."""
 
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-GraphStartupSource = Literal[
+from src.data.db_models import RebuildJobStatus
+
+AssetGraphSource = Literal[
     "persisted_graph_store",
-    "sample_graph",
+    "sample",
     "cache",
     "real_data",
     "explicit_factory",
     "unknown",
+]
+
+GraphRebuildSource = Literal[
+    "cache",
+    "real_data",
+    "sample",
 ]
 
 
@@ -100,9 +109,9 @@ class GraphHealthResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     available: bool
+    lifecycle_state: str = "UNINITIALIZED"
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
-    graph_startup_source: GraphStartupSource | None = None
 
 
 class DatabaseHealthResponse(BaseModel):
@@ -132,7 +141,43 @@ class GraphRebuildResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status: Literal["persisted"] = "persisted"
-    source: Literal["cache", "real_data", "sample"]
+    source: GraphRebuildSource
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
     regulatory_event_count: int = Field(ge=0)
+
+
+class RebuildJobResponse(BaseModel):
+    """Response model for rebuild job status.
+
+    Exposes bounded sanitized rebuild job state only.
+    No raw exceptions, stack traces, DB URLs, credentials, or ORM internals.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    job_id: str
+    status: RebuildJobStatus
+    source: str | None
+    requested_by: str
+    created_at: datetime
+    updated_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    duration_ms: int | None
+    node_count: int | None
+    edge_count: int | None
+    failure_category: str | None
+    failure_message: str | None
+
+
+class RebuildJobListResponse(BaseModel):
+    """Response model for rebuild job listing.
+
+    Bounded rebuild job list structure.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    jobs: list[RebuildJobResponse]
+    count: int = Field(ge=0)
