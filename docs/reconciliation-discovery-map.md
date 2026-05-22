@@ -5,7 +5,7 @@
 
 > Looking for the public interface of `ReconciliationEngine`,
 > `ReconciliationPlan`, or `RebuildDriftEvaluator`? See
-> [`reconciliation-engine.md`](reconciliation-engine.md).
+> [`reconciliation-engine.md`](./reconciliation-engine.md).
 
 ## Executive Summary
 
