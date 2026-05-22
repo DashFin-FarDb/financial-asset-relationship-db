@@ -117,7 +117,7 @@ def create_sample_graph() -> AssetRelationshipGraph:
     return create_sample_database()
 
 
-class GraphPersistenceInvalidUrlError(ValueError):
+class GraphPersistenceInvalidUrlError(GraphPersistenceNotConfiguredError):
     """Raised when the graph persistence URL cannot be parsed."""
 
 
