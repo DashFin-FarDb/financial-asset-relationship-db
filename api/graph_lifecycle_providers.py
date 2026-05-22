@@ -142,13 +142,12 @@ class GraphPersistenceInvalidUrlError(ValueError):
 
 # In resolve_durable_graph_persistence_url:
 try:
-    make_url(resolved_url)
-except ArgumentError:
-    raise GraphPersistenceInvalidUrlError("Invalid persistence database URL") from None
-        raise ArgumentError("Invalid persistence database URL") from None
-
-    if _is_in_memory_sqlite_url(resolved_url):
-        raise GraphPersistenceNonDurableError("Graph persistence must use a durable database.")
+    # Validate URL format
+    try:
+        make_url(resolved_url)
+    except ArgumentError:
+        # Invalid SQLAlchemy URL -> treat as not configured (sanitized)
+        raise GraphPersistenceNotConfiguredError("Graph persistence is not configured.")
     return resolved_url
 
 
