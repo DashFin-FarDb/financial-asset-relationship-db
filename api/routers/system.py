@@ -133,35 +133,11 @@ def _get_graph_persistence_configured() -> bool:
         GraphPersistenceNotConfiguredError,
         GraphPersistenceNonDurableError,
         GraphPersistenceInvalidUrlError,
-    except (
-        GraphPersistenceNotConfiguredError,
-        GraphPersistenceNonDurableError,
-        GraphPersistenceInvalidUrlError,
+        ArgumentError,
     ):
         return False
     except Exception as exc:
         # Removed exc_info=True to prevent leaking connection secrets in tracebacks
-        logger.error(
-            "Unexpected error checking graph persistence configuration: %s",
-            type(exc).__name__,
-        )
-        return False
-        return False
-    except Exception as exc:
-        # Removed exc_info=True to prevent leaking connection secrets in tracebacks
-        logger.error(
-            "Unexpected error checking graph persistence configuration: %s",
-            type(exc).__name__,
-        )
-        return False
-
-    except (
-        GraphPersistenceNotConfiguredError,
-        GraphPersistenceNonDurableError,
-        GraphPersistenceInvalidUrlError,
-    ):
-        return False
-    except Exception as exc:
         logger.error(
             "Unexpected error checking graph persistence configuration: %s",
             type(exc).__name__,
