@@ -150,7 +150,8 @@ engine = ReconciliationEngine(evaluator)
 plan = engine.generate_reconciliation_plan()
 ```
 
-Behavioural notes (verified against `rebuild_drift_evaluator.py:60-141`):
+Behavioural notes (verified against the implementation of 
+RebuildDriftEvaluator.evaluate_drift):
 
 - Lock state is checked first via `lock.check_state()`. A `LockState.LOST`
   result short-circuits to `("lock_lost", CRITICAL, …)` and the rebuild job is
