@@ -140,9 +140,7 @@ def _get_graph_persistence_configured() -> bool:
             type(exc).__name__,
         )
         return False
-            type(exc).__name__,
-        )
-        return False
+
 @router.get("/api/health/detailed")
 def detailed_health_check() -> DetailedHealthResponse:
     """Return bounded, non-secret readiness information for hosted deployment."""
