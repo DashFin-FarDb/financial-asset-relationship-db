@@ -385,8 +385,6 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
     assert payload["graph"]["asset_count"] == persisted_asset_count
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
-    # duplicate assertion removed
-    assert payload["graph"]["relationship_count"] == persisted_relationship_count
 
     assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
     # graph_startup_source is not part of GraphHealthResponse; remove or assert lifecycle_state only
@@ -403,7 +401,11 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
 # Keep only one TestClient block; remove the duplicate.
 with TestClient(create_app()) as client:
     detailed_response = client.get("/api/health/detailed")
-
+# Remove the stray module-level block entirely. The final assertions for the
+# promotion gate test belong INSIDE the function body, indented under
+# test_promotion_gate_sequence_rebuild_restart_and_persisted_startup.
+# The function test_unreachable_persistence_fails_startup_with_sanitized_error
+# should begin immediately after the promotion gate function closes.
 assert detailed_response.status_code == 200
 payload = detailed_response.json()
 assert payload["status"] == "healthy"
