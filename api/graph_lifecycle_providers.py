@@ -127,10 +127,20 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
     Raises:
         GraphPersistenceNotConfiguredError: If the provided URL is unset or blank.
         GraphPersistenceNonDurableError: If the resolved URL refers to an in-memory SQLite database.
+        ArgumentError: If the provided URL cannot be parsed as a valid SQLAlchemy URL.
     """
     resolved_url = _resolve_persistence_database_url(database_url)
     if resolved_url is None:
         raise GraphPersistenceNotConfiguredError("Graph persistence is not configured.")
+
+    # Validate URL format
+    try:
+        make_url(resolved_url)
+    except ArgumentError:
+        # _is_in_memory_sqlite_url also catches ArgumentError internally,
+        # but we need to fail fast for invalid URLs before checking durability
+        raise
+
     if _is_in_memory_sqlite_url(resolved_url):
         raise GraphPersistenceNonDurableError("Graph persistence must use a durable database.")
     return resolved_url
