@@ -37,8 +37,6 @@ async def get_assets(
         start = (page - 1) * per_page
         end = start + per_page
         page_assets = assets[start:end]
-    except HTTPException:
-        raise
     except Exception as e:
         logger.exception("Error getting assets:")
         raise HTTPException(
@@ -58,14 +56,14 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
     """Return detailed data for a single asset."""
     try:
         g = get_graph()
-        if asset_id not in g.assets:
-            raise_asset_not_found(asset_id)
-        return AssetResponse(**serialize_asset(g.assets[asset_id], include_issuer=True))
-    except HTTPException:
-        raise
     except Exception as e:
         logger.exception("Error getting asset detail:")
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred. Please try again later.",
         ) from e
+
+    if asset_id not in g.assets:
+        raise_asset_not_found(asset_id)
+
+    return AssetResponse(**serialize_asset(g.assets[asset_id], include_issuer=True))
