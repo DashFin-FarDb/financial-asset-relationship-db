@@ -81,11 +81,10 @@ ExecutionSafety.EVALUATION_FAILED`.
 
 ```python
 engine = ReconciliationEngine(
-    evaluator: DriftEvaluator,
-    enable_automatic_execution: bool = False,
+    evaluator=evaluator,
+    enable_automatic_execution=False,
 )
 plan = engine.generate_reconciliation_plan()
-```
 
 `enable_automatic_execution` controls only the execution mode of `HIGH`
 severity reset plans — when `False` (the default), high-severity resets are
