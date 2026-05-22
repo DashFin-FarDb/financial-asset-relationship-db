@@ -354,12 +354,6 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     payload = detailed_response.json()
     assert payload["status"] == "healthy"
     assert payload["graph_persistence_configured"] is True
-    with TestClient(create_app()) as client:
-        detailed_response = client.get("/api/health/detailed")
-
-    payload = detailed_response.json()
-    assert payload["status"] == "healthy"
-    assert payload["graph_persistence_configured"] is True
     assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
     assert payload["graph"]["asset_count"] == persisted_asset_count
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
@@ -382,7 +376,15 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     assert payload["status"] == "healthy"
     assert payload["graph_persistence_configured"] is True
     assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
+    with TestClient(create_app()) as client:
+        detailed_response = client.get("/api/health/detailed")
+
+    payload = detailed_response.json()
+    assert payload["status"] == "healthy"
+    assert payload["graph_persistence_configured"] is True
+    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
     assert payload["graph"]["asset_count"] == persisted_asset_count
+    assert payload["graph"]["relationship_count"] == persisted_relationship_count
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
 
@@ -398,7 +400,16 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
     assert payload["graph"]["asset_count"] == persisted_asset_count
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
-    caplog: pytest.LogCaptureFixture,
+# Keep only one TestClient block; remove the duplicate.
+with TestClient(create_app()) as client:
+    detailed_response = client.get("/api/health/detailed")
+
+assert detailed_response.status_code == 200
+payload = detailed_response.json()
+assert payload["status"] == "healthy"
+assert payload["graph_persistence_configured"] is True
+assert payload["graph"]["asset_count"] == persisted_asset_count
+assert payload["graph"]["relationship_count"] == persisted_relationship_count
 ) -> None:
     """Unreachable configured persistence should fail startup and avoid leaking connection secrets."""
     raw_url = "postgresql://user:secret@example.invalid/blackhole"
