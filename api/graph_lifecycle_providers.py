@@ -147,6 +147,8 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
         raise GraphPersistenceNonDurableError("Graph persistence must use a durable database.")
 
     return resolved_url
+
+
 def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """Build a fresh graph from the selected rebuild source path.
 
