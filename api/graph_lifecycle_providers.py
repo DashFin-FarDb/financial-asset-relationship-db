@@ -162,18 +162,17 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
         raise GraphPersistenceNonDurableError("Graph persistence must use a durable database.")
     return resolved_url
 
-# In resolve_durable_graph_persistence_url:
-try:
     # Validate URL format
     try:
         make_url(resolved_url)
     except ArgumentError:
-        raise ArgumentError("Invalid persistence database URL") from None
         # Invalid SQLAlchemy URL -> treat as not configured (sanitized)
-        raise GraphPersistenceNotConfiguredError("Graph persistence is not configured.")
+        raise GraphPersistenceNotConfiguredError("Graph persistence is not configured.") from None
+
+    if _is_in_memory_sqlite_url(resolved_url):
+        raise GraphPersistenceNonDurableError("Graph persistence must use a durable database.")
+
     return resolved_url
-
-
 def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """Build a fresh graph from the selected rebuild source path.
 
