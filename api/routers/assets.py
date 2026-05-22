@@ -60,11 +60,18 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
         g = get_graph()
     except Exception as e:
         logger.exception("Error getting asset detail:")
-        raise HTTPException(
-            status_code=500,
-            detail="An internal error occurred. Please try again later.",
-        ) from e
+        raise HTTPException(status_code=500, detail="...") from e
 
+    try:
+        if asset_id not in g.assets:
+            raise_asset_not_found(asset_id)
+        return AssetResponse(...)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Error building asset response:")
+        raise HTTPException(status_code=500, detail="...") from e
+        
     if asset_id not in g.assets:
         raise_asset_not_found(asset_id)
 
