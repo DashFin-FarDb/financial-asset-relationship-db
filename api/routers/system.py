@@ -139,13 +139,64 @@ def _get_graph_persistence_configured() -> bool:
         # Removed exc_info=True to prevent leaking connection secrets in tracebacks
         logger.error(
             "Unexpected error checking graph persistence configuration: %s",
+def _get_graph_persistence_configured() -> bool:
+    """Return whether durable graph persistence is explicitly configured."""
+    try:
+        settings = get_graph_lifecycle_settings()
+        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        return True
+    except (
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+        GraphPersistenceInvalidUrlError,
+    ):
+        return False
+    except Exception as exc:
+        logger.error(
+            "Unexpected error checking graph persistence configuration: %s",
             type(exc).__name__,
         )
         return False
+        )
+        return False
 
-@router.get("/api/health/detailed")
+def _get_graph_persistence_configured() -> bool:
+    """Return whether durable graph persistence is explicitly configured."""
+    try:
+        settings = get_graph_lifecycle_settings()
+        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        return True
+    except (
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+        GraphPersistenceInvalidUrlError,
+    ):
+        return False
+    except Exception as exc:
+        logger.error(
+            "Unexpected error checking graph persistence configuration: %s",
+            type(exc).__name__,
+        )
+        return False
 def detailed_health_check() -> DetailedHealthResponse:
-    """Return bounded, non-secret readiness information for hosted deployment."""
+def _get_graph_persistence_configured() -> bool:
+    """Return whether durable graph persistence is explicitly configured."""
+    try:
+        settings = get_graph_lifecycle_settings()
+        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        return True
+    except (
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+        GraphPersistenceInvalidUrlError,
+    ):
+        return False
+    except Exception as exc:
+        logger.error(
+            "Unexpected error checking graph persistence configuration: %s",
+            type(exc).__name__,
+        )
+        return False
     graph_health = _get_graph_health()
     database_health = _get_database_health()
 
@@ -195,7 +246,8 @@ async def get_asset_classes() -> dict[str, list[str]]:
 async def get_sectors() -> dict[str, list[str]]:
     """Return sorted distinct sector names from the graph."""
     try:
-        g = get_graph()
+        _raise_system_route_error("Error getting sectors:", e)
         return {"sectors": sorted({a.sector for a in g.assets.values() if a.sector})}
     except Exception as e:
-# Imports consolidated at module top; remove duplicate imports here
+    except Exception as e:
+        _raise_system_route_error("Error getting sectors:", e)
