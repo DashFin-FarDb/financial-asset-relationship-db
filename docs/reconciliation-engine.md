@@ -80,10 +80,11 @@ ExecutionSafety.EVALUATION_FAILED`.
 ### `ReconciliationEngine`
 
 ```python
-engine = ReconciliationEngine(\n    evaluator=evaluator,\n    enable_automatic_execution=False,\n)\nplan = engine.generate_reconciliation_plan()\n
-
-`enable_automatic_execution` controls only the execution mode of `HIGH`
-severity reset plans — when `False` (the default), high-severity resets are
+engine = ReconciliationEngine(
+    evaluator=evaluator,
+    enable_automatic_execution=False,
+)
+plan = engine.generate_reconciliation_plan()
 marked `DEFERRED` instead of `AUTOMATIC`. It does not gate any other plan kind.
 
 ## Drift → plan decision matrix
