@@ -3,6 +3,10 @@
 **Date:** 2026-05-20
 **Objective:** Identify current implicit reconciliation logic in the codebase
 
+> Looking for the public interface of `ReconciliationEngine`,
+> `ReconciliationPlan`, or `RebuildDriftEvaluator`? See
+> [`reconciliation-engine.md`](reconciliation-engine.md).
+
 ## Executive Summary
 
 The Financial Asset Relationship Database already contains sophisticated **implicit reconciliation logic** embedded within the rebuild coordination system. This document maps existing reconciliation primitives to the formal Reconciliation Engine abstraction introduced in this PR.
