@@ -44,7 +44,7 @@ All types are importable from `src.logic.reconciliation_engine` unless noted.
 ### `ReconciliationPlan`
 
 Frozen dataclass with the fields below. Construction validates that
-`actions` is a non-empty iterable of `ActionType` values, normalises the
+`actions` is a non-empty iterable of `ActionType` values, normalizes the
 sequence to a tuple, and enforces `Severity.NONE ⇒ actions == (NOOP,)`.
 
 ```python
