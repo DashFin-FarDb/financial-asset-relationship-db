@@ -89,7 +89,7 @@ async def _post_rebuild() -> _RouteResult:
 
 def _authorized_app(monkeypatch: pytest.MonkeyPatch):
     """Create an app with an active authorized operator."""
-    monkeypatch.setenv("ADMIN_USERNAME", "operator")
+    monkeypatch.setenv("ADMIN_USERNAME", "admin")
     get_settings.cache_clear()
 
     app = create_app()
