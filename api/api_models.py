@@ -134,7 +134,7 @@ class DetailedHealthResponse(BaseModel):
         default=False,
         title="Graph persistence configured",
         description="Indicates whether durable graph persistence is configured (durable, non-memory store). Defaults to False for backwards compatibility.",
-        examples=[False],
+        examples=[False, True],
     )
     graph: GraphHealthResponse
     database: DatabaseHealthResponse
