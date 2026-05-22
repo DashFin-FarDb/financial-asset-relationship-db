@@ -7,12 +7,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy.engine import make_url  # pylint: disable=import-error
 from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
 
-from api.graph_lifecycle_providers import (
-    GraphPersistenceNonDurableError,
-    GraphPersistenceNotConfiguredError,
-    get_graph_lifecycle_settings,
-    resolve_durable_graph_persistence_url,
-)
+from ..graph_lifecycle_providers import (\n    GraphPersistenceNonDurableError,\n    GraphPersistenceNotConfiguredError,\n    get_graph_lifecycle_settings,\n    resolve_durable_graph_persistence_url,\n)
 from src.models.financial_models import AssetClass
 
 from .. import graph_lifecycle
