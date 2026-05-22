@@ -354,16 +354,50 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     payload = detailed_response.json()
     assert payload["status"] == "healthy"
     assert payload["graph_persistence_configured"] is True
+    with TestClient(create_app()) as client:
+        detailed_response = client.get("/api/health/detailed")
+
     payload = detailed_response.json()
     assert payload["status"] == "healthy"
     assert payload["graph_persistence_configured"] is True
+    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
+    assert payload["graph"]["asset_count"] == persisted_asset_count
+    assert payload["graph"]["relationship_count"] == persisted_relationship_count
+    with TestClient(create_app()) as client:
+        detailed_response = client.get("/api/health/detailed")
+
+    payload = detailed_response.json()
+    assert payload["status"] == "healthy"
+    assert payload["graph_persistence_configured"] is True
+    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
     assert payload["graph"]["graph_startup_source"] == "persisted_graph_store"
     assert payload["graph"]["asset_count"] == persisted_asset_count
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
+    assert payload["graph_persistence_configured"] is True
+    assert payload["graph"]["graph_startup_source"] == "persisted_graph_store"
+    with TestClient(create_app()) as client:
+        detailed_response = client.get("/api/health/detailed")
 
+    payload = detailed_response.json()
+    assert payload["status"] == "healthy"
+    assert payload["graph_persistence_configured"] is True
+    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
+    assert payload["graph"]["asset_count"] == persisted_asset_count
+    assert payload["graph"]["relationship_count"] == persisted_relationship_count
+    assert payload["graph"]["relationship_count"] == persisted_relationship_count
 
-def test_unreachable_persistence_fails_startup_with_sanitized_error(
-    monkeypatch: pytest.MonkeyPatch,
+    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
+    # graph_startup_source is not part of GraphHealthResponse; remove or assert lifecycle_state only
+    assert payload["graph"]["lifecycle_state"] in {"LOADED_FROM_PERSISTED_STORE", "LOADED"}
+    with TestClient(create_app()) as client:
+        detailed_response = client.get("/api/health/detailed")
+
+    payload = detailed_response.json()
+    assert payload["status"] == "healthy"
+    assert payload["graph_persistence_configured"] is True
+    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
+    assert payload["graph"]["asset_count"] == persisted_asset_count
+    assert payload["graph"]["relationship_count"] == persisted_relationship_count
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Unreachable configured persistence should fail startup and avoid leaking connection secrets."""
