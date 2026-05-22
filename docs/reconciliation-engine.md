@@ -87,13 +87,10 @@ engine = ReconciliationEngine(
 plan = engine.generate_reconciliation_plan()
 ```
 
-`enable_automatic_execution` controls only the execution mode of `HIGH`
-severity `RESET_STATE` plans — when `False` (the default), high-severity
-resets are marked `DEFERRED` instead of `AUTOMATIC`. This applies to every
-drift type that routes through `_create_reset_plan` (`orphaned_running`,
-`stale_ownership` with an invalid lock, and `crash_suspicion` with an invalid
-lock). It does not gate `NOOP`, `WAIT_FOR_CONVERGENCE`, or `ALERT_ONLY`
-plans.
+`enable_automatic_execution` controls only the execution mode of HIGH-severity `RESET_STATE` plans.
+When `False` (the default), HIGH-severity `RESET_STATE` plans are marked `DEFERRED` instead of `AUTOMATIC`.
+This applies to every drift type that routes through `_create_reset_plan` (`orphaned_running`; `stale_ownership` when the lock is invalid; `crash_suspicion` when the lock is invalid).
+It does not affect `NOOP`, `WAIT_FOR_CONVERGENCE`, or `ALERT_ONLY` plans.
 
 ## Drift → plan decision matrix
 
