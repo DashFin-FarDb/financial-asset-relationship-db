@@ -130,7 +130,7 @@ class DetailedHealthResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status: Literal["healthy", "degraded"]
-    graph_persistence_configured: bool = False
+    graph_persistence_configured: bool = Field(default=False, description="Indicates whether durable graph persistence is configured. Defaults to False for backwards compatibility.")
     graph: GraphHealthResponse
     database: DatabaseHealthResponse
 
