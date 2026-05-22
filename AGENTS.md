@@ -200,8 +200,8 @@ Run `make help` for the full target list with descriptions.
 
 - `scripts/validate_manifest.py` — Validate `.elastic-copilot/memory/systemManifest.md`
   for duplicate level-2 headings (markdownlint MD024).
-- `scripts/deduplicate_manifest.py` — Remove duplicate sections from the same
-  manifest, keeping the last occurrence of each heading.
+- `scripts/deduplicate_manifest.py` — Deduplicate level-2 sections in `.elastic-copilot/memory/systemManifest.md`.
+  Note: the script currently contains a partial implementation; complete it before relying on this command.
 
 ### Docker (Gradio app - NON-PRODUCTION)
 
@@ -222,7 +222,7 @@ Note: Docker configuration currently references Gradio. Aligning deployment arti
 
 ### Reconciliation / rebuild control plane
 
-- `src/logic/reconciliation_engine.py` — Pure-functional engine that consumes
+- `src/logic/reconciliation_engine.py` — Purely functional engine that consumes
   Desired State + Observed State, computes drift, and generates execution-agnostic
   Reconciliation Plans (no side effects).
 - `src/logic/rebuild_failure_detection.py` — Drift/inconsistency detection
