@@ -301,7 +301,7 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
     payload = response.json()
 
     # Verify expected contract shape
-    assert set(payload) == {"status", "graph", "database"}
+    assert set(payload) == {"status", "graph_persistence_configured", "graph", "database"}
     assert set(payload["graph"]) == {
         "available",
         "lifecycle_state",
