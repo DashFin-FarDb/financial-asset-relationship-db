@@ -132,7 +132,9 @@ class DetailedHealthResponse(BaseModel):
     status: Literal["healthy", "degraded"]
     graph_persistence_configured: bool = Field(
         default=False,
-        description="Indicates whether durable graph persistence is configured. Defaults to False for backwards compatibility.",
+        title="Graph persistence configured",
+        description="Indicates whether durable graph persistence is configured (durable, non-memory store). Defaults to False for backwards compatibility.",
+        example=False,
     )
     graph: GraphHealthResponse
     database: DatabaseHealthResponse

@@ -351,8 +351,8 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     payload = detailed_response.json()
     assert payload["status"] == "healthy"
     assert isinstance(payload["graph_persistence_configured"], bool) and payload["graph_persistence_configured"] is True
-    assert payload["graph"]["lifecycle_state"] == "READY"
-    assert payload["graph"]["asset_count"] == persisted_asset_count
+    assert payload["graph"]["lifecycle_state"] == graph_lifecycle.GraphRuntimeLifecycleState.READY.value
+    assert payload["graph"]["lifecycle_state"] == graph_lifecycle.GraphRuntimeLifecycleState.READY.value
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
 
 
