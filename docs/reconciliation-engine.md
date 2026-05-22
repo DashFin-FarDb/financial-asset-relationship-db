@@ -127,9 +127,7 @@ The mapping in `ReconciliationEngine._drift_to_plan` /
 ## `RebuildDriftEvaluator`
 
 `src/logic/rebuild_drift_evaluator.py` adapts the existing rebuild-coordination
-machinery (`src/logic/rebuild_failure_detection.detect_rebuild_inconsistency`
-+ `src/data/distributed_lock.DistributedLock`) to the `DriftEvaluator`
-protocol.
+machinery (`src/logic/rebuild_failure_detection.detect_rebuild_inconsistency` + `src/data/distributed_lock.DistributedLock`) to the `DriftEvaluator` protocol.
 
 ```python
 from src.data.distributed_lock import DistributedLock
