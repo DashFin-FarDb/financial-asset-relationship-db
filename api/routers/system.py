@@ -135,7 +135,6 @@ def _get_graph_persistence_configured() -> bool:
         GraphPersistenceInvalidUrlError,
     ):
         return False
-        return False
     except Exception as exc:
         # Removed exc_info=True to prevent leaking connection secrets in tracebacks
         logger.error(
@@ -144,7 +143,18 @@ def _get_graph_persistence_configured() -> bool:
         )
         return False
 
-
+    except (
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+        GraphPersistenceInvalidUrlError,
+    ):
+        return False
+    except Exception as exc:
+        logger.error(
+            "Unexpected error checking graph persistence configuration: %s",
+            type(exc).__name__,
+        )
+        return False
 @router.get("/api/health/detailed")
 def detailed_health_check() -> DetailedHealthResponse:
     """Return bounded, non-secret readiness information for hosted deployment."""
@@ -200,12 +210,4 @@ async def get_sectors() -> dict[str, list[str]]:
         g = get_graph()
         return {"sectors": sorted({a.sector for a in g.assets.values() if a.sector})}
     except Exception as e:
-        _raise_system_route_error("Error getting sectors:", e)
-
-
-from typing import Any, Literal, NoReturn, cast
-
-from fastapi import APIRouter, HTTPException, Response  # pylint: disable=import-error
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: disable=import-error
-from sqlalchemy.engine import make_url  # pylint: disable=import-error
-from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
+# Imports consolidated at module top; remove duplicate imports here
