@@ -168,7 +168,7 @@ try:
     try:
         make_url(resolved_url)
     except ArgumentError:
-        raise ArgumentError("Invalid persistence database URL") from None   
+        raise ArgumentError("Invalid persistence database URL") from None
         # Invalid SQLAlchemy URL -> treat as not configured (sanitized)
         raise GraphPersistenceNotConfiguredError("Graph persistence is not configured.")
     return resolved_url
