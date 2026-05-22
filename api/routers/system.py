@@ -12,6 +12,7 @@ from src.models.financial_models import AssetClass
 from .. import graph_lifecycle
 from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse
 from ..graph_lifecycle_providers import (
+    GraphPersistenceInvalidUrlError,
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
     get_graph_lifecycle_settings,
@@ -129,7 +130,12 @@ def _get_graph_persistence_configured() -> bool:
         settings = get_graph_lifecycle_settings()
         resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
         return True
-    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError, ArgumentError):
+    except (
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+        GraphPersistenceInvalidUrlError,
+        ArgumentError,
+    ):
         return False
     except Exception as exc:
         # Removed exc_info=True to prevent leaking connection secrets in tracebacks
