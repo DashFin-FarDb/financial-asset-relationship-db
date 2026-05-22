@@ -347,7 +347,7 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     with TestClient(create_app()) as client:
         detailed_response = client.get("/api/health/detailed")
 
-    assert detailed_response.status_code == 200
+assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
     payload = detailed_response.json()
     assert payload["status"] == "healthy"
     assert payload["graph_persistence_configured"] is True
