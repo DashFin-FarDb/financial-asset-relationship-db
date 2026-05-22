@@ -137,7 +137,14 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
     try:
         make_url(resolved_url)
     except ArgumentError:
-        # Invalid URL: raise a sanitized ArgumentError to avoid including the original URL in error messages
+class GraphPersistenceInvalidUrlError(ValueError):
+    """Raised when the graph persistence URL cannot be parsed."""
+
+# In resolve_durable_graph_persistence_url:
+try:
+    make_url(resolved_url)
+except ArgumentError:
+    raise GraphPersistenceInvalidUrlError("Invalid persistence database URL") from None
         raise ArgumentError("Invalid persistence database URL") from None
 
     if _is_in_memory_sqlite_url(resolved_url):
