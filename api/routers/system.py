@@ -125,16 +125,28 @@ def _get_database_health() -> DatabaseHealthResponse:
 
 
 def _get_graph_persistence_configured() -> bool:
+def _get_graph_persistence_configured() -> bool:
     """Return whether durable graph persistence is explicitly configured."""
     try:
         settings = get_graph_lifecycle_settings()
-        settings = get_graph_lifecycle_settings()
         url_str = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        # Ensure the URL is a valid SQLAlchemy URL (make_url may raise ArgumentError)
         make_url(url_str)
         return True
+    except (
         GraphPersistenceNotConfiguredError,
         GraphPersistenceNonDurableError,
         GraphPersistenceInvalidUrlError,
+        ArgumentError,
+    ):
+        return False
+    except Exception as exc:
+        # Removed exc_info=True to prevent leaking connection secrets in tracebacks
+        logger.error(
+            "Unexpected error checking graph persistence configuration: %s",
+            type(exc).__name__,
+        )
+        return False
     ):
         return False
     except Exception as exc:
