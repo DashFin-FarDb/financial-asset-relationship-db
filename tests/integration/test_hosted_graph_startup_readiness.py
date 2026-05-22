@@ -385,7 +385,7 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
     assert payload["graph"]["asset_count"] == persisted_asset_count
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
-    assert payload["graph"]["relationship_count"] == persisted_relationship_count
+    # duplicate assertion removed
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
 
     assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
