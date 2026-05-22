@@ -71,7 +71,7 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
     except Exception as e:
         logger.exception("Error building asset response:")
         raise HTTPException(status_code=500, detail="...") from e
-        
+
     if asset_id not in g.assets:
         raise_asset_not_found(asset_id)
 
