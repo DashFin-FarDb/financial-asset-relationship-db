@@ -37,6 +37,8 @@ async def get_assets(
         start = (page - 1) * per_page
         end = start + per_page
         page_assets = assets[start:end]
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception("Error getting assets:")
         raise HTTPException(
