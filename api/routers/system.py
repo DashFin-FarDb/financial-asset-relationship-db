@@ -4,9 +4,8 @@ from typing import Any, Literal, NoReturn, cast
 
 from fastapi import APIRouter, HTTPException, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from sqlalchemy.engine import make_url
-from sqlalchemy.exc import ArgumentError
-
+from sqlalchemy.engine import make_url # pylint: disable=import-error
+from sqlalchemy.exc import ArgumentError # pylint: disable=import-error
 from api.graph_lifecycle_providers import (
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
