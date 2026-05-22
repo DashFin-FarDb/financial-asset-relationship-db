@@ -347,9 +347,6 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     with TestClient(create_app()) as client:
         detailed_response = client.get("/api/health/detailed")
 
-    with TestClient(create_app()) as client:
-        detailed_response = client.get("/api/health/detailed")
-
     assert detailed_response.status_code == 200
     payload = detailed_response.json()
     assert payload["status"] == "healthy"
@@ -357,61 +354,11 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
     assert payload["graph"]["asset_count"] == persisted_asset_count
     assert payload["graph"]["relationship_count"] == persisted_relationship_count
-    with TestClient(create_app()) as client:
-        detailed_response = client.get("/api/health/detailed")
 
-    payload = detailed_response.json()
-    assert payload["status"] == "healthy"
-    assert payload["graph_persistence_configured"] is True
-    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
-    assert payload["graph"]["graph_startup_source"] == "persisted_graph_store"
-    assert payload["graph"]["asset_count"] == persisted_asset_count
-    assert payload["graph"]["relationship_count"] == persisted_relationship_count
-    assert payload["graph_persistence_configured"] is True
-    assert payload["graph"]["graph_startup_source"] == "persisted_graph_store"
-    with TestClient(create_app()) as client:
-        detailed_response = client.get("/api/health/detailed")
 
-    payload = detailed_response.json()
-    assert payload["status"] == "healthy"
-    assert payload["graph_persistence_configured"] is True
-    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
-    with TestClient(create_app()) as client:
-        detailed_response = client.get("/api/health/detailed")
-
-    payload = detailed_response.json()
-    assert payload["status"] == "healthy"
-    assert payload["graph_persistence_configured"] is True
-    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
-    assert payload["graph"]["asset_count"] == persisted_asset_count
-    assert payload["graph"]["relationship_count"] == persisted_relationship_count
-
-    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
-    # graph_startup_source is not part of GraphHealthResponse; remove or assert lifecycle_state only
-    assert payload["graph"]["lifecycle_state"] in {"LOADED_FROM_PERSISTED_STORE", "LOADED"}
-    with TestClient(create_app()) as client:
-        detailed_response = client.get("/api/health/detailed")
-
-    payload = detailed_response.json()
-    assert payload["status"] == "healthy"
-    assert payload["graph_persistence_configured"] is True
-    assert payload["graph"]["lifecycle_state"] == "LOADED_FROM_PERSISTED_STORE"
-    assert payload["graph"]["asset_count"] == persisted_asset_count
-    assert payload["graph"]["relationship_count"] == persisted_relationship_count
-# Keep only one TestClient block; remove the duplicate.
-with TestClient(create_app()) as client:
-    detailed_response = client.get("/api/health/detailed")
-# Remove the stray module-level block entirely. The final assertions for the
-# promotion gate test belong INSIDE the function body, indented under
-# test_promotion_gate_sequence_rebuild_restart_and_persisted_startup.
-# The function test_unreachable_persistence_fails_startup_with_sanitized_error
-# should begin immediately after the promotion gate function closes.
-assert detailed_response.status_code == 200
-payload = detailed_response.json()
-assert payload["status"] == "healthy"
-assert payload["graph_persistence_configured"] is True
-assert payload["graph"]["asset_count"] == persisted_asset_count
-assert payload["graph"]["relationship_count"] == persisted_relationship_count
+def test_unreachable_persistence_fails_startup_with_sanitized_error(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Unreachable configured persistence should fail startup and avoid leaking connection secrets."""
     raw_url = "postgresql://user:secret@example.invalid/blackhole"
