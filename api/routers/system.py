@@ -4,21 +4,20 @@ from typing import Any, Literal, NoReturn, cast
 
 from fastapi import APIRouter, HTTPException, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError
 
+from api.graph_lifecycle_providers import (
+    GraphPersistenceNonDurableError,
+    GraphPersistenceNotConfiguredError,
+    get_graph_lifecycle_settings,
+    resolve_durable_graph_persistence_url,
+)
 from src.models.financial_models import AssetClass
 
 from .. import graph_lifecycle
 from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse
 from ..router_helpers import get_graph, logger
-
-from sqlalchemy.engine import make_url
-from sqlalchemy.exc import ArgumentError
-from api.graph_lifecycle_providers import (
-    get_graph_lifecycle_settings,
-    resolve_durable_graph_persistence_url,
-    GraphPersistenceNotConfiguredError,
-    GraphPersistenceNonDurableError,
-)
 
 router = APIRouter()
 
