@@ -127,9 +127,10 @@ def _get_graph_persistence_configured() -> bool:
     """Return whether durable graph persistence is explicitly configured."""
     try:
         settings = get_graph_lifecycle_settings()
-        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        settings = get_graph_lifecycle_settings()
+        url_str = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        make_url(url_str)
         return True
-    except (
         GraphPersistenceNotConfiguredError,
         GraphPersistenceNonDurableError,
         GraphPersistenceInvalidUrlError,
