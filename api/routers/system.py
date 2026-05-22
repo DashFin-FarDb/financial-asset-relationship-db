@@ -133,8 +133,8 @@ def _get_graph_persistence_configured() -> bool:
         GraphPersistenceNotConfiguredError,
         GraphPersistenceNonDurableError,
         GraphPersistenceInvalidUrlError,
-        ArgumentError,
     ):
+        return False
         return False
     except Exception as exc:
         # Removed exc_info=True to prevent leaking connection secrets in tracebacks
