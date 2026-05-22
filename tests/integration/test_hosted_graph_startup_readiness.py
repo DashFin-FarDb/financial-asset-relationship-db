@@ -7,7 +7,6 @@ import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from types import ModuleType
 from typing import Any
 
 import pytest  # pylint: disable=import-error
