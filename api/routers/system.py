@@ -201,6 +201,8 @@ async def get_sectors() -> dict[str, list[str]]:
         return {"sectors": sorted({a.sector for a in g.assets.values() if a.sector})}
     except Exception as e:
         _raise_system_route_error("Error getting sectors:", e)
+
+
 from typing import Any, Literal, NoReturn, cast
 
 from fastapi import APIRouter, HTTPException, Response  # pylint: disable=import-error
