@@ -2,9 +2,9 @@
 
 from typing import Any, Literal, NoReturn, cast
 
-from fastapi import APIRouter, HTTPException, Response
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from sqlalchemy.exc import ArgumentError
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: disable=import-error
+from sqlalchemy.engine import make_url  # pylint: disable=import-error
+from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
 
