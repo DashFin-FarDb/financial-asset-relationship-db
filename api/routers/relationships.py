@@ -24,9 +24,9 @@ async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
             )
             for target_id, rel_type, strength in g.relationships.get(asset_id, [])
         ]
+    except HTTPException:
+        raise
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise
         logger.exception("Error getting asset relationships:")
         raise HTTPException(
             status_code=500,
