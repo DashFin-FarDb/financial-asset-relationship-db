@@ -10,7 +10,6 @@ from src.models.financial_models import AssetClass
 from .. import graph_lifecycle
 from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse
 from ..graph_lifecycle_providers import (
-    GraphPersistenceInvalidUrlError,
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
     get_graph_lifecycle_settings,
