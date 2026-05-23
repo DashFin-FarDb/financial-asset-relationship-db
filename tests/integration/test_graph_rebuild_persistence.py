@@ -9,9 +9,9 @@ from concurrent.futures import ThreadPoolExecutor  # pylint: disable=no-name-in-
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI  # Added missing import
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
+from fastapi import FastAPI  # Added missing import
 from sqlalchemy import create_engine  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
@@ -91,7 +91,7 @@ async def _post_rebuild() -> _RouteResult:
 @pytest.fixture
 def authorized_app(request, monkeypatch: pytest.MonkeyPatch) -> FastAPI:
     """Public fixture configuring an authorized application context.
-    
+
     Can be indirectly parameterized to swap user permissions (e.g., 'operator').
     """
     username = getattr(request, "param", "admin")
