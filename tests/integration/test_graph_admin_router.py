@@ -14,7 +14,7 @@ import time
 from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any, Generator, TYPE_CHECKING
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
