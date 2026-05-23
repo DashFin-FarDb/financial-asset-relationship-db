@@ -4,6 +4,7 @@ from typing import Any, Literal, NoReturn, cast
 
 from fastapi import APIRouter, HTTPException, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: disable=import-error
+from sqlalchemy.engine.url import make_url  # pylint: disable=import-error
 from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
@@ -124,7 +125,6 @@ def _get_database_health() -> DatabaseHealthResponse:
 
 
 def _get_graph_persistence_configured() -> bool:
-def _get_graph_persistence_configured() -> bool:
     """Return whether durable graph persistence is explicitly configured."""
     try:
         settings = get_graph_lifecycle_settings()
@@ -144,36 +144,6 @@ def _get_graph_persistence_configured() -> bool:
         logger.error(
             "Unexpected error checking graph persistence configuration: %s",
             type(exc).__name__,
-        )
-        return False
-    ):
-        return False
-    except Exception as exc:
-        # Removed exc_info=True to prevent leaking connection secrets in tracebacks
-        logger.error(
-            "Unexpected error checking graph persistence configuration: %s",
-def _get_graph_persistence_configured() -> bool:
-except (
-    GraphPersistenceNotConfiguredError,
-    GraphPersistenceNonDurableError,
-    GraphPersistenceInvalidUrlError,
-):
-    try:
-        settings = get_graph_lifecycle_settings()
-        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-        return True
-    except (
-        GraphPersistenceNotConfiguredError,
-        GraphPersistenceNonDurableError,
-        GraphPersistenceInvalidUrlError,
-    ):
-        return False
-    except Exception as exc:
-        logger.error(
-            "Unexpected error checking graph persistence configuration: %s",
-            type(exc).__name__,
-        )
-        return False
         )
         return False
 
