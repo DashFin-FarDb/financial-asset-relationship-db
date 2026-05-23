@@ -131,7 +131,7 @@ def _get_graph_persistence_configured() -> bool:
     except (
         GraphPersistenceNotConfiguredError,
         GraphPersistenceNonDurableError,
-        GraphPersistenceInvalidUrlError, # NOSONAR: Retained for explicit contract documentation
+        GraphPersistenceInvalidUrlError,  # NOSONAR: Retained for explicit contract documentation
     ):
         return False
     except Exception as exc:
