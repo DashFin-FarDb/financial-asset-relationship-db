@@ -43,4 +43,5 @@ jobs:
       - name: Run benchmarks via CodSpeed
         uses: CodSpeedHQ/action@3194d9a39c4d46684cb44bf7207fc56626aad8fd # v4
         with:
+          mode: simulation
           run: pytest tests/benchmarks/ --codspeed
