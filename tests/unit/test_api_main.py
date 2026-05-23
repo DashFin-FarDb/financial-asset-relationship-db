@@ -51,7 +51,7 @@ CORS_DEV_ORIGIN = "http://localhost:3000"
 # -----------------------
 # Fixtures
 # -----------------------
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def clear_settings_cache() -> Iterator[None]:
     """Clear cached runtime settings around each test."""
     get_settings.cache_clear()
