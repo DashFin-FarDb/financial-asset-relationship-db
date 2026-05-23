@@ -154,7 +154,11 @@ def _get_graph_persistence_configured() -> bool:
         logger.error(
             "Unexpected error checking graph persistence configuration: %s",
 def _get_graph_persistence_configured() -> bool:
-    """Return whether durable graph persistence is explicitly configured."""
+except (
+    GraphPersistenceNotConfiguredError,
+    GraphPersistenceNonDurableError,
+    GraphPersistenceInvalidUrlError,
+):
     try:
         settings = get_graph_lifecycle_settings()
         resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
