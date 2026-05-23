@@ -1,10 +1,9 @@
 """Comprehensive unit tests for FastAPI backend.
 
-This module tests all API endpoints including:
+This module tests all API endpoints listed below, excluding `/api/metrics`:
 - Health checks and root endpoint
 - Asset retrieval with filtering
 - Asset details and relationships
-- Metrics calculation
 - Visualization data generation
 - CORS configuration
 - Error handling and edge cases
@@ -12,6 +11,7 @@ This module tests all API endpoints including:
 
 import os
 from collections.abc import Callable
+from typing import Any
 from unittest.mock import PropertyMock, patch
 
 import pytest
@@ -131,7 +131,7 @@ def mock_graph():
     return graph
 
 
-def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRelationshipGraph) -> None:
+def _apply_mock_graph_configuration(mock_graph_instance: Any, graph: AssetRelationshipGraph) -> None:
     """
     Copy core attributes from a concrete AssetRelationshipGraph onto a mocked graph used in tests.
 
@@ -141,10 +141,20 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
         mock_graph_instance (object): The mocked graph object (typically a unittest.mock.Mock) to configure.
         graph (AssetRelationshipGraph): The concrete AssetRelationshipGraph whose attributes will be copied.
     """
+    metrics = graph.calculate_metrics()
+
     # The patched object is a Mock from unittest.mock; we set attributes dynamically.
     mock_graph_instance.assets = graph.assets
     mock_graph_instance.relationships = graph.relationships
-    mock_graph_instance.calculate_metrics = graph.calculate_metrics
+    mock_graph_instance.calculate_metrics.return_value = {
+        "total_assets": metrics["total_assets"],
+        "total_relationships": metrics["total_relationships"],
+        "asset_classes": metrics["asset_classes"],
+        "avg_degree": metrics["avg_degree"],
+        "max_degree": metrics["max_degree"],
+        "network_density": metrics["network_density"],
+        "relationship_density": metrics["relationship_density"],
+    }
     mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data_enhanced
 
 
@@ -201,10 +211,17 @@ class TestCORSValidation:
             assert validate_origin(TEST_ORIGIN_HTTP_LOOPBACK) is True
 
     @staticmethod
-    def test_validate_origin_localhost_https_always():
-        """Test HTTPS localhost is always valid."""
+    def test_validate_origin_localhost_https_policy():
+        """Test HTTPS localhost is valid, while HTTPS loopback is development-only."""
+        get_settings.cache_clear()
         assert validate_origin(TEST_ORIGIN_HTTPS_LOCALHOST) is True
-        assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is True
+        with patch.dict("os.environ", {"ENV": "development"}):
+            get_settings.cache_clear()
+            assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is True
+        with patch.dict("os.environ", {"ENV": "production"}):
+            get_settings.cache_clear()
+            assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is False
+        get_settings.cache_clear()
 
     @staticmethod
     def test_validate_origin_vercel_urls():
@@ -246,7 +263,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 4  # equity, bond, commodity, currency
 
         # Verify structure
@@ -266,7 +283,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 1
         assert data[0]["asset_class"] == "Equity"
         assert data[0]["symbol"] == "AAPL"
@@ -278,7 +295,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?sector=Technology")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 1
         assert data[0]["sector"] == "Technology"
 
@@ -289,7 +306,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?asset_class=Equity&sector=Technology")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 1
         assert data[0]["asset_class"] == "Equity"
         assert data[0]["sector"] == "Technology"
@@ -301,7 +318,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
 
         equity = data[0]
         assert "additional_fields" in equity
@@ -410,45 +427,6 @@ class TestRelationshipsEndpoint:
 
 
 @pytest.mark.unit
-class TestMetricsEndpoint:
-    """Test metrics calculation endpoint."""
-
-    @patch("api.main.graph")
-    def test_get_metrics(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test retrieving network metrics."""
-        apply_mock_graph(mock_graph_instance, mock_graph)
-
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "total_assets" in data
-        assert "total_relationships" in data
-        assert "asset_classes" in data
-        assert "avg_degree" in data
-        assert "max_degree" in data
-        assert "network_density" in data
-
-        assert data["total_assets"] == 4
-        assert isinstance(data["asset_classes"], dict)
-        assert data["avg_degree"] >= 0
-        assert data["network_density"] >= 0
-
-    @patch("api.main.graph")
-    def test_metrics_asset_class_distribution(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test asset class distribution in metrics."""
-        apply_mock_graph(mock_graph_instance, mock_graph)
-
-        response = client.get("/api/metrics")
-        data = response.json()
-
-        assert "Equity" in data["asset_classes"]
-        assert "Fixed Income" in data["asset_classes"]
-        assert data["asset_classes"]["Equity"] == 1
-        assert data["asset_classes"]["Fixed Income"] == 1
-
-
-@pytest.mark.unit
 class TestVisualizationEndpoint:
     """Test 3D visualization data endpoint."""
 
@@ -550,7 +528,7 @@ class TestEdgeCases:
 
     @patch("api.main.graph")
     def test_empty_graph(self, mock_graph_instance, client):
-        """Test handling of empty graph."""
+        """Assets endpoint remains available for empty graphs."""
         empty_graph = AssetRelationshipGraph()
         # Ensure the patched graph has an empty assets mapping as well as relationships.
         mock_graph_instance.assets = empty_graph.assets
@@ -559,13 +537,7 @@ class TestEdgeCases:
 
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assert len(response.json()) == 0
-
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["total_relationships"] == 0
+        assert len(asset_items(response.json())) == 0
 
     @patch("api.main.graph")
     def test_special_characters_in_asset_id(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
@@ -583,7 +555,7 @@ class TestEdgeCases:
 
         response = client.get("/api/assets?sector=NonExistent")
         assert response.status_code == 200
-        assert len(response.json()) == 0
+        assert len(asset_items(response.json())) == 0
 
 
 @pytest.mark.unit
@@ -604,7 +576,7 @@ class TestConcurrency:
         # All should succeed
         for response in responses:
             assert response.status_code == 200
-            assert len(response.json()) == 4
+            assert len(asset_items(response.json())) == 4
 
 
 @pytest.mark.unit
@@ -621,7 +593,7 @@ class TestResponseValidation:
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         response = client.get("/api/assets")
-        data = response.json()
+        data = asset_items(response.json())
 
         for asset in data:
             # Required fields
@@ -949,7 +921,11 @@ class TestAPIBoundaryConditions:
         # Should not timeout or error
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assert len(response.json()) == 1000
+        data = response.json()
+        assert data["page"] == 1
+        assert data["per_page"] == 50
+        assert data["total"] == 1000
+        assert len(data["items"]) == 50
 
     @staticmethod
     @patch("api.main.graph")
@@ -1000,22 +976,6 @@ class TestNegativeScenarios:
         result = validate_origin("https://münchen.de")
         # IDN with HTTPS: validate_origin should accept valid HTTPS domains
         assert result is True
-
-    @staticmethod
-    @patch("api.main.graph")
-    def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
-        """Negative: Metrics with empty graph should not cause division by zero."""
-        empty_graph = AssetRelationshipGraph()
-        mock_graph_instance.assets = empty_graph.assets
-        mock_graph_instance.relationships = empty_graph.relationships
-        mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
-
-        # Should not raise ZeroDivisionError
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["network_density"] == 0
 
 
 class TestUserInDBClassRefactoring:

@@ -15,7 +15,13 @@
 
 import axios from "axios";
 import type { AxiosInstance } from "axios";
-import { mockAsset, mockMetrics, mockVizData, mockAssets } from "../test-utils";
+import {
+  mockAsset,
+  mockMetrics,
+  mockVizData,
+  mockAssets,
+  mockAssetsPage,
+} from "../test-utils";
 
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -70,7 +76,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should handle asset search with filters pattern", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
+      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
 
       // User applies filters
       const filters = { asset_class: "EQUITY", sector: "Technology" };
@@ -78,8 +84,11 @@ describe("Axios Upgrade Integration Tests", () => {
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
         params: filters,
+        signal: undefined,
       });
-      expect(result).toEqual(mockAssets);
+      expect(result).toEqual(mockAssetsPage);
+      expect(result.items).toEqual(mockAssets);
+      expect(result.total).toBe(mockAssetsPage.total);
     });
 
     it("should handle detail view navigation pattern", async () => {
@@ -143,9 +152,11 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should gracefully handle empty response after error", async () => {
+      const emptyPage = { items: [], total: 0, page: 1, per_page: 50 };
+
       mockAxiosInstance.get
         .mockRejectedValueOnce({ response: { status: 404 } })
-        .mockResolvedValueOnce({ data: [] });
+        .mockResolvedValueOnce({ data: emptyPage });
 
       // 404 on asset detail
       await expect(api.getAssetDetail("NONEXISTENT")).rejects.toMatchObject({
@@ -154,7 +165,9 @@ describe("Axios Upgrade Integration Tests", () => {
 
       // Fallback to list
       const assets = await api.getAssets();
-      expect(assets).toEqual([]);
+      expect(assets).toEqual(emptyPage);
+      expect(assets.items).toEqual([]);
+      expect(assets.total).toBe(0);
     });
   });
 
@@ -218,13 +231,16 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should NOT break: query parameter handling", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: [] });
+      mockAxiosInstance.get.mockResolvedValue({
+        data: { items: [], total: 0, page: 1, per_page: 50 },
+      });
 
       await api.getAssets({ asset_class: "EQUITY" });
 
       // Params should still be passed correctly
       expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
         params: { asset_class: "EQUITY" },
+        signal: undefined,
       });
     });
 

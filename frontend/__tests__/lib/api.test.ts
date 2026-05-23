@@ -38,6 +38,7 @@ import type { Metrics, VisualizationData } from "../../app/types/api";
 import { api } from "../../app/lib/api";
 import {
   mockAssets,
+  mockAssetsPage,
   mockAsset,
   mockRelationships,
   mockAllRelationships,
@@ -104,7 +105,7 @@ describe("API Client", () => {
 
       const result = await api.healthCheck();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health");
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health", undefined);
       expect(result).toEqual({ status: "healthy" });
     });
 
@@ -120,7 +121,7 @@ describe("API Client", () => {
   // ---------------------------------------------------------------------------
   describe("getAssets", () => {
     it("should fetch all assets without filters", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
+      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
 
       const result = await api.getAssets();
 
@@ -128,12 +129,15 @@ describe("API Client", () => {
         params: undefined,
         signal: undefined,
       });
-      expect(result).toEqual(mockAssets);
-      expect(result).toHaveLength(2);
+      expect(result).toEqual(mockAssetsPage);
+      expect(result.items).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(1);
+      expect(result.per_page).toBe(50);
     });
 
     it("should fetch assets with asset_class filter", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
+      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
 
       await api.getAssets({ asset_class: "EQUITY" });
 
@@ -144,7 +148,7 @@ describe("API Client", () => {
     });
 
     it("should fetch assets with sector filter", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
+      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
 
       await api.getAssets({ sector: "Technology" });
 
@@ -155,7 +159,7 @@ describe("API Client", () => {
     });
 
     it("should fetch assets with both filters", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
+      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
 
       await api.getAssets({ asset_class: "EQUITY", sector: "Technology" });
 
@@ -166,7 +170,7 @@ describe("API Client", () => {
     });
 
     it("should forward page param", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
+      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
 
       await api.getAssets({ page: 2 });
 
@@ -177,7 +181,7 @@ describe("API Client", () => {
     });
 
     it("should forward per_page param", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
+      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
 
       await api.getAssets({ per_page: 50 });
 
@@ -188,7 +192,7 @@ describe("API Client", () => {
     });
 
     it("should forward combined pagination + filter params", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
+      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
 
       await api.getAssets({
         asset_class: "EQUITY",
@@ -209,12 +213,14 @@ describe("API Client", () => {
     });
 
     it("should handle empty asset list", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: [] });
+      const emptyPage = { items: [], total: 0, page: 1, per_page: 50 };
+      mockAxiosInstance.get.mockResolvedValue({ data: emptyPage });
 
       const result = await api.getAssets();
 
-      expect(result).toEqual([]);
-      expect(result).toHaveLength(0);
+      expect(result.items).toEqual([]);
+      expect(result.items).toHaveLength(0);
+      expect(result.total).toBe(0);
     });
 
     it("should handle API errors when fetching assets", async () => {
@@ -224,7 +230,7 @@ describe("API Client", () => {
     });
 
     it("should forward AbortSignal to axios config", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssets });
+      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
       const controller = new AbortController();
 
       await api.getAssets(undefined, controller.signal);
@@ -536,7 +542,7 @@ describe("API Client", () => {
 
       const result = await api.getAssetClasses();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/asset-classes");
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/asset-classes", undefined);
       expect(result).toEqual(mockAssetClasses);
       expect(result.asset_classes).toHaveLength(4);
     });
@@ -569,7 +575,7 @@ describe("API Client", () => {
 
       const result = await api.getSectors();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/sectors");
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/sectors", undefined);
       expect(result).toEqual(mockSectors);
       expect(result.sectors).toHaveLength(3);
     });

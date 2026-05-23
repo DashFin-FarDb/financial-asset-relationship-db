@@ -1,5 +1,6 @@
 import type {
   Asset,
+  AssetPageResponse,
   Relationship,
   Metrics,
   VisualizationData,
@@ -29,6 +30,13 @@ export const mockAssets: Asset[] = [
     additional_fields: {},
   },
 ];
+
+export const mockAssetsPage: AssetPageResponse = {
+  items: mockAssets,
+  total: 2,
+  page: 1,
+  per_page: 50,
+};
 
 export const mockAsset: Asset = {
   id: "ASSET_1",

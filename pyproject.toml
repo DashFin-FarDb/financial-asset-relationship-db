@@ -70,6 +70,7 @@ python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
+norecursedirs = ["benchmarks"]
 addopts = [
     "-v",
     "--strict-markers",
@@ -78,6 +79,7 @@ markers = [
     "unit: Unit tests",
     "integration: Integration tests",
     "slow: Slow running tests",
+    "benchmark: Performance benchmark tests",
 ]
 
 [tool.coverage.run]

@@ -340,8 +340,14 @@ class AssetRelationshipGraph:
                 - total_relationships (int): Total number of relationships stored.
                 - average_relationship_strength (float): Mean strength across all relationships (0.0 if none).
                 - relationship_density (float): Percentage of possible directed links present (0.0–100.0).
+                - network_density (float): Normalized fraction of possible directed links present (0.0–1.0).
                 - relationship_distribution (dict[str, int]): Counts of relationships grouped by relationship type.
                 - asset_class_distribution (dict[str, int]): Counts of assets grouped by asset class value.
+                - asset_classes (dict[str, int]): Public API alias for asset_class_distribution.
+                - avg_degree (float): Mean outgoing relationship count for sources in the relationship map.
+                  Zero-degree assets (those absent from ``relationships``) are excluded from this average.
+                - max_degree (int): Maximum outgoing relationship count for sources in the relationship map.
+                  Zero-degree assets (those absent from ``relationships``) are excluded from this maximum.
                 - top_relationships (list[tuple[str, str, str, float]]): Up to 10 relationships sorted by strength as (source_id, target_id, rel_type, strength).
                 - regulatory_event_count (int): Number of stored regulatory events.
                 - regulatory_event_norm (float): Normalized regulatory event count in [0.0, 1.0) using a saturating mapping.
@@ -359,6 +365,7 @@ class AssetRelationshipGraph:
             total_relationships,
         )
         asset_class_dist = self._asset_class_distribution()
+        avg_degree, max_degree = self._degree_metrics()
         reg_events = len(self.regulatory_events)
         reg_events_norm, quality_score = self._quality_metrics(avg_strength, reg_events)
 
@@ -367,8 +374,14 @@ class AssetRelationshipGraph:
             "total_relationships": total_relationships,
             "average_relationship_strength": avg_strength,
             "relationship_density": density,
+            "network_density": density / 100.0,
             "relationship_distribution": rel_dist,
             "asset_class_distribution": asset_class_dist,
+            "asset_classes": dict(asset_class_dist),
+            # avg_degree and max_degree are computed across sources present in
+            # `relationships`, not all assets; zero-degree assets are excluded.
+            "avg_degree": avg_degree,
+            "max_degree": max_degree,
             "top_relationships": top_relationships,
             "regulatory_event_count": reg_events,
             "regulatory_event_norm": reg_events_norm,
@@ -583,6 +596,19 @@ class AssetRelationshipGraph:
             key = asset.asset_class.value
             dist[key] = dist.get(key, 0) + 1
         return dist
+
+    def _degree_metrics(self) -> tuple[float, int]:
+        """
+        Compute public outgoing-degree metrics from the relationship map.
+
+        Returns:
+            tuple[float, int]: Average and maximum outgoing relationship counts
+                across sources present in `relationships`.
+        """
+        degrees = [len(rels) for rels in self.relationships.values()]
+        if not degrees:
+            return 0.0, 0
+        return sum(degrees) / len(degrees), max(degrees)
 
     @staticmethod
     def _relationship_density(asset_count: int, rel_count: int) -> float:

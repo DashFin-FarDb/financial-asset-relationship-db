@@ -1,8 +1,26 @@
 """Pydantic response models for API endpoints."""
 
-from typing import Any
+from datetime import datetime
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+from src.data.db_models import RebuildJobStatus
+
+AssetGraphSource = Literal[
+    "persisted_graph_store",
+    "sample",
+    "cache",
+    "real_data",
+    "explicit_factory",
+    "unknown",
+]
+
+GraphRebuildSource = Literal[
+    "cache",
+    "real_data",
+    "sample",
+]
 
 
 class AssetResponse(BaseModel):
@@ -19,6 +37,15 @@ class AssetResponse(BaseModel):
     additional_fields: dict[str, Any] = Field(default_factory=dict)
 
 
+class AssetPageResponse(BaseModel):
+    """Response model for paginated asset data."""
+
+    items: list[AssetResponse]
+    total: int
+    page: int
+    per_page: int
+
+
 class RelationshipResponse(BaseModel):
     """Response model for relationship data."""
 
@@ -29,7 +56,7 @@ class RelationshipResponse(BaseModel):
 
 
 class MetricsResponse(BaseModel):
-    """Response model for network metrics."""
+    """Response model for graph-owned public network metrics."""
 
     total_assets: int
     total_relationships: int
@@ -40,8 +67,122 @@ class MetricsResponse(BaseModel):
     relationship_density: float = 0.0
 
 
-class VisualizationDataResponse(BaseModel):
-    """Response model for visualization data."""
+class VisualizationNode(BaseModel):
+    """Response model for a visualization node."""
 
-    nodes: list[dict[str, Any]]
-    edges: list[dict[str, Any]]
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    symbol: str
+    name: str
+    asset_class: str
+    x: float
+    y: float
+    z: float
+    color: str
+    size: int
+
+
+class VisualizationEdge(BaseModel):
+    """Response model for a visualization edge."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    source: str
+    target: str
+    relationship_type: str
+    strength: float
+
+
+class VisualizationDataResponse(BaseModel):
+    """Response model for typed visualization data."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nodes: list[VisualizationNode]
+    edges: list[VisualizationEdge]
+
+
+class GraphHealthResponse(BaseModel):
+    """Non-secret graph readiness status."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    available: bool
+    lifecycle_state: str = "UNINITIALIZED"
+    asset_count: int = Field(ge=0)
+    relationship_count: int = Field(ge=0)
+
+
+class DatabaseHealthResponse(BaseModel):
+    """Non-secret auth database readiness status."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    configured: bool
+    type: Literal["sqlite", "postgresql", "unknown"]
+    reachable: bool
+
+
+class DetailedHealthResponse(BaseModel):
+    """Non-secret hosted deployment readiness status."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["healthy", "degraded"]
+    graph_persistence_configured: bool = Field(
+        default=False,
+        title="Graph persistence configured",
+        description="Indicates whether durable graph persistence is configured (durable, non-memory store). Defaults to False for backwards compatibility.",
+        examples=[False, True],
+    )
+    graph: GraphHealthResponse
+    database: DatabaseHealthResponse
+
+
+class GraphRebuildResponse(BaseModel):
+    """Response model for explicit graph rebuild persistence."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["persisted"] = "persisted"
+    source: GraphRebuildSource
+    asset_count: int = Field(ge=0)
+    relationship_count: int = Field(ge=0)
+    regulatory_event_count: int = Field(ge=0)
+
+
+class RebuildJobResponse(BaseModel):
+    """Response model for rebuild job status.
+
+    Exposes bounded sanitized rebuild job state only.
+    No raw exceptions, stack traces, DB URLs, credentials, or ORM internals.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    job_id: str
+    status: RebuildJobStatus
+    source: str | None
+    requested_by: str
+    created_at: datetime
+    updated_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    duration_ms: int | None
+    node_count: int | None
+    edge_count: int | None
+    failure_category: str | None
+    failure_message: str | None
+
+
+class RebuildJobListResponse(BaseModel):
+    """Response model for rebuild job listing.
+
+    Bounded rebuild job list structure.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    jobs: list[RebuildJobResponse]
+    count: int = Field(ge=0)

@@ -4,6 +4,12 @@
 
 This guide explains how to deploy the Financial Asset Relationship Database using the production-recommended FastAPI + Next.js stack on Vercel or other cloud platforms.
 
+**For the hosted deployment and durable persistence decision, see [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).**
+
+**For the full enterprise deployment operating model
+(including promotion, rollback, and environment boundaries), see
+[docs/enterprise-deployment-operating-model.md](docs/enterprise-deployment-operating-model.md).**
+
 **Note:** The Gradio UI (`app.py`) is available for demos, and internal testing, but is **not recommended for production deployment**. This guide focuses on the production architecture.
 
 ## Architecture Overview
@@ -12,6 +18,61 @@ The production application consists of two main components:
 
 1. **Backend API** (`/api`): FastAPI server that provides REST endpoints for the asset relationship graph
 2. **Frontend** (`/frontend`): Next.js application with React components for visualization
+
+## Backend Production Contract
+
+The backend production entrypoint is:
+
+```text
+api.main:app
+```
+
+`api/main.py` is intentionally a thin public entrypoint and compatibility surface. FastAPI application
+construction, lifespan startup, middleware, and router registration live in `api/app_factory.py`.
+
+Use this production-style run command on hosts that provide a `PORT` environment variable:
+
+```bash
+python -m uvicorn api.main:app --host 0.0.0.0 --port "${PORT:-8000}"
+```
+
+For local production-like testing, the command defaults to port `8000` when `PORT` is not set.
+
+Minimum backend environment required before importing `api.main`:
+
+- `DATABASE_URL` — Database connection string; local/dev: `sqlite:dev.db`, production: PostgreSQL URL
+- `SECRET_KEY` — JWT signing key used by `api/auth.py`
+- Existing user credentials in the configured database, or bootstrap credentials:
+  - `ADMIN_USERNAME`
+  - `ADMIN_PASSWORD`
+  - Optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
+
+Optional backend runtime settings:
+
+- `ENV` — environment mode; defaults to `development`
+- `ALLOWED_ORIGINS` — comma-separated CORS allowlist; read from the environment by the settings layer
+- `GRAPH_CACHE_PATH` — graph cache path
+- `REAL_DATA_CACHE_PATH` — real-data cache path
+- `USE_REAL_DATA_FETCHER` — truthy value enables real-data fetcher mode
+- `ASSET_GRAPH_DATABASE_URL` — graph persistence URL for durable graph-truth persistence; this does not replace the API auth/database `DATABASE_URL` requirement
+- `POSTGRES_URL` — Vercel Postgres provider fallback; used only if `DATABASE_URL` is not set
+
+### Database Configuration
+
+The API database layer supports both **SQLite** (local/dev) and **PostgreSQL** (production).
+
+**Local/Development (SQLite):**
+
+- SQLite files such as `sqlite:dev.db` are suitable for local development
+- In-memory databases (`sqlite:///:memory:`) work for testing
+
+**Production/Hosted (PostgreSQL):**
+
+- PostgreSQL is the recommended durable persistence target for hosted deployments
+- Example: `postgresql://user:password@host:5432/database`
+- Vercel Postgres: If `DATABASE_URL` is not set, `POSTGRES_URL` is used as a fallback
+
+**Important:** SQLite is not durable on Vercel/serverless filesystems due to ephemeral file storage. Use PostgreSQL for production hosted deployments requiring persistence.
 
 ## Local Development
 
@@ -38,13 +99,20 @@ The production application consists of two main components:
 
 3. **Run the FastAPI backend:**
 
+   The following commands use Linux/macOS shell syntax. On Windows PowerShell, set the same variables with `$env:NAME="value"` before running the `python -m uvicorn ...` command.
+
    ```bash
-   python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+   export DATABASE_URL="sqlite:dev.db"
+   export SECRET_KEY="replace-me-for-local-dev"
+   export ADMIN_USERNAME="admin"
+   export ADMIN_PASSWORD="replace-me-for-local-dev"
+   python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
    ```
 
    The API will be available at `http://localhost:8000`
    - API documentation: `http://localhost:8000/docs`
    - Health check: `http://localhost:8000/api/health`
+   - Detailed readiness check: `http://localhost:8000/api/health/detailed`
 
 ### Frontend Setup
 
@@ -173,7 +241,8 @@ The FastAPI backend exposes the following endpoints:
 ### Core Endpoints
 
 - `GET /` - API information
-- `GET /api/health` - Health check
+- `GET /api/health` - Simple liveness health check
+- `GET /api/health/detailed` - Bounded hosted-readiness diagnostics for graph and auth database status
 
 ### Assets
 
@@ -198,6 +267,97 @@ The FastAPI backend exposes the following endpoints:
 
 - `GET /api/asset-classes` - Get available asset classes
 - `GET /api/sectors` - Get available sectors
+
+### Detailed Readiness Check
+
+Use `GET /api/health/detailed` for hosted deployment diagnostics after the API is deployed.
+
+The response is intentionally bounded and non-secret. It reports:
+
+- overall readiness status: `healthy` or `degraded`
+- graph availability
+- graph asset and relationship counts
+- auth database configured/reachable status
+- auth database type: `sqlite`, `postgresql`, or `unknown`
+
+`GET /api/health/detailed` is a readiness signal only. It confirms bounded
+in-memory graph availability and auth/application database reachability. It
+does **not** prove the runtime graph was loaded from durable persisted graph
+truth, and it does not prove `ASSET_GRAPH_DATABASE_URL` is configured.
+
+Example healthy response:
+
+```json
+{
+  "status": "healthy",
+  "graph": {
+    "available": true,
+    "asset_count": 19,
+    "relationship_count": 57
+  },
+  "database": {
+    "configured": true,
+    "type": "postgresql",
+    "reachable": true
+  }
+}
+```
+
+Example degraded response:
+
+```json
+{
+  "status": "degraded",
+  "graph": {
+    "available": true,
+    "asset_count": 19,
+    "relationship_count": 57
+  },
+  "database": {
+    "configured": true,
+    "type": "postgresql",
+    "reachable": false
+  }
+}
+```
+
+It must not expose:
+
+- environment names
+- database URLs
+- database filesystem paths
+- hostnames
+- usernames
+- provider names
+- exception messages
+- secrets
+
+A degraded response still returns HTTP 200. Treat `status: "degraded"` as an operational readiness signal, not an HTTP transport failure. Automated monitoring tools should be configured to verify the status field in the JSON response body.
+
+### Verifying persisted graph startup loading
+
+For staging and production deployment acceptance, use this hosted-safe flow to verify runtime startup loaded graph truth from durable persistence (when INFO-level application logs are enabled):
+
+1. Configure a durable `ASSET_GRAPH_DATABASE_URL` (for hosted deployment, use PostgreSQL).
+2. Populate graph truth only through the authenticated `POST /api/graph/rebuild` route or a controlled operator seed.
+3. Restart/redeploy the API service.
+4. Check startup logs for `Graph startup source: persisted_graph_store`.
+5. Call `GET /api/health/detailed` and confirm bounded graph counts match your persisted baseline.
+6. If an approved sentinel baseline exists, verify expected sentinel assets and directed relationships via `GET /api/assets` and `GET /api/relationships`.
+
+For staging and production, step 5 is required promotion evidence. Step 6 is
+recommended diagnostic evidence when an approved sentinel baseline exists.
+A healthy detailed-readiness response alone is not sufficient for
+staging/production promotion because startup can still serve fallback graph
+state when durable graph persistence is not configured or not loaded.
+
+`DATABASE_URL` and `ASSET_GRAPH_DATABASE_URL` represent different boundaries:
+
+- `DATABASE_URL` covers auth/application database configuration and reachability.
+- `ASSET_GRAPH_DATABASE_URL` covers durable graph-truth persistence.
+- Successful auth/application database readiness does not imply graph persistence is configured or loaded.
+
+Readiness and read-only checks must not trigger rebuilds, call persistence save flows, expose connection URLs or credentials, include raw exception text, or dump full graph data.
 
 ## Frontend Features
 
@@ -225,21 +385,23 @@ NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app
 
 ### CORS Issues
 
-If you encounter CORS errors, ensure the FastAPI backend has the correct origins configured in `api/main.py`:
-
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://*.vercel.app"],
-    ...
-)
-```
+If you encounter CORS errors, configure `ALLOWED_ORIGINS` for explicit production origins. CORS settings
+are loaded through `src/config/settings.py` and applied by `api/cors_policy.py`; do not edit
+`api/main.py` middleware directly.
 
 ### API Connection Errors
 
 1. Check that the backend is running: `curl http://localhost:8000/api/health`
-2. Verify the `NEXT_PUBLIC_API_URL` environment variable
-3. Check browser console for detailed error messages
+2. For hosted readiness diagnostics, also check:
+
+   ```bash
+   curl https://your-api-domain.vercel.app/api/health/detailed
+   ```
+
+   The response should include only `status`, `graph`, and `database` at the top level.
+
+3. Verify the `NEXT_PUBLIC_API_URL` environment variable
+4. Check browser console for detailed error messages
 
 ### Build Errors
 

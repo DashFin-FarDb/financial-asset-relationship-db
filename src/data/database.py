@@ -93,8 +93,23 @@ def init_db(engine: Engine) -> None:
     Create database tables for all ORM models declared on Base.metadata.
 
     Creates any missing tables in the database referenced by the provided SQLAlchemy Engine.
+    Also applies any pending SQL migrations to ensure schema is up-to-date.
 
     Parameters:
         engine (Engine): SQLAlchemy Engine connected to the target database where tables will be created.
     """
+    from .migrations import apply_migrations, apply_postgresql_heartbeat_migration
+
     Base.metadata.create_all(engine)
+
+    # Apply SQL migrations (e.g., adding heartbeat columns to rebuild_jobs)
+    # Extract database path from engine URL for SQLite databases
+    # For non-SQLite or in-memory databases, skip migrations (they use create_all only)
+    url = make_url(engine.url)
+    backend = url.get_backend_name()
+    query = url.query or {}
+    is_sqlite_memory = backend == "sqlite" and (url.database == ":memory:" or query.get("mode") == "memory")
+    if backend == "sqlite" and url.database and not is_sqlite_memory:
+        apply_migrations(url.database)
+    elif backend == "postgresql":
+        apply_postgresql_heartbeat_migration(engine)

@@ -131,9 +131,38 @@ Security scanners must not automatically:
 3. Change authentication or authorization models
 4. Modify API contracts to fix security issues
 
+For detailed scanner finding rules and suppression guidance, see the "High-risk change control" section in [AI_AGENT_GUARDRAILS.md](AI_AGENT_GUARDRAILS.md).
+
 ### Prioritization
 
 Security issues in the **production architecture** (FastAPI + Next.js) take priority over issues in the **non-production** Gradio UI.
+
+### Scanner Scope Control
+
+Automated security and quality scanners must:
+
+1. Focus primary analysis on production architecture (FastAPI + Next.js)
+2. Clearly distinguish production findings from non-production findings
+3. Not auto-enable analysis for unused language ecosystems or package managers
+4. Not use broad auto-detection flags (e.g., `--all-projects`) without explicit documentation of intended scope
+
+Scanners must not:
+
+1. Expand PR scope from "fix specific vulnerability" to "fix all scanner findings" without approval
+2. Fail CI based solely on findings in non-production code paths
+3. Drive implementation decisions (e.g., suggesting architecture changes to satisfy scanner rules)
+4. Override documented dependency source-of-truth (requirements.txt) based on scanner assumptions
+
+### Scanner Findings and PR Scope
+
+If a scanner identifies issues in non-production code (Gradio UI, demo scripts, test utilities):
+
+1. Report the finding with context (production vs. non-production)
+2. Prioritize production issues first
+3. Do not automatically create PRs to fix non-production issues
+4. Do not widen an existing PR to include non-production fixes
+
+Scanner noise (false positives, low-priority warnings, non-production findings) should not block PRs or drive scope expansion.
 
 ## Testing and CI/CD
 
@@ -247,7 +276,8 @@ Repository maintainers will:
 
 ## Version
 
-- **Version**: 1.1
+- **Version**: 1.2
 - **Effective Date**: 2026-04-17
-- **Last Updated**: 2026-04-17
+- **Last Updated**: 2026-04-29
 - **Next Review**: 2026-07-17 (3 months)
+- **Changes in 1.2**: Added scanner scope control guardrails (2026-04-29)
