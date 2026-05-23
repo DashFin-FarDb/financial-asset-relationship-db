@@ -143,7 +143,7 @@ def _create_rebuild_jobs(
 
 
 @pytest.fixture
-def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:  # pylint: disable=unused-argument
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
     """Ensure the expected admin username is set via env vars and clear cache."""
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     get_settings.cache_clear()
