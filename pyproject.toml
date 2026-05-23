@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "bleach>=6.1.0",
-    "gradio>=5.11.0",
+    "gradio>=5.11.0,<7.0.0",
     "Markdown>=3.4,<4.0",
     "curl-cffi>=0.7.0",
     "requests>=2.32.2",
