@@ -53,8 +53,10 @@ jobs:
 
       - name: Check Snyk token availability
         id: check-token
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          if [ -z "${{ secrets.SNYK_TOKEN }}" ]; then
+          if [ -z "$SNYK_TOKEN" ]; then
             echo "token_available=false" >> $GITHUB_OUTPUT
           else
             echo "token_available=true" >> $GITHUB_OUTPUT
@@ -77,6 +79,7 @@ jobs:
 
         # Build the docker image for testing
       - name: Build a Docker image
+        if: steps.check-token.outputs.token_available == 'true'
         run: docker build -t your/image-to-test .
         # Runs Snyk Container (Container and SCA) analysis and uploads result to Snyk.
       - name: Snyk Container monitor
