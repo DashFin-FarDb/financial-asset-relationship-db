@@ -87,20 +87,25 @@ async def _post_rebuild() -> _RouteResult:
     return _RouteResult(200, body.model_dump())
 
 
-def _authorized_app(monkeypatch: pytest.MonkeyPatch):
-    """Create an app with an active authorized operator."""
-    monkeypatch.setenv("ADMIN_USERNAME", "admin")
+@pytest.fixture
+def authorized_app(request, monkeypatch: pytest.MonkeyPatch):
+    # Check if the test passed a specific username parameter, otherwise default to "admin"
+    # Intentionally allows both 'admin' and 'operator' until a subsequent PR
+    username = getattr(request, "param", "admin")
+    
+    monkeypatch.setenv("ADMIN_USERNAME", username)
     get_settings.cache_clear()
 
     app = create_app()
 
     def active_user() -> User:
-        """Return an active test user."""
-        return User(username="admin", disabled=False)
+        return User(username=username, disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
-
-    return app
+    
+    yield app
+    
+    app.dependency_overrides.clear()
 
 
 async def _post_rebuild_http(
