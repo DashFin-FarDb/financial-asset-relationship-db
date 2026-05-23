@@ -12,6 +12,13 @@ Ensures only designated **operator users** can execute destructive graph rebuild
 
 ## Authorization Flow
 
+```text
+Request
+  └─► get_current_active_user()  [JWT auth + active check]
+        └─► get_current_rebuild_operator_user()  [operator username check]
+              ├─► ADMIN_USERNAME not set → 503 Service Unavailable
+              ├─► username != ADMIN_USERNAME → 403 Forbidden
+              └─► match → 200 OK (endpoint executes)
 ```
 
 ## Configuration
