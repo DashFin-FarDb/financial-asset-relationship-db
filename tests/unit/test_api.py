@@ -36,7 +36,7 @@ TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
 def clear_settings_cache():
     """
     Clear cached runtime settings before and after each test.
-    
+
     Calls get_settings.cache_clear() once prior to test execution and once after to prevent cached configuration from leaking between tests.
     """
     get_settings.cache_clear()
@@ -47,17 +47,17 @@ def clear_settings_cache():
 def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
     """
     Extracts the list of asset records from a paginated assets response.
-    
+
     Parameters:
-    	page (dict[str, Any]): Paginated response expected to contain keys
-    		"items" (list), "total" (int), "page" (int), and "per_page" (int).
-    
+        page (dict[str, Any]): Paginated response expected to contain keys
+                "items" (list), "total" (int), "page" (int), and "per_page" (int).
+
     Returns:
-    	list[dict[str, Any]]: The `items` list containing asset records.
-    
+        list[dict[str, Any]]: The `items` list containing asset records.
+
     Raises:
-    	AssertionError: If the response is missing required keys or if any of the
-    		expected fields have an incorrect type.
+        AssertionError: If the response is missing required keys or if any of the
+                expected fields have an incorrect type.
     """
     assert set(page) == {"items", "total", "page", "per_page"}
     assert isinstance(page["items"], list)
