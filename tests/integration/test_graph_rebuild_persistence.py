@@ -109,10 +109,10 @@ def authorized_app(request, monkeypatch: pytest.MonkeyPatch):
 
 
 async def _post_rebuild_http(
-    monkeypatch: pytest.MonkeyPatch,
+    app: FastAPI
 ) -> httpx.Response:
     """Post to rebuild through the HTTP route with an authorized user."""
-    transport = httpx.ASGITransport(app=_authorized_app(monkeypatch))
+    transport = httpx.ASGITransport(app=app)
 
     async with httpx.AsyncClient(
         transport=transport,
