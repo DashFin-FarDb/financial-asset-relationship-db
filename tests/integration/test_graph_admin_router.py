@@ -14,7 +14,7 @@ import time
 from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Generator
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
@@ -140,6 +140,49 @@ def _create_rebuild_jobs(
 # ---------------------------------------------------------------------------
 # Rebuild Action Endpoints Tests
 # ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
+    """Ensure the expected admin username is set via env vars and clear cache."""
+    monkeypatch.setenv("ADMIN_USERNAME", "admin")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+@pytest.fixture
+def non_operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
+    """Client authenticated as a standard, non-operator active user."""
+    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
+
+    app = create_app()
+
+    def active_user() -> User:
+        """Return a mock standard active user."""
+        return User(username="standard_analyst", disabled=False)
+
+    app.dependency_overrides[get_current_active_user] = active_user
+
+    with TestClient(app) as client:
+        yield client
+
+
+@pytest.fixture
+def operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
+    """Client authenticated as the authorized operator user."""
+    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
+
+    app = create_app()
+
+    def active_operator() -> User:
+        """Return a mock authorized operator user."""
+        return User(username="admin", disabled=False)
+
+    app.dependency_overrides[get_current_active_user] = active_operator
+
+    with TestClient(app) as client:
+        yield client
 
 
 async def test_app_construction_with_graph_admin_router_succeeds() -> None:
@@ -290,6 +333,7 @@ def test_rebuild_returns_503_when_operator_authorization_not_configured(
 
 async def test_rebuild_returns_429_when_rebuild_already_running(
     caplog: pytest.LogCaptureFixture,
+    mock_settings: Any,
 ) -> None:
     """Concurrent rebuild requests should fail fast instead of queueing."""
     graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
@@ -412,6 +456,7 @@ def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
 async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
+    mock_settings: Any,
 ) -> None:
     """Callback logs outcome metrics layout correctly when task context cancellation occurs."""
     thread_reached = threading.Event()

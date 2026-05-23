@@ -7,10 +7,11 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor  # pylint: disable=no-name-in-module
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
+from fastapi import FastAPI
 from sqlalchemy import create_engine  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
@@ -87,27 +88,41 @@ async def _post_rebuild() -> _RouteResult:
     return _RouteResult(200, body.model_dump())
 
 
-def _authorized_app(monkeypatch: pytest.MonkeyPatch):
-    """Create an app with an active authorized operator."""
-    monkeypatch.setenv("ADMIN_USERNAME", "operator")
+def _authorized_active_user_app(monkeypatch: pytest.MonkeyPatch, username: str = "admin") -> FastAPI:
+    """Pure internal helper to build the app instance.
+    It uses 'return' because it delegates lifecycle management to the caller.
+    """
+    monkeypatch.setenv("ADMIN_USERNAME", username)
     get_settings.cache_clear()
 
     app = create_app()
 
     def active_user() -> User:
-        """Return an active test user."""
-        return User(username="operator", disabled=False)
+        return User(username=username, disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
-
     return app
 
 
-async def _post_rebuild_http(
-    monkeypatch: pytest.MonkeyPatch,
-) -> httpx.Response:
-    """Post to rebuild through the HTTP route with an authorized user."""
-    transport = httpx.ASGITransport(app=_authorized_app(monkeypatch))
+@pytest.fixture
+def authorized_app(request, monkeypatch: pytest.MonkeyPatch) -> Iterator[FastAPI]:
+    """Public fixture configuring an authorized application context."""
+    username = getattr(request, "param", "admin")
+
+    # Delegate the building to the helper
+    app = _authorized_active_user_app(monkeypatch, username)
+
+    # Hand the app to the test
+    yield app
+
+    # TEARDOWN: This absolutely must run after the test
+    app.dependency_overrides.clear()
+    get_settings.cache_clear()  # <-- Resolves the leak
+
+
+async def _post_rebuild_http(app: FastAPI) -> httpx.Response:
+    """Post to rebuild through the HTTP route using the provided authorized app context."""
+    transport = httpx.ASGITransport(app=app)
 
     async with httpx.AsyncClient(
         transport=transport,
@@ -353,16 +368,18 @@ async def test_explicit_rebuild_persists_sample_graph(
     assert api_main.get_graph().assets.keys() == saved.assets.keys()
 
 
+@pytest.mark.parametrize("authorized_app", ["operator"], indirect=True)
 async def test_successful_rebuild_emits_bounded_audit_log(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
+    authorized_app: FastAPI,
 ) -> None:
     """A successful rebuild should emit bounded requested/succeeded audit logs."""
     _prepare_rebuild_database(tmp_path, monkeypatch)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-        response = await _post_rebuild_http(monkeypatch)
+        response = await _post_rebuild_http(authorized_app)
         await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_succeeded")
 
     assert response.status_code == 200
@@ -389,10 +406,12 @@ async def test_successful_rebuild_emits_bounded_audit_log(
     assert succeeded_records[0].__dict__.get("duration_ms") >= 0
 
 
+@pytest.mark.parametrize("authorized_app", ["operator"], indirect=True)
 async def test_failed_rebuild_emits_secret_safe_audit_log(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
+    authorized_app: FastAPI,
 ) -> None:
     """A failed rebuild should emit bounded secret-safe failure audit logs."""
     raw_url = "postgresql://operator:secret@example.invalid/asset_graph"
@@ -405,13 +424,12 @@ async def test_failed_rebuild_emits_secret_safe_audit_log(
     monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
 
     with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
-        response = await _post_rebuild_http(monkeypatch)
+        response = await _post_rebuild_http(authorized_app)
         await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_failed")
 
     assert response.status_code == 500
 
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
-
     failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
 
     assert len(failed_records) == 1

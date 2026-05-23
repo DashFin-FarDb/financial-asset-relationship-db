@@ -258,7 +258,7 @@ def check_liveness(base_url: str, timeout: float) -> list[str]:
 
 def _record_top_level_contract_failures(payload: dict[str, Any], failures: list[str]) -> None:
     """Record top-level detailed-readiness contract failures."""
-    expected_top_level = {"status", "graph", "database"}
+    expected_top_level = {"status", "graph_persistence_configured", "graph", "database"}
     actual_top_level = set(payload)
     missing_top_level = sorted(expected_top_level - actual_top_level)
     unexpected_top_level = sorted(actual_top_level - expected_top_level)
@@ -290,6 +290,9 @@ def _record_detailed_shape_failures(payload: dict[str, Any], failures: list[str]
     if readiness_status != "healthy":
         status_label = _readiness_status_label(readiness_status)
         failures.append(f'/api/health/detailed status is "{status_label}", expected "healthy"')
+
+    if not isinstance(payload.get("graph_persistence_configured"), bool):
+        failures.append("/api/health/detailed graph_persistence_configured field is not a boolean")
 
     if not isinstance(payload.get("graph"), dict):
         failures.append("/api/health/detailed graph field is not an object")

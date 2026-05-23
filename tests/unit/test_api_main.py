@@ -36,6 +36,7 @@ from api.api_models import (
     RelationshipResponse,
     VisualizationDataResponse,
 )
+from api.graph_lifecycle_providers import GraphLifecycleSettings
 from api.main import app, validate_origin
 from api.router_helpers import (
     _ASSET_CLASS_COLORS,
@@ -316,6 +317,7 @@ class TestPydanticModels:
         """DetailedHealthResponse accepts bounded readiness payloads."""
         response = DetailedHealthResponse(
             status="healthy",
+            graph_persistence_configured=True,
             graph=GraphHealthResponse(
                 available=True,
                 asset_count=19,
@@ -339,6 +341,7 @@ class TestPydanticModels:
             DetailedHealthResponse(
                 status="healthy",
                 environment="production",
+                graph_persistence_configured=True,
                 graph=GraphHealthResponse(
                     available=True,
                     asset_count=1,
@@ -356,6 +359,7 @@ class TestPydanticModels:
         with pytest.raises(ValueError):
             DetailedHealthResponse(
                 status="unknown",
+                graph_persistence_configured=True,
                 graph=GraphHealthResponse(
                     available=True,
                     asset_count=1,
@@ -371,6 +375,7 @@ class TestPydanticModels:
         with pytest.raises(ValueError):
             DetailedHealthResponse(
                 status="healthy",
+                graph_persistence_configured=True,
                 graph=GraphHealthResponse(
                     available=True,
                     asset_count=1,
@@ -461,8 +466,9 @@ class TestAPIEndpoints:
         assert response.status_code == 200
         data = response.json()
 
-        assert set(data) == {"status", "graph", "database"}
+        assert set(data) == {"status", "graph_persistence_configured", "graph", "database"}
         assert data["status"] == "healthy"
+        assert isinstance(data["graph_persistence_configured"], bool)
 
         assert set(data["graph"]) == {
             "available",
@@ -478,6 +484,88 @@ class TestAPIEndpoints:
         assert data["database"]["configured"] is True
         assert data["database"]["type"] in {"sqlite", "postgresql"}
         assert data["database"]["reachable"] is True
+
+    @pytest.mark.parametrize(
+        "configured_url", [None, "", "   ", "sqlite:///:memory:", "sqlite:///file::memory:?cache=shared"]
+    )
+    def test_detailed_health_graph_persistence_configured_false_for_unset_or_memory_urls(
+        self,
+        client: TestClient,
+        configured_url: str | None,
+    ) -> None:
+        """Detailed health reports graph persistence as unconfigured for unset/blank/in-memory URLs."""
+        with patch(
+            "api.routers.system.get_graph_lifecycle_settings",
+            return_value=GraphLifecycleSettings(
+                asset_graph_database_url=configured_url,
+                graph_cache_path=None,
+                real_data_cache_path=None,
+                use_real_data_fetcher=False,
+            ),
+        ):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        assert response.json()["graph_persistence_configured"] is False
+
+    def test_detailed_health_graph_persistence_configured_false_on_settings_error(
+        self,
+        client: TestClient,
+    ) -> None:
+        """
+        Ensure the health endpoint stays available and reports persistence as
+        unconfigured when settings retrieval fails.
+        """
+        with patch(
+            "api.routers.system.get_graph_lifecycle_settings",
+            side_effect=RuntimeError("config failure"),
+        ):
+            response = client.get("/api/health/detailed")
+
+        data = response.json()
+        assert response.status_code == 200
+        assert data["graph_persistence_configured"] is False
+
+    def test_detailed_health_graph_persistence_configured_true_for_durable_url(
+        self,
+        client: TestClient,
+        tmp_path: Path,
+    ) -> None:
+        """Detailed health reports graph persistence as configured for durable non-memory URLs."""
+        durable_url = f"sqlite:///{tmp_path / 'graph_persistence.db'}"
+
+        with patch(
+            "api.routers.system.get_graph_lifecycle_settings",
+            return_value=GraphLifecycleSettings(
+                asset_graph_database_url=durable_url,
+                graph_cache_path=None,
+                real_data_cache_path=None,
+                use_real_data_fetcher=False,
+            ),
+        ):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        assert response.json()["graph_persistence_configured"] is True
+
+    def test_detailed_health_graph_persistence_configured_false_for_invalid_url(
+        self,
+        client: TestClient,
+    ) -> None:
+        """Detailed health reports graph persistence as unconfigured for invalid database URLs."""
+        with patch(
+            "api.routers.system.get_graph_lifecycle_settings",
+            return_value=GraphLifecycleSettings(
+                asset_graph_database_url="not-a-valid-database-url",
+                graph_cache_path=None,
+                real_data_cache_path=None,
+                use_real_data_fetcher=False,
+            ),
+        ):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        assert response.json()["graph_persistence_configured"] is False
 
     def test_detailed_health_degraded_when_graph_check_fails(
         self,

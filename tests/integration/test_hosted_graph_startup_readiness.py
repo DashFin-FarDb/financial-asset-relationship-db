@@ -15,7 +15,9 @@ from fastapi.testclient import TestClient  # pylint: disable=import-error
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as providers
 from api.app_factory import create_app
+from api.auth import User, get_current_active_user
 from api.routers import graph_admin
+from src.config.settings import get_settings
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -40,6 +42,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
         "GRAPH_CACHE_PATH",
         "REAL_DATA_CACHE_PATH",
         "USE_REAL_DATA_FETCHER",
+        "ADMIN_USERNAME",
     ):
         monkeypatch.delenv(name, raising=False)
     providers.clear_graph_lifecycle_settings_cache()
@@ -114,6 +117,24 @@ def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
     providers.clear_graph_lifecycle_settings_cache()
     _reset_runtime_graph_state()
+
+
+def _authorized_active_user_app(monkeypatch: pytest.MonkeyPatch):
+    """Create an app with an active authenticated test user and pinned admin configuration."""
+    # Force the environment state
+    monkeypatch.setenv("ADMIN_USERNAME", "admin")
+
+    # Ensure create_app() picks up the newly injected environment variable
+    get_settings.cache_clear()
+
+    app = create_app()
+
+    def active_user() -> User:
+        """Return a generic authenticated test user for the existing rebuild auth contract."""
+        return User(username="admin", disabled=False)
+
+    app.dependency_overrides[get_current_active_user] = active_user
+    return app
 
 
 @dataclass
@@ -280,7 +301,7 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
     payload = response.json()
 
     # Verify expected contract shape
-    assert set(payload) == {"status", "graph", "database"}
+    assert set(payload) == {"status", "graph_persistence_configured", "graph", "database"}
     assert set(payload["graph"]) == {
         "available",
         "lifecycle_state",
@@ -299,6 +320,40 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
         "secret",
     ):
         assert forbidden not in joined
+
+
+def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Promotion gate sequence should prove persisted startup and configured durable graph persistence."""
+    database_url = _sqlite_url(tmp_path, "promotion-gate.db")
+    _init_empty_db(database_url)
+    _configure_persistence(monkeypatch, database_url)
+
+    with TestClient(_authorized_active_user_app(monkeypatch)) as client:
+        rebuild_response = client.post("/api/graph/rebuild")
+
+    assert rebuild_response.status_code == 200
+    rebuild_payload = rebuild_response.json()
+    assert rebuild_payload["status"] == "persisted"
+
+    persisted_asset_count = rebuild_payload["asset_count"]
+    persisted_relationship_count = rebuild_payload["relationship_count"]
+
+    # Simulate restart by clearing runtime graph state before startup checks.
+    _reset_runtime_graph_state()
+
+    with TestClient(create_app()) as client:
+        detailed_response = client.get("/api/health/detailed")
+
+    assert detailed_response.status_code == 200
+    payload = detailed_response.json()
+    assert payload["status"] == "healthy"
+    assert isinstance(payload["graph_persistence_configured"], bool) and payload["graph_persistence_configured"] is True
+    assert payload["graph"]["lifecycle_state"] == graph_lifecycle.GraphRuntimeLifecycleState.READY.value
+    assert payload["graph"]["asset_count"] == persisted_asset_count
+    assert payload["graph"]["relationship_count"] == persisted_relationship_count
 
 
 def test_unreachable_persistence_fails_startup_with_sanitized_error(
