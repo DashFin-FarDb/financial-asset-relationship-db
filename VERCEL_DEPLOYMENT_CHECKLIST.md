@@ -2,6 +2,13 @@
 
 Use this checklist to ensure a smooth deployment to Vercel.
 
+**Database Support:** The API database layer supports both SQLite (local/dev) and PostgreSQL (production).
+See
+[docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md)
+for the deployment strategy and
+[docs/enterprise-deployment-operating-model.md](docs/enterprise-deployment-operating-model.md)
+for the full operating model.
+
 ## Pre-Deployment Checklist
 
 ### 1. Code Preparation
@@ -84,17 +91,20 @@ In the Vercel dashboard, add:
 - [ ] `NEXT_PUBLIC_API_URL` = `https://your-project.vercel.app`
   - Note: Use your actual Vercel deployment URL
   - This will be available after first deployment
-- [ ] `DATABASE_URL` = SQLite URI required by the current API database layer
-  - Local/dev example for the current API resolver: `sqlite:dev.db`
-  - Vercel/serverless demo-only examples must use ephemeral storage such as `sqlite:///:memory:` or an explicit `/tmp` SQLite path, and must not be treated as durable production persistence.
-  - Do not use local SQLite file storage for durable production persistence on Vercel/serverless environments.
-  - For durable production deployment, use a persistent external storage strategy only after the API database layer explicitly supports it.
+- [ ] `DATABASE_URL` = Database connection string
+  - **Local/dev**: `sqlite:dev.db` (not recommended for Vercel)
+  - **Production (PostgreSQL)**: `postgresql://user:password@host:5432/database`
+  - **Vercel Postgres**: Use the connection string provided by Vercel Postgres
+  - Alternatively, use `POSTGRES_URL` and the system will use it as a fallback if `DATABASE_URL` is not set
 - [ ] `SECRET_KEY` = a long random JWT signing secret
 - [ ] Seed credentials via an existing database user, or set:
   - [ ] `ADMIN_USERNAME`
   - [ ] `ADMIN_PASSWORD`
   - [ ] Optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
-- [ ] Optional: `ASSET_GRAPH_DATABASE_URL` if using graph repository persistence flows; this does not replace the API auth/database `DATABASE_URL` requirement.
+- [ ] `ASSET_GRAPH_DATABASE_URL` = graph persistence connection string
+  - Optional only for local or explicitly non-durable preview/demo deployments
+  - Required for staging and production durable graph-persistence promotion
+  - For hosted staging/production, use a durable PostgreSQL-compatible URL
 - [ ] Optional backend settings as needed: `ENV`, `ALLOWED_ORIGINS`, `GRAPH_CACHE_PATH`, `REAL_DATA_CACHE_PATH`, `USE_REAL_DATA_FETCHER`
 
 #### Step 5: Deploy
@@ -150,6 +160,9 @@ vercel env add NEXT_PUBLIC_API_URL production
 vercel env add DATABASE_URL production
 vercel env add SECRET_KEY production
 
+# Required for staging/production durable graph-persistence promotion
+vercel env add ASSET_GRAPH_DATABASE_URL production
+
 # Bootstrap credentials, only if the configured database does not already contain a usable user
 vercel env add ADMIN_USERNAME production
 vercel env add ADMIN_PASSWORD production
@@ -168,7 +181,23 @@ vercel --prod
 - [ ] Open deployed URL in browser
 - [ ] Check that frontend loads without errors
 - [ ] Verify API health: `https://your-project.vercel.app/api/health`
+- [ ] Verify detailed readiness: `https://your-project.vercel.app/api/health/detailed`
+- [ ] Confirm detailed readiness returns only bounded non-secret fields: `status`, `graph`, and `database`
+- [ ] Confirm the response does not expose environment names, database URLs, paths, hostnames, usernames, provider names, exception messages, or secrets
+- [ ] Treat `GET /api/health/detailed` as a readiness check only, not as proof of durable graph-persistence startup
 - [ ] Test API docs: `https://your-project.vercel.app/docs`
+
+### 1a. Staging/Production Durable Graph-Persistence Verification
+
+Run this subsection for staging and production promotions. Do not use basic readiness alone as durable graph-persistence proof.
+
+- [ ] Confirm `ASSET_GRAPH_DATABASE_URL` is configured in the target environment
+- [ ] Perform an authenticated graph rebuild/persist operation, or use an approved persisted baseline
+- [ ] Restart or redeploy the backend after persistence is written
+- [ ] Verify startup logs include `Graph startup source: persisted_graph_store`
+- [ ] Verify `GET /api/health/detailed` returns `status: "healthy"` and bounded graph counts match the expected persisted baseline
+- [ ] If an approved sentinel baseline exists, verify sentinel asset IDs through `GET /api/assets`
+- [ ] If an approved sentinel baseline exists, verify sentinel directed relationships through `GET /api/relationships`
 
 ### 2. Test Functionality
 
@@ -330,12 +359,15 @@ If deployment fails or has issues:
 - [ ] Navigate to Deployments
 - [ ] Find previous working deployment
 - [ ] Click "Promote to Production"
+- [ ] Re-run readiness checks after rollback
+- [ ] For staging/production, re-run the durable graph-persistence verification checklist after rollback
+- [ ] Treat deployment rollback as code/config rollback only, not automatic data restore
 
-### Local Fallback
+### Local Non-Production Fallback
 
-- [ ] Keep Gradio UI as fallback: `python app.py`
-- [ ] Document how to switch between UIs
-- [ ] Maintain both deployment methods
+- [ ] Use Gradio (`python app.py`) only for demos or internal non-production testing
+- [ ] Do not present Gradio as a production rollback or backup mechanism
+- [ ] Refer to `docs/enterprise-deployment-operating-model.md` for production rollback boundaries
 
 ## Resources
 
@@ -363,6 +395,14 @@ Before going live:
 - [ ] Backup plan is documented
 - [ ] Users are notified of new deployment
 
+### Detailed Readiness Interpretation
+
+`GET /api/health/detailed` returns HTTP 200 for both healthy and degraded readiness states. Automated monitoring tools should parse the JSON response body and check the `status` field instead of relying on HTTP status code alone.
+
+- `status: "healthy"` means the graph and auth database checks are available/reachable.
+- `status: "degraded"` means at least one readiness component is unavailable or unreachable.
+- A degraded response should be investigated through deployment logs and environment configuration, but the response body itself must remain non-secret.
+
 ---
 
 ## Quick Reference Commands
@@ -385,6 +425,12 @@ vercel logs
 
 # List deployments
 vercel ls
+
+# Check simple API liveness
+curl https://your-project.vercel.app/api/health
+
+# Check detailed hosted readiness
+curl https://your-project.vercel.app/api/health/detailed
 ```
 
 ---

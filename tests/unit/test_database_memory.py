@@ -544,7 +544,7 @@ class TestEdgeCasesAndErrorHandling:
         """Test that DATABASE_URL environment variable is required."""
         monkeypatch.delenv("DATABASE_URL", raising=False)
 
-        with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
+        with pytest.raises(ValueError, match="No database URL configured"):
             importlib.reload(database)
 
     @staticmethod

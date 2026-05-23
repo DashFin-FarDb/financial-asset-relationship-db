@@ -28,12 +28,15 @@ from fastapi.testclient import TestClient
 
 import api.main as api_main
 from api.api_models import (
-    AssetPageResponse,
     AssetResponse,
+    DatabaseHealthResponse,
+    DetailedHealthResponse,
+    GraphHealthResponse,
     MetricsResponse,
     RelationshipResponse,
     VisualizationDataResponse,
 )
+from api.graph_lifecycle_providers import GraphLifecycleSettings
 from api.main import app, validate_origin
 from api.router_helpers import (
     _ASSET_CLASS_COLORS,
@@ -58,6 +61,18 @@ def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 5
     assert data["per_page"] == per_page
     assert data["total"] >= len(data["items"])
     return data["items"]
+
+
+def _assert_metrics_text_response(response: Any) -> str:
+    """Assert /api/metrics returns Prometheus/OpenMetrics plaintext."""
+    assert response.status_code == 200
+    content_type = response.headers.get("content-type", "")
+    assert "text/plain" in content_type or "application/openmetrics-text" in content_type
+    body = response.text
+    assert "graph_rebuild_requests_total" in body
+    assert "graph_assets_count" in body
+    assert "graph_relationships_count" in body
+    return body
 
 
 # -----------------------
@@ -298,6 +313,97 @@ class TestPydanticModels:
         assert len(viz.nodes) == 1
         assert len(viz.edges) == 1
 
+    def test_detailed_health_response_model_valid(self) -> None:
+        """DetailedHealthResponse accepts bounded readiness payloads."""
+        response = DetailedHealthResponse(
+            status="healthy",
+            graph_persistence_configured=True,
+            graph=GraphHealthResponse(
+                available=True,
+                asset_count=19,
+                relationship_count=57,
+            ),
+            database=DatabaseHealthResponse(
+                configured=True,
+                type="sqlite",
+                reachable=True,
+            ),
+        )
+
+        assert response.status == "healthy"
+        assert response.graph.available is True
+        assert response.graph.asset_count == 19
+        assert response.database.type == "sqlite"
+
+    def test_detailed_health_response_rejects_extra_fields(self) -> None:
+        """DetailedHealthResponse rejects fields outside the public readiness contract."""
+        with pytest.raises(ValueError):
+            DetailedHealthResponse(
+                status="healthy",
+                environment="production",
+                graph_persistence_configured=True,
+                graph=GraphHealthResponse(
+                    available=True,
+                    asset_count=1,
+                    relationship_count=0,
+                ),
+                database=DatabaseHealthResponse(
+                    configured=True,
+                    type="sqlite",
+                    reachable=True,
+                ),
+            )
+
+    def test_detailed_health_response_rejects_invalid_status_and_database_type(self) -> None:
+        """DetailedHealthResponse restricts status and database type values."""
+        with pytest.raises(ValueError):
+            DetailedHealthResponse(
+                status="unknown",
+                graph_persistence_configured=True,
+                graph=GraphHealthResponse(
+                    available=True,
+                    asset_count=1,
+                    relationship_count=0,
+                ),
+                database=DatabaseHealthResponse(
+                    configured=True,
+                    type="sqlite",
+                    reachable=True,
+                ),
+            )
+
+        with pytest.raises(ValueError):
+            DetailedHealthResponse(
+                status="healthy",
+                graph_persistence_configured=True,
+                graph=GraphHealthResponse(
+                    available=True,
+                    asset_count=1,
+                    relationship_count=0,
+                ),
+                database=DatabaseHealthResponse(
+                    configured=True,
+                    type="mysql",
+                    reachable=True,
+                ),
+            )
+
+    def test_graph_health_response_rejects_negative_counts(self) -> None:
+        """GraphHealthResponse rejects negative graph counts."""
+        with pytest.raises(ValueError):
+            GraphHealthResponse(
+                available=True,
+                asset_count=-1,
+                relationship_count=0,
+            )
+
+        with pytest.raises(ValueError):
+            GraphHealthResponse(
+                available=True,
+                asset_count=1,
+                relationship_count=-1,
+            )
+
 
 @pytest.mark.unit
 class TestAPIEndpoints:
@@ -351,6 +457,243 @@ class TestAPIEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
+        assert data["graph_initialized"] is True
+
+    def test_detailed_health_endpoint_success(self, client: TestClient) -> None:
+        """Detailed health endpoint returns typed graph and database readiness."""
+        response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert set(data) == {"status", "graph_persistence_configured", "graph", "database"}
+        assert data["status"] == "healthy"
+        assert isinstance(data["graph_persistence_configured"], bool)
+
+        assert set(data["graph"]) == {
+            "available",
+            "lifecycle_state",
+            "asset_count",
+            "relationship_count",
+        }
+        assert data["graph"]["available"] is True
+        assert data["graph"]["asset_count"] > 0
+        assert data["graph"]["relationship_count"] >= 0
+
+        assert set(data["database"]) == {"configured", "type", "reachable"}
+        assert data["database"]["configured"] is True
+        assert data["database"]["type"] in {"sqlite", "postgresql"}
+        assert data["database"]["reachable"] is True
+
+    @pytest.mark.parametrize(
+        "configured_url", [None, "", "   ", "sqlite:///:memory:", "sqlite:///file::memory:?cache=shared"]
+    )
+    def test_detailed_health_graph_persistence_configured_false_for_unset_or_memory_urls(
+        self,
+        client: TestClient,
+        configured_url: str | None,
+    ) -> None:
+        """Detailed health reports graph persistence as unconfigured for unset/blank/in-memory URLs."""
+        with patch(
+            "api.routers.system.get_graph_lifecycle_settings",
+            return_value=GraphLifecycleSettings(
+                asset_graph_database_url=configured_url,
+                graph_cache_path=None,
+                real_data_cache_path=None,
+                use_real_data_fetcher=False,
+            ),
+        ):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        assert response.json()["graph_persistence_configured"] is False
+
+    def test_detailed_health_graph_persistence_configured_false_on_settings_error(
+        self,
+        client: TestClient,
+    ) -> None:
+        """
+        Ensure the health endpoint stays available and reports persistence as
+        unconfigured when settings retrieval fails.
+        """
+        with patch(
+            "api.routers.system.get_graph_lifecycle_settings",
+            side_effect=RuntimeError("config failure"),
+        ):
+            response = client.get("/api/health/detailed")
+
+        data = response.json()
+        assert response.status_code == 200
+        assert data["graph_persistence_configured"] is False
+
+    def test_detailed_health_graph_persistence_configured_true_for_durable_url(
+        self,
+        client: TestClient,
+        tmp_path: Path,
+    ) -> None:
+        """Detailed health reports graph persistence as configured for durable non-memory URLs."""
+        durable_url = f"sqlite:///{tmp_path / 'graph_persistence.db'}"
+
+        with patch(
+            "api.routers.system.get_graph_lifecycle_settings",
+            return_value=GraphLifecycleSettings(
+                asset_graph_database_url=durable_url,
+                graph_cache_path=None,
+                real_data_cache_path=None,
+                use_real_data_fetcher=False,
+            ),
+        ):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        assert response.json()["graph_persistence_configured"] is True
+
+    def test_detailed_health_graph_persistence_configured_false_for_invalid_url(
+        self,
+        client: TestClient,
+    ) -> None:
+        """Detailed health reports graph persistence as unconfigured for invalid database URLs."""
+        with patch(
+            "api.routers.system.get_graph_lifecycle_settings",
+            return_value=GraphLifecycleSettings(
+                asset_graph_database_url="not-a-valid-database-url",
+                graph_cache_path=None,
+                real_data_cache_path=None,
+                use_real_data_fetcher=False,
+            ),
+        ):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        assert response.json()["graph_persistence_configured"] is False
+
+    def test_detailed_health_degraded_when_graph_check_fails(
+        self,
+        bare_client: TestClient,
+    ) -> None:
+        """Detailed health reports degraded when graph readiness fails."""
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            side_effect=RuntimeError("graph boom"),
+        ):
+            response = bare_client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert set(data["graph"]) == {
+            "available",
+            "lifecycle_state",
+            "asset_count",
+            "relationship_count",
+        }
+        assert data["graph"]["available"] is False
+        assert data["graph"]["asset_count"] == 0
+        assert data["graph"]["relationship_count"] == 0
+
+    def test_detailed_health_degraded_when_graph_containers_are_unsupported(
+        self,
+        bare_client: TestClient,
+    ) -> None:
+        """Detailed health degrades when graph containers have unsupported shapes."""
+        graph = Mock()
+        graph.assets = []
+        graph.relationships = []
+
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            return_value=(graph, "unknown"),
+        ):
+            response = bare_client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert set(data["graph"]) == {
+            "available",
+            "lifecycle_state",
+            "asset_count",
+            "relationship_count",
+        }
+        assert data["graph"]["available"] is False
+        assert data["graph"]["asset_count"] == 0
+        assert data["graph"]["relationship_count"] == 0
+
+    def test_detailed_health_degraded_when_database_check_fails(
+        self,
+        client: TestClient,
+    ) -> None:
+        """Detailed health reports degraded when auth database readiness fails."""
+        with patch("api.database.fetch_value", side_effect=RuntimeError("db boom")):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert set(data["database"]) == {"configured", "type", "reachable"}
+        assert data["database"]["configured"] is True
+        assert data["database"]["type"] in {"sqlite", "postgresql"}
+        assert data["database"]["reachable"] is False
+
+    def test_detailed_health_degraded_when_database_type_is_unsupported(
+        self,
+        client: TestClient,
+    ) -> None:
+        """Detailed health reports unconfigured when the database type is unsupported."""
+        with (
+            patch("api.database.DATABASE_TYPE", "mysql"),
+            patch("api.database.fetch_value") as fetch_value,
+        ):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert data["database"] == {
+            "configured": False,
+            "type": "unknown",
+            "reachable": False,
+        }
+        fetch_value.assert_not_called()
+
+    def test_detailed_health_does_not_leak_database_error_details(
+        self,
+        client: TestClient,
+    ) -> None:
+        """Detailed health response must not expose DB connection details or exception text."""
+        sensitive_message = "postgresql://admin:super-secret@example.internal:5432/fardb"
+
+        with patch("api.database.fetch_value", side_effect=RuntimeError(sensitive_message)):
+            response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        body = response.text
+        data = response.json()
+
+        assert data["status"] == "degraded"
+        assert set(data["database"]) == {"configured", "type", "reachable"}
+        assert data["database"]["configured"] is True
+        assert data["database"]["type"] in {"sqlite", "postgresql"}
+        assert data["database"]["reachable"] is False
+
+        assert "super-secret" not in body
+        assert "example.internal" not in body
+        assert "postgresql://" not in body
+        assert "admin" not in body
+        assert sensitive_message not in body
+
+    def test_detailed_health_does_not_expose_environment(self, client: TestClient) -> None:
+        """Detailed health response must not expose deployment environment metadata."""
+        response = client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert "environment" not in data
 
     def test_get_assets_all(self, client):
         """Test getting all assets without filters."""
@@ -440,77 +783,23 @@ class TestAPIEndpoints:
             assert asset["sector"] == "Technology"
 
     def test_get_metrics_enriched_statistics(self, client: TestClient) -> None:
-        """Metrics endpoint returns populated statistics and valid bounds."""
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data: dict[str, Any] = response.json()
-
-        assert data["total_assets"] > 0
-        assert data["total_relationships"] > 0
-        assert data["avg_degree"] > 0
-        assert data["max_degree"] >= data["avg_degree"]
-        assert 0 <= data["network_density"] <= 1
-
-        # If the API includes relationship_density separately, validate its bounds too.
-        if "relationship_density" in data:
-            assert 0 <= data["relationship_density"] <= 100
-            assert data["network_density"] == pytest.approx(data["relationship_density"] / 100.0)
+        """Metrics endpoint returns Prometheus/OpenMetrics plaintext."""
+        body = _assert_metrics_text_response(client.get("/api/metrics"))
+        assert "# HELP graph_rebuild_requests_total" in body
+        assert "# TYPE graph_rebuild_requests_total counter" in body
 
     def test_get_metrics_projects_graph_owned_contract(self, bare_client: TestClient) -> None:
-        """Metrics endpoint should only project public metrics from the graph layer."""
-        graph = Mock(spec=AssetRelationshipGraph)
-        graph.calculate_metrics.return_value = {
-            "total_assets": 9,
-            "total_relationships": 12,
-            "asset_classes": {"Graph Owned": 9},
-            "avg_degree": 2.5,
-            "max_degree": 7,
-            "network_density": 0.42,
-            "relationship_density": 42.0,
-        }
-        # BOUNDARY: Make graph state intentionally inconsistent to verify endpoint
-        # cannot accidentally read graph.assets/relationships directly instead of
-        # calling calculate_metrics(). If endpoint reads len(graph.assets), test fails.
-        graph.assets = {
-            f"IGNORED_{i}": Equity(
-                id=f"IGNORED_{i}",
-                symbol=f"IGN{i}",
-                name=f"Should Not Be Counted {i}",
-                asset_class=AssetClass.EQUITY,
-                sector="Technology",
-                price=1.0,
-            )
-            for i in range(999)  # Intentionally != 9
-        }
-        graph.relationships = {f"IGNORED_{i}": [(f"ALSO_IGNORED_{i}", "same_sector", 0.7)] for i in range(999)}
-
-        with patch("api.routers.metrics.get_graph", return_value=graph):
-            response = bare_client.get("/api/metrics")
-
-        assert response.status_code == 200
-        result = response.json()
-
-        # BOUNDARY: Endpoint must return the graph-owned metrics contract exactly.
-        # The intentionally inconsistent graph.assets / graph.relationships above
-        # ensures this would fail if the endpoint recomputed from graph state directly.
-        assert result == graph.calculate_metrics.return_value
-        graph.calculate_metrics.assert_called_once_with()
+        """Metrics endpoint should remain plaintext and not depend on graph JSON contracts."""
+        _assert_metrics_text_response(bare_client.get("/api/metrics"))
 
     def test_get_metrics_no_assets(self, bare_client: TestClient) -> None:
-        """Metrics endpoint returns zeros for an empty graph."""
+        """Metrics endpoint remains available for empty graphs."""
         api_main.reset_graph()
         api_main.set_graph(AssetRelationshipGraph())
-        response = bare_client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["total_relationships"] == 0
-        assert data["avg_degree"] == 0
-        assert data["max_degree"] == 0
-        assert data["network_density"] == 0
+        _assert_metrics_text_response(bare_client.get("/api/metrics"))
 
     def test_get_metrics_one_asset_no_relationships(self, bare_client: TestClient) -> None:
-        """Metrics endpoint handles one-node graphs with no relationships."""
+        """Metrics endpoint remains available for one-node graphs."""
         api_main.reset_graph()
         graph = AssetRelationshipGraph()
         graph.add_asset(
@@ -524,13 +813,10 @@ class TestAPIEndpoints:
             )
         )
         api_main.set_graph(graph)
-        response = bare_client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        self._assert_metrics_no_relationships(data, expected_assets=1)
+        _assert_metrics_text_response(bare_client.get("/api/metrics"))
 
     def test_get_metrics_multiple_assets_no_relationships(self, bare_client: TestClient) -> None:
-        """Metrics endpoint handles multi-node graphs with no relationships."""
+        """Metrics endpoint remains available for multi-node graphs."""
         api_main.reset_graph()
         graph = AssetRelationshipGraph()
         graph.add_asset(
@@ -554,10 +840,7 @@ class TestAPIEndpoints:
             )
         )
         api_main.set_graph(graph)
-        response = bare_client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        self._assert_metrics_no_relationships(data, expected_assets=2)
+        _assert_metrics_text_response(bare_client.get("/api/metrics"))
 
     def test_get_asset_detail_valid(self, client: TestClient) -> None:
         """Asset detail endpoint returns the requested asset when it exists."""
@@ -724,16 +1007,12 @@ class TestErrorHandling:
             assert "internal error" in response.json()["detail"].lower()
 
     def test_get_metrics_server_error(self, bare_client: TestClient) -> None:
-        """Metrics endpoint returns 500 when metric calculation raises an exception."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.calculate_metrics.side_effect = Exception("Calculation error")
-
-        # Patch at the router module level where get_graph is actually used
-        with patch("api.routers.metrics.get_graph", return_value=mock_graph):
+        """Metrics endpoint returns plaintext HTTP 500 when generation fails."""
+        with patch("api.routers.system.generate_latest", side_effect=Exception("metrics generation error")):
             response = bare_client.get("/api/metrics")
             assert response.status_code == 500
-            # Router returns generic error message for security
-            assert "internal error" in response.json()["detail"].lower()
+            assert "text/plain" in response.headers.get("content-type", "")
+            assert response.text == "metrics generation error"
 
     @staticmethod
     def test_invalid_http_methods(bare_client: TestClient) -> None:
@@ -874,16 +1153,12 @@ class TestIntegrationScenarios:
         assert isinstance(relationships, list)
 
     def test_full_workflow_visualization_and_metrics(self, client: TestClient) -> None:
-        """Validate metrics and visualization endpoints are consistent on node counts."""
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        metrics = response.json()
-
+        """Validate metrics endpoint emits Prometheus text and visualization still works."""
+        _assert_metrics_text_response(client.get("/api/metrics"))
         response = client.get("/api/visualization")
         assert response.status_code == 200
         viz_data = response.json()
-
-        assert len(viz_data["nodes"]) == metrics["total_assets"]
+        assert isinstance(viz_data["nodes"], list)
 
     def test_filter_refinement_workflow(self, client: TestClient) -> None:
         """Confirm progressive filters reduce (or keep) result sets, never increase them."""
@@ -1756,18 +2031,10 @@ class TestEndpointRegressionCases:
         api_main.reset_graph()
 
     def test_metrics_relationship_density_calculation(self, client: TestClient):
-        """Metrics should correctly calculate relationship_density."""
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-
-        # Both network_density and relationship_density should be present
-        assert "network_density" in data
-        assert "relationship_density" in data
-
-        assert 0 <= data["network_density"] <= 1
-        assert 0 <= data["relationship_density"] <= 100
-        assert data["network_density"] == pytest.approx(data["relationship_density"] / 100.0)
+        """Metrics payload should include graph gauges in text exposition."""
+        body = _assert_metrics_text_response(client.get("/api/metrics"))
+        assert "# TYPE graph_assets_count gauge" in body
+        assert "# TYPE graph_relationships_count gauge" in body
 
     def test_visualization_coordinates_precision(self, client: TestClient):
         """Visualization coordinates should be rounded to 6 decimal places."""
