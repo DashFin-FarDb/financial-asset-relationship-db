@@ -4,8 +4,6 @@ from typing import Any, Literal, NoReturn, cast
 
 from fastapi import APIRouter, HTTPException, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: disable=import-error
-from sqlalchemy.engine.url import make_url  # pylint: disable=import-error
-from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
 
@@ -128,15 +126,12 @@ def _get_graph_persistence_configured() -> bool:
     """Return whether durable graph persistence is explicitly configured."""
     try:
         settings = get_graph_lifecycle_settings()
-        url_str = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-        # Ensure the URL is a valid SQLAlchemy URL (make_url may raise ArgumentError)
-        make_url(url_str)
+        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
         return True
     except (
         GraphPersistenceNotConfiguredError,
         GraphPersistenceNonDurableError,
         GraphPersistenceInvalidUrlError,
-        ArgumentError,
     ):
         return False
     except Exception as exc:
