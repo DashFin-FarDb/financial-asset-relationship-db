@@ -37,13 +37,6 @@ def clear_settings_cache():
     """Clear cached runtime settings around each test."""
     get_settings.cache_clear()
     yield
-
-
-@pytest.fixture(autouse=True)
-def clear_settings_cache():
-    """Clear cached runtime settings around each test."""
-    get_settings.cache_clear()
-    yield
     get_settings.cache_clear()
 
 
