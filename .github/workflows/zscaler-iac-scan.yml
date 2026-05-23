@@ -33,7 +33,7 @@ jobs:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     runs-on: ubuntu-latest
-    if: ${{ secrets.ZSCANNER_CLIENT_ID != '' && secrets.ZSCANNER_CLIENT_SECRET != '' }}
+    if: secrets.ZSCANNER_CLIENT_ID != '' && secrets.ZSCANNER_CLIENT_SECRET != ''
     steps:
       - name : Code Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
