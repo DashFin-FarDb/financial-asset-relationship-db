@@ -376,9 +376,9 @@ def authorized_app(request, monkeypatch: pytest.MonkeyPatch):
     """Public fixture for normal tests requiring an authorized application."""
     username = getattr(request, "param", "admin")
     app = _create_test_app(monkeypatch, username)
-    
+
     yield app
-    
+
     # Ensures dependency overrides don't leak out into subsequent tests
     app.dependency_overrides.clear()
 
