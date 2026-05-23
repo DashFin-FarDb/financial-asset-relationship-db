@@ -149,6 +149,32 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
     return resolved_url
 
 
+def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
+    """Build a fresh graph from the selected rebuild source path.
+
+    The source reports the selected rebuild path. RealDataFetcher may
+    internally fall back to sample data if live fetching fails.
+    """
+    try:
+        if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
+            return (
+                load_graph_from_cache_path(
+                    settings.graph_cache_path,
+                    enable_network=settings.use_real_data_fetcher,
+                ),
+                "cache",
+            )
+        if settings.use_real_data_fetcher:
+            return (
+                load_graph_from_real_data_fetcher(settings.real_data_cache_path),
+                "real_data",
+            )
+        return (create_sample_graph(), "sample")
+    except Exception as exc:
+        logger.error("Failed to build rebuild graph: %s", exc.__class__.__name__)
+        raise GraphRebuildSourceError("Failed to build rebuild graph.") from None
+
+
 def save_graph_to_persistence(
     database_url: str | None,
     graph: AssetRelationshipGraph,
