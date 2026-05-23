@@ -51,5 +51,6 @@ jobs:
           file: your-file-to-test.yaml
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
+        if: ${{ hashFiles('snyk.sarif') != '' }}
         with:
           sarif_file: snyk.sarif
