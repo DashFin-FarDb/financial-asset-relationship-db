@@ -188,7 +188,24 @@ def _get_graph_persistence_configured() -> bool:
     database_health = _get_database_health()
 
     status_value = "healthy" if graph_health.available and database_health.reachable else "degraded"
-
+def _get_graph_persistence_configured() -> bool:
+    """Return whether durable graph persistence is explicitly configured."""
+    try:
+        settings = get_graph_lifecycle_settings()
+        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        return True
+    except (
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+        GraphPersistenceInvalidUrlError,
+    ):
+        return False
+    except Exception as exc:
+        logger.error(
+            "Unexpected error checking graph persistence configuration: %s",
+            type(exc).__name__,
+        )
+        return False
     return DetailedHealthResponse(
         status=status_value,
         graph_persistence_configured=_get_graph_persistence_configured(),
