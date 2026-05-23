@@ -402,4 +402,3 @@ Iteratively edit the test file, apply code review suggestions, and run pre-commi
 - Workflow: unit-test-file-iteration
 - Commits: 'Fix duplicate clear_settings_cache fixture in test_api.py (#1207)'
 - Pattern in files: tests/unit/test_api.py
-

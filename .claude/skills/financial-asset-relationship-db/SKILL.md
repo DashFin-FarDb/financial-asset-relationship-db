@@ -30,7 +30,7 @@ This skill teaches the core development patterns and workflows used in the `fina
 ### Commit Message Patterns
 - Commit messages are typically freeform, sometimes prefixed with `fix`.
 - Keep commit messages concise (average ~48 characters).
-  - **Example:**  
+  - **Example:**
     ```
     fix: correct asset relationship calculation bug
     ```
@@ -38,7 +38,7 @@ This skill teaches the core development patterns and workflows used in the `fina
 ## Workflows
 
 ### Unit Test File Iteration
-**Trigger:** When you need to fix, improve, or auto-format a unit test file after code changes or review feedback.  
+**Trigger:** When you need to fix, improve, or auto-format a unit test file after code changes or review feedback.
 **Command:** `/update-unit-test`
 
 1. **Edit** the target unit test file (e.g., `tests/unit/test_api.py`) to fix or improve tests based on code changes or review suggestions.
