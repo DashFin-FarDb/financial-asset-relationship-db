@@ -21,7 +21,6 @@ from src.models.financial_models import (
 
 from .conftest import build_diverse_graph
 
-
 # ---------------------------------------------------------------------------
 # Model validation benchmarks
 # ---------------------------------------------------------------------------
