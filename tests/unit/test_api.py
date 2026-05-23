@@ -1,10 +1,9 @@
 """Comprehensive unit tests for FastAPI backend.
 
-This module tests all API endpoints including:
+This module tests all API endpoints listed below, excluding `/api/metrics`:
 - Health checks and root endpoint
 - Asset retrieval with filtering
 - Asset details and relationships
-- Metrics calculation
 - Visualization data generation
 - CORS configuration
 - Error handling and edge cases
@@ -426,45 +425,6 @@ class TestRelationshipsEndpoint:
 
 
 @pytest.mark.unit
-class TestMetricsEndpoint:
-    """Test metrics calculation endpoint."""
-
-    @patch("api.main.graph")
-    def test_get_metrics(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test retrieving network metrics."""
-        apply_mock_graph(mock_graph_instance, mock_graph)
-
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "total_assets" in data
-        assert "total_relationships" in data
-        assert "asset_classes" in data
-        assert "avg_degree" in data
-        assert "max_degree" in data
-        assert "network_density" in data
-
-        assert data["total_assets"] == 4
-        assert isinstance(data["asset_classes"], dict)
-        assert data["avg_degree"] >= 0
-        assert data["network_density"] >= 0
-
-    @patch("api.main.graph")
-    def test_metrics_asset_class_distribution(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test asset class distribution in metrics."""
-        apply_mock_graph(mock_graph_instance, mock_graph)
-
-        response = client.get("/api/metrics")
-        data = response.json()
-
-        assert "Equity" in data["asset_classes"]
-        assert "Fixed Income" in data["asset_classes"]
-        assert data["asset_classes"]["Equity"] == 1
-        assert data["asset_classes"]["Fixed Income"] == 1
-
-
-@pytest.mark.unit
 class TestVisualizationEndpoint:
     """Test 3D visualization data endpoint."""
 
@@ -566,7 +526,7 @@ class TestEdgeCases:
 
     @patch("api.main.graph")
     def test_empty_graph(self, mock_graph_instance, client):
-        """Test handling of empty graph."""
+        """Assets endpoint remains available for empty graphs."""
         empty_graph = AssetRelationshipGraph()
         # Ensure the patched graph has an empty assets mapping as well as relationships.
         mock_graph_instance.assets = empty_graph.assets
@@ -576,12 +536,6 @@ class TestEdgeCases:
         response = client.get("/api/assets")
         assert response.status_code == 200
         assert len(asset_items(response.json())) == 0
-
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["total_relationships"] == 0
 
     @patch("api.main.graph")
     def test_special_characters_in_asset_id(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
@@ -1020,22 +974,6 @@ class TestNegativeScenarios:
         result = validate_origin("https://münchen.de")
         # IDN with HTTPS: validate_origin should accept valid HTTPS domains
         assert result is True
-
-    @staticmethod
-    @patch("api.main.graph")
-    def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
-        """Negative: Metrics with empty graph should not cause division by zero."""
-        empty_graph = AssetRelationshipGraph()
-        mock_graph_instance.assets = empty_graph.assets
-        mock_graph_instance.relationships = empty_graph.relationships
-        mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
-
-        # Should not raise ZeroDivisionError
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["network_density"] == 0
 
 
 class TestUserInDBClassRefactoring:

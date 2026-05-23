@@ -6,6 +6,10 @@ This guide explains how to deploy the Financial Asset Relationship Database usin
 
 **For the hosted deployment and durable persistence decision, see [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).**
 
+**For the full enterprise deployment operating model
+(including promotion, rollback, and environment boundaries), see
+[docs/enterprise-deployment-operating-model.md](docs/enterprise-deployment-operating-model.md).**
+
 **Note:** The Gradio UI (`app.py`) is available for demos, and internal testing, but is **not recommended for production deployment**. This guide focuses on the production architecture.
 
 ## Architecture Overview
@@ -50,7 +54,7 @@ Optional backend runtime settings:
 - `GRAPH_CACHE_PATH` — graph cache path
 - `REAL_DATA_CACHE_PATH` — real-data cache path
 - `USE_REAL_DATA_FETCHER` — truthy value enables real-data fetcher mode
-- `ASSET_GRAPH_DATABASE_URL` — graph persistence URL when used by graph repository flows; this does not replace the API auth/database `DATABASE_URL` requirement
+- `ASSET_GRAPH_DATABASE_URL` — graph persistence URL for durable graph-truth persistence; this does not replace the API auth/database `DATABASE_URL` requirement
 - `POSTGRES_URL` — Vercel Postgres provider fallback; used only if `DATABASE_URL` is not set
 
 ### Database Configuration
@@ -276,6 +280,11 @@ The response is intentionally bounded and non-secret. It reports:
 - auth database configured/reachable status
 - auth database type: `sqlite`, `postgresql`, or `unknown`
 
+`GET /api/health/detailed` is a readiness signal only. It confirms bounded
+in-memory graph availability and auth/application database reachability. It
+does **not** prove the runtime graph was loaded from durable persisted graph
+truth, and it does not prove `ASSET_GRAPH_DATABASE_URL` is configured.
+
 Example healthy response:
 
 ```json
@@ -325,65 +334,30 @@ It must not expose:
 
 A degraded response still returns HTTP 200. Treat `status: "degraded"` as an operational readiness signal, not an HTTP transport failure. Automated monitoring tools should be configured to verify the status field in the JSON response body.
 
-### Automated Hosted Readiness Smoke Check
+### Verifying persisted graph startup loading
 
-A manual GitHub Actions workflow and a standalone CLI script wrap the liveness and detailed
-readiness endpoints into a single bounded smoke check. Both live in the repository:
+For staging and production deployment acceptance, use this hosted-safe flow to verify runtime startup loaded graph truth from durable persistence (when INFO-level application logs are enabled):
 
-- `.github/workflows/hosted-readiness.yml` — manual `workflow_dispatch` workflow
-- `scripts/check_hosted_readiness.py` — standalone CLI used by the workflow
+1. Configure a durable `ASSET_GRAPH_DATABASE_URL` (for hosted deployment, use PostgreSQL).
+2. Populate graph truth only through the authenticated `POST /api/graph/rebuild` route or a controlled operator seed.
+3. Restart/redeploy the API service.
+4. Check startup logs for `Graph startup source: persisted_graph_store`.
+5. Call `GET /api/health/detailed` and confirm bounded graph counts match your persisted baseline.
+6. If an approved sentinel baseline exists, verify expected sentinel assets and directed relationships via `GET /api/assets` and `GET /api/relationships`.
 
-**What it checks**
+For staging and production, step 5 is required promotion evidence. Step 6 is
+recommended diagnostic evidence when an approved sentinel baseline exists.
+A healthy detailed-readiness response alone is not sufficient for
+staging/production promotion because startup can still serve fallback graph
+state when durable graph persistence is not configured or not loaded.
 
-For a given hosted base URL the smoke check verifies, in order:
+`DATABASE_URL` and `ASSET_GRAPH_DATABASE_URL` represent different boundaries:
 
-1. `GET /api/health` returns HTTP 200 with `status: "healthy"` and `graph_initialized: true`.
-2. `GET /api/health/detailed` returns HTTP 200 with exactly the top-level keys `status`, `graph`,
-   and `database`, no forbidden fields leaked (see list above), and `status: "healthy"`.
+- `DATABASE_URL` covers auth/application database configuration and reachability.
+- `ASSET_GRAPH_DATABASE_URL` covers durable graph-truth persistence.
+- Successful auth/application database readiness does not imply graph persistence is configured or loaded.
 
-A non-zero exit code indicates a readiness failure; failure messages are printed to stderr without
-echoing the base URL or response bodies.
-
-**Running the workflow**
-
-From the GitHub Actions UI, run the **Hosted readiness smoke check** workflow with optional
-inputs:
-
-- `base_url` — full hosted base URL such as `https://example.vercel.app`. If omitted the
-  workflow falls back to the `HOSTED_READINESS_BASE_URL` repository secret. If neither is set
-  the workflow logs a skip message and exits successfully.
-- `timeout` — request timeout in seconds (default `10`).
-
-The base URL is masked in workflow logs. Configure `HOSTED_READINESS_BASE_URL` as a repository
-secret for persistent monitoring targets so operators do not need to retype it.
-
-**Running the script locally**
-
-```bash
-python scripts/check_hosted_readiness.py https://your-api-domain.vercel.app --timeout 10
-```
-
-Exit codes:
-
-| Code | Meaning                                                 |
-| ---- | ------------------------------------------------------- |
-| 0    | All readiness checks passed                             |
-| 1    | One or more checks failed (printed to stderr)           |
-| 2    | Usage error: invalid `--timeout` or rejected `base_url` |
-
-**Base URL constraints**
-
-The script intentionally refuses to call non-public targets to keep the smoke check bounded.
-A base URL is rejected (exit code `2`) when it:
-
-- uses a scheme other than `http`/`https`, or omits the host
-- includes user credentials, a path, params, query string, or fragment
-- targets `localhost` or any `*.localhost` hostname
-- is, or resolves to, an internal/non-global IP address (loopback, private, link-local,
-  multicast, etc.)
-- has an invalid port
-
-Redirects are not followed and response bodies are capped at 64 KiB to keep the check bounded.
+Readiness and read-only checks must not trigger rebuilds, call persistence save flows, expose connection URLs or credentials, include raw exception text, or dump full graph data.
 
 ## Frontend Features
 

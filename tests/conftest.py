@@ -183,7 +183,8 @@ def _cov_plugin_available() -> bool:
 def _register_dummy_cov_options(parser: Any) -> None:
     """Register dummy --cov and --cov-report options."""
     group = parser.getgroup("cov")
-    group.addoption(
+    _safe_addoption(
+        group,
         "--cov",
         action="append",
         dest="cov",
@@ -191,7 +192,8 @@ def _register_dummy_cov_options(parser: Any) -> None:
         metavar="path",
         help="Dummy option registered when pytest-cov is unavailable.",
     )
-    group.addoption(
+    _safe_addoption(
+        group,
         "--cov-report",
         action="append",
         dest="cov_report",
@@ -199,6 +201,15 @@ def _register_dummy_cov_options(parser: Any) -> None:
         metavar="type",
         help="Dummy option registered when pytest-cov is unavailable.",
     )
+
+
+def _safe_addoption(group: Any, *names: str, **kwargs: object) -> None:
+    """Add a pytest option while ignoring duplicate-registration conflicts."""
+    try:
+        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
+    except ValueError as exc:
+        if "already added" not in str(exc):
+            raise
 
 
 @pytest.fixture
@@ -223,3 +234,56 @@ def dividend_stock():
         dividend_yield=0.04,
         earnings_per_share=6.67,
     )
+
+
+# Fixtures for rebuild drift evaluator tests
+
+
+@pytest.fixture
+def mock_session_factory():
+    """Create a mock session factory for drift evaluator tests."""
+    from unittest.mock import MagicMock, Mock
+
+    session_factory = Mock()
+    mock_session = MagicMock()
+    session_factory.return_value = mock_session
+    mock_session.__enter__.return_value = mock_session
+    mock_session.__exit__.return_value = None
+    return session_factory, mock_session
+
+
+@pytest.fixture
+def mock_lock():
+    """Create a mock distributed lock for drift evaluator tests."""
+    from unittest.mock import Mock
+
+    return Mock()
+
+
+@pytest.fixture
+def mock_rebuild_job():
+    """Factory fixture to create mock rebuild jobs with specific configurations."""
+    from datetime import datetime, timezone
+    from unittest.mock import Mock
+
+    from src.data.db_models import RebuildJobStatus
+
+    def _make_job(
+        job_id: str = "test-job-123",
+        status=None,
+        active_worker_id: str | None = "worker-456",
+        heartbeat_at: datetime | None = None,
+    ):
+        if status is None:
+            status = RebuildJobStatus.RUNNING
+        if heartbeat_at is None:
+            heartbeat_at = datetime.now(timezone.utc)
+
+        job = Mock()
+        job.job_id = job_id
+        job.status = status
+        job.active_worker_id = active_worker_id
+        job.last_heartbeat_at = heartbeat_at
+        return job
+
+    return _make_job

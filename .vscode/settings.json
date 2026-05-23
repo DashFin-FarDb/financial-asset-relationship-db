@@ -10,5 +10,11 @@
     },
     "snyk.advanced.autoSelectOrganization": false,
     "circleci.filters.myPipelinesOnly": false,
-    "snyk.advanced.organization": "81f332e2-3ba2-42e3-b469-b705d2a3d526"
+    "snyk.advanced.organization": "81f332e2-3ba2-42e3-b469-b705d2a3d526",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.terminal.useEnvFile": true
 }
