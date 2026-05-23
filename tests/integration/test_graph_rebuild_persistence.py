@@ -7,11 +7,11 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor  # pylint: disable=no-name-in-module
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
-from fastapi import FastAPI  # Added missing import
+from fastapi import FastAPI
 from sqlalchemy import create_engine  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
@@ -88,12 +88,10 @@ async def _post_rebuild() -> _RouteResult:
     return _RouteResult(200, body.model_dump())
 
 
-@pytest.fixture
-def authorized_app(request, monkeypatch: pytest.MonkeyPatch) -> Generator[FastAPI, None, None]:
-    """Public fixture configuring an authorized application context.
-    Can be indirectly parameterized to swap user permissions (e.g., 'operator').
+def _authorized_active_user_app(monkeypatch: pytest.MonkeyPatch, username: str = "admin") -> FastAPI:
+    """Pure internal helper to build the app instance. 
+    It uses 'return' because it delegates lifecycle management to the caller.
     """
-    username = getattr(request, "param", "admin")
     monkeypatch.setenv("ADMIN_USERNAME", username)
     get_settings.cache_clear()
 
@@ -103,8 +101,23 @@ def authorized_app(request, monkeypatch: pytest.MonkeyPatch) -> Generator[FastAP
         return User(username=username, disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
+    return app
 
+
+@pytest.fixture
+def authorized_app(request, monkeypatch: pytest.MonkeyPatch) -> Iterator[FastAPI]:
+    """Public fixture configuring an authorized application context."""
+    username = getattr(request, "param", "admin")
+    
+    # Delegate the building to the helper
+    app = _authorized_active_user_app(monkeypatch, username)
+    
+    # Hand the app to the test
     yield app
+    
+    # TEARDOWN: This absolutely must run after the test
+    app.dependency_overrides.clear()
+    get_settings.cache_clear()  # <-- Resolves the leak
 
 
 async def _post_rebuild_http(app: FastAPI) -> httpx.Response:
