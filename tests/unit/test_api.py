@@ -230,7 +230,7 @@ class TestCORSValidation:
     """Test CORS origin validation."""
 
     @staticmethod
-    def test_validate_origin_localhost_http_dev(clear_settings_cache):
+    def test_validate_origin_localhost_http_dev():
         """Test HTTP localhost is valid in development."""
         with patch.dict(os.environ, {"ENV": "development"}):
             get_settings.cache_clear()
@@ -265,7 +265,7 @@ class TestCORSValidation:
         assert validate_origin("https://my-site.example.co.uk") is True
 
     @staticmethod
-    def test_validate_origin_invalid(clear_settings_cache):
+    def test_validate_origin_invalid():
         """Test invalid origins are rejected."""
         # HTTP origins are rejected in production.
         with patch.dict(os.environ, {"ENV": "production"}):
