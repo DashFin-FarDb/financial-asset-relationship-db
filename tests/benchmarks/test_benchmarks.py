@@ -8,7 +8,6 @@ in ``pyproject.toml``) and are only executed by the CodSpeed CI workflow with
 import pytest
 
 from src.data.sample_data import create_sample_database
-from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     AssetClass,
     Bond,
