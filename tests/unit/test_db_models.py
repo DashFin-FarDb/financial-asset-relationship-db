@@ -4,9 +4,12 @@ This module contains comprehensive unit tests for the database models including:
 - AssetORM model structure and relationships
 - AssetRelationshipORM constraints and relationships
 - RegulatoryEventORM and related asset associations
+- RebuildJobORM model structure and constraints
 - Database constraints and cascading behavior
 - Model field validation and nullable constraints
 """
+
+from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy import create_engine, inspect
@@ -16,6 +19,8 @@ from src.data.database import create_session_factory, init_db
 from src.data.db_models import (
     AssetORM,
     AssetRelationshipORM,
+    RebuildJobORM,
+    RebuildJobStatus,
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
@@ -669,3 +674,189 @@ class TestRegulatoryEventAssetORM:
         # Related asset link should be deleted
         remaining = db_session.query(RegulatoryEventAssetORM).filter_by(event_id="CASCADE_EVENT").first()
         assert remaining is None
+
+
+@pytest.mark.unit
+class TestRebuildJobORM:
+    """Test cases for RebuildJobORM model."""
+
+    @staticmethod
+    def test_rebuild_job_orm_table_name():
+        """Test that RebuildJobORM uses correct table name."""
+        assert RebuildJobORM.__tablename__ == "rebuild_jobs"
+
+    @staticmethod
+    def test_rebuild_job_orm_primary_key():
+        """Test RebuildJobORM primary key configuration."""
+        inspector = inspect(RebuildJobORM)
+        pk_columns = [col.name for col in inspector.primary_key]
+        assert "job_id" in pk_columns
+        assert len(pk_columns) == 1
+
+    @staticmethod
+    def test_create_rebuild_job_pending(db_session):
+        """Test creating a rebuild job in pending status."""
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        job = RebuildJobORM(
+            job_id="test-job-123",
+            requested_by="test_user",
+            status=RebuildJobStatus.PENDING,
+            source="sample",
+            created_at=now,
+            updated_at=now,
+        )
+        db_session.add(job)
+        db_session.commit()
+
+        retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-123").first()
+        assert retrieved is not None
+        assert retrieved.requested_by == "test_user"
+        assert retrieved.status == RebuildJobStatus.PENDING
+        assert retrieved.source == "sample"
+        assert retrieved.started_at is None
+        assert retrieved.completed_at is None
+        assert retrieved.duration_ms is None
+        assert retrieved.node_count is None
+        assert retrieved.edge_count is None
+        assert retrieved.sanitized_failure_category is None
+        assert retrieved.sanitized_failure_message is None
+
+    @staticmethod
+    def test_create_rebuild_job_succeeded(db_session):
+        """Test creating a rebuild job in succeeded status with metadata."""
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        job = RebuildJobORM(
+            job_id="test-job-456",
+            requested_by="test_user",
+            status=RebuildJobStatus.SUCCEEDED,
+            source="real_data",
+            created_at=now,
+            updated_at=now,
+            started_at=now,
+            completed_at=now,
+            duration_ms=1234,
+            node_count=100,
+            edge_count=250,
+        )
+        db_session.add(job)
+        db_session.commit()
+
+        retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-456").first()
+        assert retrieved is not None
+        assert retrieved.status == RebuildJobStatus.SUCCEEDED
+        assert retrieved.source == "real_data"
+        assert retrieved.duration_ms == 1234
+        assert retrieved.node_count == 100
+        assert retrieved.edge_count == 250
+        assert retrieved.sanitized_failure_category is None
+        assert retrieved.sanitized_failure_message is None
+
+    @staticmethod
+    def test_create_rebuild_job_failed(db_session):
+        """Test creating a rebuild job in failed status with sanitized failure metadata."""
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        job = RebuildJobORM(
+            job_id="test-job-789",
+            requested_by="test_user",
+            status=RebuildJobStatus.FAILED,
+            source="cache",
+            created_at=now,
+            updated_at=now,
+            started_at=now,
+            completed_at=now,
+            duration_ms=500,
+            sanitized_failure_category="rebuild_source_error",
+            sanitized_failure_message="Failed to load graph from cache",
+        )
+        db_session.add(job)
+        db_session.commit()
+
+        retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-789").first()
+        assert retrieved is not None
+        assert retrieved.status == RebuildJobStatus.FAILED
+        assert retrieved.sanitized_failure_category == "rebuild_source_error"
+        assert retrieved.sanitized_failure_message == "Failed to load graph from cache"
+        assert retrieved.node_count is None
+        assert retrieved.edge_count is None
+
+    @staticmethod
+    def test_rebuild_job_required_fields(db_session):
+        """Test that required fields are enforced."""
+        job = RebuildJobORM(
+            job_id="test-job-required",
+            requested_by="test_user",
+            status=RebuildJobStatus.PENDING,
+            created_at=datetime.now(timezone.utc),  # noqa: UP017
+            updated_at=datetime.now(timezone.utc),  # noqa: UP017
+        )
+        db_session.add(job)
+        db_session.commit()
+
+        retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-required").first()
+        assert retrieved is not None
+        assert retrieved.source is None  # source is optional
+
+    @staticmethod
+    def test_rebuild_job_duplicate_id(db_session):
+        """Test that duplicate job IDs are not allowed."""
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        job1 = RebuildJobORM(
+            job_id="duplicate-id",
+            requested_by="user1",
+            status=RebuildJobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+        )
+        db_session.add(job1)
+        db_session.commit()
+
+        job2 = RebuildJobORM(
+            job_id="duplicate-id",
+            requested_by="user2",
+            status=RebuildJobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+        )
+        db_session.add(job2)
+
+        with pytest.raises(IntegrityError):
+            db_session.commit()
+
+    @staticmethod
+    def test_rebuild_job_update_status(db_session):
+        """Test updating rebuild job status and metadata."""
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        job = RebuildJobORM(
+            job_id="test-job-update",
+            requested_by="test_user",
+            status=RebuildJobStatus.PENDING,
+            created_at=now,
+            updated_at=now,
+        )
+        db_session.add(job)
+        db_session.commit()
+
+        # Update to running
+        job.status = RebuildJobStatus.RUNNING
+        job.started_at = now
+        job.updated_at = datetime.now(timezone.utc)  # noqa: UP017
+        db_session.commit()
+
+        retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-update").first()
+        assert retrieved.status == RebuildJobStatus.RUNNING
+        assert retrieved.started_at is not None
+
+        # Update to succeeded
+        job.status = RebuildJobStatus.SUCCEEDED
+        job.completed_at = datetime.now(timezone.utc)  # noqa: UP017
+        job.duration_ms = 1000
+        job.node_count = 50
+        job.edge_count = 100
+        db_session.commit()
+
+        retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-update").first()
+        assert retrieved.status == RebuildJobStatus.SUCCEEDED
+        assert retrieved.completed_at is not None
+        assert retrieved.duration_ms == 1000
+        assert retrieved.node_count == 50
+        assert retrieved.edge_count == 100

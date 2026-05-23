@@ -1,0 +1,18 @@
+-- Migration 002: Add heartbeat tracking columns to rebuild_jobs
+-- NOTE: This migration is SUPERSEDED by updates to 001_initial.sql
+-- The heartbeat columns (active_worker_id, last_heartbeat_at) were added
+-- directly to the initial schema in commit 250925f6, making this migration
+-- redundant for new deployments.
+--
+-- This file is preserved for historical reference and is handled by the
+-- Python migration runner (_apply_upgrade_002_heartbeat_columns) which
+-- checks column existence before attempting any ALTER TABLE operations.
+--
+-- For idempotency: The Python wrapper checks PRAGMA table_info(rebuild_jobs)
+-- and only adds columns that don't exist. This ensures safe re-runs and
+-- handles both fresh deploys (columns from 001) and legacy deploys (needs 002).
+--
+-- Intentionally a no-op when executed as an ordered SQL migration artifact.
+-- Legacy databases that still need these columns are handled by the Python
+-- migration runner, which performs existence checks before altering the table.
+SELECT 1;

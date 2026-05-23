@@ -1,0 +1,227 @@
+---
+name: Stage 5C - Distributed Coordination Safety Gates
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency:
+  group: stage-5c-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # -----------------------------
+  # Gate A — Static Invariant Analysis
+  # -----------------------------
+  static-coordination-gates:
+    name: Gate A - Static Coordination Invariants
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install ruff mypy
+
+      - name: Run type checking (mypy)
+        run: |
+          # Gate A intentionally validates the invariant scanner itself only.
+          # Repository-wide typing debt is tracked in separate workflows.
+          # --follow-imports=silent keeps this gate focused on the target file
+          # instead of failing on unrelated imported-module type issues.
+          mypy --follow-imports=silent tools/ci/check_coordination_invariants.py
+
+      - name: Run linting (ruff strict mode)
+        run: ruff check tools/ci/check_coordination_invariants.py
+
+      - name: Coordination invariant scan (custom static rules)
+        run: |
+          python tools/ci/check_coordination_invariants.py
+
+          # Expected checks enforced in script:
+          # - single ownership writer enforcement
+          # - no bypass of RecoveryGate
+          # - no duplicate execution entrypoints
+          # - no unsafe lock fallback logic
+
+  # -----------------------------
+  # Gate B — Multi-Worker Simulation
+  # -----------------------------
+  multi-worker-simulation:
+    name: Gate B - Multi-Worker Coordination Simulation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: static-coordination-gates
+    outputs:
+      tests_ran: ${{ steps.run_tests.outputs.tests_ran }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test -d test_db"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-xdist
+
+      - name: Run multi-worker coordination tests
+        id: run_tests
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          ASSET_GRAPH_DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+        run: |
+          if [ -d tests/coordination ]; then
+            echo "tests_ran=true" >> "$GITHUB_OUTPUT"
+            pytest tests/coordination \
+              -n 4 \
+              --maxfail=1 \
+              -q
+          else
+            echo "tests_ran=false" >> "$GITHUB_OUTPUT"
+            echo "⚠️  Multi-worker coordination test suite not yet implemented: tests/coordination"
+            echo "Stage 5C.1 focuses on failure detection; coordination tests deferred to future stages."
+            echo "Skipping Gate B - Multi-Worker Simulation for now."
+          fi
+
+          # Required enforced assertions inside tests:
+          # - single active owner invariant
+          # - no overlapping rebuild execution
+          # - monotonic ownership transitions
+
+  # -----------------------------
+  # Gate C — Failure Injection Tests
+  # -----------------------------
+  failure-injection-gates:
+    name: Gate C - Failure Mode Injection
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: multi-worker-simulation
+    outputs:
+      tests_ran: ${{ steps.run_tests.outputs.tests_ran }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test -d test_db"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run failure injection test suite
+        id: run_tests
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          COORDINATION_FAILURE_MODES: "enabled"
+        run: |
+          if [ -d tests/failure_injection ]; then
+            echo "tests_ran=true" >> "$GITHUB_OUTPUT"
+            pytest tests/failure_injection \
+              -q \
+              --maxfail=1
+          else
+            echo "tests_ran=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping failure injection tests: tests/failure_injection directory not found."
+          fi
+
+          # Must include:
+          # - lock expiry mid-execution
+          # - worker crash simulation
+          # - DB latency/partition simulation
+          # - cancellation during execution
+          # - restart storm simulation
+
+  # -----------------------------
+  # Final Aggregation Gate
+  # -----------------------------
+  coordination-safety-summary:
+    name: Final Coordination Safety Gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs:
+      - static-coordination-gates
+      - multi-worker-simulation
+      - failure-injection-gates
+
+    steps:
+      - name: Verify all gates passed
+        run: |
+          echo "=== Stage 5C Coordination Safety Gate Results ==="
+          echo ""
+          echo "Gate A (Static Coordination Invariants): ✅ PASSED"
+          echo "Gate B (Multi-Worker Simulation): ${{ needs.multi-worker-simulation.outputs.tests_ran == 'true' && '✅ PASSED' || '⚠️  SKIPPED (tests/coordination not implemented)' }}"
+          echo "Gate C (Failure Mode Injection): ${{ needs.failure-injection-gates.outputs.tests_ran == 'true' && '✅ PASSED' || '⚠️  SKIPPED (tests/failure_injection not implemented)' }}"
+          echo ""
+
+          # Gate A is always required (static invariants)
+          # Gates B and C are aspirational for this PR stage
+          gate_b_status="${{ needs.multi-worker-simulation.outputs.tests_ran }}"
+          gate_c_status="${{ needs.failure-injection-gates.outputs.tests_ran }}"
+
+          if [ "$gate_b_status" == "true" ] && [ "$gate_c_status" == "true" ]; then
+            echo "✅ All coordination safety gates PASSED with full test coverage."
+            echo "System is safe for merge under distributed coordination invariants."
+          elif [ "$gate_b_status" == "false" ] || [ "$gate_c_status" == "false" ]; then
+            echo "⚠️  WARNING: Some coordination tests were SKIPPED (not yet implemented)."
+            echo "Gate A (static invariants) passed. Gates B/C deferred to future PRs."
+            echo "This is ACCEPTABLE for Stage 5C.1 which focuses on failure detection framework."
+            echo ""
+            echo "Future work required:"
+            [ "$gate_b_status" == "false" ] && echo "  - Implement tests/coordination (multi-worker simulation)"
+            [ "$gate_c_status" == "false" ] && echo "  - Implement tests/failure_injection (failure mode tests)"
+          else
+            echo "❌ ERROR: Unexpected gate status. Check workflow outputs."
+            exit 1
+          fi
