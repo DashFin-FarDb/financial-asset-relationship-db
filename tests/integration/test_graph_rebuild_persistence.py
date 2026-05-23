@@ -7,7 +7,7 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor  # pylint: disable=no-name-in-module
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
