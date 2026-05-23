@@ -345,7 +345,7 @@ ADMIN_PASSWORD=...       # Operator credential (hashed in DB)
 **Settings Resolution** (`src/config/settings.py`):
 
 ```python
-class Settings(BaseSettings):
+class Settings(BaseModel):
     admin_username: str | None = Field(default=None)
     admin_password: str | None = Field(default=None)
 ```
