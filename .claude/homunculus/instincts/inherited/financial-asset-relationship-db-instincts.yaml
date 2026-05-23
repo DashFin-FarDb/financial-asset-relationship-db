@@ -1,0 +1,405 @@
+# Instincts generated from https://github.com/DashFin-FarDb/financial-asset-relationship-db
+# Generated: 2026-05-23T16:16:18.037Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: financial-asset-relationship-db-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Commit Length
+
+## Action
+
+Keep commit messages concise (~48 characters)
+
+## Evidence
+
+- Average commit message length: 48 chars
+- Based on 7 commits
+
+---
+id: financial-asset-relationship-db-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Naming Files
+
+## Action
+
+Use snake_case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: snake_case
+
+---
+id: financial-asset-relationship-db-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: financial-asset-relationship-db-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: financial-asset-relationship-db-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: financial-asset-relationship-db-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Framework
+
+## Action
+
+Use jest as the test framework
+
+## Evidence
+
+- Test framework detected: jest
+- File pattern: *.test.ts
+
+---
+id: financial-asset-relationship-db-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: financial-asset-relationship-db-test-mocking
+trigger: "when mocking dependencies in tests"
+confidence: 0.75
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Mocking
+
+## Action
+
+Use jest.mock for mocking
+
+## Evidence
+
+- Mocking pattern detected: jest.mock
+- Consistent across test files
+
+---
+id: financial-asset-relationship-db-test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Types
+
+## Action
+
+Write unit, integration tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, integration
+- Coverage config: no
+
+---
+id: financial-asset-relationship-db-workflow-unit-test-file-iteration
+trigger: "when doing unit test file iteration"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Unit Test File Iteration
+
+## Action
+
+Follow the unit-test-file-iteration workflow:
+1. Edit the target unit test file to fix or improve tests.
+2. Apply code review suggestions from collaborators or bots.
+3. Run pre-commit hooks or CI auto-fixes to enforce formatting and linting.
+4. Repeat as needed until tests and formatting are satisfactory.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: tests/unit/test_api.py, tests/unit/test_api_main.py
+
+---
+id: financial-asset-relationship-db-instinct-naming-conventions
+trigger: "When creating or renaming files, functions, classes, or constants in Python code"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Naming Conventions
+
+## Action
+
+Use snake_case for file names, camelCase for functions, PascalCase for classes, and SCREAMING_SNAKE_CASE for constants
+
+## Evidence
+
+- Pattern in namingConventions: files=snake_case, functions=camelCase, classes=PascalCase, constants=SCREAMING_SNAKE_CASE
+
+---
+id: financial-asset-relationship-db-instinct-import-style
+trigger: "When importing modules in Python source files"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Import Style
+
+## Action
+
+Use relative imports
+
+## Evidence
+
+- Pattern in codeStyle: importStyle=relative
+
+---
+id: financial-asset-relationship-db-instinct-export-style
+trigger: "When exporting modules or functions"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in codeStyle: exportStyle=named
+
+---
+id: financial-asset-relationship-db-instinct-testing-framework
+trigger: "When writing or updating tests for TypeScript code"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Testing Framework
+
+## Action
+
+Use Jest as the testing framework and place tests in files matching *.test.ts
+
+## Evidence
+
+- Pattern in testing: framework=jest, filePattern=*.test.ts
+
+---
+id: financial-asset-relationship-db-instinct-testing-types
+trigger: "When designing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Testing Types
+
+## Action
+
+Include both unit and integration tests
+
+## Evidence
+
+- Pattern in testing: testTypes=[unit, integration]
+
+---
+id: financial-asset-relationship-db-instinct-testing-mocking
+trigger: "When mocking dependencies in tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Testing Mocking
+
+## Action
+
+Use jest.mock for mocking
+
+## Evidence
+
+- Pattern in testing: mockingStyle=jest.mock
+
+---
+id: financial-asset-relationship-db-instinct-git-commit-prefix
+trigger: "When writing a commit message for a bug fix"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Git Commit Prefix
+
+## Action
+
+Prefix the commit message with 'fix:'
+
+## Evidence
+
+- Pattern in commits: prefixes=[fix]
+- Seen in commit: 'fix: add missing .github/labeler.yml configuration file'
+
+---
+id: financial-asset-relationship-db-instinct-git-commit-length
+trigger: "When writing commit messages"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Git Commit Length
+
+## Action
+
+Keep commit messages concise, averaging around 48 characters
+
+## Evidence
+
+- Pattern in commits: averageLength=48
+
+---
+id: financial-asset-relationship-db-instinct-git-commit-auto-fix
+trigger: "When pre-commit hooks or bots make changes"
+confidence: 0.8
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Git Commit Auto Fix
+
+## Action
+
+Accept and merge auto-formatting or linting commits from pre-commit.ci or similar bots
+
+## Evidence
+
+- Seen in commit: '[pre-commit.ci] auto fixes from pre-commit.com hooks'
+- Pattern in commits: Apply suggestion from @gemini-code-assist[bot]
+
+---
+id: financial-asset-relationship-db-instinct-unit-test-file-iteration
+trigger: "When a unit test file (e.g., tests/unit/test_api.py) needs fixing, improvement, or formatting after code changes or review feedback"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Unit Test File Iteration
+
+## Action
+
+Iteratively edit the test file, apply code review suggestions, and run pre-commit hooks or CI auto-fixes until tests and formatting are satisfactory
+
+## Evidence
+
+- Workflow: unit-test-file-iteration
+- Commits: 'Fix duplicate clear_settings_cache fixture in test_api.py (#1207)'
+- Pattern in files: tests/unit/test_api.py
+
