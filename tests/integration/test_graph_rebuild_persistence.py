@@ -89,7 +89,7 @@ async def _post_rebuild() -> _RouteResult:
 
 
 def _authorized_active_user_app(monkeypatch: pytest.MonkeyPatch, username: str = "admin") -> FastAPI:
-    """Pure internal helper to build the app instance. 
+    """Pure internal helper to build the app instance.
     It uses 'return' because it delegates lifecycle management to the caller.
     """
     monkeypatch.setenv("ADMIN_USERNAME", username)
@@ -108,13 +108,13 @@ def _authorized_active_user_app(monkeypatch: pytest.MonkeyPatch, username: str =
 def authorized_app(request, monkeypatch: pytest.MonkeyPatch) -> Iterator[FastAPI]:
     """Public fixture configuring an authorized application context."""
     username = getattr(request, "param", "admin")
-    
+
     # Delegate the building to the helper
     app = _authorized_active_user_app(monkeypatch, username)
-    
+
     # Hand the app to the test
     yield app
-    
+
     # TEARDOWN: This absolutely must run after the test
     app.dependency_overrides.clear()
     get_settings.cache_clear()  # <-- Resolves the leak
