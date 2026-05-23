@@ -268,7 +268,7 @@ class TestCORSValidation:
     def test_validate_origin_invalid():
         """Test invalid origins are rejected."""
         # HTTP origins are rejected in production.
-        with patch.dict(os.environ, {"ENV": "production"}):
+        with patch.dict(os.environ, {"ENV": "production", "ALLOWED_ORIGINS": ""}):
             get_settings.cache_clear()
             assert validate_origin(TEST_ORIGIN_HTTP_LOCALHOST) is False
             assert validate_origin("http://example.com") is False
