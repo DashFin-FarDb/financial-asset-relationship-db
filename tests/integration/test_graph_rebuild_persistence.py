@@ -92,7 +92,7 @@ def authorized_app(request, monkeypatch: pytest.MonkeyPatch):
     # Check if the test passed a specific username parameter, otherwise default to "admin"
     # Intentionally allows both 'admin' and 'operator' until a subsequent PR
     username = getattr(request, "param", "admin")
-    
+
     monkeypatch.setenv("ADMIN_USERNAME", username)
     get_settings.cache_clear()
 
@@ -102,9 +102,9 @@ def authorized_app(request, monkeypatch: pytest.MonkeyPatch):
         return User(username=username, disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
-    
+
     yield app
-    
+
     app.dependency_overrides.clear()
 
 
