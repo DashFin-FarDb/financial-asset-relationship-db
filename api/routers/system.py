@@ -147,83 +147,15 @@ def _get_graph_persistence_configured() -> bool:
         )
         return False
 
-def _get_graph_persistence_configured() -> bool:
-    """Return whether durable graph persistence is explicitly configured."""
-    try:
-        settings = get_graph_lifecycle_settings()
-        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-        return True
-    except (
-        GraphPersistenceNotConfiguredError,
-# In _get_graph_persistence_configured, simply call the provider and rely on
-# its error hierarchy — no need to re-invoke make_url:
-def _get_graph_persistence_configured() -> bool:
-    try:
-        settings = get_graph_lifecycle_settings()
-        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-        return True
-    except (
-        GraphPersistenceNotConfiguredError,
-        GraphPersistenceNonDurableError,
-        GraphPersistenceInvalidUrlError,
-    ):
-        return False
-    except Exception as exc:
-        logger.error(
-            "Unexpected error checking graph persistence configuration: %s",
-            type(exc).__name__,
-        )
-        return False
-        GraphPersistenceInvalidUrlError,
-    ):
-        return False
-    except Exception as exc:
-        logger.error(
-            "Unexpected error checking graph persistence configuration: %s",
-            type(exc).__name__,
-        )
-        return False
+
+@router.get("/api/health/detailed")
 def detailed_health_check() -> DetailedHealthResponse:
-def _get_graph_persistence_configured() -> bool:
-    """Return whether durable graph persistence is explicitly configured."""
-    try:
-        settings = get_graph_lifecycle_settings()
-        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-        return True
-    except (
-        GraphPersistenceNotConfiguredError,
-        GraphPersistenceNonDurableError,
-        GraphPersistenceInvalidUrlError,
-    ):
-        return False
-    except Exception as exc:
-        logger.error(
-            "Unexpected error checking graph persistence configuration: %s",
-            type(exc).__name__,
-        )
-        return False
+    """Return detailed health including graph persistence configuration."""
     graph_health = _get_graph_health()
     database_health = _get_database_health()
 
     status_value = "healthy" if graph_health.available and database_health.reachable else "degraded"
-def _get_graph_persistence_configured() -> bool:
-    """Return whether durable graph persistence is explicitly configured."""
-    try:
-        settings = get_graph_lifecycle_settings()
-        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-        return True
-    except (
-        GraphPersistenceNotConfiguredError,
-        GraphPersistenceNonDurableError,
-        GraphPersistenceInvalidUrlError,
-    ):
-        return False
-    except Exception as exc:
-        logger.error(
-            "Unexpected error checking graph persistence configuration: %s",
-            type(exc).__name__,
-        )
-        return False
+
     return DetailedHealthResponse(
         status=status_value,
         graph_persistence_configured=_get_graph_persistence_configured(),
