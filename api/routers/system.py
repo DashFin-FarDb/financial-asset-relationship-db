@@ -155,7 +155,25 @@ def _get_graph_persistence_configured() -> bool:
         return True
     except (
         GraphPersistenceNotConfiguredError,
+# In _get_graph_persistence_configured, simply call the provider and rely on
+# its error hierarchy — no need to re-invoke make_url:
+def _get_graph_persistence_configured() -> bool:
+    try:
+        settings = get_graph_lifecycle_settings()
+        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        return True
+    except (
+        GraphPersistenceNotConfiguredError,
         GraphPersistenceNonDurableError,
+        GraphPersistenceInvalidUrlError,
+    ):
+        return False
+    except Exception as exc:
+        logger.error(
+            "Unexpected error checking graph persistence configuration: %s",
+            type(exc).__name__,
+        )
+        return False
         GraphPersistenceInvalidUrlError,
     ):
         return False
