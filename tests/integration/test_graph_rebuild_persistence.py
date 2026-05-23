@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor  # pylint: disable=no-name-in-
 from pathlib import Path
 from typing import Any
 
+from fastapi import FastAPI  # Added missing import
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
 from sqlalchemy import create_engine  # pylint: disable=import-error
@@ -88,9 +89,11 @@ async def _post_rebuild() -> _RouteResult:
 
 
 @pytest.fixture
-def authorized_app(request, monkeypatch: pytest.MonkeyPatch):
-    # Check if the test passed a specific username parameter, otherwise default to "admin"
-    # Intentionally allows both 'admin' and 'operator' until a subsequent PR
+def authorized_app(request, monkeypatch: pytest.MonkeyPatch) -> FastAPI:
+    """Public fixture configuring an authorized application context.
+    
+    Can be indirectly parameterized to swap user permissions (e.g., 'operator').
+    """
     username = getattr(request, "param", "admin")
 
     monkeypatch.setenv("ADMIN_USERNAME", username)
@@ -109,7 +112,7 @@ def authorized_app(request, monkeypatch: pytest.MonkeyPatch):
 
 
 async def _post_rebuild_http(app: FastAPI) -> httpx.Response:
-    """Post to rebuild through the HTTP route with an authorized user."""
+    """Post to rebuild through the HTTP route using the provided authorized app context."""
     transport = httpx.ASGITransport(app=app)
 
     async with httpx.AsyncClient(
@@ -356,46 +359,93 @@ async def test_explicit_rebuild_persists_sample_graph(
     assert api_main.get_graph().assets.keys() == saved.assets.keys()
 
 
-def _create_test_app(monkeypatch: pytest.MonkeyPatch, username: str = "admin") -> FastAPI:
-    """Pure internal helper to build the app instance with a specified user context."""
-    # Temporarily allow both 'admin' and 'operator' matching your inline comment
-    monkeypatch.setenv("ADMIN_USERNAME", username)
-    get_settings.cache_clear()
-
-    app = create_app()
-
-    def active_user() -> User:
-        return User(username=username, disabled=False)
-
-    app.dependency_overrides[get_current_active_user] = active_user
-    return app
-
-
-@pytest.fixture
-def authorized_app(request, monkeypatch: pytest.MonkeyPatch):
-    """Public fixture for normal tests requiring an authorized application."""
-    username = getattr(request, "param", "admin")
-    app = _create_test_app(monkeypatch, username)
-
-    yield app
-
-    # Ensures dependency overrides don't leak out into subsequent tests
-    app.dependency_overrides.clear()
-
-
-async def _post_rebuild_http(
+@pytest.mark.parametrize("authorized_app", ["operator"], indirect=True)
+async def test_successful_rebuild_emits_bounded_audit_log(
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-) -> httpx.Response:
-    """Post to rebuild through the HTTP route with an authorized user."""
-    # Force 'operator' right here so the audit log picks up the correct user_ref
-    app = _create_test_app(monkeypatch, username="operator")
-    transport = httpx.ASGITransport(app=app)
+    caplog: pytest.LogCaptureFixture,
+    authorized_app: FastAPI,
+) -> None:
+    """A successful rebuild should emit bounded requested/succeeded audit logs."""
+    _prepare_rebuild_database(tmp_path, monkeypatch)
 
-    async with httpx.AsyncClient(
-        transport=transport,
-        base_url="https://testserver",
-    ) as client:
-        return await client.post("/api/graph/rebuild")
+    with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
+        response = await _post_rebuild_http(authorized_app)
+        await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_succeeded")
+
+    assert response.status_code == 200
+    payload = response.json()
+
+    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    requested_records = [
+        record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_requested"
+    ]
+    succeeded_records = [
+        record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_succeeded"
+    ]
+
+    assert len(requested_records) == 1
+    assert len(succeeded_records) == 1
+    assert requested_records[0].__dict__.get("user_ref") == "operator"
+    assert requested_records[0].__dict__.get("path") == "/api/graph/rebuild"
+    assert succeeded_records[0].__dict__.get("user_ref") == "operator"
+    assert succeeded_records[0].__dict__.get("status_code") == 200
+    assert succeeded_records[0].__dict__.get("source") == payload["source"]
+    assert succeeded_records[0].__dict__.get("asset_count") == payload["asset_count"]
+    assert succeeded_records[0].__dict__.get("relationship_count") == payload["relationship_count"]
+    assert succeeded_records[0].__dict__.get("regulatory_event_count") == payload["regulatory_event_count"]
+    assert succeeded_records[0].__dict__.get("duration_ms") >= 0
+
+
+@pytest.mark.parametrize("authorized_app", ["operator"], indirect=True)
+async def test_failed_rebuild_emits_secret_safe_audit_log(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    authorized_app: FastAPI,
+) -> None:
+    """A failed rebuild should emit bounded secret-safe failure audit logs."""
+    raw_url = "postgresql://operator:secret@example.invalid/asset_graph"
+    database_url = _prepare_rebuild_database(tmp_path, monkeypatch)
+
+    def fail_save(*_args: Any, **_kwargs: Any) -> None:
+        """Simulate persistence save failure with a sanitized exception."""
+        raise providers.GraphPersistenceSaveError("Failed to persist rebuilt graph.")
+
+    monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
+
+    with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
+        response = await _post_rebuild_http(authorized_app)
+        await _wait_for_runtime_idle_and_audit_event(caplog, "graph_rebuild_failed")
+
+    assert response.status_code == 500
+
+    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    failed_records = [record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_failed"]
+
+    assert len(failed_records) == 1
+    assert failed_records[0].user_ref == "operator"  # type: ignore[attr-defined]
+    assert failed_records[0].failure_category == "persistence_save_error"  # type: ignore[attr-defined]
+    assert failed_records[0].status_code == 500  # type: ignore[attr-defined]
+    assert failed_records[0].source == "sample"  # type: ignore[attr-defined]
+    assert failed_records[0].duration_ms >= 0  # type: ignore[attr-defined]
+
+    serialized_records = " ".join(str(record.__dict__) for record in audit_records)
+    assert raw_url not in response.text
+    assert "secret" not in response.text
+    assert raw_url not in serialized_records
+    assert "secret" not in serialized_records
+
+    # Verify failed-state persistence is durable in the rebuild_jobs table.
+    engine = create_engine(database_url)
+    session = create_session_factory(engine)()
+    try:
+        jobs = AssetGraphRepository(session).list_rebuild_jobs(limit=1)
+        assert len(jobs) == 1
+        assert jobs[0].status == "failed"
+    finally:
+        session.close()
+        engine.dispose()
 
 
 async def test_rebuild_fails_closed_when_job_creation_persistence_fails(
