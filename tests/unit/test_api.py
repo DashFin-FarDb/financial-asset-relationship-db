@@ -37,7 +37,22 @@ def clear_settings_cache():
     """Clear cached runtime settings around each test."""
     get_settings.cache_clear()
     yield
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """Clear cached runtime settings around each test."""
     get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return asset items from a paginated assets response."""
+    assert set(page) == {"items", "total", "page", "per_page"}
+    assert isinstance(page["items"], list)
+    assert isinstance(page["total"], int)
+    assert isinstance(page["page"], int)
+    assert isinstance(page["per_page"], int)
+    return page["items"]
 
 
 @pytest.fixture
