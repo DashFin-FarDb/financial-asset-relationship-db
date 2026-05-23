@@ -346,9 +346,20 @@ ADMIN_PASSWORD=...       # Operator credential (hashed in DB)
 
 ```python
 class Settings(BaseModel):
+    """Settings use BaseModel with manual environment loading via load_settings()."""
     admin_username: str | None = Field(default=None)
     admin_password: str | None = Field(default=None)
+
+def load_settings() -> Settings:
+    """Load runtime settings from environment variables using os.getenv()."""
+    return Settings(
+        admin_username=os.getenv("ADMIN_USERNAME"),
+        admin_password=os.getenv("ADMIN_PASSWORD"),
+        # ... other fields
+    )
 ```
+
+**Note**: The codebase uses `BaseModel` with explicit manual loading via `load_settings()` rather than Pydantic's `BaseSettings` auto-loading pattern. Environment variables are read through `os.getenv()` calls in the `load_settings()` function.
 
 **Assessment**: ✅ Configuration is centralized and well-documented.
 
