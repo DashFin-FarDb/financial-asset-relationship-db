@@ -60,7 +60,8 @@ curl -X POST https://your-app.com/api/graph/rebuild \
 ✅ **No vulnerabilities identified**
 ✅ Bounded error messages (no secret leakage)
 ✅ Centralized configuration
-✅ Comprehensive audit logging
+✅ Audit logging for successful rebuild operations
+⚠️ Authorization failures (403) not currently logged
 
 ## Deployment Readiness
 
