@@ -13,9 +13,6 @@ Ensures only designated **operator users** can execute destructive graph rebuild
 ## Authorization Flow
 
 ```
-Request → Authentication → Active User Check → Operator Check → Endpoint
-  401         401              400                 403           200/500
-```
 
 ## Configuration
 
