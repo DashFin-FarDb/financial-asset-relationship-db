@@ -63,9 +63,16 @@ def test_relationship_creation():
 
 ## Testing Patterns
 
-- **Framework:** Jest (note: this is typically for JavaScript/TypeScript, but the pattern is detected here)
-- **Test File Pattern:** `*.test.ts`
-- **Python Unit Tests:** Use standard Python test files in `tests/unit/`, named with `test_` prefix.
+- **Framework:** pytest (standard for Python)
+- **Test File Pattern:** `test_*.py`
+- **Unit Tests:** Use Python test files in `tests/unit/`, named with `test_` prefix.
+  - **Example:**
+    ```python
+    # tests/unit/test_api_main.py
+    def test_main_endpoint():
+        response = client.get("/api/main")
+        assert response.status_code == 200
+    ```
   - **Example:**
     ```python
     # tests/unit/test_api_main.py
