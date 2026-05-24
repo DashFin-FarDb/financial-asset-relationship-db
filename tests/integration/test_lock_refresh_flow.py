@@ -36,9 +36,6 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import sessionmaker
 
 
-logger = logging.getLogger(__name__)
-
-
 # ---------------------------------------------------------------------------
 # Test Helpers & Fixtures
 # ---------------------------------------------------------------------------
@@ -160,12 +157,12 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
                 dist_lock.release()
 
 
-def test_lock_loss_mid_rebuild_aborts_with_503(
+def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Lock loss mid-rebuild should set lock_lost Event and log error.
+    """Lock loss mid-rebuild should set lock_lost Event, log error, and terminate thread.
 
     This test simulates a scenario where the lock is taken by another holder
     mid-rebuild, causing the heartbeat keeper to detect lock loss.
@@ -490,7 +487,7 @@ def test_heartbeat_keeper_updates_database_heartbeat(
                     second_update = job.last_heartbeat_at if job else None
 
             assert second_update is not None, "Heartbeat should still be set"
-            assert second_update >= updated_heartbeat, "Heartbeat should continue updating"
+            assert second_update > updated_heartbeat, "Heartbeat should continue updating"
 
         finally:
             stop_event.set()
