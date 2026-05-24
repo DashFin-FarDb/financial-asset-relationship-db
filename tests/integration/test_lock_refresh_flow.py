@@ -490,9 +490,8 @@ def test_heartbeat_keeper_updates_database_heartbeat(
             second_update = None
             while second_update is None or second_update == updated_heartbeat:
                 if time.monotonic() > deadline:
-                    # It's OK if the second update equals the first - just verify it's not None
-                    break
-                time.sleep(0.5)
+                    pytest.fail("Heartbeat was not updated a second time within timeout")
+                time.sleep(0.1)
 
                 with session_scope(session_factory) as session:
                     repo = AssetGraphRepository(session)
