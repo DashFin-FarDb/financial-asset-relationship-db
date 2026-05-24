@@ -1,0 +1,59 @@
+# Labeler configuration for actions/labeler
+# See: https://github.com/actions/labeler
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**'
+
+frontend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'frontend/**'
+      - 'src/**/*.tsx'
+      - 'src/**/*.ts'
+      - 'src/**/*.css'
+      - 'src/**/*.html'
+
+backend:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'api/**'
+      - '*.py'
+      - 'app.py'
+      - 'main.py'
+      - 'migrations/**'
+      - 'tests/**'
+      - 'conftest.py'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'requirements*.txt'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'pyproject.toml'
+
+ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/**'
+
+docker:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - '**/*.Dockerfile'
+      - '.docker/**'
+
+configuration:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '*.yml'
+      - '*.yaml'
+      - '*.json'
+      - '*.toml'
+      - '*.ini'
+      - '*.cfg'
