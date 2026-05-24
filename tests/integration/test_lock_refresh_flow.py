@@ -291,14 +291,13 @@ def test_lock_loss_mid_rebuild_aborts_with_503(
                 other_lock.release()
 
 
-def test_lock_loss_before_commit_prevents_partial_state(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Lock loss before commit should raise error and prevent persistence.
+# At top of file:
+from api.graph_lifecycle_providers import GraphPersistenceSaveError, save_graph_to_persistence
 
-    This test verifies the pre-commit safety check that prevents committing graph state
+def test_pre_commit_check_blocks_save_on_lock_loss(
+    ...
+) -> None:
+    """Pre-commit safety hook prevents graph persistence when lock is lost."""
     if the lock was lost between staging changes and commit.
 
     Verifies:
