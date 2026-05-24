@@ -3,27 +3,27 @@
 
 documentation:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.md'
-      - 'docs/**'
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
 
 github-actions:
   - changed-files:
-    - any-glob-to-any-file:
-      - '.github/**'
+      - any-glob-to-any-file:
+          - '.github/**'
 
 dependencies:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'yarn.lock'
-      - 'requirements*.txt'
-      - 'Pipfile'
-      - 'Pipfile.lock'
-      - 'go.mod'
-      - 'go.sum'
-      - 'pom.xml'
-      - 'build.gradle'
-      - 'Gemfile'
-      - 'Gemfile.lock'
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'package-lock.json'
+          - 'yarn.lock'
+          - 'requirements*.txt'
+          - 'Pipfile'
+          - 'Pipfile.lock'
+          - 'go.mod'
+          - 'go.sum'
+          - 'pom.xml'
+          - 'build.gradle'
+          - 'Gemfile'
+          - 'Gemfile.lock'
