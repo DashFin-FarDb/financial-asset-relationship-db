@@ -142,9 +142,7 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
                 deadline = time.monotonic() + (expected_refresh_interval * 3)
                 while mock_refresh.call_count < 2:
                     if time.monotonic() > deadline:
-                        pytest.fail(
-                            f"Expected 2 refreshes within timeout, got {mock_refresh.call_count}"
-                        )
+                        pytest.fail(f"Expected 2 refreshes within timeout, got {mock_refresh.call_count}")
                     time.sleep(0.1)
 
                 # Stop the heartbeat keeper
@@ -248,7 +246,8 @@ def test_lock_loss_mid_rebuild_aborts_with_503(
 
                 # Verify ERROR log was emitted
                 error_logs = [
-                    record for record in caplog.records
+                    record
+                    for record in caplog.records
                     if record.levelname == "ERROR" and "lost distributed lock" in record.message.lower()
                 ]
                 assert len(error_logs) >= 1, "Expected ERROR log for lock loss"
@@ -319,16 +318,12 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
 
         # Verify pre-commit check failure was logged
         error_logs = [
-            record for record in caplog.records
-            if "Pre-commit persistence safety check failed" in record.message
+            record for record in caplog.records if "Pre-commit persistence safety check failed" in record.message
         ]
         assert len(error_logs) >= 1, "Expected ERROR log for pre-commit check failure"
 
         # Verify the underlying error type was _DistributedLockLostError
-        lock_lost_logs = [
-            record for record in caplog.records
-            if "_DistributedLockLostError" in record.message
-        ]
+        lock_lost_logs = [record for record in caplog.records if "_DistributedLockLostError" in record.message]
         assert len(lock_lost_logs) >= 1, "Expected log mentioning _DistributedLockLostError"
 
         # Verify graph state was not persisted (rollback occurred)
@@ -337,9 +332,9 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
             current_graph = repo.load_graph()
             current_asset_count = len(current_graph.assets)
 
-        assert current_asset_count == initial_asset_count, (
-            "Graph state should be unchanged after lock loss during commit"
-        )
+        assert (
+            current_asset_count == initial_asset_count
+        ), "Graph state should be unchanged after lock loss during commit"
 
 
 def test_heartbeat_thread_stops_cleanly_on_success(
@@ -402,9 +397,7 @@ def test_heartbeat_thread_stops_cleanly_on_success(
         time.sleep(0.5)  # Small buffer to ensure join completes
 
         if heartbeat_thread is not None:
-            assert not heartbeat_thread.is_alive(), (
-                "Heartbeat thread should terminate within 2s after context exit"
-            )
+            assert not heartbeat_thread.is_alive(), "Heartbeat thread should terminate within 2s after context exit"
 
         # Clean up
         dist_lock.release()
@@ -481,9 +474,7 @@ def test_heartbeat_keeper_updates_database_heartbeat(
 
             assert updated_heartbeat is not None, "Heartbeat timestamp should be set"
             if initial_heartbeat is not None:
-                assert updated_heartbeat > initial_heartbeat, (
-                    "Heartbeat timestamp should be updated"
-                )
+                assert updated_heartbeat > initial_heartbeat, "Heartbeat timestamp should be updated"
 
             # Wait for another cycle using polling
             deadline = time.monotonic() + (interval_seconds * 2)
@@ -499,9 +490,7 @@ def test_heartbeat_keeper_updates_database_heartbeat(
                     second_update = job.last_heartbeat_at if job else None
 
             assert second_update is not None, "Heartbeat should still be set"
-            assert second_update >= updated_heartbeat, (
-                "Heartbeat should continue updating"
-            )
+            assert second_update >= updated_heartbeat, "Heartbeat should continue updating"
 
         finally:
             stop_event.set()
