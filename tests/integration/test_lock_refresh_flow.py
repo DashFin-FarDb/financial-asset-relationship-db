@@ -198,9 +198,18 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
         other_lock = None  # Initialize to track if lock was acquired
         heartbeat_thread = None  # Initialize to track thread
 
-        # Track refresh events using MagicMock with wraps
+        # Use Event to track when first refresh completes to avoid race condition
+        first_refresh_done = threading.Event()
+
+        # Track refresh events using MagicMock with wraps and side_effect
         original_refresh = dist_lock.refresh
-        mock_refresh = MagicMock(wraps=original_refresh)
+
+        def refresh_with_event(*args, **kwargs):
+            result = original_refresh(*args, **kwargs)
+            first_refresh_done.set()
+            return result
+
+        mock_refresh = MagicMock(side_effect=refresh_with_event)
         dist_lock.refresh = mock_refresh
 
         # Start heartbeat keeper
@@ -222,12 +231,10 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
             heartbeat_thread.start()
 
             try:
-                # Wait for first refresh cycle using polling with deadline instead of fixed sleep
-                deadline = time.monotonic() + (interval_seconds * 3)
-                while mock_refresh.call_count < 1:
-                    if time.monotonic() > deadline:
-                        pytest.fail(f"Expected at least 1 refresh within timeout, got {mock_refresh.call_count}")
-                    time.sleep(0.1)
+                # Wait for first refresh to complete using Event instead of polling call_count
+                timeout_seconds = interval_seconds * 3
+                if not first_refresh_done.wait(timeout=timeout_seconds):
+                    pytest.fail(f"First refresh did not complete within {timeout_seconds}s")
 
                 # Simulate lock loss by manually releasing and acquiring with different holder
                 dist_lock.release()
@@ -265,7 +272,7 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
                 # Ensure original lock is released even if test fails
                 try:
                     dist_lock.release()
-                except Exception:
+                except RuntimeError:
                     pass  # Lock may already be released
 
 
