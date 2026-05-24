@@ -13,7 +13,12 @@
 name: Snyk Infrastructure as Code
 
 "on":
-  workflow_dispatch: # Disabled: SNYK_TOKEN not configured
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: '0 8 * * 1'  # Run weekly on Mondays at 8 AM UTC
 
 permissions:
   contents: read
