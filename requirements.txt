@@ -1,7 +1,7 @@
 # Runtime / deployment dependencies only.
 # Development and test tooling lives in requirements-dev.txt.
 
-gradio>=6.12.0  # >=6.6.0 for SSRF fix, >=6.7.0 for path traversal fix on Windows/Python 3.13+; >=6.9.0 to skip malformed audioop-lts marker in 6.8.0; >=6.12.0 to avoid unconditional audioop-lts conflict
+gradio>=6.13.0  # >=6.6.0 for SSRF fix, >=6.7.0 for path traversal fix on Windows/Python 3.13+; >=6.9.0 to skip malformed audioop-lts marker in 6.8.0; >=6.12.0 to avoid unconditional audioop-lts conflict; >=6.13.0 for Python 3.13 compatibility
 Markdown>=3.4,<4.0
 bleach>=6.1.0
 curl-cffi>=0.7.0  # >=0.7.0 required; libcurl vulnerability in <=0.6.4
