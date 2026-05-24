@@ -164,8 +164,12 @@ def non_operator_client(mock_settings: Any) -> Generator[TestClient, None, None]
 
     app.dependency_overrides[get_current_active_user] = active_user
 
-    with TestClient(app) as client:
-        yield client
+    try:
+        with TestClient(app) as client:
+            yield client
+    finally:
+        app.dependency_overrides.clear()
+        get_settings.cache_clear()
 
 
 @pytest.fixture
@@ -181,8 +185,12 @@ def operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
 
     app.dependency_overrides[get_current_active_user] = active_operator
 
-    with TestClient(app) as client:
-        yield client
+    try:
+        with TestClient(app) as client:
+            yield client
+    finally:
+        app.dependency_overrides.clear()
+        get_settings.cache_clear()
 
 
 async def test_app_construction_with_graph_admin_router_succeeds() -> None:
