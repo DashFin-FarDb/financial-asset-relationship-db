@@ -274,7 +274,16 @@ def test_lock_loss_mid_rebuild_aborts_with_503(
                 other_lock = DistributedLock(
                     session_factory,
                     "test_lock_loss",
-                    holder_id="other-holder",
+# Delete the dangling prose at lines 168-179 and fix the function signature.
+# Minimal corrected stub:
+def test_pre_commit_check_blocks_save_on_lock_loss(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Pre-commit safety hook prevents graph persistence when lock is lost."""
+    with _lock_refresh_db_context(tmp_path, monkeypatch) as session_factory:
+        ...
                     ttl_seconds=lock_ttl,
                 )
                 assert other_lock.acquire(), "Other holder should acquire lock"
