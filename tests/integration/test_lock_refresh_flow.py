@@ -151,7 +151,11 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
                 test_duration = expected_refresh_interval * 2.5
 Use a threading.Event or a small polling loop instead of a fixed sleep:
 
-refreshed = threading.Event()
+# Remove lines 153-165 entirely. The surrounding code already has the
+# correct time.sleep(test_duration) call at line 152 (or replace it with
+# an Event-based wait as described, but only as valid Python inside the function).
+test_duration = expected_refresh_interval * 2.5
+time.sleep(test_duration)
 
 def counting_refresh() -> bool:
     nonlocal refresh_count
