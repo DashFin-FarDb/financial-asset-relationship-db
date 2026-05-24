@@ -149,7 +149,22 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
                 # Run for slightly longer than 2 refresh intervals to see at least 2 refreshes
                 # First refresh happens immediately after the first interval, second after the next
                 test_duration = expected_refresh_interval * 2.5
-                time.sleep(test_duration)
+Use a threading.Event or a small polling loop instead of a fixed sleep:
+
+refreshed = threading.Event()
+
+def counting_refresh() -> bool:
+    nonlocal refresh_count
+    result = original_refresh()
+    if result:
+        refresh_count += 1
+        if refresh_count >= 2:
+            refreshed.set()
+    return result
+
+dist_lock.refresh = counting_refresh
+# ... start thread ...
+assert refreshed.wait(timeout=30), f'Expected 2 refreshes within 30s, got {refresh_count}'
 
                 # Stop the heartbeat keeper
                 stop_event.set()
