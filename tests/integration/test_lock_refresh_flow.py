@@ -19,6 +19,7 @@ import time
 from collections.abc import Iterator
 from pathlib import Path
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock
 
 import pytest  # pylint: disable=import-error
 
@@ -113,18 +114,10 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
             )
             repo.mark_rebuild_job_running(job_id)
 
-        # Track refresh events
-        refresh_count = 0
+        # Track refresh events using MagicMock with wraps
         original_refresh = dist_lock.refresh
-
-        def counting_refresh() -> bool:
-            nonlocal refresh_count
-            result = original_refresh()
-            if result:
-                refresh_count += 1
-            return result
-
-        dist_lock.refresh = counting_refresh
+        mock_refresh = MagicMock(wraps=original_refresh)
+        dist_lock.refresh = mock_refresh
 
         # Start heartbeat keeper thread
         with caplog.at_level(logging.DEBUG):
@@ -147,10 +140,10 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
             try:
                 # Wait for at least 2 refreshes using a polling loop instead of fixed sleep
                 deadline = time.monotonic() + (expected_refresh_interval * 3)
-                while refresh_count < 2:
+                while mock_refresh.call_count < 2:
                     if time.monotonic() > deadline:
                         pytest.fail(
-                            f"Expected 2 refreshes within timeout, got {refresh_count}"
+                            f"Expected 2 refreshes within timeout, got {mock_refresh.call_count}"
                         )
                     time.sleep(0.1)
 
@@ -227,8 +220,7 @@ def test_lock_loss_mid_rebuild_aborts_with_503(
             heartbeat_thread.start()
 
             try:
-                # Wait for first refresh cycle using polling
-                deadline = time.monotonic() + (interval_seconds * 2)
+                # Wait for first refresh cycle
                 time.sleep(interval_seconds + 0.5)
 
                 # Simulate lock loss by manually releasing and acquiring with different holder
