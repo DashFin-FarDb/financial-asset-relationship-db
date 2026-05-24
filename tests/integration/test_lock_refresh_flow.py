@@ -198,6 +198,11 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
         other_lock = None  # Initialize to track if lock was acquired
         heartbeat_thread = None  # Initialize to track thread
 
+        # Track refresh events using MagicMock with wraps
+        original_refresh = dist_lock.refresh
+        mock_refresh = MagicMock(wraps=original_refresh)
+        dist_lock.refresh = mock_refresh
+
         # Start heartbeat keeper
         with caplog.at_level(logging.ERROR):
             heartbeat_thread = threading.Thread(
@@ -217,8 +222,12 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
             heartbeat_thread.start()
 
             try:
-                # Wait for first refresh cycle
-                time.sleep(interval_seconds + 0.5)
+                # Wait for first refresh cycle using polling with deadline instead of fixed sleep
+                deadline = time.monotonic() + (interval_seconds * 3)
+                while mock_refresh.call_count < 1:
+                    if time.monotonic() > deadline:
+                        pytest.fail(f"Expected at least 1 refresh within timeout, got {mock_refresh.call_count}")
+                    time.sleep(0.1)
 
                 # Simulate lock loss by manually releasing and acquiring with different holder
                 dist_lock.release()
