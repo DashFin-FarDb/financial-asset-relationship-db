@@ -198,6 +198,7 @@ def test_lock_loss_mid_rebuild_aborts_with_503(
 
         stop_event = threading.Event()
         lock_lost_event = threading.Event()
+        other_lock = None  # Initialize to track if lock was acquired
 
         # Start heartbeat keeper
         with caplog.at_level(logging.ERROR):
@@ -256,7 +257,8 @@ def test_lock_loss_mid_rebuild_aborts_with_503(
                 stop_event.set()
                 if heartbeat_thread.is_alive():
                     heartbeat_thread.join(timeout=2.0)
-                other_lock.release()
+                if other_lock is not None:
+                    other_lock.release()
 
 
 def test_pre_commit_check_blocks_save_on_lock_loss(
@@ -394,8 +396,6 @@ def test_heartbeat_thread_stops_cleanly_on_success(
 
         # After context exit, thread should be stopped
         # The context manager joins with 2s timeout
-        time.sleep(0.5)  # Small buffer to ensure join completes
-
         if heartbeat_thread is not None:
             assert not heartbeat_thread.is_alive(), "Heartbeat thread should terminate within 2s after context exit"
 
