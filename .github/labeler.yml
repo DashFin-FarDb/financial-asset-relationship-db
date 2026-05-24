@@ -3,38 +3,38 @@
 
 documentation:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.md'
-      - 'docs/**'
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
 
 workflows:
   - changed-files:
-    - any-glob-to-any-file:
-      - '.github/workflows/**'
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
 
 tests:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*test*'
-      - '**/*spec*'
-      - 'tests/**'
+      - any-glob-to-any-file:
+          - '**/*test*'
+          - '**/*spec*'
+          - 'tests/**'
 
 dependencies:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'requirements*.txt'
-      - 'Pipfile'
-      - 'Pipfile.lock'
-      - 'pom.xml'
-      - 'build.gradle'
-      - 'go.mod'
-      - 'go.sum'
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'package-lock.json'
+          - 'requirements*.txt'
+          - 'Pipfile'
+          - 'Pipfile.lock'
+          - 'pom.xml'
+          - 'build.gradle'
+          - 'go.mod'
+          - 'go.sum'
 
 docker:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'Dockerfile'
-      - 'docker-compose*.yml'
-      - '.docker/**'
+      - any-glob-to-any-file:
+          - 'Dockerfile'
+          - 'docker-compose*.yml'
+          - '.docker/**'
