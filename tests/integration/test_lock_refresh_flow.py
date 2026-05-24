@@ -179,7 +179,9 @@ assert refreshed.wait(timeout=30), f'Expected 2 refreshes within 30s, got {refre
 
                 # Verify refresh logs were emitted
                 refresh_logs = [
-                    record for record in caplog.records
+Assert on observable state rather than log messages as the primary signal:
+- For refresh: assert `refresh_count >= 2` (already done) — drop the log-message assertion or demote it to a `# nice-to-have` comment.
+- For lock loss: assert `lock_lost_event.is_set()` (already done) — that is the contract. Remove the log-message assertion or pin it to `logger.name` + level instead of substring matching.
                     if "Refreshed distributed lock" in record.message
                 ]
                 assert len(refresh_logs) >= 2, "Expected refresh DEBUG logs"
