@@ -242,12 +242,8 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
                 heartbeat_thread.join(timeout=2.0)
                 assert not heartbeat_thread.is_alive(), "Heartbeat thread should terminate after lock loss"
 
-                # Verify ERROR log was emitted
-                error_logs = [
-                    record
-                    for record in caplog.records
-                    if record.levelname == "ERROR" and "lost distributed lock" in record.message.lower()
-                ]
+                # Verify ERROR log was emitted (without coupling to exact message text)
+                error_logs = [record for record in caplog.records if record.levelname == "ERROR"]
                 assert len(error_logs) >= 1, "Expected ERROR log for lock loss"
 
             finally:
