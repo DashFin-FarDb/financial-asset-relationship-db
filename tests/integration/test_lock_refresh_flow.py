@@ -167,7 +167,15 @@ dist_lock.refresh = counting_refresh
 assert refreshed.wait(timeout=30), f'Expected 2 refreshes within 30s, got {refresh_count}'
 
                 # Stop the heartbeat keeper
-                stop_event.set()
+Remove all lines between `test_duration = expected_refresh_interval * 2.5` and `# Stop the heartbeat keeper` that are not valid Python. The block to delete is:
+
+Use a threading.Event or a small polling loop instead of a fixed sleep:
+
+refreshed = threading.Event()
+...(through the end of the pasted suggestion block)...
+
+Assert on observable state rather than log messages as the primary signal:
+...(through the end of that annotation block)...
                 heartbeat_thread.join(timeout=2.0)
 
                 # Verify lock was not lost
