@@ -3,34 +3,34 @@
 
 documentation:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.md'
-      - 'docs/**'
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
 
 dependencies:
   - changed-files:
-    - any-glob-to-any-file:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'requirements*.txt'
-      - 'Pipfile'
-      - 'Pipfile.lock'
-      - 'poetry.lock'
-      - 'pyproject.toml'
-      - 'go.mod'
-      - 'go.sum'
-      - 'pom.xml'
-      - 'build.gradle'
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'package-lock.json'
+          - 'requirements*.txt'
+          - 'Pipfile'
+          - 'Pipfile.lock'
+          - 'poetry.lock'
+          - 'pyproject.toml'
+          - 'go.mod'
+          - 'go.sum'
+          - 'pom.xml'
+          - 'build.gradle'
 
 ci:
   - changed-files:
-    - any-glob-to-any-file:
-      - '.github/**'
+      - any-glob-to-any-file:
+          - '.github/**'
 
 tests:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*test*'
-      - '**/*spec*'
-      - 'tests/**'
-      - 'test/**'
+      - any-glob-to-any-file:
+          - '**/*test*'
+          - '**/*spec*'
+          - 'tests/**'
+          - 'test/**'
