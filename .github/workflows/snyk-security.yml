@@ -19,11 +19,7 @@
 name: Snyk Security
 
 "on":
-  push:
-    branches: ["main", "Default"]
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: ["main"]
+  workflow_dispatch: # Disabled: SNYK_TOKEN not configured
 
 permissions:
   contents: read

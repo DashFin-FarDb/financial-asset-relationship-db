@@ -3,32 +3,32 @@
 
 documentation:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.md'
-      - 'docs/**'
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
 
 ci:
   - changed-files:
-    - any-glob-to-any-file:
-      - '.github/workflows/**'
-      - '.github/**'
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/**'
 
 python:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.py'
+      - any-glob-to-any-file:
+          - '**/*.py'
 
 javascript:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.jsx'
-      - '**/*.tsx'
+      - any-glob-to-any-file:
+          - '**/*.js'
+          - '**/*.ts'
+          - '**/*.jsx'
+          - '**/*.tsx'
 
 docker:
   - changed-files:
-    - any-glob-to-any-file:
-      - '**/Dockerfile'
-      - '**/docker-compose*.yml'
-      - '.dockerignore'
+      - any-glob-to-any-file:
+          - '**/Dockerfile'
+          - '**/docker-compose*.yml'
+          - '.dockerignore'
