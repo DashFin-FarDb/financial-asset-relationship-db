@@ -196,6 +196,7 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
         stop_event = threading.Event()
         lock_lost_event = threading.Event()
         other_lock = None  # Initialize to track if lock was acquired
+        heartbeat_thread = None  # Initialize to track thread
 
         # Start heartbeat keeper
         with caplog.at_level(logging.ERROR):
@@ -248,10 +249,15 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
 
             finally:
                 stop_event.set()
-                if heartbeat_thread.is_alive():
+                if heartbeat_thread is not None and heartbeat_thread.is_alive():
                     heartbeat_thread.join(timeout=2.0)
                 if other_lock is not None:
                     other_lock.release()
+                # Ensure original lock is released even if test fails
+                try:
+                    dist_lock.release()
+                except Exception:
+                    pass  # Lock may already be released
 
 
 def test_pre_commit_check_blocks_save_on_lock_loss(
