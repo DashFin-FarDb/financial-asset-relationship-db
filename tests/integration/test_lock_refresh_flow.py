@@ -388,8 +388,11 @@ def test_heartbeat_thread_stops_cleanly_on_success(
             assert heartbeat_thread is not None, "Heartbeat thread should be running"
             assert heartbeat_thread.is_alive(), "Heartbeat thread should be alive during context"
 
-            # Simulate some work
-            time.sleep(1.0)
+            # Verify thread stays alive during context - use polling with deadline instead of fixed sleep
+            deadline = time.monotonic() + 1.0
+            while time.monotonic() < deadline:
+                assert heartbeat_thread.is_alive(), "Heartbeat thread should remain alive during context"
+                time.sleep(0.1)
 
         # After context exit, thread should be stopped
         # The context manager joins with 2s timeout
