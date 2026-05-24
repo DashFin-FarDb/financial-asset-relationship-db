@@ -74,7 +74,6 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-        # TODO: Remove or configure container scanning once a real Dockerfile is available
         # - name: Build the Docker image
         #   run: docker build -t your/image-to-test .
         # - name: Snyk Container monitor
