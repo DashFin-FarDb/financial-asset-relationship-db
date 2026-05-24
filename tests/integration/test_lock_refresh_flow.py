@@ -146,36 +146,17 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
             heartbeat_thread.start()
 
             try:
-                # Run for slightly longer than 2 refresh intervals to see at least 2 refreshes
-                # First refresh happens immediately after the first interval, second after the next
-                test_duration = expected_refresh_interval * 2.5
-Use a threading.Event or a small polling loop instead of a fixed sleep:
-
-refreshed = threading.Event()
-
-def counting_refresh() -> bool:
-    nonlocal refresh_count
-    result = original_refresh()
-    if result:
-        refresh_count += 1
-        if refresh_count >= 2:
-            refreshed.set()
-    return result
-
-dist_lock.refresh = counting_refresh
-# ... start thread ...
-assert refreshed.wait(timeout=30), f'Expected 2 refreshes within 30s, got {refresh_count}'
+                # Wait for at least 2 refreshes using a polling loop instead of fixed sleep
+                deadline = time.monotonic() + (expected_refresh_interval * 3)
+                while refresh_count < 2:
+                    if time.monotonic() > deadline:
+                        pytest.fail(
+                            f"Expected 2 refreshes within timeout, got {refresh_count}"
+                        )
+                    time.sleep(0.1)
 
                 # Stop the heartbeat keeper
-Remove all lines between `test_duration = expected_refresh_interval * 2.5` and `# Stop the heartbeat keeper` that are not valid Python. The block to delete is:
-
-Use a threading.Event or a small polling loop instead of a fixed sleep:
-
-refreshed = threading.Event()
-...(through the end of the pasted suggestion block)...
-
-Assert on observable state rather than log messages as the primary signal:
-...(through the end of that annotation block)...
+                stop_event.set()
                 heartbeat_thread.join(timeout=2.0)
 
                 # Verify lock was not lost
@@ -184,15 +165,6 @@ Assert on observable state rather than log messages as the primary signal:
                 # Verify refresh occurred at least twice (once per interval)
                 # We expect at least 2 refreshes over 2.5 intervals
                 assert refresh_count >= 2, f"Expected at least 2 refreshes, got {refresh_count}"
-
-                # Verify refresh logs were emitted
-                refresh_logs = [
-Assert on observable state rather than log messages as the primary signal:
-- For refresh: assert `refresh_count >= 2` (already done) — drop the log-message assertion or demote it to a `# nice-to-have` comment.
-- For lock loss: assert `lock_lost_event.is_set()` (already done) — that is the contract. Remove the log-message assertion or pin it to `logger.name` + level instead of substring matching.
-                    if "Refreshed distributed lock" in record.message
-                ]
-                assert len(refresh_logs) >= 2, "Expected refresh DEBUG logs"
 
             finally:
                 # Clean up
@@ -299,13 +271,14 @@ def test_lock_loss_mid_rebuild_aborts_with_503(
                 other_lock.release()
 
 
-# At top of file:
-from api.graph_lifecycle_providers import GraphPersistenceSaveError, save_graph_to_persistence
-
 def test_pre_commit_check_blocks_save_on_lock_loss(
-    ...
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Pre-commit safety hook prevents graph persistence when lock is lost."""
+    """Pre-commit safety hook prevents graph persistence when lock is lost.
+
+    This test verifies the pre-commit safety check that prevents committing graph state
     if the lock was lost between staging changes and commit.
 
     Verifies:
