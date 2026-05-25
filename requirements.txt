@@ -36,7 +36,7 @@ passlib[bcrypt]>=1.7.4
 slowapi>=0.1.4
 
 # Observability dependencies
-# proemtheus_client pinned for build and runtime observation stability. 
+# proemtheus_client pinned for build and runtime observation stability.
 prometheus_client==0.25.0
 
 # Security override pins (not directly imported; pinned to satisfy vulnerability advisories)
