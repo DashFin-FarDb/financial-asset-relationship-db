@@ -26,11 +26,13 @@ def _get_counter_value(counter, **label_dict):
 
     Returns:
         float: The current counter value, or 0.0 if not found
+    """
     for family in counter.collect():
         for sample in family.samples:
             # Match the label values and the _total sample (avoid relying on Counter internals)
             if sample.labels == label_dict and sample.name.endswith('_total'):
                 return sample.value
+    return 0.0
 
 
 @pytest.mark.unit
