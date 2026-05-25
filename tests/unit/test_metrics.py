@@ -24,7 +24,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
         desc = counter.describe()
         raw_name = desc[0].name if desc else getattr(counter, "_name", "")
         base_name = raw_name.removesuffix("_total")
-        
+
         expected_names = {raw_name, base_name, f"{base_name}_total"}
         counter._cached_expected_names = expected_names
 
