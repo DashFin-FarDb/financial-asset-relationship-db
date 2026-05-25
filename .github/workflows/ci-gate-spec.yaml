@@ -183,6 +183,77 @@ jobs:
           # - restart storm simulation
 
   # -----------------------------
+  # Gate D — Observability Metrics Validation
+  # -----------------------------
+  observability-metrics-validation:
+    name: Gate D - Observability Metrics Validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: failure-injection-gates
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Verify lock refresh metrics exist
+        run: |
+          python -c "
+          from api.metrics import (
+              LOCK_REFRESH_TOTAL,
+              LOCK_REFRESH_DURATION,
+              HEARTBEAT_UPDATE_TOTAL,
+              HEARTBEAT_LAST_SUCCESS_TIMESTAMP
+          )
+          print('✅ All lock refresh and heartbeat metrics are defined')
+          "
+
+      - name: Run metrics unit tests
+        run: |
+          pytest tests/unit/test_metrics.py -v
+          pytest tests/unit/test_metrics_endpoint.py -v
+
+      - name: Verify metrics endpoint exposes new metrics
+        env:
+          DATABASE_URL: "sqlite:///:memory:"
+          SECRET_KEY: test-secret-key-for-ci
+          ADMIN_USERNAME: admin
+          ADMIN_PASSWORD: admin
+        run: |
+          # Start API in background
+          python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 &
+          API_PID=$!
+
+          # Wait for API to be ready
+          sleep 3
+
+          # Check metrics endpoint
+          if ! curl -s http://127.0.0.1:8000/api/metrics | grep -q "rebuild_lock_refresh_total"; then
+            echo "❌ rebuild_lock_refresh_total not found in metrics"
+            kill $API_PID
+            exit 1
+          fi
+
+          if ! curl -s http://127.0.0.1:8000/api/metrics | grep -q "rebuild_heartbeat_update_total"; then
+            echo "❌ rebuild_heartbeat_update_total not found in metrics"
+            kill $API_PID
+            exit 1
+          fi
+
+          echo "✅ All observability metrics are exposed at /api/metrics"
+          kill $API_PID
+
+  # -----------------------------
   # Final Aggregation Gate
   # -----------------------------
   coordination-safety-summary:
@@ -194,6 +265,7 @@ jobs:
       - static-coordination-gates
       - multi-worker-simulation
       - failure-injection-gates
+      - observability-metrics-validation
 
     steps:
       - name: Verify all gates passed
@@ -203,9 +275,10 @@ jobs:
           echo "Gate A (Static Coordination Invariants): ✅ PASSED"
           echo "Gate B (Multi-Worker Simulation): ${{ needs.multi-worker-simulation.outputs.tests_ran == 'true' && '✅ PASSED' || '⚠️  SKIPPED (tests/coordination not implemented)' }}"
           echo "Gate C (Failure Mode Injection): ${{ needs.failure-injection-gates.outputs.tests_ran == 'true' && '✅ PASSED' || '⚠️  SKIPPED (tests/failure_injection not implemented)' }}"
+          echo "Gate D (Observability Metrics): ✅ PASSED"
           echo ""
 
-          # Gate A is always required (static invariants)
+          # Gate A and Gate D are always required
           # Gates B and C are aspirational for this PR stage
           gate_b_status="${{ needs.multi-worker-simulation.outputs.tests_ran }}"
           gate_c_status="${{ needs.failure-injection-gates.outputs.tests_ran }}"
@@ -215,8 +288,8 @@ jobs:
             echo "System is safe for merge under distributed coordination invariants."
           elif [ "$gate_b_status" == "false" ] || [ "$gate_c_status" == "false" ]; then
             echo "⚠️  WARNING: Some coordination tests were SKIPPED (not yet implemented)."
-            echo "Gate A (static invariants) passed. Gates B/C deferred to future PRs."
-            echo "This is ACCEPTABLE for Stage 5C.1 which focuses on failure detection framework."
+            echo "Gate A (static invariants) and Gate D (observability) passed. Gates B/C deferred to future PRs."
+            echo "This is ACCEPTABLE for Stage 5C.2 which focuses on observability metrics."
             echo ""
             echo "Future work required:"
             [ "$gate_b_status" == "false" ] && echo "  - Implement tests/coordination (multi-worker simulation)"

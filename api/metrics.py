@@ -55,6 +55,29 @@ REBUILD_RECOVERY_TRIGGERS = Counter(
     ["inconsistency_type"],
 )
 
+# Stage 5C.2: Lock refresh and heartbeat metrics
+LOCK_REFRESH_TOTAL = Counter(
+    "rebuild_lock_refresh_total",
+    "Total lock refresh attempts during rebuild.",
+    ["status"],  # success | failure
+)
+
+LOCK_REFRESH_DURATION = Histogram(
+    "rebuild_lock_refresh_duration_seconds",
+    "Time taken to refresh distributed lock.",
+)
+
+HEARTBEAT_UPDATE_TOTAL = Counter(
+    "rebuild_heartbeat_update_total",
+    "Total heartbeat database updates.",
+    ["status"],  # success | failure
+)
+
+HEARTBEAT_LAST_SUCCESS_TIMESTAMP = Gauge(
+    "rebuild_heartbeat_last_success_timestamp",
+    "Unix timestamp of last successful heartbeat.",
+)
+
 
 def update_graph_metrics(asset_count: int, relationship_count: int) -> None:
     """Update gauge metrics for the current graph state."""

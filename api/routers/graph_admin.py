@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from time import perf_counter
+import time
 from typing import Annotated, NoReturn, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -46,6 +47,10 @@ from ..graph_lifecycle_providers import (
     save_graph_to_persistence,
 )
 from ..metrics import (
+    HEARTBEAT_LAST_SUCCESS_TIMESTAMP,
+    HEARTBEAT_UPDATE_TOTAL,
+    LOCK_REFRESH_DURATION,
+    LOCK_REFRESH_TOTAL,
     REBUILD_DURATION,
     REBUILD_FAILURE,
     REBUILD_REQUESTS,
@@ -694,13 +699,33 @@ def _heartbeat_keeper(
     """Background thread that periodically refreshes both the distributed lock and rebuild heartbeat."""
     while not stop_event.wait(timeout=interval_seconds):
         try:
-            if not dist_lock.refresh():
+            # Lock refresh with metrics instrumentation
+            with LOCK_REFRESH_DURATION.time():
+                refresh_ok = dist_lock.refresh()
+
+            if not refresh_ok:
+                LOCK_REFRESH_TOTAL.labels(status="failure").inc()
                 logger.error("Heartbeat keeper lost distributed lock for job %s.", job_id)
                 lock_lost_event.set()
                 return
 
-            with session_scope(session_factory) as session:
-                AssetGraphRepository(session).update_rebuild_heartbeat(job_id, worker_id)
+            LOCK_REFRESH_TOTAL.labels(status="success").inc()
+
+            # Heartbeat update with metrics instrumentation
+            try:
+                with session_scope(session_factory) as session:
+                    AssetGraphRepository(session).update_rebuild_heartbeat(job_id, worker_id)
+                HEARTBEAT_UPDATE_TOTAL.labels(status="success").inc()
+                HEARTBEAT_LAST_SUCCESS_TIMESTAMP.set(time.time())
+            except Exception as hb_exc:
+                HEARTBEAT_UPDATE_TOTAL.labels(status="failure").inc()
+                logger.error(
+                    "Heartbeat keeper failed for job %s: %s.",
+                    job_id,
+                    type(hb_exc).__name__,
+                )
+                lock_lost_event.set()
+                return
         except Exception as exc:
             logger.error(
                 "Heartbeat keeper failed for job %s: %s.",
