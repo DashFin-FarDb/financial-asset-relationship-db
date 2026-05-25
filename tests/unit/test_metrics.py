@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
-from prometheus_client import Counter
-
 import threading
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
+from prometheus_client import Counter
 
 from api.metrics import (
     HEARTBEAT_LAST_SUCCESS_TIMESTAMP,
@@ -30,7 +29,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     expected_name = f'{getattr(counter, "_name", "")}_total'
     for family in counter.collect():
         for sample in family.samples:
-            if sample.labels == label_dict and (sample.name == expected_name or sample.name.endswith('_total')):
+            if sample.labels == label_dict and (sample.name == expected_name or sample.name.endswith("_total")):
                 return sample.value
     return 0.0
 
