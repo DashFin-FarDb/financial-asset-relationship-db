@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import threading
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -25,6 +24,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
         counter: The Prometheus Counter metric.
         **label_dict: Label key-value pairs to match.
     Returns:
+        float: The value of the matching counter sample, or 0.0 if not found.
     """
     expected_name = f'{getattr(counter, "_name", "")}_total'
     for family in counter.collect():
