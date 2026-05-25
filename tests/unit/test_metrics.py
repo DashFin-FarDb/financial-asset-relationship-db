@@ -30,7 +30,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     """
     desc = counter.describe()
     expected_name = desc[0].name if desc else getattr(counter, "_name", "") + "_total"
-    
+
     # Pre-calculate the normalized expected name outside the loop
     norm_expected_name = expected_name.removesuffix("_total")
 
@@ -39,7 +39,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
             # Guard clause: Fail fast if labels don't match to avoid compound booleans
             if sample.labels != label_dict:
                 continue
-                
+
             # Check exact match or normalized match
             if sample.name == expected_name or sample.name.removesuffix("_total") == norm_expected_name:
                 return sample.value
