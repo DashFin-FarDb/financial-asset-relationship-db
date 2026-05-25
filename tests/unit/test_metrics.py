@@ -5,8 +5,8 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock
 
-import pytest
 import prometheus_client
+import pytest
 from prometheus_client import Counter
 
 from api.metrics import (
@@ -39,6 +39,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
             return val
 
     return 0.0
+
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
