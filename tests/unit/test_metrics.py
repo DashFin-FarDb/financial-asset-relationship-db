@@ -29,7 +29,7 @@ def _get_counter_value(counter, **label_dict):
         for sample in family.samples:
             if sample.labels == label_dict and sample.name == f"{counter._name}_total":
             if sample.labels == label_dict and sample.name.endswith('_total'):
-    return 0.0
+    return sample.value
 
 
 @pytest.mark.unit
