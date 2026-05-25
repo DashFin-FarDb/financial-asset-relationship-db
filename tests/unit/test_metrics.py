@@ -6,6 +6,7 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
+import prometheus_client
 from prometheus_client import Counter
 
 from api.metrics import (
@@ -28,27 +29,16 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     Returns:
         float: The value of the matching counter sample, or 0.0 if not found.
     """
-    # NOTE: Recomputing expected names on every call is an intentional trade-off.
-    # Prior iterations used a weakref/id-backed cache to avoid recomputing string
-    # modifications. However, the overhead of managing cross-test state isolation,
-    # avoiding fallback memory leaks, and handling mock type errors introduced
-    # accidental complexity that far outweighed the negligible cost of constructing
-    # a local 3-element set during test suite execution.
     desc = counter.describe()
-    raw_name = desc[0].name if desc else getattr(counter, "_name", "")
+    raw_name = next((d.name for d in desc), getattr(counter, "_name", ""))
     base_name = raw_name.removesuffix("_total")
-    expected_names = {raw_name, base_name, f"{base_name}_total"}
 
-    for family in counter.collect():
-        for sample in family.samples:
-            if sample.name.endswith("_created") or sample.name not in expected_names:
-                continue
-
-            if sample.labels == label_dict:
-                return sample.value
+    for name in (raw_name, base_name, f"{base_name}_total"):
+        val = prometheus_client.REGISTRY.get_sample_value(name, label_dict)
+        if val is not None:
+            return val
 
     return 0.0
-
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
