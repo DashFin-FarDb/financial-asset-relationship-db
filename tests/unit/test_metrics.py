@@ -17,6 +17,24 @@ from api.metrics import (
 from src.data.db_models import RebuildJobStatus
 
 
+def _get_counter_value(counter, **label_dict):
+    """Get the current value of a Prometheus counter using public API.
+
+    Args:
+        counter: The Prometheus Counter metric
+        **label_dict: Label key-value pairs to match
+
+    Returns:
+        float: The current counter value, or 0.0 if not found
+    """
+    for family in counter.collect():
+        for sample in family.samples:
+            # Match the label values and ensure it's the _total sample (not _created)
+            if sample.labels == label_dict and sample.name.endswith("_total"):
+                return sample.value
+    return 0.0
+
+
 @pytest.mark.unit
 @pytest.mark.parametrize(
     ("status", "expected"),
@@ -61,7 +79,7 @@ def test_heartbeat_keeper_lock_refresh_raises_increments_failure(monkeypatch, mo
     stop_event = threading.Event()
     lock_lost_event = threading.Event()
 
-    before = LOCK_REFRESH_TOTAL.labels(status="failure")._value.get()
+    before = _get_counter_value(LOCK_REFRESH_TOTAL, status="failure")
 
     # Use a very short interval so the loop executes quickly
     # The outer exception handler catches RuntimeError and returns (no exception propagates)
@@ -75,7 +93,7 @@ def test_heartbeat_keeper_lock_refresh_raises_increments_failure(monkeypatch, mo
         interval_seconds=0.001,  # Very short interval to execute immediately
     )
 
-    after = LOCK_REFRESH_TOTAL.labels(status="failure")._value.get()
+    after = _get_counter_value(LOCK_REFRESH_TOTAL, status="failure")
     assert after - before == 1
     # Verify lock_lost_event was set due to the exception
     assert lock_lost_event.is_set()
