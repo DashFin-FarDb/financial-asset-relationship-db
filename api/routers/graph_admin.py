@@ -700,8 +700,12 @@ def _heartbeat_keeper(
     while not stop_event.wait(timeout=interval_seconds):
         try:
             # Lock refresh with metrics instrumentation
-            with LOCK_REFRESH_DURATION.time():
-                refresh_ok = dist_lock.refresh()
+            try:
+                with LOCK_REFRESH_DURATION.time():
+                    refresh_ok = dist_lock.refresh()
+            except Exception:
+                LOCK_REFRESH_TOTAL.labels(status="failure").inc()
+                raise
 
             if not refresh_ok:
                 LOCK_REFRESH_TOTAL.labels(status="failure").inc()
