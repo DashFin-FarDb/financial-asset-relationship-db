@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -18,7 +19,7 @@ from api.metrics import (
 from src.data.db_models import RebuildJobStatus
 
 
-def _get_counter_value(counter: Counter, **label_dict: str) -> float:
+def _get_counter_value(counter: Counter, **label_dict: Any) -> float:
     """Get the current value of a Prometheus counter using public API.
     Args:
         counter: The Prometheus Counter metric.
