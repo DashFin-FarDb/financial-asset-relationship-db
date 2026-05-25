@@ -728,7 +728,22 @@ def _heartbeat_keeper(
                 )
                 lock_lost_event.set()
                 return
-        except Exception as exc:
+# Add a consecutive-failure counter above the while loop:
+# hb_fail_streak = 0
+# MAX_HB_FAILURES = 2
+#
+# In the except block:
+# hb_fail_streak += 1
+# if hb_fail_streak >= MAX_HB_FAILURES:
+#     HEARTBEAT_UPDATE_TOTAL.labels(status='failure').inc()
+#     logger.error(...)
+#     lock_lost_event.set()
+#     return
+# else:
+#     HEARTBEAT_UPDATE_TOTAL.labels(status='failure').inc()
+#     logger.warning('Heartbeat DB update failed (streak %d/%d) for job %s', hb_fail_streak, MAX_HB_FAILURES, job_id)
+#
+# On success, reset hb_fail_streak = 0
             logger.error(
                 "Heartbeat keeper encountered unexpected error for job %s: %s.",
                 job_id,
