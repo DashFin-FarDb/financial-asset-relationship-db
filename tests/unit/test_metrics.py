@@ -27,11 +27,11 @@ def _get_counter_value(counter, **label_dict):
     Returns:
         float: The current counter value, or 0.0 if not found
     """
+    # Use describe() to get the metric name from the public API
+    metric_name = counter.describe()[0].name
     for family in counter.collect():
         for sample in family.samples:
-            # Match the label values and ensure it's the total sample for this metric (not *_created)
-            metric_name = getattr(counter, "_name", None)
-            if metric_name is not None and sample.labels == label_dict and sample.name == f"{metric_name}_total":
+            if sample.labels == label_dict and sample.name == f'{metric_name}_total':
                 return sample.value
     return 0.0
 
