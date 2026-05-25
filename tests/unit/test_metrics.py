@@ -5,7 +5,6 @@ from __future__ import annotations
 import threading
 from unittest.mock import MagicMock
 
-import prometheus_client
 import pytest
 from prometheus_client import Counter
 
