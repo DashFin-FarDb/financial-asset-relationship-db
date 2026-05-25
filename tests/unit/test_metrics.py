@@ -28,20 +28,23 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     Returns:
         float: The value of the matching counter sample, or 0.0 if not found.
     """
+    # 1. Fix Desc Fallback: Align both paths to a clean, symmetric baseline
     desc = counter.describe()
-    expected_name = desc[0].name if desc else getattr(counter, "_name", "") + "_total"
-
-    # Pre-calculate the normalized expected name outside the loop
-    norm_expected_name = expected_name.removesuffix("_total")
+    raw_name = desc[0].name if desc else getattr(counter, "_name", "")
+    base_name = raw_name.removesuffix("_total")
 
     for family in counter.collect():
         for sample in family.samples:
-            # Guard clause: Fail fast if labels don't match to avoid compound booleans
+            # 2. Fix Correctness Bug: Hard-guard against metadata/creation timestamps
+            if sample.name.endswith("_created"):
+                continue
+
+            # 3. Filter by labels
             if sample.labels != label_dict:
                 continue
 
-            # Check exact match or normalized match
-            if sample.name == expected_name or sample.name.removesuffix("_total") == norm_expected_name:
+            # 4. Fix Sample-Matching Bug: Ensure robust matching across client versions
+            if sample.name.removesuffix("_total") in (base_name, raw_name) or sample.name == raw_name:
                 return sample.value
 
     return 0.0
