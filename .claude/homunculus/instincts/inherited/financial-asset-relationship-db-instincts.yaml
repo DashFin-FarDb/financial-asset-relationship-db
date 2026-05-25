@@ -136,7 +136,7 @@ source_repo: DashFin-FarDb/financial-asset-relationship-db
 
 ## Action
 
-Name the function using camelCase
+Name the function using snake_case
 
 ## Evidence
 
