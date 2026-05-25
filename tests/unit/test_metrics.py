@@ -31,7 +31,7 @@ def _get_counter_value(counter, **label_dict):
     metric_name = counter.describe()[0].name
     for family in counter.collect():
         for sample in family.samples:
-            if sample.labels == label_dict and sample.name == f'{metric_name}_total':
+            if sample.labels == label_dict and sample.name.endswith("_total"):
                 return sample.value
     return 0.0
 
