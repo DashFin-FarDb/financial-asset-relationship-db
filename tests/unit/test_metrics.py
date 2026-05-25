@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Any
+from prometheus_client import Counter
+
 import threading
 from unittest.mock import MagicMock
 
@@ -17,11 +20,11 @@ from api.metrics import (
 from src.data.db_models import RebuildJobStatus
 
 
-def _get_counter_value(counter, **label_dict):
+def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     """Get the current value of a Prometheus counter using public API.
     Args:
-        counter: The Prometheus Counter metric
-        **label_dict: Label key-value pairs to match
+        counter: The Prometheus Counter metric.
+        **label_dict: Label key-value pairs to match.
     Returns:
     expected_name = f'{getattr(counter, "_name", "")}_total'
     for family in counter.collect():
