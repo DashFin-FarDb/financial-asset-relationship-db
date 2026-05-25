@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import threading
+import weakref
 from unittest.mock import MagicMock
 
 import pytest
-import weakref
 from prometheus_client import Counter
 
 from api.metrics import (
