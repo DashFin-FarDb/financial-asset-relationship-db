@@ -19,16 +19,15 @@ from src.data.db_models import RebuildJobStatus
 
 _COUNTER_NAME_CACHE: dict[int, set[str]] = {}
 
-
 def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     counter_id = id(counter)
     expected_names = _COUNTER_NAME_CACHE.get(counter_id)
-
+    
     if expected_names is None:
         desc = counter.describe()
         raw_name = desc[0].name if desc else getattr(counter, "_name", "")
         base_name = raw_name.removesuffix("_total")
-
+        
         expected_names = {raw_name, base_name, f"{base_name}_total"}
         _COUNTER_NAME_CACHE[counter_id] = expected_names
 
@@ -37,11 +36,10 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
             if sample.name.endswith("_created") or sample.name not in expected_names:
                 continue
 
-            if all(sample.labels.get(k) == v for k, v in label_dict.items()):
+            if sample.labels == label_dict:
                 return sample.value
 
     return 0.0
-
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
