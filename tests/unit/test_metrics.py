@@ -1,6 +1,7 @@
 """Unit tests for api.metrics helpers."""
 
 from __future__ import annotations
+
 import threading
 from unittest.mock import MagicMock  # Fixed: Added missing import
 
