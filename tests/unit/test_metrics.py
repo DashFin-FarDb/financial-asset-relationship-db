@@ -19,37 +19,21 @@ from src.data.db_models import RebuildJobStatus
 
 
 def _get_counter_value(counter: Counter, **label_dict: str) -> float:
-    """Get the current value of a Prometheus counter using public API.
-
-    Args:
-        counter: The Prometheus Counter metric.
-        **label_dict: Label key-value pairs to match.
-
-    Returns:
-        float: The value of the matching counter sample, or 0.0 if not found.
-    """
-    # Look for cached names; compute and attach them if missing
     expected_names = getattr(counter, "_cached_expected_names", None)
     if expected_names is None:
         desc = counter.describe()
         raw_name = desc[0].name if desc else getattr(counter, "_name", "")
         base_name = raw_name.removesuffix("_total")
-
+        
         expected_names = {raw_name, base_name, f"{base_name}_total"}
-        counter._cached_expected_names = expected_names  # Cache on the instance
+        counter._cached_expected_names = expected_names
 
     for family in counter.collect():
         for sample in family.samples:
-            # 1. Hard-guard against metadata/creation timestamps
-            if sample.name.endswith("_created"):
+            if sample.name.endswith("_created") or sample.name not in expected_names:
                 continue
 
-            # 2. Filter by labels
-            if sample.labels != label_dict:
-                continue
-
-            # 3. Fast O(1) membership lookup
-            if sample.name in expected_names:
+            if all(sample.labels.get(k) == v for k, v in label_dict.items()):
                 return sample.value
 
     return 0.0
