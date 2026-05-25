@@ -6,6 +6,7 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
+from prometheus_client import Counter
 
 from api.metrics import (
     HEARTBEAT_LAST_SUCCESS_TIMESTAMP,
@@ -17,20 +18,24 @@ from api.metrics import (
 from src.data.db_models import RebuildJobStatus
 
 
-def _get_counter_value(counter, **label_dict):
+def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     """Get the current value of a Prometheus counter using public API.
-
     Args:
-        counter: The Prometheus Counter metric
-        **label_dict: Label key-value pairs to match
-
+        counter: The Prometheus Counter metric.
+        **label_dict: Label key-value pairs to match.
     Returns:
-        float: The current counter value, or 0.0 if not found
+        float: The value of the matching counter sample, or 0.0 if not found.
     """
+    desc = counter.describe()
+    # Provide explicit default to next() to avoid StopIteration if describe() yields no descriptors.
+    raw_name = next((d.name for d in desc), getattr(counter, "_name", ""))
+    base_name = raw_name.removesuffix("_total")
+    target_names = {raw_name, base_name, f"{base_name}_total"}
     for family in counter.collect():
         for sample in family.samples:
-            # Match the label values and ensure it's the _total sample (not _created)
-            if sample.labels == label_dict and sample.name.endswith("_total"):
+            if sample.name.endswith("_created") or sample.name not in target_names:
+                continue
+            if sample.labels == label_dict:
                 return sample.value
     return 0.0
 
