@@ -22,23 +22,31 @@ _WEAK_COUNTER_CACHE = weakref.WeakKeyDictionary()
 _FALLBACK_COUNTER_CACHE: dict[int, set[str]] = {}
 
 
-def _get_counter_value(counter: Counter, **label_dict: str) -> float:
+def _get_or_compute_expected_names(counter: Counter) -> set[str]:
+    """Extract cache lookup logic to flatten cyclomatic complexity paths."""
     try:
         expected_names = _WEAK_COUNTER_CACHE.get(counter)
     except TypeError:
         expected_names = _FALLBACK_COUNTER_CACHE.get(id(counter))
 
-    if expected_names is None:
-        desc = counter.describe()
-        raw_name = desc[0].name if desc else getattr(counter, "_name", "")
-        base_name = raw_name.removesuffix("_total")
+    if expected_names is not None:
+        return expected_names
 
-        expected_names = {raw_name, base_name, f"{base_name}_total"}
+    desc = counter.describe()
+    raw_name = desc[0].name if desc else getattr(counter, "_name", "")
+    base_name = raw_name.removesuffix("_total")
+    expected_names = {raw_name, base_name, f"{base_name}_total"}
 
-        try:
-            _WEAK_COUNTER_CACHE[counter] = expected_names
-        except TypeError:
-            _FALLBACK_COUNTER_CACHE[id(counter)] = expected_names
+    try:
+        _WEAK_COUNTER_CACHE[counter] = expected_names
+    except TypeError:
+        _FALLBACK_COUNTER_CACHE[id(counter)] = expected_names
+
+    return expected_names
+
+
+def _get_counter_value(counter: Counter, **label_dict: str) -> float:
+    expected_names = _get_or_compute_expected_names(counter)
 
     for family in counter.collect():
         for sample in family.samples:
@@ -49,7 +57,6 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
                 return sample.value
 
     return 0.0
-
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
