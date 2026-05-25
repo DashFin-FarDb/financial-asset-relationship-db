@@ -59,15 +59,10 @@ def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
     return GraphLifecycleSettings(
         asset_graph_database_url=settings.asset_graph_database_url,
         graph_cache_path=settings.graph_cache_path,
-return GraphLifecycleSettings(
-        asset_graph_database_url=settings.asset_graph_database_url,
-        graph_cache_path=settings.graph_cache_path,
         real_data_cache_path=settings.real_data_cache_path,
         use_real_data_fetcher=settings.use_real_data_fetcher,
         rebuild_lock_ttl_seconds=settings.rebuild_lock_ttl_seconds,
-        use_real_data_fetcher=settings.use_real_data_fetcher,
-        rebuild_lock_ttl_seconds=settings.rebuild_lock_ttl_seconds,
-)
+    )
 
 def clear_graph_lifecycle_settings_cache() -> None:
     """Clear cached settings used by graph lifecycle initialization."""
