@@ -29,7 +29,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     expected_name = f'{getattr(counter, "_name", "")}_total'
     for family in counter.collect():
         for sample in family.samples:
-            if sample.labels == label_dict and (sample.name == expected_name or sample.name.endswith("_total")):
+            if sample.labels == label_dict and (sample.name == expected_name or sample.name.endswith('_total')):
                 return sample.value
     return 0.0
 
