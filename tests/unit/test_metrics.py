@@ -18,15 +18,19 @@ from api.metrics import (
 from src.data.db_models import RebuildJobStatus
 
 
+_COUNTER_NAME_CACHE: dict[int, set[str]] = {}
+
 def _get_counter_value(counter: Counter, **label_dict: str) -> float:
-    expected_names = getattr(counter, "_cached_expected_names", None)
+    counter_id = id(counter)
+    expected_names = _COUNTER_NAME_CACHE.get(counter_id)
+    
     if expected_names is None:
         desc = counter.describe()
         raw_name = desc[0].name if desc else getattr(counter, "_name", "")
         base_name = raw_name.removesuffix("_total")
-
+        
         expected_names = {raw_name, base_name, f"{base_name}_total"}
-        counter._cached_expected_names = expected_names
+        _COUNTER_NAME_CACHE[counter_id] = expected_names
 
     for family in counter.collect():
         for sample in family.samples:
@@ -37,7 +41,6 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
                 return sample.value
 
     return 0.0
-
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
