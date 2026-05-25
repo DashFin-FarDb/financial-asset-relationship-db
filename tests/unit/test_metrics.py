@@ -28,23 +28,26 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     Returns:
         float: The value of the matching counter sample, or 0.0 if not found.
     """
-    # Normalize target to a clean baseline name upfront
+    # 1. Establish structural name variations upfront
     desc = counter.describe()
     raw_name = desc[0].name if desc else getattr(counter, "_name", "")
-    target_base = raw_name.removesuffix("_total")
+    base_name = raw_name.removesuffix("_total")
+    
+    # The set guarantees an O(1) match regardless of client exposition format
+    expected_names = {raw_name, base_name, f"{base_name}_total"}
 
     for family in counter.collect():
         for sample in family.samples:
-            # 1. Skip metadata samples safely
+            # 2. Hard-guard against metadata/creation timestamps
             if sample.name.endswith("_created"):
                 continue
 
-            # 2. Filter by target labels
+            # 3. Filter by labels
             if sample.labels != label_dict:
                 continue
 
-            # 3. Clean, single-branch name comparison
-            if sample.name.removesuffix("_total") == target_base:
+            # 4. Clean, zero-transformation membership lookup
+            if sample.name in expected_names:
                 return sample.value
 
     return 0.0
