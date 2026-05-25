@@ -1,6 +1,6 @@
 # Supplemental development / test / CI dependencies.
 # Install with: pip install -r requirements.txt -r requirements-dev.txt
-# prometheus-client pinned to 0.25.0 to prevent regressions. 
+# prometheus-client pinned to 0.25.0 to prevent regressions.
 
 # Test libraries
 httpx==0.28.1
