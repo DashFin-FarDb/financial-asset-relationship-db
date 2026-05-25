@@ -694,7 +694,7 @@ def _heartbeat_keeper(
     worker_id: str,
     stop_event: threading.Event,
     lock_lost_event: threading.Event,
-    interval_seconds: int,
+    interval_seconds: float,
 ) -> None:
     """Background thread that periodically refreshes both the distributed lock and rebuild heartbeat."""
     while not stop_event.wait(timeout=interval_seconds):
