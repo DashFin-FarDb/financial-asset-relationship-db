@@ -60,19 +60,25 @@ def test_heartbeat_keeper_lock_refresh_raises_increments_failure(monkeypatch, mo
     mock_lock.refresh.side_effect = RuntimeError("DB down")
     stop_event = threading.Event()
     lock_lost_event = threading.Event()
+
     before = LOCK_REFRESH_TOTAL.labels(status="failure")._value.get()
-    with pytest.raises(RuntimeError):
-        _heartbeat_keeper(
-            session_factory=mocker.Mock(),
-            dist_lock=mock_lock,
-            job_id="test",
-            worker_id="worker1",
-            stop_event=stop_event,
-            lock_lost_event=lock_lost_event,
-            interval_seconds=9999,
-        )
+
+    # Use a very short interval so the loop executes quickly
+    # The outer exception handler catches RuntimeError and returns (no exception propagates)
+    _heartbeat_keeper(
+        session_factory=mocker.Mock(),
+        dist_lock=mock_lock,
+        job_id="test",
+        worker_id="worker1",
+        stop_event=stop_event,
+        lock_lost_event=lock_lost_event,
+        interval_seconds=0.001,  # Very short interval to execute immediately
+    )
+
     after = LOCK_REFRESH_TOTAL.labels(status="failure")._value.get()
     assert after - before == 1
+    # Verify lock_lost_event was set due to the exception
+    assert lock_lost_event.is_set()
 
 
 @pytest.mark.unit
