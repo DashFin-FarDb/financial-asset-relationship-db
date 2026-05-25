@@ -29,7 +29,7 @@ def _get_counter_value(counter, **label_dict):
     """
     for family in counter.collect():
         for sample in family.samples:
-            # Match the label values and the _total sample (avoid relying on Counter internals)
+            if sample.labels == label_dict and sample.name == f"{counter._name}_total":
             if sample.labels == label_dict and sample.name == f"{counter._name}_total"
                 return sample.value
     return 0.0
