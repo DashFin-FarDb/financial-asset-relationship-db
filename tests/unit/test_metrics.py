@@ -29,6 +29,12 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     Returns:
         float: The value of the matching counter sample, or 0.0 if not found.
     """
+    # NOTE: Recomputing expected names on every call is an intentional trade-off.
+    # Prior iterations used a weakref/id-backed cache to avoid recomputing string
+    # modifications. However, the overhead of managing cross-test state isolation,
+    # avoiding fallback memory leaks, and handling mock type errors introduced 
+    # accidental complexity that far outweighed the negligible cost of constructing
+    # a local 3-element set during test suite execution.
     desc = counter.describe()
     raw_name = desc[0].name if desc else getattr(counter, "_name", "")
     base_name = raw_name.removesuffix("_total")
