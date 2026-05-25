@@ -26,6 +26,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
         counter: The Prometheus Counter metric.
         **label_dict: Label key-value pairs to match.
     Returns:
+    """
     expected_name = f'{getattr(counter, "_name", "")}_total'
     for family in counter.collect():
         for sample in family.samples:
