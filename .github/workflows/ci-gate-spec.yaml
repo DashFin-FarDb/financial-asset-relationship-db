@@ -210,15 +210,10 @@ jobs:
 
       - name: Verify lock refresh metrics exist
         run: |
-          python -c "
-          from api.metrics import (
-              LOCK_REFRESH_TOTAL,
-              LOCK_REFRESH_DURATION,
-              HEARTBEAT_UPDATE_TOTAL,
-              HEARTBEAT_LAST_SUCCESS_TIMESTAMP
-          )
+          python - <<'PY'
+          from api.metrics import LOCK_REFRESH_TOTAL, LOCK_REFRESH_DURATION, HEARTBEAT_UPDATE_TOTAL, HEARTBEAT_LAST_SUCCESS_TIMESTAMP
           print('✅ All lock refresh and heartbeat metrics are defined')
-          "
+          PY
 
       - name: Run metrics unit tests
         run: |
