@@ -6,6 +6,7 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
+import weakref
 from prometheus_client import Counter
 
 from api.metrics import (
@@ -17,20 +18,20 @@ from api.metrics import (
 )
 from src.data.db_models import RebuildJobStatus
 
-_COUNTER_NAME_CACHE: dict[int, set[str]] = {}
+_COUNTER_NAME_CACHE = weakref.WeakKeyDictionary()
 
 
 def _get_counter_value(counter: Counter, **label_dict: str) -> float:
-    counter_id = id(counter)
-    expected_names = _COUNTER_NAME_CACHE.get(counter_id)
+    expected_names = _COUNTER_NAME_CACHE.get(counter)
 
     if expected_names is None:
         desc = counter.describe()
+        # Ensure both paths drop to a pure, stripped baseline name
         raw_name = desc[0].name if desc else getattr(counter, "_name", "")
         base_name = raw_name.removesuffix("_total")
 
-        expected_names = {raw_name, base_name, f"{base_name}_total"}
-        _COUNTER_NAME_CACHE[counter_id] = expected_names
+        expected_names = {base_name, f"{base_name}_total"}
+        _COUNTER_NAME_CACHE[counter] = expected_names
 
     for family in counter.collect():
         for sample in family.samples:
