@@ -237,9 +237,11 @@ jobs:
           API_PID=$!
 
           # Wait for API to be ready (poll for up to 30 seconds)
+          API_READY=false
           for i in {1..30}; do
             if curl -sf http://127.0.0.1:8000/api/health > /dev/null 2>&1; then
               echo "✅ API is ready after ${i} seconds"
+              API_READY=true
               break
             fi
             if ! kill -0 $API_PID 2>/dev/null; then
@@ -250,9 +252,10 @@ jobs:
             sleep 1
           done
 
-          if ! kill -0 $API_PID 2>/dev/null; then
-            echo "❌ API failed to start within 30 seconds"
+          if [ "$API_READY" != "true" ]; then
+            echo "❌ API failed to become healthy within 30 seconds"
             cat /tmp/api.log
+            kill $API_PID 2>/dev/null || true
             exit 1
           fi
 
