@@ -18,6 +18,7 @@ from api.metrics import (
 )
 from src.data.db_models import RebuildJobStatus
 
+
 def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     """Get the current value of a Prometheus counter using public API.
 
