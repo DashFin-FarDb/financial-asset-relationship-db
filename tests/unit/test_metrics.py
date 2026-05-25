@@ -18,48 +18,20 @@ from api.metrics import (
 )
 from src.data.db_models import RebuildJobStatus
 
-_WEAK_COUNTER_CACHE = weakref.WeakKeyDictionary()
-_FALLBACK_COUNTER_CACHE: dict[int, set[str]] = {}
+def _get_counter_value(counter: Counter, **label_dict: str) -> float:
+    """Get the current value of a Prometheus counter using public API.
 
+    Args:
+        counter: The Prometheus Counter metric.
+        **label_dict: Label key-value pairs to match.
 
-def _fallback_cleanup(ref: weakref.ReferenceType) -> None:
-    """Evict entries from the integer-keyed fallback cache upon object GC."""
-    # The dictionary key is the integer ID of the original object,
-    # which we can extract by looking at the memory address of the dead ref.
-    _FALLBACK_COUNTER_CACHE.pop(id(ref), None)
-
-
-def _get_or_compute_expected_names(counter: Counter) -> set[str]:
-    try:
-        expected_names = _WEAK_COUNTER_CACHE.get(counter)
-    except TypeError:
-        expected_names = _FALLBACK_COUNTER_CACHE.get(id(counter))
-
-    if expected_names is not None:
-        return expected_names
-
+    Returns:
+        float: The value of the matching counter sample, or 0.0 if not found.
+    """
     desc = counter.describe()
     raw_name = desc[0].name if desc else getattr(counter, "_name", "")
     base_name = raw_name.removesuffix("_total")
     expected_names = {raw_name, base_name, f"{base_name}_total"}
-
-    try:
-        _WEAK_COUNTER_CACHE[counter] = expected_names
-    except TypeError:
-        # Create a weak reference with a callback to safely clean up the int key
-        # id(counter) matches id(ref) when the callback executes
-        try:
-            weakref.ref(counter, _fallback_cleanup)
-            _FALLBACK_COUNTER_CACHE[id(counter)] = expected_names
-        except TypeError:
-            # Absolute fallback for entirely non-weakrefable structures (e.g., builtins)
-            _FALLBACK_COUNTER_CACHE[id(counter)] = expected_names
-
-    return expected_names
-
-
-def _get_counter_value(counter: Counter, **label_dict: str) -> float:
-    expected_names = _get_or_compute_expected_names(counter)
 
     for family in counter.collect():
         for sample in family.samples:
