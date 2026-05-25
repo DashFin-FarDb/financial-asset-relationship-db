@@ -50,6 +50,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
 
     return 0.0
 
+
 @pytest.mark.unit
 @pytest.mark.parametrize(
     ("status", "expected"),
