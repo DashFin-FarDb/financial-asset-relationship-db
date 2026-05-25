@@ -29,7 +29,7 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
         float: The value of the matching counter sample, or 0.0 if not found.
     """
     desc = counter.describe()
-    # The second argument acts as the default fallback for next(), preventing StopIteration
+    # Provide explicit default (getattr(counter, '_name', '')) to next() to avoid StopIteration if describe() yields no descriptors.
     raw_name = next((d.name for d in desc), getattr(counter, "_name", ""))
     base_name = raw_name.removesuffix("_total")
 
