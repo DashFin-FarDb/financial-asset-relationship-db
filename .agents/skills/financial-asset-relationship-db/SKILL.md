@@ -1,4 +1,3 @@
-```markdown
 # financial-asset-relationship-db Development Patterns
 
 > Auto-generated skill from repository analysis
@@ -76,9 +75,8 @@ This skill covers the development patterns and conventions used in the `financia
   ```
 
 ## Commands
-| Command            | Purpose                                      |
-|--------------------|----------------------------------------------|
-| /add-asset         | Add a new financial asset model              |
-| /update-relationship | Update logic for asset relationships        |
-| /run-tests         | Run all test files in the repository         |
-```
+| Command              | Purpose                                      |
+|----------------------|----------------------------------------------|
+| /add-asset           | Add a new financial asset model              |
+| /update-relationship | Update logic for asset relationships         |
+| /run-tests           | Run all test files in the repository         |
