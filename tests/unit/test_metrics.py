@@ -26,14 +26,11 @@ def _get_counter_value(counter, **label_dict):
 
     Returns:
         float: The current counter value, or 0.0 if not found
-    """
-    # Use describe() to get the metric name from the public API
-    metric_name = counter.describe()[0].name
     for family in counter.collect():
         for sample in family.samples:
-            if sample.labels == label_dict and sample.name.endswith("_total"):
+            # Match the label values and the _total sample (avoid relying on Counter internals)
+            if sample.labels == label_dict and sample.name.endswith('_total'):
                 return sample.value
-    return 0.0
 
 
 @pytest.mark.unit
