@@ -18,20 +18,27 @@ from api.metrics import (
 )
 from src.data.db_models import RebuildJobStatus
 
-_COUNTER_NAME_CACHE = weakref.WeakKeyDictionary()
+_WEAK_COUNTER_CACHE = weakref.WeakKeyDictionary()
+_FALLBACK_COUNTER_CACHE: dict[int, set[str]] = {}
 
 
 def _get_counter_value(counter: Counter, **label_dict: str) -> float:
-    expected_names = _COUNTER_NAME_CACHE.get(counter)
+    try:
+        expected_names = _WEAK_COUNTER_CACHE.get(counter)
+    except TypeError:
+        expected_names = _FALLBACK_COUNTER_CACHE.get(id(counter))
 
     if expected_names is None:
         desc = counter.describe()
-        # Ensure both paths drop to a pure, stripped baseline name
         raw_name = desc[0].name if desc else getattr(counter, "_name", "")
         base_name = raw_name.removesuffix("_total")
 
-        expected_names = {base_name, f"{base_name}_total"}
-        _COUNTER_NAME_CACHE[counter] = expected_names
+        expected_names = {raw_name, base_name, f"{base_name}_total"}
+
+        try:
+            _WEAK_COUNTER_CACHE[counter] = expected_names
+        except TypeError:
+            _FALLBACK_COUNTER_CACHE[id(counter)] = expected_names
 
     for family in counter.collect():
         for sample in family.samples:
@@ -42,7 +49,6 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
                 return sample.value
 
     return 0.0
-
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
