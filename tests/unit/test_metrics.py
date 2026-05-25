@@ -29,11 +29,18 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
         float: The value of the matching counter sample, or 0.0 if not found.
     """
     # The public describe() method returns the full metric name (e.g., 'my_counter_total')
-    expected_name = counter.describe()[0].name
-
+    desc = counter.describe()
+    if desc:
+        expected_name = desc[0].name
+    else:
+        expected_name = getattr(counter, '_name', '') + '_total'
     for family in counter.collect():
         for sample in family.samples:
-            if sample.labels == label_dict and sample.name == expected_name:
+            sample_name = sample.name
+            # Normalize names to handle counters with or without the '_total' suffix.
+            norm_sample_name = sample_name[:-6] if sample_name.endswith('_total') else sample_name
+            norm_expected_name = expected_name[:-6] if expected_name.endswith('_total') else expected_name
+            if sample.labels == label_dict and (sample_name == expected_name or norm_sample_name == norm_expected_name):
                 return sample.value
 
     return 0.0
