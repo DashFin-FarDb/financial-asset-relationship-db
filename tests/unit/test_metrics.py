@@ -1,9 +1,8 @@
 """Unit tests for api.metrics helpers."""
 
 from __future__ import annotations
-
 import threading
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock  # Fixed: Added missing import
 
 import pytest
 from prometheus_client import Counter
@@ -20,17 +19,22 @@ from src.data.db_models import RebuildJobStatus
 
 def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     """Get the current value of a Prometheus counter using public API.
+
     Args:
         counter: The Prometheus Counter metric.
         **label_dict: Label key-value pairs to match.
+
     Returns:
         float: The value of the matching counter sample, or 0.0 if not found.
     """
-    expected_name = f'{getattr(counter, "_name", "")}_total'
+    # The public describe() method returns the full metric name (e.g., 'my_counter_total')
+    expected_name = counter.describe()[0].name
+
     for family in counter.collect():
         for sample in family.samples:
-            if sample.labels == label_dict and (sample.name == expected_name or sample.name.endswith("_total")):
+            if sample.labels == label_dict and sample.name == expected_name:
                 return sample.value
+
     return 0.0
 
 
