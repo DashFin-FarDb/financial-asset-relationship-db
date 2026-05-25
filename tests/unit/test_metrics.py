@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import threading
-import weakref
 from unittest.mock import MagicMock
 
 import pytest
