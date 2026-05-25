@@ -7,12 +7,12 @@ import contextvars
 import logging
 import re
 import threading
+import time
 from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from time import perf_counter
-import time
 from typing import Annotated, NoReturn, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -712,6 +712,8 @@ def _heartbeat_keeper(
             LOCK_REFRESH_TOTAL.labels(status="success").inc()
 
             # Heartbeat update with metrics instrumentation
+            # NOTE: Transient DB errors currently trigger lock-lost signal.
+            # Future enhancement: implement retry logic for transient failures.
             try:
                 with session_scope(session_factory) as session:
                     AssetGraphRepository(session).update_rebuild_heartbeat(job_id, worker_id)
@@ -720,7 +722,7 @@ def _heartbeat_keeper(
             except Exception as hb_exc:
                 HEARTBEAT_UPDATE_TOTAL.labels(status="failure").inc()
                 logger.error(
-                    "Heartbeat keeper failed for job %s: %s.",
+                    "Heartbeat keeper database update failed for job %s: %s.",
                     job_id,
                     type(hb_exc).__name__,
                 )
@@ -728,7 +730,7 @@ def _heartbeat_keeper(
                 return
         except Exception as exc:
             logger.error(
-                "Heartbeat keeper failed for job %s: %s.",
+                "Heartbeat keeper encountered unexpected error for job %s: %s.",
                 job_id,
                 type(exc).__name__,
             )
