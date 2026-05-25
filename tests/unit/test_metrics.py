@@ -19,14 +19,17 @@ from api.metrics import (
 from src.data.db_models import RebuildJobStatus
 
 _WEAK_COUNTER_CACHE = weakref.WeakKeyDictionary()
-# Fallback cache keyed by object id for counters that cannot be weak-referenced.
-# Note: using id() means entries may persist after object collection and ids can be reused.
-# This is acceptable for unit tests; for long-running processes consider a cleanup strategy (weakref.finalize) to avoid leaks.
 _FALLBACK_COUNTER_CACHE: dict[int, set[str]] = {}
 
 
+def _fallback_cleanup(ref: weakref.ReferenceType) -> None:
+    """Evict entries from the integer-keyed fallback cache upon object GC."""
+    # The dictionary key is the integer ID of the original object, 
+    # which we can extract by looking at the memory address of the dead ref.
+    _FALLBACK_COUNTER_CACHE.pop(id(ref), None)
+
+
 def _get_or_compute_expected_names(counter: Counter) -> set[str]:
-    """Extract cache lookup logic to flatten cyclomatic complexity paths."""
     try:
         expected_names = _WEAK_COUNTER_CACHE.get(counter)
     except TypeError:
@@ -43,7 +46,14 @@ def _get_or_compute_expected_names(counter: Counter) -> set[str]:
     try:
         _WEAK_COUNTER_CACHE[counter] = expected_names
     except TypeError:
-        _FALLBACK_COUNTER_CACHE[id(counter)] = expected_names
+        # Create a weak reference with a callback to safely clean up the int key
+        # id(counter) matches id(ref) when the callback executes
+        try:
+            weakref.ref(counter, _fallback_cleanup)
+            _FALLBACK_COUNTER_CACHE[id(counter)] = expected_names
+        except TypeError:
+            # Absolute fallback for entirely non-weakrefable structures (e.g., builtins)
+            _FALLBACK_COUNTER_CACHE[id(counter)] = expected_names
 
     return expected_names
 
