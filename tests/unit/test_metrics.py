@@ -59,6 +59,7 @@ def test_heartbeat_keeper_lock_refresh_raises_increments_failure(monkeypatch, mo
     mock_lock.refresh.side_effect = RuntimeError("DB down")
     stop_event = threading.Event()
     lock_lost_event = threading.Event()
+    before = LOCK_REFRESH_TOTAL.labels(status="failure")._value.get()
     with pytest.raises(RuntimeError):
         _heartbeat_keeper(
             session_factory=mocker.Mock(),
@@ -69,9 +70,8 @@ def test_heartbeat_keeper_lock_refresh_raises_increments_failure(monkeypatch, mo
             lock_lost_event=lock_lost_event,
             interval_seconds=9999,
         )
-    # Force a loop iteration by setting stop_event timeout
-    # ...
-    assert LOCK_REFRESH_TOTAL.labels(status="failure")._value.get() == 1
+    after = LOCK_REFRESH_TOTAL.labels(status="failure")._value.get()
+    assert after - before == 1
 
 
 @pytest.mark.unit
