@@ -51,6 +51,31 @@ def test_lock_refresh_metrics_exist() -> None:
 
 
 @pytest.mark.unit
+def test_heartbeat_keeper_lock_refresh_raises_increments_failure(
+    monkeypatch, mocker
+):
+    """When dist_lock.refresh() raises, LOCK_REFRESH_TOTAL failure counter should increment."""
+    from api.routers.graph_admin import _heartbeat_keeper
+    mock_lock = mocker.Mock()
+    mock_lock.refresh.side_effect = RuntimeError("DB down")
+    stop_event = threading.Event()
+    lock_lost_event = threading.Event()
+    with pytest.raises(RuntimeError):
+        _heartbeat_keeper(
+            session_factory=mocker.Mock(),
+            dist_lock=mock_lock,
+            job_id="test",
+            worker_id="worker1",
+            stop_event=stop_event,
+            lock_lost_event=lock_lost_event,
+            interval_seconds=9999,
+        )
+    # Force a loop iteration by setting stop_event timeout
+    # ...
+    assert LOCK_REFRESH_TOTAL.labels(status="failure")._value.get() == 1
+
+
+@pytest.mark.unit
 def test_lock_refresh_total_counter_labels() -> None:
     """LOCK_REFRESH_TOTAL should accept success/failure status labels."""
     # Test that labels can be accessed without error
