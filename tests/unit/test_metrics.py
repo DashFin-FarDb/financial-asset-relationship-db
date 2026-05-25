@@ -33,12 +33,12 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     raw_name = next((d.name for d in desc), getattr(counter, "_name", ""))
     base_name = raw_name.removesuffix("_total")
 
-        for family in counter.collect():
-            for sample in family.samples:
-                if sample.name.endswith("_created") or sample.name not in {raw_name, base_name, f"{base_name}_total"}:
-                    continue
-                if sample.labels == label_dict:
-                    return sample.value
+    for family in counter.collect():
+        for sample in family.samples:
+            if sample.name.endswith("_created") or sample.name not in {raw_name, base_name, f"{base_name}_total"}:
+                continue
+            if sample.labels == label_dict:
+                return sample.value
 
     return 0.0
 
