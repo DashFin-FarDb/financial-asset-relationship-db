@@ -34,6 +34,7 @@ class GraphLifecycleSettings:
     graph_cache_path: str | None
     real_data_cache_path: str | None
     use_real_data_fetcher: bool
+    rebuild_lock_ttl_seconds: int
 
 
 class GraphPersistenceNotConfiguredError(RuntimeError):
@@ -61,6 +62,7 @@ def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
         real_data_cache_path=settings.real_data_cache_path,
         use_real_data_fetcher=settings.use_real_data_fetcher,
     )
+        rebuild_lock_ttl_seconds=settings.rebuild_lock_ttl_seconds,
 
 
 def clear_graph_lifecycle_settings_cache() -> None:

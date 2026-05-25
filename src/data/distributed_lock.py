@@ -94,38 +94,67 @@ class DistributedLock:
 
         return False
 
-    def refresh(self) -> bool:
+    def refresh(self, *, max_retries: int = 2, retry_delay_seconds: float = 0.5) -> bool:
         """
         Refresh the distributed lock to extend its TTL.
 
+        Retries on transient DB errors to handle brief network blips.
+
+        Args:
+            max_retries: Number of retry attempts on transient errors (default 2).
+            retry_delay_seconds: Delay between retries (default 0.5s).
+
         Returns:
-            bool: True if the lock was successfully refreshed, False otherwise.
+            True if lock was refreshed, False if held by another holder.
         """
-        try:
-            with session_scope(self.session_factory) as session:
-                repo = AssetGraphRepository(session)
-                if repo.try_acquire_distributed_lock(
-                    lock_name=self.lock_name,
-                    holder_id=self.holder_id,
-                    ttl_seconds=self.ttl_seconds,
-                ):
-                    logger.debug(
-                        "Refreshed distributed lock '%s' for holder '%s'",
+        for attempt in range(max_retries + 1):
+            try:
+                with session_scope(self.session_factory) as session:
+                    repo = AssetGraphRepository(session)
+                    if repo.try_acquire_distributed_lock(
+                        lock_name=self.lock_name,
+                        holder_id=self.holder_id,
+                        ttl_seconds=self.ttl_seconds,
+                    ):
+                        logger.debug(
+                            "Refreshed distributed lock '%s' for holder '%s'",
+                            self.lock_name,
+                            self.holder_id,
+                        )
+                        return True
+                    # Lock held by another holder - don't retry
+                    logger.warning(
+                        "Failed to refresh distributed lock '%s' (taken by another holder)",
                         self.lock_name,
-                        self.holder_id,
                     )
-                    return True
+                    return False
+            except (SQLAlchemyError, OSError) as exc:
+                # Transient DB/network error - retry if attempts remain
+                if attempt < max_retries:
+                    logger.warning(
+                        "Lock refresh attempt %d/%d failed (%s), retrying in %ss...",
+                        attempt + 1,
+                        max_retries + 1,
+                        type(exc).__name__,
+                        retry_delay_seconds,
+                    )
+                    sleep(retry_delay_seconds)
+                    continue
+                # Max retries exhausted
                 logger.warning(
-                    "Failed to refresh distributed lock '%s' (may have been taken by another holder)",
-                    self.lock_name,
+                    "Lock refresh failed after %d attempts: %s",
+                    max_retries + 1,
+                    type(exc).__name__,
                 )
                 return False
-        except Exception as exc:
-            logger.warning(
-                "Error refreshing distributed lock '%s': %s",
-                self.lock_name,
-                type(exc).__name__,
-            )
+            except Exception as exc:
+                # Unexpected error (programming bug) - don't retry
+                logger.warning(
+                    "Error refreshing distributed lock '%s': %s",
+                    self.lock_name,
+                    type(exc).__name__,
+                )
+                return False
             return False
 
     def release(self) -> None:

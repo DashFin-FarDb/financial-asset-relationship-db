@@ -85,6 +85,9 @@ class Settings(BaseModel):
     postgres_url: str | None = Field(default=None)
 
     @property
+    # Distributed lock configuration
+    rebuild_lock_ttl_seconds: int = Field(default=300, gt=0, description="TTL for rebuild distributed lock in seconds")
+
     def allowed_origins(self) -> list[str]:
         """
         Return the configured CORS allowed origins as a list of trimmed, non-empty strings.
@@ -154,6 +157,7 @@ def load_settings() -> Settings:
         database_url=resolved_database_url,
         postgres_url=postgres_url,
     )
+        rebuild_lock_ttl_seconds=int(os.getenv("REBUILD_LOCK_TTL_SECONDS", "300")),
 
 
 @lru_cache(maxsize=1)

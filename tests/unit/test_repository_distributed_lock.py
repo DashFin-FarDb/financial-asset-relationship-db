@@ -5,10 +5,11 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy import create_engine
 
+from sqlalchemy.exc import SQLAlchemyError
 from src.data.database import create_session_factory, init_db
 from src.data.db_models import DistributedLockORM
 from src.data.distributed_lock import LockState
-from src.data.repository import AssetGraphRepository
+from src.data.distributed_lock import DistributedLock, LockState
 
 
 @pytest.fixture
@@ -270,3 +271,74 @@ class TestLatestRebuildJobRepository:
         assert latest is not None
         assert latest.job_id == id3
         assert latest.requested_by == "user3"
+
+
+@pytest.mark.unit
+class TestDistributedLockRetryLogic:
+    """Test cases for distributed lock refresh retry logic."""
+
+    def test_refresh_retries_on_transient_db_error(self, monkeypatch, repository_factory):
+        """Lock refresh should retry on transient SQLAlchemyError."""
+        call_count = 0
+
+        def flaky_try_acquire(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count < 3:
+                raise SQLAlchemyError("connection timeout")
+            return True
+
+        # Create a lock with a real session factory
+        repo = repository_factory()
+        session_factory = lambda: repo.session
+        lock = DistributedLock(session_factory, "test_lock", ttl_seconds=60)
+
+        # Patch the repository method
+        monkeypatch.setattr(
+            AssetGraphRepository,
+            "try_acquire_distributed_lock",
+            flaky_try_acquire,
+        )
+
+        assert lock.refresh(max_retries=2, retry_delay_seconds=0.01) is True
+        assert call_count == 3  # Initial + 2 retries
+
+    def test_refresh_does_not_retry_on_lock_conflict(self, monkeypatch, repository_factory):
+        """Lock refresh should not retry when lock is held by another holder."""
+        call_count = 0
+
+        def try_acquire_returns_false(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            return False
+
+        repo = repository_factory()
+        session_factory = lambda: repo.session
+        lock = DistributedLock(session_factory, "test_lock", ttl_seconds=60)
+
+        monkeypatch.setattr(
+            AssetGraphRepository,
+            "try_acquire_distributed_lock",
+            try_acquire_returns_false,
+        )
+
+        assert lock.refresh(max_retries=2) is False
+        assert call_count == 1  # No retries on lock conflict
+
+    def test_refresh_exhausts_retries_on_persistent_error(self, monkeypatch, repository_factory):
+        """Lock refresh should return False after exhausting retries."""
+
+        def always_fails(*args, **kwargs):
+            raise SQLAlchemyError("persistent connection error")
+
+        repo = repository_factory()
+        session_factory = lambda: repo.session
+        lock = DistributedLock(session_factory, "test_lock", ttl_seconds=60)
+
+        monkeypatch.setattr(
+            AssetGraphRepository,
+            "try_acquire_distributed_lock",
+            always_fails,
+        )
+
+        assert lock.refresh(max_retries=2, retry_delay_seconds=0.01) is False
