@@ -24,7 +24,7 @@ _FALLBACK_COUNTER_CACHE: dict[int, set[str]] = {}
 
 def _fallback_cleanup(ref: weakref.ReferenceType) -> None:
     """Evict entries from the integer-keyed fallback cache upon object GC."""
-    # The dictionary key is the integer ID of the original object, 
+    # The dictionary key is the integer ID of the original object,
     # which we can extract by looking at the memory address of the dead ref.
     _FALLBACK_COUNTER_CACHE.pop(id(ref), None)
 
