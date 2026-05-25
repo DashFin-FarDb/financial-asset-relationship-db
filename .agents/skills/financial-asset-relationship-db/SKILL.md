@@ -55,7 +55,7 @@ This skill covers the development patterns and conventions used in the `financia
 **Trigger:** To verify code correctness after changes
 **Command:** `/run-tests`
 
-1. Identify all test files matching `*.test.*`.
+1. Identify all test files matching `test_*.py` or `_test_*.py`.
 2. Run the tests using your preferred Python test runner (e.g., `pytest` or `unittest`).
 3. Review test output and fix any failures.
 
