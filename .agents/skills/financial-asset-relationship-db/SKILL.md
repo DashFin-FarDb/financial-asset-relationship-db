@@ -35,7 +35,7 @@ This skill covers the development patterns and conventions used in the `financia
 ## Workflows
 
 ### Add a New Financial Asset
-**Trigger:** When introducing a new type of financial asset to the database  
+**Trigger:** When introducing a new type of financial asset to the database
 **Command:** `/add-asset`
 
 1. Create a new model in a snake_case file (e.g., `bond.py`).
@@ -44,7 +44,7 @@ This skill covers the development patterns and conventions used in the `financia
 4. Write or update tests in a corresponding `*.test.*` file.
 
 ### Update Asset Relationships
-**Trigger:** When modifying how assets relate to each other  
+**Trigger:** When modifying how assets relate to each other
 **Command:** `/update-relationship`
 
 1. Edit the relevant relationship logic in the appropriate module.
@@ -53,7 +53,7 @@ This skill covers the development patterns and conventions used in the `financia
 4. Commit changes with a descriptive message.
 
 ### Run Tests
-**Trigger:** To verify code correctness after changes  
+**Trigger:** To verify code correctness after changes
 **Command:** `/run-tests`
 
 1. Identify all test files matching `*.test.*`.

@@ -258,4 +258,3 @@ Use a short, freeform message without a prefix, averaging around 34 characters
 - Pattern in commits.type
 - Pattern in commits.averageLength
 - Examples: 'Initial plan', 'Add observability metrics for lock refresh and heartbeat'
-
