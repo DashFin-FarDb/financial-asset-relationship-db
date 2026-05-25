@@ -19,6 +19,9 @@ from api.metrics import (
 from src.data.db_models import RebuildJobStatus
 
 _WEAK_COUNTER_CACHE = weakref.WeakKeyDictionary()
+# Fallback cache keyed by object id for counters that cannot be weak-referenced.
+# Note: using id() means entries may persist after object collection and ids can be reused.
+# This is acceptable for unit tests; for long-running processes consider a cleanup strategy (weakref.finalize) to avoid leaks.
 _FALLBACK_COUNTER_CACHE: dict[int, set[str]] = {}
 
 
