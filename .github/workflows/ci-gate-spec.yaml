@@ -233,27 +233,46 @@ jobs:
           ADMIN_PASSWORD: admin
         run: |
           # Start API in background
-          python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 &
+          python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 > /tmp/api.log 2>&1 &
           API_PID=$!
 
-          # Wait for API to be ready
-          sleep 3
+          # Wait for API to be ready (poll for up to 30 seconds)
+          for i in {1..30}; do
+            if curl -sf http://127.0.0.1:8000/api/health > /dev/null 2>&1; then
+              echo "✅ API is ready after ${i} seconds"
+              break
+            fi
+            if ! kill -0 $API_PID 2>/dev/null; then
+              echo "❌ API process died during startup"
+              cat /tmp/api.log
+              exit 1
+            fi
+            sleep 1
+          done
+
+          if ! kill -0 $API_PID 2>/dev/null; then
+            echo "❌ API failed to start within 30 seconds"
+            cat /tmp/api.log
+            exit 1
+          fi
 
           # Check metrics endpoint
           if ! curl -s http://127.0.0.1:8000/api/metrics | grep -q "rebuild_lock_refresh_total"; then
             echo "❌ rebuild_lock_refresh_total not found in metrics"
-            kill $API_PID
+            kill $API_PID 2>/dev/null || true
+            cat /tmp/api.log
             exit 1
           fi
 
           if ! curl -s http://127.0.0.1:8000/api/metrics | grep -q "rebuild_heartbeat_update_total"; then
             echo "❌ rebuild_heartbeat_update_total not found in metrics"
-            kill $API_PID
+            kill $API_PID 2>/dev/null || true
+            cat /tmp/api.log
             exit 1
           fi
 
           echo "✅ All observability metrics are exposed at /api/metrics"
-          kill $API_PID
+          kill $API_PID 2>/dev/null || true
 
   # -----------------------------
   # Final Aggregation Gate
