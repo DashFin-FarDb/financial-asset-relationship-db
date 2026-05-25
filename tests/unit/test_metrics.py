@@ -29,8 +29,9 @@ def _get_counter_value(counter, **label_dict):
     """
     for family in counter.collect():
         for sample in family.samples:
-            # Match the label values and ensure it's the _total sample (not _created)
-            if sample.labels == label_dict and sample.name.endswith("_total"):
+            # Match the label values and ensure it's the total sample for this metric (not *_created)
+            metric_name = getattr(counter, '_name', None)
+            if metric_name is not None and sample.labels == label_dict and sample.name == f'{metric_name}_total':
                 return sample.value
     return 0.0
 
