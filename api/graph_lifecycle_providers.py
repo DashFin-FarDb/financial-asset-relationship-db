@@ -65,11 +65,9 @@ return GraphLifecycleSettings(
         real_data_cache_path=settings.real_data_cache_path,
         use_real_data_fetcher=settings.use_real_data_fetcher,
         rebuild_lock_ttl_seconds=settings.rebuild_lock_ttl_seconds,
-    )
         use_real_data_fetcher=settings.use_real_data_fetcher,
-    )
         rebuild_lock_ttl_seconds=settings.rebuild_lock_ttl_seconds,
-
+)
 
 def clear_graph_lifecycle_settings_cache() -> None:
     """Clear cached settings used by graph lifecycle initialization."""
