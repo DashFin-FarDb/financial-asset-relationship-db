@@ -28,25 +28,27 @@ def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     Returns:
         float: The value of the matching counter sample, or 0.0 if not found.
     """
-    # 1. Establish structural name variations upfront
-    desc = counter.describe()
-    raw_name = desc[0].name if desc else getattr(counter, "_name", "")
-    base_name = raw_name.removesuffix("_total")
-    
-    # The set guarantees an O(1) match regardless of client exposition format
-    expected_names = {raw_name, base_name, f"{base_name}_total"}
+    # Look for cached names; compute and attach them if missing
+    expected_names = getattr(counter, "_cached_expected_names", None)
+    if expected_names is None:
+        desc = counter.describe()
+        raw_name = desc[0].name if desc else getattr(counter, "_name", "")
+        base_name = raw_name.removesuffix("_total")
+        
+        expected_names = {raw_name, base_name, f"{base_name}_total"}
+        counter._cached_expected_names = expected_names  # Cache on the instance
 
     for family in counter.collect():
         for sample in family.samples:
-            # 2. Hard-guard against metadata/creation timestamps
+            # 1. Hard-guard against metadata/creation timestamps
             if sample.name.endswith("_created"):
                 continue
 
-            # 3. Filter by labels
+            # 2. Filter by labels
             if sample.labels != label_dict:
                 continue
 
-            # 4. Clean, zero-transformation membership lookup
+            # 3. Fast O(1) membership lookup
             if sample.name in expected_names:
                 return sample.value
 
