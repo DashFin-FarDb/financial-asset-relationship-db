@@ -70,11 +70,11 @@ def test_lock_refresh_metrics_exist() -> None:
 
 
 @pytest.mark.unit
-def test_heartbeat_keeper_lock_refresh_raises_increments_failure(monkeypatch, mocker):
+def test_heartbeat_keeper_lock_refresh_raises_increments_failure() -> None:
     """When dist_lock.refresh() raises, LOCK_REFRESH_TOTAL failure counter should increment."""
     from api.routers.graph_admin import _heartbeat_keeper
 
-    mock_lock = mocker.Mock()
+    mock_lock = MagicMock()
     mock_lock.refresh.side_effect = RuntimeError("DB down")
     stop_event = threading.Event()
     lock_lost_event = threading.Event()
@@ -84,7 +84,7 @@ def test_heartbeat_keeper_lock_refresh_raises_increments_failure(monkeypatch, mo
     # Use a very short interval so the loop executes quickly
     # The outer exception handler catches RuntimeError and returns (no exception propagates)
     _heartbeat_keeper(
-        session_factory=mocker.Mock(),
+        session_factory=MagicMock(),
         dist_lock=mock_lock,
         job_id="test",
         worker_id="worker1",
