@@ -700,12 +700,8 @@ def _heartbeat_keeper(
     while not stop_event.wait(timeout=interval_seconds):
         try:
             # Lock refresh with metrics instrumentation
-            try:
-                with LOCK_REFRESH_DURATION.time():
-                    refresh_ok = dist_lock.refresh()
-            except Exception:
-                LOCK_REFRESH_TOTAL.labels(status="failure").inc()
-                raise
+            with LOCK_REFRESH_DURATION.time():
+                refresh_ok = dist_lock.refresh()
 
             if not refresh_ok:
                 LOCK_REFRESH_TOTAL.labels(status="failure").inc()
@@ -732,24 +728,11 @@ def _heartbeat_keeper(
                 )
                 lock_lost_event.set()
                 return
-# Add a consecutive-failure counter above the while loop:
-# hb_fail_streak = 0
-# MAX_HB_FAILURES = 2
-#
-# In the except block:
-# hb_fail_streak += 1
-# if hb_fail_streak >= MAX_HB_FAILURES:
-#     HEARTBEAT_UPDATE_TOTAL.labels(status='failure').inc()
-#     logger.error(...)
-#     lock_lost_event.set()
-#     return
-# else:
-#     HEARTBEAT_UPDATE_TOTAL.labels(status='failure').inc()
-#     logger.warning('Heartbeat DB update failed (streak %d/%d) for job %s', hb_fail_streak, MAX_HB_FAILURES, job_id)
-#
-# On success, reset hb_fail_streak = 0
+        except Exception as exc:
+            # Catches exceptions from lock refresh (e.g., database connectivity issues)
+            LOCK_REFRESH_TOTAL.labels(status="failure").inc()
             logger.error(
-                "Heartbeat keeper encountered unexpected error for job %s: %s.",
+                "Heartbeat keeper lock refresh failed for job %s: %s.",
                 job_id,
                 type(exc).__name__,
             )
