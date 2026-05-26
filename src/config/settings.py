@@ -78,7 +78,7 @@ class Settings(BaseModel):
         if isinstance(value, str):
             try:
                 return int(value)
-            except ValueError:
+            raise ValueError(f"{info.field_name.upper()} must be an integer")
                 raise ValueError("REBUILD_LOCK_TTL_SECONDS must be an integer")
         return value
 
