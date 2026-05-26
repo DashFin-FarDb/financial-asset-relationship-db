@@ -95,10 +95,6 @@ class DistributedLock:
         return False
 
     def refresh(self, *, max_retries: int = 2, retry_delay_seconds: float = 0.5) -> bool:
-        if max_retries < 0:
-            raise ValueError("max_retries must be >= 0")
-        if retry_delay_seconds < 0:
-            raise ValueError("retry_delay_seconds must be >= 0")
         """
         Refresh the distributed lock to extend its TTL.
 
@@ -111,6 +107,10 @@ class DistributedLock:
         Returns:
             True if lock was refreshed, False if held by another holder.
         """
+        if max_retries < 0:
+            raise ValueError("max_retries must be >= 0")
+        if retry_delay_seconds < 0:
+            raise ValueError("retry_delay_seconds must be >= 0")
         for attempt in range(max_retries + 1):
             try:
                 with session_scope(self.session_factory) as session:
