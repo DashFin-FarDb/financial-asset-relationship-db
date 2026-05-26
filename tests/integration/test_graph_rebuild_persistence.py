@@ -68,7 +68,11 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(name, raising=False)
 
     # Ensure any background state is cleared
-    graph_admin._rebuild_lock = threading.Lock()
+    get_settings.cache_clear()
+    providers.clear_graph_lifecycle_settings_cache()
+    graph_admin._REBUILD_RUNTIME.lock = None
+    graph_admin._REBUILD_RUNTIME.lock_loop = None
+    graph_admin._REBUILD_RUNTIME.shutdown_executor()
 
 
 @pytest.fixture
@@ -261,14 +265,17 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
 
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
         # Fire pipeline directly
-        with bound_factory() as session:
+        settings = get_settings()
+        resolved_url = db_url
+        job_started_at = time.time()
+        lock_lost_event = threading.Event()
         graph_admin._run_rebuild_pipeline(
-            session,
+            bound_factory,
             settings,
             resolved_url,
             job_id,
             job_started_at,
-            lock_lost_event
+            lock_lost_event,
         )
 
         # Verify success marker was applied
