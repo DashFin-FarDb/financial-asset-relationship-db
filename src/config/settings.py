@@ -79,7 +79,7 @@ class Settings(BaseModel):
             try:
                 return int(value)
             except ValueError:
-        return value
+                return value
 
     @property
     def allowed_origins(self) -> list[str]:
