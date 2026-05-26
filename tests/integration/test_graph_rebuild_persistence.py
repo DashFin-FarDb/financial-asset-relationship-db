@@ -110,7 +110,7 @@ def session_factory_provider(tmp_path: Path):
         job_id = "job_test_pipe"
         job_started_at = time.time()
         lock_lost_event = threading.Event()
-        
+
         # Pass session_factory instead of session
         graph_admin._run_rebuild_pipeline(
             bound_factory,  # Pass the factory, not the session
