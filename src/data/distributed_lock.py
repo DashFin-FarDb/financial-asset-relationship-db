@@ -143,7 +143,7 @@ class DistributedLock:
                         retry_delay_seconds,
                     )
                     sleep(retry_delay_seconds)
-                    continue
+
                 # Max retries exhausted
                 logger.warning(
                     "Lock refresh failed after %d attempts: %s",
