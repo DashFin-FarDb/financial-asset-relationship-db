@@ -192,7 +192,7 @@ async def test_rebuild_with_small_lock_ttl_seconds(session_factory_provider, mon
 
         lock = MockLock(bound_factory, "graph_rebuild", ttl_seconds=settings.rebuild_lock_ttl_seconds)
         assert lock is not None
-        MockLock.assert_called_with(bound_factory, "graph_rebuild", ttl_seconds=10)
+        MockLock.assert_called_once_with(bound_factory, "graph_rebuild", ttl_seconds=10)
 
 
 @pytest.mark.asyncio
@@ -256,7 +256,7 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
 
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
         settings = get_settings()
-        engine_for_test = create_engine(db_url)
+        engine_for_test = create_engine_from_url(db_url)
         session_factory = create_session_factory(engine_for_test)
         job_started_at = time.time()
         lock_lost_event = threading.Event()
@@ -359,7 +359,7 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", failing_pipeline)
 
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
-        engine_for_test = create_engine(db_url)
+        engine_for_test = create_engine_from_url(db_url)
         session_factory = create_session_factory(engine_for_test)
 
         try:
@@ -431,7 +431,7 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", simulate_cancellation)
 
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
-        engine_for_test = create_engine(db_url)
+        engine_for_test = create_engine_from_url(db_url)
         session_factory = create_session_factory(engine_for_test)
 
         with pytest.raises(asyncio.CancelledError):
@@ -456,7 +456,7 @@ async def test_rebuild_pipeline_aborts_immediately_on_preexisting_lock_loss(sess
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", mock_build)
 
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
-        engine_for_test = create_engine(db_url)
+        engine_for_test = create_engine_from_url(db_url)
         session_factory = create_session_factory(engine_for_test)
 
         lock_lost_event = threading.Event()
