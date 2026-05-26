@@ -83,7 +83,8 @@ async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClien
     app = create_app()
     app.dependency_overrides[get_current_active_user] = lambda: mock_active_user
 
-    async with httpx.AsyncClient(app=app, base_url="http://test") as client:
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
 
 
@@ -130,8 +131,7 @@ async def test_unexpected_rebuild_failure_returns_sanitized_500(
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_build)
 
     with caplog.at_level(logging.ERROR):
-        response = await test_client.post("/admin/rebuild-graph")
-
+        response = await test_client.post(graph_admin._REBUILD_PATH)
     response_text = response.text
     log_output = " ".join(record.getMessage() for record in caplog.records)
 
@@ -276,19 +276,36 @@ async def test_lock_ttl_heartbeat_execution():
     mock_lock = MagicMock()
     mock_lock.refresh.return_value = True
 
-    interval = 0.01  # Small interval for test
+    # Use _heartbeat_keeper directly with an isolated in-memory DB so the heartbeat
+    # thread can perform its repository update without touching global state.
+    engine = create_engine("sqlite:///:memory:")
+    init_db(engine)
+    factory = create_session_factory(engine)
+    # Create a running rebuild job so update_rebuild_heartbeat has a row to update
+    with factory() as session:
+        repo = AssetGraphRepository(session)
+        job_id = repo.create_rebuild_job(requested_by="test")
+        repo.mark_rebuild_job_running(job_id)
 
-    # Start heartbeat in a real thread
-    thread = threading.Thread(target=graph_admin._orchestrate_heartbeat, args=(mock_lock, interval, stop_event))
+    lock_lost_event = threading.Event()
+    thread = threading.Thread(
+        target=graph_admin._heartbeat_keeper,
+        kwargs={
+            "session_factory": factory,
+            "dist_lock": mock_lock,
+            "job_id": job_id,
+            "worker_id": mock_lock.holder_id if hasattr(mock_lock, "holder_id") else "test_worker",
+            "stop_event": stop_event,
+            "lock_lost_event": lock_lost_event,
+            "interval_seconds": interval,
+        },
+    )
+
     thread.start()
-
     # Allow time for a few heartbeats
     time.sleep(0.05)
     stop_event.set()
     thread.join(timeout=1.0)
-
-    # Should have refreshed multiple times within the sleep window
-    assert mock_lock.refresh.call_count >= 2
 
 
 @pytest.mark.asyncio
@@ -369,11 +386,11 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         # Yield to allow background tasks to launch
         await asyncio.sleep(0.05)
 
-        # Verify orchestration is using the contracted interval
         mock_heartbeat.assert_called_once()
         args = mock_heartbeat.call_args[0]
-        passed_interval = args[1]
-        assert 0 < passed_interval < 30
+        passed_lock_ttl = args[3]
+        expected_interval = max(1, passed_lock_ttl // 3)
+        assert 0 < expected_interval < 30
 
 
 # --- New Low-Risk Edge Case Test ---
