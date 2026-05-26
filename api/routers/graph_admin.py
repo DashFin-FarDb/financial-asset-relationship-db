@@ -485,7 +485,7 @@ def _log_rebuild_succeeded(
     )
 
 
-def _rebuild_failure_category(exc: Exception) -> str:
+def _rebuild_failure_category(exc: Exception | BaseException) -> str:
     """Return a bounded failure category for rebuild audit logs."""
     root_exc = _unwrap_rebuild_error(exc)
     categories = {
@@ -500,7 +500,7 @@ def _rebuild_failure_category(exc: Exception) -> str:
     return categories.get(type(root_exc), "unexpected_error")
 
 
-def _rebuild_source_from_exception(exc: Exception) -> GraphRebuildSource | None:
+def _rebuild_source_from_exception(exc: Exception | BaseException) -> GraphRebuildSource | None:
     """Return the bounded rebuild source, if one is available on the exception."""
     if isinstance(exc, _RebuildExecutionError):
         return exc.source
@@ -510,7 +510,7 @@ def _rebuild_source_from_exception(exc: Exception) -> GraphRebuildSource | None:
 def _log_rebuild_failed(
     *,
     user_ref: str,
-    exc: Exception,
+    exc: Exception | BaseException,
     status_code: int,
     duration_ms: int,
 ) -> None:
@@ -635,7 +635,7 @@ def _mark_job_succeeded_safe(
 def _mark_job_failed_safe(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception,
+    exc: Exception | BaseException,
     duration_ms: int,
 ) -> None:
     """Mark a rebuild job as failed safely."""
@@ -772,7 +772,7 @@ def _finalize_rebuild_failure(
     *,
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception,
+    exc: Exception | BaseException,
     job_started_at: float,
 ) -> None:
     """Persist failed rebuild terminal state."""
@@ -802,7 +802,7 @@ def _restore_persisted_graph_snapshot(
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception,
+    exc: Exception | BaseException,
     job_started_at: float,
     success_persisted: bool,
     graph_saved: bool,
@@ -911,7 +911,7 @@ def _run_rebuild_pipeline(
         success_persisted = True
         synchronize_runtime_graph(graph, job_id=job_id)
         return response
-    except Exception as exc:
+    except (Exception, asyncio.CancelledError) as exc:
         _handle_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,
@@ -963,7 +963,7 @@ def _perform_rebuild_and_persist_sync(
         engine.dispose()
 
 
-def _sanitize_failure_message(exc: Exception) -> str:
+def _sanitize_failure_message(exc: Exception | BaseException) -> str:
     """Return a bounded, sanitized failure message for job persistence."""
     root_exc = _unwrap_rebuild_error(exc)
     safe_exceptions = (

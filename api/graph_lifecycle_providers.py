@@ -34,7 +34,7 @@ class GraphLifecycleSettings:
     graph_cache_path: str | None
     real_data_cache_path: str | None
     use_real_data_fetcher: bool
-    rebuild_lock_ttl_seconds: int
+    rebuild_lock_ttl_seconds: int = 300
 
 
 class GraphPersistenceNotConfiguredError(RuntimeError):
