@@ -288,11 +288,13 @@ class TestLoadSettings:
         exc = exc_info.value
         if isinstance(exc, ValidationError):
             errors = exc.errors()
-            assert any(
-                ("rebuild_lock_ttl_seconds" in str(err.get("loc", [])))
-                or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
-                for err in errors
-            )
+        errors = exc.errors()
+        # Prefer checking the error 'loc' tuple for the field name to avoid brittle message matching.
+        assert any(
+            ("rebuild_lock_ttl_seconds" in err.get("loc", ()))
+            or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
+            for err in errors
+        )
         else:
             # Should be a ValueError from int(...) when environment variable is non-numeric
             assert isinstance(exc, ValueError)
