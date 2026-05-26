@@ -97,7 +97,8 @@ def session_factory_provider(tmp_path: Path):
     """Provides a standard isolated session factory conforming to repository contracts."""
     from src.data.database import create_engine_from_url
 
-    engine = create_engine_from_url("sqlite:///:memory:")
+    db_url = "sqlite:///:memory:"  # Define the variable
+    engine = create_engine_from_url(db_url)
     init_db(engine)
     factory = create_session_factory(engine)
 
