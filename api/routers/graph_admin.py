@@ -485,7 +485,7 @@ def _log_rebuild_succeeded(
     )
 
 
-def _rebuild_failure_category(exc: Exception) -> str:
+def _rebuild_failure_category(exc: Exception | BaseException) -> str:
     """Return a bounded failure category for rebuild audit logs."""
     root_exc = _unwrap_rebuild_error(exc)
     categories = {
@@ -549,7 +549,7 @@ def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception) -> None:
     )
 
 
-def _unwrap_rebuild_error(exc: Exception) -> Exception:
+def _unwrap_rebuild_error(exc: Exception | BaseException) -> Exception | BaseException:
     """Return the underlying rebuild error for mapping and audit categorization."""
     if isinstance(exc, _RebuildExecutionError):
         return exc.cause
@@ -911,7 +911,7 @@ def _run_rebuild_pipeline(
         success_persisted = True
         synchronize_runtime_graph(graph, job_id=job_id)
         return response
-    except Exception as exc:
+    except (Exception, asyncio.CancelledError) as exc:
         _handle_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,

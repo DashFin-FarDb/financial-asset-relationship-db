@@ -60,6 +60,8 @@ class Settings(BaseModel):
 
     # Database configuration
     asset_graph_database_url: str | None = Field(default=None)
+    database_url: str | None = Field(default=None)
+    postgres_url: str | None = Field(default=None)
     # Distributed lock configuration
     # Allow int | str | None to capture empty strings from os.getenv
     rebuild_lock_ttl_seconds: int = Field(default=300, gt=0)
@@ -68,7 +70,13 @@ class Settings(BaseModel):
     @classmethod
     def parse_ttl(cls, value: Any) -> Any:
         """Coerce empty strings or None to the field default."""
-        default = cls.model_fields.get("rebuild_lock_ttl_seconds", {}).get("default", 300)
+        field_info = cls.model_fields.get("rebuild_lock_ttl_seconds")
+        default = field_info.default if field_info is not None else 300
+        from pydantic_core import PydanticUndefined
+
+        if default is PydanticUndefined:
+            default = 300
+
         if value is None or (isinstance(value, str) and not value.strip()):
             return default
         return value
