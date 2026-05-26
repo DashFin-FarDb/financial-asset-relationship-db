@@ -485,7 +485,7 @@ def _log_rebuild_succeeded(
     )
 
 
-def _rebuild_failure_category(exc: BaseException) -> str:
+def _rebuild_failure_category(exc: Exception) -> str:
     """Return a bounded failure category for rebuild audit logs."""
     root_exc = _unwrap_rebuild_error(exc)
     categories = {

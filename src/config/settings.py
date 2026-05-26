@@ -31,7 +31,7 @@ def _parse_bool_env(value: str | None) -> bool:
 
 def _parse_csv_env(value: str) -> list[str]:
     """Parse a comma-separated environment variable value into a list of strings."""
-    return [stripped for item in value.split(",") if (stripped := item.strip())]
+    return [s for s in (item.strip() for item in value.split(",")) if s]
 
 
 class Settings(BaseModel):
