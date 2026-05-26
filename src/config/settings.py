@@ -79,7 +79,7 @@ class Settings(BaseModel):
             try:
                 return int(value)
             except ValueError:
-                raise ValueError(f"Invalid integer for field {info.field_name!r}: {value!r}")
+                raise ValueError(f"Invalid integer for environment variable {info.field_name.upper()}: {value!r}")
         # For non-string, non-None inputs, return value unchanged
         return value
 

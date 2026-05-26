@@ -270,6 +270,15 @@ class TestLoadSettings:
         with pytest.raises(ValidationError):
             load_settings()
 
+    @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "abc"}, clear=True)
+    def test_load_settings_rebuild_lock_ttl_non_integer_raises_validation_error(self) -> None:
+        """Test that non-integer REBUILD_LOCK_TTL_SECONDS raises validation error."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError) as exc_info:
+            load_settings()
+        assert "REBUILD_LOCK_TTL_SECONDS" in str(exc_info.value)
+
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
     def test_load_settings_env_lowercase(self) -> None:
         """Test that ENV is converted to lowercase."""
