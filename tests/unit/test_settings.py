@@ -275,8 +275,7 @@ class TestLoadSettings:
         """Test that non-integer REBUILD_LOCK_TTL_SECONDS raises validation error."""
         from pydantic import ValidationError
 
-        with pytest.raises(ValidationError) as exc_info:
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises((ValidationError, ValueError)) as exc_info:
             # Accept either a Pydantic ValidationError (when Settings validation runs)
             # or a ValueError (if load_settings coerces to int() before constructing Settings).
             load_settings()
