@@ -25,7 +25,11 @@ def _parse_bool_env(value: str | None) -> bool:
     if not value:
         return False
     if not isinstance(value, str):
-        raise TypeError(f"Expected str or None, got {type(value).__name__}")
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
