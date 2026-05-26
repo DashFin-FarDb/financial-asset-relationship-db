@@ -68,17 +68,18 @@ class Settings(BaseModel):
 
     @field_validator("rebuild_lock_ttl_seconds", mode="before")
     @classmethod
-    def parse_ttl(cls, value: Any) -> Any:
+    def parse_ttl(cls, value: Any, info: ValidationInfo) -> Any:
         """Coerce empty strings or None to the field default."""
         if value is None or (isinstance(value, str) and not value.strip()):
-            field_info = cls.model_fields.get("rebuild_lock_ttl_seconds")
+            field_name = info.field_name
+            field_info = cls.model_fields.get(field_name)
             default = getattr(field_info, "default", 300)
             return default
         if isinstance(value, str):
             try:
                 return int(value)
             except ValueError:
-                return value
+                raise ValueError("REBUILD_LOCK_TTL_SECONDS must be an integer")
         return value
 
     @property
