@@ -293,11 +293,14 @@ async def test_lock_ttl_heartbeat_execution():
     # Use _heartbeat_keeper directly with an isolated in-memory DB so the heartbeat
     # thread can perform its repository update without touching global state.
     from src.data.database import create_engine_from_url
+
     engine = create_engine("sqlite:///:memory:")
     init_db(engine)
     factory = create_session_factory(engine)
     # Create a running rebuild job so update_rebuild_heartbeat has a row to update
     # Create a running rebuild job so update_rebuild_heartbeat has a row to update
+
+
 with factory() as session:
     repo = AssetGraphRepository(session)
     job_id = repo.create_rebuild_job(requested_by="test")
@@ -430,8 +433,9 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         # Verify the behavioral contract: interval should be lock_ttl // 3
         # Get the actual interval passed to the heartbeat function
         actual_interval = mock_heartbeat.call_args[0][3]  # or appropriate index
-        assert actual_interval == max(1, passed_lock_ttl // 3), \
-            f"Heartbeat interval should be max(1, ttl//3). Got {actual_interval} for ttl={passed_lock_ttl}"
+        assert actual_interval == max(
+            1, passed_lock_ttl // 3
+        ), f"Heartbeat interval should be max(1, ttl//3). Got {actual_interval} for ttl={passed_lock_ttl}"
 
 
 # --- New Low-Risk Edge Case Test ---
