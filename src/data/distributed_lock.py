@@ -159,7 +159,7 @@ class DistributedLock:
                     type(exc).__name__,
                 )
                 return False
-            return False
+            # Removed redundant fallback return; explicit return paths exist in try/except branches
 
     def release(self) -> None:
         """Release the distributed lock."""
