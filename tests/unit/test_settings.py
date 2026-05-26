@@ -277,7 +277,11 @@ class TestLoadSettings:
 
         with pytest.raises(ValidationError) as exc_info:
             load_settings()
-        assert "REBUILD_LOCK_TTL_SECONDS" in str(exc_info.value)
+        errors = exc_info.value.errors()
+        assert any(
+            ("rebuild_lock_ttl_seconds" in str(err.get("loc", []))) or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
+            for err in errors
+        )
 
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
     def test_load_settings_env_lowercase(self) -> None:
