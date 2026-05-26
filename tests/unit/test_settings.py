@@ -279,11 +279,27 @@ class TestLoadSettings:
         raises a deterministic ValueError during configuration parsing.
         """
 
-        with pytest.raises(
-            ValueError,
-            match=r"REBUILD_LOCK_TTL_SECONDS|invalid literal|could not convert",
-        ):
+        from pydantic import ValidationError
+        with pytest.raises((ValidationError, ValueError)) as exc_info:
+            # Accept either a Pydantic ValidationError (when Settings validation runs)
+            # or a ValueError (if load_settings coerces to int() before constructing Settings).
             load_settings()
+        exc = exc_info.value
+        if isinstance(exc, ValidationError):
+            errors = exc.errors()
+            assert any(
+                ("rebuild_lock_ttl_seconds" in str(err.get("loc", [])))
+                or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
+                for err in errors
+            )
+        else:
+            # Should be a ValueError from int(...) when environment variable is non-numeric
+            assert isinstance(exc, ValueError)
+            assert (
+                ("REBUILD_LOCK_TTL_SECONDS" in str(exc))
+                or ("invalid literal" in str(exc))
+                or ("could not convert" in str(exc))
+            )
 
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
     def test_load_settings_env_lowercase(self) -> None:
