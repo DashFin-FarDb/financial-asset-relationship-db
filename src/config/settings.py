@@ -13,7 +13,6 @@ from functools import lru_cache
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from pydantic_core import PydanticUndefined
 
 
 def _parse_bool_env(value: str | None) -> bool:
@@ -72,9 +71,6 @@ class Settings(BaseModel):
     def parse_ttl(cls, value: Any) -> Any:
         """Coerce empty strings or None to the field default."""
         if value is None or (isinstance(value, str) and not value.strip()):
-            field_info = cls.model_fields.get("rebuild_lock_ttl_seconds")
-            if field_info is not None and field_info.default is not PydanticUndefined:
-                return field_info.default
             return 300
         return value
 
