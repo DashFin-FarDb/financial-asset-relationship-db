@@ -46,16 +46,14 @@ class TestDistributedLockRepository:
     def test_try_acquire_distributed_lock_new(self, repository_factory):
         """Test acquiring a new lock."""
         repo = repository_factory()
-        acquired = repo.try_acquire_distributed_lock(
-            lock_name="test_lock", holder_id="holder1", ttl_seconds=60
-        )
+        acquired = repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=60)
         assert acquired is True
         repo.session.commit()
 
         # Verify persisted state
         reader = repository_factory()
         lock = reader.session.get(DistributedLockORM, "test_lock")
-        
+
         assert lock is not None
         assert lock.holder_id == "holder1"
         assert _ensure_utc(lock.expires_at) > datetime.now(timezone.utc)
@@ -63,36 +61,28 @@ class TestDistributedLockRepository:
     def test_try_acquire_distributed_lock_held_by_other(self, repository_factory):
         """Test failing to acquire a lock held by another holder."""
         repo = repository_factory()
-        repo.try_acquire_distributed_lock(
-            lock_name="test_lock", holder_id="holder1", ttl_seconds=60
-        )
+        repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=60)
         repo.session.commit()
 
         # Try to acquire with other holder
         repo2 = repository_factory()
-        acquired = repo2.try_acquire_distributed_lock(
-            lock_name="test_lock", holder_id="holder2", ttl_seconds=60
-        )
+        acquired = repo2.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder2", ttl_seconds=60)
         assert acquired is False
 
     def test_try_acquire_distributed_lock_refresh(self, repository_factory):
         """Test refreshing a lock held by the same holder."""
         repo = repository_factory()
-        repo.try_acquire_distributed_lock(
-            lock_name="test_lock", holder_id="holder1", ttl_seconds=60
-        )
+        repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=60)
         repo.session.commit()
 
         # Refresh
-        acquired = repo.try_acquire_distributed_lock(
-            lock_name="test_lock", holder_id="holder1", ttl_seconds=120
-        )
+        acquired = repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=120)
         assert acquired is True
         repo.session.commit()
 
         reader = repository_factory()
         lock = reader.session.get(DistributedLockORM, "test_lock")
-        
+
         expected_min_expiry = datetime.now(timezone.utc) + timedelta(seconds=60)
         assert _ensure_utc(lock.expires_at) > expected_min_expiry
 
@@ -100,7 +90,7 @@ class TestDistributedLockRepository:
         """Test taking over an expired lock."""
         repo = repository_factory()
         now = datetime.now(timezone.utc)
-        
+
         expired_lock = DistributedLockORM(
             lock_name="test_lock",
             holder_id="holder1",
@@ -113,24 +103,20 @@ class TestDistributedLockRepository:
 
         # Take over
         repo2 = repository_factory()
-        acquired = repo2.try_acquire_distributed_lock(
-            lock_name="test_lock", holder_id="holder2", ttl_seconds=60
-        )
+        acquired = repo2.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder2", ttl_seconds=60)
         assert acquired is True
         repo2.session.commit()
 
         reader = repository_factory()
         lock = reader.session.get(DistributedLockORM, "test_lock")
-        
+
         assert lock.holder_id == "holder2"
         assert _ensure_utc(lock.expires_at) > now
 
     def test_release_distributed_lock(self, repository_factory):
         """Test releasing a lock."""
         repo = repository_factory()
-        repo.try_acquire_distributed_lock(
-            lock_name="test_lock", holder_id="holder1", ttl_seconds=60
-        )
+        repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=60)
         repo.session.commit()
 
         repo.release_distributed_lock(lock_name="test_lock", holder_id="holder1")
@@ -143,9 +129,7 @@ class TestDistributedLockRepository:
     def test_release_distributed_lock_not_owner(self, repository_factory):
         """Test that releasing a lock held by another holder does nothing."""
         repo = repository_factory()
-        repo.try_acquire_distributed_lock(
-            lock_name="test_lock", holder_id="holder1", ttl_seconds=60
-        )
+        repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=60)
         repo.session.commit()
 
         # Try to release with other holder id
@@ -154,7 +138,7 @@ class TestDistributedLockRepository:
 
         reader = repository_factory()
         lock = reader.session.get(DistributedLockORM, "test_lock")
-        
+
         assert lock is not None
         assert lock.holder_id == "holder1"
 
@@ -167,7 +151,7 @@ class TestDistributedLockRepository:
         """Expired lock rows should be classified as EXPIRED."""
         repo = repository_factory()
         now = datetime.now(timezone.utc)
-        
+
         repo.session.add(
             DistributedLockORM(
                 lock_name="test_lock",
@@ -238,7 +222,7 @@ class TestLatestRebuildJobRepository:
 
         reader = repository_factory()
         latest = reader.get_latest_successful_rebuild_job()
-        
+
         assert latest is not None
         assert latest.job_id == id3
         assert latest.requested_by == "user3"
@@ -252,20 +236,18 @@ class TestDistributedLockRetryLogic:
     def lock_setup(self, repository_factory):
         """Provides a factory-conformant session supplier and lock instance, fixing previous lambda bypass."""
         repo = repository_factory()
-        
+
         def bound_session_factory():
             """Conforms directly to the repository state-isolation lifecycle contract."""
             return repo.session
-            
+
         return DistributedLock(bound_session_factory, "test_lock", ttl_seconds=60)
 
     def test_refresh_retries_on_transient_db_error(self, monkeypatch, lock_setup):
         """Lock refresh should retry on transient SQLAlchemyError."""
-        mock_try_acquire = MagicMock(side_effect=[
-            SQLAlchemyError("connection timeout"),
-            SQLAlchemyError("connection timeout"),
-            True
-        ])
+        mock_try_acquire = MagicMock(
+            side_effect=[SQLAlchemyError("connection timeout"), SQLAlchemyError("connection timeout"), True]
+        )
         monkeypatch.setattr(AssetGraphRepository, "try_acquire_distributed_lock", mock_try_acquire)
 
         assert lock_setup.refresh(max_retries=2, retry_delay_seconds=0.01) is True
