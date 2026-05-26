@@ -22,15 +22,16 @@ def _parse_bool_env(value: str | None) -> bool:
     Interprets the value case-insensitively; the values "1", "true", "yes",
     or "on" (ignoring surrounding whitespace) are treated as true.
     """
-    if not value:
+    # Handle None and empty string
+    if value is None or value == "":
         return False
-    if not isinstance(value, str):
-    if value is None:
-        return False
+    
+    # Handle boolean passthrough
     if isinstance(value, bool):
         return value
+    
+    # Convert everything else to string and parse
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
-    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _parse_csv_env(value: str) -> list[str]:
