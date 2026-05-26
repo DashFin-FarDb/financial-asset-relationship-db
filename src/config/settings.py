@@ -76,7 +76,6 @@ class Settings(BaseModel):
             default = getattr(field_info, "default", 300)
             return default
         if isinstance(value, str):
-        if isinstance(value, str):
             try:
                 return int(value)
             except ValueError:
