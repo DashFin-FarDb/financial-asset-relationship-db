@@ -95,34 +95,21 @@ async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClien
 @pytest.fixture
 def session_factory_provider(tmp_path: Path):
     """Provides a standard isolated session factory conforming to repository contracts."""
-    db_url = _sqlite_url(tmp_path)
-    _init_empty_db(db_url)
-    engine = create_engine(db_url)
+    from src.data.database import create_engine_from_url
+    engine = create_engine_from_url("sqlite:///:memory:")
+    init_db(engine)
     factory = create_session_factory(engine)
 
     @contextmanager
     def bound_session_factory() -> Iterator[Session]:
         """Conforms directly to the repository state-isolation lifecycle contract."""
-        with bound_factory() as session:
-        # Define missing variables
-        settings = get_settings()
-        resolved_url = db_url
-        job_id = "job_test_pipe"
-        job_started_at = time.time()
-        lock_lost_event = threading.Event()
-
-        # Pass session_factory instead of session
-        graph_admin._run_rebuild_pipeline(
-            bound_factory,  # Pass the factory, not the session
-            settings,
-            resolved_url,
-            job_id,
-            job_started_at,
-            lock_lost_event
-        )
-
-
-# --- Original Error Handling Tests ---
+        session = factory()
+        try:
+            yield session
+        finally:
+            session.close()
+    yield bound_session_factory, db_url
+    engine.dispose()
 
 
 async def test_unexpected_rebuild_failure_returns_sanitized_500(
@@ -276,16 +263,20 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
         # Fire pipeline directly
         settings = get_settings()
         resolved_url = db_url
+        # Create a proper session factory (callable returning a Session) for _run_rebuild_pipeline
+        engine_for_test = create_engine(resolved_url)
+        session_factory = create_session_factory(engine_for_test)
         job_started_at = time.time()
         lock_lost_event = threading.Event()
         graph_admin._run_rebuild_pipeline(
-            bound_factory,
+            session_factory,
             settings,
             resolved_url,
             job_id,
             job_started_at,
             lock_lost_event,
         )
+        engine_for_test.dispose()
 
         # Verify success marker was applied
         mock_repo.mark_rebuild_job_succeeded.assert_called_once()
@@ -299,22 +290,17 @@ async def test_lock_ttl_heartbeat_execution():
     mock_lock = MagicMock()
     mock_lock.refresh.return_value = True
 
-    # Use _heartbeat_keeper directly with an isolated in-memory DB so the heartbeat
-    # thread can perform its repository update without touching global state.
     from src.data.database import create_engine_from_url
 
     engine = create_engine("sqlite:///:memory:")
     init_db(engine)
     factory = create_session_factory(engine)
-    # Create a running rebuild job so update_rebuild_heartbeat has a row to update
-    # Create a running rebuild job so update_rebuild_heartbeat has a row to update
 
-
-with factory() as session:
-    repo = AssetGraphRepository(session)
-    job_id = repo.create_rebuild_job(requested_by="test")
-    repo.mark_rebuild_job_running(job_id)
-    original_updated_at = repo.get_rebuild_job(job_id).updated_at
+    with factory() as session:
+        repo = AssetGraphRepository(session)
+        job_id = repo.create_rebuild_job(requested_by="test")
+        repo.mark_rebuild_job_running(job_id)
+        original_updated_at = repo.get_rebuild_job(job_id).updated_at
 
 # Ensure system clock advances slightly before heartbeat triggers
 time.sleep(0.01)
