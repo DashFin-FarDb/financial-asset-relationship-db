@@ -76,10 +76,13 @@ class Settings(BaseModel):
             default = getattr(field_info, "default", 300)
             return default
         if isinstance(value, str):
+        if isinstance(value, str):
             try:
                 return int(value)
             except ValueError:
                 return value
+        # For non-string, non-None inputs, return value unchanged
+        return value
 
     @property
     def allowed_origins(self) -> list[str]:
