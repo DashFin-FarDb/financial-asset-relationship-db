@@ -103,14 +103,23 @@ def session_factory_provider(tmp_path: Path):
     @contextmanager
     def bound_session_factory() -> Iterator[Session]:
         """Conforms directly to the repository state-isolation lifecycle contract."""
-        session = factory()
-        try:
-            yield session
-        finally:
-            session.close()
-
-    yield bound_session_factory, db_url
-    engine.dispose()
+        with bound_factory() as session:
+        # Define missing variables
+        settings = get_settings()
+        resolved_url = db_url
+        job_id = "job_test_pipe"
+        job_started_at = time.time()
+        lock_lost_event = threading.Event()
+        
+        # Pass session_factory instead of session
+        graph_admin._run_rebuild_pipeline(
+            bound_factory,  # Pass the factory, not the session
+            settings,
+            resolved_url,
+            job_id,
+            job_started_at,
+            lock_lost_event
+        )
 
 
 # --- Original Error Handling Tests ---
