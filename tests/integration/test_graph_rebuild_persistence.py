@@ -21,7 +21,7 @@ from api.app_factory import create_app
 from api.auth import User, get_current_active_user
 from api.routers import graph_admin
 from src.config.settings import get_settings
-from src.data.database import create_session_factory, init_db, create_engine_from_url
+from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -31,6 +31,7 @@ _REBUILD_AUDIT_POLL_INTERVAL_SECONDS = 0.005
 
 
 # --- Structural Layout & Configuration Helpers ---
+
 
 def _sqlite_url(tmp_path: Path) -> str:
     """Helper to generate an isolated SQLite DB URL for a test."""
@@ -63,7 +64,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
         "REBUILD_LOCK_TTL_SECONDS",
     ):
         monkeypatch.delenv(name, raising=False)
-    
+
     get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
     graph_admin._REBUILD_RUNTIME.lock = None
@@ -82,7 +83,7 @@ async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClien
     """Provides a clean, contract-compliant async HTTP testing client sandbox."""
     app = create_app()
     app.dependency_overrides[get_current_active_user] = lambda: mock_active_user
-    
+
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
@@ -95,7 +96,7 @@ def session_factory_provider(tmp_path: Path):
     engine = create_engine_from_url(db_url)
     init_db(engine)
     factory = create_session_factory(engine)
-    
+
     @contextmanager
     def bound_session_factory() -> Iterator[Session]:
         """Provides state-isolated contextual sessions matching factory lifecycle models."""
@@ -110,6 +111,7 @@ def session_factory_provider(tmp_path: Path):
 
 
 # --- Security Error & Isolation Handling Enforcements ---
+
 
 async def test_unexpected_rebuild_failure_returns_sanitized_500(
     test_client: httpx.AsyncClient,
@@ -171,6 +173,7 @@ async def test_persistence_save_failure_returns_sanitized_500(
 
 
 # --- Core Rebuild Distributed Lock TTL Flow Integrations ---
+
 
 @pytest.mark.asyncio
 async def test_rebuild_with_small_lock_ttl_seconds(session_factory_provider, monkeypatch):
@@ -257,7 +260,7 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
         session_factory = create_session_factory(engine_for_test)
         job_started_at = time.time()
         lock_lost_event = threading.Event()
-        
+
         graph_admin._run_rebuild_pipeline(
             session_factory,
             settings,
@@ -358,15 +361,10 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
         engine_for_test = create_engine(db_url)
         session_factory = create_session_factory(engine_for_test)
-        
+
         try:
             graph_admin._run_rebuild_pipeline(
-                session_factory,
-                get_settings(),
-                db_url,
-                job_id,
-                time.time(),
-                threading.Event()
+                session_factory, get_settings(), db_url, job_id, time.time(), threading.Event()
             )
         except RebuildLockLostError:
             pass
@@ -414,6 +412,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
 
 # --- Resilience Guardrail Enforcements ---
 
+
 @pytest.mark.asyncio
 async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, monkeypatch):
     """Verifies that if the pipeline is cancelled, it releases configuration locks and records clean failure states."""
@@ -434,15 +433,10 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
         engine_for_test = create_engine(db_url)
         session_factory = create_session_factory(engine_for_test)
-        
+
         with pytest.raises(asyncio.CancelledError):
             graph_admin._run_rebuild_pipeline(
-                session_factory,
-                get_settings(),
-                db_url,
-                "job_cancelled",
-                time.time(),
-                threading.Event()
+                session_factory, get_settings(), db_url, "job_cancelled", time.time(), threading.Event()
             )
         engine_for_test.dispose()
 
@@ -464,17 +458,12 @@ async def test_rebuild_pipeline_aborts_immediately_on_preexisting_lock_loss(sess
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
         engine_for_test = create_engine(db_url)
         session_factory = create_session_factory(engine_for_test)
-        
+
         lock_lost_event = threading.Event()
         lock_lost_event.set()
-        
+
         graph_admin._run_rebuild_pipeline(
-            session_factory, 
-            get_settings(), 
-            db_url, 
-            "job_immediate_abort", 
-            time.time(), 
-            lock_lost_event
+            session_factory, get_settings(), db_url, "job_immediate_abort", time.time(), lock_lost_event
         )
         engine_for_test.dispose()
 
