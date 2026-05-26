@@ -287,6 +287,7 @@ async def test_lock_ttl_heartbeat_execution():
         job_id = repo.create_rebuild_job(requested_by="test")
         repo.mark_rebuild_job_running(job_id)
 
+    interval = 0.01  # Small interval for test
     lock_lost_event = threading.Event()
     thread = threading.Thread(
         target=graph_admin._heartbeat_keeper,
@@ -306,7 +307,14 @@ async def test_lock_ttl_heartbeat_execution():
     time.sleep(0.05)
     stop_event.set()
     thread.join(timeout=1.0)
-
+    
+    # Verify heartbeat keeper performed work
+    assert mock_lock.refresh.call_count >= 2, "Heartbeat keeper should have refreshed lock multiple times"
+    # Optionally verify database updates occurred
+    with factory() as session:
+        repo = AssetGraphRepository(session)
+        job = repo.get_rebuild_job(job_id)
+        assert job.updated_at is not None, "Heartbeat should have updated job timestamp"
 
 @pytest.mark.asyncio
 async def test_simulated_lock_ttl_expiration():
@@ -390,7 +398,13 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         args = mock_heartbeat.call_args[0]
         passed_lock_ttl = args[3]
         expected_interval = max(1, passed_lock_ttl // 3)
-        assert 0 < expected_interval < 30
+        
+        # Verify the expected interval is reasonable
+        assert 0 < expected_interval < 30, f"Expected interval {expected_interval} out of reasonable range"
+        
+        # Verify the behavioral contract: interval should be lock_ttl // 3
+        assert expected_interval == passed_lock_ttl // 3 or expected_interval == 1, \
+            f"Interval should be max(1, ttl//3). Got {expected_interval} for ttl={passed_lock_ttl}"
 
 
 # --- New Low-Risk Edge Case Test ---
