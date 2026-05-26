@@ -278,14 +278,12 @@ class TestLoadSettings:
         Test that a non-integer REBUILD_LOCK_TTL_SECONDS value
         raises a deterministic ValueError during configuration parsing.
         """
-
         from pydantic import ValidationError
 
-        with pytest.raises((ValidationError, ValueError)) as exc_info:
-        from pydantic import ValidationError
         with pytest.raises((ValidationError, ValueError)) as exc_info:
             # Accept either a Pydantic ValidationError (when Settings validation runs)
             # or a ValueError (if load_settings coerces to int() before constructing Settings).
+            load_settings()
             load_settings()
         exc = exc_info.value
         if isinstance(exc, ValidationError):
