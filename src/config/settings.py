@@ -79,7 +79,7 @@ class Settings(BaseModel):
             try:
                 return int(value)
             except ValueError:
-                raise ValueError(f"{info.field_name.upper()} must be an integer")
+        return value
 
     @property
     def allowed_origins(self) -> list[str]:
