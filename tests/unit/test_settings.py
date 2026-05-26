@@ -278,7 +278,7 @@ class TestLoadSettings:
         Test that a non-integer REBUILD_LOCK_TTL_SECONDS value
         raises a deterministic ValueError during configuration parsing.
         """
-    
+
         with pytest.raises(
             ValueError,
             match=r"REBUILD_LOCK_TTL_SECONDS|invalid literal|could not convert",
