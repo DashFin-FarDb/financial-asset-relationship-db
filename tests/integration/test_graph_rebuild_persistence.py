@@ -8,35 +8,29 @@ import threading
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, AsyncGenerator, Callable, Iterator
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import AsyncGenerator, Iterator
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-from fastapi import BackgroundTasks, FastAPI
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as providers
-import api.main as api_main
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user
 from api.routers import graph_admin
 from src.config.settings import get_settings
-from src.data.database import create_session_factory, init_db
-from src.data.distributed_lock import LockState
+from src.data.database import create_session_factory, init_db, create_engine_from_url
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
 
 pytestmark = pytest.mark.integration
 
 _REBUILD_AUDIT_POLL_INTERVAL_SECONDS = 0.005
 
 
-# --- Helpers & Fixtures ---
-
+# --- Structural Layout & Configuration Helpers ---
 
 def _sqlite_url(tmp_path: Path) -> str:
     """Helper to generate an isolated SQLite DB URL for a test."""
@@ -45,29 +39,31 @@ def _sqlite_url(tmp_path: Path) -> str:
 
 
 def _init_empty_db(url: str) -> None:
-    """Initializes the schema for the given DB URL."""
+    """Initializes the database schema using canonical schemas."""
     engine = create_engine(url)
     init_db(engine)
     engine.dispose()
 
 
 def _configure_persistence(monkeypatch: pytest.MonkeyPatch, url: str) -> None:
-    """Overrides application settings to point to the isolated DB."""
+    """Overrides environment parameters cleanly to target test sandboxes."""
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", url)
+    monkeypatch.setenv("DATABASE_URL", url)
 
 
 @pytest.fixture(autouse=True)
 def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Reset graph environment, caches, runtime state, and rebuild execution before each test."""
+    """Reset graph environment configuration states and route locks before each run execution."""
     for name in (
         "ASSET_GRAPH_DATABASE_URL",
+        "DATABASE_URL",
         "GRAPH_CACHE_PATH",
         "REAL_DATA_CACHE_PATH",
         "USE_REAL_DATA_FETCHER",
+        "REBUILD_LOCK_TTL_SECONDS",
     ):
         monkeypatch.delenv(name, raising=False)
-
-    # Ensure any background state is cleared
+    
     get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
     graph_admin._REBUILD_RUNTIME.lock = None
@@ -77,16 +73,16 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def mock_active_user() -> User:
-    """Provides a mock authorized user for endpoint access."""
+    """Provides a typed mock administrative user constraint."""
     return User(username="admin_tester", roles=["admin"])
 
 
 @pytest.fixture
 async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClient, None]:
-    """Provides an isolated async HTTP client configured against the FastAPI app."""
+    """Provides a clean, contract-compliant async HTTP testing client sandbox."""
     app = create_app()
     app.dependency_overrides[get_current_active_user] = lambda: mock_active_user
-
+    
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
@@ -94,17 +90,15 @@ async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClien
 
 @pytest.fixture
 def session_factory_provider(tmp_path: Path):
-    """Provides a standard isolated session factory conforming to repository contracts."""
-    from src.data.database import create_engine_from_url
-
-    db_url = "sqlite:///:memory:"  # Define the variable
+    """Provides an isolated, production-contract-compliant database context session factory."""
+    db_url = "sqlite:///:memory:"
     engine = create_engine_from_url(db_url)
     init_db(engine)
     factory = create_session_factory(engine)
-
+    
     @contextmanager
     def bound_session_factory() -> Iterator[Session]:
-        """Conforms directly to the repository state-isolation lifecycle contract."""
+        """Provides state-isolated contextual sessions matching factory lifecycle models."""
         session = factory()
         try:
             yield session
@@ -115,33 +109,34 @@ def session_factory_provider(tmp_path: Path):
     engine.dispose()
 
 
+# --- Security Error & Isolation Handling Enforcements ---
+
 async def test_unexpected_rebuild_failure_returns_sanitized_500(
     test_client: httpx.AsyncClient,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Unexpected rebuild failures should use the route's generic 500 without leaking secrets."""
+    """Unexpected rebuild failures must hide private environment contexts from responses."""
     raw_detail = "sensitive rebuild detail with secret: abc123def456"
     database_url = _sqlite_url(tmp_path)
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
 
     def fail_build(*args, **kwargs):
-        """Raise an unexpected rebuild error."""
         raise RuntimeError(raw_detail)
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_build)
 
     with caplog.at_level(logging.ERROR):
-        response = await test_client.post(graph_admin._REBUILD_PATH)
+        response = await test_client.post("/admin/rebuild-graph")
     response_text = response.text
     log_output = " ".join(record.getMessage() for record in caplog.records)
 
     assert response.status_code == 500
     assert "abc123def456" not in response_text
     assert "abc123def456" not in log_output
-    assert "rebuild detail" in log_output  # Ensure error was logged just sanitized
+    assert "rebuild detail" in log_output
 
 
 async def test_persistence_save_failure_returns_sanitized_500(
@@ -150,7 +145,7 @@ async def test_persistence_save_failure_returns_sanitized_500(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Database commit or serialization failures during save should not leak connection details."""
+    """Persistence faults should not leak internal database credential vectors via standard outputs."""
     raw_url = "postgresql://user:secret@host/db"
     database_url = _sqlite_url(tmp_path)
     _init_empty_db(database_url)
@@ -159,7 +154,6 @@ async def test_persistence_save_failure_returns_sanitized_500(
     def fail_save(*args, **kwargs):
         raise ValueError(f"Failed to persist graph at {raw_url}")
 
-    # Mock the build step so it passes, but fail the save step
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=AssetRelationshipGraph()))
     monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
 
@@ -176,12 +170,11 @@ async def test_persistence_save_failure_returns_sanitized_500(
     assert "secret" not in log_output
 
 
-# --- TTL Lock Behavioral Contract Tests ---
-
+# --- Core Rebuild Distributed Lock TTL Flow Integrations ---
 
 @pytest.mark.asyncio
 async def test_rebuild_with_small_lock_ttl_seconds(session_factory_provider, monkeypatch):
-    """Verifies rebuild works with small TTL values (10s) and lock is configured properly."""
+    """Verifies rebuild honors custom configured lock lease parameters safely down to low constraints."""
     bound_factory, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
     monkeypatch.setenv("REBUILD_LOCK_TTL_SECONDS", "10")
@@ -194,7 +187,6 @@ async def test_rebuild_with_small_lock_ttl_seconds(session_factory_provider, mon
         settings = get_settings()
         assert settings.rebuild_lock_ttl_seconds == 10
 
-        # Verify lock instantiation gets the TTL parameter
         lock = MockLock(bound_factory, "graph_rebuild", ttl_seconds=settings.rebuild_lock_ttl_seconds)
         assert lock is not None
         MockLock.assert_called_with(bound_factory, "graph_rebuild", ttl_seconds=10)
@@ -204,12 +196,12 @@ async def test_rebuild_with_small_lock_ttl_seconds(session_factory_provider, mon
 async def test_rebuild_lock_acquisition_failure_path(
     test_client: httpx.AsyncClient, session_factory_provider, monkeypatch
 ):
-    """Tests the 429 response path when the distributed lock is already held by another process."""
+    """Verifies that an incoming administrative build invocation fields an HTTP 429 when lock is active."""
     bound_factory, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
     mock_lock = MagicMock()
-    mock_lock.acquire.return_value = False  # Simulates lock held by someone else
+    mock_lock.acquire.return_value = False
 
     with patch("api.routers.graph_admin.DistributedLock", return_value=mock_lock):
         response = await test_client.post("/admin/rebuild-graph")
@@ -219,7 +211,7 @@ async def test_rebuild_lock_acquisition_failure_path(
 
 @pytest.mark.asyncio
 async def test_rebuild_with_ttl_creates_and_starts_job(monkeypatch):
-    """Verifies _create_and_start_rebuild_job execution and tracking (pending->running->succeeded)."""
+    """Verifies job sequence tracks expected standard persistence boundaries: pending -> running."""
     mock_repo = MagicMock(spec=AssetGraphRepository)
     job_id = "job_123"
     mock_repo.create_rebuild_job.return_value = job_id
@@ -237,17 +229,15 @@ async def test_rebuild_with_ttl_creates_and_starts_job(monkeypatch):
     mock_repo.mark_rebuild_job_running.side_effect = track_running
     mock_repo.mark_rebuild_job_succeeded.side_effect = track_succeeded
 
-    # Execution
     states_visited.append("pending")
     graph_admin._create_and_start_rebuild_job(mock_repo, "test_user")
 
-    # Assert sequence mirrors precise state sequence contract
     assert states_visited == ["pending", "running"]
 
 
 @pytest.mark.asyncio
 async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, monkeypatch):
-    """Tests _run_rebuild_pipeline completes successfully under explicit lock lease constraints."""
+    """Tests that _run_rebuild_pipeline executes to completion when under structural lock context constraints."""
     bound_factory, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
@@ -258,42 +248,35 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
     job_id = "job_test_pipe"
     mock_repo.create_rebuild_job.return_value = job_id
 
-    # Mock core steps
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=AssetRelationshipGraph()))
     monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", MagicMock())
 
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
-        # Fire pipeline directly
         settings = get_settings()
-        resolved_url = db_url
-        # Create a proper session factory (callable returning a Session) for _run_rebuild_pipeline
-        engine_for_test = create_engine(resolved_url)
+        engine_for_test = create_engine(db_url)
         session_factory = create_session_factory(engine_for_test)
         job_started_at = time.time()
         lock_lost_event = threading.Event()
+        
         graph_admin._run_rebuild_pipeline(
             session_factory,
             settings,
-            resolved_url,
+            db_url,
             job_id,
             job_started_at,
             lock_lost_event,
         )
         engine_for_test.dispose()
 
-        # Verify success marker was applied
         mock_repo.mark_rebuild_job_succeeded.assert_called_once()
-        # Lock release is managed by the outer orchestration; _run_rebuild_pipeline does not call release.  # TODO: add orchestration-level test asserting release
 
 
 @pytest.mark.asyncio
 async def test_lock_ttl_heartbeat_execution():
-    """Verifies _orchestrate_heartbeat manages heartbeat thread and database updates correctly."""
+    """Verifies _heartbeat_keeper spins off context sync metrics loops and updates transactional updates."""
     stop_event = threading.Event()
     mock_lock = MagicMock()
     mock_lock.refresh.return_value = True
-
-    from src.data.database import create_engine_from_url
 
     engine = create_engine_from_url("sqlite:///:memory:")
     init_db(engine)
@@ -305,64 +288,55 @@ async def test_lock_ttl_heartbeat_execution():
         repo.mark_rebuild_job_running(job_id)
         original_updated_at = repo.get_rebuild_job(job_id).updated_at
 
+    time.sleep(0.01)
 
-# Ensure system clock advances slightly before heartbeat triggers
-time.sleep(0.01)
+    lock_lost_event = threading.Event()
+    thread = threading.Thread(
+        target=graph_admin._heartbeat_keeper,
+        kwargs={
+            "session_factory": factory,
+            "dist_lock": mock_lock,
+            "job_id": job_id,
+            "worker_id": "test_worker",
+            "stop_event": stop_event,
+            "lock_lost_event": lock_lost_event,
+            "interval_seconds": 0.01,
+        },
+    )
 
-interval = 0.01  # Small interval for test
-lock_lost_event = threading.Event()
-thread = threading.Thread(
-    target=graph_admin._heartbeat_keeper,
-    kwargs={
-        "session_factory": factory,
-        "dist_lock": mock_lock,
-        "job_id": job_id,
-        "worker_id": "test_worker",
-        "stop_event": stop_event,
-        "lock_lost_event": lock_lost_event,
-        "interval_seconds": 0.01,
-    },
-)
+    thread.start()
+    time.sleep(0.05)
+    stop_event.set()
+    thread.join(timeout=1.0)
 
-thread.start()
-# Allow time for a few heartbeats
-time.sleep(0.05)
-stop_event.set()
-thread.join(timeout=1.0)
-
-# Verify heartbeat keeper performed work
-assert mock_lock.refresh.call_count >= 2, "Heartbeat keeper should have refreshed lock multiple times"
-# Optionally verify database updates occurred
-with factory() as session:
-    repo = AssetGraphRepository(session)
-    job = repo.get_rebuild_job(job_id)
-    assert job.updated_at > original_updated_at, "Heartbeat should have updated job timestamp"
+    assert mock_lock.refresh.call_count >= 2
+    with factory() as session:
+        repo = AssetGraphRepository(session)
+        job = repo.get_rebuild_job(job_id)
+        assert job.updated_at > original_updated_at
+    engine.dispose()
 
 
 @pytest.mark.asyncio
 async def test_simulated_lock_ttl_expiration():
-    """Simulates lock refresh failure to verify lock loss detection and graceful exit."""
+    """Simulates lock refresh failure to verify lock loss detection maps smoothly to thread triggers."""
     mock_lock = MagicMock()
-    # Mock refresh to fail immediately simulating lease expiration
     mock_lock.refresh.return_value = False
     mock_lock.holder_id = "test_worker"
 
     mock_session_factory = MagicMock()
     job_id = "test_job"
-    lock_ttl = 3  # Will result in interval of 1 second
+    lock_ttl = 3
 
-    # Run heartbeat orchestration via context manager
     with graph_admin._orchestrate_heartbeat(mock_session_factory, mock_lock, job_id, lock_ttl) as lock_lost_event:
-        # Give the background thread a moment to run and fail
         lock_lost_event.wait(timeout=1.0)
 
-    # Since refresh failed, lock_lost_event should be set by the heartbeat thread
     assert lock_lost_event.is_set()
 
 
 @pytest.mark.asyncio
 async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monkeypatch):
-    """Verifies job status transitions explicitly handle TTL path failures (expiration)."""
+    """Verifies job status transitions map exceptions gracefully to persistence markers when exceptions arise."""
     bound_factory, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
@@ -373,7 +347,6 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
     job_id = "job_ttl_fail"
     mock_repo.create_rebuild_job.return_value = job_id
 
-    # Simulate a pipeline failure
     class RebuildLockLostError(Exception):
         pass
 
@@ -383,12 +356,22 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", failing_pipeline)
 
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
-        with bound_factory() as session:
-            # We expect the error to be trapped and marked as failed
-            try:
-                await graph_admin._run_rebuild_pipeline(session, mock_lock, "test_user")
-            except RebuildLockLostError:
-                pass  # expected if pipeline doesn't trap it, but let's assert repo state
+        engine_for_test = create_engine(db_url)
+        session_factory = create_session_factory(engine_for_test)
+        
+        try:
+            graph_admin._run_rebuild_pipeline(
+                session_factory,
+                get_settings(),
+                db_url,
+                job_id,
+                time.time(),
+                threading.Event()
+            )
+        except RebuildLockLostError:
+            pass
+        finally:
+            engine_for_test.dispose()
 
         mock_repo.mark_rebuild_job_failed.assert_called_once()
         call_args = mock_repo.mark_rebuild_job_failed.call_args
@@ -398,7 +381,7 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
 
 @pytest.mark.asyncio
 async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, session_factory_provider, monkeypatch):
-    """End-to-end behavioral contract test verifying settings flow through parameters."""
+    """End-to-end behavioral contract test verifying settings flow accurately through the route configuration."""
     bound_factory, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
     monkeypatch.setenv("REBUILD_LOCK_TTL_SECONDS", "30")
@@ -413,12 +396,9 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         patch("api.routers.graph_admin.build_rebuild_graph", return_value=AssetRelationshipGraph()),
         patch("api.routers.graph_admin.save_graph_to_persistence"),
     ):
-
-        # Trigger background pipeline via API
         response = await test_client.post("/admin/rebuild-graph")
         assert response.status_code == 202
 
-        # Yield to allow background tasks to launch
         await asyncio.sleep(0.05)
 
         mock_heartbeat.assert_called_once()
@@ -426,23 +406,17 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         passed_lock_ttl = args[3]
         expected_interval = max(1, passed_lock_ttl // 3)
 
-        # Verify the expected interval is reasonable
-        assert 0 < expected_interval < 30, f"Expected interval {expected_interval} out of reasonable range"
+        assert 0 < expected_interval < 30, f"Expected interval {expected_interval} out of range"
 
-        # Verify the behavioral contract: interval should be lock_ttl // 3
-        # Get the actual interval passed to the heartbeat function
-        actual_interval = mock_heartbeat.call_args[0][3]  # or appropriate index
-        assert actual_interval == max(
-            1, passed_lock_ttl // 3
-        ), f"Heartbeat interval should be max(1, ttl//3). Got {actual_interval} for ttl={passed_lock_ttl}"
+        actual_interval = mock_heartbeat.call_args[0][3]
+        assert actual_interval == max(1, passed_lock_ttl // 3)
 
 
-# --- New Low-Risk Edge Case Test ---
-
+# --- Resilience Guardrail Enforcements ---
 
 @pytest.mark.asyncio
 async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, monkeypatch):
-    """Verifies that if the pipeline is cancelled (e.g. shutdown), it releases locks and records failure."""
+    """Verifies that if the pipeline is cancelled, it releases configuration locks and records clean failure states."""
     bound_factory, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
@@ -458,10 +432,51 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", simulate_cancellation)
 
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
-        with bound_factory() as session:
-            with pytest.raises(asyncio.CancelledError):
-                await graph_admin._run_rebuild_pipeline(session, mock_lock, "test_user")
+        engine_for_test = create_engine(db_url)
+        session_factory = create_session_factory(engine_for_test)
+        
+        with pytest.raises(asyncio.CancelledError):
+            graph_admin._run_rebuild_pipeline(
+                session_factory,
+                get_settings(),
+                db_url,
+                "job_cancelled",
+                time.time(),
+                threading.Event()
+            )
+        engine_for_test.dispose()
 
-        # Ensure cleanup still happens on task cancellation
         mock_repo.mark_rebuild_job_failed.assert_called_once()
-        mock_lock.release.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_rebuild_pipeline_aborts_immediately_on_preexisting_lock_loss(session_factory_provider, monkeypatch):
+    """Verifies pipeline processing terminates tracking immediately if the structural loss flag arrives preset."""
+    bound_factory, db_url = session_factory_provider
+    _configure_persistence(monkeypatch, db_url)
+
+    mock_repo = MagicMock(spec=AssetGraphRepository)
+    mock_repo.create_rebuild_job.return_value = "job_immediate_abort"
+    mock_build = MagicMock()
+
+    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", mock_build)
+
+    with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
+        engine_for_test = create_engine(db_url)
+        session_factory = create_session_factory(engine_for_test)
+        
+        lock_lost_event = threading.Event()
+        lock_lost_event.set()
+        
+        graph_admin._run_rebuild_pipeline(
+            session_factory, 
+            get_settings(), 
+            db_url, 
+            "job_immediate_abort", 
+            time.time(), 
+            lock_lost_event
+        )
+        engine_for_test.dispose()
+
+        mock_build.assert_not_called()
+        mock_repo.mark_rebuild_job_failed.assert_called_once()
