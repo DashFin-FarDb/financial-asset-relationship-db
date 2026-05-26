@@ -262,7 +262,14 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
         # Fire pipeline directly
         with bound_factory() as session:
-            await graph_admin._run_rebuild_pipeline(session, mock_lock, "test_user")
+        graph_admin._run_rebuild_pipeline(
+            session,
+            settings,
+            resolved_url,
+            job_id,
+            job_started_at,
+            lock_lost_event
+        )
 
         # Verify success marker was applied
         mock_repo.mark_rebuild_job_succeeded.assert_called_once()
