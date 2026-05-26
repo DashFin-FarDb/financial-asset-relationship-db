@@ -282,26 +282,26 @@ class TestLoadSettings:
         from pydantic import ValidationError
 
         with pytest.raises((ValidationError, ValueError)) as exc_info:
+        from pydantic import ValidationError
+        with pytest.raises((ValidationError, ValueError)) as exc_info:
             # Accept either a Pydantic ValidationError (when Settings validation runs)
             # or a ValueError (if load_settings coerces to int() before constructing Settings).
             load_settings()
         exc = exc_info.value
         if isinstance(exc, ValidationError):
             errors = exc.errors()
-        errors = exc.errors()
-        # Prefer checking the error 'loc' tuple for the field name to avoid brittle message matching.
-        assert any(
-            ("rebuild_lock_ttl_seconds" in err.get("loc", ()))
-            or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
-            for err in errors
-        )
+            # Ensure at least one validation error points to the rebuild_lock_ttl_seconds field
+            assert any(
+                any(part == "rebuild_lock_ttl_seconds" for part in err.get("loc", ()))
+                for err in errors
+            )
         else:
-            # Should be a ValueError from int(...) when environment variable is non-numeric
-            assert isinstance(exc, ValueError)
+            # ValueError path: typically raised by int() conversion in load_settings()
+            msg = str(exc)
             assert (
-                ("REBUILD_LOCK_TTL_SECONDS" in str(exc))
-                or ("invalid literal" in str(exc))
-                or ("could not convert" in str(exc))
+                ("REBUILD_LOCK_TTL_SECONDS" in msg)
+                or ("invalid literal" in msg)
+                or ("could not convert" in msg)
             )
 
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
