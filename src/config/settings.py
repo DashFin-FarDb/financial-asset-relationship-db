@@ -31,7 +31,7 @@ def _parse_bool_env(value: str | None) -> bool:
 
 def _parse_csv_env(value: str) -> list[str]:
     """Parse a comma-separated environment variable value into a list of strings."""
-    return [stripped for item in value.split(",") if (stripped := item.strip())]
+    return [item.strip() for item in value.split(",") if item.strip()]
 
 
 class Settings(BaseModel):
@@ -60,18 +60,17 @@ class Settings(BaseModel):
 
     # Database configuration
     asset_graph_database_url: str | None = Field(default=None)
-    database_url: str | None = Field(default=None)
-    postgres_url: str | None = Field(default=None)
-
     # Distributed lock configuration
+    # Allow int | str | None to capture empty strings from os.getenv
     rebuild_lock_ttl_seconds: int = Field(default=300, gt=0)
 
     @field_validator("rebuild_lock_ttl_seconds", mode="before")
     @classmethod
     def parse_ttl(cls, value: Any) -> Any:
-        """Coerce empty strings or None to the default."""
+        """Coerce empty strings or None to the field default."""
+        default = cls.model_fields.get("rebuild_lock_ttl_seconds", {}).get("default", 300)
         if value is None or (isinstance(value, str) and not value.strip()):
-            return 300
+            return default
         return value
 
     @property
