@@ -206,7 +206,7 @@ async def test_rebuild_lock_acquisition_failure_path(
     test_client: httpx.AsyncClient, session_factory_provider, monkeypatch
 ):
     """Verifies that an incoming administrative build invocation fields an HTTP 429 when lock is active."""
-    bound_factory, db_url = session_factory_provider
+    _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
     mock_lock = MagicMock()
@@ -249,7 +249,7 @@ async def test_rebuild_with_ttl_creates_and_starts_job(monkeypatch):
 @pytest.mark.asyncio
 async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, monkeypatch):
     """Tests that _run_rebuild_pipeline executes to completion when under structural lock context constraints."""
-    bound_factory, db_url = session_factory_provider
+    _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
     mock_lock = MagicMock()
@@ -305,7 +305,7 @@ async def test_lock_ttl_heartbeat_execution():
         repo = AssetGraphRepository(session)
         original_updated_at = repo.get_rebuild_job(job_id).updated_at
 
-    time.sleep(0.01)
+    await asyncio.sleep(0.01)
 
     lock_lost_event = threading.Event()
     thread = threading.Thread(
@@ -324,7 +324,7 @@ async def test_lock_ttl_heartbeat_execution():
     thread.start()
     start_time = time.time()
     while mock_lock.refresh.call_count < 2 and time.time() - start_time < 2.0:
-        time.sleep(0.01)
+        await asyncio.sleep(0.01)
     stop_event.set()
     thread.join(timeout=2.0)
 
@@ -356,7 +356,7 @@ async def test_simulated_lock_ttl_expiration():
 @pytest.mark.asyncio
 async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monkeypatch):
     """Verifies job status transitions map exceptions gracefully to persistence markers when exceptions arise."""
-    bound_factory, db_url = session_factory_provider
+    _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
     mock_lock = MagicMock()
@@ -396,7 +396,7 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
 @pytest.mark.asyncio
 async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, session_factory_provider, monkeypatch):
     """End-to-end behavioral contract test verifying settings flow accurately through the route configuration."""
-    bound_factory, db_url = session_factory_provider
+    _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
     monkeypatch.setenv("REBUILD_LOCK_TTL_SECONDS", "30")
 
@@ -433,7 +433,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
 @pytest.mark.asyncio
 async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, monkeypatch):
     """Verifies that if the pipeline is cancelled, it releases configuration locks and records clean failure states."""
-    bound_factory, db_url = session_factory_provider
+    _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
     mock_lock = MagicMock()
@@ -463,7 +463,7 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
 @pytest.mark.asyncio
 async def test_rebuild_pipeline_aborts_immediately_on_preexisting_lock_loss(session_factory_provider, monkeypatch):
     """Verifies pipeline processing terminates tracking immediately if the structural loss flag arrives preset."""
-    bound_factory, db_url = session_factory_provider
+    _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
     mock_repo = MagicMock(spec=AssetGraphRepository)
