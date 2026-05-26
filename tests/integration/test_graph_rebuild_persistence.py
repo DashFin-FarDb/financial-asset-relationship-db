@@ -285,60 +285,70 @@ async def test_lock_ttl_heartbeat_execution():
 
     # Use _heartbeat_keeper directly with an isolated in-memory DB so the heartbeat
     # thread can perform its repository update without touching global state.
+    from src.data.database import create_engine_from_url
     engine = create_engine("sqlite:///:memory:")
     init_db(engine)
     factory = create_session_factory(engine)
     # Create a running rebuild job so update_rebuild_heartbeat has a row to update
-    with factory() as session:
-        repo = AssetGraphRepository(session)
-        job_id = repo.create_rebuild_job(requested_by="test")
-        repo.mark_rebuild_job_running(job_id)
+    # Create a running rebuild job so update_rebuild_heartbeat has a row to update
+with factory() as session:
+    repo = AssetGraphRepository(session)
+    job_id = repo.create_rebuild_job(requested_by="test")
+    repo.mark_rebuild_job_running(job_id)
+    original_updated_at = repo.get_rebuild_job(job_id).updated_at
 
-    interval = 0.01  # Small interval for test
-    lock_lost_event = threading.Event()
-    thread = threading.Thread(
-        target=graph_admin._heartbeat_keeper,
-        kwargs={
-            "session_factory": factory,
-            "dist_lock": mock_lock,
-            "job_id": job_id,
-            "worker_id": mock_lock.holder_id if hasattr(mock_lock, "holder_id") else "test_worker",
-            "stop_event": stop_event,
-            "lock_lost_event": lock_lost_event,
-            "interval_seconds": interval,
-        },
-    )
+# Ensure system clock advances slightly before heartbeat triggers
+time.sleep(0.01)
 
-    thread.start()
-    # Allow time for a few heartbeats
-    time.sleep(0.05)
-    stop_event.set()
-    thread.join(timeout=1.0)
+interval = 0.01  # Small interval for test
+lock_lost_event = threading.Event()
+thread = threading.Thread(
+    target=graph_admin._heartbeat_keeper,
+    kwargs={
+        "session_factory": factory,
+        "dist_lock": mock_lock,
+        "job_id": job_id,
+        "worker_id": "test_worker",
+        "stop_event": stop_event,
+        "lock_lost_event": lock_lost_event,
+        "interval_seconds": 0.01,
+    },
+)
 
-    # Verify heartbeat keeper performed work
-    assert mock_lock.refresh.call_count >= 2, "Heartbeat keeper should have refreshed lock multiple times"
-    # Optionally verify database updates occurred
-    with factory() as session:
-        repo = AssetGraphRepository(session)
-        job = repo.get_rebuild_job(job_id)
-        assert job.updated_at is not None, "Heartbeat should have updated job timestamp"
+thread.start()
+# Allow time for a few heartbeats
+time.sleep(0.05)
+stop_event.set()
+thread.join(timeout=1.0)
+
+# Verify heartbeat keeper performed work
+assert mock_lock.refresh.call_count >= 2, "Heartbeat keeper should have refreshed lock multiple times"
+# Optionally verify database updates occurred
+with factory() as session:
+    repo = AssetGraphRepository(session)
+    job = repo.get_rebuild_job(job_id)
+    assert job.updated_at > original_updated_at, "Heartbeat should have updated job timestamp"
 
 
 @pytest.mark.asyncio
 async def test_simulated_lock_ttl_expiration():
     """Simulates lock refresh failure to verify lock loss detection and graceful exit."""
-    stop_event = threading.Event()
     mock_lock = MagicMock()
     # Mock refresh to fail immediately simulating lease expiration
     mock_lock.refresh.return_value = False
+    mock_lock.holder_id = "test_worker"
 
-    interval = 0.01
+    mock_session_factory = MagicMock()
+    job_id = "test_job"
+    lock_ttl = 3  # Will result in interval of 1 second
 
-    # Run heartbeat orchestration directly
-    graph_admin._orchestrate_heartbeat(mock_lock, interval, stop_event)
-
-    # Since refresh failed, stop_event should be set by the orchestrator
-    assert stop_event.is_set()
+    # Run heartbeat orchestration via context manager
+    with graph_admin._orchestrate_heartbeat(mock_session_factory, mock_lock, job_id, lock_ttl) as lock_lost_event:
+        # Give the background thread a moment to run and fail
+        lock_lost_event.wait(timeout=1.0)
+        
+    # Since refresh failed, lock_lost_event should be set by the heartbeat thread
+    assert lock_lost_event.is_set()
 
 
 @pytest.mark.asyncio
@@ -411,9 +421,10 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         assert 0 < expected_interval < 30, f"Expected interval {expected_interval} out of reasonable range"
 
         # Verify the behavioral contract: interval should be lock_ttl // 3
-        assert (
-            expected_interval == passed_lock_ttl // 3 or expected_interval == 1
-        ), f"Interval should be max(1, ttl//3). Got {expected_interval} for ttl={passed_lock_ttl}"
+        # Get the actual interval passed to the heartbeat function
+        actual_interval = mock_heartbeat.call_args[0][3]  # or appropriate index
+        assert actual_interval == max(1, passed_lock_ttl // 3), \
+            f"Heartbeat interval should be max(1, ttl//3). Got {actual_interval} for ttl={passed_lock_ttl}"
 
 
 # --- New Low-Risk Edge Case Test ---
