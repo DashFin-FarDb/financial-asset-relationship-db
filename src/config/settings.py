@@ -12,7 +12,7 @@ import os
 from functools import lru_cache
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
 
 
 def _parse_bool_env(value: str | None) -> bool:
@@ -80,7 +80,6 @@ class Settings(BaseModel):
                 return int(value)
             except ValueError:
                 raise ValueError(f"{info.field_name.upper()} must be an integer")
-        return value
 
     @property
     def allowed_origins(self) -> list[str]:
