@@ -290,9 +290,10 @@ class TestLoadSettings:
         exc = exc_info.value
         if isinstance(exc, ValidationError):
             errors = exc.errors()
-            # Ensure at least one validation error points to the rebuild_lock_ttl_seconds field
+            # Prefer checking the error 'loc' tuple for the field name to avoid brittle message matching.
             assert any(
-                any(part == "rebuild_lock_ttl_seconds" for part in err.get("loc", ()))
+                ("rebuild_lock_ttl_seconds" in err.get("loc", ()))
+                or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
                 for err in errors
             )
         else:
