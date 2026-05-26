@@ -290,18 +290,13 @@ class TestLoadSettings:
             errors = exc.errors()
             # Prefer checking the error 'loc' tuple for the field name to avoid brittle message matching.
             assert any(
-                ("rebuild_lock_ttl_seconds" in err.get("loc", ()))
-                or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
+                ("rebuild_lock_ttl_seconds" in err.get("loc", ())) or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
                 for err in errors
             )
         else:
             # ValueError path: typically raised by int() conversion in load_settings()
             msg = str(exc)
-            assert (
-                ("REBUILD_LOCK_TTL_SECONDS" in msg)
-                or ("invalid literal" in msg)
-                or ("could not convert" in msg)
-            )
+            assert ("REBUILD_LOCK_TTL_SECONDS" in msg) or ("invalid literal" in msg) or ("could not convert" in msg)
 
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
     def test_load_settings_env_lowercase(self) -> None:
