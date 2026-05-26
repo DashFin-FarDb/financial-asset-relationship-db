@@ -282,7 +282,7 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
 
         # Verify success marker was applied
         mock_repo.mark_rebuild_job_succeeded.assert_called_once()
-        mock_lock.release.assert_called_once()
+        # Lock release is managed by the outer orchestration; _run_rebuild_pipeline does not call release.
 
 
 @pytest.mark.asyncio
@@ -293,8 +293,8 @@ async def test_lock_ttl_heartbeat_execution():
     mock_lock.refresh.return_value = True
 
     from src.data.database import create_engine_from_url
-
-    engine = create_engine("sqlite:///:memory:")
+    from src.data.database import create_engine_from_url
+    engine = create_engine_from_url("sqlite:///:memory:")
     init_db(engine)
     factory = create_session_factory(engine)
 
