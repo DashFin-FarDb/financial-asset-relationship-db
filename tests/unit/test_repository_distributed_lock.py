@@ -234,7 +234,7 @@ class TestLatestRebuildJobRepository:
 class TestDistributedLockRetryLogic:
     """Test cases for distributed lock refresh retry logic."""
 
-    @pytest.fixture(scope=\"function\")
+    @pytest.fixture(scope="function")
     def lock_setup(self, repository_factory):
         """Provides a factory-conformant session supplier and lock instance,
         fixing previous lambda bypass."""
