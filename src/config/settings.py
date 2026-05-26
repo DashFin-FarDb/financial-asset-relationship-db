@@ -79,9 +79,8 @@ class Settings(BaseModel):
             try:
                 return int(value)
             except ValueError:
-                # Provide clearer validation early so Pydantic surfaces a helpful message
-                raise ValueError(f"Invalid integer for field {info.field_name!r}: {value!r}")
-            except ValueError:
+                # Log for debugging but don't raise - let Pydantic validate
+                logger.debug(f"Could not parse {info.field_name!r} as integer: {value!r}")
                 return value
         # For non-string, non-None inputs, return value unchanged
         return value
