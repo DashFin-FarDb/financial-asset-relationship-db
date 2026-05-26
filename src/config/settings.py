@@ -18,9 +18,10 @@ from pydantic import BaseModel, ConfigDict, Field
 def _parse_bool_env(value: str | None) -> bool:
     """
     Parse a boolean environment variable value.
-
+    
     Interprets the value case-insensitively; the values "1", "true", "yes",
     or "on" (ignoring surrounding whitespace) are treated as true.
+    """
     # Accept None -> False
     if value is None:
         return False
