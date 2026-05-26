@@ -283,7 +283,7 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
 
         # Verify success marker was applied
         mock_repo.mark_rebuild_job_succeeded.assert_called_once()
-        # Lock release is managed by the outer orchestration; _run_rebuild_pipeline does not call release.
+        # Lock release is managed by the outer orchestration; _run_rebuild_pipeline does not call release.  # TODO: add orchestration-level test asserting release
 
 
 @pytest.mark.asyncio
