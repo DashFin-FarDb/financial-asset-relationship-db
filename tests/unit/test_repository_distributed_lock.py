@@ -8,14 +8,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.database import create_session_factory, init_db
-from src.data.db_models import DistributedLockORM, RebuildJobORM
+from src.data.db_models import DistributedLockORM
 from src.data.distributed_lock import DistributedLock, LockState
 from src.data.repository import AssetGraphRepository
 
 
 def _ensure_utc(dt: datetime) -> datetime:
-    """Helper to ensure datetime is UTC aware, preventing duplicate timezone logic."""
-    return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
+    """Ensure the datetime is timezone-aware and normalized to UTC."""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 @pytest.fixture
@@ -231,15 +233,13 @@ class TestLatestRebuildJobRepository:
 @pytest.mark.unit
 class TestDistributedLockRetryLogic:
     """Test cases for distributed lock refresh retry logic."""
-
     @pytest.fixture
+    def lock_setup(repository_factory):
     def lock_setup(self, repository_factory):
         """Provides a factory-conformant session supplier and lock instance, fixing previous lambda bypass."""
-        repo = repository_factory()
-
         def bound_session_factory():
-            """Conforms directly to the repository state-isolation lifecycle contract."""
-            return repo.session
+            """Return a fresh Session by creating a new repository via the repository_factory fixture on each call."""
+            return repository_factory().session
 
         return DistributedLock(bound_session_factory, "test_lock", ttl_seconds=60)
 
