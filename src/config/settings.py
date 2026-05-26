@@ -21,31 +21,16 @@ def _parse_bool_env(value: str | None) -> bool:
 
     Interprets the value case-insensitively; the values "1", "true", "yes",
     or "on" (ignoring surrounding whitespace) are treated as true.
-
-    Parameters:
-        value (Optional[str]): Environment variable value to parse.
-
-    Returns:
-        bool: True if the value matches an accepted truthy value, False otherwise.
     """
-    if value is None:
-        return False
-    return value.strip().lower() in {"1", "true", "yes", "on"}
+    return str(value).strip().lower() in {"1", "true", "yes", "on"} if value else False
 
 
 def _parse_csv_env(value: str) -> list[str]:
     """
     Parse a comma-separated environment variable value into a list of strings.
-
     Splits on commas, trims whitespace, and excludes empty entries.
-
-    Parameters:
-        value (str): Comma-separated string to parse.
-
-    Returns:
-        list[str]: A list of trimmed non-empty strings.
     """
-    return [item.strip() for item in value.split(",") if item.strip()]
+    return [stripped for item in value.split(",") if (stripped := item.strip())]
 
 
 class Settings(BaseModel):
@@ -91,27 +76,13 @@ class Settings(BaseModel):
     def allowed_origins(self) -> list[str]:
         """
         Return the configured CORS allowed origins as a list of trimmed, non-empty strings.
-
-        If `allowed_origins_raw` is empty, returns an empty list; otherwise the raw value
-        is parsed by splitting on commas, trimming whitespace, and excluding empty entries.
-
-        Returns:
-            list[str]: Parsed allowed origin strings.
         """
-        if not self.allowed_origins_raw:
-            return []
-        return _parse_csv_env(self.allowed_origins_raw)
+        return _parse_csv_env(self.allowed_origins_raw) if self.allowed_origins_raw else []
 
     @property
     def required_secret_key(self) -> str:
         """
         Return the configured JWT secret key or raise when it is missing.
-
-        Raises:
-            ValueError: If SECRET_KEY is not configured.
-
-        Returns:
-            str: Configured JWT secret key.
         """
         if not self.secret_key:
             raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
@@ -122,25 +93,14 @@ def load_settings() -> Settings:
     """
     Load runtime settings from environment variables.
 
-    Creates a Settings instance populated from these environment variables:
-    ENV (default "development", stripped and lowercased), ALLOWED_ORIGINS,
-    SECRET_KEY, ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_EMAIL, ADMIN_FULL_NAME,
-    ADMIN_DISABLED (parsed as a boolean), GRAPH_CACHE_PATH,
-    REAL_DATA_CACHE_PATH, USE_REAL_DATA_FETCHER (parsed as a boolean),
-    ASSET_GRAPH_DATABASE_URL, DATABASE_URL, and POSTGRES_URL (Vercel provider fallback).
-
     DATABASE_URL is the canonical database URL. If DATABASE_URL is not set but POSTGRES_URL is,
     POSTGRES_URL is used as a fallback for Vercel Postgres compatibility.
 
     Returns:
         settings (Settings): Constructed and validated Settings object.
     """
-    database_url = os.getenv("DATABASE_URL")
     postgres_url = os.getenv("POSTGRES_URL")
-
-    # Use POSTGRES_URL as fallback if DATABASE_URL is not set
-    resolved_database_url = database_url or postgres_url
-
+    
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
@@ -154,7 +114,7 @@ def load_settings() -> Settings:
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
-        database_url=resolved_database_url,
+        database_url=os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
         rebuild_lock_ttl_seconds=int(os.getenv("REBUILD_LOCK_TTL_SECONDS", "300")),
     )
@@ -167,8 +127,5 @@ def get_settings() -> Settings:
 
     Settings are loaded once and cached for the lifetime of the process unless
     the cache is explicitly cleared.
-
-    Returns:
-        Settings: The cached settings instance.
     """
     return load_settings()
