@@ -346,7 +346,7 @@ async def test_simulated_lock_ttl_expiration():
     with graph_admin._orchestrate_heartbeat(mock_session_factory, mock_lock, job_id, lock_ttl) as lock_lost_event:
         # Give the background thread a moment to run and fail
         lock_lost_event.wait(timeout=1.0)
-        
+
     # Since refresh failed, lock_lost_event should be set by the heartbeat thread
     assert lock_lost_event.is_set()
 
