@@ -68,7 +68,7 @@ class Settings(BaseModel):
 
     @field_validator("rebuild_lock_ttl_seconds", mode="before")
     @classmethod
-    def parse_ttl(cls, value: Any, info: ValidationInfo) -> Any:
+    def parse_ttl(cls, value: Any, info: 'ValidationInfo') -> Any:
         """Coerce empty strings or None to the field default."""
         if value is None or (isinstance(value, str) and not value.strip()):
             field_name = info.field_name
