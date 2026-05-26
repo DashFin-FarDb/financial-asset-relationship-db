@@ -12,7 +12,7 @@ import os
 from functools import lru_cache
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
 def _parse_bool_env(value: str | None) -> bool:
