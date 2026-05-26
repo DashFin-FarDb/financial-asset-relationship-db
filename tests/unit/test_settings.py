@@ -283,13 +283,18 @@ class TestLoadSettings:
         if isinstance(exc, ValidationError):
             errors = exc.errors()
             assert any(
-                ("rebuild_lock_ttl_seconds" in str(err.get("loc", []))) or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
+                ("rebuild_lock_ttl_seconds" in str(err.get("loc", [])))
+                or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
                 for err in errors
             )
         else:
             # Should be a ValueError from int(...) when environment variable is non-numeric
             assert isinstance(exc, ValueError)
-            assert ("REBUILD_LOCK_TTL_SECONDS" in str(exc)) or ("invalid literal" in str(exc)) or ("could not convert" in str(exc))
+            assert (
+                ("REBUILD_LOCK_TTL_SECONDS" in str(exc))
+                or ("invalid literal" in str(exc))
+                or ("could not convert" in str(exc))
+            )
 
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
     def test_load_settings_env_lowercase(self) -> None:
