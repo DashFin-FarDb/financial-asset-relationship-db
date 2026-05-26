@@ -44,7 +44,7 @@ We implement a **heartbeat keeper thread** that periodically refreshes both the 
 On each interval, the heartbeat keeper:
 1. Refreshes the distributed lock TTL via `DistributedLock.refresh()`
 2. Updates the `RebuildJobORM.last_heartbeat_at` timestamp
-3. Records the worker ID in `RebuildJobORM.worker_id`
+3. Records the worker ID in `RebuildJobORM.active_worker_id`
 
 Both operations must succeed; failure of either signals the lock_lost event.
 
