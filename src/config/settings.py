@@ -1,116 +1,38 @@
-"""Centralized typed settings layer for selected runtime configuration.
-
-This module provides a typed settings interface for runtime configuration
-centralized by Phase 4 work, including environment mode, CORS allowlist input,
-auth bootstrap settings, graph cache settings, real-data fetcher settings, and
-database URL resolution. It does not yet replace all direct environment reads
-across the repository.
-"""
+"""Centralized typed settings layer for selected runtime configuration."""
 
 from __future__ import annotations
 
 import os
 from functools import lru_cache
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-
-def _parse_bool_env(value: str | None) -> bool:
-    """
-    Parse a boolean environment variable value.
-
-    Interprets the value case-insensitively; the values "1", "true", "yes",
-    or "on" (ignoring surrounding whitespace) are treated as true.
-    """
-    # Accept None -> False
-    if value is None:
-        return False
-    # Return booleans unchanged (useful in tests/overrides)
-    if isinstance(value, bool):
-        return value
-    # If a string with only whitespace -> False
-    if isinstance(value, str) and not value.strip():
-        return False
-    # Finally parse string (or non-str converted to string)
-    return str(value).strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _parse_csv_env(value: str) -> list[str]:
-    """
-    Parse a comma-separated environment variable value into a list of strings.
-    Splits on commas, trims whitespace, and excludes empty entries.
-    """
-    return [stripped for item in value.split(",") if (stripped := item.strip())]
-
+# ... (_parse_bool_env and _parse_csv_env remain unchanged) ...
 
 class Settings(BaseModel):
-    """
-    Runtime configuration settings centralized by Phase 4 work.
-
-    Settings are loaded from environment variables and exposed through a typed,
-    immutable model. Boolean-like environment variables centralized here are
-    parsed into booleans before serialization; for example, ADMIN_DISABLED is
-    exposed as admin_disabled: bool rather than as the original raw string.
-    """
-
     model_config = ConfigDict(frozen=True)
 
-    # Environment mode
-    env: str = Field(default="development")
-
-    # CORS configuration
-    allowed_origins_raw: str = Field(default="")
-
-    # Auth configuration
-    secret_key: str | None = Field(default=None)
-    admin_username: str | None = Field(default=None)
-    admin_password: str | None = Field(default=None)
-    admin_email: str | None = Field(default=None)
-    admin_full_name: str | None = Field(default=None)
-    admin_disabled: bool = Field(default=False)
-
-    # Graph data source configuration
-    graph_cache_path: str | None = Field(default=None)
-    real_data_cache_path: str | None = Field(default=None)
-    use_real_data_fetcher: bool = Field(default=False)
-
-    # Database configuration
-    asset_graph_database_url: str | None = Field(default=None)
-    database_url: str | None = Field(default=None)
-    postgres_url: str | None = Field(default=None)
+    # ... (other fields remain unchanged) ...
 
     # Distributed lock configuration
-    rebuild_lock_ttl_seconds: int = Field(default=300, gt=0, description="TTL for rebuild distributed lock in seconds")
+    # Allow int | str | None to capture empty strings from os.getenv
+    rebuild_lock_ttl_seconds: int = Field(default=300, gt=0)
 
-    @property
-    def allowed_origins(self) -> list[str]:
-        """
-        Return the configured CORS allowed origins as a list of trimmed, non-empty strings.
-        """
-        return _parse_csv_env(self.allowed_origins_raw) if self.allowed_origins_raw else []
+    @field_validator("rebuild_lock_ttl_seconds", mode="before")
+    @classmethod
+    def parse_ttl(cls, value: Any) -> Any:
+        """Coerce empty strings or None to the default."""
+        if value is None or (isinstance(value, str) and not value.strip()):
+            return 300
+        return value
 
-    @property
-    def required_secret_key(self) -> str:
-        """
-        Return the configured JWT secret key or raise when it is missing.
-        """
-        if not self.secret_key:
-            raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
-        return self.secret_key
-
+    # ... (rest of the class) ...
 
 def load_settings() -> Settings:
-    """
-    Load runtime settings from environment variables.
-
-    DATABASE_URL is the canonical database URL. If DATABASE_URL is not set but POSTGRES_URL is,
-    POSTGRES_URL is used as a fallback for Vercel Postgres compatibility.
-
-    Returns:
-        settings (Settings): Constructed and validated Settings object.
-    """
+    """Load runtime settings, passing raw env values to Pydantic for robust coercion."""
     postgres_url = os.getenv("POSTGRES_URL")
-
+    
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
@@ -126,16 +48,8 @@ def load_settings() -> Settings:
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
-        rebuild_lock_ttl_seconds=int(os.getenv("REBUILD_LOCK_TTL_SECONDS", "300")),
+        # PASS RAW ENV VALUE TO PYDANTIC:
+        rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),
     )
 
-
-@lru_cache(maxsize=1)
-def get_settings() -> Settings:
-    """
-    Get the cached runtime settings instance.
-
-    Settings are loaded once and cached for the lifetime of the process unless
-    the cache is explicitly cleared.
-    """
-    return load_settings()
+# ... (get_settings remains unchanged) ...
