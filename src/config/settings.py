@@ -25,11 +25,11 @@ def _parse_bool_env(value: str | None) -> bool:
     # Handle None and empty string
     if value is None or value == "":
         return False
-    
+
     # Handle boolean passthrough
     if isinstance(value, bool):
         return value
-    
+
     # Convert everything else to string and parse
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
