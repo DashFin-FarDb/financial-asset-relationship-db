@@ -72,7 +72,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
     providers.clear_graph_lifecycle_settings_cache()
     graph_admin._REBUILD_RUNTIME.lock = None
     graph_admin._REBUILD_RUNTIME.lock_loop = None
-    graph_admin._REBUILD_RUNTIME.shutdown_executor()
+    graph_admin.shutdown_rebuild_executor_sync()
 
 
 @pytest.fixture
