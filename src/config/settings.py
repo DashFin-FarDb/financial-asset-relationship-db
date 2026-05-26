@@ -78,7 +78,6 @@ class Settings(BaseModel):
                 default = 300
         except (AttributeError, TypeError):
             default = 300
-            default = 300
 
         if value is None or (isinstance(value, str) and not value.strip()):
             return default
