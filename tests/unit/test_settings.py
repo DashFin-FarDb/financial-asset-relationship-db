@@ -280,6 +280,7 @@ class TestLoadSettings:
         """
 
         from pydantic import ValidationError
+
         with pytest.raises((ValidationError, ValueError)) as exc_info:
             # Accept either a Pydantic ValidationError (when Settings validation runs)
             # or a ValueError (if load_settings coerces to int() before constructing Settings).
