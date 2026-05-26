@@ -6,9 +6,9 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.data.database import create_session_factory, init_db
 from src.data.db_models import DistributedLockORM
 from src.data.distributed_lock import DistributedLock, LockState
+from src.data.repository import AssetGraphRepository
 
 
 @pytest.fixture
