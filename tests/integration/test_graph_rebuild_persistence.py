@@ -293,7 +293,7 @@ async def test_lock_ttl_heartbeat_execution():
     mock_lock.refresh.return_value = True
 
     from src.data.database import create_engine_from_url
-    from src.data.database import create_engine_from_url
+
     engine = create_engine_from_url("sqlite:///:memory:")
     init_db(engine)
     factory = create_session_factory(engine)
