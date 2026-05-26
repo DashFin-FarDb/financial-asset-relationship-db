@@ -96,6 +96,7 @@ async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClien
 def session_factory_provider(tmp_path: Path):
     """Provides a standard isolated session factory conforming to repository contracts."""
     from src.data.database import create_engine_from_url
+
     engine = create_engine_from_url("sqlite:///:memory:")
     init_db(engine)
     factory = create_session_factory(engine)
@@ -108,6 +109,7 @@ def session_factory_provider(tmp_path: Path):
             yield session
         finally:
             session.close()
+
     yield bound_session_factory, db_url
     engine.dispose()
 
@@ -301,6 +303,7 @@ async def test_lock_ttl_heartbeat_execution():
         job_id = repo.create_rebuild_job(requested_by="test")
         repo.mark_rebuild_job_running(job_id)
         original_updated_at = repo.get_rebuild_job(job_id).updated_at
+
 
 # Ensure system clock advances slightly before heartbeat triggers
 time.sleep(0.01)
