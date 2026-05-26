@@ -233,22 +233,18 @@ class TestLatestRebuildJobRepository:
 @pytest.mark.unit
 class TestDistributedLockRetryLogic:
     """Test cases for distributed lock refresh retry logic."""
-    
+
     @pytest.fixture
     def lock_setup(self, repository_factory):
         """Provides a factory-conformant session supplier and lock instance,
         fixing previous lambda bypass."""
-        
+
         def bound_session_factory():
             """Return a fresh Session by creating a new repository via the
             repository_factory fixture on each call."""
             return repository_factory().session
 
-        return DistributedLock(
-            bound_session_factory,
-            "test_lock",
-            ttl_seconds=60
-        )
+        return DistributedLock(bound_session_factory, "test_lock", ttl_seconds=60)
 
     def test_refresh_retries_on_transient_db_error(self, monkeypatch, lock_setup):
         """Lock refresh should retry on transient SQLAlchemyError."""
