@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # ... (_parse_bool_env and _parse_csv_env remain unchanged) ...
 
+
 class Settings(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -29,10 +30,11 @@ class Settings(BaseModel):
 
     # ... (rest of the class) ...
 
+
 def load_settings() -> Settings:
     """Load runtime settings, passing raw env values to Pydantic for robust coercion."""
     postgres_url = os.getenv("POSTGRES_URL")
-    
+
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
@@ -51,5 +53,6 @@ def load_settings() -> Settings:
         # PASS RAW ENV VALUE TO PYDANTIC:
         rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),
     )
+
 
 # ... (get_settings remains unchanged) ...
