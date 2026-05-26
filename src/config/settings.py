@@ -71,9 +71,14 @@ class Settings(BaseModel):
     def parse_ttl(cls, value: Any) -> Any:
         """Coerce empty strings or None to the field default."""
         field_info = cls.model_fields.get("rebuild_lock_ttl_seconds")
-        if field_info is not None and field_info.default is not None:
-            default = field_info.default
-        else:
+        field_info = cls.model_fields.get("rebuild_lock_ttl_seconds")
+        try:
+            default = field_info.default if field_info is not None else 300
+            # Verify it's a valid value
+            if not isinstance(default, (int, float)):
+                default = 300
+        except (AttributeError, TypeError):
+            default = 300
             default = 300
 
         if value is None or (isinstance(value, str) and not value.strip()):
