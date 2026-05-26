@@ -279,7 +279,8 @@ class TestLoadSettings:
             load_settings()
         errors = exc_info.value.errors()
         assert any(
-            ("rebuild_lock_ttl_seconds" in str(err.get("loc", []))) or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
+            ("rebuild_lock_ttl_seconds" in str(err.get("loc", [])))
+            or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
             for err in errors
         )
 
