@@ -90,7 +90,7 @@ class Settings(BaseModel):
 def load_settings() -> Settings:
     """Load runtime settings, delegating type coercion to Pydantic."""
     postgres_url = os.getenv("POSTGRES_URL")
-    
+
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
