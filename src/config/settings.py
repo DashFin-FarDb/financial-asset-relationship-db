@@ -71,10 +71,9 @@ class Settings(BaseModel):
     def parse_ttl(cls, value: Any) -> Any:
         """Coerce empty strings or None to the field default."""
         field_info = cls.model_fields.get("rebuild_lock_ttl_seconds")
-        default = field_info.default if field_info is not None else 300
-        from pydantic_core import PydanticUndefined
-
-        if default is PydanticUndefined:
+        if field_info is not None and field_info.default is not None:
+            default = field_info.default
+        else:
             default = 300
 
         if value is None or (isinstance(value, str) and not value.strip()):
