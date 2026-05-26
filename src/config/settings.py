@@ -21,16 +21,16 @@ def _parse_bool_env(value: str | None) -> bool:
 
     Interprets the value case-insensitively; the values "1", "true", "yes",
     or "on" (ignoring surrounding whitespace) are treated as true.
-    """
-    # Handle None and empty string
-    if value is None or value == "":
+    # Accept None -> False
+    if value is None:
         return False
-
-    # Handle boolean passthrough
+    # Return booleans unchanged (useful in tests/overrides)
     if isinstance(value, bool):
         return value
-
-    # Convert everything else to string and parse
+    # If a string with only whitespace -> False
+    if isinstance(value, str) and not value.strip():
+        return False
+    # Finally parse string (or non-str converted to string)
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
 
