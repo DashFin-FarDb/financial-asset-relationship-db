@@ -86,7 +86,7 @@ class Settings(BaseModel):
 
     # Distributed lock configuration
     rebuild_lock_ttl_seconds: int = Field(default=300, gt=0, description="TTL for rebuild distributed lock in seconds")
-    
+
     @property
     def allowed_origins(self) -> list[str]:
         """
