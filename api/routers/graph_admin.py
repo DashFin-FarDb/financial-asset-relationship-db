@@ -1169,7 +1169,7 @@ def validate_coordination_database_primary(session_factory):
             domain_engine.dispose()
 
 
-def _sanitize_failure_message(exc: Exception | BaseException) -> str:
+def _sanitize_failure_message(exc: BaseException) -> str:
     """
     Return a bounded, sanitized failure message suitable for
     rebuild job persistence and operational telemetry.
