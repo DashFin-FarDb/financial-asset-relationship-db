@@ -11,10 +11,10 @@ import time
 from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from sqlalchemy import text
 from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, NoReturn, cast
+from sqlalchemy import text
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -991,21 +991,21 @@ def _perform_rebuild_and_persist_sync(
 
     #
     # IMPORTANT:
-# Option A: Warn and fall back to asset_graph_database_url for single-DB deployments
-coordination_database_url = settings.coordination_database_url or settings.asset_graph_database_url
-if not coordination_database_url:
-    raise RuntimeError(
-        "Neither coordination_database_url nor asset_graph_database_url is configured."
-    )
-if not settings.coordination_database_url:
-    logger.warning(
-        "coordination_database_url is not set; falling back to asset_graph_database_url. "
-        "For production, set COORDINATION_DATABASE_URL to an authoritative primary."
-    )
+    # Option A: Warn and fall back to asset_graph_database_url for single-DB deployments
+    coordination_database_url = settings.coordination_database_url or settings.asset_graph_database_url
+    if not coordination_database_url:
+        raise RuntimeError(
+            "Neither coordination_database_url nor asset_graph_database_url is configured."
+        )
+    if not settings.coordination_database_url:
+        logger.warning(
+            "coordination_database_url is not set; falling back to asset_graph_database_url. "
+            "For production, set COORDINATION_DATABASE_URL to an authoritative primary."
+        )
 
-# Option B: If the strict no-fallback policy is intentional, document it in DEPLOYMENT.md
-# and add a migration note in the PR, then keep the RuntimeError but update
-# get_graph_lifecycle_settings() to read from the env var with a clear error.
+    # Option B: If the strict no-fallback policy is intentional, document it in DEPLOYMENT.md
+    # and add a migration note in the PR, then keep the RuntimeError but update
+    # get_graph_lifecycle_settings() to read from the env var with a clear error.
     #
     # Rationale:
     #   - separate pool sizing
@@ -1033,24 +1033,14 @@ if not settings.coordination_database_url:
         # Create isolated session factories
         # ---------------------------------------------------------------------
         #
-# Remove the entire comment block and the embedded import+def from inside the function.
-# If validate_coordination_database_primary does not yet exist in src.data.distributed_lock,
-# add it there as a proper module-level function and import it at the top of graph_admin.py:
-
-# At the top of api/routers/graph_admin.py:
-from src.data.distributed_lock import validate_coordination_database_primary
-
-# In src/data/distributed_lock.py (new function):
-def validate_coordination_database_primary(session_factory: Callable) -> None:
-    """Verify the coordination DB is a writable primary, not a replica."""
-    with session_factory() as session:
-        result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
-        if result:
-            raise RuntimeError(
-                "Coordination database is a read replica; "
-                "coordination_database_url must point to the primary."
-            )
         domain_session_factory = create_session_factory(domain_engine)
+
+        coordination_session_factory = create_session_factory(coordination_engine)
+
+        # Validate coordination authority (require primary)
+        validate_coordination_database_primary(coordination_session_factory)
+
+        # ---------------------------------------------------------------------
 
         coordination_session_factory = create_session_factory(coordination_engine)
 
