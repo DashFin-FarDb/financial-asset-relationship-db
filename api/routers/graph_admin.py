@@ -1159,7 +1159,7 @@ def _perform_rebuild_and_persist_sync(
         #   - fencing uncertainty
         #
 
-        if lock_acquired and dist_lock is not None and dist_lock.lifecycle_state != LifecycleState.LOST:
+        if lock_acquired and dist_lock is not None and getattr(dist_lock, "_state", None) != LockLifecycleState.LOST:
             try:
                 dist_lock.release()
             except Exception:
