@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
-import uuid
 import random
+import uuid
 from collections.abc import Callable
 from enum import Enum
 from time import sleep
@@ -35,7 +35,7 @@ class LockRefreshResult(str, Enum):
 
     REFRESHED = "refreshed"
     CONTENTED = "contented"  # lock held by another holder
-    FAILED = "failed"        # retry exhaustion or transient failure
+    FAILED = "failed"  # retry exhaustion or transient failure
 
 
 class DistributedLock:
@@ -161,7 +161,7 @@ class DistributedLock:
 
             except (SQLAlchemyError, OSError) as exc:
                 if attempt < max_retries:
-                    delay = retry_delay_seconds * (2 ** attempt)
+                    delay = retry_delay_seconds * (2**attempt)
                     jitter = random.uniform(0, delay * 0.1)
 
                     logger.warning(
