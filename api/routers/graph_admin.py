@@ -23,7 +23,7 @@ from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM
-from src.data.distributed_lock import DistributedLock, LockLease, LockLifecycleState, LockState
+from src.data.distributed_lock import DistributedLock, LockState
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
@@ -1050,7 +1050,7 @@ def _perform_rebuild_and_persist_sync(
 
         lease = dist_lock.acquire()
 
-        if not lease.acquired:
+        if not lease:
             raise _DistributedLockAcquisitionError(
                 "Could not acquire distributed rebuild lock."
             )
@@ -1130,14 +1130,17 @@ def _perform_rebuild_and_persist_sync(
         # --------------------------------------------------------------
         #
 
-        if (
-            lock_acquired
-            and dist_lock is not None
-            and dist_lock.lifecycle_state != LifecycleState.LOST
-        ):
+        if lock_acquired and dist_lock is not None:
             try:
-                dist_lock.release()
+                state = dist_lock.check_state()
             except Exception:
+                logger.exception("Error checking distributed lock state; treating as LOST and skipping release")
+                state = LockState.LOST
+            if state != LockState.LOST:
+                try:
+                    dist_lock.release()
+                except Exception:
+                    logger.exception("Failed to release distributed rebuild lock")
                 logger.exception(
                     "Failed to release distributed rebuild lock"
                 )
@@ -1179,103 +1182,7 @@ def validate_coordination_database_primary(session_factory):
         # ---------------------------------------------------------------------
         #
 
-        lock_ttl = settings.rebuild_lock_ttl_seconds
-
-        dist_lock = DistributedLock(
-            coordination_session_factory=coordination_session_factory,
-            lock_name="graph_rebuild",
-            ttl_seconds=lock_ttl,
-        )
-
-        lease = dist_lock.acquire()
-
-        if not lease.acquired:
-            raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock")
-
-        lock_acquired = True
-
-        #
-        # ---------------------------------------------------------------------
-        # Validate authoritative coordination state
-        # ---------------------------------------------------------------------
-        #
-        # LOST is reserved strictly for:
-        #   - connectivity failure
-        #   - coordination uncertainty
-        #
-        # UNKNOWN / EXPIRED are not LOST.
-        #
-
-        lock_state = dist_lock.check_state()
-
-        if lock_state == LockState.LOST:
-            raise RuntimeError("Coordination state lost immediately after lock acquisition")
-
-        if lock_state != LockState.VALID:
-            raise RuntimeError(f"Unexpected coordination state after acquisition: {lock_state}")
-
-        #
-        # ---------------------------------------------------------------------
-        # Recovery safety gate
-        # ---------------------------------------------------------------------
-        #
-
-        RecoveryGate(
-            session_factory=domain_session_factory,
-            lock=dist_lock,
-            increment_recovery_trigger=increment_recovery_trigger,
-            runtime_has_active_executor=False,
-            lock_ttl_seconds=lock_ttl,
-        ).ensure_safe_to_execute()
-
-        #
-        # ---------------------------------------------------------------------
-        # Create rebuild job metadata
-        # ---------------------------------------------------------------------
-        #
-
-        job_id, job_started_at = _create_and_start_rebuild_job(
-            domain_session_factory,
-            user_ref,
-            dist_lock.holder_id,
-        )
-
-        #
-        # ---------------------------------------------------------------------
-        # Heartbeat orchestration
-        # ---------------------------------------------------------------------
-        #
-        # lock_lost MUST ONLY represent:
-        #   - coordination uncertainty
-        #   - lost authority
-        #
-        # NOT:
-        #   - normal contention
-        #   - expiry
-        #   - release
-        #
-
-        with _orchestrate_heartbeat(
-            domain_session_factory,
-            dist_lock,
-            job_id,
-            lock_ttl,
-        ) as lock_lost:
-
-            #
-            # -------------------------------------------------------------
-            # Execute rebuild pipeline
-            # -------------------------------------------------------------
-            #
-
-            return _run_rebuild_pipeline(
-                domain_session_factory,
-                settings,
-                resolved_domain_url,
-                job_id,
-                job_started_at,
-                lock_lost,
-            )
+# Duplicate block removed (accidental duplication)
 
     finally:
         #
@@ -1302,7 +1209,6 @@ def validate_coordination_database_primary(session_factory):
                     dist_lock.release()
                 except Exception:
                     logger.exception("Failed to release distributed rebuild lock")
-                logger.exception("Failed to release distributed rebuild lock")
 
         #
         # ---------------------------------------------------------------------
