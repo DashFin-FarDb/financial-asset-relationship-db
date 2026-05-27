@@ -11,6 +11,7 @@ import time
 from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+from sqlalchemy import text
 from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, NoReturn, cast
