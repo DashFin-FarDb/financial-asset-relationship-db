@@ -1170,7 +1170,7 @@ def validate_coordination_database_primary(session_factory):
         #   - fencing uncertainty
         #
 
-        if lock_acquired and dist_lock is not None and getattr(dist_lock, "_state", None) != LockLifecycleState.LOST:
+        if lock_acquired and dist_lock is not None and dist_lock.check_state().value != "lost":
             try:
                 dist_lock.release()
             except Exception:
