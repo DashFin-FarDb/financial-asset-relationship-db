@@ -1141,9 +1141,6 @@ def _perform_rebuild_and_persist_sync(
                     dist_lock.release()
                 except Exception:
                     logger.exception("Failed to release distributed rebuild lock")
-                logger.exception(
-                    "Failed to release distributed rebuild lock"
-                )
 
         #
         # --------------------------------------------------------------
@@ -1179,38 +1176,7 @@ def validate_coordination_database_primary(session_factory):
         raise RuntimeError(
             "Coordination database is a read replica; coordination_database_url must point to the primary."
         )
-        # ---------------------------------------------------------------------
-        #
 
-# Duplicate block removed (accidental duplication)
-
-    finally:
-        #
-        # ---------------------------------------------------------------------
-        # Best-effort lock release
-        # ---------------------------------------------------------------------
-        #
-        # Do not attempt authoritative release if coordination state is LOST.
-        #
-        # LOST implies:
-        #   - ownership uncertainty
-        #   - connectivity uncertainty
-        #   - fencing uncertainty
-        #
-
-        if lock_acquired and dist_lock is not None:
-            try:
-                state = dist_lock.check_state()
-            except Exception:
-                logger.exception("Error checking distributed lock state; treating as LOST and skipping release")
-                state = LockState.LOST
-            if state != LockState.LOST:
-                try:
-                    dist_lock.release()
-                except Exception:
-                    logger.exception("Failed to release distributed rebuild lock")
-
-        #
         # ---------------------------------------------------------------------
         # Dispose isolated engines independently
         # ---------------------------------------------------------------------
