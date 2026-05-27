@@ -242,7 +242,10 @@ class CoordinationLockRepository:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
 
         valid = (record.holder_id == holder_id) and (expires_at is not None and now < expires_at)
-        fencing_token = int(updated_at.timestamp() * 1_000_000)
+        if updated_at is not None:
+            fencing_token = int(updated_at.timestamp() * 1_000_000)
+        else:
+            fencing_token = None
 
         return LockStateSnapshot(
             exists=True,
