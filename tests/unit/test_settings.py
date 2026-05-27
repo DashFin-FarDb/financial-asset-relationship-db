@@ -284,7 +284,6 @@ class TestLoadSettings:
             # Accept either a Pydantic ValidationError (when Settings validation runs)
             # or a ValueError (if load_settings coerces to int() before constructing Settings).
             load_settings()
-            load_settings()
         exc = exc_info.value
         if isinstance(exc, ValidationError):
             errors = exc.errors()
