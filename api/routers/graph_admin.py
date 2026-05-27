@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM
-from src.data.distributed_lock import DistributedLock, LockState, LockLifecycleState
+from src.data.distributed_lock import DistributedLock, LockLifecycleState, LockState
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
@@ -83,6 +83,7 @@ _SECRET_PATTERN = re.compile(
     r"(?i)(password|token|secret|key|api[_-]?key|auth)\s*[:=]\s*['\"]?[^\s'\"]+",
     re.IGNORECASE,
 )
+
 
 class _RebuildRuntime:
     """Process-local rebuild concurrency and executor state."""
