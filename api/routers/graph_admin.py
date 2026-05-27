@@ -1204,10 +1204,7 @@ def _sanitize_failure_message(exc: Exception) -> str:
     #
 
     if isinstance(root_exc, safe_exceptions):
-        raw_message = (
-            str(root_exc).strip()
-            or root_exc.__class__.__name__
-        )
+        raw_message = str(root_exc).strip() or root_exc.__class__.__name__
     else:
         #
         # IMPORTANT:
@@ -1225,9 +1222,7 @@ def _sanitize_failure_message(exc: Exception) -> str:
         #   - SQL fragments
         #
 
-        raw_message = (
-            f"InternalError[{root_exc.__class__.__name__}]"
-        )
+        raw_message = f"InternalError[{root_exc.__class__.__name__}]"
 
     #
     # ------------------------------------------------------------------
@@ -1261,9 +1256,7 @@ def _sanitize_failure_message(exc: Exception) -> str:
     # ------------------------------------------------------------------
     #
 
-    sanitized = " ".join(
-        sanitized.split()
-    ).strip()
+    sanitized = " ".join(sanitized.split()).strip()
 
     #
     # ------------------------------------------------------------------
@@ -1274,10 +1267,7 @@ def _sanitize_failure_message(exc: Exception) -> str:
     MAX_FAILURE_MESSAGE_LENGTH = 512
 
     if len(sanitized) > MAX_FAILURE_MESSAGE_LENGTH:
-        sanitized = (
-            sanitized[: MAX_FAILURE_MESSAGE_LENGTH - 3]
-            + "..."
-        )
+        sanitized = sanitized[: MAX_FAILURE_MESSAGE_LENGTH - 3] + "..."
 
     return sanitized
 
