@@ -278,25 +278,13 @@ class TestLoadSettings:
         Test that a non-integer REBUILD_LOCK_TTL_SECONDS value
         raises a deterministic ValueError during configuration parsing.
         """
-        from pydantic import ValidationError
-
-        with pytest.raises((ValidationError, ValueError)) as exc_info:
-            # Accept either a Pydantic ValidationError (when Settings validation runs)
-            # or a ValueError (if load_settings coerces to int() before constructing Settings).
+    
+        with pytest.raises(
+            ValueError,
+            match=r"REBUILD_LOCK_TTL_SECONDS|invalid literal|could not convert",
+        ):
             load_settings()
-        exc = exc_info.value
-        if isinstance(exc, ValidationError):
-            errors = exc.errors()
-            assert any(
-                any("rebuild_lock_ttl_seconds" in str(part) for part in err.get("loc", ()))
-                any(str(part) == "rebuild_lock_ttl_seconds" for part in err.get("loc", ()))
-                for err in errors
-            )
-        else:
-            # ValueError path: typically raised by int() conversion in load_settings()
-            msg = str(exc)
-            assert ("REBUILD_LOCK_TTL_SECONDS" in msg) or ("invalid literal" in msg) or ("could not convert" in msg)
-
+        
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
     def test_load_settings_env_lowercase(self) -> None:
         """Test that ENV is converted to lowercase."""
