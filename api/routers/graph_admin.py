@@ -1043,7 +1043,18 @@ def _perform_rebuild_and_persist_sync(
 
         #
         # ---------------------------------------------------------------------
-        # Distributed coordination lock
+# Either import from the module that defines it:
+from src.data.distributed_lock import validate_coordination_database_primary
+# Or inline the check if it is simple:
+def validate_coordination_database_primary(session_factory):
+    """Verify the coordination DB is a writable primary, not a replica."""
+    with session_factory() as session:
+        result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
+        if result:
+            raise RuntimeError(
+                "Coordination database is a read replica; "
+                "coordination_database_url must point to the primary."
+            )
         # ---------------------------------------------------------------------
         #
 
