@@ -79,7 +79,9 @@ _URL_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-_SECRET_PATTERN = re.compile(\n    r"(password|token|secret|key|api[_-]?key|auth)\s*[:=]\s*['\"]?[^\s'\"]+",\n    re.IGNORECASE,\n)
+_SECRET_PATTERN = re.compile(
+    r"(password|token|secret|key|api[_-]?key|auth)\s*[:=]\s*['\"]?[^\s'\"]+",
+    re.IGNORECASE,
 )
 
 
