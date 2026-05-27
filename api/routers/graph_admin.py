@@ -1156,16 +1156,6 @@ def validate_coordination_database_primary(session_factory):
             "Coordination database is a read replica; coordination_database_url must point to the primary."
         )
 
-        # ---------------------------------------------------------------------
-        # Dispose isolated engines independently
-        # ---------------------------------------------------------------------
-        #
-
-        try:
-            coordination_engine.dispose()
-        finally:
-            domain_engine.dispose()
-
 
 def _sanitize_failure_message(exc: BaseException) -> str:
     """
