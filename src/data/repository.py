@@ -71,8 +71,11 @@ class LockStateSnapshot:
 
 class CoordinationLockRepository:
     """
-    Coordination-safe repository.
-    MUST NOT expose ORM, Session, or SQLAlchemy constructs.
+    Coordination-safe repository for coordination lock operations.
+
+    Uses a SQLAlchemy Session internally but returns materialized DTOs (LockWriteResult,
+    LockStateSnapshot) so callers do not receive ORM objects. This clarifies the
+    repository's API and ownership of the session lifecycle.
     """
 
     def __init__(self, session: Session) -> None:
