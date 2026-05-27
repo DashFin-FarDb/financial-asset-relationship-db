@@ -14,8 +14,7 @@ from typing import Any
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.data.db_models import DistributedLockORM
-from src.data.repository import AssetGraphRepository, session_scope
+from src.data.repository import CoordinationLockRepository, session_scope
 
 logger = logging.getLogger(__name__)
 
@@ -173,16 +172,14 @@ class DistributedLock:
         while True:
             try:
                 with session_scope(self.coordination_session_factory) as session:
-                    repo = AssetGraphRepository(session)
-                    if repo.try_acquire_distributed_lock(
+                    repo = CoordinationLockRepository(session)
+                    res = repo.acquire_lock(
                         lock_name=self.lock_name,
                         holder_id=self.holder_id,
                         ttl_seconds=self.ttl_seconds,
-                    ):
-                        lock_record = session.get(DistributedLockORM, self.lock_name)
-                        if lock_record:
-                            self._fencing_token = int(lock_record.updated_at.timestamp() * 1_000_000)
-
+                    )
+                    if res.success:
+                        self._fencing_token = res.fencing_token
                         self._set_state(LockLifecycleState.ACQUIRED)
                         self._emit(
                             LockEvent(
@@ -251,16 +248,14 @@ class DistributedLock:
         for attempt in range(max_retries + 1):
             try:
                 with session_scope(self.coordination_session_factory) as session:
-                    repo = AssetGraphRepository(session)
-                    ok = repo.try_acquire_distributed_lock(
+                    repo = CoordinationLockRepository(session)
+                    res = repo.refresh_lock(
                         lock_name=self.lock_name,
                         holder_id=self.holder_id,
                         ttl_seconds=self.ttl_seconds,
                     )
-                    if ok:
-                        lock_record = session.get(DistributedLockORM, self.lock_name)
-                        if lock_record:
-                            self._fencing_token = int(lock_record.updated_at.timestamp() * 1_000_000)
+                    if res.success:
+                        self._fencing_token = res.fencing_token
 
                         self._set_state(LockLifecycleState.REFRESHED)
                         self._emit(
@@ -342,8 +337,8 @@ class DistributedLock:
         """Release the distributed lock."""
         try:
             with session_scope(self.coordination_session_factory) as session:
-                repo = AssetGraphRepository(session)
-                repo.release_distributed_lock(
+                repo = CoordinationLockRepository(session)
+                repo.release_lock(
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
                 )
@@ -403,11 +398,23 @@ class DistributedLock:
         """
         try:
             with session_scope(self.coordination_session_factory) as session:
-                repo = AssetGraphRepository(session)
-                state = repo.check_distributed_lock_state(
+                repo = CoordinationLockRepository(session)
+                snapshot = repo.get_lock_state(
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
                 )
+
+                if not snapshot.exists:
+                    state = LockState.UNKNOWN
+                elif not snapshot.valid:
+                    now = datetime.now(timezone.utc)
+                    if snapshot.expires_at and snapshot.expires_at <= now:
+                        state = LockState.EXPIRED
+                    else:
+                        state = LockState.UNKNOWN
+                else:
+                    state = LockState.VALID
+
                 self._emit(
                     LockEvent(
                         LockEventType.STATE_CHECK,

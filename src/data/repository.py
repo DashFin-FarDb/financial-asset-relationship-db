@@ -6,11 +6,9 @@ from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
+from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
 from uuid import uuid4
 
-if TYPE_CHECKING:
-    from src.data.distributed_lock import LockState
 
 from sqlalchemy import delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
@@ -37,6 +35,220 @@ from .db_models import (
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
+
+
+@dataclass(frozen=True, slots=True)
+class LockRecord:
+    """Immutable Lock DTO."""
+
+    lock_name: str
+    holder_id: str
+    fencing_token: int
+    updated_at: datetime
+    expires_at: datetime | None
+
+
+@dataclass(frozen=True, slots=True)
+class LockWriteResult:
+    """Atomic write response for lock operations."""
+
+    success: bool
+    fencing_token: int
+    updated_at: datetime
+    contention: bool
+
+
+@dataclass(frozen=True, slots=True)
+class LockStateSnapshot:
+    """Read-only coordination view snapshot of a distributed lock."""
+
+    exists: bool
+    valid: bool
+    holder_id: str | None
+    fencing_token: int | None
+    updated_at: datetime | None
+    expires_at: datetime | None
+
+
+class CoordinationLockRepository:
+    """
+    Coordination-safe repository.
+    MUST NOT expose ORM, Session, or SQLAlchemy constructs.
+    """
+
+    def __init__(self, session: Session) -> None:
+        """Initialize with an active database Session."""
+        self.session = session
+
+    def acquire_lock(
+        self,
+        *,
+        lock_name: str,
+        holder_id: str,
+        ttl_seconds: int,
+    ) -> LockWriteResult:
+        """
+        Try to acquire or refresh a distributed lock in the database.
+
+        Atomic compare-and-set semantics.
+        Executes on PRIMARY only.
+        Returns a fully materialized result with no follow-up reads required.
+        """
+        if ttl_seconds <= 0:
+            raise ValueError("ttl_seconds must be greater than 0")
+        now = datetime.now(timezone.utc)
+        expires_at = now + timedelta(seconds=ttl_seconds)
+
+        update_stmt = (
+            update(DistributedLockORM)
+            .where(
+                DistributedLockORM.lock_name == lock_name,
+                or_(
+                    DistributedLockORM.holder_id == holder_id,
+                    DistributedLockORM.expires_at < now,
+                ),
+            )
+            .values(
+                holder_id=holder_id,
+                expires_at=expires_at,
+                updated_at=now,
+            )
+        )
+        update_result = self.session.execute(update_stmt)
+        if update_result.rowcount and update_result.rowcount > 0:
+            stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
+            record = self.session.execute(stmt).scalar_one_or_none()
+            if record:
+                updated_at = record.updated_at
+                if updated_at.tzinfo is None:
+                    updated_at = updated_at.replace(tzinfo=timezone.utc)
+                token = int(updated_at.timestamp() * 1_000_000)
+                return LockWriteResult(
+                    success=True,
+                    fencing_token=token,
+                    updated_at=updated_at,
+                    contention=False,
+                )
+
+        try:
+            with self.session.begin_nested():
+                self.session.execute(
+                    insert(DistributedLockORM).values(
+                        lock_name=lock_name,
+                        holder_id=holder_id,
+                        expires_at=expires_at,
+                        created_at=now,
+                        updated_at=now,
+                    )
+                )
+            return LockWriteResult(
+                success=True,
+                fencing_token=int(now.timestamp() * 1_000_000),
+                updated_at=now,
+                contention=False,
+            )
+        except IntegrityError:
+            # Retry conditional update in case of insert race
+            retry_result = self.session.execute(update_stmt)
+            if retry_result.rowcount and retry_result.rowcount > 0:
+                stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
+                record = self.session.execute(stmt).scalar_one_or_none()
+                if record:
+                    updated_at = record.updated_at
+                    if updated_at.tzinfo is None:
+                        updated_at = updated_at.replace(tzinfo=timezone.utc)
+                    token = int(updated_at.timestamp() * 1_000_000)
+                    return LockWriteResult(
+                        success=True,
+                        fencing_token=token,
+                        updated_at=updated_at,
+                        contention=False,
+                    )
+
+            # Succeeded to insert by other contender, we are blocked by contention
+            stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
+            record = self.session.execute(stmt).scalar_one_or_none()
+            if record:
+                updated_at = record.updated_at
+                if updated_at.tzinfo is None:
+                    updated_at = updated_at.replace(tzinfo=timezone.utc)
+                token = int(updated_at.timestamp() * 1_000_000)
+                return LockWriteResult(
+                    success=False,
+                    fencing_token=token,
+                    updated_at=updated_at,
+                    contention=True,
+                )
+            return LockWriteResult(
+                success=False,
+                fencing_token=0,
+                updated_at=now,
+                contention=True,
+            )
+
+    def refresh_lock(
+        self,
+        *,
+        lock_name: str,
+        holder_id: str,
+        ttl_seconds: int,
+    ) -> LockWriteResult:
+        """
+        Refresh a distributed lock in the database.
+
+        Delegates to acquire_lock, which uses atomic compare-and-set semantics
+        and guarantees that the fencing token is updated monotonically.
+        """
+        return self.acquire_lock(
+            lock_name=lock_name,
+            holder_id=holder_id,
+            ttl_seconds=ttl_seconds,
+        )
+
+    def release_lock(self, *, lock_name: str, holder_id: str) -> bool:
+        """Release a distributed lock if held by the specified holder."""
+        result = self.session.execute(
+            delete(DistributedLockORM).where(
+                DistributedLockORM.lock_name == lock_name,
+                DistributedLockORM.holder_id == holder_id,
+            )
+        )
+        return bool(result.rowcount and result.rowcount > 0)
+
+    def get_lock_state(self, *, lock_name: str, holder_id: str) -> LockStateSnapshot:
+        """Check the current state of a distributed lock and return a materialized snapshot DTO."""
+        now = datetime.now(timezone.utc)
+        stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
+        record = self.session.execute(stmt).scalar_one_or_none()
+
+        if record is None:
+            return LockStateSnapshot(
+                exists=False,
+                valid=False,
+                holder_id=None,
+                fencing_token=None,
+                updated_at=None,
+                expires_at=None,
+            )
+
+        expires_at = record.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+        valid = (record.holder_id == holder_id) and (now < expires_at)
+        updated_at = record.updated_at
+        if updated_at.tzinfo is None:
+            updated_at = updated_at.replace(tzinfo=timezone.utc)
+        fencing_token = int(updated_at.timestamp() * 1_000_000)
+
+        return LockStateSnapshot(
+            exists=True,
+            valid=valid,
+            holder_id=record.holder_id,
+            fencing_token=fencing_token,
+            updated_at=updated_at,
+            expires_at=expires_at,
+        )
 
 
 @contextmanager
@@ -1122,124 +1334,6 @@ class AssetGraphRepository:
             .limit(1)
         )
         return self.session.execute(stmt).scalar_one_or_none()
-
-    def try_acquire_distributed_lock(
-        self,
-        *,
-        lock_name: str,
-        holder_id: str,
-        ttl_seconds: int,
-    ) -> bool:
-        """
-        Try to acquire or refresh a distributed lock in the database.
-
-        If the lock does not exist, it is created.
-        If the lock exists and is expired, it is acquired by the new holder.
-        If the lock exists and is held by the same holder, it is refreshed.
-        If the lock exists and is held by another holder and not expired, acquisition fails.
-
-        Args:
-            lock_name: Unique name of the lock.
-            holder_id: Identifier of the process/instance seeking the lock.
-            ttl_seconds: Time-to-live for the lock in seconds.
-
-        Returns:
-            bool: True if the lock was acquired or refreshed, False otherwise.
-        """
-        if ttl_seconds <= 0:
-            raise ValueError("ttl_seconds must be greater than 0")
-        now = datetime.now(timezone.utc)
-        expires_at = now + timedelta(seconds=ttl_seconds)
-
-        update_stmt = (
-            update(DistributedLockORM)
-            .where(
-                DistributedLockORM.lock_name == lock_name,
-                or_(
-                    DistributedLockORM.holder_id == holder_id,
-                    DistributedLockORM.expires_at < now,
-                ),
-            )
-            .values(
-                holder_id=holder_id,
-                expires_at=expires_at,
-                updated_at=now,
-            )
-        )
-        update_result = self.session.execute(update_stmt)
-        if update_result.rowcount and update_result.rowcount > 0:
-            return True
-
-        try:
-            with self.session.begin_nested():
-                self.session.execute(
-                    insert(DistributedLockORM).values(
-                        lock_name=lock_name,
-                        holder_id=holder_id,
-                        expires_at=expires_at,
-                        created_at=now,
-                        updated_at=now,
-                    )
-                )
-            return True
-        except IntegrityError:
-            # Another contender may have inserted first; retrying the conditional
-            # update covers "same holder" refresh and "expired holder" takeover
-            # after that insert race. It is still best-effort and can return False
-            # if another holder keeps a valid, unexpired lock.
-            retry_result = self.session.execute(update_stmt)
-            return bool(retry_result.rowcount and retry_result.rowcount > 0)
-
-    def release_distributed_lock(self, *, lock_name: str, holder_id: str) -> None:
-        """
-        Release a distributed lock if held by the specified holder.
-
-        Args:
-            lock_name: Unique name of the lock.
-            holder_id: Identifier of the process/instance that held the lock.
-        """
-        self.session.execute(
-            delete(DistributedLockORM).where(
-                DistributedLockORM.lock_name == lock_name,
-                DistributedLockORM.holder_id == holder_id,
-            )
-        )
-
-    def check_distributed_lock_state(
-        self,
-        *,
-        lock_name: str,
-        holder_id: str,
-    ) -> LockState:
-        """
-        Check the current state of a distributed lock.
-
-        Args:
-            lock_name: Unique name of the lock.
-            holder_id: Identifier of the process/instance holding the lock.
-
-        Returns:
-            LockState: The current state of the lock.
-        """
-        from src.data.distributed_lock import LockState
-
-        now = datetime.now(timezone.utc)
-        stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
-        lock_orm = self.session.execute(stmt).scalar_one_or_none()
-
-        if lock_orm is None:
-            return LockState.UNKNOWN
-
-        expires_at = lock_orm.expires_at
-        if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
-        if expires_at <= now:
-            return LockState.EXPIRED
-
-        if lock_orm.holder_id == holder_id:
-            return LockState.VALID
-
-        return LockState.UNKNOWN
 
     # Stage 5C.1: Recovery state tracking methods
 
