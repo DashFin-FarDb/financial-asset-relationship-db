@@ -7,13 +7,13 @@ import contextvars
 import logging
 import re
 import threading
-import time
 from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, NoReturn, cast
+from sqlalchemy import text
 from sqlalchemy import text
 
 from fastapi import APIRouter, Depends, HTTPException, status
