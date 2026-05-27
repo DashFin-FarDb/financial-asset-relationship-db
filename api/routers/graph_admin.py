@@ -953,7 +953,7 @@ def _perform_rebuild_and_persist_sync(
         - coordination plane MUST NOT reuse domain-plane sessions
         - coordination authority MUST fail closed on connectivity loss
     """
-    from src.data.distributed_lock import LockLifecycleState, LockState, LockLease
+    from src.data.distributed_lock import LockLease, LockLifecycleState, LockState
 
     #
     # -------------------------------------------------------------------------
@@ -982,7 +982,9 @@ def _perform_rebuild_and_persist_sync(
     coordination_database_url = settings.coordination_database_url
 
     if not coordination_database_url:
-        raise RuntimeError("coordination_database_url must be explicitly configured for distributed rebuild coordination")
+        raise RuntimeError(
+            "coordination_database_url must be explicitly configured for distributed rebuild coordination"
+        )
 
     resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
 
@@ -1157,11 +1159,7 @@ def _perform_rebuild_and_persist_sync(
         #   - fencing uncertainty
         #
 
-        if (
-            lock_acquired
-            and dist_lock is not None
-            and dist_lock.lifecycle_state != LifecycleState.LOST
-        ):
+        if lock_acquired and dist_lock is not None and dist_lock.lifecycle_state != LifecycleState.LOST:
             try:
                 dist_lock.release()
             except Exception:
