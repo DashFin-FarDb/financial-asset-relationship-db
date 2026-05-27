@@ -21,8 +21,8 @@ from src.data.distributed_lock import (
 from src.data.repository import (
     AssetGraphRepository,
     CoordinationLockRepository,
-    LockWriteResult,
     LockStateSnapshot,
+    LockWriteResult,
 )
 
 

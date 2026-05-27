@@ -9,7 +9,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
 from uuid import uuid4
 
-
 from sqlalchemy import delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
