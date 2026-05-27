@@ -288,7 +288,7 @@ class TestLoadSettings:
         if isinstance(exc, ValidationError):
             errors = exc.errors()
             assert any(
-                any("rebuild_lock_ttl_seconds" in map(str, err.get("loc", ()))
+                any("rebuild_lock_ttl_seconds" in str(part) for part in err.get("loc", ()))
                 or ("REBUILD_LOCK_TTL_SECONDS" in err.get("msg", ""))
                 for err in errors
             )
