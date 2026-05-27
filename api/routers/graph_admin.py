@@ -984,7 +984,14 @@ def _perform_rebuild_and_persist_sync(
 
     if not coordination_database_url:
         raise RuntimeError(
-            "coordination_database_url must be explicitly configured for distributed rebuild coordination"
+Choose one policy and remove the other. For single-DB deployments with a fallback:
+
+coordination_database_url = settings.coordination_database_url or settings.asset_graph_database_url
+if not coordination_database_url:
+    raise RuntimeError('Neither coordination_database_url nor asset_graph_database_url is configured.')
+if not settings.coordination_database_url:
+    logger.warning('coordination_database_url not set; falling back to asset_graph_database_url.')
+resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
         )
 
     resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
