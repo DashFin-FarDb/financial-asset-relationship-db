@@ -1204,10 +1204,17 @@ def validate_coordination_database_primary(session_factory):
         #   - fencing uncertainty
         #
 
-        if lock_acquired and dist_lock is not None and dist_lock.check_state().value != "lost":
+        if lock_acquired and dist_lock is not None:
             try:
-                dist_lock.release()
+                state = dist_lock.check_state()
             except Exception:
+                logger.exception("Error checking distributed lock state; treating as LOST and skipping release")
+                state = LockState.LOST
+            if state != LockState.LOST:
+                try:
+                    dist_lock.release()
+                except Exception:
+                    logger.exception("Failed to release distributed rebuild lock")
                 logger.exception("Failed to release distributed rebuild lock")
 
         #
