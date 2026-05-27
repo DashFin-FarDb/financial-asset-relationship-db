@@ -9,7 +9,14 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.database import create_session_factory, init_db
 from src.data.db_models import DistributedLockORM, RebuildJobORM
-from src.data.distributed_lock import DistributedLock, LockState
+from src.data.distributed_lock import (
+    DistributedLock,
+    LockState,
+    LockEvent,
+    LockEventType,
+    LockMetrics,
+    LockLifecycleState,
+)
 from src.data.repository import AssetGraphRepository
 
 
@@ -270,3 +277,195 @@ class TestDistributedLockRetryLogic:
 
         assert lock_setup.refresh(max_retries=2, retry_delay_seconds=0.01) is False
         assert mock_try_acquire.call_count == 3  # Initial try + 2 retries
+
+
+@pytest.mark.unit
+class TestDistributedLockObservability:
+    """Test cases for DistributedLock state machine, event emission, and metrics."""
+
+    @pytest.fixture(scope="function")
+    def bound_session_factory(self, repository_factory):
+        """Supplier for fresh Sessions."""
+
+        def factory():
+            return repository_factory().session
+
+        return factory
+
+    def test_initial_state(self, bound_session_factory):
+        """Lock should start in INITIAL state."""
+        lock = DistributedLock(bound_session_factory, "test_lock")
+        assert lock._state == LockLifecycleState.INITIAL
+
+    def test_acquire_success_observability(self, bound_session_factory):
+        """Test structured event emission and metrics during successful lock acquisition."""
+        events = []
+        mock_metrics = MagicMock(spec=LockMetrics)
+
+        def event_sink(event: LockEvent):
+            events.append(event)
+
+        lock = DistributedLock(
+            bound_session_factory,
+            "test_lock",
+            metrics=mock_metrics,
+            event_sink=event_sink,
+        )
+
+        assert lock.acquire() is True
+        assert lock._state == LockLifecycleState.ACQUIRED
+
+        # Verify events emitted
+        assert len(events) == 2
+        assert events[0].event_type == LockEventType.ACQUIRE_ATTEMPT
+        assert events[0].lock_name == "test_lock"
+        assert events[1].event_type == LockEventType.ACQUIRED
+        assert events[1].lock_name == "test_lock"
+
+        # Verify metrics called
+        mock_metrics.inc.assert_any_call("lock_acquire_total", None)
+        mock_metrics.inc.assert_any_call("lock_acquired_total", None)
+
+    def test_refresh_success_observability(self, bound_session_factory):
+        """Test event, state machine, and latency tracking during successful lock refresh."""
+        events = []
+        mock_metrics = MagicMock(spec=LockMetrics)
+
+        def event_sink(event: LockEvent):
+            events.append(event)
+
+        lock = DistributedLock(
+            bound_session_factory,
+            "test_lock",
+            metrics=mock_metrics,
+            event_sink=event_sink,
+        )
+
+        # Acquire first
+        assert lock.acquire() is True
+        events.clear()
+
+        # Refresh
+        assert lock.refresh(max_retries=0) is True
+        assert lock._state == LockLifecycleState.REFRESHED
+
+        # Verify refresh events
+        assert len(events) == 1
+        assert events[0].event_type == LockEventType.REFRESHED
+        assert events[0].metadata == {"attempt": 0}
+
+        # Verify refresh metrics (including latency observation)
+        mock_metrics.inc.assert_any_call("lock_refresh_total", None)
+        mock_metrics.observe.assert_any_call(
+            "lock_refresh_latency_seconds", pytest.approx(0.0, abs=0.5), {"status": "success"}
+        )
+
+    def test_release_observability(self, bound_session_factory):
+        """Test event emission and metrics during lock release."""
+        events = []
+        mock_metrics = MagicMock(spec=LockMetrics)
+
+        def event_sink(event: LockEvent):
+            events.append(event)
+
+        lock = DistributedLock(
+            bound_session_factory,
+            "test_lock",
+            metrics=mock_metrics,
+            event_sink=event_sink,
+        )
+
+        assert lock.acquire() is True
+        events.clear()
+
+        lock.release()
+        assert lock._state == LockLifecycleState.RELEASED
+
+        # Verify release events
+        assert len(events) == 1
+        assert events[0].event_type == LockEventType.RELEASED
+
+        # Verify metrics
+        mock_metrics.inc.assert_any_call("lock_release_total", None)
+
+    def test_refresh_transient_error_exponential_backoff_and_failed_state(self, monkeypatch, bound_session_factory):
+        """Test refresh event flows, state transition to LOST, and backoff sleep delays on transient error exhaustion."""
+        mock_try_acquire = MagicMock(side_effect=SQLAlchemyError("transient db error"))
+        monkeypatch.setattr(AssetGraphRepository, "try_acquire_distributed_lock", mock_try_acquire)
+
+        events = []
+        mock_metrics = MagicMock(spec=LockMetrics)
+        sleep_delays = []
+
+        def mock_sleep(seconds: float):
+            sleep_delays.append(seconds)
+
+        monkeypatch.setattr("src.data.distributed_lock.sleep", mock_sleep)
+
+        def event_sink(event: LockEvent):
+            events.append(event)
+
+        lock = DistributedLock(
+            bound_session_factory,
+            "test_lock",
+            metrics=mock_metrics,
+            event_sink=event_sink,
+        )
+
+        assert lock.refresh(max_retries=2, retry_delay_seconds=0.01) is False
+        assert lock._state == LockLifecycleState.LOST
+
+        # 3 acquire attempts failed (1 initial + 2 retries)
+        assert mock_try_acquire.call_count == 3
+
+        # Delays should be exponential: 0.01s (base * 2^0) and 0.02s (base * 2^1)
+        assert len(sleep_delays) == 2
+        assert pytest.approx(sleep_delays[0]) == 0.01
+        assert pytest.approx(sleep_delays[1]) == 0.02
+
+        # Verify structured events emitted: 3 transient errors, then final failed event
+        transient_events = [e for e in events if e.event_type == LockEventType.TRANSIENT_ERROR]
+        failed_events = [e for e in events if e.event_type == LockEventType.FAILED]
+
+        assert len(transient_events) == 3  # each error triggers event
+        assert len(failed_events) == 1
+        assert failed_events[0].metadata["attempts"] == 3
+
+        # Verify failure metrics
+        mock_metrics.inc.assert_any_call("lock_refresh_failures", None)
+        mock_metrics.observe.assert_any_call(
+            "lock_refresh_latency_seconds", pytest.approx(0.0, abs=0.5), {"status": "failed"}
+        )
+
+    def test_refresh_contention_observability(self, bound_session_factory, repository_factory):
+        """Test refresh contention transitions state to CONTENTED, emits event, and tracks metrics."""
+        events = []
+        mock_metrics = MagicMock(spec=LockMetrics)
+
+        def event_sink(event: LockEvent):
+            events.append(event)
+
+        # Pre-acquire lock with a different holder id to force contention
+        repo = repository_factory()
+        repo.try_acquire_distributed_lock(lock_name="contested_lock", holder_id="other_holder", ttl_seconds=60)
+        repo.session.commit()
+
+        lock = DistributedLock(
+            bound_session_factory,
+            "contested_lock",
+            holder_id="test_holder",
+            metrics=mock_metrics,
+            event_sink=event_sink,
+        )
+
+        assert lock.refresh(max_retries=2) is False
+        assert lock._state == LockLifecycleState.CONTENTED
+
+        # Verify contention events and metrics
+        assert len(events) == 1
+        assert events[0].event_type == LockEventType.CONTENTED
+
+        mock_metrics.inc.assert_any_call("lock_contention_total", None)
+        mock_metrics.observe.assert_any_call(
+            "lock_refresh_latency_seconds", pytest.approx(0.0, abs=0.5), {"status": "contested"}
+        )

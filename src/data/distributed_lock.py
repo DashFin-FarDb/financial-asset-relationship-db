@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import logging
-import random
 import uuid
 from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-from time import sleep
+from time import sleep, time
+from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -18,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class LockState(str, Enum):
-    """Explicit states of a distributed lock."""
+    """Explicit states of a distributed lock returned from database check."""
 
     VALID = "valid"
     EXPIRED = "expired"
@@ -26,68 +28,173 @@ class LockState(str, Enum):
     LOST = "lost"
 
 
-class LockRefreshResult(str, Enum):
-    """
-    Explicit outcomes of a refresh operation.
+class LockEventType(str, Enum):
+    """Types of structured coordination lifecycle events."""
 
-    This avoids overloading boolean return values with multiple meanings.
-    """
-
+    ACQUIRE_ATTEMPT = "acquire_attempt"
+    ACQUIRED = "acquired"
     REFRESHED = "refreshed"
-    CONTENTED = "contented"  # lock held by another holder
-    FAILED = "failed"  # retry exhaustion or transient failure
+    CONTENTED = "contented"
+    RELEASED = "released"
+    FAILED = "failed"
+    STATE_CHECK = "state_check"
+    TRANSIENT_ERROR = "transient_error"
+    UNEXPECTED_ERROR = "unexpected_error"
+
+
+@dataclass(frozen=True)
+class LockEvent:
+    """Immutable coordination event representation for structured observability."""
+
+    event_type: LockEventType
+    lock_name: str
+    holder_id: str
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+class LockMetrics:
+    """Abstract metrics interface (Prometheus, OpenTelemetry, etc.)."""
+
+    def inc(self, metric: str, labels: dict[str, str] | None = None) -> None:
+        """Increment a counter metric."""
+        raise NotImplementedError
+
+    def observe(self, metric: str, value: float, labels: dict[str, str] | None = None) -> None:
+        """Observe a histogram/summary metric."""
+        raise NotImplementedError
+
+
+class LockLifecycleState(str, Enum):
+    """Explicit lifecycle states of the coordination primitive state machine."""
+
+    INITIAL = "initial"
+    ACQUIRED = "acquired"
+    REFRESHED = "refreshed"
+    CONTENTED = "contented"
+    LOST = "lost"
+    RELEASED = "released"
 
 
 class DistributedLock:
-    """A distributed lock backed by a database table."""
+    """
+    A fully observable database-backed distributed lock coordination primitive.
+
+    Features:
+    - Explicit lifecycle state machine tracking.
+    - Pluggable metrics hooks.
+    - Structured immutable lifecycle event emission.
+    """
 
     def __init__(
         self,
         session_factory: Callable[[], Session],
         lock_name: str,
         *,
+        metrics: LockMetrics | None = None,
+        event_sink: Callable[[LockEvent], None] | None = None,
         holder_id: str | None = None,
         ttl_seconds: int = 300,
     ) -> None:
+        """
+        Initialize the distributed lock.
+
+        Args:
+            session_factory: Factory for creating database sessions.
+            lock_name: Unique identifier for the lock.
+            metrics: Pluggable metrics interface (e.g. Prometheus, OTEL).
+            event_sink: Callable event sink for immutable structured logs/audit trail.
+            holder_id: Unique identifier for the current process/instance.
+            ttl_seconds: Time-to-live for the lock in seconds.
+        """
         self.session_factory = session_factory
         self.lock_name = lock_name
         self.holder_id = holder_id or str(uuid.uuid4())
         self.ttl_seconds = ttl_seconds
+        self.metrics = metrics
+        self.event_sink = event_sink
+        self._state = LockLifecycleState.INITIAL
 
-    # -------------------------
-    # Acquire
-    # -------------------------
+    def _emit(self, event: LockEvent) -> None:
+        """Emit a structured coordination lifecycle event."""
+        if self.event_sink:
+            try:
+                self.event_sink(event)
+            except Exception:
+                logger.exception("Failed to write coordination event to sink")
+
+    def _metric(self, name: str, labels: dict[str, str] | None = None, value: float | None = None) -> None:
+        """Record a counter increment or observation metric if metrics interface is provided."""
+        if self.metrics:
+            try:
+                if value is not None or "latency" in name:
+                    self.metrics.observe(name, value if value is not None else 0.0, labels)
+                else:
+                    self.metrics.inc(name, labels)
+            except Exception:
+                logger.exception("Failed to publish metric '%s'", name)
+
+    def _set_state(self, state: LockLifecycleState) -> None:
+        """Transition the internal lifecycle state machine state."""
+        self._state = state
 
     def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> bool:
+        """
+        Acquire the distributed lock with optional retries.
+        """
+        self._emit(
+            LockEvent(
+                LockEventType.ACQUIRE_ATTEMPT,
+                self.lock_name,
+                self.holder_id,
+            )
+        )
+        self._metric("lock_acquire_total")
         retries = 0
-
         while True:
             try:
                 with session_scope(self.session_factory) as session:
                     repo = AssetGraphRepository(session)
-
                     if repo.try_acquire_distributed_lock(
                         lock_name=self.lock_name,
                         holder_id=self.holder_id,
                         ttl_seconds=self.ttl_seconds,
                     ):
-                        logger.debug(
-                            "Acquired distributed lock '%s' for holder '%s'",
-                            self.lock_name,
-                            self.holder_id,
+                        self._set_state(LockLifecycleState.ACQUIRED)
+                        self._emit(
+                            LockEvent(
+                                LockEventType.ACQUIRED,
+                                self.lock_name,
+                                self.holder_id,
+                            )
                         )
+                        self._metric("lock_acquired_total")
                         return True
-
-            except Exception:
-                logger.exception(
-                    "Failed to acquire distributed lock '%s'",
-                    self.lock_name,
+            except Exception as exc:
+                self._emit(
+                    LockEvent(
+                        LockEventType.UNEXPECTED_ERROR,
+                        self.lock_name,
+                        self.holder_id,
+                        metadata={"error": type(exc).__name__},
+                    )
                 )
+                self._metric("lock_errors_total")
                 if retries >= max_retries:
-                    raise
+                    self._set_state(LockLifecycleState.LOST)
+                    return False
 
             if retries >= max_retries:
-                break
+                self._set_state(LockLifecycleState.CONTENTED)
+                self._emit(
+                    LockEvent(
+                        LockEventType.CONTENTED,
+                        self.lock_name,
+                        self.holder_id,
+                    )
+                )
+                self._metric("lock_contention_total")
+                return False
 
             retries += 1
             logger.info(
@@ -98,106 +205,119 @@ class DistributedLock:
             )
             sleep(retry_interval_seconds)
 
-        return False
-
-    # -------------------------
-    # Refresh
-    # -------------------------
-
-    def refresh(
-        self,
-        *,
-        max_retries: int = 2,
-        retry_delay_seconds: float = 0.5,
-    ) -> LockRefreshResult:
+    def refresh(self, *, max_retries: int = 2, retry_delay_seconds: float = 0.5) -> bool:
         """
         Refresh the distributed lock to extend its TTL.
 
+        Retries on transient DB errors to handle brief network blips.
+        Uses exponential backoff delays on retries.
+
+        Args:
+            max_retries: Number of retry attempts on transient errors (default 2).
+            retry_delay_seconds: Base delay between retries (default 0.5s).
+
         Returns:
-            LockRefreshResult.REFRESHED:
-                lock successfully refreshed
-
-            LockRefreshResult.CONTENTED:
-                lock is held by another holder (expected contention)
-
-            LockRefreshResult.FAILED:
-                retry exhaustion or transient failure
+            True if lock was refreshed, False if held by another holder.
         """
-
-        if not isinstance(max_retries, int):
-            raise TypeError("max_retries must be an int")
-
-        if not isinstance(retry_delay_seconds, (int, float)):
-            raise TypeError("retry_delay_seconds must be a number")
-
         if max_retries < 0:
             raise ValueError("max_retries must be >= 0")
-
         if retry_delay_seconds < 0:
             raise ValueError("retry_delay_seconds must be >= 0")
-
+        start = time()
         for attempt in range(max_retries + 1):
             try:
                 with session_scope(self.session_factory) as session:
                     repo = AssetGraphRepository(session)
-
-                    if repo.try_acquire_distributed_lock(
+                    ok = repo.try_acquire_distributed_lock(
                         lock_name=self.lock_name,
                         holder_id=self.holder_id,
                         ttl_seconds=self.ttl_seconds,
-                    ):
-                        logger.debug(
-                            "Refreshed distributed lock '%s' for holder '%s'",
+                    )
+                    if ok:
+                        self._set_state(LockLifecycleState.REFRESHED)
+                        self._emit(
+                            LockEvent(
+                                LockEventType.REFRESHED,
+                                self.lock_name,
+                                self.holder_id,
+                                metadata={"attempt": attempt},
+                            )
+                        )
+                        self._metric("lock_refresh_total")
+                        self._metric("lock_refresh_latency_seconds", {"status": "success"}, value=time() - start)
+                        return True
+
+                    self._set_state(LockLifecycleState.CONTENTED)
+                    self._emit(
+                        LockEvent(
+                            LockEventType.CONTENTED,
                             self.lock_name,
                             self.holder_id,
                         )
-                        return LockRefreshResult.REFRESHED
-
-                    logger.debug(
-                        "Lock refresh not applied (contention) lock='%s'",
-                        self.lock_name,
                     )
-                    return LockRefreshResult.CONTENTED
-
+                    self._metric("lock_contention_total")
+                    self._metric("lock_refresh_latency_seconds", {"status": "contested"}, value=time() - start)
+                    return False
             except (SQLAlchemyError, OSError) as exc:
-                if attempt < max_retries:
-                    delay = retry_delay_seconds * (2**attempt)
-                    jitter = random.uniform(0, delay * 0.1)
-
-                    logger.warning(
-                        "Lock refresh attempt %d/%d failed lock='%s' holder='%s' error=%s retrying_in=%.2fs",
-                        attempt + 1,
-                        max_retries + 1,
+                self._emit(
+                    LockEvent(
+                        LockEventType.TRANSIENT_ERROR,
                         self.lock_name,
                         self.holder_id,
-                        type(exc).__name__,
-                        delay + jitter,
+                        metadata={"error": type(exc).__name__},
                     )
-
-                    sleep(delay + jitter)
+                )
+                if attempt < max_retries:
+                    delay = retry_delay_seconds * (2**attempt)
+                    logger.warning(
+                        "Lock refresh attempt %d/%d failed (%s), retrying in %ss...",
+                        attempt + 1,
+                        max_retries + 1,
+                        type(exc).__name__,
+                        delay,
+                    )
+                    sleep(delay)
                     continue
-
+                self._set_state(LockLifecycleState.LOST)
+                self._emit(
+                    LockEvent(
+                        LockEventType.FAILED,
+                        self.lock_name,
+                        self.holder_id,
+                        metadata={"error": type(exc).__name__, "attempts": attempt + 1},
+                    )
+                )
+                self._metric("lock_refresh_failures")
+                self._metric("lock_refresh_latency_seconds", {"status": "failed"}, value=time() - start)
+                return False
+            except Exception as exc:
+                self._emit(
+                    LockEvent(
+                        LockEventType.UNEXPECTED_ERROR,
+                        self.lock_name,
+                        self.holder_id,
+                        metadata={"error": type(exc).__name__},
+                    )
+                )
                 logger.warning(
-                    "Lock refresh failed after %d attempts lock='%s' holder='%s' error=%s",
-                    max_retries + 1,
+                    "Unexpected error refreshing distributed lock '%s': %s",
                     self.lock_name,
-                    self.holder_id,
                     type(exc).__name__,
                 )
-                return LockRefreshResult.FAILED
-
-            except Exception:
-                logger.exception(
-                    "Unexpected error refreshing distributed lock '%s'",
-                    self.lock_name,
-                )
-                return LockRefreshResult.FAILED
-
-    # -------------------------
-    # Release
-    # -------------------------
+                self._metric("lock_refresh_latency_seconds", {"status": "error"}, value=time() - start)
+                return False
 
     def release(self) -> None:
+        """Release the distributed lock."""
+        self._set_state(LockLifecycleState.RELEASED)
+        self._emit(
+            LockEvent(
+                LockEventType.RELEASED,
+                self.lock_name,
+                self.holder_id,
+            )
+        )
+        self._metric("lock_release_total")
         try:
             with session_scope(self.session_factory) as session:
                 repo = AssetGraphRepository(session)
@@ -210,48 +330,105 @@ class DistributedLock:
                     self.lock_name,
                     self.holder_id,
                 )
-        except Exception:
+        except Exception as exc:
+            self._emit(
+                LockEvent(
+                    LockEventType.UNEXPECTED_ERROR,
+                    self.lock_name,
+                    self.holder_id,
+                    metadata={"error": type(exc).__name__},
+                )
+            )
+            self._metric("lock_errors_total")
             logger.exception(
                 "Failed to release distributed lock '%s'",
                 self.lock_name,
             )
 
-    # -------------------------
-    # State
-    # -------------------------
-
     def check_state(self) -> LockState:
+        """
+        Check the current state of this distributed lock.
+
+        State Classification:
+        - VALID: Lock exists, not expired, held by this holder_id
+        - EXPIRED: Lock exists but TTL has passed
+        - UNKNOWN: Lock doesn't exist OR held by different holder_id
+        - LOST: Database connectivity failure during state check
+
+        LOST vs UNKNOWN Distinction:
+        - UNKNOWN = deterministic state (no lock record or wrong owner)
+          May allow reacquisition if lock truly doesn't exist
+        - LOST = transient failure (cannot determine state due to DB error)
+          Must not proceed - cannot safely determine ownership
+
+        Recovery Implications:
+        - UNKNOWN: RecoveryGate may allow reacquisition or RESET recovery
+        - LOST: RecoveryGate blocks execution (UNSAFE action)
+        - EXPIRED: Allows reacquisition by any holder
+        - VALID: Normal operation continues
+
+        Returns:
+            LockState: The current state (VALID, EXPIRED, UNKNOWN, LOST).
+        """
+        self._emit(
+            LockEvent(
+                LockEventType.STATE_CHECK,
+                self.lock_name,
+                self.holder_id,
+            )
+        )
         try:
             with session_scope(self.session_factory) as session:
                 repo = AssetGraphRepository(session)
-                return repo.check_distributed_lock_state(
+                state = repo.check_distributed_lock_state(
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
                 )
-
+                if state == LockState.VALID:
+                    self._set_state(LockLifecycleState.ACQUIRED)
+                elif state == LockState.EXPIRED:
+                    self._set_state(LockLifecycleState.LOST)
+                else:
+                    self._set_state(LockLifecycleState.LOST)
+                return state
         except (SQLAlchemyError, OSError) as exc:
             logger.warning(
-                "Database connectivity failure checking lock '%s': %s",
+                "Lost database connectivity while checking lock '%s': %s",
                 self.lock_name,
                 type(exc).__name__,
             )
+            self._set_state(LockLifecycleState.LOST)
+            self._emit(
+                LockEvent(
+                    LockEventType.TRANSIENT_ERROR,
+                    self.lock_name,
+                    self.holder_id,
+                    metadata={"error": type(exc).__name__},
+                )
+            )
             return LockState.LOST
-
-        except Exception:
-            logger.exception(
-                "Unexpected error checking lock state '%s'",
+        except Exception as exc:
+            logger.error(
+                "Unexpected error checking lock '%s' state (%s) - re-raising",
                 self.lock_name,
+                type(exc).__name__,
+            )
+            self._emit(
+                LockEvent(
+                    LockEventType.UNEXPECTED_ERROR,
+                    self.lock_name,
+                    self.holder_id,
+                    metadata={"error": type(exc).__name__},
+                )
             )
             raise
 
-    # -------------------------
-    # Context manager
-    # -------------------------
-
     def __enter__(self) -> DistributedLock:
+        """Context manager entry point."""
         if not self.acquire():
             raise RuntimeError(f"Could not acquire distributed lock: {self.lock_name}")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Context manager exit point."""
         self.release()
