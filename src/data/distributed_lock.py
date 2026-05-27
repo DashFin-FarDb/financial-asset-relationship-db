@@ -136,26 +136,28 @@ class DistributedLock:
                 # Transient DB/network error - retry if attempts remain
                 if attempt < max_retries:
                     logger.warning(
-                        "Lock refresh attempt %d/%d failed (%s), retrying in %ss...",
-                        attempt + 1,
+                        "Lock refresh failed after %d attempts for lock '%s' holder '%s': %s",
                         max_retries + 1,
+                        self.lock_name,
+                        self.holder_id,
                         type(exc).__name__,
-                        retry_delay_seconds,
                     )
                     sleep(retry_delay_seconds)
                     continue
                 # Max retries exhausted
-                logger.warning(
-                    "Lock refresh failed after %d attempts: %s",
-                    max_retries + 1,
-                    type(exc).__name__,
-                )
-                return False
+                except Exception:
+                    logger.exception(
+                        "Unexpected error refreshing distributed lock '%s'",
+                        self.lock_name,
+                    )
+                    raise
             except Exception as exc:
                 # Unexpected error (programming bug) - don't retry
                 logger.warning(
-                    "Error refreshing distributed lock '%s': %s",
+                    "Lock refresh failed after %d attempts for lock '%s' holder '%s': %s",
+                    max_retries + 1,
                     self.lock_name,
+                    self.holder_id,
                     type(exc).__name__,
                 )
                 return False
