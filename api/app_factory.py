@@ -70,12 +70,24 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 
     url = _resolve_startup_reconciliation_url(settings)
     engine = create_engine_from_url(url)
+
+    # Resolve primary-only Coordination Plane (Plane 2) engine and session factory
+    coord_url = getattr(settings, "coordination_database_url", None) or url
+    coord_engine = create_engine_from_url(coord_url) if coord_url != url else engine
+
     try:
         # Schema guarantee runs safely isolated here before gate evaluations
         init_db(engine)
+        if coord_engine is not engine:
+            init_db(coord_engine)
+
         session_factory = create_session_factory(engine)
+        coordination_session_factory = (
+            create_session_factory(coord_engine) if coord_engine is not engine else session_factory
+        )
+
         lock = DistributedLock(
-            session_factory=session_factory,
+            coordination_session_factory=coordination_session_factory,
             lock_name="graph_rebuild",
             ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
         )
@@ -99,6 +111,8 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     finally:
         # Ensure short-lived startup verification engines are cleanly disposed
         engine.dispose()
+        if coord_engine is not engine:
+            coord_engine.dispose()
 
 
 @asynccontextmanager

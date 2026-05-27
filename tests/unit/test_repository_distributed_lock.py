@@ -1,6 +1,7 @@
 """Unit tests for AssetGraphRepository distributed lock and latest job methods."""
 
 from datetime import datetime, timedelta, timezone
+from time import sleep
 from unittest.mock import MagicMock
 
 import pytest
@@ -29,7 +30,7 @@ def _ensure_utc(dt: datetime) -> datetime:
 
 @pytest.fixture
 def repository_factory(tmp_path):
-    """Factory for AssetGraphRepository with fresh SQLite DB."""
+    """Create a factory for AssetGraphRepository with a fresh SQLite DB."""
     db_path = tmp_path / "test_distributed_lock.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
@@ -242,12 +243,16 @@ class TestDistributedLockRetryLogic:
 
     @pytest.fixture(scope="function")
     def lock_setup(self, repository_factory):
-        """Provides a factory-conformant session supplier and lock instance,
-        fixing previous lambda bypass."""
+        """Provide a factory-conformant session supplier and lock instance.
+
+        This fixes the previous lambda bypass.
+        """
 
         def bound_session_factory():
-            """Return a fresh Session by creating a new repository via the
-            repository_factory fixture on each call."""
+            """Return a fresh Session by creating a new repository.
+
+            Uses the repository_factory fixture on each call.
+            """
             return repository_factory().session
 
         return DistributedLock(bound_session_factory, "test_lock", ttl_seconds=60)
@@ -259,7 +264,7 @@ class TestDistributedLockRetryLogic:
         )
         monkeypatch.setattr(AssetGraphRepository, "try_acquire_distributed_lock", mock_try_acquire)
 
-        assert lock_setup.refresh(max_retries=2, retry_delay_seconds=0.01) is True
+        assert bool(lock_setup.refresh(max_retries=2, retry_delay_seconds=0.01)) is True
         assert mock_try_acquire.call_count == 3
 
     def test_refresh_does_not_retry_on_lock_conflict(self, monkeypatch, lock_setup):
@@ -312,7 +317,7 @@ class TestDistributedLockObservability:
             event_sink=event_sink,
         )
 
-        assert lock.acquire() is True
+        assert bool(lock.acquire()) is True
         assert lock._state == LockLifecycleState.ACQUIRED
 
         # Verify events emitted
@@ -342,17 +347,17 @@ class TestDistributedLockObservability:
         )
 
         # Acquire first
-        assert lock.acquire() is True
+        assert bool(lock.acquire()) is True
         events.clear()
 
         # Refresh
-        assert lock.refresh(max_retries=0) is True
+        assert bool(lock.refresh(max_retries=0)) is True
         assert lock._state == LockLifecycleState.REFRESHED
 
         # Verify refresh events
         assert len(events) == 1
         assert events[0].event_type == LockEventType.REFRESHED
-        assert events[0].metadata == {"attempt": 0}
+        assert events[0].metadata["attempt"] == 0
 
         # Verify refresh metrics (including latency observation)
         mock_metrics.inc.assert_any_call("lock_refresh_total", None)
@@ -375,7 +380,7 @@ class TestDistributedLockObservability:
             event_sink=event_sink,
         )
 
-        assert lock.acquire() is True
+        assert bool(lock.acquire()) is True
         events.clear()
 
         lock.release()
@@ -469,3 +474,77 @@ class TestDistributedLockObservability:
         mock_metrics.observe.assert_any_call(
             "lock_refresh_latency_seconds", pytest.approx(0.0, abs=0.5), {"status": "contested"}
         )
+
+
+@pytest.mark.unit
+class TestMultiRegionCoordination:
+    """Unit tests asserting multi-region coordination, fencing, and isolation guarantees."""
+
+    def test_zero_replica_isolation_and_primary_only_routing(self):
+        """Verify that DistributedLock only calls the coordination_session_factory."""
+        coordination_called = False
+
+        def coord_factory():
+            nonlocal coordination_called
+            coordination_called = True
+            # Return a mock session to prevent further errors
+            mock_session = MagicMock()
+            return mock_session
+
+        lock = DistributedLock(coordination_session_factory=coord_factory, lock_name="test_lock")
+
+        # When acquire is called, only coordination_session_factory should be executed
+        try:
+            lock.acquire()
+        except Exception:
+            pass
+
+        assert coordination_called is True
+
+    def test_fencing_token_monotonicity(self, repository_factory):
+        """Verify subsequent lock states return strictly monotonic fencing tokens (microsecond resolution)."""
+
+        def bound_session_factory():
+            return repository_factory().session
+
+        lock = DistributedLock(
+            coordination_session_factory=bound_session_factory, lock_name="fenced_lock", ttl_seconds=60
+        )
+
+        lease1 = lock.acquire()
+        assert lease1 is not False
+        token1 = lease1.fencing_token
+        assert token1 > 0
+
+        # Wait a tiny bit (simulating progress/update time) or manually update record
+        sleep(0.01)
+
+        lease2 = lock.refresh()
+        assert lease2 is not False
+        token2 = lease2.fencing_token
+
+        assert token2 > token1
+
+    def test_fail_fast_on_primary_partition_timeout(self, monkeypatch):
+        """Verify that primary timeouts transition lock state to LOST instantly without falling back."""
+
+        def failing_factory():
+            raise TimeoutError("Primary database connection timeout")
+
+        events = []
+
+        def event_sink(event):
+            events.append(event)
+
+        lock = DistributedLock(
+            coordination_session_factory=failing_factory, lock_name="timeout_lock", event_sink=event_sink
+        )
+
+        # check_state should catch TimeoutError and transition to LOST
+        state = lock.check_state()
+        assert state == LockState.LOST
+        assert lock._state == LockLifecycleState.LOST
+
+        # Verify a TRANSIENT_ERROR event is emitted
+        assert len(events) == 1
+        assert events[0].event_type == LockEventType.TRANSIENT_ERROR

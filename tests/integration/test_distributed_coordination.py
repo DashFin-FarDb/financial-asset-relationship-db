@@ -70,7 +70,7 @@ def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app
     def attempt(holder: str, lock: DistributedLock) -> None:
         try:
             barrier.wait()
-            results[holder] = lock.acquire()
+            results[holder] = bool(lock.acquire())
         except threading.BrokenBarrierError:
             results[holder] = False
         except SQLAlchemyError as exc:

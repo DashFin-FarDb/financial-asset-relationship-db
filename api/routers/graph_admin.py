@@ -133,7 +133,7 @@ _REBUILD_RUNTIME = _RebuildRuntime()
 class _RebuildExecutionError(Exception):
     """Wrap rebuild execution errors with bounded audit source context."""
 
-    def __init__(self, source: GraphRebuildSource, cause: Exception) -> None:
+    def __init__(self, source: GraphRebuildSource, cause: Exception | BaseException) -> None:
         """Store source and underlying failure without exposing raw details."""
         super().__init__(cause.__class__.__name__)
         self.source = source
@@ -557,7 +557,7 @@ def _unwrap_rebuild_error(exc: Exception | BaseException) -> Exception | BaseExc
 
 
 def shutdown_rebuild_executor_sync() -> None:
-    """Synchronous wrapper for shutdown_rebuild_executor."""
+    """Shut down the rebuild executor synchronously."""
     _REBUILD_RUNTIME.shutdown_executor()
 
 
@@ -934,13 +934,27 @@ def _perform_rebuild_and_persist_sync(
     """Rebuild the graph, persist it, then publish it to runtime state."""
     resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     engine = create_engine_from_url(resolved_url)
+
+    # Resolve primary-only Coordination Plane (Plane 2)
+    coord_url = settings.coordination_database_url or settings.asset_graph_database_url
+    resolved_coord_url = resolve_durable_graph_persistence_url(coord_url)
+    coord_engine = create_engine_from_url(resolved_coord_url) if resolved_coord_url != resolved_url else engine
+
     lock_acquired = False
     dist_lock = None
 
     try:
         session_factory = create_session_factory(engine)
+        coordination_session_factory = (
+            create_session_factory(coord_engine) if coord_engine is not engine else session_factory
+        )
+
         lock_ttl = settings.rebuild_lock_ttl_seconds
-        dist_lock = DistributedLock(session_factory, "graph_rebuild", ttl_seconds=lock_ttl)
+        dist_lock = DistributedLock(
+            coordination_session_factory=coordination_session_factory,
+            lock_name="graph_rebuild",
+            ttl_seconds=lock_ttl,
+        )
         if not dist_lock.acquire():
             raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
 
@@ -961,6 +975,8 @@ def _perform_rebuild_and_persist_sync(
         if lock_acquired and dist_lock:
             dist_lock.release()
         engine.dispose()
+        if coord_engine is not engine:
+            coord_engine.dispose()
 
 
 def _sanitize_failure_message(exc: Exception | BaseException) -> str:

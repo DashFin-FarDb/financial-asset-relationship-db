@@ -16,8 +16,8 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validat
 
 
 def _parse_bool_env(value: str | None) -> bool:
-    """
-    Parse a boolean environment variable value.
+    """Parse a boolean environment variable value.
+
     Interprets the value case-insensitively; "1", "true", "yes", or "on" are True.
     """
     if value is None:
@@ -61,6 +61,7 @@ class Settings(BaseModel):
     # Database configuration
     asset_graph_database_url: str | None = Field(default=None)
     database_url: str | None = Field(default=None)
+    coordination_database_url: str | None = Field(default=None)
     postgres_url: str | None = Field(default=None)
     # Distributed lock configuration
     # Allow int | str | None to capture empty strings from os.getenv
@@ -114,6 +115,7 @@ def load_settings() -> Settings:
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
         database_url=os.getenv("DATABASE_URL") or postgres_url,
+        coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
         # Passed as raw string to Pydantic for validation and coercion
         rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),

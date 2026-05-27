@@ -14,6 +14,7 @@ from typing import Any
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from src.data.db_models import DistributedLockORM
 from src.data.repository import AssetGraphRepository, session_scope
 
 logger = logging.getLogger(__name__)
@@ -76,6 +77,14 @@ class LockLifecycleState(str, Enum):
     RELEASED = "released"
 
 
+@dataclass(frozen=True)
+class LockLease:
+    """Represents an active, fenced distributed lock lease."""
+
+    state: LockLifecycleState
+    fencing_token: int
+
+
 class DistributedLock:
     """
     A fully observable database-backed distributed lock coordination primitive.
@@ -88,32 +97,44 @@ class DistributedLock:
 
     def __init__(
         self,
-        session_factory: Callable[[], Session],
-        lock_name: str,
+        coordination_session_factory: Callable[[], Session] | None = None,
+        lock_name: str | None = None,
         *,
+        session_factory: Callable[[], Session] | None = None,
         metrics: LockMetrics | None = None,
         event_sink: Callable[[LockEvent], None] | None = None,
         holder_id: str | None = None,
         ttl_seconds: int = 300,
     ) -> None:
         """
-        Initialize the distributed lock.
+        Initialize the distributed lock coordination primitive.
 
         Args:
-            session_factory: Factory for creating database sessions.
+            coordination_session_factory: Factory for creating primary-only coordination sessions.
             lock_name: Unique identifier for the lock.
+            session_factory: Backward-compatible alias for coordination_session_factory.
             metrics: Pluggable metrics interface (e.g. Prometheus, OTEL).
             event_sink: Callable event sink for immutable structured logs/audit trail.
             holder_id: Unique identifier for the current process/instance.
             ttl_seconds: Time-to-live for the lock in seconds.
         """
-        self.session_factory = session_factory
+        resolved_factory = coordination_session_factory or session_factory
+        if resolved_factory is None:
+            raise TypeError(
+                "__init__() missing 1 required positional/keyword argument: 'coordination_session_factory' or 'session_factory'"
+            )
+        if lock_name is None:
+            raise TypeError("__init__() missing 1 required positional argument: 'lock_name'")
+
+        self.coordination_session_factory = resolved_factory
+        self.session_factory = resolved_factory
         self.lock_name = lock_name
         self.holder_id = holder_id or str(uuid.uuid4())
         self.ttl_seconds = ttl_seconds
         self.metrics = metrics
         self.event_sink = event_sink
         self._state = LockLifecycleState.INITIAL
+        self._fencing_token = 0
 
     def _emit(self, event: LockEvent) -> None:
         """Emit a structured coordination lifecycle event."""
@@ -138,10 +159,8 @@ class DistributedLock:
         """Transition the internal lifecycle state machine state."""
         self._state = state
 
-    def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> bool:
-        """
-        Acquire the distributed lock with optional retries.
-        """
+    def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> LockLease | bool:
+        """Acquire the distributed lock with optional retries."""
         self._emit(
             LockEvent(
                 LockEventType.ACQUIRE_ATTEMPT,
@@ -153,23 +172,28 @@ class DistributedLock:
         retries = 0
         while True:
             try:
-                with session_scope(self.session_factory) as session:
+                with session_scope(self.coordination_session_factory) as session:
                     repo = AssetGraphRepository(session)
                     if repo.try_acquire_distributed_lock(
                         lock_name=self.lock_name,
                         holder_id=self.holder_id,
                         ttl_seconds=self.ttl_seconds,
                     ):
+                        lock_record = session.get(DistributedLockORM, self.lock_name)
+                        if lock_record:
+                            self._fencing_token = int(lock_record.updated_at.timestamp() * 1_000_000)
+
                         self._set_state(LockLifecycleState.ACQUIRED)
                         self._emit(
                             LockEvent(
                                 LockEventType.ACQUIRED,
                                 self.lock_name,
                                 self.holder_id,
+                                metadata={"fencing_token": self._fencing_token},
                             )
                         )
                         self._metric("lock_acquired_total")
-                        return True
+                        return LockLease(state=LockLifecycleState.ACQUIRED, fencing_token=self._fencing_token)
             except Exception as exc:
                 self._emit(
                     LockEvent(
@@ -205,7 +229,7 @@ class DistributedLock:
             )
             sleep(retry_interval_seconds)
 
-    def refresh(self, *, max_retries: int = 2, retry_delay_seconds: float = 0.5) -> bool:
+    def refresh(self, *, max_retries: int = 2, retry_delay_seconds: float = 0.5) -> LockLease | bool:
         """
         Refresh the distributed lock to extend its TTL.
 
@@ -217,7 +241,7 @@ class DistributedLock:
             retry_delay_seconds: Base delay between retries (default 0.5s).
 
         Returns:
-            True if lock was refreshed, False if held by another holder.
+            LockLease on success, False if held by another holder.
         """
         if max_retries < 0:
             raise ValueError("max_retries must be >= 0")
@@ -226,7 +250,7 @@ class DistributedLock:
         start = time()
         for attempt in range(max_retries + 1):
             try:
-                with session_scope(self.session_factory) as session:
+                with session_scope(self.coordination_session_factory) as session:
                     repo = AssetGraphRepository(session)
                     ok = repo.try_acquire_distributed_lock(
                         lock_name=self.lock_name,
@@ -234,18 +258,22 @@ class DistributedLock:
                         ttl_seconds=self.ttl_seconds,
                     )
                     if ok:
+                        lock_record = session.get(DistributedLockORM, self.lock_name)
+                        if lock_record:
+                            self._fencing_token = int(lock_record.updated_at.timestamp() * 1_000_000)
+
                         self._set_state(LockLifecycleState.REFRESHED)
                         self._emit(
                             LockEvent(
                                 LockEventType.REFRESHED,
                                 self.lock_name,
                                 self.holder_id,
-                                metadata={"attempt": attempt},
+                                metadata={"attempt": attempt, "fencing_token": self._fencing_token},
                             )
                         )
                         self._metric("lock_refresh_total")
                         self._metric("lock_refresh_latency_seconds", {"status": "success"}, value=time() - start)
-                        return True
+                        return LockLease(state=LockLifecycleState.REFRESHED, fencing_token=self._fencing_token)
 
                     self._set_state(LockLifecycleState.CONTENTED)
                     self._emit(
@@ -308,11 +336,12 @@ class DistributedLock:
                 )
                 self._metric("lock_refresh_latency_seconds", {"status": "error"}, value=time() - start)
                 return False
+        return False
 
     def release(self) -> None:
         """Release the distributed lock."""
         try:
-            with session_scope(self.session_factory) as session:
+            with session_scope(self.coordination_session_factory) as session:
                 repo = AssetGraphRepository(session)
                 repo.release_distributed_lock(
                     lock_name=self.lock_name,
@@ -373,7 +402,7 @@ class DistributedLock:
             LockState: The current state (VALID, EXPIRED, UNKNOWN, LOST).
         """
         try:
-            with session_scope(self.session_factory) as session:
+            with session_scope(self.coordination_session_factory) as session:
                 repo = AssetGraphRepository(session)
                 state = repo.check_distributed_lock_state(
                     lock_name=self.lock_name,
