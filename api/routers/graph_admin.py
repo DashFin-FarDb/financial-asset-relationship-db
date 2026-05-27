@@ -953,6 +953,7 @@ def _perform_rebuild_and_persist_sync(
         - coordination plane MUST NOT reuse domain-plane sessions
         - coordination authority MUST fail closed on connectivity loss
     """
+    from src.data.distributed_lock import LockLifecycleState, LockState, LockLease
     from src.data.distributed_lock import LockLease, LockLifecycleState, LockState
 
     #
