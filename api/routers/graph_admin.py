@@ -931,52 +931,270 @@ def _perform_rebuild_and_persist_sync(
     *,
     user_ref: str,
 ) -> GraphRebuildResponse:
-    """Rebuild the graph, persist it, then publish it to runtime state."""
-    resolved_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-    engine = create_engine_from_url(resolved_url)
+    """
+    Rebuild the graph, persist it, then publish it to runtime state.
 
-    # Resolve primary-only Coordination Plane (Plane 2)
-    coord_url = settings.coordination_database_url or settings.asset_graph_database_url
-    resolved_coord_url = resolve_durable_graph_persistence_url(coord_url)
-    coord_engine = create_engine_from_url(resolved_coord_url) if resolved_coord_url != resolved_url else engine
+    Architecture:
+        Plane 1 (Domain Plane):
+            - Asset graph persistence
+            - Rebuild execution
+            - Runtime graph publication
+            - May use regional/local replicas for read scaling
 
-    lock_acquired = False
-    dist_lock = None
+        Plane 2 (Coordination Plane):
+            - Distributed lock coordination
+            - Heartbeat authority
+            - Recovery gating
+            - MUST target authoritative primary-only database
 
-    try:
-        session_factory = create_session_factory(engine)
-        coordination_session_factory = (
-            create_session_factory(coord_engine) if coord_engine is not engine else session_factory
+    Coordination Safety Rules:
+        - coordination_database_url MUST be explicitly configured
+        - coordination plane MUST use isolated engine/session pools
+        - coordination plane MUST NOT reuse domain-plane sessions
+        - coordination authority MUST fail closed on connectivity loss
+    """
+
+    #
+    # -------------------------------------------------------------------------
+    # Resolve Domain Plane (Plane 1)
+    # -------------------------------------------------------------------------
+    #
+
+    resolved_domain_url = resolve_durable_graph_persistence_url(
+        settings.asset_graph_database_url
+    )
+
+    domain_engine = create_engine_from_url(
+        resolved_domain_url,
+    )
+
+    #
+    # -------------------------------------------------------------------------
+    # Resolve Coordination Plane (Plane 2)
+    # -------------------------------------------------------------------------
+    #
+    # IMPORTANT:
+    # Coordination isolation MUST be explicit.
+    #
+    # Never silently inherit DATABASE_URL / asset_graph_database_url.
+    # Silent fallback structurally defeats split-brain protections.
+    #
+
+    coordination_database_url = settings.coordination_database_url
+
+    if not coordination_database_url:
+        raise RuntimeError(
+            "coordination_database_url must be explicitly configured "
+            "for distributed rebuild coordination"
         )
 
+    resolved_coordination_url = resolve_durable_graph_persistence_url(
+        coordination_database_url
+    )
+
+    #
+    # IMPORTANT:
+    # Always isolate coordination engine/pool even if URLs are identical.
+    #
+    # Rationale:
+    #   - separate pool sizing
+    #   - separate retry semantics
+    #   - separate observability
+    #   - coordination isolation guarantees
+    #
+
+    coordination_engine = create_engine_from_url(
+        resolved_coordination_url,
+    )
+
+    #
+    # -------------------------------------------------------------------------
+    # Runtime Coordination State
+    # -------------------------------------------------------------------------
+    #
+
+    lock_acquired = False
+    dist_lock: DistributedLock | None = None
+
+    try:
+        #
+        # ---------------------------------------------------------------------
+        # Create isolated session factories
+        # ---------------------------------------------------------------------
+        #
+
+        domain_session_factory = create_session_factory(domain_engine)
+
+        coordination_session_factory = create_session_factory(
+            coordination_engine
+        )
+
+        #
+        # ---------------------------------------------------------------------
+        # Validate coordination authority
+        # ---------------------------------------------------------------------
+        #
+        # Coordination plane MUST point to authoritative primary.
+        #
+        # Example PostgreSQL validation:
+        #   SELECT pg_is_in_recovery();
+        #
+        # This helper should fail closed if:
+        #   - DB unreachable
+        #   - server is replica
+        #   - authority uncertain
+        #
+
+        validate_coordination_database_primary(
+            coordination_session_factory
+        )
+
+        #
+        # ---------------------------------------------------------------------
+        # Distributed coordination lock
+        # ---------------------------------------------------------------------
+        #
+
         lock_ttl = settings.rebuild_lock_ttl_seconds
+
         dist_lock = DistributedLock(
             coordination_session_factory=coordination_session_factory,
             lock_name="graph_rebuild",
             ttl_seconds=lock_ttl,
         )
-        if not dist_lock.acquire():
-            raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
+
+        lease = dist_lock.acquire()
+
+        if not lease.acquired:
+            raise _DistributedLockAcquisitionError(
+                "Could not acquire distributed rebuild lock"
+            )
 
         lock_acquired = True
+
+        #
+        # ---------------------------------------------------------------------
+        # Validate authoritative coordination state
+        # ---------------------------------------------------------------------
+        #
+        # LOST is reserved strictly for:
+        #   - connectivity failure
+        #   - coordination uncertainty
+        #
+        # UNKNOWN / EXPIRED are not LOST.
+        #
+
+        lock_state = dist_lock.check_state()
+
+        if lock_state == LockState.LOST:
+            raise RuntimeError(
+                "Coordination state lost immediately after lock acquisition"
+            )
+
+        if lock_state != LockState.VALID:
+            raise RuntimeError(
+                f"Unexpected coordination state after acquisition: {lock_state}"
+            )
+
+        #
+        # ---------------------------------------------------------------------
+        # Recovery safety gate
+        # ---------------------------------------------------------------------
+        #
+
         RecoveryGate(
-            session_factory=session_factory,
+            session_factory=domain_session_factory,
             lock=dist_lock,
             increment_recovery_trigger=increment_recovery_trigger,
             runtime_has_active_executor=False,
             lock_ttl_seconds=lock_ttl,
         ).ensure_safe_to_execute()
 
-        job_id, job_started_at = _create_and_start_rebuild_job(session_factory, user_ref, dist_lock.holder_id)
+        #
+        # ---------------------------------------------------------------------
+        # Create rebuild job metadata
+        # ---------------------------------------------------------------------
+        #
 
-        with _orchestrate_heartbeat(session_factory, dist_lock, job_id, lock_ttl) as lock_lost:
-            return _run_rebuild_pipeline(session_factory, settings, resolved_url, job_id, job_started_at, lock_lost)
+        job_id, job_started_at = _create_and_start_rebuild_job(
+            domain_session_factory,
+            user_ref,
+            dist_lock.holder_id,
+        )
+
+        #
+        # ---------------------------------------------------------------------
+        # Heartbeat orchestration
+        # ---------------------------------------------------------------------
+        #
+        # lock_lost MUST ONLY represent:
+        #   - coordination uncertainty
+        #   - lost authority
+        #
+        # NOT:
+        #   - normal contention
+        #   - expiry
+        #   - release
+        #
+
+        with _orchestrate_heartbeat(
+            domain_session_factory,
+            dist_lock,
+            job_id,
+            lock_ttl,
+        ) as lock_lost:
+
+            #
+            # -------------------------------------------------------------
+            # Execute rebuild pipeline
+            # -------------------------------------------------------------
+            #
+
+            return _run_rebuild_pipeline(
+                domain_session_factory,
+                settings,
+                resolved_domain_url,
+                job_id,
+                job_started_at,
+                lock_lost,
+            )
+
     finally:
-        if lock_acquired and dist_lock:
-            dist_lock.release()
-        engine.dispose()
-        if coord_engine is not engine:
-            coord_engine.dispose()
+        #
+        # ---------------------------------------------------------------------
+        # Best-effort lock release
+        # ---------------------------------------------------------------------
+        #
+        # Do not attempt authoritative release if coordination state is LOST.
+        #
+        # LOST implies:
+        #   - ownership uncertainty
+        #   - connectivity uncertainty
+        #   - fencing uncertainty
+        #
+
+        if (
+            lock_acquired
+            and dist_lock is not None
+            and dist_lock.lifecycle_state != LifecycleState.LOST
+        ):
+            try:
+                dist_lock.release()
+            except Exception:
+                logger.exception(
+                    "Failed to release distributed rebuild lock"
+                )
+
+        #
+        # ---------------------------------------------------------------------
+        # Dispose isolated engines independently
+        # ---------------------------------------------------------------------
+        #
+
+        try:
+            coordination_engine.dispose()
+        finally:
+            domain_engine.dispose()
 
 
 def _sanitize_failure_message(exc: Exception | BaseException) -> str:
