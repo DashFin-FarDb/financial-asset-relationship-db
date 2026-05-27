@@ -182,7 +182,7 @@ class DistributedLock:
                 self._metric("lock_errors_total")
                 if retries >= max_retries:
                     self._set_state(LockLifecycleState.LOST)
-                    return False
+                    raise
 
             if retries >= max_retries:
                 self._set_state(LockLifecycleState.CONTENTED)
@@ -299,6 +299,8 @@ class DistributedLock:
                         metadata={"error": type(exc).__name__},
                     )
                 )
+                self._set_state(LockLifecycleState.LOST)
+                self._metric("lock_errors_total")
                 logger.warning(
                     "Unexpected error refreshing distributed lock '%s': %s",
                     self.lock_name,
@@ -309,15 +311,6 @@ class DistributedLock:
 
     def release(self) -> None:
         """Release the distributed lock."""
-        self._set_state(LockLifecycleState.RELEASED)
-        self._emit(
-            LockEvent(
-                LockEventType.RELEASED,
-                self.lock_name,
-                self.holder_id,
-            )
-        )
-        self._metric("lock_release_total")
         try:
             with session_scope(self.session_factory) as session:
                 repo = AssetGraphRepository(session)
@@ -325,6 +318,15 @@ class DistributedLock:
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
                 )
+                self._set_state(LockLifecycleState.RELEASED)
+                self._emit(
+                    LockEvent(
+                        LockEventType.RELEASED,
+                        self.lock_name,
+                        self.holder_id,
+                    )
+                )
+                self._metric("lock_release_total")
                 logger.debug(
                     "Released distributed lock '%s' for holder '%s'",
                     self.lock_name,
@@ -370,13 +372,6 @@ class DistributedLock:
         Returns:
             LockState: The current state (VALID, EXPIRED, UNKNOWN, LOST).
         """
-        self._emit(
-            LockEvent(
-                LockEventType.STATE_CHECK,
-                self.lock_name,
-                self.holder_id,
-            )
-        )
         try:
             with session_scope(self.session_factory) as session:
                 repo = AssetGraphRepository(session)
@@ -384,10 +379,16 @@ class DistributedLock:
                     lock_name=self.lock_name,
                     holder_id=self.holder_id,
                 )
+                self._emit(
+                    LockEvent(
+                        LockEventType.STATE_CHECK,
+                        self.lock_name,
+                        self.holder_id,
+                        metadata={"state": state},
+                    )
+                )
                 if state == LockState.VALID:
                     self._set_state(LockLifecycleState.ACQUIRED)
-                elif state == LockState.EXPIRED:
-                    self._set_state(LockLifecycleState.LOST)
                 else:
                     self._set_state(LockLifecycleState.LOST)
                 return state
@@ -413,6 +414,7 @@ class DistributedLock:
                 self.lock_name,
                 type(exc).__name__,
             )
+            self._set_state(LockLifecycleState.LOST)
             self._emit(
                 LockEvent(
                     LockEventType.UNEXPECTED_ERROR,
