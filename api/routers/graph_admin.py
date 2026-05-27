@@ -75,7 +75,7 @@ _MAX_AUDIT_USER_REF_LENGTH = 64
 _MAX_REBUILD_JOB_LIST_RESULTS = 100
 
 _URL_PATTERN = re.compile(
-    r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z][a-z0-9+\-.]*:[^\s/@]+:[^\s/@]+@\S+)",
+    r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_\-\.+]+:[^\s@/]+@[a-z0-9_\-\.+:]+)(?:\S*)",
     re.IGNORECASE,
 )
 
@@ -960,29 +960,10 @@ def _perform_rebuild_and_persist_sync(
         - coordination plane MUST NOT reuse domain-plane sessions
         - coordination authority MUST fail closed on connectivity loss
     """
-
     #
     # ------------------------------------------------------------------
-    # Resolve Domain Plane (Plane 1)
+    # Pre-allocation Safety & Guard checks
     # ------------------------------------------------------------------
-    #
-
-    resolved_domain_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-
-    domain_engine = create_engine_from_url(
-        resolved_domain_url,
-    )
-
-    #
-    # ------------------------------------------------------------------
-    # Resolve Coordination Plane (Plane 2)
-    # ------------------------------------------------------------------
-    #
-    # IMPORTANT:
-    # Coordination isolation is mandatory.
-    #
-    # Never silently inherit asset_graph_database_url.
-    # Silent fallback structurally defeats split-brain protections.
     #
 
     coordination_database_url = settings.coordination_database_url
@@ -992,21 +973,28 @@ def _perform_rebuild_and_persist_sync(
             "coordination_database_url must be explicitly configured " "for distributed rebuild coordination."
         )
 
-    resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
-
-    #
-    # IMPORTANT:
-    # Always isolate coordination pools even if URLs are identical.
-    #
-
-    coordination_engine = create_engine_from_url(
-        resolved_coordination_url,
-    )
-
+    domain_engine = None
+    coordination_engine = None
     dist_lock: DistributedLock | None = None
     lock_acquired = False
 
     try:
+        #
+        # --------------------------------------------------------------
+        # Resolve DB URLs & Initialize isolated engines
+        # --------------------------------------------------------------
+        #
+
+        resolved_domain_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        domain_engine = create_engine_from_url(
+            resolved_domain_url,
+        )
+
+        resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
+        coordination_engine = create_engine_from_url(
+            resolved_coordination_url,
+        )
+
         #
         # --------------------------------------------------------------
         # Create isolated session factories
@@ -1014,7 +1002,6 @@ def _perform_rebuild_and_persist_sync(
         #
 
         domain_session_factory = create_session_factory(domain_engine)
-
         coordination_session_factory = create_session_factory(coordination_engine)
 
         #
@@ -1130,39 +1117,44 @@ def _perform_rebuild_and_persist_sync(
         #
 
         try:
-            coordination_engine.dispose()
+            if coordination_engine is not None:
+                coordination_engine.dispose()
         finally:
-            domain_engine.dispose()
+            if domain_engine is not None:
+                domain_engine.dispose()
 
 
-def validate_coordination_database_primary(session_factory):
+def validate_coordination_database_primary(session_factory) -> None:
     """Verify the coordination DB is a writable primary, not a replica.
 
     For PostgreSQL this uses pg_is_in_recovery(); for non-Postgres backends (e.g. SQLite)
     the check is a no-op because replica detection isn't applicable.
     """
+    session = session_factory()
     try:
-        with session_factory() as session:
-            bind = session.get_bind()
-            dialect_name = getattr(getattr(bind, "dialect", None), "name", None)
-            # Only run pg_is_in_recovery on PostgreSQL; other backends don't have replicas
-            if dialect_name != "postgresql":
-                return
-            result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
+        bind = session.get_bind()
+        dialect_name = getattr(getattr(bind, "dialect", None), "name", None)
+        # Only run pg_is_in_recovery on PostgreSQL; other backends don't have replicas
+        if dialect_name != "postgresql":
+            return
+        result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
+        if result:
+            raise RuntimeError(
+                "Coordination database is a read replica; coordination_database_url must point to the primary."
+            )
     except (SQLAlchemyError, OSError) as exc:
+        session.rollback()
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
-    if result:
-        raise RuntimeError(
-            "Coordination database is a read replica; coordination_database_url must point to the primary."
-        )
 
-
-def _sanitize_failure_message(exc: BaseException) -> str:
-    """
-    Return a bounded, sanitized failure message suitable for
-    rebuild job persistence and operational telemetry.
+def _sanitize_failure_message(exc: Exception | BaseException) -> str:
+    """Return a bounded, sanitized failure message for rebuild job persistence.
 
     Security goals:
         - prevent credential/DSN leakage
@@ -1175,7 +1167,6 @@ def _sanitize_failure_message(exc: BaseException) -> str:
         - unknown exceptions collapse to stable class/category names
         - output is bounded to fixed maximum size
     """
-
     root_exc = _unwrap_rebuild_error(exc)
 
     #

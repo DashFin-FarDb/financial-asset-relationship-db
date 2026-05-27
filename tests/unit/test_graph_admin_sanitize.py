@@ -22,19 +22,19 @@ class TestSanitizeFailureMessage:
         assert result == "Graph persistence is not configured."
 
     def test_known_safe_non_durable_retains_message(self) -> None:
-        """GraphPersistenceNonDurableError message is retained."""
+        """Verify that GraphPersistenceNonDurableError message is retained."""
         exc = GraphPersistenceNonDurableError("Graph persistence must use a durable database.")
         result = _sanitize_failure_message(exc)
         assert result == "Graph persistence must use a durable database."
 
     def test_known_safe_rebuild_source_error_retains_message(self) -> None:
-        """GraphRebuildSourceError message is retained."""
+        """Verify that GraphRebuildSourceError message is retained."""
         exc = GraphRebuildSourceError("Failed to build rebuild graph.")
         result = _sanitize_failure_message(exc)
         assert result == "Failed to build rebuild graph."
 
     def test_known_safe_save_error_retains_message(self) -> None:
-        """GraphPersistenceSaveError message is retained."""
+        """Verify that GraphPersistenceSaveError message is retained."""
         exc = GraphPersistenceSaveError("Failed to persist rebuilt graph.")
         result = _sanitize_failure_message(exc)
         assert result == "Failed to persist rebuilt graph."
@@ -43,7 +43,7 @@ class TestSanitizeFailureMessage:
         """Unknown exceptions store only the class name to prevent secret leakage."""
         exc = RuntimeError("secret password=hunter2 host=db.internal")
         result = _sanitize_failure_message(exc)
-        assert result == "RuntimeError"
+        assert result == "InternalError[RuntimeError]"
         assert "hunter2" not in result
         assert "password" not in result
 
@@ -55,7 +55,7 @@ class TestSanitizeFailureMessage:
         assert "[REDACTED_URL]" in result
 
     def test_uncommon_sqlalchemy_dialect_prefix_is_redacted(self) -> None:
-        """SQLAlchemy dialect+driver DSNs are redacted."""
+        """Verify that SQLAlchemy dialect+driver DSNs are redacted."""
         exc = GraphPersistenceSaveError(
             "Persist failed for postgresql+asyncpg://admin:s3cr3t@example.invalid/asset_graph"
         )
@@ -70,6 +70,14 @@ class TestSanitizeFailureMessage:
         result = _sanitize_failure_message(exc)
         assert "s3cr3t" not in result
         assert "admin:" not in result
+        assert "[REDACTED_URL]" in result
+
+    def test_bare_dsn_with_credentials_is_redacted(self) -> None:
+        """Bare DSN credentials (username:password@host) in known exceptions are redacted."""
+        exc = GraphPersistenceSaveError("Persist failed for admin:s3cr3t@example.invalid/asset_graph")
+        result = _sanitize_failure_message(exc)
+        assert "s3cr3t" not in result
+        assert "admin" not in result
         assert "[REDACTED_URL]" in result
 
     def test_empty_message_falls_back_to_class_name(self) -> None:
@@ -89,7 +97,7 @@ class TestSanitizeFailureMessage:
         """Generic ValueError is treated as unknown — only class name stored."""
         exc = ValueError("driver auth failed: user=sa password=P@ssw0rd")
         result = _sanitize_failure_message(exc)
-        assert result == "ValueError"
+        assert result == "InternalError[ValueError]"
         assert "P@ssw0rd" not in result
 
     def test_url_in_unknown_exception_not_leaked(self) -> None:
@@ -97,5 +105,5 @@ class TestSanitizeFailureMessage:
         exc = ConnectionError("connect failed: sqlite:///secret_path/data.db")
         result = _sanitize_failure_message(exc)
         # Unknown exception → class name only, no URL exposure
-        assert result == "ConnectionError"
+        assert result == "InternalError[ConnectionError]"
         assert "secret_path" not in result
