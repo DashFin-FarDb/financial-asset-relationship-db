@@ -77,7 +77,6 @@ class TestDistributedLockRepository:
         repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=60)
         repo.session.commit()
 
-        # Refresh
         acquired = repo.try_acquire_distributed_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=120)
         assert acquired is True
         repo.session.commit()
