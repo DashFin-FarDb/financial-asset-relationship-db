@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM
-from src.data.distributed_lock import DistributedLock, LockState
+from src.data.distributed_lock import DistributedLock, LockState, LockLifecycleState
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
@@ -79,6 +79,10 @@ _URL_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+_SECRET_PATTERN = re.compile(
+    r"(?i)(password|token|secret|key|api[_-]?key|auth)\s*[:=]\s*['\"]?[^\s'\"]+",
+    re.IGNORECASE,
+)
 
 class _RebuildRuntime:
     """Process-local rebuild concurrency and executor state."""
@@ -1038,7 +1042,7 @@ def _perform_rebuild_and_persist_sync(
 
         lease = dist_lock.acquire()
 
-        if not lease.acquired:
+        if not lease:
             raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
 
         lock_acquired = True
@@ -1112,7 +1116,7 @@ def _perform_rebuild_and_persist_sync(
         # --------------------------------------------------------------
         #
 
-        if lock_acquired and dist_lock is not None and dist_lock.lifecycle_state != LifecycleState.LOST:
+        if lock_acquired and dist_lock is not None and dist_lock._state != LockLifecycleState.LOST:
             try:
                 dist_lock.release()
             except Exception:
