@@ -57,7 +57,7 @@ The `DistributedLock.refresh()` method implements transient error retry:
 - **Default**: 2 retries with 0.5s delay
 - **Returns**: `True` on success, `False` on failure (conflict or exhausted retries)
 
-Thishandles brief network hiccups without failing the entire rebuild.
+This handles brief network hiccups without failing the entire rebuild.
 
 #### 4. Lock Loss Signal
 
