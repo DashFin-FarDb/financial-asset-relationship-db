@@ -231,10 +231,10 @@ class CoordinationLockRepository:
             )
 
         expires_at = record.expires_at
-        if expires_at.tzinfo is None:
+        if expires_at is not None and expires_at.tzinfo is None:
             expires_at = expires_at.replace(tzinfo=timezone.utc)
 
-        valid = (record.holder_id == holder_id) and (now < expires_at)
+        valid = (record.holder_id == holder_id) and (expires_at is not None and now < expires_at)
         updated_at = record.updated_at
         if updated_at.tzinfo is None:
             updated_at = updated_at.replace(tzinfo=timezone.utc)
