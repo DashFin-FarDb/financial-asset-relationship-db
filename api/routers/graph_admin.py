@@ -960,9 +960,7 @@ def _perform_rebuild_and_persist_sync(
     # -------------------------------------------------------------------------
     #
 
-    resolved_domain_url = resolve_durable_graph_persistence_url(
-        settings.asset_graph_database_url
-    )
+    resolved_domain_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
 
     domain_engine = create_engine_from_url(
         resolved_domain_url,
@@ -984,13 +982,10 @@ def _perform_rebuild_and_persist_sync(
 
     if not coordination_database_url:
         raise RuntimeError(
-            "coordination_database_url must be explicitly configured "
-            "for distributed rebuild coordination"
+            "coordination_database_url must be explicitly configured " "for distributed rebuild coordination"
         )
 
-    resolved_coordination_url = resolve_durable_graph_persistence_url(
-        coordination_database_url
-    )
+    resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
 
     #
     # IMPORTANT:
@@ -1025,9 +1020,7 @@ def _perform_rebuild_and_persist_sync(
 
         domain_session_factory = create_session_factory(domain_engine)
 
-        coordination_session_factory = create_session_factory(
-            coordination_engine
-        )
+        coordination_session_factory = create_session_factory(coordination_engine)
 
         #
         # ---------------------------------------------------------------------
@@ -1045,9 +1038,7 @@ def _perform_rebuild_and_persist_sync(
         #   - authority uncertain
         #
 
-        validate_coordination_database_primary(
-            coordination_session_factory
-        )
+        validate_coordination_database_primary(coordination_session_factory)
 
         #
         # ---------------------------------------------------------------------
@@ -1066,9 +1057,7 @@ def _perform_rebuild_and_persist_sync(
         lease = dist_lock.acquire()
 
         if not lease.acquired:
-            raise _DistributedLockAcquisitionError(
-                "Could not acquire distributed rebuild lock"
-            )
+            raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock")
 
         lock_acquired = True
 
@@ -1087,14 +1076,10 @@ def _perform_rebuild_and_persist_sync(
         lock_state = dist_lock.check_state()
 
         if lock_state == LockState.LOST:
-            raise RuntimeError(
-                "Coordination state lost immediately after lock acquisition"
-            )
+            raise RuntimeError("Coordination state lost immediately after lock acquisition")
 
         if lock_state != LockState.VALID:
-            raise RuntimeError(
-                f"Unexpected coordination state after acquisition: {lock_state}"
-            )
+            raise RuntimeError(f"Unexpected coordination state after acquisition: {lock_state}")
 
         #
         # ---------------------------------------------------------------------
@@ -1173,17 +1158,11 @@ def _perform_rebuild_and_persist_sync(
         #   - fencing uncertainty
         #
 
-        if (
-            lock_acquired
-            and dist_lock is not None
-            and dist_lock.lifecycle_state != LifecycleState.LOST
-        ):
+        if lock_acquired and dist_lock is not None and dist_lock.lifecycle_state != LifecycleState.LOST:
             try:
                 dist_lock.release()
             except Exception:
-                logger.exception(
-                    "Failed to release distributed rebuild lock"
-                )
+                logger.exception("Failed to release distributed rebuild lock")
 
         #
         # ---------------------------------------------------------------------
