@@ -1164,9 +1164,31 @@ def validate_coordination_database_primary(session_factory):
             domain_engine.dispose()
 
 
-def _sanitize_failure_message(exc: Exception | BaseException) -> str:
-    """Return a bounded, sanitized failure message for job persistence."""
+def _sanitize_failure_message(exc: Exception) -> str:
+    """
+    Return a bounded, sanitized failure message suitable for
+    rebuild job persistence and operational telemetry.
+
+    Security goals:
+        - prevent credential/DSN leakage
+        - prevent internal topology disclosure
+        - prevent traceback persistence
+        - preserve operator-actionable semantics
+
+    Behaviour:
+        - known safe/domain exceptions retain sanitized messages
+        - unknown exceptions collapse to stable class/category names
+        - output is bounded to fixed maximum size
+    """
+
     root_exc = _unwrap_rebuild_error(exc)
+
+    #
+    # ------------------------------------------------------------------
+    # Explicitly safe/domain-facing exceptions
+    # ------------------------------------------------------------------
+    #
+
     safe_exceptions = (
         GraphPersistenceNotConfiguredError,
         GraphPersistenceNonDurableError,
@@ -1174,13 +1196,90 @@ def _sanitize_failure_message(exc: Exception | BaseException) -> str:
         GraphPersistenceSaveError,
         ExecutionBlockedError,
     )
-    if isinstance(root_exc, safe_exceptions):
-        message = str(root_exc) if str(root_exc) else root_exc.__class__.__name__
-    else:
-        message = root_exc.__class__.__name__
 
-    message = _URL_PATTERN.sub("[REDACTED_URL]", message)
-    return message[:512]
+    #
+    # ------------------------------------------------------------------
+    # Materialize safe message
+    # ------------------------------------------------------------------
+    #
+
+    if isinstance(root_exc, safe_exceptions):
+        raw_message = (
+            str(root_exc).strip()
+            or root_exc.__class__.__name__
+        )
+    else:
+        #
+        # IMPORTANT:
+        # Do not persist arbitrary exception strings from:
+        #   - SQLAlchemy
+        #   - DBAPI
+        #   - HTTP clients
+        #   - cloud SDKs
+        #
+        # These frequently contain:
+        #   - credentials
+        #   - DSNs
+        #   - hostnames
+        #   - internal topology
+        #   - SQL fragments
+        #
+
+        raw_message = (
+            f"InternalError[{root_exc.__class__.__name__}]"
+        )
+
+    #
+    # ------------------------------------------------------------------
+    # Redact sensitive patterns
+    # ------------------------------------------------------------------
+    #
+
+    sanitized = raw_message
+
+    #
+    # URLs / DSNs
+    #
+
+    sanitized = _URL_PATTERN.sub(
+        "[REDACTED_URL]",
+        sanitized,
+    )
+
+    #
+    # Basic credential-like patterns
+    #
+
+    sanitized = _SECRET_PATTERN.sub(
+        "[REDACTED_SECRET]",
+        sanitized,
+    )
+
+    #
+    # ------------------------------------------------------------------
+    # Normalize whitespace
+    # ------------------------------------------------------------------
+    #
+
+    sanitized = " ".join(
+        sanitized.split()
+    ).strip()
+
+    #
+    # ------------------------------------------------------------------
+    # Enforce bounded persistence size
+    # ------------------------------------------------------------------
+    #
+
+    MAX_FAILURE_MESSAGE_LENGTH = 512
+
+    if len(sanitized) > MAX_FAILURE_MESSAGE_LENGTH:
+        sanitized = (
+            sanitized[: MAX_FAILURE_MESSAGE_LENGTH - 3]
+            + "..."
+        )
+
+    return sanitized
 
 
 @contextmanager
