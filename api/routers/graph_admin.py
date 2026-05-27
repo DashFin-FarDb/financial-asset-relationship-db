@@ -7,6 +7,7 @@ import contextvars
 import logging
 import re
 import threading
+import time
 from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -14,14 +15,15 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, NoReturn, cast
 from sqlalchemy import text
-from sqlalchemy import text
+
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM
-from src.data.distributed_lock import DistributedLock
+from src.data.distributed_lock import DistributedLock, LockLease, LockLifecycleState, LockState
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
@@ -954,29 +956,30 @@ def _perform_rebuild_and_persist_sync(
         - coordination plane MUST NOT reuse domain-plane sessions
         - coordination authority MUST fail closed on connectivity loss
     """
-    from src.data.distributed_lock import LockLease, LockLifecycleState, LockState
 
     #
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # Resolve Domain Plane (Plane 1)
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     #
 
-    resolved_domain_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    resolved_domain_url = resolve_durable_graph_persistence_url(
+        settings.asset_graph_database_url
+    )
 
     domain_engine = create_engine_from_url(
         resolved_domain_url,
     )
 
     #
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # Resolve Coordination Plane (Plane 2)
-    # -------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     #
     # IMPORTANT:
-    # Coordination isolation MUST be explicit.
+    # Coordination isolation is mandatory.
     #
-    # Never silently inherit DATABASE_URL / asset_graph_database_url.
+    # Never silently inherit asset_graph_database_url.
     # Silent fallback structurally defeats split-brain protections.
     #
 
@@ -984,95 +987,172 @@ def _perform_rebuild_and_persist_sync(
 
     if not coordination_database_url:
         raise RuntimeError(
-Choose one policy and remove the other. For single-DB deployments with a fallback:
-
-coordination_database_url = settings.coordination_database_url or settings.asset_graph_database_url
-if not coordination_database_url:
-    raise RuntimeError('Neither coordination_database_url nor asset_graph_database_url is configured.')
-if not settings.coordination_database_url:
-    logger.warning('coordination_database_url not set; falling back to asset_graph_database_url.')
-resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
+            "coordination_database_url must be explicitly configured "
+            "for distributed rebuild coordination."
         )
 
-    resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
+    resolved_coordination_url = resolve_durable_graph_persistence_url(
+        coordination_database_url
+    )
 
     #
     # IMPORTANT:
-    # Option A: Warn and fall back to asset_graph_database_url for single-DB deployments
-    coordination_database_url = settings.coordination_database_url or settings.asset_graph_database_url
-    if not coordination_database_url:
-        raise RuntimeError(
-            "Neither coordination_database_url nor asset_graph_database_url is configured."
-        )
-    if not settings.coordination_database_url:
-        logger.warning(
-            "coordination_database_url is not set; falling back to asset_graph_database_url. "
-            "For production, set COORDINATION_DATABASE_URL to an authoritative primary."
-        )
-
-    # Option B: If the strict no-fallback policy is intentional, document it in DEPLOYMENT.md
-    # and add a migration note in the PR, then keep the RuntimeError but update
-    # get_graph_lifecycle_settings() to read from the env var with a clear error.
-    #
-    # Rationale:
-    #   - separate pool sizing
-    #   - separate retry semantics
-    #   - separate observability
-    #   - coordination isolation guarantees
+    # Always isolate coordination pools even if URLs are identical.
     #
 
     coordination_engine = create_engine_from_url(
         resolved_coordination_url,
     )
 
-    #
-    # -------------------------------------------------------------------------
-    # Runtime Coordination State
-    # -------------------------------------------------------------------------
-    #
-
-    lock_acquired = False
     dist_lock: DistributedLock | None = None
+    lock_acquired = False
 
     try:
         #
-        # ---------------------------------------------------------------------
+        # --------------------------------------------------------------
         # Create isolated session factories
-        # ---------------------------------------------------------------------
+        # --------------------------------------------------------------
         #
-        domain_session_factory = create_session_factory(domain_engine)
 
-        coordination_session_factory = create_session_factory(coordination_engine)
+        domain_session_factory = create_session_factory(
+            domain_engine
+        )
 
-        # Validate coordination authority (require primary)
-        validate_coordination_database_primary(coordination_session_factory)
-
-        # ---------------------------------------------------------------------
-
-        coordination_session_factory = create_session_factory(coordination_engine)
+        coordination_session_factory = create_session_factory(
+            coordination_engine
+        )
 
         #
-        # ---------------------------------------------------------------------
+        # --------------------------------------------------------------
         # Validate coordination authority
-        # ---------------------------------------------------------------------
+        # --------------------------------------------------------------
         #
         # Coordination plane MUST point to authoritative primary.
         #
-        # Example PostgreSQL validation:
-        #   SELECT pg_is_in_recovery();
-        #
-        # This helper should fail closed if:
-        #   - DB unreachable
-        #   - server is replica
-        #   - authority uncertain
-        #
 
-        validate_coordination_database_primary(coordination_session_factory)
+        validate_coordination_database_primary(
+            coordination_session_factory
+        )
 
         #
-        # ---------------------------------------------------------------------
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
+        # --------------------------------------------------------------
+        # Create distributed coordination lock
+        # --------------------------------------------------------------
+        #
+
+        lock_ttl = settings.rebuild_lock_ttl_seconds
+
+        dist_lock = DistributedLock(
+            coordination_session_factory=coordination_session_factory,
+            lock_name="graph_rebuild",
+            ttl_seconds=lock_ttl,
+        )
+
+        lease = dist_lock.acquire()
+
+        if not lease.acquired:
+            raise _DistributedLockAcquisitionError(
+                "Could not acquire distributed rebuild lock."
+            )
+
+        lock_acquired = True
+
+        #
+        # --------------------------------------------------------------
+        # Validate coordination state
+        # --------------------------------------------------------------
+        #
+
+        lock_state = dist_lock.check_state()
+
+        if lock_state == LockState.LOST:
+            raise RuntimeError(
+                "Coordination state lost immediately after acquisition."
+            )
+
+        if lock_state != LockState.VALID:
+            raise RuntimeError(
+                f"Unexpected coordination state after acquisition: {lock_state}"
+            )
+
+        #
+        # --------------------------------------------------------------
+        # Recovery safety gate
+        # --------------------------------------------------------------
+        #
+
+        RecoveryGate(
+            session_factory=domain_session_factory,
+            lock=dist_lock,
+            increment_recovery_trigger=increment_recovery_trigger,
+            runtime_has_active_executor=False,
+            lock_ttl_seconds=lock_ttl,
+        ).ensure_safe_to_execute()
+
+        #
+        # --------------------------------------------------------------
+        # Create rebuild job
+        # --------------------------------------------------------------
+        #
+
+        job_id, job_started_at = _create_and_start_rebuild_job(
+            domain_session_factory,
+            user_ref,
+            dist_lock.holder_id,
+        )
+
+        #
+        # --------------------------------------------------------------
+        # Heartbeat orchestration
+        # --------------------------------------------------------------
+        #
+
+        with _orchestrate_heartbeat(
+            domain_session_factory,
+            dist_lock,
+            job_id,
+            lock_ttl,
+        ) as lock_lost:
+
+            return _run_rebuild_pipeline(
+                domain_session_factory,
+                settings,
+                resolved_domain_url,
+                job_id,
+                job_started_at,
+                lock_lost,
+            )
+
+    finally:
+        #
+        # --------------------------------------------------------------
+        # Best-effort release
+        # --------------------------------------------------------------
+        #
+
+        if (
+            lock_acquired
+            and dist_lock is not None
+            and dist_lock.lifecycle_state != LifecycleState.LOST
+        ):
+            try:
+                dist_lock.release()
+            except Exception:
+                logger.exception(
+                    "Failed to release distributed rebuild lock"
+                )
+
+        #
+        # --------------------------------------------------------------
+        # Dispose engines independently
+        # --------------------------------------------------------------
+        #
+
+        try:
+            coordination_engine.dispose()
+        finally:
+            domain_engine.dispose()
+
 
 def validate_coordination_database_primary(session_factory):
     """Verify the coordination DB is a writable primary, not a replica.
