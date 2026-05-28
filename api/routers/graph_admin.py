@@ -1125,11 +1125,7 @@ def _perform_rebuild_and_persist_sync(
         # Best-effort lock release
         # --------------------------------------------------------------
         #
-        if (
-            lock_acquired
-            and dist_lock is not None
-            and dist_lock.state != LockLifecycleState.LOST
-        ):
+        if lock_acquired and dist_lock is not None and dist_lock.state != LockLifecycleState.LOST:
             try:
                 dist_lock.release()
             except Exception:
@@ -1140,10 +1136,7 @@ def _perform_rebuild_and_persist_sync(
         # Dispose coordination engine
         # --------------------------------------------------------------
         #
-        if (
-            coordination_engine is not None
-            and coordination_engine is not domain_engine
-        ):
+        if coordination_engine is not None and coordination_engine is not domain_engine:
             try:
                 coordination_engine.dispose()
             except Exception:
