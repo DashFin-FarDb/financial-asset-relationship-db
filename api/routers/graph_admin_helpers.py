@@ -21,9 +21,9 @@ if TYPE_CHECKING:
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from api.api_models import GraphRebuildResponse
-from api.auth import User
-from api.graph_lifecycle import (
+from ..api_models import GraphRebuildResponse
+from ..auth import User
+from ..graph_lifecycle import (
     GraphRuntimeLifecycleState,
     begin_rebuild,
     complete_rebuild,
@@ -36,7 +36,7 @@ from api.graph_lifecycle_providers import (
     GraphRebuildSource,
     GraphRebuildSourceError,
 )
-from api.metrics import (
+from ..metrics import (
     REBUILD_DURATION,
     REBUILD_FAILURE,
     REBUILD_REQUESTS,

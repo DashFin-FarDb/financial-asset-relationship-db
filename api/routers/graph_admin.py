@@ -668,7 +668,11 @@ def _perform_rebuild_and_persist_sync(
         # Best-effort lock release
         # --------------------------------------------------------------
         #
-        if dist_lock is not None and lock_acquired and dist_lock.state != LockLifecycleState.LOST:
+        if (
+            dist_lock is not None
+            and lock_acquired
+            and dist_lock.state != LockLifecycleState.LOST
+        ):
             try:
                 dist_lock.release()
             except Exception:
