@@ -480,10 +480,9 @@ class TestDistributedLockObservability:
         # 3 acquire attempts failed (1 initial + 2 retries)
         assert mock_refresh_lock.call_count == 3
 
-        # Delays should be exponential: 0.01s (base * 2^0) and 0.02s (base * 2^1)
         assert len(sleep_delays) == 2
-        assert pytest.approx(sleep_delays[0]) == 0.01
-        assert pytest.approx(sleep_delays[1]) == 0.02
+        assert abs(sleep_delays[0] - 0.01) < 1e-6
+        assert abs(sleep_delays[1] - 0.02) < 1e-6
 
         # Verify structured events emitted: 3 transient errors, then final failed event
         transient_events = [e for e in events if e.event_type == LockEventType.TRANSIENT_ERROR]
