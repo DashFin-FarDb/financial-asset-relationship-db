@@ -382,7 +382,7 @@ def _restore_persisted_graph_snapshot(
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception | asyncio.CancelledError,
+    exc: Exception,
     job_started_at: float,
     success_persisted: bool,
     graph_saved: bool,
@@ -798,7 +798,7 @@ def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
     try:
         return RebuildJobStatus(raw_status)
     except ValueError:
-        logger.error("Corrupted status in DB: %s, falling back to failed", raw_status)
+        logger.warning("Corrupted status in DB: %s, falling back to failed", raw_status)
         return RebuildJobStatus.FAILED
 
 
