@@ -49,7 +49,8 @@ from ..metrics import (
     update_rebuild_state_metric,
 )
 
-logger = logging.getLogger("api.routers.graph_admin")
+LOGGER_NAME = "api.routers.graph_admin"
+logger = logging.getLogger(LOGGER_NAME)
 
 _REBUILD_IN_PROGRESS_MESSAGE = "A graph rebuild is already in progress. Please try again later."
 _REBUILD_AUDIT_REQUESTED = "graph_rebuild_requested"
@@ -63,14 +64,21 @@ _MAX_FAILURE_MESSAGE_LENGTH = 512
 # Regex to match URLs, DSNs, and user:pass@host credential sequences for redaction.
 # Intent: Redact connection strings, credentials, and full URL segments containing sensitive details.
 _URL_PATTERN = re.compile(
-    r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_\-\.+]+:[^\s@/]+@[a-z0-9_\-\.+:]+)\S*",
+    r"\b(?:[a-z][a-z0-9+\-.]*://[^\s'\"<>()]+|[a-z0-9_.+\-]+:[^\s@/]+@[a-z0-9_.\-]+(?::\d+)?)",
     re.IGNORECASE,
 )
 
 _SECRET_PATTERN = re.compile(
-    r"(password|token|secret|key|api[_-]?key|auth)\s*[:=]\s*['\"]?[^\s'\"]+",
+    r"(password|token|secret|key|api[_-]?key|auth|authorization)\s*[:=]\s*(?:Bearer\s+)?['\"]?[^\s'\"]+",
     re.IGNORECASE,
 )
+
+
+def _get_graph_admin_module():
+    """Delay importing api.routers.graph_admin to avoid circular imports and allow test monkeypatching."""
+    from importlib import import_module
+
+    return import_module("api.routers.graph_admin")
 
 
 class _RebuildRuntime:
@@ -366,16 +374,13 @@ def _unwrap_rebuild_error(exc: Exception) -> Exception:
 
 def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
     """Create a rebuild job record in pending status."""
-    # Delay importing api.routers.graph_admin to avoid circular imports and to allow tests to monkeypatch attributes.
-    from importlib import import_module
-
-    graph_admin = import_module("api.routers.graph_admin")
-    AssetGraphRepository = graph_admin.AssetGraphRepository
+    graph_admin = _get_graph_admin_module()
+    repo_cls = graph_admin.AssetGraphRepository
     session_scope = graph_admin.session_scope
 
     try:
         with session_scope(session_factory) as session:
-            return AssetGraphRepository(session).create_rebuild_job(requested_by=user_ref)
+            return repo_cls(session).create_rebuild_job(requested_by=user_ref)
     except Exception as exc:
         logger.exception("Failed to create rebuild job record: %s", exc.__class__.__name__)
         raise GraphPersistenceSaveError("Failed to create rebuild job record.") from exc
@@ -388,16 +393,13 @@ def _run_job_update(
     error_message: str,
 ) -> None:
     """Execute a repository job-update action; raise GraphPersistenceSaveError on failure."""
-    # Delay importing api.routers.graph_admin to avoid circular imports and to allow tests to monkeypatch attributes.
-    from importlib import import_module
-
-    graph_admin = import_module("api.routers.graph_admin")
-    AssetGraphRepository = graph_admin.AssetGraphRepository
+    graph_admin = _get_graph_admin_module()
+    repo_cls = graph_admin.AssetGraphRepository
     session_scope = graph_admin.session_scope
 
     try:
         with session_scope(session_factory) as session:
-            action(AssetGraphRepository(session))
+            action(repo_cls(session))
     except Exception as exc:
         logger.exception("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
         raise GraphPersistenceSaveError(error_message) from exc
@@ -567,11 +569,8 @@ def _create_and_start_rebuild_job(
     worker_id: str,
 ) -> tuple[str, float]:
     """Create a rebuild job record and transition it to running."""
-    # Delay importing api.routers.graph_admin to avoid circular imports and to allow tests to monkeypatch attributes.
-    from importlib import import_module
-
-    graph_admin = import_module("api.routers.graph_admin")
-    AssetGraphRepository = graph_admin.AssetGraphRepository
+    graph_admin = _get_graph_admin_module()
+    repo_cls = graph_admin.AssetGraphRepository
     session_scope = graph_admin.session_scope
 
     job_id = _create_job_safe(session_factory, user_ref)
@@ -582,19 +581,22 @@ def _create_and_start_rebuild_job(
 
     try:
         with session_scope(session_factory) as session:
-            AssetGraphRepository(session).update_rebuild_heartbeat(job_id, worker_id)
+            repo_cls(session).update_rebuild_heartbeat(job_id, worker_id)
     except Exception as exc:
         logger.exception(
             "Failed to record initial rebuild heartbeat: %s (job_id=%s). Failing closed.",
             type(exc).__name__,
             job_id,
         )
-        _finalize_rebuild_failure(
-            session_factory=session_factory,
-            job_id=job_id,
-            exc=exc,
-            job_started_at=job_started_at,
-        )
+        try:
+            _finalize_rebuild_failure(
+                session_factory=session_factory,
+                job_id=job_id,
+                exc=exc,
+                job_started_at=job_started_at,
+            )
+        except Exception as fallback_exc:
+            logger.error("Failed to persist failed status for job %s: %s", job_id, fallback_exc)
         raise GraphPersistenceSaveError(
             f"Cannot track rebuild liveness: heartbeat failed ({type(exc).__name__})"
         ) from exc
