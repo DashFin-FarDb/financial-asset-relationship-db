@@ -75,6 +75,7 @@ from .graph_admin_helpers import (
     _update_job_source_safe,
 )
 
+# Re-exported explicitly for intra-package routing and to allow test monkeypatching
 __all__ = [
     "GraphRuntimeLifecycleState",
     "get_runtime_lifecycle_state",
@@ -381,7 +382,7 @@ def _restore_persisted_graph_snapshot(
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: BaseException,
+    exc: Exception | asyncio.CancelledError,
     job_started_at: float,
     success_persisted: bool,
     graph_saved: bool,
@@ -792,11 +793,20 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
             engine.dispose()
 
 
+def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
+    """Safely parse database status to Enum, falling back to failed on corruption."""
+    try:
+        return RebuildJobStatus(raw_status)
+    except ValueError:
+        logger.error("Corrupted status in DB: %s, falling back to failed", raw_status)
+        return RebuildJobStatus.FAILED
+
+
 def _orm_to_response(job_orm: RebuildJobORM) -> RebuildJobResponse:
     """Convert RebuildJobORM to bounded RebuildJobResponse."""
     return RebuildJobResponse(
         job_id=job_orm.job_id,
-        status=RebuildJobStatus(job_orm.status),
+        status=_safe_parse_status(job_orm.status),
         source=job_orm.source,
         requested_by=job_orm.requested_by,
         created_at=job_orm.created_at,
