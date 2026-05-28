@@ -1,6 +1,9 @@
 """Unit tests for _sanitize_failure_message and related helpers in graph_admin."""
 
+from unittest.mock import MagicMock
+
 import pytest
+from sqlalchemy.exc import SQLAlchemyError
 
 from api.graph_lifecycle_providers import (
     GraphPersistenceNonDurableError,
@@ -8,8 +11,6 @@ from api.graph_lifecycle_providers import (
     GraphPersistenceSaveError,
     GraphRebuildSourceError,
 )
-from unittest.mock import MagicMock
-from sqlalchemy.exc import SQLAlchemyError
 from api.routers.graph_admin import (  # pylint: disable=protected-access
     _sanitize_failure_message,
     _validate_coordination_database_primary,
@@ -198,4 +199,3 @@ class TestValidateCoordinationDatabasePrimary:
 
         assert "Could not verify coordination database role" in str(exc_info.value)
         assert isinstance(exc_info.value.__cause__, ValueError)
-

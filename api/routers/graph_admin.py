@@ -1143,7 +1143,9 @@ def _perform_rebuild_and_persist_sync(
                 try:
                     coordination_engine.dispose()
                 except Exception as exc:
-                    logger.error("Failed to dispose coordination database engine: %s", type(exc).__name__, exc_info=True)
+                    logger.error(
+                        "Failed to dispose coordination database engine: %s", type(exc).__name__, exc_info=True
+                    )
         finally:
             if domain_engine is not None:
                 try:
