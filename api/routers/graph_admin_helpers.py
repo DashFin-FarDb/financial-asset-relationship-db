@@ -60,6 +60,8 @@ _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_AUDIT_USER_REF_LENGTH = 64
 _MAX_FAILURE_MESSAGE_LENGTH = 512
 
+# Regex to match URLs, DSNs, and user:pass@host credential sequences for redaction.
+# Intent: Redact connection strings, credentials, and full URL segments containing sensitive details.
 _URL_PATTERN = re.compile(
     r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_\-\.+]+:[^\s@/]+@[a-z0-9_\-\.+:]+)\S*",
     re.IGNORECASE,
@@ -364,9 +366,10 @@ def _unwrap_rebuild_error(exc: Exception) -> Exception:
 
 def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
     """Create a rebuild job record in pending status."""
-    import importlib
+    # Delay importing api.routers.graph_admin to avoid circular imports and to allow tests to monkeypatch attributes.
+    from importlib import import_module
 
-    graph_admin = importlib.import_module("api.routers.graph_admin")
+    graph_admin = import_module("api.routers.graph_admin")
     AssetGraphRepository = graph_admin.AssetGraphRepository
     session_scope = graph_admin.session_scope
 
@@ -385,9 +388,10 @@ def _run_job_update(
     error_message: str,
 ) -> None:
     """Execute a repository job-update action; raise GraphPersistenceSaveError on failure."""
-    import importlib
+    # Delay importing api.routers.graph_admin to avoid circular imports and to allow tests to monkeypatch attributes.
+    from importlib import import_module
 
-    graph_admin = importlib.import_module("api.routers.graph_admin")
+    graph_admin = import_module("api.routers.graph_admin")
     AssetGraphRepository = graph_admin.AssetGraphRepository
     session_scope = graph_admin.session_scope
 
@@ -563,9 +567,10 @@ def _create_and_start_rebuild_job(
     worker_id: str,
 ) -> tuple[str, float]:
     """Create a rebuild job record and transition it to running."""
-    import importlib
+    # Delay importing api.routers.graph_admin to avoid circular imports and to allow tests to monkeypatch attributes.
+    from importlib import import_module
 
-    graph_admin = importlib.import_module("api.routers.graph_admin")
+    graph_admin = import_module("api.routers.graph_admin")
     AssetGraphRepository = graph_admin.AssetGraphRepository
     session_scope = graph_admin.session_scope
 

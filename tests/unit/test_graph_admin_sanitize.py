@@ -86,6 +86,30 @@ class TestSanitizeFailureMessage:
         assert "admin" not in result
         assert "[REDACTED_URL]" in result
 
+    def test_sanitization_edge_cases(self) -> None:
+        """Verify URL and credential redaction handles query strings, usernames with dots, and standard formats."""
+        # 1. URL with query string
+        exc1 = GraphPersistenceNotConfiguredError(
+            "postgresql://admin:s3cr3t@host:5432/db?sslmode=require&target_session_attrs=read-write"
+        )
+        result = _sanitize_failure_message(exc1)
+        assert "s3cr3t" not in result
+        assert "[REDACTED_URL]" in result
+
+        # 2. Username containing dot
+        exc2 = GraphPersistenceSaveError("Failed connecting for first.last:s3cr3t@host:5432")
+        result = _sanitize_failure_message(exc2)
+        assert "s3cr3t" not in result
+        assert "first.last" not in result
+        assert "[REDACTED_URL]" in result
+
+        # 3. Standard user:pass@host case
+        exc3 = GraphPersistenceSaveError("Refused credentials for user:pass@host")
+        result = _sanitize_failure_message(exc3)
+        assert "pass" not in result
+        assert "user" not in result
+        assert "[REDACTED_URL]" in result
+
     def test_empty_message_falls_back_to_class_name(self) -> None:
         """An empty message on a known exception falls back to the class name."""
         exc = GraphPersistenceNotConfiguredError("")
