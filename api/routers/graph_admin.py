@@ -1094,7 +1094,17 @@ def _perform_rebuild_and_persist_sync(
         job_id, job_started_at = _create_and_start_rebuild_job(
             domain_session_factory,
             user_ref,
-            dist_lock.holder_id,
+try:
+    if coordination_engine is not None and coordination_engine is not domain_engine:
+        coordination_engine.dispose()
+except Exception as exc:
+    logger.error("Failed to dispose coordination database engine: %s", type(exc).__name__, exc_info=True)
+finally:
+    if domain_engine is not None:
+        try:
+            domain_engine.dispose()
+        except Exception as exc:
+            logger.error("Failed to dispose domain database engine: %s", type(exc).__name__, exc_info=True)
         )
 
         #
