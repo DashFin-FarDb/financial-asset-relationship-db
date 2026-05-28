@@ -17,7 +17,7 @@ from typing import Annotated, NoReturn, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import text
-from sqlalchemy.engine import make_url
+from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -978,8 +978,8 @@ def _perform_rebuild_and_persist_sync(
             "At least one durable database URL must be configured for rebuild coordination."
         )
 
-    domain_engine: "Engine" | None = None
-    coordination_engine: "Engine" | None = None
+    domain_engine: Engine | None = None
+    coordination_engine: Engine | None = None
     dist_lock: DistributedLock | None = None
     lock_acquired = False
 
@@ -1125,7 +1125,13 @@ def _perform_rebuild_and_persist_sync(
         # Best-effort lock release
         # --------------------------------------------------------------
         #
-        if lock_acquired and dist_lock is not None and dist_lock.state != LockLifecycleState.LOST:
+        # fmt: off
+        if (
+            lock_acquired
+            and dist_lock is not None
+            and dist_lock.state != LockLifecycleState.LOST
+        ):
+            # fmt: on
             try:
                 dist_lock.release()
             except Exception:
@@ -1136,7 +1142,12 @@ def _perform_rebuild_and_persist_sync(
         # Dispose coordination engine
         # --------------------------------------------------------------
         #
-        if coordination_engine is not None and coordination_engine is not domain_engine:
+        # fmt: off
+        if (
+            coordination_engine is not None
+            and coordination_engine is not domain_engine
+        ):
+            # fmt: on
             try:
                 coordination_engine.dispose()
             except Exception:
@@ -1176,12 +1187,12 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
         # Re-raise explicit replica/role check failures directly
         raise
     except (SQLAlchemyError, OSError) as exc:
-        logger.error("Error while verifying coordination database role: %s", type(exc).__name__)
+        logger.exception("Error while verifying coordination database role")
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
     except Exception as exc:
         # Unexpected error during session cleanup (rollback/close). Log and raise a consistent RuntimeError.
-        logger.error("Unexpected error while verifying coordination database role: %s", type(exc).__name__)
+        logger.exception("Unexpected error while verifying coordination database role")
         raise RuntimeError("Could not verify coordination database role") from exc
 
 
