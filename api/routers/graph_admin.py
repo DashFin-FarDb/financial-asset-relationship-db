@@ -1126,8 +1126,8 @@ def _perform_rebuild_and_persist_sync(
         # --------------------------------------------------------------
         #
         if (
-            lock_acquired
-            and dist_lock is not None
+            dist_lock is not None
+            and lock_acquired
             and dist_lock.state != LockLifecycleState.LOST
         ):
             try:
@@ -1186,11 +1186,13 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
         raise
     except (SQLAlchemyError, OSError) as exc:
         logger.error("Error while verifying coordination database role: %s", type(exc).__name__)
+        logger.debug("Full exception while verifying coordination database role", exc_info=True)
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
     except Exception as exc:
         # Unexpected error during session cleanup (rollback/close). Log and raise a consistent RuntimeError.
         logger.error("Unexpected error while verifying coordination database role: %s", type(exc).__name__)
+        logger.debug("Full exception while verifying coordination database role", exc_info=True)
         raise RuntimeError("Could not verify coordination database role") from exc
 
 
