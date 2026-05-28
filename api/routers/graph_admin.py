@@ -362,7 +362,7 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
     return rebuild_lock
 
 
-def _map_rebuild_error(exc: Exception) -> HTTPException:
+def _map_rebuild_error(exc: BaseException) -> HTTPException:
     """Map rebuild domain errors to sanitized HTTP errors."""
     root_exc = _unwrap_rebuild_error(exc)
 
@@ -405,7 +405,7 @@ def _map_rebuild_error(exc: Exception) -> HTTPException:
     )
 
 
-def _rebuild_status_code(exc: Exception) -> int:
+def _rebuild_status_code(exc: BaseException) -> int:
     """Return sanitized rebuild status code for audit logging."""
     root_exc = _unwrap_rebuild_error(exc)
 
@@ -1192,7 +1192,7 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
             )
 
 
-def _sanitize_failure_message(exc: Exception | BaseException) -> str:
+def _sanitize_failure_message(exc: BaseException) -> str:
     """Return a bounded, sanitized failure message for rebuild job persistence.
 
     Security goals:
