@@ -1130,7 +1130,7 @@ def _perform_rebuild_and_persist_sync(
             try:
                 dist_lock.release()
             except Exception as exc:
-                logger.error("Failed to release distributed rebuild lock: %s: %s", type(exc).__name__, exc)
+                logger.error("Failed to release distributed rebuild lock: %s", type(exc).__name__)
 
         #
         # --------------------------------------------------------------
@@ -1142,13 +1142,13 @@ def _perform_rebuild_and_persist_sync(
             try:
                 coordination_engine.dispose()
             except Exception as exc:
-                logger.error("Failed to dispose coordination database engine: %s: %s", type(exc).__name__, exc)
+                logger.error("Failed to dispose coordination database engine: %s", type(exc).__name__)
 
         if domain_engine is not None:
             try:
                 domain_engine.dispose()
             except Exception as exc:
-                logger.error("Failed to dispose domain database engine: %s: %s", type(exc).__name__, exc)
+                logger.error("Failed to dispose domain database engine: %s", type(exc).__name__)
 
 
 def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
@@ -1179,7 +1179,7 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
         raise RuntimeError("Could not verify coordination database role") from exc
 
 
-def _sanitize_failure_message(exc: Exception) -> str:
+def _sanitize_failure_message(exc: BaseException) -> str:
     """Return a bounded, sanitized failure message for rebuild job persistence.
 
     Security goals:
