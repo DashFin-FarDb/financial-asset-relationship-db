@@ -27,11 +27,11 @@ from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
 from ..api_models import GraphRebuildResponse, RebuildJobListResponse, RebuildJobResponse
 from ..auth import User, get_current_rebuild_operator_user
-from ..graph_lifecycle import (  # noqa: F401
-    GraphRuntimeLifecycleState,  # noqa: F401
-    get_runtime_lifecycle_state,  # noqa: F401
+from ..graph_lifecycle import (
+    GraphRuntimeLifecycleState,
+    get_runtime_lifecycle_state,
     synchronize_runtime_graph,
-)
+)  # noqa: F401
 from ..graph_lifecycle_providers import (
     GraphLifecycleSettings,
     GraphPersistenceNonDurableError,
