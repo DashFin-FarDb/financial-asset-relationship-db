@@ -73,7 +73,9 @@ _REBUILD_AUDIT_FAILED = "graph_rebuild_failed"
 _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_AUDIT_USER_REF_LENGTH = 64
 _MAX_REBUILD_JOB_LIST_RESULTS = 100
-_MAX_FAILURE_MESSAGE_LENGTH = 512  # Maximum allowed length (characters) for sanitized failure messages persisted with rebuild jobs
+_MAX_FAILURE_MESSAGE_LENGTH = (
+    512  # Maximum allowed length (characters) for sanitized failure messages persisted with rebuild jobs
+)
 
 _URL_PATTERN = re.compile(
     r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_\-\.+]+:[^\s@/]+@[a-z0-9_\-\.+:]+)(?:\S*)",
@@ -998,6 +1000,7 @@ def _perform_rebuild_and_persist_sync(
         # Normalize and compare SQLAlchemy URLs to robustly detect identical database targets
         try:
             from sqlalchemy.engine import make_url as _make_url
+
             same_db = _make_url(resolved_coordination_url) == _make_url(resolved_domain_url)
         except Exception:
             # Fall back to string comparison if URL parsing fails for any reason
@@ -1129,8 +1132,8 @@ def _perform_rebuild_and_persist_sync(
         if lock_acquired and dist_lock is not None and dist_lock.state != LockLifecycleState.LOST:
             try:
                 dist_lock.release()
-            except Exception:
-                logger.exception("Failed to release distributed rebuild lock")
+            except Exception as exc:
+                logger.error("Failed to release distributed rebuild lock: %s", type(exc).__name__)
 
         #
         # --------------------------------------------------------------
@@ -1141,14 +1144,14 @@ def _perform_rebuild_and_persist_sync(
         if coordination_engine is not None and coordination_engine is not domain_engine:
             try:
                 coordination_engine.dispose()
-            except Exception:
-                logger.exception("Failed to dispose coordination database engine")
+            except Exception as exc:
+                logger.error("Failed to dispose coordination database engine: %s", type(exc).__name__)
 
         if domain_engine is not None:
             try:
                 domain_engine.dispose()
-            except Exception:
-                logger.exception("Failed to dispose domain database engine")
+            except Exception as exc:
+                logger.error("Failed to dispose domain database engine: %s", type(exc).__name__)
 
 
 def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
@@ -1172,15 +1175,21 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
     except (SQLAlchemyError, OSError) as exc:
         try:
             session.rollback()
-        except Exception:
-            logger.exception("Failed to rollback coordination session while verifying coordination database role")
+        except Exception as rollback_exc:
+            logger.error(
+                "Failed to rollback coordination session while verifying coordination database role: %s",
+                type(rollback_exc).__name__,
+            )
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
     finally:
         try:
             session.close()
-        except Exception:
-            logger.exception("Failed to close coordination session while verifying coordination database role")
+        except Exception as close_exc:
+            logger.error(
+                "Failed to close coordination session while verifying coordination database role: %s",
+                type(close_exc).__name__,
+            )
 
 
 def _sanitize_failure_message(exc: Exception | BaseException) -> str:

@@ -572,8 +572,16 @@ class TestMultiRegionCoordination:
         token1 = lease1.fencing_token
         assert token1 > 0
 
-        # Wait a tiny bit (simulating progress/update time) or manually update record
-        sleep(0.01)
+        # Manually advance the record's updated_at in the database to ensure monotonicity without sleep
+        from datetime import timedelta
+
+        from src.data.db_models import DistributedLockORM
+        from src.data.repository import session_scope
+
+        with session_scope(bound_session_factory) as session:
+            record = session.query(DistributedLockORM).filter_by(lock_name="fenced_lock").first()
+            record.updated_at = record.updated_at + timedelta(seconds=1)
+            session.commit()
 
         lease2 = lock.refresh()
         assert lease2 is not False
