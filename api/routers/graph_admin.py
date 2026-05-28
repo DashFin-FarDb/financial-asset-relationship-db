@@ -17,6 +17,7 @@ from typing import Annotated, NoReturn, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import text
+from sqlalchemy.engine import make_url
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -73,9 +74,7 @@ _REBUILD_AUDIT_FAILED = "graph_rebuild_failed"
 _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_AUDIT_USER_REF_LENGTH = 64
 _MAX_REBUILD_JOB_LIST_RESULTS = 100
-_MAX_FAILURE_MESSAGE_LENGTH = (
-    512  # Maximum allowed length (characters) for sanitized failure messages persisted with rebuild jobs
-)
+_MAX_FAILURE_MESSAGE_LENGTH = 512  # Maximum allowed length (characters) for failure messages
 
 _URL_PATTERN = re.compile(
     r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_\-\.+]+:[^\s@/]+@[a-z0-9_\-\.+:]+)(?:\S*)",
@@ -999,9 +998,7 @@ def _perform_rebuild_and_persist_sync(
         resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
         # Normalize and compare SQLAlchemy URLs to robustly detect identical database targets
         try:
-            from sqlalchemy.engine import make_url as _make_url
-
-            same_db = _make_url(resolved_coordination_url) == _make_url(resolved_domain_url)
+            same_db = make_url(resolved_coordination_url) == make_url(resolved_domain_url)
         except Exception:
             # Fall back to string comparison if URL parsing fails for any reason
             same_db = resolved_coordination_url == resolved_domain_url
