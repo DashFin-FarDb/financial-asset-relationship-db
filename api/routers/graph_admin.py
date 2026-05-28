@@ -73,6 +73,7 @@ _REBUILD_AUDIT_FAILED = "graph_rebuild_failed"
 _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_AUDIT_USER_REF_LENGTH = 64
 _MAX_REBUILD_JOB_LIST_RESULTS = 100
+_MAX_FAILURE_MESSAGE_LENGTH = 512
 
 _URL_PATTERN = re.compile(
     r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_\-\.+]+:[^\s@/]+@[a-z0-9_\-\.+:]+)(?:\S*)",
@@ -140,7 +141,7 @@ _REBUILD_RUNTIME = _RebuildRuntime()
 class _RebuildExecutionError(Exception):
     """Wrap rebuild execution errors with bounded audit source context."""
 
-    def __init__(self, source: GraphRebuildSource, cause: Exception | BaseException) -> None:
+    def __init__(self, source: GraphRebuildSource, cause: BaseException) -> None:
         """Store source and underlying failure without exposing raw details."""
         super().__init__(cause.__class__.__name__)
         self.source = source
@@ -492,7 +493,7 @@ def _log_rebuild_succeeded(
     )
 
 
-def _rebuild_failure_category(exc: Exception | BaseException) -> str:
+def _rebuild_failure_category(exc: BaseException) -> str:
     """Return a bounded failure category for rebuild audit logs."""
     root_exc = _unwrap_rebuild_error(exc)
     categories = {
@@ -507,7 +508,7 @@ def _rebuild_failure_category(exc: Exception | BaseException) -> str:
     return categories.get(type(root_exc), "unexpected_error")
 
 
-def _rebuild_source_from_exception(exc: Exception | BaseException) -> GraphRebuildSource | None:
+def _rebuild_source_from_exception(exc: BaseException) -> GraphRebuildSource | None:
     """Return the bounded rebuild source, if one is available on the exception."""
     if isinstance(exc, _RebuildExecutionError):
         return exc.source
@@ -517,7 +518,7 @@ def _rebuild_source_from_exception(exc: Exception | BaseException) -> GraphRebui
 def _log_rebuild_failed(
     *,
     user_ref: str,
-    exc: Exception | BaseException,
+    exc: BaseException,
     status_code: int,
     duration_ms: int,
 ) -> None:
@@ -556,7 +557,7 @@ def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception) -> None:
     )
 
 
-def _unwrap_rebuild_error(exc: Exception | BaseException) -> Exception | BaseException:
+def _unwrap_rebuild_error(exc: BaseException) -> BaseException:
     """Return the underlying rebuild error for mapping and audit categorization."""
     if isinstance(exc, _RebuildExecutionError):
         return exc.cause
@@ -642,7 +643,7 @@ def _mark_job_succeeded_safe(
 def _mark_job_failed_safe(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception | BaseException,
+    exc: BaseException,
     duration_ms: int,
 ) -> None:
     """Mark a rebuild job as failed safely."""
@@ -779,7 +780,7 @@ def _finalize_rebuild_failure(
     *,
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception | BaseException,
+    exc: BaseException,
     job_started_at: float,
 ) -> None:
     """Persist failed rebuild terminal state."""
@@ -809,7 +810,7 @@ def _restore_persisted_graph_snapshot(
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception | BaseException,
+    exc: BaseException,
     job_started_at: float,
     success_persisted: bool,
     graph_saved: bool,
@@ -1246,10 +1247,8 @@ def _sanitize_failure_message(exc: Exception | BaseException) -> str:
     # ------------------------------------------------------------------
     #
 
-    MAX_FAILURE_MESSAGE_LENGTH = 512
-
-    if len(sanitized) > MAX_FAILURE_MESSAGE_LENGTH:
-        sanitized = sanitized[: MAX_FAILURE_MESSAGE_LENGTH - 3] + "..."
+    if len(sanitized) > _MAX_FAILURE_MESSAGE_LENGTH:
+        sanitized = sanitized[: _MAX_FAILURE_MESSAGE_LENGTH - 3] + "..."
 
     return sanitized
 
