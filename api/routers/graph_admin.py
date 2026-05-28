@@ -73,7 +73,7 @@ _REBUILD_AUDIT_FAILED = "graph_rebuild_failed"
 _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_AUDIT_USER_REF_LENGTH = 64
 _MAX_REBUILD_JOB_LIST_RESULTS = 100
-_MAX_FAILURE_MESSAGE_LENGTH = 512
+_MAX_FAILURE_MESSAGE_LENGTH = 512  # Maximum allowed length (characters) for sanitized failure messages persisted with rebuild jobs
 
 _URL_PATTERN = re.compile(
     r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_\-\.+]+:[^\s@/]+@[a-z0-9_\-\.+:]+)(?:\S*)",
@@ -967,6 +967,8 @@ def _perform_rebuild_and_persist_sync(
     # ------------------------------------------------------------------
     #
 
+    # Use coordination DB if configured; otherwise fall back to asset_graph_database_url.
+    # Note: this creates a separate Engine instance for coordination even if the DSN equals the domain DB.
     coordination_database_url = settings.coordination_database_url or settings.asset_graph_database_url
 
     if not coordination_database_url:
@@ -993,7 +995,15 @@ def _perform_rebuild_and_persist_sync(
         )
 
         resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
-        if resolved_coordination_url == resolved_domain_url:
+        # Normalize and compare SQLAlchemy URLs to robustly detect identical database targets
+        try:
+            from sqlalchemy.engine import make_url as _make_url
+            same_db = _make_url(resolved_coordination_url) == _make_url(resolved_domain_url)
+        except Exception:
+            # Fall back to string comparison if URL parsing fails for any reason
+            same_db = resolved_coordination_url == resolved_domain_url
+
+        if same_db:
             coordination_engine = domain_engine
         else:
             coordination_engine = create_engine_from_url(
@@ -1007,6 +1017,9 @@ def _perform_rebuild_and_persist_sync(
         #
 
         domain_session_factory = create_session_factory(domain_engine)
+        # Reuse the domain session factory when both targets resolve to the same engine to avoid
+        # creating a duplicate engine/pool. If the coordination engine is a separate engine instance
+        # (different URL), create an isolated coordination session factory.
         coordination_session_factory = (
             domain_session_factory
             if coordination_engine is domain_engine
@@ -1145,21 +1158,24 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
     the check is a no-op because replica detection isn't applicable.
     """
     try:
-        with session_scope(session_factory) as session:
-            bind = session.get_bind()
-            dialect_name = getattr(getattr(bind, "dialect", None), "name", None)
-            # Only run pg_is_in_recovery on PostgreSQL; other backends don't have replicas
-            if dialect_name != "postgresql":
-                return
-            result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
-            if result:
-                raise RuntimeError(
-                    "Coordination database is a read replica; coordination_database_url must point to the primary."
-                )
+    session = session_factory()
+    try:
+        bind = session.get_bind()
+        dialect_name = getattr(getattr(bind, "dialect", None), "name", None)
+        # Only run pg_is_in_recovery on PostgreSQL; other backends don't have replicas
+        if dialect_name != "postgresql":
+            return
+        result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
+        if result:
+            raise RuntimeError(
+                "Coordination database is a read replica; coordination_database_url must point to the primary."
+            )
     except (SQLAlchemyError, OSError) as exc:
-        logger.exception("Error while verifying coordination database role")
+        session.rollback()
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
+    finally:
+        session.close()
 
 
 def _sanitize_failure_message(exc: Exception | BaseException) -> str:

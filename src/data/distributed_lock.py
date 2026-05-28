@@ -96,7 +96,13 @@ class DistributedLock:
 
     def __init__(
         self,
-        session_factory: Callable[[], Session] | None = None,
+        session_factory: Callable[[], Session] | None = None,  # NOTE: session_factory accepted positionally for backward compatibility; prefer keyword args to avoid ambiguity
+        lock_name: str | None = None,
+        *,
+        coordination_session_factory: Callable[[], Session] | None = None,
+        metrics: LockMetrics | None = None,
+        event_sink: Callable[[LockEvent], None] | None = None,
+        holder_id: str | None = None,
         lock_name: str | None = None,
         *,
         coordination_session_factory: Callable[[], Session] | None = None,
