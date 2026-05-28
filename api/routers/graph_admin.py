@@ -1157,7 +1157,6 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
     For PostgreSQL this uses pg_is_in_recovery(); for non-Postgres backends (e.g. SQLite)
     the check is a no-op because replica detection isn't applicable.
     """
-    try:
     session = session_factory()
     try:
         bind = session.get_bind()
@@ -1171,11 +1170,17 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
                 "Coordination database is a read replica; coordination_database_url must point to the primary."
             )
     except (SQLAlchemyError, OSError) as exc:
-        session.rollback()
+        try:
+            session.rollback()
+        except Exception:
+            logger.exception("Failed to rollback coordination session while verifying coordination database role")
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
     finally:
-        session.close()
+        try:
+            session.close()
+        except Exception:
+            logger.exception("Failed to close coordination session while verifying coordination database role")
 
 
 def _sanitize_failure_message(exc: Exception | BaseException) -> str:
