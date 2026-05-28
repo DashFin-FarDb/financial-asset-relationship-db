@@ -1130,27 +1130,21 @@ def validate_coordination_database_primary(session_factory) -> None:
     For PostgreSQL this uses pg_is_in_recovery(); for non-Postgres backends (e.g. SQLite)
     the check is a no-op because replica detection isn't applicable.
     """
-    session = session_factory()
     try:
-        bind = session.get_bind()
-        dialect_name = getattr(getattr(bind, "dialect", None), "name", None)
-        # Only run pg_is_in_recovery on PostgreSQL; other backends don't have replicas
-        if dialect_name != "postgresql":
-            return
-        result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
-        if result:
-            raise RuntimeError(
-                "Coordination database is a read replica; coordination_database_url must point to the primary."
-            )
+        with session_scope(session_factory) as session:
+            bind = session.get_bind()
+            dialect_name = getattr(getattr(bind, "dialect", None), "name", None)
+            # Only run pg_is_in_recovery on PostgreSQL; other backends don't have replicas
+            if dialect_name != "postgresql":
+                return
+            result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
+            if result:
+                raise RuntimeError(
+                    "Coordination database is a read replica; coordination_database_url must point to the primary."
+                )
     except (SQLAlchemyError, OSError) as exc:
-        session.rollback()
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
 
 
 def _sanitize_failure_message(exc: Exception | BaseException) -> str:
