@@ -96,10 +96,10 @@ class DistributedLock:
 
     def __init__(
         self,
-        coordination_session_factory: Callable[[], Session] | None = None,
+        session_factory: Callable[[], Session] | None = None,
         lock_name: str | None = None,
         *,
-        session_factory: Callable[[], Session] | None = None,
+        coordination_session_factory: Callable[[], Session] | None = None,
         metrics: LockMetrics | None = None,
         event_sink: Callable[[LockEvent], None] | None = None,
         holder_id: str | None = None,
@@ -109,9 +109,9 @@ class DistributedLock:
         Initialize the distributed lock coordination primitive.
 
         Args:
-            coordination_session_factory: Factory for creating primary-only coordination sessions.
+            session_factory: Factory for creating database sessions (backward-compatible).
             lock_name: Unique identifier for the lock.
-            session_factory: Backward-compatible alias for coordination_session_factory.
+            coordination_session_factory: Factory for creating primary-only coordination sessions.
             metrics: Pluggable metrics interface (e.g. Prometheus, OTEL).
             event_sink: Callable event sink for immutable structured logs/audit trail.
             holder_id: Unique identifier for the current process/instance.
