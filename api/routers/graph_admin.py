@@ -1160,36 +1160,22 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
     For PostgreSQL this uses pg_is_in_recovery(); for non-Postgres backends (e.g. SQLite)
     the check is a no-op because replica detection isn't applicable.
     """
-    session = session_factory()
     try:
-        bind = session.get_bind()
-        dialect_name = getattr(getattr(bind, "dialect", None), "name", None)
-        # Only run pg_is_in_recovery on PostgreSQL; other backends don't have replicas
-        if dialect_name != "postgresql":
-            return
-        result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
-        if result:
-            raise RuntimeError(
-                "Coordination database is a read replica; coordination_database_url must point to the primary."
-            )
+        with session_scope(session_factory) as session:
+            bind = session.get_bind()
+            dialect_name = getattr(getattr(bind, "dialect", None), "name", None)
+            # Only run pg_is_in_recovery on PostgreSQL; other backends don't have replicas
+            if dialect_name != "postgresql":
+                return
+            result = session.execute(text("SELECT pg_is_in_recovery()")).scalar()
+            if result:
+                raise RuntimeError(
+                    "Coordination database is a read replica; coordination_database_url must point to the primary."
+                )
     except (SQLAlchemyError, OSError) as exc:
-        try:
-            session.rollback()
-        except Exception as rollback_exc:
-            logger.error(
-                "Failed to rollback coordination session while verifying coordination database role: %s",
-                type(rollback_exc).__name__,
-            )
+        logger.error("Error while verifying coordination database role: %s", type(exc).__name__)
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
-    finally:
-        try:
-            session.close()
-        except Exception as close_exc:
-            logger.error(
-                "Failed to close coordination session while verifying coordination database role: %s",
-                type(close_exc).__name__,
-            )
 
 
 def _sanitize_failure_message(exc: BaseException) -> str:
