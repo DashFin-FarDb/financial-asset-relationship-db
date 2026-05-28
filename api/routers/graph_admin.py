@@ -75,7 +75,10 @@ from .graph_admin_helpers import (
     _update_job_source_safe,
 )
 
-# Re-exported explicitly for intra-package routing and to allow test monkeypatching
+# Re-exported explicitly for intra-package routing.
+# NOTE: Underscore-prefixed helper names listed in __all__ are intended exclusively
+# for test suite imports and monkeypatching. External production code must not
+# depend on these private symbols.
 __all__ = [
     "GraphRuntimeLifecycleState",
     "get_runtime_lifecycle_state",
