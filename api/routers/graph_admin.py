@@ -801,7 +801,7 @@ def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
     try:
         return RebuildJobStatus(raw_status)
     except ValueError:
-        logger.warning("Corrupted status in DB: %s, falling back to failed", raw_status)
+        logger.error("Corrupted status in DB: %s, falling back to failed", raw_status)
         return RebuildJobStatus.FAILED
 
 

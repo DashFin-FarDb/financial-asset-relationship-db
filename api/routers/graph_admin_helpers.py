@@ -136,7 +136,7 @@ _REBUILD_RUNTIME = _RebuildRuntime()
 class _RebuildExecutionError(RuntimeError):
     """Wrap rebuild execution errors with bounded audit source context."""
 
-    def __init__(self, source: GraphRebuildSource, cause: Exception) -> None:
+    def __init__(self, source: GraphRebuildSource, cause: Exception | asyncio.CancelledError) -> None:
         """Store source and underlying failure without exposing raw details."""
         super().__init__(cause.__class__.__name__)
         self.source = source
