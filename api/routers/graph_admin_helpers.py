@@ -21,14 +21,6 @@ if TYPE_CHECKING:
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from api.graph_lifecycle_providers import (
-    GraphPersistenceNonDurableError,
-    GraphPersistenceNotConfiguredError,
-    GraphPersistenceSaveError,
-    GraphRebuildSource,
-    GraphRebuildSourceError,
-)
-
 # Repository imports are done dynamically inside functions to respect test patches on graph_admin.AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.recovery_gate import ExecutionBlockedError
@@ -40,6 +32,13 @@ from ..graph_lifecycle import (
     begin_rebuild,
     complete_rebuild,
     get_runtime_lifecycle_state,
+)
+from ..graph_lifecycle_providers import (
+    GraphPersistenceNonDurableError,
+    GraphPersistenceNotConfiguredError,
+    GraphPersistenceSaveError,
+    GraphRebuildSource,
+    GraphRebuildSourceError,
 )
 from ..metrics import (
     REBUILD_DURATION,
@@ -365,7 +364,7 @@ def _unwrap_rebuild_error(exc: Exception) -> Exception:
 
 def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
     """Create a rebuild job record in pending status."""
-    from api.routers.graph_admin import AssetGraphRepository, session_scope
+    from .graph_admin import AssetGraphRepository, session_scope
 
     try:
         with session_scope(session_factory) as session:
@@ -382,7 +381,7 @@ def _run_job_update(
     error_message: str,
 ) -> None:
     """Execute a repository job-update action; raise GraphPersistenceSaveError on failure."""
-    from api.routers.graph_admin import AssetGraphRepository, session_scope
+    from .graph_admin import AssetGraphRepository, session_scope
 
     try:
         with session_scope(session_factory) as session:
@@ -556,7 +555,7 @@ def _create_and_start_rebuild_job(
     worker_id: str,
 ) -> tuple[str, float]:
     """Create a rebuild job record and transition it to running."""
-    from api.routers.graph_admin import AssetGraphRepository, session_scope
+    from .graph_admin import AssetGraphRepository, session_scope
 
     job_id = _create_job_safe(session_factory, user_ref)
     update_rebuild_state_metric("pending")
