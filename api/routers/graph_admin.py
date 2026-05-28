@@ -27,7 +27,11 @@ from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
 from ..api_models import GraphRebuildResponse, RebuildJobListResponse, RebuildJobResponse
 from ..auth import User, get_current_rebuild_operator_user
-from ..graph_lifecycle import GraphRuntimeLifecycleState, get_runtime_lifecycle_state, synchronize_runtime_graph
+from ..graph_lifecycle import (  # noqa: F401
+    GraphRuntimeLifecycleState,  # noqa: F401
+    get_runtime_lifecycle_state,  # noqa: F401
+    synchronize_runtime_graph,
+)
 from ..graph_lifecycle_providers import (
     GraphLifecycleSettings,
     GraphPersistenceNonDurableError,
@@ -47,7 +51,7 @@ from ..metrics import (
     LOCK_REFRESH_TOTAL,
     increment_recovery_trigger,
 )
-from .graph_admin_helpers import (
+from .graph_admin_helpers import (  # noqa: F401
     _REBUILD_PATH,
     _REBUILD_RUNTIME,
     _claim_rebuild_or_raise,
@@ -66,24 +70,10 @@ from .graph_admin_helpers import (
     _rebuild_status_code,
     _RebuildExecutionError,
     _resolve_user_ref,
-    _sanitize_failure_message,
-    _unwrap_rebuild_error,
+    _sanitize_failure_message,  # noqa: F401
+    _unwrap_rebuild_error,  # noqa: F401
     _update_job_source_safe,
 )
-
-# Re-exports for backward compatibility and test access
-_sanitize_failure_message = _sanitize_failure_message
-_resolve_user_ref = _resolve_user_ref
-_log_rebuild_succeeded = _log_rebuild_succeeded
-_log_rebuild_failed = _log_rebuild_failed
-_log_unexpected_rebuild_exception = _log_unexpected_rebuild_exception
-_log_rebuild_rejected = _log_rebuild_rejected
-_log_rebuild_requested = _log_rebuild_requested
-_unwrap_rebuild_error = _unwrap_rebuild_error
-_DistributedLockAcquisitionError = _DistributedLockAcquisitionError
-_DistributedLockLostError = _DistributedLockLostError
-get_runtime_lifecycle_state = get_runtime_lifecycle_state
-GraphRuntimeLifecycleState = GraphRuntimeLifecycleState
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -364,7 +354,7 @@ def _restore_persisted_graph_snapshot(
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: BaseException,
+    exc: Exception | asyncio.CancelledError,
     job_started_at: float,
     success_persisted: bool,
     graph_saved: bool,
@@ -473,7 +463,7 @@ def _run_rebuild_pipeline(
         success_persisted = True
         synchronize_runtime_graph(graph, job_id=job_id)
         return response
-    except BaseException as exc:
+    except (Exception, asyncio.CancelledError) as exc:
         _handle_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,
