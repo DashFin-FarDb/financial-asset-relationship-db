@@ -8,7 +8,12 @@ from api.graph_lifecycle_providers import (
     GraphPersistenceSaveError,
     GraphRebuildSourceError,
 )
-from api.routers.graph_admin import _sanitize_failure_message  # pylint: disable=protected-access
+from unittest.mock import MagicMock
+from sqlalchemy.exc import SQLAlchemyError
+from api.routers.graph_admin import (  # pylint: disable=protected-access
+    _sanitize_failure_message,
+    _validate_coordination_database_primary,
+)
 
 
 @pytest.mark.unit
@@ -107,3 +112,90 @@ class TestSanitizeFailureMessage:
         # Unknown exception → class name only, no URL exposure
         assert result == "InternalError[ConnectionError]"
         assert "secret_path" not in result
+
+
+@pytest.mark.unit
+class TestValidateCoordinationDatabasePrimary:
+    """Tests for _validate_coordination_database_primary."""
+
+    def test_sqlite_dialect_is_noop(self) -> None:
+        """Verify that SQLite (or other non-Postgres) dialect exits cleanly without execute."""
+        mock_bind = MagicMock()
+        mock_bind.dialect.name = "sqlite"
+
+        mock_session = MagicMock()
+        mock_session.get_bind.return_value = mock_bind
+
+        def fake_session_factory():
+            return mock_session
+
+        # Should execute successfully as a no-op without calling session.execute
+        _validate_coordination_database_primary(fake_session_factory)
+        mock_session.execute.assert_not_called()
+
+    def test_postgres_primary_succeeds(self) -> None:
+        """Verify that a PostgreSQL primary (pg_is_in_recovery = False) passes validation."""
+        mock_bind = MagicMock()
+        mock_bind.dialect.name = "postgresql"
+
+        mock_result = MagicMock()
+        mock_result.scalar.return_value = False
+
+        mock_session = MagicMock()
+        mock_session.get_bind.return_value = mock_bind
+        mock_session.execute.return_value = mock_result
+
+        def fake_session_factory():
+            return mock_session
+
+        _validate_coordination_database_primary(fake_session_factory)
+        mock_session.execute.assert_called_once()
+
+    def test_postgres_replica_raises_runtime_error_directly(self) -> None:
+        """Verify that a PostgreSQL replica (pg_is_in_recovery = True) propagates RuntimeError directly."""
+        mock_bind = MagicMock()
+        mock_bind.dialect.name = "postgresql"
+
+        mock_result = MagicMock()
+        mock_result.scalar.return_value = True
+
+        mock_session = MagicMock()
+        mock_session.get_bind.return_value = mock_bind
+        mock_session.execute.return_value = mock_result
+
+        def fake_session_factory():
+            return mock_session
+
+        with pytest.raises(RuntimeError) as exc_info:
+            _validate_coordination_database_primary(fake_session_factory)
+
+        assert "read replica; coordination_database_url must point to the primary" in str(exc_info.value)
+
+    def test_sqlalchemy_error_raises_wrapped_runtime_error(self) -> None:
+        """Verify that a SQLAlchemyError is wrapped and chain-raised."""
+        mock_session = MagicMock()
+        mock_session.get_bind.side_effect = SQLAlchemyError("DB connection failed")
+
+        def fake_session_factory():
+            return mock_session
+
+        with pytest.raises(RuntimeError) as exc_info:
+            _validate_coordination_database_primary(fake_session_factory)
+
+        assert "Could not verify coordination database role" in str(exc_info.value)
+        assert isinstance(exc_info.value.__cause__, SQLAlchemyError)
+
+    def test_unexpected_exception_raises_wrapped_runtime_error(self) -> None:
+        """Verify that any other unexpected exception is wrapped and chain-raised."""
+        mock_session = MagicMock()
+        mock_session.get_bind.side_effect = ValueError("Unexpected internal error")
+
+        def fake_session_factory():
+            return mock_session
+
+        with pytest.raises(RuntimeError) as exc_info:
+            _validate_coordination_database_primary(fake_session_factory)
+
+        assert "Could not verify coordination database role" in str(exc_info.value)
+        assert isinstance(exc_info.value.__cause__, ValueError)
+

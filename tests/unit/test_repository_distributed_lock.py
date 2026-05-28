@@ -23,6 +23,7 @@ from src.data.repository import (
     CoordinationLockRepository,
     LockStateSnapshot,
     LockWriteResult,
+    session_scope,
 )
 
 
@@ -572,12 +573,10 @@ class TestMultiRegionCoordination:
         token1 = lease1.fencing_token
         assert token1 > 0
 
-        # Manually advance the record's updated_at in the database to ensure monotonicity without sleep
-        from datetime import timedelta
-
-        from src.data.db_models import DistributedLockORM
-        from src.data.repository import session_scope
-
+        # Manually advance the record's updated_at in the database to ensure monotonicity without sleep.
+        # Fencing tokens are derived from the updated_at timestamp (microsecond resolution). Mutating
+        # this field directly allows us to verify strictly monotonic increments of fencing tokens
+        # deterministically in unit tests without introducing thread sleeps or time delays.
         with session_scope(bound_session_factory) as session:
             record = session.query(DistributedLockORM).filter_by(lock_name="fenced_lock").first()
             record.updated_at = record.updated_at + timedelta(seconds=1)
