@@ -76,9 +76,10 @@ from .graph_admin_helpers import (
 )
 
 # Re-exported explicitly for intra-package routing.
-# NOTE: Underscore-prefixed helper names listed in __all__ are intended exclusively
-# for test suite imports and monkeypatching. External production code must not
-# depend on these private symbols.
+# TODO: Move these test-only helpers to a dedicated test helper module or import via
+# fully-qualified module names. They are currently exported in __all__ solely for
+# test suite convenience (e.g., monkeypatching and direct imports) and are intended
+# exclusively for tests. External production code must not depend on these private symbols.
 __all__ = [
     "GraphRuntimeLifecycleState",
     "get_runtime_lifecycle_state",
@@ -801,6 +802,7 @@ def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
     try:
         return RebuildJobStatus(raw_status)
     except ValueError:
+        # Crucial to log as error so that alerting systems capture database status corruption.
         logger.error("Corrupted status in DB: %s, falling back to failed", raw_status)
         return RebuildJobStatus.FAILED
 
