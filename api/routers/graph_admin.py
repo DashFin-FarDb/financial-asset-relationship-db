@@ -19,7 +19,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
-from src.data.db_models import RebuildJobORM
+from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock, LockLifecycleState, LockState
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -27,7 +27,7 @@ from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
 from ..api_models import GraphRebuildResponse, RebuildJobListResponse, RebuildJobResponse
 from ..auth import User, get_current_rebuild_operator_user
-from ..graph_lifecycle import (  # noqa: F401
+from ..graph_lifecycle import (
     GraphRuntimeLifecycleState,
     get_runtime_lifecycle_state,
     synchronize_runtime_graph,
@@ -51,7 +51,7 @@ from ..metrics import (
     LOCK_REFRESH_TOTAL,
     increment_recovery_trigger,
 )
-from .graph_admin_helpers import (  # noqa: F401
+from .graph_admin_helpers import (
     _REBUILD_PATH,
     _REBUILD_RUNTIME,
     _claim_rebuild_or_raise,
@@ -70,10 +70,37 @@ from .graph_admin_helpers import (  # noqa: F401
     _rebuild_status_code,
     _RebuildExecutionError,
     _resolve_user_ref,
-    _sanitize_failure_message,  # noqa: F401
-    _unwrap_rebuild_error,  # noqa: F401
+    _sanitize_failure_message,
+    _unwrap_rebuild_error,
     _update_job_source_safe,
 )
+
+__all__ = [
+    "GraphRuntimeLifecycleState",
+    "get_runtime_lifecycle_state",
+    "synchronize_runtime_graph",
+    "_REBUILD_PATH",
+    "_REBUILD_RUNTIME",
+    "_claim_rebuild_or_raise",
+    "_create_and_start_rebuild_job",
+    "_DistributedLockAcquisitionError",
+    "_DistributedLockLostError",
+    "_duration_ms",
+    "_finalize_rebuild_failure",
+    "_finalize_rebuild_success",
+    "_log_rebuild_failed",
+    "_log_rebuild_rejected",
+    "_log_rebuild_requested",
+    "_log_rebuild_succeeded",
+    "_log_unexpected_rebuild_exception",
+    "_map_rebuild_error",
+    "_rebuild_status_code",
+    "_RebuildExecutionError",
+    "_resolve_user_ref",
+    "_sanitize_failure_message",
+    "_unwrap_rebuild_error",
+    "_update_job_source_safe",
+]
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -354,7 +381,7 @@ def _restore_persisted_graph_snapshot(
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception,
+    exc: BaseException,
     job_started_at: float,
     success_persisted: bool,
     graph_saved: bool,
@@ -467,7 +494,7 @@ def _run_rebuild_pipeline(
         _handle_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,
-            exc=exc,  # type: ignore[arg-type]
+            exc=exc,
             job_started_at=job_started_at,
             success_persisted=success_persisted,
             graph_saved=graph_saved,
@@ -769,7 +796,7 @@ def _orm_to_response(job_orm: RebuildJobORM) -> RebuildJobResponse:
     """Convert RebuildJobORM to bounded RebuildJobResponse."""
     return RebuildJobResponse(
         job_id=job_orm.job_id,
-        status=job_orm.status,
+        status=RebuildJobStatus(job_orm.status),
         source=job_orm.source,
         requested_by=job_orm.requested_by,
         created_at=job_orm.created_at,
