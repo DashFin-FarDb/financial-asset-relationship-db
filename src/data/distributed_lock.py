@@ -158,6 +158,11 @@ class DistributedLock:
         """Transition the internal lifecycle state machine state."""
         self._state = state
 
+    @property
+    def state(self) -> LockLifecycleState:
+        """Return the current internal lifecycle state of the lock."""
+        return self._state
+
     def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> LockLease | bool:
         """Acquire the distributed lock with optional retries."""
         self._emit(

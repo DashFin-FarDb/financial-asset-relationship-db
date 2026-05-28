@@ -966,11 +966,12 @@ def _perform_rebuild_and_persist_sync(
     # ------------------------------------------------------------------
     #
 
-    coordination_database_url = settings.coordination_database_url
+    coordination_database_url = settings.coordination_database_url or settings.asset_graph_database_url
 
     if not coordination_database_url:
         raise RuntimeError(
-            "coordination_database_url must be explicitly configured " "for distributed rebuild coordination."
+            "Neither coordination_database_url nor asset_graph_database_url is configured. "
+            "At least one durable database URL must be configured for rebuild coordination."
         )
 
     domain_engine = None
@@ -1012,7 +1013,7 @@ def _perform_rebuild_and_persist_sync(
         # Coordination plane MUST point to authoritative primary.
         #
 
-        validate_coordination_database_primary(coordination_session_factory)
+        _validate_coordination_database_primary(coordination_session_factory)
 
         #
         # --------------------------------------------------------------
@@ -1104,7 +1105,7 @@ def _perform_rebuild_and_persist_sync(
         # --------------------------------------------------------------
         #
 
-        if lock_acquired and dist_lock is not None and dist_lock._state != LockLifecycleState.LOST:
+        if lock_acquired and dist_lock is not None and dist_lock.state != LockLifecycleState.LOST:
             try:
                 dist_lock.release()
             except Exception:
@@ -1124,7 +1125,7 @@ def _perform_rebuild_and_persist_sync(
                 domain_engine.dispose()
 
 
-def validate_coordination_database_primary(session_factory) -> None:
+def _validate_coordination_database_primary(session_factory) -> None:
     """Verify the coordination DB is a writable primary, not a replica.
 
     For PostgreSQL this uses pg_is_in_recovery(); for non-Postgres backends (e.g. SQLite)
