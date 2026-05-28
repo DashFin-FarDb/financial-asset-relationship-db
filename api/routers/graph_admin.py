@@ -993,9 +993,12 @@ def _perform_rebuild_and_persist_sync(
         )
 
         resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
-        coordination_engine = create_engine_from_url(
-            resolved_coordination_url,
-        )
+        if resolved_coordination_url == resolved_domain_url:
+            coordination_engine = domain_engine
+        else:
+            coordination_engine = create_engine_from_url(
+                resolved_coordination_url,
+            )
 
         #
         # --------------------------------------------------------------
@@ -1004,7 +1007,11 @@ def _perform_rebuild_and_persist_sync(
         #
 
         domain_session_factory = create_session_factory(domain_engine)
-        coordination_session_factory = create_session_factory(coordination_engine)
+        coordination_session_factory = (
+            domain_session_factory
+            if coordination_engine is domain_engine
+            else create_session_factory(coordination_engine)
+        )
 
         #
         # --------------------------------------------------------------
@@ -1118,12 +1125,17 @@ def _perform_rebuild_and_persist_sync(
         # --------------------------------------------------------------
         #
 
-        try:
-            if coordination_engine is not None:
+        if coordination_engine is not None and coordination_engine is not domain_engine:
+            try:
                 coordination_engine.dispose()
-        finally:
-            if domain_engine is not None:
+            except Exception:
+                logger.exception("Failed to dispose coordination database engine")
+
+        if domain_engine is not None:
+            try:
                 domain_engine.dispose()
+            except Exception:
+                logger.exception("Failed to dispose domain database engine")
 
 
 def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
