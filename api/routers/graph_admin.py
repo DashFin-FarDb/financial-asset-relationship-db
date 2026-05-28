@@ -1140,14 +1140,17 @@ def _perform_rebuild_and_persist_sync(
 
         try:
             if coordination_engine is not None and coordination_engine is not domain_engine:
+        try:
+            if 'coordination_engine' in locals() and coordination_engine is not None and coordination_engine is not domain_engine:
                 try:
                     coordination_engine.dispose()
                 except Exception as exc:
-                    logger.error(
-                        "Failed to dispose coordination database engine: %s", type(exc).__name__, exc_info=True
-                    )
+                    logger.error("Failed to dispose coordination database engine: %s", type(exc).__name__, exc_info=True)
+        except Exception:
+            # Log unexpected errors but continue to attempt domain engine dispose in finally
+            logger.exception("Unexpected error while disposing coordination engine")
         finally:
-            if domain_engine is not None:
+            if 'domain_engine' in locals() and domain_engine is not None:
                 try:
                     domain_engine.dispose()
                 except Exception as exc:
