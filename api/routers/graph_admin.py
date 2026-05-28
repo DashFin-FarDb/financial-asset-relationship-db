@@ -1144,6 +1144,7 @@ def _validate_coordination_database_primary(session_factory) -> None:
                     "Coordination database is a read replica; coordination_database_url must point to the primary."
                 )
     except (SQLAlchemyError, OSError) as exc:
+        logger.exception("Error while verifying coordination database role")
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
 
