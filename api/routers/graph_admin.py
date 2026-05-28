@@ -542,7 +542,7 @@ def _log_rebuild_failed(
     )
 
 
-def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception) -> None:
+def _log_unexpected_rebuild_exception(*, user_ref: str, exc: BaseException) -> None:
     """Emit a sentinel alert log for unexpected rebuild failures."""
     logger.critical(
         "graph_rebuild_unexpected_exception",
@@ -1126,7 +1126,7 @@ def _perform_rebuild_and_persist_sync(
                 domain_engine.dispose()
 
 
-def _validate_coordination_database_primary(session_factory) -> None:
+def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
     """Verify the coordination DB is a writable primary, not a replica.
 
     For PostgreSQL this uses pg_is_in_recovery(); for non-Postgres backends (e.g. SQLite)
