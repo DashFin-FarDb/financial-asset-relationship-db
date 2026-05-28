@@ -361,7 +361,7 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
     return rebuild_lock
 
 
-def _map_rebuild_error(exc: BaseException) -> HTTPException:
+def _map_rebuild_error(exc: Exception) -> HTTPException:
     """Map rebuild domain errors to sanitized HTTP errors."""
     root_exc = _unwrap_rebuild_error(exc)
 
@@ -404,7 +404,7 @@ def _map_rebuild_error(exc: BaseException) -> HTTPException:
     )
 
 
-def _rebuild_status_code(exc: BaseException) -> int:
+def _rebuild_status_code(exc: Exception) -> int:
     """Return sanitized rebuild status code for audit logging."""
     root_exc = _unwrap_rebuild_error(exc)
 
@@ -1130,7 +1130,7 @@ def _perform_rebuild_and_persist_sync(
             try:
                 dist_lock.release()
             except Exception as exc:
-                logger.error("Failed to release distributed rebuild lock: %s", type(exc).__name__)
+                logger.error("Failed to release distributed rebuild lock: %s: %s", type(exc).__name__, exc)
 
         #
         # --------------------------------------------------------------
@@ -1142,13 +1142,13 @@ def _perform_rebuild_and_persist_sync(
             try:
                 coordination_engine.dispose()
             except Exception as exc:
-                logger.error("Failed to dispose coordination database engine: %s", type(exc).__name__)
+                logger.error("Failed to dispose coordination database engine: %s: %s", type(exc).__name__, exc)
 
         if domain_engine is not None:
             try:
                 domain_engine.dispose()
             except Exception as exc:
-                logger.error("Failed to dispose domain database engine: %s", type(exc).__name__)
+                logger.error("Failed to dispose domain database engine: %s: %s", type(exc).__name__, exc)
 
 
 def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
@@ -1173,9 +1173,13 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
         logger.error("Error while verifying coordination database role: %s", type(exc).__name__)
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
+    except Exception as exc:
+        # Unexpected error during session cleanup (rollback/close). Log and raise a consistent RuntimeError.
+        logger.error("Unexpected error while verifying coordination database role: %s", type(exc).__name__)
+        raise RuntimeError("Could not verify coordination database role") from exc
 
 
-def _sanitize_failure_message(exc: BaseException) -> str:
+def _sanitize_failure_message(exc: Exception) -> str:
     """Return a bounded, sanitized failure message for rebuild job persistence.
 
     Security goals:
