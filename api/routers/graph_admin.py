@@ -27,11 +27,11 @@ from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
 from ..api_models import GraphRebuildResponse, RebuildJobListResponse, RebuildJobResponse
 from ..auth import User, get_current_rebuild_operator_user
-from ..graph_lifecycle import (
+from ..graph_lifecycle import (  # noqa: F401
     GraphRuntimeLifecycleState,
     get_runtime_lifecycle_state,
     synchronize_runtime_graph,
-)  # noqa: F401
+)
 from ..graph_lifecycle_providers import (
     GraphLifecycleSettings,
     GraphPersistenceNonDurableError,
@@ -354,7 +354,7 @@ def _restore_persisted_graph_snapshot(
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception | asyncio.CancelledError,
+    exc: Exception,
     job_started_at: float,
     success_persisted: bool,
     graph_saved: bool,
@@ -467,7 +467,7 @@ def _run_rebuild_pipeline(
         _handle_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,
-            exc=exc,
+            exc=exc,  # type: ignore[arg-type]
             job_started_at=job_started_at,
             success_persisted=success_persisted,
             graph_saved=graph_saved,
@@ -668,11 +668,7 @@ def _perform_rebuild_and_persist_sync(
         # Best-effort lock release
         # --------------------------------------------------------------
         #
-        if (
-            dist_lock is not None
-            and lock_acquired
-            and dist_lock.state != LockLifecycleState.LOST
-        ):
+        if dist_lock is not None and lock_acquired and dist_lock.state != LockLifecycleState.LOST:
             try:
                 dist_lock.release()
             except Exception:

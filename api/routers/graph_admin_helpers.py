@@ -21,6 +21,18 @@ if TYPE_CHECKING:
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from api.graph_lifecycle_providers import (
+    GraphPersistenceNonDurableError,
+    GraphPersistenceNotConfiguredError,
+    GraphPersistenceSaveError,
+    GraphRebuildSource,
+    GraphRebuildSourceError,
+)
+
+# Repository imports are done dynamically inside functions to respect test patches on graph_admin.AssetGraphRepository
+from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.recovery_gate import ExecutionBlockedError
+
 from ..api_models import GraphRebuildResponse
 from ..auth import User
 from ..graph_lifecycle import (
@@ -28,13 +40,6 @@ from ..graph_lifecycle import (
     begin_rebuild,
     complete_rebuild,
     get_runtime_lifecycle_state,
-)
-from api.graph_lifecycle_providers import (
-    GraphPersistenceNonDurableError,
-    GraphPersistenceNotConfiguredError,
-    GraphPersistenceSaveError,
-    GraphRebuildSource,
-    GraphRebuildSourceError,
 )
 from ..metrics import (
     REBUILD_DURATION,
@@ -44,10 +49,6 @@ from ..metrics import (
     update_graph_metrics,
     update_rebuild_state_metric,
 )
-
-# Repository imports are done dynamically inside functions to respect test patches on graph_admin.AssetGraphRepository
-from src.logic.asset_graph import AssetRelationshipGraph
-from src.logic.recovery_gate import ExecutionBlockedError
 
 logger = logging.getLogger("api.routers.graph_admin")
 
@@ -126,7 +127,7 @@ _REBUILD_RUNTIME = _RebuildRuntime()
 class _RebuildExecutionError(Exception):
     """Wrap rebuild execution errors with bounded audit source context."""
 
-    def __init__(self, source: GraphRebuildSource, cause: Exception | asyncio.CancelledError) -> None:
+    def __init__(self, source: GraphRebuildSource, cause: Exception) -> None:
         """Store source and underlying failure without exposing raw details."""
         super().__init__(cause.__class__.__name__)
         self.source = source
@@ -158,7 +159,7 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
     return rebuild_lock
 
 
-def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException:
+def _map_rebuild_error(exc: Exception) -> HTTPException:
     """Map rebuild domain errors to sanitized HTTP errors."""
     root_exc = _unwrap_rebuild_error(exc)
 
@@ -201,7 +202,7 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
     )
 
 
-def _rebuild_status_code(exc: Exception | asyncio.CancelledError) -> int:
+def _rebuild_status_code(exc: Exception) -> int:
     """Return sanitized rebuild status code for audit logging."""
     root_exc = _unwrap_rebuild_error(exc)
 
@@ -291,7 +292,7 @@ def _log_rebuild_succeeded(
     )
 
 
-def _rebuild_failure_category(exc: Exception | asyncio.CancelledError) -> str:
+def _rebuild_failure_category(exc: Exception) -> str:
     """Return a bounded failure category for rebuild audit logs."""
     root_exc = _unwrap_rebuild_error(exc)
     categories = {
@@ -306,7 +307,7 @@ def _rebuild_failure_category(exc: Exception | asyncio.CancelledError) -> str:
     return categories.get(type(root_exc), "unexpected_error")
 
 
-def _rebuild_source_from_exception(exc: Exception | asyncio.CancelledError) -> GraphRebuildSource | None:
+def _rebuild_source_from_exception(exc: Exception) -> GraphRebuildSource | None:
     """Return the bounded rebuild source, if one is available on the exception."""
     if isinstance(exc, _RebuildExecutionError):
         return exc.source
@@ -316,7 +317,7 @@ def _rebuild_source_from_exception(exc: Exception | asyncio.CancelledError) -> G
 def _log_rebuild_failed(
     *,
     user_ref: str,
-    exc: Exception | asyncio.CancelledError,
+    exc: Exception,
     status_code: int,
     duration_ms: int,
 ) -> None:
@@ -340,7 +341,7 @@ def _log_rebuild_failed(
     )
 
 
-def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception | asyncio.CancelledError) -> None:
+def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception) -> None:
     """Emit a sentinel alert log for unexpected rebuild failures."""
     logger.critical(
         "graph_rebuild_unexpected_exception",
@@ -355,7 +356,7 @@ def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception | asyncio
     )
 
 
-def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception | asyncio.CancelledError:
+def _unwrap_rebuild_error(exc: Exception) -> Exception:
     """Return the underlying rebuild error for mapping and audit categorization."""
     if isinstance(exc, _RebuildExecutionError):
         return exc.cause
@@ -435,7 +436,7 @@ def _mark_job_succeeded_safe(
 def _mark_job_failed_safe(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception | asyncio.CancelledError,
+    exc: Exception,
     duration_ms: int,
 ) -> None:
     """Mark a rebuild job as failed safely."""
@@ -452,7 +453,7 @@ def _mark_job_failed_safe(
     )
 
 
-def _sanitize_failure_message(exc: Exception | asyncio.CancelledError) -> str:
+def _sanitize_failure_message(exc: Exception) -> str:
     """Return a bounded, sanitized failure message for rebuild job persistence.
 
     Security goals:
@@ -541,7 +542,7 @@ def _finalize_rebuild_failure(
     *,
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception | asyncio.CancelledError,
+    exc: Exception,
     job_started_at: float,
 ) -> None:
     """Persist failed rebuild terminal state."""
