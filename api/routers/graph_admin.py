@@ -919,7 +919,7 @@ def _run_rebuild_pipeline(
         success_persisted = True
         synchronize_runtime_graph(graph, job_id=job_id)
         return response
-    except (Exception, asyncio.CancelledError) as exc:
+    except BaseException as exc:
         _handle_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,
