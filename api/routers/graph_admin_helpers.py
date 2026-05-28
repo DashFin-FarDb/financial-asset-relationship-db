@@ -61,7 +61,7 @@ _MAX_AUDIT_USER_REF_LENGTH = 64
 _MAX_FAILURE_MESSAGE_LENGTH = 512
 
 _URL_PATTERN = re.compile(
-    r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_\-\.+]+:[^\s@/]+@[a-z0-9_\-\.+:]+)(?:\S*)",
+    r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_\-\.+]+:[^\s@/]+@[a-z0-9_\-\.+:]+)\S*",
     re.IGNORECASE,
 )
 
@@ -123,7 +123,7 @@ class _RebuildRuntime:
 _REBUILD_RUNTIME = _RebuildRuntime()
 
 
-class _RebuildExecutionError(Exception):
+class _RebuildExecutionError(RuntimeError):
     """Wrap rebuild execution errors with bounded audit source context."""
 
     def __init__(self, source: GraphRebuildSource, cause: Exception) -> None:
@@ -133,11 +133,11 @@ class _RebuildExecutionError(Exception):
         self.cause = cause
 
 
-class _DistributedLockAcquisitionError(Exception):
+class _DistributedLockAcquisitionError(RuntimeError):
     """Raised when the distributed lock cannot be acquired."""
 
 
-class _DistributedLockLostError(Exception):
+class _DistributedLockLostError(RuntimeError):
     """Raised when the distributed lock is lost mid-rebuild."""
 
 
@@ -364,13 +364,17 @@ def _unwrap_rebuild_error(exc: Exception) -> Exception:
 
 def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
     """Create a rebuild job record in pending status."""
-    from .graph_admin import AssetGraphRepository, session_scope
+    import importlib
+
+    graph_admin = importlib.import_module("api.routers.graph_admin")
+    AssetGraphRepository = graph_admin.AssetGraphRepository
+    session_scope = graph_admin.session_scope
 
     try:
         with session_scope(session_factory) as session:
             return AssetGraphRepository(session).create_rebuild_job(requested_by=user_ref)
     except Exception as exc:
-        logger.error("Failed to create rebuild job record: %s", exc.__class__.__name__)
+        logger.exception("Failed to create rebuild job record: %s", exc.__class__.__name__)
         raise GraphPersistenceSaveError("Failed to create rebuild job record.") from exc
 
 
@@ -381,13 +385,17 @@ def _run_job_update(
     error_message: str,
 ) -> None:
     """Execute a repository job-update action; raise GraphPersistenceSaveError on failure."""
-    from .graph_admin import AssetGraphRepository, session_scope
+    import importlib
+
+    graph_admin = importlib.import_module("api.routers.graph_admin")
+    AssetGraphRepository = graph_admin.AssetGraphRepository
+    session_scope = graph_admin.session_scope
 
     try:
         with session_scope(session_factory) as session:
             action(AssetGraphRepository(session))
     except Exception as exc:
-        logger.error("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
+        logger.exception("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
         raise GraphPersistenceSaveError(error_message) from exc
 
 
@@ -555,7 +563,11 @@ def _create_and_start_rebuild_job(
     worker_id: str,
 ) -> tuple[str, float]:
     """Create a rebuild job record and transition it to running."""
-    from .graph_admin import AssetGraphRepository, session_scope
+    import importlib
+
+    graph_admin = importlib.import_module("api.routers.graph_admin")
+    AssetGraphRepository = graph_admin.AssetGraphRepository
+    session_scope = graph_admin.session_scope
 
     job_id = _create_job_safe(session_factory, user_ref)
     update_rebuild_state_metric("pending")
@@ -567,7 +579,7 @@ def _create_and_start_rebuild_job(
         with session_scope(session_factory) as session:
             AssetGraphRepository(session).update_rebuild_heartbeat(job_id, worker_id)
     except Exception as exc:
-        logger.error(
+        logger.exception(
             "Failed to record initial rebuild heartbeat: %s (job_id=%s). Failing closed.",
             type(exc).__name__,
             job_id,
