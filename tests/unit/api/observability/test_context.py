@@ -21,15 +21,16 @@ def test_request_context_management():
     correlation_id = "test-corr-456"
     tokens = set_request_context(request_id, correlation_id)
 
-    assert get_request_id() == request_id
-    assert get_correlation_id() == correlation_id
-    assert get_request_context() == {
-        "request_id": request_id,
-        "correlation_id": correlation_id,
-    }
-
-    # Reset context
-    reset_request_context(tokens)
+    try:
+        assert get_request_id() == request_id
+        assert get_correlation_id() == correlation_id
+        assert get_request_context() == {
+            "request_id": request_id,
+            "correlation_id": correlation_id,
+        }
+    finally:
+        # Reset context in finally to prevent leakage even if assertions fail
+        reset_request_context(tokens)
 
     assert get_request_id() is None
     assert get_correlation_id() is None

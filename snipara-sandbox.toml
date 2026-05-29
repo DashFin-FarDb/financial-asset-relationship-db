@@ -1,0 +1,9 @@
+[snipara_sandbox]
+model = "claude-sonnet-4-20250514"
+environment = "local"  # or "docker" for stronger isolation
+max_depth = 4
+max_subcalls = 12
+
+# Snipara integration - auto-registers context tools
+snipara_api_key = "snp-52c7fbb4553349adae96da4c1040b6e6b7336938a695192932ccdf91f558fecb"
+snipara_project_slug = "financial-asset-relationship-db"

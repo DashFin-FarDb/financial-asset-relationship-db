@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from api.observability.context import reset_request_context, set_request_context
+from api.observability.context import is_valid_id, reset_request_context, set_request_context
 
 if TYPE_CHECKING:
     from fastapi import Request, Response
@@ -25,11 +25,8 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
       X-Correlation-ID header or defaults to the request_id value for
       request-initiated workflows.
 
-    The distinction is crucial for observability:
-    - Use request_id for tracing a single request's execution path.
-    - Use correlation_id for tracing an entire workflow that might span multiple
-      requests or involve background jobs (e.g., an async graph rebuild operation
-      triggered by a specific user request).
+    Security: Validates incoming IDs to prevent log/header injection.
+    Reliability: Ensures IDs are attached to responses even on unhandled errors.
     """
 
     async def dispatch(
@@ -39,37 +36,38 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         """
         Manage identifiers for the request lifecycle.
-
-        1. Extract or generate identifiers.
-        2. Store them in request state.
-        3. Set them in request context (contextvars).
-        4. Propagate them to response headers.
-        5. Ensure context cleanup.
         """
-        # Extract or generate identifiers
-        # X-Request-ID is for this specific request
-        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        # Extract and validate headers
+        raw_request_id = request.headers.get("X-Request-ID")
+        request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
 
-        # X-Correlation-ID is for the broader workflow
-        # If not provided, it defaults to the request_id (starting a new workflow)
-        correlation_id = request.headers.get("X-Correlation-ID") or request_id
+        raw_correlation_id = request.headers.get("X-Correlation-ID")
+        # If correlation ID is invalid or missing, default to the (validated or generated) request_id
+        correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
 
-        # Store identifiers in request state for easy access via request object
+        # Store identifiers in request state
         request.state.request_id = request_id
         request.state.correlation_id = correlation_id
 
-        # Set context variables for access throughout the request lifecycle
-        # (including deep within business logic without explicit passing)
+        # Set context variables
         tokens = set_request_context(request_id, correlation_id)
 
         try:
             response = await call_next(request)
-
-            # Propagate identifiers to response headers
-            response.headers["X-Request-ID"] = request_id
-            response.headers["X-Correlation-ID"] = correlation_id
-
+            self._attach_headers(response, request_id, correlation_id)
             return response
+        except Exception:
+            # Re-raise will be caught by FastAPI exception handlers,
+            # but standard middleware might not have another chance to attach headers
+            # if the exception handler returns a new response.
+            # BaseHTTPMiddleware's call_next handles internal exceptions,
+            # but if we get here, something went wrong in the middleware chain.
+            raise
         finally:
-            # Clear context variables at request boundaries to prevent leakage
+            # Clear context variables
             reset_request_context(tokens)
+
+    def _attach_headers(self, response: Response, request_id: str, correlation_id: str) -> None:
+        """Attach correlation headers to the response."""
+        response.headers["X-Request-ID"] = request_id
+        response.headers["X-Correlation-ID"] = correlation_id

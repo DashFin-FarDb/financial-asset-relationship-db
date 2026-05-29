@@ -72,3 +72,30 @@ def test_correlation_middleware_logic():
     assert response.headers.get("X-Request-ID") != "only-corr"
     assert data["ctx_correlation_id"] == "only-corr"
     assert data["ctx_request_id"] == response.headers.get("X-Request-ID")
+
+    # Case 4: Invalid/Dangerous headers (should be rejected and replaced with generated IDs)
+    dangerous_id = "dangerous-id'; DROP TABLE users; --"
+    long_id = "a" * 100
+    response = client.get(
+        "/test",
+        headers={
+            "X-Request-ID": dangerous_id,
+            "X-Correlation-ID": long_id,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    # Should have generated new IDs instead of using dangerous/long ones
+    assert response.headers.get("X-Request-ID") != dangerous_id
+    assert response.headers.get("X-Correlation-ID") != long_id
+    assert is_valid_uuid(response.headers.get("X-Request-ID"))
+
+
+def is_valid_uuid(val):
+    try:
+        import uuid
+        uuid.UUID(str(val))
+        return True
+    except ValueError:
+        return False

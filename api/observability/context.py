@@ -2,14 +2,26 @@
 
 from __future__ import annotations
 
-from contextvars import ContextVar
+from contextvars import ContextVar, Token
 from typing import Any
+import re
+
+# Validation regex for correlation/request IDs to prevent log injection
+# Allows alphanumeric, hyphen, underscore, and dot, length 1-64
+_ID_VALIDATION_REGEX = re.compile(r"^[a-zA-Z0-9\-_\.]{1,64}$")
 
 # Context variables for request-scoped identifiers
 # request_id: Unique identifier for a single HTTP request
 # correlation_id: Cross-service/cross-job workflow identity
 _request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
 _correlation_id_ctx: ContextVar[str | None] = ContextVar("correlation_id", default=None)
+
+
+def is_valid_id(identifier: str | None) -> bool:
+    """Return whether the identifier matches the security validation policy."""
+    if not identifier:
+        return False
+    return bool(_ID_VALIDATION_REGEX.match(identifier))
 
 
 def get_request_id() -> str | None:
@@ -35,7 +47,7 @@ def get_request_context() -> dict[str, Any]:
     }
 
 
-def set_request_context(request_id: str, correlation_id: str) -> tuple[Any, Any]:
+def set_request_context(request_id: str, correlation_id: str) -> tuple[Token[str | None], Token[str | None]]:
     """
     Set the request context variables.
 
@@ -47,7 +59,7 @@ def set_request_context(request_id: str, correlation_id: str) -> tuple[Any, Any]
     return t1, t2
 
 
-def reset_request_context(tokens: tuple[Any, Any]) -> None:
+def reset_request_context(tokens: tuple[Token[str | None], Token[str | None]]) -> None:
     """
     Reset the request context variables using the provided tokens.
 
