@@ -56,13 +56,6 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             self._attach_headers(response, request_id, correlation_id)
             return response
-        except Exception:
-            # Re-raise will be caught by FastAPI exception handlers,
-            # but standard middleware might not have another chance to attach headers
-            # if the exception handler returns a new response.
-            # BaseHTTPMiddleware's call_next handles internal exceptions,
-            # but if we get here, something went wrong in the middleware chain.
-            raise
         finally:
             # Clear context variables
             reset_request_context(tokens)
