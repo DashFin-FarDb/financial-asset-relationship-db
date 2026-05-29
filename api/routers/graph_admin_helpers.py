@@ -64,7 +64,7 @@ _MAX_FAILURE_MESSAGE_LENGTH = 512
 # Regex to match URLs, DSNs, and user:pass@host credential sequences for redaction.
 # Intent: Redact connection strings, credentials, and full URL segments containing sensitive details.
 _URL_PATTERN = re.compile(
-    r"\b(?:[a-z][a-z0-9+\-.]*://[^\s'\"<>()]+|[a-z0-9_.+\-]+:[^\s@/]+@[a-z0-9_.\-]+(?::\d+)?)",
+    r"\b[a-z][a-z0-9+\-.]*:(?://\S+|[^/@]+:[^/@]+@\S+)",
     re.IGNORECASE,
 )
 
