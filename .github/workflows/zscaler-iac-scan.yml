@@ -33,7 +33,21 @@ jobs:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     runs-on: ubuntu-latest
-    if: secrets.ZSCANNER_CLIENT_ID != '' && secrets.ZSCANNER_CLIENT_SECRET != ''
+    # Replace the job-level if: with a setup step approach:
+    # Option A — add a dedicated check step at the top of the job:
+    steps:
+      - name: Check Zscaler credentials
+        id: check-creds
+        env:
+          CLIENT_ID: ${{ secrets.ZSCANNER_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.ZSCANNER_CLIENT_SECRET }}
+        run: |
+          if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      # Then add `if: steps.check-creds.outputs.skip == 'false'` to each subsequent step
     steps:
       - name : Code Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
