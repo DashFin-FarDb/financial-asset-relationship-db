@@ -215,7 +215,8 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             jitter = random.uniform(0, 0.1 * current_interval)
             await asyncio.sleep(jitter)
 
-
+max_interval = interval_seconds * 32  # cap at 32× base interval
+current_interval = min(current_interval * 2, max_interval)
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application instance."""
     app = FastAPI(
