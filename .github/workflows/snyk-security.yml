@@ -96,8 +96,7 @@ jobs:
 
         # Push the Snyk Code results into GitHub Code Scanning tab
       - name: Upload result to GitHub Code Scanning
-        if: always()  # Upload even if Code test was skipped due to quota
+        if: ${{ always() && hashFiles('snyk-code.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
-        if: ${{ hashFiles('snyk-code.sarif') != '' }}
         with:
-if: always() && hashFiles('snyk-code.sarif') != ''
+          sarif_file: snyk-code.sarif
