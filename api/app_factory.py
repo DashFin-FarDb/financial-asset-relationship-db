@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import random
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
@@ -179,23 +180,41 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 async def _graph_synchronization_loop(interval_seconds: float) -> None:
     """Periodically synchronize the memory graph engine with changes from the database."""
+    current_interval = interval_seconds
+    is_in_error_state = False
+    max_interval = 3600.0  # Cap backoff at 1 hour
+
     while True:
         try:
-            await asyncio.sleep(interval_seconds)
+            await asyncio.sleep(current_interval)
             if get_runtime_lifecycle_state() in (
                 GraphRuntimeLifecycleState.SHUTTING_DOWN,
                 GraphRuntimeLifecycleState.STOPPED,
             ):
                 return
             await asyncio.to_thread(sync_with_latest_rebuild)
+            
+            # Reset on successful sync
+            if is_in_error_state:
+                logger.info("Database connection restored.")
+                is_in_error_state = False
+            current_interval = interval_seconds
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            logger.warning(
-                "Unexpected transient error in graph synchronization loop: %s",
-                type(exc).__name__,
-                exc_info=True,
-            )
+            if not is_in_error_state:
+                logger.warning(
+                    "Unexpected transient error in graph synchronization loop: %s. Engaging backoff policy.",
+                    type(exc).__name__,
+                    exc_info=True,
+                )
+                is_in_error_state = True
+            
+            # Exponential backoff: double the interval, capped at max_interval
+            current_interval = min(current_interval * 2, max_interval)
+            # Add randomized jitter (0 to 10% of current interval) to avoid retry storms
+            jitter = random.uniform(0, 0.1 * current_interval)
+            await asyncio.sleep(jitter)
 
 
 def create_app() -> FastAPI:
