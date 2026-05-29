@@ -218,10 +218,11 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             backoff = min(current_interval * 2, max_interval)
             jitter = random.uniform(0, 0.1 * backoff)
             current_interval = min(backoff + jitter, max_interval)
-            # Note: we intentionally avoid calling `await asyncio.sleep(...)` here. The loop's first
-            # statement in the try block is `await asyncio.sleep(current_interval)`, so the computed
-            # `current_interval` will be applied at the start of the next iteration. This prevents
-            # double-sleeping within a single cycle and keeps the backoff logic centralized.
+            # Note: we intentionally avoid calling `await asyncio.sleep(...)` here.
+            # The try-block begins with `await asyncio.sleep(current_interval)`, so
+            # adjusting current_interval here ensures the next iteration uses the new
+            # value (avoids double-sleeping within one cycle). If the loop body is
+            # refactored to move the initial sleep, update this comment.
 
 
 def create_app() -> FastAPI:
