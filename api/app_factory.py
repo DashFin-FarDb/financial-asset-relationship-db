@@ -193,7 +193,7 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             ):
                 return
             await asyncio.to_thread(sync_with_latest_rebuild)
-            
+
             # Reset on successful sync
             if is_in_error_state:
                 logger.info("Database connection restored.")
@@ -209,7 +209,7 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
                     exc_info=True,
                 )
                 is_in_error_state = True
-            
+
             # Exponential backoff: double the interval, capped at max_interval
             current_interval = min(current_interval * 2, max_interval)
             # Add randomized jitter (0 to 10% of current interval) to avoid retry storms
