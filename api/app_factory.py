@@ -216,7 +216,8 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             
             # Exponential backoff + randomized jitter applied cleanly to the next cycle
             backoff = min(current_interval * 2, max_interval)
-            current_interval = backoff + random.uniform(0, 0.1 * backoff)
+            jitter = random.uniform(0, 0.1 * backoff)
+            current_interval = min(backoff + jitter, max_interval)
 
 
 def create_app() -> FastAPI:
