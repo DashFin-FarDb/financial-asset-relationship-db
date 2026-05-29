@@ -369,7 +369,7 @@ def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception | asyncio
             "timestamp": _audit_timestamp(),
         },
     )
-    logger.debug("Unexpected rebuild exception details:", exc_info=True)
+    logger.debug("Unexpected rebuild exception details", exc_info=True)
 
 
 def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception | asyncio.CancelledError:

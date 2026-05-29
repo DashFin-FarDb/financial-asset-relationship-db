@@ -139,11 +139,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             else:
                 logger.critical(
                     "Application startup BLOCKED by RecoveryGate safety invariant: %s",
-                    exc,
+                    type(exc).__name__,
                     exc_info=False,
                 )
                 logger.debug(
-                    "Safety invariant traceback details:",
+                    "Safety invariant traceback details",
                     exc_info=True,
                 )
                 raise exc from None
