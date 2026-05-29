@@ -182,8 +182,8 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
     """Periodically synchronize the memory graph engine with changes from the database."""
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
-    # ... inside the loop reset ...
-    current_interval = base_interval
+    max_interval = base_interval * 32  # cap at 32× base interval
+    is_in_error_state = False
 
     while True:
         try:
@@ -218,6 +218,7 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             backoff = min(current_interval * 2, max_interval)
             jitter = random.uniform(0, 0.1 * backoff)
             current_interval = min(backoff + jitter, max_interval)
+            await asyncio.sleep(current_interval)
 
 
 def create_app() -> FastAPI:

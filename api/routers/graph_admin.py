@@ -76,32 +76,10 @@ from .graph_admin_helpers import (
 )
 
 # Re-exported explicitly for intra-package routing.
-# TODO: These symbols are exported only for test convenience (monkeypatching). Don't expand the module public API — move test-only helpers into tests/ (conftest.py or tests/helpers) and access them from tests; prefer monkeypatching the module object rather than exposing private names.
 __all__ = [
     "GraphRuntimeLifecycleState",
     "get_runtime_lifecycle_state",
     "synchronize_runtime_graph",
-    "_REBUILD_PATH",
-    "_REBUILD_RUNTIME",
-    "_claim_rebuild_or_raise",
-    "_create_and_start_rebuild_job",
-    "_DistributedLockAcquisitionError",
-    "_DistributedLockLostError",
-    "_duration_ms",
-    "_finalize_rebuild_failure",
-    "_finalize_rebuild_success",
-    "_log_rebuild_failed",
-    "_log_rebuild_rejected",
-    "_log_rebuild_requested",
-    "_log_rebuild_succeeded",
-    "_log_unexpected_rebuild_exception",
-    "_map_rebuild_error",
-    "_rebuild_status_code",
-    "_RebuildExecutionError",
-    "_resolve_user_ref",
-    "_sanitize_failure_message",
-    "_unwrap_rebuild_error",
-    "_update_job_source_safe",
 ]
 
 router = APIRouter()
