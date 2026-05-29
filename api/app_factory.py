@@ -130,7 +130,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     if has_durable_graph_persistence:
         try:
-            _run_startup_reconciliation(settings)
+            await asyncio.to_thread(_run_startup_reconciliation, settings)
         except ExecutionBlockedError as exc:
             if exc.action == "wait" and exc.inconsistency_type == "none":
                 logger.info(
