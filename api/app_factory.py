@@ -183,20 +183,20 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
     is_in_error_state = False
-    
+
     # FIX: Compute max_interval once inside the function before the loop
     max_interval = base_interval * 32
 
     while True:
         try:
             await asyncio.sleep(current_interval)
-            
+
             if get_runtime_lifecycle_state() in (
                 GraphRuntimeLifecycleState.SHUTTING_DOWN,
                 GraphRuntimeLifecycleState.STOPPED,
             ):
                 return
-                
+
             await asyncio.to_thread(sync_with_latest_rebuild)
 
             # Reset on successful sync
@@ -204,7 +204,7 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
                 logger.info("Database connection restored.")
                 is_in_error_state = False
             current_interval = base_interval
-            
+
         except asyncio.CancelledError:
             raise
         except Exception as exc:
@@ -215,7 +215,7 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
                     exc_info=True,
                 )
                 is_in_error_state = True
-            
+
             backoff = min(current_interval * 2, max_interval)
             jitter = random.uniform(0, 0.1 * backoff)
             current_interval = min(backoff + jitter, max_interval)
