@@ -76,7 +76,7 @@ from .graph_admin_helpers import (
 )
 
 # Re-exported explicitly for intra-package routing.
-# TODO: Exported solely for test convenience (monkeypatching). Move these symbols to a dedicated tests.helpers module and import them via fully-qualified test paths to avoid expanding the module's public API.
+# TODO: These symbols are exported only for test convenience (monkeypatching). Don't expand the module public API — move test-only helpers into tests/ (conftest.py or tests/helpers) and access them from tests; prefer monkeypatching the module object rather than exposing private names.
 __all__ = [
     "GraphRuntimeLifecycleState",
     "get_runtime_lifecycle_state",
@@ -800,7 +800,8 @@ def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
         return RebuildJobStatus(raw_status)
     except ValueError:
         # Crucial to log as error so that alerting systems capture database status corruption.
-        logger.error("Corrupted status in DB: %s, falling back to failed", raw_status)
+        sanitized_status = raw_status if len(raw_status) <= 200 else raw_status[:197] + "..."
+        logger.error("Corrupted status in DB (truncated to 200 chars): %s, falling back to failed", sanitized_status)
         return RebuildJobStatus.FAILED
 
 
