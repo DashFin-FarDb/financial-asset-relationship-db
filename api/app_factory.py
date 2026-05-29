@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import random
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
@@ -70,12 +71,24 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 
     url = _resolve_startup_reconciliation_url(settings)
     engine = create_engine_from_url(url)
+
+    # Resolve primary-only Coordination Plane (Plane 2) engine and session factory
+    coord_url = getattr(settings, "coordination_database_url", None) or url
+    coord_engine = create_engine_from_url(coord_url) if coord_url != url else engine
+
     try:
         # Schema guarantee runs safely isolated here before gate evaluations
         init_db(engine)
+        if coord_engine is not engine:
+            init_db(coord_engine)
+
         session_factory = create_session_factory(engine)
+        coordination_session_factory = (
+            create_session_factory(coord_engine) if coord_engine is not engine else session_factory
+        )
+
         lock = DistributedLock(
-            session_factory=session_factory,
+            coordination_session_factory=coordination_session_factory,
             lock_name="graph_rebuild",
             ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
         )
@@ -99,6 +112,8 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     finally:
         # Ensure short-lived startup verification engines are cleanly disposed
         engine.dispose()
+        if coord_engine is not engine:
+            coord_engine.dispose()
 
 
 @asynccontextmanager
@@ -115,7 +130,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     if has_durable_graph_persistence:
         try:
-            _run_startup_reconciliation(settings)
+            try:
+                await asyncio.wait_for(asyncio.to_thread(_run_startup_reconciliation, settings), timeout=120)
+            except asyncio.TimeoutError:
+                logger.critical("Startup reconciliation timed out after 120s")
+                raise RuntimeError("Startup reconciliation timed out") from None
         except ExecutionBlockedError as exc:
             if exc.action == "wait" and exc.inconsistency_type == "none":
                 logger.info(
@@ -125,7 +144,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             else:
                 logger.critical(
                     "Application startup BLOCKED by RecoveryGate safety invariant: %s",
-                    exc,
+                    type(exc).__name__,
+                    exc_info=False,
+                )
+                logger.debug(
+                    "Safety invariant traceback details",
                     exc_info=True,
                 )
                 raise exc from None
@@ -161,23 +184,49 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 async def _graph_synchronization_loop(interval_seconds: float) -> None:
     """Periodically synchronize the memory graph engine with changes from the database."""
+    base_interval = max(1.0, float(interval_seconds))
+    current_interval = base_interval
+    max_interval = base_interval * 32  # cap at 32× base interval
+    is_in_error_state = False
+
     while True:
         try:
-            await asyncio.sleep(interval_seconds)
+            await asyncio.sleep(current_interval)
+
             if get_runtime_lifecycle_state() in (
                 GraphRuntimeLifecycleState.SHUTTING_DOWN,
                 GraphRuntimeLifecycleState.STOPPED,
             ):
                 return
+
             await asyncio.to_thread(sync_with_latest_rebuild)
+
+            # Reset on successful sync
+            if is_in_error_state:
+                logger.info("Database connection restored.")
+                is_in_error_state = False
+            current_interval = base_interval
+
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            logger.warning(
-                "Unexpected transient error in graph synchronization loop: %s",
-                type(exc).__name__,
-                exc_info=True,
-            )
+            if not is_in_error_state:
+                logger.warning(
+                    "Unexpected transient error in graph synchronization loop (%s). Engaging backoff policy.",
+                    type(exc).__name__,
+                    exc_info=True,
+                )
+                is_in_error_state = True
+
+            # Exponential backoff + randomized jitter applied cleanly to the next cycle
+            backoff = min(current_interval * 2, max_interval)
+            jitter = random.uniform(0, 0.1 * backoff)
+            current_interval = min(backoff + jitter, max_interval)
+            # Note: we intentionally avoid calling `await asyncio.sleep(...)` here.
+            # The try-block begins with `await asyncio.sleep(current_interval)`, so
+            # adjusting current_interval here ensures the next iteration uses the new
+            # value (avoids double-sleeping within one cycle). If the loop body is
+            # refactored to move the initial sleep, update this comment.
 
 
 def create_app() -> FastAPI:

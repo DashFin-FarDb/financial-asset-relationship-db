@@ -122,6 +122,7 @@ class TestSettingsModel:
         assert settings.use_real_data_fetcher is False
         assert settings.database_url is None
         assert settings.asset_graph_database_url is None
+        assert settings.rebuild_lock_ttl_seconds == 300
 
     def test_settings_with_explicit_values(self) -> None:
         """Test Settings initialization with explicit values."""
@@ -139,6 +140,7 @@ class TestSettingsModel:
             use_real_data_fetcher=True,
             database_url="sqlite:///runtime.db",
             asset_graph_database_url="postgresql://fardb_user:example_value@localhost/fardb",
+            rebuild_lock_ttl_seconds=600,
         )
         assert settings.env == "production"
         assert settings.allowed_origins_raw == "https://example.com,https://example.org"
@@ -152,6 +154,7 @@ class TestSettingsModel:
         assert settings.real_data_cache_path == "/path/to/real/cache"
         assert settings.use_real_data_fetcher is True
         assert settings.database_url == "sqlite:///runtime.db"
+        assert settings.rebuild_lock_ttl_seconds == 600
         assert settings.asset_graph_database_url == "postgresql://fardb_user:example_value@localhost/fardb"
 
     def test_settings_allowed_origins_property(self) -> None:
@@ -206,6 +209,7 @@ class TestLoadSettings:
         assert settings.real_data_cache_path is None
         assert settings.use_real_data_fetcher is False
         assert settings.database_url is None
+        assert settings.rebuild_lock_ttl_seconds == 300
         assert settings.asset_graph_database_url is None
 
     @patch.dict(
@@ -242,6 +246,44 @@ class TestLoadSettings:
         assert settings.use_real_data_fetcher is True
         assert settings.database_url == "sqlite:///env.db"
         assert settings.asset_graph_database_url == "postgresql://localhost/db"
+        assert settings.rebuild_lock_ttl_seconds == 300  # Default when not set
+
+    @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "600"})
+    def test_load_settings_rebuild_lock_ttl_from_env(self) -> None:
+        """Test that REBUILD_LOCK_TTL_SECONDS is loaded from environment."""
+        settings = load_settings()
+        assert settings.rebuild_lock_ttl_seconds == 600
+
+    @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "0"}, clear=True)
+    def test_load_settings_rebuild_lock_ttl_zero_raises_validation_error(self) -> None:
+        """Test that REBUILD_LOCK_TTL_SECONDS=0 raises validation error."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            load_settings()
+
+    @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "-100"}, clear=True)
+    def test_load_settings_rebuild_lock_ttl_negative_raises_validation_error(self) -> None:
+        """Test that negative REBUILD_LOCK_TTL_SECONDS raises validation error."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            load_settings()
+
+    @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "abc"}, clear=True)
+    def test_load_settings_rebuild_lock_ttl_non_integer_raises_value_error(
+        self,
+    ) -> None:
+        """
+        Test that a non-integer REBUILD_LOCK_TTL_SECONDS value
+        raises a deterministic ValueError during configuration parsing.
+        """
+
+        with pytest.raises(
+            ValueError,
+            match=r"REBUILD_LOCK_TTL_SECONDS|invalid literal|could not convert",
+        ):
+            load_settings()
 
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
     def test_load_settings_env_lowercase(self) -> None:
@@ -427,3 +469,27 @@ class TestSettingsValidation:
         assert isinstance(settings.allowed_origins_raw, str)
         assert isinstance(settings.use_real_data_fetcher, bool)
         assert settings.graph_cache_path is None or isinstance(settings.graph_cache_path, str)
+
+
+class TestRebuildLockTTLSettings:
+    """Test rebuild lock TTL configuration."""
+
+    def test_rebuild_lock_ttl_default(self) -> None:
+        """Test default rebuild lock TTL is 300 seconds."""
+        settings = Settings()
+        assert settings.rebuild_lock_ttl_seconds == 300
+
+    def test_rebuild_lock_ttl_explicit_value(self) -> None:
+        """Test rebuild lock TTL can be set explicitly."""
+        settings = Settings(rebuild_lock_ttl_seconds=500)
+        assert settings.rebuild_lock_ttl_seconds == 500
+
+    def test_rebuild_lock_ttl_validation_rejects_zero(self) -> None:
+        """Test that rebuild lock TTL validation rejects 0 or negative values."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="greater than 0"):
+            Settings(rebuild_lock_ttl_seconds=0)
+
+        with pytest.raises(ValidationError, match="greater than 0"):
+            Settings(rebuild_lock_ttl_seconds=-10)
