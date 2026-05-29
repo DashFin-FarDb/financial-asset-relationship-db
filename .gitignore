@@ -128,3 +128,12 @@ s
 
 # Ignore windsurf AI rules
 .windsurfrules
+
+# Snipara MCP config (contains API key)
+.mcp.json
+
+# Snipara generated validation output
+.snipara/companion/doctor.json
+
+# Snipara local companion config
+.snipara/companion/config.json
