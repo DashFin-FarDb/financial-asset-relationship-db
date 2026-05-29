@@ -183,7 +183,9 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
     is_in_error_state = False
-    max_interval = 3600.0  # Cap backoff at 1 hour
+    
+    # FIX: Compute max_interval once inside the function before the loop
+    max_interval = base_interval * 32
 
     while True:
         try:
@@ -214,7 +216,6 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
                 )
                 is_in_error_state = True
             
-            # Exponential backoff + randomized jitter applied cleanly to the next cycle
             backoff = min(current_interval * 2, max_interval)
             current_interval = backoff + random.uniform(0, 0.1 * backoff)
 
