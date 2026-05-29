@@ -17,10 +17,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 import api.graph_lifecycle_providers as providers
+import api.routers.graph_admin as graph_admin
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user, get_current_rebuild_operator_user
 from api.graph_lifecycle import reset_graph
-import api.routers.graph_admin as graph_admin
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.distributed_lock import LockState
