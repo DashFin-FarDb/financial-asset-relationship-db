@@ -95,6 +95,7 @@ def test_correlation_middleware_logic():
 def is_valid_uuid(val):
     try:
         import uuid
+
         uuid.UUID(str(val))
         return True
     except ValueError:
