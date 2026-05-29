@@ -204,11 +204,6 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
         except Exception as exc:
             if not is_in_error_state:
                 logger.warning(
-                logger.warning(
-                    "Unexpected transient error in graph synchronization loop (%s): %s. Engaging backoff policy.",
-                    type(exc).__name__,
-            if not is_in_error_state:
-                logger.warning(
                     "Unexpected transient error in graph synchronization loop (%s): %s. Engaging backoff policy.",
                     type(exc).__name__,
                     str(exc),
