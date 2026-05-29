@@ -182,21 +182,26 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
     """Periodically synchronize the memory graph engine with changes from the database."""
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
-    is_in_error_state = False
+    # ... inside the loop reset ...
+    current_interval = base_interval
 
-    # FIX: Compute max_interval once inside the function before the loop
-    max_interval = base_interval * 32
+    async def _graph_synchronization_loop(interval_seconds: float) -> None:
+    """Periodically synchronize the memory graph engine with changes from the database."""
+    base_interval = max(1.0, float(interval_seconds))
+    current_interval = base_interval
+    is_in_error_state = False
+    max_interval = 3600.0  # Cap backoff at 1 hour
 
     while True:
         try:
             await asyncio.sleep(current_interval)
-
+            
             if get_runtime_lifecycle_state() in (
                 GraphRuntimeLifecycleState.SHUTTING_DOWN,
                 GraphRuntimeLifecycleState.STOPPED,
             ):
                 return
-
+                
             await asyncio.to_thread(sync_with_latest_rebuild)
 
             # Reset on successful sync
@@ -204,7 +209,7 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
                 logger.info("Database connection restored.")
                 is_in_error_state = False
             current_interval = base_interval
-
+            
         except asyncio.CancelledError:
             raise
         except Exception as exc:
@@ -215,11 +220,10 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
                     exc_info=True,
                 )
                 is_in_error_state = True
-
+            
+            # Exponential backoff + randomized jitter applied cleanly to the next cycle
             backoff = min(current_interval * 2, max_interval)
-            jitter = random.uniform(0, 0.1 * backoff)
-            current_interval = min(backoff + jitter, max_interval)
-            await asyncio.sleep(sleep_time)
+            current_interval = backoff + random.uniform(0, 0.1 * backoff)
 
 
 def create_app() -> FastAPI:
