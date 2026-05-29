@@ -139,5 +139,5 @@ def configure_cors(app: FastAPI) -> None:
         allow_origins=build_allowed_origins(),
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization"],
+        allow_headers=["Content-Type", "Authorization", "X-Request-ID", "X-Correlation-ID"],
     )
