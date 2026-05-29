@@ -57,12 +57,19 @@ def create_engine_from_url(url: str | None = None) -> Engine:
 
     is_sqlite_memory = is_sqlite and (database == ":memory:" or query.get("mode") == "memory")
 
-    if is_sqlite_memory:
+    if is_sqlite:
+        connect_args = {"check_same_thread": False}
+        if is_sqlite_memory:
+            return create_engine(
+                resolved_url,
+                future=True,
+                connect_args=connect_args,
+                poolclass=StaticPool,
+            )
         return create_engine(
             resolved_url,
             future=True,
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
+            connect_args=connect_args,
         )
 
     return create_engine(resolved_url, future=True)

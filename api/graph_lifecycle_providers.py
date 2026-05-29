@@ -30,10 +30,12 @@ _GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
 class GraphLifecycleSettings:
     """Settings needed by graph lifecycle initialization."""
 
-    asset_graph_database_url: str | None
-    graph_cache_path: str | None
-    real_data_cache_path: str | None
-    use_real_data_fetcher: bool
+    asset_graph_database_url: str | None = None
+    coordination_database_url: str | None = None
+    graph_cache_path: str | None = None
+    real_data_cache_path: str | None = None
+    use_real_data_fetcher: bool = False
+    rebuild_lock_ttl_seconds: int = 300
 
 
 class GraphPersistenceNotConfiguredError(RuntimeError):
@@ -57,9 +59,11 @@ def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
     settings = get_settings()
     return GraphLifecycleSettings(
         asset_graph_database_url=settings.asset_graph_database_url,
+        coordination_database_url=settings.coordination_database_url,
         graph_cache_path=settings.graph_cache_path,
         real_data_cache_path=settings.real_data_cache_path,
         use_real_data_fetcher=settings.use_real_data_fetcher,
+        rebuild_lock_ttl_seconds=settings.rebuild_lock_ttl_seconds,
     )
 
 
@@ -298,9 +302,9 @@ def _resolve_persistence_database_url(database_url: str | None) -> str | None:
 
 
 def _log_in_memory_sqlite_persistence_skip() -> None:
-    """
-    Emit a warning that an in-memory SQLite database URL was detected and persisted graph
-    loading will be skipped because in-memory SQLite is not durable.
+    """Emit a warning that an in-memory SQLite database URL was detected.
+
+    Persisted graph loading will be skipped because in-memory SQLite is not durable.
     """
     logger.warning(
         "ASSET_GRAPH_DATABASE_URL points to an in-memory SQLite database; "
