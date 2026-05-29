@@ -137,3 +137,4 @@ s
 
 # Snipara local companion config
 .snipara/companion/config.json
+snipara-sandbox.toml

@@ -1,17 +1,9 @@
 {
   "mcpServers": {
-    "context-free": {
-      "url": "",
-      "type": "http",
-      "headers": {
-        "X-API-Key": "YOUR_API_KEY"
-      }
-    },
     "financial-asset-relationship-db": {
-      "transportType": "sse",
       "url": "https://api.snipara.com/mcp/financial-asset-relationship-db/sse",
       "headers": {
-        "X-API-Key": "${env:SNIPARA_API_KEY}"
+        "X-API-Key": "snp-52c7fbb4553349adae96da4c1040b6e6b7336938a695192932ccdf91f558fecb"
       }
     }
   },
