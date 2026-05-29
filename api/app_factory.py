@@ -210,7 +210,12 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
                     str(exc),
                     exc_info=True,
                 )
-
+logger.warning(
+    "Unexpected transient error in graph synchronization loop (%s): %s. Engaging backoff policy.",
+    type(exc).__name__,
+    str(exc),
+    exc_info=True,
+)
             # Exponential backoff: double the interval, capped at max_interval
             current_interval = min(current_interval * 2, max_interval)
             # Add randomized jitter (0 to 10% of current interval) to avoid retry storms
