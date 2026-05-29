@@ -21,6 +21,7 @@ import pytest  # pylint: disable=import-error
 from fastapi import HTTPException  # pylint: disable=import-error
 from fastapi.testclient import TestClient  # pylint: disable=import-error
 
+# Imported at module-level intentionally to allow direct access to module-level helpers in tests and to ensure monkeypatch targets are available.
 import api.routers.graph_admin as graph_admin
 from api.auth import (
     REBUILD_OPERATOR_FORBIDDEN_DETAIL,
