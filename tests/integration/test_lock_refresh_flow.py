@@ -23,7 +23,7 @@ from unittest.mock import MagicMock
 
 import pytest  # pylint: disable=import-error
 
-from api.routers import graph_admin, graph_admin_helpers
+import api.routers.graph_admin as graph_admin
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.distributed_lock import DistributedLock
@@ -299,7 +299,7 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
         # Create pre-commit check that verifies lock status
         def _ensure_lock_not_lost_before_commit() -> None:
             if lock_lost.is_set():
-                raise graph_admin_helpers._DistributedLockLostError(  # pylint: disable=protected-access
+                raise graph_admin._DistributedLockLostError(  # pylint: disable=protected-access
                     "Lost distributed lock at stage=graph-commit"
                 )
 

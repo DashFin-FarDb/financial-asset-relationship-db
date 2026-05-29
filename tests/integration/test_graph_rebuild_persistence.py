@@ -20,7 +20,7 @@ import api.graph_lifecycle_providers as providers
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user, get_current_rebuild_operator_user
 from api.graph_lifecycle import reset_graph
-from api.routers import graph_admin, graph_admin_helpers
+import api.routers.graph_admin as graph_admin
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.distributed_lock import LockState
@@ -71,8 +71,8 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
 
     get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
-    graph_admin_helpers._REBUILD_RUNTIME.lock = None
-    graph_admin_helpers._REBUILD_RUNTIME.lock_loop = None
+    graph_admin._REBUILD_RUNTIME.lock = None
+    graph_admin._REBUILD_RUNTIME.lock_loop = None
     graph_admin.shutdown_rebuild_executor_sync()
     reset_graph()
 
@@ -241,7 +241,7 @@ async def test_rebuild_with_ttl_creates_and_starts_job(monkeypatch):
     states_visited.append("pending")
     mock_session_factory = MagicMock()
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
-        graph_admin_helpers._create_and_start_rebuild_job(mock_session_factory, "test_user", "test_worker")
+        graph_admin._create_and_start_rebuild_job(mock_session_factory, "test_user", "test_worker")
 
     assert states_visited == ["pending", "running"]
 
@@ -479,7 +479,7 @@ async def test_rebuild_pipeline_aborts_immediately_on_preexisting_lock_loss(sess
         lock_lost_event = threading.Event()
         lock_lost_event.set()
 
-        with pytest.raises(graph_admin_helpers._DistributedLockLostError):
+        with pytest.raises(graph_admin._DistributedLockLostError):
             graph_admin._run_rebuild_pipeline(
                 session_factory, get_settings(), db_url, "job_immediate_abort", time.time(), lock_lost_event
             )
