@@ -185,13 +185,6 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
     # ... inside the loop reset ...
     current_interval = base_interval
 
-    async def _graph_synchronization_loop(interval_seconds: float) -> None:
-    """Periodically synchronize the memory graph engine with changes from the database."""
-    base_interval = max(1.0, float(interval_seconds))
-    current_interval = base_interval
-    is_in_error_state = False
-    max_interval = 3600.0  # Cap backoff at 1 hour
-
     while True:
         try:
             await asyncio.sleep(current_interval)
