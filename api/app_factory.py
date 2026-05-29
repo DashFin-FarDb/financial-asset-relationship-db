@@ -130,7 +130,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     if has_durable_graph_persistence:
         try:
-            await asyncio.to_thread(_run_startup_reconciliation, settings)
+            try:
+                await asyncio.wait_for(asyncio.to_thread(_run_startup_reconciliation, settings), timeout=120)
+            except asyncio.TimeoutError:
+                logger.critical("Startup reconciliation timed out after 120s")
+                raise RuntimeError("Startup reconciliation timed out") from None
         except ExecutionBlockedError as exc:
             if exc.action == "wait" and exc.inconsistency_type == "none":
                 logger.info(
