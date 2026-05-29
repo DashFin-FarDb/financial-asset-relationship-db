@@ -50,6 +50,19 @@ jobs:
       # Then add `if: steps.check-creds.outputs.skip == 'false'` to each subsequent step
     steps:
       - name : Code Checkout
+    steps:
+      - name: Check Zscaler credentials
+        id: check-creds
+        env:
+          CLIENT_ID: ${{ secrets.ZSCANNER_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.ZSCANNER_CLIENT_SECRET }}
+        run: |
+          if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Code Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name : Zscaler IAC Scan
         uses : ZscalerCWP/Zscaler-IaC-Action@8d2afb33b10b4bd50e2dc2c932b37c6e70ac1087
