@@ -23,6 +23,8 @@ from unittest.mock import MagicMock
 
 import pytest  # pylint: disable=import-error
 
+# Module-level import is safe as api.routers.graph_admin is side-effect free on import.
+# This allows direct access to internal helpers for tests and ensuring monkeypatch targets are available.
 import api.routers.graph_admin as graph_admin
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
