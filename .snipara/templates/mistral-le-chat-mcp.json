@@ -1,0 +1,13 @@
+{
+  "connector_name": "snipara",
+  "server_url": "https://api.snipara.com/mcp/context-free",
+  "auth": {
+    "method": "HTTP Bearer Token or Basic/API key prompt",
+    "secret": "Use SNIPARA_API_KEY from your environment or secret store"
+  },
+  "notes": [
+    "In Le Chat, add a Custom MCP Connector with this Server URL.",
+    "Le Chat auto-detects the authentication flow; do not commit the API key.",
+    "Enable the connector tools in each conversation or pre-authorize read functions deliberately."
+  ]
+}

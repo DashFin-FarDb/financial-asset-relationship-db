@@ -1,0 +1,184 @@
+{
+  "generated_at": "2026-05-29T06:56:44.794Z",
+  "project_slug": "context-free",
+  "project_id": "cmpqkaewj0056rx018gazm61h",
+  "ai_client": "codex",
+  "profile": "hosted-companion",
+  "llm_provider": null,
+  "install_orchestrator": false,
+  "github_repository": {
+    "owner": "DashFin-FarDb",
+    "repo": "financial-asset-relationship-db",
+    "fullName": "DashFin-FarDb/financial-asset-relationship-db",
+    "branch": "Q-DEV-issue-1219-1779749628",
+    "remoteUrl": "git@github.com:DashFin-FarDb/financial-asset-relationship-db.git"
+  },
+  "github_automation_url": "https://www.snipara.com/dashboard/projects/connect?source=create-snipara&repo=DashFin-FarDb%2Ffinancial-asset-relationship-db&branch=Q-DEV-issue-1219-1779749628&project_slug=context-free",
+  "client_pack": "CODEX.md",
+  "commands": [
+    {
+      "title": "Bootstrap local companion",
+      "command": "npx -y snipara-companion@latest init --client codex --project context-free",
+      "purpose": "Re-run local companion setup if this workstation needs to refresh browser login or project selection."
+    },
+    {
+      "title": "Run doctor for this project",
+      "command": "create-snipara doctor",
+      "purpose": "Inspect local wiring, hosted reachability, and generated assets."
+    },
+    {
+      "title": "Repair local setup",
+      "command": "create-snipara repair",
+      "purpose": "Rebuild config files, hooks, and the companion pack."
+    },
+    {
+      "title": "Run a focused hosted query",
+      "command": "npx -y snipara-companion@latest query --query \"how does auth middleware work?\" --max-tokens 4000",
+      "purpose": "Pull ranked source context before editing, reviewing, or drafting."
+    },
+    {
+      "title": "Load linked standards only when needed",
+      "command": "npx -y snipara-companion@latest shared-context --categories MANDATORY BEST_PRACTICES",
+      "purpose": "Fetch project-linked team or workspace guidance without treating it as memory."
+    },
+    {
+      "title": "Generate a hosted plan",
+      "command": "npx -y snipara-companion@latest plan --query \"Implement webhook retry hardening\" --max-tokens 3000",
+      "purpose": "Produce a structured execution plan against indexed project knowledge."
+    },
+    {
+      "title": "Start a managed workflow from the visible plan",
+      "command": "npx -y snipara-companion@latest workflow start --goal \"Implement webhook retry hardening\" --plan-file ./plan.json",
+      "purpose": "Record the JSON machine plan in .snipara/workflow/current.json so stable phase ids survive compaction."
+    },
+    {
+      "title": "Start the current workflow phase",
+      "command": "npx -y snipara-companion@latest workflow phase-start context",
+      "purpose": "Mark a phase active and print the required Snipara context gate for the agent."
+    },
+    {
+      "title": "Analyze code impact before a risky change",
+      "command": "npx -y snipara-companion@latest code impact --changed-files src/api/webhooks.ts tests/webhooks.test.ts --diff-summary \"webhook retry hardening\"",
+      "purpose": "Use paid Context code impact analysis to surface likely tests, docs, routes, config, and risks."
+    },
+    {
+      "title": "Enable explicit production orchestration",
+      "command": "npx create-snipara repair --with-orchestrator",
+      "purpose": "Install snipara-orchestrator only when production gates, drift checks, htasks, or multi-agent coordination are required."
+    },
+    {
+      "title": "Connect GitHub PR Answer Packs",
+      "command": "npx create-snipara --github",
+      "purpose": "Open the Snipara GitHub App flow for DashFin-FarDb/financial-asset-relationship-db. After the repo is connected, Snipara can generate scoped PR Answer Packs for GitHub-native agent workflows."
+    },
+    {
+      "title": "Upload or refresh a doc",
+      "command": "npx -y snipara-companion@latest upload --path docs/local-playbook.md --file ./docs/local-playbook.md",
+      "purpose": "Push local notes or docs into hosted Snipara context."
+    },
+    {
+      "title": "Preview a business folder import",
+      "command": "npx -y snipara-companion@latest onboard-folder ./client-export --source-provider local_folder --write-manifest ./snipara-onboard.json",
+      "purpose": "Classify a local or LLM-materialized business folder and review the Snipara sync manifest before upload."
+    },
+    {
+      "title": "Apply a business folder import",
+      "command": "npx -y snipara-companion@latest onboard-folder ./client-export --source-provider local_folder --apply",
+      "purpose": "Upload approved business-context documents to hosted Snipara and trigger document reindexing."
+    },
+    {
+      "title": "Inspect a specific chunk",
+      "command": "npx -y snipara-companion@latest chunk get --chunk-id <chunk_id>",
+      "purpose": "Open an exact chunk returned by references-based search."
+    },
+    {
+      "title": "Bootstrap the session memory view",
+      "command": "npx -y snipara-companion@latest session-bootstrap",
+      "purpose": "Load durable decisions, learnings, and optional short-lived carryover at session start."
+    },
+    {
+      "title": "Check Stuck Guard status",
+      "command": "npx -y snipara-companion@latest stuck-guard status",
+      "purpose": "Inspect whether recent tool failures, empty searches, or risky workflow signals should trigger a Rescue Pack."
+    },
+    {
+      "title": "Simulate a Stuck Guard fixture",
+      "command": "npx -y snipara-companion@latest stuck-guard simulate --fixture ./stuck-guard-fixture.json",
+      "purpose": "Replay canonical events against the hosted Stuck Guard decision API before enabling stricter modes."
+    },
+    {
+      "title": "Ask memory about past decisions",
+      "command": "npx -y snipara-companion@latest recall --query \"What did we decide about auth retries?\" --type decision",
+      "purpose": "Query durable memory for past decisions, preferences, or validated learnings."
+    },
+    {
+      "title": "Commit durable task memory",
+      "command": "npx -y snipara-companion@latest task-commit --summary \"Hardened webhook retries and updated tests\" --category engineering --outcome completed --files src/api/webhooks.ts tests/webhooks.test.ts",
+      "purpose": "Persist reusable outcomes back into hosted memory after the work is done."
+    },
+    {
+      "title": "Commit a managed workflow phase",
+      "command": "npx -y snipara-companion@latest workflow phase-commit context --summary \"Loaded context and mapped impacted files\" --files src/api/webhooks.ts tests/webhooks.test.ts",
+      "purpose": "Persist this phase through hosted memory and advance the local managed workflow state."
+    },
+    {
+      "title": "Commit the final managed workflow result",
+      "command": "npx -y snipara-companion@latest final-commit --summary \"Shipped webhook retry hardening and tests\" --files src/api/webhooks.ts tests/webhooks.test.ts",
+      "purpose": "Persist the final workflow outcome and close the managed workflow after verification."
+    }
+  ],
+  "guidance": [
+    "Codex should use the hosted MCP surface plus AGENTS.md as the canonical project instruction file.",
+    "The generated .snipara/templates/codex-config.toml is a merge-ready snippet for ~/.codex/config.toml if your Codex app does not read project .codex/config.toml.",
+    "Use SNIPARA_API_KEY as the only Codex bearer_token_env_var; restart Codex after changing MCP config.",
+    "If Codex lazily exposes only a minimal tool set, force discovery for snipara_recall, snipara_context_query, snipara_settings, and the exact htask or swarm tool names you need; use snipara_help(list_all=true) to confirm the hosted catalog before concluding the MCP surface is incomplete.",
+    "When Codex still exposes only the minimal core tools, use snipara-orchestrator swarm-* and htask-* as the primary path for shared queues and multi-agent task work; keep snipara-companion swarm ... and htask ... as the direct hosted fallback when you only need one-off hosted calls."
+  ],
+  "detection": {
+    "cwd": "/home/mo/projects/financial-asset-relationship-db",
+    "projectSlug": "context-free",
+    "projectSlugSource": ".mcp.json",
+    "detectedRepoSlug": "financial-asset-relationship-db",
+    "aiClient": "codex",
+    "inGitRepo": true,
+    "files": {
+      "mcpConfig": true,
+      "env": true,
+      "envLocal": false,
+      "envExample": true,
+      "agentsMd": true,
+      "claudeMd": true,
+      "codexConfig": true,
+      "cursorRule": true,
+      "sniparaProject": true,
+      "claudeDir": true,
+      "claudeSettings": false,
+      "claudeProjectDir": false,
+      "claudeProjectSettings": false,
+      "claudeDesktopConfig": false,
+      "cursorDir": false,
+      "mistralVibeConfig": false,
+      "sniparaCompanionPack": true,
+      "sniparaTemplates": true
+    },
+    "tooling": {
+      "node": true,
+      "npm": true,
+      "pnpm": false,
+      "python": true,
+      "pip": true,
+      "uv": true,
+      "docker": false,
+      "git": true,
+      "companionCli": true,
+      "runtimeCli": false,
+      "orchestratorCli": false
+    },
+    "existingConfig": {
+      "slug": "context-free",
+      "projectId": "cmpqkaewj0056rx018gazm61h",
+      "hasSniparaServer": true,
+      "hasRuntimeServer": false
+    }
+  }
+}

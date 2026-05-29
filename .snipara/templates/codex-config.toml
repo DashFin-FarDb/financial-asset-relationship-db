@@ -1,0 +1,4 @@
+[mcp_servers.snipara]
+type = "streamable_http"
+url = "https://api.snipara.com/mcp/context-free"
+bearer_token_env_var = "SNIPARA_API_KEY"

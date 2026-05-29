@@ -1,0 +1,13 @@
+{
+  "client": "gemini",
+  "note": "Reference format only; paste the server fields into this client's MCP settings.",
+  "mcpServers": {
+    "snipara": {
+      "type": "http",
+      "url": "https://api.snipara.com/mcp/context-free",
+      "headers": {
+        "X-API-Key": "${SNIPARA_API_KEY}"
+      }
+    }
+  }
+}

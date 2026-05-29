@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "financial-asset-relationship-db": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "snipara-mcp-client",
+        "--project",
+        "financial-asset-relationship-db",
+        "--endpoint",
+        "https://api.snipara.com/mcp/financial-asset-relationship-db"
+      ],
+      "env": {
+        "SNIPARA_API_KEY": "${env:SNIPARA_API_KEY}"
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "client": "gemini",
+  "projectId": "cmpql1j2c00ano501cooqz5sl",
+  "apiUrl": "https://api.snipara.com",
+  "installedAt": "2026-05-29T07:17:40.608Z",
+  "files": [
+    {
+      "path": ".gemini/settings.json",
+      "sha256": "813a41b86c355dce96e7120c17d75c3e2418d49bba6db227eec492729bd4f91d"
+    },
+    {
+      "path": "GEMINI.md",
+      "sha256": "2a8342ba4290082fe061b78755ed780636b14acb6eb5e8351093778bc2bf2d18"
+    },
+    {
+      "path": ".gemini/hooks/session-start.sh",
+      "sha256": "f26b28ea6663e51e4397961c46528a65ef0db7d5c70cb37329ef03cbfe653f76"
+    },
+    {
+      "path": ".gemini/hooks/pre-compress.sh",
+      "sha256": "2720f4767492278a4d824928ff719d8e079c4c89b783d2844573ba5e1eee341c"
+    },
+    {
+      "path": "mcp.json",
+      "sha256": "ca311c6e50dd995435543f0ad3cbe25c84c2b91e2f2e17d8c28e0a36160cffb7"
+    }
+  ]
+}

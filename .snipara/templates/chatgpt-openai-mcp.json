@@ -1,0 +1,7 @@
+{
+  "name": "snipara",
+  "url": "https://api.snipara.com/mcp/context-free",
+  "headers": {
+    "X-API-Key": "YOUR_SNIPARA_PROJECT_API_KEY"
+  }
+}

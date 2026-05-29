@@ -1,0 +1,7 @@
+[[mcp_servers]]
+name = "snipara"
+transport = "streamable-http"
+url = "https://api.snipara.com/mcp/context-free"
+api_key_env = "SNIPARA_API_KEY"
+api_key_header = "X-API-Key"
+api_key_format = "{token}"

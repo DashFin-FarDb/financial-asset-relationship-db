@@ -1,0 +1,48 @@
+{
+  "mcpServers": {
+    "context-free": {
+      "url": "",
+      "type": "http",
+      "headers": {
+        "X-API-Key": "YOUR_API_KEY"
+      }
+    },
+    "financial-asset-relationship-db": {
+      "transportType": "sse",
+      "url": "https://api.snipara.com/mcp/financial-asset-relationship-db/sse",
+      "headers": {
+        "X-API-Key": "${env:SNIPARA_API_KEY}"
+      }
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "snipara-session-start",
+            "type": "command",
+            "command": "$GEMINI_PROJECT_DIR/.gemini/hooks/session-start.sh",
+            "timeout": 5000,
+            "description": "Restore local Snipara session and workflow context."
+          }
+        ]
+      }
+    ],
+    "PreCompress": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "snipara-pre-compress",
+            "type": "command",
+            "command": "$GEMINI_PROJECT_DIR/.gemini/hooks/pre-compress.sh",
+            "timeout": 5000,
+            "description": "Checkpoint Gemini context before compression."
+          }
+        ]
+      }
+    ]
+  }
+}
