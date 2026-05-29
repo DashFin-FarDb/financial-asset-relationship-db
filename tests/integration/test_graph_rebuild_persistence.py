@@ -17,6 +17,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 import api.graph_lifecycle_providers as providers
+# Imported at module-level intentionally to allow direct access to module-level helpers in tests and to ensure monkeypatch targets are available.
 import api.routers.graph_admin as graph_admin
 from api.app_factory import create_app
 from api.auth import User, get_current_active_user, get_current_rebuild_operator_user
