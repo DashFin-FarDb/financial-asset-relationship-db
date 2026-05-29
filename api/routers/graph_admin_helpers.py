@@ -143,7 +143,7 @@ class _RebuildExecutionError(RuntimeError):
         """
         if isinstance(cause, asyncio.CancelledError):
             # Re-raise CancelledError so it isn't swallowed by wrapper construction.
-            raise cause
+            raise cause from None
         super().__init__(cause.__class__.__name__)
         self.source = source
         self.cause = cause
