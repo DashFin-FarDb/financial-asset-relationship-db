@@ -64,7 +64,7 @@ _MAX_FAILURE_MESSAGE_LENGTH = 512
 # Regex to match URLs, DSNs, and user:pass@host credential sequences for redaction.
 # Intent: Redact connection strings, credentials, and full URL segments containing sensitive details.
 _URL_PATTERN = re.compile(
-    r"\b[a-z][a-z0-9+\-.]*:(?://\S+|[^/@]+:[^/@]+@\S+)",
+    r"\b(?:[a-z][a-z0-9+\-.]*://\S+|[a-z0-9_.+\-]+:[^\s@/]+@[a-z0-9_.\-]+(?::\d+)?|[a-z][a-z0-9+\-.]*:(?://\S+|[^/@]+:[^/@]+@\S+))",
     re.IGNORECASE,
 )
 
@@ -360,7 +360,7 @@ def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception | asyncio
     """Emit a sentinel alert log for unexpected rebuild failures."""
     logger.critical(
         "graph_rebuild_unexpected_exception",
-        exc_info=True,
+        exc_info=False,
         extra={
             "event": "graph_rebuild_unexpected_exception",
             "user_ref": user_ref,
@@ -369,6 +369,7 @@ def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception | asyncio
             "timestamp": _audit_timestamp(),
         },
     )
+    logger.debug("Unexpected rebuild exception details:", exc_info=True)
 
 
 def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception | asyncio.CancelledError:
