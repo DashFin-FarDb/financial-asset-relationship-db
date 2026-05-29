@@ -47,8 +47,17 @@ jobs:
           # For example `deployment.yaml` for a Kubernetes deployment manifest
           # or `main.tf` for a Terraform configuration file
           file: your-file-to-test.yaml
+      - name: Check SARIF file has content
+        id: check-sarif
+        if: ${{ hashFiles('snyk.sarif') != '' }}
+        run: |
+          if [ -s snyk.sarif ]; then
+            echo "sarif_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "sarif_exists=false" >> $GITHUB_OUTPUT
+          fi
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
-        if: ${{ hashFiles('snyk.sarif') != '' }}
+        if: ${{ steps.check-sarif.outputs.sarif_exists == 'true' }}
         with:
           sarif_file: snyk.sarif
