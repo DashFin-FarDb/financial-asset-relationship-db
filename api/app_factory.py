@@ -180,7 +180,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 async def _graph_synchronization_loop(interval_seconds: float) -> None:
     """Periodically synchronize the memory graph engine with changes from the database."""
-    current_interval = interval_seconds
+    current_interval = max(1.0, float(interval_seconds))
     is_in_error_state = False
     max_interval = 3600.0  # Cap backoff at 1 hour
 
@@ -204,11 +204,12 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
         except Exception as exc:
             if not is_in_error_state:
                 logger.warning(
-                    "Unexpected transient error in graph synchronization loop: %s. Engaging backoff policy.",
+                logger.warning(
+                    "Unexpected transient error in graph synchronization loop (%s): %s. Engaging backoff policy.",
                     type(exc).__name__,
+                    str(exc),
                     exc_info=True,
                 )
-                is_in_error_state = True
 
             # Exponential backoff: double the interval, capped at max_interval
             current_interval = min(current_interval * 2, max_interval)
