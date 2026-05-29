@@ -800,10 +800,15 @@ def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
         return RebuildJobStatus(raw_status)
     except ValueError:
         # Crucial to log as error so that alerting systems capture database status corruption.
-        status_len = len(raw_status or '')
-        sanitized_status = (raw_status or '') if status_len <= 200 else (raw_status or '')[:197] + '...'
-        logger.error('Corrupted status in DB (truncated to 200 chars): %s; len=%d; falling back to failed', sanitized_status, status_len)
+        status_len = len(raw_status or "")
+        sanitized_status = (raw_status or "") if status_len <= 200 else (raw_status or "")[:197] + "..."
+        logger.error(
+            "Corrupted status in DB (truncated to 200 chars): %s; len=%d; falling back to failed",
+            sanitized_status,
+            status_len,
+        )
         return RebuildJobStatus.FAILED
+
 
 def _orm_to_response(job_orm: RebuildJobORM) -> RebuildJobResponse:
     """Convert RebuildJobORM to bounded RebuildJobResponse."""
