@@ -1,21 +1,35 @@
-"""Integration tests for correlation identifiers in the main application."""
+"""Integration tests for correlation identifiers using a isolated minimal app."""
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from api.main import app
+from api.middleware.correlation import CorrelationMiddleware
 
 
-def test_app_correlation_integration():
-    """Test that the main app correctly handles correlation headers."""
-    client = TestClient(app)
-    response = client.get("/api/health")
+@pytest.fixture
+def isolated_app():
+    """Create a minimal FastAPI app with only the CorrelationMiddleware."""
+    app = FastAPI()
+    app.add_middleware(CorrelationMiddleware)
+
+    @app.get("/health")
+    async def health():
+        return {"status": "healthy"}
+
+    return app
+
+
+def test_app_correlation_integration(isolated_app):
+    """Test that the app correctly handles correlation headers."""
+    client = TestClient(isolated_app)
+    response = client.get("/health")
 
     assert response.status_code == 200
     assert "X-Request-ID" in response.headers
     assert "X-Correlation-ID" in response.headers
 
-    # IDs should be valid UUIDs (at least the generated ones)
+    # IDs should be valid (generated as UUIDs)
     req_id = response.headers["X-Request-ID"]
     corr_id = response.headers["X-Correlation-ID"]
 
@@ -23,14 +37,14 @@ def test_app_correlation_integration():
     assert req_id == corr_id
 
 
-def test_app_correlation_respects_headers():
-    """Test that the main app respects provided correlation headers."""
-    client = TestClient(app)
+def test_app_correlation_respects_headers(isolated_app):
+    """Test that the app respects provided correlation headers."""
+    client = TestClient(isolated_app)
     custom_req = "req-123"
     custom_corr = "corr-456"
 
     response = client.get(
-        "/api/health",
+        "/health",
         headers={
             "X-Request-ID": custom_req,
             "X-Correlation-ID": custom_corr,

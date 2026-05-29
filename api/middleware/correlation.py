@@ -50,15 +50,16 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         request.state.correlation_id = correlation_id
 
         # Set context variables
-        tokens = set_request_context(request_id, correlation_id)
-
+        tokens = None
         try:
+            tokens = set_request_context(request_id, correlation_id)
             response = await call_next(request)
             self._attach_headers(response, request_id, correlation_id)
             return response
         finally:
             # Clear context variables
-            reset_request_context(tokens)
+            if tokens is not None:
+                reset_request_context(tokens)
 
     def _attach_headers(self, response: Response, request_id: str, correlation_id: str) -> None:
         """Attach correlation headers to the response."""
