@@ -75,7 +75,9 @@ from .graph_admin_helpers import (
     _update_job_source_safe,
 )
 
-# Re-exported explicitly for intra-package routing.
+# Re-export only the minimal public API used by intra-package routing.
+# Private helpers (prefixed with _) remain module-internal and should be accessed
+# directly by tests or moved into test helpers; do not rely on `from ... import *`.
 __all__ = [
     "GraphRuntimeLifecycleState",
     "get_runtime_lifecycle_state",

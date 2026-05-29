@@ -218,7 +218,6 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             backoff = min(current_interval * 2, max_interval)
             jitter = random.uniform(0, 0.1 * backoff)
             current_interval = min(backoff + jitter, max_interval)
-            await asyncio.sleep(current_interval)
 
 
 def create_app() -> FastAPI:

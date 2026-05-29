@@ -28,7 +28,7 @@ from api.auth import (
     get_current_active_user,
 )
 from api.graph_lifecycle import reset_graph
-from api.routers import graph_admin
+from api.routers import graph_admin, graph_admin_helpers
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.repository import AssetGraphRepository, session_scope
@@ -256,8 +256,8 @@ def test_rebuild_allows_active_authorized_operator_user(
         response = operator_client.post("/api/graph/rebuild")
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
-        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        if graph_admin_helpers._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin_helpers._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
     data = _assert_successful_json_response(response)
     assert data == {
@@ -282,7 +282,7 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
         user_ref: str,
     ) -> graph_admin.GraphRebuildResponse:
         _ = user_ref
-        raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
+        raise graph_admin_helpers._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", fake_rebuild)
 
@@ -291,8 +291,8 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
             response = operator_client.post("/api/graph/rebuild")
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
-        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        if graph_admin_helpers._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin_helpers._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
     assert response.status_code == 429
     assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
@@ -344,12 +344,12 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
     mock_settings: Any,
 ) -> None:
     """Concurrent rebuild requests should fail fast instead of queueing."""
-    graph_admin._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
+    graph_admin_helpers._REBUILD_RUNTIME.mark_busy()  # pylint: disable=protected-access
     try:
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"), pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="admin", disabled=False))
     finally:
-        graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        graph_admin_helpers._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
     assert exc_info.value.status_code == 429
     assert exc_info.value.detail == "A graph rebuild is already in progress. Please try again later."
@@ -383,7 +383,7 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
         started_at: float,
         tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
     ) -> graph_admin.GraphRebuildResponse:
-        raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
+        raise graph_admin_helpers._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
     try:
@@ -393,8 +393,8 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
         assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
-        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+        if graph_admin_helpers._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin_helpers._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
         reset_graph()
 
 
@@ -403,8 +403,8 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
 ) -> None:
     """Lock-loss exceptions should map to HTTP 503 with failed lifecycle state."""
     reset_graph()
-    if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-        graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+    if graph_admin_helpers._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+        graph_admin_helpers._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
     async def fake_executor(
         _loop: asyncio.AbstractEventLoop,
@@ -414,7 +414,7 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
         started_at: float,
         tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
     ) -> graph_admin.GraphRebuildResponse:
-        raise graph_admin._DistributedLockLostError("lost")  # pylint: disable=protected-access
+        raise graph_admin_helpers._DistributedLockLostError("lost")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
 
@@ -442,15 +442,15 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
                 "Suppressed non-fatal exception during test executor shutdown teardown: %s", exc
             )
 
-        if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=False)  # pylint: disable=protected-access
+        if graph_admin_helpers._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
+            graph_admin_helpers._REBUILD_RUNTIME.mark_idle(succeeded=False)  # pylint: disable=protected-access
         reset_graph()
 
 
 def test_resolve_user_ref_is_bounded_and_sanitized() -> None:
     """User references should be printable, single-line, and length bounded."""
     malicious_username = "operator\nFORGED=1\r\t" + ("x" * 200)
-    resolved = graph_admin._resolve_user_ref(  # pylint: disable=protected-access
+    resolved = graph_admin_helpers._resolve_user_ref(  # pylint: disable=protected-access
         User(username=malicious_username, disabled=False)
     )
 
@@ -492,9 +492,9 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
 
-    if graph_admin._REBUILD_RUNTIME.is_busy():
-        graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
-    graph_admin._REBUILD_RUNTIME.mark_busy()
+    if graph_admin_helpers._REBUILD_RUNTIME.is_busy():
+        graph_admin_helpers._REBUILD_RUNTIME.mark_idle(succeeded=True)
+    graph_admin_helpers._REBUILD_RUNTIME.mark_busy()
 
     try:
         with caplog.at_level(logging.INFO, logger="api.routers.graph_admin"):
@@ -519,8 +519,8 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
-        if graph_admin._REBUILD_RUNTIME.is_busy():
-            graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
+        if graph_admin_helpers._REBUILD_RUNTIME.is_busy():
+            graph_admin_helpers._REBUILD_RUNTIME.mark_idle(succeeded=True)
         reset_graph()
 
     audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
