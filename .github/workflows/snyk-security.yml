@@ -36,7 +36,6 @@ jobs:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Set up Snyk CLI to check for security issues
@@ -67,6 +66,7 @@ jobs:
         # Runs Snyk Code (SAST) analysis and uploads result into GitHub.
         # Code review scans are quota-limited - use continue-on-error for graceful degradation
       - name: Snyk Code test
+        if: steps.check-token.outputs.token_available == 'true'
         run: snyk code test --sarif > snyk-code.sarif
         continue-on-error: true  # Quota-limited scan
         env:
@@ -82,6 +82,7 @@ jobs:
 
         # Runs Snyk Infrastructure as Code (IaC) analysis and uploads result to Snyk.
       - name: Snyk IaC test and report
+        if: steps.check-token.outputs.token_available == 'true'
         run: snyk iac test --report
         continue-on-error: true  # May fail if no IaC files present
         env:
