@@ -76,7 +76,7 @@ from .graph_admin_helpers import (
 )
 
 # Re-exported explicitly for intra-package routing.
-# TODO: These symbols are exported only for test convenience (monkeypatching). Consider moving them to a dedicated test helper module to avoid exposing private symbols.
+# TODO: Exported solely for test convenience (monkeypatching). Move these symbols to a dedicated tests.helpers module and import them via fully-qualified test paths to avoid expanding the module's public API.
 __all__ = [
     "GraphRuntimeLifecycleState",
     "get_runtime_lifecycle_state",
