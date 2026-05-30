@@ -61,6 +61,7 @@ class CorrelationMiddleware:
                 raw_request_id = None
 
         if isinstance(raw_correlation_id, str):
+            raw_correlation_id = raw_correlation_id.strip()
             if not is_valid_id(raw_correlation_id):
                 # Avoid reflecting or handling extremely long header values; cap logged length.
                 log_len = len(raw_correlation_id)
