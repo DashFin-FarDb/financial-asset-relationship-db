@@ -7,6 +7,7 @@ import uuid
 from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -50,6 +51,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         # Prefer a module-provided validator but fall back to a conservative local one
         validator = globals().get("is_valid_id")
         if validator is None:
+
             def _local_is_valid_id(val: str | None) -> bool:
                 if not val:
                     return False
@@ -58,6 +60,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                     return False
                 # Basic non-empty check; central validator should provide stricter rules.
                 return True
+
             validator = _local_is_valid_id
         raw_request_id = request.headers.get("X-Request-ID")
         request_id = raw_request_id if validator(raw_request_id) else str(uuid.uuid4())
@@ -81,7 +84,9 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             # Delegate to configured exception handlers (if any), falling back to FastAPI's handler
             exception_handlers = getattr(getattr(request, "app", None), "exception_handlers", {})
             handler = next(
-                (exception_handlers.get(cls) for cls in type(exc).__mro__ if exception_handlers.get(cls) is not None), http_exception_handler)
+                (exception_handlers.get(cls) for cls in type(exc).__mro__ if exception_handlers.get(cls) is not None),
+                http_exception_handler,
+            )
             try:
                 result = handler(request, exc)
                 response = await result if inspect.isawaitable(result) else result
