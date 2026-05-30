@@ -1,14 +1,12 @@
 """Middleware for managing request and correlation identifiers."""
 
 from __future__ import annotations
-from __future__ import annotations
 import logging
 import uuid
 from typing import TYPE_CHECKING
-
-logger = logging.getLogger(__name__)
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from starlette.middleware.base import RequestResponseEndpoint
