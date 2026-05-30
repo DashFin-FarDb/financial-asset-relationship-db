@@ -49,14 +49,14 @@ class CorrelationMiddleware:
         raw_request_id = headers.get("x-request-id")
         raw_correlation_id = headers.get("x-correlation-id")
 
-        raw_request_id = get_header("X-Request-ID")
         request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
-
-        raw_correlation_id = get_header("X-Correlation-ID")
         correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
 
         # Expose identifiers on request state (compatible with FastAPI Request.state)
-        state_obj = scope.setdefault("state", State())
+        state_obj = scope.get("state")
+        if state_obj is None:
+            state_obj = State()
+            scope["state"] = state_obj
         setattr(state_obj, "request_id", request_id)
         setattr(state_obj, "correlation_id", correlation_id)
 
