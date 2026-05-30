@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 from contextvars import ContextVar, Token
-from typing import Any
 
 # Validation regex for correlation/request IDs to prevent log injection
 # Allows alphanumeric, hyphen, underscore, and dot, length 1-64
