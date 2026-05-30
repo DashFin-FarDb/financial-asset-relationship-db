@@ -58,34 +58,43 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         except asyncio.CancelledError:
             raise
         except HTTPException as exc:
-            # Respect custom exception handlers registered on the app
-            handler = (
-                request.app.exception_handlers.get(type(exc))
-                or request.app.exception_handlers.get(HTTPException)
-                or http_exception_handler
+            exception_handlers = getattr(
+                getattr(request, "app", None),
+                "exception_handlers",
+                {},
             )
-
-            # FastAPI handlers can be sync or async; check and await if coroutine
-            if asyncio.iscoroutinefunction(handler):
-                response = await handler(request, exc)
+        
+            handler = next(
+                (
+                    exception_handlers[cls]
+                    for cls in type(exc).__mro__
+                    if cls in exception_handlers
+                ),
+                http_exception_handler,
+            )
+        
+            response = await handler(request, exc)
             else:
                 response = handler(request, exc)
         except Exception:
             import logging
-
+        
             logging.getLogger(__name__).exception(
                 "Unhandled exception in request processing",
                 extra={"request_id": request_id, "correlation_id": correlation_id},
             )
-            from starlette.responses import Response as StarletteResponse
-
-            response = StarletteResponse("Internal Server Error", status_code=500)
-        finally:
-            if tokens is not None:
-                reset_request_context(tokens)
-
-        self._attach_headers(response, request_id, correlation_id)
-        return response
+            from fastapi.responses import JSONResponse
+        
+            response = JSONResponse(
+                {"detail": "Internal Server Error"},
+                status_code=500,
+            )
+            finally:
+                if tokens is not None:
+                    reset_request_context(tokens)
+    
+            self._attach_headers(response, request_id, correlation_id)
+            return response
 
     def _attach_headers(
         self,
