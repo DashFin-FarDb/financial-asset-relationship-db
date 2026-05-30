@@ -74,7 +74,6 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         self._attach_headers(response, request_id, correlation_id)
         return response
 
-
     def _attach_headers(
         self,
         response: Response,
@@ -84,4 +83,3 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         """Attach correlation headers to the response."""
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Correlation-ID"] = correlation_id
-                    
