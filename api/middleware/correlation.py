@@ -50,28 +50,27 @@ class CorrelationMiddleware:
         raw_request_id = headers.get("x-request-id")
         raw_correlation_id = headers.get("x-correlation-id")
 
-        # Defensive trimming then validation. Accept slightly malformed values (trim whitespace)
-        # but still reject injection attempts; log invalid headers for diagnostics.
-        # Defensive trimming then validation. Accept slightly malformed values (trim whitespace)
-        # but still reject injection attempts; log invalid headers for diagnostics.
+        # Defensive trimming and validation: trim whitespace, reject injection attempts and log invalid headers.
         if isinstance(raw_request_id, str):
             raw_request_id = raw_request_id.strip()
             if not is_valid_id(raw_request_id):
+                # Avoid reflecting or handling extremely long header values; cap logged length.
                 log_len = len(raw_request_id)
+                log_len = min(log_len, 200)
                 logger.debug("Invalid X-Request-ID header received (redacted), length=%d", log_len)
                 raw_request_id = None
 
         if isinstance(raw_correlation_id, str):
-            raw_correlation_id = raw_correlation_id.strip()
             if not is_valid_id(raw_correlation_id):
+                # Avoid reflecting or handling extremely long header values; cap logged length.
                 log_len = len(raw_correlation_id)
+                log_len = min(log_len, 200)
                 logger.debug("Invalid X-Correlation-ID header received (redacted), length=%d", log_len)
                 raw_correlation_id = None
 
         request_id = raw_request_id if raw_request_id is not None else str(uuid.uuid4())
         correlation_id = raw_correlation_id if raw_correlation_id is not None else request_id
 
-        # Expose identifiers on request state (compatible with FastAPI Request.state)
         # Expose identifiers on request state (compatible with FastAPI Request.state)
         state_obj = scope.get("state")
         if state_obj is None:
