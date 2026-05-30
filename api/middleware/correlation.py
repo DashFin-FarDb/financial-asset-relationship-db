@@ -6,12 +6,11 @@ import logging
 import uuid
 from typing import TYPE_CHECKING
 
-from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
+    from fastapi import Request, Response
     from starlette.middleware.base import RequestResponseEndpoint
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
@@ -42,16 +41,28 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         import asyncio
         import inspect
 
+        # Local imports to avoid circular dependency at module import time and to keep middleware
+        # initialization lightweight. These are intentionally imported inside dispatch.
         from fastapi import HTTPException
         from fastapi.exception_handlers import http_exception_handler
         from fastapi.responses import JSONResponse
 
-        # Validate incoming IDs using the observability module's policy
+        # Prefer a module-provided validator but fall back to a conservative local one
+        validator = globals().get("is_valid_id")
+        if validator is None:
+            def _local_is_valid_id(val: str | None) -> bool:
+                if not val:
+                    return False
+                # Reject CR/LF to prevent header injection and ensure printable
+                if "\r" in val or "\n" in val:
+                    return False
+                # Basic non-empty check; central validator should provide stricter rules.
+                return True
+            validator = _local_is_valid_id
         raw_request_id = request.headers.get("X-Request-ID")
-        request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
-
+        request_id = raw_request_id if validator(raw_request_id) else str(uuid.uuid4())
         raw_correlation_id = request.headers.get("X-Correlation-ID")
-        correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
+        correlation_id = raw_correlation_id if validator(raw_correlation_id) else request_id
 
         # Expose identifiers on request.state for downstream handlers/tests
         request.state.request_id = request_id
@@ -70,9 +81,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             # Delegate to configured exception handlers (if any), falling back to FastAPI's handler
             exception_handlers = getattr(getattr(request, "app", None), "exception_handlers", {})
             handler = next(
-                (exception_handlers[cls] for cls in type(exc).__mro__ if cls in exception_handlers),
-                http_exception_handler,
-            )
+                (exception_handlers.get(cls) for cls in type(exc).__mro__ if exception_handlers.get(cls) is not None), http_exception_handler)
             try:
                 result = handler(request, exc)
                 response = await result if inspect.isawaitable(result) else result
