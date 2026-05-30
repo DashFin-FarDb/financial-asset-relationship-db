@@ -31,7 +31,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """
         Manage identifiers for the request lifecycle.
-        
+
         Ensures request/correlation ids are validated, placed into contextvars for logging,
         and attached to every response (including error paths). This implementation
         maintains previous behavior: context set/reset, exception delegation, and header propagation.
@@ -41,18 +41,18 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         from fastapi import HTTPException
         from fastapi.exception_handlers import http_exception_handler
         from fastapi.responses import JSONResponse
-        
+
         # Validate incoming IDs using the observability module's policy
         raw_request_id = request.headers.get("X-Request-ID")
         request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
-        
+
         raw_correlation_id = request.headers.get("X-Correlation-ID")
         correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
-        
+
         # Expose identifiers on request.state for downstream handlers/tests
         request.state.request_id = request_id
         request.state.correlation_id = correlation_id
-        
+
         tokens = None
         response: Response | None = None
         try:
