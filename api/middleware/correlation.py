@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+import logging
 from typing import TYPE_CHECKING
 
 from fastapi import Request, Response
@@ -77,8 +78,6 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             else:
                 response = handler(request, exc)
         except Exception:
-            import logging
-
             logging.getLogger(__name__).exception(
                 "Unhandled exception in request processing",
                 extra={"request_id": request_id, "correlation_id": correlation_id},
