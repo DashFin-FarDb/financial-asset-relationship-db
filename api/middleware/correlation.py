@@ -5,10 +5,10 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 if TYPE_CHECKING:
+    from fastapi import Request, Response
     from starlette.middleware.base import RequestResponseEndpoint
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
@@ -26,7 +26,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
       request-initiated workflows.
 
     Security: Validates incoming IDs to prevent log/header injection.
-    Reliability: Ensures identifiers are attached to responses on successful completion.
+    Reliability: Ensures identifiers are attached to responses for both successful and error outcomes.
     """
 
     async def dispatch(
@@ -66,16 +66,26 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             except Exception:
                 _HTTPException = None
             if _HTTPException is not None and isinstance(exc, _HTTPException):
-                raise
-            # Log unexpected errors and return generic 500 (do not expose internals)
-            import logging as _logging
+            try:
+                from fastapi import HTTPException as _HTTPException
+                from fastapi.exception_handlers import http_exception_handler as _http_exc_handler
+            except Exception:
+                _HTTPException = None
+                _http_exc_handler = None
+            if _HTTPException is not None and isinstance(exc, _HTTPException) and _http_exc_handler is not None:
+                # Render the canonical FastAPI HTTPException response so exception handlers produce expected body
+                response = await _http_exc_handler(request, exc)
+            else:
+                # Log unexpected errors and return generic 500 (do not expose internals).
+                # Include correlation identifiers in the log extra so traces can correlate logs and responses.
+                import logging as _logging
+                _logging.getLogger(__name__).exception(
+                    "Unhandled exception in request processing",
+                    extra={"request_id": request_id, "correlation_id": correlation_id},
+                )
+                from starlette.responses import Response as StarletteResponse
 
-            _logging.getLogger(__name__).exception("Unhandled exception in request processing")
-            from starlette.responses import Response as StarletteResponse
-
-            response = StarletteResponse("Internal Server Error", status_code=500)
-        finally:
-            # Clear context variables
+                response = StarletteResponse("Internal Server Error", status_code=500)
             if tokens is not None:
                 reset_request_context(tokens)
         self._attach_headers(response, request_id, correlation_id)
