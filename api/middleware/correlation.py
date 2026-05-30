@@ -5,10 +5,10 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
+from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 if TYPE_CHECKING:
-    from fastapi import Request, Response
     from starlette.middleware.base import RequestResponseEndpoint
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
@@ -26,7 +26,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
       request-initiated workflows.
 
     Security: Validates incoming IDs to prevent log/header injection.
-    Reliability: Ensures IDs are attached to responses even on unhandled errors.
+    Reliability: Ensures identifiers are attached to responses on successful completion.
     """
 
     async def dispatch(

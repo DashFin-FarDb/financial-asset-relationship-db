@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import re
-from contextvars import ContextVar, Token
+from contextvars import ContextVar
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from contextvars import Token
 
 # Validation regex for correlation/request IDs to prevent log injection
 # Allows alphanumeric, hyphen, underscore, and dot, length 1-64

@@ -86,7 +86,6 @@ def test_correlation_middleware_logic():
         },
     )
     assert response.status_code == 200
-    data = response.json()
 
     # Should have generated new IDs instead of using dangerous/long ones
     assert response.headers.get("X-Request-ID") != dangerous_id
