@@ -6,7 +6,7 @@ import logging
 import uuid
 from typing import TYPE_CHECKING
 
-from starlette.datastructures import MutableHeaders
+from starlette.datastructures import MutableHeaders, State, Headers
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
 
@@ -44,14 +44,10 @@ class CorrelationMiddleware:
             await self.app(scope, receive, send)
             return
 
-        # Extract headers from ASGI scope
-        headers = dict(scope.get("headers", []))
-
-        # Helper to get header by name (case-insensitive in ASGI)
-        def get_header(name: str) -> str | None:
-            name_bytes = name.lower().encode("latin-1")
-            val = headers.get(name_bytes)
-            return val.decode("latin-1") if val else None
+        # Extract headers using Starlette helper (handles decoding and case normalization)
+        headers = Headers(scope=scope)
+        raw_request_id = headers.get("x-request-id")
+        raw_correlation_id = headers.get("x-correlation-id")
 
         raw_request_id = get_header("X-Request-ID")
         request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
@@ -60,17 +56,17 @@ class CorrelationMiddleware:
         correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
 
         # Expose identifiers on request state (compatible with FastAPI Request.state)
-        if "state" not in scope:
-            scope["state"] = {}
-        scope["state"]["request_id"] = request_id
-        scope["state"]["correlation_id"] = correlation_id
+        state_obj = scope.setdefault("state", State())
+        setattr(state_obj, "request_id", request_id)
+        setattr(state_obj, "correlation_id", correlation_id)
 
         async def send_with_correlation_headers(message: dict) -> None:
             """Wrapper for the send callable to inject correlation headers."""
             if message["type"] == "http.response.start":
                 response_headers = MutableHeaders(scope=message)
-                response_headers.append("X-Request-ID", request_id)
-                response_headers.append("X-Correlation-ID", correlation_id)
+                # Set values (replace existing) to avoid duplicate headers
+                response_headers["X-Request-ID"] = request_id
+                response_headers["X-Correlation-ID"] = correlation_id
 
             await send(message)
 
