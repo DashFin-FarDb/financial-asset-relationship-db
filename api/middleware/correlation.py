@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from collections.abc import MutableMapping
 from typing import TYPE_CHECKING
 
 from starlette.datastructures import Headers, MutableHeaders, State
@@ -77,7 +78,7 @@ class CorrelationMiddleware:
             state_obj = State()
             scope["state"] = state_obj
         # treat mapping-like state containers (dict or dict-like) uniformly
-        if hasattr(state_obj, "__setitem__"):
+        if isinstance(state_obj, MutableMapping):
             state_obj["request_id"] = request_id
             state_obj["correlation_id"] = correlation_id
         else:
