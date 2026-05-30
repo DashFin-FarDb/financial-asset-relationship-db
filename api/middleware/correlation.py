@@ -36,7 +36,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         call_next: RequestResponseEndpoint,
     ) -> Response:
         """Manage identifiers for the request lifecycle."""
-        # Local imports used to prevent potential circular dependencies in middleware chain
+        # Local imports to avoid eager initialization of FastAPI exception handling machinery
         import asyncio
 
         from fastapi import HTTPException
