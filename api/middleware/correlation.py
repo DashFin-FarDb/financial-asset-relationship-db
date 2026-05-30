@@ -83,8 +83,13 @@ class CorrelationMiddleware:
             scope["state"] = state_obj
         # treat mapping-like state containers (dict or dict-like) uniformly
         if isinstance(state_obj, MutableMapping):
-            state_obj["request_id"] = request_id
-            state_obj["correlation_id"] = correlation_id
+            try:
+                state_obj["request_id"] = request_id
+                state_obj["correlation_id"] = correlation_id
+            except (TypeError, AttributeError):
+                # Fall back to attribute-style assignment if item assignment fails
+                setattr(state_obj, "request_id", request_id)
+                setattr(state_obj, "correlation_id", correlation_id)
         else:
             setattr(state_obj, "request_id", request_id)
             setattr(state_obj, "correlation_id", correlation_id)
