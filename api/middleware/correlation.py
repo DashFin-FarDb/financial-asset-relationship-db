@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 import logging
+logger = logging.getLogger(__name__)
 from typing import TYPE_CHECKING
 
 from fastapi import Request, Response
