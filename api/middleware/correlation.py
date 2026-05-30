@@ -74,63 +74,14 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         self._attach_headers(response, request_id, correlation_id)
         return response
 
-async def dispatch(self, request, call_next):
-    raw_request_id = request.headers.get('X-Request-ID')
-    request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
-    raw_correlation_id = request.headers.get('X-Correlation-ID')
-    correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
 
-    request.state.request_id = request_id
-    request.state.correlation_id = correlation_id
-
-    import asyncio as _asyncio
-    from fastapi import HTTPException as _HTTPException
-    from fastapi.exception_handlers import http_exception_handler as _http_exc_handler
-
-    tokens = set_request_context(request_id, correlation_id)
-    try:
-        response = await call_next(request)
-    except _asyncio.CancelledError:
-        raise
-    except _HTTPException as exc:
-        response = await _http_exc_handler(request, exc)
-    except Exception:
-        import logging as _logging
-        _logging.getLogger(__name__).exception(
-            'Unhandled exception in request processing',
-            extra={'request_id': request_id, 'correlation_id': correlation_id},
-        )
-        from starlette.responses import Response as StarletteResponse
-        response = StarletteResponse('Internal Server Error', status_code=500)
-    finally:
-        reset_request_context(tokens)
-
-    self._attach_headers(response, request_id, correlation_id)
-    return response
-                from fastapi.exception_handlers import http_exception_handler as _http_exc_handler
-            except Exception:
-                _HTTPException = None
-                _http_exc_handler = None
-            if _HTTPException is not None and isinstance(exc, _HTTPException) and _http_exc_handler is not None:
-                # Render the canonical FastAPI HTTPException response so exception handlers produce expected body
-                response = await _http_exc_handler(request, exc)
-            else:
-                # Log unexpected errors and return generic 500 (do not expose internals).
-                # Include correlation identifiers in the log extra so traces can correlate logs and responses.
-                import logging as _logging
-                _logging.getLogger(__name__).exception(
-                    "Unhandled exception in request processing",
-                    extra={"request_id": request_id, "correlation_id": correlation_id},
-                )
-                from starlette.responses import Response as StarletteResponse
-
-                response = StarletteResponse("Internal Server Error", status_code=500)
-            if tokens is not None:
-                reset_request_context(tokens)
-        self._attach_headers(response, request_id, correlation_id)
-        return response
-
-    def _attach_headers(self, response: Response, request_id: str, correlation_id: str) -> None:
+    def _attach_headers(
+        self,
+        response: Response,
+        request_id: str,
+        correlation_id: str,
+    ) -> None:
         """Attach correlation headers to the response."""
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Correlation-ID"] = correlation_id
+                    
