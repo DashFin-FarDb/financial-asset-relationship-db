@@ -96,6 +96,15 @@ def test_correlation_middleware_logic():
 def is_valid_uuid(val):
     try:
         uuid.UUID(str(val))
+# Ensure is_valid_uuid is at module level (zero indentation), not inside the test function:
+def is_valid_uuid(val: str | None) -> bool:
+    """Return whether val is a valid UUID string."""
+    if val is None:
+        return False
+    try:
+        uuid.UUID(str(val))
         return True
+    except ValueError:
+        return False
     except ValueError:
         return False
