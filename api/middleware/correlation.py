@@ -56,15 +56,13 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         # Store identifiers in request state
         request.state.request_id = request_id
         request.state.correlation_id = correlation_id
-tokens = set_request_context(request_id, correlation_id)
-try:
-    response = await call_next(request)
-except asyncio.CancelledError:
-    raise
-except HTTPException as exc:
         tokens = None
         try:
+            tokens = set_request_context(request_id, correlation_id)
+            response = await call_next(request)
         except asyncio.CancelledError:
+            raise
+        except HTTPException as exc:
             raise
         except HTTPException as exc:
             import inspect
