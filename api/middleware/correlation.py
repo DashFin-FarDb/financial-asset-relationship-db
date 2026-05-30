@@ -6,7 +6,7 @@ import logging
 import uuid
 from typing import TYPE_CHECKING
 
-from starlette.datastructures import MutableHeaders, State, Headers
+from starlette.datastructures import Headers, MutableHeaders, State
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
 
