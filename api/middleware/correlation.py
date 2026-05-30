@@ -87,14 +87,14 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                     extra={"request_id": request_id, "correlation_id": correlation_id},
                 )
                 response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
-            
+
         finally:
             if tokens is not None:
                 reset_request_context(tokens)
             # Ensure headers are attached regardless of success/failure
             self._attach_headers(response, request_id, correlation_id)
             return response
-    
+
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Manage identifiers for the request lifecycle.
 
