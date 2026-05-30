@@ -110,6 +110,7 @@ def test_correlation_middleware_logic():
 @pytest.mark.asyncio
 async def test_correlation_middleware_state_fallback() -> None:
     """Test state injection fallback paths in CorrelationMiddleware."""
+
     async def mock_app(scope: dict, receive: callable, send: callable) -> None:
         pass
 
@@ -117,60 +118,84 @@ async def test_correlation_middleware_state_fallback() -> None:
 
     # 1. Test with read-only mapping that raises TypeError on __setitem__
     from collections.abc import Mapping
+
     class ReadOnlyDict(Mapping):
         def __init__(self, *args, **kwargs):
             self._d = dict(*args, **kwargs)
-        def __getitem__(self, key): return self._d[key]
-        def __iter__(self): return iter(self._d)
-        def __len__(self): return len(self._d)
+
+        def __getitem__(self, key):
+            return self._d[key]
+
+        def __iter__(self):
+            return iter(self._d)
+
+        def __len__(self):
+            return len(self._d)
+
         # Inherits MutableMapping check but we'll deliberately make it fail item assignment
         # Wait, Mapping is not MutableMapping. If we want it to pass isinstance(MutableMapping)
         # but fail item assignment, we can subclass MutableMapping and raise.
 
     from collections.abc import MutableMapping
+
     class FailingMutableMapping(MutableMapping):
         def __init__(self):
             self.request_id = None
             self.correlation_id = None
-        def __getitem__(self, key): raise KeyError(key)
-        def __setitem__(self, key, value): raise TypeError("Read-only mapping")
-        def __delitem__(self, key): raise TypeError("Read-only mapping")
-        def __iter__(self): return iter([])
-        def __len__(self): return 0
+
+        def __getitem__(self, key):
+            raise KeyError(key)
+
+        def __setitem__(self, key, value):
+            raise TypeError("Read-only mapping")
+
+        def __delitem__(self, key):
+            raise TypeError("Read-only mapping")
+
+        def __iter__(self):
+            return iter([])
+
+        def __len__(self):
+            return 0
 
     state_obj = FailingMutableMapping()
-    scope = {
-        "type": "http",
-        "headers": [(b"x-request-id", b"fallback-req-1")],
-        "state": state_obj
-    }
-    
-    async def mock_receive(): return {}
-    async def mock_send(msg): pass
-    
+    scope = {"type": "http", "headers": [(b"x-request-id", b"fallback-req-1")], "state": state_obj}
+
+    async def mock_receive():
+        return {}
+
+    async def mock_send(msg):
+        pass
+
     await middleware(scope, mock_receive, mock_send)
-    
+
     # Should have fallen back to attribute assignment
     assert getattr(state_obj, "request_id") == "fallback-req-1"
     assert getattr(state_obj, "correlation_id") == "fallback-req-1"
 
     # 2. Test with object that raises on setattr too (ensure it continues safely)
     class CompletelyFailingState(MutableMapping):
-        def __getitem__(self, key): raise KeyError(key)
-        def __setitem__(self, key, value): raise TypeError("Read-only mapping")
-        def __delitem__(self, key): raise TypeError("Read-only mapping")
-        def __iter__(self): return iter([])
-        def __len__(self): return 0
+        def __getitem__(self, key):
+            raise KeyError(key)
+
+        def __setitem__(self, key, value):
+            raise TypeError("Read-only mapping")
+
+        def __delitem__(self, key):
+            raise TypeError("Read-only mapping")
+
+        def __iter__(self):
+            return iter([])
+
+        def __len__(self):
+            return 0
+
         def __setattr__(self, name, value):
             raise AttributeError("Read-only attributes")
 
     state_obj2 = CompletelyFailingState()
-    scope2 = {
-        "type": "http",
-        "headers": [(b"x-request-id", b"fallback-req-2")],
-        "state": state_obj2
-    }
-    
+    scope2 = {"type": "http", "headers": [(b"x-request-id", b"fallback-req-2")], "state": state_obj2}
+
     await middleware(scope2, mock_receive, mock_send)
     # The middleware should catch the exception and continue normally without raising
     # Verification is simply that we reached this point without a crash.
