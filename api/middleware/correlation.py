@@ -54,20 +54,23 @@ class CorrelationMiddleware:
         if isinstance(raw_request_id, str):
             raw_request_id = raw_request_id.strip()
             if not is_valid_id(raw_request_id):
-                logger.debug("Invalid X-Request-ID header received: %r", raw_request_id)
+                logger.debug("Invalid X-Request-ID header received (redacted)")
                 raw_request_id = None
 
         if isinstance(raw_correlation_id, str):
             raw_correlation_id = raw_correlation_id.strip()
             if not is_valid_id(raw_correlation_id):
-                logger.debug("Invalid X-Correlation-ID header received: %r", raw_correlation_id)
+                logger.debug("Invalid X-Correlation-ID header received (redacted)")
                 raw_correlation_id = None
 
         request_id = raw_request_id if raw_request_id is not None else str(uuid.uuid4())
         correlation_id = raw_correlation_id if raw_correlation_id is not None else request_id
 
         # Expose identifiers on request state (compatible with FastAPI Request.state)
-        state_obj = scope.setdefault("state", State())
+        state_obj = scope.get("state")
+        if state_obj is None:
+            state_obj = State()
+            scope["state"] = state_obj
         if isinstance(state_obj, dict):
             state_obj["request_id"] = request_id
             state_obj["correlation_id"] = correlation_id
