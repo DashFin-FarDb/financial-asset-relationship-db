@@ -1,11 +1,14 @@
 """Middleware for managing request and correlation identifiers."""
 
 from __future__ import annotations
+
 import logging
 import uuid
 from typing import TYPE_CHECKING
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -38,6 +41,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         """
         import asyncio
         import inspect
+
         from fastapi import HTTPException
         from fastapi.exception_handlers import http_exception_handler
         from fastapi.responses import JSONResponse
@@ -65,15 +69,24 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         except HTTPException as exc:
             # Delegate to configured exception handlers (if any), falling back to FastAPI's handler
             exception_handlers = getattr(getattr(request, "app", None), "exception_handlers", {})
-            handler = next((exception_handlers[cls] for cls in type(exc).__mro__ if cls in exception_handlers), http_exception_handler)
+            handler = next(
+                (exception_handlers[cls] for cls in type(exc).__mro__ if cls in exception_handlers),
+                http_exception_handler,
+            )
             try:
                 result = handler(request, exc)
                 response = await result if inspect.isawaitable(result) else result
             except Exception:
-                logger.exception("Exception while handling HTTPException", extra={"request_id": request_id, "correlation_id": correlation_id})
+                logger.exception(
+                    "Exception while handling HTTPException",
+                    extra={"request_id": request_id, "correlation_id": correlation_id},
+                )
                 response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
         except Exception:
-            logger.exception("Unhandled exception in request processing", extra={"request_id": request_id, "correlation_id": correlation_id})
+            logger.exception(
+                "Unhandled exception in request processing",
+                extra={"request_id": request_id, "correlation_id": correlation_id},
+            )
             response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
         finally:
             if tokens is not None:
@@ -83,7 +96,10 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             try:
                 self._attach_headers(response, request_id, correlation_id)
             except Exception:
-                logger.exception("Failed to attach correlation headers to response", extra={"request_id": request_id, "correlation_id": correlation_id})
+                logger.exception(
+                    "Failed to attach correlation headers to response",
+                    extra={"request_id": request_id, "correlation_id": correlation_id},
+                )
         return response
 
     def _attach_headers(
