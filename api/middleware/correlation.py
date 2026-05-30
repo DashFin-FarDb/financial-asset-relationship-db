@@ -33,9 +33,13 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
         return None
 
     trimmed_id = raw_id.strip()
+    trimmed_len = len(trimmed_id)
     if not is_valid_id(trimmed_id):
-        # Cap length to a reasonable size for logging if it was invalid but not oversized
-        logger.debug("Invalid %s header received (redacted), length=%d", header_name, min(log_len, LOG_TRUNCATE_LEN))
+        logger.debug(
+            "Invalid %s header received (redacted), trimmed_length=%d",
+            header_name,
+            min(trimmed_len, LOG_TRUNCATE_LEN),
+        )
         return None
 
     return trimmed_id
@@ -64,6 +68,20 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                     type(state_obj).__name__,
                     type(assign_exc).__name__,
                 )
+            except Exception as exc:
+                # Unexpected error while falling back to attribute assignment; log details but do not re-raise
+                logger.exception(
+                    "Unexpected error while falling back to attribute assignment for state object %s: %s",
+                    type(state_obj).__name__,
+                    type(exc).__name__,
+                )
+        except Exception as exc:
+            # Unexpected error while assigning into mapping; log and continue
+            logger.exception(
+                "Unexpected error while assigning into mapping-style state object %s: %s",
+                type(state_obj).__name__,
+                type(exc).__name__,
+            )
     else:
         try:
             setattr(state_obj, "request_id", request_id)
