@@ -55,7 +55,7 @@ class CorrelationMiddleware:
         # Expose identifiers on request state (compatible with FastAPI Request.state)
         if "state" not in scope:
             scope["state"] = {}
-        
+
         state_obj = scope["state"]
         if isinstance(state_obj, dict):
             state_obj["request_id"] = request_id
