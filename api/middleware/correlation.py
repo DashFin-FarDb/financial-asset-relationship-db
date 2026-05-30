@@ -95,7 +95,11 @@ except HTTPException as exc:
             import logging
 
             logger.exception("Unhandled exception in request processing", extra={"request_id": request_id, "correlation_id": correlation_id})
-            from fastapi.responses import JSONResponse
+response: Response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+tokens = set_request_context(request_id, correlation_id)
+try:
+    response = await call_next(request)
+    ...
 
             response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
         finally:
