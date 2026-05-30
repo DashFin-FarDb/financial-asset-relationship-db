@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from collections.abc import (
-    MutableMapping,
-)  # used to detect dict-like request.state containers (and not fall back to permissive duck-typing)
+from collections.abc import MutableMapping
 from typing import TYPE_CHECKING
 
 from starlette.datastructures import Headers, MutableHeaders, State
@@ -17,6 +15,61 @@ if TYPE_CHECKING:
     from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
+
+
+def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None:
+    """Extract, trim, and validate an ID from a header safely."""
+    if not isinstance(raw_id, str):
+        return None
+
+    log_len = len(raw_id)
+    # Reject extremely large headers before trimming to prevent memory exhaustion DoS
+    if log_len > 1024:
+        logger.debug("Oversized %s header received (redacted), length=%d", header_name, log_len)
+        return None
+
+    trimmed_id = raw_id.strip()
+    if not is_valid_id(trimmed_id):
+        # Cap length to 200 for logging if it was invalid but not oversized
+        logger.debug("Invalid %s header received (redacted), length=%d", header_name, min(log_len, 200))
+        return None
+
+    return trimmed_id
+
+
+def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
+    """Expose identifiers on request state (compatible with FastAPI Request.state)."""
+    state_obj = scope.get("state")
+    if state_obj is None:
+        state_obj = State()
+        scope["state"] = state_obj
+
+    # We prefer mapping assignment first for compatibility with dict-like test seams
+    # and pure ASGI scope dictionaries, falling back to attribute-style assignment.
+    if isinstance(state_obj, MutableMapping):
+        try:
+            state_obj["request_id"] = request_id
+            state_obj["correlation_id"] = correlation_id
+        except Exception as assign_exc:
+            try:
+                setattr(state_obj, "request_id", request_id)
+                setattr(state_obj, "correlation_id", correlation_id)
+            except Exception:
+                logger.warning(
+                    "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
+                    type(state_obj).__name__,
+                    type(assign_exc).__name__,
+                )
+    else:
+        try:
+            setattr(state_obj, "request_id", request_id)
+            setattr(state_obj, "correlation_id", correlation_id)
+        except Exception as exc:
+            logger.warning(
+                "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
+                type(state_obj).__name__,
+                type(exc).__name__,
+            )
 
 
 class CorrelationMiddleware:
@@ -49,54 +102,13 @@ class CorrelationMiddleware:
 
         # Extract headers using Starlette helper (handles decoding and case normalization)
         headers = Headers(scope=scope)
-        raw_request_id = headers.get("x-request-id")
-        raw_correlation_id = headers.get("x-correlation-id")
-
-        # Defensive trimming and validation: trim whitespace, reject injection attempts and log invalid headers.
-        if isinstance(raw_request_id, str):
-            raw_request_id = raw_request_id.strip()
-            if not is_valid_id(raw_request_id):
-                # Avoid reflecting or handling extremely long header values; cap logged length.
-                log_len = len(raw_request_id)
-                log_len = min(log_len, 200)
-                logger.debug("Invalid X-Request-ID header received (redacted), length=%d", log_len)
-                raw_request_id = None
-
-        if isinstance(raw_correlation_id, str):
-            raw_correlation_id = raw_correlation_id.strip()
-            if not is_valid_id(raw_correlation_id):
-                # Avoid reflecting or handling extremely long header values; cap logged length.
-                log_len = len(raw_correlation_id)
-                log_len = min(log_len, 200)
-                logger.debug("Invalid X-Correlation-ID header received (redacted), length=%d", log_len)
-                raw_correlation_id = None
+        raw_request_id = _extract_and_validate_id(headers.get("x-request-id"), "X-Request-ID")
+        raw_correlation_id = _extract_and_validate_id(headers.get("x-correlation-id"), "X-Correlation-ID")
 
         request_id = raw_request_id if raw_request_id is not None else str(uuid.uuid4())
         correlation_id = raw_correlation_id if raw_correlation_id is not None else request_id
 
-        # Expose identifiers on request state (compatible with FastAPI Request.state)
-        state_obj = scope.get("state")
-        if state_obj is None:
-            state_obj = State()
-            scope["state"] = state_obj
-        # treat mapping-like state containers (dict or dict-like) uniformly
-        if isinstance(state_obj, MutableMapping):
-            try:
-                state_obj["request_id"] = request_id
-                state_obj["correlation_id"] = correlation_id
-            except (TypeError, AttributeError) as assign_exc:
-                # Fall back to attribute-style assignment if item assignment fails
-                try:
-                    setattr(state_obj, "request_id", request_id)
-                    setattr(state_obj, "correlation_id", correlation_id)
-                except Exception:
-                    logger.warning(
-                        "Could not attach correlation IDs to state object (%s); continuing without state injection",
-                        type(assign_exc).__name__,
-                    )
-        else:
-            setattr(state_obj, "request_id", request_id)
-            setattr(state_obj, "correlation_id", correlation_id)
+        _inject_state(scope, request_id, correlation_id)
 
         async def send_with_correlation_headers(message: dict) -> None:
             """Wrapper for the send callable to inject correlation headers."""
