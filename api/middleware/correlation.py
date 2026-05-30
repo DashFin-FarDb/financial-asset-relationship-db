@@ -88,8 +88,10 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
 
                 response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
         except Exception:
-        tokens = set_request_context(request_id, correlation_id)
+        response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+        tokens = None
         try:
+            tokens = set_request_context(request_id, correlation_id)
             try:
                 response = await call_next(request)
             except asyncio.CancelledError:
@@ -128,6 +130,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                 reset_request_context(tokens)
             # Ensure headers are attached regardless of success/failure
             self._attach_headers(response, request_id, correlation_id)
+            return response
             return response
 
             logger.exception("Unhandled exception in request processing", extra={"request_id": request_id, "correlation_id": correlation_id})
