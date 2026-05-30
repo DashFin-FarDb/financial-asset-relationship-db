@@ -20,6 +20,9 @@ def isolated_app():
     return app
 
 
+pytestmark = pytest.mark.integration
+
+
 def test_app_correlation_integration(isolated_app):
     """Test that the app correctly handles correlation headers."""
     client = TestClient(isolated_app)
