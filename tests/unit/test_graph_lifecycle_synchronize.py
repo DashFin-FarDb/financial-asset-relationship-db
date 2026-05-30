@@ -16,8 +16,17 @@ pytestmark = pytest.mark.unit
 def reset_lifecycle():
     """Reset lifecycle graph state around each test."""
     graph_lifecycle.reset_graph()
+    # Also reset api.main mirror if it's already loaded to prevent leakage
+    if "api.main" in sys.modules:
+        import api.main as api_main  # pylint: disable=import-outside-toplevel
+
+        api_main.reset_graph()
     yield
     graph_lifecycle.reset_graph()
+    if "api.main" in sys.modules:
+        import api.main as api_main  # pylint: disable=import-outside-toplevel
+
+        api_main.reset_graph()
 
 
 def test_synchronize_runtime_graph_updates_both_mirrors() -> None:

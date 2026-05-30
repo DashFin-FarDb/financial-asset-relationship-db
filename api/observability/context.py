@@ -34,7 +34,7 @@ def get_correlation_id() -> str | None:
     return _correlation_id_ctx.get()
 
 
-def get_request_context() -> dict[str, Any]:
+def get_request_context() -> dict[str, str | None]:
     """
     Return a dictionary of the current request metadata.
 

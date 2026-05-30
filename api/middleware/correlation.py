@@ -3,15 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING
 
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
-
-if TYPE_CHECKING:
-    from fastapi import Request, Response
-    from starlette.middleware.base import RequestResponseEndpoint
 
 
 class CorrelationMiddleware(BaseHTTPMiddleware):
