@@ -61,11 +61,13 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             response = await _http_exc_handler(request, exc)
         except Exception:
             import logging as _logging
+
             _logging.getLogger(__name__).exception(
                 "Unhandled exception in request processing",
                 extra={"request_id": request_id, "correlation_id": correlation_id},
             )
             from starlette.responses import Response as StarletteResponse
+
             response = StarletteResponse("Internal Server Error", status_code=500)
         finally:
             if tokens is not None:
