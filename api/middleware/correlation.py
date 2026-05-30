@@ -84,10 +84,16 @@ class CorrelationMiddleware:
             try:
                 state_obj["request_id"] = request_id
                 state_obj["correlation_id"] = correlation_id
-            except (TypeError, AttributeError):
+            except (TypeError, AttributeError) as assign_exc:
                 # Fall back to attribute-style assignment if item assignment fails
-                setattr(state_obj, "request_id", request_id)
-                setattr(state_obj, "correlation_id", correlation_id)
+                try:
+                    setattr(state_obj, "request_id", request_id)
+                    setattr(state_obj, "correlation_id", correlation_id)
+                except Exception:
+                    logger.warning(
+                        "Could not attach correlation IDs to state object (%s); continuing without state injection",
+                        type(assign_exc).__name__,
+                    )
         else:
             setattr(state_obj, "request_id", request_id)
             setattr(state_obj, "correlation_id", correlation_id)
