@@ -26,22 +26,65 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
       request-initiated workflows.
 
     Security: Validates incoming IDs to prevent log/header injection.
-    Reliability: Ensures identifiers are attached to responses for both successful and error outcomes.
     """
 
-
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        """Manage identifiers for the request lifecycle.
-
+        """
+        Manage identifiers for the request lifecycle.
+        
         Ensures request/correlation ids are validated, placed into contextvars for logging,
         and attached to every response (including error paths). This implementation
-        is a single, well-formed dispatch method (replaces duplicated/broken blocks).
+        maintains previous behavior: context set/reset, exception delegation, and header propagation.
         """
         import asyncio
         import inspect
         from fastapi import HTTPException
         from fastapi.exception_handlers import http_exception_handler
         from fastapi.responses import JSONResponse
+        
+        # Validate incoming IDs using the observability module's policy
+        raw_request_id = request.headers.get("X-Request-ID")
+        request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
+        
+        raw_correlation_id = request.headers.get("X-Correlation-ID")
+        correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
+        
+        # Expose identifiers on request.state for downstream handlers/tests
+        request.state.request_id = request_id
+        request.state.correlation_id = correlation_id
+        
+        tokens = None
+        response: Response | None = None
+        try:
+            # Set contextvars for downstream code
+            tokens = set_request_context(request_id, correlation_id)
+            response = await call_next(request)
+        except asyncio.CancelledError:
+            # Allow cancellations to propagate
+            raise
+        except HTTPException as exc:
+            # Delegate to configured exception handlers (if any), falling back to FastAPI's handler
+            exception_handlers = getattr(getattr(request, "app", None), "exception_handlers", {})
+            handler = next((exception_handlers[cls] for cls in type(exc).__mro__ if cls in exception_handlers), http_exception_handler)
+            try:
+                result = handler(request, exc)
+                response = await result if inspect.isawaitable(result) else result
+            except Exception:
+                logger.exception("Exception while handling HTTPException", extra={"request_id": request_id, "correlation_id": correlation_id})
+                response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+        except Exception:
+            logger.exception("Unhandled exception in request processing", extra={"request_id": request_id, "correlation_id": correlation_id})
+            response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+        finally:
+            if tokens is not None:
+                reset_request_context(tokens)
+            if response is None:
+                response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+            try:
+                self._attach_headers(response, request_id, correlation_id)
+            except Exception:
+                logger.exception("Failed to attach correlation headers to response", extra={"request_id": request_id, "correlation_id": correlation_id})
+        return response
 
         # Prefer a local validator if provided by observability module, otherwise use a conservative fallback
         validator = globals().get("is_valid_id")
