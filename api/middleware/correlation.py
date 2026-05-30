@@ -6,18 +6,17 @@ import logging
 import uuid
 from typing import TYPE_CHECKING
 
-from starlette.middleware.base import BaseHTTPMiddleware
-
-logger = logging.getLogger(__name__)
-
-if TYPE_CHECKING:
-    from fastapi import Request, Response
-    from starlette.middleware.base import RequestResponseEndpoint
+from starlette.datastructures import MutableHeaders
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
 
+if TYPE_CHECKING:
+    from starlette.types import ASGIApp, Receive, Scope, Send
 
-class CorrelationMiddleware(BaseHTTPMiddleware):
+logger = logging.getLogger(__name__)
+
+
+class CorrelationMiddleware:
     """
     Middleware that manages request and correlation identifiers.
 
@@ -28,100 +27,58 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
       X-Correlation-ID header or defaults to the request_id value for
       request-initiated workflows.
 
+    This is implemented as a plain ASGI middleware to avoid the overhead and
+    edge-cases of BaseHTTPMiddleware (e.g., issues with StreamingResponse and
+    background task cancellation).
+
     Security: Validates incoming IDs to prevent log/header injection.
     Reliability: Ensures identifiers are attached to responses for both successful and error outcomes.
     """
 
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        """
-        Manage identifiers for the request lifecycle.
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
 
-        Ensures request/correlation ids are validated, placed into contextvars for logging,
-        and attached to every response (including error paths).
-        """
-        import asyncio
-        import inspect
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """Manage identifiers for the request lifecycle."""
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        # Local imports to avoid circular dependency at module import time.
-        from fastapi import HTTPException
-        from fastapi.exception_handlers import http_exception_handler
-        from fastapi.responses import JSONResponse
+        # Extract headers from ASGI scope
+        headers = dict(scope.get("headers", []))
 
-        raw_request_id = request.headers.get("X-Request-ID")
+        # Helper to get header by name (case-insensitive in ASGI)
+        def get_header(name: str) -> str | None:
+            name_bytes = name.lower().encode("latin-1")
+            val = headers.get(name_bytes)
+            return val.decode("latin-1") if val else None
+
+        raw_request_id = get_header("X-Request-ID")
         request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
-        raw_correlation_id = request.headers.get("X-Correlation-ID")
+
+        raw_correlation_id = get_header("X-Correlation-ID")
         correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
 
-        # Expose identifiers on request.state for downstream handlers/tests
-        request.state.request_id = request_id
-        request.state.correlation_id = correlation_id
+        # Expose identifiers on request state (compatible with FastAPI Request.state)
+        if "state" not in scope:
+            scope["state"] = {}
+        scope["state"]["request_id"] = request_id
+        scope["state"]["correlation_id"] = correlation_id
+
+        async def send_with_correlation_headers(message: dict) -> None:
+            """Wrapper for the send callable to inject correlation headers."""
+            if message["type"] == "http.response.start":
+                response_headers = MutableHeaders(scope=message)
+                response_headers.append("X-Request-ID", request_id)
+                response_headers.append("X-Correlation-ID", correlation_id)
+
+            await send(message)
 
         tokens = None
-        response: Response | None = None
         try:
-            # Set contextvars for downstream code
+            # Set contextvars for downstream code (including logging)
             tokens = set_request_context(request_id, correlation_id)
-            response = await call_next(request)
-        except asyncio.CancelledError:
-            # Allow cancellations to propagate
-            raise
-        except HTTPException as exc:
-            # Delegate to configured exception handlers (if any), falling back to FastAPI's handler
-            exception_handlers = getattr(getattr(request, "app", None), "exception_handlers", {})
-            handler = http_exception_handler
-            for cls in type(exc).__mro__:
-                h = exception_handlers.get(cls)
-                if h is not None:
-                    handler = h
-                    break
-            try:
-                result = handler(request, exc)
-                response = await result if inspect.isawaitable(result) else result
-            except Exception:
-                logger.exception(
-                    "Exception while handling HTTPException",
-                    extra={"request_id": request_id, "correlation_id": correlation_id},
-                )
-                response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
-        except Exception:
-            # If in debug mode, re-raise to allow FastAPI's default debug page to render
-            if getattr(request.app, "debug", False):
-                raise
-
-            logger.exception(
-                "Unhandled exception in request processing",
-                extra={
-                    "request_id": request_id,
-                    "correlation_id": correlation_id,
-                    "method": request.method,
-                    request.url.path,
-                },
-            )
-            response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+            await self.app(scope, receive, send_with_correlation_headers)
         finally:
             if tokens is not None:
                 reset_request_context(tokens)
-            if response is None:
-                response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
-
-            # Attach headers after the handler has run so they are applied to both
-            # success and error responses. Note: headers cannot be modified for
-            # StreamingResponse after the first chunk is yielded.
-            try:
-                self._attach_headers(response, request_id, correlation_id)
-            except Exception:
-                logger.exception(
-                    "Failed to attach correlation headers to response",
-                    extra={"request_id": request_id, "correlation_id": correlation_id},
-                )
-        return response
-
-    def _attach_headers(
-        self,
-        response: Response,
-        request_id: str,
-        correlation_id: str,
-    ) -> None:
-        """Attach correlation headers to the response."""
-        response.headers["X-Request-ID"] = request_id
-        response.headers["X-Correlation-ID"] = correlation_id
