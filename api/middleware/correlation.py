@@ -49,14 +49,25 @@ class CorrelationMiddleware:
         raw_request_id = headers.get("x-request-id")
         raw_correlation_id = headers.get("x-correlation-id")
 
-        request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
-        correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
+        # Defensive trimming then validation. Accept slightly malformed values (trim whitespace)
+        # but still reject injection attempts; log invalid headers for diagnostics.
+        if isinstance(raw_request_id, str):
+            raw_request_id = raw_request_id.strip()
+            if not is_valid_id(raw_request_id):
+                logger.debug("Invalid X-Request-ID header received: %r", raw_request_id)
+                raw_request_id = None
+
+        if isinstance(raw_correlation_id, str):
+            raw_correlation_id = raw_correlation_id.strip()
+            if not is_valid_id(raw_correlation_id):
+                logger.debug("Invalid X-Correlation-ID header received: %r", raw_correlation_id)
+                raw_correlation_id = None
+
+        request_id = raw_request_id if raw_request_id is not None else str(uuid.uuid4())
+        correlation_id = raw_correlation_id if raw_correlation_id is not None else request_id
 
         # Expose identifiers on request state (compatible with FastAPI Request.state)
-        if "state" not in scope:
-            scope["state"] = {}
-
-        state_obj = scope["state"]
+        state_obj = scope.setdefault("state", State())
         if isinstance(state_obj, dict):
             state_obj["request_id"] = request_id
             state_obj["correlation_id"] = correlation_id
