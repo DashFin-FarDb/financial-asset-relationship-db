@@ -50,12 +50,17 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         try:
             tokens = set_request_context(request_id, correlation_id)
             response = await call_next(request)
-            self._attach_headers(response, request_id, correlation_id)
-            return response
+        except Exception:
+            from starlette.responses import Response as StarletteResponse
+
+            response = StarletteResponse("Internal Server Error", status_code=500)
         finally:
             # Clear context variables
             if tokens is not None:
                 reset_request_context(tokens)
+
+        self._attach_headers(response, request_id, correlation_id)
+        return response
 
     def _attach_headers(self, response: Response, request_id: str, correlation_id: str) -> None:
         """Attach correlation headers to the response."""
