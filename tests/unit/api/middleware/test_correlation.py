@@ -93,10 +93,6 @@ def test_correlation_middleware_logic():
     assert is_valid_uuid(response.headers.get("X-Request-ID"))
 
 
-def is_valid_uuid(val):
-    try:
-        uuid.UUID(str(val))
-# Ensure is_valid_uuid is at module level (zero indentation), not inside the test function:
 def is_valid_uuid(val: str | None) -> bool:
     """Return whether val is a valid UUID string."""
     if val is None:
@@ -104,7 +100,5 @@ def is_valid_uuid(val: str | None) -> bool:
     try:
         uuid.UUID(str(val))
         return True
-    except ValueError:
-        return False
-    except ValueError:
+    except (ValueError, TypeError):
         return False
