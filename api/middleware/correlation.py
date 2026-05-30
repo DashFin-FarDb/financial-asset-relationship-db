@@ -29,7 +29,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
     Reliability: Ensures identifiers are attached to responses for both successful and error outcomes.
     """
 
-    
+
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Manage identifiers for the request lifecycle.
 
