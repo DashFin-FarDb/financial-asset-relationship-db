@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from typing import TYPE_CHECKING
+
 from starlette.middleware.base import BaseHTTPMiddleware
 
 if TYPE_CHECKING:
@@ -56,6 +57,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         except Exception as exc:
             # Propagate task cancellation immediately so cancel flows aren't swallowed
             import asyncio as _asyncio
+
             if isinstance(exc, _asyncio.CancelledError):
                 raise
             # Re-raise FastAPI HTTPException so framework handlers run
@@ -67,8 +69,10 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                 raise
             # Log unexpected errors and return generic 500 (do not expose internals)
             import logging as _logging
+
             _logging.getLogger(__name__).exception("Unhandled exception in request processing")
             from starlette.responses import Response as StarletteResponse
+
             response = StarletteResponse("Internal Server Error", status_code=500)
         finally:
             # Clear context variables
