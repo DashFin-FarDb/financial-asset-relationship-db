@@ -54,17 +54,12 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
 
         tokens = None
         try:
-            tokens = set_request_context(request_id, correlation_id)
-            response = await call_next(request)
         except asyncio.CancelledError:
             raise
         except HTTPException as exc:
-            exception_handlers = getattr(
-                getattr(request, "app", None),
-                "exception_handlers",
-                {},
-            )
+            import inspect
 
+            exception_handlers = getattr(getattr(request, "app", None), "exception_handlers", {})
             handler = next(
                 (
                     exception_handlers[cls]
@@ -74,24 +69,35 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                 http_exception_handler,
             )
 
-            response = await handler(request, exc)
-            else:
-                response = handler(request, exc)
+            try:
+                result = handler(request, exc)
+                if inspect.isawaitable(result):
+                    response = await result
+                else:
+                    response = result
+            except Exception:
+                import logging
+
+                logging.getLogger(__name__).exception(
+                    "Exception while handling HTTPException",
+                    extra={"request_id": request_id, "correlation_id": correlation_id},
+                )
+                from fastapi.responses import JSONResponse
+
+                response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
         except Exception:
+            import logging
+
             logging.getLogger(__name__).exception(
                 "Unhandled exception in request processing",
                 extra={"request_id": request_id, "correlation_id": correlation_id},
             )
             from fastapi.responses import JSONResponse
 
-            response = JSONResponse(
-                {"detail": "Internal Server Error"},
-                status_code=500,
-            )
-            finally:
-                if tokens is not None:
-                    reset_request_context(tokens)
-
+            response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+        finally:
+            if tokens is not None:
+                reset_request_context(tokens)
             self._attach_headers(response, request_id, correlation_id)
             return response
 
