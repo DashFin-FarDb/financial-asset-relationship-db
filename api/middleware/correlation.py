@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import logging
 import uuid
 from typing import TYPE_CHECKING
 
+from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 if TYPE_CHECKING:
-    from fastapi import Request, Response
     from starlette.middleware.base import RequestResponseEndpoint
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
@@ -59,16 +58,28 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         except asyncio.CancelledError:
             raise
         except HTTPException as exc:
-            response = await http_exception_handler(request, exc)
-        except Exception:
-            import logging as _logging
+            # Respect custom exception handlers registered on the app
+            handler = (
+                request.app.exception_handlers.get(type(exc))
+                or request.app.exception_handlers.get(HTTPException)
+                or http_exception_handler
+            )
 
-            _logging.getLogger(__name__).exception(
+            # FastAPI handlers can be sync or async; check and await if coroutine
+            if asyncio.iscoroutinefunction(handler):
+                response = await handler(request, exc)
+            else:
+                response = handler(request, exc)
+        except Exception:
+            import logging
+
+            logging.getLogger(__name__).exception(
                 "Unhandled exception in request processing",
                 extra={"request_id": request_id, "correlation_id": correlation_id},
             )
-            # Re-raise to preserve FastAPI/Starlette canonical error handling (JSON responses, middleware hooks).
-            raise
+            from starlette.responses import Response as StarletteResponse
+
+            response = StarletteResponse("Internal Server Error", status_code=500)
         finally:
             if tokens is not None:
                 reset_request_context(tokens)
