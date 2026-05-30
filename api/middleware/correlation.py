@@ -17,6 +17,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+MAX_HEADER_LENGTH = 1024
+LOG_TRUNCATE_LEN = 200
+
+
 def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None:
     """Extract, trim, and validate an ID from a header safely."""
     if not isinstance(raw_id, str):
@@ -24,14 +28,14 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
 
     log_len = len(raw_id)
     # Reject extremely large headers before trimming to prevent memory exhaustion DoS
-    if log_len > 1024:
+    if log_len > MAX_HEADER_LENGTH:
         logger.debug("Oversized %s header received (redacted), length=%d", header_name, log_len)
         return None
 
     trimmed_id = raw_id.strip()
     if not is_valid_id(trimmed_id):
-        # Cap length to 200 for logging if it was invalid but not oversized
-        logger.debug("Invalid %s header received (redacted), length=%d", header_name, min(log_len, 200))
+        # Cap length to a reasonable size for logging if it was invalid but not oversized
+        logger.debug("Invalid %s header received (redacted), length=%d", header_name, min(log_len, LOG_TRUNCATE_LEN))
         return None
 
     return trimmed_id
@@ -50,11 +54,11 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
         try:
             state_obj["request_id"] = request_id
             state_obj["correlation_id"] = correlation_id
-        except Exception as assign_exc:
+        except (TypeError, AttributeError) as assign_exc:
             try:
                 setattr(state_obj, "request_id", request_id)
                 setattr(state_obj, "correlation_id", correlation_id)
-            except Exception:
+            except (TypeError, AttributeError):
                 logger.warning(
                     "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
                     type(state_obj).__name__,
@@ -64,7 +68,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
         try:
             setattr(state_obj, "request_id", request_id)
             setattr(state_obj, "correlation_id", correlation_id)
-        except Exception as exc:
+        except (TypeError, AttributeError) as exc:
             logger.warning(
                 "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
                 type(state_obj).__name__,

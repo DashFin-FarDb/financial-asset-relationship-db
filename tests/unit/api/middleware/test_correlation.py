@@ -116,26 +116,6 @@ async def test_correlation_middleware_state_fallback() -> None:
 
     middleware = CorrelationMiddleware(mock_app)
 
-    # 1. Test with read-only mapping that raises TypeError on __setitem__
-    from collections.abc import Mapping
-
-    class ReadOnlyDict(Mapping):
-        def __init__(self, *args, **kwargs):
-            self._d = dict(*args, **kwargs)
-
-        def __getitem__(self, key):
-            return self._d[key]
-
-        def __iter__(self):
-            return iter(self._d)
-
-        def __len__(self):
-            return len(self._d)
-
-        # Inherits MutableMapping check but we'll deliberately make it fail item assignment
-        # Wait, Mapping is not MutableMapping. If we want it to pass isinstance(MutableMapping)
-        # but fail item assignment, we can subclass MutableMapping and raise.
-
     from collections.abc import MutableMapping
 
     class FailingMutableMapping(MutableMapping):
