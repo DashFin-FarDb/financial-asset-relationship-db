@@ -88,7 +88,12 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
 
             logger.exception(
                 "Unhandled exception in request processing",
-                extra={"request_id": request_id, "correlation_id": correlation_id},
+                extra={
+                    "request_id": request_id,
+                    "correlation_id": correlation_id,
+                    "method": request.method,
+                    "path": str(request.url),
+                },
             )
             response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
         finally:
