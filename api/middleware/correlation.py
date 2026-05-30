@@ -6,7 +6,8 @@ import logging
 import uuid
 from collections.abc import (
     MutableMapping,
-)  # used to detect dict-like request.state containers (prefer ABC check to noisy duck-typing)
+)  
+# used to detect dict-like request.state containers (and not fall back to permissive duck-typing)
 from typing import TYPE_CHECKING
 
 from starlette.datastructures import Headers, MutableHeaders, State
