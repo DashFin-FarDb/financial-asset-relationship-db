@@ -68,13 +68,13 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         except HTTPException as exc:
             # Delegate to configured exception handlers (if any), falling back to FastAPI's handler
             exception_handlers = getattr(getattr(request, "app", None), "exception_handlers", {})
-            handler = next(
-                (exception_handlers.get(cls) for cls in type(exc).__mro__ if exception_handlers.get(cls) is not None),
-                http_exception_handler,
-            )
+            handler = http_exception_handler
+            for cls in type(exc).__mro__:
+                if cls in exception_handlers:
+                    handler = exception_handlers[cls]
+                    break
             try:
                 result = handler(request, exc)
-                response = await result if inspect.isawaitable(result) else result
             except Exception:
                 logger.exception(
                     "Exception while handling HTTPException",
