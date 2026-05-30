@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 from typing import TYPE_CHECKING
+
 from starlette.middleware.base import BaseHTTPMiddleware
-import logging
 
 if TYPE_CHECKING:
     from fastapi import Request, Response
@@ -61,6 +62,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             response = await http_exception_handler(request, exc)
         except Exception:
             import logging as _logging
+
             _logging.getLogger(__name__).exception(
                 "Unhandled exception in request processing",
                 extra={"request_id": request_id, "correlation_id": correlation_id},
