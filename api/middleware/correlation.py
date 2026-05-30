@@ -55,7 +55,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
         except Exception:
         import logging
-    
+
         logger = logging.getLogger(__name__)
         logger.exception("Unhandled exception in request %s", request_id)
         from starlette.responses import Response as StarletteResponse
