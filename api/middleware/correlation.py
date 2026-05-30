@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import Request, Response
+from typing import TYPE_CHECKING
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+
+if TYPE_CHECKING:
+    from fastapi import Request, Response
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
 
