@@ -139,7 +139,54 @@ try:
     ...
 
             response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        """Manage identifiers for the request lifecycle."""
+        import asyncio
+        import inspect
+        from fastapi import HTTPException
+        from fastapi.exception_handlers import http_exception_handler
+        from fastapi.responses import JSONResponse
+
+        raw_request_id = request.headers.get("X-Request-ID")
+        request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
+
+        raw_correlation_id = request.headers.get("X-Correlation-ID")
+        correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
+
+        request.state.request_id = request_id
+        request.state.correlation_id = correlation_id
+
+        tokens = set_request_context(request_id, correlation_id)
+        response: Response
+        try:
+            response = await call_next(request)
+        except asyncio.CancelledError:
+            raise
+        except HTTPException as exc:
+            exception_handlers = getattr(getattr(request, "app", None), "exception_handlers", {})
+            handler = next(
+                (exception_handlers[cls] for cls in type(exc).__mro__ if cls in exception_handlers),
+                http_exception_handler,
+            )
+            try:
+                result = handler(request, exc)
+                response = await result if inspect.isawaitable(result) else result
+            except Exception:
+                logger.exception(
+                    "Exception while handling HTTPException",
+                    extra={"request_id": request_id, "correlation_id": correlation_id},
+                )
+                response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+        except Exception:
+            logger.exception(
+                "Unhandled exception in request processing",
+                extra={"request_id": request_id, "correlation_id": correlation_id},
+            )
+            response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
         finally:
+            reset_request_context(tokens)
+            self._attach_headers(response, request_id, correlation_id)
+        return response
             if tokens is not None:
                 reset_request_context(tokens)
             self._attach_headers(response, request_id, correlation_id)
