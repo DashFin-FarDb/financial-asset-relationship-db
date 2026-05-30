@@ -29,6 +29,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
       request-initiated workflows.
 
     Security: Validates incoming IDs to prevent log/header injection.
+    Reliability: Ensures identifiers are attached to responses for both successful and error outcomes.
     """
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
@@ -36,36 +37,20 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         Manage identifiers for the request lifecycle.
 
         Ensures request/correlation ids are validated, placed into contextvars for logging,
-        and attached to every response (including error paths). This implementation
-        maintains previous behavior: context set/reset, exception delegation, and header propagation.
+        and attached to every response (including error paths).
         """
         import asyncio
         import inspect
 
-        # Local imports to avoid circular dependency at module import time and to keep middleware
-        # initialization lightweight. These are intentionally imported inside dispatch.
+        # Local imports to avoid circular dependency at module import time.
         from fastapi import HTTPException
         from fastapi.exception_handlers import http_exception_handler
         from fastapi.responses import JSONResponse
 
-        # Prefer a module-provided validator but fall back to a conservative local one
-        validator = globals().get("is_valid_id")
-        if validator is None:
-
-            def _local_is_valid_id(val: str | None) -> bool:
-                if not val:
-                    return False
-                # Reject CR/LF to prevent header injection and ensure printable
-                if "\r" in val or "\n" in val:
-                    return False
-                # Basic non-empty check; central validator should provide stricter rules.
-                return True
-
-            validator = _local_is_valid_id
         raw_request_id = request.headers.get("X-Request-ID")
-        request_id = raw_request_id if validator(raw_request_id) else str(uuid.uuid4())
+        request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
         raw_correlation_id = request.headers.get("X-Correlation-ID")
-        correlation_id = raw_correlation_id if validator(raw_correlation_id) else request_id
+        correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
 
         # Expose identifiers on request.state for downstream handlers/tests
         request.state.request_id = request_id
@@ -97,6 +82,10 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                 )
                 response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
         except Exception:
+            # If in debug mode, re-raise to allow FastAPI's default debug page to render
+            if getattr(request.app, "debug", False):
+                raise
+
             logger.exception(
                 "Unhandled exception in request processing",
                 extra={"request_id": request_id, "correlation_id": correlation_id},
@@ -107,6 +96,10 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                 reset_request_context(tokens)
             if response is None:
                 response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
+
+            # Attach headers after the handler has run so they are applied to both
+            # success and error responses. Note: headers cannot be modified for
+            # StreamingResponse after the first chunk is yielded.
             try:
                 self._attach_headers(response, request_id, correlation_id)
             except Exception:
