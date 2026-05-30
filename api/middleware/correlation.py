@@ -70,11 +70,13 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             exception_handlers = getattr(getattr(request, "app", None), "exception_handlers", {})
             handler = http_exception_handler
             for cls in type(exc).__mro__:
-                if cls in exception_handlers:
-                    handler = exception_handlers[cls]
+                h = exception_handlers.get(cls)
+                if h is not None:
+                    handler = h
                     break
             try:
                 result = handler(request, exc)
+                response = await result if inspect.isawaitable(result) else result
             except Exception:
                 logger.exception(
                     "Exception while handling HTTPException",
@@ -92,7 +94,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                     "request_id": request_id,
                     "correlation_id": correlation_id,
                     "method": request.method,
-                    "path": str(request.url),
+                    request.url.path,
                 },
             )
             response = JSONResponse({"detail": "Internal Server Error"}, status_code=500)
