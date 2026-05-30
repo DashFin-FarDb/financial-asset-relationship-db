@@ -63,7 +63,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                 "exception_handlers",
                 {},
             )
-        
+
             handler = next(
                 (
                     exception_handlers[cls]
@@ -72,19 +72,19 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
                 ),
                 http_exception_handler,
             )
-        
+
             response = await handler(request, exc)
             else:
                 response = handler(request, exc)
         except Exception:
             import logging
-        
+
             logging.getLogger(__name__).exception(
                 "Unhandled exception in request processing",
                 extra={"request_id": request_id, "correlation_id": correlation_id},
             )
             from fastapi.responses import JSONResponse
-        
+
             response = JSONResponse(
                 {"detail": "Internal Server Error"},
                 status_code=500,
@@ -92,7 +92,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             finally:
                 if tokens is not None:
                     reset_request_context(tokens)
-    
+
             self._attach_headers(response, request_id, correlation_id)
             return response
 
