@@ -78,7 +78,7 @@ class CorrelationMiddleware:
             state_obj = State()
             scope["state"] = state_obj
         # treat mapping-like state containers (dict or dict-like) uniformly
-        if isinstance(state_obj, MutableMapping) or hasattr(state_obj, "__setitem__"):
+        if isinstance(state_obj, MutableMapping):
             state_obj["request_id"] = request_id
             state_obj["correlation_id"] = correlation_id
         else:
