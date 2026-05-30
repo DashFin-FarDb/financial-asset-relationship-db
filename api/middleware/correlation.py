@@ -53,12 +53,16 @@ class CorrelationMiddleware:
         correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
 
         # Expose identifiers on request state (compatible with FastAPI Request.state)
-        state_obj = scope.get("state")
-        if state_obj is None:
-            state_obj = State()
-            scope["state"] = state_obj
-        setattr(state_obj, "request_id", request_id)
-        setattr(state_obj, "correlation_id", correlation_id)
+        if "state" not in scope:
+            scope["state"] = {}
+        
+        state_obj = scope["state"]
+        if isinstance(state_obj, dict):
+            state_obj["request_id"] = request_id
+            state_obj["correlation_id"] = correlation_id
+        else:
+            setattr(state_obj, "request_id", request_id)
+            setattr(state_obj, "correlation_id", correlation_id)
 
         async def send_with_correlation_headers(message: dict) -> None:
             """Wrapper for the send callable to inject correlation headers."""
