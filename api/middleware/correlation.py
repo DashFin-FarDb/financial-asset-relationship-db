@@ -5,10 +5,10 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
+from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 if TYPE_CHECKING:
-    from fastapi import Request, Response
     from starlette.middleware.base import RequestResponseEndpoint
 
 from api.observability.context import is_valid_id, reset_request_context, set_request_context
@@ -35,12 +35,11 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         call_next: RequestResponseEndpoint,
     ) -> Response:
         """Manage identifiers for the request lifecycle."""
-        import asyncio as _asyncio
+        # Local imports used to prevent potential circular dependencies in middleware chain
+        import asyncio
 
-        from fastapi import HTTPException as _HTTPException
-        from fastapi.exception_handlers import (
-            http_exception_handler as _http_exc_handler,
-        )
+        from fastapi import HTTPException
+        from fastapi.exception_handlers import http_exception_handler
 
         raw_request_id = request.headers.get("X-Request-ID")
         request_id = raw_request_id if is_valid_id(raw_request_id) else str(uuid.uuid4())
@@ -48,6 +47,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         raw_correlation_id = request.headers.get("X-Correlation-ID")
         correlation_id = raw_correlation_id if is_valid_id(raw_correlation_id) else request_id
 
+        # Store identifiers in request state
         request.state.request_id = request_id
         request.state.correlation_id = correlation_id
 
@@ -55,14 +55,14 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
         try:
             tokens = set_request_context(request_id, correlation_id)
             response = await call_next(request)
-        except _asyncio.CancelledError:
+        except asyncio.CancelledError:
             raise
-        except _HTTPException as exc:
-            response = await _http_exc_handler(request, exc)
+        except HTTPException as exc:
+            response = await http_exception_handler(request, exc)
         except Exception:
-            import logging as _logging
+            import logging
 
-            _logging.getLogger(__name__).exception(
+            logging.getLogger(__name__).exception(
                 "Unhandled exception in request processing",
                 extra={"request_id": request_id, "correlation_id": correlation_id},
             )
