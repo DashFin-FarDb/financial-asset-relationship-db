@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import uuid
 import logging
+import logging
+import uuid
+from __future__ import annotations
+# (keep all imports at top; remove deferred 'import logging' inside except blocks)
 logger = logging.getLogger(__name__)
 from typing import TYPE_CHECKING
 
