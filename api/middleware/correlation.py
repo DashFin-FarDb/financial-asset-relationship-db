@@ -65,7 +65,34 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             handler = next(
                 (
                     exception_handlers[cls]
-                    for cls in type(exc).__mro__
+# Remove the first duplicate clause entirely:
+# except HTTPException as exc:
+#     raise   # <-- DELETE THIS BLOCK
+#
+# Keep only the delegation handler:
+except HTTPException as exc:
+    import inspect
+    exception_handlers = getattr(getattr(request, 'app', None), 'exception_handlers', {})
+    handler = next(
+        (
+            exception_handlers[cls]
+            for cls in type(exc).__mro__
+            if cls in exception_handlers
+        ),
+        http_exception_handler,
+    )
+    try:
+        result = handler(request, exc)
+        if inspect.isawaitable(result):
+            response = await result
+        else:
+            response = result
+    except Exception:
+        logger.exception(
+            'Exception while handling HTTPException',
+            extra={'request_id': request_id, 'correlation_id': correlation_id},
+        )
+        response = JSONResponse({'detail': 'Internal Server Error'}, status_code=500)
                     if cls in exception_handlers
                 ),
                 http_exception_handler,
