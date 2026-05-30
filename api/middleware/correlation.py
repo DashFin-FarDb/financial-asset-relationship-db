@@ -69,15 +69,15 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                     type(assign_exc).__name__,
                 )
             except Exception as exc:
-                # Unexpected error while falling back to attribute assignment; log details but do not re-raise
-                logger.exception(
+                # Unexpected error while falling back to attribute assignment; log at debug to avoid noisy traceback for non-fatal state injection errors.
+                logger.debug(
                     "Unexpected error while falling back to attribute assignment for state object %s: %s",
                     type(state_obj).__name__,
                     type(exc).__name__,
                 )
         except Exception as exc:
-            # Unexpected error while assigning into mapping; log and continue
-            logger.exception(
+            # Unexpected error while assigning into mapping; log at debug to avoid noisy traceback for non-fatal state injection errors.
+            logger.debug(
                 "Unexpected error while assigning into mapping-style state object %s: %s",
                 type(state_obj).__name__,
                 type(exc).__name__,
