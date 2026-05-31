@@ -83,7 +83,6 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                 exc_info=True,
             )
     else:
-    else:
         try:
             setattr(state_obj, "request_id", request_id)
             setattr(state_obj, "correlation_id", correlation_id)
