@@ -49,35 +49,37 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
     """Expose identifiers on request state (compatible with FastAPI Request.state)."""
     state_obj = scope.get("state")
     if state_obj is None:
-        state_obj = State()
-        scope["state"] = state_obj
-
-    # We prefer mapping assignment first for compatibility with dict-like test seams
-    # and pure ASGI scope dictionaries, falling back to attribute-style assignment.
-    if isinstance(state_obj, MutableMapping):
-    if isinstance(state_obj, MutableMapping):
         try:
             state_obj["request_id"] = request_id
             state_obj["correlation_id"] = correlation_id
         except (TypeError, AttributeError) as assign_exc:
-            # Mapping-style assignment failed; fall back to attribute assignment
+            # Fallback to attribute-style assignment for objects that don't support mapping writes
             try:
                 setattr(state_obj, "request_id", request_id)
                 setattr(state_obj, "correlation_id", correlation_id)
-            except (TypeError, AttributeError):
+            except (TypeError, AttributeError) as attr_exc:
                 logger.warning(
-                    "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
+                    "Could not attach correlation IDs to state object of type %s (map_err=%s, attr_err=%s); continuing without state injection",
                     type(state_obj).__name__,
                     type(assign_exc).__name__,
+                    type(attr_exc).__name__,
                 )
             except Exception as exc:
-                # Unexpected error during attribute assignment; log at debug level with traceback for diagnostics
+                # Unexpected error while falling back to attribute assignment; log at debug to avoid noisy traceback for non-fatal state injection errors.
                 logger.debug(
                     "Unexpected error while falling back to attribute assignment for state object %s: %s",
                     type(state_obj).__name__,
                     type(exc).__name__,
                     exc_info=True,
                 )
+        except Exception as exc:
+            # Unexpected error while assigning into mapping; log at debug to avoid noisy traceback for non-fatal state injection errors.
+            logger.debug(
+                "Unexpected error while assigning into mapping-style state object %s: %s",
+                type(state_obj).__name__,
+                type(exc).__name__,
+                exc_info=True,
+            )
         except Exception as exc:
             # Unexpected error while assigning into mapping; log at debug to avoid noisy traceback for non-fatal state injection errors.
             logger.debug(
