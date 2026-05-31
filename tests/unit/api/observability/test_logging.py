@@ -50,6 +50,7 @@ def test_inject_request_context_processor():
         # Reset context (even though the test runner isolates contextvars in modern pytest-asyncio,
         # it's good practice when testing ContextVars directly)
         from api.observability.context import reset_request_context
+
         reset_request_context(tokens)
 
 
@@ -121,4 +122,5 @@ def test_stdlib_logging_emits_json_with_context():
         assert "timestamp" in log_data
     finally:
         from api.observability.context import reset_request_context
+
         reset_request_context(tokens)
