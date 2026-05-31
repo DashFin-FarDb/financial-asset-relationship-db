@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError
 from unittest.mock import MagicMock
 
 import pytest
 
 import api.graph_lifecycle_providers as providers
-from src.config.settings import Settings
+from src.config.settings import Settings, get_settings, load_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 
 pytestmark = pytest.mark.unit
@@ -34,6 +35,24 @@ def test_get_graph_lifecycle_settings_maps_rebuild_lock_ttl_default(
 
     assert lifecycle_settings.rebuild_lock_ttl_seconds == base_settings.rebuild_lock_ttl_seconds
     assert lifecycle_settings.rebuild_lock_ttl_seconds == 300
+
+
+def test_graph_lifecycle_settings_is_frozen() -> None:
+    """GraphLifecycleSettings must remain an immutable configuration boundary."""
+    lifecycle_settings = providers.GraphLifecycleSettings(rebuild_lock_ttl_seconds=120)
+
+    with pytest.raises(FrozenInstanceError):
+        lifecycle_settings.rebuild_lock_ttl_seconds = 999  # type: ignore[misc]
+
+
+def test_get_graph_lifecycle_settings_propagates_ttl_from_loaded_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("REBUILD_LOCK_TTL_SECONDS", "600")
+    get_settings.cache_clear()
+    providers.clear_graph_lifecycle_settings_cache()
+    base_settings = load_settings()
+    lifecycle_settings = providers.get_graph_lifecycle_settings()
+    assert base_settings.rebuild_lock_ttl_seconds == 600
+    assert lifecycle_settings.rebuild_lock_ttl_seconds == base_settings.rebuild_lock_ttl_seconds
 
 
 def test_save_graph_with_session_runs_pre_commit_check(monkeypatch: pytest.MonkeyPatch) -> None:

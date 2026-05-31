@@ -28,14 +28,18 @@ _GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
 
 @dataclass(frozen=True)
 class GraphLifecycleSettings:
-    """Settings needed by graph lifecycle initialization."""
+    """Immutable lifecycle-boundary settings projected from :class:`Settings`.
+
+    Values are validated at load time on the root settings model; this dataclass
+    must not re-validate or apply defensive fallbacks.
+    """
 
     asset_graph_database_url: str | None = None
     coordination_database_url: str | None = None
     graph_cache_path: str | None = None
     real_data_cache_path: str | None = None
     use_real_data_fetcher: bool = False
-    rebuild_lock_ttl_seconds: int = 300
+    rebuild_lock_ttl_seconds: int = 300  # mirrored from Settings; env REBUILD_LOCK_TTL_SECONDS
 
 
 class GraphPersistenceNotConfiguredError(RuntimeError):
