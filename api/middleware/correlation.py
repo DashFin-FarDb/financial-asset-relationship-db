@@ -49,6 +49,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
     """Expose identifiers on request state (compatible with FastAPI Request.state)."""
     state_obj = scope.get("state")
     if state_obj is None:
+        logger.debug("No state object in scope; skipping correlation state injection")
         return
     if isinstance(state_obj, MutableMapping):
         try:
