@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import api.graph_lifecycle_providers as providers
-from src.config.settings import Settings, get_settings, load_settings
+from src.config.settings import Settings, load_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 
 pytestmark = pytest.mark.unit
@@ -46,10 +46,9 @@ def test_graph_lifecycle_settings_is_frozen() -> None:
         lifecycle_settings.rebuild_lock_ttl_seconds = 999  # type: ignore[misc]
 
 
-@patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "600"}, clear=True)
+@patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "600"})
 def test_get_graph_lifecycle_settings_propagates_ttl_from_loaded_settings() -> None:
     """Env → load_settings → get_graph_lifecycle_settings should preserve validated TTL."""
-    get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
 
     base_settings = load_settings()
