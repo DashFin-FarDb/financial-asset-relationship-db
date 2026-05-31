@@ -12,7 +12,7 @@ import structlog
 from .context import get_request_context
 
 
-def _inject_request_context(logger: logging.Logger, log_method: str, event_dict: dict) -> dict:
+def _inject_request_context(logger: object, log_method: str, event_dict: dict) -> dict:
     """Structlog processor to inject request context."""
     context = get_request_context()
     if context.get("request_id"):
