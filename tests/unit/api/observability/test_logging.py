@@ -124,3 +124,39 @@ def test_stdlib_logging_emits_json_with_context():
         from api.observability.context import reset_request_context
 
         reset_request_context(tokens)
+
+
+def test_structlog_logging_emits_json_with_context():
+    """Test that calling structlog logger emits structured JSON and includes context without double-serialization."""
+    setup_logging()
+
+    log_output = StringIO()
+    stream_handler = logging.StreamHandler(log_output)
+
+    root_logger = logging.getLogger()
+    formatter = root_logger.handlers[0].formatter
+    stream_handler.setFormatter(formatter)
+
+    root_logger.handlers.clear()
+    root_logger.addHandler(stream_handler)
+
+    tokens = set_request_context(request_id="req-111", correlation_id="corr-222")
+
+    try:
+        logger = structlog.get_logger("test.structlog")
+        logger.info("This is a structlog message")
+
+        output_str = log_output.getvalue()
+        assert output_str, "Log output should not be empty"
+
+        log_data = json.loads(output_str)
+
+        assert log_data["event"] == "This is a structlog message"
+        assert log_data["logger"] == "test.structlog"
+        assert log_data["level"] == "info"
+        assert log_data["request_id"] == "req-111"
+        assert log_data["correlation_id"] == "corr-222"
+        assert "timestamp" in log_data
+    finally:
+        from api.observability.context import reset_request_context
+        reset_request_context(tokens)
