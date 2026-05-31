@@ -31,7 +31,7 @@ def setup_logging() -> None:
         structlog.processors.TimeStamper(fmt="iso"),
         _inject_request_context,
         structlog.processors.dict_tracebacks,
-        structlog.processors.JSONRenderer(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
     ]
 
     structlog.configure(
