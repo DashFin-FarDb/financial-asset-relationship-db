@@ -28,6 +28,7 @@ from .graph_lifecycle import (
     sync_with_latest_rebuild,
 )
 from .middleware.correlation import CorrelationMiddleware
+from .observability.logging import setup_logging
 from .rate_limit import limiter
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
@@ -232,6 +233,7 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application instance."""
+    setup_logging()
     app = FastAPI(
         title="Financial Asset Relationship API",
         description="REST API for Financial Asset Relationship Database",
