@@ -2,7 +2,7 @@
 
 ## Status
 
-Planning reference for [PR on `feature/issue-1228-lock-ttl-configuration-chain`]. Core implementation
+Planning reference for the PR on feature/issue-1228-lock-ttl-configuration-chain. Core implementation
 landed in #1220; this PR completes boundary tests, operator docs, and settings field metadata.
 
 ## Primary objective
