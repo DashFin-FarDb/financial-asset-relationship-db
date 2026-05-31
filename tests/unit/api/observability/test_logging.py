@@ -32,7 +32,7 @@ def _reset_logging():
     for handler in original_handlers:
         root_logger.addHandler(handler)
     root_logger.setLevel(original_level)
-    
+
     # Fully reset structlog
     structlog.reset_defaults()
     # Also clear any cached loggers if possible, though reset_defaults usually helps.
@@ -56,6 +56,7 @@ def test_inject_request_context_processor():
         assert result["level"] == "info"
     finally:
         from api.observability.context import reset_request_context
+
         reset_request_context(tokens)
 
 
@@ -96,7 +97,7 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
 
     # We need to extract the formatter configured by setup_logging
     root_logger = logging.getLogger()
-    
+
     # Find our handler
     our_handler = next(h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter))
     stream_handler.setFormatter(our_handler.formatter)
@@ -137,6 +138,7 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
         for h in original_handlers:
             root_logger.addHandler(h)
         from api.observability.context import reset_request_context
+
         reset_request_context(tokens)
 
 
@@ -144,11 +146,11 @@ def test_setup_logging_invalid_level(capsys):
     """Test that setup_logging handles invalid LOG_LEVEL with a warning."""
     with patch.dict(os.environ, {"LOG_LEVEL": "DEUBG"}):
         setup_logging()
-        
+
     captured = capsys.readouterr()
     # Note: setup_logging uses print for the warning since it's before logging is fully up
     assert "WARNING: Invalid LOG_LEVEL 'DEUBG', defaulting to INFO" in captured.out
-    
+
     root_logger = logging.getLogger()
     assert root_logger.level == logging.INFO
 
