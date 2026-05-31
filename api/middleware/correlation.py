@@ -80,11 +80,11 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
         except Exception as exc:
             # Unexpected error while assigning into mapping; log at debug to avoid noisy traceback for non-fatal state injection errors.
             logger.debug(
+            logger.debug(
                 "Unexpected error while assigning into mapping-style state object %s: %s",
                 type(state_obj).__name__,
                 type(exc).__name__,
                 exc_info=True,
-            )
             )
     else:
         try:
