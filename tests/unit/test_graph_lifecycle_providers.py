@@ -46,14 +46,12 @@ def test_graph_lifecycle_settings_is_frozen() -> None:
         lifecycle_settings.rebuild_lock_ttl_seconds = 999  # type: ignore[misc]
 
 
-@patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "600"})
-def test_get_graph_lifecycle_settings_propagates_ttl_from_loaded_settings() -> None:
-    """Env → load_settings → get_graph_lifecycle_settings should preserve validated TTL."""
+def test_get_graph_lifecycle_settings_propagates_ttl_from_loaded_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("REBUILD_LOCK_TTL_SECONDS", "600")
+    get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
-
     base_settings = load_settings()
     lifecycle_settings = providers.get_graph_lifecycle_settings()
-
     assert base_settings.rebuild_lock_ttl_seconds == 600
     assert lifecycle_settings.rebuild_lock_ttl_seconds == base_settings.rebuild_lock_ttl_seconds
 
