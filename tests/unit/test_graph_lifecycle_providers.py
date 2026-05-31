@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import os
 from dataclasses import FrozenInstanceError
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 import api.graph_lifecycle_providers as providers
-from src.config.settings import Settings, load_settings
+from src.config.settings import Settings, get_settings, load_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 
 pytestmark = pytest.mark.unit
