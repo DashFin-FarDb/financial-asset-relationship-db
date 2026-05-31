@@ -55,38 +55,47 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
     # We prefer mapping assignment first for compatibility with dict-like test seams
     # and pure ASGI scope dictionaries, falling back to attribute-style assignment.
     if isinstance(state_obj, MutableMapping):
+    if isinstance(state_obj, MutableMapping):
         try:
             state_obj["request_id"] = request_id
             state_obj["correlation_id"] = correlation_id
-            except (TypeError, AttributeError) as assign_exc:
-                try:
-                    setattr(state_obj, "request_id", request_id)
-                    setattr(state_obj, "correlation_id", correlation_id)
-                except (TypeError, AttributeError) as attr_exc:
-                    logger.warning(
-                        "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
-                        type(state_obj).__name__,
-                        type(assign_exc).__name__,
-                    )
-                except Exception as exc:
-                    # Unexpected error while falling back to attribute assignment; log at debug to avoid noisy traceback for non-fatal state injection errors.
-                    logger.debug(
-                        "Unexpected error while falling back to attribute assignment for state object %s: %s",
-                        type(state_obj).__name__,
-                        type(exc).__name__,
-                        exc_info=True,
-                    )
+        except (TypeError, AttributeError) as assign_exc:
+            # Mapping-style assignment failed; fall back to attribute assignment
+            try:
+                setattr(state_obj, "request_id", request_id)
+                setattr(state_obj, "correlation_id", correlation_id)
+            except (TypeError, AttributeError):
+                logger.warning(
+                    "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
+                    type(state_obj).__name__,
+                    type(assign_exc).__name__,
+                )
             except Exception as exc:
-                # Unexpected error while assigning into mapping; log at debug to avoid noisy traceback for non-fatal state injection errors.
+                # Unexpected error during attribute assignment; log at debug level with traceback for diagnostics
                 logger.debug(
-                    "Unexpected error while assigning into mapping-style state object %s: %s",
+                    "Unexpected error while falling back to attribute assignment for state object %s: %s",
                     type(state_obj).__name__,
                     type(exc).__name__,
                     exc_info=True,
                 )
+        except Exception as exc:
+            # Unexpected error while assigning into mapping; log at debug to avoid noisy traceback for non-fatal state injection errors.
+            logger.debug(
+                "Unexpected error while assigning into mapping-style state object %s: %s",
+                type(state_obj).__name__,
+                type(exc).__name__,
+                exc_info=True,
+            )
     else:
         try:
             setattr(state_obj, "request_id", request_id)
+            setattr(state_obj, "correlation_id", correlation_id)
+        except (TypeError, AttributeError) as exc:
+            logger.warning(
+                "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
+                type(state_obj).__name__,
+                type(exc).__name__,
+            )
             setattr(state_obj, "correlation_id", correlation_id)
         except (TypeError, AttributeError) as exc:
             logger.warning(
