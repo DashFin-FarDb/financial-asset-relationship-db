@@ -58,7 +58,12 @@ def setup_logging() -> None:
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
 
+    import os
+
+    log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
+    log_level = getattr(logging, log_level_str, logging.INFO)
+
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
     root_logger.addHandler(handler)
-    root_logger.setLevel(logging.INFO)
+    root_logger.setLevel(log_level)
