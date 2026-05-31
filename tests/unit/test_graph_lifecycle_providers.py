@@ -7,9 +7,33 @@ from unittest.mock import MagicMock
 import pytest
 
 import api.graph_lifecycle_providers as providers
+from src.config.settings import Settings
 from src.logic.asset_graph import AssetRelationshipGraph
 
 pytestmark = pytest.mark.unit
+
+
+def test_get_graph_lifecycle_settings_maps_rebuild_lock_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
+    """GraphLifecycleSettings should mirror rebuild_lock_ttl_seconds from base Settings."""
+    base_settings = Settings(rebuild_lock_ttl_seconds=450)
+
+    monkeypatch.setattr(providers, "get_settings", lambda: base_settings)
+    lifecycle_settings = providers.get_graph_lifecycle_settings()
+
+    assert lifecycle_settings.rebuild_lock_ttl_seconds == base_settings.rebuild_lock_ttl_seconds
+
+
+def test_get_graph_lifecycle_settings_maps_rebuild_lock_ttl_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Default rebuild_lock_ttl_seconds should propagate unchanged through the lifecycle boundary."""
+    base_settings = Settings()
+
+    monkeypatch.setattr(providers, "get_settings", lambda: base_settings)
+    lifecycle_settings = providers.get_graph_lifecycle_settings()
+
+    assert lifecycle_settings.rebuild_lock_ttl_seconds == base_settings.rebuild_lock_ttl_seconds
+    assert lifecycle_settings.rebuild_lock_ttl_seconds == 300
 
 
 def test_save_graph_with_session_runs_pre_commit_check(monkeypatch: pytest.MonkeyPatch) -> None:

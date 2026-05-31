@@ -65,7 +65,11 @@ class Settings(BaseModel):
     postgres_url: str | None = Field(default=None)
     # Distributed lock configuration
     # Allow int | str | None to capture empty strings from os.getenv
-    rebuild_lock_ttl_seconds: int = Field(default=300, gt=0)
+    rebuild_lock_ttl_seconds: int = Field(
+        default=300,
+        gt=0,
+        description="TTL for rebuild distributed lock in seconds",
+    )
 
     @field_validator("rebuild_lock_ttl_seconds", mode="before")
     @classmethod
