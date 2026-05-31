@@ -66,6 +66,8 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                 logger.warning(
                     "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
                     type(state_obj).__name__,
+                    type(assign_exc).__name__,
+                )
             except Exception as exc:
                 # Unexpected error while falling back to attribute assignment; log at debug to avoid noisy traceback for non-fatal state injection errors.
                 logger.debug(
