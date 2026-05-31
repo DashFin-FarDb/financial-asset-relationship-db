@@ -2,14 +2,25 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 import api.graph_lifecycle_providers as providers
+from src.config.settings import Settings
 from src.logic.asset_graph import AssetRelationshipGraph
 
 pytestmark = pytest.mark.unit
+
+
+def test_get_graph_lifecycle_settings_maps_rebuild_lock_ttl() -> None:
+    """GraphLifecycleSettings should expose rebuild_lock_ttl_seconds from base Settings."""
+    base_settings = Settings(rebuild_lock_ttl_seconds=450)
+
+    with patch("api.graph_lifecycle_providers.get_settings", return_value=base_settings):
+        lifecycle_settings = providers.get_graph_lifecycle_settings()
+
+    assert lifecycle_settings.rebuild_lock_ttl_seconds == 450
 
 
 def test_save_graph_with_session_runs_pre_commit_check(monkeypatch: pytest.MonkeyPatch) -> None:
