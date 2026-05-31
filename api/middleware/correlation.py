@@ -48,6 +48,8 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
 def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
     """Expose identifiers on request state (compatible with FastAPI Request.state)."""
     state_obj = scope.get("state")
+    if state_obj is None:
+        return
     if isinstance(state_obj, MutableMapping):
         try:
             state_obj["request_id"] = request_id
@@ -81,6 +83,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                 exc_info=True,
             )
     else:
+    else:
         try:
             setattr(state_obj, "request_id", request_id)
             setattr(state_obj, "correlation_id", correlation_id)
@@ -89,6 +92,13 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                 "Could not attach correlation IDs to state object of type %s (%s); continuing without state injection",
                 type(state_obj).__name__,
                 type(exc).__name__,
+            )
+        except Exception as exc:
+            logger.debug(
+                "Unexpected error while attaching correlation IDs to state object %s: %s",
+                type(state_obj).__name__,
+                type(exc).__name__,
+                exc_info=True,
             )
 
 
