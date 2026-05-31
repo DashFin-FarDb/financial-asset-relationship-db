@@ -46,7 +46,7 @@ def setup_logging() -> None:
         foreign_pre_chain=[
             structlog.stdlib.add_log_level,
             structlog.stdlib.add_logger_name,
-            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.TimeStamper(fmt="iso", utc=True),
             _inject_request_context,
         ],
         processors=[
