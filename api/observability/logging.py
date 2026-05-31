@@ -28,7 +28,7 @@ def setup_logging() -> None:
     processors = [
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
-        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.TimeStamper(fmt="iso", utc=True),
         _inject_request_context,
         structlog.processors.dict_tracebacks,
         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
