@@ -159,4 +159,5 @@ def test_structlog_logging_emits_json_with_context():
         assert "timestamp" in log_data
     finally:
         from api.observability.context import reset_request_context
+
         reset_request_context(tokens)
