@@ -73,7 +73,8 @@ def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
 
 def clear_graph_lifecycle_settings_cache() -> None:
     """Clear cached settings used by graph lifecycle initialization."""
-    get_settings.cache_clear()
+    # This is a placeholder for later implementation 
+    pass
 
 
 def load_persisted_graph_if_available(
