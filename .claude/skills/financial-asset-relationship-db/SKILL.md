@@ -35,7 +35,7 @@ This skill provides a comprehensive guide to the development patterns, coding co
 ## Workflows
 
 ### python-test-file-edit-workflow
-**Trigger:** When you need to fix, refactor, or improve a specific Python test file (e.g., for isolation, redundancy, or correctness).  
+**Trigger:** When you need to fix, refactor, or improve a specific Python test file (e.g., for isolation, redundancy, or correctness).
 **Command:** `/edit-test-file`
 
 1. Edit a test file in `tests/unit/` (e.g., `test_api.py` or `test_api_main.py`).
@@ -52,7 +52,7 @@ git commit -m "fix: correct asset linking logic in test_api"
 ---
 
 ### ci-workflow-configuration-update
-**Trigger:** When you want to add, fix, or update CI/CD automation, security scanning, or labeling rules.  
+**Trigger:** When you want to add, fix, or update CI/CD automation, security scanning, or labeling rules.
 **Command:** `/update-ci-workflow`
 
 1. Edit or add one or more YAML files under `.github/workflows/` or `.github/`.
@@ -69,7 +69,7 @@ git commit -m "fix: update Snyk workflow for new scan rules"
 ---
 
 ### dependency-version-bump-or-fix
-**Trigger:** When you need to fix dependency conflicts or update allowed versions for a package.  
+**Trigger:** When you need to fix dependency conflicts or update allowed versions for a package.
 **Command:** `/bump-dependency-version`
 
 1. Edit `pyproject.toml` and/or `requirements.txt` to change version specifiers.
@@ -86,7 +86,7 @@ git commit -m "fix: bump SQLAlchemy to >=1.4,<2.0 for compatibility"
 ---
 
 ### merge-main-into-feature-branch
-**Trigger:** When you want to bring the latest changes from main into your working branch before continuing work or opening a PR.  
+**Trigger:** When you want to bring the latest changes from main into your working branch before continuing work or opening a PR.
 **Command:** `/merge-main`
 
 1. Merge the `main` branch into your feature/fix branch.
