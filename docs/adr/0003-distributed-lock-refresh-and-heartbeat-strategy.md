@@ -118,16 +118,16 @@ Propagated to `GraphLifecycleSettings` and consumed by `graph_admin.py` rebuild 
 
 #### `src/data/distributed_lock.py`
 
-- `DistributedLock.refresh()` method with retry logic (lines 234-314)
+- `DistributedLock.refresh()` method with retry logic (lines 234-339)
 - Retries transient errors (`SQLAlchemyError`, `OSError`)
 - No retry on lock conflicts (returns `False` immediately)
 
 #### `api/routers/graph_admin.py`
 
-- `_heartbeat_keeper()` function (lines 602-654)
+- `_heartbeat_keeper()` function (lines 602-653)
   - Background thread refreshing lock and heartbeat
   - Sets `lock_lost` event on any failure
-- `_orchestrate_heartbeat()` context manager (lines 702-736)
+- `_orchestrate_heartbeat()` context manager (lines 702-733)
   - Manages heartbeat thread lifecycle
   - Calculates refresh interval as `max(1, lock_ttl // 3)`
 - Rebuild pipeline checks `lock_lost` at critical checkpoints
