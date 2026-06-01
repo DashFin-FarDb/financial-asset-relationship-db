@@ -44,6 +44,7 @@ from api.router_helpers import (
     raise_asset_not_found,
     serialize_asset,
 )
+from src.config.settings import get_settings
 from src.data.real_data_fetcher import _save_to_cache
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -78,6 +79,14 @@ def _assert_metrics_text_response(response: Any) -> str:
 # -----------------------
 # Fixtures
 # -----------------------
+@pytest.fixture(autouse=True)
+def clear_settings_cache() -> Iterator[None]:
+    """Clear cached runtime settings around each test."""
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
 @pytest.fixture()
 def client() -> Iterator[TestClient]:
     """
@@ -119,7 +128,7 @@ class TestValidateOrigin:
         """HTTP localhost is rejected in production."""
         from src.config.settings import get_settings
 
-        with patch.dict(os.environ, {"ENV": "production"}):
+        with patch.dict(os.environ, {"ENV": "production", "ALLOWED_ORIGINS": ""}):
             get_settings.cache_clear()  # Clear cache to pick up new env vars
             assert not validate_origin("http://localhost:3000")
             assert not validate_origin("http://127.0.0.1:8000")
