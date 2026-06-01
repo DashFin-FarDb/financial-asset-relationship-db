@@ -68,7 +68,7 @@ def _is_lock_ttl_isinstance_check(node: ast.AST) -> bool:
 
 def _is_lock_ttl_runtime_guard(node: ast.AST) -> bool:
     """Return True if node re-validates or corrects lock_ttl at runtime."""
-    return _is_non_positive_lock_ttl_compare(node) or _is_lock_ttl_isinstance_check(node)    
+    return _is_non_positive_lock_ttl_compare(node) or _is_lock_ttl_isinstance_check(node)
 
 
 def test_graph_admin_does_not_use_getattr_for_rebuild_lock_ttl() -> None:
