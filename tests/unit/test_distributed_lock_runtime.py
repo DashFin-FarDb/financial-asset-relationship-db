@@ -81,7 +81,7 @@ def test_refresh_success_after_transient_failures(mock_lock_env: tuple[MagicMock
 
     res = lock.refresh(max_retries=2)
 
-    assert isinstance(res, LockRefreshResult)  # or a type check appropriate to the actual return type
+    assert res is not False
     assert res.state == LockLifecycleState.REFRESHED
     assert res.fencing_token == 123
     assert mock_repo.refresh_lock.call_count == 3
