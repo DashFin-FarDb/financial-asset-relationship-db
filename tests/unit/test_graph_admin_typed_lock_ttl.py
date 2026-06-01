@@ -68,9 +68,7 @@ def test_graph_admin_does_not_use_getattr_for_rebuild_lock_ttl() -> None:
     """Rebuild lock TTL must not use defensive getattr fallbacks."""
     for node in ast.walk(_graph_admin_module_ast()):
         if _is_getattr_for_rebuild_lock_ttl(node):
-            pytest.fail(
-                f"Found getattr fallback for rebuild_lock_ttl_seconds at line {getattr(node, 'lineno', '?')}"
-            )
+            pytest.fail(f"Found getattr fallback for rebuild_lock_ttl_seconds at line {getattr(node, 'lineno', '?')}")
 
 
 def test_graph_admin_does_not_correct_lock_ttl_at_runtime() -> None:
