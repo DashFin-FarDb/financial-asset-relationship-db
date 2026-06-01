@@ -42,6 +42,7 @@ We implement a **heartbeat keeper thread** that periodically refreshes both the 
 #### 2. Dual Refresh: Lock + Database Heartbeat
 
 On each interval, the heartbeat keeper:
+
 1. Refreshes the distributed lock TTL via `DistributedLock.refresh()`
 2. Updates the `RebuildJobORM.last_heartbeat_at` timestamp
 3. Records the worker ID in `RebuildJobORM.active_worker_id`
@@ -62,11 +63,13 @@ This handles brief network hiccups without failing the entire rebuild.
 #### 4. Lock Loss Signal
 
 The heartbeat keeper sets a `threading.Event` (lock_lost) when:
+
 - Lock refresh returns `False` (conflict or persistent error)
 - Heartbeat database update fails (connectivity loss)
 - Any unexpected exception during refresh cycle
 
 The main rebuild thread checks this event at critical checkpoints:
+
 - Before building the graph
 - Before persisting to database
 - Before committing the transaction
@@ -79,6 +82,7 @@ If lock_lost is set, the rebuild aborts with `_DistributedLockLostError`.
 **Environment Variable**: `REBUILD_LOCK_TTL_SECONDS` (default: 300)
 
 Typed setting in `src/config/settings.py`:
+
 ```python
 rebuild_lock_ttl_seconds: int = Field(default=300, gt=0)
 ```
@@ -113,11 +117,13 @@ Propagated to `GraphLifecycleSettings` and consumed by `graph_admin.py` rebuild 
 ### Core Files
 
 #### `src/data/distributed_lock.py`
+
 - `DistributedLock.refresh()` method with retry logic (lines 234-314)
 - Retries transient errors (`SQLAlchemyError`, `OSError`)
 - No retry on lock conflicts (returns `False` immediately)
 
 #### `api/routers/graph_admin.py`
+
 - `_heartbeat_keeper()` function (lines 602-654)
   - Background thread refreshing lock and heartbeat
   - Sets `lock_lost` event on any failure
@@ -127,16 +133,19 @@ Propagated to `GraphLifecycleSettings` and consumed by `graph_admin.py` rebuild 
 - Rebuild pipeline checks `lock_lost` at critical checkpoints
 
 #### `src/config/settings.py`
+
 - `Settings.rebuild_lock_ttl_seconds` field (default 300, validated >0)
 - Environment variable binding: `REBUILD_LOCK_TTL_SECONDS`
 
 #### `api/graph_lifecycle_providers.py`
+
 - `GraphLifecycleSettings.rebuild_lock_ttl_seconds` field
 - Mapped from base `Settings` in `get_graph_lifecycle_settings()`
 
 ### Testing
 
 #### Unit Tests
+
 - `tests/unit/test_repository_distributed_lock.py::TestDistributedLockRetryLogic`
   - `test_refresh_retries_on_transient_db_error`: Validates retry behavior
   - `test_refresh_does_not_retry_on_lock_conflict`: Validates conflict handling
@@ -148,6 +157,7 @@ Propagated to `GraphLifecycleSettings` and consumed by `graph_admin.py` rebuild 
   - Test validation rejects ≤0 values
 
 #### Integration Tests
+
 - `tests/integration/test_lock_refresh_flow.py` (existing)
   - Validates end-to-end lock refresh during rebuild
 
