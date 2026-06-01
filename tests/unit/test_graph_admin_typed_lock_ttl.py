@@ -1,7 +1,13 @@
-"""Unit tests for typed rebuild lock TTL access in graph admin."""
+"""Contract tests for typed rebuild lock TTL access in graph admin.
+
+Ensures Task 3.1 (#1233): graph admin uses GraphLifecycleSettings.rebuild_lock_ttl_seconds
+directly without defensive getattr fallbacks or duplicate runtime validation.
+"""
 
 from __future__ import annotations
 
+import ast
+import functools
 import threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -17,19 +23,61 @@ from src.data.distributed_lock import LockLifecycleState, LockState
 
 pytestmark = pytest.mark.unit
 
-_GRAPH_ADMIN_SOURCE = Path(graph_admin.__file__).read_text(encoding="utf-8")
+
+@functools.lru_cache(maxsize=1)
+def _graph_admin_module_ast() -> ast.Module:
+    """Parse graph_admin source once for structural contract checks."""
+    source = Path(graph_admin.__file__).read_text(encoding="utf-8")
+    return ast.parse(source)
+
+
+def _is_getattr_for_rebuild_lock_ttl(node: ast.AST) -> bool:
+    """Return True if node is getattr(..., 'rebuild_lock_ttl_seconds', ...)."""
+    if not isinstance(node, ast.Call):
+        return False
+    func = node.func
+    if not isinstance(func, ast.Name) or func.id != "getattr":
+        return False
+    if len(node.args) < 2:
+        return False
+    name_arg = node.args[1]
+    return isinstance(name_arg, ast.Constant) and name_arg.value == "rebuild_lock_ttl_seconds"
+
+
+def _is_lock_ttl_runtime_guard(node: ast.AST) -> bool:
+    """Return True if node re-validates or corrects lock_ttl at runtime."""
+    if isinstance(node, ast.Compare) and isinstance(node.left, ast.Name) and node.left.id == "lock_ttl":
+        for op, comp in zip(node.ops, node.comparators, strict=False):
+            if isinstance(op, ast.LtE) and isinstance(comp, ast.Constant) and comp.value == 0:
+                return True
+            if isinstance(op, ast.Lt) and isinstance(comp, ast.Constant) and comp.value == 1:
+                return True
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "isinstance"
+        and node.args
+        and isinstance(node.args[0], ast.Name)
+        and node.args[0].id == "lock_ttl"
+    ):
+        return True
+    return False
 
 
 def test_graph_admin_does_not_use_getattr_for_rebuild_lock_ttl() -> None:
     """Rebuild lock TTL must not use defensive getattr fallbacks."""
-    assert 'getattr(settings, "rebuild_lock_ttl_seconds"' not in _GRAPH_ADMIN_SOURCE
-    assert "getattr(settings, 'rebuild_lock_ttl_seconds'" not in _GRAPH_ADMIN_SOURCE
+    for node in ast.walk(_graph_admin_module_ast()):
+        if _is_getattr_for_rebuild_lock_ttl(node):
+            pytest.fail(
+                f"Found getattr fallback for rebuild_lock_ttl_seconds at line {getattr(node, 'lineno', '?')}"
+            )
 
 
 def test_graph_admin_does_not_correct_lock_ttl_at_runtime() -> None:
     """Lock TTL must not be re-validated or silently corrected in graph admin."""
-    assert "if lock_ttl <= 0" not in _GRAPH_ADMIN_SOURCE
-    assert "if not isinstance(lock_ttl" not in _GRAPH_ADMIN_SOURCE
+    for node in ast.walk(_graph_admin_module_ast()):
+        if _is_lock_ttl_runtime_guard(node):
+            pytest.fail(f"Found runtime lock_ttl guard at line {getattr(node, 'lineno', '?')}")
 
 
 def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
@@ -52,6 +100,7 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
     mock_lock.state = LockLifecycleState.ACQUIRED
 
     def distributed_lock_factory(**kwargs: object) -> MagicMock:
+        """Capture DistributedLock kwargs for TTL contract verification."""
         captured["ttl_seconds"] = kwargs.get("ttl_seconds")
         return mock_lock
 
@@ -69,6 +118,7 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
 
     @contextmanager
     def fake_heartbeat(*_args: object, **_kwargs: object):
+        """No-op heartbeat context for isolated rebuild sync testing."""
         yield threading.Event()
 
     monkeypatch.setattr(graph_admin, "_orchestrate_heartbeat", fake_heartbeat)
