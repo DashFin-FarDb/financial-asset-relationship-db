@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from unittest.mock import MagicMock
 from types import SimpleNamespace
-from sqlalchemy.orm import Session
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from src.data.distributed_lock import DistributedLock, LockLifecycleState
 
 
 @contextmanager
 def _mock_session_scope(factory):
-    '''Mock session_scope that yields a MagicMock session with Session spec.'''
+    """Mock session_scope that yields a MagicMock session with Session spec."""
     yield MagicMock(spec=Session)
 
 
