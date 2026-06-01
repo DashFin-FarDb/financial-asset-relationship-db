@@ -44,24 +44,31 @@ def _is_getattr_for_rebuild_lock_ttl(node: ast.AST) -> bool:
     return isinstance(name_arg, ast.Constant) and name_arg.value == "rebuild_lock_ttl_seconds"
 
 
-def _is_lock_ttl_runtime_guard(node: ast.AST) -> bool:
-    """Return True if node re-validates or corrects lock_ttl at runtime."""
-    if isinstance(node, ast.Compare) and isinstance(node.left, ast.Name) and node.left.id == "lock_ttl":
-        for op, comp in zip(node.ops, node.comparators, strict=False):
-            if isinstance(op, ast.LtE) and isinstance(comp, ast.Constant) and comp.value == 0:
-                return True
-            if isinstance(op, ast.Lt) and isinstance(comp, ast.Constant) and comp.value == 1:
-                return True
-    if (
+def _is_non_positive_lock_ttl_compare(node: ast.AST) -> bool:
+    if not (isinstance(node, ast.Compare) and isinstance(node.left, ast.Name) and node.left.id == "lock_ttl"):
+        return False
+    for op, comp in zip(node.ops, node.comparators, strict=False):
+        if isinstance(op, ast.LtE) and isinstance(comp, ast.Constant) and comp.value == 0:
+            return True
+        if isinstance(op, ast.Lt) and isinstance(comp, ast.Constant) and comp.value == 1:
+            return True
+    return False
+
+
+def _is_lock_ttl_isinstance_check(node: ast.AST) -> bool:
+    return (
         isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
         and node.func.id == "isinstance"
-        and node.args
+        and bool(node.args)
         and isinstance(node.args[0], ast.Name)
         and node.args[0].id == "lock_ttl"
-    ):
-        return True
-    return False
+    )
+
+
+def _is_lock_ttl_runtime_guard(node: ast.AST) -> bool:
+    """Return True if node re-validates or corrects lock_ttl at runtime."""
+    return _is_non_positive_lock_ttl_compare(node) or _is_lock_ttl_isinstance_check(node)    
 
 
 def test_graph_admin_does_not_use_getattr_for_rebuild_lock_ttl() -> None:
