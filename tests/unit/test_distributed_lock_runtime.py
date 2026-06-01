@@ -57,7 +57,7 @@ def test_check_state_reraises_unexpected_runtime_error(monkeypatch: pytest.Monke
 
 @pytest.fixture
 def mock_lock_env(monkeypatch: pytest.MonkeyPatch) -> tuple[MagicMock, DistributedLock]:
-    """Provide a mocked repository and a DistributedLock with session_scope and sleep patched."""
+    """Return (mock_repo, lock): a MagicMock CoordinationLockRepository and a DistributedLock instance with session_scope and sleep patched for tests."""
     mock_repo = MagicMock()
     monkeypatch.setattr("src.data.distributed_lock.session_scope", _mock_session_scope)
     monkeypatch.setattr("src.data.distributed_lock.CoordinationLockRepository", lambda session: mock_repo)
