@@ -1,4 +1,4 @@
-# ADR 0003: Lock Refresh and Heartbeat Coordination
+# ADR 0003: Distributed Lock Refresh and Heartbeat Strategy
 
 ## Status
 
@@ -26,7 +26,7 @@ Operators need visibility into whether a rebuild worker is still actively progre
 
 ## Decision
 
-We implement a **heartbeat keeper thread** that periodically refreshes both the distributed lock and rebuild job heartbeat timestamp at an interval of `TTL/3`.
+We implement a **heartbeat keeper thread** that periodically refreshes both the distributed lock and rebuild job heartbeat timestamp at an interval of `TTL/3`. A dedicated background thread ensures that lock refresh and heartbeat updates occur independently of the main rebuild operation, preventing heartbeats from being blocked by long-running synchronous CPU-bound graph processing stages.
 
 ### Key Design Elements
 
@@ -113,15 +113,15 @@ Propagated to `GraphLifecycleSettings` and consumed by `graph_admin.py` rebuild 
 ### Core Files
 
 #### `src/data/distributed_lock.py`
-- `DistributedLock.refresh()` method with retry logic (lines 97-129)
+- `DistributedLock.refresh()` method with retry logic (lines 234-314)
 - Retries transient errors (`SQLAlchemyError`, `OSError`)
 - No retry on lock conflicts (returns `False` immediately)
 
 #### `api/routers/graph_admin.py`
-- `_heartbeat_keeper()` function (lines 689-741)
+- `_heartbeat_keeper()` function (lines 602-654)
   - Background thread refreshing lock and heartbeat
   - Sets `lock_lost` event on any failure
-- `_orchestrate_heartbeat()` context manager (lines 828-861)
+- `_orchestrate_heartbeat()` context manager (lines 702-736)
   - Manages heartbeat thread lifecycle
   - Calculates refresh interval as `max(1, lock_ttl // 3)`
 - Rebuild pipeline checks `lock_lost` at critical checkpoints

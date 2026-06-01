@@ -65,7 +65,7 @@ The graph persistence store holds durable graph truth. Evidence/metadata persist
 
 ### Rebuild coordination (optional)
 
-- REBUILD_LOCK_TTL_SECONDS: Time-to-live for the graph rebuild distributed lock in seconds (default: 300). Must be a positive integer. Loaded via src/config/settings.py and propagated to graph rebuild orchestration. The heartbeat refresh interval is max(1, rebuild_lock_ttl_seconds // 3) per [ADR 0003](adr/0003-lock-refresh-and-heartbeat.md).
+- REBUILD_LOCK_TTL_SECONDS: Time-to-live for the graph rebuild distributed lock in seconds (default: 300). Must be a positive integer. Loaded via src/config/settings.py and propagated to graph rebuild orchestration. The heartbeat refresh interval is max(1, rebuild_lock_ttl_seconds // 3) per [ADR 0003](adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md).
 
 ## Promotion Gates
 
