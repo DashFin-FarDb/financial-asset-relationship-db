@@ -10,7 +10,7 @@ import pytest
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.data.distributed_lock import DistributedLock, LockLifecycleState
+from src.data.distributed_lock import DistributedLock, LockLease, LockLifecycleState
 
 
 @contextmanager
@@ -81,7 +81,7 @@ def test_refresh_success_after_transient_failures(mock_lock_env: tuple[MagicMock
 
     res = lock.refresh(max_retries=2)
 
-    assert res is not False
+    assert isinstance(res, LockLease)
     assert res.state == LockLifecycleState.REFRESHED
     assert res.fencing_token == 123
     assert mock_repo.refresh_lock.call_count == 3
@@ -105,8 +105,7 @@ def test_refresh_no_retry_on_contention(mock_lock_env: tuple[MagicMock, Distribu
     """Verify refresh does not retry when the lock is held by another owner."""
     mock_repo, lock = mock_lock_env
     # Return success=False (contention), not an exception
-    mock_repo.refresh_lock.return_value = MagicMock(success=False)
-
+    mock_repo.refresh_lock.return_value = SimpleNamespace(success=False)
     res = lock.refresh(max_retries=2)
 
     assert res is False
