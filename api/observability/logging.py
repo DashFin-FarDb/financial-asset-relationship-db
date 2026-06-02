@@ -31,11 +31,16 @@ def _inject_request_context(logger: Any, log_method: str, event_dict: dict[str, 
 def _move_event_to_message(logger: Any, log_method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """
     Structlog processor to move the 'event' (primary message) to a 'message' key.
-    This allows the 'event' key to be overwritten by a stable slug (e.g., from
-    ObservabilityEvent) while preserving the human-readable message.
+
+    This migration only occurs if the log record contains the structured event
+    attributes 'event' and 'metadata', indicating it was emitted via the
+    ObservabilityEvent schema. This prevents duplicating the message into a
+    redundant 'message' key for standard logs.
     """
-    if "event" in event_dict and "message" not in event_dict:
-        event_dict["message"] = event_dict["event"]
+    record = event_dict.get("_record")
+    if record and hasattr(record, "event") and hasattr(record, "metadata"):
+        if "event" in event_dict and "message" not in event_dict:
+            event_dict["message"] = event_dict["event"]
     return event_dict
 
 

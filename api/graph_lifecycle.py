@@ -203,7 +203,15 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphS
             graph_state.graph = graph
             graph_state.startup_source = startup_source
             _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
-            logger.info("Graph initialized successfully")
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="graph_initialized",
+                    message="Graph initialized successfully",
+                    metadata={"startup_source": startup_source},
+                ),
+            )
 
         if graph_state.graph is None:
             raise RuntimeError("Global graph initialization failed; graph is None.")
@@ -399,7 +407,15 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
         _settings_asset_graph_database_url(settings)
     )
     if persisted_graph is not None:
-        logger.info("Graph startup source: persisted_graph_store")
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="graph_startup_source_detected",
+                message="Graph startup source: persisted_graph_store",
+                metadata={"source": "persisted_graph_store"},
+            ),
+        )
 
         # Initialize last_synced_job_id from DB if possible
         try:
@@ -468,9 +484,14 @@ def sync_with_latest_rebuild() -> None:
                 return
             expected_last_synced_job_id = graph_state.last_synced_job_id
 
-        logger.info(
-            "New successful rebuild detected (job_id: %s). Synchronizing...",
-            latest_job_id,
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="new_rebuild_detected",
+                message=f"New successful rebuild detected (job_id: {latest_job_id}). Synchronizing...",
+                metadata={"job_id": latest_job_id},
+            ),
         )
 
         resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(

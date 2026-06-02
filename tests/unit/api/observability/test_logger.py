@@ -78,6 +78,39 @@ def test_log_event_outputs_correct_json_and_preserves_message():
             root_logger.addHandler(h)
 
 
+def test_standard_logging_does_not_contain_redundant_message_key():
+    """
+    Test that standard logging calls do not contain the 'message' key,
+    ensuring the conditional migration prevents redundancy.
+    """
+    setup_logging()
+    log_output = StringIO()
+    stream_handler = logging.StreamHandler(log_output)
+    root_logger = logging.getLogger()
+    our_handler = next(h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter))
+    stream_handler.setFormatter(our_handler.formatter)
+    original_handlers = list(root_logger.handlers)
+    root_logger.handlers.clear()
+    root_logger.addHandler(stream_handler)
+
+    try:
+        logger = logging.getLogger("test_standard")
+        logger.info("Standard log message")
+
+        output_str = log_output.getvalue().strip()
+        last_line = output_str.split("\n")[-1]
+        data = json.loads(last_line)
+
+        # event should be the message
+        assert data["event"] == "Standard log message"
+        # message key should NOT exist for standard logs
+        assert "message" not in data
+    finally:
+        root_logger.handlers.clear()
+        for h in original_handlers:
+            root_logger.addHandler(h)
+
+
 def test_log_event_caplog_compatibility(caplog):
     """
     Test that log_event is compatible with pytest caplog for human-readable messages.

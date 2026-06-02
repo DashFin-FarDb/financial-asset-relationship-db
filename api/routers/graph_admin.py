@@ -278,29 +278,37 @@ def _duration_ms(started_at: float) -> int:
 def _log_rebuild_requested(*, user_ref: str) -> None:
     """Emit a bounded audit event for rebuild request start."""
     REBUILD_REQUESTS.inc()
-    logger.info(
-        "graph_rebuild_audit",
-        extra={
-            "event": _REBUILD_AUDIT_REQUESTED,
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "timestamp": _audit_timestamp(),
-        },
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event=_REBUILD_AUDIT_REQUESTED,
+            message=f"Graph rebuild requested by user {user_ref}",
+            metadata={
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
 
 
 def _log_rebuild_rejected(*, user_ref: str) -> None:
     """Emit a bounded audit event for rebuild concurrency rejection."""
-    logger.warning(
-        "graph_rebuild_audit",
-        extra={
-            "event": _REBUILD_AUDIT_REJECTED,
-            "reason": "rebuild_in_progress",
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "status_code": status.HTTP_429_TOO_MANY_REQUESTS,
-            "timestamp": _audit_timestamp(),
-        },
+    log_event(
+        logger,
+        logging.WARNING,
+        ObservabilityEvent(
+            event=_REBUILD_AUDIT_REJECTED,
+            message=f"Graph rebuild request rejected for user {user_ref}: rebuild in progress",
+            metadata={
+                "reason": "rebuild_in_progress",
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "status_code": status.HTTP_429_TOO_MANY_REQUESTS,
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
 
 
@@ -369,33 +377,40 @@ def _log_rebuild_failed(
     REBUILD_FAILURE.labels(category=category).inc()
     REBUILD_DURATION.observe(duration_ms / 1000.0)
 
-    logger.error(
-        "graph_rebuild_audit",
-        extra={
-            "event": _REBUILD_AUDIT_FAILED,
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "failure_category": category,
-            "status_code": status_code,
-            "duration_ms": duration_ms,
-            "source": _rebuild_source_from_exception(exc),
-            "timestamp": _audit_timestamp(),
-        },
+    log_event(
+        logger,
+        logging.ERROR,
+        ObservabilityEvent(
+            event=_REBUILD_AUDIT_FAILED,
+            message=f"Graph rebuild failed (category: {category}, duration: {duration_ms}ms)",
+            metadata={
+                "failure_category": category,
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "status_code": status_code,
+                "duration_ms": duration_ms,
+                "source": _rebuild_source_from_exception(exc),
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
 
 
 def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception | asyncio.CancelledError) -> None:
     """Emit a sentinel alert log for unexpected rebuild failures."""
-    logger.critical(
-        "graph_rebuild_unexpected_exception",
-        exc_info=False,
-        extra={
-            "event": "graph_rebuild_unexpected_exception",
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "exception_type": type(exc).__name__,
-            "timestamp": _audit_timestamp(),
-        },
+    log_event(
+        logger,
+        logging.CRITICAL,
+        ObservabilityEvent(
+            event="graph_rebuild_unexpected_exception",
+            message=f"Unexpected graph rebuild exception: {type(exc).__name__}",
+            metadata={
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "exception_type": type(exc).__name__,
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
     logger.debug("Unexpected rebuild exception details", exc_info=True)
 
@@ -977,7 +992,6 @@ def _perform_rebuild_and_persist_sync(
             job_id,
             lock_ttl,
         ) as lock_lost:
-
             return _run_rebuild_pipeline(
                 domain_session_factory,
                 settings,
