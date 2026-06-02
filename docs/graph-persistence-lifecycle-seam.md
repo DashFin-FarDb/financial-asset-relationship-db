@@ -149,6 +149,11 @@ It also exposes graph source settings:
 - `real_data_cache_path`
 - `use_real_data_fetcher`
 
+Rebuild coordination settings:
+
+- `rebuild_lock_ttl_seconds` (env: `REBUILD_LOCK_TTL_SECONDS`, default `300`, validated `> 0`)
+- Propagated to `GraphLifecycleSettings` in `api/graph_lifecycle_providers.py` for graph admin rebuild orchestration (distributed lock TTL and heartbeat interval)
+
 `src/data/database.py` currently resolves the asset graph SQLAlchemy engine from
 `settings.asset_graph_database_url`, falling back to `sqlite:///./asset_graph.db`
 when unset.
