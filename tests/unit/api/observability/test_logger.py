@@ -35,11 +35,7 @@ def test_log_event_outputs_correct_json_and_preserves_message():
     root_logger = logging.getLogger()
 
     # Find our handler configured by setup_logging
-    our_handler = next(
-        h
-        for h in root_logger.handlers
-        if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter)
-    )
+    our_handler = next(h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter))
     stream_handler.setFormatter(our_handler.formatter)
 
     # Isolated handlers for this test

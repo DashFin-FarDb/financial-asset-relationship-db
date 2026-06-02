@@ -14,7 +14,7 @@ Every PR description MUST include the following triage data. Vague statements (e
 - **Commit Tag Halts:** CI must parse tags like `[manual-stop]` or `[star]` to pause automated pipelines and force manual sign-off in an ephemeral preview environment.
 
 ## 3. Architectural & Invariant Constraints
-- **Concurrency Enforcement:** 
+- **Concurrency Enforcement:**
   - Lock context managers must have a non-configurable TTL max bound of 300 seconds.
   - Acquisition must use deterministic back-off with a 30s max wait ceiling before throwing `LockAcquisitionTimeout`.
 - **Resource Safety:** All connection pools, sessions, and file handles must be explicitly managed via context managers with absolute disposal pathways.
