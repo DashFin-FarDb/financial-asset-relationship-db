@@ -18,7 +18,6 @@ Updating, fixing, or adding CI workflow YAML files for automation, security scan
 - `.github/workflows/zscaler-iac-scan.yml`
 - `.github/workflows/snyk-container.yml`
 - `.github/workflows/snyk-infrastructure.yml`
-- `.github/labeler.yml`
 
 ## Suggested Sequence
 
