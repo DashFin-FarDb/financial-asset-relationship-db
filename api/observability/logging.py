@@ -28,6 +28,17 @@ def _inject_request_context(logger: Any, log_method: str, event_dict: dict[str, 
     return event_dict
 
 
+def _move_event_to_message(logger: Any, log_method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+    """
+    Structlog processor to move the 'event' (primary message) to a 'message' key.
+    This allows the 'event' key to be overwritten by a stable slug (e.g., from
+    ObservabilityEvent) while preserving the human-readable message.
+    """
+    if "event" in event_dict and "message" not in event_dict:
+        event_dict["message"] = event_dict["event"]
+    return event_dict
+
+
 def setup_logging() -> None:
     """
     Configure structlog and route standard library logging to it.
@@ -45,6 +56,7 @@ def setup_logging() -> None:
             structlog.stdlib.add_log_level,
             structlog.stdlib.add_logger_name,
             structlog.processors.TimeStamper(fmt="iso", utc=True),
+            _move_event_to_message,
             structlog.stdlib.ExtraAdder(),
             _inject_request_context,
             structlog.processors.dict_tracebacks,

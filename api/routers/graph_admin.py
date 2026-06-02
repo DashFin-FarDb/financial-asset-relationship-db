@@ -314,20 +314,24 @@ def _log_rebuild_succeeded(
     REBUILD_SUCCESS.labels(source=response.source).inc()
     REBUILD_DURATION.observe(duration_ms / 1000.0)
     update_graph_metrics(response.asset_count, response.relationship_count)
-    logger.info(
-        "graph_rebuild_audit",
-        extra={
-            "event": _REBUILD_AUDIT_SUCCEEDED,
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "status_code": status.HTTP_200_OK,
-            "source": response.source,
-            "duration_ms": duration_ms,
-            "asset_count": response.asset_count,
-            "relationship_count": response.relationship_count,
-            "regulatory_event_count": response.regulatory_event_count,
-            "timestamp": _audit_timestamp(),
-        },
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event=_REBUILD_AUDIT_SUCCEEDED,
+            message=f"Graph rebuild succeeded (source: {response.source}, duration: {duration_ms}ms)",
+            metadata={
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "status_code": status.HTTP_200_OK,
+                "source": response.source,
+                "duration_ms": duration_ms,
+                "asset_count": response.asset_count,
+                "relationship_count": response.relationship_count,
+                "regulatory_event_count": response.regulatory_event_count,
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
 
 

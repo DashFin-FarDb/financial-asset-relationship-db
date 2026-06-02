@@ -17,6 +17,8 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 from . import graph_lifecycle_providers
 from .api_models import AssetGraphSource
+from .observability.events import ObservabilityEvent
+from .observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
