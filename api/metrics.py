@@ -5,7 +5,6 @@ import logging
 from prometheus_client import Counter, Gauge, Histogram
 
 from src.data.db_models import RebuildJobStatus
-
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 

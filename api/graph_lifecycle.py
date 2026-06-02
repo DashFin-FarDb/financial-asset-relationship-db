@@ -14,11 +14,11 @@ from enum import Enum
 from typing import Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 from . import graph_lifecycle_providers
 from .api_models import AssetGraphSource
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 

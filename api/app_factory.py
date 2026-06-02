@@ -19,6 +19,10 @@ if TYPE_CHECKING:
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+from src.observability.logging import setup_logging
+
 from .cors_policy import configure_cors
 from .graph_lifecycle import (
     GraphRuntimeLifecycleState,
@@ -28,11 +32,7 @@ from .graph_lifecycle import (
     sync_with_latest_rebuild,
 )
 from .middleware.correlation import CorrelationMiddleware
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
-from src.observability.logging import setup_logging
 from .rate_limit import limiter
-
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
 from .routers.graph_admin import init_rebuild_executor

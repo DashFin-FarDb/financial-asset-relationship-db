@@ -10,7 +10,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.config.settings import get_settings
-
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 

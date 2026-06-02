@@ -142,6 +142,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                 ),
             )
 
+
 class CorrelationMiddleware:
     """
     Middleware that manages request and correlation identifiers.

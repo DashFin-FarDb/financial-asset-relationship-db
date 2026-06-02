@@ -27,6 +27,8 @@ from src.data.distributed_lock import DistributedLock, LockLifecycleState, LockS
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 from ..api_models import (
     GraphRebuildResponse,
@@ -66,9 +68,6 @@ from ..metrics import (
     update_graph_metrics,
     update_rebuild_state_metric,
 )
-
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
 
 # Re-export only the minimal public API used by intra-package routing.
 # Private helpers (prefixed with _) remain module-internal and should be accessed
@@ -1052,17 +1051,17 @@ def _perform_rebuild_and_persist_sync(
         #
         if dist_lock is not None and lock_acquired and dist_lock.state != LockLifecycleState.LOST:
             try:
-               dist_lock.release()
+                dist_lock.release()
             except Exception as release_exc:
-               log_event(
-                   logger,
-                   logging.ERROR,
-                   ObservabilityEvent(
-                       event="rebuild_lock_release_failed",
-                       message=f"Failed to release distributed rebuild lock: {type(release_exc).__name__}",
-                       metadata={"error": type(release_exc).__name__},
-                   ),
-               )
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_lock_release_failed",
+                        message=f"Failed to release distributed rebuild lock: {type(release_exc).__name__}",
+                        metadata={"error": type(release_exc).__name__},
+                    ),
+                )
         #
         # --------------------------------------------------------------
         # Dispose coordination engine

@@ -4,9 +4,6 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Final
 
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
-
 from src.analysis.formulaic_examples import (
     calculate_beta_examples,
     calculate_commodity_currency_examples,
@@ -27,6 +24,8 @@ from src.analysis.formulaic_examples import (
     has_equities,
 )
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
