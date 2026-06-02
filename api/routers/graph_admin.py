@@ -977,7 +977,6 @@ def _perform_rebuild_and_persist_sync(
             job_id,
             lock_ttl,
         ) as lock_lost:
-
             return _run_rebuild_pipeline(
                 domain_session_factory,
                 settings,
