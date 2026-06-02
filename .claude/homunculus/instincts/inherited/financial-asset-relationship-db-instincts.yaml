@@ -490,10 +490,6 @@ source_repo: DashFin-FarDb/financial-asset-relationship-db
 
 Prefix the commit message with 'fix:'
 
-## Evidence
-
-- Seen in commits: 'fix: add missing .github/labeler.yml configuration file', 'fix: correct indentation in labeler.yml for actions/labeler v6 format'
-
 ---
 id: financial-asset-relationship-db-instinct-commit-message-format
 trigger: "When writing a commit message"
@@ -552,7 +548,7 @@ Edit or add YAML files under .github/workflows/ or .github/, committing each cha
 ## Evidence
 
 - Workflow: ci-workflow-configuration-update
-- Commits to .github/workflows/snyk-security.yml, .github/labeler.yml, etc.
+- Commits to .github/workflows/snyk-security.yml, etc.
 
 ---
 id: financial-asset-relationship-db-instinct-dependency-version-bump
