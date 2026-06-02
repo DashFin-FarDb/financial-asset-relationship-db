@@ -19,6 +19,8 @@ from src.models.financial_models import (
     RegulatoryActivity,
     RegulatoryEvent,
 )
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 _YFINANCE_MODULE = None
@@ -46,26 +48,54 @@ def _get_yfinance() -> Any:
         import yfinance as yf
     except ModuleNotFoundError as exc:
         if exc.name != "yfinance":
-            logger.exception("Failed to import yfinance due to a missing dependency.")
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="yfinance_dependency_missing",
+                    message="Failed to import yfinance due to a missing dependency.",
+                    metadata={"error": str(exc)},
+                ),
+            )
             raise RuntimeError(
                 "yfinance could not be imported in the current environment. "
                 "Check its installation and dependency compatibility."
             ) from exc
-        logger.error(
-            "Failed to import yfinance. Optional live-data features are "
-            "unavailable. Install it using: pip install yfinance"
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="yfinance_unavailable",
+                message="Failed to import yfinance. Optional live-data features are unavailable. Install it using: pip install yfinance",
+            ),
         )
         raise RuntimeError(
             "yfinance is unavailable in the current environment. Install it using: pip install yfinance"
         ) from exc
     except ImportError as exc:
-        logger.exception("Failed to import yfinance due to an import/dependency problem.")
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="yfinance_import_error",
+                message="Failed to import yfinance due to an import/dependency problem.",
+                metadata={"error": str(exc)},
+            ),
+        )
         raise RuntimeError(
             "yfinance could not be imported in the current environment. "
             "Check its installation and dependency compatibility."
         ) from exc
     except Exception as exc:
-        logger.exception("Unexpected error while importing yfinance.")
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="yfinance_unexpected_error",
+                message=f"Unexpected error while importing yfinance: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         raise RuntimeError(
             "Unexpected error while loading yfinance. Check the environment and dependency state."
         ) from exc
@@ -146,16 +176,46 @@ class RealDataFetcher:
         """
         if self.cache_path and self.cache_path.exists():
             try:
-                logger.info("Loading asset graph from cache at %s", self.cache_path)
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_cache_load_attempt",
+                        message=f"Loading asset graph from cache at {self.cache_path}",
+                        metadata={"cache_path": str(self.cache_path)},
+                    ),
+                )
                 return _load_from_cache(self.cache_path)
-            except Exception:
-                logger.exception("Failed to load cached dataset; proceeding with standard fetch")
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_cache_load_failed",
+                        message=f"Failed to load cached dataset: {type(exc).__name__}; proceeding with standard fetch",
+                        metadata={"error": type(exc).__name__},
+                    ),
+                )
 
         if not self.enable_network:
-            logger.info("Network fetching disabled. Using fallback dataset if available.")
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="graph_network_fetching_disabled",
+                    message="Network fetching disabled. Using fallback dataset if available.",
+                ),
+            )
             return self._fallback()
 
-        logger.info("Creating database with real financial data from Yahoo Finance")
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="graph_live_fetch_initiated",
+                message="Creating database with real financial data from Yahoo Finance",
+            ),
+        )
         graph = AssetRelationshipGraph()
 
         try:
@@ -175,16 +235,38 @@ class RealDataFetcher:
             if self.cache_path:
                 self._persist_cache(graph)
 
-            logger.info(
-                "Real database created with %s assets and %s relationships",
-                len(graph.assets),
-                sum(len(rels) for rels in graph.relationships.values()),
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="graph_live_fetch_completed",
+                    message=f"Real database created with {len(graph.assets)} assets and {sum(len(rels) for rels in graph.relationships.values())} relationships",
+                    metadata={
+                        "asset_count": len(graph.assets),
+                        "relationship_count": sum(len(rels) for rels in graph.relationships.values()),
+                    },
+                ),
             )
             return graph
 
-        except Exception:
-            logger.exception("Failed to create real database")
-            logger.warning("Falling back to sample data due to real data fetch failure")
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="graph_live_fetch_failed",
+                    message=f"Failed to create real database: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_fetch_fallback_engaged",
+                    message="Falling back to sample data due to real data fetch failure",
+                ),
+            )
             return self._fallback()
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
@@ -217,18 +299,28 @@ class RealDataFetcher:
             _save_to_cache(graph, tmp_path)
             os.replace(tmp_path, cache_path)
 
-        except Exception:
-            logger.exception(
-                "Failed to persist dataset cache to %s",
-                self.cache_path,
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="graph_cache_persistence_failed",
+                    message=f"Failed to persist dataset cache to {self.cache_path}: {type(exc).__name__}",
+                    metadata={"cache_path": str(self.cache_path), "error": type(exc).__name__},
+                ),
             )
             if tmp_path is not None and tmp_path.exists():
                 try:
                     tmp_path.unlink()
-                except OSError:
-                    logger.warning(
-                        "Failed to remove temporary cache file %s",
-                        tmp_path,
+                except OSError as os_exc:
+                    log_event(
+                        logger,
+                        logging.WARNING,
+                        ObservabilityEvent(
+                            event="graph_cache_cleanup_failed",
+                            message=f"Failed to remove temporary cache file {tmp_path}: {type(os_exc).__name__}",
+                            metadata={"tmp_path": str(tmp_path), "error": type(os_exc).__name__},
+                        ),
                     )
 
     def _fallback(self) -> AssetRelationshipGraph:
@@ -266,12 +358,28 @@ class RealDataFetcher:
         hist = ticker.history(period="1d")
 
         if hist.empty or "Close" not in hist.columns:
-            logger.warning("No price data for %s", symbol)
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_fetch_no_price_data",
+                    message=f"No price data for {symbol}",
+                    metadata={"symbol": symbol},
+                ),
+            )
             return None, ticker
 
         close_value = float(hist["Close"].iloc[-1])
         if not math.isfinite(close_value):
-            logger.warning("Non-finite price data for %s", symbol)
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_fetch_non_finite_price",
+                    message=f"Non-finite price data for {symbol}",
+                    metadata={"symbol": symbol, "value": close_value},
+                ),
+            )
             return None, ticker
         return close_value, ticker
 
@@ -315,14 +423,25 @@ class RealDataFetcher:
                 )
                 equities.append(equity)
 
-                logger.info(
-                    _FETCHED_ASSET_LOG_MESSAGE,
-                    symbol,
-                    name,
-                    current_price,
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_fetch_equity_success",
+                        message=_FETCHED_ASSET_LOG_MESSAGE % (symbol, name, current_price),
+                        metadata={"symbol": symbol, "name": name, "price": current_price, "asset_class": "equity"},
+                    ),
                 )
-            except Exception:
-                logger.exception("Failed to fetch equity data for %s", symbol)
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="graph_fetch_equity_failed",
+                        message=f"Failed to fetch equity data for {symbol}: {type(exc).__name__}",
+                        metadata={"symbol": symbol, "error": type(exc).__name__},
+                    ),
+                )
 
         return equities
 
@@ -379,14 +498,25 @@ class RealDataFetcher:
                 )
                 bonds.append(bond)
 
-                logger.info(
-                    _FETCHED_ASSET_LOG_MESSAGE,
-                    symbol,
-                    name,
-                    current_price,
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_fetch_bond_success",
+                        message=_FETCHED_ASSET_LOG_MESSAGE % (symbol, name, current_price),
+                        metadata={"symbol": symbol, "name": name, "price": current_price, "asset_class": "bond"},
+                    ),
                 )
-            except Exception:
-                logger.exception("Failed to fetch bond data for %s", symbol)
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="graph_fetch_bond_failed",
+                        message=f"Failed to fetch bond data for {symbol}: {type(exc).__name__}",
+                        metadata={"symbol": symbol, "error": type(exc).__name__},
+                    ),
+                )
 
         return bonds
 
@@ -429,14 +559,25 @@ class RealDataFetcher:
                 )
                 commodities.append(commodity)
 
-                logger.info(
-                    _FETCHED_ASSET_LOG_MESSAGE,
-                    symbol,
-                    name,
-                    current_price,
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_fetch_commodity_success",
+                        message=_FETCHED_ASSET_LOG_MESSAGE % (symbol, name, current_price),
+                        metadata={"symbol": symbol, "name": name, "price": current_price, "asset_class": "commodity"},
+                    ),
                 )
-            except Exception:
-                logger.exception("Failed to fetch commodity data for %s", symbol)
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="graph_fetch_commodity_failed",
+                        message=f"Failed to fetch commodity data for {symbol}: {type(exc).__name__}",
+                        metadata={"symbol": symbol, "error": type(exc).__name__},
+                    ),
+                )
 
         return commodities
 
@@ -483,9 +624,25 @@ class RealDataFetcher:
                 )
                 currencies.append(currency)
 
-                logger.info("Fetched %s: %s at %.4f", symbol, name, current_rate)
-            except Exception:
-                logger.exception("Failed to fetch currency data for %s", symbol)
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_fetch_currency_success",
+                        message=f"Fetched {symbol}: {name} at {current_rate:.4f}",
+                        metadata={"symbol": symbol, "name": name, "rate": current_rate, "asset_class": "currency"},
+                    ),
+                )
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="graph_fetch_currency_failed",
+                        message=f"Failed to fetch currency data for {symbol}: {type(exc).__name__}",
+                        metadata={"symbol": symbol, "error": type(exc).__name__},
+                    ),
+                )
 
         return currencies
 

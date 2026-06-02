@@ -1,5 +1,6 @@
 """Visualization API routes."""
 
+import logging
 import math
 from typing import Any
 
@@ -11,7 +12,9 @@ from ..api_models import VisualizationDataResponse
 from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
+    ObservabilityEvent,
     get_graph,
+    log_event,
     logger,
 )
 
@@ -91,7 +94,15 @@ async def get_visualization_data() -> VisualizationDataResponse:
         edges = _build_visualization_edges(g)
         return VisualizationDataResponse(nodes=nodes, edges=edges)
     except Exception as e:
-        logger.exception("Error getting visualization data:")
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="api_get_visualization_data_failed",
+                message=f"Error getting visualization data: {type(e).__name__}",
+                metadata={"error": type(e).__name__},
+            ),
+        )
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred. Please try again later.",

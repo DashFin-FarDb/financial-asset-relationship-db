@@ -11,6 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.config.settings import get_settings
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 logger = logging.getLogger(__name__)
 
 
@@ -68,7 +71,15 @@ def _is_valid_https_domain(origin_url: str) -> bool:
             )
         )
     except ValueError as exc:
-        logger.debug("Failed to validate origin '%s': %s", origin_url, exc)
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="cors_origin_validation_failed",
+                message=f"Failed to validate origin '{origin_url}': {exc}",
+                metadata={"origin_url": origin_url, "error": str(exc)},
+            ),
+        )
         return False
 
 
@@ -127,7 +138,15 @@ def build_allowed_origins() -> list[str]:
         if _is_supported_origin_format(origin, settings.env):
             allowed_origins.append(origin)
         else:
-            logger.warning("Skipping invalid CORS origin: %s", origin)
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="cors_invalid_origin_skipped",
+                    message=f"Skipping invalid CORS origin: {origin}",
+                    metadata={"origin": origin},
+                ),
+            )
 
     return allowed_origins
 

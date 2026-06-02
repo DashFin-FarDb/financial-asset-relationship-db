@@ -4,6 +4,9 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Final
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 from src.analysis.formulaic_examples import (
     calculate_beta_examples,
     calculate_commodity_currency_examples,
@@ -97,7 +100,14 @@ class FormulaicAnalyzer:
                 - "summary" (Dict[str, Any]): High-level summary metrics and insights
                   about the generated formulas and empirical relationships.
         """
-        logger.info("Starting formulaic analysis of asset relationships")
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="formulaic_analysis_initiated",
+                message="Starting formulaic analysis of asset relationships",
+            ),
+        )
         all_formulas = self._collect_formula_groups(graph)
         empirical_relationships = self._calculate_empirical_relationships(graph)
         return self._build_analysis_result(

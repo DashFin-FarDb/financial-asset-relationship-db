@@ -5,16 +5,16 @@ from io import StringIO
 import pytest
 import structlog
 
-import api.observability.logging
-from api.observability.events import ObservabilityEvent
-from api.observability.logger import get_logger, log_event
-from api.observability.logging import setup_logging
+import src.observability.logging
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import get_logger, log_event
+from src.observability.logging import setup_logging
 
 
 @pytest.fixture(autouse=True)
 def _reset_logging():
     """Reset the standard library logging and structlog after each test."""
-    api.observability.logging._logging_initialized = False
+    src.observability.logging._logging_initialized = False
     root_logger = logging.getLogger()
     original_handlers = list(root_logger.handlers)
     yield

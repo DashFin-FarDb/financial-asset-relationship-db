@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
 from api.middleware.correlation import CorrelationMiddleware
-from api.observability.context import get_correlation_id, get_request_id
+from src.observability.context import get_correlation_id, get_request_id
 
 
 def test_correlation_middleware_logic():

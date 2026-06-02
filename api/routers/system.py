@@ -1,5 +1,6 @@
 """System and metadata API routes."""
 
+import logging
 from typing import Any, Literal, NoReturn, cast
 
 from fastapi import APIRouter, HTTPException, Response
@@ -15,7 +16,7 @@ from ..graph_lifecycle_providers import (
     get_graph_lifecycle_settings,
     resolve_durable_graph_persistence_url,
 )
-from ..router_helpers import get_graph, logger
+from ..router_helpers import ObservabilityEvent, get_graph, log_event, logger
 
 router = APIRouter()
 
@@ -57,7 +58,14 @@ def _get_graph_health() -> GraphHealthResponse:
             relationships = {}
 
         if not isinstance(assets, dict) or not isinstance(relationships, dict):
-            logger.warning("Detailed health graph check found unsupported graph container shape")
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="health_check_graph_unsupported_shape",
+                    message="Detailed health graph check found unsupported graph container shape",
+                ),
+            )
             return GraphHealthResponse(
                 available=False,
                 lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
@@ -72,7 +80,14 @@ def _get_graph_health() -> GraphHealthResponse:
             relationship_count=sum(len(items) for items in relationships.values()),
         )
     except Exception:
-        logger.warning("Detailed health graph check failed")
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="health_check_graph_failed",
+                message="Detailed health graph check failed",
+            ),
+        )
         return GraphHealthResponse(
             available=False,
             lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
@@ -86,7 +101,14 @@ def _get_database_health() -> DatabaseHealthResponse:
     try:
         from api import database
     except Exception:
-        logger.warning("Detailed health database configuration check failed")
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="health_check_database_config_failed",
+                message="Detailed health database configuration check failed",
+            ),
+        )
         return DatabaseHealthResponse(
             configured=False,
             type="unknown",
@@ -95,7 +117,15 @@ def _get_database_health() -> DatabaseHealthResponse:
 
     database_type_raw = getattr(database, "DATABASE_TYPE", "unknown")
     if database_type_raw not in {"sqlite", "postgresql"}:
-        logger.warning("Detailed health database check found unsupported database type")
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="health_check_database_unsupported_type",
+                message="Detailed health database check found unsupported database type",
+                metadata={"database_type": str(database_type_raw)},
+            ),
+        )
         return DatabaseHealthResponse(
             configured=False,
             type="unknown",
@@ -107,7 +137,14 @@ def _get_database_health() -> DatabaseHealthResponse:
     try:
         database.fetch_value("SELECT 1")
     except Exception:
-        logger.warning("Detailed health database reachability check failed")
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="health_check_database_unreachable",
+                message="Detailed health database reachability check failed",
+            ),
+        )
         return DatabaseHealthResponse(
             configured=True,
             type=database_type,
@@ -134,9 +171,14 @@ def _get_graph_persistence_configured() -> bool:
         return False
     except Exception as exc:
         # Removed exc_info=True to prevent leaking connection secrets in tracebacks
-        logger.error(
-            "Unexpected error checking graph persistence configuration: %s",
-            type(exc).__name__,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_persistence_config_check_failed",
+                message=f"Unexpected error checking graph persistence configuration: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
         )
         return False
 
@@ -166,14 +208,30 @@ async def metrics() -> Response:
     """
     try:
         return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
-    except Exception:
-        logger.exception("Error generating Prometheus metrics; failing scrape request")
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="prometheus_metrics_generation_failed",
+                message="Error generating Prometheus metrics; failing scrape request",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         return Response(status_code=500, content="metrics generation error", media_type="text/plain")
 
 
 def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:
     """Log a system route failure and raise the public internal-error response."""
-    logger.exception(message)
+    log_event(
+        logger,
+        logging.ERROR,
+        ObservabilityEvent(
+            event="system_route_failure",
+            message=f"{message} {type(exc).__name__}",
+            metadata={"error": type(exc).__name__},
+        ),
+    )
     raise HTTPException(
         status_code=500,
         detail="An internal error occurred. Please try again later.",

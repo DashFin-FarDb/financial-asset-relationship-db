@@ -19,6 +19,9 @@ from pathlib import Path
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 logger = logging.getLogger(__name__)
 
 # Explicit whitelist of allowed migration files
@@ -200,9 +203,14 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
     if recheck is None or recheck <= 64:
         connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
     else:
-        logger.warning(
-            "Skipping active_worker_id width normalization: max length=%s exceeds 64 (re-check)",
-            recheck,
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="migration_width_normalization_skipped",
+                message=f"Skipping active_worker_id width normalization: max length={recheck} exceeds 64 (re-check)",
+                metadata={"max_length": recheck},
+            ),
         )
 
 

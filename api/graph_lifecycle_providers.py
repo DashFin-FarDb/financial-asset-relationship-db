@@ -20,6 +20,9 @@ from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 logger = logging.getLogger(__name__)
 
 GraphRebuildSource = Literal["cache", "real_data", "sample"]
@@ -91,9 +94,14 @@ def load_persisted_graph_if_available(
     try:
         return _load_persisted_graph_from_configured_store(resolved_url)
     except Exception as exc:
-        logger.error(
-            "Failed to load persisted graph during startup: %s",
-            exc.__class__.__name__,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_persistence_load_failed",
+                message=f"Failed to load persisted graph during startup: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
         )
         raise RuntimeError("Failed to load persisted graph during startup") from None
 
@@ -179,7 +187,15 @@ def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelation
             )
         return (create_sample_graph(), "sample")
     except Exception as exc:
-        logger.error("Failed to build rebuild graph: %s", exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_rebuild_build_failed",
+                message=f"Failed to build rebuild graph: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
+        )
         raise GraphRebuildSourceError("Failed to build rebuild graph.") from None
 
 
@@ -221,7 +237,15 @@ def _create_graph_persistence_engine(database_url: str) -> Engine:
     try:
         return create_engine_from_url(database_url)
     except Exception as exc:
-        logger.error("Failed to prepare graph persistence engine: %s", exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_persistence_engine_creation_failed",
+                message=f"Failed to prepare graph persistence engine: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
+        )
         raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
 
 
@@ -245,7 +269,15 @@ def _save_graph_with_engine(
         session_factory = create_session_factory(engine)
         session = session_factory()
     except Exception as exc:
-        logger.error("Failed to prepare graph persistence session: %s", exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_persistence_session_creation_failed",
+                message=f"Failed to prepare graph persistence session: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
+        )
         raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
 
     try:
@@ -276,9 +308,14 @@ def _save_graph_with_session(
             try:
                 pre_commit_check()
             except Exception as pre_commit_exc:
-                logger.error(
-                    "Pre-commit persistence safety check failed: %s",
-                    pre_commit_exc.__class__.__name__,
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="graph_persistence_pre_commit_failed",
+                        message=f"Pre-commit persistence safety check failed: {pre_commit_exc.__class__.__name__}",
+                        metadata={"error": pre_commit_exc.__class__.__name__},
+                    ),
                 )
                 raise
         session.commit()
@@ -286,11 +323,24 @@ def _save_graph_with_session(
         try:
             session.rollback()
         except Exception as rollback_exc:
-            logger.error(
-                "Failed to roll back rebuilt graph persistence: %s",
-                rollback_exc.__class__.__name__,
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="graph_persistence_rollback_failed",
+                    message=f"Failed to roll back rebuilt graph persistence: {rollback_exc.__class__.__name__}",
+                    metadata={"error": rollback_exc.__class__.__name__},
+                ),
             )
-        logger.error("Failed to persist rebuilt graph: %s", exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_persistence_save_failed",
+                message=f"Failed to persist rebuilt graph: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
+        )
         raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
 
 
@@ -310,10 +360,13 @@ def _log_in_memory_sqlite_persistence_skip() -> None:
 
     Persisted graph loading will be skipped because in-memory SQLite is not durable.
     """
-    logger.warning(
-        "ASSET_GRAPH_DATABASE_URL points to an in-memory SQLite database; "
-        "startup persistence loading requires a file-based or network database. "
-        "Skipping persisted graph load."
+    log_event(
+        logger,
+        logging.WARNING,
+        ObservabilityEvent(
+            event="graph_persistence_skip_in_memory",
+            message="ASSET_GRAPH_DATABASE_URL points to an in-memory SQLite database; startup persistence loading requires a file-based or network database. Skipping persisted graph load.",
+        ),
     )
 
 

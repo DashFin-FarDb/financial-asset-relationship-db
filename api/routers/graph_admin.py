@@ -67,6 +67,9 @@ from ..metrics import (
     update_rebuild_state_metric,
 )
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 # Re-export only the minimal public API used by intra-package routing.
 # Private helpers (prefixed with _) remain module-internal and should be accessed
 # directly by tests or moved into test helpers; do not rely on `from ... import *`.
@@ -234,7 +237,15 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
             detail=str(root_exc),
         )
 
-    logger.error("Unexpected graph rebuild failure: %s", root_exc.__class__.__name__)
+    log_event(
+        logger,
+        logging.ERROR,
+        ObservabilityEvent(
+            event="graph_rebuild_unexpected_failure",
+            message=f"Unexpected graph rebuild failure: {root_exc.__class__.__name__}",
+            metadata={"error": root_exc.__class__.__name__},
+        ),
+    )
     return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Graph rebuild failed.",
@@ -412,7 +423,15 @@ def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception | asyncio
             },
         ),
     )
-    logger.debug("Unexpected rebuild exception details", exc_info=True)
+    log_event(
+        logger,
+        logging.DEBUG,
+        ObservabilityEvent(
+            event="graph_rebuild_unexpected_exception_details",
+            message="Unexpected rebuild exception details",
+            metadata={"job_id": job_id},
+        ),
+    )
 
 
 def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception | asyncio.CancelledError:
@@ -637,7 +656,15 @@ def _heartbeat_keeper(
 
             if not refresh_ok:
                 LOCK_REFRESH_TOTAL.labels(status="failure").inc()
-                logger.error("Heartbeat keeper lost distributed lock for job %s.", job_id)
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_heartbeat_lock_lost",
+                        message=f"Heartbeat keeper lost distributed lock for job {job_id}.",
+                        metadata={"job_id": job_id},
+                    ),
+                )
                 lock_lost_event.set()
                 return
 
@@ -653,20 +680,28 @@ def _heartbeat_keeper(
                 HEARTBEAT_LAST_SUCCESS_TIMESTAMP.set(time.time())
             except Exception as hb_exc:
                 HEARTBEAT_UPDATE_TOTAL.labels(status="failure").inc()
-                logger.error(
-                    "Heartbeat keeper database update failed for job %s: %s.",
-                    job_id,
-                    type(hb_exc).__name__,
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_heartbeat_db_update_failed",
+                        message=f"Heartbeat keeper database update failed for job {job_id}: {type(hb_exc).__name__}.",
+                        metadata={"job_id": job_id, "error": type(hb_exc).__name__},
+                    ),
                 )
                 lock_lost_event.set()
                 return
         except Exception as exc:
             # Catches exceptions from lock refresh (e.g., database connectivity issues)
             LOCK_REFRESH_TOTAL.labels(status="failure").inc()
-            logger.error(
-                "Heartbeat keeper lock refresh failed for job %s: %s.",
-                job_id,
-                type(exc).__name__,
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="rebuild_heartbeat_lock_refresh_failed",
+                    message=f"Heartbeat keeper lock refresh failed for job {job_id}: {type(exc).__name__}.",
+                    metadata={"job_id": job_id, "error": type(exc).__name__},
+                ),
             )
             lock_lost_event.set()
             return
@@ -687,8 +722,16 @@ def _restore_persisted_graph_snapshot(
     """Best-effort rollback of durable graph state when success persistence fails."""
     try:
         save_graph_to_persistence(persistence_url, snapshot)
-    except Exception:
-        logger.exception("Failed to restore persisted graph snapshot after rebuild failure")
+    except Exception as restore_exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_rebuild_snapshot_restore_failed",
+                message=f"Failed to restore persisted graph snapshot after rebuild failure: {type(restore_exc).__name__}",
+                metadata={"error": type(restore_exc).__name__},
+            ),
+        )
 
 
 def _handle_rebuild_failure(
@@ -1009,10 +1052,17 @@ def _perform_rebuild_and_persist_sync(
         #
         if dist_lock is not None and lock_acquired and dist_lock.state != LockLifecycleState.LOST:
             try:
-                dist_lock.release()
-            except Exception:
-                logger.exception("Failed to release distributed rebuild lock")
-
+               dist_lock.release()
+            except Exception as release_exc:
+               log_event(
+                   logger,
+                   logging.ERROR,
+                   ObservabilityEvent(
+                       event="rebuild_lock_release_failed",
+                       message=f"Failed to release distributed rebuild lock: {type(release_exc).__name__}",
+                       metadata={"error": type(release_exc).__name__},
+                   ),
+               )
         #
         # --------------------------------------------------------------
         # Dispose coordination engine
@@ -1026,8 +1076,16 @@ def _perform_rebuild_and_persist_sync(
             # fmt: on
             try:
                 coordination_engine.dispose()
-            except Exception:
-                logger.exception("Failed to dispose coordination database engine")
+            except Exception as dispose_exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_coordination_engine_dispose_failed",
+                        message=f"Failed to dispose coordination database engine: {type(dispose_exc).__name__}",
+                        metadata={"error": type(dispose_exc).__name__},
+                    ),
+                )
 
         #
         # --------------------------------------------------------------
@@ -1037,8 +1095,16 @@ def _perform_rebuild_and_persist_sync(
         if domain_engine is not None:
             try:
                 domain_engine.dispose()
-            except Exception:
-                logger.exception("Failed to dispose domain database engine")
+            except Exception as dispose_exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_domain_engine_dispose_failed",
+                        message=f"Failed to dispose domain database engine: {type(dispose_exc).__name__}",
+                        metadata={"error": type(dispose_exc).__name__},
+                    ),
+                )
 
 
 def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
@@ -1063,14 +1129,44 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
         # Re-raise explicit replica/role check failures directly
         raise
     except (SQLAlchemyError, OSError) as exc:
-        logger.error("Error while verifying coordination database role: %s", type(exc).__name__)
-        logger.debug("Full exception while verifying coordination database role", exc_info=True)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="coordination_db_role_verification_failed",
+                message=f"Error while verifying coordination database role: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="coordination_db_role_verification_details",
+                message="Full exception while verifying coordination database role",
+            ),
+        )
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
     except Exception as exc:
         # Unexpected error during session cleanup (rollback/close). Log and raise a consistent RuntimeError.
-        logger.error("Unexpected error while verifying coordination database role: %s", type(exc).__name__)
-        logger.debug("Full exception while verifying coordination database role", exc_info=True)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="coordination_db_role_verification_unexpected_error",
+                message=f"Unexpected error while verifying coordination database role: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="coordination_db_role_verification_unexpected_details",
+                message="Full exception while verifying coordination database role",
+            ),
+        )
         raise RuntimeError("Could not verify coordination database role") from exc
 
 
@@ -1080,7 +1176,15 @@ def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> s
         with session_scope(session_factory) as session:
             return AssetGraphRepository(session).create_rebuild_job(requested_by=user_ref)
     except Exception as exc:
-        logger.exception("Failed to create rebuild job record: %s", exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_job_creation_failed",
+                message=f"Failed to create rebuild job record: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
+        )
         raise GraphPersistenceSaveError("Failed to create rebuild job record.") from exc
 
 
@@ -1095,7 +1199,15 @@ def _run_job_update(
         with session_scope(session_factory) as session:
             action(AssetGraphRepository(session))
     except Exception as exc:
-        logger.exception("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_job_update_failed",
+                message=f"Rebuild job {job_id} update failed: {exc.__class__.__name__}",
+                metadata={"job_id": job_id, "error": exc.__class__.__name__},
+            ),
+        )
         raise GraphPersistenceSaveError(error_message) from exc
 
 
@@ -1273,10 +1385,14 @@ def _create_and_start_rebuild_job(
         with session_scope(session_factory) as session:
             AssetGraphRepository(session).update_rebuild_heartbeat(job_id, worker_id)
     except Exception as exc:
-        logger.exception(
-            "Failed to record initial rebuild heartbeat: %s (job_id=%s). Failing closed.",
-            type(exc).__name__,
-            job_id,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_initial_heartbeat_failed",
+                message=f"Failed to record initial rebuild heartbeat: {type(exc).__name__} (job_id={job_id}). Failing closed.",
+                metadata={"job_id": job_id, "error": type(exc).__name__},
+            ),
         )
         try:
             _finalize_rebuild_failure(
@@ -1286,7 +1402,15 @@ def _create_and_start_rebuild_job(
                 job_started_at=job_started_at,
             )
         except Exception as fallback_exc:
-            logger.error("Failed to persist failed status for job %s: %s", job_id, fallback_exc)
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="rebuild_job_fallback_persistence_failed",
+                    message=f"Failed to persist failed status for job {job_id}: {fallback_exc}",
+                    metadata={"job_id": job_id, "error": str(fallback_exc)},
+                ),
+            )
         raise GraphPersistenceSaveError(
             f"Cannot track rebuild liveness: heartbeat failed ({type(exc).__name__})"
         ) from exc
@@ -1314,7 +1438,15 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
             detail="Graph persistence database not configured",
         ) from exc
     except Exception as exc:
-        logger.error("Rebuild persistence operation failed: %s", exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_persistence_operation_failed",
+                message=f"Rebuild persistence operation failed: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Graph persistence database unavailable",
@@ -1332,10 +1464,14 @@ def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
         # Crucial to log as error so that alerting systems capture database status corruption.
         status_len = len(raw_status or "")
         sanitized_status = (raw_status or "") if status_len <= 200 else (raw_status or "")[:197] + "..."
-        logger.error(
-            "Corrupted status in DB (truncated to 200 chars): %s; len=%d; falling back to failed",
-            sanitized_status,
-            status_len,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_job_status_corrupted",
+                message=f"Corrupted status in DB (truncated to 200 chars): {sanitized_status}; len={status_len}; falling back to failed",
+                metadata={"status_len": status_len, "sanitized_status": sanitized_status},
+            ),
         )
         return RebuildJobStatus.FAILED
 

@@ -15,6 +15,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.data.repository import CoordinationLockRepository, session_scope
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
@@ -140,8 +142,16 @@ class DistributedLock:
         if self.event_sink:
             try:
                 self.event_sink(event)
-            except Exception:
-                logger.exception("Failed to write coordination event to sink")
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="lock_event_sink_failed",
+                        message=f"Failed to write coordination event to sink: {type(exc).__name__}",
+                        metadata={"error": type(exc).__name__},
+                    ),
+                )
 
     def _metric(self, name: str, labels: dict[str, str] | None = None, value: float | None = None) -> None:
         """Record a counter increment or observation metric if metrics interface is provided."""
@@ -151,8 +161,16 @@ class DistributedLock:
                     self.metrics.observe(name, value if value is not None else 0.0, labels)
                 else:
                     self.metrics.inc(name, labels)
-            except Exception:
-                logger.exception("Failed to publish metric '%s'", name)
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="lock_metrics_publication_failed",
+                        message=f"Failed to publish metric '{name}': {type(exc).__name__}",
+                        metadata={"metric_name": name, "error": type(exc).__name__},
+                    ),
+                )
 
     def _set_state(self, state: LockLifecycleState) -> None:
         """Transition the internal lifecycle state machine state."""
@@ -223,11 +241,14 @@ class DistributedLock:
                 return False
 
             retries += 1
-            logger.info(
-                "Retrying lock acquisition for '%s' (%d/%d)...",
-                self.lock_name,
-                retries,
-                max_retries,
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="lock_acquisition_retry",
+                    message=f"Retrying lock acquisition for '{self.lock_name}' ({retries}/{max_retries})...",
+                    metadata={"lock_name": self.lock_name, "retry": retries, "max_retries": max_retries},
+                ),
             )
             sleep(retry_interval_seconds)
 
@@ -297,12 +318,20 @@ class DistributedLock:
                 )
                 if attempt < max_retries:
                     delay = retry_delay_seconds * (2**attempt)
-                    logger.warning(
-                        "Lock refresh attempt %d/%d failed (%s), retrying in %ss...",
-                        attempt + 1,
-                        max_retries + 1,
-                        type(exc).__name__,
-                        delay,
+                    log_event(
+                        logger,
+                        logging.WARNING,
+                        ObservabilityEvent(
+                            event="lock_refresh_retry",
+                            message=f"Lock refresh attempt {attempt + 1}/{max_retries + 1} failed ({type(exc).__name__}), retrying in {delay}s...",
+                            metadata={
+                                "lock_name": self.lock_name,
+                                "attempt": attempt + 1,
+                                "max_attempts": max_retries + 1,
+                                "error": type(exc).__name__,
+                                "delay": delay,
+                            },
+                        ),
                     )
                     sleep(delay)
                     continue
@@ -329,10 +358,14 @@ class DistributedLock:
                 )
                 self._set_state(LockLifecycleState.LOST)
                 self._metric("lock_errors_total")
-                logger.warning(
-                    "Unexpected error refreshing distributed lock '%s': %s",
-                    self.lock_name,
-                    type(exc).__name__,
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="lock_refresh_unexpected_error",
+                        message=f"Unexpected error refreshing distributed lock '{self.lock_name}': {type(exc).__name__}",
+                        metadata={"lock_name": self.lock_name, "error": type(exc).__name__},
+                    ),
                 )
                 self._metric("lock_refresh_latency_seconds", {"status": "error"}, value=time() - start)
                 return False
@@ -356,10 +389,14 @@ class DistributedLock:
                     )
                 )
                 self._metric("lock_release_total")
-                logger.debug(
-                    "Released distributed lock '%s' for holder '%s'",
-                    self.lock_name,
-                    self.holder_id,
+                log_event(
+                    logger,
+                    logging.DEBUG,
+                    ObservabilityEvent(
+                        event="lock_released",
+                        message=f"Released distributed lock '{self.lock_name}' for holder '{self.holder_id}'",
+                        metadata={"lock_name": self.lock_name, "holder_id": self.holder_id},
+                    ),
                 )
         except Exception as exc:
             self._emit(
@@ -371,9 +408,14 @@ class DistributedLock:
                 )
             )
             self._metric("lock_errors_total")
-            logger.exception(
-                "Failed to release distributed lock '%s'",
-                self.lock_name,
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="lock_release_failed",
+                    message=f"Failed to release distributed lock '{self.lock_name}': {type(exc).__name__}",
+                    metadata={"lock_name": self.lock_name, "error": type(exc).__name__},
+                ),
             )
 
     def check_state(self) -> LockState:
@@ -434,10 +476,14 @@ class DistributedLock:
                     self._set_state(LockLifecycleState.LOST)
                 return state
         except (SQLAlchemyError, OSError) as exc:
-            logger.warning(
-                "Lost database connectivity while checking lock '%s': %s",
-                self.lock_name,
-                type(exc).__name__,
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="lock_state_check_db_connectivity_lost",
+                    message=f"Lost database connectivity while checking lock '{self.lock_name}': {type(exc).__name__}",
+                    metadata={"lock_name": self.lock_name, "error": type(exc).__name__},
+                ),
             )
             self._set_state(LockLifecycleState.LOST)
             self._emit(
@@ -450,10 +496,14 @@ class DistributedLock:
             )
             return LockState.LOST
         except Exception as exc:
-            logger.error(
-                "Unexpected error checking lock '%s' state (%s) - re-raising",
-                self.lock_name,
-                type(exc).__name__,
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="lock_state_check_unexpected_error",
+                    message=f"Unexpected error checking lock '{self.lock_name}' state ({type(exc).__name__}) - re-raising",
+                    metadata={"lock_name": self.lock_name, "error": type(exc).__name__},
+                ),
             )
             self._set_state(LockLifecycleState.LOST)
             self._emit(

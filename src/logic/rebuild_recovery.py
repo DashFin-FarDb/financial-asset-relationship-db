@@ -13,6 +13,8 @@ from src.logic.rebuild_failure_detection import (
     InconsistencyType,
     RebuildInconsistency,
 )
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +163,15 @@ def determine_recovery_action(
         )
 
     # Unknown inconsistency type - be conservative
-    logger.warning("Unknown inconsistency type %s - defaulting to UNSAFE action", inconsistency_type)
+    log_event(
+        logger,
+        logging.WARNING,
+        ObservabilityEvent(
+            event="recovery_decision_unknown_inconsistency",
+            message=f"Unknown inconsistency type {inconsistency_type} - defaulting to UNSAFE action",
+            metadata={"inconsistency_type": str(inconsistency_type)},
+        ),
+    )
     return RecoveryDecision(
         action=RecoveryAction.UNSAFE,
         reason=f"Unknown inconsistency type: {inconsistency_type}",

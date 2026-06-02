@@ -19,6 +19,8 @@ from enum import Enum
 from typing import Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
@@ -216,9 +218,14 @@ class ReconciliationEngine:
         """
         self.evaluator = evaluator
         self.enable_automatic_execution = enable_automatic_execution
-        logger.info(
-            "ReconciliationEngine initialized with automatic_execution=%s",
-            enable_automatic_execution,
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="reconciliation_engine_initialized",
+                message=f"ReconciliationEngine initialized with automatic_execution={enable_automatic_execution}",
+                metadata={"enable_automatic_execution": enable_automatic_execution},
+            ),
         )
 
     def generate_reconciliation_plan(self) -> ReconciliationPlan:
@@ -239,29 +246,43 @@ class ReconciliationEngine:
             raise
         except Exception as exc:  # noqa: BLE001 - explicit boundary contract: unexpected failures become explicit plans
             plan = self._evaluation_failure_plan(exc)
-            logger.exception(
-                "Drift evaluation failed; returning explicit failure plan. error_type=%s, error_message=%s",
-                type(exc).__name__,
-                str(exc),
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="reconciliation_drift_evaluation_failed",
+                    message=f"Drift evaluation failed; returning explicit failure plan. error_type={type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
             )
             return plan
 
-        logger.debug(
-            "Drift evaluation: type=%s, severity=%s, metadata=%s",
-            drift_type,
-            severity.value,
-            metadata,
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="reconciliation_drift_evaluated",
+                message=f"Drift evaluation: type={drift_type}, severity={severity.value}",
+                metadata={"drift_type": drift_type, "severity": severity.value, **metadata},
+            ),
         )
 
         # Copy metadata to ensure immutability of the plan
         plan = self._drift_to_plan(drift_type, severity, dict(metadata))
 
-        logger.info(
-            "Generated reconciliation plan: drift_type=%s, severity=%s, actions=%s, execution_mode=%s",
-            plan.drift_type,
-            plan.severity.value,
-            [a.value for a in plan.actions],
-            plan.execution_mode.value,
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="reconciliation_plan_generated",
+                message=f"Generated reconciliation plan: drift_type={plan.drift_type}, severity={plan.severity.value}, execution_mode={plan.execution_mode.value}",
+                metadata={
+                    "drift_type": plan.drift_type,
+                    "severity": plan.severity.value,
+                    "actions": [a.value for a in plan.actions],
+                    "execution_mode": plan.execution_mode.value,
+                },
+            ),
         )
 
         return plan
@@ -429,7 +450,15 @@ class ReconciliationEngine:
             )
 
         # Unknown drift type - default to alert only
-        logger.warning("Unknown drift type %s - defaulting to ALERT_ONLY", drift_type)
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="reconciliation_unknown_drift_type",
+                message=f"Unknown drift type {drift_type} - defaulting to ALERT_ONLY",
+                metadata={"drift_type": drift_type},
+            ),
+        )
         return ReconciliationPlan(
             drift_type=drift_type,
             severity=severity,

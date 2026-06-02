@@ -9,16 +9,16 @@ from unittest.mock import patch
 import pytest
 import structlog
 
-import api.observability.logging
-from api.observability.context import set_request_context
-from api.observability.logging import _inject_request_context, setup_logging
+import src.observability.logging
+from src.observability.context import set_request_context
+from src.observability.logging import _inject_request_context, setup_logging
 
 
 @pytest.fixture(autouse=True)
 def _reset_logging():
     """Reset the standard library logging and structlog after each test."""
     # Reset our internal initialization flag to allow reconfiguration in tests
-    api.observability.logging._logging_initialized = False
+    src.observability.logging._logging_initialized = False
 
     # Store original handlers and level
     root_logger = logging.getLogger()
@@ -55,7 +55,7 @@ def test_inject_request_context_processor():
         assert result["event"] == "test event"
         assert result["level"] == "info"
     finally:
-        from api.observability.context import reset_request_context
+        from src.observability.context import reset_request_context
 
         reset_request_context(tokens)
 
@@ -137,7 +137,7 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
         root_logger.handlers.clear()
         for h in original_handlers:
             root_logger.addHandler(h)
-        from api.observability.context import reset_request_context
+        from src.observability.context import reset_request_context
 
         reset_request_context(tokens)
 
@@ -157,7 +157,7 @@ def test_setup_logging_invalid_level(capsys):
 
 def test_setup_logging_idempotency():
     """Test that setup_logging only runs once unless forced."""
-    with patch("api.observability.logging.structlog.configure") as mock_configure:
+    with patch("src.observability.logging.structlog.configure") as mock_configure:
         setup_logging()
         setup_logging()
         # Should only be called once because of the internal flag

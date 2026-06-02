@@ -1,4 +1,4 @@
-from api.observability.events import ObservabilityEvent
+from src.observability.events import ObservabilityEvent
 
 
 def test_observability_event_to_extra():

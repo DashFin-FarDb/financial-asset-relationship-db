@@ -1,12 +1,15 @@
 """Asset API routes."""
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 
 from ..api_models import AssetPageResponse, AssetResponse
 from ..router_helpers import (
+    ObservabilityEvent,
     get_graph,
+    log_event,
     logger,
     raise_asset_not_found,
     serialize_asset,
@@ -40,7 +43,15 @@ async def get_assets(
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception("Error getting assets:")
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="api_get_assets_failed",
+                message=f"Error getting assets: {type(e).__name__}",
+                metadata={"error": type(e).__name__},
+            ),
+        )
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred. Please try again later.",
@@ -64,7 +75,15 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception("Error getting asset detail:")
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="api_get_asset_detail_failed",
+                message=f"Error getting asset detail: {type(e).__name__}",
+                metadata={"asset_id": asset_id, "error": type(e).__name__},
+            ),
+        )
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred. Please try again later.",

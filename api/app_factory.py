@@ -28,8 +28,11 @@ from .graph_lifecycle import (
     sync_with_latest_rebuild,
 )
 from .middleware.correlation import CorrelationMiddleware
-from .observability.logging import setup_logging
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+from src.observability.logging import setup_logging
 from .rate_limit import limiter
+
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
 from .routers.graph_admin import init_rebuild_executor
@@ -103,10 +106,24 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         )
         try:
             if hasattr(gate, "evaluate_and_reconcile"):
-                logger.debug("Running evaluate_and_reconcile for startup reconciliation")
+                log_event(
+                    logger,
+                    logging.DEBUG,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_evaluate_reconcile",
+                        message="Running evaluate_and_reconcile for startup reconciliation",
+                    ),
+                )
                 gate.evaluate_and_reconcile()
             else:
-                logger.debug("Falling back to ensure_safe_to_execute for startup reconciliation")
+                log_event(
+                    logger,
+                    logging.DEBUG,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_ensure_safe",
+                        message="Falling back to ensure_safe_to_execute for startup reconciliation",
+                    ),
+                )
                 gate.ensure_safe_to_execute()
         finally:
             if getattr(gate, "lock_was_reacquired", False):
@@ -135,29 +152,53 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             try:
                 await asyncio.wait_for(asyncio.to_thread(_run_startup_reconciliation, settings), timeout=120)
             except asyncio.TimeoutError:
-                logger.critical("Startup reconciliation timed out after 120s")
+                log_event(
+                    logger,
+                    logging.CRITICAL,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_timeout",
+                        message="Startup reconciliation timed out after 120s",
+                    ),
+                )
                 raise RuntimeError("Startup reconciliation timed out") from None
         except ExecutionBlockedError as exc:
             if exc.action == "wait" and exc.inconsistency_type == "none":
-                logger.info(
-                    "Benign clean-install detected on startup (action=wait, inconsistency=none). "
-                    "Proceeding with startup."
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_benign_clean_install",
+                        message="Benign clean-install detected on startup (action=wait, inconsistency=none). Proceeding with startup.",
+                    ),
                 )
             else:
-                logger.critical(
-                    "Application startup BLOCKED by RecoveryGate safety invariant: %s",
-                    type(exc).__name__,
-                    exc_info=False,
+                log_event(
+                    logger,
+                    logging.CRITICAL,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_blocked",
+                        message=f"Application startup BLOCKED by RecoveryGate safety invariant: {type(exc).__name__}",
+                        metadata={"error": type(exc).__name__},
+                    ),
                 )
-                logger.debug(
-                    "Safety invariant traceback details",
-                    exc_info=True,
+                log_event(
+                    logger,
+                    logging.DEBUG,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_blocked_details",
+                        message="Safety invariant traceback details",
+                    ),
                 )
                 raise exc from None
         except Exception as exc:
-            logger.error(
-                "Failed to load persisted graph during startup: %s",
-                exc.__class__.__name__,
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="startup_reconciliation_failed",
+                    message=f"Failed to load persisted graph during startup: {exc.__class__.__name__}",
+                    metadata={"error": exc.__class__.__name__},
+                ),
             )
             raise RuntimeError("Failed to load persisted graph during startup") from None
 
@@ -170,7 +211,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    logger.info("Initiating orderly application lifespan teardown processing...")
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="application_teardown_initiated",
+            message="Initiating orderly application lifespan teardown processing...",
+        ),
+    )
     begin_shutdown()
 
     if sync_task is not None:
@@ -181,7 +229,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if has_durable_graph_persistence:
         shutdown_rebuild_executor()
 
-    logger.info("Application context lifespan termination finalized successfully.")
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="application_teardown_completed",
+            message="Application context lifespan termination finalized successfully.",
+        ),
+    )
 
 
 async def _graph_synchronization_loop(interval_seconds: float) -> None:
@@ -205,7 +260,14 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
 
             # Reset on successful sync
             if is_in_error_state:
-                logger.info("Database connection restored.")
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_sync_database_connection_restored",
+                        message="Database connection restored.",
+                    ),
+                )
                 is_in_error_state = False
             current_interval = base_interval
 
@@ -213,10 +275,14 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             raise
         except Exception as exc:
             if not is_in_error_state:
-                logger.warning(
-                    "Unexpected transient error in graph synchronization loop (%s). Engaging backoff policy.",
-                    type(exc).__name__,
-                    exc_info=True,
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_sync_transient_error",
+                        message=f"Unexpected transient error in graph synchronization loop ({type(exc).__name__}). Engaging backoff policy.",
+                        metadata={"error": type(exc).__name__},
+                    ),
                 )
                 is_in_error_state = True
 

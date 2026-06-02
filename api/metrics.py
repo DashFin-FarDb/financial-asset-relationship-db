@@ -6,6 +6,9 @@ from prometheus_client import Counter, Gauge, Histogram
 
 from src.data.db_models import RebuildJobStatus
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 logger = logging.getLogger(__name__)
 
 # Rebuild metrics
@@ -125,9 +128,14 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
     gauge_value = mapping.get(normalized_status, -1)
 
     if gauge_value == -1 and normalized_status != "unknown":
-        logger.error(
-            "Inconsistency detected: received unknown job status '%s'. Mapping to UNKNOWN_STATE (-1).",
-            status,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="metrics_rebuild_status_mapping_error",
+                message=f"Inconsistency detected: received unknown job status '{status}'. Mapping to UNKNOWN_STATE (-1).",
+                metadata={"status": str(status)},
+            ),
         )
 
     REBUILD_STATE_STATUS.set(gauge_value)
@@ -175,10 +183,14 @@ def initialize_rebuild_state_metric_from_db(
                 active_job.status.value if isinstance(active_job.status, RebuildJobStatus) else str(active_job.status)
             )
             update_rebuild_state_metric(active_job.status)
-            logger.info(
-                "Initialized rebuild state metric from active job: %s (job_id=%s)",
-                status_value,
-                active_job.job_id,
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="metrics_rebuild_state_initialized_active",
+                    message=f"Initialized rebuild state metric from active job: {status_value} (job_id={active_job.job_id})",
+                    metadata={"status": status_value, "job_id": active_job.job_id},
+                ),
             )
         else:
             # No active job - check latest job to preserve terminal state
@@ -190,31 +202,52 @@ def initialize_rebuild_state_metric_from_db(
                     else str(latest_job.status)
                 )
                 update_rebuild_state_metric(latest_job.status)
-                logger.info(
-                    "Initialized rebuild state metric from latest job: %s (job_id=%s)",
-                    status_value,
-                    latest_job.job_id,
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="metrics_rebuild_state_initialized_latest",
+                        message=f"Initialized rebuild state metric from latest job: {status_value} (job_id={latest_job.job_id})",
+                        metadata={"status": status_value, "job_id": latest_job.job_id},
+                    ),
                 )
             else:
                 # No rebuild jobs at all - set to "none"
                 update_rebuild_state_metric(None)
-                logger.debug("Initialized rebuild state metric: none (no rebuild jobs)")
+                log_event(
+                    logger,
+                    logging.DEBUG,
+                    ObservabilityEvent(
+                        event="metrics_rebuild_state_initialized_none",
+                        message="Initialized rebuild state metric: none (no rebuild jobs)",
+                    ),
+                )
     except ValueError as exc:
         # Multiple running jobs — business-logic inconsistency, no credentials at risk
         # S8572: Using logger.warning with bounded format to prevent credential leakage
         # (repository convention from PR #1161 - DB errors can embed DSN in tracebacks)
-        logger.warning(  # noqa: S8572
-            "Cannot initialize rebuild state metric: %s. Setting to unknown.",
-            type(exc).__name__,
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="metrics_rebuild_state_initialization_blocked",
+                message=f"Cannot initialize rebuild state metric: {type(exc).__name__}. Setting to unknown.",
+                metadata={"error": type(exc).__name__},
+            ),
         )
         update_rebuild_state_metric("unknown")
     except Exception as exc:  # noqa: BLE001
         # DB read failure — SQLAlchemy errors can embed DSN/credentials in tracebacks
         # S8572: Using logger.warning with bounded format to prevent credential leakage
         # (repository convention from PR #1161 - avoids stack traces with DB connection details)
-        logger.warning(  # noqa: S8572
-            "Failed to initialize rebuild state metric from DB: %s. Setting to unknown.",
-            type(exc).__name__,
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="metrics_rebuild_state_initialization_failed",
+                message=f"Failed to initialize rebuild state metric from DB: {type(exc).__name__}. Setting to unknown.",
+                metadata={"error": type(exc).__name__},
+            ),
         )
         update_rebuild_state_metric("unknown")
     finally:

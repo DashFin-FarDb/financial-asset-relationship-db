@@ -23,6 +23,8 @@ from src.logic.rebuild_failure_detection import (
     detect_rebuild_inconsistency,
 )
 from src.logic.reconciliation_engine import Severity
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 if TYPE_CHECKING:
     from src.data.db_models import RebuildJobORM
@@ -131,11 +133,14 @@ class RebuildDriftEvaluator:
         # Add job-specific metadata
         metadata.update(self._build_job_metadata(job, owner_mismatch))
 
-        logger.debug(
-            "Drift evaluation completed: type=%s, severity=%s, lock_valid=%s",
-            drift_type,
-            severity.value,
-            lock_is_valid,
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="rebuild_drift_evaluation_completed",
+                message=f"Drift evaluation completed: type={drift_type}, severity={severity.value}, lock_valid={lock_is_valid}",
+                metadata={"drift_type": drift_type, "severity": severity.value, "lock_is_valid": lock_is_valid},
+            ),
         )
 
         return drift_type, severity, metadata
@@ -179,9 +184,14 @@ class RebuildDriftEvaluator:
             return heartbeat_time
         except (ValueError, AttributeError, TypeError):
             # Unparseable heartbeat treated as None (caller will treat as stale). Expected for string/non-datetime values; avoid including full stack traces for expected parse failures
-            logger.debug(
-                "Failed to parse heartbeat timestamp %r, treating as stale",
-                heartbeat_at,
+            log_event(
+                logger,
+                logging.DEBUG,
+                ObservabilityEvent(
+                    event="rebuild_drift_heartbeat_parse_failed",
+                    message=f"Failed to parse heartbeat timestamp {heartbeat_at!r}, treating as stale",
+                    metadata={"heartbeat_at": str(heartbeat_at)},
+                ),
             )
             return None
 
@@ -312,5 +322,13 @@ class RebuildDriftEvaluator:
             return Severity.MEDIUM
 
         # Default to medium for unknown types
-        logger.warning("Unknown inconsistency type %s - defaulting to MEDIUM severity", inconsistency_type)
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="rebuild_drift_unknown_inconsistency_severity",
+                message=f"Unknown inconsistency type {inconsistency_type} - defaulting to MEDIUM severity",
+                metadata={"inconsistency_type": str(inconsistency_type)},
+            ),
+        )
         return Severity.MEDIUM

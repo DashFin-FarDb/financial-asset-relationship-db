@@ -10,6 +10,8 @@ import numpy as np
 import plotly.graph_objects as go
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
@@ -702,7 +704,15 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     try:
         relationship_traces = _create_relationship_traces(graph, positions, asset_ids)
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception("Failed to create relationship traces: %s", exc)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_relationship_traces_failed",
+                message=f"Failed to create relationship traces: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         relationship_traces = []
 
     # Batch add traces
@@ -710,20 +720,44 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
         try:
             fig.add_traces(relationship_traces)
         except Exception as exc:  # pylint: disable=broad-except
-            logger.exception("Failed to add relationship traces to figure: %s", exc)
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="viz_add_relationship_traces_failed",
+                    message=f"Failed to add relationship traces to figure: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
 
     # Add directional arrows for unidirectional relationships
     try:
         arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception("Failed to create directional arrow traces: %s", exc)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_arrow_traces_failed",
+                message=f"Failed to create directional arrow traces: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         arrow_traces = []
 
     if arrow_traces:
         try:
             fig.add_traces(arrow_traces)
         except Exception as exc:  # pylint: disable=broad-except
-            logger.exception("Failed to add arrow traces to figure: %s", exc)
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="viz_add_arrow_traces_failed",
+                    message=f"Failed to add arrow traces to figure: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
 
     # Add nodes with enhanced styling
     node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
@@ -938,10 +972,14 @@ def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
     """
     color = REL_TYPE_COLORS[rel_type]
     if not _is_valid_color_format(color):
-        logger.warning(
-            "Invalid color format for relationship type '%s': '%s'. Using default gray.",
-            rel_type,
-            color,
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="viz_invalid_rel_type_color",
+                message=f"Invalid color format for relationship type '{rel_type}': '{color}'. Using default gray.",
+                metadata={"rel_type": rel_type, "color": str(color)},
+            ),
         )
         color = "#888888"
 
@@ -1400,7 +1438,14 @@ def _build_relationship_filters_for_visualization(
     }
     _validate_relationship_filters(relationship_filters)
     if not any(relationship_filters.values()):
-        logger.warning("All relationship filters are disabled. Visualization will show no relationships.")
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="viz_all_filters_disabled",
+                message="All relationship filters are disabled. Visualization will show no relationships.",
+            ),
+        )
     return relationship_filters
 
 
@@ -1424,9 +1469,14 @@ def _get_and_validate_visualization_data(
     try:
         positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception(
-            "Failed to retrieve visualization data from graph: %s",
-            exc,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_data_retrieval_failed",
+                message=f"Failed to retrieve visualization data from graph: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
         )
         raise ValueError("Failed to retrieve graph visualization data") from exc
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
@@ -1461,17 +1511,25 @@ def _create_relationship_traces_with_fallback(
             relationship_filters,
         )
     except (TypeError, ValueError) as exc:
-        logger.exception(
-            "Failed to create filtered relationship traces due to invalid data (filters: %s): %s",
-            relationship_filters,
-            exc,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_filtered_relationship_traces_invalid_data",
+                message=f"Failed to create filtered relationship traces due to invalid data (filters: {relationship_filters}): {type(exc).__name__}",
+                metadata={"filters": str(relationship_filters), "error": type(exc).__name__},
+            ),
         )
         raise ValueError(f"Failed to create relationship traces: {exc}") from exc
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception(
-            "Unexpected error creating filtered relationship traces (filters: %s): %s",
-            relationship_filters,
-            exc,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_filtered_relationship_traces_unexpected_error",
+                message=f"Unexpected error creating filtered relationship traces (filters: {relationship_filters}): {type(exc).__name__}",
+                metadata={"filters": str(relationship_filters), "error": type(exc).__name__},
+            ),
         )
         return []
 
@@ -1496,7 +1554,15 @@ def _add_traces_with_logging(
     try:
         fig.add_traces(traces)
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception(failure_message, exc)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_add_traces_failed",
+                message=f"{failure_message}: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
 
 
 def _create_directional_arrows_with_fallback(
@@ -1513,15 +1579,25 @@ def _create_directional_arrows_with_fallback(
     try:
         return _create_directional_arrows(graph, positions, asset_ids)
     except (TypeError, ValueError) as exc:
-        logger.exception(
-            "Failed to create directional arrows due to invalid data: %s",
-            exc,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_directional_arrows_invalid_data",
+                message=f"Failed to create directional arrows due to invalid data: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
         )
         return []
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception(
-            "Unexpected error creating directional arrows: %s",
-            exc,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_directional_arrows_unexpected_error",
+                message=f"Unexpected error creating directional arrows: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
         )
         return []
 
@@ -1543,7 +1619,15 @@ def _configure_layout_with_fallback(
         )
         _configure_3d_layout(fig, dynamic_title, options)
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception("Failed to configure figure layout: %s", exc)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_layout_config_failed",
+                message=f"Failed to configure figure layout: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         _configure_3d_layout(fig, "Financial Asset Network")
 
 
@@ -1593,7 +1677,15 @@ def visualize_3d_graph_with_filters(
     try:
         _validate_filter_parameters(filter_params)
     except TypeError as exc:
-        logger.error("Invalid filter configuration: %s", exc)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_filter_params_invalid",
+                message=f"Invalid filter configuration: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         raise
 
     try:
@@ -1608,12 +1700,25 @@ def visualize_3d_graph_with_filters(
             show_all_relationships=show_all_relationships,
         )
     except (TypeError, ValueError) as exc:
-        logger.exception("Failed to build filter configuration: %s", exc)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_build_relationship_filters_failed",
+                message=f"Failed to build filter configuration: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         raise ValueError(f"Invalid filter configuration: {exc}") from exc
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception(
-            "Unexpected error building filter configuration: %s",
-            exc,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_build_relationship_filters_unexpected_error",
+                message=f"Unexpected error building filter configuration: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
         )
         raise ValueError("Failed to build filter configuration") from exc
 
@@ -1651,7 +1756,15 @@ def visualize_3d_graph_with_filters(
         node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
         fig.add_trace(node_trace)
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception("Failed to create or add node trace: %s", exc)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_node_trace_failed",
+                message=f"Failed to create or add node trace: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         raise ValueError("Failed to create node visualization") from exc
 
     _configure_layout_with_fallback(fig, asset_ids, relationship_traces)

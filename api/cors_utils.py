@@ -10,6 +10,9 @@ from urllib.parse import urlparse
 
 from src.config.settings import get_settings
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 logger = logging.getLogger(__name__)
 
 _HTTP_LOCAL_RE = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$")
@@ -112,7 +115,15 @@ def _is_valid_https_idn(origin: str) -> bool:
     try:
         ascii_host = parsed.hostname.encode("idna").decode("ascii")
     except UnicodeError as e:
-        logger.debug("Failed to IDNA-encode hostname for origin %s: %s", origin, e)
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="cors_idna_encoding_failed",
+                message=f"Failed to IDNA-encode hostname for origin {origin}: {e}",
+                metadata={"origin": origin, "error": str(e)},
+            ),
+        )
         return False
 
     ascii_origin = f"https://{ascii_host}"

@@ -17,8 +17,8 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 from . import graph_lifecycle_providers
 from .api_models import AssetGraphSource
-from .observability.events import ObservabilityEvent
-from .observability.logger import log_event
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
@@ -359,9 +359,14 @@ def complete_rebuild(*, succeeded: bool) -> None:
     """
     with graph_lock:
         if graph_state.lifecycle_state != GraphRuntimeLifecycleState.REBUILDING:
-            logger.warning(
-                "Ignoring complete_rebuild outside REBUILDING state: %s",
-                graph_state.lifecycle_state,
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_rebuild_complete_invalid_state",
+                    message=f"Ignoring complete_rebuild outside REBUILDING state: {graph_state.lifecycle_state}",
+                    metadata={"lifecycle_state": str(graph_state.lifecycle_state)},
+                ),
             )
             return
         if succeeded:
@@ -423,9 +428,14 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
             if latest_job_id:
                 graph_state.last_synced_job_id = latest_job_id
         except Exception as exc:
-            logger.warning(
-                "Failed to initialize last_synced_job_id during graph startup (exception_type=%s)",
-                type(exc).__name__,
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_startup_job_id_initialization_failed",
+                    message=f"Failed to initialize last_synced_job_id during graph startup (exception_type={type(exc).__name__})",
+                    metadata={"error": type(exc).__name__},
+                ),
             )
 
         return persisted_graph, "persisted_graph_store"
@@ -447,7 +457,15 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
         )
         return graph, "real_data"
 
-    logger.info("Graph startup source: sample")
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="graph_startup_source_detected",
+            message="Graph startup source: sample",
+            metadata={"source": "sample"},
+        ),
+    )
     return graph_lifecycle_providers.create_sample_graph(), "sample"
 
 
@@ -517,7 +535,12 @@ def sync_with_latest_rebuild() -> None:
         finally:
             engine.dispose()
     except Exception as exc:
-        logger.warning(
-            "Failed to sync with latest rebuild from database: %s",
-            type(exc).__name__,
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_sync_failed",
+                message=f"Failed to sync with latest rebuild from database: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
         )
