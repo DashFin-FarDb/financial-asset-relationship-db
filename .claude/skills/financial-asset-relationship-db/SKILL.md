@@ -1,18 +1,21 @@
-```markdown
+````markdown
 # financial-asset-relationship-db Development Patterns
 
 > Auto-generated skill from repository analysis
 
 ## Overview
+
 This skill provides a comprehensive guide to the development patterns, coding conventions, and workflows used in the `financial-asset-relationship-db` Python codebase. It covers best practices for file organization, code style, dependency management, CI/CD configuration, and testing. The goal is to help contributors quickly become productive and maintain consistency across the project.
 
 ## Coding Conventions
 
 ### File Naming
+
 - Use **snake_case** for all Python files and modules.
   - Example: `asset_manager.py`, `relationship_db.py`
 
 ### Import Style
+
 - Prefer **relative imports** within the package.
   - Example:
     ```python
@@ -21,6 +24,7 @@ This skill provides a comprehensive guide to the development patterns, coding co
     ```
 
 ### Export Style
+
 - Use **named exports** (i.e., explicitly define what is exported from a module).
   - Example:
     ```python
@@ -28,6 +32,7 @@ This skill provides a comprehensive guide to the development patterns, coding co
     ```
 
 ### Commit Messages
+
 - Mixed commit types, often using the `fix` prefix for bug fixes.
 - Keep commit messages concise but descriptive (average ~62 characters).
   - Example: `fix: handle missing asset relationships in API response`
@@ -35,6 +40,7 @@ This skill provides a comprehensive guide to the development patterns, coding co
 ## Workflows
 
 ### python-test-file-edit-workflow
+
 **Trigger:** When you need to fix, refactor, or improve a specific Python test file (e.g., for isolation, redundancy, or correctness).
 **Command:** `/edit-test-file`
 
@@ -43,15 +49,18 @@ This skill provides a comprehensive guide to the development patterns, coding co
 3. Optionally, repeat with further small edits (e.g., updating docstrings, fixtures, or pre-commit fixes).
 
 **Example:**
+
 ```bash
 # Edit tests/unit/test_api.py to fix a failing test
 git add tests/unit/test_api.py
 git commit -m "fix: correct asset linking logic in test_api"
 ```
+````
 
 ---
 
 ### ci-workflow-configuration-update
+
 **Trigger:** When you want to add, fix, or update CI/CD automation, security scanning, or labeling rules.
 **Command:** `/update-ci-workflow`
 
@@ -60,6 +69,7 @@ git commit -m "fix: correct asset linking logic in test_api"
 3. Optionally, repeat to fix syntax, add conditions, or handle errors.
 
 **Example:**
+
 ```bash
 # Update Snyk security workflow
 git add .github/workflows/snyk-security.yml
@@ -69,6 +79,7 @@ git commit -m "fix: update Snyk workflow for new scan rules"
 ---
 
 ### dependency-version-bump-or-fix
+
 **Trigger:** When you need to fix dependency conflicts or update allowed versions for a package.
 **Command:** `/bump-dependency-version`
 
@@ -77,6 +88,7 @@ git commit -m "fix: update Snyk workflow for new scan rules"
 3. Optionally, repeat to further restrict or loosen version bounds.
 
 **Example:**
+
 ```bash
 # Bump SQLAlchemy version in requirements.txt
 git add requirements.txt
@@ -86,6 +98,7 @@ git commit -m "fix: bump SQLAlchemy to >=1.4,<2.0 for compatibility"
 ---
 
 ### merge-main-into-feature-branch
+
 **Trigger:** When you want to bring the latest changes from main into your working branch before continuing work or opening a PR.
 **Command:** `/merge-main`
 
@@ -94,6 +107,7 @@ git commit -m "fix: bump SQLAlchemy to >=1.4,<2.0 for compatibility"
 3. Commit the merge with a standard message.
 
 **Example:**
+
 ```bash
 git checkout feature/my-feature
 git merge main
@@ -110,21 +124,25 @@ git commit -m "Merge branch 'main' into feature/my-feature"
 - **Test Structure:** Tests are modular and focus on unit-level isolation, often edited iteratively for correctness and clarity.
 
 **Example Jest Test:**
+
 ```typescript
 // relationship_api.test.ts
-import { getRelationship } from '../src/relationship_api';
+import { getRelationship } from "../src/relationship_api";
 
-test('returns correct relationship', () => {
-  expect(getRelationship('A', 'B')).toBe('parent');
+test("returns correct relationship", () => {
+  expect(getRelationship("A", "B")).toBe("parent");
 });
 ```
 
 ## Commands
 
-| Command               | Purpose                                                        |
-|-----------------------|----------------------------------------------------------------|
-| /edit-test-file       | Edit, refactor, or fix a specific Python test file             |
-| /update-ci-workflow   | Update or fix CI/CD workflow YAML files                        |
+| Command                  | Purpose                                                          |
+| ------------------------ | ---------------------------------------------------------------- |
+| /edit-test-file          | Edit, refactor, or fix a specific Python test file               |
+| /update-ci-workflow      | Update or fix CI/CD workflow YAML files                          |
 | /bump-dependency-version | Adjust dependency versions in pyproject.toml or requirements.txt |
-| /merge-main           | Merge the main branch into your feature or fix branch           |
+| /merge-main              | Merge the main branch into your feature or fix branch            |
+
+```
+
 ```

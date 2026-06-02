@@ -10,7 +10,7 @@ Use this workflow when working on **ci-workflow-configuration-update** in `finan
 
 ## Goal
 
-Updating, fixing, or adding CI workflow YAML files for automation, security scans, or labeling. Often involves .github/workflows/*.yml and related config files.
+Updating, fixing, or adding CI workflow YAML files for automation, security scans, or labeling. Often involves .github/workflows/\*.yml and related config files.
 
 ## Common Files
 
