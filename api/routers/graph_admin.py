@@ -1406,8 +1406,8 @@ def _create_and_start_rebuild_job(
                 logging.ERROR,
                 ObservabilityEvent(
                     event="rebuild_job_fallback_persistence_failed",
-                    message=f"Failed to persist failed status for job {job_id}: {fallback_exc}",
-                    metadata={"job_id": job_id, "error": str(fallback_exc)},
+                    message=f"Failed to persist failed status for job {job_id}: {type(fallback_exc).__name__}",
+                    metadata={"job_id": job_id, "error": type(fallback_exc).__name__},
                 ),
             )
         raise GraphPersistenceSaveError(
