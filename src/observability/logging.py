@@ -86,9 +86,9 @@ def setup_logging() -> None:
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
 
-        log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
+        log_level_str = get_settings().log_level.upper()
         log_level = getattr(logging, log_level_str, None)
-        if log_level is None:
+        if not isinstance(log_level, int):
             log_level = logging.INFO
             # Using print because logging is not yet fully configured
             print(f"WARNING: Invalid LOG_LEVEL '{log_level_str}', defaulting to INFO")
