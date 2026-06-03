@@ -181,14 +181,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                         metadata={"error": type(exc).__name__},
                     ),
                 )
-                log_event(
-                    logger,
-                    logging.DEBUG,
-                    ObservabilityEvent(
-                        event="startup_reconciliation_blocked_details",
-                        message="Safety invariant traceback details",
-                    ),
-                )
                 raise exc from None
         except Exception as exc:
             log_event(
