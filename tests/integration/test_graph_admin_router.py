@@ -299,7 +299,10 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
     assert response.status_code == 429
     assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
 
-    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    audit_records = [
+        record for record in caplog.records
+        if getattr(record, "event", "").startswith("graph_rebuild_")
+    ]
     rejected_records = [
         record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_rejected"
     ]
@@ -356,7 +359,10 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
     assert exc_info.value.status_code == 429
     assert exc_info.value.detail == "A graph rebuild is already in progress. Please try again later."
 
-    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    audit_records = [
+        record for record in caplog.records
+        if getattr(record, "event", "").startswith("graph_rebuild_")
+    ]
     requested_records = [
         record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_requested"
     ]
@@ -366,10 +372,10 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
 
     assert len(requested_records) == 1
     assert len(rejected_records) == 1
-    assert requested_records[0].user_ref == "admin"
-    assert requested_records[0].path == "/api/graph/rebuild"
-    assert rejected_records[0].reason == "rebuild_in_progress"
-    assert rejected_records[0].status_code == 429
+    assert requested_records[0].metadata["user_ref"] == "admin"
+    assert requested_records[0].metadata["path"] == "/api/graph/rebuild"
+    assert rejected_records[0].metadata["reason"] == "rebuild_in_progress"
+    assert rejected_records[0].metadata["status_code"] == 429
 
 
 async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_executor_raises_directly(
@@ -525,7 +531,10 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
         reset_graph()
 
-    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    audit_records = [
+        record for record in caplog.records
+        if getattr(record, "event", "").startswith("graph_rebuild_")
+    ]
     succeeded_records = [
         record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_succeeded"
     ]
@@ -533,8 +542,8 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
     assert len(succeeded_records) == 1
     assert len(failed_records) == 0
-    assert succeeded_records[0].user_ref == "admin"
-    assert succeeded_records[0].status_code == 200
+    assert succeeded_records[0].metadata["user_ref"] == "admin"
+    assert succeeded_records[0].metadata["status_code"] == 200
 
 
 async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
@@ -556,16 +565,22 @@ async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
         assert exc_info.value.status_code == 500
 
         # Verify the explicit sentinel alert log was captured
-        sentinel_logs = [r for r in caplog.records if r.getMessage() == "graph_rebuild_unexpected_exception"]
+        sentinel_logs = [
+            r for r in caplog.records
+            if getattr(r, "event", None) == "graph_rebuild_unexpected_exception"
+        ]
         assert len(sentinel_logs) == 1
         assert sentinel_logs[0].levelname == "CRITICAL"
-        assert sentinel_logs[0].__dict__.get("exception_type") == "AttributeError"
+        assert sentinel_logs[0].metadata["exception_type"] == "AttributeError"
 
         # Verify exactly one failure audit event log was broadcast
-        audit_logs = [r for r in caplog.records if r.getMessage() == "graph_rebuild_audit"]
-        failed_audits = [r for r in audit_logs if r.__dict__.get("event") == "graph_rebuild_failed"]
+        audit_logs = [
+            r for r in caplog.records
+            if getattr(r, "event", "").startswith("graph_rebuild_")
+        ]
+        failed_audits = [r for r in audit_logs if getattr(r, "event", None) == "graph_rebuild_failed"]
         assert len(failed_audits) == 1
-        assert failed_audits[0].__dict__.get("failure_category") == "unexpected_error"
+        assert failed_audits[0].metadata["failure_category"] == "unexpected_error"
 
     finally:
         graph_admin.shutdown_rebuild_executor_sync()

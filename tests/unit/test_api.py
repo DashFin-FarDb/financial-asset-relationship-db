@@ -703,9 +703,9 @@ class TestRealDataFetcherFallback:
         assert graph is not None
         assert isinstance(graph, AssetRelationshipGraph)
 
-    @patch("src.data.real_data_fetcher.logger")
+    @patch("src.data.real_data_fetcher.log_event")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    def test_real_data_fetcher_logs_fallback_on_exception(self, mock_fetch_equity, mock_logger):
+    def test_real_data_fetcher_logs_fallback_on_exception(self, mock_fetch_equity, mock_log_event):
         """Test that RealDataFetcher logs when falling back to sample data."""
         from src.data.real_data_fetcher import RealDataFetcher
 
@@ -715,16 +715,14 @@ class TestRealDataFetcherFallback:
         fetcher = RealDataFetcher()
         fetcher.create_real_database()
 
-        # Verify error and warning were logged
-        assert mock_logger.exception.called
-        assert mock_logger.warning.called
-        # Check that "Falling back" message was logged
-        warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
-        assert any("Falling back" in call for call in warning_calls)
+        # Verify error and warning events were emitted
+        event_names = [call.args[2].event for call in mock_log_event.call_args_list]
+        assert "graph_live_fetch_failed" in event_names
+        assert "graph_fetch_fallback_engaged" in event_names
 
-    @patch("src.data.real_data_fetcher.logger")
+    @patch("src.data.real_data_fetcher.log_event")
     @patch("yfinance.Ticker")
-    def test_individual_asset_class_fetch_failures_logged(self, mock_ticker, mock_logger):
+    def test_individual_asset_class_fetch_failures_logged(self, mock_ticker, mock_log_event):
         """Test that individual asset class fetch failures are logged properly."""
         from src.data.real_data_fetcher import RealDataFetcher
 
@@ -734,8 +732,9 @@ class TestRealDataFetcherFallback:
         fetcher = RealDataFetcher()
         fetcher.create_real_database()
 
-        # Should log errors for each failed fetch
-        assert mock_logger.exception.call_count > 0  # Multiple fetch attempts failed
+        # Should log failure events for each failed fetch
+        event_names = [call.args[2].event for call in mock_log_event.call_args_list]
+        assert any(name.startswith("graph_fetch_") and name.endswith("_failed") for name in event_names)
 
     @staticmethod
     def test_real_data_fetcher_loads_from_cache(tmp_path):

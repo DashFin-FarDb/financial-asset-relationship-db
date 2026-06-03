@@ -10,7 +10,8 @@ import pytest
 import structlog
 
 import src.observability.logging
-from src.observability.context import set_request_context
+from src.config.settings import get_settings
+from src.observability.context import get_request_context, set_request_context
 from src.observability.logging import _inject_request_context, setup_logging
 
 
@@ -20,7 +21,8 @@ def _reset_logging():
     # Reset our internal initialization flag to allow reconfiguration in tests
     src.observability.logging._logging_initialized = False
 
-    # Store original handlers and level
+    # Clear settings cache to allow environment variable overrides
+    get_settings.cache_clear()
     root_logger = logging.getLogger()
     original_handlers = list(root_logger.handlers)
     original_level = root_logger.level
@@ -145,6 +147,8 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
 def test_setup_logging_invalid_level(capsys):
     """Test that setup_logging handles invalid LOG_LEVEL with a warning."""
     with patch.dict(os.environ, {"LOG_LEVEL": "DEUBG"}):
+        from src.config.settings import get_settings
+        get_settings.cache_clear()
         setup_logging()
 
     captured = capsys.readouterr()
