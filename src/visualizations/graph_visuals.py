@@ -1702,6 +1702,134 @@ def _configure_layout_with_fallback(
         _configure_3d_layout(fig, "Financial Asset Network")
 
 
+def _prepare_visualization_filters(
+    *,
+    show_same_sector: bool,
+    show_market_cap: bool,
+    show_correlation: bool,
+    show_corporate_bond: bool,
+    show_commodity_currency: bool,
+    show_income_comparison: bool,
+    show_regulatory: bool,
+    show_all_relationships: bool,
+    toggle_arrows: bool,
+) -> dict[str, bool] | None:
+    """Validate input parameters and build the relationship type visibility mapping."""
+    filter_params = {
+        "show_same_sector": show_same_sector,
+        "show_market_cap": show_market_cap,
+        "show_correlation": show_correlation,
+        "show_corporate_bond": show_corporate_bond,
+        "show_commodity_currency": show_commodity_currency,
+        "show_income_comparison": show_income_comparison,
+        "show_regulatory": show_regulatory,
+        "show_all_relationships": show_all_relationships,
+        "toggle_arrows": toggle_arrows,
+    }
+    try:
+        _validate_filter_parameters(filter_params)
+    except TypeError as exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_filter_params_invalid",
+                message=f"Invalid filter configuration: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        raise
+
+    try:
+        return _build_relationship_filters_for_visualization(
+            show_same_sector=show_same_sector,
+            show_market_cap=show_market_cap,
+            show_correlation=show_correlation,
+            show_corporate_bond=show_corporate_bond,
+            show_commodity_currency=show_commodity_currency,
+            show_income_comparison=show_income_comparison,
+            show_regulatory=show_regulatory,
+            show_all_relationships=show_all_relationships,
+        )
+    except (TypeError, ValueError) as exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_build_relationship_filters_failed",
+                message=f"Failed to build filter configuration: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        raise ValueError(f"Invalid filter configuration: {exc}") from exc
+    except Exception as exc:  # pylint: disable=broad-except
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_build_relationship_filters_unexpected_error",
+                message=f"Unexpected error building filter configuration: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        raise ValueError("Failed to build filter configuration") from exc
+
+
+def _assemble_visualization_figure(
+    graph: AssetRelationshipGraph,
+    positions: np.ndarray,
+    asset_ids: list[str],
+    colors: list[str],
+    hover_texts: list[str],
+    relationship_filters: dict[str, bool] | None,
+    toggle_arrows: bool,
+) -> go.Figure:
+    """Create and configure the Plotly figure by adding node and relationship traces."""
+    fig = go.Figure()
+
+    relationship_traces = _create_relationship_traces_with_fallback(
+        graph,
+        positions,
+        asset_ids,
+        relationship_filters,
+    )
+    _add_traces_with_logging(
+        fig,
+        relationship_traces,
+        "Failed to add filtered relationship traces to figure: %s",
+    )
+
+    if toggle_arrows:
+        arrow_traces = _create_directional_arrows_with_fallback(
+            graph,
+            positions,
+            asset_ids,
+        )
+        _add_traces_with_logging(
+            fig,
+            arrow_traces,
+            "Failed to add directional arrows to figure: %s",
+        )
+
+    try:
+        node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
+        fig.add_trace(node_trace)
+    except Exception as exc:  # pylint: disable=broad-except
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="viz_node_trace_failed",
+                message=f"Failed to create or add node trace: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        raise ValueError("Failed to create node visualization") from exc
+
+    _configure_layout_with_fallback(fig, asset_ids, relationship_traces)
+    return fig
+
+
 def visualize_3d_graph_with_filters(
     graph: AssetRelationshipGraph,
     show_same_sector: bool = True,
@@ -1744,111 +1872,26 @@ def visualize_3d_graph_with_filters(
     """
     _validate_graph_for_filtered_visualization(graph)
 
-    # Build filter parameters dictionary and validate
-    filter_params = {
-        "show_same_sector": show_same_sector,
-        "show_market_cap": show_market_cap,
-        "show_correlation": show_correlation,
-        "show_corporate_bond": show_corporate_bond,
-        "show_commodity_currency": show_commodity_currency,
-        "show_income_comparison": show_income_comparison,
-        "show_regulatory": show_regulatory,
-        "show_all_relationships": show_all_relationships,
-        "toggle_arrows": toggle_arrows,
-    }
-    try:
-        _validate_filter_parameters(filter_params)
-    except TypeError as exc:
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="viz_filter_params_invalid",
-                message=f"Invalid filter configuration: {type(exc).__name__}",
-                metadata={"error": type(exc).__name__},
-            ),
-        )
-        raise
-
-    try:
-        relationship_filters = _build_relationship_filters_for_visualization(
-            show_same_sector=show_same_sector,
-            show_market_cap=show_market_cap,
-            show_correlation=show_correlation,
-            show_corporate_bond=show_corporate_bond,
-            show_commodity_currency=show_commodity_currency,
-            show_income_comparison=show_income_comparison,
-            show_regulatory=show_regulatory,
-            show_all_relationships=show_all_relationships,
-        )
-    except (TypeError, ValueError) as exc:
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="viz_build_relationship_filters_failed",
-                message=f"Failed to build filter configuration: {type(exc).__name__}",
-                metadata={"error": type(exc).__name__},
-            ),
-        )
-        raise ValueError(f"Invalid filter configuration: {exc}") from exc
-    except Exception as exc:  # pylint: disable=broad-except
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="viz_build_relationship_filters_unexpected_error",
-                message=f"Unexpected error building filter configuration: {type(exc).__name__}",
-                metadata={"error": type(exc).__name__},
-            ),
-        )
-        raise ValueError("Failed to build filter configuration") from exc
+    relationship_filters = _prepare_visualization_filters(
+        show_same_sector=show_same_sector,
+        show_market_cap=show_market_cap,
+        show_correlation=show_correlation,
+        show_corporate_bond=show_corporate_bond,
+        show_commodity_currency=show_commodity_currency,
+        show_income_comparison=show_income_comparison,
+        show_regulatory=show_regulatory,
+        show_all_relationships=show_all_relationships,
+        toggle_arrows=toggle_arrows,
+    )
 
     positions, asset_ids, colors, hover_texts = _get_and_validate_visualization_data(graph)
 
-    # Create figure
-    fig = go.Figure()
-
-    relationship_traces = _create_relationship_traces_with_fallback(
+    return _assemble_visualization_figure(
         graph,
         positions,
         asset_ids,
+        colors,
+        hover_texts,
         relationship_filters,
+        toggle_arrows,
     )
-    _add_traces_with_logging(
-        fig,
-        relationship_traces,
-        "Failed to add filtered relationship traces to figure: %s",
-    )
-
-    if toggle_arrows:
-        arrow_traces = _create_directional_arrows_with_fallback(
-            graph,
-            positions,
-            asset_ids,
-        )
-        _add_traces_with_logging(
-            fig,
-            arrow_traces,
-            "Failed to add directional arrows to figure: %s",
-        )
-
-    # Add node trace
-    try:
-        node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
-        fig.add_trace(node_trace)
-    except Exception as exc:  # pylint: disable=broad-except
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="viz_node_trace_failed",
-                message=f"Failed to create or add node trace: {type(exc).__name__}",
-                metadata={"error": type(exc).__name__},
-            ),
-        )
-        raise ValueError("Failed to create node visualization") from exc
-
-    _configure_layout_with_fallback(fig, asset_ids, relationship_traces)
-
-    return fig

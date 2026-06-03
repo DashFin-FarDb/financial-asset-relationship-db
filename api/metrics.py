@@ -153,6 +153,46 @@ def increment_recovery_trigger(inconsistency_type: str) -> None:
     REBUILD_RECOVERY_TRIGGERS.labels(inconsistency_type=inconsistency_type).inc()
 
 
+def _initialize_from_active_job(active_job) -> None:
+    """Initialize rebuild state metric from an active RUNNING job."""
+    status_value = (
+        active_job.status.value if isinstance(active_job.status, RebuildJobStatus) else str(active_job.status)
+    )
+    update_rebuild_state_metric(active_job.status)
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="metrics_rebuild_state_initialized_active",
+            message=(
+                f"Initialized rebuild state metric from active job: {status_value} "
+                f"(job_id={active_job.job_id})"
+            ),
+            metadata={"status": status_value, "job_id": active_job.job_id},
+        ),
+    )
+
+
+def _initialize_from_latest_job(latest_job) -> None:
+    """Initialize rebuild state metric from the latest (terminal) job."""
+    status_value = (
+        latest_job.status.value if isinstance(latest_job.status, RebuildJobStatus) else str(latest_job.status)
+    )
+    update_rebuild_state_metric(latest_job.status)
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="metrics_rebuild_state_initialized_latest",
+            message=(
+                f"Initialized rebuild state metric from latest job: {status_value} "
+                f"(job_id={latest_job.job_id})"
+            ),
+            metadata={"status": status_value, "job_id": latest_job.job_id},
+        ),
+    )
+
+
 def initialize_rebuild_state_metric_from_db(
     session_factory,
 ) -> None:
@@ -162,8 +202,6 @@ def initialize_rebuild_state_metric_from_db(
     This ensures the Prometheus gauge reflects the actual persisted rebuild
     state after process restarts, including terminal states (succeeded/failed),
     rather than showing default/stale values that could hide crashed jobs.
-
-    Called during application startup to reconcile metrics with DB reality.
 
     Args:
         session_factory: Callable that returns a SQLAlchemy session.
@@ -179,45 +217,12 @@ def initialize_rebuild_state_metric_from_db(
         active_job = repo.get_active_rebuild_state()
 
         if active_job is not None:
-            # Active rebuild job exists - use its status
-            status_value = (
-                active_job.status.value if isinstance(active_job.status, RebuildJobStatus) else str(active_job.status)
-            )
-            update_rebuild_state_metric(active_job.status)
-            log_event(
-                logger,
-                logging.INFO,
-                ObservabilityEvent(
-                    event="metrics_rebuild_state_initialized_active",
-                    message=(
-                        f"Initialized rebuild state metric from active job: {status_value} "
-                        f"(job_id={active_job.job_id})"
-                    ),
-                    metadata={"status": status_value, "job_id": active_job.job_id},
-                ),
-            )
+            _initialize_from_active_job(active_job)
         else:
             # No active job - check latest job to preserve terminal state
             latest_job = repo.get_latest_rebuild_job()
             if latest_job is not None:
-                status_value = (
-                    latest_job.status.value
-                    if isinstance(latest_job.status, RebuildJobStatus)
-                    else str(latest_job.status)
-                )
-                update_rebuild_state_metric(latest_job.status)
-                log_event(
-                    logger,
-                    logging.INFO,
-                    ObservabilityEvent(
-                        event="metrics_rebuild_state_initialized_latest",
-                        message=(
-                            f"Initialized rebuild state metric from latest job: {status_value} "
-                            f"(job_id={latest_job.job_id})"
-                        ),
-                        metadata={"status": status_value, "job_id": latest_job.job_id},
-                    ),
-                )
+                _initialize_from_latest_job(latest_job)
             else:
                 # No rebuild jobs at all - set to "none"
                 update_rebuild_state_metric(None)
