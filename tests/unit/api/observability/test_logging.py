@@ -11,7 +11,6 @@ import structlog
 
 import src.observability.logging
 from src.config.settings import get_settings
-from src.observability.context import get_request_context, set_request_context
 from src.observability.logging import _inject_request_context, setup_logging
 
 
