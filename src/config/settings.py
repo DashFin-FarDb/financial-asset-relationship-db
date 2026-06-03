@@ -42,6 +42,9 @@ class Settings(BaseModel):
     # Environment mode
     env: str = Field(default="development")
 
+    # Logging configuration
+    log_level: str = Field(default="INFO")
+
     # CORS configuration
     allowed_origins_raw: str = Field(default="")
 
@@ -107,6 +110,7 @@ def load_settings() -> Settings:
 
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
+        log_level=os.getenv("LOG_LEVEL", "INFO").strip().upper(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         secret_key=os.getenv("SECRET_KEY"),
         admin_username=os.getenv("ADMIN_USERNAME"),
