@@ -406,31 +406,33 @@ def _log_rebuild_failed(
     )
 
 
-def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception | asyncio.CancelledError, job_id: str | None = None) -> None:
-       """Emit a sentinel alert log for unexpected rebuild failures."""
-       log_event(
-           logger,
-           logging.CRITICAL,
-           ObservabilityEvent(
-               event="graph_rebuild_unexpected_exception",
-               message=f"Unexpected graph rebuild exception: {type(exc).__name__}",
-               metadata={
-                   "user_ref": user_ref,
-                   "path": _REBUILD_PATH,
-                   "exception_type": type(exc).__name__},
-                   "timestamp": _audit_timestamp(),
-               },
-           ),
-       )
-       log_event(
-           logger,
-           logging.DEBUG,
-           ObservabilityEvent(
-               event="graph_rebuild_unexpected_exception_details",
-               message="Unexpected rebuild exception details",
-               metadata={"job_id": job_id} if job_id else {},
-           ),
-       )
+def _log_unexpected_rebuild_exception(
+    *, user_ref: str, exc: Exception | asyncio.CancelledError, job_id: str | None = None
+) -> None:
+    """Emit a sentinel alert log for unexpected rebuild failures."""
+    log_event(
+        logger,
+        logging.CRITICAL,
+        ObservabilityEvent(
+            event="graph_rebuild_unexpected_exception",
+            message=f"Unexpected graph rebuild exception: {type(exc).__name__}",
+            metadata={
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "exception_type": type(exc).__name__,
+                "timestamp": _audit_timestamp(),
+            },
+        ),
+    )
+    log_event(
+        logger,
+        logging.DEBUG,
+        ObservabilityEvent(
+            event="graph_rebuild_unexpected_exception_details",
+            message="Unexpected rebuild exception details",
+            metadata={"job_id": job_id} if job_id else {},
+        ),
+    )
 
 
 def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception | asyncio.CancelledError:
@@ -440,7 +442,7 @@ def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception 
     return exc
 
 
-@ router.post(_REBUILD_PATH)
+@router.post(_REBUILD_PATH)
 async def rebuild_graph(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
 ) -> GraphRebuildResponse:
