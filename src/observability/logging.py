@@ -12,8 +12,9 @@ from typing import Any
 
 import structlog
 
-from .context import get_request_context
 from src.config.settings import get_settings
+
+from .context import get_request_context
 
 _logging_initialized_lock = threading.Lock()
 _logging_initialized = False
