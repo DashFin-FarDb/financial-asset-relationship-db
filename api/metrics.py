@@ -133,8 +133,7 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
             ObservabilityEvent(
                 event="metrics_rebuild_status_mapping_error",
                 message=(
-                    f"Inconsistency detected: received unknown job status '{status}'. "
-                    "Mapping to UNKNOWN_STATE (-1)."
+                    f"Inconsistency detected: received unknown job status '{status}'. " "Mapping to UNKNOWN_STATE (-1)."
                 ),
                 metadata={"status": str(status)},
             ),

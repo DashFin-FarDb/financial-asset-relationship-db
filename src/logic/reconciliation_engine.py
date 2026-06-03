@@ -253,8 +253,7 @@ class ReconciliationEngine:
                 ObservabilityEvent(
                     event="reconciliation_drift_evaluation_failed",
                     message=(
-                        "Drift evaluation failed; returning explicit failure plan. "
-                        f"error_type={type(exc).__name__}"
+                        "Drift evaluation failed; returning explicit failure plan. " f"error_type={type(exc).__name__}"
                     ),
                     metadata={"error": type(exc).__name__},
                 ),

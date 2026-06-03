@@ -730,8 +730,7 @@ def _restore_persisted_graph_snapshot(
             ObservabilityEvent(
                 event="graph_rebuild_snapshot_restore_failed",
                 message=(
-                    "Failed to restore persisted graph snapshot after rebuild failure: "
-                    f"{type(restore_exc).__name__}"
+                    "Failed to restore persisted graph snapshot after rebuild failure: " f"{type(restore_exc).__name__}"
                 ),
                 metadata={"error": type(restore_exc).__name__},
             ),

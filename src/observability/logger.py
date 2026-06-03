@@ -1,4 +1,5 @@
 import logging
+
 from .events import ObservabilityEvent
 
 
