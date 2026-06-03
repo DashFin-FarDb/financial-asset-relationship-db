@@ -148,6 +148,7 @@ def test_setup_logging_invalid_level(capsys):
     """Test that setup_logging handles invalid LOG_LEVEL with a warning."""
     with patch.dict(os.environ, {"LOG_LEVEL": "DEUBG"}):
         from src.config.settings import get_settings
+
         get_settings.cache_clear()
         setup_logging()
 
