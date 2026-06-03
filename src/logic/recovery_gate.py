@@ -146,7 +146,10 @@ class RecoveryGate:
                 logging.DEBUG,
                 ObservabilityEvent(
                     event="recovery_gate_unexpected_error_suppressed",
-                    message="Unexpected error prevented state evaluation - not incrementing orphaned_running recovery trigger",
+                    message=(
+                        "Unexpected error prevented state evaluation - "
+                        "not incrementing orphaned_running recovery trigger"
+                    ),
                 ),
             )
 
@@ -216,7 +219,12 @@ class RecoveryGate:
                     logging.WARNING,
                     ObservabilityEvent(
                         event="recovery_gate_owner_mismatch_fresh_heartbeat",
-                        message=f"Owner mismatch with FRESH heartbeat (age={heartbeat_age_seconds:.1f}s): job.active_worker_id:{job.active_worker_id}, lock.holder_id:{self.lock.holder_id}. Forcing unsafe/blocking decision to avoid resetting a healthy remote worker.",
+                        message=(
+                            f"Owner mismatch with FRESH heartbeat (age={heartbeat_age_seconds:.1f}s): "
+                            f"job.active_worker_id:{job.active_worker_id}, "
+                            f"lock.holder_id:{self.lock.holder_id}. Forcing unsafe/blocking "
+                            "decision to avoid resetting a healthy remote worker."
+                        ),
                         metadata={
                             "heartbeat_age": heartbeat_age_seconds,
                             "job_worker_id": job.active_worker_id,
@@ -242,7 +250,11 @@ class RecoveryGate:
             logging.INFO,
             ObservabilityEvent(
                 event="recovery_gate_owner_mismatch_stale_heartbeat",
-                message=f"Owner mismatch with STALE/MISSING heartbeat detected: job.active_worker_id:{job.active_worker_id}, lock.holder_id:{self.lock.holder_id}. Downgrading to RESET.",
+                message=(
+                    "Owner mismatch with STALE/MISSING heartbeat detected: "
+                    f"job.active_worker_id:{job.active_worker_id}, "
+                    f"lock.holder_id:{self.lock.holder_id}. Downgrading to RESET."
+                ),
                 metadata={"job_worker_id": job.active_worker_id, "lock_holder_id": self.lock.holder_id},
             ),
         )
@@ -317,7 +329,10 @@ class RecoveryGate:
                     logging.INFO,
                     ObservabilityEvent(
                         event="recovery_gate_clean_install_detected",
-                        message="Lock state is UNKNOWN with no active job; treating as clean install WAIT until lock is acquired",
+                        message=(
+                            "Lock state is UNKNOWN with no active job; "
+                            "treating as clean install WAIT until lock is acquired"
+                        ),
                     ),
                 )
                 return RecoveryDecision(
@@ -459,7 +474,11 @@ class RecoveryGate:
                 logging.WARNING,
                 ObservabilityEvent(
                     event="recovery_gate_execution_blocked_final",
-                    message=f"Execution blocked by recovery gate: action={decision.action.value}, inconsistency={decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}",
+                    message=(
+                        f"Execution blocked by recovery gate: action={decision.action.value}, "
+                        "inconsistency="
+                        f"{decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}"
+                    ),
                     metadata={
                         "action": decision.action.value,
                         "inconsistency": (
@@ -542,7 +561,11 @@ class RecoveryGate:
                         logging.WARNING,
                         ObservabilityEvent(
                             event="recovery_gate_orphaned_job_reset",
-                            message=f"Reset orphaned rebuild job {active_job.job_id} (previous owner: {active_job.active_worker_id or 'unknown'})",
+                            message=(
+                                f"Reset orphaned rebuild job {active_job.job_id} "
+                                "(previous owner: "
+                                f"{active_job.active_worker_id or 'unknown'})"
+                            ),
                             metadata={
                                 "job_id": active_job.job_id,
                                 "previous_owner": active_job.active_worker_id or "unknown",

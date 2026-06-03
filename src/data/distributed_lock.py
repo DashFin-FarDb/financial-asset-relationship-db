@@ -122,7 +122,8 @@ class DistributedLock:
         resolved_factory = coordination_session_factory or session_factory
         if resolved_factory is None:
             raise TypeError(
-                "__init__() missing 1 required positional/keyword argument: 'coordination_session_factory' or 'session_factory'"
+                "__init__() missing 1 required positional/keyword argument: "
+                "'coordination_session_factory' or 'session_factory'"
             )
         if lock_name is None:
             raise TypeError("__init__() missing 1 required positional argument: 'lock_name'")
@@ -323,7 +324,10 @@ class DistributedLock:
                         logging.WARNING,
                         ObservabilityEvent(
                             event="lock_refresh_retry",
-                            message=f"Lock refresh attempt {attempt + 1}/{max_retries + 1} failed ({type(exc).__name__}), retrying in {delay}s...",
+                            message=(
+                                f"Lock refresh attempt {attempt + 1}/{max_retries + 1} "
+                                f"failed ({type(exc).__name__}), retrying in {delay}s..."
+                            ),
                             metadata={
                                 "lock_name": self.lock_name,
                                 "attempt": attempt + 1,
@@ -363,7 +367,10 @@ class DistributedLock:
                     logging.WARNING,
                     ObservabilityEvent(
                         event="lock_refresh_unexpected_error",
-                        message=f"Unexpected error refreshing distributed lock '{self.lock_name}': {type(exc).__name__}",
+                        message=(
+                            f"Unexpected error refreshing distributed lock '{self.lock_name}': "
+                            f"{type(exc).__name__}"
+                        ),
                         metadata={"lock_name": self.lock_name, "error": type(exc).__name__},
                     ),
                 )
@@ -501,7 +508,10 @@ class DistributedLock:
                 logging.ERROR,
                 ObservabilityEvent(
                     event="lock_state_check_unexpected_error",
-                    message=f"Unexpected error checking lock '{self.lock_name}' state ({type(exc).__name__}) - re-raising",
+                    message=(
+                        f"Unexpected error checking lock '{self.lock_name}' state "
+                        f"({type(exc).__name__}) - re-raising"
+                    ),
                     metadata={"lock_name": self.lock_name, "error": type(exc).__name__},
                 ),
             )

@@ -239,17 +239,23 @@ class ReconciliationEngine:
         """
         try:
             drift_type, severity, metadata = self.evaluator.evaluate_drift()
-        except ValueError:  # Consider defining a dedicated integrity exception (e.g. DriftIntegrityError) instead of using ValueError to avoid unintentionally catching unrelated ValueErrors
+        except ValueError:
+            # Consider defining a dedicated integrity exception (e.g. DriftIntegrityError)
+            # instead of using ValueError to avoid unintentionally catching unrelated ValueErrors.
             # Invariant violation / integrity issue: allow callers to treat as fatal.
             raise
-        except Exception as exc:  # noqa: BLE001 - explicit boundary contract: unexpected failures become explicit plans
+        except Exception as exc:  # noqa: BLE001
+            # explicit boundary contract: unexpected failures become explicit plans
             plan = self._evaluation_failure_plan(exc)
             log_event(
                 logger,
                 logging.ERROR,
                 ObservabilityEvent(
                     event="reconciliation_drift_evaluation_failed",
-                    message=f"Drift evaluation failed; returning explicit failure plan. error_type={type(exc).__name__}",
+                    message=(
+                        "Drift evaluation failed; returning explicit failure plan. "
+                        f"error_type={type(exc).__name__}"
+                    ),
                     metadata={"error": type(exc).__name__},
                 ),
             )
@@ -273,7 +279,11 @@ class ReconciliationEngine:
             logging.INFO,
             ObservabilityEvent(
                 event="reconciliation_plan_generated",
-                message=f"Generated reconciliation plan: drift_type={plan.drift_type}, severity={plan.severity.value}, execution_mode={plan.execution_mode.value}",
+                message=(
+                    f"Generated reconciliation plan: drift_type={plan.drift_type}, "
+                    f"severity={plan.severity.value}, "
+                    f"execution_mode={plan.execution_mode.value}"
+                ),
                 metadata={
                     "drift_type": plan.drift_type,
                     "severity": plan.severity.value,
@@ -297,7 +307,8 @@ class ReconciliationEngine:
             reason="Unable to evaluate drift; reconciliation planning failed",
             metadata={
                 "error_type": type(exc).__name__,
-                # Do not include full exception messages (may contain sensitive data); include a short sanitized message instead
+                # Do not include full exception messages (may contain sensitive data);
+                # include a short sanitized message instead
                 "error_message": (str(exc)[:200] if str(exc) else None),
             },
             created_at=datetime.now(timezone.utc),

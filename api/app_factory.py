@@ -168,7 +168,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     logging.INFO,
                     ObservabilityEvent(
                         event="startup_reconciliation_benign_clean_install",
-                        message="Benign clean-install detected on startup (action=wait, inconsistency=none). Proceeding with startup.",
+                        message=(
+                            "Benign clean-install detected on startup (action=wait, inconsistency=none). "
+                            "Proceeding with startup."
+                        ),
                     ),
                 )
             else:
@@ -272,7 +275,10 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
                     logging.WARNING,
                     ObservabilityEvent(
                         event="graph_sync_transient_error",
-                        message=f"Unexpected transient error in graph synchronization loop ({type(exc).__name__}). Engaging backoff policy.",
+                        message=(
+                            f"Unexpected transient error in graph synchronization loop ({type(exc).__name__}). "
+                            "Engaging backoff policy."
+                        ),
                         metadata={"error": type(exc).__name__},
                     ),
                 )

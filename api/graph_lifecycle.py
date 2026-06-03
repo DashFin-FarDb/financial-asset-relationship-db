@@ -433,7 +433,10 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
                 logging.WARNING,
                 ObservabilityEvent(
                     event="graph_startup_job_id_initialization_failed",
-                    message=f"Failed to initialize last_synced_job_id during graph startup (exception_type={type(exc).__name__})",
+                    message=(
+                        "Failed to initialize last_synced_job_id during graph startup "
+                        f"(exception_type={type(exc).__name__})"
+                    ),
                     metadata={"error": type(exc).__name__},
                 ),
             )

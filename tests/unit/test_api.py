@@ -136,7 +136,8 @@ def _apply_mock_graph_configuration(mock_graph_instance: Any, graph: AssetRelati
     """
     Copy core attributes from a concrete AssetRelationshipGraph onto a mocked graph used in tests.
 
-    This sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data attributes to mirror the provided graph, allowing tests to reuse a consistent mocked graph surface.
+    This sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data
+    attributes to mirror the provided graph, allowing tests to reuse a consistent mocked graph surface.
 
     Parameters:
         mock_graph_instance (object): The mocked graph object (typically a unittest.mock.Mock) to configure.
@@ -164,7 +165,9 @@ def apply_mock_graph() -> Callable[[object, AssetRelationshipGraph], None]:
     """
     Provide a helper callable that wires a patched/mock graph object to a concrete AssetRelationshipGraph instance.
 
-    The returned callable takes (mock_graph_instance, graph) and copies the concrete graph's public surface — including assets, relationships, and callable methods used by tests — onto the mocked graph so tests can use the concrete graph state through the mock.
+    The returned callable takes (mock_graph_instance, graph) and copies the concrete graph's
+    public surface — including assets, relationships, and callable methods used by tests —
+    onto the mocked graph so tests can use the concrete graph state through the mock.
 
     Returns:
         callable: A function accepting (mock_graph_instance, graph) which applies the configuration.
@@ -586,7 +589,8 @@ class TestResponseValidation:
         """
         Validate that each asset in the /api/assets response matches the expected schema.
 
-        Checks that required fields are present and have the correct types (id, symbol, name, asset_class, sector, price, currency) and that `market_cap`, when not null, is a number.
+        Checks that required fields are present and have the correct types (id, symbol, name,
+        asset_class, sector, price, currency) and that `market_cap`, when not null, is a number.
         """
         apply_mock_graph(mock_graph_instance, mock_graph)
 
@@ -781,7 +785,9 @@ class TestCacheCorruptionRegression:
         """
         Verify concurrent cache reads do not raise errors and produce consistent graphs.
 
-        Spawns multiple threads that each instantiate a RealDataFetcher pointed at the same cache file and create a database from it; the test asserts no thread raises an exception and every returned graph has the same number of assets as the reference graph.
+        Spawns multiple threads that each instantiate a RealDataFetcher pointed at the same
+        cache file and create a database from it; the test asserts no thread raises an exception
+        and every returned graph has the same number of assets as the reference graph.
         """
         import threading
 

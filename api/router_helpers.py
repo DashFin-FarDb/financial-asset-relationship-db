@@ -5,9 +5,6 @@ from typing import Any, NoReturn
 
 from fastapi import HTTPException
 
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
-
 logger = logging.getLogger(__name__)
 
 # Color mapping for each AssetClass.value string used by the visualization router.

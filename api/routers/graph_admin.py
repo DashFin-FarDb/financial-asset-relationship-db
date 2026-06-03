@@ -729,7 +729,10 @@ def _restore_persisted_graph_snapshot(
             logging.ERROR,
             ObservabilityEvent(
                 event="graph_rebuild_snapshot_restore_failed",
-                message=f"Failed to restore persisted graph snapshot after rebuild failure: {type(restore_exc).__name__}",
+                message=(
+                    "Failed to restore persisted graph snapshot after rebuild failure: "
+                    f"{type(restore_exc).__name__}"
+                ),
                 metadata={"error": type(restore_exc).__name__},
             ),
         )
@@ -1391,7 +1394,10 @@ def _create_and_start_rebuild_job(
             logging.ERROR,
             ObservabilityEvent(
                 event="rebuild_initial_heartbeat_failed",
-                message=f"Failed to record initial rebuild heartbeat: {type(exc).__name__} (job_id={job_id}). Failing closed.",
+                message=(
+                    f"Failed to record initial rebuild heartbeat: {type(exc).__name__} "
+                    f"(job_id={job_id}). Failing closed."
+                ),
                 metadata={"job_id": job_id, "error": type(exc).__name__},
             ),
         )
@@ -1470,7 +1476,10 @@ def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
             logging.ERROR,
             ObservabilityEvent(
                 event="rebuild_job_status_corrupted",
-                message=f"Corrupted status in DB (truncated to 200 chars): {sanitized_status}; len={status_len}; falling back to failed",
+                message=(
+                    f"Corrupted status in DB (truncated to 200 chars): {sanitized_status}; "
+                    f"len={status_len}; falling back to failed"
+                ),
                 metadata={"status_len": status_len, "sanitized_status": sanitized_status},
             ),
         )

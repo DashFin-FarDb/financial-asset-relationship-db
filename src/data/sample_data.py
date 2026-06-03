@@ -21,12 +21,16 @@ logger = logging.getLogger(__name__)
 
 def create_sample_database() -> AssetRelationshipGraph:
     """
-    Create an in-memory sample AssetRelationshipGraph populated with diversified financial assets and regulatory events.
+    Create an in-memory sample AssetRelationshipGraph populated with diversified
+    financial assets and regulatory events.
 
-    Constructs a graph containing equities, corporate and government bonds, commodities, and currencies; registers several regulatory events that reference related assets; and builds inter-asset relationships to produce a connected sample dataset.
+    Constructs a graph containing equities, corporate and government bonds, commodities,
+    and currencies; registers several regulatory events that reference related assets;
+    and builds inter-asset relationships to produce a connected sample dataset.
 
     Returns:
-        AssetRelationshipGraph: Populated graph containing the sample assets, regulatory events, and their established relationships.
+        AssetRelationshipGraph: Populated graph containing the sample assets,
+                                regulatory events, and their established relationships.
     """
     try:
         log_event(
@@ -367,7 +371,10 @@ def create_sample_database() -> AssetRelationshipGraph:
             logging.INFO,
             ObservabilityEvent(
                 event="sample_graph_creation_completed",
-                message=f"Expanded sample database created with {asset_count} assets and {relationship_count} relationships",
+                message=(
+                    f"Expanded sample database created with {asset_count} assets "
+                    f"and {relationship_count} relationships"
+                ),
                 metadata={"asset_count": asset_count, "relationship_count": relationship_count},
             ),
         )
@@ -408,7 +415,11 @@ def _log_asset_class_coverage(all_assets: Sequence[object]) -> None:
         logging.INFO,
         ObservabilityEvent(
             event="sample_graph_class_coverage",
-            message=f"Asset classes covered: Equity ({equity_count}), Fixed Income ({fixed_income_count}), Commodity ({commodity_count}), Currency ({currency_count})",
+            message=(
+                f"Asset classes covered: Equity ({equity_count}), "
+                f"Fixed Income ({fixed_income_count}), "
+                f"Commodity ({commodity_count}), Currency ({currency_count})"
+            ),
             metadata={
                 "equity": equity_count,
                 "fixed_income": fixed_income_count,

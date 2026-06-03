@@ -364,7 +364,11 @@ def _log_in_memory_sqlite_persistence_skip() -> None:
         logging.WARNING,
         ObservabilityEvent(
             event="graph_persistence_skip_in_memory",
-            message="ASSET_GRAPH_DATABASE_URL points to an in-memory SQLite database; startup persistence loading requires a file-based or network database. Skipping persisted graph load.",
+            message=(
+                "ASSET_GRAPH_DATABASE_URL points to an in-memory SQLite database; "
+                "startup persistence loading requires a file-based or network database. "
+                "Skipping persisted graph load."
+            ),
         ),
     )
 

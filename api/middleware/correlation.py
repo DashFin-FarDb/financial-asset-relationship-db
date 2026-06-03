@@ -7,7 +7,7 @@ import uuid
 from collections.abc import MutableMapping
 from typing import TYPE_CHECKING
 
-from starlette.datastructures import Headers, MutableHeaders, State
+from starlette.datastructures import Headers, MutableHeaders
 
 from src.observability.context import is_valid_id, reset_request_context, set_request_context
 from src.observability.events import ObservabilityEvent
@@ -50,7 +50,10 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
             logging.DEBUG,
             ObservabilityEvent(
                 event="correlation_id_invalid_header",
-                message=f"Invalid {header_name} header received (redacted), trimmed_length={min(trimmed_len, LOG_TRUNCATE_LEN)}",
+                message=(
+                    f"Invalid {header_name} header received (redacted), "
+                    f"trimmed_length={min(trimmed_len, LOG_TRUNCATE_LEN)}"
+                ),
                 metadata={"header_name": header_name, "trimmed_length": trimmed_len},
             ),
         )
@@ -87,7 +90,11 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                     logging.WARNING,
                     ObservabilityEvent(
                         event="correlation_id_state_injection_failed",
-                        message=f"Could not attach correlation IDs to state object of type {type(state_obj).__name__} (map_err={type(assign_exc).__name__}, attr_err={type(attr_exc).__name__}); continuing without state injection",
+                        message=(
+                            f"Could not attach correlation IDs to state object of type {type(state_obj).__name__} "
+                            f"(map_err={type(assign_exc).__name__}, attr_err={type(attr_exc).__name__}); "
+                            "continuing without state injection"
+                        ),
                         metadata={
                             "state_type": type(state_obj).__name__,
                             "map_err": type(assign_exc).__name__,
@@ -96,24 +103,32 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                     ),
                 )
             except Exception as exc:
-                # Unexpected error while falling back to attribute assignment; log at debug to avoid noisy traceback for non-fatal state injection errors.
+                # Unexpected error while falling back to attribute assignment; log at debug to avoid
+                # noisy traceback for non-fatal state injection errors.
                 log_event(
                     logger,
                     logging.DEBUG,
                     ObservabilityEvent(
                         event="correlation_id_state_injection_fallback_error",
-                        message=f"Unexpected error while falling back to attribute assignment for state object {type(state_obj).__name__}: {type(exc).__name__}",
+                        message=(
+                            f"Unexpected error while falling back to attribute assignment for state "
+                            f"object {type(state_obj).__name__}: {type(exc).__name__}"
+                        ),
                         metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
                     ),
                 )
         except Exception as exc:
-            # Unexpected error while assigning into mapping; log at debug to avoid noisy traceback for non-fatal state injection errors.
+            # Unexpected error while assigning into mapping; log at debug to avoid noisy
+            # traceback for non-fatal state injection errors.
             log_event(
                 logger,
                 logging.DEBUG,
                 ObservabilityEvent(
                     event="correlation_id_state_injection_mapping_error",
-                    message=f"Unexpected error while assigning into mapping-style state object {type(state_obj).__name__}: {type(exc).__name__}",
+                    message=(
+                        "Unexpected error while assigning into mapping-style state "
+                        f"object {type(state_obj).__name__}: {type(exc).__name__}"
+                    ),
                     metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
                 ),
             )
@@ -127,7 +142,10 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                 logging.WARNING,
                 ObservabilityEvent(
                     event="correlation_id_state_injection_failed",
-                    message=f"Could not attach correlation IDs to state object of type {type(state_obj).__name__} ({type(exc).__name__}); continuing without state injection",
+                    message=(
+                        f"Could not attach correlation IDs to state object of type {type(state_obj).__name__} "
+                        f"({type(exc).__name__}); continuing without state injection"
+                    ),
                     metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
                 ),
             )
@@ -137,7 +155,10 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                 logging.DEBUG,
                 ObservabilityEvent(
                     event="correlation_id_state_injection_error",
-                    message=f"Unexpected error while attaching correlation IDs to state object {type(state_obj).__name__}: {type(exc).__name__}",
+                    message=(
+                        f"Unexpected error while attaching correlation IDs to state "
+                        f"object {type(state_obj).__name__}: {type(exc).__name__}"
+                    ),
                     metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
                 ),
             )

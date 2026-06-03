@@ -138,7 +138,10 @@ class RebuildDriftEvaluator:
             logging.DEBUG,
             ObservabilityEvent(
                 event="rebuild_drift_evaluation_completed",
-                message=f"Drift evaluation completed: type={drift_type}, severity={severity.value}, lock_valid={lock_is_valid}",
+                message=(
+                    f"Drift evaluation completed: type={drift_type}, "
+                    f"severity={severity.value}, lock_valid={lock_is_valid}"
+                ),
                 metadata={"drift_type": drift_type, "severity": severity.value, "lock_is_valid": lock_is_valid},
             ),
         )
@@ -183,7 +186,9 @@ class RebuildDriftEvaluator:
                 heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
             return heartbeat_time
         except (ValueError, AttributeError, TypeError):
-            # Unparseable heartbeat treated as None (caller will treat as stale). Expected for string/non-datetime values; avoid including full stack traces for expected parse failures
+            # Unparseable heartbeat treated as None (caller will treat as stale).
+            # Expected for string/non-datetime values; avoid including full stack
+            # traces for expected parse failures.
             log_event(
                 logger,
                 logging.DEBUG,
