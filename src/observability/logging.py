@@ -14,9 +14,10 @@ import structlog
 
 from src.config.settings import get_settings
 
-from .context import get_request_context
 
 _logging_initialized_lock = threading.Lock()
+from .context import get_request_context
+
 _logging_initialized = False
 
 
