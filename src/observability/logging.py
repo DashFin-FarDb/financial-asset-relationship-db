@@ -6,7 +6,6 @@ request context (correlation_id and request_id).
 """
 
 import logging
-import os
 import threading
 from typing import Any
 
