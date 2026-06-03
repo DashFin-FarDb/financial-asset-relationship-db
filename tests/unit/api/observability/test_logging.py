@@ -11,6 +11,7 @@ import structlog
 
 import src.observability.logging
 from src.config.settings import get_settings
+from src.observability.context import reset_request_context, set_request_context
 from src.observability.logging import _inject_request_context, setup_logging
 
 
@@ -56,8 +57,6 @@ def test_inject_request_context_processor():
         assert result["event"] == "test event"
         assert result["level"] == "info"
     finally:
-        from src.observability.context import reset_request_context
-
         reset_request_context(tokens)
 
 
@@ -138,7 +137,6 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
         root_logger.handlers.clear()
         for h in original_handlers:
             root_logger.addHandler(h)
-        from src.observability.context import reset_request_context
 
         reset_request_context(tokens)
 
@@ -146,8 +144,6 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
 def test_setup_logging_invalid_level(capsys):
     """Test that setup_logging handles invalid LOG_LEVEL with a warning."""
     with patch.dict(os.environ, {"LOG_LEVEL": "DEUBG"}):
-        from src.config.settings import get_settings
-
         get_settings.cache_clear()
         setup_logging()
 
