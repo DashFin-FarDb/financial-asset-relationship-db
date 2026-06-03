@@ -440,7 +440,7 @@ def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception 
     return exc
 
 
-@router.post(_REBUILD_PATH)
+@ router.post(_REBUILD_PATH)
 async def rebuild_graph(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
 ) -> GraphRebuildResponse:
