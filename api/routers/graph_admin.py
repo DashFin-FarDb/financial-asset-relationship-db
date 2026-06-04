@@ -760,7 +760,7 @@ def _handle_rebuild_failure(
         )
     if source is not None:
         raise _RebuildExecutionError(source, exc) from exc
-    raise
+    raise exc from None
 
 
 @contextmanager
