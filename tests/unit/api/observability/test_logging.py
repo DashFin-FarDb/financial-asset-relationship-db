@@ -19,7 +19,7 @@ from src.observability.logging import _inject_request_context, setup_logging
 def _reset_logging():
     """
     Pytest fixture that resets global logging and structlog state for a test and restores it afterwards.
-    
+
     Sets the module-level initialization flag to allow logging reconfiguration, clears the cached settings so environment variable changes take effect, captures the root logger's handlers and level for restoration, yields to run the test, then restores the original handlers and level and resets structlog to its defaults.
     """
     # Reset our internal initialization flag to allow reconfiguration in tests
@@ -90,7 +90,7 @@ def test_setup_logging_configures_root_logger():
 def test_stdlib_logging_emits_json_with_context_and_extra():
     """
     Verify standard-library logging emits structured JSON containing the request context and preserves `extra` fields.
-    
+
     Asserts that a log emitted via the standard library:
     - serializes to JSON
     - includes `event`, `logger`, and `level`

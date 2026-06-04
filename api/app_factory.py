@@ -69,9 +69,9 @@ def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """
     Initialize persisted graph state during application startup.
-    
+
     Runs schema initialization for the durable graph database and, when configured, a separate coordination database. It then acquires a distributed startup lock and executes the recovery gate to reconcile persisted graph state before startup continues. Any lock reacquired during recovery is released before the function exits, and all temporary database engines are disposed.
-    
+
     Parameters:
         settings (GraphLifecycleSettings): Lifecycle settings that provide the durable graph database URL and optional coordination database URL.
     """
@@ -146,7 +146,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     Manage application startup and shutdown tasks for the FastAPI application, including optional durable-graph reconciliation, initialization of rebuild executors, and lifecycle of the background graph synchronization task.
-    
+
     During startup, performs durable-graph reconciliation when configured, initializes rebuild executors, and starts the background synchronization loop; always ensures the in-memory graph is initialized. On shutdown, initiates orderly teardown, cancels and awaits the sync task if running, shuts down rebuild executors when used, and finalizes application teardown.
     """
     from src.logic.recovery_gate import ExecutionBlockedError

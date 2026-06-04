@@ -186,9 +186,9 @@ def _active_worker_id_declared_too_wide(active_worker_col: dict | None) -> bool:
 def _apply_normalization_in_transaction(connection, needs_width_normalization: bool) -> None:
     """
     Attempt to narrow the `active_worker_id` column to `VARCHAR(64)` within the current transactional connection.
-    
+
     If `needs_width_normalization` is True, acquires an exclusive lock on `rebuild_jobs`, re-checks the maximum stored `active_worker_id` length, and alters the column type to `VARCHAR(64)` only when the re-checked maximum is missing or less than or equal to 64. If the re-checked maximum exceeds 64, emits a structured observability event and leaves the column unchanged.
-    
+
     Parameters:
         connection: An active SQLAlchemy transactional connection bound to the target PostgreSQL database.
         needs_width_normalization (bool): When True, attempt the width normalization; when False, do nothing.

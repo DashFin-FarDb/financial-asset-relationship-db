@@ -27,16 +27,16 @@ async def get_assets(
 ) -> AssetPageResponse:
     """
     Retrieve a paginated list of assets filtered by optional asset class and sector.
-    
+
     Parameters:
         asset_class (str | None): If provided, include only assets whose `asset.asset_class.value` equals this string.
         sector (str | None): If provided, include only assets whose `asset.sector` equals this string.
         page (int): 1-based page number.
         per_page (int): Number of items per page (maximum 1000).
-    
+
     Returns:
         AssetPageResponse: Page containing `items` (serialized assets for the requested page), `total` (total matched assets), `page`, and `per_page`.
-    
+
     Raises:
         HTTPException: Propagates existing HTTP errors; raises a 500-status `HTTPException` on unexpected internal errors.
     """
@@ -82,13 +82,13 @@ async def get_assets(
 async def get_asset_detail(asset_id: str) -> AssetResponse:
     """
     Retrieve full details for a single asset, including its issuer.
-    
+
     Parameters:
         asset_id: The unique identifier of the asset to retrieve.
-    
+
     Returns:
         AssetResponse: The asset's details with issuer information.
-    
+
     Raises:
         HTTPException: If the asset does not exist or an internal error occurs.
     """

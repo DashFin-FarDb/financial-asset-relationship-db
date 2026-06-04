@@ -234,7 +234,7 @@ def detailed_health_check() -> DetailedHealthResponse:
 async def metrics() -> Response:
     """
     Expose Prometheus metrics in OpenMetrics format.
-    
+
     Returns:
         Response: HTTP response containing OpenMetrics-formatted metrics with the OpenMetrics media type; on generation failure returns a 500 response with plain-text body "metrics generation error".
     """
@@ -256,11 +256,11 @@ async def metrics() -> Response:
 def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:
     """
     Emit a structured observability event for a system-route failure and raise a public HTTP 500 error.
-    
+
     Parameters:
         message (str): Contextual message to include in the observability event.
         exc (Exception): The original exception that triggered the failure.
-    
+
     Raises:
         HTTPException: Always raises an HTTP 500 error with a generic internal-error detail.
     """

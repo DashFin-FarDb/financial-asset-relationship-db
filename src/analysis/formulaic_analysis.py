@@ -78,12 +78,12 @@ class FormulaicAnalyzer:
     def analyze_graph(self, graph: AssetRelationshipGraph) -> dict[str, Any]:
         """
         Produce a set of financial formula templates and empirical relationship metrics from an asset relationship graph.
-        
+
         Orchestrates collection of applicable formula templates and computation of empirical relationship data, then assembles the analysis payload.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph of assets and relationships used to detect asset types, select applicable formulas, and compute empirical metrics.
-        
+
         Returns:
             result (dict): Analysis payload containing:
                 - "formulas" (List[Formula]): Generated Formula objects describing relationships and metrics.

@@ -192,12 +192,12 @@ def get_graph() -> AssetRelationshipGraph:
 def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphSource | None]:
     """
     Obtain the module-global AssetRelationshipGraph and its recorded startup source, initializing the graph if necessary.
-    
+
     If the global graph is uninitialized this function performs an atomic initialization under the module lock; on successful initialization the graph and its startup source are stored for future calls and an observability event is emitted.
-    
+
     Returns:
         tuple[AssetRelationshipGraph, AssetGraphSource | None]: The active global graph and the source used to initialize it (or `None` if unknown).
-    
+
     Raises:
         RuntimeError: If initialization completes but the global graph remains `None`.
         Exception: Propagates any exception raised during graph initialization.
@@ -409,9 +409,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
 def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphSource]:
     """
     Selects and initializes an AssetRelationshipGraph and identifies its startup source.
-    
+
     The selection follows this precedence: explicit graph factory, persisted durable graph, cache file, real-data fetcher, then a generated sample graph. If a persisted graph is used, the function will attempt to initialize the module's `last_synced_job_id` from durable persistence; if that attempt fails, initialization continues without setting `last_synced_job_id`.
-    
+
     Returns:
         tuple[AssetRelationshipGraph, AssetGraphSource]: The initialized graph and a source identifier: one of "explicit_factory", "persisted_graph_store", "cache", "real_data", or "sample".
     """
@@ -486,7 +486,7 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
 def sync_with_latest_rebuild() -> None:
     """
     Check durable persistence for a newer successful rebuild and, if found, load and synchronize that graph into the running runtime.
-    
+
     If the durable graph database is not configured or the runtime is rebuilding or shutting down, the function returns without action. When a newer rebuild job is detected it loads the persisted graph, attempts to publish it to the module runtime (and legacy `api.main.graph` if present), updates graph metrics on success, and emits observability events. Failures during the sync attempt are caught and emitted as a warning event; the function does not raise.
     """
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()

@@ -107,9 +107,9 @@ class Settings(BaseModel):
 def load_settings() -> Settings:
     """
     Load runtime settings from environment variables and return a configured Settings instance.
-    
+
     Reads environment variables (for example: ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL, POSTGRES_URL, COORDINATION_DATABASE_URL, ALLOWED_ORIGINS, REBUILD_LOCK_TTL_SECONDS) and maps them to Settings fields, delegating type coercion and validation to Pydantic. REBUILD_LOCK_TTL_SECONDS is passed unchanged for field-level parsing. DATABASE_URL falls back to POSTGRES_URL when unset; COORDINATION_DATABASE_URL falls back to DATABASE_URL then POSTGRES_URL.
-    
+
     Returns:
         Settings: A Settings instance populated from the current environment.
     """

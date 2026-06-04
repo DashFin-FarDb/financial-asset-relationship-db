@@ -48,7 +48,7 @@ class RebuildDriftEvaluator:
     ) -> None:
         """
         Create a RebuildDriftEvaluator with its persistence and lock dependencies and runtime configuration.
-        
+
         Parameters:
             session_factory (Callable[[], Session]): Factory that produces SQLAlchemy sessions used to load rebuild state.
             lock (DistributedLock): Distributed lock used to inspect lock state and holder id.
@@ -156,10 +156,10 @@ class RebuildDriftEvaluator:
     def _get_active_rebuild_job(self) -> RebuildJobORM | None:
         """
         Retrieve the currently active rebuild job from persistence.
-        
+
         Returns:
             RebuildJobORM | None: The active rebuild job if one exists, otherwise `None`.
-        
+
         Raises:
             ValueError: If a data integrity constraint is violated (e.g., multiple RUNNING jobs).
             SQLAlchemyError: If the persistence layer cannot be queried.

@@ -158,10 +158,10 @@ def increment_recovery_trigger(inconsistency_type: str) -> None:
 def _initialize_from_active_job(active_job) -> None:
     """
     Initialize the rebuild-state metric from an active rebuild job.
-    
+
     Sets the REBUILD_STATE_STATUS gauge based on active_job.status and emits an informational observability event
     ("metrics_rebuild_state_initialized_active") that includes the job's status and job_id.
-    
+
     Parameters:
         active_job: An object with attributes `status` (a `RebuildJobStatus` or string-like) and `job_id`.
     """
@@ -183,9 +183,9 @@ def _initialize_from_active_job(active_job) -> None:
 def _initialize_from_latest_job(latest_job) -> None:
     """
     Set the rebuild-state gauge using the provided latest terminal rebuild job.
-    
+
     Emits an informational observability event that records the job's normalized status and `job_id`.
-    
+
     Parameters:
         latest_job: The latest persisted rebuild job whose `status` (a `RebuildJobStatus` or string) is used to set the metric; `latest_job.job_id` is included in the emitted event.
     """

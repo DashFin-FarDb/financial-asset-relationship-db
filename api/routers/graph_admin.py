@@ -203,10 +203,10 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
 def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException:
     """
     Map an internal rebuild exception to a sanitized HTTPException for API responses.
-    
+
     Parameters:
         exc (Exception | asyncio.CancelledError): The exception raised during rebuild processing; may wrap the original cause.
-    
+
     Returns:
         HTTPException: An HTTP exception with a safe status code and a sanitized detail payload describing the failure.
     """
@@ -296,7 +296,7 @@ def _duration_ms(started_at: float) -> int:
 def _log_rebuild_requested(*, user_ref: str) -> None:
     """
     Record that a graph rebuild was requested and emit a bounded observability audit event.
-    
+
     Parameters:
         user_ref (str): Printable, already-resolved user identifier to include in the audit metadata.
     """
@@ -692,9 +692,9 @@ def _heartbeat_keeper(
 ) -> None:
     """
     Maintain a background heartbeat loop that refreshes the distributed lock and writes a rebuild heartbeat until stopped or the lock is lost.
-    
+
     Sets `lock_lost_event` and stops if a lock refresh fails or if updating the heartbeat in persistence fails.
-    
+
     Parameters:
         session_factory (Callable[[], Session]): Factory that yields a new DB session for heartbeat updates.
         dist_lock (DistributedLock): Distributed lock instance to refresh.
@@ -777,11 +777,11 @@ def _restore_persisted_graph_snapshot(
 ) -> None:
     """
     Attempt to restore the provided graph snapshot to the given persistence URL; on failure, emit an observability event and continue.
-    
+
     Parameters:
         persistence_url (str): Resolved durable persistence URL where the snapshot should be saved.
         snapshot (AssetRelationshipGraph): In-memory graph snapshot to be restored.
-    
+
     """
     try:
         save_graph_to_persistence(persistence_url, snapshot)
@@ -812,11 +812,11 @@ def _handle_rebuild_failure(
 ) -> NoReturn:
     """
     Handle a rebuild failure by restoring a prior graph snapshot if appropriate, persisting the job's failed terminal state, and re-raising an exception that preserves bounded source context.
-    
+
     If a successful terminal state was not already persisted, this function:
     - Restores `graph_snapshot` to `resolved_url` when `graph_saved` is True and a snapshot is available.
     - Persists the failed job terminal state including duration and sanitized failure metadata.
-    
+
     Parameters:
         session_factory (Callable[[], Session]): Factory that yields a new DB session for persistence actions.
         job_id (str): Identifier of the rebuild job to mark failed.
@@ -827,7 +827,7 @@ def _handle_rebuild_failure(
         graph_snapshot (AssetRelationshipGraph | None): Snapshot of the previous persisted graph to restore on rollback when available.
         resolved_url (str): Persistence URL where the graph should be restored.
         source (GraphRebuildSource | None): Bounded source context for the rebuild; when present the original exception is wrapped to preserve source.
-    
+
     Raises:
         _RebuildExecutionError: When `source` is provided; wraps the original exception and preserves the bounded source context.
         Exception: Re-raises the original exception when no `source` is available.
@@ -891,9 +891,9 @@ def _run_rebuild_pipeline(
 ) -> GraphRebuildResponse:
     """
     Run a single rebuild: build the asset relationship graph, persist it atomically to durable storage, finalize the job state, and publish the graph to the runtime.
-    
+
     This function checks the provided `lock_lost` event at key stages to abort and trigger rollback if the distributed lock is lost. On failure it persists a failed job terminal state and may attempt to restore a previously saved snapshot before re-raising the failure (the re-raised exception may be wrapped to preserve the rebuild `source`).
-    
+
     Parameters:
         session_factory (Callable[[], Session]): Factory that provides a new SQLAlchemy Session for job updates.
         settings (GraphLifecycleSettings): Configuration used to build the graph.
@@ -901,10 +901,10 @@ def _run_rebuild_pipeline(
         job_id (str): Identifier of the rebuild job being executed.
         job_started_at (float): Monotonic timestamp when the job started, used to compute durations.
         lock_lost (threading.Event): Event set when the distributed lock is lost; checked at multiple stages to abort and trigger rollback.
-    
+
     Returns:
         GraphRebuildResponse: Result for the persisted rebuild including status, source, and asset/relationship counts.
-    
+
     Raises:
         Exception: Re-raises the original failure encountered while building or persisting; when a rebuild `source` is known the raised exception may be wrapped to preserve that context.
     """
@@ -970,10 +970,10 @@ def _setup_coordination_and_domain_factories(
 ) -> tuple[Callable[[], Session], Callable[[], Session], str, Engine, Engine | None]:
     """
     Resolve durable persistence URLs and provide SQLAlchemy session factories and engines for the domain (graph) and coordination planes.
-    
+
     Parameters:
         settings (GraphLifecycleSettings): Configuration containing `asset_graph_database_url` and optional `coordination_database_url`.
-    
+
     Returns:
         tuple[Callable[[], Session], Callable[[], Session], str, Engine, Engine | None]:
             - domain_session_factory: callable that yields a new Session bound to the domain engine.
@@ -981,7 +981,7 @@ def _setup_coordination_and_domain_factories(
             - resolved_domain_url: resolved durable URL used for domain persistence.
             - domain_engine: Engine instance for the domain persistence.
             - coordination_engine: Engine instance for coordination if a separate coordination database is used, otherwise `None`.
-    
+
     Raises:
         RuntimeError: If neither `coordination_database_url` nor `asset_graph_database_url` is configured.
     """
@@ -1165,12 +1165,12 @@ def _perform_rebuild_and_persist_sync(
 def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
     """
     Ensure the coordination database is a writable primary rather than a read replica.
-    
+
     This performs a backend-appropriate check and will be a no-op on databases where replica detection is not applicable. If the database is a read replica or the role cannot be determined, a RuntimeError is raised to prevent proceeding with coordination operations.
-    
+
     Parameters:
         session_factory (Callable[[], Session]): Factory that yields a SQLAlchemy Session for the coordination database.
-    
+
     Raises:
         RuntimeError: If the coordination database is a read replica or if its primary role cannot be verified.
     """
@@ -1234,16 +1234,16 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
 def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
     """
     Create a rebuild job record in pending status.
-    
+
     Parameters:
-    	session_factory (Callable[[], Session]): Factory that produces a new DB session for repository operations.
-    	user_ref (str): Bounded, printable identifier for the requesting user.
-    
+        session_factory (Callable[[], Session]): Factory that produces a new DB session for repository operations.
+        user_ref (str): Bounded, printable identifier for the requesting user.
+
     Returns:
-    	job_id (str): Identifier of the created rebuild job.
-    
+        job_id (str): Identifier of the created rebuild job.
+
     Raises:
-    	GraphPersistenceSaveError: If persisting the job record fails.
+        GraphPersistenceSaveError: If persisting the job record fails.
     """
     try:
         with session_scope(session_factory) as session:
@@ -1528,14 +1528,14 @@ def _create_and_start_rebuild_job(
 def _rebuild_persistence_session() -> Generator[Session, None, None]:
     """
     Provide a SQLAlchemy Session bound to the resolved durable graph persistence engine.
-    
+
     Yields:
         session (Session): A database session connected to the configured durable graph persistence.
-    
+
     Raises:
         HTTPException: Status 503 with detail "Graph persistence database not configured" when persistence is not configured or marked non-durable.
         HTTPException: Status 503 with detail "Graph persistence database unavailable" for other failures creating or accessing the persistence engine.
-    
+
     Notes:
         The underlying engine is disposed when the context manager exits.
     """
