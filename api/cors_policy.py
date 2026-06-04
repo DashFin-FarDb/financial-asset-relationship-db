@@ -52,11 +52,11 @@ def _is_valid_https_domain(origin_url: str) -> bool:
     Determine whether an origin string is a valid HTTPS origin with a hostname and optional port.
 
     Accepts internationalized hostnames (IDNA) and rejects origins that include path,
-    params, query, fragment, or userinfo, or that do not use the HTTPS scheme. 
+    params, query, fragment, or userinfo, or that do not use the HTTPS scheme.
     On parsing or IDNA conversion errors, an observability event is emitted and the function returns `False`.
 
     Returns:
-        `True` if `origin_url` is an HTTPS origin with a valid hostname 
+        `True` if `origin_url` is an HTTPS origin with a valid hostname
         (after IDNA normalization) and an optional port, `False` otherwise.
     """
     if not origin_url.startswith("https://"):
@@ -120,8 +120,8 @@ def build_allowed_origins() -> list[str]:
     """
     Constructs the list of origins allowed by CORS for the application.
 
-    Includes environment-specific localhost origins (HTTPS-only in non-development, HTTP+HTTPS in development) 
-    and appends configured origins from settings that match supported origin formats. 
+    Includes environment-specific localhost origins (HTTPS-only in non-development, HTTP+HTTPS in development)
+    and appends configured origins from settings that match supported origin formats.
     Configured origins that are rejected are skipped and emitted to observability.
 
     Returns:
