@@ -108,19 +108,24 @@ class DistributedLock:
         ttl_seconds: int = 300,
     ) -> None:
         """
-        Create a DistributedLock configured with a database session factory, lock identity, and optional observability hooks.
+        Create a DistributedLock configured with a database session factory, lock identity,
+        and optional observability hooks.
 
         Parameters:
-            session_factory (Callable[[], Session] | None): Backward-compatible factory for DB sessions; used if `coordination_session_factory` is not provided.
+            session_factory (Callable[[], Session] | None): Backward-compatible factory for DB sessions;
+            used if `coordination_session_factory` is not provided.
             lock_name (str | None): Unique name for the lock; required.
-            coordination_session_factory (Callable[[], Session] | None): Preferred factory for coordination (primary-only) sessions; takes precedence over `session_factory`.
-            metrics (LockMetrics | None): Optional metrics collector; methods `inc` and `observe` will be called for lifecycle metrics.
+            coordination_session_factory (Callable[[], Session] | None): 
+            Preferred factory for coordination (primary-only) sessions; takes precedence over `session_factory`.
+            metrics (LockMetrics | None): Optional metrics collector; methods `inc`
+            and `observe` will be called for lifecycle metrics.
             event_sink (Callable[[LockEvent], None] | None): Optional consumer for immutable structured lock events.
             holder_id (str | None): Optional identifier for the lock holder; a UUID will be generated when omitted.
             ttl_seconds (int): Time-to-live for the lock in seconds; defaults to 300.
 
         Notes:
-            Either `coordination_session_factory` or `session_factory` must be provided; a TypeError is raised if both are missing.
+            Either `coordination_session_factory` or `session_factory` must be provided; 
+            a TypeError is raised if both are missing.
         """
         resolved_factory = coordination_session_factory or session_factory
         if resolved_factory is None:
@@ -172,10 +177,12 @@ class DistributedLock:
         Parameters:
             name (str): Metric name.
             labels (dict[str, str] | None): Optional metric labels; pass None for no labels.
-            value (float | None): If provided, record an observation with this value. If omitted and the metric name does not contain "latency", increment a counter.
+            value (float | None): If provided, record an observation with this value.
+            If omitted and the metric name does not contain "latency", increment a counter.
 
         Notes:
-            If a metrics backend is not configured, this is a no-op. On publication failure, emits an `ObservabilityEvent` via `log_event`.
+            If a metrics backend is not configured, this is a no-op. 
+            On publication failure, emits an `ObservabilityEvent` via `log_event`.
         """
         if self.metrics:
             try:
@@ -221,7 +228,8 @@ class DistributedLock:
             bool: `False` if the lock is contested or cannot be obtained after the configured retries.
 
         Raises:
-            Exception: Re-raises unexpected exceptions encountered during acquisition after exhausting retries; in this case the lock's lifecycle state is set to `LockLifecycleState.LOST`.
+            Exception: Re-raises unexpected exceptions encountered during acquisition after exhausting retries;
+            in this case the lock's lifecycle state is set to `LockLifecycleState.LOST`.
         """
         self._emit(
             LockEvent(
@@ -303,17 +311,23 @@ class DistributedLock:
         """
         Decide whether to retry a lock refresh after a transient error and record observability signals.
 
-        Emits a TRANSIENT_ERROR event for every invocation. If the retry budget is exhausted, marks the lock as lost, emits a FAILED event, and records failure and latency metrics.
+        Emits a TRANSIENT_ERROR event for every invocation. 
+        
+        If the retry budget is exhausted, marks the lock as lost, emits a FAILED event, 
+        
+        and records failure and latency metrics.
 
         Parameters:
                 attempt (int): Zero-based current retry attempt.
                 max_retries (int): Maximum allowed retry attempts (zero or greater).
                 retry_delay_seconds (float): Base delay in seconds used for exponential backoff between retries.
                 exc (Exception): The transient exception that triggered this handler.
-                start_time (float): Timestamp (as returned by time()) when the refresh operation began; used to compute latency metrics.
+                start_time (float): Timestamp (as returned by time()) when the refresh operation began; 
+                used to compute latency metrics.
 
         Returns:
-                bool: `True` if the caller should retry the refresh, `False` if no retries remain and the lock has been marked lost.
+                bool: `True` if the caller should retry the refresh, 
+                `False` if no retries remain and the lock has been marked lost.
         """
         self._emit(
             LockEvent(
@@ -361,7 +375,9 @@ class DistributedLock:
 
     def _handle_refresh_unexpected_error(self, exc: Exception, start_time: float) -> bool:
         """
-        Handle an unexpected exception raised during a refresh attempt by marking the lock as lost, emitting observability events and metrics, and indicating the refresh should stop.
+        Handle an unexpected exception raised during a refresh attempt by marking the lock as lost, 
+        
+        emitting observability events and metrics, and indicating the refresh should stop.
 
         Parameters:
             exc (Exception): The unexpected exception that occurred.
@@ -459,7 +475,13 @@ class DistributedLock:
         """
         Release the lock in the coordination database and record observability events.
 
-        Attempts to remove the lock holder record in the coordination store, sets the internal lifecycle state to RELEASED, emits a `RELEASED` LockEvent, and increments the release metric on success. If an exception occurs, emits an `UNEXPECTED_ERROR` LockEvent, increments the error metric, logs the failure, and swallows the exception (does not re-raise).
+        Attempts to remove the lock holder record in the coordination store, sets the internal lifecycle state to RELEASED, 
+        
+        emits a `RELEASED` LockEvent, and increments the release metric on success.
+        
+        If an exception occurs, emits an `UNEXPECTED_ERROR` LockEvent, increments the error metric,
+        
+        logs the failure, and swallows the exception (does not re-raise).
         """
         try:
             with session_scope(self.coordination_session_factory) as session:
@@ -514,7 +536,8 @@ class DistributedLock:
             snapshot (LockStateSnapshot): Database snapshot describing lock existence, validity, and expiry.
 
         Returns:
-            LockState: `LockState.VALID` if the snapshot is present and valid; `LockState.EXPIRED` if the snapshot exists, is not valid, and `expires_at` is less than or equal to the current UTC time; `LockState.UNKNOWN` otherwise.
+            LockState: `LockState.VALID` if the snapshot is present and valid; `LockState.EXPIRED` if the snapshot exists,
+            is not valid, and `expires_at` is less than or equal to the current UTC time; `LockState.UNKNOWN` otherwise.
         """
         if not snapshot.exists:
             return LockState.UNKNOWN
@@ -535,7 +558,9 @@ class DistributedLock:
                 exc (Exception): The exception raised while checking the lock state.
 
         Returns:
-                LockState: `LockState.LOST` when the exception indicates transient DB/connectivity issues (`SQLAlchemyError` or `OSError`). For other exceptions this method does not return; it sets the lifecycle state to `LOST`, emits an `UNEXPECTED_ERROR` event, and re-raises the original exception.
+                LockState: `LockState.LOST` when the exception indicates transient DB/connectivity issues (`SQLAlchemyError` or `OSError`). 
+                For other exceptions this method does not return;
+                it sets the lifecycle state to `LOST`, emits an `UNEXPECTED_ERROR` event, and re-raises the original exception.
         """
         if isinstance(exc, (SQLAlchemyError, OSError)):
             log_event(
