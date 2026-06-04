@@ -187,7 +187,8 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
     """
     Attempt to narrow the `active_worker_id` column to `VARCHAR(64)` within the current transactional connection.
 
-    If `needs_width_normalization` is True, this function acquires an exclusive lock on `rebuild_jobs`, re-checks the maximum stored `active_worker_id` length, and:
+    If `needs_width_normalization` is True, this function acquires an exclusive lock on `rebuild_jobs`,
+    re-checks the maximum stored `active_worker_id` length, and:
     - if the maximum length is missing or less than or equal to 64, alters the column type to `VARCHAR(64)`;
     - otherwise, emits a structured warning event and does not modify the column.
 
