@@ -46,7 +46,9 @@ def _is_valid_color_format(color: str) -> bool:
         color (str): Color string to validate.
 
     Returns:
-        bool: `True` if `color` is a non-empty string in an accepted hex or `rgb`/`rgba` format or otherwise acceptable as a named color; `False` otherwise.
+        bool: `True` if `color` is a non-empty string in an accepted hex
+        or `rgb`/`rgba` format or otherwise acceptable as a named color;
+        `False` otherwise.
     """
     if not isinstance(color, str) or not color:
         return False
@@ -684,16 +686,23 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     """
     Create a 3D Plotly visualization of assets and their relationships.
 
-    Validates the provided graph, obtains enhanced visualization data, and assembles node markers, relationship line traces grouped by relationship type and bidirectionality, optional directional arrow markers for unidirectional edges, and a configured 3D layout with a dynamic title.
+    Validates the provided graph, obtains enhanced visualization data, and assembles node markers, 
+    
+    relationship line traces grouped by relationship type and bidirectionality, 
+    
+    optional directional arrow markers for unidirectional edges, and a configured 3D layout with a dynamic title.
 
     Parameters:
-        graph (AssetRelationshipGraph): Graph object exposing get_3d_visualization_data_enhanced() and a relationships container used to build relationship and arrow traces.
+        graph (AssetRelationshipGraph): Graph object exposing get_3d_visualization_data_enhanced() 
+        and a relationships container used to build relationship and arrow traces.
 
     Returns:
-        go.Figure: A Plotly 3D figure containing asset node markers, relationship line traces grouped by type and direction, optional directional arrow marker traces, and a configured 3D layout with a dynamic title.
+        go.Figure: A Plotly 3D figure containing asset node markers, relationship line traces grouped by type and direction, 
+        optional directional arrow marker traces, and a configured 3D layout with a dynamic title.
 
     Raises:
-        ValueError: If `graph` is not a valid AssetRelationshipGraph or if the visualization data retrieved from the graph is invalid.
+        ValueError: If `graph` is not a valid AssetRelationshipGraph 
+        or if the visualization data retrieved from the graph is invalid.
     """
     if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
         raise ValueError("Invalid graph data provided")
@@ -1270,14 +1279,17 @@ def _validate_positions_and_asset_ids_lengths(
     asset_ids: list[str],
 ) -> None:
     """
-    Ensure `positions` and `asset_ids` represent the same number of assets and that `positions` is a 2-D array with three columns.
+    Ensure `positions` and `asset_ids` represent the same number of assets 
+    
+    and that `positions` is a 2-D array with three columns.
 
     Parameters:
         positions (np.ndarray): Numeric array of shape (n, 3) containing XYZ coordinates.
         asset_ids (list[str]): Sequence of n non-empty asset identifier strings.
 
     Raises:
-        ValueError: If `positions` and `asset_ids` differ in length, if `positions` is not 2-D with three columns, or if either input does not support `len()`.
+        ValueError: If `positions` and `asset_ids` differ in length, if `positions` is not 2-D with three columns,
+        or if either input does not support `len()`.
     """
     try:
         if len(positions) != len(asset_ids):
