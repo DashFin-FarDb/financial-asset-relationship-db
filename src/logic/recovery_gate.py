@@ -15,7 +15,7 @@ from src.logic.rebuild_failure_detection import (
     InconsistencyType,
     detect_rebuild_inconsistency,
 )
-from src.logic.rebuild_recovery import RecoveryAction, determine_recovery_action
+from src.logic.rebuild_recovery import RecoveryAction, RecoveryDecision, determine_recovery_action
 from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)

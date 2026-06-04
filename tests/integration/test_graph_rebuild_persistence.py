@@ -212,8 +212,10 @@ async def test_rebuild_lock_acquisition_failure_path(
     _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
+    from src.data.distributed_lock import LockAcquisitionTimeout
+
     mock_lock = MagicMock()
-    mock_lock.acquire.return_value = False
+    mock_lock.acquire.side_effect = LockAcquisitionTimeout("Lock acquisition timed out")
 
     with patch("api.routers.graph_admin.DistributedLock", return_value=mock_lock):
         response = await test_client.post("/api/graph/rebuild")

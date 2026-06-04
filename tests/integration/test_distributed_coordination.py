@@ -67,11 +67,15 @@ def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app
     results: dict[str, bool] = {}
     errors: dict[str, Exception] = {}
 
+    from src.data.distributed_lock import LockAcquisitionTimeout
+
     def attempt(holder: str, lock: DistributedLock) -> None:
         try:
             barrier.wait()
             results[holder] = bool(lock.acquire())
         except threading.BrokenBarrierError:
+            results[holder] = False
+        except LockAcquisitionTimeout:
             results[holder] = False
         except SQLAlchemyError as exc:
             errors[holder] = exc

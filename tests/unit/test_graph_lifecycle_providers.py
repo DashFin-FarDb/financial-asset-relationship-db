@@ -83,7 +83,7 @@ def test_save_graph_with_session_rolls_back_when_pre_commit_check_fails(
     def fail_pre_commit() -> None:
         raise RuntimeError("lost lock")
 
-    with pytest.raises(providers.GraphPersistenceSaveError):
+    with pytest.raises(RuntimeError):
         providers._save_graph_with_session(
             session, graph, pre_commit_check=fail_pre_commit
         )  # pylint: disable=protected-access

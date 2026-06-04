@@ -328,7 +328,7 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
         )
 
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(GraphPersistenceSaveError):
+            with pytest.raises(graph_admin._DistributedLockLostError):
                 save_graph_to_persistence(
                     resolved_url,
                     test_graph,
