@@ -1,14 +1,16 @@
 import logging
+
 import pytest
 import structlog
+
 
 def get_processor_handler():
     """
     Find the logging handler configured with structlog's ProcessorFormatter.
-    
+
     Returns:
         logging.Handler: The handler if found.
-        
+
     Raises:
         pytest.fail: If no such handler is found.
     """

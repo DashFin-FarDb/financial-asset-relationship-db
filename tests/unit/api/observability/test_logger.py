@@ -9,6 +9,7 @@ import src.observability.logging
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import get_logger, log_event
 from src.observability.logging import setup_logging
+
 from .test_utils import get_processor_handler
 
 

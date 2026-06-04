@@ -362,10 +362,10 @@ class RecoveryGate:
             )
             return RecoveryDecision(
                 action=RecoveryAction.UNSAFE,
-                    reason="Lock state is unknown with active rebuild job",
-                    inconsistency_type=None,
-                    safe_to_execute=False,
-                )
+                reason="Lock state is unknown with active rebuild job",
+                inconsistency_type=None,
+                safe_to_execute=False,
+            )
 
         inconsistency = detect_rebuild_inconsistency(
             job=job,
