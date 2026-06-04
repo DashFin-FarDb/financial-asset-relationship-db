@@ -9,6 +9,7 @@ import src.observability.logging
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import get_logger, log_event
 from src.observability.logging import setup_logging
+from .test_utils import get_processor_handler
 
 
 @pytest.fixture(autouse=True)
@@ -37,10 +38,7 @@ def test_log_event_outputs_correct_json_and_preserves_message():
     root_logger = logging.getLogger()
 
     # Find our handler configured by setup_logging
-    try:
-        our_handler = next(h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter))
-    except StopIteration:
-        pytest.fail("ProcessorFormatter handler not found")
+    our_handler = get_processor_handler()
     stream_handler.setFormatter(our_handler.formatter)
 
     # Isolated handlers for this test
@@ -93,10 +91,7 @@ def test_standard_logging_does_not_contain_redundant_message_key():
     log_output = StringIO()
     stream_handler = logging.StreamHandler(log_output)
     root_logger = logging.getLogger()
-    try:
-        our_handler = next(h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter))
-    except StopIteration:
-        pytest.fail("ProcessorFormatter handler not found")
+    our_handler = get_processor_handler()
     stream_handler.setFormatter(our_handler.formatter)
     original_handlers = list(root_logger.handlers)
     root_logger.handlers.clear()

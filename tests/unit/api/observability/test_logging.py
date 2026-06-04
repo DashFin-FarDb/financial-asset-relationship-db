@@ -13,6 +13,7 @@ import src.observability.logging
 from src.config.settings import get_settings
 from src.observability.context import reset_request_context, set_request_context
 from src.observability.logging import _inject_request_context, setup_logging
+from .test_utils import get_processor_handler
 
 
 @pytest.fixture(autouse=True)
@@ -109,10 +110,7 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
     root_logger = logging.getLogger()
 
     # Find our handler
-    try:
-        our_handler = next(h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter))
-    except StopIteration:
-        pytest.fail("ProcessorFormatter handler not found")
+    our_handler = get_processor_handler()
     stream_handler.setFormatter(our_handler.formatter)
 
     # Temporary clear all handlers for this test to avoid interference
