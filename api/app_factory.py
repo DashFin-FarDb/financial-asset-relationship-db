@@ -266,11 +266,15 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
 
     If a synchronization attempt raises an exception,
 
-    the loop engages an exponential backoff with randomized jitter (capped at 32× the base interval) and logs a transient error;
+    the loop engages an exponential backoff with randomized jitter 
+    
+    (capped at 32× the base interval) and logs a transient error;
 
     after a successful sync the interval and error state are reset.
 
-    The loop checks the runtime lifecycle state before each attempt and exits when the runtime is shutting down or stopped.
+    The loop checks the runtime lifecycle state before each attempt 
+    
+    and exits when the runtime is shutting down or stopped.
 
     Parameters:
         interval_seconds (float): Desired base interval, in seconds, between synchronization attempts.
