@@ -39,7 +39,8 @@ async def get_assets(
         `total` (total matched assets), `page`, and `per_page`.
 
     Raises:
-        HTTPException: Propagates existing HTTP errors; raises a 500-status `HTTPException` on unexpected internal errors.
+        HTTPException: Propagates existing HTTP errors; 
+        raises a 500-status `HTTPException` on unexpected internal errors.
     """
     try:
         g = get_graph()
