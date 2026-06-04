@@ -4,7 +4,7 @@ import pytest
 import structlog
 
 
-def get_processor_handler():
+def get_processor_handler() -> logging.Handler:
     """
     Find the logging handler configured with structlog's ProcessorFormatter.
 

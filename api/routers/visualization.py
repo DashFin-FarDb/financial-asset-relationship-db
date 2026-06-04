@@ -7,8 +7,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
+from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import VisualizationDataResponse
 from ..router_helpers import (

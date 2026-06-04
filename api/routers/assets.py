@@ -5,8 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
+from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import AssetPageResponse, AssetResponse
 from ..router_helpers import (

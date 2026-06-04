@@ -67,6 +67,10 @@ class LockMetrics:
         raise NotImplementedError
 
 
+class LockAcquisitionTimeout(Exception):
+    """Raised when lock acquisition exceeds the deterministic wait ceiling."""
+
+
 class LockLifecycleState(str, Enum):
     """Explicit lifecycle states of the coordination primitive state machine."""
 
@@ -76,6 +80,9 @@ class LockLifecycleState(str, Enum):
     CONTENTED = "contented"
     LOST = "lost"
     RELEASED = "released"
+
+
+MAX_TTL = 300
 
 
 @dataclass(frozen=True)
@@ -121,7 +128,7 @@ class DistributedLock:
             and `observe` will be called for lifecycle metrics.
             event_sink (Callable[[LockEvent], None] | None): Optional consumer for immutable structured lock events.
             holder_id (str | None): Optional identifier for the lock holder; a UUID will be generated when omitted.
-            ttl_seconds (int): Time-to-live for the lock in seconds; defaults to 300.
+            ttl_seconds (int): Time-to-live for the lock in seconds; defaults to 300. Max 300.
 
         Notes:
             Either `coordination_session_factory` or `session_factory` must be provided;
@@ -135,6 +142,9 @@ class DistributedLock:
             )
         if lock_name is None:
             raise TypeError("__init__() missing 1 required positional argument: 'lock_name'")
+
+        if ttl_seconds > MAX_TTL:
+            raise ValueError(f"ttl_seconds ({ttl_seconds}) exceeds maximum allowed value of {MAX_TTL}")
 
         self.coordination_session_factory = resolved_factory
         self.session_factory = resolved_factory
@@ -215,21 +225,20 @@ class DistributedLock:
         """Return the current internal lifecycle state of the lock."""
         return self._state
 
-    def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> LockLease | bool:
+    def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> LockLease:
         """
-        Attempt to acquire the distributed lock, optionally retrying on failure.
+        Attempt to acquire the distributed lock, using deterministic back-off.
 
         Parameters:
-            retry_interval_seconds (float): Seconds to wait between retry attempts.
-            max_retries (int): Maximum number of retry attempts before giving up.
+            retry_interval_seconds (float): Initial seconds to wait between retry attempts.
+            max_retries (int): Ignored. Acquisition is now bounded by a 30s total wait ceiling per GEMINI.md.
 
         Returns:
             LockLease: Active lease with lifecycle state and fencing token when acquisition succeeds.
-            bool: `False` if the lock is contested or cannot be obtained after the configured retries.
 
         Raises:
-            Exception: Re-raises unexpected exceptions encountered during acquisition after exhausting retries;
-            in this case the lock's lifecycle state is set to `LockLifecycleState.LOST`.
+            LockAcquisitionTimeout: If the lock is not acquired within the 30-second total wait ceiling.
+            Exception: Re-raises unexpected exceptions encountered during acquisition after exhausting wait time.
         """
         self._emit(
             LockEvent(
@@ -239,7 +248,10 @@ class DistributedLock:
             )
         )
         self._metric("lock_acquire_total")
-        retries = 0
+
+        start_time = time()
+        current_interval = retry_interval_seconds
+
         while True:
             try:
                 with session_scope(self.coordination_session_factory) as session:
@@ -272,11 +284,12 @@ class DistributedLock:
                     )
                 )
                 self._metric("lock_errors_total")
-                if retries >= max_retries:
+                if (time() - start_time) >= 30.0:
                     self._set_state(LockLifecycleState.LOST)
                     raise
 
-            if retries >= max_retries:
+            elapsed = time() - start_time
+            if elapsed >= 30.0:
                 self._set_state(LockLifecycleState.CONTENTED)
                 self._emit(
                     LockEvent(
@@ -285,20 +298,26 @@ class DistributedLock:
                         self.holder_id,
                     )
                 )
-                self._metric("lock_contention_total")
-                return False
+                self._metric("lock_timeout_total")
+                raise LockAcquisitionTimeout(
+                    f"Failed to acquire lock '{self.lock_name}' within 30s ceiling (elapsed: {elapsed:.2f}s)"
+                )
 
-            retries += 1
-            log_event(
-                logger,
-                logging.INFO,
-                ObservabilityEvent(
-                    event="lock_acquisition_retry",
-                    message=f"Retrying lock acquisition for '{self.lock_name}' ({retries}/{max_retries})...",
-                    metadata={"lock_name": self.lock_name, "retry": retries, "max_retries": max_retries},
-                ),
-            )
-            sleep(retry_interval_seconds)
+            # Deterministic exponential back-off bounded by the 30s ceiling
+            sleep_duration = min(current_interval, 30.0 - elapsed)
+            if sleep_duration > 0:
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="lock_acquisition_retry",
+                        message=f"Retrying lock acquisition for '{self.lock_name}' (elapsed: {elapsed:.2f}s)...",
+                        metadata={"lock_name": self.lock_name, "elapsed": elapsed, "sleep": sleep_duration},
+                    ),
+                )
+                sleep(sleep_duration)
+
+            current_interval *= 2
 
     def _handle_refresh_transient_error(
         self,

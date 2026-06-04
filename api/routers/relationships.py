@@ -4,8 +4,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
+from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import RelationshipResponse
 from ..router_helpers import get_graph, logger, raise_asset_not_found

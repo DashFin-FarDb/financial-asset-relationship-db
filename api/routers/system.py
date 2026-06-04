@@ -7,8 +7,7 @@ from fastapi import APIRouter, HTTPException, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
+from src.observability.facade import ObservabilityEvent, log_event
 
 from .. import graph_lifecycle
 from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse

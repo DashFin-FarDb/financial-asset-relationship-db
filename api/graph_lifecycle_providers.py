@@ -19,8 +19,7 @@ from src.data.db_models import AssetORM
 from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
+from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
 
@@ -332,19 +331,21 @@ def _save_graph_with_session(
     Raises:
         GraphPersistenceSaveError: If saving the graph, the pre-commit check, or committing the transaction fails.
     """
+    pre_commit_error: Exception | None = None
     try:
         AssetGraphRepository(session).save_graph(graph)
         if pre_commit_check is not None:
             try:
                 pre_commit_check()
-            except Exception as pre_commit_exc:
+            except Exception as e:
+                pre_commit_error = e
                 log_event(
                     logger,
                     logging.ERROR,
                     ObservabilityEvent(
                         event="graph_persistence_pre_commit_failed",
-                        message=f"Pre-commit persistence safety check failed: {pre_commit_exc.__class__.__name__}",
-                        metadata={"error": pre_commit_exc.__class__.__name__},
+                        message=f"Pre-commit persistence safety check failed: {pre_commit_error.__class__.__name__}",
+                        metadata={"error": pre_commit_error.__class__.__name__},
                     ),
                 )
                 raise
@@ -362,6 +363,12 @@ def _save_graph_with_session(
                     metadata={"error": rollback_exc.__class__.__name__},
                 ),
             )
+        
+        # If the failure originated in the pre-commit check, re-raise the original exception
+        # to allow specialized upstream handling and avoid generic save error wrapping.
+        if pre_commit_error:
+            raise pre_commit_error
+
         log_event(
             logger,
             logging.ERROR,

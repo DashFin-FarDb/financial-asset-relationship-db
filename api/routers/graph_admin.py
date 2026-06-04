@@ -23,12 +23,11 @@ from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
-from src.data.distributed_lock import DistributedLock, LockLifecycleState, LockState
+from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockLifecycleState, LockState
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
+from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import (
     GraphRebuildResponse,
@@ -1014,30 +1013,39 @@ def _setup_coordination_and_domain_factories(
         )
 
     resolved_domain_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-    domain_engine = create_engine_from_url(resolved_domain_url)
-
-    resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_url)
-    try:
-        same_db = make_url(resolved_coordination_url) == make_url(resolved_domain_url)
-    except Exception:
-        same_db = resolved_coordination_url == resolved_domain_url
-
+    domain_engine = None
     coordination_engine = None
-    if same_db:
-        coordination_session_factory = create_session_factory(domain_engine)
-        domain_session_factory = coordination_session_factory
-    else:
-        coordination_engine = create_engine_from_url(resolved_coordination_url)
-        coordination_session_factory = create_session_factory(coordination_engine)
-        domain_session_factory = create_session_factory(domain_engine)
 
-    return (
-        domain_session_factory,
-        coordination_session_factory,
-        resolved_domain_url,
-        domain_engine,
-        coordination_engine,
-    )
+    try:
+        domain_engine = create_engine_from_url(resolved_domain_url)
+
+        resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_url)
+        try:
+            same_db = make_url(resolved_coordination_url) == make_url(resolved_domain_url)
+        except Exception:
+            same_db = resolved_coordination_url == resolved_domain_url
+
+        if same_db:
+            coordination_session_factory = create_session_factory(domain_engine)
+            domain_session_factory = coordination_session_factory
+        else:
+            coordination_engine = create_engine_from_url(resolved_coordination_url)
+            coordination_session_factory = create_session_factory(coordination_engine)
+            domain_session_factory = create_session_factory(domain_engine)
+
+        return (
+            domain_session_factory,
+            coordination_session_factory,
+            resolved_domain_url,
+            domain_engine,
+            coordination_engine,
+        )
+    except Exception:
+        if domain_engine:
+            domain_engine.dispose()
+        if coordination_engine:
+            coordination_engine.dispose()
+        raise
 
 
 def _acquire_rebuild_lock(
@@ -1061,14 +1069,19 @@ def _acquire_rebuild_lock(
     """
     _validate_coordination_database_primary(coordination_session_factory)
 
+    # Enforce hard TTL cap of 300 seconds per GEMINI.md mandate
+    safe_ttl = min(lock_ttl, 300)
+
     dist_lock = DistributedLock(
         coordination_session_factory=coordination_session_factory,
         lock_name="graph_rebuild",
-        ttl_seconds=lock_ttl,
+        ttl_seconds=safe_ttl,
     )
 
-    if not dist_lock.acquire():
-        raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
+    try:
+        dist_lock.acquire()
+    except LockAcquisitionTimeout as exc:
+        raise _DistributedLockAcquisitionError(str(exc)) from exc
 
     lock_state = dist_lock.check_state()
     if lock_state == LockState.LOST:
