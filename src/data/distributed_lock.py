@@ -307,7 +307,7 @@ class DistributedLock:
                 )
                 self._metric("lock_timeout_total")
                 raise LockAcquisitionTimeout(
-                    f"Failed to acquire lock '{self.lock_name}' within {max_retries} retries/30s ceiling (elapsed: {elapsed:.2f}s)"
+                    f"Failed to acquire lock '{self.lock_name}' within 30s ceiling (elapsed: {elapsed:.2f}s, max_retries: {max_retries})"
                 )
 
             # Deterministic exponential back-off bounded by the 30s ceiling

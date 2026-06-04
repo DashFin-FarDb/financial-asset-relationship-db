@@ -155,7 +155,7 @@ def test_acquire_timeout_after_30s(monkeypatch: pytest.MonkeyPatch) -> None:
     lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[arg-type]
 
     with pytest.raises(LockAcquisitionTimeout, match="Failed to acquire lock 'test_lock' within 30s ceiling"):
-        lock.acquire()
+        lock.acquire(max_retries=10)
 
     # Should have tried multiple times until time exceeded 30s
     assert mock_repo.acquire_lock.call_count > 1
