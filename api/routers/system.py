@@ -46,7 +46,14 @@ async def health_check() -> dict[str, Any]:
 
 
 def _get_graph_health() -> GraphHealthResponse:
-    """Return bounded, non-secret graph readiness details."""
+    """
+    Report bounded graph readiness and inventory counts for health checks.
+    
+    Reads the application's graph (assets and relationships) and returns a GraphHealthResponse containing availability, the current runtime lifecycle state, the total number of assets, and the total number of relationships. If the graph containers are not dictionary-shaped or an error occurs while reading the graph, returns `available=False` with asset and relationship counts set to 0.
+    
+    Returns:
+        GraphHealthResponse: `available` indicating graph readiness; `lifecycle_state` as the current runtime lifecycle state value; `asset_count` as the number of assets; `relationship_count` as the summed length of relationship collections.
+    """
     try:
         graph, _startup_source = graph_lifecycle.get_graph_with_startup_source()
         assets = getattr(graph, "assets", {})
@@ -97,7 +104,12 @@ def _get_graph_health() -> GraphHealthResponse:
 
 
 def _get_database_health() -> DatabaseHealthResponse:
-    """Return bounded, non-secret auth database readiness details."""
+    """
+    Report whether an auth/database layer is configured and reachable for health checks.
+    
+    Returns:
+        DatabaseHealthResponse: `configured` is `True` if a supported database type is configured, `type` is the detected database type (`"sqlite"`, `"postgresql"`, or `"unknown"`), and `reachable` is `True` if a simple connectivity query succeeded, `False` otherwise.
+    """
     try:
         from api import database
     except Exception:
@@ -159,7 +171,12 @@ def _get_database_health() -> DatabaseHealthResponse:
 
 
 def _get_graph_persistence_configured() -> bool:
-    """Return whether durable graph persistence is explicitly configured."""
+    """
+    Determine whether durable graph persistence is explicitly configured.
+    
+    Returns:
+        bool: `True` if durable graph persistence is configured, `False` otherwise.
+    """
     try:
         settings = get_graph_lifecycle_settings()
         resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
@@ -201,10 +218,11 @@ def detailed_health_check() -> DetailedHealthResponse:
 
 @router.get("/api/metrics")
 async def metrics() -> Response:
-    """Expose Prometheus metrics in OpenMetrics format.
-
-    Returns HTTP 500 on generation errors to fail scrape requests and surface
-    operational issues immediately rather than masking them with stale data.
+    """
+    Expose Prometheus metrics in OpenMetrics format.
+    
+    Returns:
+        Response: HTTP 200 with OpenMetrics-formatted metrics and the OpenMetrics media type; on metrics generation failure returns HTTP 500 with plain-text body "metrics generation error".
     """
     try:
         return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)

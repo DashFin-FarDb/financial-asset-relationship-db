@@ -185,15 +185,15 @@ def _active_worker_id_declared_too_wide(active_worker_col: dict | None) -> bool:
 
 def _apply_normalization_in_transaction(connection, needs_width_normalization: bool) -> None:
     """
-    Conditionally narrow active_worker_id to VARCHAR(64) inside an open
-    DDL transaction.
-
-    Acquire a table lock before re-checking widths so concurrent writers
-    cannot insert or update values that would cause the subsequent ALTER
-    COLUMN to fail. The in-transaction re-check is authoritative.
-    The explicit ACCESS EXCLUSIVE lock is scoped to this helper only (re-check
-    plus optional ALTER); ADD COLUMN statements run before this call. While
-    held, PostgreSQL blocks all concurrent readers and writers of rebuild_jobs.
+    Attempt to narrow the `active_worker_id` column to `VARCHAR(64)` within the current transactional connection.
+    
+    If `needs_width_normalization` is True, this function acquires an exclusive lock on `rebuild_jobs`, re-checks the maximum stored `active_worker_id` length, and:
+    - if the maximum length is missing or less than or equal to 64, alters the column type to `VARCHAR(64)`;
+    - otherwise, emits a structured warning event and does not modify the column.
+    
+    Parameters:
+        connection: An active SQLAlchemy connection or transactional connection scoped to a PostgreSQL DDL transaction.
+        needs_width_normalization (bool): When True, attempt the width normalization; when False, do nothing.
     """
     if not needs_width_normalization:
         return

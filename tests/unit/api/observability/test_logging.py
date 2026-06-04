@@ -17,7 +17,11 @@ from src.observability.logging import _inject_request_context, setup_logging
 
 @pytest.fixture(autouse=True)
 def _reset_logging():
-    """Reset the standard library logging and structlog after each test."""
+    """
+    Pytest fixture that resets global logging and structlog state before a test and restores it after.
+    
+    Sets the module-level initialization flag to allow logging reconfiguration, clears the settings cache so environment changes take effect, captures the root logger's handlers and level, yields to run the test, then restores the original handlers and level and calls structlog.reset_defaults() to clear structlog configuration.
+    """
     # Reset our internal initialization flag to allow reconfiguration in tests
     src.observability.logging._logging_initialized = False
 

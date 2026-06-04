@@ -190,7 +190,18 @@ def get_graph() -> AssetRelationshipGraph:
 
 
 def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphSource | None]:
-    """Return the module-global graph and its tracked startup source atomically."""
+    """
+    Obtain the module-global AssetRelationshipGraph instance and its recorded startup source, initializing the global graph if necessary.
+    
+    If the global graph is not yet initialized, this function performs an atomic initialization sequence under the module lock, records the startup source, and emits an observability event after successful initialization.
+    
+    Returns:
+        tuple[AssetRelationshipGraph, AssetGraphSource | None]: The active global graph and the source that was used to initialize it (or `None` if unknown).
+    
+    Raises:
+        Exception: Propagates any exception raised during graph initialization.
+        RuntimeError: If initialization completes but the global graph remains `None`.
+    """
     with graph_lock:
         if graph_state.graph is None:
             _normalize_shutdown_state()
@@ -351,11 +362,13 @@ def begin_rebuild() -> None:
 
 
 def complete_rebuild(*, succeeded: bool) -> None:
-    """Finalize lifecycle state for rebuild completion.
-
-    Calls outside REBUILDING are ignored with a warning because shutdown or
-    cancellation cleanup can race with executor callbacks; callers should still
-    treat the warning as evidence of an unexpected lifecycle ordering issue.
+    """
+    Finalize the graph lifecycle after a rebuild attempt.
+    
+    If called when the runtime is not in the REBUILDING state, emits a warning event and returns without changing state. If `succeeded` is True transitions the lifecycle to READY; otherwise transitions it to FAILED.
+    
+    Parameters:
+        succeeded (bool): Whether the rebuild succeeded; `True` transitions to READY, `False` transitions to FAILED.
     """
     with graph_lock:
         if graph_state.lifecycle_state != GraphRuntimeLifecycleState.REBUILDING:
@@ -393,16 +406,17 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphSource]:
     """
-    Initialize a graph and return the selected startup source.
-
-    Precedence:
-    1. custom graph factory;
-    2. persisted graph when durable persistence is configured and populated;
-    3. graph cache path;
-    4. real-data fetcher;
-    5. sample graph.
-
-    Configured persistence failures raise RuntimeError.
+    Selects and initializes an AssetRelationshipGraph and returns the graph with its startup source.
+    
+    Selection precedence:
+    1. A custom graph factory if provided.
+    2. A persisted graph from durable persistence (when available).
+    3. A graph loaded from the configured cache path.
+    4. A graph loaded from the real-data fetcher.
+    5. A generated sample graph.
+    
+    Returns:
+        tuple[AssetRelationshipGraph, AssetGraphSource]: The initialized graph and a string identifying the startup source — one of `"explicit_factory"`, `"persisted_graph_store"`, `"cache"`, `"real_data"`, or `"sample"`.
     """
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory(), "explicit_factory"

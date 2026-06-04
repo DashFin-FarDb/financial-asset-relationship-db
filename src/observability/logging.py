@@ -21,7 +21,14 @@ _logging_initialized = False
 
 
 def _inject_request_context(logger: Any, log_method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
-    """Structlog processor to inject request context."""
+    """
+    Add request-scoped identifiers from the current request context into the log event dictionary.
+    
+    If the current request context contains `request_id` and/or `correlation_id`, those keys are copied into `event_dict`.
+    
+    Returns:
+        dict: The `event_dict` updated with `request_id` and/or `correlation_id` when present.
+    """
     context = get_request_context()
     if context.get("request_id"):
         event_dict["request_id"] = context["request_id"]
@@ -32,12 +39,12 @@ def _inject_request_context(logger: Any, log_method: str, event_dict: dict[str, 
 
 def _move_event_to_message(logger: Any, log_method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """
-    Structlog processor to move the 'event' (primary message) to a 'message' key.
-
-    This migration only occurs if the log record contains the structured event
-    attributes 'event' and 'metadata', indicating it was emitted via the
-    ObservabilityEvent schema. This prevents duplicating the message into a
-    redundant 'message' key for standard logs.
+    Move structured `event` into `message` when the record appears to follow the ObservabilityEvent schema.
+    
+    If `event_dict['_record']` has `event` and `metadata` attributes, and `event_dict` contains `"event"` but not `"message"`, copies `event` to `event_dict['message']`.
+    
+    Returns:
+        dict[str, Any]: The (possibly modified) `event_dict`.
     """
     record = event_dict.get("_record")
     if record and hasattr(record, "event") and hasattr(record, "metadata"):

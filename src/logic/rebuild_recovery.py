@@ -43,39 +43,17 @@ def determine_recovery_action(
     lock_is_valid: bool,
 ) -> RecoveryDecision:
     """
-    Determine the appropriate recovery action based on detected inconsistency.
-
-    This function is purely deterministic: same inputs always produce same output.
-    It does NOT execute any recovery actions, only decides what should be done.
-
-    Decision logic:
-
-    1. UNSAFE (highest priority - never execute):
-       - Orphaned running state while this process still holds a valid lock
-       - Any state where execution could cause corruption
-
-    2. RESET (must reset before execution):
-       - Orphaned running state with no valid lock for this process
-       - Crash suspicion detected when this process does not hold a valid lock
-       - Stale ownership with no valid lock for this process
-
-    3. WAIT (must wait for stabilization):
-       - Inconsistency detected but this process still holds a valid lock
-       - Crash suspicion detected while this process still holds a valid lock
-       - Transitional states that may resolve
-
-    4. RESUME (safe to proceed):
-       - No inconsistency detected
-       - Valid lock held by this process
-       - State is consistent
-
-    Args:
-        inconsistency: Detected rebuild inconsistency.
-        lock_is_valid: Whether the distributed lock is currently valid
-            and held by this process.
-
+    Decides the deterministic recovery action for a detected rebuild inconsistency.
+    
+    Maps the provided inconsistency and the current lock validity to a RecoveryDecision without performing any recovery side effects.
+    
+    Parameters:
+        inconsistency (RebuildInconsistency): Detected rebuild inconsistency (contains `inconsistency_type`).
+        lock_is_valid (bool): Whether the distributed lock is currently valid and held by this process.
+    
     Returns:
-        RecoveryDecision specifying action and reasoning.
+        RecoveryDecision: Decision containing the selected `RecoveryAction`, a human-readable `reason`,
+        the observed `inconsistency_type`, and `safe_to_execute` indicating whether execution is permitted.
     """
     inconsistency_type = inconsistency.inconsistency_type
 

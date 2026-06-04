@@ -587,10 +587,9 @@ class TestResponseValidation:
     @patch("api.main.graph")
     def test_asset_response_schema(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """
-        Validate that each asset in the /api/assets response matches the expected schema.
-
-        Checks that required fields are present and have the correct types (id, symbol, name,
-        asset_class, sector, price, currency) and that `market_cap`, when not null, is a number.
+        Validate that each asset returned by GET /api/assets conforms to the expected response schema.
+        
+        Checks that required fields `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, and `currency` are present with string types for the text fields and numeric type (`int` or `float`) for `price`. If `market_cap` is not `None`, asserts it is numeric (`int` or `float`).
         """
         apply_mock_graph(mock_graph_instance, mock_graph)
 

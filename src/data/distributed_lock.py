@@ -108,16 +108,19 @@ class DistributedLock:
         ttl_seconds: int = 300,
     ) -> None:
         """
-        Initialize the distributed lock coordination primitive.
-
-        Args:
-            session_factory: Factory for creating database sessions (backward-compatible).
-            lock_name: Unique identifier for the lock.
-            coordination_session_factory: Factory for creating primary-only coordination sessions.
-            metrics: Pluggable metrics interface (e.g. Prometheus, OTEL).
-            event_sink: Callable event sink for immutable structured logs/audit trail.
-            holder_id: Unique identifier for the current process/instance.
-            ttl_seconds: Time-to-live for the lock in seconds.
+        Create a DistributedLock configured with a database session factory, lock identity, and optional observability hooks.
+        
+        Parameters:
+            session_factory (Callable[[], Session] | None): Backward-compatible factory for DB sessions; used if `coordination_session_factory` is not provided.
+            lock_name (str | None): Unique name for the lock; required.
+            coordination_session_factory (Callable[[], Session] | None): Preferred factory for coordination (primary-only) sessions; takes precedence over `session_factory`.
+            metrics (LockMetrics | None): Optional metrics collector; methods `inc` and `observe` will be called for lifecycle metrics.
+            event_sink (Callable[[LockEvent], None] | None): Optional consumer for immutable structured lock events.
+            holder_id (str | None): Optional identifier for the lock holder; a UUID will be generated when omitted.
+            ttl_seconds (int): Time-to-live for the lock in seconds; defaults to 300.
+        
+        Notes:
+            Either `coordination_session_factory` or `session_factory` must be provided; a TypeError is raised if both are missing.
         """
         resolved_factory = coordination_session_factory or session_factory
         if resolved_factory is None:
@@ -139,7 +142,15 @@ class DistributedLock:
         self._fencing_token = 0
 
     def _emit(self, event: LockEvent) -> None:
-        """Emit a structured coordination lifecycle event."""
+        """
+        Emit a structured coordination lifecycle event to the configured event sink.
+        
+        If no event sink is configured this is a no-op. If the sink raises an exception, an `ObservabilityEvent`
+        named `lock_event_sink_failed` is emitted via `log_event` describing the failure.
+        
+        Parameters:
+            event (LockEvent): The immutable event payload to emit.
+        """
         if self.event_sink:
             try:
                 self.event_sink(event)
@@ -155,7 +166,17 @@ class DistributedLock:
                 )
 
     def _metric(self, name: str, labels: dict[str, str] | None = None, value: float | None = None) -> None:
-        """Record a counter increment or observation metric if metrics interface is provided."""
+        """
+        Publish a metric using the configured metrics interface when available.
+        
+        Parameters:
+            name (str): Metric name.
+            labels (dict[str, str] | None): Optional metric labels; pass None for no labels.
+            value (float | None): If provided, record an observation with this value. If omitted and the metric name does not contain "latency", increment a counter.
+        
+        Notes:
+            If a metrics backend is not configured, this is a no-op. On publication failure, emits an `ObservabilityEvent` via `log_event`.
+        """
         if self.metrics:
             try:
                 if value is not None or "latency" in name:
@@ -174,7 +195,12 @@ class DistributedLock:
                 )
 
     def _set_state(self, state: LockLifecycleState) -> None:
-        """Transition the internal lifecycle state machine state."""
+        """
+        Update the lock's internal lifecycle state.
+        
+        Parameters:
+            state (LockLifecycleState): New lifecycle state to set.
+        """
         self._state = state
 
     @property
@@ -183,7 +209,20 @@ class DistributedLock:
         return self._state
 
     def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> LockLease | bool:
-        """Acquire the distributed lock with optional retries."""
+        """
+        Attempt to acquire the distributed lock, optionally retrying on failure.
+        
+        Parameters:
+            retry_interval_seconds (float): Seconds to wait between retry attempts.
+            max_retries (int): Maximum number of retry attempts before giving up.
+        
+        Returns:
+            LockLease: Active lease with lifecycle state and fencing token when acquisition succeeds.
+            bool: `False` if the lock is contested or cannot be obtained after the configured retries.
+        
+        Raises:
+            Exception: Re-raises unexpected exceptions encountered during acquisition after exhausting retries; in this case the lock's lifecycle state is set to `LockLifecycleState.LOST`.
+        """
         self._emit(
             LockEvent(
                 LockEventType.ACQUIRE_ATTEMPT,
@@ -261,7 +300,21 @@ class DistributedLock:
         exc: Exception,
         start_time: float,
     ) -> bool:
-        """Handle transient errors during lock refresh and determine if a retry should occur."""
+        """
+        Decide whether to retry a lock refresh after a transient error and record observability signals.
+        
+        Emits a TRANSIENT_ERROR event for every invocation. If the retry budget is exhausted, marks the lock as lost, emits a FAILED event, and records failure and latency metrics.
+        
+        Parameters:
+        	attempt (int): Zero-based current retry attempt.
+        	max_retries (int): Maximum allowed retry attempts (zero or greater).
+        	retry_delay_seconds (float): Base delay in seconds used for exponential backoff between retries.
+        	exc (Exception): The transient exception that triggered this handler.
+        	start_time (float): Timestamp (as returned by time()) when the refresh operation began; used to compute latency metrics.
+        
+        Returns:
+        	bool: `True` if the caller should retry the refresh, `False` if no retries remain and the lock has been marked lost.
+        """
         self._emit(
             LockEvent(
                 LockEventType.TRANSIENT_ERROR,
@@ -307,7 +360,16 @@ class DistributedLock:
         return False
 
     def _handle_refresh_unexpected_error(self, exc: Exception, start_time: float) -> bool:
-        """Handle unexpected errors during lock refresh."""
+        """
+        Handle an unexpected exception raised during a refresh attempt by marking the lock as lost, emitting observability events and metrics, and indicating the refresh should stop.
+        
+        Parameters:
+            exc (Exception): The unexpected exception that occurred.
+            start_time (float): Timestamp when the refresh attempt started, used to record latency.
+        
+        Returns:
+            bool: `False` to indicate the refresh should not be retried.
+        """
         self._emit(
             LockEvent(
                 LockEventType.UNEXPECTED_ERROR,
@@ -394,7 +456,11 @@ class DistributedLock:
         return False
 
     def release(self) -> None:
-        """Release the distributed lock."""
+        """
+        Release the lock in the coordination database and record observability events.
+        
+        Attempts to remove the lock holder record in the coordination store, sets the internal lifecycle state to RELEASED, emits a `RELEASED` LockEvent, and increments the release metric on success. If an exception occurs, emits an `UNEXPECTED_ERROR` LockEvent, increments the error metric, logs the failure, and swallows the exception (does not re-raise).
+        """
         try:
             with session_scope(self.coordination_session_factory) as session:
                 repo = CoordinationLockRepository(session)
@@ -441,7 +507,15 @@ class DistributedLock:
             )
 
     def _classify_lock_state(self, snapshot: LockStateSnapshot) -> LockState:
-        """Classify the current lock state based on a database snapshot."""
+        """
+        Determine the lock state from a LockStateSnapshot.
+        
+        Parameters:
+            snapshot (LockStateSnapshot): Database snapshot describing lock existence, validity, and expiry.
+        
+        Returns:
+            LockState: `LockState.VALID` if the snapshot is present and valid; `LockState.EXPIRED` if the snapshot exists, is not valid, and `expires_at` is less than or equal to the current UTC time; `LockState.UNKNOWN` otherwise.
+        """
         if not snapshot.exists:
             return LockState.UNKNOWN
 
@@ -454,7 +528,15 @@ class DistributedLock:
         return LockState.VALID
 
     def _handle_check_state_error(self, exc: Exception) -> LockState:
-        """Handle errors encountered during state check and return appropriate LockState."""
+        """
+        Classify and handle exceptions raised during a lock state check, update the internal lifecycle state, and emit observability events.
+        
+        Parameters:
+        	exc (Exception): The exception raised while checking the lock state.
+        
+        Returns:
+        	LockState: `LockState.LOST` when the exception indicates transient DB/connectivity issues (`SQLAlchemyError` or `OSError`). For other exceptions this method does not return; it sets the lifecycle state to `LOST`, emits an `UNEXPECTED_ERROR` event, and re-raises the original exception.
+        """
         if isinstance(exc, (SQLAlchemyError, OSError)):
             log_event(
                 logger,
@@ -538,7 +620,15 @@ class DistributedLock:
             return self._handle_check_state_error(exc)
 
     def __enter__(self) -> DistributedLock:
-        """Context manager entry point."""
+        """
+        Enter the context by acquiring the distributed lock.
+        
+        Raises:
+            RuntimeError: if the lock could not be acquired for this lock's name.
+        
+        Returns:
+            DistributedLock: the acquired lock instance (`self`).
+        """
         if not self.acquire():
             raise RuntimeError(f"Could not acquire distributed lock: {self.lock_name}")
         return self

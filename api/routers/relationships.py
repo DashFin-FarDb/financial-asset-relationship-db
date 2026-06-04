@@ -12,7 +12,12 @@ router = APIRouter()
 
 @router.get("/api/assets/{asset_id}/relationships")
 async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
-    """Return outgoing relationships for a single asset."""
+    """
+    Retrieve outgoing relationships for the specified asset.
+    
+    Returns:
+        list[RelationshipResponse]: List of relationships where each item has `source_id` set to the provided `asset_id` and contains `target_id`, `relationship_type`, and `strength`.
+    """
     try:
         g = get_graph()
         if asset_id not in g.assets:
@@ -46,7 +51,17 @@ async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
 
 @router.get("/api/relationships")
 async def get_all_relationships() -> list[RelationshipResponse]:
-    """Return all graph relationships."""
+    """
+    Retrieve all relationships from the shared graph.
+    
+    Each relationship is serialized to a RelationshipResponse with `source_id`, `target_id`, `relationship_type`, and `strength`.
+    
+    Returns:
+        list[RelationshipResponse]: All relationships present in the graph.
+    
+    Raises:
+        HTTPException: Raised with status code 500 if an internal error occurs while retrieving relationships.
+    """
     try:
         g = get_graph()
         return [

@@ -21,16 +21,12 @@ logger = logging.getLogger(__name__)
 
 def create_sample_database() -> AssetRelationshipGraph:
     """
-    Create an in-memory sample AssetRelationshipGraph populated with diversified
-    financial assets and regulatory events.
-
-    Constructs a graph containing equities, corporate and government bonds, commodities,
-    and currencies; registers several regulatory events that reference related assets;
-    and builds inter-asset relationships to produce a connected sample dataset.
-
+    Create an in-memory sample graph populated with diversified financial assets and regulatory events.
+    
+    Constructs a graph containing equities, corporate and government bonds, commodities, and currencies; registers a small set of regulatory events that reference related assets; and builds inter-asset relationships producing a connected sample dataset.
+    
     Returns:
-        AssetRelationshipGraph: Populated graph containing the sample assets,
-                                regulatory events, and their established relationships.
+        AssetRelationshipGraph: Populated graph containing the sample assets, registered regulatory events, and their established relationships.
     """
     try:
         log_event(
@@ -395,14 +391,13 @@ def create_sample_database() -> AssetRelationshipGraph:
 
 def _log_asset_class_coverage(all_assets: Sequence[object]) -> None:
     """
-    Log how many sample assets belong to each AssetClass to the module logger.
-
-    Counts Equity, Fixed Income, Commodity, and Currency by inspecting each item's
-    `asset_class` attribute and emits a single INFO-level log line with the four totals.
-
+    Emit an observability event reporting how many assets belong to each AssetClass.
+    
+    Creates and sends an `ObservabilityEvent` named "sample_graph_class_coverage" whose metadata contains counts for Equity, Fixed Income, Commodity, and Currency computed from the provided assets.
+    
     Parameters:
-        all_assets (Sequence[object]): Sequence of asset instances; each should expose an
-            `asset_class` attribute whose value is a member of `AssetClass`.
+        all_assets (Sequence[object]): Sequence of asset instances; each is expected to expose an `asset_class`
+            attribute whose value is a member of `AssetClass`.
     """
     equity_count = _count_assets_by_class(all_assets, AssetClass.EQUITY)
     fixed_income_count = _count_assets_by_class(all_assets, AssetClass.FIXED_INCOME)

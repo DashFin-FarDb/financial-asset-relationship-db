@@ -4,7 +4,15 @@ from .events import ObservabilityEvent
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Return a standard library logger for the given name."""
+    """
+    Get a standard library logger configured for the given name.
+    
+    Parameters:
+        name (str): Name of the logger.
+    
+    Returns:
+        logging.Logger: Logger instance associated with the provided name.
+    """
     return logging.getLogger(name)
 
 

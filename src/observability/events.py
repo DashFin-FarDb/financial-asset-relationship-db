@@ -19,14 +19,10 @@ class ObservabilityEvent:
 
     def to_extra(self) -> dict[str, Any]:
         """
-        Convert the event to a dictionary suitable for logging 'extra'.
-
-        Note: We exclude 'message' from the extra dict because standard
-        library logging does not allow overwriting the 'message' attribute.
-        The message is instead passed as the primary log argument.
-
+        Produce a dictionary for use as logging `extra` containing the event identifier and its metadata. This dictionary includes only the `event` and `metadata` fields and does not include the human-readable `message`.
+        
         Returns:
-        A dictionary containing the event name and metadata.
+            dict[str, Any]: A mapping with keys `"event"` (the event identifier) and `"metadata"` (the event metadata).
         """
         return {
             "event": self.event,

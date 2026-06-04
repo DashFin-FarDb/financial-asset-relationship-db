@@ -67,7 +67,14 @@ def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str
 
 
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
-    """Run database consistency reconciliation during application startup."""
+    """
+    Ensure persistent graph consistency at application startup.
+    
+    Performs schema initialization for the durable and coordination databases (if configured), acquires a distributed startup lock, and runs recovery logic to reconcile persisted graph state before the application proceeds. If the recovery process reacquires the lock, the lock is released when finished. Database engines created for this short-lived verification are always disposed on exit.
+    
+    Parameters:
+        settings (GraphLifecycleSettings): Lifecycle configuration that provides durable graph and optional coordination database URLs and related reconciliation settings.
+    """
     from src.data.database import create_engine_from_url, create_session_factory, init_db
     from src.data.distributed_lock import DistributedLock
     from src.logic.recovery_gate import RecoveryGate
@@ -137,7 +144,12 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Manage application runtime setup and teardown lifecycles cleanly."""
+    """
+    Control application startup and shutdown tasks for the FastAPI app, including optional durable-graph reconciliation, starting/stopping the background graph synchronization task, and orderly cleanup.
+    
+    Parameters:
+        app (FastAPI): The FastAPI application instance whose lifespan is being managed.
+    """
     from src.logic.recovery_gate import ExecutionBlockedError
 
     from .graph_lifecycle_providers import get_graph_lifecycle_settings
@@ -235,7 +247,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 async def _graph_synchronization_loop(interval_seconds: float) -> None:
-    """Periodically synchronize the memory graph engine with changes from the database."""
+    """
+    Continuously synchronize the in-memory graph with persistent rebuild updates until shutdown.
+    
+    Performs repeated synchronization attempts separated by a configurable base interval (minimum 1.0 second). If a synchronization attempt raises an exception, the loop engages an exponential backoff with randomized jitter (capped at 32× the base interval) and logs a transient error; after a successful sync the interval and error state are reset. The loop checks the runtime lifecycle state before each attempt and exits when the runtime is shutting down or stopped.
+    
+    Parameters:
+        interval_seconds (float): Desired base interval, in seconds, between synchronization attempts. Values below 1.0 are treated as 1.0.
+    """
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
     max_interval = base_interval * 32  # cap at 32× base interval
