@@ -55,7 +55,9 @@ async def get_all_relationships() -> list[RelationshipResponse]:
     """
     Retrieve all relationships from the shared graph.
 
-    Each relationship is serialized to a RelationshipResponse with `source_id`, `target_id`, `relationship_type`, and `strength`.
+    Each relationship is serialized to a RelationshipResponse with
+    
+    `source_id`, `target_id`, `relationship_type`, and `strength`.
 
     Returns:
         list[RelationshipResponse]: All relationships present in the graph.
