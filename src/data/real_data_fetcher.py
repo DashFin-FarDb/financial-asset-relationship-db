@@ -465,12 +465,12 @@ class RealDataFetcher:
         """
         Builds Bond proxy objects from a fixed set of bond ETF symbols.
 
-        For each configured ETF symbol, attempts to fetch the latest market price 
-        
+        For each configured ETF symbol, attempts to fetch the latest market price
+
         and constructs a Bond when a finite price is available;
 
-        symbols with missing or non-finite price data are skipped. 
-        
+        symbols with missing or non-finite price data are skipped.
+
         Emits observability events for per-symbol success and failure.
 
         Returns:
@@ -546,8 +546,8 @@ class RealDataFetcher:
         """
         Create Commodity instances for a fixed set of futures symbols by fetching each symbol's latest close price.
 
-        Symbols without a valid price are skipped; 
-        
+        Symbols without a valid price are skipped;
+
         failures for individual symbols are logged and do not stop processing.
 
         Returns:
@@ -611,8 +611,8 @@ class RealDataFetcher:
 
         For each configured FX symbol, attempts to fetch the most recent exchange rate;
 
-        symbols with no available rate are skipped and failures for individual symbols 
-        
+        symbols with no available rate are skipped and failures for individual symbols
+
         are logged but do not stop the overall fetch.
 
         Returns:
