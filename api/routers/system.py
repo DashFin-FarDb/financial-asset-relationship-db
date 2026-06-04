@@ -49,10 +49,17 @@ def _get_graph_health() -> GraphHealthResponse:
     """
     Report bounded graph readiness and inventory counts for health checks.
 
-    Reads the application's graph (assets and relationships) and returns a GraphHealthResponse containing availability, the current runtime lifecycle state, the total number of assets, and the total number of relationships. If the graph containers are not dictionary-shaped or an error occurs while reading the graph, returns `available=False` with asset and relationship counts set to 0.
+    Reads the application's graph (assets and relationships) and returns a GraphHealthResponse containing availability, 
+    
+    the current runtime lifecycle state, the total number of assets, and the total number of relationships.
+    
+    If the graph containers are not dictionary-shaped or an error occurs while reading the graph, 
+    
+    returns `available=False` with asset and relationship counts set to 0.
 
     Returns:
-        GraphHealthResponse: `available` indicating graph readiness; `lifecycle_state` as the current runtime lifecycle state value; `asset_count` as the number of assets; `relationship_count` as the summed length of relationship collections.
+        GraphHealthResponse: `available` indicating graph readiness; `lifecycle_state` as the current runtime lifecycle state value;
+        `asset_count` as the number of assets; `relationship_count` as the summed length of relationship collections.
     """
     try:
         graph, _startup_source = graph_lifecycle.get_graph_with_startup_source()
@@ -108,7 +115,10 @@ def _get_database_health() -> DatabaseHealthResponse:
     Report whether an auth/database layer is configured and reachable for health checks.
 
     Returns:
-        DatabaseHealthResponse: `configured` is `True` if a supported database type is configured, `type` is the detected database type (`"sqlite"`, `"postgresql"`, or `"unknown"`), and `reachable` is `True` if a simple connectivity query succeeded, `False` otherwise.
+        DatabaseHealthResponse: `configured` is `True` if a supported database type is configured,
+        `type` is the detected database type (`"sqlite"`, `"postgresql"`, or `"unknown"`),
+        and `reachable` is `True` if a simple connectivity query succeeded,
+        `False` otherwise.
     """
     try:
         from api import database
@@ -222,7 +232,8 @@ async def metrics() -> Response:
     Expose Prometheus metrics in OpenMetrics format.
 
     Returns:
-        Response: HTTP 200 with OpenMetrics-formatted metrics and the OpenMetrics media type; on metrics generation failure returns HTTP 500 with plain-text body "metrics generation error".
+        Response: HTTP 200 with OpenMetrics-formatted metrics and the OpenMetrics media type;
+        on metrics generation failure returns HTTP 500 with plain-text body "metrics generation error".
     """
     try:
         return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
