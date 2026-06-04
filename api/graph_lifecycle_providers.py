@@ -191,7 +191,7 @@ def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelation
     3. Otherwise, create and return the sample graph with source `"sample"`.
 
     Parameters:
-        settings (GraphLifecycleSettings): Immutable settings that control cache paths 
+        settings (GraphLifecycleSettings): Immutable settings that control cache paths
         and whether real-data fetching is enabled.
 
     Returns:
@@ -385,8 +385,8 @@ def _resolve_persistence_database_url(database_url: str | None) -> str | None:
 
 def _log_in_memory_sqlite_persistence_skip() -> None:
     """
-    Emit an observability warning that the configured database URL is an in-memory SQLite instance 
-    
+    Emit an observability warning that the configured database URL is an in-memory SQLite instance
+
     and persisted graph loading will be skipped.
 
     Records an event indicating in-memory SQLite is non-durable and startup persistence loading is therefore skipped.

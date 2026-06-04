@@ -100,7 +100,7 @@ def _is_valid_https_idn(origin: str) -> bool:
 
     Returns:
         True if the origin uses the https scheme, has a hostname that can be IDNA-encoded to ASCII,
-        and the reconstructed ASCII origin (including port if present) 
+        and the reconstructed ASCII origin (including port if present)
         matches the module's HTTPS domain regular expression,
         False otherwise.
     """
