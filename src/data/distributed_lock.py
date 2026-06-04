@@ -291,9 +291,11 @@ class DistributedLock:
                     raise
                 if retries >= max_retries or (time() - start_time) >= 30.0:
                     self._set_state(LockLifecycleState.LOST)
-                    raise LockAcquisitionTimeout(
-                        f"Failed to acquire lock '{self.lock_name}' due to database errors (elapsed: {time() - start_time:.2f}s)"
-                    ) from exc
+                    msg = (
+                        f"Failed to acquire lock '{self.lock_name}' "
+                        f"due to database errors (elapsed: {time() - start_time:.2f}s)"
+                    )
+                    raise LockAcquisitionTimeout(msg) from exc
 
             elapsed = time() - start_time
             if retries >= max_retries or elapsed >= 30.0:
@@ -306,9 +308,11 @@ class DistributedLock:
                     )
                 )
                 self._metric("lock_timeout_total")
-                raise LockAcquisitionTimeout(
-                    f"Failed to acquire lock '{self.lock_name}' within 30s ceiling (elapsed: {elapsed:.2f}s, max_retries: {max_retries})"
+                msg = (
+                    f"Failed to acquire lock '{self.lock_name}' within 30s ceiling "
+                    f"(elapsed: {elapsed:.2f}s, max_retries: {max_retries})"
                 )
+                raise LockAcquisitionTimeout(msg)
 
             # Deterministic exponential back-off bounded by the 30s ceiling
             sleep_duration = min(current_interval, 30.0 - elapsed)
