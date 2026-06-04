@@ -9,15 +9,14 @@ from datetime import datetime, timezone
 from sqlalchemy import exc as sqlalchemy_exc
 from sqlalchemy.orm import Session
 
-from src.data.distributed_lock import DistributedLock, LockState
+from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockState
 from src.data.repository import AssetGraphRepository
 from src.logic.rebuild_failure_detection import (
     InconsistencyType,
     detect_rebuild_inconsistency,
 )
 from src.logic.rebuild_recovery import RecoveryAction, determine_recovery_action
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
+from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
 
@@ -530,7 +529,9 @@ class RecoveryGate:
                     metadata={"lock_state": lock_state.value},
                 ),
             )
-            if not self.lock.acquire():
+            try:
+                self.lock.acquire()
+            except LockAcquisitionTimeout as exc:
                 msg = f"Cannot perform RESET recovery without valid lock (state={lock_state.value})"
                 log_event(
                     logger,
@@ -541,7 +542,7 @@ class RecoveryGate:
                         metadata={"error": ExecutionBlockedError.__name__, "details": msg},
                     ),
                 )
-                raise ExecutionBlockedError(msg)
+                raise ExecutionBlockedError(msg) from exc
             self.lock_was_reacquired = True
             log_event(
                 logger,
