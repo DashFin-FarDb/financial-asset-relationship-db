@@ -92,10 +92,10 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
     """
     Set the rebuild-state gauge to the numeric value corresponding to a rebuild job status.
 
-    Normalizes the provided status (None, RebuildJobStatus, or other) to a lowercase string and maps it to the following numeric values: 
-    
-    unknown → -1, none → 0, pending → 1, running → 2, succeeded → 3, failed → 4, cancelled → 5. 
-    
+    Normalizes the provided status (None, RebuildJobStatus, or other) to a lowercase string and maps it to the following numeric values:
+
+    unknown → -1, none → 0, pending → 1, running → 2, succeeded → 3, failed → 4, cancelled → 5.
+
     If the status is not recognized and is not the literal "unknown", emits a structured error event and maps to -1.
 
     Parameters:
@@ -153,12 +153,12 @@ def _initialize_from_active_job(active_job) -> None:
     """
     Initialize the rebuild-state gauge from an active rebuild job.
 
-    Sets the rebuild state metric to the active job's status. 
-    
+    Sets the rebuild state metric to the active job's status.
+
     Records an informational observability event containing the job's status and job_id.
 
     Parameters:
-        active_job: An object representing an active rebuild job with attributes 
+        active_job: An object representing an active rebuild job with attributes
         `status` (which may be a `RebuildJobStatus` or string-like) and `job_id`.
     """
     status_value = (
@@ -208,9 +208,9 @@ def initialize_rebuild_state_metric_from_db(
     Set the rebuild-state Prometheus gauge from the authoritative persisted DB state at startup.
 
     Reads the currently active rebuild job and, if present, initializes the gauge from that job;
-    
-    otherwise uses the latest persisted rebuild job to preserve terminal states. 
-    
+
+    otherwise uses the latest persisted rebuild job to preserve terminal states.
+
     If no rebuild jobs exist the gauge is set to "none". On errors while reading the DB the gauge is set to "unknown".
 
     Parameters:
