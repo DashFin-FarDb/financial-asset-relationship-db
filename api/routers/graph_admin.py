@@ -1560,9 +1560,9 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
         session (Session): A database session bound to the resolved durable graph persistence engine.
 
     Raises:
-        HTTPException: With status 503 and detail "Graph persistence database not configured" 
+        HTTPException: With status 503 and detail "Graph persistence database not configured"
         when persistence is not configured or marked non-durable.
-        HTTPException: With status 503 and detail "Graph persistence database unavailable" 
+        HTTPException: With status 503 and detail "Graph persistence database unavailable"
         for other failures while creating or accessing the persistence engine.
 
     Notes:
