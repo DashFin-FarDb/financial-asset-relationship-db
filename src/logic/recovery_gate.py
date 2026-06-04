@@ -92,7 +92,8 @@ class RecoveryGate:
 
     def _create_unsafe_decision_from_error(self, exc: Exception, error_context: str, log_level: str = "warning"):
         """
-        Create a RecoveryDecision that blocks execution (UNSAFE) and logs a sanitized observability event for the provided error context.
+        Create a RecoveryDecision that blocks execution (UNSAFE) and logs a sanitized
+        observability event for the provided error context.
 
         Parameters:
             exc (Exception): The caught exception used to build the decision reason.
@@ -100,7 +101,8 @@ class RecoveryGate:
             log_level (str): "warning" or "error" determining the event severity.
 
         Returns:
-            RecoveryDecision: Decision with action UNSAFE, safe_to_execute=False, inconsistency_type=None, and reason formatted as "<ExceptionType>: <error_context>".
+            RecoveryDecision: Decision with action UNSAFE, safe_to_execute=False,
+                inconsistency_type=None, and reason formatted as "<ExceptionType>: <error_context>".
         """
         from src.logic.rebuild_recovery import RecoveryDecision
 
@@ -162,9 +164,15 @@ class RecoveryGate:
 
     def _apply_owner_mismatch_override(self, decision, inconsistency, lock_is_valid, job):
         """
-        Override the provided recovery decision when an ORPHANED_RUNNING inconsistency indicates the job is owned by a different worker.
+        Override the provided recovery decision when an ORPHANED_RUNNING inconsistency indicates
+        the job is owned by a different worker.
 
-        If the inconsistency is not ORPHANED_RUNNING or no job is present, the original decision is returned unchanged. When the job's active worker ID differs from the current lock holder, this routine checks the job's last heartbeat: if a heartbeat exists and its age is less than the lock TTL, it forces an UNSAFE decision to avoid resetting a likely healthy remote worker; if the heartbeat is missing or stale, it forces a RESET decision treating the job as orphaned.
+        If the inconsistency is not ORPHANED_RUNNING or no job is present, the original decision
+        is returned unchanged. When the job's active worker ID differs from the current lock holder,
+        this routine checks the job's last heartbeat: if a heartbeat exists and its age is less
+        than the lock TTL, it forces an UNSAFE decision to avoid resetting a likely healthy remote
+        worker; if the heartbeat is missing or stale, it forces a RESET decision treating the
+        job as orphaned.
 
         Parameters:
             decision: The incoming RecoveryDecision to potentially override.
@@ -173,7 +181,8 @@ class RecoveryGate:
             job: The active rebuild job record (may be None).
 
         Returns:
-            A RecoveryDecision: either the original decision or a modified UNSAFE/RESET decision when an owner-mismatch with fresh or stale/missing heartbeat is detected.
+            A RecoveryDecision: either the original decision or a modified UNSAFE/RESET decision when
+                an owner-mismatch with fresh or stale/missing heartbeat is detected.
         """
         from src.logic.rebuild_recovery import RecoveryDecision
 
@@ -266,17 +275,22 @@ class RecoveryGate:
             safe_to_execute=decision.safe_to_execute,
         )
 
-    def _evaluate_decision(self, increment_metric: bool = True):
+    def get_recovery_decision(self, increment_metric: bool = True):
         """
         Decide the appropriate recovery action based on lock, database, and runtime state.
 
-        Evaluates distributed lock state, queries the active rebuild job, detects rebuild inconsistencies, applies owner-mismatch overrides, and optionally increments a recovery trigger metric.
+        Evaluates distributed lock state, queries the active rebuild job, detects rebuild
+        inconsistencies, applies owner-mismatch overrides, and optionally increments a
+        recovery trigger metric.
 
         Parameters:
-            increment_metric (bool): If True, increment the recovery trigger metric when an inconsistency (other than `InconsistencyType.NONE`) is detected. Set to False when re-evaluating after recovery to avoid double-counting.
+            increment_metric (bool): If True, increment the recovery trigger metric when an
+                inconsistency (other than `InconsistencyType.NONE`) is detected. Set to False
+                when re-evaluating after recovery to avoid double-counting.
 
         Returns:
-            RecoveryDecision: Decision containing the chosen `action`, `reason`, `inconsistency_type`, and `safe_to_execute` flag.
+            RecoveryDecision: Decision containing the chosen `action`, `reason`,
+                `inconsistency_type`, and `safe_to_execute` flag.
         """
         from src.logic.rebuild_recovery import RecoveryDecision
 
@@ -337,17 +351,17 @@ class RecoveryGate:
                     inconsistency_type=InconsistencyType.NONE,
                     safe_to_execute=False,
                 )
-            else:
-                log_event(
-                    logger,
-                    logging.WARNING,
-                    ObservabilityEvent(
-                        event="recovery_gate_lock_unknown_with_active_job",
-                        message="Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)",
-                    ),
-                )
-                return RecoveryDecision(
-                    action=RecoveryAction.UNSAFE,
+
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_lock_unknown_with_active_job",
+                    message="Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)",
+                ),
+            )
+            return RecoveryDecision(
+                action=RecoveryAction.UNSAFE,
                     reason="Lock state is unknown with active rebuild job",
                     inconsistency_type=None,
                     safe_to_execute=False,
@@ -494,7 +508,10 @@ class RecoveryGate:
         """
         Reset an orphaned RUNNING rebuild job so a new execution can proceed.
 
-        If the lock is not valid, attempts to reacquire it and raises ExecutionBlockedError if acquisition fails. If an active rebuild job exists with status RUNNING, marks that job as FAILED with failure_category "recovery_reset" and commits the change. May set self.lock_was_reacquired to True when the lock is successfully reacquired.
+        If the lock is not valid, attempts to reacquire it and raises ExecutionBlockedError if
+        acquisition fails. If an active rebuild job exists with status RUNNING, marks that job
+        as FAILED with failure_category "recovery_reset" and commits the change. May set
+        self.lock_was_reacquired to True when the lock is successfully reacquired.
 
         Raises:
             ExecutionBlockedError: if the lock cannot be reacquired and reset recovery cannot proceed.
