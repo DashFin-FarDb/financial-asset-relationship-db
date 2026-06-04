@@ -686,22 +686,22 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     """
     Create a 3D Plotly visualization of assets and their relationships.
 
-    Validates the provided graph, obtains enhanced visualization data, and assembles node markers, 
-    
-    relationship line traces grouped by relationship type and bidirectionality, 
-    
+    Validates the provided graph, obtains enhanced visualization data, and assembles node markers,
+
+    relationship line traces grouped by relationship type and bidirectionality,
+
     optional directional arrow markers for unidirectional edges, and a configured 3D layout with a dynamic title.
 
     Parameters:
-        graph (AssetRelationshipGraph): Graph object exposing get_3d_visualization_data_enhanced() 
+        graph (AssetRelationshipGraph): Graph object exposing get_3d_visualization_data_enhanced()
         and a relationships container used to build relationship and arrow traces.
 
     Returns:
-        go.Figure: A Plotly 3D figure containing asset node markers, relationship line traces grouped by type and direction, 
+        go.Figure: A Plotly 3D figure containing asset node markers, relationship line traces grouped by type and direction,
         optional directional arrow marker traces, and a configured 3D layout with a dynamic title.
 
     Raises:
-        ValueError: If `graph` is not a valid AssetRelationshipGraph 
+        ValueError: If `graph` is not a valid AssetRelationshipGraph
         or if the visualization data retrieved from the graph is invalid.
     """
     if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
@@ -1279,8 +1279,8 @@ def _validate_positions_and_asset_ids_lengths(
     asset_ids: list[str],
 ) -> None:
     """
-    Ensure `positions` and `asset_ids` represent the same number of assets 
-    
+    Ensure `positions` and `asset_ids` represent the same number of assets
+
     and that `positions` is a 2-D array with three columns.
 
     Parameters:
