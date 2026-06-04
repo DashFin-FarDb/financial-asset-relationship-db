@@ -150,8 +150,8 @@ async def test_correlation_middleware_state_fallback() -> None:
     await middleware(scope, mock_receive, mock_send)
 
     # Should have fallen back to attribute assignment
-    assert getattr(state_obj, "request_id") == "fallback-req-1"
-    assert getattr(state_obj, "correlation_id") == "fallback-req-1"
+    assert getattr(state_obj, "request_id", None) == "fallback-req-1"
+    assert getattr(state_obj, "correlation_id", None) == "fallback-req-1"
 
     # 2. Test with object that raises on setattr too (ensure it continues safely)
     class CompletelyFailingState(MutableMapping):
