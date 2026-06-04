@@ -164,7 +164,10 @@ def test_acquire_timeout_after_30s(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.unit
 def test_ttl_validation_in_init() -> None:
     """Verify DistributedLock rejects TTLs exceeding 300s."""
-    factory = lambda: None
+
+    def factory():
+        return None
+
     # 300 is fine
     DistributedLock(factory, "test", ttl_seconds=300)  # type: ignore[arg-type]
 
