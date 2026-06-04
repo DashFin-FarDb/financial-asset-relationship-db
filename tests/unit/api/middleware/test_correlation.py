@@ -17,6 +17,7 @@ def test_correlation_middleware_logic():
 
     @app.get("/test")
     async def test_route(request: Request):
+        """Mock route that returns IDs from context and state."""
         return {
             "ctx_request_id": get_request_id(),
             "ctx_correlation_id": get_correlation_id(),

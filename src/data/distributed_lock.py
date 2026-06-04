@@ -311,17 +311,20 @@ class DistributedLock:
         """
         Decide whether to retry a lock refresh after a transient error and emit observability signals.
 
-        Emits a TRANSIENT_ERROR event on each invocation. If the retry budget is exhausted, marks the lock as lost, emits a FAILED event, and records failure and latency metrics.
+        Emits a TRANSIENT_ERROR event on each invocation. If the retry budget is exhausted,
+        marks the lock as lost, emits a FAILED event, and records failure and latency metrics.
 
         Parameters:
             attempt (int): Zero-based current retry attempt.
             max_retries (int): Maximum allowed retry attempts (zero or greater).
             retry_delay_seconds (float): Base delay in seconds used for exponential backoff.
             exc (Exception): The transient exception that triggered this handler.
-            start_time (float): Timestamp (as returned by time()) when the refresh operation began; used to compute latency.
+            start_time (float): Timestamp (as returned by time()) when the refresh operation began;
+                used to compute latency.
 
         Returns:
-            bool: `True` if the caller should retry the refresh, `False` if no retries remain and the lock has been marked lost.
+            bool: `True` if the caller should retry the refresh, `False` if no retries remain
+                and the lock has been marked lost.
         """
         self._emit(
             LockEvent(
@@ -467,7 +470,9 @@ class DistributedLock:
         """
         Release the lock and update its lifecycle state.
 
-        Marks the lock as released on success and records the corresponding release event and metric. If release fails, records an unexpected error event and error metric, logs the failure, and suppresses the exception.
+        Marks the lock as released on success and records the corresponding release event and metric.
+        If release fails, records an unexpected error event and error metric, logs the failure,
+        and suppresses the exception.
         """
         try:
             with session_scope(self.coordination_session_factory) as session:
@@ -519,10 +524,13 @@ class DistributedLock:
         Determine the high-level lock state represented by a database snapshot.
 
         Parameters:
-            snapshot (LockStateSnapshot): Snapshot indicating whether the lock row exists, whether it is currently valid, and its expiration timestamp.
+            snapshot (LockStateSnapshot): Snapshot indicating whether the lock row exists,
+                whether it is currently valid, and its expiration timestamp.
 
         Returns:
-            LockState: `LockState.VALID` if the snapshot exists and is valid; `LockState.EXPIRED` if the snapshot exists, is not valid, and `expires_at` is less than or equal to the current UTC time; `LockState.UNKNOWN` otherwise.
+            LockState: `LockState.VALID` if the snapshot exists and is valid; `LockState.EXPIRED`
+                if the snapshot exists, is not valid, and `expires_at` is less than or equal
+                to the current UTC time; `LockState.UNKNOWN` otherwise.
         """
         if not snapshot.exists:
             return LockState.UNKNOWN
@@ -537,15 +545,17 @@ class DistributedLock:
 
     def _handle_check_state_error(self, exc: Exception) -> LockState:
         """
-        Classify and handle exceptions raised during a lock state check, update the internal lifecycle state, and emit observability events.
+        Classify and handle exceptions raised during a lock state check, update the internal
+        lifecycle state, and emit observability events.
 
         Parameters:
                 exc (Exception): The exception raised while checking the lock state.
 
         Returns:
-                LockState: `LockState.LOST` when the exception indicates transient DB/connectivity issues (`SQLAlchemyError` or `OSError`).
-                For other exceptions this method does not return;
-                it sets the lifecycle state to `LOST`, emits an `UNEXPECTED_ERROR` event, and re-raises the original exception.
+                LockState: `LockState.LOST` when the exception indicates transient DB/connectivity
+                issues (`SQLAlchemyError` or `OSError`). For other exceptions this method does
+                not return; it sets the lifecycle state to `LOST`, emits an `UNEXPECTED_ERROR`
+                event, and re-raises the original exception.
         """
         if isinstance(exc, (SQLAlchemyError, OSError)):
             log_event(
@@ -586,7 +596,7 @@ class DistributedLock:
                 metadata={"error": type(exc).__name__},
             )
         )
-        raise exc
+        raise
 
     def check_state(self) -> LockState:
         """

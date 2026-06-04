@@ -48,14 +48,14 @@ def _move_event_to_message(_logger: Any, _log_method: str, event_dict: dict[str,
         dict[str, Any]: The possibly modified `event_dict`.
     """
     record = event_dict.get("_record")
-    if (
-        record
-        and hasattr(record, "event")
-        and hasattr(record, "metadata")
-        and "event" in event_dict
-        and "message" not in event_dict
-    ):
+    if not record:
+        return event_dict
+
+    # Check for ObservabilityEvent schema on the underlying record
+    has_schema = hasattr(record, "event") and hasattr(record, "metadata")
+    if has_schema and "event" in event_dict and "message" not in event_dict:
         event_dict["message"] = event_dict["event"]
+
     return event_dict
 
 

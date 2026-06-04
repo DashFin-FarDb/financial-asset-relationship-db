@@ -275,6 +275,42 @@ class RecoveryGate:
             safe_to_execute=decision.safe_to_execute,
         )
 
+    def _handle_unknown_lock_state(self, job) -> RecoveryDecision:
+        """Handle the UNKNOWN lock state, distinguishing between clean install vs wrong owner."""
+        if job is None:
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="recovery_gate_clean_install_detected",
+                    message=(
+                        "Lock state is UNKNOWN with no active job; "
+                        "treating as clean install WAIT until lock is acquired"
+                    ),
+                ),
+            )
+            return RecoveryDecision(
+                action=RecoveryAction.WAIT,
+                reason="Lock state is unknown with no active rebuild job; waiting until lock is acquired",
+                inconsistency_type=InconsistencyType.NONE,
+                safe_to_execute=False,
+            )
+
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="recovery_gate_lock_unknown_with_active_job",
+                message="Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)",
+            ),
+        )
+        return RecoveryDecision(
+            action=RecoveryAction.UNSAFE,
+            reason="Lock state is unknown with active rebuild job",
+            inconsistency_type=None,
+            safe_to_execute=False,
+        )
+
     def get_recovery_decision(self, increment_metric: bool = True):
         """
         Decide the appropriate recovery action based on lock, database, and runtime state.
@@ -329,43 +365,7 @@ class RecoveryGate:
 
         # UNKNOWN state handling: distinguish between clean install vs wrong owner
         if lock_state == LockState.UNKNOWN:
-            # If no active job exists, UNKNOWN lock can be a clean install with no lock row yet.
-            # Return WAIT directly so this branch's behavior does not silently depend on
-            # downstream inconsistency detection rules continuing to treat `job is None`
-            # as a no-inconsistency case.
-            if job is None:
-                log_event(
-                    logger,
-                    logging.INFO,
-                    ObservabilityEvent(
-                        event="recovery_gate_clean_install_detected",
-                        message=(
-                            "Lock state is UNKNOWN with no active job; "
-                            "treating as clean install WAIT until lock is acquired"
-                        ),
-                    ),
-                )
-                return RecoveryDecision(
-                    action=RecoveryAction.WAIT,
-                    reason="Lock state is unknown with no active rebuild job; waiting until lock is acquired",
-                    inconsistency_type=InconsistencyType.NONE,
-                    safe_to_execute=False,
-                )
-
-            log_event(
-                logger,
-                logging.WARNING,
-                ObservabilityEvent(
-                    event="recovery_gate_lock_unknown_with_active_job",
-                    message="Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)",
-                ),
-            )
-            return RecoveryDecision(
-                action=RecoveryAction.UNSAFE,
-                reason="Lock state is unknown with active rebuild job",
-                inconsistency_type=None,
-                safe_to_execute=False,
-            )
+            return self._handle_unknown_lock_state(job)
 
         inconsistency = detect_rebuild_inconsistency(
             job=job,
@@ -403,7 +403,7 @@ class RecoveryGate:
         Returns:
             RecoveryAction: The safe action to take.
         """
-        return self._evaluate_decision().action
+        return self.get_recovery_decision().action
 
     def ensure_safe_to_execute(self) -> None:
         """
@@ -417,7 +417,7 @@ class RecoveryGate:
                 after any automatic recovery attempts.
         """
         self.lock_was_reacquired = False
-        decision = self._evaluate_decision()
+        decision = self.get_recovery_decision()
 
         if decision.action == RecoveryAction.RESET:
             # Attempt automatic recovery by resetting the orphaned job
@@ -434,7 +434,7 @@ class RecoveryGate:
                 self._perform_reset_recovery()
                 # After successful reset, re-evaluate to confirm safe to proceed
                 # Skip metric increment on re-evaluation to avoid double-counting
-                decision = self._evaluate_decision(increment_metric=False)
+                decision = self.get_recovery_decision(increment_metric=False)
                 if decision.action != RecoveryAction.RESUME:
                     # Post-reset state still unsafe - use bounded reason to avoid leaking DB details
                     raise ExecutionBlockedError(

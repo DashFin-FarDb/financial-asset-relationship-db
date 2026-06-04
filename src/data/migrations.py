@@ -57,12 +57,13 @@ def apply_migrations(db_path: Path | str) -> None:
 
     from contextlib import closing
 
-    with closing(sqlite3.connect(db_path)) as connection, connection:
-        # Migration 001: Base schema (always safe to run, uses IF NOT EXISTS)
-        _apply_sql_migration(connection, migrations_dir / "001_initial.sql")
+    with closing(sqlite3.connect(db_path)) as connection:
+        with connection:
+            # Migration 001: Base schema (always safe to run, uses IF NOT EXISTS)
+            _apply_sql_migration(connection, migrations_dir / "001_initial.sql")
 
-        # Migration 002: Add heartbeat columns (conditional, check first)
-        _apply_upgrade_002_heartbeat_columns(connection)
+            # Migration 002: Add heartbeat columns (conditional, check first)
+            _apply_upgrade_002_heartbeat_columns(connection)
 
 
 # ---------------------------------------------------------------------------
