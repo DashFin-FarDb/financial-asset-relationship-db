@@ -241,6 +241,7 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
         *,
         user_ref: str,
     ) -> graph_admin.GraphRebuildResponse:
+        """Fake rebuild implementation that raises a lock acquisition error."""
         _ = user_ref
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
@@ -338,17 +339,11 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
     the request maps to HTTP 429 and the runtime lifecycle remains READY.
     """
 
-    async def fake_executor(
-        _loop: asyncio.AbstractEventLoop,
-        _settings: graph_admin.GraphLifecycleSettings,
-        *,
-        user_ref: str,
-        started_at: float,
-        tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
-    ) -> graph_admin.GraphRebuildResponse:
+    async def _fake_executor_acquisition_error(*_args, **_kwargs):
+        """Fake executor that raises a lock acquisition error."""
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
-    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", _fake_executor_acquisition_error)
     try:
         with pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="admin", disabled=False))
@@ -369,17 +364,11 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
     if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
         graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
-    async def fake_executor(
-        _loop: asyncio.AbstractEventLoop,
-        _settings: graph_admin.GraphLifecycleSettings,
-        *,
-        user_ref: str,
-        started_at: float,
-        tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
-    ) -> graph_admin.GraphRebuildResponse:
+    async def _fake_executor_lock_lost_error(*_args, **_kwargs):
+        """Fake executor that raises a lock lost error."""
         raise graph_admin._DistributedLockLostError("lost")  # pylint: disable=protected-access
 
-    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", _fake_executor_lock_lost_error)
 
     try:
         with pytest.raises(HTTPException) as exc_info:
@@ -439,6 +428,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     original_log = graph_admin._log_rebuild_succeeded  # noqa: F841
 
     def track_log(*args, **kwargs):
+        """Wrapper to track when a success log event is emitted."""
         try:
             return original_log(*args, **kwargs)
         finally:
@@ -447,6 +437,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     monkeypatch.setattr(graph_admin, "_log_rebuild_succeeded", track_log)
 
     def coordinated_sync_rebuild(*_args, **_kwargs):
+        """Coordinated rebuild that waits for a signal before proceeding."""
         thread_reached.set()
         proceed_thread.wait(timeout=5.0)
         return graph_admin.GraphRebuildResponse(
@@ -505,6 +496,7 @@ async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
     """A raw programming error must emit an unexpected sentinel and exactly one audit log."""
 
     async def fake_executor_bug(*args, **kwargs):
+        """Fake executor that simulates a programming bug."""
         # Simulate a programming bug (e.g. referencing a missing attribute)
         raise AttributeError("NoneType object has no attribute 'assets'")
 

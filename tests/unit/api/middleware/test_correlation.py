@@ -112,6 +112,7 @@ async def test_correlation_middleware_state_fallback() -> None:
     """Test state injection fallback paths in CorrelationMiddleware."""
 
     async def mock_app(scope: dict, receive: callable, send: callable) -> None:
+        """Mock ASGI application that does nothing."""
         pass
 
     middleware = CorrelationMiddleware(mock_app)
@@ -119,6 +120,8 @@ async def test_correlation_middleware_state_fallback() -> None:
     from collections.abc import MutableMapping
 
     class FailingMutableMapping(MutableMapping):
+        """A mutable mapping that raises KeyError on get and TypeError on set."""
+
         def __init__(self):
             self.request_id = None
             self.correlation_id = None
@@ -142,9 +145,11 @@ async def test_correlation_middleware_state_fallback() -> None:
     scope = {"type": "http", "headers": [(b"x-request-id", b"fallback-req-1")], "state": state_obj}
 
     async def mock_receive():
+        """Mock ASGI receive function."""
         return {}
 
     async def mock_send(msg):
+        """Mock ASGI send function."""
         pass
 
     await middleware(scope, mock_receive, mock_send)
@@ -155,6 +160,8 @@ async def test_correlation_middleware_state_fallback() -> None:
 
     # 2. Test with object that raises on setattr too (ensure it continues safely)
     class CompletelyFailingState(MutableMapping):
+        """A mutable mapping that raises errors on all operations."""
+
         def __getitem__(self, key):
             raise KeyError(key)
 
