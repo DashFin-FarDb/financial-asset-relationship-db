@@ -730,7 +730,7 @@ def _restore_persisted_graph_snapshot(
             ObservabilityEvent(
                 event="graph_rebuild_snapshot_restore_failed",
                 message=(
-                    "Failed to restore persisted graph snapshot after rebuild failure: " f"{type(restore_exc).__name__}"
+                    f"Failed to restore persisted graph snapshot after rebuild failure: {type(restore_exc).__name__}"
                 ),
                 metadata={"error": type(restore_exc).__name__},
             ),
@@ -1032,6 +1032,8 @@ def _perform_rebuild_and_persist_sync(
                         metadata={"error": type(dispose_exc).__name__},
                     ),
                 )
+
+
 def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
     """Verify the coordination DB is a writable primary, not a replica.
 

@@ -323,10 +323,7 @@ class DistributedLock:
             logging.WARNING,
             ObservabilityEvent(
                 event="lock_refresh_unexpected_error",
-                message=(
-                    f"Unexpected error refreshing distributed lock '{self.lock_name}': "
-                    f"{type(exc).__name__}"
-                ),
+                message=(f"Unexpected error refreshing distributed lock '{self.lock_name}': {type(exc).__name__}"),
                 metadata={"lock_name": self.lock_name, "error": type(exc).__name__},
             ),
         )

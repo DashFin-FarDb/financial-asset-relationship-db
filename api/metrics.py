@@ -133,7 +133,7 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
             ObservabilityEvent(
                 event="metrics_rebuild_status_mapping_error",
                 message=(
-                    f"Inconsistency detected: received unknown job status '{status}'. " "Mapping to UNKNOWN_STATE (-1)."
+                    f"Inconsistency detected: received unknown job status '{status}'. Mapping to UNKNOWN_STATE (-1)."
                 ),
                 metadata={"status": str(status)},
             ),
@@ -164,10 +164,7 @@ def _initialize_from_active_job(active_job) -> None:
         logging.INFO,
         ObservabilityEvent(
             event="metrics_rebuild_state_initialized_active",
-            message=(
-                f"Initialized rebuild state metric from active job: {status_value} "
-                f"(job_id={active_job.job_id})"
-            ),
+            message=(f"Initialized rebuild state metric from active job: {status_value} (job_id={active_job.job_id})"),
             metadata={"status": status_value, "job_id": active_job.job_id},
         ),
     )
@@ -184,10 +181,7 @@ def _initialize_from_latest_job(latest_job) -> None:
         logging.INFO,
         ObservabilityEvent(
             event="metrics_rebuild_state_initialized_latest",
-            message=(
-                f"Initialized rebuild state metric from latest job: {status_value} "
-                f"(job_id={latest_job.job_id})"
-            ),
+            message=(f"Initialized rebuild state metric from latest job: {status_value} (job_id={latest_job.job_id})"),
             metadata={"status": status_value, "job_id": latest_job.job_id},
         ),
     )

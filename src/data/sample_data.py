@@ -372,8 +372,7 @@ def create_sample_database() -> AssetRelationshipGraph:
             ObservabilityEvent(
                 event="sample_graph_creation_completed",
                 message=(
-                    f"Expanded sample database created with {asset_count} assets "
-                    f"and {relationship_count} relationships"
+                    f"Expanded sample database created with {asset_count} assets and {relationship_count} relationships"
                 ),
                 metadata={"asset_count": asset_count, "relationship_count": relationship_count},
             ),
