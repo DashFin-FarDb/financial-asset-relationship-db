@@ -20,7 +20,7 @@ class ObservabilityEvent:
     def to_extra(self) -> dict[str, Any]:
         """
         Produce a dictionary for use as logging `extra` containing the event identifier and its metadata. This dictionary includes only the `event` and `metadata` fields and does not include the human-readable `message`.
-        
+
         Returns:
             dict[str, Any]: A mapping with keys `"event"` (the event identifier) and `"metadata"` (the event metadata).
         """

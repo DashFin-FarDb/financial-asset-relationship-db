@@ -396,9 +396,9 @@ class RealDataFetcher:
     def _fetch_equity_data() -> list[Equity]:
         """
         Builds Equity objects for a fixed set of major symbols using Yahoo Finance and returns those successfully fetched.
-        
+
         For each predefined symbol, fetches the latest close price and ticker metadata; symbols without a valid price are skipped. Emits structured observability events for per-symbol success and failure.
-        
+
         Returns:
             list[Equity]: Equity instances for symbols with available price data.
         """
@@ -458,9 +458,9 @@ class RealDataFetcher:
     def _fetch_bond_data() -> list[Bond]:
         """
         Builds Bond proxy objects from a fixed set of bond ETF symbols.
-        
+
         For each configured ETF symbol, attempts to fetch the latest market price and constructs a Bond when a finite price is available; symbols with missing or non-finite price data are skipped. Emits observability events for per-symbol success and failure.
-        
+
         Returns:
             list[Bond]: Bond objects constructed for ETFs that had available market data.
         """
@@ -533,9 +533,9 @@ class RealDataFetcher:
     def _fetch_commodity_data() -> list[Commodity]:
         """
         Create Commodity instances for a fixed set of futures symbols by fetching each symbol's latest close price.
-        
+
         Symbols without a valid price are skipped; failures for individual symbols are logged and do not stop processing.
-        
+
         Returns:
             commodities (list[Commodity]): List of Commodity objects successfully constructed from fetched futures.
         """
@@ -594,9 +594,9 @@ class RealDataFetcher:
     def _fetch_currency_data() -> list[Currency]:
         """
         Constructs Currency dataclass instances for a predefined set of FX pairs using the latest available rates.
-        
+
         For each configured FX symbol, attempts to fetch the most recent exchange rate; symbols with no available rate are skipped and failures for individual symbols are logged but do not stop the overall fetch.
-        
+
         Returns:
             list[Currency]: Currency objects for symbols with successfully retrieved rates.
         """
@@ -655,7 +655,7 @@ class RealDataFetcher:
     def _create_regulatory_events() -> list[RegulatoryEvent]:
         """
         Create three synthetic RegulatoryEvent instances to enrich the asset graph.
-        
+
         Returns:
             list[RegulatoryEvent]: Three hard-coded regulatory events associated with specific assets.
         """
@@ -721,10 +721,10 @@ def _enum_to_value(value: Any) -> Any:
 def _serialize_dataclass(obj: Any) -> dict[str, Any]:
     """
     Convert a dataclass instance into a JSON-serializable dictionary that includes type metadata.
-    
+
     Parameters:
         obj (Any): A dataclass instance to serialize.
-    
+
     Returns:
         dict[str, Any]: Mapping of field names to values with any Enum fields replaced by their
             underlying values and an added "__type__" key containing the dataclass class name.
@@ -838,10 +838,10 @@ def _deserialize_event(data: dict[str, Any]) -> RegulatoryEvent:
 def _deserialize_graph(payload: dict[str, Any]) -> AssetRelationshipGraph:
     """
     Reconstructs an AssetRelationshipGraph from a serialized payload.
-    
+
     The payload may include "assets", "regulatory_events", and "relationships". Deserialized assets and regulatory events are added to the graph; relationships are recreated from the "relationships" mapping. Strength values are coerced to float. The "incoming_relationships" key, if present, is ignored.
     Returns:
-    	AssetRelationshipGraph: The reconstructed graph containing assets, regulatory events, and relationships.
+        AssetRelationshipGraph: The reconstructed graph containing assets, regulatory events, and relationships.
     """
     graph = AssetRelationshipGraph()
 
@@ -883,9 +883,9 @@ def _load_from_cache(path: Path) -> AssetRelationshipGraph:
 def _save_to_cache(graph: AssetRelationshipGraph, path: Path) -> None:
     """
     Serialize the AssetRelationshipGraph and atomically write it to the given filesystem path as a JSON file.
-    
+
     Creates parent directories if they do not exist, then writes the graph payload to `path` using UTF-8 encoding and two-space indentation. The function performs file write side effects and does not return a value.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph to serialize and persist.
         path (Path): Filesystem path for the output JSON file.

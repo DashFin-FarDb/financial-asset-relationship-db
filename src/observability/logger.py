@@ -6,10 +6,10 @@ from .events import ObservabilityEvent
 def get_logger(name: str) -> logging.Logger:
     """
     Get a standard library logger configured for the given name.
-    
+
     Parameters:
         name (str): Name of the logger.
-    
+
     Returns:
         logging.Logger: Logger instance associated with the provided name.
     """

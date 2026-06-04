@@ -36,15 +36,15 @@ REL_TYPE_COLORS = defaultdict(
 def _is_valid_color_format(color: str) -> bool:
     """
     Validate whether a color string is an accepted hex or rgb/rgba format or can be treated as a named color.
-    
+
     Accepted forms:
     - Hex: `#RGB`, `#RRGGBB`, or `#RRGGBBAA`
     - Functional RGB/RGBA: e.g., `rgb(255,0,0)` or `rgba(255,0,0,0.5)`
     - Named colors (allowed as a fallback and validated by the renderer)
-    
+
     Parameters:
         color (str): Color string to validate.
-    
+
     Returns:
         bool: `True` if `color` is a non-empty string in an accepted hex or `rgb`/`rgba` format or otherwise acceptable as a named color; `False` otherwise.
     """
@@ -331,16 +331,16 @@ def _create_node_trace(
 ) -> go.Scatter3d:
     """
     Create a Plotly 3D scatter trace that represents asset nodes with markers, labels, and hover text.
-    
+
     Parameters:
         positions (np.ndarray): Array of shape (n, 3) with x, y, z coordinates for n assets.
         asset_ids (list[str]): Sequence of n non-empty asset identifier strings used as text labels.
         colors (list[str]): Sequence of n color strings (hex, rgb/rgba, or named) applied to markers.
         hover_texts (list[str]): Sequence of n strings shown as hover text for each node.
-    
+
     Returns:
         go.Scatter3d: A configured 3D scatter trace showing markers, text labels, and hover text.
-    
+
     Raises:
         ValueError: If inputs are invalid, lengths mismatch, positions are not numeric/finite, or asset_ids is empty.
     """
@@ -448,7 +448,7 @@ def _prepare_layout_config(
 ) -> tuple[str, dict[str, object]]:
     """
     Builds a dynamic figure title and returns layout options for the 3D visualization.
-    
+
     Parameters:
         num_assets (int): Number of assets included in the visualization.
         relationship_traces (list[go.Scatter3d]): Relationship traces used to determine the visible
@@ -456,7 +456,7 @@ def _prepare_layout_config(
         base_title (str): Base text prefixed to the generated title.
         layout_options (dict[str, object] | None): Optional layout options to apply; returned unchanged
             when provided.
-    
+
     Returns:
         dynamic_title (str): Title combining the base title, `num_assets`, and the visible relationship count.
         layout_options (dict[str, object]): The provided `layout_options` if not None, otherwise an empty dict.
@@ -683,15 +683,15 @@ def _validate_visualization_data(
 def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     """
     Create a 3D Plotly visualization of assets and their relationships.
-    
+
     Validates the provided graph, obtains enhanced visualization data, and assembles node markers, relationship line traces grouped by relationship type and bidirectionality, optional directional arrow markers for unidirectional edges, and a configured 3D layout with a dynamic title.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph object exposing get_3d_visualization_data_enhanced() and a relationships container used to build relationship and arrow traces.
-    
+
     Returns:
         go.Figure: A Plotly 3D figure containing asset node markers, relationship line traces grouped by type and direction, optional directional arrow marker traces, and a configured 3D layout with a dynamic title.
-    
+
     Raises:
         ValueError: If `graph` is not a valid AssetRelationshipGraph or if the visualization data retrieved from the graph is invalid.
     """
@@ -821,13 +821,13 @@ def _collect_and_group_relationships(
 ) -> dict[tuple[str, bool], list[dict]]:
     """
     Group relationships among the provided assets by relationship type and by whether each relationship is bidirectional.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing relationships keyed by source asset id.
         asset_ids (Iterable[str]): Asset ids to include when collecting relationships.
         relationship_filters (dict[str, bool] | None): Optional mapping of relationship type to a boolean; if a
             relationship type is present with value `False`, relationships of that type are excluded.
-    
+
     Returns:
         dict[tuple[str, bool], list[dict]]: Mapping keyed by `(rel_type, is_bidirectional)` where `is_bidirectional`
         is `True` when the reverse relationship exists. Each value is a list of relationship records; each record is a
@@ -964,11 +964,11 @@ def _build_hover_texts(
 def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
     """
     Provide line styling for a relationship group based on its type and directionality.
-    
+
     Parameters:
         rel_type (str): Relationship type key used to look up the configured color.
         is_bidirectional (bool): Whether the relationship group is bidirectional.
-    
+
     Returns:
         dict: Mapping with keys:
             color (str): Color string to use (configured color or `"#888888"` fallback when invalid).
@@ -1225,14 +1225,14 @@ def _validate_graph_relationships_dict(graph: AssetRelationshipGraph) -> None:
 def _normalize_positions_array(positions: np.ndarray) -> np.ndarray:
     """
     Convert an array-like of positions to a NumPy ndarray.
-    
+
     Parameters:
         positions (array-like | numpy.ndarray): Input positions; must not be None. If already an ndarray,
             the original object is returned unchanged.
-    
+
     Returns:
         numpy.ndarray: The positions as a NumPy ndarray.
-    
+
     Raises:
         ValueError: If `positions` is None.
     """
@@ -1271,11 +1271,11 @@ def _validate_positions_and_asset_ids_lengths(
 ) -> None:
     """
     Ensure `positions` and `asset_ids` represent the same number of assets and that `positions` is a 2-D array with three columns.
-    
+
     Parameters:
         positions (np.ndarray): Numeric array of shape (n, 3) containing XYZ coordinates.
         asset_ids (list[str]): Sequence of n non-empty asset identifier strings.
-    
+
     Raises:
         ValueError: If `positions` and `asset_ids` differ in length, if `positions` is not 2-D with three columns, or if either input does not support `len()`.
     """
@@ -1291,15 +1291,15 @@ def _validate_positions_and_asset_ids_lengths(
 def _ensure_numeric_positions(positions: np.ndarray) -> np.ndarray:
     """
     Ensure the positions array contains numeric values and has a floating-point dtype.
-    
+
     Attempts to cast non-numeric dtypes to float and returns the resulting array.
-    
+
     Parameters:
         positions (np.ndarray): Array of positions to validate and convert.
-    
+
     Returns:
         np.ndarray: The positions array with a floating-point dtype.
-    
+
     Raises:
         ValueError: If the array cannot be converted to floating-point numeric values.
     """
@@ -1651,7 +1651,7 @@ def _configure_layout_with_fallback(
 ) -> None:
     """
     Configure a Plotly 3D figure's layout with a dynamic title based on the provided assets and relationship traces.
-    
+
     If layout generation or application fails, sets the figure title to "Financial Asset Network" as a safe fallback. Mutates `fig` in place.
     """
     try:
@@ -1687,11 +1687,11 @@ def _prepare_visualization_filters(
 ) -> dict[str, bool] | None:
     """
     Builds and validates visualization filter settings and returns a relationship-visibility mapping.
-    
+
     Validates the provided boolean filter flags and constructs a mapping from relationship-type keys
     to visibility booleans. If `show_all_relationships` is true, returns `None` to indicate no filtering.
     The `toggle_arrows` flag is validated but not included in the returned mapping.
-    
+
     Parameters:
         show_same_sector (bool): Whether to show "same_sector" relationships.
         show_market_cap (bool): Whether to show "market_cap_similar" relationships.
@@ -1702,11 +1702,11 @@ def _prepare_visualization_filters(
         show_regulatory (bool): Whether to show "regulatory_impact" relationships.
         show_all_relationships (bool): If true, bypasses filtering and causes the function to return `None`.
         toggle_arrows (bool): Whether directional arrows should be shown; validated here but not returned.
-    
+
     Returns:
         dict[str, bool] | None: Mapping of relationship-type keys to visibility booleans, or `None`
         when all relationships should be shown.
-    
+
     Raises:
         TypeError: If any input parameter is not a boolean.
         ValueError: If building the relationship filters fails or an unexpected error occurs during construction.
@@ -1782,7 +1782,7 @@ def _assemble_visualization_figure(
 ) -> go.Figure:
     """
     Assemble a Plotly 3D figure by adding relationship traces, optional directional arrows, and the node trace, then configure the layout.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Source graph used to build relationship and arrow traces.
         positions (np.ndarray): Array of shape (n, 3) with 3D coordinates for each asset.
@@ -1791,10 +1791,10 @@ def _assemble_visualization_figure(
         hover_texts (list[str]): Hover text entries for each asset.
         relationship_filters (dict[str, bool] | None): Visibility flags per relationship type; `None` means show all.
         toggle_arrows (bool): Whether to include unidirectional arrow markers.
-    
+
     Returns:
         go.Figure: A configured Plotly figure containing relationship traces, optional arrow markers, and the node trace.
-    
+
     Raises:
         ValueError: If node trace creation or addition fails.
     """

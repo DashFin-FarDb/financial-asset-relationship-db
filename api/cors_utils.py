@@ -93,10 +93,10 @@ def _is_valid_https_domain(origin: str) -> bool:
 def _is_valid_https_idn(origin: str) -> bool:
     """
     Validate that an HTTPS origin's hostname can be IDNA-encoded and that the resulting ASCII origin (including optional port) matches the module's HTTPS domain pattern.
-    
+
     Parameters:
         origin (str): Origin URL including scheme and hostname; may include a port.
-    
+
     Returns:
         True if the origin uses the https scheme, has a hostname that can be IDNA-encoded to ASCII, and the reconstructed ASCII origin (including port if present) matches the module's HTTPS domain regular expression, False otherwise.
     """

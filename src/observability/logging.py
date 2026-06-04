@@ -23,9 +23,9 @@ _logging_initialized = False
 def _inject_request_context(logger: Any, log_method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """
     Add request-scoped identifiers from the current request context into the log event dictionary.
-    
+
     If the current request context contains `request_id` and/or `correlation_id`, those keys are copied into `event_dict`.
-    
+
     Returns:
         dict: The `event_dict` updated with `request_id` and/or `correlation_id` when present.
     """
@@ -40,9 +40,9 @@ def _inject_request_context(logger: Any, log_method: str, event_dict: dict[str, 
 def _move_event_to_message(logger: Any, log_method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """
     Move structured `event` into `message` when the record appears to follow the ObservabilityEvent schema.
-    
+
     If `event_dict['_record']` has `event` and `metadata` attributes, and `event_dict` contains `"event"` but not `"message"`, copies `event` to `event_dict['message']`.
-    
+
     Returns:
         dict[str, Any]: The (possibly modified) `event_dict`.
     """

@@ -83,15 +83,15 @@ def load_persisted_graph_if_available(
 ) -> AssetRelationshipGraph | None:
     """
     Attempt to load a persisted asset relationship graph from a configured durable database.
-    
+
     If no URL is configured or the resolved URL refers to an in-memory SQLite database, no load is attempted and `None` is returned.
-    
+
     Parameters:
         database_url (str | None): Persistence database URL or `None`. Whitespace-only strings are treated as unset.
-    
+
     Returns:
         AssetRelationshipGraph | None: The loaded persisted graph if available; `None` if durable persistence is not configured or was skipped for an in-memory SQLite URL.
-    
+
     Raises:
         RuntimeError: If an unexpected error occurs while loading persisted data.
     """
@@ -180,15 +180,15 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
 def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """
     Selects a rebuild source and constructs a fresh asset relationship graph accordingly.
-    
+
     The selection precedence is:
     1. If `settings.graph_cache_path` is set and the path exists, load from the cache and return source `"cache"`.
     2. Else if `settings.use_real_data_fetcher` is true, fetch real data and return source `"real_data"`.
     3. Otherwise, create and return the sample graph with source `"sample"`.
-    
+
     Parameters:
         settings (GraphLifecycleSettings): Immutable settings that control cache paths and whether real-data fetching is enabled.
-    
+
     Returns:
         tuple[AssetRelationshipGraph, GraphRebuildSource]: A tuple where the first element is the constructed graph and the second element is the rebuild source string: `"cache"`, `"real_data"`, or `"sample"`.
     """
@@ -379,7 +379,7 @@ def _resolve_persistence_database_url(database_url: str | None) -> str | None:
 def _log_in_memory_sqlite_persistence_skip() -> None:
     """
     Emit an observability warning that the configured database URL is an in-memory SQLite instance and persisted graph loading will be skipped.
-    
+
     Records an event indicating in-memory SQLite is non-durable and startup persistence loading is therefore skipped.
     """
     log_event(

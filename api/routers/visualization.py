@@ -88,10 +88,10 @@ def _build_visualization_edges(g: AssetRelationshipGraph) -> list[dict[str, Any]
 async def get_visualization_data() -> VisualizationDataResponse:
     """
     Produce visualization nodes and edges for the current asset relationship graph.
-    
+
     Returns:
         VisualizationDataResponse: An object with `nodes` (list of node dictionaries) and `edges` (list of edge dictionaries).
-    
+
     Raises:
         HTTPException: Raised with status code 500 if an internal error occurs while assembling the visualization data.
     """

@@ -62,9 +62,9 @@ class RebuildDriftEvaluator:
     def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
         """
         Evaluate rebuild coordination drift and classify its type, severity, and associated metadata.
-        
+
         Returns:
-            tuple[str, Severity, dict[str, str | int | float | bool | None]]: 
+            tuple[str, Severity, dict[str, str | int | float | bool | None]]:
                 - `drift_type`: Classification string describing the detected drift (e.g., `"lock_lost"`, `"persistence_unavailable"`, or an inconsistency type value).
                 - `Severity`: Severity enum value for the detected drift.
                 - `metadata`: A dictionary with contextual information. Always includes `lock_state`, `lock_is_valid`, `runtime_has_active_executor`, and `detected_at` (when applicable). For normal evaluations the metadata also contains `job_id`, `reason`, and job-specific fields added by `_build_job_metadata()` such as `job_status`, `active_worker_id`, `last_heartbeat_at`, `owner_mismatch`, and `lock_holder_id`. In early-failure cases the metadata contains error-related fields (for example `error_type` and `reason`).
@@ -167,10 +167,10 @@ class RebuildDriftEvaluator:
     def _parse_heartbeat_time(self, heartbeat_at: datetime | str | None) -> datetime | None:
         """
         Convert a heartbeat timestamp (datetime, ISO 8601 string, or None) into a timezone-aware UTC datetime.
-        
+
         Parameters:
             heartbeat_at (datetime | str | None): Heartbeat value to normalize. Strings are parsed as ISO 8601.
-        
+
         Returns:
             datetime | None: A timezone-aware `datetime` in UTC when parsing succeeds, or `None` if `heartbeat_at` is `None` or cannot be parsed.
         """
@@ -292,14 +292,14 @@ class RebuildDriftEvaluator:
     ) -> Severity:
         """
         Map a rebuild inconsistency and lock state to a Severity level.
-        
+
         Parameters:
             inconsistency_type (InconsistencyType): The detected rebuild inconsistency.
             lock_is_valid (bool): Whether the distributed lock is currently valid.
             owner_mismatch_with_stale_heartbeat (bool): For ORPHANED_RUNNING, True when the job's
                 active_worker_id differs from the lock holder and the job's last heartbeat is stale
                 or unparseable; when True this can reduce severity from CRITICAL to HIGH.
-        
+
         Returns:
             Severity: Severity level representing the urgency of the detected inconsistency.
         """

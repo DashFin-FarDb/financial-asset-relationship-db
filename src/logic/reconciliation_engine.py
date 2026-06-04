@@ -211,7 +211,7 @@ class ReconciliationEngine:
     ) -> None:
         """
         Create a ReconciliationEngine using the provided drift evaluator and automatic-execution flag.
-        
+
         Parameters:
             evaluator (DriftEvaluator): Component used to evaluate drift between desired and observed state.
             enable_automatic_execution (bool): If true, allow generated plans to use automatic execution; defaults to False.
@@ -231,9 +231,9 @@ class ReconciliationEngine:
     def generate_reconciliation_plan(self) -> ReconciliationPlan:
         """
         Create a deterministic reconciliation plan from the current drift evaluation.
-        
+
         Evaluates drift using the configured evaluator and produces a ReconciliationPlan that describes corrective actions, execution intent, and safety signals. This method does not execute actions or persist changes; it only computes and returns a plan. On unexpected evaluator errors it returns an explicit failure plan; evaluator-raised ValueError is re-raised.
-        
+
         Returns:
             ReconciliationPlan: Plan describing the corrective actions, execution mode, and safety state.
         """
@@ -297,14 +297,14 @@ class ReconciliationEngine:
     def _evaluation_failure_plan(self, exc: Exception) -> ReconciliationPlan:
         """
         Produce an explicit ReconciliationPlan signaling evaluation failure for the provided exception.
-        
+
         The returned plan has severity `CRITICAL`, action `ALERT_ONLY`, execution mode `MANUAL`, safety state `EVALUATION_FAILED`, and metadata containing:
         - `error_type`: the exception class name
         - `error_message`: a sanitized exception message truncated to 200 characters or `None`
-        
+
         Parameters:
             exc (Exception): The exception raised during drift evaluation; used to populate `metadata`.
-        
+
         Returns:
             ReconciliationPlan: A plan representing evaluation failure.
         """
@@ -407,18 +407,18 @@ class ReconciliationEngine:
     ) -> ReconciliationPlan:
         """
         Map a classified drift type and its context into a deterministic ReconciliationPlan.
-        
+
         Maps known drift types to standardized plan templates:
         - `InconsistencyType.ORPHANED_RUNNING.value` -> reset plan.
         - `InconsistencyType.STALE_OWNERSHIP.value` and `InconsistencyType.CRASH_SUSPICION.value` -> wait plan if `lock_is_valid` is true, otherwise reset plan.
         - `InconsistencyType.ZOMBIE_EXECUTOR.value` -> alert-only manual investigation plan (unsafe split-brain).
         - Unknown drift types -> alert-only manual investigation plan and emits an observability event.
-        
+
         Parameters:
             drift_type (str): Canonical drift type identifier.
             severity (Severity): Classified severity for the detected drift.
             metadata (dict[str, str | int | float | bool | None]): Contextual metadata for the drift. Must include a normalized `lock_is_valid` boolean (set earlier by caller) when decision branching depends on lock validity.
-        
+
         Returns:
             ReconciliationPlan: A deterministic, immutable plan describing actions, target state, execution mode, safety state, reason, and plan metadata.
         """
@@ -514,11 +514,11 @@ class ReconciliationEngine:
     ) -> ExecutionSafety:
         """
         Determine the machine-readable safety intent for critical drift classifications.
-        
+
         Parameters:
             drift_type (str): Drift identifier (e.g., "lock_lost", "persistence_unavailable", or values from InconsistencyType).
             metadata (dict[str, str | int | float | bool | None]): Evaluation metadata; `lock_is_valid` is parsed from this map.
-        
+
         Returns:
             ExecutionSafety: `INTEGRITY_COMPROMISED` for `"lock_lost"`, `OBSERVABILITY_FAILURE` for `"persistence_unavailable"`, `UNSAFE_SPLIT_BRAIN` for `InconsistencyType.ZOMBIE_EXECUTOR.value` or for `InconsistencyType.ORPHANED_RUNNING.value` when `lock_is_valid` is true, and `MANUAL_INVESTIGATION` otherwise.
         """

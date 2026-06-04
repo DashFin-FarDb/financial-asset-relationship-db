@@ -44,13 +44,13 @@ def determine_recovery_action(
 ) -> RecoveryDecision:
     """
     Decides the deterministic recovery action for a detected rebuild inconsistency.
-    
+
     Maps the provided inconsistency and the current lock validity to a RecoveryDecision without performing any recovery side effects.
-    
+
     Parameters:
         inconsistency (RebuildInconsistency): Detected rebuild inconsistency (contains `inconsistency_type`).
         lock_is_valid (bool): Whether the distributed lock is currently valid and held by this process.
-    
+
     Returns:
         RecoveryDecision: Decision containing the selected `RecoveryAction`, a human-readable `reason`,
         the observed `inconsistency_type`, and `safe_to_execute` indicating whether execution is permitted.

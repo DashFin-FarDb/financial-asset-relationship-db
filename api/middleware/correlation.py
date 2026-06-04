@@ -26,13 +26,13 @@ LOG_TRUNCATE_LEN = 200
 def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None:
     """
     Validate and return a trimmed identifier extracted from an incoming header, or `None` if the value is not acceptable.
-    
+
     If `raw_id` is not a string, the function returns `None`. Values whose original length exceeds `MAX_HEADER_LENGTH` are rejected and a `correlation_id_oversized_header` observability event is emitted. The header value is trimmed of surrounding whitespace and validated; if validation fails, a `correlation_id_invalid_header` observability event is emitted.
-    
+
     Parameters:
         raw_id (str | None): The raw header value to validate.
         header_name (str): The header name used in observability event metadata and messages.
-    
+
     Returns:
         str | None: The trimmed identifier when valid, otherwise `None`.
     """
@@ -76,13 +76,13 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
 def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
     """
     Attach request_id and correlation_id to the ASGI scope's state for downstream handlers.
-    
+
     Attempts to write the identifiers into scope["state"] in a way compatible with FastAPI's Request.state:
     - If scope has no "state", the function returns without side effects.
     - If the state object is a mapping, it first tries mapping-style writes and falls back to attribute-style assignment on failure.
     - If the state object is not a mapping, it attempts attribute-style assignment only.
     - Failures to attach IDs do not raise; the function logs structured observability events for skipped injection, mapping errors, attribute-assignment failures, and other unexpected errors.
-    
+
     Parameters:
         scope (Scope): The ASGI connection scope; the function reads and may modify scope["state"].
         request_id (str): The request identifier to attach to the state.

@@ -69,9 +69,9 @@ def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """
     Ensure persistent graph consistency at application startup.
-    
+
     Performs schema initialization for the durable and coordination databases (if configured), acquires a distributed startup lock, and runs recovery logic to reconcile persisted graph state before the application proceeds. If the recovery process reacquires the lock, the lock is released when finished. Database engines created for this short-lived verification are always disposed on exit.
-    
+
     Parameters:
         settings (GraphLifecycleSettings): Lifecycle configuration that provides durable graph and optional coordination database URLs and related reconciliation settings.
     """
@@ -146,7 +146,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     Control application startup and shutdown tasks for the FastAPI app, including optional durable-graph reconciliation, starting/stopping the background graph synchronization task, and orderly cleanup.
-    
+
     Parameters:
         app (FastAPI): The FastAPI application instance whose lifespan is being managed.
     """
@@ -249,9 +249,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 async def _graph_synchronization_loop(interval_seconds: float) -> None:
     """
     Continuously synchronize the in-memory graph with persistent rebuild updates until shutdown.
-    
+
     Performs repeated synchronization attempts separated by a configurable base interval (minimum 1.0 second). If a synchronization attempt raises an exception, the loop engages an exponential backoff with randomized jitter (capped at 32× the base interval) and logs a transient error; after a successful sync the interval and error state are reset. The loop checks the runtime lifecycle state before each attempt and exits when the runtime is shutting down or stopped.
-    
+
     Parameters:
         interval_seconds (float): Desired base interval, in seconds, between synchronization attempts. Values below 1.0 are treated as 1.0.
     """

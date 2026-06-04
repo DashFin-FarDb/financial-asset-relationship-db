@@ -79,7 +79,7 @@ def test_log_event_outputs_correct_json_and_preserves_message():
 def test_standard_logging_does_not_contain_redundant_message_key():
     """
     Verify that standard library logging produces structured JSON without a redundant 'message' key.
-    
+
     Asserts that the structured log sets `event` to the log message and that no `message` key is present.
     """
     setup_logging()
