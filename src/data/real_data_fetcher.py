@@ -396,13 +396,13 @@ class RealDataFetcher:
     def _fetch_equity_data() -> list[Equity]:
         """
         Builds Equity objects for a fixed set of major symbols using Yahoo Finance
-        
+
         and returns those successfully fetched.
 
         For each predefined symbol, fetches the latest close price and ticker metadata;
-        
+
         symbols without a valid price are skipped.
-        
+
         Emits structured observability events for per-symbol success and failure.
 
         Returns:
@@ -466,7 +466,7 @@ class RealDataFetcher:
         Builds Bond proxy objects from a fixed set of bond ETF symbols.
 
         For each configured ETF symbol, attempts to fetch the latest market price and constructs a Bond when a finite price is available;
-        
+
         symbols with missing or non-finite price data are skipped. Emits observability events for per-symbol success and failure.
 
         Returns:
@@ -603,8 +603,8 @@ class RealDataFetcher:
         """
         Constructs Currency dataclass instances for a predefined set of FX pairs using the latest available rates.
 
-        For each configured FX symbol, attempts to fetch the most recent exchange rate; 
-        
+        For each configured FX symbol, attempts to fetch the most recent exchange rate;
+
         symbols with no available rate are skipped and failures for individual symbols are logged but do not stop the overall fetch.
 
         Returns:
