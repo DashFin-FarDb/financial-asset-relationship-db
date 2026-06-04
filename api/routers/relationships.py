@@ -16,7 +16,8 @@ async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
     Retrieve outgoing relationships for the specified asset.
 
     Returns:
-        list[RelationshipResponse]: List of relationships where each item has `source_id` set to the provided `asset_id` and contains `target_id`, `relationship_type`, and `strength`.
+        list[RelationshipResponse]: List of relationships where each item has `source_id` set to the provided `asset_id`
+        and contains `target_id`, `relationship_type`, and `strength`.
     """
     try:
         g = get_graph()
