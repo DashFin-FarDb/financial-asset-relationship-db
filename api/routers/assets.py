@@ -35,7 +35,7 @@ async def get_assets(
         per_page (int): Number of items per page (maximum 1000).
 
     Returns:
-        AssetPageResponse: Page containing `items` (serialized assets for the requested page), 
+        AssetPageResponse: Page containing `items` (serialized assets for the requested page),
         `total` (total matched assets), `page`, and `per_page`.
 
     Raises:
