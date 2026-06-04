@@ -363,7 +363,7 @@ def _save_graph_with_session(
                     metadata={"error": rollback_exc.__class__.__name__},
                 ),
             )
-        
+
         # If the failure originated in the pre-commit check, re-raise the original exception
         # to allow specialized upstream handling and avoid generic save error wrapping.
         if pre_commit_error:

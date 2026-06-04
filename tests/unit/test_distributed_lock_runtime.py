@@ -134,6 +134,7 @@ def test_refresh_no_retry_on_unexpected_exception(mock_lock_env: tuple[MagicMock
     assert res is False
     assert mock_repo.refresh_lock.call_count == 1
 
+
 @pytest.mark.unit
 def test_acquire_timeout_after_30s(monkeypatch: pytest.MonkeyPatch) -> None:
     """Verify LockAcquisitionTimeout is raised after 30s of contention."""
@@ -141,21 +142,21 @@ def test_acquire_timeout_after_30s(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("src.data.distributed_lock.session_scope", _mock_session_scope)
     monkeypatch.setattr("src.data.distributed_lock.CoordinationLockRepository", lambda session: mock_repo)
     monkeypatch.setattr("src.data.distributed_lock.sleep", lambda s: None)
-    
+
     # Contention: success=False
     mock_repo.acquire_lock.return_value = SimpleNamespace(success=False)
-    
+
     # Mock time to advance exactly 10s per call to DistributedLock.time
     # DistributedLock.acquire calls time() at start, then in each loop to check elapsed.
-    times = [1000.0, 1005.0, 1015.0, 1025.0, 1035.0] 
+    times = [1000.0, 1005.0, 1015.0, 1025.0, 1035.0]
     time_iter = iter(times)
     monkeypatch.setattr("src.data.distributed_lock.time", lambda: next(time_iter))
-    
+
     lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[arg-type]
-    
+
     with pytest.raises(LockAcquisitionTimeout, match="Failed to acquire lock 'test_lock' within 30s ceiling"):
         lock.acquire()
-    
+
     # Should have tried multiple times until time exceeded 30s
     assert mock_repo.acquire_lock.call_count > 1
 
@@ -166,7 +167,7 @@ def test_ttl_validation_in_init() -> None:
     factory = lambda: None
     # 300 is fine
     DistributedLock(factory, "test", ttl_seconds=300)  # type: ignore[arg-type]
-    
+
     # 301 is not
     with pytest.raises(ValueError, match="exceeds maximum allowed value of 300"):
         DistributedLock(factory, "test", ttl_seconds=301)  # type: ignore[arg-type]
