@@ -485,7 +485,6 @@ class ReconciliationEngine:
         metadata: dict[str, str | int | float | bool | None],
     ) -> ExecutionSafety:
         """Classify machine-readable safety intent for CRITICAL drift."""
-
         lock_is_valid = self._parse_lock_is_valid(metadata.get("lock_is_valid"))
 
         if drift_type == "lock_lost":
