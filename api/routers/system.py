@@ -8,6 +8,9 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: di
 
 from src.models.financial_models import AssetClass
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 from .. import graph_lifecycle
 from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse
 from ..graph_lifecycle_providers import (
@@ -16,7 +19,7 @@ from ..graph_lifecycle_providers import (
     get_graph_lifecycle_settings,
     resolve_durable_graph_persistence_url,
 )
-from ..router_helpers import ObservabilityEvent, get_graph, log_event, logger
+from ..router_helpers import get_graph, logger
 
 router = APIRouter()
 

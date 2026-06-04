@@ -9,12 +9,13 @@ from fastapi import APIRouter, HTTPException
 from src.logic.asset_graph import AssetRelationshipGraph
 
 from ..api_models import VisualizationDataResponse
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
-    ObservabilityEvent,
     get_graph,
-    log_event,
     logger,
 )
 

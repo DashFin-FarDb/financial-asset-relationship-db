@@ -153,48 +153,6 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None
     get_settings.cache_clear()
 
 
-@pytest.fixture
-def non_operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
-    """Client authenticated as a standard, non-operator active user."""
-    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
-
-    app = create_app()
-
-    def active_user() -> User:
-        """Return a mock standard active user."""
-        return User(username="standard_analyst", disabled=False)
-
-    app.dependency_overrides[get_current_active_user] = active_user
-
-    try:
-        with TestClient(app) as client:
-            yield client
-    finally:
-        app.dependency_overrides.clear()
-        get_settings.cache_clear()
-
-
-@pytest.fixture
-def operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
-    """Client authenticated as the authorized operator user."""
-    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
-
-    app = create_app()
-
-    def active_operator() -> User:
-        """Return a mock authorized operator user."""
-        return User(username="admin", disabled=False)
-
-    app.dependency_overrides[get_current_active_user] = active_operator
-
-    try:
-        with TestClient(app) as client:
-            yield client
-    finally:
-        app.dependency_overrides.clear()
-        get_settings.cache_clear()
-
-
 async def test_app_construction_with_graph_admin_router_succeeds() -> None:
     """The graph admin router must not introduce an app construction import cycle."""
     from api.app_factory import create_app  # pylint: disable=import-outside-toplevel

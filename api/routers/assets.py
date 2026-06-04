@@ -6,10 +6,11 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query
 
 from ..api_models import AssetPageResponse, AssetResponse
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 from ..router_helpers import (
-    ObservabilityEvent,
     get_graph,
-    log_event,
     logger,
     raise_asset_not_found,
     serialize_asset,

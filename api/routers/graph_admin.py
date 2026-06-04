@@ -1626,7 +1626,7 @@ def _orm_to_response(job_orm: RebuildJobORM) -> RebuildJobResponse:
 @router.get("/api/graph/rebuild/jobs/{job_id}")
 def get_rebuild_job(
     job_id: str,
-    current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
 ) -> RebuildJobResponse:
     """Get rebuild job status by job ID."""
     with _rebuild_persistence_session() as session:
@@ -1641,20 +1641,10 @@ def get_rebuild_job(
 
 @router.get("/api/graph/rebuild/jobs")
 def list_rebuild_jobs(
-    current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
 ) -> RebuildJobListResponse:
     """List rebuild jobs ordered newest-first."""
     with _rebuild_persistence_session() as session:
         jobs_orm = AssetGraphRepository(session).list_rebuild_jobs(limit=_MAX_REBUILD_JOB_LIST_RESULTS)
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
         return RebuildJobListResponse(jobs=jobs, count=len(jobs))
-
-
-def init_rebuild_executor(_settings: GraphLifecycleSettings | None = None) -> None:
-    """Explicitly initialize the process-local rebuild executor."""
-    _REBUILD_RUNTIME.get_executor()
-
-
-def shutdown_rebuild_executor_sync() -> None:
-    """Shut down the rebuild executor synchronously."""
-    _REBUILD_RUNTIME.shutdown_executor()
