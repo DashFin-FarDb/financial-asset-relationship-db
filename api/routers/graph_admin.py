@@ -205,11 +205,11 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
     Convert a rebuild pipeline exception into an appropriate sanitized HTTPException suitable for API responses.
 
     Parameters:
-        exc (Exception | asyncio.CancelledError): 
+        exc (Exception | asyncio.CancelledError):
         Exception raised during rebuild processing; may be a wrapped execution error.
 
     Returns:
-        http_exc (HTTPException): 
+        http_exc (HTTPException):
         An HTTPException with a sanitized status code and detail payload describing the failure category and message.
     """
     root_exc = _unwrap_rebuild_error(exc)
@@ -299,8 +299,8 @@ def _log_rebuild_requested(*, user_ref: str) -> None:
     """
     Record an audit event and increment the rebuild request metric when a graph rebuild is requested.
 
-    Emits a bounded observability event that includes the provided user reference 
-    
+    Emits a bounded observability event that includes the provided user reference
+
     and a timestamp to support audit trails.
 
     Parameters:
@@ -814,7 +814,7 @@ def _handle_rebuild_failure(
     source: GraphRebuildSource | None,
 ) -> NoReturn:
     """
-    Handle a failed rebuild by optionally restoring a previous persisted graph snapshot 
+    Handle a failed rebuild by optionally restoring a previous persisted graph snapshot
     and recording the job failure, then propagate an appropriate exception.
 
     If the rebuild result was not persisted as a successful terminal state, this function will:
@@ -900,20 +900,20 @@ def _run_rebuild_pipeline(
     lock_lost: threading.Event,
 ) -> GraphRebuildResponse:
     """
-    Execute the rebuild pipeline: build the asset relationship graph, persist it to durable storage, 
-    
+    Execute the rebuild pipeline: build the asset relationship graph, persist it to durable storage,
+
     finalize job state, and publish the new graph to runtime.
 
-    Performs the following steps in order: 
-    - checks for a lost distributed lock, 
-    - builds the graph and records the rebuild source, 
-    - takes a persisted-graph snapshot for rollback safety, 
-    - saves the new graph to the resolved persistence URL with a pre-commit lock check, 
-    - finalizes the job as succeeded and updates metrics, and 
-    - synchronizes the runtime graph. 
-    
+    Performs the following steps in order:
+    - checks for a lost distributed lock,
+    - builds the graph and records the rebuild source,
+    - takes a persisted-graph snapshot for rollback safety,
+    - saves the new graph to the resolved persistence URL with a pre-commit lock check,
+    - finalizes the job as succeeded and updates metrics, and
+    - synchronizes the runtime graph.
+
     If the provided `lock_lost` event becomes set at key stages, a distributed-lock loss error is raised
-    
+
     and the failure handling path will run.
 
     Parameters:
@@ -1002,13 +1002,13 @@ def _setup_coordination_and_domain_factories(
     otherwise separate coordination Engine/session factory is created.
 
     Parameters:
-        settings (GraphLifecycleSettings): Configuration containing `asset_graph_database_url` 
+        settings (GraphLifecycleSettings): Configuration containing `asset_graph_database_url`
         and optional `coordination_database_url`.
 
     Returns:
         tuple[Callable[[], Session], Callable[[], Session], str, Engine, Engine | None]:
             - domain_session_factory: callable that yields a new Session bound to the domain Engine.
-            - coordination_session_factory: callable that yields a new Session for coordination 
+            - coordination_session_factory: callable that yields a new Session for coordination
             (may be the same as domain_session_factory).
             - resolved_domain_url: resolved durable URL used for domain persistence.
             - domain_engine: Engine instance for the domain persistence.
@@ -1060,7 +1060,7 @@ def _acquire_rebuild_lock(
     Acquire and validate the distributed rebuild lock for the coordination plane.
 
     Parameters:
-        coordination_session_factory (Callable[[], Session]): 
+        coordination_session_factory (Callable[[], Session]):
         Factory that produces a DB session used by the distributed lock.
         lock_ttl (int): Time-to-live for the lock in seconds.
 
@@ -1100,7 +1100,7 @@ def _perform_rebuild_and_persist_sync(
     Rebuild the asset graph, persist the result, and publish the new graph to runtime state.
 
     Returns:
-        GraphRebuildResponse: Final rebuild response containing persisted status, source information, 
+        GraphRebuildResponse: Final rebuild response containing persisted status, source information,
         and asset/relationship/regulatory counts.
     """
     (
