@@ -25,9 +25,7 @@ def _reset_logging():
 
 
 def test_log_event_outputs_correct_json_and_preserves_message():
-    """
-    Test that log_event produces correct JSON schema and maintains standard log message.
-    """
+    """Test that log_event produces correct JSON schema and maintains standard log message."""
     # 1. Setup structured logging
     setup_logging()
     log_output = StringIO()
