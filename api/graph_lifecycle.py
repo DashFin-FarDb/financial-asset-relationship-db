@@ -191,12 +191,17 @@ def get_graph() -> AssetRelationshipGraph:
 
 def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphSource | None]:
     """
-    Obtain the module-global AssetRelationshipGraph instance and its recorded startup source, initializing the global graph if necessary.
+    Obtain the module-global AssetRelationshipGraph instance and its recorded startup source, 
+    
+    initializing the global graph if necessary.
 
-    If the global graph is not yet initialized, this function performs an atomic initialization sequence under the module lock, records the startup source, and emits an observability event after successful initialization.
+    If the global graph is not yet initialized, this function performs an atomic initialization sequence under the module lock, 
+    
+    records the startup source, and emits an observability event after successful initialization.
 
     Returns:
-        tuple[AssetRelationshipGraph, AssetGraphSource | None]: The active global graph and the source that was used to initialize it (or `None` if unknown).
+        tuple[AssetRelationshipGraph, AssetGraphSource | None]: 
+        The active global graph and the source that was used to initialize it (or `None` if unknown).
 
     Raises:
         Exception: Propagates any exception raised during graph initialization.
@@ -365,7 +370,9 @@ def complete_rebuild(*, succeeded: bool) -> None:
     """
     Finalize the graph lifecycle after a rebuild attempt.
 
-    If called when the runtime is not in the REBUILDING state, emits a warning event and returns without changing state. If `succeeded` is True transitions the lifecycle to READY; otherwise transitions it to FAILED.
+    If called when the runtime is not in the REBUILDING state, emits a warning event and returns without changing state. 
+    
+    If `succeeded` is True transitions the lifecycle to READY; otherwise transitions it to FAILED.
 
     Parameters:
         succeeded (bool): Whether the rebuild succeeded; `True` transitions to READY, `False` transitions to FAILED.
@@ -416,7 +423,9 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
     5. A generated sample graph.
 
     Returns:
-        tuple[AssetRelationshipGraph, AssetGraphSource]: The initialized graph and a string identifying the startup source — one of `"explicit_factory"`, `"persisted_graph_store"`, `"cache"`, `"real_data"`, or `"sample"`.
+        tuple[AssetRelationshipGraph, AssetGraphSource]: 
+        The initialized graph and a string identifying the startup source
+        — one of `"explicit_factory"`, `"persisted_graph_store"`, `"cache"`, `"real_data"`, or `"sample"`.
     """
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory(), "explicit_factory"
