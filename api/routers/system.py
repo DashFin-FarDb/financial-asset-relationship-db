@@ -49,12 +49,12 @@ def _get_graph_health() -> GraphHealthResponse:
     """
     Report bounded graph readiness and inventory counts for health checks.
 
-    Reads the application's graph (assets and relationships) and returns a GraphHealthResponse containing availability, 
-    
+    Reads the application's graph (assets and relationships) and returns a GraphHealthResponse containing availability,
+
     the current runtime lifecycle state, the total number of assets, and the total number of relationships.
-    
-    If the graph containers are not dictionary-shaped or an error occurs while reading the graph, 
-    
+
+    If the graph containers are not dictionary-shaped or an error occurs while reading the graph,
+
     returns `available=False` with asset and relationship counts set to 0.
 
     Returns:
