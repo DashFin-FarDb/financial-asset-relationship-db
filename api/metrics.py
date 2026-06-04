@@ -92,18 +92,18 @@ def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:
     """
     Set the rebuild-state gauge to the numeric value corresponding to a rebuild job status.
 
-    Normalizes the provided status (None, RebuildJobStatus, or other) to a lowercase string 
-    
+    Normalizes the provided status (None, RebuildJobStatus, or other) to a lowercase string
+
     and maps it to the following numeric values:
 
     unknown → -1, none → 0, pending → 1, running → 2, succeeded → 3, failed → 4, cancelled → 5.
 
-    If the status is not recognized and is not the literal "unknown", 
-    
+    If the status is not recognized and is not the literal "unknown",
+
     emits a structured error event and maps to -1.
 
     Parameters:
-        status (str | RebuildJobStatus | None): Current rebuild job status to map; 
+        status (str | RebuildJobStatus | None): Current rebuild job status to map;
         may be None, an enum member, or any string.
     """
     # Normalize status to string for mapping
@@ -149,7 +149,7 @@ def increment_recovery_trigger(inconsistency_type: str) -> None:
     Record a detected recovery trigger by incrementing the counter for the given inconsistency type.
 
     Parameters:
-        inconsistency_type (str): Identifier for the detected inconsistency 
+        inconsistency_type (str): Identifier for the detected inconsistency
         (e.g. "stale_ownership", "orphaned_running", "crash_suspicion").
     """
     REBUILD_RECOVERY_TRIGGERS.labels(inconsistency_type=inconsistency_type).inc()
@@ -189,7 +189,7 @@ def _initialize_from_latest_job(latest_job) -> None:
     Emits an informational observability event containing the job's status and job_id.
 
     Parameters:
-        latest_job: The latest persisted rebuild job whose `status` 
+        latest_job: The latest persisted rebuild job whose `status`
         (a `RebuildJobStatus` or string) is used to initialize the metric;
         `latest_job.job_id` is included in the emitted event.
     """
