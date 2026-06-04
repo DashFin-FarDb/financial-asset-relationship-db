@@ -84,13 +84,17 @@ def load_persisted_graph_if_available(
     """
     Attempt to load a persisted asset relationship graph from a configured durable database.
 
-    If no URL is configured or the resolved URL refers to an in-memory SQLite database, no load is attempted and `None` is returned.
+    If no URL is configured or the resolved URL refers to an in-memory SQLite database, 
+    
+    no load is attempted and `None` is returned.
 
     Parameters:
         database_url (str | None): Persistence database URL or `None`. Whitespace-only strings are treated as unset.
 
     Returns:
-        AssetRelationshipGraph | None: The loaded persisted graph if available; `None` if durable persistence is not configured or was skipped for an in-memory SQLite URL.
+        AssetRelationshipGraph | None: The loaded persisted graph if available;
+        
+        `None` if durable persistence is not configured or was skipped for an in-memory SQLite URL.
 
     Raises:
         RuntimeError: If an unexpected error occurs while loading persisted data.
@@ -190,7 +194,9 @@ def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelation
         settings (GraphLifecycleSettings): Immutable settings that control cache paths and whether real-data fetching is enabled.
 
     Returns:
-        tuple[AssetRelationshipGraph, GraphRebuildSource]: A tuple where the first element is the constructed graph and the second element is the rebuild source string: `"cache"`, `"real_data"`, or `"sample"`.
+        tuple[AssetRelationshipGraph, GraphRebuildSource]: A tuple where the first element is the constructed graph
+        
+        and the second element is the rebuild source string: `"cache"`, `"real_data"`, or `"sample"`.
     """
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
