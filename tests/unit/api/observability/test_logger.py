@@ -17,7 +17,9 @@ def _reset_logging():
     """
     Reset library logging state and structlog defaults around a test.
 
-    Sets the internal `_logging_initialized` flag to False and captures the root logger's handlers before yielding control to the test; after the test completes, restores the original root handlers and calls `structlog.reset_defaults()`.
+    Sets the internal `_logging_initialized` flag to False and captures the root logger's handlers before
+    yielding control to the test; after the test completes, restores the original root handlers and calls
+    `structlog.reset_defaults()`.
     """
     src.observability.logging._logging_initialized = False
     root_logger = logging.getLogger()

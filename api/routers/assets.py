@@ -36,10 +36,12 @@ async def get_assets(
         per_page (int): Number of items per page (maximum 1000).
 
     Returns:
-        AssetPageResponse: Page containing `items` (serialized assets for the requested page), `total` (total matched assets), `page`, and `per_page`.
+        AssetPageResponse: Page containing `items` (serialized assets for the requested page),
+            `total` (total matched assets), `page`, and `per_page`.
 
     Raises:
-        HTTPException: Propagates existing HTTP errors; raises a 500-status `HTTPException` on unexpected internal errors.
+        HTTPException: Propagates existing HTTP errors; raises a 500-status `HTTPException`
+            on unexpected internal errors.
     """
     try:
         g = get_graph()

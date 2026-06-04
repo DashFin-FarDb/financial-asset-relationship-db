@@ -238,7 +238,8 @@ async def metrics() -> Response:
     Expose Prometheus metrics in OpenMetrics format.
 
     Returns:
-        Response: HTTP response containing OpenMetrics-formatted metrics with the OpenMetrics media type; on generation failure returns a 500 response with plain-text body "metrics generation error".
+        Response: HTTP response containing OpenMetrics-formatted metrics with the OpenMetrics media type;
+            on generation failure returns a 500 response with plain-text body "metrics generation error".
     """
     try:
         return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)

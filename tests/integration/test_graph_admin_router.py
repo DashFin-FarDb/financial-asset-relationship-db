@@ -334,7 +334,8 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """
-    Verifies that when the rebuild executor raises a distributed-lock acquisition error directly, the request maps to HTTP 429 and the runtime lifecycle remains READY.
+    Verifies that when the rebuild executor raises a distributed-lock acquisition error directly,
+    the request maps to HTTP 429 and the runtime lifecycle remains READY.
     """
 
     async def fake_executor(

@@ -21,7 +21,9 @@ def _reset_logging():
     """
     Pytest fixture that resets global logging and structlog state for a test and restores it afterwards.
 
-    Sets the module-level initialization flag to allow logging reconfiguration, clears the cached settings so environment variable changes take effect, captures the root logger's handlers and level for restoration, yields to run the test, then restores the original handlers and level and resets structlog to its defaults.
+    Sets the module-level initialization flag to allow logging reconfiguration, clears the cached settings
+    so environment variable changes take effect, captures the root logger's handlers and level for restoration,
+    yields to run the test, then restores the original handlers and level and resets structlog to its defaults.
     """
     # Reset our internal initialization flag to allow reconfiguration in tests
     src.observability.logging._logging_initialized = False
