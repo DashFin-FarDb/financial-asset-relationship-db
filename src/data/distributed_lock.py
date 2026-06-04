@@ -309,25 +309,19 @@ class DistributedLock:
         start_time: float,
     ) -> bool:
         """
-        Decide whether to retry a lock refresh after a transient error and record observability signals.
-
-        Emits a TRANSIENT_ERROR event for every invocation.
-
-        If the retry budget is exhausted, marks the lock as lost, emits a FAILED event,
-
-        and records failure and latency metrics.
-
+        Decide whether to retry a lock refresh after a transient error and emit observability signals.
+        
+        Emits a TRANSIENT_ERROR event on each invocation. If the retry budget is exhausted, marks the lock as lost, emits a FAILED event, and records failure and latency metrics.
+        
         Parameters:
-                attempt (int): Zero-based current retry attempt.
-                max_retries (int): Maximum allowed retry attempts (zero or greater).
-                retry_delay_seconds (float): Base delay in seconds used for exponential backoff between retries.
-                exc (Exception): The transient exception that triggered this handler.
-                start_time (float): Timestamp (as returned by time()) when the refresh operation began;
-                used to compute latency metrics.
-
+            attempt (int): Zero-based current retry attempt.
+            max_retries (int): Maximum allowed retry attempts (zero or greater).
+            retry_delay_seconds (float): Base delay in seconds used for exponential backoff.
+            exc (Exception): The transient exception that triggered this handler.
+            start_time (float): Timestamp (as returned by time()) when the refresh operation began; used to compute latency.
+        
         Returns:
-                bool: `True` if the caller should retry the refresh,
-                `False` if no retries remain and the lock has been marked lost.
+            bool: `True` if the caller should retry the refresh, `False` if no retries remain and the lock has been marked lost.
         """
         self._emit(
             LockEvent(
@@ -410,17 +404,15 @@ class DistributedLock:
 
     def refresh(self, *, max_retries: int = 2, retry_delay_seconds: float = 0.5) -> LockLease | bool:
         """
-        Refresh the distributed lock to extend its TTL.
-
-        Retries on transient DB errors to handle brief network blips.
-        Uses exponential backoff delays on retries.
-
-        Args:
-            max_retries: Number of retry attempts on transient errors (default 2).
-            retry_delay_seconds: Base delay between retries (default 0.5s).
-
+        Extend the current lock's TTL by attempting to refresh the lease.
+        
+        Parameters:
+            max_retries (int): Number of additional attempts to retry on transient errors (must be >= 0).
+            retry_delay_seconds (float): Base delay in seconds used for retry backoff between attempts (must be >= 0).
+        
         Returns:
-            LockLease on success, False if held by another holder.
+            LockLease: The renewed lease when the refresh succeeds.
+            bool: `False` if the lock is contested or the refresh did not succeed.
         """
         if max_retries < 0:
             raise ValueError("max_retries must be >= 0")
@@ -473,15 +465,9 @@ class DistributedLock:
 
     def release(self) -> None:
         """
-        Release the lock in the coordination database and record observability events.
-
-        Attempts to remove the lock holder record in the coordination store, sets the internal lifecycle state to RELEASED,
-
-        emits a `RELEASED` LockEvent, and increments the release metric on success.
-
-        If an exception occurs, emits an `UNEXPECTED_ERROR` LockEvent, increments the error metric,
-
-        logs the failure, and swallows the exception (does not re-raise).
+        Release the lock and update its lifecycle state.
+        
+        Marks the lock as released on success and records the corresponding release event and metric. If release fails, records an unexpected error event and error metric, logs the failure, and suppresses the exception.
         """
         try:
             with session_scope(self.coordination_session_factory) as session:
@@ -530,14 +516,13 @@ class DistributedLock:
 
     def _classify_lock_state(self, snapshot: LockStateSnapshot) -> LockState:
         """
-        Determine the lock state from a LockStateSnapshot.
-
+        Determine the high-level lock state represented by a database snapshot.
+        
         Parameters:
-            snapshot (LockStateSnapshot): Database snapshot describing lock existence, validity, and expiry.
-
+            snapshot (LockStateSnapshot): Snapshot indicating whether the lock row exists, whether it is currently valid, and its expiration timestamp.
+        
         Returns:
-            LockState: `LockState.VALID` if the snapshot is present and valid; `LockState.EXPIRED` if the snapshot exists,
-            is not valid, and `expires_at` is less than or equal to the current UTC time; `LockState.UNKNOWN` otherwise.
+            LockState: `LockState.VALID` if the snapshot exists and is valid; `LockState.EXPIRED` if the snapshot exists, is not valid, and `expires_at` is less than or equal to the current UTC time; `LockState.UNKNOWN` otherwise.
         """
         if not snapshot.exists:
             return LockState.UNKNOWN

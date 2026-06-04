@@ -375,7 +375,9 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
 async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_executor_raises_directly(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Direct contention exceptions should not leave runtime lifecycle in FAILED."""
+    """
+    Verifies that when the rebuild executor raises a distributed-lock acquisition error directly, the request maps to HTTP 429 and the runtime lifecycle remains READY.
+    """
 
     async def fake_executor(
         _loop: asyncio.AbstractEventLoop,

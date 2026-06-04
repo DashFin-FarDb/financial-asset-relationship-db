@@ -13,7 +13,11 @@ from src.observability.logging import setup_logging
 
 @pytest.fixture(autouse=True)
 def _reset_logging():
-    """Reset the standard library logging and structlog after each test."""
+    """
+    Reset library logging state and structlog defaults around a test.
+    
+    Sets the internal `_logging_initialized` flag to False and captures the root logger's handlers before yielding control to the test; after the test completes, restores the original root handlers and calls `structlog.reset_defaults()`.
+    """
     src.observability.logging._logging_initialized = False
     root_logger = logging.getLogger()
     original_handlers = list(root_logger.handlers)

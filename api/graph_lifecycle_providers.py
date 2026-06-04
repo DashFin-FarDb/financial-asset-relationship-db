@@ -82,22 +82,18 @@ def load_persisted_graph_if_available(
     database_url: str | None,
 ) -> AssetRelationshipGraph | None:
     """
-    Attempt to load a persisted asset relationship graph from a configured durable database.
-
-    If no URL is configured or the resolved URL refers to an in-memory SQLite database,
-
-    no load is attempted and `None` is returned.
-
+    Attempt to load a persisted asset relationship graph from the configured durable database.
+    
+    If no durable URL is configured or the resolved URL refers to an in-memory SQLite database, no load is attempted and the function returns `None`.
+    
     Parameters:
-        database_url (str | None): Persistence database URL or `None`. Whitespace-only strings are treated as unset.
-
+        database_url (str | None): Persistence database URL or `None`. Whitespace-only or empty strings are treated as unset.
+    
     Returns:
-        AssetRelationshipGraph | None: The loaded persisted graph if available;
-
-        `None` if durable persistence is not configured or was skipped for an in-memory SQLite URL.
-
+        AssetRelationshipGraph | None: The persisted graph if one was successfully loaded; `None` if durable persistence is not configured or was skipped for an in-memory SQLite URL.
+    
     Raises:
-        RuntimeError: If an unexpected error occurs while loading persisted data.
+        RuntimeError: If an unexpected error occurs while attempting to load persisted data.
     """
     resolved_url = _resolve_persistence_database_url(database_url)
     if resolved_url is None:
@@ -284,14 +280,17 @@ def _save_graph_with_engine(
     pre_commit_check: Callable[[], None] | None = None,
 ) -> None:
     """
-    Persist the provided asset relationship graph using a short-lived database session.
-
+    Persist an asset relationship graph using a short-lived database session.
+    
+    If provided, `pre_commit_check` is executed before the transaction is committed; any exception it raises prevents the commit and is propagated. The session is always closed when this function returns.
+    
     Parameters:
-        engine (Engine): SQLAlchemy engine configured for the persistence store.
+        engine (Engine): Engine configured for the persistence store.
         graph (AssetRelationshipGraph): Graph to be persisted.
-
+        pre_commit_check (Callable[[], None] | None): Optional callable run just before commit to validate state.
+    
     Raises:
-        GraphPersistenceSaveError: If preparing the persistence session fails or if saving the graph fails.
+        GraphPersistenceSaveError: If creating the session or saving the graph fails.
     """
     try:
         session_factory = create_session_factory(engine)
@@ -322,13 +321,16 @@ def _save_graph_with_session(
 ) -> None:
     """
     Persist the given AssetRelationshipGraph using the provided SQLAlchemy session and commit the transaction.
-
+    
+    If `pre_commit_check` is provided it will be executed after the graph is saved and before the commit; an exception from that check will abort the commit.
+    
     Parameters:
         session (Session): Active SQLAlchemy session used to persist the graph.
         graph (AssetRelationshipGraph): Graph to persist.
-
+        pre_commit_check (Callable[[], None] | None): Optional callable invoked after saving and before commit; if it raises, the transaction is aborted.
+    
     Raises:
-        GraphPersistenceSaveError: If saving or committing the graph fails; the session will be rolled back.
+        GraphPersistenceSaveError: If saving the graph, the pre-commit check, or committing the transaction fails.
     """
     try:
         AssetGraphRepository(session).save_graph(graph)
@@ -385,11 +387,9 @@ def _resolve_persistence_database_url(database_url: str | None) -> str | None:
 
 def _log_in_memory_sqlite_persistence_skip() -> None:
     """
-    Emit an observability warning that the configured database URL is an in-memory SQLite instance
-
-    and persisted graph loading will be skipped.
-
-    Records an event indicating in-memory SQLite is non-durable and startup persistence loading is therefore skipped.
+    Emit an observability warning that startup persisted graph loading is skipped because the configured database is an in-memory SQLite instance.
+    
+    Records an observability event named "graph_persistence_skip_in_memory".
     """
     log_event(
         logger,

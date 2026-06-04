@@ -77,27 +77,20 @@ class FormulaicAnalyzer:
 
     def analyze_graph(self, graph: AssetRelationshipGraph) -> dict[str, Any]:
         """
-        Produce a collection of financial formulas and empirical relationship data
-        derived from an AssetRelationshipGraph.
-
-        Orchestrates collection of formula groups and computation of empirical
-        relationship metrics, then assembles the final analysis payload.
-
+        Produce a set of financial formula templates and empirical relationship metrics from an asset relationship graph.
+        
+        Orchestrates collection of applicable formula templates and computation of empirical relationship data, then assembles the analysis payload.
+        
         Parameters:
-            graph (AssetRelationshipGraph): Graph of assets and their relationships
-                used to detect asset types, select applicable formula templates,
-                and compute empirical metrics.
-
+            graph (AssetRelationshipGraph): Graph of assets and relationships used to detect asset types, select applicable formulas, and compute empirical metrics.
+        
         Returns:
-            result (dict): Analysis payload with keys:
+            result (dict): Analysis payload containing:
                 - "formulas" (List[Formula]): Generated Formula objects describing relationships and metrics.
-                - "empirical_relationships" (Dict[str, Any]): Empirical data derived
-                  from the graph (e.g., correlation matrix, strongest correlations,
-                  asset-class and sector relationships).
+                - "empirical_relationships" (Dict[str, Any]): Empirical data derived from the graph (e.g., correlation matrix, strongest correlations, asset-class and sector summaries).
                 - "formula_count" (int): Total number of formulas generated.
                 - "categories" (Dict[str, int]): Counts of formulas grouped by category.
-                - "summary" (Dict[str, Any]): High-level summary metrics and insights
-                  about the generated formulas and empirical relationships.
+                - "summary" (Dict[str, Any]): High-level summary metrics and insights about the generated formulas and empirical relationships.
         """
         log_event(
             logger,

@@ -35,20 +35,19 @@ REL_TYPE_COLORS = defaultdict(
 
 def _is_valid_color_format(color: str) -> bool:
     """
-    Validate whether a color string is an accepted hex or rgb/rgba format or can be treated as a named color.
-
+    Check whether a color string matches accepted hex or rgb/rgba formats or can be treated as a named color.
+    
     Accepted forms:
     - Hex: `#RGB`, `#RRGGBB`, or `#RRGGBBAA`
-    - Functional RGB/RGBA: e.g., `rgb(255,0,0)` or `rgba(255,0,0,0.5)`
-    - Named colors (allowed as a fallback and validated by the renderer)
-
+    - Functional: `rgb(<r>,<g>,<b>)` or `rgba(<r>,<g>,<b>,<a>)`
+    - Named color strings (allowed as a fallback; renderer may validate these later)
+    
     Parameters:
         color (str): Color string to validate.
-
+    
     Returns:
-        bool: `True` if `color` is a non-empty string in an accepted hex
-        or `rgb`/`rgba` format or otherwise acceptable as a named color;
-        `False` otherwise.
+        bool: True if `color` is a non-empty string that matches the accepted hex or `rgb`/`rgba`
+        patterns or can be treated as a named color; False otherwise.
     """
     if not isinstance(color, str) or not color:
         return False
@@ -332,19 +331,19 @@ def _create_node_trace(
     hover_texts: list[str],
 ) -> go.Scatter3d:
     """
-    Create a Plotly 3D scatter trace that represents asset nodes with markers, labels, and hover text.
-
+    Create a Plotly 3D scatter trace representing asset nodes with markers, labels, and hover text.
+    
     Parameters:
         positions (np.ndarray): Array of shape (n, 3) with x, y, z coordinates for n assets.
         asset_ids (list[str]): Sequence of n non-empty asset identifier strings used as text labels.
-        colors (list[str]): Sequence of n color strings (hex, rgb/rgba, or named) applied to markers.
+        colors (list[str]): Sequence of n color strings (hex, rgb/rgba, or named) applied per-node to markers.
         hover_texts (list[str]): Sequence of n strings shown as hover text for each node.
-
+    
     Returns:
-        go.Scatter3d: A configured 3D scatter trace showing markers, text labels, and hover text.
-
+        go.Scatter3d: A configured 3D scatter trace containing markers, text labels, and hover text.
+    
     Raises:
-        ValueError: If inputs are invalid, lengths mismatch, positions are not numeric/finite, or asset_ids is empty.
+        ValueError: If inputs are invalid (type/shape/length mismatches), contain non-numeric or non-finite coordinates, or if `asset_ids` is empty.
     """
     # Input validation: basic type checks before comprehensive validator.
     # This provides early failure with clear error messages for common mistakes
@@ -425,16 +424,10 @@ def _calculate_visible_relationships(
     relationship_traces: list[go.Scatter3d],
 ) -> int:
     """
-    Compute the number of visible relationship edges represented by the provided relationship traces.
-
-    Counts edges by summing the number of x-coordinate entries across traces (each edge contributes
-    three entries: start, end, separator). If counting fails, returns 0.
-
-    Parameters:
-        relationship_traces (List[go.Scatter3d]): Traces that represent relationship edges.
-
+    Determine the number of visible relationship edges represented by the provided relationship traces.
+    
     Returns:
-        int: Number of visible relationship edges.
+        int: Number of relationship edges (each edge is represented by three coordinate entries). Returns 0 if the count cannot be determined.
     """
     try:
         return sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces) // 3
@@ -617,15 +610,14 @@ def _validate_hover_texts_list(
     expected_length: int,
 ) -> None:
     """
-    Validate that `hover_texts` is a list or tuple of non-empty strings with the expected length.
-
+    Validate that hover_texts is a list or tuple of non-empty strings of length expected_length.
+    
     Parameters:
-        hover_texts (List[str]): Sequence of hover text strings for each asset.
-        expected_length (int): Required number of hover text entries.
-
+        hover_texts: Sequence of hover text strings for each asset.
+        expected_length: Required number of hover text entries.
+    
     Raises:
-        ValueError: If `hover_texts` is not a list/tuple of length `expected_length`, or if any
-                    element is not a non-empty string.
+        ValueError: If hover_texts is not a list/tuple of length expected_length or contains any empty or non-string entries.
     """
     if not isinstance(hover_texts, (list, tuple)) or len(hover_texts) != expected_length:
         raise ValueError(f"Invalid graph data: hover_texts must be a list/tuple of length {expected_length}")
@@ -939,19 +931,17 @@ def _build_hover_texts(
     is_bidirectional: bool,
 ) -> list[str | None]:
     """
-    Create hover text entries formatted for Plotly 3D line segments for a list of relationships.
-
+    Builds hover text entries for Plotly 3D line segments representing the given relationships.
+    
     Parameters:
-        relationships (List[dict]): List of relationship dicts with keys 'source_id', 'target_id', and 'strength'.
-        rel_type (str): Human-readable relationship type used in each hover text.
-        is_bidirectional (bool): When True uses a bidirectional symbol (↔); otherwise uses a unidirectional symbol (→).
-
+        relationships (list[dict]): Iterable of relationship dicts each containing 'source_id', 'target_id', and 'strength'.
+        rel_type (str): Human-readable relationship type included in each hover text.
+        is_bidirectional (bool): If True uses '↔' as the direction symbol; otherwise uses '→'.
+    
     Returns:
-        List[Optional[str]]: A list with length `3 * len(relationships)` where each relationship
-            contributes three slots:
-            - The first two slots contain the same formatted hover text:
-              "<source> <arrow> <target><br>Type: <rel_type><br>Strength: <strength>"
-            - The third slot is `None` (reserved for line segmentation in Plotly).
+        list[str | None]: A list of length 3 * len(relationships). Each relationship contributes three slots:
+            - two identical formatted hover strings: "<source> <arrow> <target><br>Type: <rel_type><br>Strength: <strength:.2f>"
+            - one `None` separator for Plotly line segmentation.
     """
     direction_text = "↔" if is_bidirectional else "→"
 
@@ -1302,16 +1292,16 @@ def _validate_positions_and_asset_ids_lengths(
 
 def _ensure_numeric_positions(positions: np.ndarray) -> np.ndarray:
     """
-    Ensure the positions array contains numeric values and has a floating-point dtype.
-
-    Attempts to cast non-numeric dtypes to float and returns the resulting array.
-
+    Ensure the positions array contains numeric values and uses a floating-point dtype.
+    
+    Attempts to cast the array to float if its dtype is not numeric.
+    
     Parameters:
-        positions (np.ndarray): Array of positions to validate and convert.
-
+        positions: Array of positions to validate and convert.
+    
     Returns:
-        np.ndarray: The positions array with a floating-point dtype.
-
+        The positions array with a floating-point dtype.
+    
     Raises:
         ValueError: If the array cannot be converted to floating-point numeric values.
     """
@@ -1528,25 +1518,18 @@ def _create_relationship_traces_with_fallback(
     relationship_filters: dict[str, bool] | None,
 ) -> list[go.Scatter3d]:
     """
-    Attempt to build 3D relationship traces for the given graph visualization.
-
-    Calls the internal trace-building routine and returns its traces. If the underlying
-    call fails due to invalid input (TypeError or ValueError), a ValueError is raised
-    with contextual information. If any other unexpected error occurs, an empty list
-    is returned.
-
+    Builds Plotly 3D traces for the graph's relationships, applying optional relationship-type filters.
+    
+    Attempts to create relationship line traces for the provided graph and visualization inputs. If the underlying creation fails due to invalid input or validation errors, a ValueError is raised containing contextual information. If an unexpected error occurs, the function logs the event and returns an empty list.
+    
     Parameters:
-        relationship_filters (Optional[Dict[str, bool]]): Mapping of relationship type
-            to a boolean indicating whether that type should be included; may be None
-            to indicate no filtering.
-
+        relationship_filters (dict[str, bool] | None): Mapping of relationship type keys to booleans indicating visibility; may be `None` to include all types.
+    
     Returns:
-        List[go.Scatter3d]: A list of Plotly Scatter3d traces representing
-                           relationships; empty list if an unexpected error
-                           prevented trace creation.
-
+        list[go.Scatter3d]: A list of Scatter3d traces representing relationships; an empty list is returned if an unexpected error prevented trace creation.
+    
     Raises:
-        ValueError: If trace creation fails due to invalid input (propagated from TypeError or ValueError).
+        ValueError: If trace creation fails due to invalid or ill-typed input (propagated from internal TypeError/ValueError).
     """
     try:
         return _create_relationship_traces(
@@ -1868,32 +1851,19 @@ def visualize_3d_graph_with_filters(
     toggle_arrows: bool = True,
 ) -> go.Figure:
     """
-    Render a 3D Plotly figure of an asset relationship graph applying optional
-    relationship-type filters and optional directional arrow markers.
-
-    Creates a figure containing a 3D node scatter trace and relationship line traces
-    grouped by relationship type and directionality. Individual boolean flags control
-    inclusion of specific relationship categories; setting `show_all_relationships`
-    to True overrides the individual flags to include all relationship types. When
-    `toggle_arrows` is True, unidirectional edges are marked with directional arrow markers.
-
+    Create a 3D Plotly figure visualizing an asset relationship graph with optional relationship-type filters and optional directional arrow markers.
+    
     Parameters:
-        graph (AssetRelationshipGraph): Source graph providing positions, asset ids,
-                                        colors, and hover texts via
-                                        get_3d_visualization_data_enhanced().
-        show_all_relationships (bool): If True, include all relationship types
-                                       regardless of the other flags.
-        toggle_arrows (bool): If True, add directional arrow marker traces for
-                             unidirectional relationships.
-
+        graph (AssetRelationshipGraph): Source graph object that must provide visualization data via get_3d_visualization_data_enhanced() and expose a relationships mapping.
+        show_all_relationships (bool): If True, include all relationship types regardless of the individual relationship flags.
+        toggle_arrows (bool): If True, include marker traces indicating unidirectional relationships.
+    
     Returns:
-        go.Figure: A Plotly 3D figure containing node and relationship traces (and
-                   optional arrow markers).
-
+        go.Figure: A Plotly 3D figure containing node markers, relationship line traces grouped by type and directionality, and optional directional arrow markers.
+    
     Raises:
-        ValueError: If the provided graph is invalid or required visualization data
-                    cannot be produced.
-        TypeError: If one or more filter parameters are not boolean.
+        ValueError: If the graph is not suitable for filtered visualization or required visualization data cannot be produced.
+        TypeError: If any filter parameter is not a boolean.
     """
     _validate_graph_for_filtered_visualization(graph)
 

@@ -134,14 +134,16 @@ def mock_graph():
 
 def _apply_mock_graph_configuration(mock_graph_instance: Any, graph: AssetRelationshipGraph) -> None:
     """
-    Copy core attributes from a concrete AssetRelationshipGraph onto a mocked graph used in tests.
-
-    This sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data
-    attributes to mirror the provided graph, allowing tests to reuse a consistent mocked graph surface.
-
+    Configure a mock graph object's public attributes to mirror a concrete AssetRelationshipGraph for tests.
+    
+    Sets the mock's `assets` and `relationships`, configures `calculate_metrics.return_value` to a metrics
+    dictionary (keys: `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`,
+    `network_density`, `relationship_density`), and assigns `get_3d_visualization_data` to the graph's
+    `get_3d_visualization_data_enhanced` method.
+    
     Parameters:
-        mock_graph_instance (object): The mocked graph object (typically a unittest.mock.Mock) to configure.
-        graph (AssetRelationshipGraph): The concrete AssetRelationshipGraph whose attributes will be copied.
+        mock_graph_instance (object): Mock object to configure (typically a unittest.mock.Mock).
+        graph (AssetRelationshipGraph): Source graph whose public attributes and metrics are copied.
     """
     metrics = graph.calculate_metrics()
 

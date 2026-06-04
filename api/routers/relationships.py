@@ -13,11 +13,14 @@ router = APIRouter()
 @router.get("/api/assets/{asset_id}/relationships")
 async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
     """
-    Retrieve outgoing relationships for the specified asset.
-
+    Return outgoing relationships for the specified asset.
+    
     Returns:
-        list[RelationshipResponse]: List of relationships where each item has `source_id` set to the provided `asset_id`
-        and contains `target_id`, `relationship_type`, and `strength`.
+        list[RelationshipResponse]: A list of relationship objects where each item has `source_id` set to the provided `asset_id`
+        and includes `target_id`, `relationship_type`, and `strength`.
+    
+    Raises:
+        HTTPException: If the asset does not exist (404) or an internal error occurs (500).
     """
     try:
         g = get_graph()

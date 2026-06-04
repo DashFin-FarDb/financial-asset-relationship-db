@@ -46,13 +46,14 @@ class RebuildDriftEvaluator:
         runtime_has_active_executor: bool = False,
         lock_ttl_seconds: int = 300,
     ) -> None:
-        """Initialize rebuild drift evaluator.
-
-        Args:
-            session_factory: Factory for creating database sessions
-            lock: Distributed lock instance
-            runtime_has_active_executor: Whether runtime has active rebuild executor
-            lock_ttl_seconds: Lock TTL threshold in seconds
+        """
+        Create a RebuildDriftEvaluator with its persistence and lock dependencies and runtime configuration.
+        
+        Parameters:
+            session_factory (Callable[[], Session]): Factory that produces SQLAlchemy sessions used to load rebuild state.
+            lock (DistributedLock): Distributed lock used to inspect lock state and holder id.
+            runtime_has_active_executor (bool): Whether this runtime currently has an active rebuild executor; included in metadata and passed to inconsistency detection.
+            lock_ttl_seconds (int): Time-to-live in seconds used to determine whether a heartbeat is considered stale.
         """
         self.session_factory = session_factory
         self.lock = lock
@@ -153,12 +154,16 @@ class RebuildDriftEvaluator:
         return drift_type, severity, metadata
 
     def _get_active_rebuild_job(self) -> RebuildJobORM | None:
-        """Get active rebuild job from database.
-
+        """
+        Retrieve the currently active rebuild job from persistence.
+        
+        Returns:
+            RebuildJobORM | None: The active rebuild job if one exists, otherwise `None`.
+        
         Raises:
-            ValueError: If database integrity constraint violated (e.g., multiple RUNNING jobs)
-            SQLAlchemyError: If persistence cannot be queried
-            OSError: If the underlying database access fails
+            ValueError: If a data integrity constraint is violated (e.g., multiple RUNNING jobs).
+            SQLAlchemyError: If the persistence layer cannot be queried.
+            OSError: If underlying database access fails.
         """
         with self.session_factory() as session:
             repo = AssetGraphRepository(session)

@@ -22,10 +22,10 @@ _logging_initialized = False
 
 def _inject_request_context(logger: Any, log_method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """
-    Add request-scoped identifiers from the current request context into the log event dictionary.
-
-    If the current request context contains `request_id` and/or `correlation_id`, those keys are copied into `event_dict`.
-
+    Inject request-scoped identifiers into the log event dictionary.
+    
+    If the current request context contains `request_id` or `correlation_id`, copies those keys into `event_dict`.
+    
     Returns:
         dict: The `event_dict` updated with `request_id` and/or `correlation_id` when present.
     """
@@ -39,12 +39,12 @@ def _inject_request_context(logger: Any, log_method: str, event_dict: dict[str, 
 
 def _move_event_to_message(logger: Any, log_method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """
-    Move structured `event` into `message` when the record appears to follow the ObservabilityEvent schema.
-
-    If `event_dict['_record']` has `event` and `metadata` attributes, and `event_dict` contains `"event"` but not `"message"`, copies `event` to `event_dict['message']`.
-
+    Copy structured `event` into `message` for records that follow the ObservabilityEvent schema.
+    
+    If the underlying log record exposes `event` and `metadata`, and `event_dict` contains `"event"` but lacks `"message"`, sets `event_dict["message"]` to the value of `event_dict["event"]`.
+    
     Returns:
-        dict[str, Any]: The (possibly modified) `event_dict`.
+        dict[str, Any]: The possibly modified `event_dict`.
     """
     record = event_dict.get("_record")
     if record and hasattr(record, "event") and hasattr(record, "metadata"):
@@ -55,9 +55,9 @@ def _move_event_to_message(logger: Any, log_method: str, event_dict: dict[str, A
 
 def setup_logging() -> None:
     """
-    Configure structlog and route standard library logging to it.
-
-    This function is idempotent and thread-safe.
+    Configure structlog and route the standard library's logging records through a structlog processor pipeline.
+    
+    Idempotent and thread-safe: subsequent calls are no-ops. This sets up the shared processors and a ProcessorFormatter that renders JSON, installs a StreamHandler on the root logger, removes existing non-pytest handlers to avoid resource leaks, and sets the root logger level from get_settings().log_level (defaults to INFO if invalid).
     """
     global _logging_initialized
     with _logging_initialized_lock:

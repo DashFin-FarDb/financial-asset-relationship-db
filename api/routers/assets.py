@@ -26,21 +26,19 @@ async def get_assets(
     per_page: Annotated[int, Query(ge=1, le=1000)] = 50,
 ) -> AssetPageResponse:
     """
-    Retrieve a paginated list of assets optionally filtered by asset class and sector.
-
+    Retrieve a paginated list of assets filtered by optional asset class and sector.
+    
     Parameters:
-        asset_class (str | None): If provided, only include assets whose `asset.asset_class.value` equals this string.
-        sector (str | None): If provided, only include assets whose `asset.sector` equals this string.
-        page (int): Page number (1-based).
+        asset_class (str | None): If provided, include only assets whose `asset.asset_class.value` equals this string.
+        sector (str | None): If provided, include only assets whose `asset.sector` equals this string.
+        page (int): 1-based page number.
         per_page (int): Number of items per page (maximum 1000).
-
+    
     Returns:
-        AssetPageResponse: Page containing `items` (serialized assets for the requested page),
-        `total` (total matched assets), `page`, and `per_page`.
-
+        AssetPageResponse: Page containing `items` (serialized assets for the requested page), `total` (total matched assets), `page`, and `per_page`.
+    
     Raises:
-        HTTPException: Propagates existing HTTP errors;
-        raises a 500-status `HTTPException` on unexpected internal errors.
+        HTTPException: Propagates existing HTTP errors; raises a 500-status `HTTPException` on unexpected internal errors.
     """
     try:
         g = get_graph()
@@ -83,13 +81,16 @@ async def get_assets(
 @router.get("/api/assets/{asset_id}")
 async def get_asset_detail(asset_id: str) -> AssetResponse:
     """
-    Return detailed data for a single asset.
-
+    Retrieve full details for a single asset, including its issuer.
+    
     Parameters:
-        asset_id (str): The unique identifier of the asset to retrieve.
-
+        asset_id: The unique identifier of the asset to retrieve.
+    
     Returns:
-        AssetResponse: The asset's full details, including issuer information.
+        AssetResponse: The asset's details with issuer information.
+    
+    Raises:
+        HTTPException: If the asset does not exist or an internal error occurs.
     """
     try:
         g = get_graph()

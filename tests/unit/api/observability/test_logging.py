@@ -18,9 +18,9 @@ from src.observability.logging import _inject_request_context, setup_logging
 @pytest.fixture(autouse=True)
 def _reset_logging():
     """
-    Pytest fixture that resets global logging and structlog state before a test and restores it after.
-
-    Sets the module-level initialization flag to allow logging reconfiguration, clears the settings cache so environment changes take effect, captures the root logger's handlers and level, yields to run the test, then restores the original handlers and level and calls structlog.reset_defaults() to clear structlog configuration.
+    Pytest fixture that resets global logging and structlog state for a test and restores it afterwards.
+    
+    Sets the module-level initialization flag to allow logging reconfiguration, clears the cached settings so environment variable changes take effect, captures the root logger's handlers and level for restoration, yields to run the test, then restores the original handlers and level and resets structlog to its defaults.
     """
     # Reset our internal initialization flag to allow reconfiguration in tests
     src.observability.logging._logging_initialized = False
@@ -89,8 +89,14 @@ def test_setup_logging_configures_root_logger():
 
 def test_stdlib_logging_emits_json_with_context_and_extra():
     """
-    Test that calling the standard library logger emits structured JSON,
-    includes the request context, AND preserves extra fields.
+    Verify standard-library logging emits structured JSON containing the request context and preserves `extra` fields.
+    
+    Asserts that a log emitted via the standard library:
+    - serializes to JSON
+    - includes `event`, `logger`, and `level`
+    - includes `request_id` and `correlation_id` from the request context
+    - preserves `extra` fields such as `custom_field` and `user_ref`
+    - includes a `timestamp`
     """
     # 1. Setup our structured logging
     setup_logging()
