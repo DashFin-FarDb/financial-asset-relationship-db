@@ -112,9 +112,7 @@ def test_standard_logging_does_not_contain_redundant_message_key():
 
 
 def test_log_event_caplog_compatibility(caplog):
-    """
-    Test that log_event is compatible with pytest caplog for human-readable messages.
-    """
+    """Test that log_event is compatible with pytest caplog for human-readable messages."""
     logger = get_logger("test_caplog")
     event = ObservabilityEvent(
         event="test_slug",
