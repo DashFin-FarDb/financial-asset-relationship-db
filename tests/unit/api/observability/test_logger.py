@@ -90,7 +90,9 @@ def test_standard_logging_does_not_contain_redundant_message_key():
     log_output = StringIO()
     stream_handler = logging.StreamHandler(log_output)
     root_logger = logging.getLogger()
-    our_handler = next((h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter)), None)
+    our_handler = next(
+        (h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter)), None
+    )
     assert our_handler is not None, "ProcessorFormatter handler not found"
     stream_handler.setFormatter(our_handler.formatter)
     original_handlers = list(root_logger.handlers)

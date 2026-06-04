@@ -109,7 +109,9 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
     root_logger = logging.getLogger()
 
     # Find our handler
-    our_handler = next((h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter)), None)
+    our_handler = next(
+        (h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter)), None
+    )
     assert our_handler is not None, "ProcessorFormatter handler not found"
     stream_handler.setFormatter(our_handler.formatter)
 
