@@ -14,7 +14,7 @@ from typing import Any
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.data.repository import CoordinationLockRepository, LockStateSnapshot, session_scope
+from src.data.repository import CoordinationLockRepository, LockStateSnapshot, LockWriteResult, session_scope
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
@@ -225,6 +225,94 @@ class DistributedLock:
         """Return the current internal lifecycle state of the lock."""
         return self._state
 
+    def _attempt_lock_acquisition(self) -> LockWriteResult:
+        """
+        Execute coordination repository lock acquisition within transaction scope.
+
+        Returns:
+            LockWriteResult: Result details containing success indicator and fencing token.
+        """
+        with session_scope(self.coordination_session_factory) as session:
+            repo = CoordinationLockRepository(session)
+            return repo.acquire_lock(
+                lock_name=self.lock_name,
+                holder_id=self.holder_id,
+                ttl_seconds=self.ttl_seconds,
+            )
+
+    def _handle_acquire_exception(
+        self,
+        exc: Exception,
+        start_time: float,
+        retries: int,
+        max_retries: int,
+    ) -> None:
+        """
+        Handle and classify exceptions raised during lock acquisition attempts.
+
+        Parameters:
+            exc (Exception): Caught exception.
+            start_time (float): Start timestamp of the overall acquisition process.
+            retries (int): Number of retries attempted so far.
+            max_retries (int): Allowed maximum number of retries.
+
+        Raises:
+            LockAcquisitionTimeout: If database error occurs and retry limit or 30s limit is reached.
+            Exception: Re-raises the caught exception if not a DB connectivity error.
+        """
+        self._emit(
+            LockEvent(
+                LockEventType.UNEXPECTED_ERROR,
+                self.lock_name,
+                self.holder_id,
+                metadata={"error": type(exc).__name__},
+            )
+        )
+        self._metric("lock_errors_total")
+        if not isinstance(exc, (SQLAlchemyError, OSError)):
+            self._set_state(LockLifecycleState.LOST)
+            raise
+        if retries >= max_retries or (time() - start_time) >= 30.0:
+            self._set_state(LockLifecycleState.LOST)
+            msg = (
+                f"Failed to acquire lock '{self.lock_name}' "
+                f"due to database errors (elapsed: {time() - start_time:.2f}s)"
+            )
+            raise LockAcquisitionTimeout(msg) from exc
+
+    def _handle_acquire_contention(self, start_time: float, retries: int, max_retries: int) -> float:
+        """
+        Handle contested lock state checks, asserting wait ceilings and retries.
+
+        Parameters:
+            start_time (float): Start timestamp of the overall acquisition process.
+            retries (int): Number of retries attempted so far.
+            max_retries (int): Allowed maximum number of retries.
+
+        Returns:
+            float: Elapsed time in seconds since the start of acquisition.
+
+        Raises:
+            LockAcquisitionTimeout: If the retry budget or 30-second ceiling is exceeded.
+        """
+        elapsed = time() - start_time
+        if retries >= max_retries or elapsed >= 30.0:
+            self._set_state(LockLifecycleState.CONTENTED)
+            self._emit(
+                LockEvent(
+                    LockEventType.CONTENTED,
+                    self.lock_name,
+                    self.holder_id,
+                )
+            )
+            self._metric("lock_timeout_total")
+            msg = (
+                f"Failed to acquire lock '{self.lock_name}' within 30s ceiling "
+                f"(elapsed: {elapsed:.2f}s, max_retries: {max_retries})"
+            )
+            raise LockAcquisitionTimeout(msg)
+        return elapsed
+
     def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> LockLease:
         """
         Attempt to acquire the distributed lock, using deterministic back-off.
@@ -256,63 +344,24 @@ class DistributedLock:
 
         while True:
             try:
-                with session_scope(self.coordination_session_factory) as session:
-                    repo = CoordinationLockRepository(session)
-                    res = repo.acquire_lock(
-                        lock_name=self.lock_name,
-                        holder_id=self.holder_id,
-                        ttl_seconds=self.ttl_seconds,
-                    )
-                    if res.success:
-                        self._fencing_token = res.fencing_token
-                        self._set_state(LockLifecycleState.ACQUIRED)
-                        self._emit(
-                            LockEvent(
-                                LockEventType.ACQUIRED,
-                                self.lock_name,
-                                self.holder_id,
-                                metadata={"fencing_token": self._fencing_token},
-                            )
+                res = self._attempt_lock_acquisition()
+                if res.success:
+                    self._fencing_token = res.fencing_token
+                    self._set_state(LockLifecycleState.ACQUIRED)
+                    self._emit(
+                        LockEvent(
+                            LockEventType.ACQUIRED,
+                            self.lock_name,
+                            self.holder_id,
+                            metadata={"fencing_token": self._fencing_token},
                         )
-                        self._metric("lock_acquired_total")
-                        return LockLease(state=LockLifecycleState.ACQUIRED, fencing_token=self._fencing_token)
+                    )
+                    self._metric("lock_acquired_total")
+                    return LockLease(state=LockLifecycleState.ACQUIRED, fencing_token=self._fencing_token)
             except Exception as exc:
-                self._emit(
-                    LockEvent(
-                        LockEventType.UNEXPECTED_ERROR,
-                        self.lock_name,
-                        self.holder_id,
-                        metadata={"error": type(exc).__name__},
-                    )
-                )
-                self._metric("lock_errors_total")
-                if not isinstance(exc, (SQLAlchemyError, OSError)):
-                    self._set_state(LockLifecycleState.LOST)
-                    raise
-                if retries >= max_retries or (time() - start_time) >= 30.0:
-                    self._set_state(LockLifecycleState.LOST)
-                    msg = (
-                        f"Failed to acquire lock '{self.lock_name}' "
-                        f"due to database errors (elapsed: {time() - start_time:.2f}s)"
-                    )
-                    raise LockAcquisitionTimeout(msg) from exc
+                self._handle_acquire_exception(exc, start_time, retries, max_retries)
 
-            elapsed = time() - start_time
-            if retries >= max_retries or elapsed >= 30.0:
-                self._set_state(LockLifecycleState.CONTENTED)
-                self._emit(
-                    LockEvent(
-                        LockEventType.CONTENTED,
-                        self.lock_name,
-                        self.holder_id,
-                    )
-                )
-                self._metric("lock_timeout_total")
-                msg = (
-                    f"Failed to acquire lock '{self.lock_name}' within 30s ceiling "
-                    f"(elapsed: {elapsed:.2f}s, max_retries: {max_retries})"
-                )
-                raise LockAcquisitionTimeout(msg)
+            elapsed = self._handle_acquire_contention(start_time, retries, max_retries)
 
             # Deterministic exponential back-off bounded by the 30s ceiling
             sleep_duration = min(current_interval, 30.0 - elapsed)
