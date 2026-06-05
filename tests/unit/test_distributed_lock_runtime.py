@@ -153,7 +153,7 @@ def test_acquire_timeout_after_30s(monkeypatch: pytest.MonkeyPatch) -> None:
     # DistributedLock.acquire calls time() at start, then in each loop to check elapsed.
     times = [1000.0, 1005.0, 1015.0, 1025.0, 1035.0]
     time_iter = iter(times)
-    monkeypatch.setattr("src.data.distributed_lock.time", lambda: next(time_iter))
+    monkeypatch.setattr("src.data.distributed_lock.time", lambda: next(time_iter, 1035.0))
 
     lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[arg-type]
 
