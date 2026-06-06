@@ -1,3 +1,5 @@
+"""Observability event schemas and structures."""
+
 from dataclasses import dataclass, field
 from typing import Any
 

@@ -221,7 +221,9 @@ def detailed_health_check() -> DetailedHealthResponse:
     graph_health = _get_graph_health()
     database_health = _get_database_health()
 
-    status_value = "healthy" if graph_health.available and database_health.reachable else "degraded"
+    status_value: Literal["healthy", "degraded"] = (
+        "healthy" if graph_health.available and database_health.reachable else "degraded"
+    )
 
     return DetailedHealthResponse(
         status=status_value,

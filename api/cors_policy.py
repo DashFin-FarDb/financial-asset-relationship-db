@@ -115,7 +115,7 @@ def validate_origin(origin_url: str) -> bool:
 
 def build_allowed_origins() -> list[str]:
     """
-    Builds the CORS allowlist by combining environment-specific localhost entries with validated configured origins.
+    Build the CORS allowlist by combining environment-specific localhost entries with validated configured origins.
 
     Configured origins that do not match supported origin formats are skipped and emitted to observability as `cors_invalid_origin_skipped`.
 

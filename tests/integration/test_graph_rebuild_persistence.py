@@ -39,20 +39,20 @@ _REBUILD_AUDIT_POLL_INTERVAL_SECONDS = 0.005
 
 
 def _sqlite_url(tmp_path: Path) -> str:
-    """Helper to generate an isolated SQLite DB URL for a test."""
+    """Generate an isolated SQLite DB URL for a test."""
     db_path = tmp_path / "test_persistence.db"
     return f"sqlite:///{db_path}"
 
 
 def _init_empty_db(url: str) -> None:
-    """Initializes the database schema using canonical schemas."""
+    """Initialize the database schema using canonical schemas."""
     engine = create_engine(url)
     init_db(engine)
     engine.dispose()
 
 
 def _configure_persistence(monkeypatch: pytest.MonkeyPatch, url: str) -> None:
-    """Overrides environment parameters cleanly to target test sandboxes."""
+    """Override environment parameters cleanly to target test sandboxes."""
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", url)
     monkeypatch.setenv("DATABASE_URL", url)
     get_settings.cache_clear()
@@ -82,8 +82,8 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def mock_active_user() -> User:
-    """Provides a typed mock administrative user constraint."""
-    return User(username="admin_tester", roles=["admin"])
+    """Provide a typed mock administrative user constraint."""
+    return User(username="admin_tester")
 
 
 @pytest.fixture
@@ -100,7 +100,7 @@ async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClien
 
 @pytest.fixture
 def session_factory_provider(tmp_path: Path):
-    """Provides an isolated, production-contract-compliant database context session factory."""
+    """Provide an isolated, production-contract-compliant database context session factory."""
     db_url = _sqlite_url(tmp_path)
     engine = create_engine_from_url(db_url)
     init_db(engine)
@@ -108,7 +108,7 @@ def session_factory_provider(tmp_path: Path):
 
     @contextmanager
     def bound_session_factory() -> Iterator[Session]:
-        """Provides state-isolated contextual sessions matching factory lifecycle models."""
+        """Provide state-isolated contextual sessions matching factory lifecycle models."""
         session = factory()
         try:
             yield session

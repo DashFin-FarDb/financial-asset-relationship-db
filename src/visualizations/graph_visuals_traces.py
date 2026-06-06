@@ -12,9 +12,7 @@ from src.visualizations.graph_visuals_data import (
     _build_relationship_index,
     _collect_and_group_relationships,
 )
-from src.visualizations.graph_visuals_validation import (
-    _validate_visualization_data,
-)
+from src.visualizations.graph_visuals_validation import _validate_visualization_data
 
 RELATIONSHIPS_DICT_ERROR = "graph must have a relationships dictionary"
 

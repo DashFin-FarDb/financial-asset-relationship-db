@@ -11,8 +11,8 @@ from api.graph_lifecycle_providers import (
     GraphPersistenceSaveError,
     GraphRebuildSourceError,
 )
-from api.routers.graph_admin import (  # pylint: disable=protected-access
-    _sanitize_failure_message,
+from api.routers.graph_admin import (
+    _sanitize_failure_message,  # pylint: disable=protected-access
     _validate_coordination_database_primary,
 )
 

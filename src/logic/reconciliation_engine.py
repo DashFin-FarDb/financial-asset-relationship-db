@@ -115,6 +115,7 @@ class ReconciliationPlan:
         Raises:
             ValueError: If actions are invalid or cannot be normalized
         """
+        actions_list: list[ActionType | str]
         # Single ActionType: wrap in list (ActionType subclasses str, so check first)
         if isinstance(actions, ActionType):
             actions_list = [actions]

@@ -116,7 +116,7 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
         # Track refresh events using MagicMock with wraps
         original_refresh = dist_lock.refresh
         mock_refresh = MagicMock(wraps=original_refresh)
-        dist_lock.refresh = mock_refresh
+        dist_lock.refresh = mock_refresh  # type: ignore[method-assign]
 
         # Start heartbeat keeper thread
         with caplog.at_level(logging.DEBUG):
@@ -212,7 +212,7 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
             return result
 
         mock_refresh = MagicMock(side_effect=refresh_with_event)
-        dist_lock.refresh = mock_refresh
+        dist_lock.refresh = mock_refresh  # type: ignore[method-assign]
 
         # Start heartbeat keeper
         with caplog.at_level(logging.ERROR):
@@ -322,8 +322,8 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
         lock_lost.set()
 
         # Attempt to save graph with pre-commit check
-        from api.graph_lifecycle_providers import (  # pylint: disable=import-outside-toplevel
-            GraphPersistenceSaveError,
+        from api.graph_lifecycle_providers import (
+            GraphPersistenceSaveError,  # pylint: disable=import-outside-toplevel
             save_graph_to_persistence,
         )
 
@@ -349,9 +349,9 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
             current_graph = repo.load_graph()
             current_asset_count = len(current_graph.assets)
 
-        assert current_asset_count == initial_asset_count, (
-            "Graph state should be unchanged after lock loss during commit"
-        )
+        assert (
+            current_asset_count == initial_asset_count
+        ), "Graph state should be unchanged after lock loss during commit"
 
 
 def test_heartbeat_thread_stops_cleanly_on_success(

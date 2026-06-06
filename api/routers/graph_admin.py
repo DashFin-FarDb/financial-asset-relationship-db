@@ -587,7 +587,7 @@ async def _run_rebuild_in_executor(
     ctx = contextvars.copy_context()
 
     def rebuild_with_context() -> GraphRebuildResponse:
-        """Helper to run the sync rebuild function within the captured context."""
+        """Run the sync rebuild function within the captured context."""
         return _perform_rebuild_and_persist_sync(settings, user_ref=user_ref)
 
     try:
@@ -691,9 +691,10 @@ def _heartbeat_keeper(
     lock_lost_event: threading.Event,
     interval_seconds: float,
 ) -> None:
-    """
-    Maintain a background heartbeat loop that refreshes the distributed lock and writes a rebuild
-    heartbeat until stopped or the lock is lost.
+    """Maintain a background heartbeat loop for the distributed lock.
+
+    Refreshes the distributed lock and writes a rebuild heartbeat until stopped
+    or the lock is lost.
 
     Sets `lock_lost_event` and stops if a lock refresh fails or if updating the heartbeat in persistence fails.
 
@@ -777,9 +778,9 @@ def _restore_persisted_graph_snapshot(
     persistence_url: str,
     snapshot: AssetRelationshipGraph,
 ) -> None:
-    """
-    Attempt to restore the provided graph snapshot to the given persistence URL; on failure,
-    emit an observability event and continue.
+    """Attempt to restore the provided graph snapshot to persistence.
+
+    On failure, emit an observability event and continue.
 
     Parameters:
         persistence_url (str): Resolved durable persistence URL where the snapshot should be saved.
@@ -805,7 +806,7 @@ def _restore_persisted_graph_snapshot(
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception,
+    exc: Exception | asyncio.CancelledError,
     job_started_at: float,
     success_persisted: bool,
     graph_saved: bool,
@@ -813,9 +814,10 @@ def _handle_rebuild_failure(
     resolved_url: str,
     source: GraphRebuildSource | None,
 ) -> NoReturn:
-    """
-    Handle a rebuild failure by restoring a prior graph snapshot if appropriate, persisting the
-    job's failed terminal state, and re-raising an exception that preserves bounded source context.
+    """Handle a rebuild failure and restore prior snapshot if appropriate.
+
+    Persists the job's failed terminal state, and re-raises an exception
+    that preserves bounded source context.
 
     If a successful terminal state was not already persisted, this function:
     - Restores `graph_snapshot` to `resolved_url` when `graph_saved` is True and a snapshot is available.
@@ -898,8 +900,9 @@ def _run_rebuild_pipeline(
     job_started_at: float,
     lock_lost: threading.Event,
 ) -> GraphRebuildResponse:
-    """
-    Run a single rebuild: build the asset relationship graph, persist it atomically to durable storage,
+    """Run a single rebuild of the asset relationship graph.
+
+    Builds the asset relationship graph, persists it atomically to durable storage,
     finalize the job state, and publish the graph to the runtime.
 
     This function checks the provided `lock_lost` event at key stages to abort and trigger rollback if
@@ -984,9 +987,9 @@ def _run_rebuild_pipeline(
 def _setup_coordination_and_domain_factories(
     settings: GraphLifecycleSettings,
 ) -> tuple[Callable[[], Session], Callable[[], Session], str, Engine, Engine | None]:
-    """
-    Resolve durable persistence URLs and provide SQLAlchemy session factories and engines for the
-    domain (graph) and coordination planes.
+    """Resolve durable persistence URLs and session factories.
+
+    Provides SQLAlchemy session factories and engines for the domain (graph) and coordination planes.
 
     Parameters:
         settings (GraphLifecycleSettings): Configuration containing `asset_graph_database_url`
@@ -1613,9 +1616,9 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
 
 
 def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
-    """
-    Parse a persisted job status string into `RebuildJobStatus`, falling back to `RebuildJobStatus.FAILED`
-    if the stored value is invalid.
+    """Parse a persisted job status string into RebuildJobStatus.
+
+    Falls back to `RebuildJobStatus.FAILED` if the stored value is invalid.
 
     If the input cannot be mapped to the enum, an error-level observability event is emitted
     containing a truncated version of the stored status and its original length.

@@ -18,10 +18,7 @@ from sqlalchemy.orm import Session
 
 from src.data.distributed_lock import DistributedLock, LockState
 from src.data.repository import AssetGraphRepository
-from src.logic.rebuild_failure_detection import (
-    InconsistencyType,
-    detect_rebuild_inconsistency,
-)
+from src.logic.rebuild_failure_detection import InconsistencyType, detect_rebuild_inconsistency
 from src.logic.reconciliation_engine import Severity
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event

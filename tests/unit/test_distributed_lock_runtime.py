@@ -31,7 +31,7 @@ def test_acquire_raises_on_persistence_error(monkeypatch: pytest.MonkeyPatch) ->
             return False
 
     monkeypatch.setattr("src.data.distributed_lock.session_scope", lambda _factory: _FailingScope())
-    lock = DistributedLock(lambda: None, "graph_rebuild")  # type: ignore[arg-type]
+    lock = DistributedLock(lambda: None, "graph_rebuild")  # type: ignore[return-value]
 
     with pytest.raises(RuntimeError, match="db unavailable"):
         lock.acquire()
@@ -49,7 +49,7 @@ def test_check_state_reraises_unexpected_runtime_error(monkeypatch: pytest.Monke
             return False
 
     monkeypatch.setattr("src.data.distributed_lock.session_scope", lambda _factory: _FailingScope())
-    lock = DistributedLock(lambda: None, "graph_rebuild")  # type: ignore[arg-type]
+    lock = DistributedLock(lambda: None, "graph_rebuild")  # type: ignore[return-value]
 
     with pytest.raises(RuntimeError, match="db unavailable"):
         lock.check_state()
@@ -57,7 +57,8 @@ def test_check_state_reraises_unexpected_runtime_error(monkeypatch: pytest.Monke
 
 @pytest.fixture
 def mock_lock_env(monkeypatch: pytest.MonkeyPatch) -> tuple[MagicMock, DistributedLock]:
-    """
+    """Create a mocked lock environment.
+
     Create and return a mocked CoordinationLockRepository and a DistributedLock
     with session scope and sleep patched for tests.
 
@@ -74,7 +75,7 @@ def mock_lock_env(monkeypatch: pytest.MonkeyPatch) -> tuple[MagicMock, Distribut
     monkeypatch.setattr("src.data.distributed_lock.session_scope", _mock_session_scope)
     monkeypatch.setattr("src.data.distributed_lock.CoordinationLockRepository", lambda session: mock_repo)
     monkeypatch.setattr("src.data.distributed_lock.sleep", lambda seconds: None)
-    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[arg-type]
+    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[return-value]
     return mock_repo, lock
 
 
@@ -155,7 +156,7 @@ def test_acquire_timeout_after_30s(monkeypatch: pytest.MonkeyPatch) -> None:
     time_iter = iter(times)
     monkeypatch.setattr("src.data.distributed_lock.time", lambda: next(time_iter, 1035.0))
 
-    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[arg-type]
+    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[return-value]
 
     with pytest.raises(LockAcquisitionTimeout, match="Failed to acquire lock 'test_lock' within 30s ceiling"):
         lock.acquire(max_retries=10)

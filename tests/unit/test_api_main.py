@@ -38,12 +38,7 @@ from api.api_models import (
 )
 from api.graph_lifecycle_providers import GraphLifecycleSettings
 from api.main import app, validate_origin
-from api.router_helpers import (
-    _ASSET_CLASS_COLORS,
-    _DEFAULT_COLOR,
-    raise_asset_not_found,
-    serialize_asset,
-)
+from api.router_helpers import _ASSET_CLASS_COLORS, _DEFAULT_COLOR, raise_asset_not_found, serialize_asset
 from src.data.real_data_fetcher import _save_to_cache
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph

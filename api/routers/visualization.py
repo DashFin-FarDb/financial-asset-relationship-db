@@ -2,14 +2,13 @@
 
 import logging
 import math
-from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.observability.facade import ObservabilityEvent, log_event
 
-from ..api_models import VisualizationDataResponse
+from ..api_models import VisualizationDataResponse, VisualizationEdge, VisualizationNode
 from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
@@ -45,39 +44,39 @@ def _compute_fibonacci_position(
 def _build_visualization_nodes(
     g: AssetRelationshipGraph,
     asset_ids: list[str],
-) -> list[dict[str, Any]]:
+) -> list[VisualizationNode]:
     degree = _calculate_node_degrees(g)
     total_nodes = len(asset_ids)
     golden_ratio = (1 + math.sqrt(5)) / 2
-    nodes: list[dict[str, Any]] = []
+    nodes: list[VisualizationNode] = []
     for idx, asset_id in enumerate(asset_ids):
         asset = g.assets[asset_id]
         x, y, z = _compute_fibonacci_position(idx, total_nodes, golden_ratio)
         asset_class_val = asset.asset_class.value
         nodes.append(
-            {
-                "id": asset_id,
-                "symbol": asset.symbol,
-                "name": asset.name,
-                "asset_class": asset_class_val,
-                "x": round(x, 6),
-                "y": round(y, 6),
-                "z": round(z, 6),
-                "color": _ASSET_CLASS_COLORS.get(asset_class_val, _DEFAULT_COLOR),
-                "size": max(5, min(20, 5 + degree.get(asset_id, 0) * 2)),
-            }
+            VisualizationNode(
+                id=asset_id,
+                symbol=asset.symbol,
+                name=asset.name,
+                asset_class=asset_class_val,
+                x=round(x, 6),
+                y=round(y, 6),
+                z=round(z, 6),
+                color=_ASSET_CLASS_COLORS.get(asset_class_val, _DEFAULT_COLOR),
+                size=max(5, min(20, 5 + degree.get(asset_id, 0) * 2)),
+            )
         )
     return nodes
 
 
-def _build_visualization_edges(g: AssetRelationshipGraph) -> list[dict[str, Any]]:
+def _build_visualization_edges(g: AssetRelationshipGraph) -> list[VisualizationEdge]:
     return [
-        {
-            "source": source_id,
-            "target": target_id,
-            "relationship_type": rel_type,
-            "strength": strength,
-        }
+        VisualizationEdge(
+            source=source_id,
+            target=target_id,
+            relationship_type=rel_type,
+            strength=strength,
+        )
         for source_id, rels in g.relationships.items()
         for target_id, rel_type, strength in rels
     ]

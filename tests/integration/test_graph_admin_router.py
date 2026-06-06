@@ -325,16 +325,17 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
 
     assert len(requested_records) == 1
     assert len(rejected_records) == 1
-    assert requested_records[0].metadata["user_ref"] == "admin"
-    assert requested_records[0].metadata["path"] == "/api/graph/rebuild"
-    assert rejected_records[0].metadata["reason"] == "rebuild_in_progress"
-    assert rejected_records[0].metadata["status_code"] == 429
+    assert getattr(requested_records[0], "metadata")["user_ref"] == "admin"
+    assert getattr(requested_records[0], "metadata")["path"] == "/api/graph/rebuild"
+    assert getattr(rejected_records[0], "metadata")["reason"] == "rebuild_in_progress"
+    assert getattr(rejected_records[0], "metadata")["status_code"] == 429
 
 
 async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_executor_raises_directly(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """
+    """Verify lock contention maps to HTTP 429 when executor raises error directly.
+
     Verifies that when the rebuild executor raises a distributed-lock acquisition error directly,
     the request maps to HTTP 429 and the runtime lifecycle remains READY.
     """
@@ -428,7 +429,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     original_log = graph_admin._log_rebuild_succeeded  # noqa: F841
 
     def track_log(*args, **kwargs):
-        """Wrapper to track when a success log event is emitted."""
+        """Wrap the log execution to track when a success log event is emitted."""
         try:
             return original_log(*args, **kwargs)
         finally:
@@ -485,8 +486,8 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
     assert len(succeeded_records) == 1
     assert len(failed_records) == 0
-    assert succeeded_records[0].metadata["user_ref"] == "admin"
-    assert succeeded_records[0].metadata["status_code"] == 200
+    assert getattr(succeeded_records[0], "metadata")["user_ref"] == "admin"
+    assert getattr(succeeded_records[0], "metadata")["status_code"] == 200
 
 
 async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
@@ -512,13 +513,13 @@ async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
         sentinel_logs = [r for r in caplog.records if getattr(r, "event", None) == "graph_rebuild_unexpected_exception"]
         assert len(sentinel_logs) == 1
         assert sentinel_logs[0].levelname == "CRITICAL"
-        assert sentinel_logs[0].metadata["exception_type"] == "AttributeError"
+        assert getattr(sentinel_logs[0], "metadata")["exception_type"] == "AttributeError"
 
         # Verify exactly one failure audit event log was broadcast
         audit_logs = [r for r in caplog.records if getattr(r, "event", "").startswith("graph_rebuild_")]
         failed_audits = [r for r in audit_logs if getattr(r, "event", None) == "graph_rebuild_failed"]
         assert len(failed_audits) == 1
-        assert failed_audits[0].metadata["failure_category"] == "unexpected_error"
+        assert getattr(failed_audits[0], "metadata")["failure_category"] == "unexpected_error"
 
     finally:
         graph_admin.shutdown_rebuild_executor_sync()

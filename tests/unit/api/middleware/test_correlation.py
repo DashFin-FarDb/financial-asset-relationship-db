@@ -1,6 +1,7 @@
 """Unit tests for CorrelationMiddleware."""
 
 import uuid
+from typing import Callable
 
 import pytest
 from fastapi import FastAPI, Request
@@ -109,14 +110,14 @@ def test_correlation_middleware_logic():
 
 
 @pytest.mark.asyncio
-async def test_correlation_middleware_state_fallback() -> None:
+async def test_correlation_middleware_state_fallback() -> None:  # noqa: C901
     """Test state injection fallback paths in CorrelationMiddleware."""
 
-    async def mock_app(scope: dict, receive: callable, send: callable) -> None:
+    async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
         """Mock ASGI application that does nothing."""
         pass
 
-    middleware = CorrelationMiddleware(mock_app)
+    middleware = CorrelationMiddleware(mock_app)  # type: ignore[arg-type]
 
     from collections.abc import MutableMapping
 

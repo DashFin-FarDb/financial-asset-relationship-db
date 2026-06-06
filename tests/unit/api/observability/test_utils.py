@@ -1,3 +1,5 @@
+"""Utility helpers for observability unit tests."""
+
 import logging
 
 import pytest
@@ -19,3 +21,4 @@ def get_processor_handler() -> logging.Handler:
         return next(h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter))
     except StopIteration:
         pytest.fail("ProcessorFormatter handler not found")
+        raise RuntimeError("Unreachable")

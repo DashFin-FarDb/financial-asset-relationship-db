@@ -1,3 +1,5 @@
+"""Unit tests for ObservabilityEvent schema."""
+
 from src.observability.events import ObservabilityEvent
 
 

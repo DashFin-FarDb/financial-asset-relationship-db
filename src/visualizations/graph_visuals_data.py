@@ -202,7 +202,7 @@ def _coerce_strength(
         ValueError: If `value` cannot be converted to float; message includes `idx` and `source_id`.
     """
     try:
-        return float(value)
+        return float(value)  # type: ignore[arg-type]
     except (TypeError, ValueError) as exc:
         raise ValueError(f"strength at index {idx} for '{source_id}' must be numeric") from exc
 

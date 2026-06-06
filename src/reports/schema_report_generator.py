@@ -6,12 +6,7 @@ from collections.abc import Callable, Iterable
 from typing import Any
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.reports.helpers import (
-    _as_float,
-    _as_int,
-    _as_str_int_map,
-    _as_top_relationships,
-)
+from src.reports.helpers import _as_float, _as_int, _as_str_int_map, _as_top_relationships
 
 Formatter = Callable[[Iterable[str]], str]
 Metrics = dict[str, Any]

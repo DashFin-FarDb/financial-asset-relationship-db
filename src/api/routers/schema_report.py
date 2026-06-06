@@ -9,11 +9,7 @@ from fastapi.responses import Response  # pylint: disable=import-error
 
 from src.api.dependencies import get_graph
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.reports.integration import (
-    export_report,
-    generate_html_report,
-    generate_markdown_report,
-)
+from src.reports.integration import export_report, generate_html_report, generate_markdown_report
 
 router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 

@@ -78,8 +78,8 @@ class Settings(BaseModel):
     @classmethod
     def parse_ttl(cls, value: Any, info: ValidationInfo) -> Any:
         """Coerce empty strings or None to the field default."""
+        field_name = info.field_name or "rebuild_lock_ttl_seconds"
         if value is None or (isinstance(value, str) and not value.strip()):
-            field_name = info.field_name
             field_info = cls.model_fields.get(field_name)
             default = getattr(field_info, "default", 300)
             return default
@@ -87,7 +87,7 @@ class Settings(BaseModel):
             try:
                 return int(value)
             except ValueError:
-                raise ValueError(f"Invalid integer for environment variable {info.field_name.upper()}: {value!r}")
+                raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}")
         # For non-string, non-None inputs, return value unchanged
         return value
 
@@ -133,7 +133,7 @@ def load_settings() -> Settings:
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
         # Passed as raw string to Pydantic for validation and coercion
-        rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),
+        rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),  # type: ignore[arg-type]
     )
 
 

@@ -114,9 +114,7 @@ class DistributedLock:
         holder_id: str | None = None,
         ttl_seconds: int = 300,
     ) -> None:
-        """
-        Create a DistributedLock configured with a database session factory, lock identity,
-        and optional observability hooks.
+        """Create a DistributedLock configured with a database session factory, lock identity, and optional observability hooks.
 
         Parameters:
             session_factory (Callable[[], Session] | None): Backward-compatible factory for DB sessions;
@@ -451,9 +449,9 @@ class DistributedLock:
         return False
 
     def _handle_refresh_unexpected_error(self, exc: Exception, start_time: float) -> bool:
-        """
-        Handle an unexpected exception raised during a refresh attempt by marking the lock as lost,
+        """Handle an unexpected exception raised during a refresh attempt.
 
+        Handle an unexpected exception raised during a refresh attempt by marking the lock as lost,
         emitting observability events and metrics, and indicating the refresh should stop.
 
         Parameters:
@@ -624,7 +622,8 @@ class DistributedLock:
         return LockState.VALID
 
     def _handle_check_state_error(self, exc: Exception) -> LockState:
-        """
+        """Handle exceptions raised during a lock state check.
+
         Classify and handle exceptions raised during a lock state check, update the internal
         lifecycle state, and emit observability events.
 

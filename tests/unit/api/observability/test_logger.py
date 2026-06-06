@@ -1,3 +1,5 @@
+"""Unit tests for the observability logger and event formatting."""
+
 import json
 import logging
 from io import StringIO

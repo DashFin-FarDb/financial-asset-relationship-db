@@ -9,10 +9,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
-from src.logic.rebuild_failure_detection import (
-    InconsistencyType,
-    RebuildInconsistency,
-)
+from src.logic.rebuild_failure_detection import InconsistencyType, RebuildInconsistency
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 

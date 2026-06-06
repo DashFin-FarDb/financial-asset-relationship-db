@@ -743,7 +743,7 @@ class TestRealDataFetcherFallback:
 
     @staticmethod
     def test_real_data_fetcher_loads_from_cache(tmp_path):
-        """RealDataFetcher should return cached dataset when available."""
+        """Verify that RealDataFetcher returns cached dataset when available."""
         from src.data.real_data_fetcher import RealDataFetcher, _save_to_cache
         from src.data.sample_data import create_sample_database
 
@@ -974,9 +974,7 @@ class TestNegativeScenarios:
 
     @staticmethod
     def test_validate_origin_with_unicode_domain():
-        """
-        Verify that validate_origin accepts an HTTPS internationalized domain name (IDN) such as "https://münchen.de".
-        """
+        """Verify that validate_origin accepts an HTTPS internationalized domain name (IDN) such as "https://münchen.de"."""
         result = validate_origin("https://münchen.de")
         # IDN with HTTPS: validate_origin should accept valid HTTPS domains
         assert result is True

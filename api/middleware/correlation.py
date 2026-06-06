@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import uuid
 from collections.abc import MutableMapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from starlette.datastructures import Headers, MutableHeaders
 
@@ -204,6 +204,7 @@ class CorrelationMiddleware:
     """
 
     def __init__(self, app: ASGIApp) -> None:
+        """Initialize the correlation middleware."""
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
@@ -222,8 +223,8 @@ class CorrelationMiddleware:
 
         _inject_state(scope, request_id, correlation_id)
 
-        async def send_with_correlation_headers(message: dict) -> None:
-            """Wrapper for the send callable to inject correlation headers."""
+        async def send_with_correlation_headers(message: MutableMapping[str, Any]) -> None:
+            """Wrap the send callable to inject correlation headers."""
             if message["type"] == "http.response.start":
                 response_headers = MutableHeaders(scope=message)
                 # Set values (replace existing) to avoid duplicate headers

@@ -178,7 +178,7 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
 
 def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """
-    Selects a rebuild source and constructs a fresh asset relationship graph accordingly.
+    Select a rebuild source and construct a fresh asset relationship graph accordingly.
 
     The selection precedence is:
     1. If `settings.graph_cache_path` is set and the path exists, load from the cache and return source `"cache"`.

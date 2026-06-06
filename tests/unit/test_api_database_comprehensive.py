@@ -15,13 +15,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from api.database import (
-    _connect,
-    _get_database_url,
-    _is_memory_db,
-    _resolve_sqlite_path,
-    get_connection,
-)
+from api.database import _connect, _get_database_url, _is_memory_db, _resolve_sqlite_path, get_connection
 
 
 @pytest.fixture(autouse=True)

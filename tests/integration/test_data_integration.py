@@ -9,11 +9,7 @@ This module contains tests that verify interactions between data components:
 
 import pytest
 
-from src.data.real_data_fetcher import (
-    RealDataFetcher,
-    _deserialize_graph,
-    _serialize_graph,
-)
+from src.data.real_data_fetcher import RealDataFetcher, _deserialize_graph, _serialize_graph
 from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -28,11 +24,7 @@ class TestRepositoryGraphIntegration:
     @staticmethod
     def test_sample_graph_can_be_saved_to_repository(tmp_path):
         """Test that a sample graph can be saved to and loaded from repository."""
-        from src.data.database import (
-            create_engine_from_url,
-            create_session_factory,
-            init_db,
-        )
+        from src.data.database import create_engine_from_url, create_session_factory, init_db
 
         # Create in-memory database
         db_path = tmp_path / "test_integration.db"
@@ -60,11 +52,7 @@ class TestRepositoryGraphIntegration:
     @staticmethod
     def test_sample_graph_relationships_can_be_saved(tmp_path):
         """Test that sample graph relationships can be saved to repository."""
-        from src.data.database import (
-            create_engine_from_url,
-            create_session_factory,
-            init_db,
-        )
+        from src.data.database import create_engine_from_url, create_session_factory, init_db
 
         db_path = tmp_path / "test_rel_integration.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -215,11 +203,7 @@ class TestEdgeCasesAndRegressions:
     @staticmethod
     def test_asset_with_all_none_optional_fields(tmp_path):
         """Test asset with all optional fields as None."""
-        from src.data.database import (
-            create_engine_from_url,
-            create_session_factory,
-            init_db,
-        )
+        from src.data.database import create_engine_from_url, create_session_factory, init_db
 
         db_path = tmp_path / "test_none_fields.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -254,11 +238,7 @@ class TestEdgeCasesAndRegressions:
     @staticmethod
     def test_relationship_with_empty_string_type(tmp_path):
         """Test that empty string relationship type is handled."""
-        from src.data.database import (
-            create_engine_from_url,
-            create_session_factory,
-            init_db,
-        )
+        from src.data.database import create_engine_from_url, create_session_factory, init_db
 
         db_path = tmp_path / "test_empty_rel.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -328,11 +308,7 @@ class TestEdgeCasesAndRegressions:
     @staticmethod
     def test_large_relationship_strength_values(tmp_path):
         """Test handling of relationship strengths at boundaries."""
-        from src.data.database import (
-            create_engine_from_url,
-            create_session_factory,
-            init_db,
-        )
+        from src.data.database import create_engine_from_url, create_session_factory, init_db
 
         db_path = tmp_path / "test_strength_bounds.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -385,11 +361,7 @@ class TestConcurrentOperations:
     @staticmethod
     def test_repeated_asset_upserts(tmp_path):
         """Test that repeated upserts don't create duplicates."""
-        from src.data.database import (
-            create_engine_from_url,
-            create_session_factory,
-            init_db,
-        )
+        from src.data.database import create_engine_from_url, create_session_factory, init_db
 
         db_path = tmp_path / "test_repeated_upsert.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -425,11 +397,7 @@ class TestConcurrentOperations:
     @staticmethod
     def test_delete_and_recreate_asset(tmp_path):
         """Test deleting and recreating an asset."""
-        from src.data.database import (
-            create_engine_from_url,
-            create_session_factory,
-            init_db,
-        )
+        from src.data.database import create_engine_from_url, create_session_factory, init_db
 
         db_path = tmp_path / "test_delete_recreate.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -504,11 +472,7 @@ class TestDataConsistency:
     @staticmethod
     def test_relationship_consistency_after_asset_delete(tmp_path):
         """Test that relationships are cleaned up when asset is deleted."""
-        from src.data.database import (
-            create_engine_from_url,
-            create_session_factory,
-            init_db,
-        )
+        from src.data.database import create_engine_from_url, create_session_factory, init_db
 
         db_path = tmp_path / "test_rel_consistency.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")

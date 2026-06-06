@@ -1,3 +1,5 @@
+"""Observability logging facade and helper functions."""
+
 import logging
 
 from .events import ObservabilityEvent

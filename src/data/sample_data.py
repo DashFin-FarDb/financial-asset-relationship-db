@@ -425,7 +425,7 @@ def _log_asset_class_coverage(all_assets: Sequence[object]) -> None:
 
 
 def _count_assets_by_class(
-    all_assets: list[object],
+    all_assets: Sequence[object],
     asset_class: AssetClass,
 ) -> int:
     """

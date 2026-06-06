@@ -408,7 +408,7 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphSource]:
     """
-    Selects and initializes an AssetRelationshipGraph and identifies its startup source.
+    Select and initialize an AssetRelationshipGraph and identify its startup source.
 
     The selection follows this precedence: explicit graph factory, persisted durable graph, cache file, real-data fetcher, then a generated sample graph. If a persisted graph is used, the function will attempt to initialize the module's `last_synced_job_id` from durable persistence; if that attempt fails, initialization continues without setting `last_synced_job_id`.
 

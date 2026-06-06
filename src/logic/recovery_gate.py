@@ -11,10 +11,7 @@ from sqlalchemy.orm import Session
 
 from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockState
 from src.data.repository import AssetGraphRepository
-from src.logic.rebuild_failure_detection import (
-    InconsistencyType,
-    detect_rebuild_inconsistency,
-)
+from src.logic.rebuild_failure_detection import InconsistencyType, detect_rebuild_inconsistency
 from src.logic.rebuild_recovery import RecoveryAction, RecoveryDecision, determine_recovery_action
 from src.observability.facade import ObservabilityEvent, log_event
 
@@ -90,7 +87,8 @@ class RecoveryGate:
         self.lock_was_reacquired = False
 
     def _create_unsafe_decision_from_error(self, exc: Exception, error_context: str, log_level: str = "warning"):
-        """
+        """Create an unsafe recovery decision from an error.
+
         Create a RecoveryDecision that blocks execution (UNSAFE) and logs a sanitized
         observability event for the provided error context.
 
@@ -162,7 +160,8 @@ class RecoveryGate:
         )
 
     def _apply_owner_mismatch_override(self, decision, inconsistency, lock_is_valid, job):
-        """
+        """Override the recovery decision when an owner mismatch occurs.
+
         Override the provided recovery decision when an ORPHANED_RUNNING inconsistency indicates
         the job is owned by a different worker.
 

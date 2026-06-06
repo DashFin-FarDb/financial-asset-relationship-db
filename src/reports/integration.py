@@ -6,7 +6,7 @@ from collections.abc import Callable
 from typing import Any, Literal
 
 import bleach  # type: ignore[import-untyped]
-import markdown
+import markdown  # type: ignore[import-untyped]
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.schema_report import generate_schema_report

@@ -1,3 +1,5 @@
+"""Fetch real financial asset market data from sources such as Yahoo Finance."""
+
 import json
 import logging
 import math
@@ -394,7 +396,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data() -> list[Equity]:
         """
-        Fetches latest market data for a fixed set of major equity symbols and constructs Equity objects.
+        Fetch latest market data for a fixed set of major equity symbols and construct Equity objects.
 
         Skips symbols that lack a valid latest close price; emits structured observability events for each symbol's success or failure.
 
@@ -456,7 +458,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_bond_data() -> list[Bond]:
         """
-        Builds Bond proxy objects from a fixed set of bond ETF symbols.
+        Build Bond proxy objects from a fixed set of bond ETF symbols.
 
         For each configured ETF symbol, attempts to fetch the latest market price
 
@@ -537,7 +539,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_commodity_data() -> list[Commodity]:
         """
-        Constructs Commodity instances for a fixed set of futures symbols using their latest close prices.
+        Construct Commodity instances for a fixed set of futures symbols using their latest close prices.
 
         Symbols without a valid price are skipped; failures for individual symbols are logged and do not stop processing.
 
@@ -598,7 +600,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_currency_data() -> list[Currency]:
         """
-        Constructs Currency dataclass instances for a predefined set of FX pairs using the latest available rates.
+        Construct Currency dataclass instances for a predefined set of FX pairs using the latest available rates.
 
         For each configured FX symbol, attempts to fetch the most recent exchange rate;
 
@@ -710,9 +712,7 @@ class RealDataFetcher:
 
 
 def create_real_database() -> AssetRelationshipGraph:
-    """
-    Build an AssetRelationshipGraph from live, cached, or fallback data.
-    """
+    """Build an AssetRelationshipGraph from live, cached, or fallback data."""
     fetcher = RealDataFetcher()
     return fetcher.create_real_database()
 

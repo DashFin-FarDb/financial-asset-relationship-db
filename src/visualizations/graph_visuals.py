@@ -159,7 +159,8 @@ def _snapshot_relevant_relationships(
     graph: AssetRelationshipGraph,
     asset_ids_set: set[str],
 ) -> dict[str, list]:
-    """
+    """Create a consistent snapshot of relevant relationships.
+
     Create a consistent, locked snapshot of graph.relationships containing only entries
     whose source IDs are in asset_ids_set.
 
@@ -315,7 +316,7 @@ def _to_float_strength(
         ValueError: If `strength` cannot be converted to float; the error message includes `source_id` and `idx`.
     """
     try:
-        return float(strength)
+        return float(strength)  # type: ignore[arg-type]
     except (TypeError, ValueError) as exc:
         raise ValueError(
             "Invalid graph data: strength at index "
@@ -442,7 +443,7 @@ def _prepare_layout_config(
     layout_options: dict[str, object] | None = None,
 ) -> tuple[str, dict[str, object]]:
     """
-    Builds a dynamic figure title and returns layout options for the 3D visualization.
+    Build a dynamic figure title and return layout options for the 3D visualization.
 
     Parameters:
         num_assets (int): Number of assets included in the visualization.
@@ -472,9 +473,7 @@ def _add_directional_arrows_to_figure(
     positions: np.ndarray,
     asset_ids: list[str],
 ) -> None:
-    """Add directional arrows to the figure for unidirectional
-    relationships using batch operations.
-    """
+    """Add directional arrows to the figure for unidirectional relationships using batch operations."""
     arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
     if arrow_traces:
         fig.add_traces(arrow_traces)
@@ -499,8 +498,8 @@ def _configure_3d_layout(
             - legend_bordercolor(str)
     """
     opts = options or {}
-    width = int(opts.get("width", 1200))
-    height = int(opts.get("height", 800))
+    width = int(opts.get("width", 1200))  # type: ignore[call-overload]
+    height = int(opts.get("height", 800))  # type: ignore[call-overload]
     gridcolor = str(opts.get("gridcolor", "rgba(200, 200, 200, 0.3)"))
     bgcolor = str(opts.get("bgcolor", "rgba(248, 248, 248, 0.95)"))
     legend_bgcolor = str(opts.get("legend_bgcolor", "rgba(255, 255, 255, 0.8)"))
@@ -577,7 +576,8 @@ def _validate_asset_ids_list(asset_ids: list[str]) -> None:
 
 
 def _validate_colors_list(colors: list[str], expected_length: int) -> None:
-    """
+    """Validate color settings.
+
     Validate that `colors` is a list or tuple of non-empty color strings of the required
     length and that each entry matches an acceptable color format.
 
@@ -931,7 +931,7 @@ def _build_hover_texts(
     is_bidirectional: bool,
 ) -> list[str | None]:
     """
-    Builds hover text entries for Plotly 3D line segments representing the given relationships.
+    Build hover text entries for Plotly 3D line segments representing the given relationships.
 
     Parameters:
         relationships (list[dict]): Iterable of relationship dicts each containing 'source_id', 'target_id', and 'strength'.
@@ -1009,7 +1009,7 @@ def _create_trace_for_group(
     asset_id_index: dict[str, int],
 ) -> go.Scatter3d:
     """
-    Builds a Plotly Scatter3d trace representing all edges for a single relationship type and directionality.
+    Build a Plotly Scatter3d trace representing all edges for a single relationship type and directionality.
 
     Parameters:
         rel_type (str): Relationship type label used for naming and styling the trace.
@@ -1268,10 +1268,9 @@ def _validate_positions_and_asset_ids_lengths(
     positions: np.ndarray,
     asset_ids: list[str],
 ) -> None:
-    """
-    Ensure `positions` and `asset_ids` represent the same number of assets
+    """Ensure `positions` and `asset_ids` represent the same number of assets.
 
-    and that `positions` is a 2-D array with three columns.
+    Ensure that `positions` is a 2-D array with three columns.
 
     Parameters:
         positions (np.ndarray): Numeric array of shape (n, 3) containing XYZ coordinates.
@@ -1441,7 +1440,7 @@ def _build_relationship_filters_for_visualization(
     show_all_relationships: bool,
 ) -> dict[str, bool] | None:
     """
-    Constructs a mapping of relationship-type visibility flags for visualization.
+    Construct a mapping of relationship-type visibility flags for visualization.
 
     If `show_all_relationships` is True, returns `None` to indicate no filtering.
     Otherwise returns a dict that maps the following relationship keys to booleans:
@@ -1518,7 +1517,7 @@ def _create_relationship_traces_with_fallback(
     relationship_filters: dict[str, bool] | None,
 ) -> list[go.Scatter3d]:
     """
-    Builds Plotly 3D traces for the graph's relationships, applying optional relationship-type filters.
+    Build Plotly 3D traces for the graph's relationships, applying optional relationship-type filters.
 
     Attempts to create relationship line traces for the provided graph and visualization inputs. If the underlying creation fails due to invalid input or validation errors, a ValueError is raised containing contextual information. If an unexpected error occurs, the function logs the event and returns an empty list.
 
@@ -1605,9 +1604,10 @@ def _create_directional_arrows_with_fallback(
     positions: np.ndarray,
     asset_ids: list[str],
 ) -> list[go.Scatter3d]:
-    """
-    Attempt to build directional arrow marker traces for unidirectional relationships;
-    fall back to no traces on failure.
+    """Attempt to build directional arrow marker traces.
+
+    Build directional arrow marker traces for unidirectional relationships,
+    falling back to no traces on failure.
 
     Returns:
         A list of Plotly Scatter3d traces containing directional arrow markers, or an
@@ -1681,7 +1681,7 @@ def _prepare_visualization_filters(
     toggle_arrows: bool,
 ) -> dict[str, bool] | None:
     """
-    Builds and validates visualization filter settings and returns a relationship-visibility mapping.
+    Build and validate visualization filter settings and return a relationship-visibility mapping.
 
     Validates the provided boolean filter flags and constructs a mapping from relationship-type keys
     to visibility booleans. If `show_all_relationships` is true, returns `None` to indicate no filtering.

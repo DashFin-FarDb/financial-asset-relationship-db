@@ -177,7 +177,8 @@ def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
 
 
 def _active_worker_id_declared_too_wide(active_worker_col: dict | None) -> bool:
-    """
+    """Check if active_worker_id column is wider than VARCHAR(64).
+
     Return True when active_worker_id is wider than VARCHAR(64) and may need
     narrowing.
 

@@ -112,7 +112,7 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> list[Formula]:
         """
-        Collects and concatenates all formula groups derived from the provided asset relationship graph.
+        Collect and concatenate all formula groups derived from the provided asset relationship graph.
 
         Parameters:
             graph (AssetRelationshipGraph): Graph of assets and their relationships used to derive formulas.
@@ -135,9 +135,9 @@ class FormulaicAnalyzer:
         all_formulas: list[Formula],
         empirical_relationships: dict[str, Any],
     ) -> dict[str, Any]:
-        """
-        Assembles the consolidated analysis payload containing formulas,
-        empirical relationships, and computed metadata.
+        """Assemble the consolidated analysis payload.
+
+        Contains formulas, empirical relationships, and computed metadata.
 
         Parameters:
             all_formulas (List[Formula]): Discovered Formula objects to include
@@ -170,9 +170,9 @@ class FormulaicAnalyzer:
         self,
         graph: AssetRelationshipGraph,
     ) -> list[Formula]:
-        """
-        Assembles fundamental valuation and income Formula objects applicable
-        to the assets in the provided graph.
+        """Assemble fundamental valuation and income Formula objects.
+
+        Applicable to the assets in the provided graph.
 
         Parameters:
             graph (AssetRelationshipGraph): Asset relationship graph used to
@@ -213,8 +213,7 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _price_to_earnings_formula(graph: AssetRelationshipGraph) -> Formula:
-        """
-        Constructs a Formula representing the Price-to-Earnings Ratio (P/E).
+        r"""Construct a Formula representing the Price-to-Earnings Ratio (P/E).
 
         Parameters:
             graph (AssetRelationshipGraph): Graph used to produce the example
@@ -243,8 +242,7 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _dividend_yield_formula(graph: AssetRelationshipGraph) -> Formula:
-        """
-        Construct a Formula representing the dividend yield (dividend per share divided by price per share).
+        r"""Construct a Formula representing the dividend yield (dividend per share divided by price per share).
 
         Parameters:
             graph (AssetRelationshipGraph): Graph used to generate the example
@@ -346,8 +344,9 @@ class FormulaicAnalyzer:
         self,
         graph: AssetRelationshipGraph,
     ) -> list[Formula]:
-        """
-        Collects standard formulas describing asset beta (systematic risk) and
+        """Collect standard formulas for systematic risk and correlation.
+
+        Includes standard formulas describing asset beta (systematic risk) and
         the Pearson correlation coefficient.
 
         Each Formula includes variable descriptions, an example calculation
@@ -403,9 +402,7 @@ class FormulaicAnalyzer:
         self,
         graph: AssetRelationshipGraph,
     ) -> list[Formula]:
-        """
-        Collect valuation formulas applicable to the provided asset
-        relationship graph.
+        """Collect valuation formulas applicable to the asset relationship graph.
 
         Includes price-to-book when equities are present and always includes
         an enterprise value formula.
@@ -426,8 +423,7 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _price_to_book_formula(graph: AssetRelationshipGraph) -> Formula:
-        """
-        Constructs a Formula describing the Price-to-Book (P/B) ratio.
+        r"""Construct a Formula describing the Price-to-Book (P/B) ratio.
 
         Parameters:
             graph (AssetRelationshipGraph): Graph used to generate the example calculation for the formula.
@@ -454,8 +450,7 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _enterprise_value_formula() -> Formula:
-        """
-        Constructs a Formula representing Enterprise Value (EV = Market_Cap + Total_Debt - Cash).
+        """Construct a Formula representing Enterprise Value (EV = Market_Cap + Total_Debt - Cash).
 
         Returns:
             Formula: Metadata for the Enterprise Value formula including
@@ -542,9 +537,9 @@ class FormulaicAnalyzer:
         self,
         graph: AssetRelationshipGraph,
     ) -> list[Formula]:
-        """
-        Builds portfolio-theory Formula objects based on the provided asset
-        relationship graph.
+        """Build portfolio-theory Formula objects.
+
+        Uses the provided asset relationship graph to populate formula metadata.
 
         Parameters:
             graph (AssetRelationshipGraph): Graph used to derive example
@@ -600,13 +595,10 @@ class FormulaicAnalyzer:
         self,
         graph: AssetRelationshipGraph,
     ) -> list[Formula]:
-        """
-        Create Formula objects that describe cross-asset relationships
-        discovered in the asset graph.
+        """Create Formula objects that describe cross-asset relationships.
 
-        This inspects the graph for currency and commodity assets and produces zero or more formulas representing:
-        - triangular arbitrage exchange-rate relationships when currency assets exist, and
-        - an inverse commodity–currency relationship when both commodity and currency assets are present.
+        Inspects the graph for currency and commodity assets and produces
+        zero or more formulas representing triangular arbitrage or inverse relationships.
 
         Parameters:
             graph (AssetRelationshipGraph): The asset relationship graph to inspect for relevant asset types.
@@ -658,9 +650,9 @@ class FormulaicAnalyzer:
     def _calculate_empirical_relationships(
         graph: AssetRelationshipGraph,
     ) -> dict[str, Any]:
-        """
-        Generate empirical relationship data derived from an
-        AssetRelationshipGraph.
+        """Generate empirical relationship data from the graph.
+
+        Uses the provided AssetRelationshipGraph to compute statistics.
 
         Parameters:
             graph (AssetRelationshipGraph): Graph of assets and relationships
@@ -694,9 +686,9 @@ class FormulaicAnalyzer:
     def _build_correlation_matrix(
         graph: AssetRelationshipGraph,
     ) -> dict[str, float]:
-        """
-        Construct a mapping of asset-pair keys to the strongest numeric
-        relationship strength observed between them.
+        """Construct a mapping of asset-pair keys to relationship strengths.
+
+        Maps keys to the strongest numeric relationship strength observed.
 
         Parameters:
             graph (AssetRelationshipGraph): Graph whose relationships are
@@ -728,9 +720,9 @@ class FormulaicAnalyzer:
     def _build_strongest_correlations(
         correlation_matrix: dict[str, float],
     ) -> list[dict[str, Any]]:
-        """
-        Selects up to ten strongest asset correlation pairs from a correlation
-        matrix, ranked by absolute correlation.
+        """Select up to ten strongest asset correlation pairs.
+
+        Ranked by absolute correlation, ignoring self-correlations.
 
         Parses keys of the form "assetA-assetB", ignores entries with absolute
         correlation greater than 1.0, and labels each remaining pair as "Strong"
@@ -826,8 +818,7 @@ class FormulaicAnalyzer:
     def _build_sector_relationships(
         graph: AssetRelationshipGraph,
     ) -> dict[str, dict[str, Any]]:
-        """
-        Builds statistics for each sector represented in the asset graph.
+        """Build statistics for each sector represented in the asset graph.
 
         Iterates assets in the provided graph, ignoring assets without a
         sector, and aggregates per-sector metrics: the number of assets
@@ -894,9 +885,9 @@ class FormulaicAnalyzer:
     def _calculate_avg_correlation_strength(
         graph: AssetRelationshipGraph,
     ) -> float:
-        """
-        Estimate the average correlation strength across all relationships
-        in the provided graph.
+        """Estimate average correlation strength across all relationships.
+
+        Computes the mean strength value from the provided graph.
 
         Returns:
             A float between 0.0 and 0.75 representing the average relationship
@@ -973,9 +964,7 @@ class FormulaicAnalyzer:
     def _calculate_avg_correlation_strength_from_empirical(
         empirical_relationships: dict,
     ) -> float:
-        """
-        Estimate the average correlation value
-        from the empirical relationships data.
+        """Estimate the average correlation value from empirical relationships.
 
         Expects a mapping under the "correlation_matrix" key where values are
         correlation coefficients.

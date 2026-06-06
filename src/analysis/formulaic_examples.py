@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import AssetClass
+from src.models.financial_models import AssetClass, Bond, Commodity, Equity
 
 
 def _is_equity_with_pe_ratio(asset: object) -> bool:
@@ -189,7 +189,7 @@ def calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
     """
     examples: list[str] = []
     for asset in graph.assets.values():
-        if _is_equity_with_pe_ratio(asset):
+        if isinstance(asset, Equity) and asset.pe_ratio is not None:
             pe_ratio = float(asset.pe_ratio)
             examples.append(f"{asset.symbol}: PE = {pe_ratio:.2f}")
             if len(examples) >= 2:
@@ -208,14 +208,9 @@ def calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
     """
     examples: list[str] = []
     for asset in graph.assets.values():
-        if _is_equity_with_dividend_yield(asset):
-            price = getattr(asset, "price", None)
-            if price is None:
-                continue
-            try:
-                price_value = float(price)
-            except (TypeError, ValueError):
-                continue
+        if isinstance(asset, Equity) and asset.dividend_yield is not None:
+            price = asset.price
+            price_value = float(price)
             dividend_yield = float(asset.dividend_yield)
             yield_pct = dividend_yield * 100
             examples.append(f"{asset.symbol}: Yield = {yield_pct:.2f}% at price ${price_value:.2f}")
@@ -233,7 +228,7 @@ def calculate_ytm_examples(graph: AssetRelationshipGraph) -> str:
     """
     examples: list[str] = []
     for asset in graph.assets.values():
-        if _is_bond_with_ytm(asset):
+        if isinstance(asset, Bond) and asset.yield_to_maturity is not None:
             ytm = float(asset.yield_to_maturity)
             ytm_pct = ytm * 100
             examples.append(f"{asset.symbol}: YTM ≈ {ytm_pct:.2f}%")
@@ -253,7 +248,7 @@ def calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
     """
     examples: list[str] = []
     for asset in graph.assets.values():
-        if _is_equity_with_market_cap(asset):
+        if isinstance(asset, Equity) and asset.market_cap is not None:
             market_cap = float(asset.market_cap)
             cap_billions = market_cap / 1e9
             examples.append(f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B")
@@ -314,12 +309,9 @@ def calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
         Returns:
             True if the asset is an equity and both `book_value` and `price` can be converted to float, False otherwise.
         """
-        if not _is_equity_with_book_value(asset):
+        if not isinstance(asset, Equity):
             return False
-        try:
-            float(asset.price)
-            float(asset.book_value)
-        except (TypeError, ValueError):
+        if asset.book_value is None or asset.price is None:
             return False
         return True
 
@@ -333,8 +325,10 @@ def calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
         Returns:
             str: Formatted string "SYMBOL: P/B = X.XX". If `book_value` is zero or equivalent, the ratio is formatted as 0.00.
         """
-        book_value = float(asset.book_value)
-        price = float(asset.price)
+        if not isinstance(asset, Equity):
+            return ""
+        book_value = float(asset.book_value) if asset.book_value is not None else 0
+        price = float(asset.price) if asset.price is not None else 0
         pb_ratio = price / book_value if book_value else 0
         return f"{asset.symbol}: P/B = {pb_ratio:.2f}"
 
@@ -366,7 +360,7 @@ def calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
     """
     examples: list[str] = []
     for asset in graph.assets.values():
-        if _is_commodity_with_volatility(asset):
+        if isinstance(asset, Commodity) and asset.volatility is not None:
             volatility = float(asset.volatility)
             vol_pct = volatility * 100
             examples.append(f"{asset.symbol}: σ = {vol_pct:.2f}%")

@@ -5,10 +5,7 @@ from typing import TypedDict
 import plotly.graph_objects as go
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.visualizations.graph_2d_visuals_constants import (
-    ASSET_CLASS_COLORS,
-    REL_TYPE_COLORS,
-)
+from src.visualizations.graph_2d_visuals_constants import ASSET_CLASS_COLORS, REL_TYPE_COLORS
 
 
 class RelationshipTraceOptions(TypedDict, total=False):
@@ -57,7 +54,7 @@ def create_2d_relationship_traces(
     Returns:
         List[go.Scatter]: A list of Plotly Scatter traces (one per visible relationship type). Returns an empty list if `asset_ids` or `positions` are empty.
     """
-    normalized_options = _resolve_trace_options(options, legacy_flags)
+    normalized_options = _resolve_trace_options(options, legacy_flags)  # type: ignore[arg-type]
     return _create_2d_relationship_traces(
         graph=graph,
         positions=positions,
@@ -244,7 +241,7 @@ def _build_relationship_trace(
     for rel in relationships:
         source_id = str(rel["source_id"])
         target_id = str(rel["target_id"])
-        strength = float(rel.get("strength", 0.0))
+        strength = float(rel.get("strength", 0.0))  # type: ignore[arg-type]
         sx, sy = positions[source_id]
         tx, ty = positions[target_id]
         edges_x.extend([sx, tx, None])
