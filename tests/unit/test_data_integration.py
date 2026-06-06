@@ -192,8 +192,7 @@ class TestDataFetcherWithFallback:
             Return a preconfigured AssetRelationshipGraph to be used as fallback data.
 
             Returns:
-                AssetRelationshipGraph: A graph instance prepopulated with custom fallback
-                    assets and relationships.
+                AssetRelationshipGraph: A graph instance prepopulated with the custom fallback assets and relationships.
             """
             return custom_graph
 
@@ -456,10 +455,10 @@ class TestDataConsistency:
 
     @staticmethod
     def test_graph_clone_independence():
-        """Verifies that modifying one graph does not affect another independently created graph.
+        """
+        Verifies that modifying one graph does not affect another independently created graph.
 
-        Creates two separate sample graphs, mutates the first by adding a new asset,
-        and asserts the new asset appears only in the modified graph and not in the other.
+        Creates two separate sample graphs, mutates the first by adding a new asset, and asserts the new asset appears only in the modified graph and not in the other.
         """
         graph1 = create_sample_database()
         graph2 = create_sample_database()

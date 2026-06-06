@@ -219,7 +219,7 @@ def calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
     """
     examples: list[str] = []
     for asset in graph.assets.values():
-        if isinstance(asset, Equity) and asset.dividend_yield is not None:
+        if isinstance(asset, Equity) and asset.dividend_yield is not None and asset.price is not None:
             price = asset.price
             price_value = float(price)
             dividend_yield = float(asset.dividend_yield)
