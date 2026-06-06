@@ -18,9 +18,7 @@ def _default_formatter(lines: Iterable[str]) -> str:
 
 
 class SchemaReportGenerator:
-    """
-    Generate a structured Markdown schema + metrics report for an
-    AssetRelationshipGraph.
+    """Generate a structured Markdown schema + metrics report for an AssetRelationshipGraph.
 
     This class provides a modular architecture where each logical
     section of the report is rendered independently to support
@@ -32,6 +30,7 @@ class SchemaReportGenerator:
         graph: AssetRelationshipGraph,
         formatter: Formatter | None = None,
     ) -> None:
+        """Initialize the generator with a graph and an optional custom formatter."""
         self.graph = graph
         self.formatter: Formatter = formatter or _default_formatter
 
@@ -76,7 +75,8 @@ class SchemaReportGenerator:
         """
         Return a Markdown "Schema Overview" section listing supported entity types.
 
-        The section includes an H2 heading, an "Entity Types" subsection, and one line per entity describing key attributes.
+        The section includes an H2 heading, an "Entity Types" subsection, and one line
+        per entity describing key attributes.
 
         Returns:
             List[str]: Markdown-formatted lines for the Schema Overview section.
@@ -103,9 +103,7 @@ class SchemaReportGenerator:
         return lines
 
     def _render_calculated_metrics(self, metrics: Metrics) -> list[str]:
-        """Render calculated network metrics such as total assets,
-        relationships, density, and events.
-        """
+        """Render calculated network metrics such as total assets, relationships, density, and events."""
         total_assets = _as_int(metrics.get("total_assets"))
         total_rels = _as_int(metrics.get("total_relationships"))
         avg_strength = _as_float(metrics.get("average_relationship_strength"))
@@ -143,7 +141,8 @@ class SchemaReportGenerator:
 
         Returns:
             List[str]: Markdown lines for the "## Top Relationships" section. If no relationships are present,
-                the list includes a single placeholder bullet "- No relationships recorded yet." followed by a blank line.
+                the list includes a single placeholder bullet "- No relationships recorded yet."
+                followed by a blank line.
         """
         top = _as_top_relationships(metrics.get("top_relationships"))
         lines = ["## Top Relationships", ""]
@@ -185,8 +184,9 @@ class SchemaReportGenerator:
         ]
 
     def _render_schema_optimization(self, metrics: Metrics) -> list[str]:
-        """
-        Render schema optimization section lines including a data quality score and a single recommendation determined by relationship density.
+        """Render schema optimization lines including a data quality score.
+
+        The section includes a single recommendation determined by relationship density.
 
         Parameters:
             metrics (Dict[str, Any]): Metrics mapping; expected keys:
@@ -194,7 +194,8 @@ class SchemaReportGenerator:
                 - "quality_score": numeric value formatted as a percentage in the output.
 
         Returns:
-            List[str]: Markdown lines for the "Schema Optimization Metrics" section. The lines include a formatted data quality score and one recommendation chosen from:
+            List[str]: Markdown lines for the "Schema Optimization Metrics" section. The lines
+                include a formatted data quality score and one recommendation chosen from:
                 - density > 30.0: "High connectivity - consider normalization."
                 - density > 10.0: "Well-balanced - suitable for most analytical use-cases."
                 - otherwise: "Sparse - consider enriching relationship definitions."

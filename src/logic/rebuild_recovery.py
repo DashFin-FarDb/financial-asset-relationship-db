@@ -42,7 +42,8 @@ def determine_recovery_action(
     """
     Decides the deterministic recovery action for a detected rebuild inconsistency.
 
-    Maps the provided inconsistency and the current lock validity to a RecoveryDecision without performing any recovery side effects.
+    Maps the provided inconsistency and the current lock validity to a RecoveryDecision
+    without performing any recovery side effects.
 
     Parameters:
         inconsistency (RebuildInconsistency): Detected rebuild inconsistency (contains `inconsistency_type`).

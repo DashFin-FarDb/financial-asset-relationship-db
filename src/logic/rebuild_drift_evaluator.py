@@ -47,9 +47,11 @@ class RebuildDriftEvaluator:
         Create a RebuildDriftEvaluator with its persistence and lock dependencies and runtime configuration.
 
         Parameters:
-            session_factory (Callable[[], Session]): Factory that produces SQLAlchemy sessions used to load rebuild state.
+            session_factory (Callable[[], Session]): Factory that produces SQLAlchemy
+                sessions used to load rebuild state.
             lock (DistributedLock): Distributed lock used to inspect lock state and holder id.
-            runtime_has_active_executor (bool): Whether this runtime currently has an active rebuild executor; included in metadata and passed to inconsistency detection.
+            runtime_has_active_executor (bool): Whether this runtime currently has
+                an active rebuild executor; included in metadata and passed to inconsistency detection.
             lock_ttl_seconds (int): Time-to-live in seconds used to determine whether a heartbeat is considered stale.
         """
         self.session_factory = session_factory
@@ -63,9 +65,17 @@ class RebuildDriftEvaluator:
 
         Returns:
             tuple[str, Severity, dict[str, str | int | float | bool | None]]:
-                - `drift_type`: Classification string describing the detected drift (e.g., `"lock_lost"`, `"persistence_unavailable"`, or an inconsistency type value).
+                - `drift_type`: Classification string describing the detected drift
+                  (e.g., `"lock_lost"`, `"persistence_unavailable"`, or an inconsistency type value).
                 - `Severity`: Severity enum value for the detected drift.
-                - `metadata`: A dictionary with contextual information. Always includes `lock_state`, `lock_is_valid`, `runtime_has_active_executor`, and `detected_at` (when applicable). For normal evaluations the metadata also contains `job_id`, `reason`, and job-specific fields added by `_build_job_metadata()` such as `job_status`, `active_worker_id`, `last_heartbeat_at`, `owner_mismatch`, and `lock_holder_id`. In early-failure cases the metadata contains error-related fields (for example `error_type` and `reason`).
+                - `metadata`: A dictionary with contextual information. Always includes
+                  `lock_state`, `lock_is_valid`, `runtime_has_active_executor`, and
+                  `detected_at` (when applicable). For normal evaluations the metadata also
+                  contains `job_id`, `reason`, and job-specific fields added by
+                  `_build_job_metadata()` such as `job_status`, `active_worker_id`,
+                  `last_heartbeat_at`, `owner_mismatch`, and `lock_holder_id`. In early-failure
+                  cases the metadata contains error-related fields (for example `error_type`
+                  and `reason`).
         """
         # Check lock state first
         lock_state = self.lock.check_state()
@@ -174,7 +184,8 @@ class RebuildDriftEvaluator:
             heartbeat_at (datetime | str | None): Heartbeat value to normalize. Strings are parsed as ISO 8601.
 
         Returns:
-            datetime | None: A timezone-aware `datetime` in UTC when parsing succeeds, or `None` if `heartbeat_at` is `None` or cannot be parsed.
+            datetime | None: A timezone-aware `datetime` in UTC when parsing succeeds,
+                or `None` if `heartbeat_at` is `None` or cannot be parsed.
         """
         if heartbeat_at is None:
             return None
@@ -286,7 +297,8 @@ class RebuildDriftEvaluator:
             "lock_holder_id": self.lock.holder_id,
         }
 
-    def _classify_severity(  # pylint: disable=too-many-return-statements  # Each inconsistency type requires distinct severity mapping; table-driven refactor deferred to Phase 2
+    # Each inconsistency type requires distinct severity mapping; table-driven refactor deferred to Phase 2
+    def _classify_severity(  # pylint: disable=too-many-return-statements
         self,
         inconsistency_type: InconsistencyType,
         lock_is_valid: bool,

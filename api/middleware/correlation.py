@@ -27,7 +27,10 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
     """
     Return a trimmed, validated identifier extracted from a header or None if the value is unacceptable.
 
-    If `raw_id` is not a string the function returns `None`. If the original (pre-trim) length exceeds `MAX_HEADER_LENGTH` the header is rejected and a `correlation_id_oversized_header` observability event is emitted. The header value is trimmed and validated; if validation fails a `correlation_id_invalid_header` observability event is emitted.
+    If `raw_id` is not a string the function returns `None`. If the original (pre-trim) length exceeds
+    `MAX_HEADER_LENGTH` the header is rejected and a `correlation_id_oversized_header` observability event
+    is emitted. The header value is trimmed and validated; if validation fails a
+    `correlation_id_invalid_header` observability event is emitted.
 
     Parameters:
         raw_id (str | None): The raw header value to validate.
@@ -75,9 +78,13 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
 
 def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
     """
-    Best-effort attach the given request and correlation identifiers into the ASGI scope's state for downstream handlers.
+    Best-effort attach identifiers to the ASGI scope's state.
 
-    Attempts to write identifiers into scope["state"] using either mapping-style or attribute-style assignment; failures are logged via observability events and do not raise exceptions.
+    This associates the given request and correlation identifiers into the ASGI scope's state for downstream
+    handlers.
+
+    Attempts to write identifiers into scope["state"] using either mapping-style or attribute-style
+    assignment; failures are logged via observability events and do not raise exceptions.
 
     Parameters:
         scope (Scope): The ASGI connection scope whose "state" may be modified.

@@ -33,7 +33,8 @@ def _validate_graph_relationships_structure(
     Validate that `graph` is an AssetRelationshipGraph instance and that it exposes a `relationships` dictionary.
 
     Raises:
-        TypeError: If `graph` is not an AssetRelationshipGraph instance or if `graph.relationships` exists but is not a `dict`.
+        TypeError: If `graph` is not an AssetRelationshipGraph instance or if `graph.relationships`
+            exists but is not a `dict`.
         ValueError: If `graph` does not have a `relationships` attribute.
     """
     if not isinstance(graph, AssetRelationshipGraph):
@@ -79,7 +80,9 @@ def _get_relevant_relationships(
         asset_ids_set (Set[str]): Set of source asset IDs to include.
 
     Returns:
-        Dict[str, List[Tuple[object, object, object]]]: A mapping from each source_id present in asset_ids_set to a shallow-copied list of its relationship tuples `(target_id, rel_type, strength)`.
+        Dict[str, List[Tuple[object, object, object]]]: A mapping from each source_id present in
+            asset_ids_set to a shallow-copied list of its relationship tuples
+            `(target_id, rel_type, strength)`.
     """
     with _graph_access_lock:
         return {src: list(rels) for src, rels in graph.relationships.items() if src in asset_ids_set}
@@ -93,7 +96,9 @@ def _parse_relationship_record(
     """
     Parse and normalize a single raw relationship record for a given source.
 
-    Validates that `rel` is a 3-tuple (target_id, rel_type, strength), ensures `target_id` and `rel_type` are strings, and converts `strength` to a float. `source_id` and `idx` are used to provide contextual information in raised errors.
+    Validates that `rel` is a 3-tuple (target_id, rel_type, strength), ensures `target_id`
+    and `rel_type` are strings, and converts `strength` to a float. `source_id` and `idx`
+    are used to provide contextual information in raised errors.
 
     Parameters:
         source_id (str): Originating asset identifier for error messages.
@@ -139,7 +144,8 @@ def _unpack_relationship_tuple(
     Parameters:
         source_id (str): Source asset identifier included in error messages when validation fails.
         idx (int): Position of the relationship within the source's relationship list, included in error messages.
-        rel (object): Raw relationship entry expected to be a 3-element list or tuple of the form (target_id, rel_type, strength).
+        rel (object): Raw relationship entry expected to be a 3-element list or tuple of
+            the form (target_id, rel_type, strength).
 
     Returns:
         tuple: A 3-tuple (target_id, rel_type, strength) extracted from `rel`.
@@ -211,14 +217,17 @@ def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> dict[tuple[str, str, str], float]:
     """
-    Builds an index mapping (source_id, target_id, rel_type) to relationship strength for relationships whose source and target are both in the provided asset IDs.
+    Build an index mapping (source_id, target_id, rel_type) to relationship strength.
+
+    Only relationships whose source and target are both in the provided asset IDs are indexed.
 
     Parameters:
         graph (AssetRelationshipGraph): Graph containing a `relationships` mapping.
         asset_ids (Iterable[str]): Iterable of asset IDs to include; duplicates are ignored.
 
     Returns:
-        Dict[Tuple[str, str, str], float]: Mapping from (source_id, target_id, rel_type) to the relationship strength as a float.
+        Dict[Tuple[str, str, str], float]: Mapping from (source_id, target_id, rel_type) to the
+            relationship strength as a float.
     """
     _validate_graph_relationships_structure(graph)
     asset_ids_set = _normalize_asset_ids(asset_ids)
@@ -285,13 +294,16 @@ def _store_relationship_if_target_known(
     relationship_index: dict[tuple[str, str, str], float],
 ) -> None:
     """
-    Insert a parsed relationship into the relationship index if the relationship's target asset is in the provided asset set.
+    Insert a parsed relationship into the relationship index if the target is known.
+
+    The relationship is stored only if the relationship's target asset is in the provided asset set.
 
     Parameters:
         source_id (str): The source asset identifier for the relationship.
         relationship (Tuple[str, str, float]): Parsed relationship tuple (target_id, relationship_type, strength).
         asset_ids_set (Set[str]): Allowed asset identifiers; the relationship is stored only if target_id is a member.
-        relationship_index (Dict[Tuple[str, str, str], float]): Mapping to populate where keys are (source_id, target_id, relationship_type) and values are strength.
+        relationship_index (Dict[Tuple[str, str, str], float]): Mapping to populate where keys are
+            (source_id, target_id, relationship_type) and values are strength.
     """
     target_id, rel_type, strength_float = relationship
     if target_id not in asset_ids_set:
@@ -307,7 +319,8 @@ def _collect_and_group_relationships(
     """
     Group relationships from the graph by relationship type and by whether each pair is bidirectional.
 
-    Collects relationships limited to the provided asset IDs, applies optional type-based filtering, and groups the resulting relationship entries into buckets keyed by (rel_type, is_bidirectional).
+    Collects relationships limited to the provided asset IDs, applies optional type-based filtering,
+    and groups the resulting relationship entries into buckets keyed by (rel_type, is_bidirectional).
 
     Parameters:
         graph (AssetRelationshipGraph): Graph containing a `relationships` mapping.
@@ -369,7 +382,8 @@ def _is_filtered_relationship(
     Check whether a relationship type is disabled by the provided filter mapping.
 
     Parameters:
-        relationship_filters (Optional[Dict[str, bool]]): Mapping of relationship type to enabled flag; a value of `False` disables that type. If `None`, no types are filtered.
+        relationship_filters (Optional[Dict[str, bool]]): Mapping of relationship type to enabled
+            flag; a value of `False` disables that type. If `None`, no types are filtered.
 
     Returns:
         `True` if `rel_type` is present in `relationship_filters` and set to `False`, `False` otherwise.
@@ -409,7 +423,9 @@ def _build_edge_coordinates_optimized(
     list[float | None],
 ]:
     """
-    Build three flat coordinate lists for plotting edges; each relationship occupies three consecutive slots (two endpoints then a separator).
+    Build three flat coordinate lists for plotting edges.
+
+    Each relationship occupies three consecutive slots (two endpoints then a separator).
 
     Parameters:
         relationships (List[dict]): Sequence of relationship dictionaries containing 'source_id' and 'target_id'.
@@ -417,7 +433,9 @@ def _build_edge_coordinates_optimized(
         asset_id_index (Dict[str, int]): Mapping from asset ID to its row index in `positions`.
 
     Returns:
-        edges_x (List[Optional[float]]): List of x coordinates of length `len(relationships) * 3`. For relationship i, endpoints are placed at indices [3*i, 3*i+1]; index 3*i+2 is None as a separator.
+        edges_x (List[Optional[float]]): List of x coordinates of length `len(relationships) * 3`.
+            For relationship i, endpoints are placed at indices [3*i, 3*i+1]; index 3*i+2 is None
+            as a separator.
         edges_y (List[Optional[float]]): List of y coordinates with the same layout as `edges_x`.
         edges_z (List[Optional[float]]): List of z coordinates with the same layout as `edges_x`.
     """

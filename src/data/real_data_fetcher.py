@@ -174,7 +174,10 @@ class RealDataFetcher:
         """
         Create an asset relationship graph using cached data, live Yahoo Finance data, or a fallback/sample dataset.
 
-        If a configured cache exists it is used; otherwise, when network fetching is enabled a live fetch is attempted and the resulting graph is persisted to cache if configured. If network fetching is disabled or the live fetch fails, the configured fallback or the built-in sample dataset is returned.
+        If a configured cache exists it is used; otherwise, when network fetching is enabled
+        a live fetch is attempted and the resulting graph is persisted to cache if configured.
+        If network fetching is disabled or the live fetch fails, the configured fallback or
+        the built-in sample dataset is returned.
 
         Returns:
             AssetRelationshipGraph: A graph populated from cache, live data, or fallback/sample data.
@@ -398,7 +401,8 @@ class RealDataFetcher:
         """
         Fetch latest market data for a fixed set of major equity symbols and construct Equity objects.
 
-        Skips symbols that lack a valid latest close price; emits structured observability events for each symbol's success or failure.
+        Skips symbols that lack a valid latest close price; emits structured observability
+        events for each symbol's success or failure.
 
         Returns:
             list[Equity]: Equity instances for symbols with an available valid price.
@@ -541,7 +545,8 @@ class RealDataFetcher:
         """
         Construct Commodity instances for a fixed set of futures symbols using their latest close prices.
 
-        Symbols without a valid price are skipped; failures for individual symbols are logged and do not stop processing.
+        Symbols without a valid price are skipped; failures for individual symbols are
+        logged and do not stop processing.
 
         Returns:
             list[Commodity]: Commodity objects created for symbols with valid prices.
@@ -847,7 +852,10 @@ def _deserialize_graph(payload: dict[str, Any]) -> AssetRelationshipGraph:
     """
     Reconstructs an AssetRelationshipGraph from a serialized payload.
 
-    Deserializes and adds assets from payload["assets"], deserializes and adds regulatory events from payload["regulatory_events"], and recreates directed relationships from payload["relationships"] (each relationship's `strength` is converted to `float`). The `"incoming_relationships"` key, if present, is ignored.
+    Deserializes and adds assets from payload["assets"], deserializes and adds regulatory
+    events from payload["regulatory_events"], and recreates directed relationships from
+    payload["relationships"] (each relationship's `strength` is converted to `float`).
+    The `"incoming_relationships"` key, if present, is ignored.
 
     Returns:
         AssetRelationshipGraph: Graph populated with assets, regulatory events, and relationships.
@@ -890,10 +898,10 @@ def _load_from_cache(path: Path) -> AssetRelationshipGraph:
 
 
 def _save_to_cache(graph: AssetRelationshipGraph, path: Path) -> None:
-    """
-    Serialize an AssetRelationshipGraph to JSON and write it to the given filesystem path, creating parent directories if needed.
+    """Serialize an AssetRelationshipGraph to JSON and write to filesystem.
 
-    The JSON is written using UTF-8 encoding with two-space indentation.
+    Creates parent directories if needed. The JSON is written using UTF-8
+    encoding with two-space indentation.
 
     Parameters:
         graph (AssetRelationshipGraph): Graph to serialize and persist.

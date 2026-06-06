@@ -114,7 +114,7 @@ class DistributedLock:
         holder_id: str | None = None,
         ttl_seconds: int = 300,
     ) -> None:
-        """Create a DistributedLock configured with a database session factory, lock identity, and optional observability hooks.
+        """Create a DistributedLock with a database session factory, lock identity, and optional observability hooks.
 
         Parameters:
             session_factory (Callable[[], Session] | None): Backward-compatible factory for DB sessions;

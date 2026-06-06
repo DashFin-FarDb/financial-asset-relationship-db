@@ -344,7 +344,8 @@ def _create_node_trace(
         go.Scatter3d: A configured 3D scatter trace containing markers, text labels, and hover text.
 
     Raises:
-        ValueError: If inputs are invalid (type/shape/length mismatches), contain non-numeric or non-finite coordinates, or if `asset_ids` is empty.
+        ValueError: If inputs are invalid (type/shape/length mismatches), contain non-numeric
+            or non-finite coordinates, or if `asset_ids` is empty.
     """
     # Input validation: basic type checks before comprehensive validator.
     # This provides early failure with clear error messages for common mistakes
@@ -428,7 +429,8 @@ def _calculate_visible_relationships(
     Determine the number of visible relationship edges represented by the provided relationship traces.
 
     Returns:
-        int: Number of relationship edges (each edge is represented by three coordinate entries). Returns 0 if the count cannot be determined.
+        int: Number of relationship edges (each edge is represented by three coordinate entries).
+            Returns 0 if the count cannot be determined.
     """
     try:
         return sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces) // 3
@@ -617,7 +619,8 @@ def _validate_hover_texts_list(
         expected_length: Required number of hover text entries.
 
     Raises:
-        ValueError: If hover_texts is not a list/tuple of length expected_length or contains any empty or non-string entries.
+        ValueError: If hover_texts is not a list/tuple of length expected_length or contains any
+            empty or non-string entries.
     """
     if not isinstance(hover_texts, (list, tuple)) or len(hover_texts) != expected_length:
         raise ValueError(f"Invalid graph data: hover_texts must be a list/tuple of length {expected_length}")
@@ -689,7 +692,8 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
         and a relationships container used to build relationship and arrow traces.
 
     Returns:
-        go.Figure: A Plotly 3D figure containing asset node markers, relationship line traces grouped by type and direction,
+        go.Figure: A Plotly 3D figure containing asset node markers, relationship line traces grouped
+            by type and direction,
         optional directional arrow marker traces, and a configured 3D layout with a dynamic title.
 
     Raises:
@@ -821,7 +825,7 @@ def _collect_and_group_relationships(
     relationship_filters: dict[str, bool] | None = None,
 ) -> dict[tuple[str, bool], list[dict]]:
     """
-    Group relationships among the provided assets by relationship type and by whether each relationship is bidirectional.
+    Group relationships among assets by type and whether they are bidirectional.
 
     Parameters:
         graph (AssetRelationshipGraph): Graph containing relationships keyed by source asset id.
@@ -934,13 +938,15 @@ def _build_hover_texts(
     Build hover text entries for Plotly 3D line segments representing the given relationships.
 
     Parameters:
-        relationships (list[dict]): Iterable of relationship dicts each containing 'source_id', 'target_id', and 'strength'.
+        relationships (list[dict]): Iterable of relationship dicts each containing 'source_id',
+            'target_id', and 'strength'.
         rel_type (str): Human-readable relationship type included in each hover text.
         is_bidirectional (bool): If True uses '↔' as the direction symbol; otherwise uses '→'.
 
     Returns:
         list[str | None]: A list of length 3 * len(relationships). Each relationship contributes three slots:
-            - two identical formatted hover strings: "<source> <arrow> <target><br>Type: <rel_type><br>Strength: <strength:.2f>"
+            - two identical formatted hover strings:
+              "<source> <arrow> <target><br>Type: <rel_type><br>Strength: <strength:.2f>"
             - one `None` separator for Plotly line segmentation.
     """
     direction_text = "↔" if is_bidirectional else "→"
@@ -1519,16 +1525,22 @@ def _create_relationship_traces_with_fallback(
     """
     Build Plotly 3D traces for the graph's relationships, applying optional relationship-type filters.
 
-    Attempts to create relationship line traces for the provided graph and visualization inputs. If the underlying creation fails due to invalid input or validation errors, a ValueError is raised containing contextual information. If an unexpected error occurs, the function logs the event and returns an empty list.
+    Attempts to create relationship line traces for the provided graph and visualization inputs.
+    If the underlying creation fails due to invalid input or validation errors, a ValueError
+    is raised containing contextual information. If an unexpected error occurs, the function
+    logs the event and returns an empty list.
 
     Parameters:
-        relationship_filters (dict[str, bool] | None): Mapping of relationship type keys to booleans indicating visibility; may be `None` to include all types.
+        relationship_filters (dict[str, bool] | None): Mapping of relationship type keys to
+            booleans indicating visibility; may be `None` to include all types.
 
     Returns:
-        list[go.Scatter3d]: A list of Scatter3d traces representing relationships; an empty list is returned if an unexpected error prevented trace creation.
+        list[go.Scatter3d]: A list of Scatter3d traces representing relationships; an empty
+            list is returned if an unexpected error prevented trace creation.
 
     Raises:
-        ValueError: If trace creation fails due to invalid or ill-typed input (propagated from internal TypeError/ValueError).
+        ValueError: If trace creation fails due to invalid or ill-typed input
+            (propagated from internal TypeError/ValueError).
     """
     try:
         return _create_relationship_traces(
@@ -1647,7 +1659,8 @@ def _configure_layout_with_fallback(
     """
     Configure a Plotly 3D figure's layout with a dynamic title based on the provided assets and relationship traces.
 
-    If layout generation or application fails, sets the figure title to "Financial Asset Network" as a safe fallback. Mutates `fig` in place.
+    If layout generation or application fails, sets the figure title to "Financial Asset Network"
+    as a safe fallback. Mutates `fig` in place.
     """
     try:
         dynamic_title, options = _prepare_layout_config(
@@ -1776,7 +1789,7 @@ def _assemble_visualization_figure(
     toggle_arrows: bool,
 ) -> go.Figure:
     """
-    Assemble a Plotly 3D figure by adding relationship traces, optional directional arrows, and the node trace, then configure the layout.
+    Assemble a Plotly 3D figure with relationship traces, optional arrows, and the node trace.
 
     Parameters:
         graph (AssetRelationshipGraph): Source graph used to build relationship and arrow traces.
@@ -1788,7 +1801,8 @@ def _assemble_visualization_figure(
         toggle_arrows (bool): Whether to include unidirectional arrow markers.
 
     Returns:
-        go.Figure: A configured Plotly figure containing relationship traces, optional arrow markers, and the node trace.
+        go.Figure: A configured Plotly figure containing relationship traces, optional
+            arrow markers, and the node trace.
 
     Raises:
         ValueError: If node trace creation or addition fails.
@@ -1851,18 +1865,22 @@ def visualize_3d_graph_with_filters(
     toggle_arrows: bool = True,
 ) -> go.Figure:
     """
-    Create a 3D Plotly figure visualizing an asset relationship graph with optional relationship-type filters and optional directional arrow markers.
+    Create a 3D Plotly figure visualizing an asset relationship graph with optional filters.
 
     Parameters:
-        graph (AssetRelationshipGraph): Source graph object that must provide visualization data via get_3d_visualization_data_enhanced() and expose a relationships mapping.
-        show_all_relationships (bool): If True, include all relationship types regardless of the individual relationship flags.
+        graph (AssetRelationshipGraph): Source graph object that must provide visualization data via
+            get_3d_visualization_data_enhanced() and expose a relationships mapping.
+        show_all_relationships (bool): If True, include all relationship types regardless of the
+            individual relationship flags.
         toggle_arrows (bool): If True, include marker traces indicating unidirectional relationships.
 
     Returns:
-        go.Figure: A Plotly 3D figure containing node markers, relationship line traces grouped by type and directionality, and optional directional arrow markers.
+        go.Figure: A Plotly 3D figure containing node markers, relationship line traces grouped by type
+            and directionality, and optional directional arrow markers.
 
     Raises:
-        ValueError: If the graph is not suitable for filtered visualization or required visualization data cannot be produced.
+        ValueError: If the graph is not suitable for filtered visualization or required visualization data
+            cannot be produced.
         TypeError: If any filter parameter is not a boolean.
     """
     _validate_graph_for_filtered_visualization(graph)

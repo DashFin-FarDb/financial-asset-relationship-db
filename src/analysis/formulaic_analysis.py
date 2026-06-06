@@ -77,20 +77,25 @@ class FormulaicAnalyzer:
 
     def analyze_graph(self, graph: AssetRelationshipGraph) -> dict[str, Any]:
         """
-        Produce a set of financial formula templates and empirical relationship metrics from an asset relationship graph.
+        Produce a set of financial formula templates and empirical metrics from an asset relationship graph.
 
-        Orchestrates collection of applicable formula templates and computation of empirical relationship data, then assembles the analysis payload.
+        Orchestrates collection of applicable formula templates and computation of
+        empirical relationship data, then assembles the analysis payload.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph of assets and relationships used to detect asset types, select applicable formulas, and compute empirical metrics.
+            graph (AssetRelationshipGraph): Graph of assets and relationships used to
+                detect asset types, select applicable formulas, and compute empirical metrics.
 
         Returns:
             result (dict): Analysis payload containing:
                 - "formulas" (List[Formula]): Generated Formula objects describing relationships and metrics.
-                - "empirical_relationships" (Dict[str, Any]): Empirical data derived from the graph (e.g., correlation matrix, strongest correlations, asset-class and sector summaries).
+                - "empirical_relationships" (Dict[str, Any]): Empirical data derived from
+                  the graph (e.g., correlation matrix, strongest correlations, asset-class
+                  and sector summaries).
                 - "formula_count" (int): Total number of formulas generated.
                 - "categories" (Dict[str, int]): Counts of formulas grouped by category.
-                - "summary" (Dict[str, Any]): High-level summary metrics and insights about the generated formulas and empirical relationships.
+                - "summary" (Dict[str, Any]): High-level summary metrics and insights about
+                  the generated formulas and empirical relationships.
         """
         log_event(
             logger,

@@ -1,3 +1,5 @@
+"""Integration reporting modules for compiling asset relationship schema reports."""
+
 # src/reports/integration.py
 from __future__ import annotations
 
@@ -65,7 +67,9 @@ def markdown_to_html(md: str) -> str:
     """
     Convert Markdown to sanitized HTML for safe display.
 
-    Renders the provided Markdown to HTML, sanitizes it using the module allowlists, and post-processes links to add safe attributes (e.g., `rel="nofollow noopener"`, `target="_blank"`) while avoiding linkification inside code blocks.
+    Renders the provided Markdown to HTML, sanitizes it using the module allowlists,
+    and post-processes links to add safe attributes (e.g., `rel="nofollow noopener"`,
+    `target="_blank"`) while avoiding linkification inside code blocks.
 
     Parameters:
         md (str): Markdown content to convert.
@@ -92,7 +96,8 @@ def markdown_to_html(md: str) -> str:
         """
         Ensure the 'rel' attribute in a bleach.linkify attribute mapping includes "noopener".
 
-        Modifies the provided attrs mapping in-place to append "noopener" to the (None, "rel") entry if it is not already present.
+        Modifies the provided attrs mapping in-place to append "noopener" to the
+        (None, "rel") entry if it is not already present.
 
         Parameters:
             attrs (dict): Attribute mapping used by bleach.linkify (keys are typically tuples like (None, "rel")).
@@ -138,8 +143,7 @@ def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
 
 def generate_html_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate a schema report for the provided asset relationship graph and
-    return it as sanitized HTML.
+    Generate a schema report for the asset relationship graph as sanitized HTML.
 
     Parameters:
         graph (AssetRelationshipGraph): The asset relationship graph to report on.
@@ -163,7 +167,8 @@ def export_report(graph: object, fmt: ReportFormat = "md") -> str:
 
     Parameters:
         graph (object): Must be an AssetRelationshipGraph; a TypeError is raised if a different type is passed.
-        fmt (ReportFormat): Output format, either "md" for Markdown or "html" for sanitized HTML; comparison is case-insensitive.
+        fmt (ReportFormat): Output format, either "md" for Markdown or "html" for sanitized HTML;
+            comparison is case-insensitive.
 
     Returns:
         str: Report content formatted as requested.
@@ -224,7 +229,8 @@ def attach_to_gradio_interface(
     Create a Gradio component that displays the current schema report.
 
     Parameters:
-        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument callable that returns the current AssetRelationshipGraph.
+        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument callable
+            that returns the current AssetRelationshipGraph.
         html (bool): If True, produce an HTML-rendered component; otherwise produce a Markdown-rendered component.
 
     Returns:

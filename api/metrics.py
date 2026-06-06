@@ -187,7 +187,8 @@ def _initialize_from_latest_job(latest_job) -> None:
     Emits an informational observability event that records the job's normalized status and `job_id`.
 
     Parameters:
-        latest_job: The latest persisted rebuild job whose `status` (a `RebuildJobStatus` or string) is used to set the metric; `latest_job.job_id` is included in the emitted event.
+        latest_job: The latest persisted rebuild job whose `status` (a `RebuildJobStatus` or string) is used
+            to set the metric; `latest_job.job_id` is included in the emitted event.
     """
     status_value = (
         latest_job.status.value if isinstance(latest_job.status, RebuildJobStatus) else str(latest_job.status)

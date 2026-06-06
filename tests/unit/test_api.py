@@ -591,7 +591,9 @@ class TestResponseValidation:
         """
         Validate that each asset returned by GET /api/assets conforms to the expected response schema.
 
-        Checks that required fields `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, and `currency` are present with string types for the text fields and numeric type (`int` or `float`) for `price`. If `market_cap` is not `None`, asserts it is numeric (`int` or `float`).
+        Checks that required fields `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, and `currency`
+        are present with string types for the text fields and numeric type (`int` or `float`) for `price`.
+        If `market_cap` is not `None`, asserts it is numeric (`int` or `float`).
         """
         apply_mock_graph(mock_graph_instance, mock_graph)
 
@@ -974,7 +976,10 @@ class TestNegativeScenarios:
 
     @staticmethod
     def test_validate_origin_with_unicode_domain():
-        """Verify that validate_origin accepts an HTTPS internationalized domain name (IDN) such as "https://münchen.de"."""
+        """Verify that validate_origin accepts an HTTPS internationalized domain name.
+
+        Uses an internationalized domain name (IDN) such as "https://münchen.de".
+        """
         result = validate_origin("https://münchen.de")
         # IDN with HTTPS: validate_origin should accept valid HTTPS domains
         assert result is True
