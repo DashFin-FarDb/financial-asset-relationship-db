@@ -76,7 +76,7 @@ def _assert_metrics_text_response(response: Any) -> str:
 @pytest.fixture(autouse=True)
 def clear_settings_cache() -> Iterator[None]:
     """Clear cached runtime settings around each test."""
-    get_settings.cache_clear()
+    api_main.get_settings.cache_clear()
     yield
     get_settings.cache_clear()
 
