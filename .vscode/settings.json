@@ -16,5 +16,20 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "python.terminal.useEnvFile": true
+    "python.terminal.useEnvFile": true,
+    "autopep8.interpreter": [
+        "~/projects/financial-asset-relationship-db/.venv/bin/python"
+    ],
+    "black-formatter.interpreter": [
+        "~/projects/financial-asset-relationship-db/.venv/bin/python"
+    ],
+    "python.createEnvironment.contentButton": "show",
+    "python.defaultInterpreterPath": "~/projects/financial-asset-relationship-db/.venv/bin/python",
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python-envs.workspaceSearchPaths": [
+        "./**/.venv",
+        "./**/.venv/bin",
+        "./**/.venv/bin/python"
+    ],
+    "codium.codeCompletion.enable": true
 }

@@ -1,13 +1,14 @@
 """Unit tests for CorrelationMiddleware."""
 
 import uuid
+from typing import Callable
 
 import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
 from api.middleware.correlation import CorrelationMiddleware
-from api.observability.context import get_correlation_id, get_request_id
+from src.observability.context import get_correlation_id, get_request_id
 
 
 def test_correlation_middleware_logic():
@@ -17,6 +18,7 @@ def test_correlation_middleware_logic():
 
     @app.get("/test")
     async def test_route(request: Request):
+        """Mock route that returns IDs from context and state."""
         return {
             "ctx_request_id": get_request_id(),
             "ctx_correlation_id": get_correlation_id(),
@@ -108,17 +110,19 @@ def test_correlation_middleware_logic():
 
 
 @pytest.mark.asyncio
-async def test_correlation_middleware_state_fallback() -> None:
+async def test_correlation_middleware_state_fallback() -> None:  # noqa: C901
     """Test state injection fallback paths in CorrelationMiddleware."""
 
-    async def mock_app(scope: dict, receive: callable, send: callable) -> None:
-        pass
+    async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
+        """Mock ASGI application that does nothing."""
 
-    middleware = CorrelationMiddleware(mock_app)
+    middleware = CorrelationMiddleware(mock_app)  # type: ignore[arg-type]
 
     from collections.abc import MutableMapping
 
     class FailingMutableMapping(MutableMapping):
+        """A mutable mapping that raises KeyError on get and TypeError on set."""
+
         def __init__(self):
             self.request_id = None
             self.correlation_id = None
@@ -142,19 +146,22 @@ async def test_correlation_middleware_state_fallback() -> None:
     scope = {"type": "http", "headers": [(b"x-request-id", b"fallback-req-1")], "state": state_obj}
 
     async def mock_receive():
+        """Mock ASGI receive function."""
         return {}
 
     async def mock_send(msg):
-        pass
+        """Mock ASGI send function."""
 
     await middleware(scope, mock_receive, mock_send)
 
     # Should have fallen back to attribute assignment
-    assert getattr(state_obj, "request_id") == "fallback-req-1"
-    assert getattr(state_obj, "correlation_id") == "fallback-req-1"
+    assert getattr(state_obj, "request_id", None) == "fallback-req-1"
+    assert getattr(state_obj, "correlation_id", None) == "fallback-req-1"
 
     # 2. Test with object that raises on setattr too (ensure it continues safely)
     class CompletelyFailingState(MutableMapping):
+        """A mutable mapping that raises errors on all operations."""
+
         def __getitem__(self, key):
             raise KeyError(key)
 

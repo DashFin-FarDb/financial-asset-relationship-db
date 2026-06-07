@@ -9,13 +9,11 @@ from datetime import datetime, timezone
 from sqlalchemy import exc as sqlalchemy_exc
 from sqlalchemy.orm import Session
 
-from src.data.distributed_lock import DistributedLock, LockState
+from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockState
 from src.data.repository import AssetGraphRepository
-from src.logic.rebuild_failure_detection import (
-    InconsistencyType,
-    detect_rebuild_inconsistency,
-)
-from src.logic.rebuild_recovery import RecoveryAction, determine_recovery_action
+from src.logic.rebuild_failure_detection import InconsistencyType, detect_rebuild_inconsistency
+from src.logic.rebuild_recovery import RecoveryAction, RecoveryDecision, determine_recovery_action
+from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
 
@@ -89,35 +87,67 @@ class RecoveryGate:
         self.lock_was_reacquired = False
 
     def _create_unsafe_decision_from_error(self, exc: Exception, error_context: str, log_level: str = "warning"):
-        """
-        Create an UNSAFE decision from an exception with sanitized logging.
+        """Create an unsafe recovery decision from an error.
 
-        Args:
-            exc: The exception that occurred.
-            error_context: Context string (e.g., "active rebuild state query failed").
-            log_level: Logging level ("warning" or "error").
+        Create a RecoveryDecision that blocks execution (UNSAFE) and logs a sanitized
+        observability event for the provided error context.
+
+        Parameters:
+            exc (Exception): The caught exception used to build the decision reason.
+            error_context (str): Short description of where the error occurred.
+            log_level (str): "warning" or "error" determining the event severity.
 
         Returns:
-            RecoveryDecision with UNSAFE action.
+            RecoveryDecision: Decision with action UNSAFE, safe_to_execute=False,
+                inconsistency_type=None, and reason formatted as "<ExceptionType>: <error_context>".
         """
-        from src.logic.rebuild_recovery import RecoveryDecision
-
         exc_type = type(exc).__name__
         reason = f"{exc_type}: {error_context}"
 
         if log_level == "error":
-            logger.error("Execution blocked: %s (%s)", exc_type, error_context)
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="recovery_gate_execution_blocked_error",
+                    message=f"Execution blocked: {exc_type} ({error_context})",
+                    metadata={"error": exc_type, "context": error_context},
+                ),
+            )
         else:
-            logger.warning("Execution blocked: %s (%s)", exc_type, error_context)
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_execution_blocked_warning",
+                    message=f"Execution blocked: {exc_type} ({error_context})",
+                    metadata={"error": exc_type, "context": error_context},
+                ),
+            )
 
         # Do not increment orphaned-running metrics from this generic error path.
         # At this point we only know state evaluation failed; we do not know that
         # an ORPHANED_RUNNING inconsistency was actually detected.
         if isinstance(exc, sqlalchemy_exc.SQLAlchemyError):
-            logger.debug("DB error prevented state evaluation - not incrementing recovery trigger")
+            log_event(
+                logger,
+                logging.DEBUG,
+                ObservabilityEvent(
+                    event="recovery_gate_db_error_suppressed",
+                    message="DB error prevented state evaluation - not incrementing recovery trigger",
+                ),
+            )
         else:
-            logger.debug(
-                "Unexpected error prevented state evaluation - not incrementing " "orphaned_running recovery trigger"
+            log_event(
+                logger,
+                logging.DEBUG,
+                ObservabilityEvent(
+                    event="recovery_gate_unexpected_error_suppressed",
+                    message=(
+                        "Unexpected error prevented state evaluation - "
+                        "not incrementing orphaned_running recovery trigger"
+                    ),
+                ),
             )
 
         return RecoveryDecision(
@@ -128,25 +158,28 @@ class RecoveryGate:
         )
 
     def _apply_owner_mismatch_override(self, decision, inconsistency, lock_is_valid, job):
-        """
-        Override decision to RESET if orphaned job has wrong owner AND stale heartbeat.
+        """Override the recovery decision when an owner mismatch occurs.
 
-        A different active_worker_id alone is NOT sufficient to downgrade to RESET
-        because a healthy remote worker will have a different ID. We must also verify
-        that the heartbeat is stale or missing to distinguish a crash from an active
-        remote rebuild.
+        Override the provided recovery decision when an ORPHANED_RUNNING inconsistency indicates
+        the job is owned by a different worker.
 
-        Args:
-            decision: Original recovery decision.
-            inconsistency: Detected inconsistency.
-            lock_is_valid: Whether lock state is valid.
-            job: The rebuild job (may be None).
+        If the inconsistency is not ORPHANED_RUNNING or no job is present, the original decision
+        is returned unchanged. When the job's active worker ID differs from the current lock holder,
+        this routine checks the job's last heartbeat: if a heartbeat exists and its age is less
+        than the lock TTL, it forces an UNSAFE decision to avoid resetting a likely healthy remote
+        worker; if the heartbeat is missing or stale, it forces a RESET decision treating the
+        job as orphaned.
+
+        Parameters:
+            decision: The incoming RecoveryDecision to potentially override.
+            inconsistency: The detected rebuild inconsistency (used to check for ORPHANED_RUNNING).
+            lock_is_valid: Whether the distributed lock is currently valid (not used to skip checks).
+            job: The active rebuild job record (may be None).
 
         Returns:
-            Modified decision if owner mismatch detected, otherwise original.
+            A RecoveryDecision: either the original decision or a modified UNSAFE/RESET decision when
+                an owner-mismatch with fresh or stale/missing heartbeat is detected.
         """
-        from src.logic.rebuild_recovery import RecoveryDecision
-
         # Early return if not orphaned running state
         if inconsistency.inconsistency_type != InconsistencyType.ORPHANED_RUNNING:
             return decision
@@ -181,13 +214,23 @@ class RecoveryGate:
             if heartbeat_age_seconds < self.lock_ttl_seconds:
                 # Fresh heartbeat from different worker = active remote rebuild
                 # Do NOT reset - this would cause split-brain
-                logger.warning(
-                    "Owner mismatch with FRESH heartbeat (age=%.1fs): "
-                    "job.active_worker_id:%s, lock.holder_id:%s. "
-                    "Forcing unsafe/blocking decision to avoid resetting a healthy remote worker.",
-                    heartbeat_age_seconds,
-                    job.active_worker_id,
-                    self.lock.holder_id,
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="recovery_gate_owner_mismatch_fresh_heartbeat",
+                        message=(
+                            f"Owner mismatch with FRESH heartbeat (age={heartbeat_age_seconds:.1f}s): "
+                            f"job.active_worker_id:{job.active_worker_id}, "
+                            f"lock.holder_id:{self.lock.holder_id}. Forcing unsafe/blocking "
+                            "decision to avoid resetting a healthy remote worker."
+                        ),
+                        metadata={
+                            "heartbeat_age": heartbeat_age_seconds,
+                            "job_worker_id": job.active_worker_id,
+                            "lock_holder_id": self.lock.holder_id,
+                        },
+                    ),
                 )
                 return RecoveryDecision(
                     action=RecoveryAction.UNSAFE,
@@ -202,11 +245,18 @@ class RecoveryGate:
                 )
 
         # Stale or missing heartbeat with owner mismatch = orphaned job
-        logger.info(
-            "Owner mismatch with STALE/MISSING heartbeat detected: "
-            "job.active_worker_id:%s, lock.holder_id:%s. Downgrading to RESET.",
-            job.active_worker_id,
-            self.lock.holder_id,
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="recovery_gate_owner_mismatch_stale_heartbeat",
+                message=(
+                    "Owner mismatch with STALE/MISSING heartbeat detected: "
+                    f"job.active_worker_id:{job.active_worker_id}, "
+                    f"lock.holder_id:{self.lock.holder_id}. Downgrading to RESET."
+                ),
+                metadata={"job_worker_id": job.active_worker_id, "lock_holder_id": self.lock.holder_id},
+            ),
         )
         return RecoveryDecision(
             action=RecoveryAction.RESET,
@@ -219,27 +269,72 @@ class RecoveryGate:
             safe_to_execute=decision.safe_to_execute,
         )
 
-    def _evaluate_decision(self, increment_metric: bool = True):
-        """
-        Evaluate lock, DB, and runtime state and return a recovery decision.
+    def _handle_unknown_lock_state(self, job) -> RecoveryDecision:
+        """Handle the UNKNOWN lock state, distinguishing between clean install vs wrong owner."""
+        if job is None:
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="recovery_gate_clean_install_detected",
+                    message=(
+                        "Lock state is UNKNOWN with no active job; "
+                        "treating as clean install WAIT until lock is acquired"
+                    ),
+                ),
+            )
+            return RecoveryDecision(
+                action=RecoveryAction.WAIT,
+                reason="Lock state is unknown with no active rebuild job; waiting until lock is acquired",
+                inconsistency_type=InconsistencyType.NONE,
+                safe_to_execute=False,
+            )
 
-        Args:
-            increment_metric: If True, increment recovery trigger metric when
-                inconsistency is detected. Set to False on re-evaluation after
-                recovery to avoid double-counting.
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="recovery_gate_lock_unknown_with_active_job",
+                message="Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)",
+            ),
+        )
+        return RecoveryDecision(
+            action=RecoveryAction.UNSAFE,
+            reason="Lock state is unknown with active rebuild job",
+            inconsistency_type=None,
+            safe_to_execute=False,
+        )
+
+    def get_recovery_decision(self, increment_metric: bool = True):
+        """
+        Decide the appropriate recovery action based on lock, database, and runtime state.
+
+        Evaluates distributed lock state, queries the active rebuild job, detects rebuild
+        inconsistencies, applies owner-mismatch overrides, and optionally increments a
+        recovery trigger metric.
+
+        Parameters:
+            increment_metric (bool): If True, increment the recovery trigger metric when an
+                inconsistency (other than `InconsistencyType.NONE`) is detected. Set to False
+                when re-evaluating after recovery to avoid double-counting.
 
         Returns:
-            RecoveryDecision: Deterministic decision used by both
-                evaluate_state() and ensure_safe_to_execute().
+            RecoveryDecision: Decision containing the chosen `action`, `reason`,
+                `inconsistency_type`, and `safe_to_execute` flag.
         """
-        from src.logic.rebuild_recovery import RecoveryDecision
-
         lock_state = self.lock.check_state()
         job = None
 
         # LOST state always blocks - cannot determine lock ownership due to DB error
         if lock_state == LockState.LOST:
-            logger.warning("Execution blocked: Lock state is LOST (database connectivity failure)")
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_lock_lost",
+                    message="Execution blocked: Lock state is LOST (database connectivity failure)",
+                ),
+            )
             return RecoveryDecision(
                 action=RecoveryAction.UNSAFE,
                 reason="Lock state is lost (database connectivity failure)",
@@ -262,28 +357,7 @@ class RecoveryGate:
 
         # UNKNOWN state handling: distinguish between clean install vs wrong owner
         if lock_state == LockState.UNKNOWN:
-            # If no active job exists, UNKNOWN lock can be a clean install with no lock row yet.
-            # Return WAIT directly so this branch's behavior does not silently depend on
-            # downstream inconsistency detection rules continuing to treat `job is None`
-            # as a no-inconsistency case.
-            if job is None:
-                logger.info(
-                    "Lock state is UNKNOWN with no active job; treating as clean install WAIT until lock is acquired"
-                )
-                return RecoveryDecision(
-                    action=RecoveryAction.WAIT,
-                    reason="Lock state is unknown with no active rebuild job; waiting until lock is acquired",
-                    inconsistency_type=InconsistencyType.NONE,
-                    safe_to_execute=False,
-                )
-            else:
-                logger.warning("Execution blocked: Lock state is UNKNOWN with active job (wrong owner or no lock)")
-                return RecoveryDecision(
-                    action=RecoveryAction.UNSAFE,
-                    reason="Lock state is unknown with active rebuild job",
-                    inconsistency_type=None,
-                    safe_to_execute=False,
-                )
+            return self._handle_unknown_lock_state(job)
 
         inconsistency = detect_rebuild_inconsistency(
             job=job,
@@ -302,7 +376,15 @@ class RecoveryGate:
             self.increment_recovery_trigger(inconsistency.inconsistency_type.value)
 
         if not decision.safe_to_execute:
-            logger.warning("Execution blocked: %s", decision.reason)
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_execution_unsafe",
+                    message=f"Execution blocked: {decision.reason}",
+                    metadata={"reason": decision.reason},
+                ),
+            )
 
         return decision
 
@@ -313,7 +395,7 @@ class RecoveryGate:
         Returns:
             RecoveryAction: The safe action to take.
         """
-        return self._evaluate_decision().action
+        return self.get_recovery_decision().action
 
     def ensure_safe_to_execute(self) -> None:
         """
@@ -327,16 +409,24 @@ class RecoveryGate:
                 after any automatic recovery attempts.
         """
         self.lock_was_reacquired = False
-        decision = self._evaluate_decision()
+        decision = self.get_recovery_decision()
 
         if decision.action == RecoveryAction.RESET:
             # Attempt automatic recovery by resetting the orphaned job
-            logger.info("Recovery action RESET: attempting to reset orphaned job state. Reason: %s", decision.reason)
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="recovery_gate_reset_recovery_initiated",
+                    message=f"Recovery action RESET: attempting to reset orphaned job state. Reason: {decision.reason}",
+                    metadata={"reason": decision.reason},
+                ),
+            )
             try:
                 self._perform_reset_recovery()
                 # After successful reset, re-evaluate to confirm safe to proceed
                 # Skip metric increment on re-evaluation to avoid double-counting
-                decision = self._evaluate_decision(increment_metric=False)
+                decision = self.get_recovery_decision(increment_metric=False)
                 if decision.action != RecoveryAction.RESUME:
                     # Post-reset state still unsafe - use bounded reason to avoid leaking DB details
                     raise ExecutionBlockedError(
@@ -344,24 +434,60 @@ class RecoveryGate:
                         action=decision.action.value,
                         inconsistency_type=(decision.inconsistency_type.value if decision.inconsistency_type else None),
                     )
-                logger.info("Reset recovery successful - execution can proceed")
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="recovery_gate_reset_recovery_succeeded",
+                        message="Reset recovery successful - execution can proceed",
+                    ),
+                )
             except ExecutionBlockedError:
                 # Re-raise ExecutionBlockedError as-is (already sanitized above)
                 raise
             except sqlalchemy_exc.SQLAlchemyError as exc:
                 # Expected database error during reset - block execution
-                logger.warning("Reset recovery failed due to database error: %s", type(exc).__name__)
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="recovery_gate_reset_recovery_db_failed",
+                        message=f"Reset recovery failed due to database error: {type(exc).__name__}",
+                        metadata={"error": type(exc).__name__},
+                    ),
+                )
                 raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
             except Exception as exc:
                 # Unexpected error - block execution with bounded exception type only
-                logger.error("Unexpected error during reset recovery: %s", type(exc).__name__)
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="recovery_gate_reset_recovery_unexpected_error",
+                        message=f"Unexpected error during reset recovery: {type(exc).__name__}",
+                        metadata={"error": type(exc).__name__},
+                    ),
+                )
                 raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
         elif decision.action != RecoveryAction.RESUME:
             # Execution blocked - log full reason but expose only bounded info in exception
-            logger.warning(
-                "Execution blocked by recovery gate: action=%s, inconsistency=%s",
-                decision.action.value,
-                decision.inconsistency_type.value if decision.inconsistency_type else "unknown",
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_execution_blocked_final",
+                    message=(
+                        f"Execution blocked by recovery gate: action={decision.action.value}, "
+                        "inconsistency="
+                        f"{decision.inconsistency_type.value if decision.inconsistency_type else 'unknown'}"
+                    ),
+                    metadata={
+                        "action": decision.action.value,
+                        "inconsistency": (
+                            decision.inconsistency_type.value if decision.inconsistency_type else "unknown"
+                        ),
+                    },
+                ),
             )
             raise ExecutionBlockedError(
                 f"Execution blocked: action={decision.action.value}, "
@@ -372,30 +498,53 @@ class RecoveryGate:
 
     def _perform_reset_recovery(self) -> None:
         """
-        Reset an orphaned rebuild job to allow new execution.
+        Reset an orphaned RUNNING rebuild job so a new execution can proceed.
 
-        CRITICAL: Must reacquire lock if expired before mutating RUNNING job state.
-        Without a valid lock, multiple workers can perform concurrent reset operations
-        leading to database corruption.
+        If the lock is not valid, attempts to reacquire it and raises ExecutionBlockedError if
+        acquisition fails. If an active rebuild job exists with status RUNNING, marks that job
+        as FAILED with failure_category "recovery_reset" and commits the change. May set
+        self.lock_was_reacquired to True when the lock is successfully reacquired.
 
-        This transitions the orphaned RUNNING job to FAILED with a clear
-        marker that it was recovered/cleaned up by the recovery system.
+        Raises:
+            ExecutionBlockedError: if the lock cannot be reacquired and reset recovery cannot proceed.
         """
         from src.data.db_models import RebuildJobStatus
 
         # Check lock state and reacquire if expired
         lock_state = self.lock.check_state()
         if lock_state != LockState.VALID:
-            logger.warning(
-                "Lock state is %s before RESET recovery, attempting reacquisition...",
-                lock_state.value,
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_lock_reacquisition_attempt",
+                    message=f"Lock state is {lock_state.value} before RESET recovery, attempting reacquisition...",
+                    metadata={"lock_state": lock_state.value},
+                ),
             )
-            if not self.lock.acquire():
+            try:
+                self.lock.acquire()
+            except LockAcquisitionTimeout as exc:
                 msg = f"Cannot perform RESET recovery without valid lock (state={lock_state.value})"
-                logger.error("%s: %s", ExecutionBlockedError.__name__, msg)
-                raise ExecutionBlockedError(msg)
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="recovery_gate_lock_reacquisition_failed",
+                        message=f"{ExecutionBlockedError.__name__}: {msg}",
+                        metadata={"error": ExecutionBlockedError.__name__, "details": msg},
+                    ),
+                )
+                raise ExecutionBlockedError(msg) from exc
             self.lock_was_reacquired = True
-            logger.info("Successfully reacquired lock for RESET recovery")
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="recovery_gate_lock_reacquired",
+                    message="Successfully reacquired lock for RESET recovery",
+                ),
+            )
 
         try:
             with self.session_factory() as session:
@@ -412,12 +561,31 @@ class RecoveryGate:
                         duration_ms=0,  # Unknown duration for orphaned job
                     )
                     session.commit()
-                    logger.warning(
-                        "Reset orphaned rebuild job %s (previous owner: %s)",
-                        active_job.job_id,
-                        active_job.active_worker_id or "unknown",
+                    log_event(
+                        logger,
+                        logging.WARNING,
+                        ObservabilityEvent(
+                            event="recovery_gate_orphaned_job_reset",
+                            message=(
+                                f"Reset orphaned rebuild job {active_job.job_id} "
+                                "(previous owner: "
+                                f"{active_job.active_worker_id or 'unknown'})"
+                            ),
+                            metadata={
+                                "job_id": active_job.job_id,
+                                "previous_owner": active_job.active_worker_id or "unknown",
+                            },
+                        ),
                     )
         except Exception as exc:
             # Use bounded logging to prevent DSN/credential leakage in tracebacks
-            logger.error("Failed to perform reset recovery: %s", type(exc).__name__)
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="recovery_gate_reset_recovery_failed",
+                    message=f"Failed to perform reset recovery: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
             raise

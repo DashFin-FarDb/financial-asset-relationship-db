@@ -33,7 +33,6 @@ def mock_lock():
 def test_startup_reconciliation_passes_with_consistent_state(mock_session_factory, mock_lock):
     """Test that startup reconciliation passes when state is consistent."""
     # Setup: No active job in DB
-    mock_session = mock_session_factory.return_value.__enter__.return_value
     mock_repo = MagicMock()
     mock_repo.get_active_rebuild_state.return_value = None
 
@@ -98,7 +97,6 @@ def test_startup_reconciliation_performs_reset_for_orphaned_job(mock_session_fac
         last_heartbeat_at=datetime(2020, 1, 1, tzinfo=timezone.utc),  # Very stale
     )
 
-    mock_session = mock_session_factory.return_value.__enter__.return_value
     mock_repo = MagicMock()
     # Calls: 1) initial eval, 2) inside _perform_reset_recovery, 3) re-eval after RESET
     mock_repo.get_active_rebuild_state.side_effect = [orphaned_job, orphaned_job, None]

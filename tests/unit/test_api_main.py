@@ -38,12 +38,7 @@ from api.api_models import (
 )
 from api.graph_lifecycle_providers import GraphLifecycleSettings
 from api.main import app, validate_origin
-from api.router_helpers import (
-    _ASSET_CLASS_COLORS,
-    _DEFAULT_COLOR,
-    raise_asset_not_found,
-    serialize_asset,
-)
+from api.router_helpers import _ASSET_CLASS_COLORS, _DEFAULT_COLOR, raise_asset_not_found, serialize_asset
 from src.data.real_data_fetcher import _save_to_cache
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -80,10 +75,9 @@ def _assert_metrics_text_response(response: Any) -> str:
 # -----------------------
 @pytest.fixture()
 def client() -> Iterator[TestClient]:
-    """
-    Provide a TestClient configured with a populated in-memory graph for endpoint tests.
+    """Provide a TestClient for the FastAPI app with a sample in-memory graph set on api_main.
 
-    Yields a TestClient for the FastAPI app with a sample in-memory graph set on api_main, and ensures the global graph is reset when the fixture is torn down.
+    Ensures the global graph is reset when the fixture is torn down.
 
     Returns:
         TestClient: A TestClient instance connected to the app with a populated in-memory sample graph.
@@ -98,7 +92,7 @@ def client() -> Iterator[TestClient]:
 
 @pytest.fixture()
 def bare_client() -> TestClient:
-    """TestClient fixture without forcing any pre-seeded graph."""
+    """Provide a TestClient fixture without forcing any pre-seeded graph."""
     return TestClient(app)
 
 
@@ -231,7 +225,7 @@ class TestPydanticModels:
     """Test Pydantic response models."""
 
     def test_asset_response_model_valid(self) -> None:
-        """AssetResponse accepts full payload and preserves additional fields."""
+        """Verify that AssetResponse accepts full payload and preserves additional fields."""
         asset = AssetResponse(
             id="AAPL",
             symbol="AAPL",
@@ -248,7 +242,7 @@ class TestPydanticModels:
         assert asset.additional_fields["pe_ratio"] == 25.5
 
     def test_asset_response_model_optional_fields(self) -> None:
-        """AssetResponse populates defaults when optional fields are omitted."""
+        """Verify that AssetResponse populates defaults when optional fields are omitted."""
         asset = AssetResponse(
             id="AAPL",
             symbol="AAPL",
@@ -262,7 +256,7 @@ class TestPydanticModels:
         assert asset.additional_fields == {}
 
     def test_relationship_response_model(self) -> None:
-        """RelationshipResponse validates relationship payload fields."""
+        """Verify that RelationshipResponse validates relationship payload fields."""
         rel = RelationshipResponse(
             source_id="AAPL",
             target_id="MSFT",
@@ -273,7 +267,7 @@ class TestPydanticModels:
         assert rel.strength == 0.8
 
     def test_metrics_response_model(self) -> None:
-        """MetricsResponse accepts metric fields and preserves asset class counts."""
+        """Verify that MetricsResponse accepts metric fields and preserves asset class counts."""
         metrics = MetricsResponse(
             total_assets=10,
             total_relationships=20,
@@ -286,7 +280,7 @@ class TestPydanticModels:
         assert metrics.asset_classes["EQUITY"] == 5
 
     def test_visualization_data_response_model(self) -> None:
-        """VisualizationDataResponse accepts node/edge lists for graph rendering."""
+        """Verify that VisualizationDataResponse accepts node/edge lists for graph rendering."""
         viz = VisualizationDataResponse(
             nodes=[
                 {
@@ -314,7 +308,7 @@ class TestPydanticModels:
         assert len(viz.edges) == 1
 
     def test_detailed_health_response_model_valid(self) -> None:
-        """DetailedHealthResponse accepts bounded readiness payloads."""
+        """Verify that DetailedHealthResponse accepts bounded readiness payloads."""
         response = DetailedHealthResponse(
             status="healthy",
             graph_persistence_configured=True,
@@ -336,7 +330,7 @@ class TestPydanticModels:
         assert response.database.type == "sqlite"
 
     def test_detailed_health_response_rejects_extra_fields(self) -> None:
-        """DetailedHealthResponse rejects fields outside the public readiness contract."""
+        """Verify that DetailedHealthResponse rejects fields outside the public readiness contract."""
         with pytest.raises(ValueError):
             DetailedHealthResponse(
                 status="healthy",
@@ -355,7 +349,7 @@ class TestPydanticModels:
             )
 
     def test_detailed_health_response_rejects_invalid_status_and_database_type(self) -> None:
-        """DetailedHealthResponse restricts status and database type values."""
+        """Verify that DetailedHealthResponse restricts status and database type values."""
         with pytest.raises(ValueError):
             DetailedHealthResponse(
                 status="unknown",
@@ -389,7 +383,7 @@ class TestPydanticModels:
             )
 
     def test_graph_health_response_rejects_negative_counts(self) -> None:
-        """GraphHealthResponse rejects negative graph counts."""
+        """Verify that GraphHealthResponse rejects negative graph counts."""
         with pytest.raises(ValueError):
             GraphHealthResponse(
                 available=True,
@@ -426,10 +420,9 @@ class TestAPIEndpoints:
     @staticmethod
     @pytest.fixture
     def client():
-        """
-        Provide a TestClient configured with a sample in-memory graph for endpoint tests.
+        """Set the application's graph to a sample in-memory database before yielding the client.
 
-        Sets the application's graph to a sample in-memory database before yielding the client and resets the graph on teardown.
+        Resets the graph on teardown.
 
         Returns:
             TestClient: A TestClient instance connected to the application populated with the sample graph.
@@ -512,9 +505,9 @@ class TestAPIEndpoints:
         self,
         client: TestClient,
     ) -> None:
-        """
-        Ensure the health endpoint stays available and reports persistence as
-        unconfigured when settings retrieval fails.
+        """Ensure the health endpoint stays available and reports persistence as unconfigured.
+
+        Reports persistence as unconfigured when settings retrieval fails.
         """
         with patch(
             "api.routers.system.get_graph_lifecycle_settings",
@@ -1187,10 +1180,10 @@ class TestGraphInitializationRaceConditions:
         errors = []
 
         def init_graph():
-            """
-            Worker function run by a thread to obtain the shared graph instance.
+            """Worker function run by a thread to obtain the shared graph instance.
 
-            If successful, appends the retrieved graph to the surrounding `results` list; if an exception occurs, appends the exception to the surrounding `errors` list.
+            If successful, appends the retrieved graph to the surrounding `results` list;
+            if an exception occurs, appends the exception to the surrounding `errors` list.
             """
             try:
                 graph = api_main.get_graph()
@@ -1371,10 +1364,9 @@ class TestEndpointStressTests:
     @staticmethod
     @pytest.fixture
     def client():
-        """
-        Provide a TestClient configured with an in-memory sample graph for tests.
+        """Set a sample graph on the application before yielding the client.
 
-        This fixture sets a sample graph on the application before yielding the client and resets the graph after the test completes.
+        Resets the graph after the test completes.
 
         Returns:
             TestClient: A TestClient instance for the FastAPI app with the sample graph loaded.
@@ -1420,10 +1412,9 @@ class TestErrorMessageQuality:
     @staticmethod
     @pytest.fixture
     def client():
-        """
-        Provide a TestClient configured with an in-memory sample graph for tests.
+        """Set a sample graph on the application before yielding the TestClient.
 
-        Sets a sample graph on the application before yielding the TestClient and ensures the graph is reset after the fixture is torn down.
+        Ensures the graph is reset after the fixture is torn down.
 
         Returns:
             TestClient: a TestClient instance bound to the app with the sample graph loaded.
@@ -1474,6 +1465,7 @@ class TestSetGraphFunctions:
         factory_called = []
 
         def test_factory():
+            """Return a sample database for testing graph factory clearing."""
             factory_called.append(True)
             return create_sample_database()
 
@@ -1495,6 +1487,7 @@ class TestSetGraphFunctions:
         factory_called = []
 
         def test_factory():
+            """Return a sample database for lazy initialization tests."""
             factory_called.append(True)
             return create_sample_database()
 
@@ -1519,6 +1512,7 @@ class TestSetGraphFunctions:
         """set_graph_factory(None) should clear the factory."""
 
         def test_factory():
+            """Return a sample database for checking if setting None clears the factory."""
             return create_sample_database()
 
         api_main.set_graph_factory(test_factory)
@@ -1537,6 +1531,7 @@ class TestSetGraphFunctions:
 
         # Set a factory
         def test_factory():
+            """Return a sample database for checking if setting factory clears existing graph."""
             return create_sample_database()
 
         api_main.set_graph_factory(test_factory)
@@ -1897,7 +1892,6 @@ class TestVisualizationSingleNode:
 
     def test_visualization_color_mapping(self, bare_client: TestClient):
         """Visualization should map asset classes to correct colors."""
-
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -1959,6 +1953,7 @@ class TestLifespanHandler:
         """Lifespan handler should propagate initialization exceptions."""
 
         def failing_factory():
+            """Raise a RuntimeError to simulate initialization failure."""
             raise RuntimeError("Initialization failed")
 
         api_main.set_graph_factory(failing_factory)
@@ -1977,10 +1972,9 @@ class TestEndpointRegressionCases:
     @staticmethod
     @pytest.fixture
     def client():
-        """
-        Provide a TestClient configured with an in-memory sample graph for tests.
+        """Set the global graph to a sample database before yielding the client.
 
-        Sets the global graph to a sample database before yielding the client and resets the graph after the test completes.
+        Resets the graph after the test completes.
 
         Returns:
             TestClient: A TestClient instance for the FastAPI app with the sample graph initialized.

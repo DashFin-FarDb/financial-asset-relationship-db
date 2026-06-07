@@ -18,11 +18,10 @@ from sqlalchemy.orm import Session
 
 from src.data.distributed_lock import DistributedLock, LockState
 from src.data.repository import AssetGraphRepository
-from src.logic.rebuild_failure_detection import (
-    InconsistencyType,
-    detect_rebuild_inconsistency,
-)
+from src.logic.rebuild_failure_detection import InconsistencyType, detect_rebuild_inconsistency
 from src.logic.reconciliation_engine import Severity
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 if TYPE_CHECKING:
     from src.data.db_models import RebuildJobORM
@@ -44,13 +43,16 @@ class RebuildDriftEvaluator:
         runtime_has_active_executor: bool = False,
         lock_ttl_seconds: int = 300,
     ) -> None:
-        """Initialize rebuild drift evaluator.
+        """
+        Create a RebuildDriftEvaluator with its persistence and lock dependencies and runtime configuration.
 
-        Args:
-            session_factory: Factory for creating database sessions
-            lock: Distributed lock instance
-            runtime_has_active_executor: Whether runtime has active rebuild executor
-            lock_ttl_seconds: Lock TTL threshold in seconds
+        Parameters:
+            session_factory (Callable[[], Session]): Factory that produces SQLAlchemy
+                sessions used to load rebuild state.
+            lock (DistributedLock): Distributed lock used to inspect lock state and holder id.
+            runtime_has_active_executor (bool): Whether this runtime currently has
+                an active rebuild executor; included in metadata and passed to inconsistency detection.
+            lock_ttl_seconds (int): Time-to-live in seconds used to determine whether a heartbeat is considered stale.
         """
         self.session_factory = session_factory
         self.lock = lock
@@ -58,10 +60,22 @@ class RebuildDriftEvaluator:
         self.lock_ttl_seconds = lock_ttl_seconds
 
     def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
-        """Evaluate drift between desired and observed rebuild states.
+        """
+        Evaluate rebuild coordination drift and classify its type, severity, and associated metadata.
 
         Returns:
-            Tuple of (drift_type, severity, metadata)
+            tuple[str, Severity, dict[str, str | int | float | bool | None]]:
+                - `drift_type`: Classification string describing the detected drift
+                  (e.g., `"lock_lost"`, `"persistence_unavailable"`, or an inconsistency type value).
+                - `Severity`: Severity enum value for the detected drift.
+                - `metadata`: A dictionary with contextual information. Always includes
+                  `lock_state`, `lock_is_valid`, `runtime_has_active_executor`, and
+                  `detected_at` (when applicable). For normal evaluations the metadata also
+                  contains `job_id`, `reason`, and job-specific fields added by
+                  `_build_job_metadata()` such as `job_status`, `active_worker_id`,
+                  `last_heartbeat_at`, `owner_mismatch`, and `lock_holder_id`. In early-failure
+                  cases the metadata contains error-related fields (for example `error_type`
+                  and `reason`).
         """
         # Check lock state first
         lock_state = self.lock.check_state()
@@ -131,35 +145,47 @@ class RebuildDriftEvaluator:
         # Add job-specific metadata
         metadata.update(self._build_job_metadata(job, owner_mismatch))
 
-        logger.debug(
-            "Drift evaluation completed: type=%s, severity=%s, lock_valid=%s",
-            drift_type,
-            severity.value,
-            lock_is_valid,
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="rebuild_drift_evaluation_completed",
+                message=(
+                    f"Drift evaluation completed: type={drift_type}, "
+                    f"severity={severity.value}, lock_valid={lock_is_valid}"
+                ),
+                metadata={"drift_type": drift_type, "severity": severity.value, "lock_is_valid": lock_is_valid},
+            ),
         )
 
         return drift_type, severity, metadata
 
     def _get_active_rebuild_job(self) -> RebuildJobORM | None:
-        """Get active rebuild job from database.
+        """
+        Retrieve the currently active rebuild job from persistence.
+
+        Returns:
+            RebuildJobORM | None: The active rebuild job if one exists, otherwise `None`.
 
         Raises:
-            ValueError: If database integrity constraint violated (e.g., multiple RUNNING jobs)
-            SQLAlchemyError: If persistence cannot be queried
-            OSError: If the underlying database access fails
+            ValueError: If a data integrity constraint is violated (e.g., multiple RUNNING jobs).
+            SQLAlchemyError: If the persistence layer cannot be queried.
+            OSError: If underlying database access fails.
         """
         with self.session_factory() as session:
             repo = AssetGraphRepository(session)
             return repo.get_active_rebuild_state()
 
     def _parse_heartbeat_time(self, heartbeat_at: datetime | str | None) -> datetime | None:
-        """Parse heartbeat timestamp from various formats.
+        """
+        Convert a heartbeat timestamp (datetime, ISO 8601 string, or None) into a timezone-aware UTC datetime.
 
-        Args:
-            heartbeat_at: Heartbeat timestamp (datetime, ISO string, or None)
+        Parameters:
+            heartbeat_at (datetime | str | None): Heartbeat value to normalize. Strings are parsed as ISO 8601.
 
         Returns:
-            Timezone-aware datetime or None if unparseable or missing
+            datetime | None: A timezone-aware `datetime` in UTC when parsing succeeds,
+                or `None` if `heartbeat_at` is `None` or cannot be parsed.
         """
         if heartbeat_at is None:
             return None
@@ -178,10 +204,17 @@ class RebuildDriftEvaluator:
                 heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
             return heartbeat_time
         except (ValueError, AttributeError, TypeError):
-            # Unparseable heartbeat treated as None (caller will treat as stale). Expected for string/non-datetime values; avoid including full stack traces for expected parse failures
-            logger.debug(
-                "Failed to parse heartbeat timestamp %r, treating as stale",
-                heartbeat_at,
+            # Unparseable heartbeat treated as None (caller will treat as stale).
+            # Expected for string/non-datetime values; avoid including full stack
+            # traces for expected parse failures.
+            log_event(
+                logger,
+                logging.DEBUG,
+                ObservabilityEvent(
+                    event="rebuild_drift_heartbeat_parse_failed",
+                    message=f"Failed to parse heartbeat timestamp {heartbeat_at!r}, treating as stale",
+                    metadata={"heartbeat_at": str(heartbeat_at)},
+                ),
             )
             return None
 
@@ -264,23 +297,25 @@ class RebuildDriftEvaluator:
             "lock_holder_id": self.lock.holder_id,
         }
 
-    def _classify_severity(  # pylint: disable=too-many-return-statements  # Each inconsistency type requires distinct severity mapping; table-driven refactor deferred to Phase 2
+    # Each inconsistency type requires distinct severity mapping; table-driven refactor deferred to Phase 2
+    def _classify_severity(  # pylint: disable=too-many-return-statements
         self,
         inconsistency_type: InconsistencyType,
         lock_is_valid: bool,
         owner_mismatch_with_stale_heartbeat: bool = False,
     ) -> Severity:
-        """Classify severity based on inconsistency type and lock state.
+        """
+        Map a rebuild inconsistency and lock state to a Severity level.
 
-        Args:
-            inconsistency_type: Detected inconsistency type
-            lock_is_valid: Whether distributed lock is currently valid
-            owner_mismatch_with_stale_heartbeat: Whether job.active_worker_id differs
-                from lock.holder_id AND heartbeat is stale/missing (only relevant for
-                ORPHANED_RUNNING). When True, allows RecoveryGate to downgrade to RESET.
+        Parameters:
+            inconsistency_type (InconsistencyType): The detected rebuild inconsistency.
+            lock_is_valid (bool): Whether the distributed lock is currently valid.
+            owner_mismatch_with_stale_heartbeat (bool): For ORPHANED_RUNNING, True when the job's
+                active_worker_id differs from the lock holder and the job's last heartbeat is stale
+                or unparseable; when True this can reduce severity from CRITICAL to HIGH.
 
         Returns:
-            Severity classification
+            Severity: Severity level representing the urgency of the detected inconsistency.
         """
         # No inconsistency
         if inconsistency_type == InconsistencyType.NONE:
@@ -312,5 +347,13 @@ class RebuildDriftEvaluator:
             return Severity.MEDIUM
 
         # Default to medium for unknown types
-        logger.warning("Unknown inconsistency type %s - defaulting to MEDIUM severity", inconsistency_type)
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="rebuild_drift_unknown_inconsistency_severity",
+                message=f"Unknown inconsistency type {inconsistency_type} - defaulting to MEDIUM severity",
+                metadata={"inconsistency_type": str(inconsistency_type)},
+            ),
+        )
         return Severity.MEDIUM

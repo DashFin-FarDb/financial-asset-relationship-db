@@ -19,6 +19,10 @@ if TYPE_CHECKING:
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+from src.observability.logging import setup_logging
+
 from .cors_policy import configure_cors
 from .graph_lifecycle import (
     GraphRuntimeLifecycleState,
@@ -28,7 +32,6 @@ from .graph_lifecycle import (
     sync_with_latest_rebuild,
 )
 from .middleware.correlation import CorrelationMiddleware
-from .observability.logging import setup_logging
 from .rate_limit import limiter
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
@@ -64,7 +67,18 @@ def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str
 
 
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
-    """Run database consistency reconciliation during application startup."""
+    """
+    Initialize persisted graph state during application startup.
+
+    Runs schema initialization for the durable graph database and, when configured, a separate coordination database.
+    It then acquires a distributed startup lock and executes the recovery gate to reconcile persisted graph state
+    before startup continues. Any lock reacquired during recovery is released before the function exits, and all
+    temporary database engines are disposed.
+
+    Parameters:
+        settings (GraphLifecycleSettings): Lifecycle settings that provide the durable graph database URL and
+            optional coordination database URL.
+    """
     from src.data.database import create_engine_from_url, create_session_factory, init_db
     from src.data.distributed_lock import DistributedLock
     from src.logic.recovery_gate import RecoveryGate
@@ -103,10 +117,24 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
         )
         try:
             if hasattr(gate, "evaluate_and_reconcile"):
-                logger.debug("Running evaluate_and_reconcile for startup reconciliation")
+                log_event(
+                    logger,
+                    logging.DEBUG,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_evaluate_reconcile",
+                        message="Running evaluate_and_reconcile for startup reconciliation",
+                    ),
+                )
                 gate.evaluate_and_reconcile()
             else:
-                logger.debug("Falling back to ensure_safe_to_execute for startup reconciliation")
+                log_event(
+                    logger,
+                    logging.DEBUG,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_ensure_safe",
+                        message="Falling back to ensure_safe_to_execute for startup reconciliation",
+                    ),
+                )
                 gate.ensure_safe_to_execute()
         finally:
             if getattr(gate, "lock_was_reacquired", False):
@@ -120,7 +148,17 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Manage application runtime setup and teardown lifecycles cleanly."""
+    """
+    Manage application startup and shutdown tasks for the FastAPI application.
+
+    This includes optional durable-graph reconciliation, initialization of rebuild executors, and lifecycle of
+    the background graph synchronization task.
+
+    During startup, performs durable-graph reconciliation when configured, initializes rebuild executors, and
+    starts the background synchronization loop; always ensures the in-memory graph is initialized. On shutdown,
+    initiates orderly teardown, cancels and awaits the sync task if running, shuts down rebuild executors when
+    used, and finalizes application teardown.
+    """
     from src.logic.recovery_gate import ExecutionBlockedError
 
     from .graph_lifecycle_providers import get_graph_lifecycle_settings
@@ -135,29 +173,48 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             try:
                 await asyncio.wait_for(asyncio.to_thread(_run_startup_reconciliation, settings), timeout=120)
             except asyncio.TimeoutError:
-                logger.critical("Startup reconciliation timed out after 120s")
+                log_event(
+                    logger,
+                    logging.CRITICAL,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_timeout",
+                        message="Startup reconciliation timed out after 120s",
+                    ),
+                )
                 raise RuntimeError("Startup reconciliation timed out") from None
         except ExecutionBlockedError as exc:
             if exc.action == "wait" and exc.inconsistency_type == "none":
-                logger.info(
-                    "Benign clean-install detected on startup (action=wait, inconsistency=none). "
-                    "Proceeding with startup."
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_benign_clean_install",
+                        message=(
+                            "Benign clean-install detected on startup (action=wait, inconsistency=none). "
+                            "Proceeding with startup."
+                        ),
+                    ),
                 )
             else:
-                logger.critical(
-                    "Application startup BLOCKED by RecoveryGate safety invariant: %s",
-                    type(exc).__name__,
-                    exc_info=False,
-                )
-                logger.debug(
-                    "Safety invariant traceback details",
-                    exc_info=True,
+                log_event(
+                    logger,
+                    logging.CRITICAL,
+                    ObservabilityEvent(
+                        event="startup_reconciliation_blocked",
+                        message=f"Application startup BLOCKED by RecoveryGate safety invariant: {type(exc).__name__}",
+                        metadata={"error": type(exc).__name__},
+                    ),
                 )
                 raise exc from None
         except Exception as exc:
-            logger.error(
-                "Failed to load persisted graph during startup: %s",
-                exc.__class__.__name__,
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="startup_reconciliation_failed",
+                    message=f"Failed to load persisted graph during startup: {exc.__class__.__name__}",
+                    metadata={"error": exc.__class__.__name__},
+                ),
             )
             raise RuntimeError("Failed to load persisted graph during startup") from None
 
@@ -170,7 +227,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    logger.info("Initiating orderly application lifespan teardown processing...")
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="application_teardown_initiated",
+            message="Initiating orderly application lifespan teardown processing...",
+        ),
+    )
     begin_shutdown()
 
     if sync_task is not None:
@@ -181,11 +245,39 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if has_durable_graph_persistence:
         shutdown_rebuild_executor()
 
-    logger.info("Application context lifespan termination finalized successfully.")
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="application_teardown_completed",
+            message="Application context lifespan termination finalized successfully.",
+        ),
+    )
 
 
 async def _graph_synchronization_loop(interval_seconds: float) -> None:
-    """Periodically synchronize the memory graph engine with changes from the database."""
+    """
+    Continuously synchronize the in-memory graph with persistent rebuild updates until shutdown.
+
+    Performs repeated synchronization attempts separated by a configurable base interval (minimum 1.0 second).
+
+    If a synchronization attempt raises an exception,
+
+    the loop engages an exponential backoff with randomized jitter
+
+    (capped at 32× the base interval) and logs a transient error;
+
+    after a successful sync the interval and error state are reset.
+
+    The loop checks the runtime lifecycle state before each attempt
+
+    and exits when the runtime is shutting down or stopped.
+
+    Parameters:
+        interval_seconds (float): Desired base interval, in seconds, between synchronization attempts.
+
+        Values below 1.0 are treated as 1.0.
+    """
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
     max_interval = base_interval * 32  # cap at 32× base interval
@@ -205,7 +297,14 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
 
             # Reset on successful sync
             if is_in_error_state:
-                logger.info("Database connection restored.")
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_sync_database_connection_restored",
+                        message="Database connection restored.",
+                    ),
+                )
                 is_in_error_state = False
             current_interval = base_interval
 
@@ -213,10 +312,17 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             raise
         except Exception as exc:
             if not is_in_error_state:
-                logger.warning(
-                    "Unexpected transient error in graph synchronization loop (%s). Engaging backoff policy.",
-                    type(exc).__name__,
-                    exc_info=True,
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_sync_transient_error",
+                        message=(
+                            f"Unexpected transient error in graph synchronization loop ({type(exc).__name__}). "
+                            "Engaging backoff policy."
+                        ),
+                        metadata={"error": type(exc).__name__},
+                    ),
                 )
                 is_in_error_state = True
 
@@ -242,7 +348,7 @@ def create_app() -> FastAPI:
     )
 
     app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
     configure_cors(app)
 
     # Register CorrelationMiddleware as the outermost middleware so identifiers
