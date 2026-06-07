@@ -270,7 +270,7 @@ class DistributedLock:
         self._metric("lock_errors_total")
         if not isinstance(exc, (SQLAlchemyError, OSError)):
             self._set_state(LockLifecycleState.LOST)
-            raise
+            raise exc
         if retries >= max_retries or (time() - start_time) >= 30.0:
             self._set_state(LockLifecycleState.LOST)
             msg = (
@@ -676,7 +676,7 @@ class DistributedLock:
                 metadata={"error": type(exc).__name__},
             )
         )
-        raise
+        raise exc
 
     def check_state(self) -> LockState:
         """

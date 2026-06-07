@@ -101,8 +101,6 @@ class RecoveryGate:
             RecoveryDecision: Decision with action UNSAFE, safe_to_execute=False,
                 inconsistency_type=None, and reason formatted as "<ExceptionType>: <error_context>".
         """
-        from src.logic.rebuild_recovery import RecoveryDecision
-
         exc_type = type(exc).__name__
         reason = f"{exc_type}: {error_context}"
 
@@ -182,8 +180,6 @@ class RecoveryGate:
             A RecoveryDecision: either the original decision or a modified UNSAFE/RESET decision when
                 an owner-mismatch with fresh or stale/missing heartbeat is detected.
         """
-        from src.logic.rebuild_recovery import RecoveryDecision
-
         # Early return if not orphaned running state
         if inconsistency.inconsistency_type != InconsistencyType.ORPHANED_RUNNING:
             return decision
@@ -326,8 +322,6 @@ class RecoveryGate:
             RecoveryDecision: Decision containing the chosen `action`, `reason`,
                 `inconsistency_type`, and `safe_to_execute` flag.
         """
-        from src.logic.rebuild_recovery import RecoveryDecision
-
         lock_state = self.lock.check_state()
         job = None
 

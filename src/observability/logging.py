@@ -17,7 +17,7 @@ from .context import get_request_context
 
 _logging_initialized_lock = threading.Lock()
 
-_logging_initialized = False
+_logging_state = {"initialized": False}
 
 
 def _inject_request_context(_logger: Any, _log_method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
@@ -68,9 +68,8 @@ def setup_logging() -> None:
     existing non-pytest handlers to avoid resource leaks, and sets the root logger level from
     get_settings().log_level (defaults to INFO if invalid).
     """
-    global _logging_initialized
     with _logging_initialized_lock:
-        if _logging_initialized:
+        if _logging_state["initialized"]:
             return
 
         # Configure structlog processors
@@ -131,4 +130,4 @@ def setup_logging() -> None:
         root_logger.addHandler(handler)
         root_logger.setLevel(log_level)
 
-        _logging_initialized = True
+        _logging_state["initialized"] = True

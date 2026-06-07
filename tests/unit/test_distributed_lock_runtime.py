@@ -170,6 +170,7 @@ def test_ttl_validation_in_init() -> None:
     """Verify DistributedLock rejects TTLs exceeding 300s."""
 
     def factory():
+        """Factory function that returns None for testing."""
         return None
 
     # 300 is fine

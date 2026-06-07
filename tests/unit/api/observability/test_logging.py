@@ -27,7 +27,7 @@ def _reset_logging():
     yields to run the test, then restores the original handlers and level and resets structlog to its defaults.
     """
     # Reset our internal initialization flag to allow reconfiguration in tests
-    src.observability.logging._logging_initialized = False
+    src.observability.logging._logging_state["initialized"] = False
 
     # Clear settings cache to allow environment variable overrides
     get_settings.cache_clear()

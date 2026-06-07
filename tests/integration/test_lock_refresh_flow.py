@@ -207,6 +207,7 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
         original_refresh = dist_lock.refresh
 
         def refresh_with_event(*args, **kwargs):
+            """Refresh lock and signal completion."""
             result = original_refresh(*args, **kwargs)
             first_refresh_done.set()
             return result
@@ -300,6 +301,7 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
 
         # Create pre-commit check that verifies lock status
         def _ensure_lock_not_lost_before_commit() -> None:
+            """Ensure the lock was not lost before allowing persistence commit."""
             if lock_lost.is_set():
                 raise graph_admin._DistributedLockLostError(  # pylint: disable=protected-access
                     "Lost distributed lock at stage=graph-commit"
@@ -327,13 +329,12 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
             save_graph_to_persistence,
         )
 
-        with caplog.at_level(logging.ERROR):
-            with pytest.raises(graph_admin._DistributedLockLostError):
-                save_graph_to_persistence(
-                    resolved_url,
-                    test_graph,
-                    pre_commit_check=_ensure_lock_not_lost_before_commit,
-                )
+        with caplog.at_level(logging.ERROR), pytest.raises(graph_admin._DistributedLockLostError):
+            save_graph_to_persistence(
+                resolved_url,
+                test_graph,
+                pre_commit_check=_ensure_lock_not_lost_before_commit,
+            )
 
         # Verify pre-commit check failure was logged (without coupling to exact message text)
         error_logs = [record for record in caplog.records if record.levelname == "ERROR"]
@@ -349,9 +350,9 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
             current_graph = repo.load_graph()
             current_asset_count = len(current_graph.assets)
 
-        assert current_asset_count == initial_asset_count, (
-            "Graph state should be unchanged after lock loss during commit"
-        )
+        assert (
+            current_asset_count == initial_asset_count
+        ), "Graph state should be unchanged after lock loss during commit"
 
 
 def test_heartbeat_thread_stops_cleanly_on_success(

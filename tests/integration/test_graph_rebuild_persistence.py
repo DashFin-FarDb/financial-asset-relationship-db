@@ -135,6 +135,7 @@ async def test_unexpected_rebuild_failure_returns_sanitized_500(
     _configure_persistence(monkeypatch, database_url)
 
     def fail_build(*args, **kwargs):
+        """Simulate a rebuild execution failure."""
         raise RuntimeError(raw_detail)
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_build)
@@ -163,6 +164,7 @@ async def test_persistence_save_failure_returns_sanitized_500(
     _configure_persistence(monkeypatch, database_url)
 
     def fail_save(*args, **kwargs):
+        """Simulate a persistence save failure."""
         raise ValueError(f"Failed to persist graph at {raw_url}")
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=AssetRelationshipGraph()))
@@ -233,10 +235,12 @@ async def test_rebuild_with_ttl_creates_and_starts_job(monkeypatch):
     states_visited = []
 
     def track_running(jid):
+        """Track running state for the rebuild job."""
         if jid == job_id:
             states_visited.append("running")
 
     def track_succeeded(jid, **kwargs):
+        """Track succeeded state for the rebuild job."""
         if jid == job_id:
             states_visited.append("succeeded")
 
@@ -372,9 +376,12 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
     mock_repo.create_rebuild_job.return_value = job_id
 
     class RebuildLockLostError(providers.GraphPersistenceSaveError):
+        """Simulated lock loss exception type."""
+
         pass
 
     def failing_pipeline(*args, **kwargs):
+        """Simulate a build pipeline failure due to lock expiration."""
         raise RebuildLockLostError("Lock lease expired during build")
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", failing_pipeline)
@@ -413,6 +420,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
 
     @contextmanager
     def mock_orchestrate_ctx(*args, **kwargs):
+        """Mock heartbeat orchestrator context."""
         yield threading.Event()
 
     with (
@@ -448,6 +456,7 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
     mock_repo.create_rebuild_job.return_value = "job_cancelled"
 
     def simulate_cancellation(*args, **kwargs):
+        """Simulate execution cancellation."""
         raise asyncio.CancelledError()
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", simulate_cancellation)

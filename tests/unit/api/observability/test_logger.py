@@ -24,7 +24,7 @@ def _reset_logging():
     yielding control to the test; after the test completes, restores the original root handlers and calls
     `structlog.reset_defaults()`.
     """
-    src.observability.logging._logging_initialized = False
+    src.observability.logging._logging_state["initialized"] = False
     root_logger = logging.getLogger()
     original_handlers = list(root_logger.handlers)
     yield

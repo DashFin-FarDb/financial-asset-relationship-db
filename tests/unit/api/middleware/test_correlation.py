@@ -115,7 +115,6 @@ async def test_correlation_middleware_state_fallback() -> None:  # noqa: C901
 
     async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
         """Mock ASGI application that does nothing."""
-        pass
 
     middleware = CorrelationMiddleware(mock_app)  # type: ignore[arg-type]
 
@@ -152,7 +151,6 @@ async def test_correlation_middleware_state_fallback() -> None:  # noqa: C901
 
     async def mock_send(msg):
         """Mock ASGI send function."""
-        pass
 
     await middleware(scope, mock_receive, mock_send)
 

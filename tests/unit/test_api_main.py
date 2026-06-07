@@ -1465,6 +1465,7 @@ class TestSetGraphFunctions:
         factory_called = []
 
         def test_factory():
+            """Return a sample database for testing graph factory clearing."""
             factory_called.append(True)
             return create_sample_database()
 
@@ -1486,6 +1487,7 @@ class TestSetGraphFunctions:
         factory_called = []
 
         def test_factory():
+            """Return a sample database for lazy initialization tests."""
             factory_called.append(True)
             return create_sample_database()
 
@@ -1510,6 +1512,7 @@ class TestSetGraphFunctions:
         """set_graph_factory(None) should clear the factory."""
 
         def test_factory():
+            """Return a sample database for checking if setting None clears the factory."""
             return create_sample_database()
 
         api_main.set_graph_factory(test_factory)
@@ -1528,6 +1531,7 @@ class TestSetGraphFunctions:
 
         # Set a factory
         def test_factory():
+            """Return a sample database for checking if setting factory clears existing graph."""
             return create_sample_database()
 
         api_main.set_graph_factory(test_factory)
@@ -1949,6 +1953,7 @@ class TestLifespanHandler:
         """Lifespan handler should propagate initialization exceptions."""
 
         def failing_factory():
+            """Raise a RuntimeError to simulate initialization failure."""
             raise RuntimeError("Initialization failed")
 
         api_main.set_graph_factory(failing_factory)

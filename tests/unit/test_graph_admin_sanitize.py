@@ -152,6 +152,7 @@ class TestValidateCoordinationDatabasePrimary:
         mock_session.get_bind.return_value = mock_bind
 
         def fake_session_factory():
+            """Return a mock session for testing."""
             return mock_session
 
         # Should execute successfully as a no-op without calling session.execute
@@ -171,6 +172,7 @@ class TestValidateCoordinationDatabasePrimary:
         mock_session.execute.return_value = mock_result
 
         def fake_session_factory():
+            """Return a mock session for testing postgres primary logic."""
             return mock_session
 
         _validate_coordination_database_primary(fake_session_factory)
@@ -189,6 +191,7 @@ class TestValidateCoordinationDatabasePrimary:
         mock_session.execute.return_value = mock_result
 
         def fake_session_factory():
+            """Return a mock session for testing postgres replica logic."""
             return mock_session
 
         with pytest.raises(RuntimeError) as exc_info:
@@ -202,6 +205,7 @@ class TestValidateCoordinationDatabasePrimary:
         mock_session.get_bind.side_effect = SQLAlchemyError("DB connection failed")
 
         def fake_session_factory():
+            """Return a mock session for testing SQLAlchemyError propagation."""
             return mock_session
 
         with pytest.raises(RuntimeError) as exc_info:
@@ -216,6 +220,7 @@ class TestValidateCoordinationDatabasePrimary:
         mock_session.get_bind.side_effect = ValueError("Unexpected internal error")
 
         def fake_session_factory():
+            """Return a mock session for testing unexpected exception wrapping."""
             return mock_session
 
         with pytest.raises(RuntimeError) as exc_info:
