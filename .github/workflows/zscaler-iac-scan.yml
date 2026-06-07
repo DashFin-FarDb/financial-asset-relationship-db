@@ -67,6 +67,7 @@ jobs:
       - name: Check SARIF file exists
         id: check-sarif
         if: ${{ steps.check-creds.outputs.skip == 'false' && steps.zscaler-iac-scan.outputs.sarif_file_path != '' }}
+        shell: bash
         run: |
           if [ -f "${{ steps.zscaler-iac-scan.outputs.sarif_file_path }}" ]; then
             echo "sarif_exists=true" >> $GITHUB_OUTPUT
