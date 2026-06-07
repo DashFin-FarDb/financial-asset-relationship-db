@@ -78,7 +78,7 @@ def clear_settings_cache() -> Iterator[None]:
     """Clear cached runtime settings around each test."""
     api_main.get_settings.cache_clear()
     yield
-    get_settings.cache_clear()
+    api_main.get_settings.cache_clear()
 
 
 @pytest.fixture()
