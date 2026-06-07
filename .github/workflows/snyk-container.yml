@@ -68,7 +68,7 @@ jobs:
         args: --file=Dockerfile
     - name: Check SARIF file has content
       id: check-sarif
-      if: ${{ hashFiles('snyk.sarif') != '' }}
+      if: ${{ always() }}
       run: |
         if [ -s snyk.sarif ]; then
           echo "sarif_exists=true" >> $GITHUB_OUTPUT
