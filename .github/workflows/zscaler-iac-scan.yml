@@ -66,7 +66,7 @@ jobs:
       #Ensure that the following step is included in order to post the scan results under the code scanning alerts section within the repository.
       - name: Check SARIF file exists
         id: check-sarif
-        if: ${{ steps.check-creds.outputs.skip == 'false' && (success() || failure()) && (steps.zscaler-iac-scan.outputs.sarif_file_path != '') }}
+        if: ${{ steps.check-creds.outputs.skip == 'false' && steps.zscaler-iac-scan.outputs.sarif_file_path != '' }}
         run: |
           if [ -f "${{ steps.zscaler-iac-scan.outputs.sarif_file_path }}" ]; then
             echo "sarif_exists=true" >> $GITHUB_OUTPUT
