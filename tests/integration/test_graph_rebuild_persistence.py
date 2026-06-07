@@ -39,20 +39,20 @@ _REBUILD_AUDIT_POLL_INTERVAL_SECONDS = 0.005
 
 
 def _sqlite_url(tmp_path: Path) -> str:
-    """Helper to generate an isolated SQLite DB URL for a test."""
+    """Generate an isolated SQLite DB URL for a test."""
     db_path = tmp_path / "test_persistence.db"
     return f"sqlite:///{db_path}"
 
 
 def _init_empty_db(url: str) -> None:
-    """Initializes the database schema using canonical schemas."""
+    """Initialize the database schema using canonical schemas."""
     engine = create_engine(url)
     init_db(engine)
     engine.dispose()
 
 
 def _configure_persistence(monkeypatch: pytest.MonkeyPatch, url: str) -> None:
-    """Overrides environment parameters cleanly to target test sandboxes."""
+    """Override environment parameters cleanly to target test sandboxes."""
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", url)
     monkeypatch.setenv("DATABASE_URL", url)
     get_settings.cache_clear()
@@ -82,8 +82,8 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def mock_active_user() -> User:
-    """Provides a typed mock administrative user constraint."""
-    return User(username="admin_tester", roles=["admin"])
+    """Provide a typed mock administrative user constraint."""
+    return User(username="admin_tester")
 
 
 @pytest.fixture
@@ -100,7 +100,7 @@ async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClien
 
 @pytest.fixture
 def session_factory_provider(tmp_path: Path):
-    """Provides an isolated, production-contract-compliant database context session factory."""
+    """Provide an isolated, production-contract-compliant database context session factory."""
     db_url = _sqlite_url(tmp_path)
     engine = create_engine_from_url(db_url)
     init_db(engine)
@@ -108,7 +108,7 @@ def session_factory_provider(tmp_path: Path):
 
     @contextmanager
     def bound_session_factory() -> Iterator[Session]:
-        """Provides state-isolated contextual sessions matching factory lifecycle models."""
+        """Provide state-isolated contextual sessions matching factory lifecycle models."""
         session = factory()
         try:
             yield session
@@ -135,6 +135,7 @@ async def test_unexpected_rebuild_failure_returns_sanitized_500(
     _configure_persistence(monkeypatch, database_url)
 
     def fail_build(*args, **kwargs):
+        """Simulate a rebuild execution failure."""
         raise RuntimeError(raw_detail)
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", fail_build)
@@ -163,6 +164,7 @@ async def test_persistence_save_failure_returns_sanitized_500(
     _configure_persistence(monkeypatch, database_url)
 
     def fail_save(*args, **kwargs):
+        """Simulate a persistence save failure."""
         raise ValueError(f"Failed to persist graph at {raw_url}")
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=AssetRelationshipGraph()))
@@ -212,8 +214,10 @@ async def test_rebuild_lock_acquisition_failure_path(
     _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
+    from src.data.distributed_lock import LockAcquisitionTimeout
+
     mock_lock = MagicMock()
-    mock_lock.acquire.return_value = False
+    mock_lock.acquire.side_effect = LockAcquisitionTimeout("Lock acquisition timed out")
 
     with patch("api.routers.graph_admin.DistributedLock", return_value=mock_lock):
         response = await test_client.post("/api/graph/rebuild")
@@ -231,10 +235,12 @@ async def test_rebuild_with_ttl_creates_and_starts_job(monkeypatch):
     states_visited = []
 
     def track_running(jid):
+        """Track running state for the rebuild job."""
         if jid == job_id:
             states_visited.append("running")
 
     def track_succeeded(jid, **kwargs):
+        """Track succeeded state for the rebuild job."""
         if jid == job_id:
             states_visited.append("succeeded")
 
@@ -370,9 +376,12 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
     mock_repo.create_rebuild_job.return_value = job_id
 
     class RebuildLockLostError(providers.GraphPersistenceSaveError):
+        """Simulated lock loss exception type."""
+
         pass
 
     def failing_pipeline(*args, **kwargs):
+        """Simulate a build pipeline failure due to lock expiration."""
         raise RebuildLockLostError("Lock lease expired during build")
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", failing_pipeline)
@@ -411,6 +420,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
 
     @contextmanager
     def mock_orchestrate_ctx(*args, **kwargs):
+        """Mock heartbeat orchestrator context."""
         yield threading.Event()
 
     with (
@@ -446,6 +456,7 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
     mock_repo.create_rebuild_job.return_value = "job_cancelled"
 
     def simulate_cancellation(*args, **kwargs):
+        """Simulate execution cancellation."""
         raise asyncio.CancelledError()
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", simulate_cancellation)

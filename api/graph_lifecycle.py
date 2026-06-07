@@ -14,6 +14,8 @@ from enum import Enum
 from typing import Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 from . import graph_lifecycle_providers
 from .api_models import AssetGraphSource
@@ -188,7 +190,23 @@ def get_graph() -> AssetRelationshipGraph:
 
 
 def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphSource | None]:
-    """Return the module-global graph and its tracked startup source atomically."""
+    """
+    Obtain the module-global AssetRelationshipGraph and its recorded startup source.
+
+    This initializes the graph if necessary.
+
+    If the global graph is uninitialized this function performs an atomic initialization under the module lock;
+    on successful initialization the graph and its startup source are stored for future calls and an
+    observability event is emitted.
+
+    Returns:
+        tuple[AssetRelationshipGraph, AssetGraphSource | None]: The active global graph and the source
+            used to initialize it (or `None` if unknown).
+
+    Raises:
+        RuntimeError: If initialization completes but the global graph remains `None`.
+        Exception: Propagates any exception raised during graph initialization.
+    """
     with graph_lock:
         if graph_state.graph is None:
             _normalize_shutdown_state()
@@ -201,7 +219,15 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphS
             graph_state.graph = graph
             graph_state.startup_source = startup_source
             _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
-            logger.info("Graph initialized successfully")
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="graph_initialized",
+                    message="Graph initialized successfully",
+                    metadata={"startup_source": startup_source},
+                ),
+            )
 
         if graph_state.graph is None:
             raise RuntimeError("Global graph initialization failed; graph is None.")
@@ -341,17 +367,26 @@ def begin_rebuild() -> None:
 
 
 def complete_rebuild(*, succeeded: bool) -> None:
-    """Finalize lifecycle state for rebuild completion.
+    """
+    Finalize the graph lifecycle after a rebuild attempt.
 
-    Calls outside REBUILDING are ignored with a warning because shutdown or
-    cancellation cleanup can race with executor callbacks; callers should still
-    treat the warning as evidence of an unexpected lifecycle ordering issue.
+    If called when the runtime is not in the REBUILDING state, emits a warning event and returns without changing state.
+
+    If `succeeded` is True transitions the lifecycle to READY; otherwise transitions it to FAILED.
+
+    Parameters:
+        succeeded (bool): Whether the rebuild succeeded; `True` transitions to READY, `False` transitions to FAILED.
     """
     with graph_lock:
         if graph_state.lifecycle_state != GraphRuntimeLifecycleState.REBUILDING:
-            logger.warning(
-                "Ignoring complete_rebuild outside REBUILDING state: %s",
-                graph_state.lifecycle_state,
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_rebuild_complete_invalid_state",
+                    message=f"Ignoring complete_rebuild outside REBUILDING state: {graph_state.lifecycle_state}",
+                    metadata={"lifecycle_state": str(graph_state.lifecycle_state)},
+                ),
             )
             return
         if succeeded:
@@ -378,16 +413,16 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphSource]:
     """
-    Initialize a graph and return the selected startup source.
+    Select and initialize an AssetRelationshipGraph and identify its startup source.
 
-    Precedence:
-    1. custom graph factory;
-    2. persisted graph when durable persistence is configured and populated;
-    3. graph cache path;
-    4. real-data fetcher;
-    5. sample graph.
+    The selection follows this precedence: explicit graph factory, persisted durable graph, cache file, real-data
+    fetcher, then a generated sample graph. If a persisted graph is used, the function will attempt to initialize
+    the module's `last_synced_job_id` from durable persistence; if that attempt fails, initialization continues
+    without setting `last_synced_job_id`.
 
-    Configured persistence failures raise RuntimeError.
+    Returns:
+        tuple[AssetRelationshipGraph, AssetGraphSource]: The initialized graph and a source identifier:
+            one of "explicit_factory", "persisted_graph_store", "cache", "real_data", or "sample".
     """
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory(), "explicit_factory"
@@ -397,7 +432,15 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
         _settings_asset_graph_database_url(settings)
     )
     if persisted_graph is not None:
-        logger.info("Graph startup source: persisted_graph_store")
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="graph_startup_source_detected",
+                message="Graph startup source: persisted_graph_store",
+                metadata={"source": "persisted_graph_store"},
+            ),
+        )
 
         # Initialize last_synced_job_id from DB if possible
         try:
@@ -405,9 +448,17 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
             if latest_job_id:
                 graph_state.last_synced_job_id = latest_job_id
         except Exception as exc:
-            logger.warning(
-                "Failed to initialize last_synced_job_id during graph startup (exception_type=%s)",
-                type(exc).__name__,
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_startup_job_id_initialization_failed",
+                    message=(
+                        "Failed to initialize last_synced_job_id during graph startup "
+                        f"(exception_type={type(exc).__name__})"
+                    ),
+                    metadata={"error": type(exc).__name__},
+                ),
             )
 
         return persisted_graph, "persisted_graph_store"
@@ -429,12 +480,30 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
         )
         return graph, "real_data"
 
-    logger.info("Graph startup source: sample")
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="graph_startup_source_detected",
+            message="Graph startup source: sample",
+            metadata={"source": "sample"},
+        ),
+    )
     return graph_lifecycle_providers.create_sample_graph(), "sample"
 
 
 def sync_with_latest_rebuild() -> None:
-    """Check database for newer successful rebuild and synchronize if found."""
+    """
+    Check durable persistence for a newer successful rebuild.
+
+    If found, this loads and synchronizes that graph into the running runtime.
+
+    If the durable graph database is not configured or the runtime is rebuilding or shutting down, the function
+    returns without action. When a newer rebuild job is detected it loads the persisted graph, attempts to
+    publish it to the module runtime (and legacy `api.main.graph` if present), updates graph metrics on success,
+    and emits observability events. Failures during the sync attempt are caught and emitted as a warning
+    event; the function does not raise.
+    """
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
     if not _settings_asset_graph_database_url(settings):
         return
@@ -466,9 +535,14 @@ def sync_with_latest_rebuild() -> None:
                 return
             expected_last_synced_job_id = graph_state.last_synced_job_id
 
-        logger.info(
-            "New successful rebuild detected (job_id: %s). Synchronizing...",
-            latest_job_id,
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="new_rebuild_detected",
+                message=f"New successful rebuild detected (job_id: {latest_job_id}). Synchronizing...",
+                metadata={"job_id": latest_job_id},
+            ),
         )
 
         resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(
@@ -494,7 +568,12 @@ def sync_with_latest_rebuild() -> None:
         finally:
             engine.dispose()
     except Exception as exc:
-        logger.warning(
-            "Failed to sync with latest rebuild from database: %s",
-            type(exc).__name__,
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_sync_failed",
+                message=f"Failed to sync with latest rebuild from database: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
         )

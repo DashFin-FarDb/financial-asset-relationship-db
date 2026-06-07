@@ -49,6 +49,7 @@ dependencies = [
     "PyJWT>=2.8.0",
     "passlib[bcrypt]>=1.7.4",
     "slowapi>=0.1.4",
+    "structlog>=24.1.0",
 ]
 
 [project.optional-dependencies]
@@ -121,6 +122,10 @@ extend-exclude = '''
   | dist
 )/
 '''
+
+[tool.isort]
+profile = "black"
+line_length = 120
 
 [tool.ruff]
 line-length = 120

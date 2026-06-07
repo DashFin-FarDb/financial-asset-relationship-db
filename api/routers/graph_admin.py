@@ -23,10 +23,11 @@ from sqlalchemy.orm import Session
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
-from src.data.distributed_lock import DistributedLock, LockLifecycleState, LockState
+from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockLifecycleState, LockState
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import (
     GraphRebuildResponse,
@@ -199,7 +200,16 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
 
 
 def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException:
-    """Map rebuild domain errors to sanitized HTTP errors."""
+    """
+    Map an internal rebuild exception to a sanitized HTTPException for API responses.
+
+    Parameters:
+        exc (Exception | asyncio.CancelledError): The exception raised during rebuild processing;
+            may wrap the original cause.
+
+    Returns:
+        HTTPException: An HTTP exception with a safe status code and a sanitized detail payload describing the failure.
+    """
     root_exc = _unwrap_rebuild_error(exc)
 
     if isinstance(root_exc, _DistributedLockAcquisitionError):
@@ -234,7 +244,15 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
             detail=str(root_exc),
         )
 
-    logger.error("Unexpected graph rebuild failure: %s", root_exc.__class__.__name__)
+    log_event(
+        logger,
+        logging.ERROR,
+        ObservabilityEvent(
+            event="graph_rebuild_unexpected_failure",
+            message=f"Unexpected graph rebuild failure: {root_exc.__class__.__name__}",
+            metadata={"error": root_exc.__class__.__name__},
+        ),
+    )
     return HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Graph rebuild failed.",
@@ -276,31 +294,44 @@ def _duration_ms(started_at: float) -> int:
 
 
 def _log_rebuild_requested(*, user_ref: str) -> None:
-    """Emit a bounded audit event for rebuild request start."""
+    """
+    Record that a graph rebuild was requested and emit a bounded observability audit event.
+
+    Parameters:
+        user_ref (str): Printable, already-resolved user identifier to include in the audit metadata.
+    """
     REBUILD_REQUESTS.inc()
-    logger.info(
-        "graph_rebuild_audit",
-        extra={
-            "event": _REBUILD_AUDIT_REQUESTED,
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "timestamp": _audit_timestamp(),
-        },
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event=_REBUILD_AUDIT_REQUESTED,
+            message=f"Graph rebuild requested by user {user_ref}",
+            metadata={
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
 
 
 def _log_rebuild_rejected(*, user_ref: str) -> None:
     """Emit a bounded audit event for rebuild concurrency rejection."""
-    logger.warning(
-        "graph_rebuild_audit",
-        extra={
-            "event": _REBUILD_AUDIT_REJECTED,
-            "reason": "rebuild_in_progress",
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "status_code": status.HTTP_429_TOO_MANY_REQUESTS,
-            "timestamp": _audit_timestamp(),
-        },
+    log_event(
+        logger,
+        logging.WARNING,
+        ObservabilityEvent(
+            event=_REBUILD_AUDIT_REJECTED,
+            message=f"Graph rebuild request rejected for user {user_ref}: rebuild in progress",
+            metadata={
+                "reason": "rebuild_in_progress",
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "status_code": status.HTTP_429_TOO_MANY_REQUESTS,
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
 
 
@@ -310,24 +341,36 @@ def _log_rebuild_succeeded(
     response: GraphRebuildResponse,
     duration_ms: int,
 ) -> None:
-    """Emit a bounded audit event for successful rebuild completion."""
+    """
+    Emit a bounded audit event and update metrics when a graph rebuild completes successfully.
+
+    Parameters:
+        user_ref (str): Printable, sanitized reference for the operator who initiated the rebuild.
+        response (GraphRebuildResponse): Result containing `source`, `asset_count`,
+        `relationship_count`, and `regulatory_event_count`.
+        duration_ms (int): Elapsed wall-clock time for the rebuild in milliseconds.
+    """
     REBUILD_SUCCESS.labels(source=response.source).inc()
     REBUILD_DURATION.observe(duration_ms / 1000.0)
     update_graph_metrics(response.asset_count, response.relationship_count)
-    logger.info(
-        "graph_rebuild_audit",
-        extra={
-            "event": _REBUILD_AUDIT_SUCCEEDED,
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "status_code": status.HTTP_200_OK,
-            "source": response.source,
-            "duration_ms": duration_ms,
-            "asset_count": response.asset_count,
-            "relationship_count": response.relationship_count,
-            "regulatory_event_count": response.regulatory_event_count,
-            "timestamp": _audit_timestamp(),
-        },
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event=_REBUILD_AUDIT_SUCCEEDED,
+            message=f"Graph rebuild succeeded (source: {response.source}, duration: {duration_ms}ms)",
+            metadata={
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "status_code": status.HTTP_200_OK,
+                "source": response.source,
+                "duration_ms": duration_ms,
+                "asset_count": response.asset_count,
+                "relationship_count": response.relationship_count,
+                "regulatory_event_count": response.regulatory_event_count,
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
 
 
@@ -360,44 +403,82 @@ def _log_rebuild_failed(
     status_code: int,
     duration_ms: int,
 ) -> None:
-    """Emit a bounded audit event for rebuild failure."""
+    """
+    Record and emit a structured audit event for a failed graph rebuild.
+
+    Parameters:
+        user_ref (str): Sanitized reference identifying the requesting user.
+        exc (Exception | asyncio.CancelledError): The underlying exception that caused the failure.
+        status_code (int): HTTP status code to associate with the failure audit.
+        duration_ms (int): Elapsed rebuild duration in milliseconds.
+
+    """
     category = _rebuild_failure_category(exc)
     REBUILD_FAILURE.labels(category=category).inc()
     REBUILD_DURATION.observe(duration_ms / 1000.0)
 
-    logger.error(
-        "graph_rebuild_audit",
-        extra={
-            "event": _REBUILD_AUDIT_FAILED,
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "failure_category": category,
-            "status_code": status_code,
-            "duration_ms": duration_ms,
-            "source": _rebuild_source_from_exception(exc),
-            "timestamp": _audit_timestamp(),
-        },
+    log_event(
+        logger,
+        logging.ERROR,
+        ObservabilityEvent(
+            event=_REBUILD_AUDIT_FAILED,
+            message=f"Graph rebuild failed (category: {category}, duration: {duration_ms}ms)",
+            metadata={
+                "failure_category": category,
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "status_code": status_code,
+                "duration_ms": duration_ms,
+                "source": _rebuild_source_from_exception(exc),
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
 
 
-def _log_unexpected_rebuild_exception(*, user_ref: str, exc: Exception | asyncio.CancelledError) -> None:
-    """Emit a sentinel alert log for unexpected rebuild failures."""
-    logger.critical(
-        "graph_rebuild_unexpected_exception",
-        exc_info=False,
-        extra={
-            "event": "graph_rebuild_unexpected_exception",
-            "user_ref": user_ref,
-            "path": _REBUILD_PATH,
-            "exception_type": type(exc).__name__,
-            "timestamp": _audit_timestamp(),
-        },
+def _log_unexpected_rebuild_exception(
+    *, user_ref: str, exc: Exception | asyncio.CancelledError, job_id: str | None = None
+) -> None:
+    """
+    Record a critical sentinel and a debug observability event for an unexpected rebuild exception.
+
+    Parameters:
+        user_ref (str): Printable, bounded user identifier associated with the request.
+        exc (Exception | asyncio.CancelledError): The unexpected exception that occurred.
+        job_id (str | None): Optional rebuild job identifier to include in the debug event metadata.
+    """
+    log_event(
+        logger,
+        logging.CRITICAL,
+        ObservabilityEvent(
+            event="graph_rebuild_unexpected_exception",
+            message=f"Unexpected graph rebuild exception: {type(exc).__name__}",
+            metadata={
+                "user_ref": user_ref,
+                "path": _REBUILD_PATH,
+                "exception_type": type(exc).__name__,
+                "timestamp": _audit_timestamp(),
+            },
+        ),
     )
-    logger.debug("Unexpected rebuild exception details", exc_info=True)
+    log_event(
+        logger,
+        logging.DEBUG,
+        ObservabilityEvent(
+            event="graph_rebuild_unexpected_exception_details",
+            message="Unexpected rebuild exception details",
+            metadata={"job_id": job_id} if job_id else {},
+        ),
+    )
 
 
 def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception | asyncio.CancelledError:
-    """Return the underlying rebuild error for mapping and audit categorization."""
+    """
+    Unwraps a _RebuildExecutionError to its original cause for error mapping and audit categorization.
+
+    Returns:
+        The underlying exception cause if `exc` is a `_RebuildExecutionError`, otherwise `exc` unchanged.
+    """
     if isinstance(exc, _RebuildExecutionError):
         return exc.cause
     return exc
@@ -506,6 +587,7 @@ async def _run_rebuild_in_executor(
     ctx = contextvars.copy_context()
 
     def rebuild_with_context() -> GraphRebuildResponse:
+        """Run the sync rebuild function within the captured context."""
         return _perform_rebuild_and_persist_sync(settings, user_ref=user_ref)
 
     try:
@@ -609,7 +691,22 @@ def _heartbeat_keeper(
     lock_lost_event: threading.Event,
     interval_seconds: float,
 ) -> None:
-    """Background thread that periodically refreshes both the distributed lock and rebuild heartbeat."""
+    """Maintain a background heartbeat loop for the distributed lock.
+
+    Refreshes the distributed lock and writes a rebuild heartbeat until stopped
+    or the lock is lost.
+
+    Sets `lock_lost_event` and stops if a lock refresh fails or if updating the heartbeat in persistence fails.
+
+    Parameters:
+        session_factory (Callable[[], Session]): Factory that yields a new DB session for heartbeat updates.
+        dist_lock (DistributedLock): Distributed lock instance to refresh.
+        job_id (str): Identifier of the rebuild job this heartbeat is maintaining.
+        worker_id (str): Identifier of the worker performing the rebuild used when updating the heartbeat.
+        stop_event (threading.Event): Event that, when set, causes the keeper to stop gracefully.
+        lock_lost_event (threading.Event): Event that will be set if the lock is lost or heartbeat updates fail.
+        interval_seconds (float): Interval, in seconds, between refresh/update cycles.
+    """
     while not stop_event.wait(timeout=interval_seconds):
         try:
             # Lock refresh with metrics instrumentation
@@ -618,7 +715,15 @@ def _heartbeat_keeper(
 
             if not refresh_ok:
                 LOCK_REFRESH_TOTAL.labels(status="failure").inc()
-                logger.error("Heartbeat keeper lost distributed lock for job %s.", job_id)
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_heartbeat_lock_lost",
+                        message=f"Heartbeat keeper lost distributed lock for job {job_id}.",
+                        metadata={"job_id": job_id},
+                    ),
+                )
                 lock_lost_event.set()
                 return
 
@@ -634,20 +739,28 @@ def _heartbeat_keeper(
                 HEARTBEAT_LAST_SUCCESS_TIMESTAMP.set(time.time())
             except Exception as hb_exc:
                 HEARTBEAT_UPDATE_TOTAL.labels(status="failure").inc()
-                logger.error(
-                    "Heartbeat keeper database update failed for job %s: %s.",
-                    job_id,
-                    type(hb_exc).__name__,
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_heartbeat_db_update_failed",
+                        message=f"Heartbeat keeper database update failed for job {job_id}: {type(hb_exc).__name__}.",
+                        metadata={"job_id": job_id, "error": type(hb_exc).__name__},
+                    ),
                 )
                 lock_lost_event.set()
                 return
         except Exception as exc:
             # Catches exceptions from lock refresh (e.g., database connectivity issues)
             LOCK_REFRESH_TOTAL.labels(status="failure").inc()
-            logger.error(
-                "Heartbeat keeper lock refresh failed for job %s: %s.",
-                job_id,
-                type(exc).__name__,
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="rebuild_heartbeat_lock_refresh_failed",
+                    message=f"Heartbeat keeper lock refresh failed for job {job_id}: {type(exc).__name__}.",
+                    metadata={"job_id": job_id, "error": type(exc).__name__},
+                ),
             )
             lock_lost_event.set()
             return
@@ -665,17 +778,35 @@ def _restore_persisted_graph_snapshot(
     persistence_url: str,
     snapshot: AssetRelationshipGraph,
 ) -> None:
-    """Best-effort rollback of durable graph state when success persistence fails."""
+    """Attempt to restore the provided graph snapshot to persistence.
+
+    On failure, emit an observability event and continue.
+
+    Parameters:
+        persistence_url (str): Resolved durable persistence URL where the snapshot should be saved.
+        snapshot (AssetRelationshipGraph): In-memory graph snapshot to be restored.
+
+    """
     try:
         save_graph_to_persistence(persistence_url, snapshot)
-    except Exception:
-        logger.exception("Failed to restore persisted graph snapshot after rebuild failure")
+    except Exception as restore_exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_rebuild_snapshot_restore_failed",
+                message=(
+                    f"Failed to restore persisted graph snapshot after rebuild failure: {type(restore_exc).__name__}"
+                ),
+                metadata={"error": type(restore_exc).__name__},
+            ),
+        )
 
 
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
-    exc: Exception,
+    exc: Exception | asyncio.CancelledError,
     job_started_at: float,
     success_persisted: bool,
     graph_saved: bool,
@@ -683,7 +814,35 @@ def _handle_rebuild_failure(
     resolved_url: str,
     source: GraphRebuildSource | None,
 ) -> NoReturn:
-    """Handle rebuild failure with rollback and persistence."""
+    """Handle a rebuild failure and restore prior snapshot if appropriate.
+
+    Persists the job's failed terminal state, and re-raises an exception
+    that preserves bounded source context.
+
+    If a successful terminal state was not already persisted, this function:
+    - Restores `graph_snapshot` to `resolved_url` when `graph_saved` is True and a snapshot is available.
+    - Persists the failed job terminal state including duration and sanitized failure metadata.
+
+    Parameters:
+        session_factory (Callable[[], Session]): Factory that yields a new DB session for persistence actions.
+        job_id (str): Identifier of the rebuild job to mark failed.
+        exc (Exception): The original exception that caused the rebuild failure.
+        job_started_at (float): Monotonic start timestamp (seconds) used to compute job duration.
+        success_persisted (bool): True when a successful terminal state has already been persisted;
+            failure handling is skipped.
+        graph_saved (bool): True when the rebuilt graph was written to persistence;
+            used to decide whether to attempt snapshot restore.
+        graph_snapshot (AssetRelationshipGraph | None): Snapshot of the previous persisted graph to
+            restore on rollback when available.
+        resolved_url (str): Persistence URL where the graph should be restored.
+        source (GraphRebuildSource | None): Bounded source context for the rebuild;
+            when present the original exception is wrapped to preserve source.
+
+    Raises:
+        _RebuildExecutionError: When `source` is provided; wraps the original exception
+            and preserves the bounded source context.
+        Exception: Re-raises the original exception when no `source` is available.
+    """
     if not success_persisted:
         if graph_saved and graph_snapshot is not None:
             _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
@@ -695,7 +854,7 @@ def _handle_rebuild_failure(
         )
     if source is not None:
         raise _RebuildExecutionError(source, exc) from exc
-    raise
+    raise exc from None
 
 
 @contextmanager
@@ -741,7 +900,32 @@ def _run_rebuild_pipeline(
     job_started_at: float,
     lock_lost: threading.Event,
 ) -> GraphRebuildResponse:
-    """Run sequential synchronization logic after setup validations pass."""
+    """Run a single rebuild of the asset relationship graph.
+
+    Builds the asset relationship graph, persists it atomically to durable storage,
+    finalize the job state, and publish the graph to the runtime.
+
+    This function checks the provided `lock_lost` event at key stages to abort and trigger rollback if
+    the distributed lock is lost. On failure it persists a failed job terminal state and may attempt
+    to restore a previously saved snapshot before re-raising the failure (the re-raised exception
+    may be wrapped to preserve the rebuild `source`).
+
+    Parameters:
+        session_factory (Callable[[], Session]): Factory that provides a new SQLAlchemy Session for job updates.
+        settings (GraphLifecycleSettings): Configuration used to build the graph.
+        resolved_url (str): Durable persistence target URL where the rebuilt graph will be saved.
+        job_id (str): Identifier of the rebuild job being executed.
+        job_started_at (float): Monotonic timestamp when the job started, used to compute durations.
+        lock_lost (threading.Event): Event set when the distributed lock is lost;
+            checked at multiple stages to abort and trigger rollback.
+
+    Returns:
+        GraphRebuildResponse: Result for the persisted rebuild including status, source, and asset/relationship counts.
+
+    Raises:
+        Exception: Re-raises the original failure encountered while building or persisting;
+            when a rebuild `source` is known the raised exception may be wrapped to preserve that context.
+    """
     source: GraphRebuildSource | None = None
     success_persisted = False
     graph_snapshot: AssetRelationshipGraph | None = None
@@ -760,6 +944,7 @@ def _run_rebuild_pipeline(
         graph_snapshot = _load_persisted_graph_snapshot(session_factory)
 
         def _ensure_lock_not_lost_before_commit() -> None:
+            """Check lock state one last time before committing the new graph."""
             if lock_lost.is_set():
                 raise _DistributedLockLostError("Lost distributed lock at stage=graph-commit")
 
@@ -799,148 +984,146 @@ def _run_rebuild_pipeline(
         raise
 
 
+def _setup_coordination_and_domain_factories(
+    settings: GraphLifecycleSettings,
+) -> tuple[Callable[[], Session], Callable[[], Session], str, Engine, Engine | None]:
+    """Resolve durable persistence URLs and session factories.
+
+    Provides SQLAlchemy session factories and engines for the domain (graph) and coordination planes.
+
+    Parameters:
+        settings (GraphLifecycleSettings): Configuration containing `asset_graph_database_url`
+            and optional `coordination_database_url`.
+
+    Returns:
+        tuple[Callable[[], Session], Callable[[], Session], str, Engine, Engine | None]:
+            - domain_session_factory: callable that yields a new Session bound to the domain engine.
+            - coordination_session_factory: callable that yields a new Session for the coordination
+                engine (may be the same as domain_session_factory).
+            - resolved_domain_url: resolved durable URL used for domain persistence.
+            - domain_engine: Engine instance for the domain persistence.
+            - coordination_engine: Engine instance for coordination if a separate coordination database
+                is used, otherwise `None`.
+
+    Raises:
+        RuntimeError: If neither `coordination_database_url` nor `asset_graph_database_url` is configured.
+    """
+    coordination_url = settings.coordination_database_url or settings.asset_graph_database_url
+    if not coordination_url:
+        raise RuntimeError(
+            "Neither coordination_database_url nor asset_graph_database_url is configured. "
+            "At least one durable database URL must be configured for rebuild coordination."
+        )
+
+    resolved_domain_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    domain_engine = None
+    coordination_engine = None
+
+    try:
+        domain_engine = create_engine_from_url(resolved_domain_url)
+
+        resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_url)
+        try:
+            same_db = make_url(resolved_coordination_url) == make_url(resolved_domain_url)
+        except Exception:
+            same_db = resolved_coordination_url == resolved_domain_url
+
+        if same_db:
+            coordination_session_factory = create_session_factory(domain_engine)
+            domain_session_factory = coordination_session_factory
+        else:
+            coordination_engine = create_engine_from_url(resolved_coordination_url)
+            coordination_session_factory = create_session_factory(coordination_engine)
+            domain_session_factory = create_session_factory(domain_engine)
+
+        return (
+            domain_session_factory,
+            coordination_session_factory,
+            resolved_domain_url,
+            domain_engine,
+            coordination_engine,
+        )
+    except Exception:
+        if domain_engine:
+            domain_engine.dispose()
+        if coordination_engine:
+            coordination_engine.dispose()
+        raise
+
+
+def _acquire_rebuild_lock(
+    coordination_session_factory: Callable[[], Session],
+    lock_ttl: int,
+) -> DistributedLock:
+    """
+    Acquire and validate the distributed rebuild lock for the coordination plane.
+
+    Parameters:
+        coordination_session_factory (Callable[[], Session]):
+        Factory that produces a DB session used by the distributed lock.
+        lock_ttl (int): Time-to-live for the lock in seconds.
+
+    Returns:
+        DistributedLock: An acquired lock whose state has been verified as `LockState.VALID`.
+
+    Raises:
+        _DistributedLockAcquisitionError: If the lock could not be acquired.
+        RuntimeError: If the lock's state is not valid immediately after acquisition.
+    """
+    _validate_coordination_database_primary(coordination_session_factory)
+
+    # Enforce hard TTL cap of 300 seconds per GEMINI.md mandate
+    safe_ttl = min(lock_ttl, 300)
+
+    dist_lock = DistributedLock(
+        coordination_session_factory=coordination_session_factory,
+        lock_name="graph_rebuild",
+        ttl_seconds=safe_ttl,
+    )
+
+    try:
+        dist_lock.acquire()
+    except LockAcquisitionTimeout as exc:
+        raise _DistributedLockAcquisitionError(str(exc)) from exc
+
+    lock_state = dist_lock.check_state()
+    if lock_state == LockState.LOST:
+        raise RuntimeError("Coordination state lost immediately after acquisition.")
+    if lock_state != LockState.VALID:
+        raise RuntimeError(f"Unexpected coordination state after acquisition: {lock_state}")
+
+    return dist_lock
+
+
 def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
     *,
     user_ref: str,
 ) -> GraphRebuildResponse:
     """
-    Rebuild the graph, persist it, then publish it to runtime state.
+    Rebuild the asset graph, persist the result, and publish the new graph to runtime state.
 
-    Architecture:
-        Plane 1 (Domain Plane):
-            - Asset graph persistence
-            - Rebuild execution
-            - Runtime graph publication
-            - May use regional/local replicas for read scaling
-
-        Plane 2 (Coordination Plane):
-            - Distributed lock coordination
-            - Heartbeat authority
-            - Recovery gating
-            - MUST target authoritative primary-only database
-
-    Coordination Safety Rules:
-        - coordination_database_url MUST be explicitly configured
-        - coordination plane MUST use isolated engine/session pools
-        - coordination plane MUST NOT reuse domain-plane sessions
-        - coordination authority MUST fail closed on connectivity loss
+    Returns:
+        GraphRebuildResponse: Final rebuild response containing persisted status, source information,
+        and asset/relationship/regulatory counts.
     """
-    #
-    # ------------------------------------------------------------------
-    # Pre-allocation Safety & Guard checks
-    # ------------------------------------------------------------------
-    #
+    (
+        domain_session_factory,
+        coordination_session_factory,
+        resolved_domain_url,
+        domain_engine,
+        coordination_engine,
+    ) = _setup_coordination_and_domain_factories(settings)
 
-    # Use coordination DB if configured; otherwise fall back to asset_graph_database_url.
-    # Note: this creates a separate Engine instance for coordination even if the DSN equals the domain DB.
-    coordination_database_url = settings.coordination_database_url or settings.asset_graph_database_url
-
-    if not coordination_database_url:
-        raise RuntimeError(
-            "Neither coordination_database_url nor asset_graph_database_url is configured. "
-            "At least one durable database URL must be configured for rebuild coordination."
-        )
-
-    domain_engine: Engine | None = None
-    coordination_engine: Engine | None = None
     dist_lock: DistributedLock | None = None
     lock_acquired = False
 
     try:
-        #
-        # --------------------------------------------------------------
-        # Resolve DB URLs & Initialize isolated engines
-        # --------------------------------------------------------------
-        #
-
-        resolved_domain_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-        domain_engine = create_engine_from_url(
-            resolved_domain_url,
-        )
-
-        resolved_coordination_url = resolve_durable_graph_persistence_url(coordination_database_url)
-        # Normalize and compare SQLAlchemy URLs to robustly detect identical database targets
-        try:
-            same_db = make_url(resolved_coordination_url) == make_url(resolved_domain_url)
-        except Exception:
-            # Fall back to string comparison if URL parsing fails for any reason
-            same_db = resolved_coordination_url == resolved_domain_url
-
-        if same_db:
-            coordination_engine = domain_engine
-        else:
-            coordination_engine = create_engine_from_url(
-                resolved_coordination_url,
-            )
-
-        #
-        # --------------------------------------------------------------
-        # Create isolated session factories
-        # --------------------------------------------------------------
-        #
-
-        domain_session_factory = create_session_factory(domain_engine)
-        # Reuse the domain session factory when both targets resolve to the same engine to avoid
-        # creating a duplicate engine/pool. If the coordination engine is a separate engine instance
-        # (different URL), create an isolated coordination session factory.
-        coordination_session_factory = (
-            domain_session_factory
-            if coordination_engine is domain_engine
-            else create_session_factory(coordination_engine)
-        )
-
-        #
-        # --------------------------------------------------------------
-        # Validate coordination authority
-        # --------------------------------------------------------------
-        #
-        # Coordination plane MUST point to authoritative primary.
-        #
-
-        _validate_coordination_database_primary(coordination_session_factory)
-
-        #
-        # --------------------------------------------------------------
-        # Create distributed coordination lock
-        # --------------------------------------------------------------
-        #
-
         lock_ttl = settings.rebuild_lock_ttl_seconds
-
-        dist_lock = DistributedLock(
-            coordination_session_factory=coordination_session_factory,
-            lock_name="graph_rebuild",
-            ttl_seconds=lock_ttl,
-        )
-
-        lease = dist_lock.acquire()
-
-        if not lease:
-            raise _DistributedLockAcquisitionError("Could not acquire distributed rebuild lock.")
-
+        dist_lock = _acquire_rebuild_lock(coordination_session_factory, lock_ttl)
         lock_acquired = True
 
-        #
-        # --------------------------------------------------------------
-        # Validate coordination state
-        # --------------------------------------------------------------
-        #
-
-        lock_state = dist_lock.check_state()
-
-        if lock_state == LockState.LOST:
-            raise RuntimeError("Coordination state lost immediately after acquisition.")
-
-        if lock_state != LockState.VALID:
-            raise RuntimeError(f"Unexpected coordination state after acquisition: {lock_state}")
-
-        #
-        # --------------------------------------------------------------
         # Recovery safety gate
-        # --------------------------------------------------------------
-        #
-
         RecoveryGate(
             session_factory=domain_session_factory,
             lock=dist_lock,
@@ -949,31 +1132,20 @@ def _perform_rebuild_and_persist_sync(
             lock_ttl_seconds=lock_ttl,
         ).ensure_safe_to_execute()
 
-        #
-        # --------------------------------------------------------------
         # Create rebuild job
-        # --------------------------------------------------------------
-        #
-
         job_id, job_started_at = _create_and_start_rebuild_job(
             domain_session_factory,
             user_ref,
             dist_lock.holder_id,
         )
 
-        #
-        # --------------------------------------------------------------
         # Heartbeat orchestration
-        # --------------------------------------------------------------
-        #
-
         with _orchestrate_heartbeat(
             domain_session_factory,
             dist_lock,
             job_id,
             lock_ttl,
         ) as lock_lost:
-
             return _run_rebuild_pipeline(
                 domain_session_factory,
                 settings,
@@ -984,50 +1156,62 @@ def _perform_rebuild_and_persist_sync(
             )
 
     finally:
-        #
-        # --------------------------------------------------------------
-        # Best-effort lock release
-        # --------------------------------------------------------------
-        #
         if dist_lock is not None and lock_acquired and dist_lock.state != LockLifecycleState.LOST:
             try:
                 dist_lock.release()
-            except Exception:
-                logger.exception("Failed to release distributed rebuild lock")
+            except Exception as release_exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_lock_release_failed",
+                        message=f"Failed to release distributed rebuild lock: {type(release_exc).__name__}",
+                        metadata={"error": type(release_exc).__name__},
+                    ),
+                )
 
-        #
-        # --------------------------------------------------------------
-        # Dispose coordination engine
-        # --------------------------------------------------------------
-        #
-        # fmt: off
-        if (
-            coordination_engine is not None
-            and coordination_engine is not domain_engine
-        ):
-            # fmt: on
+        if coordination_engine is not None:
             try:
                 coordination_engine.dispose()
-            except Exception:
-                logger.exception("Failed to dispose coordination database engine")
+            except Exception as dispose_exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_coordination_engine_dispose_failed",
+                        message=f"Failed to dispose coordination database engine: {type(dispose_exc).__name__}",
+                        metadata={"error": type(dispose_exc).__name__},
+                    ),
+                )
 
-        #
-        # --------------------------------------------------------------
-        # Dispose domain engine
-        # --------------------------------------------------------------
-        #
         if domain_engine is not None:
             try:
                 domain_engine.dispose()
-            except Exception:
-                logger.exception("Failed to dispose domain database engine")
+            except Exception as dispose_exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_domain_engine_dispose_failed",
+                        message=f"Failed to dispose domain database engine: {type(dispose_exc).__name__}",
+                        metadata={"error": type(dispose_exc).__name__},
+                    ),
+                )
 
 
 def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
-    """Verify the coordination DB is a writable primary, not a replica.
+    """
+    Ensure the coordination database is a writable primary rather than a read replica.
 
-    For PostgreSQL this uses pg_is_in_recovery(); for non-Postgres backends (e.g. SQLite)
-    the check is a no-op because replica detection isn't applicable.
+    This performs a backend-appropriate check and will be a no-op on databases where replica detection
+    is not applicable. If the database is a read replica or the role cannot be determined, a
+    RuntimeError is raised to prevent proceeding with coordination operations.
+
+    Parameters:
+        session_factory (Callable[[], Session]): Factory that yields a SQLAlchemy Session for the coordination database.
+
+    Raises:
+        RuntimeError: If the coordination database is a read replica or if its primary role cannot be verified.
     """
     try:
         with session_scope(session_factory) as session:
@@ -1045,24 +1229,74 @@ def _validate_coordination_database_primary(session_factory: Callable[[], Sessio
         # Re-raise explicit replica/role check failures directly
         raise
     except (SQLAlchemyError, OSError) as exc:
-        logger.error("Error while verifying coordination database role: %s", type(exc).__name__)
-        logger.debug("Full exception while verifying coordination database role", exc_info=True)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="coordination_db_role_verification_failed",
+                message=f"Error while verifying coordination database role: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="coordination_db_role_verification_details",
+                message="Full exception while verifying coordination database role",
+            ),
+        )
         # Fail closed: if we cannot determine DB role, prevent proceeding
         raise RuntimeError("Could not verify coordination database role") from exc
     except Exception as exc:
         # Unexpected error during session cleanup (rollback/close). Log and raise a consistent RuntimeError.
-        logger.error("Unexpected error while verifying coordination database role: %s", type(exc).__name__)
-        logger.debug("Full exception while verifying coordination database role", exc_info=True)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="coordination_db_role_verification_unexpected_error",
+                message=f"Unexpected error while verifying coordination database role: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="coordination_db_role_verification_unexpected_details",
+                message="Full exception while verifying coordination database role",
+            ),
+        )
         raise RuntimeError("Could not verify coordination database role") from exc
 
 
 def _create_job_safe(session_factory: Callable[[], Session], user_ref: str) -> str:
-    """Create a rebuild job record in pending status."""
+    """
+    Create a rebuild job record in pending status.
+
+    Parameters:
+        session_factory (Callable[[], Session]): Factory that produces a new DB session for repository operations.
+        user_ref (str): Bounded, printable identifier for the requesting user.
+
+    Returns:
+        job_id (str): Identifier of the created rebuild job.
+
+    Raises:
+        GraphPersistenceSaveError: If persisting the job record fails.
+    """
     try:
         with session_scope(session_factory) as session:
             return AssetGraphRepository(session).create_rebuild_job(requested_by=user_ref)
     except Exception as exc:
-        logger.exception("Failed to create rebuild job record: %s", exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_job_creation_failed",
+                message=f"Failed to create rebuild job record: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
+        )
         raise GraphPersistenceSaveError("Failed to create rebuild job record.") from exc
 
 
@@ -1072,12 +1306,31 @@ def _run_job_update(
     action: Callable[[AssetGraphRepository], None],
     error_message: str,
 ) -> None:
-    """Execute a repository job-update action; raise GraphPersistenceSaveError on failure."""
+    """
+    Execute a repository update action for a rebuild job and raise a GraphPersistenceSaveError on failure.
+
+    Parameters:
+        session_factory (Callable[[], Session]): Factory that yields a database session.
+        job_id (str): Identifier of the rebuild job being updated; used for logging.
+        action (Callable[[AssetGraphRepository], None]): Repository operation to run within the session.
+        error_message (str): Error message to include in the raised GraphPersistenceSaveError.
+
+    Raises:
+        GraphPersistenceSaveError: If the repository action or session management raises any exception.
+    """
     try:
         with session_scope(session_factory) as session:
             action(AssetGraphRepository(session))
     except Exception as exc:
-        logger.exception("Rebuild job %s update failed: %s", job_id, exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_job_update_failed",
+                message=f"Rebuild job {job_id} update failed: {exc.__class__.__name__}",
+                metadata={"job_id": job_id, "error": exc.__class__.__name__},
+            ),
+        )
         raise GraphPersistenceSaveError(error_message) from exc
 
 
@@ -1244,7 +1497,26 @@ def _create_and_start_rebuild_job(
     user_ref: str,
     worker_id: str,
 ) -> tuple[str, float]:
-    """Create a rebuild job record and transition it to running."""
+    """
+    Create a rebuild job record, transition it to running, and record an initial heartbeat.
+
+    Parameters:
+        session_factory (Callable[[], Session]): Factory that yields a database session for persistence.
+        user_ref (str): Sanitized identifier of the user who requested the rebuild.
+        worker_id (str): Identifier of the worker that will own the job heartbeat.
+
+    Behavior:
+        - Creates a pending rebuild job, marks it running, and updates rebuild state metrics.
+        - Attempts to record an initial heartbeat for the new job.
+
+    Returns:
+        tuple[str, float]: A pair (job_id, job_started_at) where `job_id` is the created job's identifier
+        and `job_started_at` is the monotonic start time in seconds from perf_counter().
+
+    Raises:
+        GraphPersistenceSaveError: If recording the initial heartbeat fails (the function will attempt
+        to persist a failed terminal job state and then raise this error).
+    """
     job_id = _create_job_safe(session_factory, user_ref)
     update_rebuild_state_metric("pending")
     job_started_at = perf_counter()
@@ -1255,10 +1527,17 @@ def _create_and_start_rebuild_job(
         with session_scope(session_factory) as session:
             AssetGraphRepository(session).update_rebuild_heartbeat(job_id, worker_id)
     except Exception as exc:
-        logger.exception(
-            "Failed to record initial rebuild heartbeat: %s (job_id=%s). Failing closed.",
-            type(exc).__name__,
-            job_id,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_initial_heartbeat_failed",
+                message=(
+                    f"Failed to record initial rebuild heartbeat: {type(exc).__name__} "
+                    f"(job_id={job_id}). Failing closed."
+                ),
+                metadata={"job_id": job_id, "error": type(exc).__name__},
+            ),
         )
         try:
             _finalize_rebuild_failure(
@@ -1268,7 +1547,15 @@ def _create_and_start_rebuild_job(
                 job_started_at=job_started_at,
             )
         except Exception as fallback_exc:
-            logger.error("Failed to persist failed status for job %s: %s", job_id, fallback_exc)
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="rebuild_job_fallback_persistence_failed",
+                    message=f"Failed to persist failed status for job {job_id}: {type(fallback_exc).__name__}",
+                    metadata={"job_id": job_id, "error": type(fallback_exc).__name__},
+                ),
+            )
         raise GraphPersistenceSaveError(
             f"Cannot track rebuild liveness: heartbeat failed ({type(exc).__name__})"
         ) from exc
@@ -1278,7 +1565,21 @@ def _create_and_start_rebuild_job(
 
 @contextmanager
 def _rebuild_persistence_session() -> Generator[Session, None, None]:
-    """Context manager scoping data-source connection sessions."""
+    """
+    Provide a SQLAlchemy Session bound to the resolved durable graph persistence engine.
+
+    Yields:
+        session (Session): A database session connected to the configured durable graph persistence.
+
+    Raises:
+        HTTPException: Status 503 with detail "Graph persistence database not configured"
+            when persistence is not configured or marked non-durable.
+        HTTPException: Status 503 with detail "Graph persistence database unavailable"
+            for other failures creating or accessing the persistence engine.
+
+    Notes:
+        The underlying engine is disposed when the context manager exits.
+    """
     settings = get_graph_lifecycle_settings()
     engine = None
     try:
@@ -1296,7 +1597,15 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
             detail="Graph persistence database not configured",
         ) from exc
     except Exception as exc:
-        logger.error("Rebuild persistence operation failed: %s", exc.__class__.__name__)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_persistence_operation_failed",
+                message=f"Rebuild persistence operation failed: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Graph persistence database unavailable",
@@ -1307,17 +1616,33 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
 
 
 def _safe_parse_status(raw_status: str) -> RebuildJobStatus:
-    """Safely parse database status to Enum, falling back to failed on corruption."""
+    """Parse a persisted job status string into RebuildJobStatus.
+
+    Falls back to `RebuildJobStatus.FAILED` if the stored value is invalid.
+
+    If the input cannot be mapped to the enum, an error-level observability event is emitted
+    containing a truncated version of the stored status and its original length.
+
+    Returns:
+        RebuildJobStatus: The parsed enum value, or `RebuildJobStatus.FAILED` when parsing fails.
+    """
     try:
         return RebuildJobStatus(raw_status)
     except ValueError:
         # Crucial to log as error so that alerting systems capture database status corruption.
         status_len = len(raw_status or "")
         sanitized_status = (raw_status or "") if status_len <= 200 else (raw_status or "")[:197] + "..."
-        logger.error(
-            "Corrupted status in DB (truncated to 200 chars): %s; len=%d; falling back to failed",
-            sanitized_status,
-            status_len,
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_job_status_corrupted",
+                message=(
+                    f"Corrupted status in DB (truncated to 200 chars): {sanitized_status}; "
+                    f"len={status_len}; falling back to failed"
+                ),
+                metadata={"status_len": status_len, "sanitized_status": sanitized_status},
+            ),
         )
         return RebuildJobStatus.FAILED
 
@@ -1344,7 +1669,7 @@ def _orm_to_response(job_orm: RebuildJobORM) -> RebuildJobResponse:
 @router.get("/api/graph/rebuild/jobs/{job_id}")
 def get_rebuild_job(
     job_id: str,
-    current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
 ) -> RebuildJobResponse:
     """Get rebuild job status by job ID."""
     with _rebuild_persistence_session() as session:
@@ -1359,20 +1684,10 @@ def get_rebuild_job(
 
 @router.get("/api/graph/rebuild/jobs")
 def list_rebuild_jobs(
-    current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
 ) -> RebuildJobListResponse:
     """List rebuild jobs ordered newest-first."""
     with _rebuild_persistence_session() as session:
         jobs_orm = AssetGraphRepository(session).list_rebuild_jobs(limit=_MAX_REBUILD_JOB_LIST_RESULTS)
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
         return RebuildJobListResponse(jobs=jobs, count=len(jobs))
-
-
-def init_rebuild_executor(_settings: GraphLifecycleSettings | None = None) -> None:
-    """Explicitly initialize the process-local rebuild executor."""
-    _REBUILD_RUNTIME.get_executor()
-
-
-def shutdown_rebuild_executor_sync() -> None:
-    """Shut down the rebuild executor synchronously."""
-    _REBUILD_RUNTIME.shutdown_executor()

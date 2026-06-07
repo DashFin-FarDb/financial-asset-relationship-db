@@ -42,6 +42,9 @@ class Settings(BaseModel):
     # Environment mode
     env: str = Field(default="development")
 
+    # Logging configuration
+    log_level: str = Field(default="INFO")
+
     # CORS configuration
     allowed_origins_raw: str = Field(default="")
 
@@ -65,14 +68,18 @@ class Settings(BaseModel):
     postgres_url: str | None = Field(default=None)
     # Distributed lock configuration
     # Allow int | str | None to capture empty strings from os.getenv
-    rebuild_lock_ttl_seconds: int = Field(default=300, gt=0)
+    rebuild_lock_ttl_seconds: int = Field(
+        default=300,
+        gt=0,
+        description="TTL for rebuild distributed lock in seconds",
+    )
 
     @field_validator("rebuild_lock_ttl_seconds", mode="before")
     @classmethod
     def parse_ttl(cls, value: Any, info: ValidationInfo) -> Any:
         """Coerce empty strings or None to the field default."""
+        field_name = info.field_name or "rebuild_lock_ttl_seconds"
         if value is None or (isinstance(value, str) and not value.strip()):
-            field_name = info.field_name
             field_info = cls.model_fields.get(field_name)
             default = getattr(field_info, "default", 300)
             return default
@@ -80,7 +87,7 @@ class Settings(BaseModel):
             try:
                 return int(value)
             except ValueError:
-                raise ValueError(f"Invalid integer for environment variable {info.field_name.upper()}: {value!r}")
+                raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}")
         # For non-string, non-None inputs, return value unchanged
         return value
 
@@ -98,11 +105,24 @@ class Settings(BaseModel):
 
 
 def load_settings() -> Settings:
-    """Load runtime settings, delegating type coercion to Pydantic."""
+    """
+    Load runtime settings from environment variables and return a configured Settings instance.
+
+    Reads environment variables (for example: ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL,
+    POSTGRES_URL, COORDINATION_DATABASE_URL, ALLOWED_ORIGINS, REBUILD_LOCK_TTL_SECONDS)
+    and maps them to Settings fields, delegating type coercion and validation to Pydantic.
+    REBUILD_LOCK_TTL_SECONDS is passed unchanged for field-level parsing. DATABASE_URL
+    falls back to POSTGRES_URL when unset; COORDINATION_DATABASE_URL falls back to
+    DATABASE_URL then POSTGRES_URL.
+
+    Returns:
+        Settings: A Settings instance populated from the current environment.
+    """
     postgres_url = os.getenv("POSTGRES_URL")
 
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
+        log_level=os.getenv("LOG_LEVEL", "INFO").strip().upper(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         secret_key=os.getenv("SECRET_KEY"),
         admin_username=os.getenv("ADMIN_USERNAME"),
@@ -118,7 +138,7 @@ def load_settings() -> Settings:
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
         # Passed as raw string to Pydantic for validation and coercion
-        rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),
+        rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),  # type: ignore[arg-type]
     )
 
 

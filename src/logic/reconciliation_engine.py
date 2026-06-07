@@ -19,6 +19,8 @@ from enum import Enum
 from typing import Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +115,7 @@ class ReconciliationPlan:
         Raises:
             ValueError: If actions are invalid or cannot be normalized
         """
+        actions_list: list[ActionType | str]
         # Single ActionType: wrap in list (ActionType subclasses str, so check first)
         if isinstance(actions, ActionType):
             actions_list = [actions]
@@ -122,7 +125,8 @@ class ReconciliationPlan:
         # Iterable: convert to list
         else:
             try:
-                actions_list = list(actions)  # type: ignore[call-overload]  # actions may be any iterable (including Enum subclasses)
+                # actions may be any iterable (including Enum subclasses)
+                actions_list = list(actions)  # type: ignore[call-overload]
             except TypeError as exc:
                 raise ValueError(
                     f"ReconciliationPlan.actions must be an iterable of ActionType values; got {type(actions).__name__}"
@@ -207,67 +211,111 @@ class ReconciliationEngine:
         evaluator: DriftEvaluator,
         enable_automatic_execution: bool = False,
     ) -> None:
-        """Initialize reconciliation engine.
+        """
+        Create a ReconciliationEngine using the provided drift evaluator and automatic-execution flag.
 
-        Args:
-            evaluator: Drift evaluation component
-            enable_automatic_execution: Whether automatic execution is permitted
-                (default: False for safety)
+        Parameters:
+            evaluator (DriftEvaluator): Component used to evaluate drift between desired and observed state.
+            enable_automatic_execution (bool): If true, allow generated plans to use
+                automatic execution; defaults to False.
         """
         self.evaluator = evaluator
         self.enable_automatic_execution = enable_automatic_execution
-        logger.info(
-            "ReconciliationEngine initialized with automatic_execution=%s",
-            enable_automatic_execution,
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="reconciliation_engine_initialized",
+                message=f"ReconciliationEngine initialized with automatic_execution={enable_automatic_execution}",
+                metadata={"enable_automatic_execution": enable_automatic_execution},
+            ),
         )
 
     def generate_reconciliation_plan(self) -> ReconciliationPlan:
-        """Generate a deterministic reconciliation plan based on current drift.
+        """
+        Create a deterministic reconciliation plan from the current drift evaluation.
 
-        This is the primary entry point for the reconciliation engine.
-        It evaluates drift and produces a plan, but does NOT execute anything.
+        Evaluates drift using the configured evaluator and produces a ReconciliationPlan that
+        describes corrective actions, execution intent, and safety signals. This method does not
+        execute actions or persist changes; it only computes and returns a plan. On unexpected
+        evaluator errors it returns an explicit failure plan; evaluator-raised ValueError is
+        re-raised.
 
         Returns:
-            ReconciliationPlan describing the corrective actions needed
+            ReconciliationPlan: Plan describing the corrective actions, execution mode, and safety state.
         """
         try:
             drift_type, severity, metadata = self.evaluator.evaluate_drift()
-        except (
-            ValueError
-        ):  # Consider defining a dedicated integrity exception (e.g. DriftIntegrityError) instead of using ValueError to avoid unintentionally catching unrelated ValueErrors
+        except ValueError:
+            # Consider defining a dedicated integrity exception (e.g. DriftIntegrityError)
+            # instead of using ValueError to avoid unintentionally catching unrelated ValueErrors.
             # Invariant violation / integrity issue: allow callers to treat as fatal.
             raise
-        except Exception as exc:  # noqa: BLE001 - explicit boundary contract: unexpected failures become explicit plans
+        except Exception as exc:  # noqa: BLE001
+            # explicit boundary contract: unexpected failures become explicit plans
             plan = self._evaluation_failure_plan(exc)
-            logger.exception(
-                "Drift evaluation failed; returning explicit failure plan. error_type=%s, error_message=%s",
-                type(exc).__name__,
-                str(exc),
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="reconciliation_drift_evaluation_failed",
+                    message=(
+                        f"Drift evaluation failed; returning explicit failure plan. error_type={type(exc).__name__}"
+                    ),
+                    metadata={"error": type(exc).__name__},
+                ),
             )
             return plan
 
-        logger.debug(
-            "Drift evaluation: type=%s, severity=%s, metadata=%s",
-            drift_type,
-            severity.value,
-            metadata,
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="reconciliation_drift_evaluated",
+                message=f"Drift evaluation: type={drift_type}, severity={severity.value}",
+                metadata={"drift_type": drift_type, "severity": severity.value, **metadata},
+            ),
         )
 
         # Copy metadata to ensure immutability of the plan
         plan = self._drift_to_plan(drift_type, severity, dict(metadata))
 
-        logger.info(
-            "Generated reconciliation plan: drift_type=%s, severity=%s, actions=%s, execution_mode=%s",
-            plan.drift_type,
-            plan.severity.value,
-            [a.value for a in plan.actions],
-            plan.execution_mode.value,
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="reconciliation_plan_generated",
+                message=(
+                    f"Generated reconciliation plan: drift_type={plan.drift_type}, "
+                    f"severity={plan.severity.value}, "
+                    f"execution_mode={plan.execution_mode.value}"
+                ),
+                metadata={
+                    "drift_type": plan.drift_type,
+                    "severity": plan.severity.value,
+                    "actions": [a.value for a in plan.actions],
+                    "execution_mode": plan.execution_mode.value,
+                },
+            ),
         )
 
         return plan
 
     def _evaluation_failure_plan(self, exc: Exception) -> ReconciliationPlan:
-        """Return an explicit reconciliation plan representing evaluator failure."""
+        """
+        Produce an explicit ReconciliationPlan signaling evaluation failure for the provided exception.
+
+        The returned plan has severity `CRITICAL`, action `ALERT_ONLY`, execution mode
+        `MANUAL`, safety state `EVALUATION_FAILED`, and metadata containing:
+        - `error_type`: the exception class name
+        - `error_message`: a sanitized exception message truncated to 200 characters or `None`
+
+        Parameters:
+            exc (Exception): The exception raised during drift evaluation; used to populate `metadata`.
+
+        Returns:
+            ReconciliationPlan: A plan representing evaluation failure.
+        """
         return ReconciliationPlan(
             drift_type="drift_evaluation_failed",
             severity=Severity.CRITICAL,
@@ -278,7 +326,8 @@ class ReconciliationEngine:
             reason="Unable to evaluate drift; reconciliation planning failed",
             metadata={
                 "error_type": type(exc).__name__,
-                # Do not include full exception messages (may contain sensitive data); include a short sanitized message instead
+                # Do not include full exception messages (may contain sensitive data);
+                # include a short sanitized message instead
                 "error_message": (str(exc)[:200] if str(exc) else None),
             },
             created_at=datetime.now(timezone.utc),
@@ -358,13 +407,34 @@ class ReconciliationEngine:
         # Map specific drift types to actions
         return self._map_drift_type_to_plan(drift_type, severity, metadata)
 
-    def _map_drift_type_to_plan(  # pylint: disable=too-many-return-statements  # Each drift type requires distinct plan; table-driven refactor deferred to Phase 2
+    # Each drift type requires distinct plan; table-driven refactor deferred to Phase 2
+    def _map_drift_type_to_plan(  # pylint: disable=too-many-return-statements
         self,
         drift_type: str,
         severity: Severity,
         metadata: dict[str, str | int | float | bool | None],
     ) -> ReconciliationPlan:
-        """Map specific drift types to concrete reconciliation plans."""
+        """
+        Map a classified drift type and its context into a deterministic ReconciliationPlan.
+
+        Maps known drift types to standardized plan templates:
+        - `InconsistencyType.ORPHANED_RUNNING.value` -> reset plan.
+        - `InconsistencyType.STALE_OWNERSHIP.value` and `InconsistencyType.CRASH_SUSPICION.value`
+          -> wait plan if `lock_is_valid` is true, otherwise reset plan.
+        - `InconsistencyType.ZOMBIE_EXECUTOR.value` -> alert-only manual investigation plan (unsafe split-brain).
+        - Unknown drift types -> alert-only manual investigation plan and emits an observability event.
+
+        Parameters:
+            drift_type (str): Canonical drift type identifier.
+            severity (Severity): Classified severity for the detected drift.
+            metadata (dict[str, str | int | float | bool | None]): Contextual metadata for the
+                drift. Must include a normalized `lock_is_valid` boolean (set earlier by caller)
+                when decision branching depends on lock validity.
+
+        Returns:
+            ReconciliationPlan: A deterministic, immutable plan describing actions, target state,
+                execution mode, safety state, reason, and plan metadata.
+        """
         # Extract normalized lock_is_valid (set by _drift_to_plan)
         lock_is_valid = metadata.get("lock_is_valid", False)
 
@@ -429,7 +499,15 @@ class ReconciliationEngine:
             )
 
         # Unknown drift type - default to alert only
-        logger.warning("Unknown drift type %s - defaulting to ALERT_ONLY", drift_type)
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="reconciliation_unknown_drift_type",
+                message=f"Unknown drift type {drift_type} - defaulting to ALERT_ONLY",
+                metadata={"drift_type": drift_type},
+            ),
+        )
         return ReconciliationPlan(
             drift_type=drift_type,
             severity=severity,
@@ -447,8 +525,22 @@ class ReconciliationEngine:
         drift_type: str,
         metadata: dict[str, str | int | float | bool | None],
     ) -> ExecutionSafety:
-        """Classify machine-readable safety intent for CRITICAL drift."""
+        """
+        Determine the machine-readable safety intent for critical drift classifications.
 
+        Parameters:
+            drift_type (str): Drift identifier (e.g., "lock_lost", "persistence_unavailable",
+                or values from InconsistencyType).
+            metadata (dict[str, str | int | float | bool | None]): Evaluation metadata;
+                `lock_is_valid` is parsed from this map.
+
+        Returns:
+            ExecutionSafety: `INTEGRITY_COMPROMISED` for `"lock_lost"`, `OBSERVABILITY_FAILURE`
+                for `"persistence_unavailable"`, `UNSAFE_SPLIT_BRAIN` for
+                `InconsistencyType.ZOMBIE_EXECUTOR.value` or for
+                `InconsistencyType.ORPHANED_RUNNING.value` when `lock_is_valid` is true, and
+                `MANUAL_INVESTIGATION` otherwise.
+        """
         lock_is_valid = self._parse_lock_is_valid(metadata.get("lock_is_valid"))
 
         if drift_type == "lock_lost":
@@ -503,7 +595,8 @@ class ReconciliationEngine:
             created_at=datetime.now(timezone.utc),
         )
 
-    def _create_reset_plan(  # pylint: disable=too-many-positional-arguments  # Explicit params preferred over dataclass for internal helper; Phase 2 may consolidate
+    # Explicit params preferred over dataclass for internal helper; Phase 2 may consolidate
+    def _create_reset_plan(  # pylint: disable=too-many-positional-arguments
         self,
         drift_type: str,
         severity: Severity,

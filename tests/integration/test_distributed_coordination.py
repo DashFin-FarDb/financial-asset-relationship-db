@@ -40,6 +40,7 @@ def authorized_app(monkeypatch, tmp_path):
     app = create_app()
 
     def active_user() -> User:
+        """Return a mock active operator user for dependency override."""
         return User(username="operator", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
@@ -67,11 +68,16 @@ def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app
     results: dict[str, bool] = {}
     errors: dict[str, Exception] = {}
 
+    from src.data.distributed_lock import LockAcquisitionTimeout
+
     def attempt(holder: str, lock: DistributedLock) -> None:
+        """Attempt to acquire a lock and record the success or failure."""
         try:
             barrier.wait()
             results[holder] = bool(lock.acquire())
         except threading.BrokenBarrierError:
+            results[holder] = False
+        except LockAcquisitionTimeout:
             results[holder] = False
         except SQLAlchemyError as exc:
             errors[holder] = exc

@@ -13,21 +13,33 @@ from src.models.financial_models import (
     RegulatoryActivity,
     RegulatoryEvent,
 )
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
 
 def create_sample_database() -> AssetRelationshipGraph:
     """
-    Create an in-memory sample AssetRelationshipGraph populated with diversified financial assets and regulatory events.
+    Create an in-memory sample graph populated with diversified financial assets and regulatory events.
 
-    Constructs a graph containing equities, corporate and government bonds, commodities, and currencies; registers several regulatory events that reference related assets; and builds inter-asset relationships to produce a connected sample dataset.
+    Constructs a graph containing equities, corporate and government bonds, commodities,
+    and currencies; registers a small set of regulatory events that reference related assets;
+    and builds inter-asset relationships producing a connected sample dataset.
 
     Returns:
-        AssetRelationshipGraph: Populated graph containing the sample assets, regulatory events, and their established relationships.
+        AssetRelationshipGraph: Populated graph containing the sample assets, registered
+            regulatory events, and their established relationships.
     """
     try:
-        logger.info("Creating expanded sample financial database")
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="sample_graph_creation_initiated",
+                message="Creating expanded sample financial database",
+            ),
+        )
         graph = AssetRelationshipGraph()
 
         # Equities - Technology
@@ -353,41 +365,72 @@ def create_sample_database() -> AssetRelationshipGraph:
 
         asset_count = len(graph.assets)
         relationship_count = sum(len(rels) for rels in graph.relationships.values())
-        logger.info(
-            "Expanded sample database created with %s assets and %s relationships",
-            asset_count,
-            relationship_count,
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="sample_graph_creation_completed",
+                message=(
+                    f"Expanded sample database created with {asset_count} assets and {relationship_count} relationships"
+                ),
+                metadata={"asset_count": asset_count, "relationship_count": relationship_count},
+            ),
         )
         _log_asset_class_coverage(all_assets)
 
         return graph
     except Exception as e:
-        logger.error("Failed to create sample database: %s", e)
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="sample_graph_creation_failed",
+                message=f"Failed to create sample database: {type(e).__name__}",
+                metadata={"error": type(e).__name__},
+            ),
+        )
         raise
 
 
 def _log_asset_class_coverage(all_assets: Sequence[object]) -> None:
     """
-    Log how many sample assets belong to each AssetClass to the module logger.
+    Emit an observability event reporting how many assets belong to each AssetClass.
 
-    Counts Equity, Fixed Income, Commodity, and Currency by inspecting each item's
-    `asset_class` attribute and emits a single INFO-level log line with the four totals.
+    Creates and sends an `ObservabilityEvent` named "sample_graph_class_coverage" whose
+    metadata contains counts for Equity, Fixed Income, Commodity, and Currency computed
+    from the provided assets.
 
     Parameters:
-        all_assets (Sequence[object]): Sequence of asset instances; each should expose an
-            `asset_class` attribute whose value is a member of `AssetClass`.
+        all_assets (Sequence[object]): Sequence of asset instances; each is expected to expose an `asset_class`
+            attribute whose value is a member of `AssetClass`.
     """
-    logger.info(
-        "Asset classes covered: Equity (%s), Fixed Income (%s), Commodity (%s), Currency (%s)",
-        _count_assets_by_class(all_assets, AssetClass.EQUITY),
-        _count_assets_by_class(all_assets, AssetClass.FIXED_INCOME),
-        _count_assets_by_class(all_assets, AssetClass.COMMODITY),
-        _count_assets_by_class(all_assets, AssetClass.CURRENCY),
+    equity_count = _count_assets_by_class(all_assets, AssetClass.EQUITY)
+    fixed_income_count = _count_assets_by_class(all_assets, AssetClass.FIXED_INCOME)
+    commodity_count = _count_assets_by_class(all_assets, AssetClass.COMMODITY)
+    currency_count = _count_assets_by_class(all_assets, AssetClass.CURRENCY)
+
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="sample_graph_class_coverage",
+            message=(
+                f"Asset classes covered: Equity ({equity_count}), "
+                f"Fixed Income ({fixed_income_count}), "
+                f"Commodity ({commodity_count}), Currency ({currency_count})"
+            ),
+            metadata={
+                "equity": equity_count,
+                "fixed_income": fixed_income_count,
+                "commodity": commodity_count,
+                "currency": currency_count,
+            },
+        ),
     )
 
 
 def _count_assets_by_class(
-    all_assets: list[object],
+    all_assets: Sequence[object],
     asset_class: AssetClass,
 ) -> int:
     """

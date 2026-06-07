@@ -1105,7 +1105,8 @@ class TestNestedConnectionCalls:
         # Outer get_connection call
         with get_connection() as outer_conn:
             # Create a test table
-            outer_conn.execute("CREATE TABLE IF NOT EXISTS test_table (id INTEGER PRIMARY KEY, value TEXT)")
+            outer_conn.execute("DROP TABLE IF EXISTS test_table")
+            outer_conn.execute("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)")
             outer_conn.commit()
 
             # Nested execute() which calls get_connection() internally
