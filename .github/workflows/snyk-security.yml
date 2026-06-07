@@ -98,7 +98,7 @@ jobs:
         # Push the Snyk Code results into GitHub Code Scanning tab
       - name: Check SARIF file has content
         id: check-sarif
-        if: ${{ always() && hashFiles('snyk-code.sarif') != '' }}
+        if: ${{ hashFiles('snyk-code.sarif') != '' }}
         run: |
           if [ -s snyk-code.sarif ]; then
             echo "sarif_exists=true" >> $GITHUB_OUTPUT
