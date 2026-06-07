@@ -16,6 +16,13 @@ REBUILD_REQUESTS = Counter(
     "Total number of graph rebuild requests received.",
 )
 
+# Reconciliation and Drift metrics
+RECONCILIATION_DRIFT_TOTAL = Counter(
+    "reconciliation_drift_total",
+    "Total number of reconciliation drift evaluations.",
+    ["drift_type", "severity", "execution_mode"],
+)
+
 REBUILD_SUCCESS = Counter(
     "graph_rebuild_success_total",
     "Total number of successful graph rebuilds.",
@@ -167,6 +174,18 @@ def increment_recovery_trigger(inconsistency_type: str) -> None:
         (e.g. "stale_ownership", "orphaned_running", "crash_suspicion").
     """
     REBUILD_RECOVERY_TRIGGERS.labels(inconsistency_type=inconsistency_type).inc()
+
+
+def record_drift_metric(drift_type: str, severity: str, execution_mode: str) -> None:
+    """
+    Record a detected reconciliation drift by incrementing its counter.
+
+    Parameters:
+        drift_type (str): The classification of the detected drift.
+        severity (str): The severity level of the drift.
+        execution_mode (str): The planned execution mode.
+    """
+    RECONCILIATION_DRIFT_TOTAL.labels(drift_type=drift_type, severity=severity, execution_mode=execution_mode).inc()
 
 
 def _initialize_from_active_job(active_job) -> None:

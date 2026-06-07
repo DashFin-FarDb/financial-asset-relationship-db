@@ -52,13 +52,13 @@ class RequestMetricsMiddleware:
             method = "OTHER"
         start_time = time.perf_counter()
 
-        status_code = 200
+        status_code = 500
 
         async def send_wrapper(message: dict[str, Any]) -> None:
             """Wrap ASGI send to capture response status code."""
             nonlocal status_code
             if message["type"] == "http.response.start":
-                status_code = message.get("status", 200)
+                status_code = message.get("status", 500)
             await send(message)
 
         try:
