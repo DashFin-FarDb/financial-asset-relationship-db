@@ -352,10 +352,9 @@ def create_app() -> FastAPI:
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
     configure_cors(app)
 
-    # Register RequestMetricsMiddleware as the outermost middleware to capture total request duration.
-    # CorrelationMiddleware is registered next so correlation identifiers are available for all downstream components.
-    app.add_middleware(CorrelationMiddleware)
+    # Register RequestMetricsMiddleware before CorrelationMiddleware.
     app.add_middleware(RequestMetricsMiddleware)
+    app.add_middleware(CorrelationMiddleware)
 
     app.include_router(auth_router)
     app.include_router(system_router)

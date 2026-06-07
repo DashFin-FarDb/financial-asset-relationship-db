@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+ALLOWED_METHODS = {"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"}
+
+
 class RequestMetricsMiddleware:
     """
     ASGI middleware for collecting Prometheus metrics on HTTP requests.
@@ -44,7 +47,9 @@ class RequestMetricsMiddleware:
             await self.app(scope, receive, send)
             return
 
-        method = scope.get("method", "GET")
+        method = scope.get("method", "GET").upper()
+        if method not in ALLOWED_METHODS:
+            method = "OTHER"
         start_time = time.perf_counter()
 
         status_code = 200
