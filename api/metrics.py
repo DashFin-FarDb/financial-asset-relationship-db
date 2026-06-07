@@ -185,11 +185,7 @@ def record_drift_metric(drift_type: str, severity: str, execution_mode: str) -> 
         severity (str): The severity level of the drift.
         execution_mode (str): The planned execution mode.
     """
-    RECONCILIATION_DRIFT_TOTAL.labels(
-        drift_type=drift_type,
-        severity=severity,
-        execution_mode=execution_mode
-    ).inc()
+    RECONCILIATION_DRIFT_TOTAL.labels(drift_type=drift_type, severity=severity, execution_mode=execution_mode).inc()
 
 
 def _initialize_from_active_job(active_job) -> None:
