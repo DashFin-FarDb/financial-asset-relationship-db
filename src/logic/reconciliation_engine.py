@@ -13,6 +13,7 @@ Execution is delegated to the Job Abstraction Layer (future work).
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -210,6 +211,7 @@ class ReconciliationEngine:
         self,
         evaluator: DriftEvaluator,
         enable_automatic_execution: bool = False,
+        record_drift_metric: Callable[[str, str, str], None] | None = None,
     ) -> None:
         """
         Create a ReconciliationEngine using the provided drift evaluator and automatic-execution flag.
@@ -218,9 +220,11 @@ class ReconciliationEngine:
             evaluator (DriftEvaluator): Component used to evaluate drift between desired and observed state.
             enable_automatic_execution (bool): If true, allow generated plans to use
                 automatic execution; defaults to False.
+            record_drift_metric: Optional callback to record drift metrics.
         """
         self.evaluator = evaluator
         self.enable_automatic_execution = enable_automatic_execution
+        self.record_drift_metric = record_drift_metric or (lambda _t, _s, _e: None)
         log_event(
             logger,
             logging.INFO,
@@ -265,6 +269,7 @@ class ReconciliationEngine:
                     metadata={"error": type(exc).__name__},
                 ),
             )
+            self.record_drift_metric(plan.drift_type, plan.severity.value, plan.execution_mode.value)
             return plan
 
         log_event(
@@ -298,6 +303,8 @@ class ReconciliationEngine:
                 },
             ),
         )
+
+        self.record_drift_metric(plan.drift_type, plan.severity.value, plan.execution_mode.value)
 
         return plan
 
