@@ -32,6 +32,7 @@ from .graph_lifecycle import (
     sync_with_latest_rebuild,
 )
 from .middleware.correlation import CorrelationMiddleware
+from .middleware.request_metrics import RequestMetricsMiddleware
 from .rate_limit import limiter
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
@@ -351,8 +352,8 @@ def create_app() -> FastAPI:
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
     configure_cors(app)
 
-    # Register CorrelationMiddleware as the outermost middleware so identifiers
-    # are available for all downstream components (including CORS).
+    # Register RequestMetricsMiddleware before CorrelationMiddleware.
+    app.add_middleware(RequestMetricsMiddleware)
     app.add_middleware(CorrelationMiddleware)
 
     app.include_router(auth_router)

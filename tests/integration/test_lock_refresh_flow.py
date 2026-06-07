@@ -325,7 +325,6 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
 
         # Attempt to save graph with pre-commit check
         from api.graph_lifecycle_providers import (
-            GraphPersistenceSaveError,  # pylint: disable=import-outside-toplevel
             save_graph_to_persistence,
         )
 
