@@ -1,11 +1,13 @@
 """Integration tests for request metrics collection."""
 
+import pytest
 from fastapi.testclient import TestClient
 from prometheus_client import REGISTRY
 
 from api.app_factory import create_app
 
 
+@pytest.mark.integration
 def test_metrics_integration_exposes_http_request_metrics():
     """Test that HTTP request metrics are exposed on the /api/metrics endpoint."""
     app = create_app()

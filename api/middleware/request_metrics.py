@@ -6,9 +6,8 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from starlette.routing import Match
-
 from api.metrics import HTTP_REQUEST_DURATION_SECONDS, HTTP_REQUESTS_TOTAL
+from src.observability.facade import ObservabilityEvent, log_event
 
 if TYPE_CHECKING:
     from starlette.types import ASGIApp, Receive, Scope, Send
@@ -39,8 +38,9 @@ class RequestMetricsMiddleware:
             return
 
         path = scope.get("path", "")
-        # Exclude internal /api/metrics from metrics to prevent latency poll pollution
-        if path == "/api/metrics":
+        # Exclude internal /api/metrics (and trailing slash variants) from metrics to prevent latency poll pollution
+        normalized_path = path.rstrip("/") if path != "/" else path
+        if normalized_path == "/api/metrics":
             await self.app(scope, receive, send)
             return
 
@@ -58,39 +58,51 @@ class RequestMetricsMiddleware:
 
         try:
             await self.app(scope, receive, send_wrapper)
-        except Exception:
+        except Exception as exc:
             status_code = 500
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="request_execution_failed",
+                    message=f"Request failed with unhandled exception: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
             raise
         finally:
             duration = time.perf_counter() - start_time
 
-            # Resolve the route template dynamically to keep cardinality low
+            # Resolve the route template dynamically from scope to keep cardinality low
             route_template = "unknown"
 
             # Check if Starlette route object is available in scope after routing
             route = scope.get("route")
             if route is not None and hasattr(route, "path"):
                 route_template = route.path
-            else:
-                # Fallback to scanning app.routes if route is not directly in scope
-                app = scope.get("app")
-                if app is not None and hasattr(app, "routes"):
-                    for r in app.routes:
-                        match, _ = r.matches(scope)
-                        if match == Match.FULL:
-                            route_template = r.path
-                            break
 
             status_group = f"{status_code // 100}xx"
 
-            HTTP_REQUESTS_TOTAL.labels(
-                method=method,
-                route=route_template,
-                status_group=status_group,
-            ).inc()
+            try:
+                HTTP_REQUESTS_TOTAL.labels(
+                    method=method,
+                    route=route_template,
+                    status_group=status_group,
+                ).inc()
 
-            HTTP_REQUEST_DURATION_SECONDS.labels(
-                method=method,
-                route=route_template,
-                status_group=status_group,
-            ).observe(duration)
+                HTTP_REQUEST_DURATION_SECONDS.labels(
+                    method=method,
+                    route=route_template,
+                    status_group=status_group,
+                ).observe(duration)
+            except Exception as metric_exc:
+                # Prevent metrics collection failure from masking the actual application result or exception
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="metrics_recording_failed",
+                        message=f"Failed to record HTTP request metrics: {type(metric_exc).__name__}",
+                        metadata={"error": type(metric_exc).__name__},
+                    ),
+                )

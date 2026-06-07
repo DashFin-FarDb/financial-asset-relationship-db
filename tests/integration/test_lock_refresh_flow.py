@@ -324,7 +324,6 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
         lock_lost.set()
 
         # Attempt to save graph with pre-commit check
-        from api.graph_lifecycle_providers import GraphPersistenceSaveError  # pylint: disable=import-outside-toplevel
         from api.graph_lifecycle_providers import (
             save_graph_to_persistence,
         )
@@ -350,9 +349,9 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
             current_graph = repo.load_graph()
             current_asset_count = len(current_graph.assets)
 
-        assert current_asset_count == initial_asset_count, (
-            "Graph state should be unchanged after lock loss during commit"
-        )
+        assert (
+            current_asset_count == initial_asset_count
+        ), "Graph state should be unchanged after lock loss during commit"
 
 
 def test_heartbeat_thread_stops_cleanly_on_success(
