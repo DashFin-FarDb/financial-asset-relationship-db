@@ -49,7 +49,7 @@ jobs:
         if: steps.check-creds.outputs.skip == 'false'
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-         persist-credentials: false
+          persist-credentials: false
       - name: Zscaler IAC Scan
         if: steps.check-creds.outputs.skip == 'false'
         uses: ZscalerCWP/Zscaler-IaC-Action@8d2afb33b10b4bd50e2dc2c932b37c6e70ac1087
@@ -70,7 +70,7 @@ jobs:
         id: check-sarif
         if: ${{ steps.check-creds.outputs.skip == 'false' && steps.zscaler-iac-scan.outputs.sarif_file_path != '' }}
         env:
-         SARIF_PATH: ${{ steps.zscaler-iac-scan.outputs.sarif_file_path }}
+          SARIF_PATH: ${{ steps.zscaler-iac-scan.outputs.sarif_file_path }}
         shell: bash
         run: |
           if [ -f "$SARIF_PATH" ]; then
