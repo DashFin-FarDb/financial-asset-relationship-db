@@ -117,8 +117,10 @@ class Settings(BaseModel):
             # Raising is safer for SLO accuracy.
             import logging
             logging.getLogger(__name__).warning(
-                f"SLO_REBUILD_DURATION_MAX_SECONDS ({value}) does not match any histogram bucket boundary. "
-                f"SLO evaluation may be imprecise. Allowed: {sorted(allowed_buckets)}"
+                "SLO_REBUILD_DURATION_MAX_SECONDS (%s) does not match any histogram bucket boundary. "
+                "SLO evaluation may be imprecise. Allowed: %s",
+                value,
+                sorted(allowed_buckets),
             )
         return value
 
