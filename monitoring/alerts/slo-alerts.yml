@@ -13,7 +13,7 @@ groups:
 
       # Multi-window burn rate alerts (Google SRE Standard)
       # Assuming 99% SLO over 30 days
-      
+
       - alert: SLOErrorBudgetFastBurn
         expr: |
           (

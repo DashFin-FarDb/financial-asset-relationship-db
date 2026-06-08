@@ -44,9 +44,9 @@ Example `dashboards-provider.yml`:
 ```yaml
 apiVersion: 1
 providers:
-  - name: 'Standard Dashboards'
+  - name: "Standard Dashboards"
     orgId: 1
-    folder: ''
+    folder: ""
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10
@@ -56,10 +56,10 @@ providers:
 
 ### 3. SLO Burn Rate Alerts
 
-The `slo-alerts.yml` file implements the Google SRE standard for **Multi-Window Multi-Burn-Rate Alerting**. 
+The `slo-alerts.yml` file implements the Google SRE standard for **Multi-Window Multi-Burn-Rate Alerting**.
 
-*   **Fast Burn:** Alerts if the error budget is being consumed at a rate that will exhaust the monthly budget in **24 hours**. (Severity: Critical)
-*   **Slow Burn:** Alerts if the budget will be exhausted in **3 days**. (Severity: Warning)
+- **Fast Burn:** Alerts if the error budget is being consumed at a rate that will exhaust the monthly budget in **24 hours**. (Severity: Critical)
+- **Slow Burn:** Alerts if the budget will be exhausted in **3 days**. (Severity: Warning)
 
 These alerts use both a short window (to detect spikes) and a long window (to ensure persistence) to minimize alert noise while preserving sensitivity.
 
@@ -67,5 +67,5 @@ These alerts use both a short window (to detect spikes) and a long window (to en
 
 All dashboards and alerts rely on the **Phase 3 Observability Layer**:
 
-*   **Metrics:** Standardized Prometheus metrics defined in `api/metrics.py`.
-*   **Logs:** Structured JSON logs emitted via `src/observability/events.py`. Loki queries use the `event` label to filter for specific domain events (e.g., `graph_rebuild_failed`).
+- **Metrics:** Standardized Prometheus metrics defined in `api/metrics.py`.
+- **Logs:** Structured JSON logs emitted via `src/observability/events.py`. Loki queries use the `event` label to filter for specific domain events (e.g., `graph_rebuild_failed`).
