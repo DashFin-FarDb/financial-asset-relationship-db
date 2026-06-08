@@ -102,11 +102,23 @@ HTTP_REQUEST_DURATION_SECONDS = Histogram(
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
 )
 
+# Phase 3: SLO metrics
+SLO_COMPLIANCE_STATUS = Gauge(
+    "slo_compliance_status",
+    "SLO Compliance Status (1=compliant, 0=breached)",
+    ["slo_name"],
+)
+
 
 def update_graph_metrics(asset_count: int, relationship_count: int) -> None:
     """Update gauge metrics for the current graph state."""
     GRAPH_ASSETS.set(asset_count)
     GRAPH_RELATIONSHIPS.set(relationship_count)
+
+
+def update_slo_compliance_status(slo_name: str, is_compliant: bool) -> None:
+    """Update the SLO compliance status gauge for a specific SLO."""
+    SLO_COMPLIANCE_STATUS.labels(slo_name=slo_name).set(1 if is_compliant else 0)
 
 
 def update_rebuild_state_metric(status: str | RebuildJobStatus | None) -> None:

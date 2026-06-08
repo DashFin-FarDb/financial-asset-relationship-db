@@ -10,7 +10,13 @@ from src.models.financial_models import AssetClass
 from src.observability.facade import ObservabilityEvent, log_event
 
 from .. import graph_lifecycle
-from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse
+from ..api_models import (
+    DatabaseHealthResponse,
+    DetailedHealthResponse,
+    GraphHealthResponse,
+    SLOEvaluationResultModel,
+    SLOSummary,
+)
 from ..graph_lifecycle_providers import (
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
@@ -18,10 +24,43 @@ from ..graph_lifecycle_providers import (
     resolve_durable_graph_persistence_url,
 )
 from ..router_helpers import get_graph, logger
+from ..slo_evaluator import SLOEvaluator
 
 router = APIRouter()
 
 SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
+
+
+def _get_slo_summary() -> SLOSummary:
+    """Evaluate all SLOs and return a summary."""
+    try:
+        evaluator = SLOEvaluator()
+        results = evaluator.evaluate_all()
+        overall_compliant = all(r.is_compliant for r in results)
+
+        eval_models = [
+            SLOEvaluationResultModel(
+                slo_name=r.slo_name,
+                is_compliant=r.is_compliant,
+                current_value=r.current_value,
+                threshold=r.threshold,
+                margin=r.margin,
+            )
+            for r in results
+        ]
+
+        return SLOSummary(overall_compliant=overall_compliant, evaluations=eval_models)
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="slo_evaluation_failed",
+                message=f"Error evaluating SLOs: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        return SLOSummary(overall_compliant=False, evaluations=[])
 
 
 @router.get("/")
@@ -231,6 +270,12 @@ def detailed_health_check() -> DetailedHealthResponse:
         graph=graph_health,
         database=database_health,
     )
+
+
+@router.get("/api/slo/status")
+def get_slo_status() -> SLOSummary:
+    """Return the current SLO compliance status."""
+    return _get_slo_summary()
 
 
 @router.get("/api/metrics")

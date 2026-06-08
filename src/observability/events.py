@@ -32,3 +32,13 @@ class ObservabilityEvent:
             "event": self.event,
             "metadata": self.metadata,
         }
+
+
+@dataclass(frozen=True)
+class SLOBreachEvent(ObservabilityEvent):
+    """
+    Structured domain event specifically for SLO breaches.
+
+    Inherits from ObservabilityEvent to ensure consistent log formatting while
+    semantically identifying the event as a critical breach.
+    """
