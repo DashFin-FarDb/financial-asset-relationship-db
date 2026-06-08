@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from api.slo_evaluator import SLOEvaluationResult, SLOEvaluator
+from api.slo_evaluator import SLOEvaluator
 from src.config.settings import Settings
 
 
@@ -27,9 +27,9 @@ def test_evaluate_api_latency_compliant(mock_settings: Settings) -> None:
     
     assert result.slo_name == "api_latency"
     assert result.is_compliant is True
-    assert result.current_value == 0.05  # 0.5 / 10
-    assert result.threshold == 0.1
-    assert result.margin == 0.05
+    assert result.current_value == pytest.approx(0.05)  # 0.5 / 10
+    assert result.threshold == pytest.approx(0.1)
+    assert result.margin == pytest.approx(0.05)
 
 
 def test_evaluate_api_latency_breached(mock_settings: Settings) -> None:
@@ -40,9 +40,9 @@ def test_evaluate_api_latency_breached(mock_settings: Settings) -> None:
     result = evaluator.evaluate_api_latency(metrics)
     
     assert result.is_compliant is False
-    assert result.current_value == 0.2
-    assert result.threshold == 0.1
-    assert result.margin == -0.1
+    assert result.current_value == pytest.approx(0.2)
+    assert result.threshold == pytest.approx(0.1)
+    assert result.margin == pytest.approx(-0.1)
 
 
 def test_evaluate_api_latency_zero_requests(mock_settings: Settings) -> None:
@@ -53,7 +53,7 @@ def test_evaluate_api_latency_zero_requests(mock_settings: Settings) -> None:
     result = evaluator.evaluate_api_latency(metrics)
     
     assert result.is_compliant is True
-    assert result.current_value == 0.0
+    assert result.current_value == pytest.approx(0.0)
 
 
 def test_evaluate_rebuild_duration_compliant(mock_settings: Settings) -> None:
@@ -65,8 +65,8 @@ def test_evaluate_rebuild_duration_compliant(mock_settings: Settings) -> None:
     
     assert result.slo_name == "rebuild_duration"
     assert result.is_compliant is True
-    assert result.current_value == 250.0
-    assert result.threshold == 300.0
+    assert result.current_value == pytest.approx(250.0)
+    assert result.threshold == pytest.approx(300.0)
 
 
 def test_evaluate_error_rate_compliant(mock_settings: Settings) -> None:
@@ -78,8 +78,8 @@ def test_evaluate_error_rate_compliant(mock_settings: Settings) -> None:
     
     assert result.slo_name == "error_rate"
     assert result.is_compliant is True
-    assert result.current_value == 0.005
-    assert result.threshold == 0.01
+    assert result.current_value == pytest.approx(0.005)
+    assert result.threshold == pytest.approx(0.01)
 
 
 def test_evaluate_error_rate_breached(mock_settings: Settings) -> None:
@@ -90,8 +90,8 @@ def test_evaluate_error_rate_breached(mock_settings: Settings) -> None:
     result = evaluator.evaluate_error_rate(metrics)
     
     assert result.is_compliant is False
-    assert result.current_value == 0.02
-    assert result.threshold == 0.01
+    assert result.current_value == pytest.approx(0.02)
+    assert result.threshold == pytest.approx(0.01)
 
 
 def test_evaluate_all(mock_settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -100,6 +100,7 @@ def test_evaluate_all(mock_settings: Settings, monkeypatch: pytest.MonkeyPatch) 
     
     # Mock _collect_metrics to avoid needing a populated registry
     def mock_collect() -> dict[str, float]:
+        """Mock metric collection."""
         return {
             "http_duration_sum": 0.5,
             "http_duration_count": 10.0,

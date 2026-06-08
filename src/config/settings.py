@@ -144,10 +144,10 @@ def load_settings() -> Settings:
         postgres_url=postgres_url,
         # Passed as raw string to Pydantic for validation and coercion
         rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),  # type: ignore[arg-type]
-        slo_api_latency_avg_seconds=float(os.getenv("SLO_API_LATENCY_AVG_SECONDS", 0.1)),
-        slo_rebuild_duration_max_seconds=int(os.getenv("SLO_REBUILD_DURATION_MAX_SECONDS", 300)),
-        slo_error_rate_threshold=float(os.getenv("SLO_ERROR_RATE_THRESHOLD", 0.01)),
-    )
+        slo_api_latency_avg_seconds=float(os.getenv("SLO_API_LATENCY_AVG_SECONDS", "0.1")),
+        slo_rebuild_duration_max_seconds=int(os.getenv("SLO_REBUILD_DURATION_MAX_SECONDS", "300")),
+        slo_error_rate_threshold=float(os.getenv("SLO_ERROR_RATE_THRESHOLD", "0.01")),
+        )
 
 
 @lru_cache(maxsize=1)

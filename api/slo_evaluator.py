@@ -45,25 +45,29 @@ class SLOEvaluator:
         }
         for metric in REGISTRY.collect():
             if metric.name == "http_request_duration_seconds":
-                for sample in metric.samples:
-                    if sample.name == "http_request_duration_seconds_sum":
-                        metrics["http_duration_sum"] += sample.value
-                    elif sample.name == "http_request_duration_seconds_count":
-                        metrics["http_duration_count"] += sample.value
+                self._process_duration_samples(metric, metrics, "http_duration")
             elif metric.name == "graph_rebuild_duration_seconds":
-                for sample in metric.samples:
-                    if sample.name == "graph_rebuild_duration_seconds_sum":
-                        metrics["rebuild_duration_sum"] += sample.value
-                    elif sample.name == "graph_rebuild_duration_seconds_count":
-                        metrics["rebuild_duration_count"] += sample.value
+                self._process_duration_samples(metric, metrics, "rebuild_duration")
             elif metric.name == "http_requests":  # prometheus_client strips _total from metric.name
-                for sample in metric.samples:
-                    if sample.name == "http_requests_total":
-                        metrics["http_requests_total"] += sample.value
-                        status_group = sample.labels.get("status_group", "2xx")
-                        if status_group.startswith("5"):
-                            metrics["http_requests_error"] += sample.value
+                self._process_request_samples(metric, metrics)
         return metrics
+
+    def _process_duration_samples(self, metric: Any, metrics: dict[str, float], prefix: str) -> None:
+        """Process duration metric samples to sum sum and count values."""
+        for sample in metric.samples:
+            if sample.name == f"{metric.name}_sum":
+                metrics[f"{prefix}_sum"] += sample.value
+            elif sample.name == f"{metric.name}_count":
+                metrics[f"{prefix}_count"] += sample.value
+
+    def _process_request_samples(self, metric: Any, metrics: dict[str, float]) -> None:
+        """Process HTTP request samples to sum total and error counts."""
+        for sample in metric.samples:
+            if sample.name == "http_requests_total":
+                metrics["http_requests_total"] += sample.value
+                status_group = sample.labels.get("status_group", "2xx")
+                if status_group.startswith("5"):
+                    metrics["http_requests_error"] += sample.value
 
     def evaluate_api_latency(self, metrics: dict[str, float]) -> SLOEvaluationResult:
         """Evaluate average API latency against the average threshold as a proxy for performance."""
