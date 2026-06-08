@@ -9,6 +9,7 @@ from src.config.settings import Settings
 
 pytestmark = pytest.mark.unit
 
+
 @pytest.fixture
 def mock_settings() -> Settings:
     """Provide a basic settings fixture."""
@@ -84,9 +85,9 @@ def test_slo_evaluations(
     """Test various SLO evaluations via parametrization."""
     evaluator = SLOEvaluator(settings=mock_settings)
     eval_method = getattr(evaluator, method_name)
-    
+
     result = eval_method(metrics)
-    
+
     assert result.slo_name == expected_slo_name
     assert result.is_compliant is expected_compliant
     assert result.current_value == pytest.approx(expected_value)
@@ -97,7 +98,7 @@ def test_slo_evaluations(
 def test_evaluate_all(mock_settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test evaluating all SLOs via _collect_metrics."""
     evaluator = SLOEvaluator(settings=mock_settings)
-    
+
     # Mock _collect_metrics to avoid needing a populated registry
     def mock_collect() -> dict[str, float]:
         """Mock metric collection."""
@@ -109,9 +110,9 @@ def test_evaluate_all(mock_settings: Settings, monkeypatch: pytest.MonkeyPatch) 
             "http_requests_total": 1000.0,
             "http_requests_error": 5.0,
         }
-        
+
     monkeypatch.setattr(evaluator, "_collect_metrics", mock_collect)
-    
+
     results = evaluator.evaluate_all()
     assert len(results) == 3
     assert all(r.is_compliant for r in results)
