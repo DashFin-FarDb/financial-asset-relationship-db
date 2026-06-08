@@ -93,6 +93,7 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
 def _init_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
     """Initialize database schemas for reconciliation."""
     from src.data.database import init_db
+
     init_db(engine)
     if coord_engine is not engine:
         init_db(coord_engine)
@@ -103,12 +104,11 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any) -> None:
     from src.data.database import create_session_factory
     from src.data.distributed_lock import DistributedLock
     from src.logic.recovery_gate import RecoveryGate
+
     from .metrics import increment_recovery_trigger
 
     session_factory = create_session_factory(engine)
-    coord_session_factory = (
-        create_session_factory(coord_engine) if coord_engine is not engine else session_factory
-    )
+    coord_session_factory = create_session_factory(coord_engine) if coord_engine is not engine else session_factory
 
     lock = DistributedLock(
         coordination_session_factory=coord_session_factory,
@@ -122,7 +122,7 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any) -> None:
         runtime_has_active_executor=False,
         lock_ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
     )
-    
+
     try:
         if hasattr(gate, "evaluate_and_reconcile"):
             gate.evaluate_and_reconcile()
@@ -160,6 +160,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     """Run startup reconciliation with timeout and error handling."""
     from src.logic.recovery_gate import ExecutionBlockedError
+
     try:
         try:
             await asyncio.wait_for(asyncio.to_thread(_run_startup_reconciliation, settings), timeout=120)
