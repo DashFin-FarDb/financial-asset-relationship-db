@@ -111,11 +111,12 @@ class Settings(BaseModel):
         # Buckets defined in api/metrics.py: (10.0, 30.0, 60.0, 120.0, 300.0, 600.0, 1200.0)
         allowed_buckets = {10, 30, 60, 120, 300, 600, 1200}
         if value not in allowed_buckets:
-            # We don't necessarily want to HARD fail if it doesn't match, 
+            # We don't necessarily want to HARD fail if it doesn't match,
             # but the review suggests we should validate it.
             # Let's issue a warning or raise if we want to be strict.
             # Raising is safer for SLO accuracy.
             import logging
+
             logging.getLogger(__name__).warning(
                 "SLO_REBUILD_DURATION_MAX_SECONDS (%s) does not match any histogram bucket boundary. "
                 "SLO evaluation may be imprecise. Allowed: %s",

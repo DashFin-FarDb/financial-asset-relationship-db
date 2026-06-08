@@ -197,7 +197,7 @@ class SLOEvaluator:
         """
         self._trigger_side_effects = trigger_side_effects
         metrics = self._collect_metrics()
-        
+
         return [
             self.evaluate_api_latency(metrics),
             self.evaluate_rebuild_duration(metrics),
