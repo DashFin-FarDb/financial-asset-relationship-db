@@ -33,4 +33,3 @@ groups:
         annotations:
           summary: "High number of in-flight API requests"
           description: "There are currently {{ $value }} in-flight requests, which may indicate a bottleneck or resource starvation."
-

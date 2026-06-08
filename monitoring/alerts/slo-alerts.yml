@@ -45,4 +45,3 @@ groups:
         annotations:
           summary: "Elevated Error Budget Burn Rate (Slow)"
           description: "Error budget is being consumed at a rate that will exhaust the 30-day budget in 10 days."
-

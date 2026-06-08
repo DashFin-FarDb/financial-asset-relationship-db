@@ -218,6 +218,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 ),
             )
             raise RuntimeError("Failed to load persisted graph during startup") from None
+
+
 if has_durable_graph_persistence:
     init_rebuild_executor(settings)
     interval = getattr(settings, "graph_sync_interval_seconds", 60.0)
@@ -248,7 +250,6 @@ if sync_task is not None:
 slo_task.cancel()
 with contextlib.suppress(asyncio.CancelledError):  # NOSONAR
     await slo_task
-
 
     if has_durable_graph_persistence:
         shutdown_rebuild_executor()
