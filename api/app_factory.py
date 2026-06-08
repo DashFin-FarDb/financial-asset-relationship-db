@@ -218,37 +218,36 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 ),
             )
             raise RuntimeError("Failed to load persisted graph during startup") from None
-if has_durable_graph_persistence:
-    init_rebuild_executor(settings)
-    interval = getattr(settings, "graph_sync_interval_seconds", 60.0)
-    sync_task = asyncio.create_task(_graph_synchronization_loop(interval_seconds=interval))
 
-slo_task = asyncio.create_task(_slo_evaluation_loop(interval_seconds=60.0))
+        init_rebuild_executor(settings)
+        interval = getattr(settings, "graph_sync_interval_seconds", 60.0)
+        sync_task = asyncio.create_task(_graph_synchronization_loop(interval_seconds=interval))
 
-# Required initialization for all environments to ensure state validity
-get_graph()
+    slo_task = asyncio.create_task(_slo_evaluation_loop(interval_seconds=60.0))
 
-yield
+    # Required initialization for all environments to ensure state validity
+    get_graph()
 
-log_event(
-    logger,
-    logging.INFO,
-    ObservabilityEvent(
-        event="application_teardown_initiated",
-        message="Initiating orderly application lifespan teardown processing...",
-    ),
-)
-begin_shutdown()
+    yield
 
-if sync_task is not None:
-    sync_task.cancel()
+    log_event(
+        logger,
+        logging.INFO,
+        ObservabilityEvent(
+            event="application_teardown_initiated",
+            message="Initiating orderly application lifespan teardown processing...",
+        ),
+    )
+    begin_shutdown()
+
+    if sync_task is not None:
+        sync_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):  # NOSONAR
+            await sync_task
+
+    slo_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):  # NOSONAR
-        await sync_task
-
-slo_task.cancel()
-with contextlib.suppress(asyncio.CancelledError):  # NOSONAR
-    await slo_task
-
+        await slo_task
 
     if has_durable_graph_persistence:
         shutdown_rebuild_executor()
@@ -338,11 +337,6 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             backoff = min(current_interval * 2, max_interval)
             jitter = random.uniform(0, 0.1 * backoff)
             current_interval = min(backoff + jitter, max_interval)
-            # Note: we intentionally avoid calling `await asyncio.sleep(...)` here.
-            # The try-block begins with `await asyncio.sleep(current_interval)`, so
-            # adjusting current_interval here ensures the next iteration uses the new
-            # value (avoids double-sleeping within one cycle). If the loop body is
-            # refactored to move the initial sleep, update this comment.
 
 
 async def _slo_evaluation_loop(interval_seconds: float) -> None:
