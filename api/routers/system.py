@@ -266,7 +266,6 @@ def detailed_health_check() -> DetailedHealthResponse:
         graph_persistence_configured=_get_graph_persistence_configured(),
         graph=graph_health,
         database=database_health,
-        slo_summary=_get_slo_summary(),
     )
 
 

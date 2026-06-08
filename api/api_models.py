@@ -159,7 +159,6 @@ class DetailedHealthResponse(BaseModel):
     )
     graph: GraphHealthResponse
     database: DatabaseHealthResponse
-    slo_summary: SLOSummary | None = Field(default=None)
 
 
 class GraphRebuildResponse(BaseModel):

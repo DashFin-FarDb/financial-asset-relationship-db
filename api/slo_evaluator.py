@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from prometheus_client import REGISTRY
 
 from api.metrics import update_slo_compliance_status
-from src.config.slo import SLOSettings, get_slo_settings
+from src.config.settings import Settings, get_settings
 from src.observability.events import SLOBreachEvent
 from src.observability.facade import log_event
 
@@ -29,35 +29,49 @@ class SLOEvaluationResult:
 class SLOEvaluator:
     """Evaluates SLOs against current metrics."""
 
-    def __init__(self, settings: SLOSettings | None = None) -> None:
+    def __init__(self, settings: Settings | None = None) -> None:
         """Initialize the SLO Evaluator with configuration settings."""
-        self.settings = settings or get_slo_settings()
+        self.settings = settings or get_settings()
 
-    def _sum_samples(self, metric_name: str, suffix: str = "") -> float:
-        """Sum all sample values for a given metric across all labels.
-
-        Args:
-            metric_name: The base name of the metric.
-            suffix: Optional suffix for the sample name (e.g., '_total', '_sum', '_count').
-        """
-        total = 0.0
-        target_sample_name = f"{metric_name}{suffix}" if suffix else metric_name
+    def _collect_metrics(self) -> dict[str, float]:
+        """Collect all required metrics in a single pass over the registry."""
+        metrics = {
+            "http_duration_sum": 0.0,
+            "http_duration_count": 0.0,
+            "rebuild_duration_sum": 0.0,
+            "rebuild_duration_count": 0.0,
+            "http_requests_total": 0.0,
+            "http_requests_error": 0.0,
+        }
         for metric in REGISTRY.collect():
-            if metric.name == metric_name:
+            if metric.name == "http_request_duration_seconds":
                 for sample in metric.samples:
-                    if sample.name == target_sample_name:
-                        total += sample.value
-        return total
+                    if sample.name == "http_request_duration_seconds_sum":
+                        metrics["http_duration_sum"] += sample.value
+                    elif sample.name == "http_request_duration_seconds_count":
+                        metrics["http_duration_count"] += sample.value
+            elif metric.name == "graph_rebuild_duration_seconds":
+                for sample in metric.samples:
+                    if sample.name == "graph_rebuild_duration_seconds_sum":
+                        metrics["rebuild_duration_sum"] += sample.value
+                    elif sample.name == "graph_rebuild_duration_seconds_count":
+                        metrics["rebuild_duration_count"] += sample.value
+            elif metric.name == "http_requests":  # prometheus_client strips _total from metric.name
+                for sample in metric.samples:
+                    if sample.name == "http_requests_total":
+                        metrics["http_requests_total"] += sample.value
+                        status_group = sample.labels.get("status_group", "2xx")
+                        if status_group.startswith("5"):
+                            metrics["http_requests_error"] += sample.value
+        return metrics
 
-    def evaluate_api_latency(self) -> SLOEvaluationResult:
-        """Evaluate average API latency against the P50 threshold as a proxy for performance."""
-        # Note: True P99/P50 requires PromQL histogram_quantile over time.
-        # For internal app evaluation, we approximate by checking the overall average latency.
-        total_duration = self._sum_samples("http_request_duration_seconds", "_sum")
-        total_requests = self._sum_samples("http_request_duration_seconds", "_count")
+    def evaluate_api_latency(self, metrics: dict[str, float]) -> SLOEvaluationResult:
+        """Evaluate average API latency against the average threshold as a proxy for performance."""
+        total_duration = metrics.get("http_duration_sum", 0.0)
+        total_requests = metrics.get("http_duration_count", 0.0)
 
         current_avg = total_duration / total_requests if total_requests > 0 else 0.0
-        threshold = self.settings.slo_api_latency_p50_seconds
+        threshold = self.settings.slo_api_latency_avg_seconds
         
         is_compliant = current_avg <= threshold
         margin = threshold - current_avg
@@ -77,10 +91,10 @@ class SLOEvaluator:
             margin=margin,
         )
 
-    def evaluate_rebuild_duration(self) -> SLOEvaluationResult:
+    def evaluate_rebuild_duration(self, metrics: dict[str, float]) -> SLOEvaluationResult:
         """Evaluate average rebuild duration against the max duration threshold."""
-        total_duration = self._sum_samples("graph_rebuild_duration_seconds", "_sum")
-        total_rebuilds = self._sum_samples("graph_rebuild_duration_seconds", "_count")
+        total_duration = metrics.get("rebuild_duration_sum", 0.0)
+        total_rebuilds = metrics.get("rebuild_duration_count", 0.0)
 
         current_avg = total_duration / total_rebuilds if total_rebuilds > 0 else 0.0
         threshold = float(self.settings.slo_rebuild_duration_max_seconds)
@@ -103,18 +117,10 @@ class SLOEvaluator:
             margin=margin,
         )
 
-    def evaluate_error_rate(self) -> SLOEvaluationResult:
+    def evaluate_error_rate(self, metrics: dict[str, float]) -> SLOEvaluationResult:
         """Evaluate the overall API HTTP error rate against the error rate threshold."""
-        total_requests = 0.0
-        error_requests = 0.0
-        
-        for metric in REGISTRY.collect():
-            if metric.name == "http_requests_total":
-                for sample in metric.samples:
-                    total_requests += sample.value
-                    status_group = sample.labels.get("status_group", "2xx")
-                    if status_group.startswith("5"):
-                        error_requests += sample.value
+        total_requests = metrics.get("http_requests_total", 0.0)
+        error_requests = metrics.get("http_requests_error", 0.0)
 
         current_error_rate = error_requests / total_requests if total_requests > 0 else 0.0
         threshold = self.settings.slo_error_rate_threshold
@@ -139,10 +145,11 @@ class SLOEvaluator:
 
     def evaluate_all(self) -> list[SLOEvaluationResult]:
         """Run all SLO evaluations and return the results."""
+        metrics = self._collect_metrics()
         return [
-            self.evaluate_api_latency(),
-            self.evaluate_rebuild_duration(),
-            self.evaluate_error_rate(),
+            self.evaluate_api_latency(metrics),
+            self.evaluate_rebuild_duration(metrics),
+            self.evaluate_error_rate(metrics),
         ]
 
     def _record_and_log(

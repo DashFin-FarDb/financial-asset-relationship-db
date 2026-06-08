@@ -459,7 +459,7 @@ class TestAPIEndpoints:
         assert response.status_code == 200
         data = response.json()
 
-        assert set(data) == {"status", "graph_persistence_configured", "graph", "database", "slo_summary"}
+        assert set(data) == {"status", "graph_persistence_configured", "graph", "database"}
         assert data["status"] == "healthy"
         assert isinstance(data["graph_persistence_configured"], bool)
 

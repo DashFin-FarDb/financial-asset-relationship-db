@@ -42,4 +42,3 @@ class SLOBreachEvent(ObservabilityEvent):
     Inherits from ObservabilityEvent to ensure consistent log formatting while 
     semantically identifying the event as a critical breach.
     """
-    pass
