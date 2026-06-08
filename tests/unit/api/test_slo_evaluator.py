@@ -7,6 +7,7 @@ import pytest
 from api.slo_evaluator import SLOEvaluator
 from src.config.settings import Settings
 
+pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def mock_settings() -> Settings:
