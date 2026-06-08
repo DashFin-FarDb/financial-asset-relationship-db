@@ -124,6 +124,27 @@ class DatabaseHealthResponse(BaseModel):
     reachable: bool
 
 
+class SLOEvaluationResultModel(BaseModel):
+    """Response model for a single SLO evaluation."""
+    
+    model_config = ConfigDict(extra="forbid")
+    
+    slo_name: str
+    is_compliant: bool
+    current_value: float
+    threshold: float
+    margin: float
+
+
+class SLOSummary(BaseModel):
+    """Response model summarizing all SLO evaluations."""
+    
+    model_config = ConfigDict(extra="forbid")
+    
+    overall_compliant: bool
+    evaluations: list[SLOEvaluationResultModel]
+
+
 class DetailedHealthResponse(BaseModel):
     """Non-secret hosted deployment readiness status."""
 
@@ -138,6 +159,7 @@ class DetailedHealthResponse(BaseModel):
     )
     graph: GraphHealthResponse
     database: DatabaseHealthResponse
+    slo_summary: SLOSummary | None = Field(default=None)
 
 
 class GraphRebuildResponse(BaseModel):
