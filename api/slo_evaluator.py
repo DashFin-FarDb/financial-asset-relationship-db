@@ -72,7 +72,7 @@ class SLOEvaluator:
 
         current_avg = total_duration / total_requests if total_requests > 0 else 0.0
         threshold = self.settings.slo_api_latency_avg_seconds
-        
+
         is_compliant = current_avg <= threshold
         margin = threshold - current_avg
 

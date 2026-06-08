@@ -22,9 +22,9 @@ def test_evaluate_api_latency_compliant(mock_settings: Settings) -> None:
     """Test API latency evaluation when compliant."""
     evaluator = SLOEvaluator(settings=mock_settings)
     metrics = {"http_duration_sum": 0.5, "http_duration_count": 10.0}
-    
+
     result = evaluator.evaluate_api_latency(metrics)
-    
+
     assert result.slo_name == "api_latency"
     assert result.is_compliant is True
     assert result.current_value == 0.05  # 0.5 / 10
@@ -36,9 +36,9 @@ def test_evaluate_api_latency_breached(mock_settings: Settings) -> None:
     """Test API latency evaluation when breached."""
     evaluator = SLOEvaluator(settings=mock_settings)
     metrics = {"http_duration_sum": 2.0, "http_duration_count": 10.0}
-    
+
     result = evaluator.evaluate_api_latency(metrics)
-    
+
     assert result.is_compliant is False
     assert result.current_value == 0.2
     assert result.threshold == 0.1
@@ -49,9 +49,9 @@ def test_evaluate_api_latency_zero_requests(mock_settings: Settings) -> None:
     """Test API latency evaluation with no requests."""
     evaluator = SLOEvaluator(settings=mock_settings)
     metrics = {"http_duration_sum": 0.0, "http_duration_count": 0.0}
-    
+
     result = evaluator.evaluate_api_latency(metrics)
-    
+
     assert result.is_compliant is True
     assert result.current_value == 0.0
 
@@ -60,9 +60,9 @@ def test_evaluate_rebuild_duration_compliant(mock_settings: Settings) -> None:
     """Test rebuild duration evaluation when compliant."""
     evaluator = SLOEvaluator(settings=mock_settings)
     metrics = {"rebuild_duration_sum": 500.0, "rebuild_duration_count": 2.0}
-    
+
     result = evaluator.evaluate_rebuild_duration(metrics)
-    
+
     assert result.slo_name == "rebuild_duration"
     assert result.is_compliant is True
     assert result.current_value == 250.0
@@ -73,9 +73,9 @@ def test_evaluate_error_rate_compliant(mock_settings: Settings) -> None:
     """Test error rate evaluation when compliant."""
     evaluator = SLOEvaluator(settings=mock_settings)
     metrics = {"http_requests_total": 1000.0, "http_requests_error": 5.0}
-    
+
     result = evaluator.evaluate_error_rate(metrics)
-    
+
     assert result.slo_name == "error_rate"
     assert result.is_compliant is True
     assert result.current_value == 0.005
@@ -86,9 +86,9 @@ def test_evaluate_error_rate_breached(mock_settings: Settings) -> None:
     """Test error rate evaluation when breached."""
     evaluator = SLOEvaluator(settings=mock_settings)
     metrics = {"http_requests_total": 100.0, "http_requests_error": 2.0}
-    
+
     result = evaluator.evaluate_error_rate(metrics)
-    
+
     assert result.is_compliant is False
     assert result.current_value == 0.02
     assert result.threshold == 0.01
@@ -97,7 +97,7 @@ def test_evaluate_error_rate_breached(mock_settings: Settings) -> None:
 def test_evaluate_all(mock_settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test evaluating all SLOs via _collect_metrics."""
     evaluator = SLOEvaluator(settings=mock_settings)
-    
+
     # Mock _collect_metrics to avoid needing a populated registry
     def mock_collect() -> dict[str, float]:
         return {
@@ -108,9 +108,9 @@ def test_evaluate_all(mock_settings: Settings, monkeypatch: pytest.MonkeyPatch) 
             "http_requests_total": 1000.0,
             "http_requests_error": 5.0,
         }
-        
+
     monkeypatch.setattr(evaluator, "_collect_metrics", mock_collect)
-    
+
     results = evaluator.evaluate_all()
     assert len(results) == 3
     assert all(r.is_compliant for r in results)
