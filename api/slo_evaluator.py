@@ -42,6 +42,7 @@ class SLOEvaluator:
     def __init__(self, settings: Settings | None = None) -> None:
         """Initialize the SLO Evaluator with configuration settings."""
         self.settings = settings or get_settings()
+        self._trigger_side_effects = True
 
     def _collect_metrics(self) -> dict[str, float]:
         """Collect all required metrics in a single pass over the registry."""
@@ -105,39 +106,40 @@ class SLOEvaluator:
             margin=margin,
         )
 
+    def _check_rebuild_breach(self, threshold: float) -> bool:
+        """Check histogram buckets for any rebuild exceeding threshold."""
+        for metric in REGISTRY.collect():
+            if metric.name != "graph_rebuild_duration_seconds":
+                continue
+                
+            total_count = 0.0
+            le_count = 0.0
+            for sample in metric.samples:
+                if sample.name.endswith("_count"):
+                    total_count = sample.value
+                elif sample.name.endswith("_bucket"):
+                    le = float(sample.labels.get("le", 0.0))
+                    if le <= threshold:
+                        le_count = max(le_count, sample.value)
+            
+            if total_count > le_count:
+                return True
+        return False
+
     def evaluate_rebuild_duration(self, metrics: dict[str, float]) -> SLOEvaluationResult:
         """Evaluate if any rebuild duration exceeded the maximum threshold."""
         threshold = float(self.settings.slo_rebuild_duration_max_seconds)
+        any_breach = self._check_rebuild_breach(threshold)
         
-        # Check histogram buckets to see if ANY rebuild exceeded the threshold.
-        # We look for values in buckets where 'le' > threshold, or if 'le' == threshold
-        # we check if the 'inf' bucket has more total samples than the threshold bucket.
-        any_breach = False
-        for metric in REGISTRY.collect():
-            if metric.name == "graph_rebuild_duration_seconds":
-                # find count of all rebuilds
-                total_rebuilds = 0.0
-                rebuilds_le_threshold = 0.0
-                for sample in metric.samples:
-                    if sample.name.endswith("_count"):
-                        total_rebuilds = sample.value
-                    elif sample.name.endswith("_bucket"):
-                        le = float(sample.labels.get("le", 0.0))
-                        if le <= threshold:
-                            # Rebuilds in this bucket are definitely compliant
-                            rebuilds_le_threshold = max(rebuilds_le_threshold, sample.value)
-                
-                # If total count is greater than count of those <= threshold, at least one breached.
-                if total_rebuilds > rebuilds_le_threshold:
-                    any_breach = True
-        
-        # Current value for display remains the lifetime average
         total_duration = metrics.get("rebuild_duration_sum", 0.0)
         total_rebuilds = metrics.get("rebuild_duration_count", 0.0)
         current_avg = total_duration / total_rebuilds if total_rebuilds > 0 else 0.0
         
         is_compliant = not any_breach
-        margin = threshold - current_avg  # Margin is still informative based on average
+        
+        # If we have a breach, the 'current_value' being an average is misleading if the breach was a spike.
+        # However, for lifetime reporting, we'll keep the average but ensure is_compliant is correct.
+        margin = threshold - current_avg
 
         self._record_and_log(
             slo_name="rebuild_duration",
@@ -186,25 +188,20 @@ class SLOEvaluator:
         Args:
             trigger_side_effects: If True, update Prometheus gauges and log breach transitions.
         """
+        self._trigger_side_effects = trigger_side_effects
         metrics = self._collect_metrics()
         
-        # We need a way to pass trigger_side_effects to _record_and_log.
-        # Temporarily storing it on the instance is a bit hacky but works for this scope.
-        self._trigger_side_effects = trigger_side_effects
-        
-        results = [
+        return [
             self.evaluate_api_latency(metrics),
             self.evaluate_rebuild_duration(metrics),
             self.evaluate_error_rate(metrics),
         ]
-        
-        return results
 
     def _record_and_log(
         self, slo_name: str, is_compliant: bool, current_value: float, threshold: float
     ) -> None:
         """Update the prometheus metric and log an event ONLY on transition to breach."""
-        if not getattr(self, "_trigger_side_effects", True):
+        if not self._trigger_side_effects:
             return
 
         update_slo_compliance_status(slo_name, is_compliant)

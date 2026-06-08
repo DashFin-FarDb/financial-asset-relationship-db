@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from prometheus_client import REGISTRY, CollectorRegistry, Counter, Histogram
+from prometheus_client import CollectorRegistry, Counter, Histogram
 
 from api.slo_evaluator import SLOEvaluator
 from src.config.settings import Settings
@@ -161,10 +160,10 @@ def test_collect_metrics_logic(monkeypatch: pytest.MonkeyPatch) -> None:
     metrics = evaluator._collect_metrics()
     
     assert metrics["http_duration_sum"] == pytest.approx(0.20)
-    assert metrics["http_duration_count"] == 2.0
-    assert metrics["rebuild_duration_sum"] == 200.0
-    assert metrics["http_requests_total"] == 12.0
-    assert metrics["http_requests_error"] == 2.0
+    assert metrics["http_duration_count"] == pytest.approx(2.0)
+    assert metrics["rebuild_duration_sum"] == pytest.approx(200.0)
+    assert metrics["http_requests_total"] == pytest.approx(12.0)
+    assert metrics["http_requests_error"] == pytest.approx(2.0)
 
 
 def test_transition_safe_logging(mock_settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:

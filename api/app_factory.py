@@ -6,6 +6,7 @@ import asyncio
 import contextlib
 import logging
 import random
+import time
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
@@ -223,7 +224,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         interval = getattr(settings, "graph_sync_interval_seconds", 60.0)
         sync_task = asyncio.create_task(_graph_synchronization_loop(interval_seconds=interval))
 
-    slo_task = asyncio.create_task(_slo_evaluation_loop(interval_seconds=60.0))
+    slo_task = asyncio.create_task(_slo_evaluation_loop())
 
     # Required initialization for all environments to ensure state validity
     get_graph()
@@ -265,25 +266,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 async def _graph_synchronization_loop(interval_seconds: float) -> None:
     """
     Continuously synchronize the in-memory graph with persistent rebuild updates until shutdown.
-
-    Performs repeated synchronization attempts separated by a configurable base interval (minimum 1.0 second).
-
-    If a synchronization attempt raises an exception,
-
-    the loop engages an exponential backoff with randomized jitter
-
-    (capped at 32× the base interval) and logs a transient error;
-
-    after a successful sync the interval and error state are reset.
-
-    The loop checks the runtime lifecycle state before each attempt
-
-    and exits when the runtime is shutting down or stopped.
-
-    Parameters:
-        interval_seconds (float): Desired base interval, in seconds, between synchronization attempts.
-
-        Values below 1.0 are treated as 1.0.
     """
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
@@ -339,17 +321,36 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             current_interval = min(backoff + jitter, max_interval)
 
 
-async def _slo_evaluation_loop(interval_seconds: float) -> None:
+async def _slo_evaluation_loop() -> None:
     """
     Periodically evaluate SLOs and update Prometheus metrics and logs.
+    Includes exponential backoff on failures and checks lifecycle state.
     """
+    from src.config.settings import get_settings
     from .slo_evaluator import SLOEvaluator
 
-    evaluator = SLOEvaluator()
+    settings = get_settings()
+    base_interval = settings.slo_evaluation_interval_seconds
+    current_interval = base_interval
+    max_interval = base_interval * 32
+    
+    evaluator = SLOEvaluator(settings=settings)
+    
     while True:
         try:
-            await asyncio.sleep(interval_seconds)
+            await asyncio.sleep(current_interval)
+            
+            if get_runtime_lifecycle_state() in (
+                GraphRuntimeLifecycleState.SHUTTING_DOWN,
+                GraphRuntimeLifecycleState.STOPPED,
+            ):
+                return
+
             evaluator.evaluate_all(trigger_side_effects=True)
+            
+            # Reset on success
+            current_interval = base_interval
+            
         except asyncio.CancelledError:
             raise
         except Exception as exc:
@@ -358,10 +359,12 @@ async def _slo_evaluation_loop(interval_seconds: float) -> None:
                 logging.WARNING,
                 ObservabilityEvent(
                     event="slo_background_evaluation_failed",
-                    message=f"Background SLO evaluation failed: {type(exc).__name__}",
+                    message=f"Background SLO evaluation failed: {type(exc).__name__}. Engaging backoff.",
                     metadata={"error": type(exc).__name__},
                 ),
             )
+            # Exponential backoff
+            current_interval = min(current_interval * 2, max_interval)
 
 
 def create_app() -> FastAPI:

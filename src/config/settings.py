@@ -78,12 +78,14 @@ class Settings(BaseModel):
     slo_api_latency_avg_seconds: float = Field(default=0.1, ge=0.0)
     slo_rebuild_duration_max_seconds: int = Field(default=300, ge=0)
     slo_error_rate_threshold: float = Field(default=0.01, ge=0.0, le=1.0)
+    slo_evaluation_interval_seconds: float = Field(default=60.0, ge=1.0)
 
     @field_validator(
         "rebuild_lock_ttl_seconds",
         "slo_api_latency_avg_seconds",
         "slo_rebuild_duration_max_seconds",
         "slo_error_rate_threshold",
+        "slo_evaluation_interval_seconds",
         mode="before",
     )
     @classmethod
@@ -94,12 +96,30 @@ class Settings(BaseModel):
             field_info = cls.model_fields.get(field_name)
             default = getattr(field_info, "default", 300)
             return default
-        if field_name == "rebuild_lock_ttl_seconds" and isinstance(value, str):
+        if field_name in ("rebuild_lock_ttl_seconds", "slo_rebuild_duration_max_seconds") and isinstance(value, str):
             try:
                 return int(value)
             except ValueError:
                 raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}")
         # For other fields or non-string inputs, Pydantic will handle the type coercion
+        return value
+
+    @field_validator("slo_rebuild_duration_max_seconds")
+    @classmethod
+    def validate_rebuild_threshold(cls, value: int) -> int:
+        """Validate that the rebuild threshold matches a histogram bucket boundary."""
+        # Buckets defined in api/metrics.py: (10.0, 30.0, 60.0, 120.0, 300.0, 600.0, 1200.0)
+        allowed_buckets = {10, 30, 60, 120, 300, 600, 1200}
+        if value not in allowed_buckets:
+            # We don't necessarily want to HARD fail if it doesn't match, 
+            # but the review suggests we should validate it.
+            # Let's issue a warning or raise if we want to be strict.
+            # Raising is safer for SLO accuracy.
+            import logging
+            logging.getLogger(__name__).warning(
+                f"SLO_REBUILD_DURATION_MAX_SECONDS ({value}) does not match any histogram bucket boundary. "
+                f"SLO evaluation may be imprecise. Allowed: {sorted(allowed_buckets)}"
+            )
         return value
 
     @property
@@ -153,6 +173,7 @@ def load_settings() -> Settings:
         slo_api_latency_avg_seconds=os.getenv("SLO_API_LATENCY_AVG_SECONDS"),  # type: ignore[arg-type]
         slo_rebuild_duration_max_seconds=os.getenv("SLO_REBUILD_DURATION_MAX_SECONDS"),  # type: ignore[arg-type]
         slo_error_rate_threshold=os.getenv("SLO_ERROR_RATE_THRESHOLD"),  # type: ignore[arg-type]
+        slo_evaluation_interval_seconds=os.getenv("SLO_EVALUATION_INTERVAL_SECONDS"),  # type: ignore[arg-type]
     )
 
 
