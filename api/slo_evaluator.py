@@ -111,7 +111,7 @@ class SLOEvaluator:
         for metric in REGISTRY.collect():
             if metric.name != "graph_rebuild_duration_seconds":
                 continue
-                
+
             total_count = 0.0
             le_count = 0.0
             for sample in metric.samples:
@@ -121,7 +121,7 @@ class SLOEvaluator:
                     le = float(sample.labels.get("le", 0.0))
                     if le <= threshold:
                         le_count = max(le_count, sample.value)
-            
+
             if total_count > le_count:
                 return True
         return False
@@ -130,13 +130,13 @@ class SLOEvaluator:
         """Evaluate if any rebuild duration exceeded the maximum threshold."""
         threshold = float(self.settings.slo_rebuild_duration_max_seconds)
         any_breach = self._check_rebuild_breach(threshold)
-        
+
         total_duration = metrics.get("rebuild_duration_sum", 0.0)
         total_rebuilds = metrics.get("rebuild_duration_count", 0.0)
         current_avg = total_duration / total_rebuilds if total_rebuilds > 0 else 0.0
-        
+
         is_compliant = not any_breach
-        
+
         # If we have a breach, the 'current_value' being an average is misleading if the breach was a spike.
         # However, for lifetime reporting, we'll keep the average but ensure is_compliant is correct.
         margin = threshold - current_avg
@@ -190,16 +190,14 @@ class SLOEvaluator:
         """
         self._trigger_side_effects = trigger_side_effects
         metrics = self._collect_metrics()
-        
+
         return [
             self.evaluate_api_latency(metrics),
             self.evaluate_rebuild_duration(metrics),
             self.evaluate_error_rate(metrics),
         ]
 
-    def _record_and_log(
-        self, slo_name: str, is_compliant: bool, current_value: float, threshold: float
-    ) -> None:
+    def _record_and_log(self, slo_name: str, is_compliant: bool, current_value: float, threshold: float) -> None:
         """Update the prometheus metric and log an event ONLY on transition to breach."""
         if not self._trigger_side_effects:
             return
@@ -207,7 +205,7 @@ class SLOEvaluator:
         update_slo_compliance_status(slo_name, is_compliant)
 
         prev_compliant = self._last_compliance.get(slo_name, True)
-        
+
         if not is_compliant and prev_compliant:
             # Transition from compliant to breached
             log_event(
@@ -238,5 +236,5 @@ class SLOEvaluator:
                     },
                 ),
             )
-            
+
         self._last_compliance[slo_name] = is_compliant

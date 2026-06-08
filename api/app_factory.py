@@ -327,19 +327,20 @@ async def _slo_evaluation_loop() -> None:
     Includes exponential backoff on failures and checks lifecycle state.
     """
     from src.config.settings import get_settings
+
     from .slo_evaluator import SLOEvaluator
 
     settings = get_settings()
     base_interval = settings.slo_evaluation_interval_seconds
     current_interval = base_interval
     max_interval = base_interval * 32
-    
+
     evaluator = SLOEvaluator(settings=settings)
-    
+
     while True:
         try:
             await asyncio.sleep(current_interval)
-            
+
             if get_runtime_lifecycle_state() in (
                 GraphRuntimeLifecycleState.SHUTTING_DOWN,
                 GraphRuntimeLifecycleState.STOPPED,
@@ -347,10 +348,10 @@ async def _slo_evaluation_loop() -> None:
                 return
 
             evaluator.evaluate_all(trigger_side_effects=True)
-            
+
             # Reset on success
             current_interval = base_interval
-            
+
         except asyncio.CancelledError:
             raise
         except Exception as exc:
