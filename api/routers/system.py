@@ -10,7 +10,13 @@ from src.models.financial_models import AssetClass
 from src.observability.facade import ObservabilityEvent, log_event
 
 from .. import graph_lifecycle
-from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse, SLOEvaluationResultModel, SLOSummary
+from ..api_models import (
+    DatabaseHealthResponse,
+    DetailedHealthResponse,
+    GraphHealthResponse,
+    SLOEvaluationResultModel,
+    SLOSummary,
+)
 from ..graph_lifecycle_providers import (
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
@@ -31,7 +37,7 @@ def _get_slo_summary() -> SLOSummary:
         evaluator = SLOEvaluator()
         results = evaluator.evaluate_all()
         overall_compliant = all(r.is_compliant for r in results)
-        
+
         eval_models = [
             SLOEvaluationResultModel(
                 slo_name=r.slo_name,
@@ -42,11 +48,8 @@ def _get_slo_summary() -> SLOSummary:
             )
             for r in results
         ]
-        
-        return SLOSummary(
-            overall_compliant=overall_compliant,
-            evaluations=eval_models
-        )
+
+        return SLOSummary(overall_compliant=overall_compliant, evaluations=eval_models)
     except Exception as exc:
         log_event(
             logger,

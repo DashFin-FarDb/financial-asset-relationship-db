@@ -126,9 +126,9 @@ class DatabaseHealthResponse(BaseModel):
 
 class SLOEvaluationResultModel(BaseModel):
     """Response model for a single SLO evaluation."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     slo_name: str
     is_compliant: bool
     current_value: float
@@ -138,9 +138,9 @@ class SLOEvaluationResultModel(BaseModel):
 
 class SLOSummary(BaseModel):
     """Response model summarizing all SLO evaluations."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     overall_compliant: bool
     evaluations: list[SLOEvaluationResultModel]
 

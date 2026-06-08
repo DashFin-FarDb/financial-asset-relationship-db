@@ -58,7 +58,7 @@ class SLOEvaluator:
 
         current_avg = total_duration / total_requests if total_requests > 0 else 0.0
         threshold = self.settings.slo_api_latency_p50_seconds
-        
+
         is_compliant = current_avg <= threshold
         margin = threshold - current_avg
 
@@ -84,7 +84,7 @@ class SLOEvaluator:
 
         current_avg = total_duration / total_rebuilds if total_rebuilds > 0 else 0.0
         threshold = float(self.settings.slo_rebuild_duration_max_seconds)
-        
+
         is_compliant = current_avg <= threshold
         margin = threshold - current_avg
 
@@ -107,7 +107,7 @@ class SLOEvaluator:
         """Evaluate the overall API HTTP error rate against the error rate threshold."""
         total_requests = 0.0
         error_requests = 0.0
-        
+
         for metric in REGISTRY.collect():
             if metric.name == "http_requests_total":
                 for sample in metric.samples:
@@ -118,7 +118,7 @@ class SLOEvaluator:
 
         current_error_rate = error_requests / total_requests if total_requests > 0 else 0.0
         threshold = self.settings.slo_error_rate_threshold
-        
+
         is_compliant = current_error_rate <= threshold
         margin = threshold - current_error_rate
 
@@ -145,12 +145,10 @@ class SLOEvaluator:
             self.evaluate_error_rate(),
         ]
 
-    def _record_and_log(
-        self, slo_name: str, is_compliant: bool, current_value: float, threshold: float
-    ) -> None:
+    def _record_and_log(self, slo_name: str, is_compliant: bool, current_value: float, threshold: float) -> None:
         """Update the prometheus metric and log an event if breached."""
         update_slo_compliance_status(slo_name, is_compliant)
-        
+
         if not is_compliant:
             log_event(
                 logger,

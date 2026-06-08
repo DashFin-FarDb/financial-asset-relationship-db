@@ -38,8 +38,9 @@ class ObservabilityEvent:
 class SLOBreachEvent(ObservabilityEvent):
     """
     Structured domain event specifically for SLO breaches.
-    
-    Inherits from ObservabilityEvent to ensure consistent log formatting while 
+
+    Inherits from ObservabilityEvent to ensure consistent log formatting while
     semantically identifying the event as a critical breach.
     """
+
     pass
