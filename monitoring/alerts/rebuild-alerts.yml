@@ -1,0 +1,44 @@
+groups:
+  - name: rebuild-alerts
+    rules:
+      - alert: RebuildSlow
+        expr: histogram_quantile(0.95, sum by (le) (rate(graph_rebuild_duration_seconds_bucket[30m]))) > 600
+        for: 10m
+        labels:
+          severity: warning
+          component: core
+        annotations:
+          summary: "Graph rebuild is taking too long"
+          description: "The 95th percentile of graph rebuild duration is {{ $value | printf \"%.2f\" }}s, which exceeds the threshold of 600s."
+
+      - alert: RebuildHighFailureRate
+        expr: |
+          sum(rate(graph_rebuild_failure_total[1h]))
+          /
+          (sum(rate(graph_rebuild_success_total[1h])) + sum(rate(graph_rebuild_failure_total[1h]))) > 0.1
+        for: 15m
+        labels:
+          severity: critical
+          component: core
+        annotations:
+          summary: "High Graph Rebuild Failure Rate"
+          description: "Graph rebuilds are failing at a rate of {{ $value | printf \"%.2f%%\" }} over the last hour."
+
+      - alert: RebuildRecoveryTriggered
+        expr: sum(rate(graph_rebuild_recovery_trigger_total[15m])) > 0
+        labels:
+          severity: warning
+          component: core
+        annotations:
+          summary: "Graph Rebuild Recovery Triggered"
+          description: "Automatic recovery for graph rebuild was triggered {{ $value }} times in the last 15 minutes due to inconsistencies (e.g., stale ownership)."
+
+      - alert: RebuildStuck
+        expr: graph_rebuild_state_status == 2
+        for: 1h
+        labels:
+          severity: critical
+          component: core
+        annotations:
+          summary: "Graph Rebuild potentially stuck"
+          description: "A graph rebuild has been in 'RUNNING' state for over 1 hour."

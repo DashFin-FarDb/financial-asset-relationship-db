@@ -1,0 +1,11 @@
+groups:
+  - name: loki-event-aggregations
+    rules:
+      - record: log_events_total
+        expr: sum by (event, level) (count_over_time({app="financial-asset-relationship-db"} | json | __error__="" [1m]))
+      
+      - record: log_rebuild_failures_total
+        expr: sum(count_over_time({app="financial-asset-relationship-db"} | json | event="graph_rebuild_failed" [1m]))
+      
+      - record: log_slo_breaches_total
+        expr: sum by (slo_name) (count_over_time({app="financial-asset-relationship-db"} | json | event="slo_breach_detected" [1m]))
