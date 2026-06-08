@@ -218,30 +218,37 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 ),
             )
             raise RuntimeError("Failed to load persisted graph during startup") from None
+if has_durable_graph_persistence:
+    init_rebuild_executor(settings)
+    interval = getattr(settings, "graph_sync_interval_seconds", 60.0)
+    sync_task = asyncio.create_task(_graph_synchronization_loop(interval_seconds=interval))
 
-        init_rebuild_executor(settings)
-        interval = getattr(settings, "graph_sync_interval_seconds", 60.0)
-        sync_task = asyncio.create_task(_graph_synchronization_loop(interval_seconds=interval))
+slo_task = asyncio.create_task(_slo_evaluation_loop(interval_seconds=60.0))
 
-    # Required initialization for all environments to ensure state validity
-    get_graph()
+# Required initialization for all environments to ensure state validity
+get_graph()
 
-    yield
+yield
 
-    log_event(
-        logger,
-        logging.INFO,
-        ObservabilityEvent(
-            event="application_teardown_initiated",
-            message="Initiating orderly application lifespan teardown processing...",
-        ),
-    )
-    begin_shutdown()
+log_event(
+    logger,
+    logging.INFO,
+    ObservabilityEvent(
+        event="application_teardown_initiated",
+        message="Initiating orderly application lifespan teardown processing...",
+    ),
+)
+begin_shutdown()
 
-    if sync_task is not None:
-        sync_task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):  # NOSONAR
-            await sync_task
+if sync_task is not None:
+    sync_task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):  # NOSONAR
+        await sync_task
+
+slo_task.cancel()
+with contextlib.suppress(asyncio.CancelledError):  # NOSONAR
+    await slo_task
+
 
     if has_durable_graph_persistence:
         shutdown_rebuild_executor()
@@ -336,6 +343,31 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             # adjusting current_interval here ensures the next iteration uses the new
             # value (avoids double-sleeping within one cycle). If the loop body is
             # refactored to move the initial sleep, update this comment.
+
+
+async def _slo_evaluation_loop(interval_seconds: float) -> None:
+    """
+    Periodically evaluate SLOs and update Prometheus metrics and logs.
+    """
+    from .slo_evaluator import SLOEvaluator
+
+    evaluator = SLOEvaluator()
+    while True:
+        try:
+            await asyncio.sleep(interval_seconds)
+            evaluator.evaluate_all(trigger_side_effects=True)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="slo_background_evaluation_failed",
+                    message=f"Background SLO evaluation failed: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
 
 
 def create_app() -> FastAPI:

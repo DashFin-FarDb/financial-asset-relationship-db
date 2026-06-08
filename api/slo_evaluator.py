@@ -28,7 +28,16 @@ class SLOEvaluationResult:
 
 
 class SLOEvaluator:
-    """Evaluates SLOs against current metrics."""
+    """
+    Evaluates SLOs against current metrics.
+
+    NOTE: This evaluator operates on cumulative, in-memory metrics from the local registry.
+    It reflects compliance since the process started (lifetime averages). For windowed
+    or historical SLO compliance, refer to the Grafana dashboards and Prometheus alerts.
+    """
+
+    # Shared state to track last known compliance to prevent log flooding
+    _last_compliance: dict[str, bool] = {}
 
     def __init__(self, settings: Settings | None = None) -> None:
         """Initialize the SLO Evaluator with configuration settings."""
@@ -71,7 +80,7 @@ class SLOEvaluator:
                     metrics["http_requests_error"] += sample.value
 
     def evaluate_api_latency(self, metrics: dict[str, float]) -> SLOEvaluationResult:
-        """Evaluate average API latency against the average threshold as a proxy for performance."""
+        """Evaluate lifetime average API latency against the threshold."""
         total_duration = metrics.get("http_duration_sum", 0.0)
         total_requests = metrics.get("http_duration_count", 0.0)
 
@@ -97,15 +106,38 @@ class SLOEvaluator:
         )
 
     def evaluate_rebuild_duration(self, metrics: dict[str, float]) -> SLOEvaluationResult:
-        """Evaluate average rebuild duration against the max duration threshold."""
+        """Evaluate if any rebuild duration exceeded the maximum threshold."""
+        threshold = float(self.settings.slo_rebuild_duration_max_seconds)
+        
+        # Check histogram buckets to see if ANY rebuild exceeded the threshold.
+        # We look for values in buckets where 'le' > threshold, or if 'le' == threshold
+        # we check if the 'inf' bucket has more total samples than the threshold bucket.
+        any_breach = False
+        for metric in REGISTRY.collect():
+            if metric.name == "graph_rebuild_duration_seconds":
+                # find count of all rebuilds
+                total_rebuilds = 0.0
+                rebuilds_le_threshold = 0.0
+                for sample in metric.samples:
+                    if sample.name.endswith("_count"):
+                        total_rebuilds = sample.value
+                    elif sample.name.endswith("_bucket"):
+                        le = float(sample.labels.get("le", 0.0))
+                        if le <= threshold:
+                            # Rebuilds in this bucket are definitely compliant
+                            rebuilds_le_threshold = max(rebuilds_le_threshold, sample.value)
+                
+                # If total count is greater than count of those <= threshold, at least one breached.
+                if total_rebuilds > rebuilds_le_threshold:
+                    any_breach = True
+        
+        # Current value for display remains the lifetime average
         total_duration = metrics.get("rebuild_duration_sum", 0.0)
         total_rebuilds = metrics.get("rebuild_duration_count", 0.0)
-
         current_avg = total_duration / total_rebuilds if total_rebuilds > 0 else 0.0
-        threshold = float(self.settings.slo_rebuild_duration_max_seconds)
-
-        is_compliant = current_avg <= threshold
-        margin = threshold - current_avg
+        
+        is_compliant = not any_breach
+        margin = threshold - current_avg  # Margin is still informative based on average
 
         self._record_and_log(
             slo_name="rebuild_duration",
@@ -148,20 +180,39 @@ class SLOEvaluator:
             margin=margin,
         )
 
-    def evaluate_all(self) -> list[SLOEvaluationResult]:
-        """Run all SLO evaluations and return the results."""
+    def evaluate_all(self, trigger_side_effects: bool = True) -> list[SLOEvaluationResult]:
+        """Run all SLO evaluations and return the results.
+
+        Args:
+            trigger_side_effects: If True, update Prometheus gauges and log breach transitions.
+        """
         metrics = self._collect_metrics()
-        return [
+        
+        # We need a way to pass trigger_side_effects to _record_and_log.
+        # Temporarily storing it on the instance is a bit hacky but works for this scope.
+        self._trigger_side_effects = trigger_side_effects
+        
+        results = [
             self.evaluate_api_latency(metrics),
             self.evaluate_rebuild_duration(metrics),
             self.evaluate_error_rate(metrics),
         ]
+        
+        return results
 
-    def _record_and_log(self, slo_name: str, is_compliant: bool, current_value: float, threshold: float) -> None:
-        """Update the prometheus metric and log an event if breached."""
+    def _record_and_log(
+        self, slo_name: str, is_compliant: bool, current_value: float, threshold: float
+    ) -> None:
+        """Update the prometheus metric and log an event ONLY on transition to breach."""
+        if not getattr(self, "_trigger_side_effects", True):
+            return
+
         update_slo_compliance_status(slo_name, is_compliant)
 
-        if not is_compliant:
+        prev_compliant = self._last_compliance.get(slo_name, True)
+        
+        if not is_compliant and prev_compliant:
+            # Transition from compliant to breached
             log_event(
                 logger,
                 logging.ERROR,
@@ -175,3 +226,20 @@ class SLOEvaluator:
                     },
                 ),
             )
+        elif is_compliant and not prev_compliant:
+            # Transition from breached to compliant (recovery)
+            log_event(
+                logger,
+                logging.INFO,
+                SLOBreachEvent(
+                    event="slo_recovery_detected",
+                    message=f"SLO '{slo_name}' recovered. Current: {current_value:.4f}, Threshold: {threshold:.4f}",
+                    metadata={
+                        "slo_name": slo_name,
+                        "current_value": current_value,
+                        "threshold": threshold,
+                    },
+                ),
+            )
+            
+        self._last_compliance[slo_name] = is_compliant

@@ -22,7 +22,7 @@ groups:
           component: api
         annotations:
           summary: "Elevated API Error Rate on route {{ $labels.route }}"
-          description: "Route {{ $labels.method }} {{ $labels.route }} is experiencing an error rate of {{ $value | printf \"%.2f%%\" }}. Threshold is 5%."
+          description: "Route {{ $labels.method }} {{ $labels.route }} is experiencing an error rate of {{ $value | mulf 100 | printf \"%.2f%%\" }}. Threshold is 5%."
 
       - alert: APIHighInFlightRequests
         expr: sum(http_requests_in_flight) > 100
@@ -33,3 +33,4 @@ groups:
         annotations:
           summary: "High number of in-flight API requests"
           description: "There are currently {{ $value }} in-flight requests, which may indicate a bottleneck or resource starvation."
+

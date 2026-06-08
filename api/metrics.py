@@ -102,6 +102,11 @@ HTTP_REQUEST_DURATION_SECONDS = Histogram(
     buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
 )
 
+HTTP_REQUESTS_IN_FLIGHT = Gauge(
+    "http_requests_in_flight",
+    "Number of HTTP requests currently being processed.",
+)
+
 # Phase 3: SLO metrics
 SLO_COMPLIANCE_STATUS = Gauge(
     "slo_compliance_status",

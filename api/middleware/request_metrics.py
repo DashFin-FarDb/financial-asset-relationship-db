@@ -6,7 +6,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from api.metrics import HTTP_REQUEST_DURATION_SECONDS, HTTP_REQUESTS_TOTAL
+from api.metrics import HTTP_REQUEST_DURATION_SECONDS, HTTP_REQUESTS_IN_FLIGHT, HTTP_REQUESTS_TOTAL
 from src.observability.facade import ObservabilityEvent, log_event
 
 if TYPE_CHECKING:
@@ -47,6 +47,7 @@ class RequestMetricsMiddleware:
             await self.app(scope, receive, send)
             return
 
+        HTTP_REQUESTS_IN_FLIGHT.inc()
         method = scope.get("method", "GET").upper()
         if method not in ALLOWED_METHODS:
             method = "OTHER"
@@ -76,6 +77,7 @@ class RequestMetricsMiddleware:
             )
             raise
         finally:
+            HTTP_REQUESTS_IN_FLIGHT.dec()
             duration = time.perf_counter() - start_time
 
             # Resolve the route template dynamically from scope to keep cardinality low

@@ -13,16 +13,17 @@ groups:
 
       - alert: RebuildHighFailureRate
         expr: |
-          sum(rate(graph_rebuild_failure_total[1h]))
+          (sum(rate(graph_rebuild_failure_total[1h])) or vector(0))
           /
-          (sum(rate(graph_rebuild_success_total[1h])) + sum(rate(graph_rebuild_failure_total[1h]))) > 0.1
+          ((sum(rate(graph_rebuild_success_total[1h])) or vector(0)) + (sum(rate(graph_rebuild_failure_total[1h])) or vector(0))) > 0.1
         for: 15m
         labels:
           severity: critical
           component: core
         annotations:
           summary: "High Graph Rebuild Failure Rate"
-          description: "Graph rebuilds are failing at a rate of {{ $value | printf \"%.2f%%\" }} over the last hour."
+          description: "Graph rebuilds are failing at a rate of {{ $value | mulf 100 | printf \"%.2f%%\" }} over the last hour."
+
 
       - alert: RebuildRecoveryTriggered
         expr: sum(rate(graph_rebuild_recovery_trigger_total[15m])) > 0

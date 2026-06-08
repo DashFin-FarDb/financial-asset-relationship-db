@@ -28,7 +28,7 @@ groups:
           component: slo
         annotations:
           summary: "High Error Budget Burn Rate (Fast)"
-          description: "Error budget is being consumed at a rate that will exhaust the 30-day budget in less than 24 hours."
+          description: "Error budget is being consumed at a rate that will exhaust the 30-day budget in ~2 days."
 
       - alert: SLOErrorBudgetSlowBurn
         expr: |
@@ -44,4 +44,5 @@ groups:
           component: slo
         annotations:
           summary: "Elevated Error Budget Burn Rate (Slow)"
-          description: "Error budget is being consumed at a rate that will exhaust the 30-day budget in 3 days."
+          description: "Error budget is being consumed at a rate that will exhaust the 30-day budget in 10 days."
+

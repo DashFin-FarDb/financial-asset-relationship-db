@@ -32,10 +32,11 @@ SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
 
 
 def _get_slo_summary() -> SLOSummary:
-    """Evaluate all SLOs and return a summary."""
+    """Evaluate all SLOs and return a summary without triggering side-effects."""
     try:
         evaluator = SLOEvaluator()
-        results = evaluator.evaluate_all()
+        # Side-effects (metrics/logs) are handled by background task, not GET request
+        results = evaluator.evaluate_all(trigger_side_effects=False)
         overall_compliant = all(r.is_compliant for r in results)
 
         eval_models = [
@@ -60,7 +61,7 @@ def _get_slo_summary() -> SLOSummary:
                 metadata={"error": type(exc).__name__},
             ),
         )
-        return SLOSummary(overall_compliant=False, evaluations=[])
+        raise HTTPException(status_code=500, detail="SLO evaluation failed") from exc
 
 
 @router.get("/")
