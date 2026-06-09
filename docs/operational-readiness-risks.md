@@ -46,9 +46,9 @@ The distributed state machine is currently scattered across implementation files
 **Status:** Medium Risk | **Impact:** Operational Procedures
 Metrics, logs, and events exist, but they have not been proven to answer real-world operational questions:
 
-- How does an operator identify a stuck rebuild vs. a slow rebuild?
-- How is ownership loss identified?
-- How does an operator distinguish a recoverable failure from a terminal failure?
+- How can an operator identify a stuck rebuild vs. a slow rebuild?
+- How can an operator identify ownership loss?
+- How can an operator distinguish a recoverable failure from a terminal failure?
 
 ## 6. Failure Taxonomy Review Needed
 
