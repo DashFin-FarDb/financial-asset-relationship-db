@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from unittest.mock import MagicMock
 
 import pytest
+from prometheus_client import CollectorRegistry, Counter, Histogram
 
 from api.slo_evaluator import SLOEvaluator
 from src.config.settings import Settings
@@ -92,6 +94,7 @@ def test_slo_evaluations(mock_settings: Settings, expectation: SLOExpectation) -
     evaluator = SLOEvaluator(settings=mock_settings)
     eval_method = getattr(evaluator, expectation.method_name)
 
+    # Disable side effects for pure logic tests
     result = eval_method(expectation.metrics)
 
     assert result.slo_name == expectation.slo_name
@@ -119,6 +122,72 @@ def test_evaluate_all(mock_settings: Settings, monkeypatch: pytest.MonkeyPatch) 
 
     monkeypatch.setattr(evaluator, "_collect_metrics", mock_collect)
 
-    results = evaluator.evaluate_all()
+    results = evaluator.evaluate_all(trigger_side_effects=False)
     assert len(results) == 3
     assert all(r.is_compliant for r in results)
+
+
+def test_collect_metrics_logic(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test the core logic of iterating over REGISTRY and extracting metrics."""
+    test_registry = CollectorRegistry()
+
+    # Register some dummy metrics
+    duration_hist = Histogram(
+        "http_request_duration_seconds",
+        "test",
+        ["method", "route", "status_group"],
+        registry=test_registry,
+        buckets=(0.1, 0.5, 1.0),
+    )
+    duration_hist.labels(method="GET", route="/", status_group="2xx").observe(0.05)
+    duration_hist.labels(method="GET", route="/", status_group="2xx").observe(0.15)
+
+    rebuild_hist = Histogram("graph_rebuild_duration_seconds", "test", registry=test_registry, buckets=(300,))
+    rebuild_hist.observe(200)
+
+    requests_total = Counter("http_requests", "test", ["method", "route", "status_group"], registry=test_registry)
+    requests_total.labels(method="GET", route="/", status_group="2xx").inc(10)
+    requests_total.labels(method="GET", route="/", status_group="5xx").inc(2)
+
+    # Patch REGISTRY to point to our test registry
+    monkeypatch.setattr("api.slo_evaluator.REGISTRY", test_registry)
+
+    evaluator = SLOEvaluator()
+    metrics = evaluator._collect_metrics()
+
+    assert metrics["http_duration_sum"] == pytest.approx(0.20)
+    assert metrics["http_duration_count"] == pytest.approx(2.0)
+    assert metrics["rebuild_duration_sum"] == pytest.approx(200.0)
+    assert metrics["http_requests_total"] == pytest.approx(12.0)
+    assert metrics["http_requests_error"] == pytest.approx(2.0)
+
+
+def test_transition_safe_logging(mock_settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that logs are only emitted on transition to/from breach."""
+    evaluator = SLOEvaluator(settings=mock_settings)
+    evaluator._last_compliance = {}  # Reset shared state for test
+
+    mock_log = MagicMock()
+    monkeypatch.setattr("api.slo_evaluator.log_event", mock_log)
+    monkeypatch.setattr("api.slo_evaluator.update_slo_compliance_status", MagicMock())
+
+    # 1. First run - Breached. Should log.
+    evaluator._record_and_log("api_latency", is_compliant=False, current_value=0.5, threshold=0.1)
+    assert mock_log.call_count == 1
+    assert mock_log.call_args[0][2].event == "slo_breach_detected"
+
+    # 2. Second run - Still Breached. Should NOT log again.
+    mock_log.reset_mock()
+    evaluator._record_and_log("api_latency", is_compliant=False, current_value=0.5, threshold=0.1)
+    assert mock_log.call_count == 0
+
+    # 3. Third run - Recovered. Should log recovery.
+    mock_log.reset_mock()
+    evaluator._record_and_log("api_latency", is_compliant=True, current_value=0.05, threshold=0.1)
+    assert mock_log.call_count == 1
+    assert mock_log.call_args[0][2].event == "slo_recovery_detected"
+
+    # 4. Fourth run - Still Compliant. Should NOT log.
+    mock_log.reset_mock()
+    evaluator._record_and_log("api_latency", is_compliant=True, current_value=0.05, threshold=0.1)
+    assert mock_log.call_count == 0
