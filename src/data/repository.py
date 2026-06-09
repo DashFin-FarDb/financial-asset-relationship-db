@@ -1146,16 +1146,17 @@ class AssetGraphRepository:
         self.session.flush()  # Flush to ensure job is visible to subsequent queries
         return job_id
 
-    def update_rebuild_job_source(self, job_id: str, source: str | None) -> None:
+    def update_rebuild_job_source(self, job_id: str, execution_id: str, source: str | None) -> None:
         """
         Update the source field on a rebuild job record.
 
         Args:
             job_id: The job identifier to update.
+            execution_id: The unique identifier for this execution attempt.
             source: Rebuild source identifier (max 32 chars), or None to clear.
 
         Raises:
-            ValueError: If the job does not exist or source exceeds 32 characters.
+            ValueError: If the job does not exist, source exceeds 32 characters, or execution_id mismatches.
         """
         if source is not None and len(source) > 32:
             raise ValueError("source must not exceed 32 characters")
@@ -1163,21 +1164,27 @@ class AssetGraphRepository:
         job = self.session.get(RebuildJobORM, job_id)
         if job is None:
             raise ValueError(f"Rebuild job {job_id} not found")
+        if job.execution_id != execution_id:
+            raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
 
         job.source = source
         job.updated_at = datetime.now(timezone.utc)  # noqa: UP017
         self.session.add(job)
 
-    def mark_rebuild_job_running(self, job_id: str) -> None:
+    def mark_rebuild_job_running(self, job_id: str, execution_id: str) -> None:
         """
-        Transition rebuild job from pending to running status.
+        Transition rebuild job from pending to running status and assign execution identity.
 
         Args:
             job_id: The job identifier to update.
+            execution_id: The unique identifier for this execution attempt.
 
         Raises:
             ValueError: If the job does not exist or is not in pending status.
         """
+        if len(execution_id) > 64:
+            raise ValueError(f"execution_id exceeds maximum length of 64 characters: {len(execution_id)} chars")
+
         job = self.session.get(RebuildJobORM, job_id)
         if job is None:
             raise ValueError(f"Rebuild job {job_id} not found")
@@ -1188,12 +1195,14 @@ class AssetGraphRepository:
         job.status = RebuildJobStatus.RUNNING
         job.started_at = now
         job.updated_at = now
+        job.execution_id = execution_id
         self.session.add(job)
 
     def mark_rebuild_job_succeeded(
         self,
         job_id: str,
         *,
+        execution_id: str,
         node_count: int,
         edge_count: int,
         duration_ms: int,
@@ -1203,12 +1212,13 @@ class AssetGraphRepository:
 
         Args:
             job_id: The job identifier to update.
+            execution_id: The unique identifier for this execution attempt.
             node_count: Number of nodes/assets in the rebuilt graph.
             edge_count: Number of edges/relationships in the rebuilt graph.
             duration_ms: Total rebuild duration in milliseconds.
 
         Raises:
-            ValueError: If the job does not exist or is not in running status.
+            ValueError: If the job does not exist, is not running, or execution_id mismatches.
         """
         self._validate_non_negative_metrics(
             duration_ms=duration_ms,
@@ -1221,6 +1231,8 @@ class AssetGraphRepository:
             raise ValueError(f"Rebuild job {job_id} not found")
         if job.status != RebuildJobStatus.RUNNING:
             raise ValueError(f"Cannot transition job {job_id} from {job.status} to succeeded")
+        if job.execution_id != execution_id:
+            raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
 
         now = datetime.now(timezone.utc)  # noqa: UP017
         job.status = RebuildJobStatus.SUCCEEDED
@@ -1235,6 +1247,7 @@ class AssetGraphRepository:
         self,
         job_id: str,
         *,
+        execution_id: str,
         failure_category: str,
         failure_message: str,
         duration_ms: int,
@@ -1244,13 +1257,14 @@ class AssetGraphRepository:
 
         Args:
             job_id: The job identifier to update.
+            execution_id: The unique identifier for this execution attempt.
             failure_category: Sanitized failure category (max 64 chars).
             failure_message: Sanitized failure message (max 512 chars).
             duration_ms: Total rebuild duration in milliseconds.
 
         Raises:
             ValueError: If the job does not exist, is not in running/pending status,
-                or failure metadata exceeds bounds.
+                execution_id mismatches, or failure metadata exceeds bounds.
         """
         self._validate_failure_metadata(
             failure_category=failure_category,
@@ -1267,6 +1281,9 @@ class AssetGraphRepository:
         ):
             current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else job.status
             raise ValueError(f"Cannot transition job {job_id} from {current_status} to {RebuildJobStatus.FAILED.value}")
+
+        if job.status == RebuildJobStatus.RUNNING and job.execution_id != execution_id:
+            raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
 
         now = datetime.now(timezone.utc)  # noqa: UP017
         job.status = RebuildJobStatus.FAILED
@@ -1346,6 +1363,7 @@ class AssetGraphRepository:
     def update_rebuild_heartbeat(
         self,
         job_id: str,
+        execution_id: str,
         worker_id: str,
     ) -> None:
         """
@@ -1356,12 +1374,13 @@ class AssetGraphRepository:
 
         Args:
             job_id: The rebuild job ID to update.
+            execution_id: The unique identifier for this execution attempt.
             worker_id: The worker/instance ID sending the heartbeat.
 
         Raises:
             ValueError: If worker_id exceeds String(64) column constraint, or if
                 the job does not exist, is not in running status, or is owned by
-                a different worker.
+                a different worker/execution.
         """
         # Validate worker_id length before database write
         # Column is String(64), must enforce to avoid backend-specific errors
@@ -1375,6 +1394,8 @@ class AssetGraphRepository:
         if job.status != RebuildJobStatus.RUNNING:
             current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
             raise ValueError(f"Cannot update heartbeat for job {job_id} with status {current_status} (must be running)")
+        if job.execution_id != execution_id:
+            raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
 
         # Flush any pending ORM changes to ensure UPDATE sees current state
         self.session.flush()
@@ -1382,14 +1403,13 @@ class AssetGraphRepository:
         # Atomic conditional update: only succeeds if:
         # 1. Job is still in RUNNING status (prevents updates to completed jobs)
         # 2. active_worker_id is NULL or matches worker_id (prevents ownership conflicts)
-        # This prevents race conditions where:
-        # - Two workers try to claim ownership simultaneously
-        # - A heartbeat arrives after job transitions to terminal state
+        # 3. execution_id matches (prevents stale execution identity)
         now = datetime.now(timezone.utc)  # noqa: UP017
         stmt = (
             update(RebuildJobORM)
             .where(RebuildJobORM.job_id == job_id)
             .where(RebuildJobORM.status == RebuildJobStatus.RUNNING)
+            .where(RebuildJobORM.execution_id == execution_id)
             .where(
                 or_(
                     RebuildJobORM.active_worker_id.is_(None),

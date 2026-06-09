@@ -93,7 +93,7 @@ class TestRebuildJobRepository:
         job_id = repo.create_rebuild_job(requested_by="test_user", source="cache")
         repo.session.commit()
 
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.session.commit()
 
         reader = repository_factory()
@@ -107,26 +107,27 @@ class TestRebuildJobRepository:
         """Test marking a non-existent job as running raises ValueError."""
         repo = repository_factory()
         with pytest.raises(ValueError, match="Rebuild job .* not found"):
-            repo.mark_rebuild_job_running("non-existent-job-id")
+            repo.mark_rebuild_job_running("non-existent-job-id", "test_exec_id")
 
     def test_mark_rebuild_job_running_invalid_transition(self, repository_factory):
         """Test that transitioning from non-pending status to running raises ValueError."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="test_user")
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.session.flush()  # Flush changes without committing
 
         # Try to mark as running again (should fail)
         with pytest.raises(ValueError, match="Cannot transition job .* from running to running"):
-            repo.mark_rebuild_job_running(job_id)
+            repo.mark_rebuild_job_running(job_id, "test_exec_id")
 
     def test_mark_rebuild_job_succeeded(self, repository_factory):
         """Test marking a rebuild job as succeeded with metadata."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="test_user", source="real_data")
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.mark_rebuild_job_succeeded(
             job_id,
+            execution_id="test_exec_id",
             node_count=100,
             edge_count=250,
             duration_ms=1234,
@@ -150,6 +151,7 @@ class TestRebuildJobRepository:
         with pytest.raises(ValueError, match="Rebuild job .* not found"):
             repo.mark_rebuild_job_succeeded(
                 "non-existent-job-id",
+                execution_id="test_exec_id",
                 node_count=0,
                 edge_count=0,
                 duration_ms=0,
@@ -164,6 +166,7 @@ class TestRebuildJobRepository:
         with pytest.raises(ValueError, match="Cannot transition job .* from pending to succeeded"):
             repo.mark_rebuild_job_succeeded(
                 job_id,
+                execution_id="test_exec_id",
                 node_count=0,
                 edge_count=0,
                 duration_ms=0,
@@ -173,12 +176,13 @@ class TestRebuildJobRepository:
         """Negative success metrics should raise ValueError."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="test_user")
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.session.flush()
 
         with pytest.raises(ValueError, match="node_count must be non-negative"):
             repo.mark_rebuild_job_succeeded(
                 job_id,
+                execution_id="test_exec_id",
                 node_count=-1,
                 edge_count=0,
                 duration_ms=0,
@@ -187,6 +191,7 @@ class TestRebuildJobRepository:
         with pytest.raises(ValueError, match="edge_count must be non-negative"):
             repo.mark_rebuild_job_succeeded(
                 job_id,
+                execution_id="test_exec_id",
                 node_count=0,
                 edge_count=-1,
                 duration_ms=0,
@@ -195,6 +200,7 @@ class TestRebuildJobRepository:
         with pytest.raises(ValueError, match="duration_ms must be non-negative"):
             repo.mark_rebuild_job_succeeded(
                 job_id,
+                execution_id="test_exec_id",
                 node_count=0,
                 edge_count=0,
                 duration_ms=-1,
@@ -204,9 +210,10 @@ class TestRebuildJobRepository:
         """Test marking a rebuild job as failed with sanitized failure metadata."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="test_user", source="cache")
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.mark_rebuild_job_failed(
             job_id,
+            execution_id="test_exec_id",
             failure_category="rebuild_source_error",
             failure_message="Failed to load graph from cache",
             duration_ms=500,
@@ -232,6 +239,7 @@ class TestRebuildJobRepository:
 
         repo.mark_rebuild_job_failed(
             job_id,
+            execution_id="test_exec_id",
             failure_category="persistence_not_configured",
             failure_message="No persistence configured",
             duration_ms=10,
@@ -248,12 +256,13 @@ class TestRebuildJobRepository:
         """Test that failure_category exceeding 64 characters raises ValueError."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="test_user")
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.session.flush()  # Flush changes without committing
 
         with pytest.raises(ValueError, match="failure_category must not exceed 64 characters"):
             repo.mark_rebuild_job_failed(
                 job_id,
+                execution_id="test_exec_id",
                 failure_category="x" * 65,
                 failure_message="error",
                 duration_ms=0,
@@ -263,12 +272,13 @@ class TestRebuildJobRepository:
         """Test that failure_message exceeding 512 characters raises ValueError."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="test_user")
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.session.flush()  # Flush changes without committing
 
         with pytest.raises(ValueError, match="failure_message must not exceed 512 characters"):
             repo.mark_rebuild_job_failed(
                 job_id,
+                execution_id="test_exec_id",
                 failure_category="error",
                 failure_message="x" * 513,
                 duration_ms=0,
@@ -278,9 +288,10 @@ class TestRebuildJobRepository:
         """Test that marking a succeeded job as failed raises ValueError."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="test_user")
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.mark_rebuild_job_succeeded(
             job_id,
+            execution_id="test_exec_id",
             node_count=10,
             edge_count=20,
             duration_ms=100,
@@ -290,6 +301,7 @@ class TestRebuildJobRepository:
         with pytest.raises(ValueError, match="Cannot transition job .* from succeeded to failed"):
             repo.mark_rebuild_job_failed(
                 job_id,
+                execution_id="test_exec_id",
                 failure_category="error",
                 failure_message="test",
                 duration_ms=0,
@@ -299,12 +311,13 @@ class TestRebuildJobRepository:
         """Negative failure duration should raise ValueError."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="test_user")
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.session.flush()
 
         with pytest.raises(ValueError, match="duration_ms must be non-negative"):
             repo.mark_rebuild_job_failed(
                 job_id,
+                execution_id="test_exec_id",
                 failure_category="error",
                 failure_message="test",
                 duration_ms=-1,
@@ -365,10 +378,12 @@ class TestRebuildJobRepository:
 
         job_id_pending = repo.create_rebuild_job(requested_by="user1")
         job_id_running = repo.create_rebuild_job(requested_by="user2")
-        repo.mark_rebuild_job_running(job_id_running)
+        repo.mark_rebuild_job_running(job_id_running, "test_exec_id")
         job_id_succeeded = repo.create_rebuild_job(requested_by="user3")
-        repo.mark_rebuild_job_running(job_id_succeeded)
-        repo.mark_rebuild_job_succeeded(job_id_succeeded, node_count=10, edge_count=20, duration_ms=100)
+        repo.mark_rebuild_job_running(job_id_succeeded, "test_exec_id")
+        repo.mark_rebuild_job_succeeded(
+            job_id_succeeded, execution_id="test_exec_id", node_count=10, edge_count=20, duration_ms=100
+        )
         repo.session.commit()
 
         pending_jobs = repo.list_rebuild_jobs(status="pending")
@@ -397,8 +412,8 @@ class TestRebuildJobRepository:
         repo = repository_factory()
         first_job = repo.create_rebuild_job(requested_by="user1")
         second_job = repo.create_rebuild_job(requested_by="user2")
-        repo.mark_rebuild_job_running(first_job)
-        repo.mark_rebuild_job_running(second_job)
+        repo.mark_rebuild_job_running(first_job, "test_exec_id")
+        repo.mark_rebuild_job_running(second_job, "test_exec_id_2")
         repo.session.commit()
 
         reader = repository_factory()
@@ -409,10 +424,10 @@ class TestRebuildJobRepository:
         """Heartbeat should assign owner once when job has no active worker."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="user1")
-        repo.mark_rebuild_job_running(job_id)
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
         repo.session.commit()
 
-        repo.update_rebuild_heartbeat(job_id, "worker-a")
+        repo.update_rebuild_heartbeat(job_id, "test_exec_id", "worker-a")
         repo.session.commit()
 
         reader = repository_factory()
@@ -425,9 +440,9 @@ class TestRebuildJobRepository:
         """Heartbeat from a different worker should fail to preserve ownership."""
         repo = repository_factory()
         job_id = repo.create_rebuild_job(requested_by="user1")
-        repo.mark_rebuild_job_running(job_id)
-        repo.update_rebuild_heartbeat(job_id, "worker-a")
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
+        repo.update_rebuild_heartbeat(job_id, "test_exec_id", "worker-a")
         repo.session.commit()
 
         with pytest.raises(ValueError, match="active worker is worker-a"):
-            repo.update_rebuild_heartbeat(job_id, "worker-b")
+            repo.update_rebuild_heartbeat(job_id, "test_exec_id", "worker-b")

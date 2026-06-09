@@ -556,6 +556,7 @@ class RecoveryGate:
                     # Transition to FAILED with recovery marker
                     repo.mark_rebuild_job_failed(
                         active_job.job_id,
+                        execution_id=active_job.execution_id or "unknown",
                         failure_category="recovery_reset",
                         failure_message="Recovered from orphaned state by RecoveryGate",
                         duration_ms=0,  # Unknown duration for orphaned job

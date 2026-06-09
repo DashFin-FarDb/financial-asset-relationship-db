@@ -30,7 +30,7 @@ class RebuildJobStatus(str, enum.Enum):
 
     @classmethod
     def values(cls) -> list[str]:
-        """Return the list of all valid status string values (e.g. ['pending', 'running', ...])."""
+        """Return the list of all valid status string values."""
         return [m.value for m in cls]
 
 
@@ -236,6 +236,9 @@ class RebuildJobORM(Base):
         String(512),
         nullable=True,
     )
+    # Stage 5C.3: Execution Identity
+    execution_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
     # Stage 5C.1: Recovery state tracking
     active_worker_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     last_heartbeat_at: Mapped[datetime | None] = mapped_column(
