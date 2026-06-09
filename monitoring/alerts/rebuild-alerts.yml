@@ -15,7 +15,7 @@ groups:
         expr: |
           (sum(rate(graph_rebuild_failure_total[1h])) or vector(0))
           /
-          ((sum(rate(graph_rebuild_success_total[1h])) or vector(0)) + (sum(rate(graph_rebuild_failure_total[1h])) or vector(0))) > 0.1
+          (((sum(rate(graph_rebuild_success_total[1h])) or vector(0)) + (sum(rate(graph_rebuild_failure_total[1h])) or vector(0))) or vector(1)) > 0.1
         for: 15m
         labels:
           severity: critical

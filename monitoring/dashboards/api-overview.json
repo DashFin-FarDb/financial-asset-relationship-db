@@ -23,7 +23,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
       "targets": [
         {
-          "expr": "(sum(rate(http_requests_total{status_group=~\"5..\"}[5m])) or vector(0)) / sum(rate(http_requests_total[5m])) * 100",
+          "expr": "(sum(rate(http_requests_total{status_group=~\"5..\"}[5m])) or vector(0)) / (sum(rate(http_requests_total[5m])) or vector(1)) * 100",
           "legendFormat": "Global Error Rate"
         }
       ]

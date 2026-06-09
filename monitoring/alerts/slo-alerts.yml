@@ -17,11 +17,11 @@ groups:
       - alert: SLOErrorBudgetFastBurn
         expr: |
           (
-            sum(rate(http_requests_total{status_group=~"5.."}[1h])) / sum(rate(http_requests_total[1h])) > (1 - 0.99) * 14.4
+            (sum(rate(http_requests_total{status_group=~"5.."}[1h])) or vector(0)) / (sum(rate(http_requests_total[1h])) or vector(1)) > (1 - 0.99) * 14.4
           )
           AND
           (
-            sum(rate(http_requests_total{status_group=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > (1 - 0.99) * 14.4
+            (sum(rate(http_requests_total{status_group=~"5.."}[5m])) or vector(0)) / (sum(rate(http_requests_total[5m])) or vector(1)) > (1 - 0.99) * 14.4
           )
         labels:
           severity: critical
@@ -33,11 +33,11 @@ groups:
       - alert: SLOErrorBudgetSlowBurn
         expr: |
           (
-            sum(rate(http_requests_total{status_group=~"5.."}[6h])) / sum(rate(http_requests_total[6h])) > (1 - 0.99) * 3
+            (sum(rate(http_requests_total{status_group=~"5.."}[6h])) or vector(0)) / (sum(rate(http_requests_total[6h])) or vector(1)) > (1 - 0.99) * 3
           )
           AND
           (
-            sum(rate(http_requests_total{status_group=~"5.."}[30m])) / sum(rate(http_requests_total[30m])) > (1 - 0.99) * 3
+            (sum(rate(http_requests_total{status_group=~"5.."}[30m])) or vector(0)) / (sum(rate(http_requests_total[30m])) or vector(1)) > (1 - 0.99) * 3
           )
         labels:
           severity: warning
