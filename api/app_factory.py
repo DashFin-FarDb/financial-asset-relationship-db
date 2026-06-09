@@ -138,7 +138,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     settings = get_graph_lifecycle_settings()
     database_url = _get_durable_graph_database_url(settings)
-    has_persistence = bool(getattr(settings, "has_durable_graph_persistence", None) or database_url)
+    has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
+    has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
 
     if has_persistence:
         await _perform_startup_reconciliation(settings)
