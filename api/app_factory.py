@@ -133,9 +133,7 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """
-    Manage application startup and shutdown tasks for the FastAPI application.
-    """
+    """Manage application startup and shutdown tasks for the FastAPI application."""
     from .graph_lifecycle_providers import get_graph_lifecycle_settings
 
     settings = get_graph_lifecycle_settings()
