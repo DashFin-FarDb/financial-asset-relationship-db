@@ -275,7 +275,6 @@ def detailed_health_check() -> DetailedHealthResponse:
 
 @router.get(
     "/api/slo/status",
-    response_model=SLOSummary,
     responses={500: {"description": "SLO evaluation failed"}},
 )
 def get_slo_status() -> SLOSummary:
