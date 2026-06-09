@@ -8,7 +8,7 @@ import logging
 import random
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any
+from typing import Any, TYPE_CHECKING
 
 from fastapi import FastAPI
 
@@ -68,9 +68,7 @@ def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str
 
 
 def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
-    """
-    Initialize persisted graph state during application startup.
-    """
+    """Initialize persisted graph state during application startup."""
     from src.data.database import create_engine_from_url
 
     url = _resolve_startup_reconciliation_url(settings)
