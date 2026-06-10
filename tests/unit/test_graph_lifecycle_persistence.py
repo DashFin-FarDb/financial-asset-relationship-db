@@ -220,9 +220,9 @@ def _assert_empty_db_uses_configured_source(
 
     configured_graph = _asset_only_graph()
 
-    def load_configured_graph(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+    def load_configured_graph(*_args: Any, **_kwargs: Any) -> tuple[AssetRelationshipGraph, str]:
         """Provide the preconfigured fallback graph."""
-        return configured_graph
+        return configured_graph, expected_source
 
     monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
     monkeypatch.setattr(

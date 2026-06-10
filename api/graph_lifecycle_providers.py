@@ -124,22 +124,22 @@ def load_graph_from_cache_path(
     cache_path: str,
     *,
     enable_network: bool,
-) -> AssetRelationshipGraph:
+) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """Load a graph through the real-data cache path."""
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=enable_network)
-    return fetcher.create_real_database()
+    return fetcher.create_real_database_with_source()
 
 
 def load_graph_from_real_data_fetcher(
     cache_path: str | None,
-) -> AssetRelationshipGraph:
+) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """Load a graph from the real-data fetcher with network access."""
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=True)
-    return fetcher.create_real_database()
+    return fetcher.create_real_database_with_source()
 
 
 def create_sample_graph() -> AssetRelationshipGraph:
@@ -205,13 +205,11 @@ def build_rebuild_graph(
     """
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
-            return (
-                load_graph_from_cache_path(
-                    settings.graph_cache_path,
-                    enable_network=settings.use_real_data_fetcher,
-                ),
-                "cache",
+            graph, source = load_graph_from_cache_path(
+                settings.graph_cache_path,
+                enable_network=settings.use_real_data_fetcher,
             )
+            return graph, source
 
         if settings.use_real_data_fetcher:
             from src.data.real_data_fetcher import RealDataFetcher

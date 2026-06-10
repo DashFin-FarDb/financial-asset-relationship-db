@@ -197,7 +197,7 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     _save_graph(database_url, _seeded_hosted_graph())
     _configure_persistence(monkeypatch, database_url)
 
-    def fail_fallback_generation(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+    def fail_fallback_generation(*_args: Any, **_kwargs: Any) -> tuple[AssetRelationshipGraph, str]:
         """Fail the test if startup unexpectedly falls back to any generation path."""
         raise AssertionError("Fallback generation triggered unexpectedly")
 

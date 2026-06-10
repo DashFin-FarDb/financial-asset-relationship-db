@@ -182,6 +182,20 @@ class RealDataFetcher:
         Returns:
             AssetRelationshipGraph: A graph populated from cache, live data, or fallback/sample data.
         """
+        graph, _ = self.create_real_database_with_source()
+        return graph
+
+    def create_real_database_with_source(self) -> tuple[AssetRelationshipGraph, str]:
+        """
+        Create an asset relationship graph and identify its source (cache, real_data, or sample).
+
+        This is the provenance-safe version of create_real_database. It returns both the
+        constructed graph and a source tag identifying where the data originated.
+
+        Returns:
+            tuple[AssetRelationshipGraph, str]: A tuple containing the graph and a source
+                tag: "cache", "real_data" (for live fetches), or "sample".
+        """
         if self.cache_path and self.cache_path.exists():
             try:
                 log_event(
@@ -193,7 +207,7 @@ class RealDataFetcher:
                         metadata={"cache_path": str(self.cache_path)},
                     ),
                 )
-                return _load_from_cache(self.cache_path)
+                return _load_from_cache(self.cache_path), "cache"
             except Exception as exc:
                 log_event(
                     logger,
@@ -214,7 +228,7 @@ class RealDataFetcher:
                     message="Network fetching disabled. Using fallback dataset if available.",
                 ),
             )
-            return self._fallback()
+            return self._fallback(), "sample"
 
         log_event(
             logger,
@@ -258,7 +272,7 @@ class RealDataFetcher:
                     },
                 ),
             )
-            return graph
+            return graph, "real_data"
 
         except Exception as exc:
             log_event(
@@ -278,7 +292,7 @@ class RealDataFetcher:
                     message="Falling back to sample data due to real data fetch failure",
                 ),
             )
-            return self._fallback()
+            return self._fallback(), "sample"
 
     def fetch_raw_data(self) -> tuple[list[Asset], list[RegulatoryEvent]]:
         """
