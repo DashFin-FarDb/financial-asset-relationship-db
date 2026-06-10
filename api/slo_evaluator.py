@@ -128,12 +128,9 @@ class SLOEvaluator:
                 continue
 
             le = float(sample.labels.get("le", 0.0))
-            # Use exact match. Settings validator ensures threshold is in the bucket set.
-            # This identifies the count of observations <= threshold.
-            if le == threshold:
-                le_count = sample.value
+            if le <= threshold:
+                le_count = max(le_count, sample.value)
 
-        # A breach occurs if total observations exceed the count within the threshold bucket.
         return total_count > le_count
 
     def evaluate_rebuild_duration(self, metrics: dict[str, float]) -> SLOEvaluationResult:

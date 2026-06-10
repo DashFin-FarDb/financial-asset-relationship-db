@@ -93,11 +93,10 @@ def test_recovery_gate_resets_orphaned_running_job(session_factory):
     from src.data.db_models import DistributedLockORM, RebuildJobStatus
 
     # Create a RUNNING job.
-    execution_id = "orphaned-exec-id"
     with session_scope(session_factory) as session:
         repo = AssetGraphRepository(session)
         job_id = repo.create_rebuild_job(requested_by="test-worker")
-        repo.mark_rebuild_job_running(job_id, execution_id)
+        repo.mark_rebuild_job_running(job_id)
         session.commit()
 
     # Insert an EXPIRED lock row to simulate the previous worker's lock.

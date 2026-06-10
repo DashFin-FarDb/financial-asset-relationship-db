@@ -6,7 +6,7 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Literal
 
 from sqlalchemy import select  # pylint: disable=import-error
 from sqlalchemy.engine import Engine, make_url  # pylint: disable=import-error
@@ -179,12 +179,7 @@ def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
     return resolved_url
 
 
-def build_rebuild_graph(
-    settings: GraphLifecycleSettings,
-    *,
-    on_checkpoint: Callable[[dict[str, Any]], None] | None = None,
-    initial_checkpoint: dict[str, Any] | None = None,
-) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
+def build_rebuild_graph(settings: GraphLifecycleSettings) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """
     Select a rebuild source and construct a fresh asset relationship graph accordingly.
 
@@ -195,13 +190,12 @@ def build_rebuild_graph(
 
     Parameters:
         settings (GraphLifecycleSettings): Immutable settings that control cache paths
-            and whether real-data fetching is enabled.
-        on_checkpoint: Optional callback for progress persistence.
-        initial_checkpoint: Optional state to resume from.
+        and whether real-data fetching is enabled.
 
     Returns:
         tuple[AssetRelationshipGraph, GraphRebuildSource]: A tuple where the first element is the constructed graph
-            and the second element is the rebuild source string: `"cache"`, `"real_data"`, or `"sample"`.
+
+        and the second element is the rebuild source string: `"cache"`, `"real_data"`, or `"sample"`.
     """
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
@@ -212,30 +206,11 @@ def build_rebuild_graph(
                 ),
                 "cache",
             )
-
         if settings.use_real_data_fetcher:
-            from src.data.real_data_fetcher import RealDataFetcher
-            from src.logic.reconciliation_engine import ReconciliationEngine
-
-            fetcher = RealDataFetcher(cache_path=settings.real_data_cache_path, enable_network=True)
-            assets, events = fetcher.fetch_raw_data()
-
-            # Use ReconciliationEngine to orchestrate the rebuild with checkpointing
-            # (Execution phase uses a mock evaluator as drift detection is already done)
-            engine = ReconciliationEngine(cast(Any, None))
-            graph = engine.run_rebuild(
-                assets=assets,
-                regulatory_events=events,
-                on_checkpoint=on_checkpoint,
-                initial_checkpoint=initial_checkpoint,
+            return (
+                load_graph_from_real_data_fetcher(settings.real_data_cache_path),
+                "real_data",
             )
-
-            if settings.real_data_cache_path:
-                # Still persist to cache if configured
-                fetcher._persist_cache(graph)  # pylint: disable=protected-access
-
-            return (graph, "real_data")
-
         return (create_sample_graph(), "sample")
     except Exception as exc:
         log_event(
@@ -398,7 +373,7 @@ def _save_graph_with_session(
         # If the failure originated in the pre-commit check, re-raise the original exception
         # to allow specialized upstream handling and avoid generic save error wrapping.
         if pre_commit_error is not None:
-            raise pre_commit_error from None
+            raise pre_commit_error
 
         log_event(
             logger,

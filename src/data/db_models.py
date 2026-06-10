@@ -5,18 +5,7 @@ from __future__ import annotations
 import enum
 from datetime import datetime
 
-from sqlalchemy import (
-    Boolean,
-    CheckConstraint,
-    DateTime,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    String,
-    Text,
-    UniqueConstraint,
-)
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.data.base import Base
@@ -30,7 +19,7 @@ REGULATORY_EVENT_ID_FK = "regulatory_events.id"
 CASCADE_DELETE_ORPHAN = "all, delete-orphan"
 
 
-class RebuildJobStatus(enum.StrEnum):
+class RebuildJobStatus(str, enum.Enum):
     """Valid status values for a RebuildJobORM record."""
 
     PENDING = "pending"
@@ -41,7 +30,7 @@ class RebuildJobStatus(enum.StrEnum):
 
     @classmethod
     def values(cls) -> list[str]:
-        """Return the list of all valid status string values."""
+        """Return the list of all valid status string values (e.g. ['pending', 'running', ...])."""
         return [m.value for m in cls]
 
 
@@ -247,18 +236,12 @@ class RebuildJobORM(Base):
         String(512),
         nullable=True,
     )
-    # Stage 5C.3: Execution Identity
-    execution_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-
     # Stage 5C.1: Recovery state tracking
     active_worker_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     last_heartbeat_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
-
-    # Stage 5C.3B: Checkpointed Recovery
-    checkpoint_data: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class DistributedLockORM(Base):

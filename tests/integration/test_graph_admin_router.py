@@ -11,10 +11,10 @@ import contextlib
 import logging
 import threading
 import time
-from collections.abc import Generator, Iterator
+from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Generator
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
@@ -199,11 +199,9 @@ def test_rebuild_allows_active_authorized_operator_user(
         _settings: graph_admin.GraphLifecycleSettings,
         *,
         user_ref: str,
-        execution_id: str,
     ) -> graph_admin.GraphRebuildResponse:
         """Return a mock successful GraphRebuildResponse."""
         _ = user_ref
-        _ = execution_id
         return graph_admin.GraphRebuildResponse(
             status="persisted",
             source="sample",
@@ -242,11 +240,9 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
         _settings: graph_admin.GraphLifecycleSettings,
         *,
         user_ref: str,
-        execution_id: str,
     ) -> graph_admin.GraphRebuildResponse:
         """Fake rebuild implementation that raises a lock acquisition error."""
         _ = user_ref
-        _ = execution_id
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", fake_rebuild)
@@ -597,11 +593,9 @@ def test_get_rebuild_job_succeeds_for_operator(
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = _create_rebuild_jobs(repo, 1, numbered_sources=False)[0]
-            execution_id = "test-exec-id"
-            repo.mark_rebuild_job_running(job_id, execution_id)
+            repo.mark_rebuild_job_running(job_id)
             repo.mark_rebuild_job_succeeded(
                 job_id,
-                execution_id=execution_id,
                 node_count=100,
                 edge_count=250,
                 duration_ms=5000,
@@ -639,11 +633,9 @@ def test_get_rebuild_job_exposes_sanitized_failure_fields(
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = _create_rebuild_jobs(repo, 1, numbered_sources=False)[0]
-            execution_id = "test-exec-id"
-            repo.mark_rebuild_job_running(job_id, execution_id)
+            repo.mark_rebuild_job_running(job_id)
             repo.mark_rebuild_job_failed(
                 job_id,
-                execution_id=execution_id,
                 failure_category="database_error",
                 failure_message="Connection timeout",
                 duration_ms=2000,

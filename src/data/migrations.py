@@ -30,7 +30,6 @@ ALLOWED_MIGRATIONS = frozenset(
     [
         "001_initial.sql",
         "002_add_heartbeat_columns.sql",
-        "003_add_execution_identity_and_checkpoint_columns.sql",
     ]
 )
 
@@ -45,7 +44,6 @@ def apply_migrations(db_path: Path | str) -> None:
     This function applies migrations in order:
     1. 001_initial.sql - Base schema (idempotent via IF NOT EXISTS)
     2. 002_add_heartbeat_columns.sql - Upgrade migration (applied conditionally)
-    3. 003_add_execution_identity_and_checkpoint_columns.sql - Upgrade migration (applied conditionally)
 
     Args:
         db_path: Path to the SQLite database file.
@@ -65,9 +63,6 @@ def apply_migrations(db_path: Path | str) -> None:
 
         # Migration 002: Add heartbeat columns (conditional, check first)
         _apply_upgrade_002_heartbeat_columns(connection)
-
-        # Migration 003: Add execution identity and checkpoint columns (conditional)
-        _apply_upgrade_003_execution_columns(connection)
 
 
 # ---------------------------------------------------------------------------
@@ -137,26 +132,6 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
     }
 
     for col_name, alter_statement in HEARTBEAT_COLUMNS.items():
-        if col_name not in existing_columns:
-            connection.execute(alter_statement)  # noqa: S3649
-
-
-def _apply_upgrade_003_execution_columns(connection: sqlite3.Connection) -> None:
-    """
-    Apply migration 003 (add execution identity and checkpoint columns) conditionally.
-
-    Args:
-        connection: SQLite connection.
-    """
-    cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
-    existing_columns = {row[1] for row in cursor}
-
-    NEW_COLUMNS = {
-        "execution_id": "ALTER TABLE rebuild_jobs ADD COLUMN execution_id TEXT",
-        "checkpoint_data": "ALTER TABLE rebuild_jobs ADD COLUMN checkpoint_data TEXT",
-    }
-
-    for col_name, alter_statement in NEW_COLUMNS.items():
         if col_name not in existing_columns:
             connection.execute(alter_statement)  # noqa: S3649
 

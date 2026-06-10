@@ -20,7 +20,6 @@ from src.data.db_models import RebuildJobStatus
 
 def _get_counter_value(counter: Counter, **label_dict: str) -> float:
     """Get the current value of a Prometheus counter using public API.
-
     Args:
         counter: The Prometheus Counter metric.
         **label_dict: Label key-value pairs to match.
@@ -93,7 +92,6 @@ def test_heartbeat_keeper_lock_refresh_raises_increments_failure() -> None:
         session_factory=MagicMock(),
         dist_lock=mock_lock,
         job_id="test",
-        execution_id="test_exec_id",
         worker_id="worker1",
         stop_event=stop_event,
         lock_lost_event=lock_lost_event,

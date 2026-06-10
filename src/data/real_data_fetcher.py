@@ -5,7 +5,7 @@ import logging
 import math
 from collections.abc import Callable
 from dataclasses import asdict
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -279,39 +279,6 @@ class RealDataFetcher:
                 ),
             )
             return self._fallback()
-
-    def fetch_raw_data(self) -> tuple[list[Asset], list[RegulatoryEvent]]:
-        """
-        Fetch raw asset and regulatory event data without building a graph.
-
-        Returns:
-            tuple[list[Asset], list[RegulatoryEvent]]: A tuple containing the list of
-                fetched assets and the list of regulatory events.
-        """
-        if not self.enable_network:
-            # If network is disabled, we return empty or sample-equivalent from fallback
-            fb = self._fallback()
-            return list(fb.assets.values()), fb.regulatory_events
-
-        try:
-            equities = self._fetch_equity_data()
-            bonds = self._fetch_bond_data()
-            commodities = self._fetch_commodity_data()
-            currencies = self._fetch_currency_data()
-            events = self._create_regulatory_events()
-
-            return equities + bonds + commodities + currencies, events
-        except Exception as exc:
-            log_event(
-                logger,
-                logging.ERROR,
-                ObservabilityEvent(
-                    event="graph_raw_fetch_failed",
-                    message=f"Failed to fetch raw data: {type(exc).__name__}",
-                    metadata={"error": type(exc).__name__},
-                ),
-            )
-            raise
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
         """
@@ -608,7 +575,7 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date=(datetime.now(UTC) + timedelta(days=90)).strftime("%Y-%m-%d"),
+                    delivery_date=(datetime.now(timezone.utc) + timedelta(days=90)).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)

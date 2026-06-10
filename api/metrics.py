@@ -83,13 +83,6 @@ HEARTBEAT_UPDATE_TOTAL = Counter(
     ["status"],  # success | failure
 )
 
-# Stage 5C.3B: Checkpoint metrics
-REBUILD_CHECKPOINTS_TOTAL = Counter(
-    "rebuild_checkpoints_total",
-    "Total number of rebuild checkpoints written to database.",
-    ["status"],  # success | failure
-)
-
 HEARTBEAT_LAST_SUCCESS_TIMESTAMP = Gauge(
     "rebuild_heartbeat_last_success_timestamp",
     "Unix timestamp of last successful heartbeat.",

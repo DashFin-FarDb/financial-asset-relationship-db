@@ -155,10 +155,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if has_persistence:
         await _perform_startup_reconciliation(settings)
 
+    sync_task, slo_task = _start_background_tasks(has_persistence, settings)
+
     # Required initialization for all environments to ensure state validity
     get_graph()
-
-    sync_task, slo_task = _start_background_tasks(has_persistence, settings)
 
     yield
 

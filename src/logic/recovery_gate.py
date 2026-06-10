@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import exc as sqlalchemy_exc
 from sqlalchemy.orm import Session
@@ -206,9 +206,9 @@ class RecoveryGate:
 
             # Ensure timezone-aware comparison
             if heartbeat_time.tzinfo is None:
-                heartbeat_time = heartbeat_time.replace(tzinfo=UTC)
+                heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
 
-            now = datetime.now(UTC)
+            now = datetime.now(timezone.utc)
             heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
 
             # Heartbeat is stale if older than lock TTL threshold
@@ -582,11 +582,8 @@ class RecoveryGate:
                         return
 
                     # Transition to FAILED with recovery marker
-                    # Stage 5C.3: Preserve identity for validation.
-                    # Use None for legacy jobs to allow repo to match against its NULL column.
                     repo.mark_rebuild_job_failed(
                         active_job.job_id,
-                        execution_id=active_job.execution_id,
                         failure_category="recovery_reset",
                         failure_message="Recovered from orphaned state by RecoveryGate",
                         duration_ms=0,  # Unknown duration for orphaned job

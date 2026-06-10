@@ -105,14 +105,13 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
         lock_lost_event = threading.Event()
 
         # Create rebuild job
-        execution_id = "test-exec-id"
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = repo.create_rebuild_job(
                 requested_by="test-operator",
                 source="test-source",
             )
-            repo.mark_rebuild_job_running(job_id, execution_id)
+            repo.mark_rebuild_job_running(job_id)
 
         # Track refresh events using MagicMock with wraps
         original_refresh = dist_lock.refresh
@@ -127,7 +126,6 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
                     "session_factory": session_factory,
                     "dist_lock": dist_lock,
                     "job_id": job_id,
-                    "execution_id": execution_id,
                     "worker_id": dist_lock.holder_id,
                     "stop_event": stop_event,
                     "lock_lost_event": lock_lost_event,
@@ -189,14 +187,13 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
         assert dist_lock.acquire(), "Failed to acquire initial lock"
 
         # Create rebuild job
-        execution_id = "test-exec-id"
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = repo.create_rebuild_job(
                 requested_by="test-operator",
                 source="test-source",
             )
-            repo.mark_rebuild_job_running(job_id, execution_id)
+            repo.mark_rebuild_job_running(job_id)
 
         stop_event = threading.Event()
         lock_lost_event = threading.Event()
@@ -226,7 +223,6 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
                     "session_factory": session_factory,
                     "dist_lock": dist_lock,
                     "job_id": job_id,
-                    "execution_id": execution_id,
                     "worker_id": dist_lock.holder_id,
                     "stop_event": stop_event,
                     "lock_lost_event": lock_lost_event,
@@ -277,8 +273,10 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
                 if other_lock is not None:
                     other_lock.release()
                 # Ensure original lock is released even if test fails
-                with contextlib.suppress(RuntimeError):
+                try:
                     dist_lock.release()
+                except RuntimeError:
+                    pass  # Lock may already be released
 
 
 def test_pre_commit_check_blocks_save_on_lock_loss(
@@ -379,21 +377,19 @@ def test_heartbeat_thread_stops_cleanly_on_success(
         assert dist_lock.acquire(), "Failed to acquire initial lock"
 
         # Create rebuild job
-        execution_id = "test-exec-id"
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = repo.create_rebuild_job(
                 requested_by="test-operator",
                 source="test-source",
             )
-            repo.mark_rebuild_job_running(job_id, execution_id)
+            repo.mark_rebuild_job_running(job_id)
 
         # Use _orchestrate_heartbeat context manager
         with graph_admin._orchestrate_heartbeat(  # pylint: disable=protected-access
             session_factory,
             dist_lock,
             job_id,
-            execution_id,
             lock_ttl,
         ) as lock_lost:
             # Verify lock_lost Event is provided
@@ -448,14 +444,13 @@ def test_heartbeat_keeper_updates_database_heartbeat(
         assert dist_lock.acquire(), "Failed to acquire initial lock"
 
         # Create rebuild job
-        execution_id = "test-exec-id"
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = repo.create_rebuild_job(
                 requested_by="test-operator",
                 source="test-source",
             )
-            repo.mark_rebuild_job_running(job_id, execution_id)
+            repo.mark_rebuild_job_running(job_id)
 
             # Get initial heartbeat timestamp (should be None initially)
             job = repo.get_rebuild_job(job_id)
@@ -471,7 +466,6 @@ def test_heartbeat_keeper_updates_database_heartbeat(
                 "session_factory": session_factory,
                 "dist_lock": dist_lock,
                 "job_id": job_id,
-                "execution_id": execution_id,
                 "worker_id": dist_lock.holder_id,
                 "stop_event": stop_event,
                 "lock_lost_event": lock_lost_event,
