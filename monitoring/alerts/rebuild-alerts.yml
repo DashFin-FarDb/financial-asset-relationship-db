@@ -22,7 +22,7 @@ groups:
           component: core
         annotations:
           summary: "High Graph Rebuild Failure Rate"
-          description: "Graph rebuilds are failing at a rate of {{ $value | mulf 100 | printf \"%.2f%%\" }} over the last hour."
+          description: "Graph rebuilds are failing at a rate of {{ $value | humanizePercentage }} over the last hour."
 
 
       - alert: RebuildRecoveryTriggered
