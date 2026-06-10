@@ -6,7 +6,7 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Literal, cast
+from typing import Any, Literal, cast
 
 from sqlalchemy import select  # pylint: disable=import-error
 from sqlalchemy.engine import Engine, make_url  # pylint: disable=import-error
@@ -398,7 +398,7 @@ def _save_graph_with_session(
         # If the failure originated in the pre-commit check, re-raise the original exception
         # to allow specialized upstream handling and avoid generic save error wrapping.
         if pre_commit_error is not None:
-            raise pre_commit_error
+            raise pre_commit_error from None
 
         log_event(
             logger,

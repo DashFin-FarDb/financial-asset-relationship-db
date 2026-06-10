@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import exc as sqlalchemy_exc
 from sqlalchemy.orm import Session
@@ -205,9 +205,9 @@ class RecoveryGate:
 
             # Ensure timezone-aware comparison
             if heartbeat_time.tzinfo is None:
-                heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
+                heartbeat_time = heartbeat_time.replace(tzinfo=UTC)
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
 
             # Heartbeat is stale if older than lock TTL threshold

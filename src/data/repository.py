@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Iterable, List, Tuple, TypeAlias, TypedDict
+from datetime import UTC, datetime, timedelta, timezone
+from typing import Any, TypedDict
 from uuid import uuid4
 
 from sqlalchemy import and_, delete, insert, or_, select, update
@@ -98,7 +98,7 @@ class CoordinationLockRepository:
         """
         if ttl_seconds <= 0:
             raise ValueError("ttl_seconds must be greater than 0")
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expires_at = now + timedelta(seconds=ttl_seconds)
 
         update_stmt = (
@@ -123,7 +123,7 @@ class CoordinationLockRepository:
             if record:
                 updated_at = record.updated_at
                 if updated_at.tzinfo is None:
-                    updated_at = updated_at.replace(tzinfo=timezone.utc)
+                    updated_at = updated_at.replace(tzinfo=UTC)
                 token = int(updated_at.timestamp() * 1_000_000)
                 return LockWriteResult(
                     success=True,
@@ -158,7 +158,7 @@ class CoordinationLockRepository:
                 if record:
                     updated_at = record.updated_at
                     if updated_at.tzinfo is None:
-                        updated_at = updated_at.replace(tzinfo=timezone.utc)
+                        updated_at = updated_at.replace(tzinfo=UTC)
                     token = int(updated_at.timestamp() * 1_000_000)
                     return LockWriteResult(
                         success=True,
@@ -173,7 +173,7 @@ class CoordinationLockRepository:
             if record:
                 updated_at = record.updated_at
                 if updated_at.tzinfo is None:
-                    updated_at = updated_at.replace(tzinfo=timezone.utc)
+                    updated_at = updated_at.replace(tzinfo=UTC)
                 token = int(updated_at.timestamp() * 1_000_000)
                 return LockWriteResult(
                     success=False,
@@ -219,7 +219,7 @@ class CoordinationLockRepository:
 
     def get_lock_state(self, *, lock_name: str, holder_id: str) -> LockStateSnapshot:
         """Check the current state of a distributed lock and return a materialized snapshot DTO."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
         record = self.session.execute(stmt).scalar_one_or_none()
 
@@ -235,17 +235,14 @@ class CoordinationLockRepository:
 
         updated_at = record.updated_at
         if updated_at is not None and updated_at.tzinfo is None:
-            updated_at = updated_at.replace(tzinfo=timezone.utc)
+            updated_at = updated_at.replace(tzinfo=UTC)
 
         expires_at = record.expires_at
         if expires_at is not None and expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
+            expires_at = expires_at.replace(tzinfo=UTC)
 
         valid = (record.holder_id == holder_id) and (expires_at is not None and now < expires_at)
-        if updated_at is not None:
-            fencing_token = int(updated_at.timestamp() * 1_000_000)
-        else:
-            fencing_token = None
+        fencing_token = int(updated_at.timestamp() * 1_000_000) if updated_at is not None else None
 
         return LockStateSnapshot(
             exists=True,
@@ -313,7 +310,7 @@ class _BaseAssetKwargs(TypedDict):
     currency: str
 
 
-GraphRelationshipRows: TypeAlias = Dict[str, List[Tuple[str, str, float]]]
+type GraphRelationshipRows = dict[str, list[tuple[str, str, float]]]
 _IN_CLAUSE_CHUNK_SIZE = 400
 
 
@@ -1406,10 +1403,9 @@ class AssetGraphRepository:
         Raises:
             ValueError: If an invalid status value is provided.
         """
-        if status is not None:
-            if status not in RebuildJobStatus.values():
-                valid = RebuildJobStatus.values()
-                raise ValueError(f"Invalid rebuild job status {status!r}. Must be one of: {valid}")
+        if status is not None and status not in RebuildJobStatus.values():
+            valid = RebuildJobStatus.values()
+            raise ValueError(f"Invalid rebuild job status {status!r}. Must be one of: {valid}")
         stmt = select(RebuildJobORM).order_by(
             RebuildJobORM.created_at.desc(),
             RebuildJobORM.job_id.desc(),

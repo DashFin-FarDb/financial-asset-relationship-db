@@ -1,11 +1,10 @@
 """Tests for the Reconciliation Engine core abstraction."""
 
-from datetime import datetime, timezone
-from typing import Any, Protocol
+from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 
-from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import (
     ActionType,
     ExecutionMode,
@@ -14,7 +13,7 @@ from src.logic.reconciliation_engine import (
     ReconciliationPlan,
     Severity,
 )
-from src.models.financial_models import Asset, AssetClass, RegulatoryEvent
+from src.models.financial_models import Asset, AssetClass
 
 
 class MockDriftEvaluator:
@@ -50,7 +49,7 @@ class TestReconciliationPlan:
             safety_state=ExecutionSafety.RESET_REQUIRED,
             reason="Test reason",
             metadata={"key": "value"},
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
         assert plan.drift_type == "test_drift"
@@ -70,7 +69,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
     def test_plan_noop_consistency(self) -> None:
@@ -85,7 +84,7 @@ class TestReconciliationPlan:
             safety_state=ExecutionSafety.CONVERGED,
             reason="No drift",
             metadata={},
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         assert plan_valid.severity == Severity.NONE
 
@@ -100,7 +99,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
     def test_plan_rejects_invalid_action_types(self) -> None:
@@ -116,7 +115,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.RESET_REQUIRED,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
         # Test with mixed valid and invalid action types
@@ -130,7 +129,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.RESET_REQUIRED,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
 
@@ -453,9 +452,9 @@ class TestReconciliationEngine:
         evaluator = MockDriftEvaluator("none", Severity.NONE)
         engine = ReconciliationEngine(evaluator)
 
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         plan = engine.generate_reconciliation_plan()
-        after = datetime.now(timezone.utc)
+        after = datetime.now(UTC)
 
         assert before <= plan.created_at <= after
 

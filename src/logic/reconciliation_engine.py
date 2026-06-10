@@ -13,8 +13,8 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ActionType(str, Enum):
+class ActionType(StrEnum):
     """Types of corrective actions that can be planned."""
 
     NOOP = "noop"  # Already converged, no action needed
@@ -37,7 +37,7 @@ class ActionType(str, Enum):
     WAIT_FOR_CONVERGENCE = "wait_for_convergence"  # Wait for ongoing operation
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     """Severity classification for drift detection."""
 
     NONE = "none"  # No drift detected
@@ -47,7 +47,7 @@ class Severity(str, Enum):
     CRITICAL = "critical"  # Critical drift, execution unsafe
 
 
-class ExecutionMode(str, Enum):
+class ExecutionMode(StrEnum):
     """Execution mode for reconciliation actions."""
 
     IMMEDIATE = "immediate"  # Execute immediately
@@ -56,7 +56,7 @@ class ExecutionMode(str, Enum):
     AUTOMATIC = "automatic"  # Can be automatically executed
 
 
-class ExecutionSafety(str, Enum):
+class ExecutionSafety(StrEnum):
     """Machine-readable safety intent for downstream orchestration.
 
     This preserves critical-state semantics even when `execution_mode` is MANUAL
@@ -160,7 +160,7 @@ class ReconciliationPlan:
                 try:
                     normalized_actions.append(ActionType(action))
                 except (ValueError, TypeError):
-                    raise ValueError(f"Invalid action type: {action!r}. Must be an ActionType enum value.")
+                    raise ValueError(f"Invalid action type: {action!r}. Must be an ActionType enum value.") from None
         return tuple(normalized_actions)
 
     def _check_severity_action_invariants(self, severity: Severity, normalized_actions: tuple[ActionType, ...]) -> None:
@@ -435,7 +435,7 @@ class ReconciliationEngine:
                 # include a short sanitized message instead
                 "error_message": (str(exc)[:200] if str(exc) else None),
             },
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     def _drift_to_plan(
@@ -478,7 +478,7 @@ class ReconciliationEngine:
                     safety_state=ExecutionSafety.WAIT_REQUIRED,
                     reason="No drift detected, but execution gated on lock acquisition",
                     metadata=metadata,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                 )
 
             # Drift converged AND lock valid → SAFE to execute
@@ -491,7 +491,7 @@ class ReconciliationEngine:
                 safety_state=ExecutionSafety.CONVERGED,
                 reason="No drift detected, system is converged",
                 metadata=metadata,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
         # Critical severity - always alert only (unsafe to execute)
@@ -506,7 +506,7 @@ class ReconciliationEngine:
                 safety_state=safety_state,
                 reason="Critical drift detected - execution is unsafe, manual intervention required",
                 metadata=metadata,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
         # Map specific drift types to actions
@@ -600,7 +600,7 @@ class ReconciliationEngine:
                 safety_state=ExecutionSafety.UNSAFE_SPLIT_BRAIN,
                 reason="Zombie executor detected - potential split-brain condition",
                 metadata=metadata,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
         # Unknown drift type - default to alert only
@@ -622,7 +622,7 @@ class ReconciliationEngine:
             safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
             reason=f"Unknown drift type: {drift_type}",
             metadata=metadata,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     def _critical_safety_state(
@@ -697,7 +697,7 @@ class ReconciliationEngine:
             safety_state=ExecutionSafety.WAIT_REQUIRED,
             reason=reason,
             metadata=metadata,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     # Explicit params preferred over dataclass for internal helper; Phase 2 may consolidate
@@ -727,5 +727,5 @@ class ReconciliationEngine:
             safety_state=ExecutionSafety.RESET_REQUIRED,
             reason=reason,
             metadata=metadata,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )

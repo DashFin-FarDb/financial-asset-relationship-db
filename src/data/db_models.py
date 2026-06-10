@@ -30,7 +30,7 @@ REGULATORY_EVENT_ID_FK = "regulatory_events.id"
 CASCADE_DELETE_ORPHAN = "all, delete-orphan"
 
 
-class RebuildJobStatus(str, enum.Enum):
+class RebuildJobStatus(enum.StrEnum):
     """Valid status values for a RebuildJobORM record."""
 
     PENDING = "pending"

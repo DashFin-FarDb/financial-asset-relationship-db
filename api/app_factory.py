@@ -161,7 +161,7 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
     try:
         try:
             await asyncio.wait_for(asyncio.to_thread(_run_startup_reconciliation, settings), timeout=120)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             log_event(
                 logger,
                 logging.CRITICAL,

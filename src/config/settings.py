@@ -100,7 +100,7 @@ class Settings(BaseModel):
             try:
                 return int(value)
             except ValueError:
-                raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}")
+                raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
         # For other fields or non-string inputs, Pydantic will handle the type coercion
         return value
 
