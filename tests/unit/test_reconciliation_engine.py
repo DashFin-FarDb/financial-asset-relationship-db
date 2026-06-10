@@ -1,9 +1,11 @@
 """Tests for the Reconciliation Engine core abstraction."""
 
 from datetime import datetime, timezone
+from typing import Any, Protocol
 
 import pytest
 
+from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import (
     ActionType,
     ExecutionMode,
@@ -12,6 +14,8 @@ from src.logic.reconciliation_engine import (
     ReconciliationPlan,
     Severity,
 )
+from src.models.financial_models import Asset, AssetClass, RegulatoryEvent
+
 
 
 class MockDriftEvaluator:
@@ -505,3 +509,45 @@ class TestDriftEvaluatorProtocol:
         plan = engine.generate_reconciliation_plan()
         assert plan is not None
         assert isinstance(plan, ReconciliationPlan)
+
+    def test_run_rebuild_with_checkpoints(self) -> None:
+        """Test that run_rebuild correctly invokes checkpoints and respects initial state."""
+        engine = ReconciliationEngine(MockDriftEvaluator("none", Severity.NONE))
+
+        # Create 120 assets to trigger multiple checkpoints (every 50)
+        assets = [
+            Asset(id=f"A{i}", symbol=f"S{i}", name=f"N{i}", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
+            for i in range(120)
+        ]
+
+        checkpoints = []
+
+        def on_checkpoint(data: dict[str, Any]) -> None:
+            checkpoints.append(data)
+
+        # 1. Full rebuild without initial checkpoint
+        graph = engine.run_rebuild(assets=assets, regulatory_events=[], on_checkpoint=on_checkpoint)
+
+        assert len(graph.assets) == 120
+        # Checkpoints at 50, 100, and final (total 3)
+        assert len(checkpoints) == 3
+        assert checkpoints[0]["processed_count"] == 50
+        assert checkpoints[1]["processed_count"] == 100
+        assert checkpoints[2]["processed_count"] == 120
+        assert checkpoints[2].get("last_asset_id") is None  # final checkpoint doesn't set last_asset_id in my impl
+
+        # 2. Resumed rebuild with initial checkpoint
+        checkpoints.clear()
+        initial_checkpoint = {"processed_ids": [a.id for a in assets[:100]]}
+
+        graph_resumed = engine.run_rebuild(
+            assets=assets,
+            regulatory_events=[],
+            on_checkpoint=on_checkpoint,
+            initial_checkpoint=initial_checkpoint,
+        )
+
+        assert len(graph_resumed.assets) == 120
+        # Only 20 new assets processed -> no 50-asset intervals -> only final checkpoint
+        assert len(checkpoints) == 1
+        assert checkpoints[0]["processed_count"] == 120

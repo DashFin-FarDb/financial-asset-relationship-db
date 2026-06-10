@@ -554,9 +554,11 @@ class RecoveryGate:
 
                 if active_job and active_job.status == RebuildJobStatus.RUNNING:
                     # Transition to FAILED with recovery marker
+                    # Stage 5C.3: Preserve identity for validation.
+                    # Use None for legacy jobs to allow repo to match against its NULL column.
                     repo.mark_rebuild_job_failed(
                         active_job.job_id,
-                        execution_id=active_job.execution_id or "unknown",
+                        execution_id=active_job.execution_id,
                         failure_category="recovery_reset",
                         failure_message="Recovered from orphaned state by RecoveryGate",
                         duration_ms=0,  # Unknown duration for orphaned job

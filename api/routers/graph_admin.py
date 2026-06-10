@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextvars
+import json
 import logging
 import re
 import threading
@@ -59,6 +60,7 @@ from ..metrics import (
     HEARTBEAT_UPDATE_TOTAL,
     LOCK_REFRESH_DURATION,
     LOCK_REFRESH_TOTAL,
+    REBUILD_CHECKPOINTS_TOTAL,
     REBUILD_DURATION,
     REBUILD_FAILURE,
     REBUILD_REQUESTS,
@@ -957,7 +959,50 @@ def _run_rebuild_pipeline(
         if lock_lost.is_set():
             raise _DistributedLockLostError("Lost distributed lock at stage=initialization")
 
-        graph, source = build_rebuild_graph(settings)
+        # Stage 5C.3B: Checkpoint orchestration. Load existing progress for "Resume" path.
+        initial_checkpoint = None
+        try:
+            with session_factory() as session:
+                job = AssetGraphRepository(session).get_rebuild_job(job_id)
+                if job and job.checkpoint_data:
+                    initial_checkpoint = json.loads(job.checkpoint_data)
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="rebuild_checkpoint_load_failed",
+                    message=f"Failed to load checkpoint for job {job_id}: {type(exc).__name__}",
+                    metadata={"error": str(exc)},
+                ),
+            )
+
+        def on_checkpoint(data: dict[str, Any]) -> None:
+            """Persist progress checkpoint to the database."""
+            # Abort checkpoint write if lock is already lost
+            if lock_lost.is_set():
+                return
+            try:
+                _update_job_checkpoint_safe(session_factory, job_id, execution_id, json.dumps(data))
+                REBUILD_CHECKPOINTS_TOTAL.labels(status="success").inc()
+            except Exception as checkpoint_exc:
+                REBUILD_CHECKPOINTS_TOTAL.labels(status="failure").inc()
+                # Log but do not fail the rebuild on a checkpoint write error
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="rebuild_checkpoint_write_failed",
+                        message=f"Failed to write checkpoint for job {job_id}: {type(checkpoint_exc).__name__}",
+                        metadata={"error": str(checkpoint_exc)},
+                    ),
+                )
+
+        graph, source = build_rebuild_graph(
+            settings,
+            on_checkpoint=on_checkpoint,
+            initial_checkpoint=initial_checkpoint,
+        )
         _update_job_source_safe(session_factory, job_id, execution_id, str(source))
 
         if lock_lost.is_set():
@@ -1371,6 +1416,18 @@ def _update_job_source_safe(
         job_id,
         lambda repo: repo.update_rebuild_job_source(job_id, execution_id, source),
         "Failed to update rebuild job source.",
+    )
+
+
+def _update_job_checkpoint_safe(
+    session_factory: Callable[[], Session], job_id: str, execution_id: str, checkpoint_data: str
+) -> None:
+    """Update rebuild job checkpoint safely."""
+    _run_job_update(
+        session_factory,
+        job_id,
+        lambda repo: repo.update_rebuild_checkpoint(job_id, execution_id, checkpoint_data),
+        "Failed to update rebuild job checkpoint.",
     )
 
 

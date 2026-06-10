@@ -103,6 +103,41 @@ class TestRebuildJobRepository:
         assert job.started_at is not None
         assert job.completed_at is None
 
+    def test_update_rebuild_checkpoint(self, repository_factory):
+        """Test updating the rebuild job checkpoint data."""
+        repo = repository_factory()
+        job_id = repo.create_rebuild_job(requested_by="test_user")
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
+        repo.session.commit()
+
+        checkpoint_data = '{"last_asset": "AAPL", "count": 50}'
+        repo.update_rebuild_checkpoint(job_id, "test_exec_id", checkpoint_data)
+        repo.session.commit()
+
+        reader = repository_factory()
+        job = reader.get_rebuild_job(job_id)
+        assert job.checkpoint_data == checkpoint_data
+
+    def test_update_rebuild_checkpoint_invalid_execution_id(self, repository_factory):
+        """Test that updating checkpoint with wrong execution_id raises ValueError."""
+        repo = repository_factory()
+        job_id = repo.create_rebuild_job(requested_by="test_user")
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
+        repo.session.commit()
+
+        with pytest.raises(ValueError, match="Execution identity mismatch"):
+            repo.update_rebuild_checkpoint(job_id, "wrong_exec_id", '{"progress": 10}')
+
+    def test_update_rebuild_checkpoint_not_running(self, repository_factory):
+        """Test that updating checkpoint for a non-running job raises ValueError."""
+        repo = repository_factory()
+        job_id = repo.create_rebuild_job(requested_by="test_user")
+        # Job is PENDING, not RUNNING
+        repo.session.commit()
+
+        with pytest.raises(ValueError, match="Cannot update checkpoint .* in pending status"):
+            repo.update_rebuild_checkpoint(job_id, "any_id", '{"progress": 10}')
+
     def test_mark_rebuild_job_running_not_found(self, repository_factory):
         """Test marking a non-existent job as running raises ValueError."""
         repo = repository_factory()

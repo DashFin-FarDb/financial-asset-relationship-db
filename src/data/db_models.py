@@ -5,7 +5,18 @@ from __future__ import annotations
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.data.base import Base
@@ -245,6 +256,9 @@ class RebuildJobORM(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    # Stage 5C.3B: Checkpointed Recovery
+    checkpoint_data: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class DistributedLockORM(Base):

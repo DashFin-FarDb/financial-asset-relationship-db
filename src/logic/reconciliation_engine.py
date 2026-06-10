@@ -4,24 +4,26 @@ This module implements the central control-plane primitive that:
 - Consumes Desired State and Observed State
 - Computes Drift
 - Generates Reconciliation Plans (execution-agnostic)
+- Executes checkpointed rebuilds (orchestration)
 - Ensures eventual convergence through deterministic planning
-
-The engine is purely functional - it DOES NOT execute actions, only generates plans.
-Execution is delegated to the Job Abstraction Layer (future work).
 """
 
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Protocol
+from typing import Any, Protocol, TYPE_CHECKING
 
 from src.logic.rebuild_failure_detection import InconsistencyType
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
+
+if TYPE_CHECKING:
+    from src.logic.asset_graph import AssetRelationshipGraph
+    from src.models.financial_models import Asset, RegulatoryEvent
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +309,103 @@ class ReconciliationEngine:
         self.record_drift_metric(plan.drift_type, plan.severity.value, plan.execution_mode.value)
 
         return plan
+
+    def run_rebuild(
+        self,
+        assets: Iterable[Asset],
+        regulatory_events: Iterable[RegulatoryEvent],
+        on_checkpoint: Callable[[dict[str, Any]], None] | None = None,
+        initial_checkpoint: dict[str, Any] | None = None,
+    ) -> AssetRelationshipGraph:
+        """
+        Execute a checkpointed graph rebuild from the provided assets and events.
+
+        This method implements the core reconstruction loop, applying assets to a new graph
+        at bounded intervals and invoking the provided checkpoint callback.
+
+        Parameters:
+            assets: Iterable of assets to add to the graph.
+            regulatory_events: Iterable of regulatory events to add to the graph.
+            on_checkpoint: Optional callback invoked every 50 assets.
+            initial_checkpoint: Optional state used to resume a partial rebuild.
+
+        Returns:
+            AssetRelationshipGraph: The fully reconstructed graph.
+        """
+        from src.logic.asset_graph import AssetRelationshipGraph
+
+        graph = AssetRelationshipGraph()
+        processed_count = 0
+
+        # Stage 5C.3B: Resume logic: identify assets to skip from initial checkpoint.
+        # High-water mark stored as list of IDs that were successfully added.
+        skipped_ids = set()
+        if initial_checkpoint and "processed_ids" in initial_checkpoint:
+            skipped_ids = set(initial_checkpoint["processed_ids"])
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="reconciliation_rebuild_resume_started",
+                    message=f"Resuming rebuild: skipping {len(skipped_ids)} already processed assets",
+                    metadata={"skipped_count": len(skipped_ids)},
+                ),
+            )
+
+        # Main processing loop
+        for asset in assets:
+            if asset.id in skipped_ids:
+                # Still add to the new graph so it's complete, but don't count as "work"
+                # (In a real system, 'assets' might be a generator that skips fetching
+                # if we have the checkpointed state, but here we add for completeness)
+                graph.add_asset(asset)
+                continue
+
+            graph.add_asset(asset)
+            processed_count += 1
+
+            # Engine Instrumentation: Checkpoint at bounded intervals (every 50 assets)
+            if on_checkpoint and processed_count % 50 == 0:
+                on_checkpoint(
+                    {
+                        "processed_ids": list(graph.assets.keys()),
+                        "last_asset_id": asset.id,
+                        "processed_count": len(graph.assets),
+                    }
+                )
+
+        # Final checkpoint after all assets added
+        if on_checkpoint and processed_count > 0:
+            on_checkpoint(
+                {
+                    "processed_ids": list(graph.assets.keys()),
+                    "processed_count": len(graph.assets),
+                }
+            )
+
+        # Add regulatory events and build relationships
+        for event in regulatory_events:
+            graph.add_regulatory_event(event)
+
+        graph.build_relationships()
+
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="reconciliation_rebuild_completed",
+                message=(
+                    f"Rebuild completed: {len(graph.assets)} assets, "
+                    f"{len(graph.regulatory_events)} events processed"
+                ),
+                metadata={
+                    "asset_count": len(graph.assets),
+                    "event_count": len(graph.regulatory_events),
+                },
+            ),
+        )
+
+        return graph
 
     def _evaluation_failure_plan(self, exc: Exception) -> ReconciliationPlan:
         """
