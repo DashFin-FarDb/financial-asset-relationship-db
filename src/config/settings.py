@@ -103,7 +103,6 @@ class Settings(BaseModel):
                 raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}")
         # For other fields or non-string inputs, Pydantic will handle the type coercion
         return value
-
     @field_validator("slo_rebuild_duration_max_seconds")
     @classmethod
     def validate_rebuild_threshold(cls, value: int) -> int:
