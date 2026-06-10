@@ -15,7 +15,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Protocol, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
 from src.observability.events import ObservabilityEvent
@@ -395,8 +395,7 @@ class ReconciliationEngine:
             ObservabilityEvent(
                 event="reconciliation_rebuild_completed",
                 message=(
-                    f"Rebuild completed: {len(graph.assets)} assets, "
-                    f"{len(graph.regulatory_events)} events processed"
+                    f"Rebuild completed: {len(graph.assets)} assets, {len(graph.regulatory_events)} events processed"
                 ),
                 metadata={
                     "asset_count": len(graph.assets),
