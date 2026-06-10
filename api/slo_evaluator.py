@@ -146,7 +146,7 @@ class SLOEvaluator:
 
         # When bucket breach is detected, margin based on average is misleading.
         # Set to NaN to indicate it's not meaningful for per-rebuild max SLO.
-        margin = float('nan') if any_breach else (threshold - current_avg)
+        margin = float("nan") if any_breach else (threshold - current_avg)
 
         self._record_and_log(
             slo_name="rebuild_duration",
