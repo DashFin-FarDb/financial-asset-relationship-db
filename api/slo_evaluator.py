@@ -119,20 +119,20 @@ class SLOEvaluator:
         """Inspect samples to see if any count exists outside the threshold bucket."""
         total_count = 0.0
         le_count = 0.0
-    
+
         for sample in samples:
             if sample.name.endswith("_count"):
                 total_count = sample.value
                 continue
-    
+
             if not sample.name.endswith("_bucket"):
                 continue
-    
+
             le = float(sample.labels.get("le", 0.0))
-    
+
             if le <= threshold:
                 le_count = max(le_count, sample.value)
-    
+
         return total_count > le_count
 
     def evaluate_rebuild_duration(self, metrics: dict[str, float]) -> SLOEvaluationResult:
