@@ -936,7 +936,6 @@ def _run_rebuild_pipeline(
             raise _DistributedLockLostError("Lost distributed lock at stage=initialization")
 
         graph, source = build_rebuild_graph(settings)
-        _update_job_source_safe(session_factory, job_id, str(source))
 
         if lock_lost.is_set():
             raise _DistributedLockLostError("Lost distributed lock at stage=pre-persistence")

@@ -152,11 +152,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
     has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
 
-    if has_persistence:
+if has_persistence:
         await _perform_startup_reconciliation(settings)
 
-    sync_task, slo_task = _start_background_tasks(has_persistence, settings)
+    # Required initialization for all environments to ensure state validity
+    get_graph()
 
+    sync_task, slo_task = _start_background_tasks(has_persistence, settings)
     # Required initialization for all environments to ensure state validity
     get_graph()
 
