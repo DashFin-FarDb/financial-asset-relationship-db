@@ -213,14 +213,20 @@ def build_rebuild_graph(
 
         if settings.use_real_data_fetcher:
             from src.data.real_data_fetcher import RealDataFetcher
-            from src.logic.reconciliation_engine import ReconciliationEngine
+            from src.logic.reconciliation_engine import ReconciliationEngine, Severity
 
             fetcher = RealDataFetcher(cache_path=settings.real_data_cache_path, enable_network=True)
             assets, events = fetcher.fetch_raw_data()
 
-            # Use ReconciliationEngine to orchestrate the rebuild with checkpointing
-            # (Execution phase uses a mock evaluator as drift detection is already done)
-            engine = ReconciliationEngine(cast(Any, None))
+            # Use ReconciliationEngine to orchestrate the rebuild with checkpointing.
+            # A no-op evaluator stub is provided since drift detection is not needed here.
+            class _NoOpEvaluator:
+                """Minimal stub satisfying ReconciliationEngine's evaluator protocol."""
+
+                def evaluate_drift(self) -> tuple[str, Severity, dict[str, Any]]:
+                    return "none", Severity.NONE, {}
+
+            engine = ReconciliationEngine(_NoOpEvaluator())
             graph = engine.run_rebuild(
                 assets=assets,
                 regulatory_events=events,
