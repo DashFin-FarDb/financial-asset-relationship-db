@@ -127,15 +127,14 @@ class SLOEvaluator:
             if not sample.name.endswith("_bucket"):
                 continue
 
-
-le = float(sample.labels.get("le", 0.0))
-      if le == threshold:
-          le_count = sample.value
-      return total_count > le_count
-            if le <= threshold:
-                le_count = max(le_count, sample.value)
-
-        return total_count > le_count
+        le = float(sample.labels.get("le", 0.0))
+          if le == threshold:
+              le_count = sample.value
+          return total_count > le_count
+                if le <= threshold:
+                    le_count = max(le_count, sample.value)
+    
+            return total_count > le_count
 
     def evaluate_rebuild_duration(self, metrics: dict[str, float]) -> SLOEvaluationResult:
         """Evaluate if any rebuild duration exceeded the maximum threshold."""
