@@ -1312,11 +1312,8 @@ class AssetGraphRepository:
         """
         valid_statuses = RebuildJobStatus.values()
         if status is not None and status not in valid_statuses:
-            raise ValueError(
-                f"Invalid rebuild job status {status!r}. "
-                f"Must be one of: {valid_statuses}"
-            )
-        
+            raise ValueError(f"Invalid rebuild job status {status!r}. Must be one of: {valid_statuses}")
+
         stmt = select(RebuildJobORM).order_by(
             RebuildJobORM.created_at.desc(),
             RebuildJobORM.job_id.desc(),
