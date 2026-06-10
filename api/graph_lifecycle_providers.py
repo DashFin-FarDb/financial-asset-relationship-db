@@ -373,7 +373,7 @@ def _save_graph_with_session(
         # If the failure originated in the pre-commit check, re-raise the original exception
         # to allow specialized upstream handling and avoid generic save error wrapping.
         if pre_commit_error is not None:
-            raise pre_commit_error
+            raise pre_commit_error from None
 
         log_event(
             logger,
