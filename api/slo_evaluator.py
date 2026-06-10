@@ -133,7 +133,7 @@ class SLOEvaluator:
           return total_count > le_count
                 if le <= threshold:
                     le_count = max(le_count, sample.value)
-    
+
             return total_count > le_count
 
     def evaluate_rebuild_duration(self, metrics: dict[str, float]) -> SLOEvaluationResult:
