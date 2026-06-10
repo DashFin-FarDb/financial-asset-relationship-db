@@ -104,9 +104,10 @@ class Settings(BaseModel):
         # For other fields or non-string inputs, Pydantic will handle the type coercion
         return value
 
+
 @field_validator("slo_rebuild_duration_max_seconds")
-    @classmethod
-    def validate_rebuild_threshold(cls, value: int) -> int:
+  @classmethod
+   def validate_rebuild_threshold(cls, value: int) -> int:
         allowed_buckets = {10, 30, 60, 120, 300, 600, 1200}
         if value not in allowed_buckets:
             raise ValueError(
