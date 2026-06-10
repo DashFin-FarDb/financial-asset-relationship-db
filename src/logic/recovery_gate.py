@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from collections.abc import Callable
 from datetime import UTC, datetime
 
@@ -397,12 +398,15 @@ class RecoveryGate:
         """
         return self.get_recovery_decision().action
 
-    def ensure_safe_to_execute(self) -> None:
+    def ensure_safe_to_execute(self, cancellation_event: threading.Event | None = None) -> None:
         """
         Enforce execution blocking rules and perform recovery actions.
 
         For RESET decisions, this automatically resets the orphaned job state
         before allowing execution to proceed.
+
+        Args:
+            cancellation_event: Optional event to signal cancellation.
 
         Raises:
             ExecutionBlockedError: If the execution is not safe (UNSAFE, WAIT)
@@ -412,6 +416,10 @@ class RecoveryGate:
         decision = self.get_recovery_decision()
 
         if decision.action == RecoveryAction.RESET:
+            # Check cancellation before starting recovery
+            if cancellation_event and cancellation_event.is_set():
+                return
+
             # Attempt automatic recovery by resetting the orphaned job
             log_event(
                 logger,
@@ -423,7 +431,12 @@ class RecoveryGate:
                 ),
             )
             try:
-                self._perform_reset_recovery()
+                self._perform_reset_recovery(cancellation_event=cancellation_event)
+
+                # Check cancellation after recovery but before re-evaluation
+                if cancellation_event and cancellation_event.is_set():
+                    return
+
                 # After successful reset, re-evaluate to confirm safe to proceed
                 # Skip metric increment on re-evaluation to avoid double-counting
                 decision = self.get_recovery_decision(increment_metric=False)
@@ -496,7 +509,7 @@ class RecoveryGate:
                 inconsistency_type=decision.inconsistency_type.value if decision.inconsistency_type else None,
             )
 
-    def _perform_reset_recovery(self) -> None:
+    def _perform_reset_recovery(self, cancellation_event: threading.Event | None = None) -> None:
         """
         Reset an orphaned RUNNING rebuild job so a new execution can proceed.
 
@@ -504,6 +517,9 @@ class RecoveryGate:
         acquisition fails. If an active rebuild job exists with status RUNNING, marks that job
         as FAILED with failure_category "recovery_reset" and commits the change. May set
         self.lock_was_reacquired to True when the lock is successfully reacquired.
+
+        Args:
+            cancellation_event: Optional event to signal cancellation.
 
         Raises:
             ExecutionBlockedError: if the lock cannot be reacquired and reset recovery cannot proceed.
@@ -513,6 +529,10 @@ class RecoveryGate:
         # Check lock state and reacquire if expired
         lock_state = self.lock.check_state()
         if lock_state != LockState.VALID:
+            # Check cancellation before lock acquisition attempt
+            if cancellation_event and cancellation_event.is_set():
+                return
+
             log_event(
                 logger,
                 logging.WARNING,
@@ -546,6 +566,10 @@ class RecoveryGate:
                 ),
             )
 
+        # Check cancellation before DB operations
+        if cancellation_event and cancellation_event.is_set():
+            return
+
         try:
             with self.session_factory() as session:
                 repo = AssetGraphRepository(session)
@@ -553,6 +577,10 @@ class RecoveryGate:
                 active_job = repo.get_active_rebuild_state()
 
                 if active_job and active_job.status == RebuildJobStatus.RUNNING:
+                    # Check cancellation before mutation
+                    if cancellation_event and cancellation_event.is_set():
+                        return
+
                     # Transition to FAILED with recovery marker
                     # Stage 5C.3: Preserve identity for validation.
                     # Use None for legacy jobs to allow repo to match against its NULL column.

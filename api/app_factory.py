@@ -6,6 +6,7 @@ import asyncio
 import contextlib
 import logging
 import random
+import threading
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
@@ -67,7 +68,9 @@ def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str
     return database_url
 
 
-def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
+def _run_startup_reconciliation(
+    settings: GraphLifecycleSettings, cancellation_event: threading.Event | None = None
+) -> None:
     """Initialize persisted graph state during application startup."""
     from src.data.database import create_engine_from_url
 
@@ -79,8 +82,17 @@ def _run_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
     coord_engine = create_engine_from_url(coord_url) if coord_url != url else engine
 
     try:
+        # Check cancellation before schema initialization (potentially slow)
+        if cancellation_event and cancellation_event.is_set():
+            return
+
         _init_reconciliation_schemas(engine, coord_engine)
-        _execute_recovery_gate(engine, coord_engine)
+
+        # Check cancellation before recovery gate (lock acquisition/evaluation)
+        if cancellation_event and cancellation_event.is_set():
+            return
+
+        _execute_recovery_gate(engine, coord_engine, cancellation_event=cancellation_event)
     finally:
         # Ensure short-lived startup verification engines are cleanly disposed
         engine.dispose()
@@ -97,7 +109,7 @@ def _init_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
         init_db(coord_engine)
 
 
-def _execute_recovery_gate(engine: Any, coord_engine: Any) -> None:
+def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: threading.Event | None = None) -> None:
     """Acquire lock and execute recovery gate evaluation."""
     from src.data.database import create_session_factory
     from src.data.distributed_lock import DistributedLock
@@ -122,10 +134,9 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any) -> None:
     )
 
     try:
-        if hasattr(gate, "evaluate_and_reconcile"):
-            gate.evaluate_and_reconcile()
-        else:
-            gate.ensure_safe_to_execute()
+        # RecoveryGate methods are expected to check the cancellation_event
+        if hasattr(gate, "ensure_safe_to_execute"):
+            gate.ensure_safe_to_execute(cancellation_event=cancellation_event)
     finally:
         if getattr(gate, "lock_was_reacquired", False):
             lock.release()
@@ -158,10 +169,16 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
     """Run startup reconciliation with timeout and error handling."""
     from src.logic.recovery_gate import ExecutionBlockedError
 
+    cancellation_event = threading.Event()
     try:
         try:
-            await asyncio.wait_for(asyncio.to_thread(_run_startup_reconciliation, settings), timeout=120)
-        except TimeoutError:
+            await asyncio.wait_for(
+                asyncio.to_thread(_run_startup_reconciliation, settings, cancellation_event),
+                timeout=120,
+            )
+        except (TimeoutError, asyncio.TimeoutError):
+            # Signal background thread to abort further processing
+            cancellation_event.set()
             log_event(
                 logger,
                 logging.CRITICAL,
@@ -179,8 +196,8 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
             logging.ERROR,
             ObservabilityEvent(
                 event="startup_reconciliation_failed",
-                message=f"Failed to load persisted graph during startup: {exc.__class__.__name__}",
-                metadata={"error": exc.__class__.__name__},
+                message=f"Failed to load persisted graph during startup: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
             ),
         )
         raise RuntimeError("Failed to load persisted graph during startup") from None

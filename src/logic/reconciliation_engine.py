@@ -433,7 +433,7 @@ class ReconciliationEngine:
                 "error_type": type(exc).__name__,
                 # Do not include full exception messages (may contain sensitive data);
                 # include a short sanitized message instead
-                "error_message": (str(exc)[:200] if str(exc) else None),
+                "error_message": type(exc).__name__,
             },
             created_at=datetime.now(UTC),
         )

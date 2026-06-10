@@ -56,7 +56,7 @@ def _get_yfinance() -> Any:
                 ObservabilityEvent(
                     event="yfinance_dependency_missing",
                     message="Failed to import yfinance due to a missing dependency.",
-                    metadata={"error": str(exc)},
+                    metadata={"error": type(exc).__name__},
                 ),
             )
             raise RuntimeError(
@@ -84,7 +84,7 @@ def _get_yfinance() -> Any:
             ObservabilityEvent(
                 event="yfinance_import_error",
                 message="Failed to import yfinance due to an import/dependency problem.",
-                metadata={"error": str(exc)},
+                metadata={"error": type(exc).__name__},
             ),
         )
         raise RuntimeError(
@@ -308,7 +308,7 @@ class RealDataFetcher:
                 ObservabilityEvent(
                     event="graph_raw_fetch_failed",
                     message=f"Failed to fetch raw data: {type(exc).__name__}",
-                    metadata={"error": str(exc)},
+                    metadata={"error": type(exc).__name__},
                 ),
             )
             raise

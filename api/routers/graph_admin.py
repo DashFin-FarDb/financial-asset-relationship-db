@@ -973,7 +973,7 @@ def _run_rebuild_pipeline(
                 ObservabilityEvent(
                     event="rebuild_checkpoint_load_failed",
                     message=f"Failed to load checkpoint for job {job_id}: {type(exc).__name__}",
-                    metadata={"error": str(exc)},
+                    metadata={"error": type(exc).__name__},
                 ),
             )
 
@@ -994,7 +994,7 @@ def _run_rebuild_pipeline(
                     ObservabilityEvent(
                         event="rebuild_checkpoint_write_failed",
                         message=f"Failed to write checkpoint for job {job_id}: {type(checkpoint_exc).__name__}",
-                        metadata={"error": str(checkpoint_exc)},
+                        metadata={"error": type(checkpoint_exc).__name__},
                     ),
                 )
 
@@ -1003,10 +1003,11 @@ def _run_rebuild_pipeline(
             on_checkpoint=on_checkpoint,
             initial_checkpoint=initial_checkpoint,
         )
-        _update_job_source_safe(session_factory, job_id, execution_id, str(source))
 
         if lock_lost.is_set():
             raise _DistributedLockLostError("Lost distributed lock at stage=pre-persistence")
+
+        _update_job_source_safe(session_factory, job_id, execution_id, str(source))
 
         graph_snapshot = _load_persisted_graph_snapshot(session_factory)
 

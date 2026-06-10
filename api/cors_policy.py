@@ -85,8 +85,8 @@ def _is_valid_https_domain(origin_url: str) -> bool:
             logging.DEBUG,
             ObservabilityEvent(
                 event="cors_origin_validation_failed",
-                message=f"Failed to validate origin '{origin_url}': {exc}",
-                metadata={"origin_url": origin_url, "error": str(exc)},
+                message=f"Failed to validate origin '{origin_url}': {type(exc).__name__}",
+                metadata={"origin_url": origin_url, "error": type(exc).__name__},
             ),
         )
         return False
