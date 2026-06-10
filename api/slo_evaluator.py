@@ -36,13 +36,11 @@ class SLOEvaluator:
     or historical SLO compliance, refer to the Grafana dashboards and Prometheus alerts.
     """
 
-    # Shared state to track last known compliance to prevent log flooding
-    _last_compliance: dict[str, bool] = {}
-
     def __init__(self, settings: Settings | None = None) -> None:
         """Initialize the SLO Evaluator with configuration settings."""
         self.settings = settings or get_settings()
         self._trigger_side_effects = True
+        self._last_compliance: dict[str, bool] = {}
 
     def _collect_metrics(self) -> dict[str, float]:
         """Collect all required metrics in a single pass over the registry."""
@@ -146,9 +144,9 @@ class SLOEvaluator:
 
         is_compliant = not any_breach
 
-        # If we have a breach, the 'current_value' being an average is misleading if the breach was a spike.
-        # However, for lifetime reporting, we'll keep the average but ensure is_compliant is correct.
-        margin = threshold - current_avg
+        # When bucket breach is detected, margin based on average is misleading.
+        # Set to NaN to indicate it's not meaningful for per-rebuild max SLO.
+        margin = float('nan') if any_breach else (threshold - current_avg)
 
         self._record_and_log(
             slo_name="rebuild_duration",
