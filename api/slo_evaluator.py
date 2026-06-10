@@ -127,6 +127,7 @@ class SLOEvaluator:
             if not sample.name.endswith("_bucket"):
                 continue
 
+
 le = float(sample.labels.get("le", 0.0))
       if le == threshold:
           le_count = sample.value
