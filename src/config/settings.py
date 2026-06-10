@@ -100,7 +100,7 @@ class Settings(BaseModel):
             try:
                 return int(value)
             except ValueError:
-                raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}")
+                raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
         # For other fields or non-string inputs, Pydantic will handle the type coercion
         return value
 
@@ -108,7 +108,8 @@ class Settings(BaseModel):
     @classmethod
     def validate_rebuild_threshold(cls, value: int) -> int:
         """Validate that the rebuild threshold matches a histogram bucket boundary."""
-        allowed_buckets = {10, 30, 60, 120, 300, 600, 1200}
+        # Canonical buckets defined in api/metrics.py
+        allowed_buckets = {1, 5, 10, 30, 60, 120, 300}
         if value not in allowed_buckets:
             raise ValueError(
                 f"SLO_REBUILD_DURATION_MAX_SECONDS ({value}) must match a histogram bucket boundary. "

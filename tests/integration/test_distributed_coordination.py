@@ -119,8 +119,9 @@ async def test_instance_synchronization_detects_new_job(authorized_app):
         repo = AssetGraphRepository(session)
         repo.save_graph(graph1)
         job_id = repo.create_rebuild_job(requested_by="user1", source="sample")
-        repo.mark_rebuild_job_running(job_id)
-        repo.mark_rebuild_job_succeeded(job_id, node_count=1, edge_count=0, duration_ms=100)
+        execution_id = "exec-1"
+        repo.mark_rebuild_job_running(job_id, execution_id)
+        repo.mark_rebuild_job_succeeded(job_id, execution_id=execution_id, node_count=1, edge_count=0, duration_ms=100)
 
     # Load it into the app
     sync_with_latest_rebuild()
@@ -135,8 +136,11 @@ async def test_instance_synchronization_detects_new_job(authorized_app):
         repo = AssetGraphRepository(session)
         repo.save_graph(graph2)
         job_id2 = repo.create_rebuild_job(requested_by="user2", source="sample")
-        repo.mark_rebuild_job_running(job_id2)
-        repo.mark_rebuild_job_succeeded(job_id2, node_count=1, edge_count=0, duration_ms=200)
+        execution_id2 = "exec-2"
+        repo.mark_rebuild_job_running(job_id2, execution_id2)
+        repo.mark_rebuild_job_succeeded(
+            job_id2, execution_id=execution_id2, node_count=1, edge_count=0, duration_ms=200
+        )
 
     # 3. Trigger sync and verify it updated
     sync_with_latest_rebuild()

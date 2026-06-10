@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextvars
+import json
 import logging
 import re
 import threading
@@ -13,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from time import perf_counter
-from typing import Annotated, NoReturn, cast
+from typing import Annotated, Any, NoReturn, cast
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import text
@@ -59,6 +60,7 @@ from ..metrics import (
     HEARTBEAT_UPDATE_TOTAL,
     LOCK_REFRESH_DURATION,
     LOCK_REFRESH_TOTAL,
+    REBUILD_CHECKPOINTS_TOTAL,
     REBUILD_DURATION,
     REBUILD_FAILURE,
     REBUILD_REQUESTS,
@@ -338,6 +340,7 @@ def _log_rebuild_rejected(*, user_ref: str) -> None:
 def _log_rebuild_succeeded(
     *,
     user_ref: str,
+    execution_id: str | None = None,
     response: GraphRebuildResponse,
     duration_ms: int,
 ) -> None:
@@ -346,6 +349,7 @@ def _log_rebuild_succeeded(
 
     Parameters:
         user_ref (str): Printable, sanitized reference for the operator who initiated the rebuild.
+        execution_id (str | None): The unique execution identity for this attempt.
         response (GraphRebuildResponse): Result containing `source`, `asset_count`,
         `relationship_count`, and `regulatory_event_count`.
         duration_ms (int): Elapsed wall-clock time for the rebuild in milliseconds.
@@ -358,9 +362,10 @@ def _log_rebuild_succeeded(
         logging.INFO,
         ObservabilityEvent(
             event=_REBUILD_AUDIT_SUCCEEDED,
-            message=f"Graph rebuild succeeded (source: {response.source}, duration: {duration_ms}ms)",
+            message=f"Graph rebuild succeeded (source: {response.source}, duration: {duration_ms}ms, execution_id: {execution_id or 'unknown'})",
             metadata={
                 "user_ref": user_ref,
+                "execution_id": execution_id or "unknown",
                 "path": _REBUILD_PATH,
                 "status_code": status.HTTP_200_OK,
                 "source": response.source,
@@ -402,6 +407,7 @@ def _log_rebuild_failed(
     exc: Exception | asyncio.CancelledError,
     status_code: int,
     duration_ms: int,
+    execution_id: str | None = None,
 ) -> None:
     """
     Record and emit a structured audit event for a failed graph rebuild.
@@ -411,6 +417,7 @@ def _log_rebuild_failed(
         exc (Exception | asyncio.CancelledError): The underlying exception that caused the failure.
         status_code (int): HTTP status code to associate with the failure audit.
         duration_ms (int): Elapsed rebuild duration in milliseconds.
+        execution_id (str | None): The unique execution identity for this attempt.
 
     """
     category = _rebuild_failure_category(exc)
@@ -422,10 +429,11 @@ def _log_rebuild_failed(
         logging.ERROR,
         ObservabilityEvent(
             event=_REBUILD_AUDIT_FAILED,
-            message=f"Graph rebuild failed (category: {category}, duration: {duration_ms}ms)",
+            message=f"Graph rebuild failed (category: {category}, duration: {duration_ms}ms, execution_id: {execution_id or 'unknown'})",
             metadata={
                 "failure_category": category,
                 "user_ref": user_ref,
+                "execution_id": execution_id or "unknown",
                 "path": _REBUILD_PATH,
                 "status_code": status_code,
                 "duration_ms": duration_ms,
@@ -584,11 +592,14 @@ async def _run_rebuild_in_executor(
     tracking_state: dict[str, bool],
 ) -> GraphRebuildResponse:
     """Run rebuild work in the dedicated executor."""
+    from uuid import uuid4
+
+    execution_id = str(uuid4())
     ctx = contextvars.copy_context()
 
     def rebuild_with_context() -> GraphRebuildResponse:
         """Run the sync rebuild function within the captured context."""
-        return _perform_rebuild_and_persist_sync(settings, user_ref=user_ref)
+        return _perform_rebuild_and_persist_sync(settings, user_ref=user_ref, execution_id=execution_id)
 
     try:
         future = cast(
@@ -606,6 +617,7 @@ async def _run_rebuild_in_executor(
             exc=exc,
             status_code=_rebuild_status_code(exc),
             duration_ms=_duration_ms(started_at),
+            execution_id=execution_id,
         )
         tracking_state["audit_logged"] = True
         raise
@@ -634,6 +646,7 @@ async def _run_rebuild_in_executor(
                     exc=exc,
                     status_code=_rebuild_status_code(exc),
                     duration_ms=_duration_ms(started_at),
+                    execution_id=execution_id,
                 )
             tracking_state["audit_logged"] = True
             return
@@ -644,6 +657,7 @@ async def _run_rebuild_in_executor(
                 exc=exc,
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 duration_ms=_duration_ms(started_at),
+                execution_id=execution_id,
             )
             tracking_state["audit_logged"] = True
             return
@@ -655,6 +669,7 @@ async def _run_rebuild_in_executor(
                 exc=exc,
                 status_code=_rebuild_status_code(exc),
                 duration_ms=_duration_ms(started_at),
+                execution_id=execution_id,
             )
             tracking_state["audit_logged"] = True
             return
@@ -664,6 +679,7 @@ async def _run_rebuild_in_executor(
             user_ref=user_ref,
             response=response,
             duration_ms=_duration_ms(started_at),
+            execution_id=execution_id,
         )
         tracking_state["audit_logged"] = True
 
@@ -686,6 +702,7 @@ def _heartbeat_keeper(
     session_factory: Callable[[], Session],
     dist_lock: DistributedLock,
     job_id: str,
+    execution_id: str,
     worker_id: str,
     stop_event: threading.Event,
     lock_lost_event: threading.Event,
@@ -702,6 +719,7 @@ def _heartbeat_keeper(
         session_factory (Callable[[], Session]): Factory that yields a new DB session for heartbeat updates.
         dist_lock (DistributedLock): Distributed lock instance to refresh.
         job_id (str): Identifier of the rebuild job this heartbeat is maintaining.
+        execution_id (str): Unique execution identity for this run attempt.
         worker_id (str): Identifier of the worker performing the rebuild used when updating the heartbeat.
         stop_event (threading.Event): Event that, when set, causes the keeper to stop gracefully.
         lock_lost_event (threading.Event): Event that will be set if the lock is lost or heartbeat updates fail.
@@ -734,7 +752,7 @@ def _heartbeat_keeper(
             # Future enhancement: implement retry logic for transient failures.
             try:
                 with session_scope(session_factory) as session:
-                    AssetGraphRepository(session).update_rebuild_heartbeat(job_id, worker_id)
+                    AssetGraphRepository(session).update_rebuild_heartbeat(job_id, execution_id, worker_id)
                 HEARTBEAT_UPDATE_TOTAL.labels(status="success").inc()
                 HEARTBEAT_LAST_SUCCESS_TIMESTAMP.set(time.time())
             except Exception as hb_exc:
@@ -806,6 +824,7 @@ def _restore_persisted_graph_snapshot(
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
+    execution_id: str,
     exc: Exception | asyncio.CancelledError,
     job_started_at: float,
     success_persisted: bool,
@@ -849,6 +868,7 @@ def _handle_rebuild_failure(
         _finalize_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,
+            execution_id=execution_id,
             exc=exc,
             job_started_at=job_started_at,
         )
@@ -862,6 +882,7 @@ def _orchestrate_heartbeat(
     session_factory: Callable[[], Session],
     dist_lock: DistributedLock,
     job_id: str,
+    execution_id: str,
     lock_ttl: int,
 ) -> Generator[threading.Event, None, None]:
     """Context manager to cleanly scope background heartbeat tracking threads."""
@@ -875,6 +896,7 @@ def _orchestrate_heartbeat(
             "session_factory": session_factory,
             "dist_lock": dist_lock,
             "job_id": job_id,
+            "execution_id": execution_id,
             "worker_id": dist_lock.holder_id,
             "stop_event": stop_heartbeat,
             "lock_lost_event": lock_lost,
@@ -897,6 +919,7 @@ def _run_rebuild_pipeline(
     settings: GraphLifecycleSettings,
     resolved_url: str,
     job_id: str,
+    execution_id: str,
     job_started_at: float,
     lock_lost: threading.Event,
 ) -> GraphRebuildResponse:
@@ -915,6 +938,7 @@ def _run_rebuild_pipeline(
         settings (GraphLifecycleSettings): Configuration used to build the graph.
         resolved_url (str): Durable persistence target URL where the rebuilt graph will be saved.
         job_id (str): Identifier of the rebuild job being executed.
+        execution_id (str): Unique execution identity for this run attempt.
         job_started_at (float): Monotonic timestamp when the job started, used to compute durations.
         lock_lost (threading.Event): Event set when the distributed lock is lost;
             checked at multiple stages to abort and trigger rollback.
@@ -935,12 +959,55 @@ def _run_rebuild_pipeline(
         if lock_lost.is_set():
             raise _DistributedLockLostError("Lost distributed lock at stage=initialization")
 
-        graph, source = build_rebuild_graph(settings)
+        # Stage 5C.3B: Checkpoint orchestration. Load existing progress for "Resume" path.
+        initial_checkpoint = None
+        try:
+            with session_factory() as session:
+                job = AssetGraphRepository(session).get_rebuild_job(job_id)
+                if job and job.checkpoint_data:
+                    initial_checkpoint = json.loads(job.checkpoint_data)
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="rebuild_checkpoint_load_failed",
+                    message=f"Failed to load checkpoint for job {job_id}: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
+
+        def on_checkpoint(data: dict[str, Any]) -> None:
+            """Persist progress checkpoint to the database."""
+            # Abort checkpoint write if lock is already lost
+            if lock_lost.is_set():
+                return
+            try:
+                _update_job_checkpoint_safe(session_factory, job_id, execution_id, json.dumps(data))
+                REBUILD_CHECKPOINTS_TOTAL.labels(status="success").inc()
+            except Exception as checkpoint_exc:
+                REBUILD_CHECKPOINTS_TOTAL.labels(status="failure").inc()
+                # Log but do not fail the rebuild on a checkpoint write error
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="rebuild_checkpoint_write_failed",
+                        message=f"Failed to write checkpoint for job {job_id}: {type(checkpoint_exc).__name__}",
+                        metadata={"error": type(checkpoint_exc).__name__},
+                    ),
+                )
+
+        graph, source = build_rebuild_graph(
+            settings,
+            on_checkpoint=on_checkpoint,
+            initial_checkpoint=initial_checkpoint,
+        )
 
         if lock_lost.is_set():
             raise _DistributedLockLostError("Lost distributed lock at stage=pre-persistence")
 
-        _update_job_source_safe(session_factory, job_id, str(source))
+        _update_job_source_safe(session_factory, job_id, execution_id, str(source))
 
         graph_snapshot = _load_persisted_graph_snapshot(session_factory)
 
@@ -963,6 +1030,7 @@ def _run_rebuild_pipeline(
         response = _finalize_rebuild_success(
             session_factory=session_factory,
             job_id=job_id,
+            execution_id=execution_id,
             graph=graph,
             source=source,
             job_started_at=job_started_at,
@@ -974,6 +1042,7 @@ def _run_rebuild_pipeline(
         _handle_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,
+            execution_id=execution_id,
             exc=exc,
             job_started_at=job_started_at,
             success_persisted=success_persisted,
@@ -1100,6 +1169,7 @@ def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
     *,
     user_ref: str,
+    execution_id: str,
 ) -> GraphRebuildResponse:
     """
     Rebuild the asset graph, persist the result, and publish the new graph to runtime state.
@@ -1138,6 +1208,7 @@ def _perform_rebuild_and_persist_sync(
             domain_session_factory,
             user_ref,
             dist_lock.holder_id,
+            execution_id,
         )
 
         # Heartbeat orchestration
@@ -1145,6 +1216,7 @@ def _perform_rebuild_and_persist_sync(
             domain_session_factory,
             dist_lock,
             job_id,
+            execution_id,
             lock_ttl,
         ) as lock_lost:
             return _run_rebuild_pipeline(
@@ -1152,6 +1224,7 @@ def _perform_rebuild_and_persist_sync(
                 settings,
                 resolved_domain_url,
                 job_id,
+                execution_id,
                 job_started_at,
                 lock_lost,
             )
@@ -1335,22 +1408,36 @@ def _run_job_update(
         raise GraphPersistenceSaveError(error_message) from exc
 
 
-def _update_job_source_safe(session_factory: Callable[[], Session], job_id: str, source: str) -> None:
+def _update_job_source_safe(
+    session_factory: Callable[[], Session], job_id: str, execution_id: str, source: str
+) -> None:
     """Update rebuild job source safely."""
     _run_job_update(
         session_factory,
         job_id,
-        lambda repo: repo.update_rebuild_job_source(job_id, source),
+        lambda repo: repo.update_rebuild_job_source(job_id, execution_id, source),
         "Failed to update rebuild job source.",
     )
 
 
-def _mark_job_running_safe(session_factory: Callable[[], Session], job_id: str) -> None:
+def _update_job_checkpoint_safe(
+    session_factory: Callable[[], Session], job_id: str, execution_id: str, checkpoint_data: str
+) -> None:
+    """Update rebuild job checkpoint safely."""
+    _run_job_update(
+        session_factory,
+        job_id,
+        lambda repo: repo.update_rebuild_checkpoint(job_id, execution_id, checkpoint_data),
+        "Failed to update rebuild job checkpoint.",
+    )
+
+
+def _mark_job_running_safe(session_factory: Callable[[], Session], job_id: str, execution_id: str) -> None:
     """Mark rebuild job as running safely."""
     _run_job_update(
         session_factory,
         job_id,
-        lambda repo: repo.mark_rebuild_job_running(job_id),
+        lambda repo: repo.mark_rebuild_job_running(job_id, execution_id),
         "Failed to mark rebuild job as running.",
     )
 
@@ -1358,6 +1445,7 @@ def _mark_job_running_safe(session_factory: Callable[[], Session], job_id: str) 
 def _mark_job_succeeded_safe(
     session_factory: Callable[[], Session],
     job_id: str,
+    execution_id: str,
     node_count: int,
     edge_count: int,
     duration_ms: int,
@@ -1368,6 +1456,7 @@ def _mark_job_succeeded_safe(
         job_id,
         lambda repo: repo.mark_rebuild_job_succeeded(
             job_id,
+            execution_id=execution_id,
             node_count=node_count,
             edge_count=edge_count,
             duration_ms=duration_ms,
@@ -1379,6 +1468,7 @@ def _mark_job_succeeded_safe(
 def _mark_job_failed_safe(
     session_factory: Callable[[], Session],
     job_id: str,
+    execution_id: str,
     exc: Exception | asyncio.CancelledError,
     duration_ms: int,
 ) -> None:
@@ -1388,6 +1478,7 @@ def _mark_job_failed_safe(
         job_id,
         lambda repo: repo.mark_rebuild_job_failed(
             job_id,
+            execution_id=execution_id,
             failure_category=_rebuild_failure_category(exc),
             failure_message=_sanitize_failure_message(exc),
             duration_ms=duration_ms,
@@ -1457,6 +1548,7 @@ def _finalize_rebuild_success(
     *,
     session_factory: Callable[[], Session],
     job_id: str,
+    execution_id: str,
     graph: AssetRelationshipGraph,
     source: GraphRebuildSource,
     job_started_at: float,
@@ -1473,6 +1565,7 @@ def _finalize_rebuild_success(
     _mark_job_succeeded_safe(
         session_factory,
         job_id,
+        execution_id,
         node_count=response.asset_count,
         edge_count=response.relationship_count,
         duration_ms=_duration_ms(job_started_at),
@@ -1485,11 +1578,12 @@ def _finalize_rebuild_failure(
     *,
     session_factory: Callable[[], Session],
     job_id: str,
+    execution_id: str,
     exc: Exception | asyncio.CancelledError,
     job_started_at: float,
 ) -> None:
     """Persist failed rebuild terminal state."""
-    _mark_job_failed_safe(session_factory, job_id, exc, _duration_ms(job_started_at))
+    _mark_job_failed_safe(session_factory, job_id, execution_id, exc, _duration_ms(job_started_at))
     update_rebuild_state_metric("failed")
 
 
@@ -1497,6 +1591,7 @@ def _create_and_start_rebuild_job(
     session_factory: Callable[[], Session],
     user_ref: str,
     worker_id: str,
+    execution_id: str,
 ) -> tuple[str, float]:
     """
     Create a rebuild job record, transition it to running, and record an initial heartbeat.
@@ -1505,6 +1600,7 @@ def _create_and_start_rebuild_job(
         session_factory (Callable[[], Session]): Factory that yields a database session for persistence.
         user_ref (str): Sanitized identifier of the user who requested the rebuild.
         worker_id (str): Identifier of the worker that will own the job heartbeat.
+        execution_id (str): Unique execution identity for this run attempt.
 
     Behavior:
         - Creates a pending rebuild job, marks it running, and updates rebuild state metrics.
@@ -1521,12 +1617,12 @@ def _create_and_start_rebuild_job(
     job_id = _create_job_safe(session_factory, user_ref)
     update_rebuild_state_metric("pending")
     job_started_at = perf_counter()
-    _mark_job_running_safe(session_factory, job_id)
+    _mark_job_running_safe(session_factory, job_id, execution_id)
     update_rebuild_state_metric("running")
 
     try:
         with session_scope(session_factory) as session:
-            AssetGraphRepository(session).update_rebuild_heartbeat(job_id, worker_id)
+            AssetGraphRepository(session).update_rebuild_heartbeat(job_id, execution_id, worker_id)
     except Exception as exc:
         log_event(
             logger,
@@ -1535,15 +1631,16 @@ def _create_and_start_rebuild_job(
                 event="rebuild_initial_heartbeat_failed",
                 message=(
                     f"Failed to record initial rebuild heartbeat: {type(exc).__name__} "
-                    f"(job_id={job_id}). Failing closed."
+                    f"(job_id={job_id}, execution_id={execution_id}). Failing closed."
                 ),
-                metadata={"job_id": job_id, "error": type(exc).__name__},
+                metadata={"job_id": job_id, "execution_id": execution_id, "error": type(exc).__name__},
             ),
         )
         try:
             _finalize_rebuild_failure(
                 session_factory=session_factory,
                 job_id=job_id,
+                execution_id=execution_id,
                 exc=exc,
                 job_started_at=job_started_at,
             )

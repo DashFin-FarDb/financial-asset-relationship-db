@@ -13,16 +13,18 @@ groups:
 
       - alert: APIHighErrorRate
         expr: |
-          (sum by (route, method) (rate(http_requests_total{status_group=~"5.."}[5m])) or vector(0))
-          /
-          (sum by (route, method) (rate(http_requests_total[5m])) or vector(1)) > 0.05
+          (
+            (sum by (route, method) (rate(http_requests_total{status_group=~"5.."}[5m])) or vector(0))
+            /
+            (sum by (route, method) (rate(http_requests_total[5m])) or vector(1))
+          ) * 100 > 5
         for: 5m
         labels:
           severity: critical
           component: api
         annotations:
           summary: "Elevated API Error Rate on route {{ $labels.route }}"
-          description: "Route {{ $labels.method }} {{ $labels.route }} is experiencing an error rate of {{ $value | humanizePercentage }}. Threshold is 5%."
+          description: "Route {{ $labels.method }} {{ $labels.route }} is experiencing an error rate of {{ $value | printf \"%.2f\" }}%. Threshold is 5%."
 
       - alert: APIHighInFlightRequests
         expr: sum(http_requests_in_flight) > 100

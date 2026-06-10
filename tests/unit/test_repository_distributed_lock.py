@@ -259,8 +259,8 @@ class TestLatestRebuildJobRepository:
 
         # 1. Old successful job
         id1 = repo.create_rebuild_job(requested_by="user1")
-        repo.mark_rebuild_job_running(id1)
-        repo.mark_rebuild_job_succeeded(id1, node_count=1, edge_count=1, duration_ms=1)
+        repo.mark_rebuild_job_running(id1, "test_exec_id")
+        repo.mark_rebuild_job_succeeded(id1, execution_id="test_exec_id", node_count=1, edge_count=1, duration_ms=1)
 
         # Manually adjust completed_at for id1 to be older
         job1 = repo.session.get(RebuildJobORM, id1)
@@ -269,14 +269,16 @@ class TestLatestRebuildJobRepository:
 
         # 2. Newer failed job
         id2 = repo.create_rebuild_job(requested_by="user2")
-        repo.mark_rebuild_job_running(id2)
-        repo.mark_rebuild_job_failed(id2, failure_category="err", failure_message="err", duration_ms=1)
+        repo.mark_rebuild_job_running(id2, "test_exec_id")
+        repo.mark_rebuild_job_failed(
+            id2, execution_id="test_exec_id", failure_category="err", failure_message="err", duration_ms=1
+        )
         repo.session.commit()
 
         # 3. Newest successful job
         id3 = repo.create_rebuild_job(requested_by="user3")
-        repo.mark_rebuild_job_running(id3)
-        repo.mark_rebuild_job_succeeded(id3, node_count=3, edge_count=3, duration_ms=3)
+        repo.mark_rebuild_job_running(id3, "test_exec_id")
+        repo.mark_rebuild_job_succeeded(id3, execution_id="test_exec_id", node_count=3, edge_count=3, duration_ms=3)
         repo.session.commit()
 
         reader = repository_factory()

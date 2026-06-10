@@ -5,7 +5,7 @@ import logging
 import math
 from collections.abc import Callable
 from dataclasses import asdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -182,6 +182,20 @@ class RealDataFetcher:
         Returns:
             AssetRelationshipGraph: A graph populated from cache, live data, or fallback/sample data.
         """
+        graph, _ = self.create_real_database_with_source()
+        return graph
+
+    def create_real_database_with_source(self) -> tuple[AssetRelationshipGraph, str]:
+        """
+        Create an asset relationship graph and identify its source (cache, real_data, or sample).
+
+        This is the provenance-safe version of create_real_database. It returns both the
+        constructed graph and a source tag identifying where the data originated.
+
+        Returns:
+            tuple[AssetRelationshipGraph, str]: A tuple containing the graph and a source
+                tag: "cache", "real_data" (for live fetches), or "sample".
+        """
         if self.cache_path and self.cache_path.exists():
             try:
                 log_event(
@@ -193,7 +207,7 @@ class RealDataFetcher:
                         metadata={"cache_path": str(self.cache_path)},
                     ),
                 )
-                return _load_from_cache(self.cache_path)
+                return _load_from_cache(self.cache_path), "cache"
             except Exception as exc:
                 log_event(
                     logger,
@@ -214,7 +228,7 @@ class RealDataFetcher:
                     message="Network fetching disabled. Using fallback dataset if available.",
                 ),
             )
-            return self._fallback()
+            return self._fallback(), "sample"
 
         log_event(
             logger,
@@ -258,7 +272,7 @@ class RealDataFetcher:
                     },
                 ),
             )
-            return graph
+            return graph, "real_data"
 
         except Exception as exc:
             log_event(
@@ -278,7 +292,58 @@ class RealDataFetcher:
                     message="Falling back to sample data due to real data fetch failure",
                 ),
             )
-            return self._fallback()
+            return self._fallback(), "sample"
+
+    def fetch_raw_data(self) -> tuple[list[Asset], list[RegulatoryEvent]]:
+        """
+        Fetch raw asset and regulatory event data without building a graph.
+
+        Returns:
+            tuple[list[Asset], list[RegulatoryEvent]]: A tuple containing the list of
+                fetched assets and the list of regulatory events.
+        """
+        assets, events, _ = self.fetch_raw_data_with_source()
+        return assets, events
+
+    def fetch_raw_data_with_source(self) -> tuple[list[Asset], list[RegulatoryEvent], str]:
+        """
+        Fetch raw asset and regulatory event data and identify its source.
+
+        Returns:
+            tuple[list[Asset], list[RegulatoryEvent], str]: A tuple containing the
+                fetched assets, the regulatory events, and a source tag ("real_data" or "sample").
+        """
+        if not self.enable_network:
+            # If network is disabled, we return empty or sample-equivalent from fallback
+            fb = self._fallback()
+            return list(fb.assets.values()), fb.regulatory_events, "sample"
+
+        try:
+            equities = self._fetch_equity_data()
+            bonds = self._fetch_bond_data()
+            commodities = self._fetch_commodity_data()
+            currencies = self._fetch_currency_data()
+            events = self._create_regulatory_events()
+
+            all_assets = equities + bonds + commodities + currencies
+            source = "real_data" if all_assets else "sample"
+            if not all_assets:
+                # If everything failed, we use fallback but report as sample
+                fb = self._fallback()
+                return list(fb.assets.values()), fb.regulatory_events, "sample"
+
+            return all_assets, events, source
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="graph_raw_fetch_failed",
+                    message=f"Failed to fetch raw data: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
+            raise
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
         """
@@ -575,7 +640,7 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date=(datetime.now(timezone.utc) + timedelta(days=90)).strftime("%Y-%m-%d"),
+                    delivery_date=(datetime.now(UTC) + timedelta(days=90)).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)

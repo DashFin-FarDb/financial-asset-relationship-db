@@ -4,29 +4,31 @@ This module implements the central control-plane primitive that:
 - Consumes Desired State and Observed State
 - Computes Drift
 - Generates Reconciliation Plans (execution-agnostic)
+- Executes checkpointed rebuilds (orchestration)
 - Ensures eventual convergence through deterministic planning
-
-The engine is purely functional - it DOES NOT execute actions, only generates plans.
-Execution is delegated to the Job Abstraction Layer (future work).
 """
 
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Protocol
+from datetime import UTC, datetime
+from enum import StrEnum
+from typing import TYPE_CHECKING, Any, Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
+if TYPE_CHECKING:
+    from src.logic.asset_graph import AssetRelationshipGraph
+    from src.models.financial_models import Asset, RegulatoryEvent
+
 logger = logging.getLogger(__name__)
 
 
-class ActionType(str, Enum):
+class ActionType(StrEnum):
     """Types of corrective actions that can be planned."""
 
     NOOP = "noop"  # Already converged, no action needed
@@ -35,7 +37,7 @@ class ActionType(str, Enum):
     WAIT_FOR_CONVERGENCE = "wait_for_convergence"  # Wait for ongoing operation
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     """Severity classification for drift detection."""
 
     NONE = "none"  # No drift detected
@@ -45,7 +47,7 @@ class Severity(str, Enum):
     CRITICAL = "critical"  # Critical drift, execution unsafe
 
 
-class ExecutionMode(str, Enum):
+class ExecutionMode(StrEnum):
     """Execution mode for reconciliation actions."""
 
     IMMEDIATE = "immediate"  # Execute immediately
@@ -54,7 +56,7 @@ class ExecutionMode(str, Enum):
     AUTOMATIC = "automatic"  # Can be automatically executed
 
 
-class ExecutionSafety(str, Enum):
+class ExecutionSafety(StrEnum):
     """Machine-readable safety intent for downstream orchestration.
 
     This preserves critical-state semantics even when `execution_mode` is MANUAL
@@ -158,7 +160,7 @@ class ReconciliationPlan:
                 try:
                     normalized_actions.append(ActionType(action))
                 except (ValueError, TypeError):
-                    raise ValueError(f"Invalid action type: {action!r}. Must be an ActionType enum value.")
+                    raise ValueError(f"Invalid action type: {action!r}. Must be an ActionType enum value.") from None
         return tuple(normalized_actions)
 
     def _check_severity_action_invariants(self, severity: Severity, normalized_actions: tuple[ActionType, ...]) -> None:
@@ -308,6 +310,102 @@ class ReconciliationEngine:
 
         return plan
 
+    def run_rebuild(
+        self,
+        assets: Iterable[Asset],
+        regulatory_events: Iterable[RegulatoryEvent],
+        on_checkpoint: Callable[[dict[str, Any]], None] | None = None,
+        initial_checkpoint: dict[str, Any] | None = None,
+    ) -> AssetRelationshipGraph:
+        """
+        Execute a checkpointed graph rebuild from the provided assets and events.
+
+        This method implements the core reconstruction loop, applying assets to a new graph
+        at bounded intervals and invoking the provided checkpoint callback.
+
+        Parameters:
+            assets: Iterable of assets to add to the graph.
+            regulatory_events: Iterable of regulatory events to add to the graph.
+            on_checkpoint: Optional callback invoked every 50 assets.
+            initial_checkpoint: Optional state used to resume a partial rebuild.
+
+        Returns:
+            AssetRelationshipGraph: The fully reconstructed graph.
+        """
+        from src.logic.asset_graph import AssetRelationshipGraph
+
+        graph = AssetRelationshipGraph()
+        processed_count = 0
+
+        # Stage 5C.3B: Resume logic: identify assets to skip from initial checkpoint.
+        # High-water mark stored as list of IDs that were successfully added.
+        skipped_ids = set()
+        if initial_checkpoint and "processed_ids" in initial_checkpoint:
+            skipped_ids = set(initial_checkpoint["processed_ids"])
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="reconciliation_rebuild_resume_started",
+                    message=f"Resuming rebuild: skipping {len(skipped_ids)} already processed assets",
+                    metadata={"skipped_count": len(skipped_ids)},
+                ),
+            )
+
+        # Main processing loop
+        for asset in assets:
+            if asset.id in skipped_ids:
+                # Still add to the new graph so it's complete, but don't count as "work"
+                # (In a real system, 'assets' might be a generator that skips fetching
+                # if we have the checkpointed state, but here we add for completeness)
+                graph.add_asset(asset)
+                continue
+
+            graph.add_asset(asset)
+            processed_count += 1
+
+            # Engine Instrumentation: Checkpoint at bounded intervals (every 50 assets)
+            if on_checkpoint and processed_count % 50 == 0:
+                on_checkpoint(
+                    {
+                        "processed_ids": list(graph.assets.keys()),
+                        "last_asset_id": asset.id,
+                        "processed_count": len(graph.assets),
+                    }
+                )
+
+        # Final checkpoint after all assets added
+        if on_checkpoint and processed_count > 0:
+            on_checkpoint(
+                {
+                    "processed_ids": list(graph.assets.keys()),
+                    "processed_count": len(graph.assets),
+                }
+            )
+
+        # Add regulatory events and build relationships
+        for event in regulatory_events:
+            graph.add_regulatory_event(event)
+
+        graph.build_relationships()
+
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="reconciliation_rebuild_completed",
+                message=(
+                    f"Rebuild completed: {len(graph.assets)} assets, {len(graph.regulatory_events)} events processed"
+                ),
+                metadata={
+                    "asset_count": len(graph.assets),
+                    "event_count": len(graph.regulatory_events),
+                },
+            ),
+        )
+
+        return graph
+
     def _evaluation_failure_plan(self, exc: Exception) -> ReconciliationPlan:
         """
         Produce an explicit ReconciliationPlan signaling evaluation failure for the provided exception.
@@ -337,7 +435,7 @@ class ReconciliationEngine:
                 # include a short sanitized message instead
                 "error_message": type(exc).__name__,
             },
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     def _drift_to_plan(
@@ -380,7 +478,7 @@ class ReconciliationEngine:
                     safety_state=ExecutionSafety.WAIT_REQUIRED,
                     reason="No drift detected, but execution gated on lock acquisition",
                     metadata=metadata,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                 )
 
             # Drift converged AND lock valid → SAFE to execute
@@ -393,7 +491,7 @@ class ReconciliationEngine:
                 safety_state=ExecutionSafety.CONVERGED,
                 reason="No drift detected, system is converged",
                 metadata=metadata,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
         # Critical severity - always alert only (unsafe to execute)
@@ -408,7 +506,7 @@ class ReconciliationEngine:
                 safety_state=safety_state,
                 reason="Critical drift detected - execution is unsafe, manual intervention required",
                 metadata=metadata,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
         # Map specific drift types to actions
@@ -502,7 +600,7 @@ class ReconciliationEngine:
                 safety_state=ExecutionSafety.UNSAFE_SPLIT_BRAIN,
                 reason="Zombie executor detected - potential split-brain condition",
                 metadata=metadata,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
         # Unknown drift type - default to alert only
@@ -524,7 +622,7 @@ class ReconciliationEngine:
             safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
             reason=f"Unknown drift type: {drift_type}",
             metadata=metadata,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     def _critical_safety_state(
@@ -599,7 +697,7 @@ class ReconciliationEngine:
             safety_state=ExecutionSafety.WAIT_REQUIRED,
             reason=reason,
             metadata=metadata,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     # Explicit params preferred over dataclass for internal helper; Phase 2 may consolidate
@@ -629,5 +727,5 @@ class ReconciliationEngine:
             safety_state=ExecutionSafety.RESET_REQUIRED,
             reason=reason,
             metadata=metadata,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
