@@ -129,7 +129,7 @@ def load_graph_from_cache_path(
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=enable_network)
-    return fetcher.create_real_database_with_source()
+    return cast(tuple[AssetRelationshipGraph, GraphRebuildSource], fetcher.create_real_database_with_source())
 
 
 def load_graph_from_real_data_fetcher(
@@ -139,7 +139,7 @@ def load_graph_from_real_data_fetcher(
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=True)
-    return fetcher.create_real_database_with_source()
+    return cast(tuple[AssetRelationshipGraph, GraphRebuildSource], fetcher.create_real_database_with_source())
 
 
 def create_sample_graph() -> AssetRelationshipGraph:
@@ -216,7 +216,8 @@ def build_rebuild_graph(
             from src.logic.reconciliation_engine import ReconciliationEngine, Severity
 
             fetcher = RealDataFetcher(cache_path=settings.real_data_cache_path, enable_network=True)
-            assets, events, source = fetcher.fetch_raw_data_with_source()
+            assets, events, raw_source = fetcher.fetch_raw_data_with_source()
+            source = cast(GraphRebuildSource, raw_source)
 
             # Use ReconciliationEngine to orchestrate the rebuild with checkpointing.
             # A no-op evaluator stub is provided since drift detection is not needed here.

@@ -8,7 +8,7 @@ from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
@@ -325,7 +325,7 @@ class RealDataFetcher:
             currencies = self._fetch_currency_data()
             events = self._create_regulatory_events()
 
-            all_assets = equities + bonds + commodities + currencies
+            all_assets: list[Asset] = cast(list[Asset], equities + bonds + commodities + currencies)
             source = "real_data" if all_assets else "sample"
             if not all_assets:
                 # If everything failed, we use fallback but report as sample
