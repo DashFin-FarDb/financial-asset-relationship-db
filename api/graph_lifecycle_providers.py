@@ -129,7 +129,8 @@ def load_graph_from_cache_path(
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=enable_network)
-    return fetcher.create_real_database_with_source()
+    graph, source = fetcher.create_real_database_with_source()
+    return graph, cast(GraphRebuildSource, source)
 
 
 def load_graph_from_real_data_fetcher(
@@ -139,7 +140,8 @@ def load_graph_from_real_data_fetcher(
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=True)
-    return fetcher.create_real_database_with_source()
+    graph, source = fetcher.create_real_database_with_source()
+    return graph, cast(GraphRebuildSource, source)
 
 
 def create_sample_graph() -> AssetRelationshipGraph:
@@ -223,7 +225,7 @@ def build_rebuild_graph(
             class _NoOpEvaluator:
                 """Minimal stub satisfying ReconciliationEngine's evaluator protocol."""
 
-                def evaluate_drift(self) -> tuple[str, Severity, dict[str, Any]]:
+                def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
                     return "none", Severity.NONE, {}
 
             engine = ReconciliationEngine(_NoOpEvaluator())
@@ -238,7 +240,7 @@ def build_rebuild_graph(
                 # Still persist to cache if configured
                 fetcher._persist_cache(graph)  # pylint: disable=protected-access
 
-            return (graph, source)
+            return graph, cast(GraphRebuildSource, source)
 
         return (create_sample_graph(), "sample")
     except Exception as exc:
