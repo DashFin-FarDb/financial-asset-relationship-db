@@ -6,7 +6,7 @@ from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
-from typing import Any, TypedDict
+from typing import Any, TypeAlias, TypedDict
 from uuid import uuid4
 
 from sqlalchemy import and_, delete, insert, or_, select, update
@@ -310,7 +310,7 @@ class _BaseAssetKwargs(TypedDict):
     currency: str
 
 
-type GraphRelationshipRows = dict[str, list[tuple[str, str, float]]]
+GraphRelationshipRows: TypeAlias = dict[str, list[tuple[str, str, float]]]
 _IN_CLAUSE_CHUNK_SIZE = 400
 
 
