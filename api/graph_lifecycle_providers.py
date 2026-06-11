@@ -6,69 +6,54 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, cast
 
-from sqlalchemy import select  # pylint: disable=import-error
-from sqlalchemy.engine import Engine, make_url  # pylint: disable=import-error
+from sqlalchemy.engine import make_url  # pylint: disable=import-error
 from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
-from sqlalchemy.orm import Session  # pylint: disable=import-error
 
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory
-from src.data.db_models import AssetORM
 from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.observability.facade import ObservabilityEvent, log_event
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
+from .api_models import GraphRebuildSource
 
 logger = logging.getLogger(__name__)
 
-GraphRebuildSource = Literal["cache", "real_data", "sample"]
-_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
+
+class GraphPersistenceNotConfiguredError(Exception):
+    """Raised when the graph persistence database URL is not configured."""
+
+
+class GraphPersistenceNonDurableError(Exception):
+    """Raised when graph persistence is configured with a non-durable database."""
+
+
+class GraphPersistenceInvalidUrlError(GraphPersistenceNotConfiguredError):
+    """Raised when the graph persistence URL cannot be parsed."""
 
 
 @dataclass(frozen=True)
 class GraphLifecycleSettings:
-    """Immutable lifecycle-boundary settings projected from :class:`Settings`.
-
-    Values are validated at load time on the root settings model; this dataclass
-    must not re-validate or apply defensive fallbacks.
-    """
+    """Immutable settings controlling graph lifecycle behavior."""
 
     asset_graph_database_url: str | None = None
-    coordination_database_url: str | None = None
     graph_cache_path: str | None = None
-    real_data_cache_path: str | None = None
     use_real_data_fetcher: bool = False
-    rebuild_lock_ttl_seconds: int = 300  # mirrored from Settings; env REBUILD_LOCK_TTL_SECONDS
-
-
-class GraphPersistenceNotConfiguredError(RuntimeError):
-    """Raised when durable graph persistence is not explicitly configured."""
-
-
-class GraphPersistenceNonDurableError(RuntimeError):
-    """Raised when graph persistence is configured with a non-durable target."""
-
-
-class GraphPersistenceSaveError(RuntimeError):
-    """Raised when a rebuilt graph could not be persisted."""
-
-
-class GraphRebuildSourceError(RuntimeError):
-    """Raised when a fresh rebuild graph could not be constructed."""
+    real_data_cache_path: str | None = None
 
 
 def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
-    """Create lifecycle settings from the application's settings."""
+    """Retrieve and freeze current graph lifecycle settings."""
     settings = get_settings()
     return GraphLifecycleSettings(
         asset_graph_database_url=settings.asset_graph_database_url,
-        coordination_database_url=settings.coordination_database_url,
         graph_cache_path=settings.graph_cache_path,
-        real_data_cache_path=settings.real_data_cache_path,
         use_real_data_fetcher=settings.use_real_data_fetcher,
-        rebuild_lock_ttl_seconds=settings.rebuild_lock_ttl_seconds,
+        real_data_cache_path=settings.real_data_cache_path,
     )
 
 
@@ -83,30 +68,35 @@ def load_persisted_graph_if_available(
     """
     Attempt to load a persisted asset relationship graph from the configured durable database.
 
-    If no durable URL is configured or the resolved URL refers to an in-memory SQLite database, no load is
-    attempted and the function returns `None`.
-
-    Parameters:
-        database_url (str | None): Persistence database URL or `None`. Whitespace-only or empty strings
-            are treated as unset.
+    If a database URL is provided, it attempts to create a session and load the graph
+    using the AssetGraphRepository. In-memory SQLite URLs are treated as not available.
+    Errors during loading are logged and re-raised as RuntimeError.
 
     Returns:
-        AssetRelationshipGraph | None: The persisted graph if one was successfully loaded; `None` if
-            durable persistence is not configured or was skipped for an in-memory SQLite URL.
-
-    Raises:
-        RuntimeError: If an unexpected error occurs while attempting to load persisted data.
+        AssetRelationshipGraph | None: The loaded graph, or None if persistence is
+            not configured or points to an in-memory database.
     """
-    resolved_url = _resolve_persistence_database_url(database_url)
-    if resolved_url is None:
-        return None
-
-    if _is_in_memory_sqlite_url(resolved_url):
-        _log_in_memory_sqlite_persistence_skip()
+    if database_url is None:
         return None
 
     try:
-        return _load_persisted_graph_from_configured_store(resolved_url)
+        resolved_url = resolve_durable_graph_persistence_url(database_url)
+    except GraphPersistenceNotConfiguredError:
+        return None
+    except GraphPersistenceNonDurableError:
+        return None
+
+    try:
+        engine = create_engine_from_url(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            from src.data.repository import session_scope
+
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                return repo.load_graph()
+        finally:
+            engine.dispose()
     except Exception as exc:
         log_event(
             logger,
@@ -129,7 +119,8 @@ def load_graph_from_cache_path(
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=enable_network)
-    return cast(tuple[AssetRelationshipGraph, GraphRebuildSource], fetcher.create_real_database_with_source())
+    graph, source = fetcher.create_real_database_with_source()
+    return graph, cast(GraphRebuildSource, source)
 
 
 def load_graph_from_real_data_fetcher(
@@ -139,16 +130,13 @@ def load_graph_from_real_data_fetcher(
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=True)
-    return cast(tuple[AssetRelationshipGraph, GraphRebuildSource], fetcher.create_real_database_with_source())
+    graph, source = fetcher.create_real_database_with_source()
+    return graph, cast(GraphRebuildSource, source)
 
 
 def create_sample_graph() -> AssetRelationshipGraph:
     """Create a graph populated with the default sample dataset."""
     return create_sample_database()
-
-
-class GraphPersistenceInvalidUrlError(GraphPersistenceNotConfiguredError):
-    """Raised when the graph persistence URL cannot be parsed."""
 
 
 def resolve_durable_graph_persistence_url(database_url: str | None) -> str:
@@ -224,7 +212,7 @@ def build_rebuild_graph(
             class _NoOpEvaluator:
                 """Minimal stub satisfying ReconciliationEngine's evaluator protocol."""
 
-                def evaluate_drift(self) -> tuple[str, Severity, dict[str, Any]]:
+                def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
                     return "none", Severity.NONE, {}
 
             engine = ReconciliationEngine(_NoOpEvaluator())
@@ -252,259 +240,37 @@ def build_rebuild_graph(
                 metadata={"error": exc.__class__.__name__},
             ),
         )
-        raise GraphRebuildSourceError("Failed to build rebuild graph.") from None
-
-
-def save_graph_to_persistence(
-    database_url: str | None,
-    graph: AssetRelationshipGraph,
-    pre_commit_check: Callable[[], None] | None = None,
-) -> None:
-    """
-    Persist an AssetRelationshipGraph to a durable database.
-
-    Parameters:
-        database_url: Explicit persistence database URL. None or blank is rejected.
-        graph: Graph to persist.
-
-    Raises:
-        GraphPersistenceNotConfiguredError: If no persistence URL is configured.
-        GraphPersistenceNonDurableError: If the configured URL points to a non-durable (in-memory) store.
-        GraphPersistenceSaveError: If saving the graph or creating the persistence engine/session fails.
-    """
-    resolved_url = resolve_durable_graph_persistence_url(database_url)
-    engine = _create_graph_persistence_engine(resolved_url)
-    try:
-        _save_graph_with_engine(engine, graph, pre_commit_check=pre_commit_check)
-    finally:
-        engine.dispose()
-
-
-def _create_graph_persistence_engine(database_url: str) -> Engine:
-    """
-    Create a SQLAlchemy engine for graph persistence.
-
-    Returns:
-        engine (Engine): Engine configured for the provided database URL.
-
-    Raises:
-        GraphPersistenceSaveError: If the engine cannot be created for the given URL.
-    """
-    try:
-        return create_engine_from_url(database_url)
-    except Exception as exc:
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="graph_persistence_engine_creation_failed",
-                message=f"Failed to prepare graph persistence engine: {exc.__class__.__name__}",
-                metadata={"error": exc.__class__.__name__},
-            ),
-        )
-        raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
-
-
-def _save_graph_with_engine(
-    engine: Engine,
-    graph: AssetRelationshipGraph,
-    *,
-    pre_commit_check: Callable[[], None] | None = None,
-) -> None:
-    """
-    Persist an asset relationship graph using a short-lived database session.
-
-    If provided, `pre_commit_check` is executed before the transaction is committed; any exception it raises
-    prevents the commit and is propagated. The session is always closed when this function returns.
-
-    Parameters:
-        engine (Engine): Engine configured for the persistence store.
-        graph (AssetRelationshipGraph): Graph to be persisted.
-        pre_commit_check (Callable[[], None] | None): Optional callable run just before commit to validate state.
-
-    Raises:
-        GraphPersistenceSaveError: If creating the session or saving the graph fails.
-    """
-    try:
-        session_factory = create_session_factory(engine)
-        session = session_factory()
-    except Exception as exc:
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="graph_persistence_session_creation_failed",
-                message=f"Failed to prepare graph persistence session: {exc.__class__.__name__}",
-                metadata={"error": exc.__class__.__name__},
-            ),
-        )
-        raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
-
-    try:
-        _save_graph_with_session(session, graph, pre_commit_check=pre_commit_check)
-    finally:
-        session.close()
-
-
-def _save_graph_with_session(
-    session: Session,
-    graph: AssetRelationshipGraph,
-    *,
-    pre_commit_check: Callable[[], None] | None = None,
-) -> None:
-    """
-    Persist the given AssetRelationshipGraph using the provided SQLAlchemy session and commit the transaction.
-
-    If `pre_commit_check` is provided it will be executed after the graph is saved and before the commit;
-    an exception from that check will abort the commit.
-
-    Parameters:
-        session (Session): Active SQLAlchemy session used to persist the graph.
-        graph (AssetRelationshipGraph): Graph to persist.
-        pre_commit_check (Callable[[], None] | None): Optional callable invoked after saving and before commit;
-            if it raises, the transaction is aborted.
-
-    Raises:
-        GraphPersistenceSaveError: If saving the graph, the pre-commit check, or committing the transaction fails.
-    """
-    pre_commit_error: Exception | None = None
-    try:
-        AssetGraphRepository(session).save_graph(graph)
-        if pre_commit_check is not None:
-            try:
-                pre_commit_check()
-            except Exception as e:
-                pre_commit_error = e
-                log_event(
-                    logger,
-                    logging.ERROR,
-                    ObservabilityEvent(
-                        event="graph_persistence_pre_commit_failed",
-                        message=f"Pre-commit persistence safety check failed: {pre_commit_error.__class__.__name__}",
-                        metadata={"error": pre_commit_error.__class__.__name__},
-                    ),
-                )
-                raise
-        session.commit()
-    except Exception as exc:
-        try:
-            session.rollback()
-        except Exception as rollback_exc:
-            log_event(
-                logger,
-                logging.ERROR,
-                ObservabilityEvent(
-                    event="graph_persistence_rollback_failed",
-                    message=f"Failed to roll back rebuilt graph persistence: {rollback_exc.__class__.__name__}",
-                    metadata={"error": rollback_exc.__class__.__name__},
-                ),
-            )
-
-        # If the failure originated in the pre-commit check, re-raise the original exception
-        # to allow specialized upstream handling and avoid generic save error wrapping.
-        if pre_commit_error is not None:
-            raise pre_commit_error from None
-
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="graph_persistence_save_failed",
-                message=f"Failed to persist rebuilt graph: {exc.__class__.__name__}",
-                metadata={"error": exc.__class__.__name__},
-            ),
-        )
-        raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
+        raise RuntimeError("Failed to build rebuild graph") from exc
 
 
 def _resolve_persistence_database_url(database_url: str | None) -> str | None:
-    """
-    Resolve and normalize a persistence database URL.
-
-    Returns:
-        The trimmed URL string if non-empty, otherwise None.
-    """
-    resolved_url = (database_url or "").strip()
-    return resolved_url or None
-
-
-def _log_in_memory_sqlite_persistence_skip() -> None:
-    """
-    Emit an observability warning that startup persisted graph loading is skipped.
-
-    This occurs because the configured database is an in-memory SQLite instance.
-    Records an observability event named "graph_persistence_skip_in_memory".
-    """
-    log_event(
-        logger,
-        logging.WARNING,
-        ObservabilityEvent(
-            event="graph_persistence_skip_in_memory",
-            message=(
-                "ASSET_GRAPH_DATABASE_URL points to an in-memory SQLite database; "
-                "startup persistence loading requires a file-based or network database. "
-                "Skipping persisted graph load."
-            ),
-        ),
-    )
-
-
-def _load_persisted_graph_from_configured_store(
-    database_url: str,
-) -> AssetRelationshipGraph | None:
-    """
-    Load an AssetRelationshipGraph from the persistent store identified by database_url.
-
-    If the persistent store contains no persisted graph rows, returns None.
-
-    Parameters:
-        database_url (str): Database connection URL for the persistent store.
-
-    Returns:
-        AssetRelationshipGraph | None: The loaded graph, or `None` when no persisted graph rows exist.
-    """
-    engine = create_engine_from_url(database_url)
-    try:
-        session_factory = create_session_factory(engine)
-        session = session_factory()
-        try:
-            if not _has_persisted_graph_rows(session):
-                return None
-            return AssetGraphRepository(session).load_graph()
-        finally:
-            session.close()
-    finally:
-        engine.dispose()
-
-
-def _has_persisted_graph_rows(session: Session) -> bool:
-    """
-    Determine whether the persistence store contains at least one persisted asset row.
-
-    Returns:
-        `True` if the store contains at least one persisted `AssetORM` row, `False` otherwise.
-    """
-    return session.execute(select(AssetORM.id).limit(1)).scalar_one_or_none() is not None
+    """Normalize and resolve the database URL for persistence."""
+    if database_url is None:
+        return None
+    url_str = database_url.strip()
+    return url_str if url_str else None
 
 
 def _is_in_memory_sqlite_url(url: str) -> bool:
-    """Return whether a SQLAlchemy URL points to in-memory SQLite."""
+    """Determine if a database URL refers to an in-memory SQLite database."""
+    if not url.startswith("sqlite"):
+        return False
+
+    # Common patterns for in-memory SQLite
+    in_memory_patterns = [
+        ":memory:",
+        "sqlite://",
+        "sqlite:///",
+        "sqlite:///:memory:",
+    ]
+
+    # Also handle sqlite:// (default is memory) and sqlite://?cache=shared
+    # make_url helps parse complex SQLAlchemy URLs
     try:
-        parsed = make_url(url)
-    except ArgumentError:
-        return False
+        parsed_url = make_url(url)
+        if parsed_url.database in (None, "", ":memory:"):
+            return True
+    except Exception:
+        pass
 
-    if parsed.get_backend_name() != "sqlite":
-        return False
-
-    database = parsed.database or ""
-    if database in {"", ":memory:"}:
-        return True
-    if database.startswith("file::memory:"):
-        return True
-    return database.startswith("file:") and _query_mode_is_memory(parsed.query.get("mode"))
-
-
-def _query_mode_is_memory(mode: object) -> bool:
-    """Return whether a parsed SQLAlchemy URL query mode requests memory."""
-    return mode == "memory" or (isinstance(mode, tuple) and "memory" in mode)
+    return any(pattern in url for pattern in in_memory_patterns)
