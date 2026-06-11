@@ -222,9 +222,15 @@ def build_rebuild_graph(
             # Use ReconciliationEngine to orchestrate the rebuild with checkpointing.
             # A no-op evaluator stub is provided since drift detection is not needed here.
             class _NoOpEvaluator:
-                """Minimal stub satisfying ReconciliationEngine's evaluator protocol."""
+                """
+                Minimal stub satisfying ReconciliationEngine's evaluator protocol.
+            
+                Bypasses active drift evaluation by consistently reporting zero drift 
+                and nominal severity.
+                """
 
                 def evaluate_drift(self) -> tuple[str, Severity, dict[str, Any]]:
+                    """Returns a hardcoded no-drift state tuple."""
                     return "none", Severity.NONE, {}
 
             engine = ReconciliationEngine(_NoOpEvaluator())
