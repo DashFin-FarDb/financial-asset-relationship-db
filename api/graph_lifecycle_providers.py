@@ -121,7 +121,11 @@ def load_persisted_graph_if_available(
 
 
 def load_graph_from_cache_path(
-    cache_path: str,
+    graph, source = graph_lifecycle_providers.load_graph_from_cache_path(
+        cache_path,
+        enable_network=use_real_data,
+    )
+    return graph, source
     *,
     enable_network: bool,
 ) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
