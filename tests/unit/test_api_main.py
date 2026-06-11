@@ -73,6 +73,14 @@ def _assert_metrics_text_response(response: Any) -> str:
 # -----------------------
 # Fixtures
 # -----------------------
+@pytest.fixture(autouse=True)
+def clear_settings_cache() -> Iterator[None]:
+    """Clear cached runtime settings around each test."""
+    api_main.get_settings.cache_clear()
+    yield
+    api_main.get_settings.cache_clear()
+
+
 @pytest.fixture()
 def client() -> Iterator[TestClient]:
     """Provide a TestClient for the FastAPI app with a sample in-memory graph set on api_main.
@@ -113,7 +121,7 @@ class TestValidateOrigin:
         """HTTP localhost is rejected in production."""
         from src.config.settings import get_settings
 
-        with patch.dict(os.environ, {"ENV": "production"}):
+        with patch.dict(os.environ, {"ENV": "production", "ALLOWED_ORIGINS": ""}):
             get_settings.cache_clear()  # Clear cache to pick up new env vars
             assert not validate_origin("http://localhost:3000")
             assert not validate_origin("http://127.0.0.1:8000")

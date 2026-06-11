@@ -9,6 +9,7 @@ This module tests all API endpoints listed below, excluding `/api/metrics`:
 - Error handling and edge cases
 """
 
+import os
 from collections.abc import Callable
 from typing import Any
 from unittest.mock import PropertyMock, patch
@@ -31,8 +32,33 @@ TEST_ORIGIN_HTTPS_LOOPBACK = "https://127.0.0.1:8000"
 TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
 
 
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    """
+    Clear cached runtime settings before and after each test.
+
+    Calls get_settings.cache_clear() once prior to test execution and once after to prevent cached configuration from leaking between tests.
+    """
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
 def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
-    """Return asset items from a paginated assets response."""
+    """
+    Extracts the list of asset records from a paginated assets response.
+
+    Parameters:
+        page (dict[str, Any]): Paginated response expected to contain keys
+                "items" (list), "total" (int), "page" (int), and "per_page" (int).
+
+    Returns:
+        list[dict[str, Any]]: The `items` list containing asset records.
+
+    Raises:
+        AssertionError: If the response is missing required keys or if any of the
+                expected fields have an incorrect type.
+    """
     assert set(page) == {"items", "total", "page", "per_page"}
     assert isinstance(page["items"], list)
     assert isinstance(page["total"], int)
@@ -211,7 +237,8 @@ class TestCORSValidation:
     @staticmethod
     def test_validate_origin_localhost_http_dev():
         """Test HTTP localhost is valid in development."""
-        with patch("api.main.ENV", "development"):
+        with patch.dict(os.environ, {"ENV": "development"}):
+            get_settings.cache_clear()
             assert validate_origin(TEST_ORIGIN_HTTP_LOCALHOST) is True
             assert validate_origin(TEST_ORIGIN_HTTP_LOOPBACK) is True
 
@@ -245,8 +272,10 @@ class TestCORSValidation:
     @staticmethod
     def test_validate_origin_invalid():
         """Test invalid origins are rejected."""
-        # HTTP in production (when not localhost)
-        with patch("api.main.ENV", "production"):
+        # HTTP origins are rejected in production.
+        with patch.dict(os.environ, {"ENV": "production", "ALLOWED_ORIGINS": ""}):
+            get_settings.cache_clear()
+            assert validate_origin(TEST_ORIGIN_HTTP_LOCALHOST) is False
             assert validate_origin("http://example.com") is False
 
         # Invalid formats

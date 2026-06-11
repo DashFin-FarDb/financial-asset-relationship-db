@@ -34,25 +34,52 @@ jobs:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     runs-on: ubuntu-latest
     steps:
-      - name : Code Checkout
+      - name: Check Zscaler credentials
+        id: check-creds
+        env:
+          CLIENT_ID: ${{ secrets.ZSCANNER_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.ZSCANNER_CLIENT_SECRET }}
+        run: |
+          if [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Code Checkout
+        if: steps.check-creds.outputs.skip == 'false'
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - name : Zscaler IAC Scan
-        uses : ZscalerCWP/Zscaler-IaC-Action@8d2afb33b10b4bd50e2dc2c932b37c6e70ac1087
-        id : zscaler-iac-scan
+        with:
+          persist-credentials: false
+      - name: Zscaler IAC Scan
+        if: steps.check-creds.outputs.skip == 'false'
+        uses: ZscalerCWP/Zscaler-IaC-Action@8d2afb33b10b4bd50e2dc2c932b37c6e70ac1087
+        id: zscaler-iac-scan
         continue-on-error: true
         with:
-          client_id : ${{ secrets.ZSCANNER_CLIENT_ID }}
-          client_secret : ${{ secrets.ZSCANNER_CLIENT_SECRET }}
+          client_id: ${{ secrets.ZSCANNER_CLIENT_ID }}
+          client_secret: ${{ secrets.ZSCANNER_CLIENT_SECRET }}
           #This is the user region specified during the onboarding process within the ZPC Admin Portal.
-          region : 'US'
-          iac_dir : #Enter the IaC directory path from root.
-          iac_file : #Enter the IaC file path from root.
-          output_format : #(Optional) By default, the output is provided in a human readable format. However, if you require a different format, you can specify it here.
+          region: 'US'
+          iac_dir: #Enter the IaC directory path from root.
+          iac_file: #Enter the IaC file path from root.
+          output_format: #(Optional) By default, the output is provided in a human readable format. However, if you require a different format, you can specify it here.
           #To fail the build based on policy violations identified in the IaC templates, set the input value (fail_build) to true.
-          fail_build : #Enter true/false
+          fail_build: #Enter true/false
       #Ensure that the following step is included in order to post the scan results under the code scanning alerts section within the repository.
+      - name: Check SARIF file exists
+        id: check-sarif
+        if: ${{ steps.check-creds.outputs.skip == 'false' && steps.zscaler-iac-scan.outputs.sarif_file_path != '' }}
+        env:
+          SARIF_PATH: ${{ steps.zscaler-iac-scan.outputs.sarif_file_path }}
+        shell: bash
+        run: |
+          if [ -f "$SARIF_PATH" ]; then
+            echo "sarif_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "sarif_exists=false" >> $GITHUB_OUTPUT
+          fi
       - name: Upload SARIF file
-        if: ${{ (success() || failure()) && (steps.zscaler-iac-scan.outputs.sarif_file_path != '') }}
+        if: ${{ steps.check-sarif.outputs.sarif_exists == 'true' }}
         uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
         with:
           sarif_file: ${{ steps.zscaler-iac-scan.outputs.sarif_file_path }}
