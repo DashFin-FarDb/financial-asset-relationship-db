@@ -224,8 +224,8 @@ def build_rebuild_graph(
             class _NoOpEvaluator:
                 """
                 Minimal stub satisfying ReconciliationEngine's evaluator protocol.
-            
-                Bypasses active drift evaluation by consistently reporting zero drift 
+
+                Bypasses active drift evaluation by consistently reporting zero drift
                 and nominal severity.
                 """
 
