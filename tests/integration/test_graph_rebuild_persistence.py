@@ -365,9 +365,10 @@ async def test_simulated_lock_ttl_expiration():
     execution_id = "test-exec-orchestrate"
     lock_ttl = 3
 
-    with graph_admin._orchestrate_heartbeat(
-        mock_session_factory, mock_lock, job_id, execution_id, lock_ttl
-    ) as (lock_lost_event, cancel_event):
+    with graph_admin._orchestrate_heartbeat(mock_session_factory, mock_lock, job_id, execution_id, lock_ttl) as (
+        lock_lost_event,
+        cancel_event,
+    ):
         lock_lost_event.wait(timeout=1.0)
 
     assert lock_lost_event.is_set()
@@ -404,7 +405,14 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
         try:
             execution_id = "test-exec-fail"
             graph_admin._run_rebuild_pipeline(
-                session_factory, get_settings(), db_url, job_id, execution_id, time.time(), threading.Event(), threading.Event()
+                session_factory,
+                get_settings(),
+                db_url,
+                job_id,
+                execution_id,
+                time.time(),
+                threading.Event(),
+                threading.Event(),
             )
         except RebuildLockLostError:
             pass
@@ -481,7 +489,14 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
         with pytest.raises(asyncio.CancelledError):
             execution_id = "test-exec-cancel"
             graph_admin._run_rebuild_pipeline(
-                session_factory, get_settings(), db_url, "job_cancelled", execution_id, time.time(), threading.Event(), threading.Event()
+                session_factory,
+                get_settings(),
+                db_url,
+                "job_cancelled",
+                execution_id,
+                time.time(),
+                threading.Event(),
+                threading.Event(),
             )
         engine_for_test.dispose()
 
