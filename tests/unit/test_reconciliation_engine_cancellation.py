@@ -69,3 +69,35 @@ def test_run_rebuild_aborts_mid_loop():
             on_checkpoint=on_checkpoint,
             cancel_event=cancel_event,
         )
+
+
+def test_run_rebuild_aborts_at_final_checkpoint():
+    """run_rebuild must raise RebuildCancelledError if cancelled during the final checkpoint."""
+    engine = ReconciliationEngine(_NoOpEvaluator())
+    cancel_event = threading.Event()
+
+    # Create assets (fewer than 50, so it only hits the final checkpoint)
+    assets = [
+        Asset(
+            id=f"asset-{i}",
+            symbol=f"SYM{i}",
+            name=f"Asset {i}",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=100.0,
+        )
+        for i in range(10)
+    ]
+
+    # Helper to set cancel event exactly when final checkpoint is called
+    def on_checkpoint(data: dict[str, Any]) -> None:
+        if data["processed_count"] == 10:
+            cancel_event.set()
+
+    with pytest.raises(RebuildCancelledError, match="Rebuild cancelled via API request"):
+        engine.run_rebuild(
+            assets=assets,
+            regulatory_events=[],
+            on_checkpoint=on_checkpoint,
+            cancel_event=cancel_event,
+        )

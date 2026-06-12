@@ -168,7 +168,7 @@ def _apply_upgrade_003_execution_columns(connection: sqlite3.Connection) -> None
 
 def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> None:
     """
-    Apply migration 004 (add cancellation columns) conditionally.
+    Apply migration 004 (add cancellation columns) conditionally and update status constraints.
 
     Args:
         connection: SQLite connection.
@@ -176,13 +176,57 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
     cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
     existing_columns = {row[1] for row in cursor}
 
-    NEW_COLUMNS = {
-        "cancellation_requested_at": "ALTER TABLE rebuild_jobs ADD COLUMN cancellation_requested_at TEXT",
-    }
+    # If the column already exists, we assume the migration has run.
+    if "cancellation_requested_at" in existing_columns:
+        return
 
-    for col_name, alter_statement in NEW_COLUMNS.items():
-        if col_name not in existing_columns:
-            connection.execute(alter_statement)  # noqa: S3649
+    # Turn off foreign keys temporarily for the table swap
+    connection.execute("PRAGMA foreign_keys=OFF")
+    try:
+        # 1. Create the new table with the updated CHECK constraint
+        connection.execute(
+            """
+            CREATE TABLE rebuild_jobs_new (
+                job_id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                requested_by TEXT NOT NULL,
+                started_at TEXT,
+                completed_at TEXT,
+                error_message TEXT,
+                node_count INTEGER,
+                edge_count INTEGER,
+                duration_ms INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                active_worker_id TEXT,
+                last_heartbeat_at TEXT,
+                execution_id TEXT,
+                checkpoint_data TEXT,
+                cancellation_requested_at TEXT,
+                CONSTRAINT ck_rebuild_jobs_status CHECK (
+                    status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')
+                )
+            )
+            """
+        )
+
+        # 2. Build the list of columns to copy (excluding the new one which isn't in the old table)
+        # Note: We must explicitly handle execution_id and checkpoint_data if they exist,
+        # but our logic assumes 003 has run. We dynamically build the copy list based on `existing_columns`.
+        cols_to_copy = ", ".join(existing_columns)
+        
+        # 3. Copy data
+        connection.execute(
+            f"INSERT INTO rebuild_jobs_new ({cols_to_copy}) SELECT {cols_to_copy} FROM rebuild_jobs"
+        )
+
+        # 4. Swap tables
+        connection.execute("DROP TABLE rebuild_jobs")
+        connection.execute("ALTER TABLE rebuild_jobs_new RENAME TO rebuild_jobs")
+
+    finally:
+        # Always turn foreign keys back on
+        connection.execute("PRAGMA foreign_keys=ON")
 
 
 # ---------------------------------------------------------------------------

@@ -20,6 +20,7 @@ from src.data.db_models import AssetORM
 from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.reconciliation_engine import RebuildCancelledError
 from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
@@ -246,6 +247,9 @@ def build_rebuild_graph(
             return (graph, source)
 
         return (create_sample_graph(), "sample")
+    except RebuildCancelledError:
+        # Re-raise cancellation exactly as is to correctly short-circuit the pipeline
+        raise
     except Exception as exc:
         log_event(
             logger,

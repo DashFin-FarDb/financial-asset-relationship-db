@@ -327,23 +327,23 @@ class RealDataFetcher:
 
         try:
             if cancel_event and cancel_event.is_set():
-                raise RuntimeError("Fetch cancelled before starting")
+                raise RebuildCancelledError("Fetch cancelled before starting")
 
             equities = self._fetch_equity_data()
             if cancel_event and cancel_event.is_set():
-                raise RuntimeError("Fetch cancelled after equities")
+                raise RebuildCancelledError("Fetch cancelled after equities")
 
             bonds = self._fetch_bond_data()
             if cancel_event and cancel_event.is_set():
-                raise RuntimeError("Fetch cancelled after bonds")
+                raise RebuildCancelledError("Fetch cancelled after bonds")
 
             commodities = self._fetch_commodity_data()
             if cancel_event and cancel_event.is_set():
-                raise RuntimeError("Fetch cancelled after commodities")
+                raise RebuildCancelledError("Fetch cancelled after commodities")
 
             currencies = self._fetch_currency_data()
             if cancel_event and cancel_event.is_set():
-                raise RuntimeError("Fetch cancelled after currencies")
+                raise RebuildCancelledError("Fetch cancelled after currencies")
 
             events = self._create_regulatory_events()
 

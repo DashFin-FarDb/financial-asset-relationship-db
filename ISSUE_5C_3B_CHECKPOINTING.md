@@ -38,6 +38,6 @@ Define and implement a checkpointing mechanism that allows the Reconciliation En
 
 ## Success Criteria
 
-- Progress is persisted at least every 60 seconds or 100 assets.
+- Progress is persisted at least every 50 assets.
 - A resumed job correctly identifies its last checkpoint and avoids redundant computation.
 - All checkpoint writes are guarded by the `execution_id` from Stage 5C.3A.

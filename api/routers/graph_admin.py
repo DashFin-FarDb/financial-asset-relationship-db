@@ -892,7 +892,7 @@ def _handle_rebuild_failure(
                     ObservabilityEvent(
                         event="rebuild_cancellation_finalization_failed",
                         message=f"Failed to finalize cancellation for job {job_id}: {type(final_exc).__name__}",
-                        metadata={"error": str(final_exc)},
+                        metadata={"error": type(final_exc).__name__},
                     ),
                 )
         else:
@@ -1067,10 +1067,8 @@ def _run_rebuild_pipeline(
         graph_saved = True
 
         if lock_lost.is_set():
-            graph_saved = False
             raise _DistributedLockLostError("Lost distributed lock at stage=pre-success-write")
         if cancel_event.is_set():
-            graph_saved = False
             raise RebuildCancelledError("Rebuild cancelled at stage=pre-success-write")
 
         response = _finalize_rebuild_success(
@@ -1827,7 +1825,7 @@ def get_rebuild_job(
         return _orm_to_response(job_orm)
 
 
-@router.post("/api/graph/rebuild/jobs/{job_id}/cancel")
+@router.post("/api/graph/rebuild/{job_id}/cancel")
 def cancel_rebuild_job(
     job_id: str,
     _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],

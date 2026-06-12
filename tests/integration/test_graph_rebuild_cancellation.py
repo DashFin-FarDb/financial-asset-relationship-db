@@ -17,10 +17,17 @@ from tests.integration.test_graph_admin_router import _rebuild_jobs_db_context
 
 
 @pytest.fixture
-def operator_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+def operator_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> TestClient:
     """Client authenticated as the authorized operator user."""
     # Prevent starlette from reading .env which causes PermissionError in this environment
     monkeypatch.setattr("starlette.config.Config._read_file", lambda self, f, e: {})
+
+    db_path = tmp_path / "test_graph.db"
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_path}")
+
+    from src.data.database import create_engine_from_url, init_db
+    engine = create_engine_from_url(f"sqlite:///{db_path}")
+    init_db(engine)
 
     from api.app_factory import create_app
 
@@ -50,7 +57,7 @@ def test_cancel_rebuild_happy_path(
             repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
 
         # 2. Call cancel endpoint
-        response = operator_client.post(f"/api/graph/rebuild/jobs/{job_id}/cancel")
+        response = operator_client.post(f"/api/graph/rebuild/{job_id}/cancel")
         assert response.status_code == 200
         assert response.json()["message"] == "Cancellation requested"
 
@@ -65,7 +72,7 @@ def test_cancel_rebuild_happy_path(
 def test_cancel_rebuild_not_found(operator_client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """POST /cancel must return 404 for unknown jobs."""
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///:memory:")
-    response = operator_client.post("/api/graph/rebuild/jobs/non-existent/cancel")
+    response = operator_client.post("/api/graph/rebuild/non-existent/cancel")
     assert response.status_code == 404
 
 
@@ -82,7 +89,7 @@ def test_cancel_rebuild_invalid_status(
             repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
             repo.mark_rebuild_job_succeeded(job_id, execution_id="exec-1", node_count=1, edge_count=1, duration_ms=1)
 
-        response = operator_client.post(f"/api/graph/rebuild/jobs/{job_id}/cancel")
+        response = operator_client.post(f"/api/graph/rebuild/{job_id}/cancel")
         assert response.status_code == 400
         assert "Cannot transition" in response.json()["detail"]
 
@@ -145,3 +152,4 @@ def test_heartbeat_keeper_detects_cancellation(
         finally:
             stop_event.set()
             keeper_thread.join(timeout=2.0)
+            assert not keeper_thread.is_alive(), "Heartbeat keeper thread failed to terminate"
