@@ -19,7 +19,11 @@ def repo(tmp_path: Path) -> AssetGraphRepository:
     Base.metadata.create_all(engine)
     session_factory = sessionmaker(bind=engine)
     session = session_factory()
-    return AssetGraphRepository(session)
+    try:
+        yield AssetGraphRepository(session)
+    finally:
+        session.close()
+        engine.dispose()
 
 
 def test_mark_rebuild_job_cancel_requested_transitions_status(repo: AssetGraphRepository):
@@ -55,6 +59,7 @@ def test_mark_rebuild_job_cancelled_finalizes_status(repo: AssetGraphRepository)
     job = repo.get_rebuild_job(job_id)
     assert job.status == RebuildJobStatus.CANCELLED
     assert job.completed_at is not None
+    assert job.completed_at.tzinfo == timezone.utc
 
 
 def test_mark_rebuild_job_cancelled_enforces_execution_identity(repo: AssetGraphRepository):
