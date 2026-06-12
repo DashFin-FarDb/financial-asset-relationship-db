@@ -291,6 +291,7 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
             execution_id,
             job_started_at,
             lock_lost_event,
+            threading.Event(),
         )
         engine_for_test.dispose()
 
@@ -332,6 +333,7 @@ async def test_lock_ttl_heartbeat_execution():
             "worker_id": "test_worker",
             "stop_event": stop_event,
             "lock_lost_event": lock_lost_event,
+            "cancel_event": threading.Event(),
             "interval_seconds": 0.01,
         },
     )
@@ -365,7 +367,7 @@ async def test_simulated_lock_ttl_expiration():
 
     with graph_admin._orchestrate_heartbeat(
         mock_session_factory, mock_lock, job_id, execution_id, lock_ttl
-    ) as lock_lost_event:
+    ) as (lock_lost_event, cancel_event):
         lock_lost_event.wait(timeout=1.0)
 
     assert lock_lost_event.is_set()
@@ -402,7 +404,7 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
         try:
             execution_id = "test-exec-fail"
             graph_admin._run_rebuild_pipeline(
-                session_factory, get_settings(), db_url, job_id, execution_id, time.time(), threading.Event()
+                session_factory, get_settings(), db_url, job_id, execution_id, time.time(), threading.Event(), threading.Event()
             )
         except RebuildLockLostError:
             pass
@@ -431,7 +433,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
     @contextmanager
     def mock_orchestrate_ctx(*args, **kwargs):
         """Mock heartbeat orchestrator context."""
-        yield threading.Event()
+        yield threading.Event(), threading.Event()
 
     with (
         patch("api.routers.graph_admin.DistributedLock", return_value=mock_lock),
@@ -479,11 +481,11 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
         with pytest.raises(asyncio.CancelledError):
             execution_id = "test-exec-cancel"
             graph_admin._run_rebuild_pipeline(
-                session_factory, get_settings(), db_url, "job_cancelled", execution_id, time.time(), threading.Event()
+                session_factory, get_settings(), db_url, "job_cancelled", execution_id, time.time(), threading.Event(), threading.Event()
             )
         engine_for_test.dispose()
 
-        mock_repo.mark_rebuild_job_failed.assert_called_once()
+        mock_repo.mark_rebuild_job_cancelled.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -515,6 +517,7 @@ async def test_rebuild_pipeline_aborts_immediately_on_preexisting_lock_loss(sess
                 execution_id,
                 time.time(),
                 lock_lost_event,
+                threading.Event(),
             )
         engine_for_test.dispose()
 

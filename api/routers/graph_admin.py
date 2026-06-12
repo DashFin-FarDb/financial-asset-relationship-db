@@ -218,6 +218,12 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return _rebuild_in_progress_error()
 
+    if isinstance(root_exc, (RebuildCancelledError, asyncio.CancelledError)):
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Rebuild execution was cancelled.",
+        )
+
     if isinstance(root_exc, (_DistributedLockLostError, ExecutionBlockedError)):
         return HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -268,6 +274,8 @@ def _rebuild_status_code(exc: Exception | asyncio.CancelledError) -> int:
 
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return status.HTTP_429_TOO_MANY_REQUESTS
+    if isinstance(root_exc, (RebuildCancelledError, asyncio.CancelledError)):
+        return status.HTTP_409_CONFLICT
     if isinstance(root_exc, (_DistributedLockLostError, ExecutionBlockedError)):
         return status.HTTP_503_SERVICE_UNAVAILABLE
     if isinstance(
