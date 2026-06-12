@@ -184,8 +184,7 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
     connection.execute("PRAGMA foreign_keys=OFF")
     try:
         # 1. Create the new table with the updated CHECK constraint
-        connection.execute(
-            """
+        connection.execute("""
             CREATE TABLE rebuild_jobs_new (
                 job_id TEXT PRIMARY KEY,
                 status TEXT NOT NULL,
@@ -207,18 +206,15 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
                     status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')
                 )
             )
-            """
-        )
+            """)
 
         # 2. Build the list of columns to copy (excluding the new one which isn't in the old table)
         # Note: We must explicitly handle execution_id and checkpoint_data if they exist,
         # but our logic assumes 003 has run. We dynamically build the copy list based on `existing_columns`.
         cols_to_copy = ", ".join(existing_columns)
-        
+
         # 3. Copy data
-        connection.execute(
-            f"INSERT INTO rebuild_jobs_new ({cols_to_copy}) SELECT {cols_to_copy} FROM rebuild_jobs"
-        )
+        connection.execute(f"INSERT INTO rebuild_jobs_new ({cols_to_copy}) SELECT {cols_to_copy} FROM rebuild_jobs")
 
         # 4. Swap tables
         connection.execute("DROP TABLE rebuild_jobs")

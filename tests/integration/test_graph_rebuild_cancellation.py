@@ -26,6 +26,7 @@ def operator_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> TestClie
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_path}")
 
     from src.data.database import create_engine_from_url, init_db
+
     engine = create_engine_from_url(f"sqlite:///{db_path}")
     init_db(engine)
 
