@@ -11,6 +11,7 @@ This module implements the central control-plane primitive that:
 from __future__ import annotations
 
 import logging
+import threading
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -26,6 +27,10 @@ if TYPE_CHECKING:
     from src.models.financial_models import Asset, RegulatoryEvent
 
 logger = logging.getLogger(__name__)
+
+
+class RebuildCancelledError(Exception):
+    """Raised when a graph rebuild is aborted via a cancellation signal."""
 
 
 class ActionType(StrEnum):
@@ -316,6 +321,7 @@ class ReconciliationEngine:
         regulatory_events: Iterable[RegulatoryEvent],
         on_checkpoint: Callable[[dict[str, Any]], None] | None = None,
         initial_checkpoint: dict[str, Any] | None = None,
+        cancel_event: threading.Event | None = None,
     ) -> AssetRelationshipGraph:
         """
         Execute a checkpointed graph rebuild from the provided assets and events.
@@ -328,9 +334,13 @@ class ReconciliationEngine:
             regulatory_events: Iterable of regulatory events to add to the graph.
             on_checkpoint: Optional callback invoked every 50 assets.
             initial_checkpoint: Optional state used to resume a partial rebuild.
+            cancel_event: Optional event to signal rebuild cancellation.
 
         Returns:
             AssetRelationshipGraph: The fully reconstructed graph.
+
+        Raises:
+            RebuildCancelledError: If the cancel_event is set during execution.
         """
         from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -354,6 +364,17 @@ class ReconciliationEngine:
 
         # Main processing loop
         for asset in assets:
+            if cancel_event and cancel_event.is_set():
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="reconciliation_rebuild_cancelled",
+                        message="Rebuild cancelled via signal during asset processing",
+                    ),
+                )
+                raise RebuildCancelledError("Rebuild cancelled via API request")
+
             if asset.id in skipped_ids:
                 # Still add to the new graph so it's complete, but don't count as "work"
                 # (In a real system, 'assets' might be a generator that skips fetching

@@ -25,8 +25,9 @@ from sqlalchemy.orm import Session
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockLifecycleState, LockState
-from src.data.repository import AssetGraphRepository, session_scope
+from src.data.repository import AssetGraphRepository, RebuildCancellationRequestedError, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.reconciliation_engine import RebuildCancelledError
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 from src.observability.facade import ObservabilityEvent, log_event
 
@@ -706,6 +707,7 @@ def _heartbeat_keeper(
     worker_id: str,
     stop_event: threading.Event,
     lock_lost_event: threading.Event,
+    cancel_event: threading.Event,
     interval_seconds: float,
 ) -> None:
     """Maintain a background heartbeat loop for the distributed lock.
@@ -714,6 +716,7 @@ def _heartbeat_keeper(
     or the lock is lost.
 
     Sets `lock_lost_event` and stops if a lock refresh fails or if updating the heartbeat in persistence fails.
+    If a cancellation request is detected in the database, sets `cancel_event` and stops gracefully.
 
     Parameters:
         session_factory (Callable[[], Session]): Factory that yields a new DB session for heartbeat updates.
@@ -723,6 +726,7 @@ def _heartbeat_keeper(
         worker_id (str): Identifier of the worker performing the rebuild used when updating the heartbeat.
         stop_event (threading.Event): Event that, when set, causes the keeper to stop gracefully.
         lock_lost_event (threading.Event): Event that will be set if the lock is lost or heartbeat updates fail.
+        cancel_event (threading.Event): Event that will be set if a cancellation request is detected.
         interval_seconds (float): Interval, in seconds, between refresh/update cycles.
     """
     while not stop_event.wait(timeout=interval_seconds):
@@ -748,13 +752,24 @@ def _heartbeat_keeper(
             LOCK_REFRESH_TOTAL.labels(status="success").inc()
 
             # Heartbeat update with metrics instrumentation
-            # NOTE: Transient DB errors currently trigger lock-lost signal.
-            # Future enhancement: implement retry logic for transient failures.
             try:
                 with session_scope(session_factory) as session:
                     AssetGraphRepository(session).update_rebuild_heartbeat(job_id, execution_id, worker_id)
                 HEARTBEAT_UPDATE_TOTAL.labels(status="success").inc()
                 HEARTBEAT_LAST_SUCCESS_TIMESTAMP.set(time.time())
+            except RebuildCancellationRequestedError:
+                HEARTBEAT_UPDATE_TOTAL.labels(status="success").inc()
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="rebuild_heartbeat_cancellation_detected",
+                        message=f"Heartbeat keeper detected cancellation request for job {job_id}.",
+                        metadata={"job_id": job_id},
+                    ),
+                )
+                cancel_event.set()
+                return
             except Exception as hb_exc:
                 HEARTBEAT_UPDATE_TOTAL.labels(status="failure").inc()
                 log_event(
@@ -858,20 +873,36 @@ def _handle_rebuild_failure(
             when present the original exception is wrapped to preserve source.
 
     Raises:
-        _RebuildExecutionError: When `source` is provided; wraps the original exception
-            and preserves the bounded source context.
-        Exception: Re-raises the original exception when no `source` is available.
+        _RebuildExecutionError: When `source` is provided.
+        RebuildCancelledError: Re-raises the original cancellation if applicable.
+        Exception: Re-raises the original exception.
     """
     if not success_persisted:
         if graph_saved and graph_snapshot is not None:
             _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
-        _finalize_rebuild_failure(
-            session_factory=session_factory,
-            job_id=job_id,
-            execution_id=execution_id,
-            exc=exc,
-            job_started_at=job_started_at,
-        )
+
+        if isinstance(exc, (RebuildCancelledError, asyncio.CancelledError)):
+            try:
+                with session_scope(session_factory) as session:
+                    AssetGraphRepository(session).mark_rebuild_job_cancelled(job_id, execution_id=execution_id)
+            except Exception as final_exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="rebuild_cancellation_finalization_failed",
+                        message=f"Failed to finalize cancellation for job {job_id}: {type(final_exc).__name__}",
+                        metadata={"error": str(final_exc)},
+                    ),
+                )
+        else:
+            _finalize_rebuild_failure(
+                session_factory=session_factory,
+                job_id=job_id,
+                execution_id=execution_id,
+                exc=exc,
+                job_started_at=job_started_at,
+            )
     if source is not None:
         raise _RebuildExecutionError(source, exc) from exc
     raise exc from None
@@ -884,10 +915,15 @@ def _orchestrate_heartbeat(
     job_id: str,
     execution_id: str,
     lock_ttl: int,
-) -> Generator[threading.Event, None, None]:
-    """Context manager to cleanly scope background heartbeat tracking threads."""
+) -> Generator[tuple[threading.Event, threading.Event], None, None]:
+    """Context manager to cleanly scope background heartbeat tracking threads.
+
+    Yields:
+        tuple[threading.Event, threading.Event]: (lock_lost, cancel_requested) events.
+    """
     stop_heartbeat = threading.Event()
     lock_lost = threading.Event()
+    cancel_requested = threading.Event()
     heartbeat_interval = max(1, lock_ttl // 3)
 
     heartbeat_thread = threading.Thread(
@@ -900,6 +936,7 @@ def _orchestrate_heartbeat(
             "worker_id": dist_lock.holder_id,
             "stop_event": stop_heartbeat,
             "lock_lost_event": lock_lost,
+            "cancel_event": cancel_requested,
             "interval_seconds": heartbeat_interval,
         },
         daemon=True,
@@ -907,7 +944,7 @@ def _orchestrate_heartbeat(
     )
     heartbeat_thread.start()
     try:
-        yield lock_lost
+        yield lock_lost, cancel_requested
     finally:
         stop_heartbeat.set()
         if heartbeat_thread.is_alive():
@@ -922,16 +959,15 @@ def _run_rebuild_pipeline(
     execution_id: str,
     job_started_at: float,
     lock_lost: threading.Event,
+    cancel_event: threading.Event,
 ) -> GraphRebuildResponse:
     """Run a single rebuild of the asset relationship graph.
 
     Builds the asset relationship graph, persists it atomically to durable storage,
     finalize the job state, and publish the graph to the runtime.
 
-    This function checks the provided `lock_lost` event at key stages to abort and trigger rollback if
-    the distributed lock is lost. On failure it persists a failed job terminal state and may attempt
-    to restore a previously saved snapshot before re-raising the failure (the re-raised exception
-    may be wrapped to preserve the rebuild `source`).
+    This function checks the provided `lock_lost` and `cancel_event` events at key stages to abort.
+    On failure it persists a failed job terminal state (or cancelled state if applicable).
 
     Parameters:
         session_factory (Callable[[], Session]): Factory that provides a new SQLAlchemy Session for job updates.
@@ -940,15 +976,15 @@ def _run_rebuild_pipeline(
         job_id (str): Identifier of the rebuild job being executed.
         execution_id (str): Unique execution identity for this run attempt.
         job_started_at (float): Monotonic timestamp when the job started, used to compute durations.
-        lock_lost (threading.Event): Event set when the distributed lock is lost;
-            checked at multiple stages to abort and trigger rollback.
+        lock_lost (threading.Event): Event set when the distributed lock is lost.
+        cancel_event (threading.Event): Event set when cancellation is requested.
 
     Returns:
         GraphRebuildResponse: Result for the persisted rebuild including status, source, and asset/relationship counts.
 
     Raises:
-        Exception: Re-raises the original failure encountered while building or persisting;
-            when a rebuild `source` is known the raised exception may be wrapped to preserve that context.
+        RebuildCancelledError: If cancellation is requested and handled.
+        Exception: Re-raises the original failure encountered while building or persisting.
     """
     source: GraphRebuildSource | None = None
     success_persisted = False
@@ -958,6 +994,8 @@ def _run_rebuild_pipeline(
     try:
         if lock_lost.is_set():
             raise _DistributedLockLostError("Lost distributed lock at stage=initialization")
+        if cancel_event.is_set():
+            raise RebuildCancelledError("Rebuild cancelled at stage=initialization")
 
         # Stage 5C.3B: Checkpoint orchestration. Load existing progress for "Resume" path.
         initial_checkpoint = None
@@ -979,8 +1017,8 @@ def _run_rebuild_pipeline(
 
         def on_checkpoint(data: dict[str, Any]) -> None:
             """Persist progress checkpoint to the database."""
-            # Abort checkpoint write if lock is already lost
-            if lock_lost.is_set():
+            # Abort checkpoint write if lock is already lost or cancellation requested
+            if lock_lost.is_set() or cancel_event.is_set():
                 return
             try:
                 _update_job_checkpoint_safe(session_factory, job_id, execution_id, json.dumps(data))
@@ -1002,10 +1040,13 @@ def _run_rebuild_pipeline(
             settings,
             on_checkpoint=on_checkpoint,
             initial_checkpoint=initial_checkpoint,
+            cancel_event=cancel_event,
         )
 
         if lock_lost.is_set():
             raise _DistributedLockLostError("Lost distributed lock at stage=pre-persistence")
+        if cancel_event.is_set():
+            raise RebuildCancelledError("Rebuild cancelled at stage=pre-persistence")
 
         _update_job_source_safe(session_factory, job_id, execution_id, str(source))
 
@@ -1015,6 +1056,8 @@ def _run_rebuild_pipeline(
             """Check lock state one last time before committing the new graph."""
             if lock_lost.is_set():
                 raise _DistributedLockLostError("Lost distributed lock at stage=graph-commit")
+            if cancel_event.is_set():
+                raise RebuildCancelledError("Rebuild cancelled at stage=graph-commit")
 
         save_graph_to_persistence(
             resolved_url,
@@ -1026,6 +1069,9 @@ def _run_rebuild_pipeline(
         if lock_lost.is_set():
             graph_saved = False
             raise _DistributedLockLostError("Lost distributed lock at stage=pre-success-write")
+        if cancel_event.is_set():
+            graph_saved = False
+            raise RebuildCancelledError("Rebuild cancelled at stage=pre-success-write")
 
         response = _finalize_rebuild_success(
             session_factory=session_factory,
@@ -1218,7 +1264,7 @@ def _perform_rebuild_and_persist_sync(
             job_id,
             execution_id,
             lock_ttl,
-        ) as lock_lost:
+        ) as (lock_lost, cancel_event):
             return _run_rebuild_pipeline(
                 domain_session_factory,
                 settings,
@@ -1227,6 +1273,7 @@ def _perform_rebuild_and_persist_sync(
                 execution_id,
                 job_started_at,
                 lock_lost,
+                cancel_event,
             )
 
     finally:
@@ -1778,6 +1825,41 @@ def get_rebuild_job(
                 detail="Rebuild job not found",
             )
         return _orm_to_response(job_orm)
+
+
+@router.post("/api/graph/rebuild/jobs/{job_id}/cancel")
+def cancel_rebuild_job(
+    job_id: str,
+    _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+) -> dict[str, str]:
+    """Request cancellation of a pending or running rebuild job."""
+    with _rebuild_persistence_session() as session:
+        repo = AssetGraphRepository(session)
+        try:
+            repo.mark_rebuild_job_cancel_requested(job_id)
+        except ValueError as exc:
+            # Check if job exists at all
+            if "not found" in str(exc):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Rebuild job not found",
+                ) from exc
+            # Otherwise it's a state transition error (e.g. already succeeded)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(exc),
+            ) from exc
+
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="rebuild_cancellation_requested",
+                message=f"Cancellation requested for job {job_id} by {_current_user.username}",
+                metadata={"job_id": job_id, "user": _current_user.username},
+            ),
+        )
+    return {"message": "Cancellation requested"}
 
 
 @router.get("/api/graph/rebuild/jobs")

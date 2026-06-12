@@ -38,14 +38,16 @@ class RebuildJobStatus(enum.StrEnum):
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    CANCEL_REQUESTED = "cancel_requested"
 
     @classmethod
     def values(cls) -> list[str]:
-        """Return the list of all valid status string values."""
-        return [m.value for m in cls]
+        """Return a list of all valid status string values."""
+        return [status.value for status in cls]
 
 
 class AssetORM(Base):
+
     """Persistent representation of an asset."""
 
     __tablename__ = "assets"
@@ -221,7 +223,7 @@ class RebuildJobORM(Base):
     __tablename__ = "rebuild_jobs"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled')",
+            "status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'cancel_requested')",
             name="ck_rebuild_jobs_status",
         ),
         Index("ix_rebuild_jobs_created_at", "created_at"),
@@ -259,6 +261,12 @@ class RebuildJobORM(Base):
 
     # Stage 5C.3B: Checkpointed Recovery
     checkpoint_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Stage 5C.3C: Cancellation Integrity
+    cancellation_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
 
 class DistributedLockORM(Base):

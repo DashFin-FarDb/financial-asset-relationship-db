@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -184,6 +185,7 @@ def build_rebuild_graph(
     *,
     on_checkpoint: Callable[[dict[str, Any]], None] | None = None,
     initial_checkpoint: dict[str, Any] | None = None,
+    cancel_event: threading.Event | None = None,
 ) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """
     Select a rebuild source and construct a fresh asset relationship graph accordingly.
@@ -198,6 +200,7 @@ def build_rebuild_graph(
             and whether real-data fetching is enabled.
         on_checkpoint: Optional callback for progress persistence.
         initial_checkpoint: Optional state to resume from.
+        cancel_event: Optional event to signal rebuild cancellation.
 
     Returns:
         tuple[AssetRelationshipGraph, GraphRebuildSource]: A tuple where the first element is the constructed graph
@@ -216,7 +219,7 @@ def build_rebuild_graph(
             from src.logic.reconciliation_engine import ReconciliationEngine, Severity
 
             fetcher = RealDataFetcher(cache_path=settings.real_data_cache_path, enable_network=True)
-            assets, events, raw_source = fetcher.fetch_raw_data_with_source()
+            assets, events, raw_source = fetcher.fetch_raw_data_with_source(cancel_event=cancel_event)
             source = cast(GraphRebuildSource, raw_source)
 
             # Use ReconciliationEngine to orchestrate the rebuild with checkpointing.
@@ -233,6 +236,7 @@ def build_rebuild_graph(
                 regulatory_events=events,
                 on_checkpoint=on_checkpoint,
                 initial_checkpoint=initial_checkpoint,
+                cancel_event=cancel_event,
             )
 
             if settings.real_data_cache_path:

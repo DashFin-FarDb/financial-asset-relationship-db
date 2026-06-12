@@ -331,6 +331,10 @@ def _iter_id_chunks(values: Iterable[str]) -> Generator[tuple[str, ...], None, N
         yield tuple(batch)
 
 
+class RebuildCancellationRequestedError(Exception):
+    """Raised when a rebuild heartbeat update fails because the job was marked for cancellation."""
+
+
 class AssetGraphRepository:
     """Data access layer for the asset relationship graph."""
 
@@ -1292,6 +1296,99 @@ class AssetGraphRepository:
                 raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
             raise ValueError(f"Failed to mark job {job_id} as succeeded")
 
+    def mark_rebuild_job_cancel_requested(self, job_id: str) -> None:
+        """
+        Transition rebuild job to cancel_requested status.
+
+        Args:
+            job_id: The job identifier to update.
+
+        Raises:
+            ValueError: If the job does not exist or is not in a cancellable status.
+        """
+        # Flush any pending ORM changes to ensure UPDATE sees current state
+        self.session.flush()
+
+        # Atomic conditional update: only succeeds if job is in PENDING or RUNNING status
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        stmt = (
+            update(RebuildJobORM)
+            .where(RebuildJobORM.job_id == job_id)
+            .where(
+                or_(
+                    RebuildJobORM.status == RebuildJobStatus.PENDING,
+                    RebuildJobORM.status == RebuildJobStatus.RUNNING,
+                )
+            )
+            .values(
+                status=RebuildJobStatus.CANCEL_REQUESTED,
+                cancellation_requested_at=now,
+                updated_at=now,
+            )
+        )
+        result = self.session.execute(stmt)
+
+        # If no rows were updated, check why
+        if result.rowcount == 0:
+            # Refresh to get current state (re-fetch from DB if needed)
+            job = self.session.get(RebuildJobORM, job_id)
+            if job is None:
+                raise ValueError(f"Rebuild job {job_id} not found")
+
+            if job.status == RebuildJobStatus.CANCEL_REQUESTED:
+                # Already cancel_requested, idempotent success
+                return
+
+            raise ValueError(f"Cannot transition job {job_id} from {job.status} to cancel_requested")
+
+    def mark_rebuild_job_cancelled(self, job_id: str, *, execution_id: str) -> None:
+        """
+        Mark rebuild job as cancelled and persist completion metadata.
+
+        Args:
+            job_id: The job identifier to update.
+            execution_id: The unique identifier for this execution attempt.
+
+        Raises:
+            ValueError: If the job does not exist, is not cancel_requested, or execution_id mismatches.
+        """
+        # Flush any pending ORM changes to ensure UPDATE sees current state
+        self.session.flush()
+
+        # Atomic conditional update: only succeeds if:
+        # 1. Job is in CANCEL_REQUESTED status
+        # 2. execution_id matches
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        stmt = (
+            update(RebuildJobORM)
+            .where(RebuildJobORM.job_id == job_id)
+            .where(RebuildJobORM.status == RebuildJobStatus.CANCEL_REQUESTED)
+            .where(RebuildJobORM.execution_id == execution_id)
+            .values(
+                status=RebuildJobStatus.CANCELLED,
+                completed_at=now,
+                updated_at=now,
+            )
+        )
+        result = self.session.execute(stmt)
+
+        # If no rows were updated, check why
+        if result.rowcount == 0:
+            # Refresh to get current state (re-fetch from DB if needed)
+            job = self.session.get(RebuildJobORM, job_id)
+            if job is None:
+                raise ValueError(f"Rebuild job {job_id} not found")
+
+            if job.status != RebuildJobStatus.CANCEL_REQUESTED:
+                if job.status == RebuildJobStatus.CANCELLED:
+                    # Already cancelled, idempotent success
+                    return
+                raise ValueError(f"Cannot transition job {job_id} from {job.status} to cancelled")
+            if job.execution_id != execution_id:
+                raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
+
+            raise ValueError(f"Failed to mark job {job_id} as cancelled")
+
     def mark_rebuild_job_failed(
         self,
         job_id: str,
@@ -1498,6 +1595,11 @@ class AssetGraphRepository:
 
             # Check if status changed (most specific error message)
             if job.status != RebuildJobStatus.RUNNING:
+                if job.status == RebuildJobStatus.CANCEL_REQUESTED:
+                    raise RebuildCancellationRequestedError(
+                        f"Heartbeat update failed for job {job_id}: cancellation has been requested"
+                    )
+
                 current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
                 raise ValueError(
                     f"Cannot update heartbeat for job {job_id}: job status changed to {current_status} "

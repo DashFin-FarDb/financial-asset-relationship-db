@@ -3,6 +3,7 @@
 import json
 import logging
 import math
+import threading
 from collections.abc import Callable
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
@@ -305,9 +306,15 @@ class RealDataFetcher:
         assets, events, _ = self.fetch_raw_data_with_source()
         return assets, events
 
-    def fetch_raw_data_with_source(self) -> tuple[list[Asset], list[RegulatoryEvent], str]:
+    def fetch_raw_data_with_source(
+        self,
+        cancel_event: threading.Event | None = None,
+    ) -> tuple[list[Asset], list[RegulatoryEvent], str]:
         """
         Fetch raw asset and regulatory event data and identify its source.
+
+        Args:
+            cancel_event: Optional event to signal cancellation.
 
         Returns:
             tuple[list[Asset], list[RegulatoryEvent], str]: A tuple containing the
@@ -319,10 +326,25 @@ class RealDataFetcher:
             return list(fb.assets.values()), fb.regulatory_events, "sample"
 
         try:
+            if cancel_event and cancel_event.is_set():
+                raise RuntimeError("Fetch cancelled before starting")
+
             equities = self._fetch_equity_data()
+            if cancel_event and cancel_event.is_set():
+                raise RuntimeError("Fetch cancelled after equities")
+
             bonds = self._fetch_bond_data()
+            if cancel_event and cancel_event.is_set():
+                raise RuntimeError("Fetch cancelled after bonds")
+
             commodities = self._fetch_commodity_data()
+            if cancel_event and cancel_event.is_set():
+                raise RuntimeError("Fetch cancelled after commodities")
+
             currencies = self._fetch_currency_data()
+            if cancel_event and cancel_event.is_set():
+                raise RuntimeError("Fetch cancelled after currencies")
+
             events = self._create_regulatory_events()
 
             all_assets: list[Asset] = cast(list[Asset], equities + bonds + commodities + currencies)
