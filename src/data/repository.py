@@ -1310,7 +1310,7 @@ class AssetGraphRepository:
         self.session.flush()
 
         # Atomic conditional update: only succeeds if job is in PENDING or RUNNING status
-        now = datetime.now(timezone.utc)  # noqa: UP017
+        now = datetime.now(UTC)
         stmt = (
             update(RebuildJobORM)
             .where(RebuildJobORM.job_id == job_id)
