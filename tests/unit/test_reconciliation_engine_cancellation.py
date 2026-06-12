@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from src.logic.reconciliation_engine import ReconciliationEngine, RebuildCancelledError, Severity
+from src.logic.reconciliation_engine import RebuildCancelledError, ReconciliationEngine, Severity
 from src.models.financial_models import Asset, AssetClass
 
 

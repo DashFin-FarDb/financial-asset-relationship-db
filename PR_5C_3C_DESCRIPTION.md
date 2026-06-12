@@ -16,7 +16,7 @@ Ensure that rebuild executions can be reliably and safely cancelled by operators
 
 - **Upstream Source**: Initiated by `cancel_rebuild_job` via the `POST /api/graph/rebuild/jobs/{job_id}/cancel` endpoint. The caller (operator) assumes that the request will lead to an eventually consistent termination of the background executor without data corruption.
 - **Downstream Impact**: Propagates to the background heartbeat thread (`_heartbeat_keeper`), which sets a `cancel_event` shared with the `ReconciliationEngine` and `RealDataFetcher`. This causes immediate abortion of heavy computation, preventing downstream resource starvation.
-- **Failure Mode**: If the database is unreachable, the API returns a 503/error and the job remains `RUNNING`. If the heartbeat thread fails to detect the signal, the job continues until completion or lock expiration. Rollback safety is guaranteed as the graph is written only *after* checking signals.
+- **Failure Mode**: If the database is unreachable, the API returns a 503/error and the job remains `RUNNING`. If the heartbeat thread fails to detect the signal, the job continues until completion or lock expiration. Rollback safety is guaranteed as the graph is written only _after_ checking signals.
 
 ## Scope
 

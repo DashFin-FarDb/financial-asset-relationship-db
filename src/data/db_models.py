@@ -47,7 +47,6 @@ class RebuildJobStatus(enum.StrEnum):
 
 
 class AssetORM(Base):
-
     """Persistent representation of an asset."""
 
     __tablename__ = "assets"

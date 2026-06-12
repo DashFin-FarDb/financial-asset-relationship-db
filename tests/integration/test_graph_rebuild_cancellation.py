@@ -11,9 +11,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.routers.graph_admin import _heartbeat_keeper
-from tests.integration.test_graph_admin_router import _rebuild_jobs_db_context
 from src.data.db_models import RebuildJobStatus
 from src.data.repository import AssetGraphRepository, session_scope
+from tests.integration.test_graph_admin_router import _rebuild_jobs_db_context
 
 
 @pytest.fixture
@@ -21,13 +21,16 @@ def operator_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     """Client authenticated as the authorized operator user."""
     # Prevent starlette from reading .env which causes PermissionError in this environment
     monkeypatch.setattr("starlette.config.Config._read_file", lambda self, f, e: {})
-    
+
     from api.app_factory import create_app
+
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     app = create_app()
     from api.auth import User, get_current_active_user
+
     def active_user() -> User:
         return User(username="admin", disabled=False)
+
     app.dependency_overrides[get_current_active_user] = active_user
     with TestClient(app) as client:
         yield client

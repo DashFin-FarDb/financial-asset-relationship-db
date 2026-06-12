@@ -25,9 +25,9 @@ def repo(tmp_path: Path) -> AssetGraphRepository:
 def test_mark_rebuild_job_cancel_requested_transitions_status(repo: AssetGraphRepository):
     """mark_rebuild_job_cancel_requested must update status and cancellation timestamp."""
     job_id = repo.create_rebuild_job(requested_by="user")
-    
+
     repo.mark_rebuild_job_cancel_requested(job_id)
-    
+
     job = repo.get_rebuild_job(job_id)
     assert job.status == RebuildJobStatus.CANCEL_REQUESTED
     assert job.cancellation_requested_at is not None
@@ -39,7 +39,7 @@ def test_mark_rebuild_job_cancel_requested_fails_for_terminal_status(repo: Asset
     job_id = repo.create_rebuild_job(requested_by="user")
     repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
     repo.mark_rebuild_job_succeeded(job_id, execution_id="exec-1", node_count=1, edge_count=1, duration_ms=1)
-    
+
     with pytest.raises(ValueError, match="Cannot transition job .* to cancel_requested"):
         repo.mark_rebuild_job_cancel_requested(job_id)
 
@@ -49,9 +49,9 @@ def test_mark_rebuild_job_cancelled_finalizes_status(repo: AssetGraphRepository)
     job_id = repo.create_rebuild_job(requested_by="user")
     repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
     repo.mark_rebuild_job_cancel_requested(job_id)
-    
+
     repo.mark_rebuild_job_cancelled(job_id, execution_id="exec-1")
-    
+
     job = repo.get_rebuild_job(job_id)
     assert job.status == RebuildJobStatus.CANCELLED
     assert job.completed_at is not None
@@ -62,7 +62,7 @@ def test_mark_rebuild_job_cancelled_enforces_execution_identity(repo: AssetGraph
     job_id = repo.create_rebuild_job(requested_by="user")
     repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
     repo.mark_rebuild_job_cancel_requested(job_id)
-    
+
     with pytest.raises(ValueError, match="Execution identity mismatch"):
         repo.mark_rebuild_job_cancelled(job_id, execution_id="wrong-exec")
 
@@ -72,6 +72,6 @@ def test_update_rebuild_heartbeat_raises_cancellation_requested_error(repo: Asse
     job_id = repo.create_rebuild_job(requested_by="user")
     repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
     repo.mark_rebuild_job_cancel_requested(job_id)
-    
+
     with pytest.raises(RebuildCancellationRequestedError, match="cancellation has been requested"):
         repo.update_rebuild_heartbeat(job_id, execution_id="exec-1", worker_id="worker-1")
