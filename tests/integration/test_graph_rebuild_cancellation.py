@@ -2,13 +2,15 @@
 
 # pylint: disable=redefined-outer-name
 
+import os
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 from api.routers.graph_admin import _heartbeat_keeper
 from src.data.db_models import RebuildJobStatus
@@ -17,18 +19,24 @@ from tests.integration.test_graph_admin_router import _rebuild_jobs_db_context
 
 
 @pytest.fixture
-def operator_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> TestClient:
-    """Client authenticated as the authorized operator user."""
+def operator_client_and_db(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[TestClient, Callable[[], Session]]:
+    """Provides a TestClient and session_factory bound to the exact same isolated database."""
     # Prevent starlette from reading .env which causes PermissionError in this environment
     monkeypatch.setattr("starlette.config.Config._read_file", lambda self, f, e: {})
 
     db_path = tmp_path / "test_graph.db"
-    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", f"sqlite:///{db_path}")
+    db_url = f"sqlite:///{db_path}"
 
-    from src.data.database import create_engine_from_url, init_db
+    # Must use os.environ temporarily to ensure settings resolution picks it up across potential thread/process boundaries 
+    # and bypasses any cached lru overrides.
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", db_url)
+    os.environ["ASSET_GRAPH_DATABASE_URL"] = db_url
 
-    engine = create_engine_from_url(f"sqlite:///{db_path}")
+    from src.data.database import create_engine_from_url, create_session_factory, init_db
+
+    engine = create_engine_from_url(db_url)
     init_db(engine)
+    session_factory = create_session_factory(engine)
 
     from api.app_factory import create_app
 
@@ -40,59 +48,63 @@ def operator_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> TestClie
         return User(username="admin", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
+
+    # We must explicitly clear the lru cache for settings to pick up our environment variable change
+    from src.config.settings import get_settings
+    get_settings.cache_clear()
+
     with TestClient(app) as client:
-        yield client
+        yield client, session_factory
+
 
 
 def test_cancel_rebuild_happy_path(
-    operator_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    operator_client_and_db: tuple[TestClient, Callable[[], Session]],
 ):
     """POST /cancel must transition job to cancel_requested."""
-    with _rebuild_jobs_db_context(tmp_path, monkeypatch) as session_factory:
-        # 1. Create a job
-        with session_scope(session_factory) as session:
-            repo = AssetGraphRepository(session)
-            job_id = repo.create_rebuild_job(requested_by="admin")
-            repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
+    client, session_factory = operator_client_and_db
 
-        # 2. Call cancel endpoint
-        response = operator_client.post(f"/api/graph/rebuild/{job_id}/cancel")
-        assert response.status_code == 200
-        assert response.json()["message"] == "Cancellation requested"
+    # 1. Create a job
+    with session_scope(session_factory) as session:
+        repo = AssetGraphRepository(session)
+        job_id = repo.create_rebuild_job(requested_by="admin")
+        repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
 
-        # 3. Verify status in DB
-        with session_scope(session_factory) as session:
-            repo = AssetGraphRepository(session)
-            job = repo.get_rebuild_job(job_id)
-            assert job.status == RebuildJobStatus.CANCEL_REQUESTED
-            assert job.cancellation_requested_at is not None
+    # 2. Call cancel endpoint
+    response = client.post(f"/api/graph/rebuild/{job_id}/cancel")
+    assert response.status_code == 200
+    assert response.json()["message"] == "Cancellation requested"
+
+    # 3. Verify status in DB
+    with session_scope(session_factory) as session:
+        repo = AssetGraphRepository(session)
+        job = repo.get_rebuild_job(job_id)
+        assert job.status == RebuildJobStatus.CANCEL_REQUESTED
+        assert job.cancellation_requested_at is not None
 
 
-def test_cancel_rebuild_not_found(operator_client: TestClient, monkeypatch: pytest.MonkeyPatch):
+def test_cancel_rebuild_not_found(operator_client_and_db: tuple[TestClient, Callable[[], Session]]):
     """POST /cancel must return 404 for unknown jobs."""
-    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///:memory:")
-    response = operator_client.post("/api/graph/rebuild/non-existent/cancel")
+    client, _ = operator_client_and_db
+    response = client.post("/api/graph/rebuild/non-existent/cancel")
     assert response.status_code == 404
 
 
 def test_cancel_rebuild_invalid_status(
-    operator_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    operator_client_and_db: tuple[TestClient, Callable[[], Session]],
 ):
     """POST /cancel must return 400 for already finished jobs."""
-    with _rebuild_jobs_db_context(tmp_path, monkeypatch) as session_factory:
-        with session_scope(session_factory) as session:
-            repo = AssetGraphRepository(session)
-            job_id = repo.create_rebuild_job(requested_by="admin")
-            repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
-            repo.mark_rebuild_job_succeeded(job_id, execution_id="exec-1", node_count=1, edge_count=1, duration_ms=1)
+    client, session_factory = operator_client_and_db
 
-        response = operator_client.post(f"/api/graph/rebuild/{job_id}/cancel")
-        assert response.status_code == 400
-        assert "Cannot transition" in response.json()["detail"]
+    with session_scope(session_factory) as session:
+        repo = AssetGraphRepository(session)
+        job_id = repo.create_rebuild_job(requested_by="admin")
+        repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
+        repo.mark_rebuild_job_succeeded(job_id, execution_id="exec-1", node_count=1, edge_count=1, duration_ms=1)
+
+    response = client.post(f"/api/graph/rebuild/{job_id}/cancel")
+    assert response.status_code == 400
+    assert "Cannot transition" in response.json()["detail"]
 
 
 def test_heartbeat_keeper_detects_cancellation(
