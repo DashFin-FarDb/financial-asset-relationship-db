@@ -356,6 +356,8 @@ class RealDataFetcher:
                 return list(fb.assets.values()), fb.regulatory_events, "sample"
 
             return all_assets, events, source
+        except RebuildCancelledError:
+            raise
         except Exception as exc:
             log_event(
                 logger,
