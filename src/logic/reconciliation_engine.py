@@ -409,6 +409,8 @@ class ReconciliationEngine:
             raise RebuildCancelledError("Rebuild cancelled via API request")
 
         for event in regulatory_events:
+            if cancel_event and cancel_event.is_set():
+                raise RebuildCancelledError("Rebuild cancelled via API request")
             graph.add_regulatory_event(event)
 
         if cancel_event and cancel_event.is_set():

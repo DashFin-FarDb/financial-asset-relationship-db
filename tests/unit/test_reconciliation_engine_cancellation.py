@@ -2,6 +2,7 @@
 
 import threading
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -101,3 +102,51 @@ def test_run_rebuild_aborts_at_final_checkpoint():
             on_checkpoint=on_checkpoint,
             cancel_event=cancel_event,
         )
+
+
+def test_run_rebuild_aborts_during_regulatory_events():
+    """run_rebuild must raise RebuildCancelledError if cancelled during regulatory event processing."""
+    from src.models.financial_models import RegulatoryEvent
+
+    engine = ReconciliationEngine(_NoOpEvaluator())
+    cancel_event = threading.Event()
+
+    assets = [
+        Asset(
+            id="asset-1",
+            symbol="SYM1",
+            name="Asset 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=100.0,
+        )
+    ]
+
+    events = [
+        RegulatoryEvent(
+            id=f"event-{i}",
+            asset_id="asset-1",
+            event_type="test",
+            description="test event",
+            date="2024-01-01",
+            impact_score=0.5,
+        )
+        for i in range(10)
+    ]
+
+    # Subclass AssetRelationshipGraph to trigger cancellation during add_regulatory_event
+    from src.logic.asset_graph import AssetRelationshipGraph
+
+    class CancellingGraph(AssetRelationshipGraph):
+        def add_regulatory_event(self, event):
+            if event.id == "event-5":
+                cancel_event.set()
+            super().add_regulatory_event(event)
+
+    with patch("src.logic.asset_graph.AssetRelationshipGraph", side_effect=CancellingGraph):
+        with pytest.raises(RebuildCancelledError, match="Rebuild cancelled via API request"):
+            engine.run_rebuild(
+                assets=assets,
+                regulatory_events=events,
+                cancel_event=cancel_event,
+            )
