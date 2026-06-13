@@ -23,7 +23,7 @@ Ensure that rebuild executions can be reliably and safely cancelled, including p
 
 ### 3. API Integration
 
-- Implement `/api/graph/rebuild/{job_id}/cancel` endpoint.
+- Implement `/api/graph/rebuild/jobs/{job_id}/cancel` endpoint.
 - Ensure the heartbeat keeper stops immediately upon cancellation.
 
 ### 4. Validation

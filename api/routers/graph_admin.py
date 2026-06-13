@@ -1833,7 +1833,7 @@ def get_rebuild_job(
         return _orm_to_response(job_orm)
 
 
-@router.post("/api/graph/rebuild/{job_id}/cancel")
+@router.post("/api/graph/rebuild/jobs/{job_id}/cancel")
 def cancel_rebuild_job(
     job_id: str,
     _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],

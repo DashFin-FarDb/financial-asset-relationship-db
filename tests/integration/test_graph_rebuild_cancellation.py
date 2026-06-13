@@ -58,7 +58,7 @@ def test_cancel_rebuild_happy_path(
             repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
 
         # 2. Call cancel endpoint
-        response = operator_client.post(f"/api/graph/rebuild/{job_id}/cancel")
+        response = operator_client.post(f"/api/graph/rebuild/jobs/{job_id}/cancel")
         assert response.status_code == 200
         assert response.json()["message"] == "Cancellation requested"
 
@@ -73,7 +73,7 @@ def test_cancel_rebuild_happy_path(
 def test_cancel_rebuild_not_found(operator_client: TestClient, monkeypatch: pytest.MonkeyPatch):
     """POST /cancel must return 404 for unknown jobs."""
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///:memory:")
-    response = operator_client.post("/api/graph/rebuild/non-existent/cancel")
+    response = operator_client.post("/api/graph/rebuild/jobs/non-existent/cancel")
     assert response.status_code == 404
 
 
@@ -90,7 +90,7 @@ def test_cancel_rebuild_invalid_status(
             repo.mark_rebuild_job_running(job_id, execution_id="exec-1")
             repo.mark_rebuild_job_succeeded(job_id, execution_id="exec-1", node_count=1, edge_count=1, duration_ms=1)
 
-        response = operator_client.post(f"/api/graph/rebuild/{job_id}/cancel")
+        response = operator_client.post(f"/api/graph/rebuild/jobs/{job_id}/cancel")
         assert response.status_code == 400
         assert "Cannot transition" in response.json()["detail"]
 
