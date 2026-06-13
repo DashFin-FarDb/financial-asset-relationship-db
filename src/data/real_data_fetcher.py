@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.reconciliation_engine import RebuildCancelledError
 from src.models.financial_models import (
     Asset,
     AssetClass,
