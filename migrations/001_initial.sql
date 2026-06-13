@@ -75,8 +75,9 @@ CREATE TABLE IF NOT EXISTS rebuild_jobs (
     last_heartbeat_at TEXT,
     execution_id TEXT,
     checkpoint_data TEXT,
+    cancellation_requested_at TEXT,
     CONSTRAINT ck_rebuild_jobs_status
-        CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled'))
+        CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
 );
 
 CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at
