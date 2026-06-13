@@ -239,6 +239,13 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
         # 4. Swap tables
         connection.execute("DROP TABLE rebuild_jobs")
         connection.execute("ALTER TABLE rebuild_jobs_new RENAME TO rebuild_jobs")
+        # 5. Recreate indexes that were lost with the original table
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at ON rebuild_jobs (created_at)"
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at ON rebuild_jobs (status, created_at)"
+        )
 
     finally:
         # Always turn foreign keys back on
