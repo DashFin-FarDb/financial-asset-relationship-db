@@ -62,8 +62,9 @@ The following endpoints are protected by operator authorization:
 1. **`POST /api/graph/rebuild`** — Trigger graph rebuild and persistence
 2. **`GET /api/graph/rebuild/jobs/{job_id}`** — Read rebuild job details
 3. **`GET /api/graph/rebuild/jobs`** — List rebuild jobs
+4. **`POST /api/graph/rebuild/jobs/{job_id}/cancel`** — Request cancellation of a pending or running rebuild job
 
-All three endpoints require `Depends(get_current_rebuild_operator_user)`.
+All four endpoints require `Depends(get_current_rebuild_operator_user)`.
 
 ---
 
@@ -321,6 +322,7 @@ def operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
 - `POST /api/graph/rebuild` — ✅ Protected
 - `GET /api/graph/rebuild/jobs/{job_id}` — ✅ Protected
 - `GET /api/graph/rebuild/jobs` — ✅ Protected
+- `POST /api/graph/rebuild/jobs/{job_id}/cancel` — ✅ Protected
 
 **Unprotected Endpoints** (intentional):
 - `GET /api/health/detailed` — ✅ Correctly public (bounded readiness only)

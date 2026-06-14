@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import threading
 from collections.abc import Callable
@@ -249,7 +248,7 @@ def build_rebuild_graph(
             return (graph, source)
 
         return (create_sample_graph(), "sample")
-    except (RebuildCancelledError, asyncio.CancelledError):
+    except RebuildCancelledError:
         # Re-raise cancellation exactly as is to correctly short-circuit the pipeline
         raise
     except Exception as exc:

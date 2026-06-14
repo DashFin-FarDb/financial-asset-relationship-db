@@ -430,6 +430,7 @@ class ReconciliationEngine:
                     "processed_count": len(graph.assets),
                 }
             )
+        self._check_cancellation(cancel_event, "asset loop completion")
 
     def _process_regulatory_events(
         self,

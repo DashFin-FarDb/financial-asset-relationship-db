@@ -476,9 +476,11 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
     mock_repo = MagicMock(spec=AssetGraphRepository)
     mock_repo.create_rebuild_job.return_value = "job_cancelled"
 
+    from src.logic.reconciliation_engine import RebuildCancelledError
+
     def simulate_cancellation(*args, **kwargs):
         """Simulate execution cancellation."""
-        raise asyncio.CancelledError()
+        raise RebuildCancelledError("Rebuild cancelled via API request")
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", simulate_cancellation)
 
@@ -486,7 +488,7 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
         engine_for_test = create_engine_from_url(db_url)
         session_factory = create_session_factory(engine_for_test)
 
-        with pytest.raises(asyncio.CancelledError):
+        with pytest.raises(RebuildCancelledError):
             execution_id = "test-exec-cancel"
             graph_admin._run_rebuild_pipeline(
                 session_factory,

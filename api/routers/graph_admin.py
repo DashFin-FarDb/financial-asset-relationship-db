@@ -167,10 +167,10 @@ class _RebuildExecutionError(RuntimeError):
     def __init__(self, source: GraphRebuildSource, cause: Exception | asyncio.CancelledError) -> None:
         """Store source and underlying failure without exposing raw details.
 
-        Do not wrap asyncio.CancelledError — allow task cancellation to propagate.
+        Do not wrap asyncio.CancelledError or RebuildCancelledError — allow task cancellation to propagate.
         """
-        if isinstance(cause, asyncio.CancelledError):
-            # Re-raise CancelledError so it isn't swallowed by wrapper construction.
+        if isinstance(cause, (asyncio.CancelledError, RebuildCancelledError)):
+            # Re-raise CancelledError / RebuildCancelledError so it isn't swallowed by wrapper construction.
             raise cause from None
         super().__init__(cause.__class__.__name__)
         self.source = source
@@ -218,7 +218,7 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return _rebuild_in_progress_error()
 
-    if isinstance(root_exc, (RebuildCancelledError, asyncio.CancelledError)):
+    if isinstance(root_exc, RebuildCancelledError):
         return HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Rebuild execution was cancelled.",
@@ -274,7 +274,7 @@ def _rebuild_status_code(exc: Exception | asyncio.CancelledError) -> int:
 
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return status.HTTP_429_TOO_MANY_REQUESTS
-    if isinstance(root_exc, (RebuildCancelledError, asyncio.CancelledError)):
+    if isinstance(root_exc, RebuildCancelledError):
         return status.HTTP_409_CONFLICT
     if isinstance(root_exc, (_DistributedLockLostError, ExecutionBlockedError)):
         return status.HTTP_503_SERVICE_UNAVAILABLE
@@ -392,7 +392,7 @@ def _rebuild_failure_category(exc: Exception | asyncio.CancelledError) -> str:
     """Return a bounded failure category for rebuild audit logs."""
     root_exc = _unwrap_rebuild_error(exc)
 
-    if isinstance(root_exc, (RebuildCancelledError, asyncio.CancelledError)):
+    if isinstance(root_exc, RebuildCancelledError):
         return "rebuild_cancelled"
 
     categories = {
@@ -869,7 +869,7 @@ def _handle_rebuild_failure(
         if graph_saved and graph_snapshot is not None:
             _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
 
-        if isinstance(exc, (RebuildCancelledError, asyncio.CancelledError)):
+        if isinstance(exc, RebuildCancelledError):
             _finalize_cancellation_safe(session_factory, job_id, execution_id)
         else:
             _finalize_rebuild_failure(
@@ -1050,6 +1050,8 @@ def _run_rebuild_pipeline(
         save_graph_to_persistence(resolved_url, graph, pre_commit_check=_pre_commit_gate)
         graph_saved = True
 
+        if lock_lost.is_set():
+            graph_saved = False
         _verify_execution_state(lock_lost, cancel_event, "pre-success-write")
 
         response = _finalize_rebuild_success(
@@ -1063,7 +1065,9 @@ def _run_rebuild_pipeline(
         success_persisted = True
         synchronize_runtime_graph(graph, job_id=job_id)
         return response
-    except (Exception, asyncio.CancelledError) as exc:
+    except Exception as exc:
+        if lock_lost.is_set() or isinstance(exc, _DistributedLockLostError):
+            graph_saved = False
         _handle_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,
@@ -1811,7 +1815,24 @@ def cancel_rebuild_job(
     job_id: str,
     _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
 ) -> dict[str, str]:
-    """Request cancellation of a pending or running rebuild job."""
+    """Request cancellation of a pending or running rebuild job.
+
+    This endpoint transitions the job status to `cancel_requested`, which is detected
+    cooperatively by the heartbeat thread and the background executor to stop the rebuild.
+
+    Args:
+        job_id: The identifier of the rebuild job to cancel.
+        _current_user: The authenticated operator user making the request.
+
+    Returns:
+        dict: A message confirming that cancellation has been requested.
+
+    Raises:
+        HTTPException:
+            404 if the rebuild job is not found.
+            409 if the rebuild job is in a terminal status and cannot be cancelled.
+            503 if the database is unreachable.
+    """
     with _rebuild_persistence_session() as session:
         repo = AssetGraphRepository(session)
         try:

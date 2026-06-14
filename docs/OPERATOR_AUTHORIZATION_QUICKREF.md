@@ -9,6 +9,7 @@ Ensures only designated **operator users** can execute destructive graph rebuild
 - `POST /api/graph/rebuild` — Rebuild and persist graph
 - `GET /api/graph/rebuild/jobs/{job_id}` — View rebuild job details
 - `GET /api/graph/rebuild/jobs` — List rebuild jobs
+- `POST /api/graph/rebuild/jobs/{job_id}/cancel` — Request cancellation of a rebuild job
 
 ## Authorization Flow
 
