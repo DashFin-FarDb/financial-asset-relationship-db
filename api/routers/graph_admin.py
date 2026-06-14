@@ -941,6 +941,7 @@ def _create_on_checkpoint_callback(
     """Create a callback for persisting progress checkpoints."""
 
     def on_checkpoint(data: dict[str, Any]) -> None:
+        """Persist a progress checkpoint for the current rebuild job."""
         if lock_lost.is_set() or cancel_event.is_set():
             return
         try:
@@ -1045,6 +1046,7 @@ def _run_rebuild_pipeline(
         graph_snapshot = _load_persisted_graph_snapshot(session_factory)
 
         def _pre_commit_gate() -> None:
+            """Verify execution validity immediately before database commit."""
             _verify_execution_state(lock_lost, cancel_event, "graph-commit")
 
         save_graph_to_persistence(resolved_url, graph, pre_commit_check=_pre_commit_gate)
