@@ -6,7 +6,7 @@ from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
-from typing import Any, TypeAlias, TypedDict
+from typing import Any, NoReturn, TypeAlias, TypedDict
 from uuid import uuid4
 
 from sqlalchemy import and_, delete, insert, or_, select, update
@@ -117,7 +117,7 @@ class CoordinationLockRepository:
             )
         )
         update_result = self.session.execute(update_stmt)
-        if update_result.rowcount and update_result.rowcount > 0:
+        if update_result.rowcount and update_result.rowcount > 0:  # type: ignore[attr-defined]
             stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
             record = self.session.execute(stmt).scalar_one_or_none()
             if record:
@@ -152,7 +152,7 @@ class CoordinationLockRepository:
         except IntegrityError:
             # Retry conditional update in case of insert race
             retry_result = self.session.execute(update_stmt)
-            if retry_result.rowcount and retry_result.rowcount > 0:
+            if retry_result.rowcount and retry_result.rowcount > 0:  # type: ignore[attr-defined]
                 stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
                 record = self.session.execute(stmt).scalar_one_or_none()
                 if record:
@@ -215,7 +215,7 @@ class CoordinationLockRepository:
                 DistributedLockORM.holder_id == holder_id,
             )
         )
-        return bool(result.rowcount and result.rowcount > 0)
+        return bool(result.rowcount and result.rowcount > 0)  # type: ignore[attr-defined]
 
     def get_lock_state(self, *, lock_name: str, holder_id: str) -> LockStateSnapshot:
         """Check the current state of a distributed lock and return a materialized snapshot DTO."""
@@ -1179,7 +1179,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1224,7 +1224,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1284,7 +1284,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1329,7 +1329,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1373,7 +1373,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1449,7 +1449,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1538,34 +1538,12 @@ class AssetGraphRepository:
         execution_id: str,
         worker_id: str,
     ) -> None:
-        """
-        Update the heartbeat timestamp for an active rebuild job.
-
-        This is used to track rebuild executor liveness and detect stale
-        ownership or crash conditions.
-
-        Args:
-            job_id: The rebuild job ID to update.
-            execution_id: The unique identifier for this execution attempt.
-            worker_id: The worker/instance ID sending the heartbeat.
-
-        Raises:
-            ValueError: If worker_id exceeds String(64) column constraint, or if
-                the job does not exist, is not in running status, or is owned by
-                a different worker/execution.
-        """
-        # Validate worker_id length before database write
-        # Column is String(64), must enforce to avoid backend-specific errors
+        """Update the heartbeat timestamp for an active rebuild job."""
         if len(worker_id) > 64:
             raise ValueError(f"worker_id exceeds maximum length of 64 characters: {len(worker_id)} chars")
 
-        # Flush any pending ORM changes to ensure UPDATE sees current state
         self.session.flush()
 
-        # Atomic conditional update: only succeeds if:
-        # 1. Job is still in RUNNING status (prevents updates to completed jobs)
-        # 2. active_worker_id is NULL or matches worker_id (prevents ownership conflicts)
-        # 3. execution_id matches (prevents stale execution identity)
         now = datetime.now(timezone.utc)  # noqa: UP017
         stmt = (
             update(RebuildJobORM)
@@ -1586,36 +1564,38 @@ class AssetGraphRepository:
         )
         result = self.session.execute(stmt)
 
-        # If no rows were updated, check why
-        if result.rowcount == 0:
-            # Refresh to get current state (re-fetch from DB if needed)
-            job = self.session.get(RebuildJobORM, job_id)
-            if job is None:
-                raise ValueError(f"Rebuild job {job_id} not found")
+        if result.rowcount == 0:  # type: ignore[attr-defined]
+            self._diagnose_heartbeat_failure(job_id, execution_id, worker_id)
 
-            # Check if status changed (most specific error message)
-            if job.status != RebuildJobStatus.RUNNING:
-                if job.status == RebuildJobStatus.CANCEL_REQUESTED:
-                    raise RebuildCancellationRequestedError(
-                        f"Heartbeat update failed for job {job_id}: cancellation has been requested"
-                    )
+    def _diagnose_heartbeat_failure(self, job_id: str, execution_id: str, worker_id: str) -> NoReturn:
+        """Identify and raise the specific reason why a heartbeat update failed."""
+        job = self.session.get(RebuildJobORM, job_id)
+        if job is None:
+            raise ValueError(f"Rebuild job {job_id} not found")
 
-                current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
-                raise ValueError(
-                    f"Cannot update heartbeat for job {job_id}: job status changed to {current_status} "
-                    "(job is no longer running)"
+        if job.status != RebuildJobStatus.RUNNING:
+            if job.status == RebuildJobStatus.CANCEL_REQUESTED:
+                raise RebuildCancellationRequestedError(
+                    f"Heartbeat update failed for job {job_id}: cancellation has been requested"
                 )
 
-            # Check if execution identity mismatch
-            if job.execution_id != execution_id:
-                raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
-
-            # Otherwise it's an ownership conflict
-            current_owner = job.active_worker_id
+            current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
             raise ValueError(
-                f"Cannot update heartbeat for job {job_id}: active worker is {current_owner}, not {worker_id}. "
-                "Worker ownership has already been claimed."
+                f"Cannot update heartbeat for job {job_id}: job status changed to {current_status} "
+                "(job is no longer running)"
             )
+
+        if job.execution_id != execution_id:
+            raise ValueError(
+                f"Heartbeat update failed for job {job_id}: execution identity mismatch "
+                f"(current: {job.execution_id}, expected: {execution_id})"
+            )
+
+        current_owner = job.active_worker_id
+        raise ValueError(
+            f"Cannot update heartbeat for job {job_id}: active worker is {current_owner}, not {worker_id}. "
+            "Worker ownership has already been claimed."
+        )
 
     def update_rebuild_checkpoint(self, job_id: str, execution_id: str, data: str | None) -> None:
         """
@@ -1647,7 +1627,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:

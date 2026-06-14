@@ -856,53 +856,13 @@ def _handle_rebuild_failure(
     resolved_url: str,
     source: GraphRebuildSource | None,
 ) -> NoReturn:
-    """Handle a rebuild failure and restore prior snapshot if appropriate.
-
-    Persists the job's failed terminal state, and re-raises an exception
-    that preserves bounded source context.
-
-    If a successful terminal state was not already persisted, this function:
-    - Restores `graph_snapshot` to `resolved_url` when `graph_saved` is True and a snapshot is available.
-    - Persists the failed job terminal state including duration and sanitized failure metadata.
-
-    Parameters:
-        session_factory (Callable[[], Session]): Factory that yields a new DB session for persistence actions.
-        job_id (str): Identifier of the rebuild job to mark failed.
-        exc (Exception): The original exception that caused the rebuild failure.
-        job_started_at (float): Monotonic start timestamp (seconds) used to compute job duration.
-        success_persisted (bool): True when a successful terminal state has already been persisted;
-            failure handling is skipped.
-        graph_saved (bool): True when the rebuilt graph was written to persistence;
-            used to decide whether to attempt snapshot restore.
-        graph_snapshot (AssetRelationshipGraph | None): Snapshot of the previous persisted graph to
-            restore on rollback when available.
-        resolved_url (str): Persistence URL where the graph should be restored.
-        source (GraphRebuildSource | None): Bounded source context for the rebuild;
-            when present the original exception is wrapped to preserve source.
-
-    Raises:
-        _RebuildExecutionError: When `source` is provided.
-        RebuildCancelledError: Re-raises the original cancellation if applicable.
-        Exception: Re-raises the original exception.
-    """
+    """Handle a rebuild failure and restore prior snapshot if appropriate."""
     if not success_persisted:
         if graph_saved and graph_snapshot is not None:
             _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
 
         if isinstance(exc, (RebuildCancelledError, asyncio.CancelledError)):
-            try:
-                with session_scope(session_factory) as session:
-                    AssetGraphRepository(session).mark_rebuild_job_cancelled(job_id, execution_id=execution_id)
-            except Exception as final_exc:
-                log_event(
-                    logger,
-                    logging.ERROR,
-                    ObservabilityEvent(
-                        event="rebuild_cancellation_finalization_failed",
-                        message=f"Failed to finalize cancellation for job {job_id}: {type(final_exc).__name__}",
-                        metadata={"error": type(final_exc).__name__},
-                    ),
-                )
+            _finalize_cancellation_safe(session_factory, job_id, execution_id)
         else:
             _finalize_rebuild_failure(
                 session_factory=session_factory,
@@ -914,6 +874,81 @@ def _handle_rebuild_failure(
     if source is not None:
         raise _RebuildExecutionError(source, exc) from exc
     raise exc from None
+
+
+def _finalize_cancellation_safe(session_factory: Callable[[], Session], job_id: str, execution_id: str) -> None:
+    """Attempt to mark a job as cancelled in the database."""
+    try:
+        with session_scope(session_factory) as session:
+            AssetGraphRepository(session).mark_rebuild_job_cancelled(job_id, execution_id=execution_id)
+    except Exception as final_exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_cancellation_finalization_failed",
+                message=f"Failed to finalize cancellation for job {job_id}: {type(final_exc).__name__}",
+                metadata={"error": type(final_exc).__name__},
+            ),
+        )
+
+
+def _verify_execution_state(lock_lost: threading.Event, cancel_event: threading.Event, stage: str) -> None:
+    """Verify that execution is still valid and not cancelled."""
+    if lock_lost.is_set():
+        raise _DistributedLockLostError(f"Lost distributed lock at stage={stage}")
+    if cancel_event.is_set():
+        raise RebuildCancelledError(f"Rebuild cancelled at stage={stage}")
+
+
+def _load_initial_checkpoint(session_factory: Callable[[], Session], job_id: str) -> dict[str, Any] | None:
+    """Load existing progress for 'Resume' path."""
+    try:
+        with session_factory() as session:
+            job = AssetGraphRepository(session).get_rebuild_job(job_id)
+            if job and job.checkpoint_data:
+                return json.loads(job.checkpoint_data)
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="rebuild_checkpoint_load_failed",
+                message=f"Failed to load checkpoint for job {job_id}: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+    return None
+
+
+def _create_on_checkpoint_callback(
+    session_factory: Callable[[], Session],
+    job_id: str,
+    execution_id: str,
+    lock_lost: threading.Event,
+    cancel_event: threading.Event,
+) -> Callable[[dict[str, Any]], None]:
+    """Create a callback for persisting progress checkpoints."""
+
+    def on_checkpoint(data: dict[str, Any]) -> None:
+        if lock_lost.is_set() or cancel_event.is_set():
+            return
+        try:
+            _update_job_checkpoint_safe(session_factory, job_id, execution_id, json.dumps(data))
+            REBUILD_CHECKPOINTS_TOTAL.labels(status="success").inc()
+        except Exception as checkpoint_exc:
+            REBUILD_CHECKPOINTS_TOTAL.labels(status="failure").inc()
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="rebuild_checkpoint_write_failed",
+                    message=f"Failed to write checkpoint for job {job_id}: {type(checkpoint_exc).__name__}",
+                    metadata={"error": type(checkpoint_exc).__name__},
+                ),
+            )
+
+    return on_checkpoint
 
 
 @contextmanager
@@ -969,80 +1004,23 @@ def _run_rebuild_pipeline(
     lock_lost: threading.Event,
     cancel_event: threading.Event,
 ) -> GraphRebuildResponse:
-    """Run a single rebuild of the asset relationship graph.
-
-    Builds the asset relationship graph, persists it atomically to durable storage,
-    finalize the job state, and publish the graph to the runtime.
-
-    This function checks the provided `lock_lost` and `cancel_event` events at key stages to abort.
-    On failure it persists a failed job terminal state (or cancelled state if applicable).
-
-    Parameters:
-        session_factory (Callable[[], Session]): Factory that provides a new SQLAlchemy Session for job updates.
-        settings (GraphLifecycleSettings): Configuration used to build the graph.
-        resolved_url (str): Durable persistence target URL where the rebuilt graph will be saved.
-        job_id (str): Identifier of the rebuild job being executed.
-        execution_id (str): Unique execution identity for this run attempt.
-        job_started_at (float): Monotonic timestamp when the job started, used to compute durations.
-        lock_lost (threading.Event): Event set when the distributed lock is lost.
-        cancel_event (threading.Event): Event set when cancellation is requested.
-
-    Returns:
-        GraphRebuildResponse: Result for the persisted rebuild including status, source, and asset/relationship counts.
-
-    Raises:
-        RebuildCancelledError: If cancellation is requested and handled.
-        Exception: Re-raises the original failure encountered while building or persisting.
-    """
+    """Run a single rebuild of the asset relationship graph."""
     source: GraphRebuildSource | None = None
     success_persisted = False
     graph_snapshot: AssetRelationshipGraph | None = None
     graph_saved = False
 
     try:
-        if lock_lost.is_set():
-            raise _DistributedLockLostError("Lost distributed lock at stage=initialization")
-        if cancel_event.is_set():
-            raise RebuildCancelledError("Rebuild cancelled at stage=initialization")
+        _verify_execution_state(lock_lost, cancel_event, "initialization")
 
-        # Stage 5C.3B: Checkpoint orchestration. Load existing progress for "Resume" path.
-        initial_checkpoint = None
-        try:
-            with session_factory() as session:
-                job = AssetGraphRepository(session).get_rebuild_job(job_id)
-                if job and job.checkpoint_data:
-                    initial_checkpoint = json.loads(job.checkpoint_data)
-        except Exception as exc:
-            log_event(
-                logger,
-                logging.WARNING,
-                ObservabilityEvent(
-                    event="rebuild_checkpoint_load_failed",
-                    message=f"Failed to load checkpoint for job {job_id}: {type(exc).__name__}",
-                    metadata={"error": type(exc).__name__},
-                ),
-            )
-
-        def on_checkpoint(data: dict[str, Any]) -> None:
-            """Persist progress checkpoint to the database."""
-            # Abort checkpoint write if lock is already lost or cancellation requested
-            if lock_lost.is_set() or cancel_event.is_set():
-                return
-            try:
-                _update_job_checkpoint_safe(session_factory, job_id, execution_id, json.dumps(data))
-                REBUILD_CHECKPOINTS_TOTAL.labels(status="success").inc()
-            except Exception as checkpoint_exc:
-                REBUILD_CHECKPOINTS_TOTAL.labels(status="failure").inc()
-                # Log but do not fail the rebuild on a checkpoint write error
-                log_event(
-                    logger,
-                    logging.WARNING,
-                    ObservabilityEvent(
-                        event="rebuild_checkpoint_write_failed",
-                        message=f"Failed to write checkpoint for job {job_id}: {type(checkpoint_exc).__name__}",
-                        metadata={"error": type(checkpoint_exc).__name__},
-                    ),
-                )
+        initial_checkpoint = _load_initial_checkpoint(session_factory, job_id)
+        on_checkpoint = _create_on_checkpoint_callback(
+            session_factory,
+            job_id,
+            execution_id,
+            lock_lost,
+            cancel_event,
+        )
 
         graph, source = build_rebuild_graph(
             settings,
@@ -1051,33 +1029,18 @@ def _run_rebuild_pipeline(
             cancel_event=cancel_event,
         )
 
-        if lock_lost.is_set():
-            raise _DistributedLockLostError("Lost distributed lock at stage=pre-persistence")
-        if cancel_event.is_set():
-            raise RebuildCancelledError("Rebuild cancelled at stage=pre-persistence")
-
+        _verify_execution_state(lock_lost, cancel_event, "pre-persistence")
         _update_job_source_safe(session_factory, job_id, execution_id, str(source))
 
         graph_snapshot = _load_persisted_graph_snapshot(session_factory)
 
-        def _ensure_lock_not_lost_before_commit() -> None:
-            """Check lock state one last time before committing the new graph."""
-            if lock_lost.is_set():
-                raise _DistributedLockLostError("Lost distributed lock at stage=graph-commit")
-            if cancel_event.is_set():
-                raise RebuildCancelledError("Rebuild cancelled at stage=graph-commit")
+        def _pre_commit_gate() -> None:
+            _verify_execution_state(lock_lost, cancel_event, "graph-commit")
 
-        save_graph_to_persistence(
-            resolved_url,
-            graph,
-            pre_commit_check=_ensure_lock_not_lost_before_commit,
-        )
+        save_graph_to_persistence(resolved_url, graph, pre_commit_check=_pre_commit_gate)
         graph_saved = True
 
-        if lock_lost.is_set():
-            raise _DistributedLockLostError("Lost distributed lock at stage=pre-success-write")
-        if cancel_event.is_set():
-            raise RebuildCancelledError("Rebuild cancelled at stage=pre-success-write")
+        _verify_execution_state(lock_lost, cancel_event, "pre-success-write")
 
         response = _finalize_rebuild_success(
             session_factory=session_factory,
