@@ -25,7 +25,6 @@ from sqlalchemy.orm import Session
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockLifecycleState, LockState
-from src.data.real_data_fetcher import FetchCancelledError
 from src.data.repository import AssetGraphRepository, RebuildCancellationRequestedError, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import RebuildCancelledError
@@ -219,7 +218,7 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return _rebuild_in_progress_error()
 
-    if isinstance(root_exc, (FetchCancelledError, RebuildCancelledError, asyncio.CancelledError)):
+    if isinstance(root_exc, (RebuildCancelledError, asyncio.CancelledError)):
         return HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Rebuild execution was cancelled.",
@@ -275,7 +274,7 @@ def _rebuild_status_code(exc: Exception | asyncio.CancelledError) -> int:
 
     if isinstance(root_exc, _DistributedLockAcquisitionError):
         return status.HTTP_429_TOO_MANY_REQUESTS
-    if isinstance(root_exc, (FetchCancelledError, RebuildCancelledError, asyncio.CancelledError)):
+    if isinstance(root_exc, (RebuildCancelledError, asyncio.CancelledError)):
         return status.HTTP_409_CONFLICT
     if isinstance(root_exc, (_DistributedLockLostError, ExecutionBlockedError)):
         return status.HTTP_503_SERVICE_UNAVAILABLE
@@ -392,6 +391,10 @@ def _log_rebuild_succeeded(
 def _rebuild_failure_category(exc: Exception | asyncio.CancelledError) -> str:
     """Return a bounded failure category for rebuild audit logs."""
     root_exc = _unwrap_rebuild_error(exc)
+
+    if isinstance(root_exc, (RebuildCancelledError, asyncio.CancelledError)):
+        return "rebuild_cancelled"
+
     categories = {
         _DistributedLockAcquisitionError: "distributed_lock_acquisition_failed",
         _DistributedLockLostError: "distributed_lock_lost",
@@ -400,9 +403,6 @@ def _rebuild_failure_category(exc: Exception | asyncio.CancelledError) -> str:
         GraphPersistenceNonDurableError: "persistence_non_durable",
         GraphRebuildSourceError: "rebuild_source_error",
         GraphPersistenceSaveError: "persistence_save_error",
-        RebuildCancelledError: "rebuild_cancelled",
-        FetchCancelledError: "rebuild_cancelled",
-        asyncio.CancelledError: "rebuild_cancelled",
     }
     return categories.get(type(root_exc), "unexpected_error")
 
@@ -550,7 +550,6 @@ async def rebuild_graph(
             GraphPersistenceSaveError,
             GraphRebuildSourceError,
             ExecutionBlockedError,
-            FetchCancelledError,
             RebuildCancelledError,
             asyncio.CancelledError,
         ) as exc:
@@ -651,7 +650,6 @@ async def _run_rebuild_in_executor(
             GraphPersistenceSaveError,
             GraphRebuildSourceError,
             ExecutionBlockedError,
-            FetchCancelledError,
             RebuildCancelledError,
             asyncio.CancelledError,
         ) as exc:
@@ -871,7 +869,7 @@ def _handle_rebuild_failure(
         if graph_saved and graph_snapshot is not None:
             _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
 
-        if isinstance(exc, (FetchCancelledError, RebuildCancelledError, asyncio.CancelledError)):
+        if isinstance(exc, (RebuildCancelledError, asyncio.CancelledError)):
             _finalize_cancellation_safe(session_factory, job_id, execution_id)
         else:
             _finalize_rebuild_failure(
