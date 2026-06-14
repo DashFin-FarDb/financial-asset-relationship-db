@@ -51,6 +51,7 @@ curl -X POST https://your-app.com/api/graph/rebuild \
 **Protected by**: `get_current_rebuild_operator_user()` dependency
 
 **Error Codes**:
+
 - `401` — Not authenticated
 - `403` — Authenticated but not operator
 - `503` — Operator not configured
@@ -58,6 +59,7 @@ curl -X POST https://your-app.com/api/graph/rebuild \
 ## Test Coverage
 
 ✅ All authorization paths tested:
+
 - `test_rebuild_returns_403_for_active_non_operator_user`
 - `test_rebuild_allows_active_authorized_operator_user`
 - `test_rebuild_jobs_endpoints_return_403_for_non_operator`
@@ -73,13 +75,13 @@ curl -X POST https://your-app.com/api/graph/rebuild \
 
 ## Deployment Readiness
 
-| Criteria | Status |
-|----------|--------|
-| Implementation complete | ✅ |
-| Tests passing | ✅ |
-| Security reviewed | ✅ |
-| Documentation exists | ✅ |
-| Ready for production | ✅ |
+| Criteria                | Status |
+| ----------------------- | ------ |
+| Implementation complete | ✅     |
+| Tests passing           | ✅     |
+| Security reviewed       | ✅     |
+| Documentation exists    | ✅     |
+| Ready for production    | ✅     |
 
 ## See Also
 
