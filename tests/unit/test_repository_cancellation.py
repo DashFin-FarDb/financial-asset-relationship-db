@@ -1,18 +1,19 @@
 """Unit tests for rebuild job cancellation repository methods."""
 
-from datetime import datetime, timezone
+from collections.abc import Generator
+from datetime import datetime
 from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.data.db_models import Base, RebuildJobORM, RebuildJobStatus
+from src.data.db_models import Base, RebuildJobStatus
 from src.data.repository import AssetGraphRepository, RebuildCancellationRequestedError
 
 
 @pytest.fixture
-def repo(tmp_path: Path) -> AssetGraphRepository:
+def repo(tmp_path: Path) -> Generator[AssetGraphRepository, None, None]:
     """Fixture providing an AssetGraphRepository with an initialized SQLite database."""
     db_path = tmp_path / "test.db"
     engine = create_engine(f"sqlite:///{db_path}")
@@ -33,6 +34,7 @@ def test_mark_rebuild_job_cancel_requested_transitions_status(repo: AssetGraphRe
     repo.mark_rebuild_job_cancel_requested(job_id)
 
     job = repo.get_rebuild_job(job_id)
+    assert job is not None
     assert job.status == RebuildJobStatus.CANCEL_REQUESTED
     assert job.cancellation_requested_at is not None
     assert isinstance(job.cancellation_requested_at, datetime)
@@ -72,6 +74,7 @@ def test_mark_rebuild_job_cancelled_finalizes_status(repo: AssetGraphRepository)
     repo.mark_rebuild_job_cancelled(job_id, execution_id="exec-1")
 
     job = repo.get_rebuild_job(job_id)
+    assert job is not None
     assert job.status == RebuildJobStatus.CANCELLED
     assert job.completed_at is not None
     # SQLite often loses tzinfo on read; we mainly care that it was set.

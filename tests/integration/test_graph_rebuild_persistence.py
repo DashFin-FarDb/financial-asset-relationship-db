@@ -367,7 +367,7 @@ async def test_simulated_lock_ttl_expiration():
 
     with graph_admin._orchestrate_heartbeat(mock_session_factory, mock_lock, job_id, execution_id, lock_ttl) as (
         lock_lost_event,
-        cancel_event,
+        _,
     ):
         lock_lost_event.wait(timeout=1.0)
 
