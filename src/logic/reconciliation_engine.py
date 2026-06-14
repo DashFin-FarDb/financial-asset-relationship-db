@@ -28,6 +28,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_REBUILD_CANCELLED_MSG = "Rebuild cancelled via API request"
+
 
 class RebuildCancelledError(Exception):
     """Raised when a graph rebuild is aborted via a cancellation signal."""
@@ -345,24 +347,51 @@ class ReconciliationEngine:
         from src.logic.asset_graph import AssetRelationshipGraph
 
         graph = AssetRelationshipGraph()
+        skipped_ids = self._get_skipped_ids(initial_checkpoint)
+
+        self._process_assets(assets, graph, skipped_ids, on_checkpoint, cancel_event)
+
+        self._check_cancellation(cancel_event)
+        self._process_regulatory_events(regulatory_events, graph, cancel_event)
+        self._check_cancellation(cancel_event)
+
+        graph.build_relationships()
+
+        self._log_rebuild_completion(graph)
+        return graph
+
+    def _check_cancellation(self, cancel_event: threading.Event | None) -> None:
+        """Raise RebuildCancelledError if the cancel_event is set."""
+        if cancel_event and cancel_event.is_set():
+            raise RebuildCancelledError(_REBUILD_CANCELLED_MSG)
+
+    def _get_skipped_ids(self, initial_checkpoint: dict[str, Any] | None) -> set[str]:
+        """Identify assets to skip based on the initial checkpoint."""
+        if not initial_checkpoint or "processed_ids" not in initial_checkpoint:
+            return set()
+
+        skipped_ids = set(initial_checkpoint["processed_ids"])
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="reconciliation_rebuild_resume_started",
+                message=f"Resuming rebuild: skipping {len(skipped_ids)} already processed assets",
+                metadata={"skipped_count": len(skipped_ids)},
+            ),
+        )
+        return skipped_ids
+
+    def _process_assets(
+        self,
+        assets: Iterable[Asset],
+        graph: AssetRelationshipGraph,
+        skipped_ids: set[str],
+        on_checkpoint: Callable[[dict[str, Any]], None] | None,
+        cancel_event: threading.Event | None,
+    ) -> None:
+        """Add assets to the graph and invoke checkpoints."""
         processed_count = 0
-
-        # Stage 5C.3B: Resume logic: identify assets to skip from initial checkpoint.
-        # High-water mark stored as list of IDs that were successfully added.
-        skipped_ids = set()
-        if initial_checkpoint and "processed_ids" in initial_checkpoint:
-            skipped_ids = set(initial_checkpoint["processed_ids"])
-            log_event(
-                logger,
-                logging.INFO,
-                ObservabilityEvent(
-                    event="reconciliation_rebuild_resume_started",
-                    message=f"Resuming rebuild: skipping {len(skipped_ids)} already processed assets",
-                    metadata={"skipped_count": len(skipped_ids)},
-                ),
-            )
-
-        # Main processing loop
         for asset in assets:
             if cancel_event and cancel_event.is_set():
                 log_event(
@@ -373,16 +402,12 @@ class ReconciliationEngine:
                         message="Rebuild cancelled via signal during asset processing",
                     ),
                 )
-                raise RebuildCancelledError("Rebuild cancelled via API request")
-
-            if asset.id in skipped_ids:
-                # Still add to the new graph so it's complete, but don't count as "work"
-                # (In a real system, 'assets' might be a generator that skips fetching
-                # if we have the checkpointed state, but here we add for completeness)
-                graph.add_asset(asset)
-                continue
+                raise RebuildCancelledError(_REBUILD_CANCELLED_MSG)
 
             graph.add_asset(asset)
+            if asset.id in skipped_ids:
+                continue
+
             processed_count += 1
 
             # Engine Instrumentation: Checkpoint at bounded intervals (every 50 assets)
@@ -404,20 +429,19 @@ class ReconciliationEngine:
                 }
             )
 
-        # Add regulatory events and build relationships
-        if cancel_event and cancel_event.is_set():
-            raise RebuildCancelledError("Rebuild cancelled via API request")
-
+    def _process_regulatory_events(
+        self,
+        regulatory_events: Iterable[RegulatoryEvent],
+        graph: AssetRelationshipGraph,
+        cancel_event: threading.Event | None,
+    ) -> None:
+        """Add regulatory events to the graph."""
         for event in regulatory_events:
-            if cancel_event and cancel_event.is_set():
-                raise RebuildCancelledError("Rebuild cancelled via API request")
+            self._check_cancellation(cancel_event)
             graph.add_regulatory_event(event)
 
-        if cancel_event and cancel_event.is_set():
-            raise RebuildCancelledError("Rebuild cancelled via API request")
-
-        graph.build_relationships()
-
+    def _log_rebuild_completion(self, graph: AssetRelationshipGraph) -> None:
+        """Log the successful completion of the rebuild."""
         log_event(
             logger,
             logging.INFO,
@@ -432,8 +456,6 @@ class ReconciliationEngine:
                 },
             ),
         )
-
-        return graph
 
     def _evaluation_failure_plan(self, exc: Exception) -> ReconciliationPlan:
         """
