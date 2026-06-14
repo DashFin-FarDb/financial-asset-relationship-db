@@ -35,6 +35,8 @@ ALLOWED_MIGRATIONS = frozenset(
     ]
 )
 
+_REBUILD_JOBS_TABLE_INFO_QUERY = "PRAGMA table_info(rebuild_jobs)"
+
 
 def apply_migrations(db_path: Path | str) -> None:
     """
@@ -133,7 +135,7 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
     Args:
         connection: SQLite connection.
     """
-    cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
+    cursor = connection.execute(_REBUILD_JOBS_TABLE_INFO_QUERY)
     existing_columns = {row[1] for row in cursor}
 
     HEARTBEAT_COLUMNS = {
@@ -153,7 +155,7 @@ def _apply_upgrade_003_execution_columns(connection: sqlite3.Connection) -> None
     Args:
         connection: SQLite connection.
     """
-    cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
+    cursor = connection.execute(_REBUILD_JOBS_TABLE_INFO_QUERY)
     existing_columns = {row[1] for row in cursor}
 
     NEW_COLUMNS = {
@@ -173,7 +175,7 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
     Args:
         connection: SQLite connection.
     """
-    cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
+    cursor = connection.execute(_REBUILD_JOBS_TABLE_INFO_QUERY)
     existing_columns = {row[1] for row in cursor}
 
     # If the column already exists, we assume the migration has run.
@@ -359,12 +361,10 @@ def _apply_postgresql_status_constraint_update(connection) -> None:
     connection.execute(text("ALTER TABLE rebuild_jobs DROP CONSTRAINT IF EXISTS ck_rebuild_jobs_status"))
 
     # 2. Add the updated constraint
-    connection.execute(
-        text("""
+    connection.execute(text("""
         ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status
             CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
-    """)
-    )
+    """))
 
 
 # ---------------------------------------------------------------------------

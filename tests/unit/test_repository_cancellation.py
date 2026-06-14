@@ -64,6 +64,15 @@ def test_mark_rebuild_job_cancel_requested_fails_for_terminal_status(repo: Asset
     with pytest.raises(ValueError, match="Cannot transition job .* to cancel_requested"):
         repo.mark_rebuild_job_cancel_requested(job_id_fail)
 
+    # Test Cancelled
+    job_id_can = repo.create_rebuild_job(requested_by="user")
+    repo.mark_rebuild_job_running(job_id_can, execution_id="exec-can")
+    repo.mark_rebuild_job_cancel_requested(job_id_can)
+    repo.mark_rebuild_job_cancelled(job_id_can, execution_id="exec-can")
+
+    with pytest.raises(ValueError, match="Cannot transition job .* to cancel_requested"):
+        repo.mark_rebuild_job_cancel_requested(job_id_can)
+
 
 def test_mark_rebuild_job_cancelled_finalizes_status(repo: AssetGraphRepository):
     """mark_rebuild_job_cancelled must move from cancel_requested to cancelled."""

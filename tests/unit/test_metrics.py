@@ -97,6 +97,7 @@ def test_heartbeat_keeper_lock_refresh_raises_increments_failure() -> None:
         worker_id="worker1",
         stop_event=stop_event,
         lock_lost_event=lock_lost_event,
+        cancel_event=threading.Event(),
         interval_seconds=0.001,  # Very short interval to execute immediately
     )
 

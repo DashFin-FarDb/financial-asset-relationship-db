@@ -370,10 +370,6 @@ class RealDataFetcher:
 
         all_assets: list[Asset] = cast(list[Asset], equities + bonds + commodities + currencies)
 
-        if not all_assets:
-            fb = self._fallback()
-            return list(fb.assets.values()), fb.regulatory_events, "sample"
-
         return all_assets, events, "real_data"
 
     def _check_cancelled(self, cancel_event: threading.Event | None, stage: str) -> None:

@@ -124,7 +124,7 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
     @contextmanager
     def fake_heartbeat(*_args: object, **_kwargs: object):
         """No-op heartbeat context for isolated rebuild sync testing."""
-        yield threading.Event()
+        yield threading.Event(), threading.Event()
 
     monkeypatch.setattr(graph_admin, "_orchestrate_heartbeat", fake_heartbeat)
     monkeypatch.setattr(
