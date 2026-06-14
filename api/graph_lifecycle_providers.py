@@ -217,7 +217,7 @@ def build_rebuild_graph(
             return graph, source
 
         if settings.use_real_data_fetcher:
-            from src.data.real_data_fetcher import FetchCancelledError, RealDataFetcher
+            from src.data.real_data_fetcher import RealDataFetcher
             from src.logic.reconciliation_engine import ReconciliationEngine, Severity
 
             fetcher = RealDataFetcher(cache_path=settings.real_data_cache_path, enable_network=True)
@@ -249,7 +249,7 @@ def build_rebuild_graph(
             return (graph, source)
 
         return (create_sample_graph(), "sample")
-    except (FetchCancelledError, RebuildCancelledError, asyncio.CancelledError):
+    except (RebuildCancelledError, asyncio.CancelledError):
         # Re-raise cancellation exactly as is to correctly short-circuit the pipeline
         raise
     except Exception as exc:
