@@ -73,6 +73,8 @@ CREATE TABLE IF NOT EXISTS rebuild_jobs (
     sanitized_failure_message TEXT,
     active_worker_id TEXT,
     last_heartbeat_at TEXT,
+    execution_id TEXT,
+    checkpoint_data TEXT,
     CONSTRAINT ck_rebuild_jobs_status
         CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled'))
 );

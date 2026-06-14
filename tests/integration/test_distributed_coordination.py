@@ -40,6 +40,7 @@ def authorized_app(monkeypatch, tmp_path):
     app = create_app()
 
     def active_user() -> User:
+        """Return a mock active operator user for dependency override."""
         return User(username="operator", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
@@ -67,11 +68,16 @@ def test_distributed_lock_allows_only_one_holder_across_instances(authorized_app
     results: dict[str, bool] = {}
     errors: dict[str, Exception] = {}
 
+    from src.data.distributed_lock import LockAcquisitionTimeout
+
     def attempt(holder: str, lock: DistributedLock) -> None:
+        """Attempt to acquire a lock and record the success or failure."""
         try:
             barrier.wait()
             results[holder] = bool(lock.acquire())
         except threading.BrokenBarrierError:
+            results[holder] = False
+        except LockAcquisitionTimeout:
             results[holder] = False
         except SQLAlchemyError as exc:
             errors[holder] = exc
@@ -113,8 +119,9 @@ async def test_instance_synchronization_detects_new_job(authorized_app):
         repo = AssetGraphRepository(session)
         repo.save_graph(graph1)
         job_id = repo.create_rebuild_job(requested_by="user1", source="sample")
-        repo.mark_rebuild_job_running(job_id)
-        repo.mark_rebuild_job_succeeded(job_id, node_count=1, edge_count=0, duration_ms=100)
+        execution_id = "exec-1"
+        repo.mark_rebuild_job_running(job_id, execution_id)
+        repo.mark_rebuild_job_succeeded(job_id, execution_id=execution_id, node_count=1, edge_count=0, duration_ms=100)
 
     # Load it into the app
     sync_with_latest_rebuild()
@@ -129,8 +136,11 @@ async def test_instance_synchronization_detects_new_job(authorized_app):
         repo = AssetGraphRepository(session)
         repo.save_graph(graph2)
         job_id2 = repo.create_rebuild_job(requested_by="user2", source="sample")
-        repo.mark_rebuild_job_running(job_id2)
-        repo.mark_rebuild_job_succeeded(job_id2, node_count=1, edge_count=0, duration_ms=200)
+        execution_id2 = "exec-2"
+        repo.mark_rebuild_job_running(job_id2, execution_id2)
+        repo.mark_rebuild_job_succeeded(
+            job_id2, execution_id=execution_id2, node_count=1, edge_count=0, duration_ms=200
+        )
 
     # 3. Trigger sync and verify it updated
     sync_with_latest_rebuild()

@@ -89,7 +89,7 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """DistributedLock must receive TTL from GraphLifecycleSettings without fallback injection."""
+    """Verify that DistributedLock receives TTL from GraphLifecycleSettings without fallback injection."""
     db_url = f"sqlite:///{tmp_path / 'graph.db'}"
     settings = GraphLifecycleSettings(
         asset_graph_database_url=db_url,
@@ -141,6 +141,7 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
     response = graph_admin._perform_rebuild_and_persist_sync(  # pylint: disable=protected-access
         settings,
         user_ref="operator",
+        execution_id="test_exec_id",
     )
 
     assert captured["ttl_seconds"] == settings.rebuild_lock_ttl_seconds

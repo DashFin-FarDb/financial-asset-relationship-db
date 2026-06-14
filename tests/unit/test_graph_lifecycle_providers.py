@@ -15,7 +15,7 @@ pytestmark = pytest.mark.unit
 
 
 def test_get_graph_lifecycle_settings_maps_rebuild_lock_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
-    """GraphLifecycleSettings should mirror rebuild_lock_ttl_seconds from base Settings."""
+    """Verify that GraphLifecycleSettings mirrors rebuild_lock_ttl_seconds from base Settings."""
     base_settings = Settings(rebuild_lock_ttl_seconds=450)
 
     monkeypatch.setattr(providers, "get_settings", lambda: base_settings)
@@ -38,7 +38,7 @@ def test_get_graph_lifecycle_settings_maps_rebuild_lock_ttl_default(
 
 
 def test_graph_lifecycle_settings_is_frozen() -> None:
-    """GraphLifecycleSettings must remain an immutable configuration boundary."""
+    """Verify that GraphLifecycleSettings remains an immutable configuration boundary."""
     lifecycle_settings = providers.GraphLifecycleSettings(rebuild_lock_ttl_seconds=120)
 
     with pytest.raises(FrozenInstanceError):
@@ -46,6 +46,7 @@ def test_graph_lifecycle_settings_is_frozen() -> None:
 
 
 def test_get_graph_lifecycle_settings_propagates_ttl_from_loaded_settings(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify that get_graph_lifecycle_settings propagates the TTL from the loaded settings."""
     monkeypatch.setenv("REBUILD_LOCK_TTL_SECONDS", "600")
     get_settings.cache_clear()
     providers.clear_graph_lifecycle_settings_cache()
@@ -81,9 +82,10 @@ def test_save_graph_with_session_rolls_back_when_pre_commit_check_fails(
     monkeypatch.setattr(providers.AssetGraphRepository, "save_graph", lambda self, _graph: None)
 
     def fail_pre_commit() -> None:
+        """Raise a RuntimeError to simulate a pre-commit check failure."""
         raise RuntimeError("lost lock")
 
-    with pytest.raises(providers.GraphPersistenceSaveError):
+    with pytest.raises(RuntimeError):
         providers._save_graph_with_session(
             session, graph, pre_commit_check=fail_pre_commit
         )  # pylint: disable=protected-access

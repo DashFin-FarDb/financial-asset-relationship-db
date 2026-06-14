@@ -105,18 +105,19 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
         lock_lost_event = threading.Event()
 
         # Create rebuild job
+        execution_id = "test-exec-id"
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = repo.create_rebuild_job(
                 requested_by="test-operator",
                 source="test-source",
             )
-            repo.mark_rebuild_job_running(job_id)
+            repo.mark_rebuild_job_running(job_id, execution_id)
 
         # Track refresh events using MagicMock with wraps
         original_refresh = dist_lock.refresh
         mock_refresh = MagicMock(wraps=original_refresh)
-        dist_lock.refresh = mock_refresh
+        dist_lock.refresh = mock_refresh  # type: ignore[method-assign]
 
         # Start heartbeat keeper thread
         with caplog.at_level(logging.DEBUG):
@@ -126,6 +127,7 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
                     "session_factory": session_factory,
                     "dist_lock": dist_lock,
                     "job_id": job_id,
+                    "execution_id": execution_id,
                     "worker_id": dist_lock.holder_id,
                     "stop_event": stop_event,
                     "lock_lost_event": lock_lost_event,
@@ -187,13 +189,14 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
         assert dist_lock.acquire(), "Failed to acquire initial lock"
 
         # Create rebuild job
+        execution_id = "test-exec-id"
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = repo.create_rebuild_job(
                 requested_by="test-operator",
                 source="test-source",
             )
-            repo.mark_rebuild_job_running(job_id)
+            repo.mark_rebuild_job_running(job_id, execution_id)
 
         stop_event = threading.Event()
         lock_lost_event = threading.Event()
@@ -207,12 +210,13 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
         original_refresh = dist_lock.refresh
 
         def refresh_with_event(*args, **kwargs):
+            """Refresh lock and signal completion."""
             result = original_refresh(*args, **kwargs)
             first_refresh_done.set()
             return result
 
         mock_refresh = MagicMock(side_effect=refresh_with_event)
-        dist_lock.refresh = mock_refresh
+        dist_lock.refresh = mock_refresh  # type: ignore[method-assign]
 
         # Start heartbeat keeper
         with caplog.at_level(logging.ERROR):
@@ -222,6 +226,7 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
                     "session_factory": session_factory,
                     "dist_lock": dist_lock,
                     "job_id": job_id,
+                    "execution_id": execution_id,
                     "worker_id": dist_lock.holder_id,
                     "stop_event": stop_event,
                     "lock_lost_event": lock_lost_event,
@@ -272,10 +277,8 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
                 if other_lock is not None:
                     other_lock.release()
                 # Ensure original lock is released even if test fails
-                try:
+                with contextlib.suppress(RuntimeError):
                     dist_lock.release()
-                except RuntimeError:
-                    pass  # Lock may already be released
 
 
 def test_pre_commit_check_blocks_save_on_lock_loss(
@@ -300,6 +303,7 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
 
         # Create pre-commit check that verifies lock status
         def _ensure_lock_not_lost_before_commit() -> None:
+            """Ensure the lock was not lost before allowing persistence commit."""
             if lock_lost.is_set():
                 raise graph_admin._DistributedLockLostError(  # pylint: disable=protected-access
                     "Lost distributed lock at stage=graph-commit"
@@ -322,18 +326,16 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
         lock_lost.set()
 
         # Attempt to save graph with pre-commit check
-        from api.graph_lifecycle_providers import (  # pylint: disable=import-outside-toplevel
-            GraphPersistenceSaveError,
+        from api.graph_lifecycle_providers import (
             save_graph_to_persistence,
         )
 
-        with caplog.at_level(logging.ERROR):
-            with pytest.raises(GraphPersistenceSaveError):
-                save_graph_to_persistence(
-                    resolved_url,
-                    test_graph,
-                    pre_commit_check=_ensure_lock_not_lost_before_commit,
-                )
+        with caplog.at_level(logging.ERROR), pytest.raises(graph_admin._DistributedLockLostError):
+            save_graph_to_persistence(
+                resolved_url,
+                test_graph,
+                pre_commit_check=_ensure_lock_not_lost_before_commit,
+            )
 
         # Verify pre-commit check failure was logged (without coupling to exact message text)
         error_logs = [record for record in caplog.records if record.levelname == "ERROR"]
@@ -349,9 +351,9 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
             current_graph = repo.load_graph()
             current_asset_count = len(current_graph.assets)
 
-        assert (
-            current_asset_count == initial_asset_count
-        ), "Graph state should be unchanged after lock loss during commit"
+        assert current_asset_count == initial_asset_count, (
+            "Graph state should be unchanged after lock loss during commit"
+        )
 
 
 def test_heartbeat_thread_stops_cleanly_on_success(
@@ -377,19 +379,21 @@ def test_heartbeat_thread_stops_cleanly_on_success(
         assert dist_lock.acquire(), "Failed to acquire initial lock"
 
         # Create rebuild job
+        execution_id = "test-exec-id"
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = repo.create_rebuild_job(
                 requested_by="test-operator",
                 source="test-source",
             )
-            repo.mark_rebuild_job_running(job_id)
+            repo.mark_rebuild_job_running(job_id, execution_id)
 
         # Use _orchestrate_heartbeat context manager
         with graph_admin._orchestrate_heartbeat(  # pylint: disable=protected-access
             session_factory,
             dist_lock,
             job_id,
+            execution_id,
             lock_ttl,
         ) as lock_lost:
             # Verify lock_lost Event is provided
@@ -444,13 +448,14 @@ def test_heartbeat_keeper_updates_database_heartbeat(
         assert dist_lock.acquire(), "Failed to acquire initial lock"
 
         # Create rebuild job
+        execution_id = "test-exec-id"
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = repo.create_rebuild_job(
                 requested_by="test-operator",
                 source="test-source",
             )
-            repo.mark_rebuild_job_running(job_id)
+            repo.mark_rebuild_job_running(job_id, execution_id)
 
             # Get initial heartbeat timestamp (should be None initially)
             job = repo.get_rebuild_job(job_id)
@@ -466,6 +471,7 @@ def test_heartbeat_keeper_updates_database_heartbeat(
                 "session_factory": session_factory,
                 "dist_lock": dist_lock,
                 "job_id": job_id,
+                "execution_id": execution_id,
                 "worker_id": dist_lock.holder_id,
                 "stop_event": stop_event,
                 "lock_lost_event": lock_lost_event,

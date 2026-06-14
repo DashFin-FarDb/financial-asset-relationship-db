@@ -1,9 +1,11 @@
+"""Fetch real financial asset market data from sources such as Yahoo Finance."""
+
 import json
 import logging
 import math
 from collections.abc import Callable
 from dataclasses import asdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -19,6 +21,8 @@ from src.models.financial_models import (
     RegulatoryActivity,
     RegulatoryEvent,
 )
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 _YFINANCE_MODULE = None
@@ -46,26 +50,57 @@ def _get_yfinance() -> Any:
         import yfinance as yf
     except ModuleNotFoundError as exc:
         if exc.name != "yfinance":
-            logger.exception("Failed to import yfinance due to a missing dependency.")
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="yfinance_dependency_missing",
+                    message="Failed to import yfinance due to a missing dependency.",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
             raise RuntimeError(
                 "yfinance could not be imported in the current environment. "
                 "Check its installation and dependency compatibility."
             ) from exc
-        logger.error(
-            "Failed to import yfinance. Optional live-data features are "
-            "unavailable. Install it using: pip install yfinance"
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="yfinance_unavailable",
+                message=(
+                    "Failed to import yfinance. Optional live-data features are unavailable. "
+                    "Install it using: pip install yfinance"
+                ),
+            ),
         )
         raise RuntimeError(
             "yfinance is unavailable in the current environment. Install it using: pip install yfinance"
         ) from exc
     except ImportError as exc:
-        logger.exception("Failed to import yfinance due to an import/dependency problem.")
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="yfinance_import_error",
+                message="Failed to import yfinance due to an import/dependency problem.",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         raise RuntimeError(
             "yfinance could not be imported in the current environment. "
             "Check its installation and dependency compatibility."
         ) from exc
     except Exception as exc:
-        logger.exception("Unexpected error while importing yfinance.")
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="yfinance_unexpected_error",
+                message=f"Unexpected error while importing yfinance: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
         raise RuntimeError(
             "Unexpected error while loading yfinance. Check the environment and dependency state."
         ) from exc
@@ -137,25 +172,58 @@ class RealDataFetcher:
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """
-        Constructs an AssetRelationshipGraph using cached data, live Yahoo Finance data, or fallback/sample data.
+        Create an asset relationship graph using cached data, live Yahoo Finance data, or a fallback/sample dataset.
 
-        Attempts to load from cache when a configured cache path exists; if network fetching is disabled or live fetch fails, returns the configured fallback (or the built-in sample dataset).
+        If a configured cache exists it is used; otherwise, when network fetching is enabled
+        a live fetch is attempted and the resulting graph is persisted to cache if configured.
+        If network fetching is disabled or the live fetch fails, the configured fallback or
+        the built-in sample dataset is returned.
 
         Returns:
             AssetRelationshipGraph: A graph populated from cache, live data, or fallback/sample data.
         """
         if self.cache_path and self.cache_path.exists():
             try:
-                logger.info("Loading asset graph from cache at %s", self.cache_path)
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_cache_load_attempt",
+                        message=f"Loading asset graph from cache at {self.cache_path}",
+                        metadata={"cache_path": str(self.cache_path)},
+                    ),
+                )
                 return _load_from_cache(self.cache_path)
-            except Exception:
-                logger.exception("Failed to load cached dataset; proceeding with standard fetch")
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_cache_load_failed",
+                        message=f"Failed to load cached dataset: {type(exc).__name__}; proceeding with standard fetch",
+                        metadata={"error": type(exc).__name__},
+                    ),
+                )
 
         if not self.enable_network:
-            logger.info("Network fetching disabled. Using fallback dataset if available.")
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="graph_network_fetching_disabled",
+                    message="Network fetching disabled. Using fallback dataset if available.",
+                ),
+            )
             return self._fallback()
 
-        logger.info("Creating database with real financial data from Yahoo Finance")
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="graph_live_fetch_initiated",
+                message="Creating database with real financial data from Yahoo Finance",
+            ),
+        )
         graph = AssetRelationshipGraph()
 
         try:
@@ -175,23 +243,83 @@ class RealDataFetcher:
             if self.cache_path:
                 self._persist_cache(graph)
 
-            logger.info(
-                "Real database created with %s assets and %s relationships",
-                len(graph.assets),
-                sum(len(rels) for rels in graph.relationships.values()),
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="graph_live_fetch_completed",
+                    message=(
+                        f"Real database created with {len(graph.assets)} assets and "
+                        f"{sum(len(rels) for rels in graph.relationships.values())} relationships"
+                    ),
+                    metadata={
+                        "asset_count": len(graph.assets),
+                        "relationship_count": sum(len(rels) for rels in graph.relationships.values()),
+                    },
+                ),
             )
             return graph
 
-        except Exception:
-            logger.exception("Failed to create real database")
-            logger.warning("Falling back to sample data due to real data fetch failure")
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="graph_live_fetch_failed",
+                    message=f"Failed to create real database: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_fetch_fallback_engaged",
+                    message="Falling back to sample data due to real data fetch failure",
+                ),
+            )
             return self._fallback()
+
+    def fetch_raw_data(self) -> tuple[list[Asset], list[RegulatoryEvent]]:
+        """
+        Fetch raw asset and regulatory event data without building a graph.
+
+        Returns:
+            tuple[list[Asset], list[RegulatoryEvent]]: A tuple containing the list of
+                fetched assets and the list of regulatory events.
+        """
+        if not self.enable_network:
+            # If network is disabled, we return empty or sample-equivalent from fallback
+            fb = self._fallback()
+            return list(fb.assets.values()), fb.regulatory_events
+
+        try:
+            equities = self._fetch_equity_data()
+            bonds = self._fetch_bond_data()
+            commodities = self._fetch_commodity_data()
+            currencies = self._fetch_currency_data()
+            events = self._create_regulatory_events()
+
+            return equities + bonds + commodities + currencies, events
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="graph_raw_fetch_failed",
+                    message=f"Failed to fetch raw data: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
+            raise
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
         """
         Write the asset relationship graph to the configured cache file.
 
-        Writes the graph to a temporary file in the cache directory and atomically replaces the final cache path with that temporary file. If no cache path is configured this is a no-op. Any I/O or serialization errors are logged and suppressed; on failure the method makes a best-effort attempt to remove the temporary file.
+        Writes the graph to a temporary file in the cache directory and atomically replaces the final cache path
+        with that temporary file. If no cache path is configured this is a no-op. Any I/O or serialization errors
+        are logged and suppressed; on failure the method makes a best-effort attempt to remove the temporary file.
         """
         import os
         import tempfile
@@ -217,18 +345,28 @@ class RealDataFetcher:
             _save_to_cache(graph, tmp_path)
             os.replace(tmp_path, cache_path)
 
-        except Exception:
-            logger.exception(
-                "Failed to persist dataset cache to %s",
-                self.cache_path,
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="graph_cache_persistence_failed",
+                    message=f"Failed to persist dataset cache to {self.cache_path}: {type(exc).__name__}",
+                    metadata={"cache_path": str(self.cache_path), "error": type(exc).__name__},
+                ),
             )
             if tmp_path is not None and tmp_path.exists():
                 try:
                     tmp_path.unlink()
-                except OSError:
-                    logger.warning(
-                        "Failed to remove temporary cache file %s",
-                        tmp_path,
+                except OSError as os_exc:
+                    log_event(
+                        logger,
+                        logging.WARNING,
+                        ObservabilityEvent(
+                            event="graph_cache_cleanup_failed",
+                            message=f"Failed to remove temporary cache file {tmp_path}: {type(os_exc).__name__}",
+                            metadata={"tmp_path": str(tmp_path), "error": type(os_exc).__name__},
+                        ),
                     )
 
     def _fallback(self) -> AssetRelationshipGraph:
@@ -266,24 +404,41 @@ class RealDataFetcher:
         hist = ticker.history(period="1d")
 
         if hist.empty or "Close" not in hist.columns:
-            logger.warning("No price data for %s", symbol)
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_fetch_no_price_data",
+                    message=f"No price data for {symbol}",
+                    metadata={"symbol": symbol},
+                ),
+            )
             return None, ticker
 
         close_value = float(hist["Close"].iloc[-1])
         if not math.isfinite(close_value):
-            logger.warning("Non-finite price data for %s", symbol)
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_fetch_non_finite_price",
+                    message=f"Non-finite price data for {symbol}",
+                    metadata={"symbol": symbol, "value": close_value},
+                ),
+            )
             return None, ticker
         return close_value, ticker
 
     @staticmethod
     def _fetch_equity_data() -> list[Equity]:
         """
-        Builds a list of Equity objects for a fixed set of major symbols using Yahoo Finance data.
+        Fetch latest market data for a fixed set of major equity symbols and construct Equity objects.
 
-        Fetches current price and metadata for each predefined equity symbol and constructs an Equity dataclass for each symbol with available price data. Symbols for which a current price cannot be obtained are skipped.
+        Skips symbols that lack a valid latest close price; emits structured observability
+        events for each symbol's success or failure.
 
         Returns:
-            List[Equity]: Equity objects for symbols successfully fetched; symbols with missing price data are omitted.
+            list[Equity]: Equity instances for symbols with an available valid price.
         """
         yf = _get_yfinance()
 
@@ -315,26 +470,43 @@ class RealDataFetcher:
                 )
                 equities.append(equity)
 
-                logger.info(
-                    _FETCHED_ASSET_LOG_MESSAGE,
-                    symbol,
-                    name,
-                    current_price,
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_fetch_equity_success",
+                        message=_FETCHED_ASSET_LOG_MESSAGE % (symbol, name, current_price),
+                        metadata={"symbol": symbol, "name": name, "price": current_price, "asset_class": "equity"},
+                    ),
                 )
-            except Exception:
-                logger.exception("Failed to fetch equity data for %s", symbol)
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="graph_fetch_equity_failed",
+                        message=f"Failed to fetch equity data for {symbol}: {type(exc).__name__}",
+                        metadata={"symbol": symbol, "error": type(exc).__name__},
+                    ),
+                )
 
         return equities
 
     @staticmethod
     def _fetch_bond_data() -> list[Bond]:
         """
-        Construct Bond proxy instances from a fixed set of treasury and corporate bond ETF symbols.
+        Build Bond proxy objects from a fixed set of bond ETF symbols.
 
-        Uses a predefined list of ETF symbols as fixed-income proxies, creating a Bond for each symbol that has available price data; symbols with missing price data are skipped.
+        For each configured ETF symbol, attempts to fetch the latest market price
+
+        and constructs a Bond when a finite price is available;
+
+        symbols with missing or non-finite price data are skipped.
+
+        Emits observability events for per-symbol success and failure.
 
         Returns:
-            List[Bond]: Bond proxy objects built for each ETF with available market data.
+            list[Bond]: Bond objects constructed for ETFs that had available market data.
         """
         yf = _get_yfinance()
 
@@ -379,26 +551,38 @@ class RealDataFetcher:
                 )
                 bonds.append(bond)
 
-                logger.info(
-                    _FETCHED_ASSET_LOG_MESSAGE,
-                    symbol,
-                    name,
-                    current_price,
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_fetch_bond_success",
+                        message=_FETCHED_ASSET_LOG_MESSAGE % (symbol, name, current_price),
+                        metadata={"symbol": symbol, "name": name, "price": current_price, "asset_class": "bond"},
+                    ),
                 )
-            except Exception:
-                logger.exception("Failed to fetch bond data for %s", symbol)
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="graph_fetch_bond_failed",
+                        message=f"Failed to fetch bond data for {symbol}: {type(exc).__name__}",
+                        metadata={"symbol": symbol, "error": type(exc).__name__},
+                    ),
+                )
 
         return bonds
 
     @staticmethod
     def _fetch_commodity_data() -> list[Commodity]:
         """
-        Create and return Commodity objects for a fixed set of futures symbols.
+        Construct Commodity instances for a fixed set of futures symbols using their latest close prices.
 
-        Attempts to fetch the latest close price for each configured futures symbol and constructs a Commodity for each symbol that has a valid price; symbols with missing price data are skipped. Individual symbol fetch failures are handled per-symbol without aborting the entire operation.
+        Symbols without a valid price are skipped; failures for individual symbols are
+        logged and do not stop processing.
 
         Returns:
-            List[Commodity]: List of Commodity instances for successfully fetched futures.
+            list[Commodity]: Commodity objects created for symbols with valid prices.
         """
         yf = _get_yfinance()
 
@@ -424,35 +608,46 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date=(datetime.now(timezone.utc) + timedelta(days=90)).strftime("%Y-%m-%d"),
+                    delivery_date=(datetime.now(UTC) + timedelta(days=90)).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)
 
-                logger.info(
-                    _FETCHED_ASSET_LOG_MESSAGE,
-                    symbol,
-                    name,
-                    current_price,
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_fetch_commodity_success",
+                        message=_FETCHED_ASSET_LOG_MESSAGE % (symbol, name, current_price),
+                        metadata={"symbol": symbol, "name": name, "price": current_price, "asset_class": "commodity"},
+                    ),
                 )
-            except Exception:
-                logger.exception("Failed to fetch commodity data for %s", symbol)
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="graph_fetch_commodity_failed",
+                        message=f"Failed to fetch commodity data for {symbol}: {type(exc).__name__}",
+                        metadata={"symbol": symbol, "error": type(exc).__name__},
+                    ),
+                )
 
         return commodities
 
     @staticmethod
     def _fetch_currency_data() -> list[Currency]:
         """
-        Builds Currency objects for a predefined set of FX pairs using the latest available rates.
+        Construct Currency dataclass instances for a predefined set of FX pairs using the latest available rates.
 
-        Fetches the most recent exchange rate for each configured symbol and constructs a Currency
-        dataclass populated with id, symbol, name, asset_class (Currency), sector ("Forex"),
-        price, exchange_rate, country, and a default central_bank_rate of 0.02. Symbols with
-        missing price data are skipped; failures for individual symbols are handled per-symbol
-        and do not stop the overall fetch.
+        For each configured FX symbol, attempts to fetch the most recent exchange rate;
+
+        symbols with no available rate are skipped and failures for individual symbols
+
+        are logged but do not stop the overall fetch.
 
         Returns:
-            List[Currency]: A list of successfully constructed Currency objects.
+            list[Currency]: Currency objects for symbols with successfully retrieved rates.
         """
         yf = _get_yfinance()
 
@@ -483,21 +678,35 @@ class RealDataFetcher:
                 )
                 currencies.append(currency)
 
-                logger.info("Fetched %s: %s at %.4f", symbol, name, current_rate)
-            except Exception:
-                logger.exception("Failed to fetch currency data for %s", symbol)
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_fetch_currency_success",
+                        message=f"Fetched {symbol}: {name} at {current_rate:.4f}",
+                        metadata={"symbol": symbol, "name": name, "rate": current_rate, "asset_class": "currency"},
+                    ),
+                )
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="graph_fetch_currency_failed",
+                        message=f"Failed to fetch currency data for {symbol}: {type(exc).__name__}",
+                        metadata={"symbol": symbol, "error": type(exc).__name__},
+                    ),
+                )
 
         return currencies
 
     @staticmethod
     def _create_regulatory_events() -> list[RegulatoryEvent]:
         """
-        Constructs a fixed set of synthetic RegulatoryEvent objects associated with assets.
-
-        These events are static, hard-coded enrichment items (no external I/O) intended to be added to the graph alongside fetched price data. Each event includes an identifier, target asset id, regulatory activity type, ISO-formatted date, brief description, numeric impact score, and related asset ids.
+        Create three synthetic RegulatoryEvent instances to enrich the asset graph.
 
         Returns:
-            List[RegulatoryEvent]: The list of synthetic regulatory events.
+            list[RegulatoryEvent]: Three hard-coded regulatory events associated with specific assets.
         """
         events: list[RegulatoryEvent] = []
 
@@ -541,9 +750,7 @@ class RealDataFetcher:
 
 
 def create_real_database() -> AssetRelationshipGraph:
-    """
-    Build an AssetRelationshipGraph from live, cached, or fallback data.
-    """
+    """Build an AssetRelationshipGraph from live, cached, or fallback data."""
     fetcher = RealDataFetcher()
     return fetcher.create_real_database()
 
@@ -560,13 +767,14 @@ def _enum_to_value(value: Any) -> Any:
 
 def _serialize_dataclass(obj: Any) -> dict[str, Any]:
     """
-    Convert a dataclass instance into a JSON-serializable dictionary with type metadata.
+    Convert a dataclass instance into a JSON-serializable dictionary that includes type metadata.
 
     Parameters:
         obj (Any): A dataclass instance to serialize.
 
     Returns:
-        Dict[str, Any]: A dictionary of the dataclass fields with enum values converted to their underlying values and an added "__type__" key containing the dataclass class name.
+        dict[str, Any]: Mapping of field names to values with any Enum fields replaced by their
+            underlying values and an added "__type__" key containing the dataclass class name.
     """
     data = asdict(obj)
     serialized = {key: _enum_to_value(val) for key, val in data.items()}
@@ -625,15 +833,18 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> dict[str, Any]:
 
 def _deserialize_asset(data: dict[str, Any]) -> Asset:
     """
-    Reconstructs an Asset (or specific Asset subclass) instance from a JSON-like dictionary.
+    Reconstructs an Asset or a concrete Asset subclass from a serialized mapping.
 
-    If the input contains a "__type__" key, that value is used to select the concrete dataclass to instantiate; unknown or missing "__type__" defaults to Asset. If the dictionary contains an "asset_class" value, it is converted to the AssetClass enum before instantiation.
+    The function looks for a "__type__" key in `data` to choose the concrete dataclass (one of
+    `Equity`, `Bond`, `Commodity`, `Currency`); if missing or unrecognized, `Asset` is used.
+    If `data` contains an "asset_class" value, it will be converted to the `AssetClass` enum
+    before instantiation.
 
     Parameters:
-        data (Dict[str, Any]): Serialized asset data (as produced by _serialize_dataclass).
+        data (dict[str, Any]): Serialized asset data produced by _serialize_dataclass.
 
     Returns:
-        Asset: An instance of Asset or one of its subclasses (Equity, Bond, Commodity, Currency) populated from the input data.
+        Asset: An Asset instance (or a subclass instance) populated from `data`.
     """
     data = dict(data)
     type_name = data.pop("__type__", "Asset")
@@ -662,7 +873,8 @@ def _deserialize_event(data: dict[str, Any]) -> RegulatoryEvent:
             where `event_type` is the stored enum value.
 
     Returns:
-        RegulatoryEvent: A reconstructed RegulatoryEvent with `event_type` converted back to the RegulatoryActivity enum.
+        RegulatoryEvent: A reconstructed RegulatoryEvent with `event_type` converted back
+                         to the RegulatoryActivity enum.
     """
     data = dict(data)
     data["event_type"] = RegulatoryActivity(data["event_type"])
@@ -671,12 +883,15 @@ def _deserialize_event(data: dict[str, Any]) -> RegulatoryEvent:
 
 def _deserialize_graph(payload: dict[str, Any]) -> AssetRelationshipGraph:
     """
-    Reconstruct an AssetRelationshipGraph from a serialized payload.
+    Reconstructs an AssetRelationshipGraph from a serialized payload.
 
-    The payload should contain optional "assets", "regulatory_events", and "relationships" keys produced by _serialize_graph. Assets and events are deserialized and added to the graph; relationships are recreated from the "relationships" mapping by calling add_relationship(source, target, relationship_type, strength, bidirectional=False). Strength values are coerced to float. The payload key "incoming_relationships" is ignored.
+    Deserializes and adds assets from payload["assets"], deserializes and adds regulatory
+    events from payload["regulatory_events"], and recreates directed relationships from
+    payload["relationships"] (each relationship's `strength` is converted to `float`).
+    The `"incoming_relationships"` key, if present, is ignored.
 
     Returns:
-        AssetRelationshipGraph: A newly constructed graph containing the deserialized assets, events, and relationships.
+        AssetRelationshipGraph: Graph populated with assets, regulatory events, and relationships.
     """
     graph = AssetRelationshipGraph()
 
@@ -716,10 +931,14 @@ def _load_from_cache(path: Path) -> AssetRelationshipGraph:
 
 
 def _save_to_cache(graph: AssetRelationshipGraph, path: Path) -> None:
-    """
-    Write the given AssetRelationshipGraph to path as a JSON cache file.
+    """Serialize an AssetRelationshipGraph to JSON and write to filesystem.
 
-    Creates parent directories if necessary and writes the serialized graph payload (via _serialize_graph) to the specified path using UTF-8 encoding and two-space indentation.
+    Creates parent directories if needed. The JSON is written using UTF-8
+    encoding with two-space indentation.
+
+    Parameters:
+        graph (AssetRelationshipGraph): Graph to serialize and persist.
+        path (Path): Filesystem path for the output JSON file; parent directories will be created if missing.
     """
     payload = _serialize_graph(graph)
     path.parent.mkdir(parents=True, exist_ok=True)

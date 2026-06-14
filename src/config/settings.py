@@ -42,6 +42,9 @@ class Settings(BaseModel):
     # Environment mode
     env: str = Field(default="development")
 
+    # Logging configuration
+    log_level: str = Field(default="INFO")
+
     # CORS configuration
     allowed_origins_raw: str = Field(default="")
 
@@ -71,21 +74,47 @@ class Settings(BaseModel):
         description="TTL for rebuild distributed lock in seconds",
     )
 
-    @field_validator("rebuild_lock_ttl_seconds", mode="before")
+    # SLO Configuration
+    slo_api_latency_avg_seconds: float = Field(default=0.1, ge=0.0)
+    slo_rebuild_duration_max_seconds: int = Field(default=300, ge=0)
+    slo_error_rate_threshold: float = Field(default=0.01, ge=0.0, le=1.0)
+    slo_evaluation_interval_seconds: float = Field(default=60.0, ge=1.0)
+
+    @field_validator(
+        "rebuild_lock_ttl_seconds",
+        "slo_api_latency_avg_seconds",
+        "slo_rebuild_duration_max_seconds",
+        "slo_error_rate_threshold",
+        "slo_evaluation_interval_seconds",
+        mode="before",
+    )
     @classmethod
-    def parse_ttl(cls, value: Any, info: ValidationInfo) -> Any:
+    def parse_env_vars(cls, value: Any, info: ValidationInfo) -> Any:
         """Coerce empty strings or None to the field default."""
+        field_name = info.field_name or "rebuild_lock_ttl_seconds"
         if value is None or (isinstance(value, str) and not value.strip()):
-            field_name = info.field_name
             field_info = cls.model_fields.get(field_name)
             default = getattr(field_info, "default", 300)
             return default
-        if isinstance(value, str):
+        if field_name in ("rebuild_lock_ttl_seconds", "slo_rebuild_duration_max_seconds") and isinstance(value, str):
             try:
                 return int(value)
             except ValueError:
-                raise ValueError(f"Invalid integer for environment variable {info.field_name.upper()}: {value!r}")
-        # For non-string, non-None inputs, return value unchanged
+                raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
+        # For other fields or non-string inputs, Pydantic will handle the type coercion
+        return value
+
+    @field_validator("slo_rebuild_duration_max_seconds")
+    @classmethod
+    def validate_rebuild_threshold(cls, value: int) -> int:
+        """Validate that the rebuild threshold matches a histogram bucket boundary."""
+        # Canonical buckets defined in api/metrics.py
+        allowed_buckets = {1, 5, 10, 30, 60, 120, 300}
+        if value not in allowed_buckets:
+            raise ValueError(
+                f"SLO_REBUILD_DURATION_MAX_SECONDS ({value}) must match a histogram bucket boundary. "
+                f"Allowed values: {sorted(allowed_buckets)}"
+            )
         return value
 
     @property
@@ -102,11 +131,24 @@ class Settings(BaseModel):
 
 
 def load_settings() -> Settings:
-    """Load runtime settings, delegating type coercion to Pydantic."""
+    """
+    Load runtime settings from environment variables and return a configured Settings instance.
+
+    Reads environment variables (for example: ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL,
+    POSTGRES_URL, COORDINATION_DATABASE_URL, ALLOWED_ORIGINS, REBUILD_LOCK_TTL_SECONDS)
+    and maps them to Settings fields, delegating type coercion and validation to Pydantic.
+    REBUILD_LOCK_TTL_SECONDS is passed unchanged for field-level parsing. DATABASE_URL
+    falls back to POSTGRES_URL when unset; COORDINATION_DATABASE_URL falls back to
+    DATABASE_URL then POSTGRES_URL.
+
+    Returns:
+        Settings: A Settings instance populated from the current environment.
+    """
     postgres_url = os.getenv("POSTGRES_URL")
 
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
+        log_level=os.getenv("LOG_LEVEL", "INFO").strip().upper(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         secret_key=os.getenv("SECRET_KEY"),
         admin_username=os.getenv("ADMIN_USERNAME"),
@@ -122,7 +164,11 @@ def load_settings() -> Settings:
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
         # Passed as raw string to Pydantic for validation and coercion
-        rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),
+        rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),  # type: ignore[arg-type]
+        slo_api_latency_avg_seconds=os.getenv("SLO_API_LATENCY_AVG_SECONDS"),  # type: ignore[arg-type]
+        slo_rebuild_duration_max_seconds=os.getenv("SLO_REBUILD_DURATION_MAX_SECONDS"),  # type: ignore[arg-type]
+        slo_error_rate_threshold=os.getenv("SLO_ERROR_RATE_THRESHOLD"),  # type: ignore[arg-type]
+        slo_evaluation_interval_seconds=os.getenv("SLO_EVALUATION_INTERVAL_SECONDS"),  # type: ignore[arg-type]
     )
 
 

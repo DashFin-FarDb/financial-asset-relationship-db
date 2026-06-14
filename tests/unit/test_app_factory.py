@@ -43,7 +43,7 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
         lambda: base_settings,
     )
     # FIX: Correct parameter count mapping across all lambda hooks
-    monkeypatch.setattr(app_factory, "_run_startup_reconciliation", lambda s: None)
+    monkeypatch.setattr(app_factory, "_run_startup_reconciliation", lambda s, ce=None: None)
     monkeypatch.setattr(app_factory, "init_rebuild_executor", lambda s: None)
     monkeypatch.setattr(app_factory, "shutdown_rebuild_executor", fake_shutdown)
 
@@ -163,7 +163,7 @@ def test_startup_reconciliation_does_not_release_lock_without_reset_reacquire(
         def __init__(self, **_kwargs) -> None:
             self.lock_was_reacquired = False
 
-        def evaluate_and_reconcile(self) -> None:
+        def ensure_safe_to_execute(self, cancellation_event=None) -> None:
             raise ExecutionBlockedError("wait", action="wait", inconsistency_type="none")
 
     # FIX: Provide clean dummy context managers to support 'with session_scope()' tracking metrics
@@ -196,7 +196,7 @@ def test_startup_reconciliation_releases_lock_when_reset_reacquired(
         def __init__(self, **_kwargs) -> None:
             self.lock_was_reacquired = True
 
-        def evaluate_and_reconcile(self) -> None:
+        def ensure_safe_to_execute(self, cancellation_event=None) -> None:
             return None
 
     @contextlib.contextmanager

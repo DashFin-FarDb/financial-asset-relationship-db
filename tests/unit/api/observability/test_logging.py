@@ -9,18 +9,28 @@ from unittest.mock import patch
 import pytest
 import structlog
 
-import api.observability.logging
-from api.observability.context import set_request_context
-from api.observability.logging import _inject_request_context, setup_logging
+import src.observability.logging
+from src.config.settings import get_settings
+from src.observability.context import reset_request_context, set_request_context
+from src.observability.logging import _inject_request_context, setup_logging
+
+from .test_utils import get_processor_handler
 
 
 @pytest.fixture(autouse=True)
 def _reset_logging():
-    """Reset the standard library logging and structlog after each test."""
-    # Reset our internal initialization flag to allow reconfiguration in tests
-    api.observability.logging._logging_initialized = False
+    """
+    Pytest fixture that resets global logging and structlog state for a test and restores it afterwards.
 
-    # Store original handlers and level
+    Sets the module-level initialization flag to allow logging reconfiguration, clears the cached settings
+    so environment variable changes take effect, captures the root logger's handlers and level for restoration,
+    yields to run the test, then restores the original handlers and level and resets structlog to its defaults.
+    """
+    # Reset our internal initialization flag to allow reconfiguration in tests
+    src.observability.logging._logging_state["initialized"] = False
+
+    # Clear settings cache to allow environment variable overrides
+    get_settings.cache_clear()
     root_logger = logging.getLogger()
     original_handlers = list(root_logger.handlers)
     original_level = root_logger.level
@@ -55,8 +65,6 @@ def test_inject_request_context_processor():
         assert result["event"] == "test event"
         assert result["level"] == "info"
     finally:
-        from api.observability.context import reset_request_context
-
         reset_request_context(tokens)
 
 
@@ -85,8 +93,14 @@ def test_setup_logging_configures_root_logger():
 
 def test_stdlib_logging_emits_json_with_context_and_extra():
     """
-    Test that calling the standard library logger emits structured JSON,
-    includes the request context, AND preserves extra fields.
+    Verify standard-library logging emits structured JSON containing the request context and preserves `extra` fields.
+
+    Asserts that a log emitted via the standard library:
+    - serializes to JSON
+    - includes `event`, `logger`, and `level`
+    - includes `request_id` and `correlation_id` from the request context
+    - preserves `extra` fields such as `custom_field` and `user_ref`
+    - includes a `timestamp`
     """
     # 1. Setup our structured logging
     setup_logging()
@@ -99,7 +113,7 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
     root_logger = logging.getLogger()
 
     # Find our handler
-    our_handler = next(h for h in root_logger.handlers if isinstance(h.formatter, structlog.stdlib.ProcessorFormatter))
+    our_handler = get_processor_handler()
     stream_handler.setFormatter(our_handler.formatter)
 
     # Temporary clear all handlers for this test to avoid interference
@@ -137,7 +151,6 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
         root_logger.handlers.clear()
         for h in original_handlers:
             root_logger.addHandler(h)
-        from api.observability.context import reset_request_context
 
         reset_request_context(tokens)
 
@@ -145,6 +158,7 @@ def test_stdlib_logging_emits_json_with_context_and_extra():
 def test_setup_logging_invalid_level(capsys):
     """Test that setup_logging handles invalid LOG_LEVEL with a warning."""
     with patch.dict(os.environ, {"LOG_LEVEL": "DEUBG"}):
+        get_settings.cache_clear()
         setup_logging()
 
     captured = capsys.readouterr()
@@ -157,7 +171,7 @@ def test_setup_logging_invalid_level(capsys):
 
 def test_setup_logging_idempotency():
     """Test that setup_logging only runs once unless forced."""
-    with patch("api.observability.logging.structlog.configure") as mock_configure:
+    with patch("src.observability.logging.structlog.configure") as mock_configure:
         setup_logging()
         setup_logging()
         # Should only be called once because of the internal flag

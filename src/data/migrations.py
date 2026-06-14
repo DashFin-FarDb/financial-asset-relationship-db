@@ -19,6 +19,9 @@ from pathlib import Path
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
+
 logger = logging.getLogger(__name__)
 
 # Explicit whitelist of allowed migration files
@@ -27,6 +30,7 @@ ALLOWED_MIGRATIONS = frozenset(
     [
         "001_initial.sql",
         "002_add_heartbeat_columns.sql",
+        "003_add_execution_identity_and_checkpoint_columns.sql",
     ]
 )
 
@@ -41,6 +45,7 @@ def apply_migrations(db_path: Path | str) -> None:
     This function applies migrations in order:
     1. 001_initial.sql - Base schema (idempotent via IF NOT EXISTS)
     2. 002_add_heartbeat_columns.sql - Upgrade migration (applied conditionally)
+    3. 003_add_execution_identity_and_checkpoint_columns.sql - Upgrade migration (applied conditionally)
 
     Args:
         db_path: Path to the SQLite database file.
@@ -54,13 +59,15 @@ def apply_migrations(db_path: Path | str) -> None:
 
     from contextlib import closing
 
-    with closing(sqlite3.connect(db_path)) as connection:
-        with connection:
-            # Migration 001: Base schema (always safe to run, uses IF NOT EXISTS)
-            _apply_sql_migration(connection, migrations_dir / "001_initial.sql")
+    with closing(sqlite3.connect(db_path)) as connection, connection:
+        # Migration 001: Base schema (always safe to run, uses IF NOT EXISTS)
+        _apply_sql_migration(connection, migrations_dir / "001_initial.sql")
 
-            # Migration 002: Add heartbeat columns (conditional, check first)
-            _apply_upgrade_002_heartbeat_columns(connection)
+        # Migration 002: Add heartbeat columns (conditional, check first)
+        _apply_upgrade_002_heartbeat_columns(connection)
+
+        # Migration 003: Add execution identity and checkpoint columns (conditional)
+        _apply_upgrade_003_execution_columns(connection)
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +141,26 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
             connection.execute(alter_statement)  # noqa: S3649
 
 
+def _apply_upgrade_003_execution_columns(connection: sqlite3.Connection) -> None:
+    """
+    Apply migration 003 (add execution identity and checkpoint columns) conditionally.
+
+    Args:
+        connection: SQLite connection.
+    """
+    cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
+    existing_columns = {row[1] for row in cursor}
+
+    NEW_COLUMNS = {
+        "execution_id": "ALTER TABLE rebuild_jobs ADD COLUMN execution_id TEXT",
+        "checkpoint_data": "ALTER TABLE rebuild_jobs ADD COLUMN checkpoint_data TEXT",
+    }
+
+    for col_name, alter_statement in NEW_COLUMNS.items():
+        if col_name not in existing_columns:
+            connection.execute(alter_statement)  # noqa: S3649
+
+
 # ---------------------------------------------------------------------------
 # Private helpers for apply_postgresql_heartbeat_migration
 # ---------------------------------------------------------------------------
@@ -148,6 +175,13 @@ def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
       heartbeat columns.
     - The SQLAlchemy column metadata dict for active_worker_id, or None
       if the column does not yet exist.
+
+    Args:
+        inspector: SQLAlchemy inspector instance.
+
+    Returns:
+        tuple[list[str], dict | None]: A tuple containing the list of SQL statements and
+            optional column metadata.
     """
     columns = inspector.get_columns("rebuild_jobs")
     existing: set[str] = set()
@@ -167,12 +201,19 @@ def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
 
 
 def _active_worker_id_declared_too_wide(active_worker_col: dict | None) -> bool:
-    """
+    """Check if active_worker_id column is wider than VARCHAR(64).
+
     Return True when active_worker_id is wider than VARCHAR(64) and may need
     narrowing.
 
     Safety is determined only by the authoritative in-transaction re-check in
     _apply_normalization_in_transaction(), after taking an exclusive lock.
+
+    Args:
+        active_worker_col (dict | None): SQLAlchemy column metadata dict.
+
+    Returns:
+        bool: True if the column is wider than 64 characters.
     """
     if active_worker_col is None:
         return False
@@ -182,15 +223,16 @@ def _active_worker_id_declared_too_wide(active_worker_col: dict | None) -> bool:
 
 def _apply_normalization_in_transaction(connection, needs_width_normalization: bool) -> None:
     """
-    Conditionally narrow active_worker_id to VARCHAR(64) inside an open
-    DDL transaction.
+    Attempt to narrow the `active_worker_id` column to `VARCHAR(64)` within the current transactional connection.
 
-    Acquire a table lock before re-checking widths so concurrent writers
-    cannot insert or update values that would cause the subsequent ALTER
-    COLUMN to fail. The in-transaction re-check is authoritative.
-    The explicit ACCESS EXCLUSIVE lock is scoped to this helper only (re-check
-    plus optional ALTER); ADD COLUMN statements run before this call. While
-    held, PostgreSQL blocks all concurrent readers and writers of rebuild_jobs.
+    If `needs_width_normalization` is True, acquires an exclusive lock on `rebuild_jobs`, re-checks the
+    maximum stored `active_worker_id` length, and alters the column type to `VARCHAR(64)` only when the
+    re-checked maximum is missing or less than or equal to 64. If the re-checked maximum exceeds 64, emits
+    a structured observability event and leaves the column unchanged.
+
+    Parameters:
+        connection: An active SQLAlchemy transactional connection bound to the target PostgreSQL database.
+        needs_width_normalization (bool): When True, attempt the width normalization; when False, do nothing.
     """
     if not needs_width_normalization:
         return
@@ -200,9 +242,14 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
     if recheck is None or recheck <= 64:
         connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
     else:
-        logger.warning(
-            "Skipping active_worker_id width normalization: max length=%s exceeds 64 (re-check)",
-            recheck,
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="migration_width_normalization_skipped",
+                message=f"Skipping active_worker_id width normalization: max length={recheck} exceeds 64 (re-check)",
+                metadata={"max_length": recheck},
+            ),
         )
 
 
@@ -217,6 +264,9 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
 
     This is an idempotent compatibility migration used during startup for
     existing PostgreSQL databases that predate heartbeat tracking columns.
+
+    Args:
+        engine: SQLAlchemy Engine instance for the target database.
     """
     inspector = inspect(engine)
     if "rebuild_jobs" not in inspector.get_table_names():

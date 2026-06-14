@@ -11,13 +11,7 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.data.repository import AssetGraphRepository
-from src.models.financial_models import (
-    AssetClass,
-    Bond,
-    Equity,
-    RegulatoryActivity,
-    RegulatoryEvent,
-)
+from src.models.financial_models import AssetClass, Bond, Equity, RegulatoryActivity, RegulatoryEvent
 
 pytest.importorskip("sqlalchemy")
 
@@ -142,9 +136,11 @@ def test_rebuild_job_crud_flow_with_migration_schema(db_session: Session) -> Non
     repo = AssetGraphRepository(db_session)
 
     job_id = repo.create_rebuild_job(requested_by="operator", source="sample")
-    repo.mark_rebuild_job_running(job_id)
+    execution_id = "test-exec-id"
+    repo.mark_rebuild_job_running(job_id, execution_id)
     repo.mark_rebuild_job_succeeded(
         job_id,
+        execution_id=execution_id,
         node_count=5,
         edge_count=8,
         duration_ms=123,

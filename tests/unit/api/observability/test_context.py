@@ -1,6 +1,6 @@
 """Unit tests for context propagation."""
 
-from api.observability.context import (
+from src.observability.context import (
     get_correlation_id,
     get_request_context,
     get_request_id,

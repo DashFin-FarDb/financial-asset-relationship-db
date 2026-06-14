@@ -11,10 +11,10 @@ import contextlib
 import logging
 import threading
 import time
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generator
+from typing import TYPE_CHECKING, Any
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
@@ -153,48 +153,6 @@ def mock_settings(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None
     get_settings.cache_clear()
 
 
-@pytest.fixture
-def non_operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
-    """Client authenticated as a standard, non-operator active user."""
-    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
-
-    app = create_app()
-
-    def active_user() -> User:
-        """Return a mock standard active user."""
-        return User(username="standard_analyst", disabled=False)
-
-    app.dependency_overrides[get_current_active_user] = active_user
-
-    try:
-        with TestClient(app) as client:
-            yield client
-    finally:
-        app.dependency_overrides.clear()
-        get_settings.cache_clear()
-
-
-@pytest.fixture
-def operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
-    """Client authenticated as the authorized operator user."""
-    from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
-
-    app = create_app()
-
-    def active_operator() -> User:
-        """Return a mock authorized operator user."""
-        return User(username="admin", disabled=False)
-
-    app.dependency_overrides[get_current_active_user] = active_operator
-
-    try:
-        with TestClient(app) as client:
-            yield client
-    finally:
-        app.dependency_overrides.clear()
-        get_settings.cache_clear()
-
-
 async def test_app_construction_with_graph_admin_router_succeeds() -> None:
     """The graph admin router must not introduce an app construction import cycle."""
     from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
@@ -241,9 +199,11 @@ def test_rebuild_allows_active_authorized_operator_user(
         _settings: graph_admin.GraphLifecycleSettings,
         *,
         user_ref: str,
+        execution_id: str,
     ) -> graph_admin.GraphRebuildResponse:
         """Return a mock successful GraphRebuildResponse."""
         _ = user_ref
+        _ = execution_id
         return graph_admin.GraphRebuildResponse(
             status="persisted",
             source="sample",
@@ -282,8 +242,11 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
         _settings: graph_admin.GraphLifecycleSettings,
         *,
         user_ref: str,
+        execution_id: str,
     ) -> graph_admin.GraphRebuildResponse:
+        """Fake rebuild implementation that raises a lock acquisition error."""
         _ = user_ref
+        _ = execution_id
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", fake_rebuild)
@@ -299,7 +262,7 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
     assert response.status_code == 429
     assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
 
-    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    audit_records = [record for record in caplog.records if getattr(record, "event", "").startswith("graph_rebuild_")]
     rejected_records = [
         record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_rejected"
     ]
@@ -356,7 +319,7 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
     assert exc_info.value.status_code == 429
     assert exc_info.value.detail == "A graph rebuild is already in progress. Please try again later."
 
-    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    audit_records = [record for record in caplog.records if getattr(record, "event", "").startswith("graph_rebuild_")]
     requested_records = [
         record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_requested"
     ]
@@ -366,28 +329,26 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
 
     assert len(requested_records) == 1
     assert len(rejected_records) == 1
-    assert requested_records[0].user_ref == "admin"
-    assert requested_records[0].path == "/api/graph/rebuild"
-    assert rejected_records[0].reason == "rebuild_in_progress"
-    assert rejected_records[0].status_code == 429
+    assert getattr(requested_records[0], "metadata", None)["user_ref"] == "admin"
+    assert getattr(requested_records[0], "metadata", None)["path"] == "/api/graph/rebuild"
+    assert getattr(rejected_records[0], "metadata", None)["reason"] == "rebuild_in_progress"
+    assert getattr(rejected_records[0], "metadata", None)["status_code"] == 429
 
 
 async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_executor_raises_directly(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Direct contention exceptions should not leave runtime lifecycle in FAILED."""
+    """Verify lock contention maps to HTTP 429 when executor raises error directly.
 
-    async def fake_executor(
-        _loop: asyncio.AbstractEventLoop,
-        _settings: graph_admin.GraphLifecycleSettings,
-        *,
-        user_ref: str,
-        started_at: float,
-        tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
-    ) -> graph_admin.GraphRebuildResponse:
+    Verifies that when the rebuild executor raises a distributed-lock acquisition error directly,
+    the request maps to HTTP 429 and the runtime lifecycle remains READY.
+    """
+
+    async def _fake_executor_acquisition_error(*_args, **_kwargs):
+        """Fake executor that raises a lock acquisition error."""
         raise graph_admin._DistributedLockAcquisitionError("busy")  # pylint: disable=protected-access
 
-    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", _fake_executor_acquisition_error)
     try:
         with pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="admin", disabled=False))
@@ -408,17 +369,11 @@ async def test_rebuild_lock_lost_maps_to_503_when_executor_raises_directly(
     if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
         graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
-    async def fake_executor(
-        _loop: asyncio.AbstractEventLoop,
-        _settings: graph_admin.GraphLifecycleSettings,
-        *,
-        user_ref: str,
-        started_at: float,
-        tracking_state: dict[str, bool],  # <-- ADD THIS PARAMETER
-    ) -> graph_admin.GraphRebuildResponse:
+    async def _fake_executor_lock_lost_error(*_args, **_kwargs):
+        """Fake executor that raises a lock lost error."""
         raise graph_admin._DistributedLockLostError("lost")  # pylint: disable=protected-access
 
-    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", fake_executor)
+    monkeypatch.setattr(graph_admin, "_run_rebuild_in_executor", _fake_executor_lock_lost_error)
 
     try:
         with pytest.raises(HTTPException) as exc_info:
@@ -478,6 +433,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     original_log = graph_admin._log_rebuild_succeeded  # noqa: F841
 
     def track_log(*args, **kwargs):
+        """Wrap the log execution to track when a success log event is emitted."""
         try:
             return original_log(*args, **kwargs)
         finally:
@@ -486,6 +442,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
     monkeypatch.setattr(graph_admin, "_log_rebuild_succeeded", track_log)
 
     def coordinated_sync_rebuild(*_args, **_kwargs):
+        """Coordinated rebuild that waits for a signal before proceeding."""
         thread_reached.set()
         proceed_thread.wait(timeout=5.0)
         return graph_admin.GraphRebuildResponse(
@@ -525,7 +482,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)
         reset_graph()
 
-    audit_records = [record for record in caplog.records if record.getMessage() == "graph_rebuild_audit"]
+    audit_records = [record for record in caplog.records if getattr(record, "event", "").startswith("graph_rebuild_")]
     succeeded_records = [
         record for record in audit_records if getattr(record, "event", None) == "graph_rebuild_succeeded"
     ]
@@ -533,8 +490,8 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
     assert len(succeeded_records) == 1
     assert len(failed_records) == 0
-    assert succeeded_records[0].user_ref == "admin"
-    assert succeeded_records[0].status_code == 200
+    assert getattr(succeeded_records[0], "metadata", None)["user_ref"] == "admin"
+    assert getattr(succeeded_records[0], "metadata", None)["status_code"] == 200
 
 
 async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
@@ -544,6 +501,7 @@ async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
     """A raw programming error must emit an unexpected sentinel and exactly one audit log."""
 
     async def fake_executor_bug(*args, **kwargs):
+        """Fake executor that simulates a programming bug."""
         # Simulate a programming bug (e.g. referencing a missing attribute)
         raise AttributeError("NoneType object has no attribute 'assets'")
 
@@ -556,16 +514,16 @@ async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
         assert exc_info.value.status_code == 500
 
         # Verify the explicit sentinel alert log was captured
-        sentinel_logs = [r for r in caplog.records if r.getMessage() == "graph_rebuild_unexpected_exception"]
+        sentinel_logs = [r for r in caplog.records if getattr(r, "event", None) == "graph_rebuild_unexpected_exception"]
         assert len(sentinel_logs) == 1
         assert sentinel_logs[0].levelname == "CRITICAL"
-        assert sentinel_logs[0].__dict__.get("exception_type") == "AttributeError"
+        assert getattr(sentinel_logs[0], "metadata", None)["exception_type"] == "AttributeError"
 
         # Verify exactly one failure audit event log was broadcast
-        audit_logs = [r for r in caplog.records if r.getMessage() == "graph_rebuild_audit"]
-        failed_audits = [r for r in audit_logs if r.__dict__.get("event") == "graph_rebuild_failed"]
+        audit_logs = [r for r in caplog.records if getattr(r, "event", "").startswith("graph_rebuild_")]
+        failed_audits = [r for r in audit_logs if getattr(r, "event", None) == "graph_rebuild_failed"]
         assert len(failed_audits) == 1
-        assert failed_audits[0].__dict__.get("failure_category") == "unexpected_error"
+        assert getattr(failed_audits[0], "metadata", None)["failure_category"] == "unexpected_error"
 
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
@@ -639,9 +597,11 @@ def test_get_rebuild_job_succeeds_for_operator(
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = _create_rebuild_jobs(repo, 1, numbered_sources=False)[0]
-            repo.mark_rebuild_job_running(job_id)
+            execution_id = "test-exec-id"
+            repo.mark_rebuild_job_running(job_id, execution_id)
             repo.mark_rebuild_job_succeeded(
                 job_id,
+                execution_id=execution_id,
                 node_count=100,
                 edge_count=250,
                 duration_ms=5000,
@@ -679,9 +639,11 @@ def test_get_rebuild_job_exposes_sanitized_failure_fields(
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job_id = _create_rebuild_jobs(repo, 1, numbered_sources=False)[0]
-            repo.mark_rebuild_job_running(job_id)
+            execution_id = "test-exec-id"
+            repo.mark_rebuild_job_running(job_id, execution_id)
             repo.mark_rebuild_job_failed(
                 job_id,
+                execution_id=execution_id,
                 failure_category="database_error",
                 failure_message="Connection timeout",
                 duration_ms=2000,

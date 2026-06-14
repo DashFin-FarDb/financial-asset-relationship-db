@@ -6,12 +6,7 @@ from sqlalchemy import create_engine  # pylint: disable=import-error
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (
-    AssetClass,
-    Equity,
-    RegulatoryActivity,
-    RegulatoryEvent,
-)
+from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
 
 pytestmark = pytest.mark.unit
 
