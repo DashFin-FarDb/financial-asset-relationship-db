@@ -11,6 +11,8 @@ from sqlalchemy.orm import sessionmaker
 from src.data.db_models import Base, RebuildJobStatus
 from src.data.repository import AssetGraphRepository, RebuildCancellationRequestedError
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def repo(tmp_path: Path) -> Generator[AssetGraphRepository, None, None]:

@@ -1573,29 +1573,45 @@ class AssetGraphRepository:
         if job is None:
             raise ValueError(f"Rebuild job {job_id} not found")
 
-        if job.status != RebuildJobStatus.RUNNING:
-            if job.status == RebuildJobStatus.CANCEL_REQUESTED:
-                raise RebuildCancellationRequestedError(
-                    f"Heartbeat update failed for job {job_id}: cancellation has been requested"
-                )
+        # 1. Check for cancellation/terminal states
+        self._raise_for_invalid_heartbeat_status(job)
 
-            current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
-            raise ValueError(
-                f"Cannot update heartbeat for job {job_id}: job status changed to {current_status} "
-                "(job is no longer running)"
+        # 2. Check for identity/ownership conflicts
+        self._raise_for_heartbeat_identity_conflict(job, execution_id, worker_id)
+
+        # Fallback if somehow called incorrectly
+        raise ValueError(f"Heartbeat update failed for job {job_id} for unknown reason")
+
+    def _raise_for_invalid_heartbeat_status(self, job: RebuildJobORM) -> None:
+        """Raise appropriate error if job status prevents heartbeat."""
+        if job.status == RebuildJobStatus.RUNNING:
+            return
+
+        if job.status == RebuildJobStatus.CANCEL_REQUESTED:
+            raise RebuildCancellationRequestedError(
+                f"Heartbeat update failed for job {job.job_id}: cancellation has been requested"
             )
 
+        current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
+        raise ValueError(
+            f"Cannot update heartbeat for job {job.job_id}: job status changed to {current_status} "
+            "(job is no longer running)"
+        )
+
+    def _raise_for_heartbeat_identity_conflict(self, job: RebuildJobORM, execution_id: str, worker_id: str) -> None:
+        """Raise appropriate error for execution or worker identity mismatch."""
         if job.execution_id != execution_id:
             raise ValueError(
-                f"Heartbeat update failed for job {job_id}: execution identity mismatch "
+                f"Heartbeat update failed for job {job.job_id}: execution identity mismatch "
                 f"(current: {job.execution_id}, expected: {execution_id})"
             )
 
-        current_owner = job.active_worker_id
-        raise ValueError(
-            f"Cannot update heartbeat for job {job_id}: active worker is {current_owner}, not {worker_id}. "
-            "Worker ownership has already been claimed."
-        )
+        if job.active_worker_id != worker_id:
+            current_owner = job.active_worker_id
+            raise ValueError(
+                f"Cannot update heartbeat for job {job.job_id}: active worker is {current_owner}, not {worker_id}. "
+                "Worker ownership has already been claimed."
+            )
 
     def update_rebuild_checkpoint(self, job_id: str, execution_id: str, data: str | None) -> None:
         """

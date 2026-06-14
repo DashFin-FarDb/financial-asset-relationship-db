@@ -85,7 +85,7 @@ def test_cancel_rebuild_invalid_status(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ):
-    """POST /cancel must return 400 for already finished jobs."""
+    """POST /cancel must return 409 for already finished jobs."""
     with _rebuild_jobs_db_context(tmp_path, monkeypatch) as session_factory:
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
@@ -94,7 +94,7 @@ def test_cancel_rebuild_invalid_status(
             repo.mark_rebuild_job_succeeded(job_id, execution_id="exec-1", node_count=1, edge_count=1, duration_ms=1)
 
         response = operator_client.post(f"/api/graph/rebuild/jobs/{job_id}/cancel")
-        assert response.status_code == 400
+        assert response.status_code == 409
         assert "Cannot transition" in response.json()["detail"]
 
 

@@ -27,6 +27,12 @@ from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
+
+
+class FetchCancelledError(RebuildCancelledError):
+    """Raised when data fetching is aborted via a cancellation signal."""
+
+
 _YFINANCE_MODULE = None
 _FETCHED_ASSET_LOG_MESSAGE = "Fetched %s: %s at $%.2f"
 
@@ -281,7 +287,7 @@ class RealDataFetcher:
             )
             return graph, "real_data"
 
-        except RebuildCancelledError:
+        except FetchCancelledError:
             raise
         except Exception as exc:
             log_event(
@@ -334,7 +340,7 @@ class RealDataFetcher:
 
         try:
             return self._perform_live_raw_fetch(cancel_event)
-        except RebuildCancelledError:
+        except FetchCancelledError:
             raise
         except Exception as exc:
             log_event(
@@ -375,7 +381,7 @@ class RealDataFetcher:
     def _check_cancelled(self, cancel_event: threading.Event | None, stage: str) -> None:
         """Raise RebuildCancelledError if the cancel_event is set."""
         if cancel_event and cancel_event.is_set():
-            raise RebuildCancelledError(f"Fetch cancelled {stage}")
+            raise FetchCancelledError(f"Fetch cancelled {stage}")
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
         """
@@ -517,7 +523,7 @@ class RealDataFetcher:
 
         for symbol, (name, sector) in equity_symbols.items():
             if cancel_event and cancel_event.is_set():
-                raise RebuildCancelledError("Fetch cancelled during equities")
+                raise FetchCancelledError("Fetch cancelled during equities")
 
             try:
                 current_price, ticker = RealDataFetcher._fetch_history_close(yf, symbol)
@@ -597,7 +603,7 @@ class RealDataFetcher:
 
         for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
             if cancel_event and cancel_event.is_set():
-                raise RebuildCancelledError("Fetch cancelled during bonds")
+                raise FetchCancelledError("Fetch cancelled during bonds")
 
             try:
                 current_price, ticker = RealDataFetcher._fetch_history_close(yf, symbol)
@@ -666,7 +672,7 @@ class RealDataFetcher:
 
         for symbol, (name, sector, contract_size, volatility) in commodity_symbols.items():
             if cancel_event and cancel_event.is_set():
-                raise RebuildCancelledError("Fetch cancelled during commodities")
+                raise FetchCancelledError("Fetch cancelled during commodities")
 
             try:
                 current_price, _ticker = RealDataFetcher._fetch_history_close(yf, symbol)
@@ -734,7 +740,7 @@ class RealDataFetcher:
 
         for symbol, (name, country, currency_code) in currency_symbols.items():
             if cancel_event and cancel_event.is_set():
-                raise RebuildCancelledError("Fetch cancelled during currencies")
+                raise FetchCancelledError("Fetch cancelled during currencies")
 
             try:
                 current_rate, _ticker = RealDataFetcher._fetch_history_close(yf, symbol)

@@ -351,18 +351,26 @@ class ReconciliationEngine:
 
         self._process_assets(assets, graph, skipped_ids, on_checkpoint, cancel_event)
 
-        self._check_cancellation(cancel_event)
+        self._check_cancellation(cancel_event, "regulatory event preparation")
         self._process_regulatory_events(regulatory_events, graph, cancel_event)
-        self._check_cancellation(cancel_event)
+        self._check_cancellation(cancel_event, "relationship building preparation")
 
         graph.build_relationships()
 
         self._log_rebuild_completion(graph)
         return graph
 
-    def _check_cancellation(self, cancel_event: threading.Event | None) -> None:
+    def _check_cancellation(self, cancel_event: threading.Event | None, stage: str = "processing") -> None:
         """Raise RebuildCancelledError if the cancel_event is set."""
         if cancel_event and cancel_event.is_set():
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="reconciliation_rebuild_cancelled",
+                    message=f"Rebuild cancelled via signal during {stage}",
+                ),
+            )
             raise RebuildCancelledError(_REBUILD_CANCELLED_MSG)
 
     def _get_skipped_ids(self, initial_checkpoint: dict[str, Any] | None) -> set[str]:
@@ -393,16 +401,7 @@ class ReconciliationEngine:
         """Add assets to the graph and invoke checkpoints."""
         processed_count = 0
         for asset in assets:
-            if cancel_event and cancel_event.is_set():
-                log_event(
-                    logger,
-                    logging.INFO,
-                    ObservabilityEvent(
-                        event="reconciliation_rebuild_cancelled",
-                        message="Rebuild cancelled via signal during asset processing",
-                    ),
-                )
-                raise RebuildCancelledError(_REBUILD_CANCELLED_MSG)
+            self._check_cancellation(cancel_event, "asset processing")
 
             graph.add_asset(asset)
             if asset.id in skipped_ids:
@@ -419,6 +418,9 @@ class ReconciliationEngine:
                         "processed_count": len(graph.assets),
                     }
                 )
+
+        # Final checkpoint check
+        self._check_cancellation(cancel_event, "asset processing completion")
 
         # Final checkpoint after all assets added
         if on_checkpoint and processed_count > 0:
@@ -437,7 +439,7 @@ class ReconciliationEngine:
     ) -> None:
         """Add regulatory events to the graph."""
         for event in regulatory_events:
-            self._check_cancellation(cancel_event)
+            self._check_cancellation(cancel_event, "regulatory event processing")
             graph.add_regulatory_event(event)
 
     def _log_rebuild_completion(self, graph: AssetRelationshipGraph) -> None:
