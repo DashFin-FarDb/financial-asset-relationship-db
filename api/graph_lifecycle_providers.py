@@ -230,6 +230,7 @@ def build_rebuild_graph(
                 """Minimal stub satisfying ReconciliationEngine's evaluator protocol."""
 
                 def evaluate_drift(self) -> tuple[str, Severity, dict[str, Any]]:
+                    """Return a no-op drift result."""
                     return "none", Severity.NONE, {}
 
             engine = ReconciliationEngine(_NoOpEvaluator())

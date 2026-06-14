@@ -11,7 +11,10 @@ from src.models.financial_models import Asset, AssetClass
 
 
 class _NoOpEvaluator:
+    """Minimal stub satisfying ReconciliationEngine's evaluator protocol."""
+
     def evaluate_drift(self) -> tuple[str, Severity, dict[str, Any]]:
+        """Return a no-op drift result."""
         return "none", Severity.NONE, {}
 
 
@@ -60,6 +63,7 @@ def test_run_rebuild_aborts_mid_loop():
 
     # Helper to set cancel event after some assets processed via checkpoint callback
     def on_checkpoint(data: dict[str, Any]) -> None:
+        """Trigger cancellation after 50 assets."""
         if data["processed_count"] >= 50:
             cancel_event.set()
 
@@ -92,6 +96,7 @@ def test_run_rebuild_aborts_at_final_checkpoint():
 
     # Helper to set cancel event exactly when final checkpoint is called
     def on_checkpoint(data: dict[str, Any]) -> None:
+        """Trigger cancellation at final checkpoint."""
         if data["processed_count"] == 10:
             cancel_event.set()
 
@@ -138,7 +143,10 @@ def test_run_rebuild_aborts_during_regulatory_events():
     from src.logic.asset_graph import AssetRelationshipGraph
 
     class CancellingGraph(AssetRelationshipGraph):
+        """Mock graph that triggers cancellation during event addition."""
+
         def add_regulatory_event(self, event):
+            """Set cancel event when a specific event ID is encountered."""
             if event.id == "event-5":
                 cancel_event.set()
             super().add_regulatory_event(event)

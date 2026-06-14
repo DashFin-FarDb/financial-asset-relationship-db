@@ -4,6 +4,7 @@
 
 import threading
 import time
+from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +18,7 @@ from tests.integration.test_graph_admin_router import _rebuild_jobs_db_context
 
 
 @pytest.fixture
-def operator_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> TestClient:
+def operator_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Generator[TestClient, None, None]:
     """Client authenticated as the authorized operator user."""
     # Prevent starlette from reading .env which causes PermissionError in this environment
     monkeypatch.setattr("starlette.config.Config._read_file", lambda self, f, e: {})
@@ -37,6 +38,7 @@ def operator_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> TestClie
     from api.auth import User, get_current_active_user
 
     def active_user() -> User:
+        """Provide a mock active admin user."""
         return User(username="admin", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
@@ -66,6 +68,7 @@ def test_cancel_rebuild_happy_path(
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job = repo.get_rebuild_job(job_id)
+            assert job is not None
             assert job.status == RebuildJobStatus.CANCEL_REQUESTED
             assert job.cancellation_requested_at is not None
 
@@ -111,7 +114,10 @@ def test_heartbeat_keeper_detects_cancellation(
 
         # Mock DistributedLock
         class MockLock:
+            """Simple stub for DistributedLock."""
+
             def refresh(self):
+                """Return True for lock refresh."""
                 return True
 
         stop_event = threading.Event()
