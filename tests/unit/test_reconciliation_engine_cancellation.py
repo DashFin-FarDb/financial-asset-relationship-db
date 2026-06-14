@@ -143,10 +143,12 @@ def test_run_rebuild_aborts_during_regulatory_events():
                 cancel_event.set()
             super().add_regulatory_event(event)
 
-    with patch("src.logic.asset_graph.AssetRelationshipGraph", side_effect=CancellingGraph):
-        with pytest.raises(RebuildCancelledError, match="Rebuild cancelled via API request"):
-            engine.run_rebuild(
-                assets=assets,
-                regulatory_events=events,
-                cancel_event=cancel_event,
-            )
+    with (
+        patch("src.logic.asset_graph.AssetRelationshipGraph", side_effect=CancellingGraph),
+        pytest.raises(RebuildCancelledError, match="Rebuild cancelled via API request"),
+    ):
+        engine.run_rebuild(
+            assets=assets,
+            regulatory_events=events,
+            cancel_event=cancel_event,
+        )
