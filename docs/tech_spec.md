@@ -12326,3 +12326,122 @@ This index maps key topics to their primary documentation locations within this 
 | OpenAPI 3.x | API documentation specification               |
 | OAuth2      | Bearer token authentication scheme            |
 | RFC 7519    | JSON Web Token standard                       |
+
+---
+
+# 14. Rebuild Control Plane & Cancellation Integrity
+
+This section defines the architecture, execution rules, lifecycle state machine, database schemas, and verification constraints for the Rebuild Control Plane. The control plane manages graph rebuild operations asynchronously, ensuring execution identity, checkpointed recovery, and cooperative cancellation under heavy loads.
+
+> [!IMPORTANT]
+> This control plane operates strictly within the **Production Architecture** (FastAPI backend in `api/` + Next.js frontend in `frontend/`). The legacy/non-production Gradio UI (`app.py`) does not orchestrate or participate in this control plane.
+
+## 14.1 Rebuild Job Lifecycle State Machine
+
+A rebuild job transitions through the following states: `PENDING` -> `RUNNING` -> `SUCCEEDED` / `FAILED` / `CANCEL_REQUESTED` -> `CANCELLED`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING : Job Created via REST API
+    PENDING --> RUNNING : mark_rebuild_job_running()
+    PENDING --> FAILED : mark_rebuild_job_failed() (Pre-start error)
+
+    RUNNING --> SUCCEEDED : mark_rebuild_job_succeeded() (Completed successfully)
+    RUNNING --> FAILED : mark_rebuild_job_failed() (Execution error/lock lost)
+    RUNNING --> CANCEL_REQUESTED : mark_rebuild_job_cancel_requested() (Operator cancellation)
+
+    CANCEL_REQUESTED --> CANCELLED : mark_rebuild_job_cancelled() (Cooperative cleanup complete)
+    CANCEL_REQUESTED --> FAILED : mark_rebuild_job_failed() (Error during cancellation)
+```
+
+### 14.1.1 State Transition Matrix and Validation Rules
+1. **PENDING**: Initial state when a rebuild job is created via `/api/graph/rebuild`.
+2. **RUNNING**: Transited when a worker thread claims the job and provides a unique UUID `execution_id`. Only valid from `PENDING`.
+3. **CANCEL_REQUESTED**: Transited when an operator requests cancellation via `/api/graph/rebuild/jobs/{job_id}/cancel`. Only valid from `RUNNING`.
+4. **CANCELLED**: Transited once the active worker detects the `CANCEL_REQUESTED` state (via the heartbeat keeper setting the `cancel_event` flag) and safely halts all active processes.
+5. **FAILED**: Terminal state when an unhandled exception or lock loss occurs.
+6. **SUCCEEDED**: Terminal state when graph rebuild and persistent synchronization completes successfully.
+
+---
+
+## 14.2 Relational Database Schemas
+
+The rebuild control plane relies on two key tables in the database schema: `rebuild_jobs` and `distributed_locks`.
+
+### 14.2.1 Rebuild Jobs Table Schema (`rebuild_jobs`)
+
+Tracks the state, identity, telemetry, and progress checkpoints of rebuild operations.
+
+```sql
+CREATE TABLE IF NOT EXISTS rebuild_jobs (
+    job_id TEXT PRIMARY KEY,
+    requested_by TEXT NOT NULL,
+    status TEXT NOT NULL,
+    source TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
+    duration_ms INTEGER,
+    node_count INTEGER,
+    edge_count INTEGER,
+    sanitized_failure_category TEXT,
+    sanitized_failure_message TEXT,
+    active_worker_id TEXT,
+    last_heartbeat_at TEXT,
+    execution_id TEXT,
+    checkpoint_data TEXT,
+    cancellation_requested_at TEXT,
+    CONSTRAINT ck_rebuild_jobs_status
+        CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
+);
+
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at
+    ON rebuild_jobs (created_at);
+
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
+    ON rebuild_jobs (status, created_at);
+```
+
+### 14.2.2 Distributed Locks Table Schema (`distributed_locks`)
+
+Prevents concurrent execution of rebuild operations across instances.
+
+```sql
+CREATE TABLE IF NOT EXISTS distributed_locks (
+    lock_name TEXT PRIMARY KEY,
+    holder_id TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+```
+
+---
+
+## 14.3 Stage 5C Architectural Constraints
+
+To guarantee transaction safety, recovery from worker crashes, and responsive cancellation, the system enforces three strict architectural constraints:
+
+### 14.3.1 Execution Identity (Strict UUID Validation)
+
+To prevent "zombie" or slow-running executors from writing stale data or updating the state of a job that has been retried or reassigned:
+* Every job execution is assigned a unique UUID `execution_id` upon transitioning to `RUNNING`.
+* All database mutations affecting the job record (e.g., updating checkpoint data, marking as running, succeeded, or failed) must execute an atomic conditional update verifying that the `execution_id` in the database matches the worker's current `execution_id`.
+* If a mismatch is detected, the database query returns a row count of `0`, and a `ValueError` with an "Execution identity mismatch" message is raised, immediately terminating the worker's path.
+
+### 14.3.2 Checkpointed Recovery
+
+To minimize redundant operations and allow resumes after failure or cancellation:
+* The `checkpoint_data` text column stores a serialized JSON representation of the current rebuild progress (e.g., lists of processed asset tickers, pages fetched).
+* During the rebuild process, the worker periodically saves intermediate states via the `update_rebuild_checkpoint()` repository method.
+* When a new rebuild job is initiated, the system checks if a checkpoint exists for the target job; if found, it deserializes the state to resume asset processing from the last recorded checkpoint rather than starting from scratch.
+
+### 14.3.3 Cooperative Cancellation Mechanics
+
+Rebuild cancellation is designed as a cooperative process between the FastAPI HTTP request handler, the background heartbeat keeper thread, and the main rebuild execution loop:
+1. **Trigger**: The operator sends a `POST` request to `/api/graph/rebuild/jobs/{job_id}/cancel`. The API transitions the job status to `CANCEL_REQUESTED` and sets the `cancellation_requested_at` timestamp.
+2. **Heartbeat Monitoring**: The background `_heartbeat_keeper` thread polls the job status at regular intervals (`lock_ttl // 3`).
+3. **Detection & Event Signaling**: When the `_heartbeat_keeper` retrieves the job status and detects it is `CANCEL_REQUESTED`, it logs the event, sets a thread-shared `cancel_event` (a `threading.Event` object), and terminates.
+4. **Execution Loop Halting**: The active rebuild execution loop periodically monitors the `cancel_event` flag (at key boundaries like starting a new chunk of assets or saving checkpoints).
+5. **Termination**: If `cancel_event` is set, the executor halts processing, raises a `RebuildCancelledError`, and the coordinator transitions the job to `CANCELLED` using the correct `execution_id`.

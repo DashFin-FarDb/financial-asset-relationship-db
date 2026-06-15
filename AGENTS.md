@@ -250,6 +250,12 @@ python scripts/check_hosted_readiness.py <base_url> --timeout 10
 - See `docs/reconciliation-discovery-map.md` for the mapping between the
   pre-existing implicit reconciliation primitives and the formal engine.
 
+### Stage 5C Safety Constraints
+
+When modifying or implementing rebuild jobs and processing loops, the following constraints must be strictly adhered to:
+- **State Mutations:** Any state mutation on rebuild jobs must validate the current `execution_id` to ensure execution safety and avoid stale mutations.
+- **Cancellation Check:** Any new or modified processing loop must periodically check the `cancel_event` (such as `threading.Event` or equivalent) and raise `RebuildCancelledError` if it is set.
+
 ### Relationship graph engine
 
 - `src/logic/asset_graph.py`
