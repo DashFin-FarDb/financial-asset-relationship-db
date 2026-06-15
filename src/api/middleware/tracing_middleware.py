@@ -8,8 +8,8 @@ Use the same pattern in your production middleware to ensure request and trace c
 set and reset reliably across async boundaries.
 """
 
-from uuid import uuid4
 from typing import Callable
+from uuid import uuid4
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
