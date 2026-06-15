@@ -12326,3 +12326,176 @@ This index maps key topics to their primary documentation locations within this 
 | OpenAPI 3.x | API documentation specification               |
 | OAuth2      | Bearer token authentication scheme            |
 | RFC 7519    | JSON Web Token standard                       |
+
+---
+
+# 14. Rebuild Control Plane & Cancellation Integrity
+
+This section defines the architecture, execution rules, lifecycle state machine, database schemas, and verification constraints for the Rebuild Control Plane. The control plane manages graph rebuild operations asynchronously, ensuring execution identity, checkpointed recovery, and cooperative cancellation under heavy loads.
+
+> [!IMPORTANT]
+> This control plane operates strictly within the **Production Architecture** (FastAPI backend in `api/` + Next.js frontend in `frontend/`). The legacy/non-production Gradio UI (`app.py`) does not orchestrate or participate in this control plane.
+
+## 14.1 Rebuild Job Lifecycle State Machine
+
+A rebuild job transitions through the following states: `PENDING` -> `RUNNING` -> `SUCCEEDED` / `FAILED` / `CANCEL_REQUESTED` -> `CANCELLED`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING : start_rebuild()
+    PENDING --> RUNNING : mark_rebuild_job_running()
+    PENDING --> FAILED : mark_rebuild_job_failed() (Init error)
+    PENDING --> CANCEL_REQUESTED : mark_rebuild_job_cancel_requested() (Operator cancellation)
+
+    RUNNING --> SUCCEEDED : mark_rebuild_job_succeeded() (Success path)
+    RUNNING --> FAILED : mark_rebuild_job_failed() (Execution error/lock lost)
+    RUNNING --> CANCEL_REQUESTED : mark_rebuild_job_cancel_requested() (Operator cancellation)
+
+    CANCEL_REQUESTED --> CANCELLED : mark_rebuild_job_cancelled() (Cooperative cleanup complete)
+    CANCEL_REQUESTED --> FAILED : mark_rebuild_job_failed() (Error during cancellation)
+```
+
+### 14.1.1 State Transition Matrix and Validation Rules
+
+1. **PENDING**: Initial state when a rebuild job is created via `/api/graph/rebuild`.
+2. **RUNNING**: Transited when a worker thread claims the job and provides a unique UUID `execution_id`. Only valid from `PENDING`.
+3. **CANCEL_REQUESTED**: Transited when an operator requests cancellation via `/api/graph/rebuild/jobs/{job_id}/cancel`. Valid from both PENDING and RUNNING states.
+4. **CANCELLED**: Transited once the active worker detects the `CANCEL_REQUESTED` state (via the heartbeat keeper setting the `cancel_event` flag) and safely halts all active processes.
+5. **FAILED**: Terminal state when an unhandled exception or lock loss occurs.
+6. **SUCCEEDED**: Terminal state when graph rebuild and persistent synchronization completes successfully.
+
+---
+
+## 14.2 Relational Database Schemas
+
+The rebuild control plane relies on two key tables in the database schema: `rebuild_jobs` and `distributed_locks`.
+
+### 14.2.1 Rebuild Jobs Table Schema (`rebuild_jobs`)
+
+Tracks the state, identity, telemetry, and progress checkpoints of rebuild operations.
+
+This DDL is canonical — any change to rebuild_jobs schema must be made in migrations/ and reflected here; prefer editing migrations/ first, then update this documentation. See migrations/ and src/data/migrations.py for platform-specific (Postgres) adjustments.
+
+#### Rebuild job schema (canonical DDL)
+
+Canonical (SQLite) DDL — exact copy of migrations/001_initial.sql (relevant portion)
+
+```sql
+-- rebuild_jobs table (canonical SQLite DDL)
+CREATE TABLE IF NOT EXISTS rebuild_jobs (
+    job_id TEXT PRIMARY KEY,
+    requested_by TEXT NOT NULL,
+    status TEXT NOT NULL,
+    source TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
+    duration_ms INTEGER,
+    node_count INTEGER,
+    edge_count INTEGER,
+    sanitized_failure_category TEXT,
+    sanitized_failure_message TEXT,
+    active_worker_id TEXT,
+    last_heartbeat_at TEXT,
+    execution_id TEXT,
+    checkpoint_data TEXT,
+    cancellation_requested_at TEXT,
+    CONSTRAINT ck_rebuild_jobs_status
+        CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
+);
+
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at
+    ON rebuild_jobs (created_at);
+
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
+    ON rebuild_jobs (status, created_at);
+```
+
+Notes for PostgreSQL
+
+- Production/Postgres semantics differ in column types. The migration helper and PostgreSQL DDL use:
+  - `TIMESTAMPTZ` for timestamp columns (e.g., `last_heartbeat_at`, `cancellation_requested_at`)
+  - `VARCHAR(64)` for short identity columns (`execution_id`, `active_worker_id`)
+  - `TEXT` for `checkpoint_data`
+- The repository includes an idempotent startup helper that applies Postgres-compatible `ALTER TABLE` statements and enforces the status-check constraint; see:
+  - [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
+  - [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py) (`apply_postgresql_heartbeat_migration`)
+- Canonical Postgres column examples:
+
+```sql
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64);
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ;
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS execution_id VARCHAR(64);
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS checkpoint_data TEXT;
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS cancellation_requested_at TIMESTAMPTZ;
+ALTER TABLE rebuild_jobs DROP CONSTRAINT IF EXISTS ck_rebuild_jobs_status;
+ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'));
+```
+
+Links (point to the canonical files)
+
+- Migration (SQLite canonical): [migrations/001_initial.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/001_initial.sql)
+- Incremental migration: [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
+- Postgres migration helper and status-constraint update: [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py)
+- ORM canonical mapping: [src/data/db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py)
+
+### 14.2.2 Distributed Locks Table Schema (`distributed_locks`)
+
+Prevents concurrent execution of rebuild operations across instances.
+
+```sql
+CREATE TABLE IF NOT EXISTS distributed_locks (
+    lock_name TEXT PRIMARY KEY,
+    holder_id TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
+);
+
+_(Note: This schema represents the canonical mapping to the SQLAlchemy model defined in [db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py#L271-L280))._
+
+```
+
+---
+
+## 14.3 Stage 5C Architectural Constraints
+
+To guarantee transaction safety, recovery from worker crashes, and responsive cancellation, the system enforces three strict architectural constraints:
+
+### 14.3.1 Execution Identity (Strict UUID Validation)
+
+To prevent "zombie" or slow-running executors from writing stale data or updating the state of a job that has been retried or reassigned:
+
+- Every job execution is assigned a unique UUID `execution_id` upon transitioning to `RUNNING`.
+- Worker-owned database mutations affecting the job record (specifically checkpoint updates and terminal transitions to `SUCCEEDED` or `FAILED`) must execute an atomic conditional update verifying that the `execution_id` in the database matches the worker's current `execution_id`.
+- If a mismatch is detected, the database query returns a row count of `0`, and a `ValueError` with an "Execution identity mismatch" message is raised, immediately terminating the worker's path.
+- Operator-driven state transitions, such as requesting a cancellation via the `/cancel` endpoint that updates the status to `CANCEL_REQUESTED`, are explicitly exempt from the execution ID matching check to allow operators to request cancellations while workers are running.
+
+### 14.3.2 Checkpointed Recovery
+
+To minimize redundant operations and allow resumes after failure or cancellation:
+
+- The `checkpoint_data` text column stores a serialized JSON representation of the current rebuild progress (e.g., lists of processed asset tickers, pages fetched).
+- During the rebuild process, the worker periodically saves intermediate states via the `update_rebuild_checkpoint()` repository method.
+- Checkpoint resume applies specifically to retries or resumes utilizing the _same_ job ID (reusing the same job row), as the database stores `checkpoint_data` directly on the job row. A new job ID represents a completely fresh lineage and will not automatically load prior checkpoint records.
+
+### 14.3.3 Cooperative Cancellation Mechanics
+
+Rebuild cancellation is designed as a cooperative process between the FastAPI HTTP request handler, the background heartbeat keeper thread, and the main rebuild execution loop:
+
+1. **Trigger**: The operator sends a `POST` request to `/api/graph/rebuild/jobs/{job_id}/cancel`. The API transitions the job status to `CANCEL_REQUESTED` and sets the `cancellation_requested_at` timestamp.
+2. **Heartbeat Monitoring**: The background `_heartbeat_keeper` thread polls the job status at regular intervals computed as `max(lock_ttl // 3, 1)` (in seconds) to prevent division by zero or infinite loop issues if the lock TTL is configured too small.
+3. **Detection & Event Signaling**: When the `_heartbeat_keeper` retrieves the job status and detects it is `CANCEL_REQUESTED`, it logs the event, sets a thread-shared `cancel_event` (a `threading.Event` object), and terminates.
+4. **Execution Loop Halting**: The active rebuild execution loop periodically monitors the `cancel_event` flag (at key boundaries like starting a new chunk of assets or saving checkpoints).
+5. **Termination**: If `cancel_event` is set, the executor halts processing, raises a `RebuildCancelledError`, and the coordinator transitions the job to `CANCELLED` using the correct `execution_id`.
+
+### 14.3.4 Pre-Merge Verification and Local Validation
+
+To verify that the documentation remains in sync with the codebase prior to merging changes:
+
+1. **Format/Style Check**: Run the pre-commit hooks to ensure markdown formatting, linting, and other repo policies are met:
+   ```bash
+   git diff --cached --name-only | xargs pre-commit run --files
+   ```
+2. **Schema & DDL Sync Verification**: Confirm column order and timezone-safe data types match the migration definitions exactly by comparing this specification with the DDL in [migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py#L190-L212) and the ORM classes in [db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py#L251-L280). Run queries or schema diffs on local databases using tool comparisons to ensure parity.

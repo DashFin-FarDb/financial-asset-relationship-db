@@ -44,8 +44,9 @@ We implement a **heartbeat keeper thread** that periodically refreshes both the 
 On each interval, the heartbeat keeper:
 
 1. Refreshes the distributed lock TTL via `DistributedLock.refresh()`
-2. Updates the `RebuildJobORM.last_heartbeat_at` timestamp
-3. Records the worker ID in `RebuildJobORM.active_worker_id`
+2. Validates that the database record's `execution_id` matches the current job's `execution_id` to prevent stale updates from a superseded worker.
+3. Updates the `RebuildJobORM.last_heartbeat_at` timestamp
+4. Records the worker ID in `RebuildJobORM.active_worker_id`
 
 Both operations must succeed; failure of either signals the lock_lost event.
 
@@ -76,6 +77,14 @@ The main rebuild thread checks this event at critical checkpoints:
 - Before marking job as succeeded
 
 If lock_lost is set, the rebuild aborts with `_DistributedLockLostError`.
+
+#### 5. Cancellation Polling
+
+To support cooperative cancellation during long rebuild processes:
+
+- **Status Transition to `cancel_requested`**: When cancellation is requested via the API, the job's `status` column in the database transitions to `'cancel_requested'` (there is no boolean column).
+- **Heartbeat Update Failure**: The atomic heartbeat keeper update query filters on `status = 'running'`. When the status transitions to `'cancel_requested'`, the update query affects 0 rows, causing the heartbeat update to fail.
+- **Local Cancel Event Trigger**: The heartbeat keeper thread diagnoses this failure. Recognizing that the status is now `'cancel_requested'`, it raises `RebuildCancellationRequestedError`. Catching this exception sets the thread's local `cancel_event` (a `threading.Event` checked by the main execution thread) to trigger the cooperative abort sequence.
 
 ### Configuration
 
