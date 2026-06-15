@@ -23,15 +23,16 @@ The Financial Asset Relationship Database already contains sophisticated **impli
 
 **Drift Types Detected:**
 
-| Inconsistency Type | Description | Severity |
-|-------------------|-------------|----------|
-| `ORPHANED_RUNNING` | DB shows RUNNING, runtime has no executor | Critical/High |
-| `ZOMBIE_EXECUTOR` | Runtime has executor, DB shows not running | Critical |
-| `CRASH_SUSPICION` | RUNNING job with stale/missing heartbeat | High |
-| `STALE_OWNERSHIP` | RUNNING job with heartbeat older than TTL | Medium |
-| `NONE` | No inconsistency detected | None |
+| Inconsistency Type | Description                                | Severity      |
+| ------------------ | ------------------------------------------ | ------------- |
+| `ORPHANED_RUNNING` | DB shows RUNNING, runtime has no executor  | Critical/High |
+| `ZOMBIE_EXECUTOR`  | Runtime has executor, DB shows not running | Critical      |
+| `CRASH_SUSPICION`  | RUNNING job with stale/missing heartbeat   | High          |
+| `STALE_OWNERSHIP`  | RUNNING job with heartbeat older than TTL  | Medium        |
+| `NONE`             | No inconsistency detected                  | None          |
 
 **Key Functions:**
+
 - `detect_rebuild_inconsistency()` - Main entry point
 - `detect_orphaned_running_state()` - Runtime/DB divergence
 - `detect_crash_suspicion()` - Missing heartbeats
@@ -49,14 +50,15 @@ The Financial Asset Relationship Database already contains sophisticated **impli
 
 **Recovery Actions:**
 
-| Action | Meaning | When Applied |
-|--------|---------|--------------|
-| `RESUME` | Safe to proceed | No drift, valid lock |
-| `RESET` | Reset state before execution | Orphaned job, no lock |
-| `WAIT` | Wait for stabilization | Inconsistency with valid lock |
-| `UNSAFE` | Execution forbidden | Split-brain risk |
+| Action   | Meaning                      | When Applied                  |
+| -------- | ---------------------------- | ----------------------------- |
+| `RESUME` | Safe to proceed              | No drift, valid lock          |
+| `RESET`  | Reset state before execution | Orphaned job, no lock         |
+| `WAIT`   | Wait for stabilization       | Inconsistency with valid lock |
+| `UNSAFE` | Execution forbidden          | Split-brain risk              |
 
 **Key Function:**
+
 - `determine_recovery_action()` - Pure function mapping inconsistency + lock state → action
 
 **Implicit Reconciliation:** This is **plan generation** - deciding what corrective action is needed without executing it.
@@ -72,6 +74,7 @@ The Financial Asset Relationship Database already contains sophisticated **impli
 **Key Class:** `RecoveryGate`
 
 **Key Methods:**
+
 - `evaluate_state()` - Returns action without executing
 - `ensure_safe_to_execute()` - Enforces action (can auto-reset orphaned jobs)
 - `_perform_reset_recovery()` - Executes RESET action
@@ -172,6 +175,7 @@ The Financial Asset Relationship Database already contains sophisticated **impli
 ### 1. Reconciliation Already Exists
 
 The system **already performs reconciliation** - it just wasn't formalized as such:
+
 - Drift detection = comparing desired vs observed state
 - Recovery actions = corrective plans
 - RecoveryGate = partial execution layer
@@ -179,6 +183,7 @@ The system **already performs reconciliation** - it just wasn't formalized as su
 ### 2. Execution is Partially Automated
 
 Currently:
+
 - ✅ **RESET** can be auto-executed (orphaned job cleanup)
 - ❌ **WAIT** blocks execution (no retry logic)
 - ❌ **UNSAFE** blocks execution (no auto-recovery)
@@ -187,6 +192,7 @@ Currently:
 ### 3. Rebuild-Specific Implementation
 
 All existing reconciliation logic is **tightly coupled to rebuild jobs**:
+
 - Only knows about `RebuildJobORM` state
 - Only knows about distributed locks for rebuilds
 - Doesn't generalize to other subsystems (persistence, health, etc.)
@@ -194,6 +200,7 @@ All existing reconciliation logic is **tightly coupled to rebuild jobs**:
 ### 4. No Centralized Reconciliation Loop
 
 Reconciliation is **event-driven** rather than **periodic**:
+
 - Runs on startup
 - Runs on operator-triggered rebuild
 - No continuous background reconciliation loop
@@ -202,14 +209,14 @@ Reconciliation is **event-driven** rather than **periodic**:
 
 ## Gaps Addressed by Reconciliation Engine
 
-| Gap | Solution |
-|-----|----------|
-| Rebuild-specific drift detection | DriftEvaluator protocol allows multiple implementations |
-| Implicit recovery logic | ReconciliationEngine makes plans explicit |
-| Mixed concerns (detection + execution) | Separation: Engine generates plans, jobs execute them |
-| No extensibility | Protocol-based design allows new drift types |
-| No observability hooks | ReconciliationPlan includes metadata for tracking |
-| Partial execution automation | Clear execution_mode field (AUTOMATIC, DEFERRED, MANUAL) |
+| Gap                                    | Solution                                                 |
+| -------------------------------------- | -------------------------------------------------------- |
+| Rebuild-specific drift detection       | DriftEvaluator protocol allows multiple implementations  |
+| Implicit recovery logic                | ReconciliationEngine makes plans explicit                |
+| Mixed concerns (detection + execution) | Separation: Engine generates plans, jobs execute them    |
+| No extensibility                       | Protocol-based design allows new drift types             |
+| No observability hooks                 | ReconciliationPlan includes metadata for tracking        |
+| Partial execution automation           | Clear execution_mode field (AUTOMATIC, DEFERRED, MANUAL) |
 
 ---
 

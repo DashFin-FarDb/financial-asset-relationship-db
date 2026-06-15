@@ -54,9 +54,11 @@ With the system now capable of blocking execution (`RecoveryGate`), runbooks mus
 ## Resolved Risks History
 
 ### Risk: Undefined Checkpoint/Restart Strategy (Previously Risk 2)
+
 **Status:** Resolved
 A checkpoint/restart strategy has been defined and implemented, defining execution boundaries and enabling recovery mechanisms to successfully resume from known good states.
 
 ### Risk: Failure Taxonomy Review Needed (Previously Risk 6)
+
 **Status:** Resolved
 The failure taxonomy has been reviewed and expanded, providing clean differentiation between recoverable and terminal failures to support automation and recovery gating.

@@ -12355,6 +12355,7 @@ stateDiagram-v2
 ```
 
 ### 14.1.1 State Transition Matrix and Validation Rules
+
 1. **PENDING**: Initial state when a rebuild job is created via `/api/graph/rebuild`.
 2. **RUNNING**: Transited when a worker thread claims the job and provides a unique UUID `execution_id`. Only valid from `PENDING`.
 3. **CANCEL_REQUESTED**: Transited when an operator requests cancellation via `/api/graph/rebuild/jobs/{job_id}/cancel`. Only valid from `RUNNING`.
@@ -12426,20 +12427,23 @@ To guarantee transaction safety, recovery from worker crashes, and responsive ca
 ### 14.3.1 Execution Identity (Strict UUID Validation)
 
 To prevent "zombie" or slow-running executors from writing stale data or updating the state of a job that has been retried or reassigned:
-* Every job execution is assigned a unique UUID `execution_id` upon transitioning to `RUNNING`.
-* All database mutations affecting the job record (e.g., updating checkpoint data, marking as running, succeeded, or failed) must execute an atomic conditional update verifying that the `execution_id` in the database matches the worker's current `execution_id`.
-* If a mismatch is detected, the database query returns a row count of `0`, and a `ValueError` with an "Execution identity mismatch" message is raised, immediately terminating the worker's path.
+
+- Every job execution is assigned a unique UUID `execution_id` upon transitioning to `RUNNING`.
+- All database mutations affecting the job record (e.g., updating checkpoint data, marking as running, succeeded, or failed) must execute an atomic conditional update verifying that the `execution_id` in the database matches the worker's current `execution_id`.
+- If a mismatch is detected, the database query returns a row count of `0`, and a `ValueError` with an "Execution identity mismatch" message is raised, immediately terminating the worker's path.
 
 ### 14.3.2 Checkpointed Recovery
 
 To minimize redundant operations and allow resumes after failure or cancellation:
-* The `checkpoint_data` text column stores a serialized JSON representation of the current rebuild progress (e.g., lists of processed asset tickers, pages fetched).
-* During the rebuild process, the worker periodically saves intermediate states via the `update_rebuild_checkpoint()` repository method.
-* When a new rebuild job is initiated, the system checks if a checkpoint exists for the target job; if found, it deserializes the state to resume asset processing from the last recorded checkpoint rather than starting from scratch.
+
+- The `checkpoint_data` text column stores a serialized JSON representation of the current rebuild progress (e.g., lists of processed asset tickers, pages fetched).
+- During the rebuild process, the worker periodically saves intermediate states via the `update_rebuild_checkpoint()` repository method.
+- When a new rebuild job is initiated, the system checks if a checkpoint exists for the target job; if found, it deserializes the state to resume asset processing from the last recorded checkpoint rather than starting from scratch.
 
 ### 14.3.3 Cooperative Cancellation Mechanics
 
 Rebuild cancellation is designed as a cooperative process between the FastAPI HTTP request handler, the background heartbeat keeper thread, and the main rebuild execution loop:
+
 1. **Trigger**: The operator sends a `POST` request to `/api/graph/rebuild/jobs/{job_id}/cancel`. The API transitions the job status to `CANCEL_REQUESTED` and sets the `cancellation_requested_at` timestamp.
 2. **Heartbeat Monitoring**: The background `_heartbeat_keeper` thread polls the job status at regular intervals (`lock_ttl // 3`).
 3. **Detection & Event Signaling**: When the `_heartbeat_keeper` retrieves the job status and detects it is `CANCEL_REQUESTED`, it logs the event, sets a thread-shared `cancel_event` (a `threading.Event` object), and terminates.

@@ -26,15 +26,15 @@ its own (the evaluator owns those).
 
 All types are importable from `src.logic.reconciliation_engine` unless noted.
 
-| Symbol | Kind | Purpose |
-| --- | --- | --- |
-| `ActionType` | Enum | Corrective action: `NOOP`, `ALERT_ONLY`, `RESET_STATE`, `WAIT_FOR_CONVERGENCE`. |
-| `Severity` | Enum | Drift severity: `NONE`, `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`. |
-| `ExecutionMode` | Enum | When the plan may be applied: `IMMEDIATE`, `DEFERRED`, `MANUAL`, `AUTOMATIC`. |
-| `ExecutionSafety` | Enum | Machine-readable safety intent (see table below). |
-| `ReconciliationPlan` | Frozen dataclass | Structured plan output. |
-| `DriftEvaluator` | `typing.Protocol` | Interface for drift detectors. |
-| `ReconciliationEngine` | Class | Generates a plan from an evaluator. |
+| Symbol                  | Kind                                           | Purpose                                                                                      |
+| ----------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `ActionType`            | Enum                                           | Corrective action: `NOOP`, `ALERT_ONLY`, `RESET_STATE`, `WAIT_FOR_CONVERGENCE`.              |
+| `Severity`              | Enum                                           | Drift severity: `NONE`, `LOW`, `MEDIUM`, `HIGH`, `CRITICAL`.                                 |
+| `ExecutionMode`         | Enum                                           | When the plan may be applied: `IMMEDIATE`, `DEFERRED`, `MANUAL`, `AUTOMATIC`.                |
+| `ExecutionSafety`       | Enum                                           | Machine-readable safety intent (see table below).                                            |
+| `ReconciliationPlan`    | Frozen dataclass                               | Structured plan output.                                                                      |
+| `DriftEvaluator`        | `typing.Protocol`                              | Interface for drift detectors.                                                               |
+| `ReconciliationEngine`  | Class                                          | Generates a plan from an evaluator.                                                          |
 | `RebuildDriftEvaluator` | Class (in `src.logic.rebuild_drift_evaluator`) | Adapter that bridges `detect_rebuild_inconsistency` and a `DistributedLock` to the protocol. |
 
 ### `ReconciliationPlan`
@@ -91,6 +91,7 @@ It does not affect `NOOP`, `WAIT_FOR_CONVERGENCE`, or `ALERT_ONLY` plans.
 ### `ReconciliationEngine.run_rebuild()`
 
 To execute a checkpointed graph rebuild from the provided assets and events, call:
+
 ```python
 graph = engine.run_rebuild(
     assets=assets,
@@ -102,6 +103,7 @@ graph = engine.run_rebuild(
 ```
 
 **Parameters:**
+
 - `assets` (`Iterable[Asset]`): An iterable collection of asset domain objects to add to the graph.
 - `regulatory_events` (`Iterable[RegulatoryEvent]`): An iterable collection of regulatory event domain objects to apply.
 - `on_checkpoint` (`Callable[[dict[str, Any]], None] | None`): An optional callback function invoked periodically (every 50 assets processed) to record/persist rebuild progress checkpoints.
@@ -109,6 +111,7 @@ graph = engine.run_rebuild(
 - `cancel_event` (`threading.Event | None`): An optional threading event monitored during the execution loops to signal early cancellation of the rebuild job.
 
 **Raises:**
+
 - `RebuildCancelledError`: If `cancel_event` is set during execution.
 
 ## Drift → plan decision matrix
@@ -123,23 +126,23 @@ The mapping in `ReconciliationEngine._drift_to_plan` /
 - `severity == CRITICAL` short-circuits to `ALERT_ONLY` / `MANUAL` with
   `safety_state` chosen by drift type.
 
-| Severity | Drift type | `lock_is_valid` | Actions | Execution mode | Safety state |
-| --- | --- | --- | --- | --- | --- |
-| `NONE` | any | `True`  | `NOOP` | `AUTOMATIC` | `CONVERGED` |
-| `NONE` | any | `False` | `NOOP` | `DEFERRED`  | `WAIT_REQUIRED` |
-| `CRITICAL` | `lock_lost` | any | `ALERT_ONLY` | `MANUAL` | `INTEGRITY_COMPROMISED` |
-| `CRITICAL` | `persistence_unavailable` | any | `ALERT_ONLY` | `MANUAL` | `OBSERVABILITY_FAILURE` |
-| `CRITICAL` | `zombie_executor` | any | `ALERT_ONLY` | `MANUAL` | `UNSAFE_SPLIT_BRAIN` |
-| `CRITICAL` | `orphaned_running` | `True` | `ALERT_ONLY` | `MANUAL` | `UNSAFE_SPLIT_BRAIN` |
-| `CRITICAL` | `orphaned_running` | `False` | `ALERT_ONLY` | `MANUAL` | `MANUAL_INVESTIGATION` |
-| `CRITICAL` | other / evaluator failure | any | `ALERT_ONLY` | `MANUAL` | `MANUAL_INVESTIGATION` or `EVALUATION_FAILED` |
-| `HIGH` / `MEDIUM` / `LOW` | `orphaned_running` | any | `RESET_STATE` | see note¹ | `RESET_REQUIRED` |
-| any non-NONE | `stale_ownership` | `True` | `WAIT_FOR_CONVERGENCE` | `DEFERRED` | `WAIT_REQUIRED` |
-| any non-NONE | `stale_ownership` | `False` | `RESET_STATE` | see note¹ | `RESET_REQUIRED` |
-| any non-NONE | `crash_suspicion` | `True` | `WAIT_FOR_CONVERGENCE` | `DEFERRED` | `WAIT_REQUIRED` |
-| any non-NONE | `crash_suspicion` | `False` | `RESET_STATE` | see note¹ | `RESET_REQUIRED` |
-| any non-NONE | `zombie_executor` | any | `ALERT_ONLY` | `MANUAL` | `UNSAFE_SPLIT_BRAIN` |
-| any non-NONE | unknown drift type | any | `ALERT_ONLY` | `MANUAL` | `MANUAL_INVESTIGATION` |
+| Severity                  | Drift type                | `lock_is_valid` | Actions                | Execution mode | Safety state                                  |
+| ------------------------- | ------------------------- | --------------- | ---------------------- | -------------- | --------------------------------------------- |
+| `NONE`                    | any                       | `True`          | `NOOP`                 | `AUTOMATIC`    | `CONVERGED`                                   |
+| `NONE`                    | any                       | `False`         | `NOOP`                 | `DEFERRED`     | `WAIT_REQUIRED`                               |
+| `CRITICAL`                | `lock_lost`               | any             | `ALERT_ONLY`           | `MANUAL`       | `INTEGRITY_COMPROMISED`                       |
+| `CRITICAL`                | `persistence_unavailable` | any             | `ALERT_ONLY`           | `MANUAL`       | `OBSERVABILITY_FAILURE`                       |
+| `CRITICAL`                | `zombie_executor`         | any             | `ALERT_ONLY`           | `MANUAL`       | `UNSAFE_SPLIT_BRAIN`                          |
+| `CRITICAL`                | `orphaned_running`        | `True`          | `ALERT_ONLY`           | `MANUAL`       | `UNSAFE_SPLIT_BRAIN`                          |
+| `CRITICAL`                | `orphaned_running`        | `False`         | `ALERT_ONLY`           | `MANUAL`       | `MANUAL_INVESTIGATION`                        |
+| `CRITICAL`                | other / evaluator failure | any             | `ALERT_ONLY`           | `MANUAL`       | `MANUAL_INVESTIGATION` or `EVALUATION_FAILED` |
+| `HIGH` / `MEDIUM` / `LOW` | `orphaned_running`        | any             | `RESET_STATE`          | see note¹      | `RESET_REQUIRED`                              |
+| any non-NONE              | `stale_ownership`         | `True`          | `WAIT_FOR_CONVERGENCE` | `DEFERRED`     | `WAIT_REQUIRED`                               |
+| any non-NONE              | `stale_ownership`         | `False`         | `RESET_STATE`          | see note¹      | `RESET_REQUIRED`                              |
+| any non-NONE              | `crash_suspicion`         | `True`          | `WAIT_FOR_CONVERGENCE` | `DEFERRED`     | `WAIT_REQUIRED`                               |
+| any non-NONE              | `crash_suspicion`         | `False`         | `RESET_STATE`          | see note¹      | `RESET_REQUIRED`                              |
+| any non-NONE              | `zombie_executor`         | any             | `ALERT_ONLY`           | `MANUAL`       | `UNSAFE_SPLIT_BRAIN`                          |
+| any non-NONE              | unknown drift type        | any             | `ALERT_ONLY`           | `MANUAL`       | `MANUAL_INVESTIGATION`                        |
 
 ¹ For `RESET_STATE` plans the execution mode is chosen by
 `_create_reset_plan`: `HIGH` → `AUTOMATIC` if
@@ -179,7 +182,7 @@ RebuildDriftEvaluator.evaluate_drift):
 - Severity classification (`_classify_severity`) preserves the existing
   RecoveryGate downgrade: `ORPHANED_RUNNING` with a valid lock is `CRITICAL`,
   **except** when the job's `active_worker_id` differs from
-  `lock.holder_id` *and* `last_heartbeat_at` is older than
+  `lock.holder_id` _and_ `last_heartbeat_at` is older than
   `lock_ttl_seconds` (or unparseable / missing), in which case it is downgraded
   to `HIGH` so RecoveryGate's resettable path stays reachable.
 - Heartbeat parsing accepts `datetime`, ISO-8601 strings (including a
