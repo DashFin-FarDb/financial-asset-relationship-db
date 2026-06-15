@@ -191,12 +191,13 @@ def request_context(request_id: str, correlation_id: str) -> Iterator[None]:
     finally:
         reset_request_context(tokens)
 
+
 +
-+@contextlib.asynccontextmanager
++ @ contextlib.asynccontextmanager
 +async def async_request_context(request_id: str, correlation_id: str) -> AsyncIterator[None]:
 +    """Async context manager to set and automatically reset request context variables."""
 +    tokens = set_request_context(request_id, correlation_id)
-+    try:
-+        yield
-+    finally:
++ try:
++ yield
++ finally:
 +        reset_request_context(tokens)

@@ -1,4 +1,3 @@
-
 ### Async middleware usage (concrete example)
 
 Below is a minimal FastAPI middleware implementation that demonstrates how to use
@@ -39,6 +38,7 @@ app.add_middleware(TracingMiddleware)
 ```
 
 This example:
+
 - Generates stable request and correlation IDs when absent.
 - Sets trace/span IDs when present (they are validated by the context helpers).
 - Ensures both request and trace contexts are reset after the request completes.
