@@ -145,6 +145,10 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown tasks for the FastAPI application."""
+    from uuid import uuid4
+
+    from src.observability.context import async_trace_context
+
     from .graph_lifecycle_providers import get_graph_lifecycle_settings
 
     settings = get_graph_lifecycle_settings()
@@ -152,11 +156,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
     has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
 
-    if has_persistence:
-        await _perform_startup_reconciliation(settings)
+    trace_id = f"startup-{uuid4().hex}"
+    span_id = f"startup-span-{uuid4().hex}"
 
-    # Required initialization for all environments to ensure state validity
-    get_graph()
+    async with async_trace_context(trace_id=trace_id, span_id=span_id):
+        if has_persistence:
+            await _perform_startup_reconciliation(settings)
+
+        # Required initialization for all environments to ensure state validity
+        get_graph()
 
     sync_task, slo_task, recon_task = _start_background_tasks(has_persistence, settings)
 
