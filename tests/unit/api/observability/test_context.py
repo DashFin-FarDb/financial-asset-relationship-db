@@ -173,14 +173,13 @@ async def test_async_trace_context_manager():
         await asyncio.sleep(0.01)
     assert get_trace_id() is None
 
-+
-+
-+ @ pytest.mark.asyncio
-+async def test_async_request_context_manager():
-+    """Test the async_request_context async context manager."""
-+ assert get_request_id() is None
-+ async with async_request_context("a-cm-req", "a-cm-corr"):
-+ assert get_request_id() == "a-cm-req"
-+ assert get_correlation_id() == "a-cm-corr"
-+ await asyncio.sleep(0.01)
-+ assert get_request_id() is None
+
+@pytest.mark.asyncio
+async def test_async_request_context_manager():
+    """Test the async_request_context async context manager."""
+    assert get_request_id() is None
+    async with async_request_context("a-cm-req", "a-cm-corr"):
+        assert get_request_id() == "a-cm-req"
+        assert get_correlation_id() == "a-cm-corr"
+        await asyncio.sleep(0.01)
+    assert get_request_id() is None
