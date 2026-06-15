@@ -5,6 +5,7 @@ import asyncio
 import pytest
 
 from src.observability.context import (
+    async_trace_context,
     get_correlation_id,
     get_parent_span_id,
     get_request_context,
@@ -158,3 +159,15 @@ def test_request_context_manager():
         assert get_request_id() == "cm-req"
         assert get_correlation_id() == "cm-corr"
     assert get_request_id() is None
+
+
+@pytest.mark.asyncio
+async def test_async_trace_context_manager():
+    """Test the async_trace_context async context manager."""
+    assert get_trace_id() is None
+    async with async_trace_context("async-cm-trace", "async-cm-span"):
+        assert get_trace_id() == "async-cm-trace"
+        assert get_span_id() == "async-cm-span"
+        assert get_parent_span_id() is None
+        await asyncio.sleep(0.01)
+    assert get_trace_id() is None

@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 import re
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, AsyncIterator, Iterator
 
 if TYPE_CHECKING:
     from contextvars import Token
@@ -152,6 +152,27 @@ def trace_context(
     Example:
         with trace_context("trace-1", "span-1"):
             # Execute traced operation
+            pass
+    """
+    tokens = set_trace_context(trace_id, span_id, parent_span_id)
+    try:
+        yield
+    finally:
+        reset_trace_context(tokens)
+
+
+@contextlib.asynccontextmanager
+async def async_trace_context(
+    trace_id: str | None,
+    span_id: str | None,
+    parent_span_id: str | None = None,
+) -> AsyncIterator[None]:
+    """
+    Async context manager to set and automatically reset trace context variables.
+
+    Example:
+        async with async_trace_context("trace-1", "span-1"):
+            # Execute traced async operation
             pass
     """
     tokens = set_trace_context(trace_id, span_id, parent_span_id)

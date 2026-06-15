@@ -159,6 +159,21 @@ async def add_tracing_middleware(request: Request, call_next):
         return response
 ```
 
+#### Async middleware usage
+
+```python
+from src.observability.context import async_trace_context
+
+@app.middleware("http")
+async def add_async_tracing_middleware(request: Request, call_next):
+    trace_id = request.headers.get("x-b3-traceid") or generate_id()
+    span_id = request.headers.get("x-b3-spanid") or generate_id()
+
+    async with async_trace_context(trace_id, span_id):
+        response = await call_next(request)
+        return response
+```
+
 Update `get_request_context()` to return these fields:
 
 ```python
