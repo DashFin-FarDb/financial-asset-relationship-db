@@ -60,29 +60,20 @@ def get_parent_span_id() -> str | None:
     return _parent_span_id_ctx.get()
 
 
-def get_request_context(include_tracing: bool = False) -> dict[str, str | None]:
+def get_request_context() -> dict[str, str | None]:
     """
     Return a dictionary of the current request metadata.
 
     Useful for structured logging to ensure all log entries within a request
     contain the necessary identifiers.
-
-    Args:
-        include_tracing: If True, includes trace_id, span_id, and parent_span_id.
     """
-    ctx = {
+    return {
         "request_id": get_request_id(),
         "correlation_id": get_correlation_id(),
+        "trace_id": get_trace_id(),
+        "span_id": get_span_id(),
+        "parent_span_id": get_parent_span_id(),
     }
-    if include_tracing:
-        ctx.update(
-            {
-                "trace_id": get_trace_id(),
-                "span_id": get_span_id(),
-                "parent_span_id": get_parent_span_id(),
-            }
-        )
-    return ctx
 
 
 def set_request_context(request_id: str, correlation_id: str) -> tuple[Token[str | None], Token[str | None]]:
