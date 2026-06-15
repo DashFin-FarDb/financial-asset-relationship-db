@@ -239,7 +239,7 @@ Reconciliation is **event-driven** rather than **periodic**:
 - [ ] Add periodic reconciliation loop (Note: Background `_graph_synchronization_loop` only syncs runtime graph; a true continuous reconciliation planner loop is deferred)
 
 > [!IMPORTANT]
-> **Roadmap Deviation & TODOs (Stage 5C.4)**:
+> **Roadmap Deviation & to-dos (Stage 5C.4)**:
 > Fully integrating `ReconciliationEngine` plan consumption inside `RecoveryGate` and introducing a true background periodic reconciliation loop (separate from the passive synchronization loop) are deferred to a tightly-scoped future PR to manage architectural changes and review size.
 
 ### Phase 3 (Future Work)

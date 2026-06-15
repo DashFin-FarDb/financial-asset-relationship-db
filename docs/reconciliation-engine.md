@@ -8,7 +8,7 @@ For the discovery / migration rationale, see
 
 ## Status
 
-Phase 2 integration in progress (partially complete). The stateless in-memory `run_rebuild()` graph reconstruction helper is integrated into the production rebuild execution pathways (called via `build_rebuild_graph` in `api/graph_lifecycle_providers.py`). Full integration of `generate_reconciliation_plan()` into `RecoveryGate` and periodic background loops is deferred to subsequent scoped roadmap tasks (Stage 5C.4 / Phase 2 TODOs).
+Phase 2 integration in progress (partially complete). The stateless in-memory `run_rebuild()` graph reconstruction helper is integrated into the production rebuild execution pathways (called via `build_rebuild_graph` in `api/graph_lifecycle_providers.py`). Full integration of `generate_reconciliation_plan()` into `RecoveryGate` and periodic background loops is deferred to subsequent scoped roadmap tasks (Stage 5C.4 / Phase 2 to-dos).
 
 ## Intent
 
@@ -93,32 +93,6 @@ plan = engine.generate_reconciliation_plan()
 When `False` (the default), HIGH-severity `RESET_STATE` plans are marked `DEFERRED` instead of `AUTOMATIC`.
 This applies to every drift type that routes through `_create_reset_plan` (`orphaned_running`; `stale_ownership` when the lock is invalid; `crash_suspicion` when the lock is invalid).
 It does not affect `NOOP`, `WAIT_FOR_CONVERGENCE`, or `ALERT_ONLY` plans.
-
-### `ReconciliationEngine.run_rebuild()`
-
-To perform the in-memory, side-effect-free reconstruction of a graph from the provided assets and events, call:
-
-```python
-graph = engine.run_rebuild(
-    assets=assets,
-    regulatory_events=regulatory_events,
-    on_checkpoint=on_checkpoint,
-    initial_checkpoint=initial_checkpoint,
-    cancel_event=cancel_event,
-)
-```
-
-**Parameters:**
-
-- `assets` (`Iterable[Asset]`): An iterable collection of asset domain objects to add to the graph.
-- `regulatory_events` (`Iterable[RegulatoryEvent]`): An iterable collection of regulatory event domain objects to apply.
-- `on_checkpoint` (`Callable[[dict[str, Any]], None] | None`): An optional callback function invoked periodically (every 50 assets processed) to record/persist rebuild progress checkpoints.
-- `initial_checkpoint` (`dict[str, Any] | None`): An optional state dictionary used to resume a partial rebuild.
-- `cancel_event` (`threading.Event | None`): An optional threading event monitored during the execution loops to signal early cancellation of the rebuild job.
-
-**Raises:**
-
-- `RebuildCancelledError`: If `cancel_event` is set during execution.
 
 ## Drift → plan decision matrix
 
@@ -229,3 +203,36 @@ RebuildDriftEvaluator.evaluate_drift):
   recovery actions; Phase 2 will let it consume `ReconciliationPlan` instead.
 - `src/data/distributed_lock.py` — lock primitive used by
   `RebuildDriftEvaluator`.
+
+---
+
+## Utilities and Helpers
+
+### Stateless Graph Reconstruction Helper: `ReconciliationEngine.run_rebuild()`
+
+To perform the in-memory, side-effect-free reconstruction of a graph from the provided assets and events, call:
+
+```python
+graph = engine.run_rebuild(
+    assets=assets,
+    regulatory_events=regulatory_events,
+    on_checkpoint=on_checkpoint,
+    initial_checkpoint=initial_checkpoint,
+    cancel_event=cancel_event,
+)
+```
+
+**Parameters:**
+
+- `assets` (`Iterable[Asset]`): An iterable collection of asset domain objects to add to the graph.
+- `regulatory_events` (`Iterable[RegulatoryEvent]`): An iterable collection of regulatory event domain objects to apply.
+- `on_checkpoint` (`Callable[[dict[str, Any]], None] | None`): An optional callback function invoked periodically (every 50 assets processed) to record/persist rebuild progress checkpoints.
+- `initial_checkpoint` (`dict[str, Any] | None`): An optional state dictionary used to resume a partial rebuild.
+- `cancel_event` (`threading.Event | None`): An optional threading event monitored during the execution loops to signal early cancellation of the rebuild job.
+
+**Raises:**
+
+- `RebuildCancelledError`: If `cancel_event` is set during execution.
+
+> [!IMPORTANT]
+> `ReconciliationEngine.run_rebuild()` is strictly a stateless, side-effect-free in-memory helper function. It is **not** used for plan execution, database updates, or state persistence. The core `ReconciliationEngine` remains a plan-only control-plane primitive. All side-effecting operations (locks, DB updates, orchestration) are managed separately by the orchestration layer.

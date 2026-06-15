@@ -12405,7 +12405,7 @@ CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
     ON rebuild_jobs (status, created_at);
 ```
 
-_(Note: SQLite maps TIMESTAMPTZ to TEXT dynamically in local/testing setups, but production PostgreSQL maps them directly to TIMESTAMPTZ to ensure timezone-safe indexing and querying)._
+_(Note: SQLite maps TIMESTAMPTZ to TEXT dynamically in local/testing setups, but production PostgreSQL maps them directly to TIMESTAMPTZ to ensure timezone-safe indexing and querying. The schema defined above is a canonical mapping to the actual SQLAlchemy database models defined in [db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py#L251-L280) and migrations in [migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py#L190-L212))._
 
 ### 14.2.2 Distributed Locks Table Schema (`distributed_locks`)
 
@@ -12419,6 +12419,9 @@ CREATE TABLE IF NOT EXISTS distributed_locks (
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL
 );
+
+_(Note: This schema represents the canonical mapping to the SQLAlchemy model defined in [db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py#L271-L280))._
+
 ```
 
 ---
@@ -12453,3 +12456,13 @@ Rebuild cancellation is designed as a cooperative process between the FastAPI HT
 3. **Detection & Event Signaling**: When the `_heartbeat_keeper` retrieves the job status and detects it is `CANCEL_REQUESTED`, it logs the event, sets a thread-shared `cancel_event` (a `threading.Event` object), and terminates.
 4. **Execution Loop Halting**: The active rebuild execution loop periodically monitors the `cancel_event` flag (at key boundaries like starting a new chunk of assets or saving checkpoints).
 5. **Termination**: If `cancel_event` is set, the executor halts processing, raises a `RebuildCancelledError`, and the coordinator transitions the job to `CANCELLED` using the correct `execution_id`.
+
+### 14.3.4 Pre-Merge Verification and Local Validation
+
+To verify that the documentation remains in sync with the codebase prior to merging changes:
+
+1. **Format/Style Check**: Run the pre-commit hooks to ensure markdown formatting, linting, and other repo policies are met:
+   ```bash
+   git diff --cached --name-only | xargs pre-commit run --files
+   ```
+2. **Schema & DDL Sync Verification**: Confirm column order and timezone-safe data types match the migration definitions exactly by comparing this specification with the DDL in [migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py#L190-L212) and the ORM classes in [db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py#L251-L280). Run queries or schema diffs on local databases using tool comparisons to ensure parity.
