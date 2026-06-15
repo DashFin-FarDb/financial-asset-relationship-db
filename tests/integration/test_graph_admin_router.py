@@ -14,7 +14,7 @@ import time
 from collections.abc import Generator, Iterator
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import httpx  # pylint: disable=import-error
 import pytest  # pylint: disable=import-error
@@ -329,10 +329,12 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
 
     assert len(requested_records) == 1
     assert len(rejected_records) == 1
-    assert getattr(requested_records[0], "metadata", None)["user_ref"] == "admin"
-    assert getattr(requested_records[0], "metadata", None)["path"] == "/api/graph/rebuild"
-    assert getattr(rejected_records[0], "metadata", None)["reason"] == "rebuild_in_progress"
-    assert getattr(rejected_records[0], "metadata", None)["status_code"] == 429
+    req_meta = cast(dict[str, Any], getattr(requested_records[0], "metadata", {}))
+    rej_meta = cast(dict[str, Any], getattr(rejected_records[0], "metadata", {}))
+    assert req_meta["user_ref"] == "admin"
+    assert req_meta["path"] == "/api/graph/rebuild"
+    assert rej_meta["reason"] == "rebuild_in_progress"
+    assert rej_meta["status_code"] == 429
 
 
 async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_executor_raises_directly(
@@ -490,8 +492,9 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
 
     assert len(succeeded_records) == 1
     assert len(failed_records) == 0
-    assert getattr(succeeded_records[0], "metadata", None)["user_ref"] == "admin"
-    assert getattr(succeeded_records[0], "metadata", None)["status_code"] == 200
+    succ_meta = cast(dict[str, Any], getattr(succeeded_records[0], "metadata", {}))
+    assert succ_meta["user_ref"] == "admin"
+    assert succ_meta["status_code"] == 200
 
 
 async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
@@ -517,13 +520,15 @@ async def test_rebuild_unexpected_programming_error_emits_sentinel_and_audits(
         sentinel_logs = [r for r in caplog.records if getattr(r, "event", None) == "graph_rebuild_unexpected_exception"]
         assert len(sentinel_logs) == 1
         assert sentinel_logs[0].levelname == "CRITICAL"
-        assert getattr(sentinel_logs[0], "metadata", None)["exception_type"] == "AttributeError"
+        sent_meta = cast(dict[str, Any], getattr(sentinel_logs[0], "metadata", {}))
+        assert sent_meta["exception_type"] == "AttributeError"
 
         # Verify exactly one failure audit event log was broadcast
         audit_logs = [r for r in caplog.records if getattr(r, "event", "").startswith("graph_rebuild_")]
         failed_audits = [r for r in audit_logs if getattr(r, "event", None) == "graph_rebuild_failed"]
         assert len(failed_audits) == 1
-        assert getattr(failed_audits[0], "metadata", None)["failure_category"] == "unexpected_error"
+        fail_meta = cast(dict[str, Any], getattr(failed_audits[0], "metadata", {}))
+        assert fail_meta["failure_category"] == "unexpected_error"
 
     finally:
         graph_admin.shutdown_rebuild_executor_sync()

@@ -201,7 +201,7 @@ max-returns = 6
 max-statements = 50
 
 [tool.bandit]
-exclude_dirs = ["tests"]
+exclude_dirs = [".venv"]
 skips = ["B101"]
 
 [tool.codeflash]

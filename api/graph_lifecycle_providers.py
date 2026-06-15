@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,6 +20,7 @@ from src.data.db_models import AssetORM
 from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.reconciliation_engine import RebuildCancelledError
 from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
@@ -124,22 +126,22 @@ def load_graph_from_cache_path(
     cache_path: str,
     *,
     enable_network: bool,
-) -> AssetRelationshipGraph:
+) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """Load a graph through the real-data cache path."""
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=enable_network)
-    return fetcher.create_real_database()
+    return cast(tuple[AssetRelationshipGraph, GraphRebuildSource], fetcher.create_real_database_with_source())
 
 
 def load_graph_from_real_data_fetcher(
     cache_path: str | None,
-) -> AssetRelationshipGraph:
+) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """Load a graph from the real-data fetcher with network access."""
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=True)
-    return fetcher.create_real_database()
+    return cast(tuple[AssetRelationshipGraph, GraphRebuildSource], fetcher.create_real_database_with_source())
 
 
 def create_sample_graph() -> AssetRelationshipGraph:
@@ -147,7 +149,7 @@ def create_sample_graph() -> AssetRelationshipGraph:
     return create_sample_database()
 
 
-class GraphPersistenceInvalidUrlError(GraphPersistenceNotConfiguredError):
+class GraphPersistenceInvalidUrlError(Exception):
     """Raised when the graph persistence URL cannot be parsed."""
 
 
@@ -184,6 +186,7 @@ def build_rebuild_graph(
     *,
     on_checkpoint: Callable[[dict[str, Any]], None] | None = None,
     initial_checkpoint: dict[str, Any] | None = None,
+    cancel_event: threading.Event | None = None,
 ) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """
     Select a rebuild source and construct a fresh asset relationship graph accordingly.
@@ -198,6 +201,7 @@ def build_rebuild_graph(
             and whether real-data fetching is enabled.
         on_checkpoint: Optional callback for progress persistence.
         initial_checkpoint: Optional state to resume from.
+        cancel_event: Optional event to signal rebuild cancellation.
 
     Returns:
         tuple[AssetRelationshipGraph, GraphRebuildSource]: A tuple where the first element is the constructed graph
@@ -205,38 +209,48 @@ def build_rebuild_graph(
     """
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
-            return (
-                load_graph_from_cache_path(
-                    settings.graph_cache_path,
-                    enable_network=settings.use_real_data_fetcher,
-                ),
-                "cache",
+            graph, source = load_graph_from_cache_path(
+                settings.graph_cache_path,
+                enable_network=settings.use_real_data_fetcher,
             )
+            return graph, source
 
         if settings.use_real_data_fetcher:
             from src.data.real_data_fetcher import RealDataFetcher
-            from src.logic.reconciliation_engine import ReconciliationEngine
+            from src.logic.reconciliation_engine import ReconciliationEngine, Severity
 
             fetcher = RealDataFetcher(cache_path=settings.real_data_cache_path, enable_network=True)
-            assets, events = fetcher.fetch_raw_data()
+            assets, events, raw_source = fetcher.fetch_raw_data_with_source(cancel_event=cancel_event)
+            source = cast(GraphRebuildSource, raw_source)
 
-            # Use ReconciliationEngine to orchestrate the rebuild with checkpointing
-            # (Execution phase uses a mock evaluator as drift detection is already done)
-            engine = ReconciliationEngine(cast(Any, None))
+            # Use ReconciliationEngine to orchestrate the rebuild with checkpointing.
+            # A no-op evaluator stub is provided since drift detection is not needed here.
+            class _NoOpEvaluator:
+                """Minimal stub satisfying ReconciliationEngine's evaluator protocol."""
+
+                def evaluate_drift(self) -> tuple[str, Severity, dict[str, Any]]:
+                    """Return a no-op drift result."""
+                    return "none", Severity.NONE, {}
+
+            engine = ReconciliationEngine(_NoOpEvaluator())
             graph = engine.run_rebuild(
                 assets=assets,
                 regulatory_events=events,
                 on_checkpoint=on_checkpoint,
                 initial_checkpoint=initial_checkpoint,
+                cancel_event=cancel_event,
             )
 
             if settings.real_data_cache_path:
                 # Still persist to cache if configured
                 fetcher._persist_cache(graph)  # pylint: disable=protected-access
 
-            return (graph, "real_data")
+            return (graph, source)
 
         return (create_sample_graph(), "sample")
+    except RebuildCancelledError:
+        # Re-raise cancellation exactly as is to correctly short-circuit the pipeline
+        raise
     except Exception as exc:
         log_event(
             logger,

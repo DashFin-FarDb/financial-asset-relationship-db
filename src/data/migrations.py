@@ -31,8 +31,11 @@ ALLOWED_MIGRATIONS = frozenset(
         "001_initial.sql",
         "002_add_heartbeat_columns.sql",
         "003_add_execution_identity_and_checkpoint_columns.sql",
+        "004_add_cancellation_columns.sql",
     ]
 )
+
+_REBUILD_JOBS_TABLE_INFO_QUERY = "PRAGMA table_info(rebuild_jobs)"
 
 
 def apply_migrations(db_path: Path | str) -> None:
@@ -46,6 +49,7 @@ def apply_migrations(db_path: Path | str) -> None:
     1. 001_initial.sql - Base schema (idempotent via IF NOT EXISTS)
     2. 002_add_heartbeat_columns.sql - Upgrade migration (applied conditionally)
     3. 003_add_execution_identity_and_checkpoint_columns.sql - Upgrade migration (applied conditionally)
+    4. 004_add_cancellation_columns.sql - Upgrade migration (applied conditionally)
 
     Args:
         db_path: Path to the SQLite database file.
@@ -68,6 +72,9 @@ def apply_migrations(db_path: Path | str) -> None:
 
         # Migration 003: Add execution identity and checkpoint columns (conditional)
         _apply_upgrade_003_execution_columns(connection)
+
+        # Migration 004: Add cancellation columns (conditional)
+        _apply_upgrade_004_cancellation_columns(connection)
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +135,7 @@ def _apply_upgrade_002_heartbeat_columns(connection: sqlite3.Connection) -> None
     Args:
         connection: SQLite connection.
     """
-    cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
+    cursor = connection.execute(_REBUILD_JOBS_TABLE_INFO_QUERY)
     existing_columns = {row[1] for row in cursor}
 
     HEARTBEAT_COLUMNS = {
@@ -148,7 +155,7 @@ def _apply_upgrade_003_execution_columns(connection: sqlite3.Connection) -> None
     Args:
         connection: SQLite connection.
     """
-    cursor = connection.execute("PRAGMA table_info(rebuild_jobs)")
+    cursor = connection.execute(_REBUILD_JOBS_TABLE_INFO_QUERY)
     existing_columns = {row[1] for row in cursor}
 
     NEW_COLUMNS = {
@@ -159,6 +166,90 @@ def _apply_upgrade_003_execution_columns(connection: sqlite3.Connection) -> None
     for col_name, alter_statement in NEW_COLUMNS.items():
         if col_name not in existing_columns:
             connection.execute(alter_statement)  # noqa: S3649
+
+
+def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> None:
+    """
+    Apply migration 004 (add cancellation columns) conditionally and update status constraints.
+
+    Args:
+        connection: SQLite connection.
+    """
+    cursor = connection.execute(_REBUILD_JOBS_TABLE_INFO_QUERY)
+    existing_columns = {row[1] for row in cursor}
+
+    # If the column already exists, we assume the migration has run.
+    if "cancellation_requested_at" in existing_columns:
+        return
+
+    # Turn off foreign keys temporarily for the table swap
+    connection.execute("PRAGMA foreign_keys=OFF")
+    try:
+        # 1. Create the new table with the updated CHECK constraint
+        connection.execute("""
+            CREATE TABLE rebuild_jobs_new (
+                job_id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                requested_by TEXT NOT NULL,
+                source TEXT,
+                started_at TEXT,
+                completed_at TEXT,
+                duration_ms INTEGER,
+                node_count INTEGER,
+                edge_count INTEGER,
+                sanitized_failure_category TEXT,
+                sanitized_failure_message TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                active_worker_id TEXT,
+                last_heartbeat_at TEXT,
+                execution_id TEXT,
+                checkpoint_data TEXT,
+                cancellation_requested_at TEXT,
+                CONSTRAINT ck_rebuild_jobs_status CHECK (
+                    status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')
+                )
+            )
+            """)
+
+        # 2. Build the list of columns to copy (those that exist in both)
+        target_columns = {
+            "job_id",
+            "status",
+            "requested_by",
+            "source",
+            "started_at",
+            "completed_at",
+            "duration_ms",
+            "node_count",
+            "edge_count",
+            "sanitized_failure_category",
+            "sanitized_failure_message",
+            "created_at",
+            "updated_at",
+            "active_worker_id",
+            "last_heartbeat_at",
+            "execution_id",
+            "checkpoint_data",
+        }
+        cols_to_copy_list = [c for c in existing_columns if c in target_columns]
+        cols_to_copy = ", ".join(cols_to_copy_list)
+
+        # 3. Copy data
+        connection.execute(f"INSERT INTO rebuild_jobs_new ({cols_to_copy}) SELECT {cols_to_copy} FROM rebuild_jobs")
+
+        # 4. Swap tables
+        connection.execute("DROP TABLE rebuild_jobs")
+        connection.execute("ALTER TABLE rebuild_jobs_new RENAME TO rebuild_jobs")
+        # 5. Recreate indexes that were lost with the original table
+        connection.execute("CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at ON rebuild_jobs (created_at)")
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at ON rebuild_jobs (status, created_at)"
+        )
+
+    finally:
+        # Always turn foreign keys back on
+        connection.execute("PRAGMA foreign_keys=ON")
 
 
 # ---------------------------------------------------------------------------
@@ -197,6 +288,12 @@ def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
         statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)")
     if "last_heartbeat_at" not in existing:
         statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ")
+    if "execution_id" not in existing:
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS execution_id VARCHAR(64)")
+    if "checkpoint_data" not in existing:
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS checkpoint_data TEXT")
+    if "cancellation_requested_at" not in existing:
+        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS cancellation_requested_at TIMESTAMPTZ")
     return statements, active_worker_col
 
 
@@ -253,6 +350,23 @@ def _apply_normalization_in_transaction(connection, needs_width_normalization: b
         )
 
 
+def _apply_postgresql_status_constraint_update(connection) -> None:
+    """
+    Ensure the PostgreSQL status check constraint includes all supported statuses.
+
+    This is necessary because PostgreSQL does not support simple ALTER TABLE
+    to add values to a CHECK constraint. We drop and recreate it.
+    """
+    # 1. Drop existing constraint if it exists
+    connection.execute(text("ALTER TABLE rebuild_jobs DROP CONSTRAINT IF EXISTS ck_rebuild_jobs_status"))
+
+    # 2. Add the updated constraint
+    connection.execute(text("""
+        ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status
+            CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
+    """))
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -276,9 +390,14 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     needs_width_normalization = _active_worker_id_declared_too_wide(active_worker_col)
 
     if not statements and not needs_width_normalization:
+        # Still attempt to update the constraint even if columns are present,
+        # as the constraint might be outdated (e.g. from an earlier 5C.X PR).
+        with engine.begin() as connection:
+            _apply_postgresql_status_constraint_update(connection)
         return
 
     with engine.begin() as connection:
         for statement in statements:
             connection.execute(text(statement))
         _apply_normalization_in_transaction(connection, needs_width_normalization)
+        _apply_postgresql_status_constraint_update(connection)

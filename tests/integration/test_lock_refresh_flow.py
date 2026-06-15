@@ -131,6 +131,7 @@ def test_heartbeat_keeper_refreshes_lock_during_rebuild(
                     "worker_id": dist_lock.holder_id,
                     "stop_event": stop_event,
                     "lock_lost_event": lock_lost_event,
+                    "cancel_event": threading.Event(),
                     "interval_seconds": expected_refresh_interval,
                 },
                 daemon=True,
@@ -230,6 +231,7 @@ def test_lock_loss_mid_rebuild_sets_event_and_terminates_thread(
                     "worker_id": dist_lock.holder_id,
                     "stop_event": stop_event,
                     "lock_lost_event": lock_lost_event,
+                    "cancel_event": threading.Event(),
                     "interval_seconds": interval_seconds,
                 },
                 daemon=True,
@@ -351,9 +353,9 @@ def test_pre_commit_check_blocks_save_on_lock_loss(
             current_graph = repo.load_graph()
             current_asset_count = len(current_graph.assets)
 
-        assert current_asset_count == initial_asset_count, (
-            "Graph state should be unchanged after lock loss during commit"
-        )
+        assert (
+            current_asset_count == initial_asset_count
+        ), "Graph state should be unchanged after lock loss during commit"
 
 
 def test_heartbeat_thread_stops_cleanly_on_success(
@@ -395,10 +397,12 @@ def test_heartbeat_thread_stops_cleanly_on_success(
             job_id,
             execution_id,
             lock_ttl,
-        ) as lock_lost:
-            # Verify lock_lost Event is provided
+        ) as (lock_lost, cancel_event):
+            # Verify events are provided
             assert isinstance(lock_lost, threading.Event)
+            assert isinstance(cancel_event, threading.Event)
             assert not lock_lost.is_set(), "lock_lost should not be set initially"
+            assert not cancel_event.is_set(), "cancel_event should not be set initially"
 
             # Find the heartbeat thread
             heartbeat_thread = None
@@ -475,6 +479,7 @@ def test_heartbeat_keeper_updates_database_heartbeat(
                 "worker_id": dist_lock.holder_id,
                 "stop_event": stop_event,
                 "lock_lost_event": lock_lost_event,
+                "cancel_event": threading.Event(),
                 "interval_seconds": interval_seconds,
             },
             daemon=True,

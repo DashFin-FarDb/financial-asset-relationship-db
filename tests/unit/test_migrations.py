@@ -35,9 +35,9 @@ class TestApplyPostgresqlHeartbeatMigration:
     """Unit tests for apply_postgresql_heartbeat_migration behaviour."""
 
     def _run(self, table_names, columns, recheck_scalar=None):
-        """
-        Execute apply_postgresql_heartbeat_migration with a fully mocked engine
-        and return begin_conn for assertion.
+        """Execute apply_postgresql_heartbeat_migration.
+
+        Uses a fully mocked engine and returns begin_conn for assertion.
         """
         engine = MagicMock()
 
@@ -65,40 +65,54 @@ class TestApplyPostgresqlHeartbeatMigration:
     # --- no DDL needed ---
 
     def test_all_columns_present_correct_width_no_ddl(self):
-        """No DDL when both columns already exist at the target width (64)."""
+        """DDL only for status constraint update when all columns already exist."""
         cols = [
             _make_col("active_worker_id", length=64),
             _make_col("last_heartbeat_at"),
+            _make_col("execution_id"),
+            _make_col("checkpoint_data"),
+            _make_col("cancellation_requested_at"),
         ]
         begin_conn = self._run(["rebuild_jobs"], cols)
-        begin_conn.execute.assert_not_called()
+        # 2 calls: DROP CONSTRAINT, ADD CONSTRAINT
+        assert begin_conn.execute.call_count == 2
 
     # --- ADD COLUMN batching ---
 
     def test_missing_both_columns_adds_both(self):
-        """When both heartbeat columns are absent, two ADD COLUMN statements are batched."""
+        """When heartbeat columns are absent, ADD COLUMN statements are batched (plus constraint)."""
         begin_conn = self._run(["rebuild_jobs"], columns=[])
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert any("active_worker_id" in s for s in executed_sql)
         assert any("last_heartbeat_at" in s for s in executed_sql)
-        assert begin_conn.execute.call_count == 2
+        assert any("execution_id" in s for s in executed_sql)
+        assert any("checkpoint_data" in s for s in executed_sql)
+        assert any("cancellation_requested_at" in s for s in executed_sql)
+        # 5 ADD COLUMNs + 2 constraint update calls = 7
+        assert begin_conn.execute.call_count == 7
 
     def test_missing_last_heartbeat_at_only(self):
-        """Only the missing last_heartbeat_at column is added."""
-        cols = [_make_col("active_worker_id", length=64)]
+        """Only the missing columns are added (plus constraint)."""
+        cols = [
+            _make_col("active_worker_id", length=64),
+            _make_col("execution_id"),
+            _make_col("checkpoint_data"),
+            _make_col("cancellation_requested_at"),
+        ]
         begin_conn = self._run(["rebuild_jobs"], cols)
         executed_sql = [str(c.args[0]) for c in begin_conn.execute.call_args_list]
         assert any("last_heartbeat_at" in s for s in executed_sql)
-        assert not any("active_worker_id" in s and "ALTER COLUMN" in s for s in executed_sql)
-        assert begin_conn.execute.call_count == 1
+        assert not any("active_worker_id" in s and "ALTER TABLE" in s and "ADD COLUMN" in s for s in executed_sql)
+        # 1 ADD COLUMN + 2 constraint update calls = 3
+        assert begin_conn.execute.call_count == 3
 
     # --- width normalisation ---
 
     def test_wide_column_empty_table_normalises(self):
-        """
-        When active_worker_id is VARCHAR(255) and the table is empty
-        (max_length=None), the ALTER COLUMN TYPE statement must be included
-        in the same atomic DDL batch.
+        """Normalise wide active_worker_id column when table is empty.
+
+        The ALTER COLUMN TYPE statement must be included in the same
+        atomic DDL batch.
         """
         cols = [_make_col("active_worker_id", length=255), _make_col("last_heartbeat_at")]
         begin_conn = self._run(["rebuild_jobs"], cols, recheck_scalar=None)
@@ -115,9 +129,10 @@ class TestApplyPostgresqlHeartbeatMigration:
         )
 
     def test_wide_column_short_data_normalises(self):
-        """
-        When active_worker_id is VARCHAR(255) and the longest stored value
-        is ≤ 64 chars, ALTER COLUMN TYPE must be batched with the DDL.
+        """Normalise wide active_worker_id column when data is short.
+
+        When the longest stored value is ≤ 64 chars, ALTER COLUMN TYPE
+        must be batched with the DDL.
         """
         cols = [_make_col("active_worker_id", length=255), _make_col("last_heartbeat_at")]
         begin_conn = self._run(["rebuild_jobs"], cols, recheck_scalar=32)
@@ -132,9 +147,10 @@ class TestApplyPostgresqlHeartbeatMigration:
         )
 
     def test_wide_column_long_data_skips_normalisation_and_warns(self, caplog):
-        """
+        """Skip normalisation when data is too long and log a warning.
+
         When the longest stored value exceeds 64 chars, the ALTER COLUMN TYPE
-        statement must NOT be batched, and a warning must be logged.
+        statement must NOT be batched.
         """
         import logging
 
@@ -150,9 +166,9 @@ class TestApplyPostgresqlHeartbeatMigration:
         assert "Traceback" not in caplog.text
 
     def test_wide_column_alter_runs_in_same_transaction_as_add_columns(self):
-        """
-        ADD COLUMN and ALTER COLUMN TYPE must execute inside the same
-        engine.begin() transaction (single atomic DDL block).
+        """Batch ADD COLUMN and ALTER COLUMN TYPE in same transaction.
+
+        Ensures atomic DDL execution for schema upgrades and normalisation.
         """
         # Simulate: active_worker_id is wide (255) and last_heartbeat_at is missing.
         # This triggers both the ALTER COLUMN and ADD COLUMN paths.

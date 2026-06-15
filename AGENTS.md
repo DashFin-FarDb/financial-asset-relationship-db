@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file is hosted and maintained by Dosu (dosu.dev). It provides guidance to AI coding agents when working with code in this repository.
 
 ## IMPORTANT: Production Architecture Declaration
 
@@ -249,6 +249,13 @@ python scripts/check_hosted_readiness.py <base_url> --timeout 10
 - `src/logic/recovery_gate.py` — Recovery gate hardening for rebuild flows.
 - See `docs/reconciliation-discovery-map.md` for the mapping between the
   pre-existing implicit reconciliation primitives and the formal engine.
+
+### Stage 5C Safety Constraints
+
+When modifying or implementing rebuild jobs and processing loops, the following constraints must be strictly adhered to:
+
+- **State Mutations:** Any state mutation on rebuild jobs must validate the current `execution_id` to ensure execution safety and avoid stale mutations.
+- **Cancellation Check:** Any new or modified processing loop must periodically check the `cancel_event` (such as `threading.Event` or equivalent) and raise `RebuildCancelledError` if it is set.
 
 ### Relationship graph engine
 
