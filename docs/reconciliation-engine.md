@@ -8,7 +8,7 @@ For the discovery / migration rationale, see
 
 ## Status
 
-Phase 2 integration complete. The Reconciliation Engine is fully integrated into production paths, including RecoveryGate, the rebuild API, and background synchronization loops.
+Phase 2 integration in progress (partially complete). The stateless in-memory `run_rebuild()` graph reconstruction helper is integrated into the production rebuild execution pathways (called via `build_rebuild_graph` in `api/graph_lifecycle_providers.py`). Full integration of `generate_reconciliation_plan()` into `RecoveryGate` and periodic background loops is deferred to subsequent scoped roadmap tasks (Stage 5C.4 / Phase 2 TODOs).
 
 ## Intent
 
