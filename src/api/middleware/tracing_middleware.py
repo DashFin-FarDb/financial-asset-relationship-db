@@ -9,8 +9,8 @@ set and reset reliably across async boundaries.
 """
 
 from typing import Callable
-
 from uuid import uuid4
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
