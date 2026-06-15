@@ -1,0 +1,638 @@
+# Instincts generated from https://github.com/DashFin-FarDb/financial-asset-relationship-db
+# Generated: 2026-06-14T18:03:29.948Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: financial-asset-relationship-db-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Commit Length
+
+## Action
+
+Write moderate-length commit messages (~62 characters)
+
+## Evidence
+
+- Average commit message length: 62 chars
+- Based on 91 commits
+
+---
+id: financial-asset-relationship-db-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Naming Files
+
+## Action
+
+Use snake_case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: snake_case
+
+---
+id: financial-asset-relationship-db-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: financial-asset-relationship-db-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: financial-asset-relationship-db-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: financial-asset-relationship-db-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: financial-asset-relationship-db-test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Types
+
+## Action
+
+Write unit, integration tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, integration
+- Coverage config: no
+
+---
+id: financial-asset-relationship-db-workflow-database-migration
+trigger: "when modifying the database schema or adding tables"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Database Migration
+
+## Action
+
+Follow the database-migration workflow:
+1. Create migration file
+2. Update schema definitions
+3. Generate/update types
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: migrations/*
+
+---
+id: financial-asset-relationship-db-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.7
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~4x per month
+- Files: **/*.test.*, **/api/**
+
+---
+id: financial-asset-relationship-db-workflow-code-formatting-auto-fix
+trigger: "when doing code formatting auto fix"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Code Formatting Auto Fix
+
+## Action
+
+Follow the code-formatting-auto-fix workflow:
+1. Run code formatting tools (Autopep8, Black, isort, Prettier, Ruff Formatter, StandardJS)
+2. Apply formatting fixes to affected files
+3. Commit the changes with a standardized commit message
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~10x per month
+- Files: tests/integration/test_lock_refresh_flow.py, api/slo_evaluator.py, src/config/settings.py
+
+---
+id: financial-asset-relationship-db-workflow-pre-commit-ci-auto-fix
+trigger: "when doing pre commit ci auto fix"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Pre Commit Ci Auto Fix
+
+## Action
+
+Follow the pre-commit-ci-auto-fix workflow:
+1. Run pre-commit hooks on affected files
+2. Apply auto-fixes as recommended by the hooks
+3. Commit the changes with a standardized '[pre-commit.ci] auto fixes' message
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~10x per month
+- Files: tests/integration/test_lock_refresh_flow.py, api/slo_evaluator.py, src/config/settings.py
+
+---
+id: financial-asset-relationship-db-workflow-feature-or-bugfix-with-followup-formatting
+trigger: "when doing feature or bugfix with followup formatting"
+confidence: 0.75
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Feature Or Bugfix With Followup Formatting
+
+## Action
+
+Follow the feature-or-bugfix-with-followup-formatting workflow:
+1. Implement feature or bugfix (touching main code and possibly tests)
+2. Commit the change
+3. Run formatting tools (manually or via CI)
+4. Commit formatting fixes
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~5x per month
+- Files: api/graph_lifecycle_providers.py, api/slo_evaluator.py, src/config/settings.py
+
+---
+id: financial-asset-relationship-db-workflow-feature-development-with-tests-and-migrations
+trigger: "when doing feature development with tests and migrations"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Feature Development With Tests And Migrations
+
+## Action
+
+Follow the feature-development-with-tests-and-migrations workflow:
+1. Modify or add core logic files (e.g., in src/data, src/logic, api/)
+2. Add or update migration SQL scripts in migrations/
+3. Update or add tests in tests/unit or tests/integration
+4. Update documentation if needed
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/data/repository.py, src/data/db_models.py, src/data/migrations.py
+
+---
+id: financial-asset-relationship-db-workflow-docs-or-pr-description-update
+trigger: "when doing docs or pr description update"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Docs Or Pr Description Update
+
+## Action
+
+Follow the docs-or-pr-description-update workflow:
+1. Add or update markdown documentation file(s) (e.g., PR_*.md, ISSUE_*.md, AGENTS.md)
+2. Commit the changes
+3. Optionally, follow up with formatting commit
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: PR_5C_3C_DESCRIPTION.md, ISSUE_5C_3B_CHECKPOINTING.md, ISSUE_5C_3C_CANCELLATION.md
+
+---
+id: financial-asset-relationship-db-instinct-file-naming
+trigger: "When creating a new file in the codebase"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct File Naming
+
+## Action
+
+Name the file using snake_case
+
+## Evidence
+
+- Pattern in folder structure and file naming conventions
+- All files in src/ use snake_case
+
+---
+id: financial-asset-relationship-db-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Function Naming
+
+## Action
+
+Name the function using camelCase
+
+## Evidence
+
+- Naming conventions specify functions: camelCase
+- Pattern in codeStyle
+
+---
+id: financial-asset-relationship-db-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Class Naming
+
+## Action
+
+Name the class using PascalCase
+
+## Evidence
+
+- Naming conventions specify classes: PascalCase
+- Pattern in codeStyle
+
+---
+id: financial-asset-relationship-db-instinct-constant-naming
+trigger: "When defining a constant"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE
+
+## Evidence
+
+- Naming conventions specify constants: SCREAMING_SNAKE_CASE
+- Pattern in codeStyle
+
+---
+id: financial-asset-relationship-db-instinct-import-style
+trigger: "When importing modules within the codebase"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Import Style
+
+## Action
+
+Use relative imports
+
+## Evidence
+
+- ImportStyle: relative
+- Pattern in codeStyle
+
+---
+id: financial-asset-relationship-db-instinct-export-style
+trigger: "When exporting functions or classes from a module"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- ExportStyle: named
+- Pattern in codeStyle
+
+---
+id: financial-asset-relationship-db-instinct-test-file-location
+trigger: "When adding new tests"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test File Location
+
+## Action
+
+Place test files in the separate tests/ directory, matching unit or integration subfolders
+
+## Evidence
+
+- testLocation: separate
+- Pattern in folder structure
+- Examples in tests/unit/ and tests/integration/
+
+---
+id: financial-asset-relationship-db-instinct-test-file-naming
+trigger: "When naming a test file"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test File Naming
+
+## Action
+
+Use the pattern *.test.ts for test files
+
+## Evidence
+
+- filePattern: *.test.ts
+- Pattern in testing
+
+---
+id: financial-asset-relationship-db-instinct-test-types
+trigger: "When writing tests for new features or bugfixes"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test Types
+
+## Action
+
+Include both unit and integration tests where applicable
+
+## Evidence
+
+- testTypes: unit, integration
+- Examples in tests/unit/ and tests/integration/
+
+---
+id: financial-asset-relationship-db-instinct-commit-prefix
+trigger: "When writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Commit Prefix
+
+## Action
+
+Start the commit message with a conventional prefix such as feat, fix, style, docs, test, or refactor
+
+## Evidence
+
+- Examples: 'feat(graph): ...', 'fix(graph): ...', 'style: ...'
+- Pattern in commit prefixes
+
+---
+id: financial-asset-relationship-db-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Commit Length
+
+## Action
+
+Keep the commit message concise, around 60 characters on average
+
+## Evidence
+
+- averageLength: 62
+- Pattern in commit messages
+
+---
+id: financial-asset-relationship-db-instinct-commit-formatting-auto-fix
+trigger: "When code is committed that does not meet style guidelines, or after a batch of changes is merged"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Commit Formatting Auto Fix
+
+## Action
+
+Run code formatting tools (Autopep8, Black, isort, Prettier, Ruff Formatter, StandardJS) and commit the changes with a standardized commit message
+
+## Evidence
+
+- Workflow: code-formatting-auto-fix
+- Commits: 'style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS'
+- Pattern in commit history
+
+---
+id: financial-asset-relationship-db-instinct-pre-commit-ci-auto-fix
+trigger: "When pre-commit CI detects issues after a push or PR merge"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Pre Commit Ci Auto Fix
+
+## Action
+
+Run pre-commit hooks, apply auto-fixes, and commit with '[pre-commit.ci] auto fixes' message
+
+## Evidence
+
+- Workflow: pre-commit-ci-auto-fix
+- Commits: '[pre-commit.ci] auto fixes from pre-commit.com hooks'
+- Pattern in commit history
+
+---
+id: financial-asset-relationship-db-instinct-feature-or-bugfix-with-followup-formatting
+trigger: "When a developer implements a new feature or bugfix and formatting tools are run after the main implementation"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Feature Or Bugfix With Followup Formatting
+
+## Action
+
+Commit the feature/bugfix, then run formatting tools and commit formatting fixes separately
+
+## Evidence
+
+- Workflow: feature-or-bugfix-with-followup-formatting
+- Pattern of feature/bugfix commit followed by formatting commit
+
+---
+id: financial-asset-relationship-db-instinct-feature-development-with-tests-and-migrations
+trigger: "When a new feature or major bugfix requires schema changes and test coverage"
+confidence: 0.88
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Feature Development With Tests And Migrations
+
+## Action
+
+Modify/add core logic, update migration SQL scripts, update/add tests, and update documentation if needed
+
+## Evidence
+
+- Workflow: feature-development-with-tests-and-migrations
+- Commits and files touching src/data, migrations, tests, and docs
+
+---
+id: financial-asset-relationship-db-instinct-docs-or-pr-description-update
+trigger: "When a new feature or process requires documentation or PR description updates"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Docs Or Pr Description Update
+
+## Action
+
+Add or update markdown documentation files (e.g., PR_*.md, ISSUE_*.md, AGENTS.md) and commit the changes
+
+## Evidence
+
+- Workflow: docs-or-pr-description-update
+- Commits updating PR_5C_3C_DESCRIPTION.md, ISSUE_5C_3B_CHECKPOINTING.md, etc.
