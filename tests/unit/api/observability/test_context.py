@@ -112,6 +112,7 @@ async def test_async_context_isolation():
     """Test that context variables are isolated across async tasks."""
 
     async def worker(req_id: str, trace_id: str) -> dict[str, str | None]:
+        """Simulate an async task setting context and yielding."""
         req_tokens = set_request_context(req_id, f"corr-{req_id}")
         trace_tokens = set_trace_context(trace_id, f"span-{trace_id}", None)
         try:

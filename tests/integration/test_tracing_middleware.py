@@ -8,17 +8,20 @@ from src.observability.context import get_request_context
 
 
 def _make_app():
+    """Create a FastAPI app with TracingMiddleware installed for testing."""
     app = FastAPI()
     app.add_middleware(TracingMiddleware)
 
     @app.get("/ctx")
     async def ctx():
+        """Return the active request context dictionary."""
         return get_request_context()
 
     return app
 
 
 def test_tracing_middleware_with_headers():
+    """Test that the middleware correctly parses and propagates trace headers."""
     app = _make_app()
     client = TestClient(app)
 
@@ -39,6 +42,7 @@ def test_tracing_middleware_with_headers():
 
 
 def test_tracing_middleware_generates_ids_when_absent():
+    """Test that the middleware generates request/correlation IDs if omitted."""
     app = _make_app()
     client = TestClient(app)
 

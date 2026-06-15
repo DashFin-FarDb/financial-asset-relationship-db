@@ -1,6 +1,6 @@
-from __future__ import annotations
+"""Example FastAPI ASGI middleware for trace context propagation.
 
-"""Example FastAPI ASGI middleware that demonstrates how to use the async_request_context
+This demonstrates how to use the async_request_context
 and async_trace_context context managers from src.observability.context.
 
 This is a small, self-contained example intended for documentation and onboarding purposes only.
@@ -8,7 +8,9 @@ Use the same pattern in your production middleware to ensure request and trace c
 set and reset reliably across async boundaries.
 """
 
-from typing import Callable
+from __future__ import annotations
+
+from collections.abc import Callable
 from uuid import uuid4
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -37,6 +39,7 @@ class TracingMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """Extract trace/request context from headers and run the request in context."""
         headers = request.headers
         request_id = headers.get("x-request-id") or f"req-{uuid4().hex}"
         correlation_id = headers.get("x-correlation-id") or f"corr-{uuid4().hex}"
@@ -45,7 +48,6 @@ class TracingMiddleware(BaseHTTPMiddleware):
         span_id = headers.get("x-span-id")
 
         # Use async context managers to ensure set/reset semantics even across awaits
-        async with async_request_context(request_id, correlation_id):
-            async with async_trace_context(trace_id, span_id):
-                response = await call_next(request)
+        async with async_request_context(request_id, correlation_id), async_trace_context(trace_id, span_id):
+            response = await call_next(request)
         return response
