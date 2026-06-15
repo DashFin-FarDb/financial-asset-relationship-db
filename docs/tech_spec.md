@@ -12413,6 +12413,7 @@ CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
 ```
 
 Notes for PostgreSQL
+
 - Production/Postgres semantics differ in column types. The migration helper and PostgreSQL DDL use:
   - `TIMESTAMPTZ` for timestamp columns (e.g., `last_heartbeat_at`, `cancellation_requested_at`)
   - `VARCHAR(64)` for short identity columns (`execution_id`, `active_worker_id`)
@@ -12421,6 +12422,7 @@ Notes for PostgreSQL
   - [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
   - [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py) (`apply_postgresql_heartbeat_migration`)
 - Canonical Postgres column examples:
+
 ```sql
 ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64);
 ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ;
@@ -12432,6 +12434,7 @@ ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status CHECK (status IN 
 ```
 
 Links (point to the canonical files)
+
 - Migration (SQLite canonical): [migrations/001_initial.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/001_initial.sql)
 - Incremental migration: [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
 - Postgres migration helper and status-constraint update: [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py)
