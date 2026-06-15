@@ -467,18 +467,18 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
     use_real_data = bool(getattr(settings, "use_real_data_fetcher", False))
 
     if cache_path:
-        graph = graph_lifecycle_providers.load_graph_from_cache_path(
+        graph, startup_source = graph_lifecycle_providers.load_graph_from_cache_path(
             cache_path,
             enable_network=use_real_data,
         )
-        return graph, "cache"
+        return graph, startup_source
 
     if use_real_data:
         real_data_cache_path = getattr(settings, "real_data_cache_path", None)
-        graph = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
+        graph, startup_source = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
             real_data_cache_path,
         )
-        return graph, "real_data"
+        return graph, startup_source
 
     log_event(
         logger,

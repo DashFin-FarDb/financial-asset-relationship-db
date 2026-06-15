@@ -6,7 +6,7 @@ from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
-from typing import Any, TypedDict
+from typing import Any, NoReturn, TypeAlias, TypedDict
 from uuid import uuid4
 
 from sqlalchemy import and_, delete, insert, or_, select, update
@@ -117,7 +117,7 @@ class CoordinationLockRepository:
             )
         )
         update_result = self.session.execute(update_stmt)
-        if update_result.rowcount and update_result.rowcount > 0:
+        if update_result.rowcount and update_result.rowcount > 0:  # type: ignore[attr-defined]
             stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
             record = self.session.execute(stmt).scalar_one_or_none()
             if record:
@@ -152,7 +152,7 @@ class CoordinationLockRepository:
         except IntegrityError:
             # Retry conditional update in case of insert race
             retry_result = self.session.execute(update_stmt)
-            if retry_result.rowcount and retry_result.rowcount > 0:
+            if retry_result.rowcount and retry_result.rowcount > 0:  # type: ignore[attr-defined]
                 stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
                 record = self.session.execute(stmt).scalar_one_or_none()
                 if record:
@@ -215,7 +215,7 @@ class CoordinationLockRepository:
                 DistributedLockORM.holder_id == holder_id,
             )
         )
-        return bool(result.rowcount and result.rowcount > 0)
+        return bool(result.rowcount and result.rowcount > 0)  # type: ignore[attr-defined]
 
     def get_lock_state(self, *, lock_name: str, holder_id: str) -> LockStateSnapshot:
         """Check the current state of a distributed lock and return a materialized snapshot DTO."""
@@ -310,7 +310,7 @@ class _BaseAssetKwargs(TypedDict):
     currency: str
 
 
-type GraphRelationshipRows = dict[str, list[tuple[str, str, float]]]
+GraphRelationshipRows: TypeAlias = dict[str, list[tuple[str, str, float]]]
 _IN_CLAUSE_CHUNK_SIZE = 400
 
 
@@ -329,6 +329,10 @@ def _iter_id_chunks(values: Iterable[str]) -> Generator[tuple[str, ...], None, N
             batch = []
     if batch:
         yield tuple(batch)
+
+
+class RebuildCancellationRequestedError(Exception):
+    """Raised when a rebuild heartbeat update fails because the job was marked for cancellation."""
 
 
 class AssetGraphRepository:
@@ -1175,7 +1179,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1220,7 +1224,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1280,7 +1284,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1291,6 +1295,99 @@ class AssetGraphRepository:
             if job.execution_id != execution_id:
                 raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
             raise ValueError(f"Failed to mark job {job_id} as succeeded")
+
+    def mark_rebuild_job_cancel_requested(self, job_id: str) -> None:
+        """
+        Transition rebuild job to cancel_requested status.
+
+        Args:
+            job_id: The job identifier to update.
+
+        Raises:
+            ValueError: If the job does not exist or is not in a cancellable status.
+        """
+        # Flush any pending ORM changes to ensure UPDATE sees current state
+        self.session.flush()
+
+        # Atomic conditional update: only succeeds if job is in PENDING or RUNNING status
+        now = datetime.now(UTC)
+        stmt = (
+            update(RebuildJobORM)
+            .where(RebuildJobORM.job_id == job_id)
+            .where(
+                or_(
+                    RebuildJobORM.status == RebuildJobStatus.PENDING,
+                    RebuildJobORM.status == RebuildJobStatus.RUNNING,
+                )
+            )
+            .values(
+                status=RebuildJobStatus.CANCEL_REQUESTED,
+                cancellation_requested_at=now,
+                updated_at=now,
+            )
+        )
+        result = self.session.execute(stmt)
+
+        # If no rows were updated, check why
+        if result.rowcount == 0:  # type: ignore[attr-defined]
+            # Refresh to get current state (re-fetch from DB if needed)
+            job = self.session.get(RebuildJobORM, job_id)
+            if job is None:
+                raise ValueError(f"Rebuild job {job_id} not found")
+
+            if job.status == RebuildJobStatus.CANCEL_REQUESTED:
+                # Already cancel_requested, idempotent success
+                return
+
+            raise ValueError(f"Cannot transition job {job_id} from {job.status} to cancel_requested")
+
+    def mark_rebuild_job_cancelled(self, job_id: str, *, execution_id: str) -> None:
+        """
+        Mark rebuild job as cancelled and persist completion metadata.
+
+        Args:
+            job_id: The job identifier to update.
+            execution_id: The unique identifier for this execution attempt.
+
+        Raises:
+            ValueError: If the job does not exist, is not cancel_requested, or execution_id mismatches.
+        """
+        # Flush any pending ORM changes to ensure UPDATE sees current state
+        self.session.flush()
+
+        # Atomic conditional update: only succeeds if:
+        # 1. Job is in CANCEL_REQUESTED status
+        # 2. execution_id matches
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        stmt = (
+            update(RebuildJobORM)
+            .where(RebuildJobORM.job_id == job_id)
+            .where(RebuildJobORM.status == RebuildJobStatus.CANCEL_REQUESTED)
+            .where(RebuildJobORM.execution_id == execution_id)
+            .values(
+                status=RebuildJobStatus.CANCELLED,
+                completed_at=now,
+                updated_at=now,
+            )
+        )
+        result = self.session.execute(stmt)
+
+        # If no rows were updated, check why
+        if result.rowcount == 0:  # type: ignore[attr-defined]
+            # Refresh to get current state (re-fetch from DB if needed)
+            job = self.session.get(RebuildJobORM, job_id)
+            if job is None:
+                raise ValueError(f"Rebuild job {job_id} not found")
+
+            if job.status != RebuildJobStatus.CANCEL_REQUESTED:
+                if job.status == RebuildJobStatus.CANCELLED:
+                    # Already cancelled, idempotent success
+                    return
+                raise ValueError(f"Cannot transition job {job_id} from {job.status} to cancelled")
+            if job.execution_id != execution_id:
+                raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
+
+            raise ValueError(f"Failed to mark job {job_id} as cancelled")
 
     def mark_rebuild_job_failed(
         self,
@@ -1352,7 +1449,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:
@@ -1441,34 +1538,12 @@ class AssetGraphRepository:
         execution_id: str,
         worker_id: str,
     ) -> None:
-        """
-        Update the heartbeat timestamp for an active rebuild job.
-
-        This is used to track rebuild executor liveness and detect stale
-        ownership or crash conditions.
-
-        Args:
-            job_id: The rebuild job ID to update.
-            execution_id: The unique identifier for this execution attempt.
-            worker_id: The worker/instance ID sending the heartbeat.
-
-        Raises:
-            ValueError: If worker_id exceeds String(64) column constraint, or if
-                the job does not exist, is not in running status, or is owned by
-                a different worker/execution.
-        """
-        # Validate worker_id length before database write
-        # Column is String(64), must enforce to avoid backend-specific errors
+        """Update the heartbeat timestamp for an active rebuild job."""
         if len(worker_id) > 64:
             raise ValueError(f"worker_id exceeds maximum length of 64 characters: {len(worker_id)} chars")
 
-        # Flush any pending ORM changes to ensure UPDATE sees current state
         self.session.flush()
 
-        # Atomic conditional update: only succeeds if:
-        # 1. Job is still in RUNNING status (prevents updates to completed jobs)
-        # 2. active_worker_id is NULL or matches worker_id (prevents ownership conflicts)
-        # 3. execution_id matches (prevents stale execution identity)
         now = datetime.now(timezone.utc)  # noqa: UP017
         stmt = (
             update(RebuildJobORM)
@@ -1489,29 +1564,52 @@ class AssetGraphRepository:
         )
         result = self.session.execute(stmt)
 
-        # If no rows were updated, check why
-        if result.rowcount == 0:
-            # Refresh to get current state (re-fetch from DB if needed)
-            job = self.session.get(RebuildJobORM, job_id)
-            if job is None:
-                raise ValueError(f"Rebuild job {job_id} not found")
+        if result.rowcount == 0:  # type: ignore[attr-defined]
+            self._diagnose_heartbeat_failure(job_id, execution_id, worker_id)
 
-            # Check if status changed (most specific error message)
-            if job.status != RebuildJobStatus.RUNNING:
-                current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
-                raise ValueError(
-                    f"Cannot update heartbeat for job {job_id}: job status changed to {current_status} "
-                    "(job is no longer running)"
-                )
+    def _diagnose_heartbeat_failure(self, job_id: str, execution_id: str, worker_id: str) -> NoReturn:
+        """Identify and raise the specific reason why a heartbeat update failed."""
+        job = self.session.get(RebuildJobORM, job_id)
+        if job is None:
+            raise ValueError(f"Rebuild job {job_id} not found")
 
-            # Check if execution identity mismatch
-            if job.execution_id != execution_id:
-                raise ValueError(f"Execution identity mismatch: {job.execution_id} != {execution_id}")
+        # 1. Check for cancellation/terminal states
+        self._raise_for_invalid_heartbeat_status(job)
 
-            # Otherwise it's an ownership conflict
+        # 2. Check for identity/ownership conflicts
+        self._raise_for_heartbeat_identity_conflict(job, execution_id, worker_id)
+
+        # Fallback if somehow called incorrectly
+        raise ValueError(f"Heartbeat update failed for job {job_id} for unknown reason")
+
+    def _raise_for_invalid_heartbeat_status(self, job: RebuildJobORM) -> None:
+        """Raise appropriate error if job status prevents heartbeat."""
+        if job.status == RebuildJobStatus.RUNNING:
+            return
+
+        if job.status == RebuildJobStatus.CANCEL_REQUESTED:
+            raise RebuildCancellationRequestedError(
+                f"Heartbeat update failed for job {job.job_id}: cancellation has been requested"
+            )
+
+        current_status = job.status.value if isinstance(job.status, RebuildJobStatus) else str(job.status)
+        raise ValueError(
+            f"Cannot update heartbeat for job {job.job_id}: job status changed to {current_status} "
+            "(job is no longer running)"
+        )
+
+    def _raise_for_heartbeat_identity_conflict(self, job: RebuildJobORM, execution_id: str, worker_id: str) -> None:
+        """Raise appropriate error for execution or worker identity mismatch."""
+        if job.execution_id != execution_id:
+            raise ValueError(
+                f"Heartbeat update failed for job {job.job_id}: execution identity mismatch "
+                f"(current: {job.execution_id}, expected: {execution_id})"
+            )
+
+        if job.active_worker_id != worker_id:
             current_owner = job.active_worker_id
             raise ValueError(
-                f"Cannot update heartbeat for job {job_id}: active worker is {current_owner}, not {worker_id}. "
+                f"Cannot update heartbeat for job {job.job_id}: active worker is {current_owner}, not {worker_id}. "
                 "Worker ownership has already been claimed."
             )
 
@@ -1545,7 +1643,7 @@ class AssetGraphRepository:
         result = self.session.execute(stmt)
 
         # If no rows were updated, check why
-        if result.rowcount == 0:
+        if result.rowcount == 0:  # type: ignore[attr-defined]
             # Refresh to get current state (re-fetch from DB if needed)
             job = self.session.get(RebuildJobORM, job_id)
             if job is None:

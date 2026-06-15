@@ -62,8 +62,9 @@ The following endpoints are protected by operator authorization:
 1. **`POST /api/graph/rebuild`** — Trigger graph rebuild and persistence
 2. **`GET /api/graph/rebuild/jobs/{job_id}`** — Read rebuild job details
 3. **`GET /api/graph/rebuild/jobs`** — List rebuild jobs
+4. **`POST /api/graph/rebuild/jobs/{job_id}/cancel`** — Request cancellation of a pending or running rebuild job
 
-All three endpoints require `Depends(get_current_rebuild_operator_user)`.
+All four endpoints require `Depends(get_current_rebuild_operator_user)`.
 
 ---
 
@@ -97,6 +98,7 @@ def get_current_rebuild_operator_user(
 ```
 
 **Strengths**:
+
 - ✅ Bounded error messages (no secret leakage)
 - ✅ Defensive null/whitespace handling
 - ✅ Centralized settings dependency
@@ -115,6 +117,7 @@ REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL = "Rebuild operator authorization is not 
 ```
 
 **Assessment**: Messages are:
+
 - ✅ User-friendly
 - ✅ Non-revealing (no usernames, no configuration details)
 - ✅ Actionable (operators know to check configuration)
@@ -134,6 +137,7 @@ async def rebuild_graph(
 ```
 
 **Read endpoints**:
+
 ```python
 @router.get("/api/graph/rebuild/jobs/{job_id}")
 def get_rebuild_job(
@@ -268,13 +272,13 @@ def operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
 
 ### 3.3 Coverage Summary
 
-| Authorization Path | Test Coverage | Status |
-|-------------------|---------------|--------|
-| Unauthenticated user → 401 | ✅ | PASSING |
-| Authenticated non-operator → 403 | ✅ | PASSING |
-| Authenticated operator → 200 | ✅ | PASSING |
-| Missing operator config → 503 | ✅ | PASSING |
-| Read endpoints non-operator → 403 | ✅ | PASSING |
+| Authorization Path                | Test Coverage | Status  |
+| --------------------------------- | ------------- | ------- |
+| Unauthenticated user → 401        | ✅            | PASSING |
+| Authenticated non-operator → 403  | ✅            | PASSING |
+| Authenticated operator → 200      | ✅            | PASSING |
+| Missing operator config → 503     | ✅            | PASSING |
+| Read endpoints non-operator → 403 | ✅            | PASSING |
 
 **Overall Coverage**: **100%** (all authorization paths explicitly tested)
 
@@ -318,11 +322,14 @@ def operator_client(mock_settings: Any) -> Generator[TestClient, None, None]:
 ### 4.3 Attack Surface
 
 **Protected Endpoints**:
+
 - `POST /api/graph/rebuild` — ✅ Protected
 - `GET /api/graph/rebuild/jobs/{job_id}` — ✅ Protected
 - `GET /api/graph/rebuild/jobs` — ✅ Protected
+- `POST /api/graph/rebuild/jobs/{job_id}/cancel` — ✅ Protected
 
 **Unprotected Endpoints** (intentional):
+
 - `GET /api/health/detailed` — ✅ Correctly public (bounded readiness only)
 - `GET /api/assets` — ✅ Correctly public (read-only graph access)
 - `GET /api/relationships` — ✅ Correctly public (read-only graph access)
@@ -401,6 +408,7 @@ def _resolve_user_ref(user: User) -> str:
 **Scenario**: Operator credential lost
 
 **Recovery**:
+
 1. Update `ADMIN_USERNAME` / `ADMIN_PASSWORD` in environment
 2. Restart application
 3. Settings cache will refresh
@@ -452,11 +460,13 @@ def get_current_rebuild_operator_user(
 ### 7.1 Existing Documentation
 
 **Code-level**:
+
 - ✅ Docstrings on `get_current_rebuild_operator_user`
 - ✅ Error message constants defined
 - ✅ Test coverage clear
 
 **System-level**:
+
 - ✅ Enterprise deployment model mentions operators
 - ⚠️ No dedicated operator authorization design doc
 - ⚠️ No runbook for operator credential rotation
@@ -480,6 +490,7 @@ def get_current_rebuild_operator_user(
    - Penetration test results (if any)
 
 **Recommendation**: Create:
+
 - `docs/designs/operator-authorization-boundary.md`
 - `docs/runbooks/operator-credential-rotation.md`
 
@@ -498,6 +509,7 @@ def get_current_rebuild_operator_user(
 **Priority: MEDIUM** — Operational maturity improvements
 
 1. **Add security event logging for authorization failures**
+
    ```python
    logger.warning(
        "rebuild_authorization_denied",
@@ -590,6 +602,7 @@ Optional enhancements (operator credential rotation runbook, security event logg
 **Audit Conducted By**: Claude (AI Agent)
 **Review Status**: Ready for human review and approval
 **Next Steps**:
+
 1. Review this audit with project stakeholders
 2. Complete deployment checklist
 3. Deploy to production

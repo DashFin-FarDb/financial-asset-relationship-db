@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file is hosted and maintained by Dosu (dosu.dev). It provides guidance to AI coding agents when working with code in this repository.
 
 ## IMPORTANT: Production Architecture Declaration
 

@@ -3,14 +3,16 @@
 import json
 import logging
 import math
+import threading
 from collections.abc import Callable
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.reconciliation_engine import RebuildCancelledError
 from src.models.financial_models import (
     Asset,
     AssetClass,
@@ -25,6 +27,12 @@ from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
+
+
+class FetchCancelledError(RebuildCancelledError):
+    """Raised when data fetching is aborted via a cancellation signal."""
+
+
 _YFINANCE_MODULE = None
 _FETCHED_ASSET_LOG_MESSAGE = "Fetched %s: %s at $%.2f"
 
@@ -182,6 +190,26 @@ class RealDataFetcher:
         Returns:
             AssetRelationshipGraph: A graph populated from cache, live data, or fallback/sample data.
         """
+        graph, _ = self.create_real_database_with_source()
+        return graph
+
+    def create_real_database_with_source(
+        self,
+        cancel_event: threading.Event | None = None,
+    ) -> tuple[AssetRelationshipGraph, str]:
+        """
+        Create an asset relationship graph and identify its source (cache, real_data, or sample).
+
+        This is the provenance-safe version of create_real_database. It returns both the
+        constructed graph and a source tag identifying where the data originated.
+
+        Args:
+            cancel_event: Optional event to signal cancellation.
+
+        Returns:
+            tuple[AssetRelationshipGraph, str]: A tuple containing the graph and a source
+                tag: "cache", "real_data" (for live fetches), or "sample".
+        """
         if self.cache_path and self.cache_path.exists():
             try:
                 log_event(
@@ -193,7 +221,7 @@ class RealDataFetcher:
                         metadata={"cache_path": str(self.cache_path)},
                     ),
                 )
-                return _load_from_cache(self.cache_path)
+                return _load_from_cache(self.cache_path), "cache"
             except Exception as exc:
                 log_event(
                     logger,
@@ -214,7 +242,7 @@ class RealDataFetcher:
                     message="Network fetching disabled. Using fallback dataset if available.",
                 ),
             )
-            return self._fallback()
+            return self._fallback(), "sample"
 
         log_event(
             logger,
@@ -224,18 +252,17 @@ class RealDataFetcher:
                 message="Creating database with real financial data from Yahoo Finance",
             ),
         )
-        graph = AssetRelationshipGraph()
 
         try:
-            equities = self._fetch_equity_data()
-            bonds = self._fetch_bond_data()
-            commodities = self._fetch_commodity_data()
-            currencies = self._fetch_currency_data()
+            assets, events, source = self._perform_live_raw_fetch(cancel_event)
+            if source == "sample":
+                return self._fallback(), "sample"
 
-            for asset in equities + bonds + commodities + currencies:
+            graph = AssetRelationshipGraph()
+            for asset in assets:
                 graph.add_asset(asset)
 
-            for event in self._create_regulatory_events():
+            for event in events:
                 graph.add_regulatory_event(event)
 
             graph.build_relationships()
@@ -258,8 +285,10 @@ class RealDataFetcher:
                     },
                 ),
             )
-            return graph
+            return graph, "real_data"
 
+        except FetchCancelledError:
+            raise
         except Exception as exc:
             log_event(
                 logger,
@@ -278,7 +307,7 @@ class RealDataFetcher:
                     message="Falling back to sample data due to real data fetch failure",
                 ),
             )
-            return self._fallback()
+            return self._fallback(), "sample"
 
     def fetch_raw_data(self) -> tuple[list[Asset], list[RegulatoryEvent]]:
         """
@@ -288,19 +317,31 @@ class RealDataFetcher:
             tuple[list[Asset], list[RegulatoryEvent]]: A tuple containing the list of
                 fetched assets and the list of regulatory events.
         """
+        assets, events, _ = self.fetch_raw_data_with_source()
+        return assets, events
+
+    def fetch_raw_data_with_source(
+        self,
+        cancel_event: threading.Event | None = None,
+    ) -> tuple[list[Asset], list[RegulatoryEvent], str]:
+        """
+        Fetch raw asset and regulatory event data and identify its source.
+
+        Args:
+            cancel_event: Optional event to signal cancellation.
+
+        Returns:
+            tuple[list[Asset], list[RegulatoryEvent], str]: A tuple containing the
+                fetched assets, the regulatory events, and a source tag ("real_data" or "sample").
+        """
         if not self.enable_network:
-            # If network is disabled, we return empty or sample-equivalent from fallback
             fb = self._fallback()
-            return list(fb.assets.values()), fb.regulatory_events
+            return list(fb.assets.values()), fb.regulatory_events, "sample"
 
         try:
-            equities = self._fetch_equity_data()
-            bonds = self._fetch_bond_data()
-            commodities = self._fetch_commodity_data()
-            currencies = self._fetch_currency_data()
-            events = self._create_regulatory_events()
-
-            return equities + bonds + commodities + currencies, events
+            return self._perform_live_raw_fetch(cancel_event)
+        except FetchCancelledError:
+            raise
         except Exception as exc:
             log_event(
                 logger,
@@ -312,6 +353,35 @@ class RealDataFetcher:
                 ),
             )
             raise
+
+    def _perform_live_raw_fetch(
+        self,
+        cancel_event: threading.Event | None,
+    ) -> tuple[list[Asset], list[RegulatoryEvent], str]:
+        """Perform the actual live fetch sequence."""
+        self._check_cancelled(cancel_event, "before starting")
+        equities = self._fetch_equity_data(cancel_event)
+
+        self._check_cancelled(cancel_event, "after equities")
+        bonds = self._fetch_bond_data(cancel_event)
+
+        self._check_cancelled(cancel_event, "after bonds")
+        commodities = self._fetch_commodity_data(cancel_event)
+
+        self._check_cancelled(cancel_event, "after commodities")
+        currencies = self._fetch_currency_data(cancel_event)
+
+        self._check_cancelled(cancel_event, "after currencies")
+        events = self._create_regulatory_events()
+
+        all_assets: list[Asset] = cast(list[Asset], equities + bonds + commodities + currencies)
+
+        return all_assets, events, "real_data"
+
+    def _check_cancelled(self, cancel_event: threading.Event | None, stage: str) -> None:
+        """Raise RebuildCancelledError if the cancel_event is set."""
+        if cancel_event and cancel_event.is_set():
+            raise FetchCancelledError(f"Fetch cancelled {stage}")
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
         """
@@ -430,7 +500,7 @@ class RealDataFetcher:
         return close_value, ticker
 
     @staticmethod
-    def _fetch_equity_data() -> list[Equity]:
+    def _fetch_equity_data(cancel_event: threading.Event | None = None) -> list[Equity]:
         """
         Fetch latest market data for a fixed set of major equity symbols and construct Equity objects.
 
@@ -452,6 +522,9 @@ class RealDataFetcher:
         equities: list[Equity] = []
 
         for symbol, (name, sector) in equity_symbols.items():
+            if cancel_event and cancel_event.is_set():
+                raise FetchCancelledError("Fetch cancelled during equities")
+
             try:
                 current_price, ticker = RealDataFetcher._fetch_history_close(yf, symbol)
                 if current_price is None:
@@ -493,7 +566,7 @@ class RealDataFetcher:
         return equities
 
     @staticmethod
-    def _fetch_bond_data() -> list[Bond]:
+    def _fetch_bond_data(cancel_event: threading.Event | None = None) -> list[Bond]:
         """
         Build Bond proxy objects from a fixed set of bond ETF symbols.
 
@@ -529,6 +602,9 @@ class RealDataFetcher:
         bonds: list[Bond] = []
 
         for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
+            if cancel_event and cancel_event.is_set():
+                raise FetchCancelledError("Fetch cancelled during bonds")
+
             try:
                 current_price, ticker = RealDataFetcher._fetch_history_close(yf, symbol)
                 if current_price is None:
@@ -574,7 +650,7 @@ class RealDataFetcher:
         return bonds
 
     @staticmethod
-    def _fetch_commodity_data() -> list[Commodity]:
+    def _fetch_commodity_data(cancel_event: threading.Event | None = None) -> list[Commodity]:
         """
         Construct Commodity instances for a fixed set of futures symbols using their latest close prices.
 
@@ -595,6 +671,9 @@ class RealDataFetcher:
         commodities: list[Commodity] = []
 
         for symbol, (name, sector, contract_size, volatility) in commodity_symbols.items():
+            if cancel_event and cancel_event.is_set():
+                raise FetchCancelledError("Fetch cancelled during commodities")
+
             try:
                 current_price, _ticker = RealDataFetcher._fetch_history_close(yf, symbol)
                 if current_price is None:
@@ -636,7 +715,7 @@ class RealDataFetcher:
         return commodities
 
     @staticmethod
-    def _fetch_currency_data() -> list[Currency]:
+    def _fetch_currency_data(cancel_event: threading.Event | None = None) -> list[Currency]:
         """
         Construct Currency dataclass instances for a predefined set of FX pairs using the latest available rates.
 
@@ -660,6 +739,9 @@ class RealDataFetcher:
         currencies: list[Currency] = []
 
         for symbol, (name, country, currency_code) in currency_symbols.items():
+            if cancel_event and cancel_event.is_set():
+                raise FetchCancelledError("Fetch cancelled during currencies")
+
             try:
                 current_rate, _ticker = RealDataFetcher._fetch_history_close(yf, symbol)
                 if current_rate is None:

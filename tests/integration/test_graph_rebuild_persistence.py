@@ -291,6 +291,7 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
             execution_id,
             job_started_at,
             lock_lost_event,
+            threading.Event(),
         )
         engine_for_test.dispose()
 
@@ -332,6 +333,7 @@ async def test_lock_ttl_heartbeat_execution():
             "worker_id": "test_worker",
             "stop_event": stop_event,
             "lock_lost_event": lock_lost_event,
+            "cancel_event": threading.Event(),
             "interval_seconds": 0.01,
         },
     )
@@ -363,9 +365,10 @@ async def test_simulated_lock_ttl_expiration():
     execution_id = "test-exec-orchestrate"
     lock_ttl = 3
 
-    with graph_admin._orchestrate_heartbeat(
-        mock_session_factory, mock_lock, job_id, execution_id, lock_ttl
-    ) as lock_lost_event:
+    with graph_admin._orchestrate_heartbeat(mock_session_factory, mock_lock, job_id, execution_id, lock_ttl) as (
+        lock_lost_event,
+        _,
+    ):
         lock_lost_event.wait(timeout=1.0)
 
     assert lock_lost_event.is_set()
@@ -402,7 +405,14 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
         try:
             execution_id = "test-exec-fail"
             graph_admin._run_rebuild_pipeline(
-                session_factory, get_settings(), db_url, job_id, execution_id, time.time(), threading.Event()
+                session_factory,
+                get_settings(),
+                db_url,
+                job_id,
+                execution_id,
+                time.time(),
+                threading.Event(),
+                threading.Event(),
             )
         except RebuildLockLostError:
             pass
@@ -431,7 +441,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
     @contextmanager
     def mock_orchestrate_ctx(*args, **kwargs):
         """Mock heartbeat orchestrator context."""
-        yield threading.Event()
+        yield threading.Event(), threading.Event()
 
     with (
         patch("api.routers.graph_admin.DistributedLock", return_value=mock_lock),
@@ -466,9 +476,11 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
     mock_repo = MagicMock(spec=AssetGraphRepository)
     mock_repo.create_rebuild_job.return_value = "job_cancelled"
 
+    from src.logic.reconciliation_engine import RebuildCancelledError
+
     def simulate_cancellation(*args, **kwargs):
         """Simulate execution cancellation."""
-        raise asyncio.CancelledError()
+        raise RebuildCancelledError("Rebuild cancelled via API request")
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", simulate_cancellation)
 
@@ -476,14 +488,21 @@ async def test_rebuild_job_cleanup_on_cancellation(session_factory_provider, mon
         engine_for_test = create_engine_from_url(db_url)
         session_factory = create_session_factory(engine_for_test)
 
-        with pytest.raises(asyncio.CancelledError):
+        with pytest.raises(RebuildCancelledError):
             execution_id = "test-exec-cancel"
             graph_admin._run_rebuild_pipeline(
-                session_factory, get_settings(), db_url, "job_cancelled", execution_id, time.time(), threading.Event()
+                session_factory,
+                get_settings(),
+                db_url,
+                "job_cancelled",
+                execution_id,
+                time.time(),
+                threading.Event(),
+                threading.Event(),
             )
         engine_for_test.dispose()
 
-        mock_repo.mark_rebuild_job_failed.assert_called_once()
+        mock_repo.mark_rebuild_job_cancelled.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -515,6 +534,7 @@ async def test_rebuild_pipeline_aborts_immediately_on_preexisting_lock_loss(sess
                 execution_id,
                 time.time(),
                 lock_lost_event,
+                threading.Event(),
             )
         engine_for_test.dispose()
 
