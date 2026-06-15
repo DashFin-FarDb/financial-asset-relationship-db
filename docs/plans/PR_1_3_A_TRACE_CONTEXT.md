@@ -143,6 +143,7 @@ def trace_context(trace_id: Optional[str], span_id: Optional[str], parent_span_i
 ```
 
 **Middleware Usage Example:**
+
 ```python
 from src.observability.context import trace_context
 
