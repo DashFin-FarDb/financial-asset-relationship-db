@@ -31,8 +31,7 @@ def _inject_request_context(_logger: Any, _log_method: str, event_dict: dict[str
     """
     context = get_request_context()
     for key in ("request_id", "correlation_id", "trace_id", "span_id", "parent_span_id"):
-        if context.get(key):
-            event_dict[key] = context[key]
+        event_dict[key] = context.get(key)
     return event_dict
 
 

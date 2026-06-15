@@ -69,14 +69,17 @@ def test_inject_request_context_processor():
 
 
 def test_inject_request_context_processor_empty():
-    """Test the processor handles empty context safely."""
+    """Test the processor handles empty context safely by injecting None."""
     # ContextVars default to None
     event_dict = {"event": "test event"}
     result = _inject_request_context(None, "info", event_dict)
 
-    # Missing context vars should not be added to the dictionary
-    assert "request_id" not in result
-    assert "correlation_id" not in result
+    # Context vars should be present but None
+    assert result["request_id"] is None
+    assert result["correlation_id"] is None
+    assert result["trace_id"] is None
+    assert result["span_id"] is None
+    assert result["parent_span_id"] is None
     assert result["event"] == "test event"
 
 

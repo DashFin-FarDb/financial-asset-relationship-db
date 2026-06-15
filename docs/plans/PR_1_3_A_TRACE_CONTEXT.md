@@ -132,6 +132,30 @@ def reset_trace_context(
     _trace_id_ctx.reset(t1)
     _span_id_ctx.reset(t2)
     _parent_span_id_ctx.reset(t3)
+
+@contextlib.contextmanager
+def trace_context(trace_id: Optional[str], span_id: Optional[str], parent_span_id: Optional[str] = None):
+    tokens = set_trace_context(trace_id, span_id, parent_span_id)
+    try:
+        yield
+    finally:
+        reset_trace_context(tokens)
+```
+
+**Middleware Usage Example:**
+```python
+from src.observability.context import trace_context
+
+@app.middleware("http")
+async def add_tracing_middleware(request: Request, call_next):
+    # Extract trace IDs from headers or generate new ones
+    trace_id = request.headers.get("x-b3-traceid") or generate_id()
+    span_id = request.headers.get("x-b3-spanid") or generate_id()
+
+    # Use context manager for robust lifecycle management
+    with trace_context(trace_id, span_id):
+        response = await call_next(request)
+        return response
 ```
 
 Update `get_request_context()` to return these fields:

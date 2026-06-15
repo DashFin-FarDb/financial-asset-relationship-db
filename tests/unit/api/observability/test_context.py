@@ -12,10 +12,12 @@ from src.observability.context import (
     get_span_id,
     get_trace_id,
     is_valid_id,
+    request_context,
     reset_request_context,
     reset_trace_context,
     set_request_context,
     set_trace_context,
+    trace_context,
 )
 
 
@@ -137,3 +139,22 @@ async def test_async_context_isolation():
         "span_id": "span-trace2",
         "parent_span_id": None,
     }
+
+
+def test_trace_context_manager():
+    """Test the trace_context context manager."""
+    assert get_trace_id() is None
+    with trace_context("cm-trace", "cm-span"):
+        assert get_trace_id() == "cm-trace"
+        assert get_span_id() == "cm-span"
+        assert get_parent_span_id() is None
+    assert get_trace_id() is None
+
+
+def test_request_context_manager():
+    """Test the request_context context manager."""
+    assert get_request_id() is None
+    with request_context("cm-req", "cm-corr"):
+        assert get_request_id() == "cm-req"
+        assert get_correlation_id() == "cm-corr"
+    assert get_request_id() is None
