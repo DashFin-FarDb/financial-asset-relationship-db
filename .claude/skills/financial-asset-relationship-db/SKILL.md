@@ -29,7 +29,7 @@ This skill teaches you the core development patterns, coding conventions, and au
 ## Workflows
 
 ### Code Formatting Auto-Fix
-**Trigger:** When code is committed that does not meet style guidelines, or after a batch of changes is merged.  
+**Trigger:** When code is committed that does not meet style guidelines, or after a batch of changes is merged.
 **Command:** `/format-code`
 
 1. Run code formatting tools (Autopep8, Black, isort, Prettier, Ruff Formatter, StandardJS).
@@ -46,7 +46,7 @@ git commit -am "style: auto-format codebase"
 ---
 
 ### Pre-commit CI Auto-Fix
-**Trigger:** When pre-commit CI detects issues after a push or PR merge.  
+**Trigger:** When pre-commit CI detects issues after a push or PR merge.
 **Command:** `/pre-commit-fix`
 
 1. Run pre-commit hooks on affected files.
@@ -62,7 +62,7 @@ git commit -am "[pre-commit.ci] auto fixes"
 ---
 
 ### Feature or Bugfix with Follow-up Formatting
-**Trigger:** When implementing a feature or bugfix, followed by formatting/style fixes.  
+**Trigger:** When implementing a feature or bugfix, followed by formatting/style fixes.
 **Command:** `/feature-with-format`
 
 1. Implement the feature or bugfix (update main code and possibly tests).
@@ -84,7 +84,7 @@ git commit -am "style: format after feature implementation"
 ---
 
 ### Feature Development with Tests and Migrations
-**Trigger:** When a new feature or major bugfix requires schema changes and test coverage.  
+**Trigger:** When a new feature or major bugfix requires schema changes and test coverage.
 **Command:** `/feature-with-migration`
 
 1. Modify or add core logic files (e.g., in `src/data`, `src/logic`, `api/`).
@@ -109,7 +109,7 @@ git commit -m "feat: support new asset type with migration and tests"
 ---
 
 ### Docs or PR Description Update
-**Trigger:** When a new feature or process requires documentation or PR description updates.  
+**Trigger:** When a new feature or process requires documentation or PR description updates.
 **Command:** `/update-docs`
 
 1. Add or update markdown documentation file(s) (e.g., `PR_*.md`, `ISSUE_*.md`, `AGENTS.md`).
