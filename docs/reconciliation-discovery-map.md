@@ -203,7 +203,7 @@ Reconciliation is **event-driven** rather than **periodic**:
 
 - Runs on startup
 - Runs on operator-triggered rebuild
-- No continuous background reconciliation loop
+- No continuous background reconciliation loop (the background task `_graph_synchronization_loop` in `api/app_factory.py` performs passive graph synchronization to the runtime but does not generate or execute reconciliation plans).
 
 ---
 
@@ -230,13 +230,17 @@ Reconciliation is **event-driven** rather than **periodic**:
 - [x] Create ReconciliationPlan data structure
 - [x] Tests for drift → plan mapping
 
-### Phase 2 (Integration Complete) ✅
+### Phase 2 (Partially Completed / In Progress) 🔄
 
-- [x] Integrate ReconciliationEngine into RecoveryGate
-- [x] Add periodic reconciliation loop
-- [x] Create Job Abstraction Layer
-- [x] Implement plan execution delegation
-- [x] Add reconciliation event observability
+- [x] Wire ReconciliationEngine into Rebuild Graph Construction (Wired via `build_rebuild_graph` in [graph_lifecycle_providers.py](file:///home/mo/projects/financial-asset-relationship-db/api/graph_lifecycle_providers.py#L218-L243))
+- [x] Integrated Checkpointed Rebuild Execution (Integrated in [graph_admin.py](file:///home/mo/projects/financial-asset-relationship-db/api/routers/graph_admin.py))
+- [x] Add reconciliation event observability (Logged via `log_event` in `ReconciliationEngine`)
+- [ ] Integrate ReconciliationEngine into RecoveryGate (Note: `RecoveryGate` currently uses legacy logic `determine_recovery_action`; complete integration is deferred)
+- [ ] Add periodic reconciliation loop (Note: Background `_graph_synchronization_loop` only syncs runtime graph; a true continuous reconciliation planner loop is deferred)
+
+> [!IMPORTANT]
+> **Roadmap Deviation & TODOs (Stage 5C.4)**:
+> Fully integrating `ReconciliationEngine` plan consumption inside `RecoveryGate` and introducing a true background periodic reconciliation loop (separate from the passive synchronization loop) are deferred to a tightly-scoped future PR to manage architectural changes and review size.
 
 ### Phase 3 (Future Work)
 
@@ -257,4 +261,4 @@ The Financial Asset Relationship Database **already performs sophisticated recon
 4. ✅ Enables future observability and policy hooks
 5. ✅ Maintains backward compatibility with existing RecoveryGate
 
-**Status:** Reconciliation Engine is fully integrated into the production paths (Phase 2 complete).
+**Status:** Reconciliation Engine is partially integrated into production paths (Phase 2 in progress; full RecoveryGate integration and periodic loop deferred to future work).
