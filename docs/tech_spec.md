@@ -12405,7 +12405,7 @@ CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
     ON rebuild_jobs (status, created_at);
 ```
 
-*(Note: SQLite maps TIMESTAMPTZ to TEXT dynamically in local/testing setups, but production PostgreSQL maps them directly to TIMESTAMPTZ to ensure timezone-safe indexing and querying).*
+_(Note: SQLite maps TIMESTAMPTZ to TEXT dynamically in local/testing setups, but production PostgreSQL maps them directly to TIMESTAMPTZ to ensure timezone-safe indexing and querying)._
 
 ### 14.2.2 Distributed Locks Table Schema (`distributed_locks`)
 
@@ -12442,7 +12442,7 @@ To minimize redundant operations and allow resumes after failure or cancellation
 
 - The `checkpoint_data` text column stores a serialized JSON representation of the current rebuild progress (e.g., lists of processed asset tickers, pages fetched).
 - During the rebuild process, the worker periodically saves intermediate states via the `update_rebuild_checkpoint()` repository method.
-- Checkpoint resume applies specifically to retries or resumes utilizing the *same* job ID (reusing the same job row), as the database stores `checkpoint_data` directly on the job row. A new job ID represents a completely fresh lineage and will not automatically load prior checkpoint records.
+- Checkpoint resume applies specifically to retries or resumes utilizing the _same_ job ID (reusing the same job row), as the database stores `checkpoint_data` directly on the job row. A new job ID represents a completely fresh lineage and will not automatically load prior checkpoint records.
 
 ### 14.3.3 Cooperative Cancellation Mechanics
 
