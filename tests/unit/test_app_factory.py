@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 from types import SimpleNamespace
+from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -179,7 +180,7 @@ def test_startup_reconciliation_does_not_release_lock_without_reset_reacquire(
     monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", _GateNoReacquire)
 
     with pytest.raises(ExecutionBlockedError):
-        app_factory._run_startup_reconciliation(base_settings)  # pylint: disable=protected-access
+        app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
 
     fake_lock.release.assert_not_called()
 
@@ -210,6 +211,89 @@ def test_startup_reconciliation_releases_lock_when_reset_reacquired(
     monkeypatch.setattr("src.data.distributed_lock.DistributedLock", lambda **_kwargs: fake_lock)
     monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", _GateReacquired)
 
-    app_factory._run_startup_reconciliation(base_settings)  # pylint: disable=protected-access
+    app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
 
     assert fake_lock.lock_name == "graph_rebuild"
+
+
+@pytest.mark.asyncio
+async def test_periodic_reconciliation_loop_triggers_recovery(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """_periodic_reconciliation_loop should invoke gate.ensure_safe_to_execute for automatic reset plans."""
+    import asyncio
+    from datetime import datetime
+
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, ReconciliationPlan, Severity
+
+    fake_engine = SimpleNamespace(dispose=lambda: None)
+    fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
+
+    # Mock DB and Lock
+    monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
+    monkeypatch.setattr("src.data.database.create_session_factory", lambda _engine: lambda: None)
+    monkeypatch.setattr("src.data.distributed_lock.DistributedLock", lambda **_kwargs: fake_lock)
+
+    # Mock RebuildDriftEvaluator
+    monkeypatch.setattr("src.logic.rebuild_drift_evaluator.RebuildDriftEvaluator", MagicMock())
+
+    # Mock ReconciliationEngine to return a reset plan with automatic execution mode
+    from datetime import timezone
+
+    mock_plan = ReconciliationPlan(
+        drift_type="orphaned_running",
+        severity=Severity.CRITICAL,
+        actions=(ActionType.RESET_STATE,),
+        target_state="converged",
+        execution_mode=ExecutionMode.AUTOMATIC,
+        safety_state=ExecutionSafety.RESET_REQUIRED,
+        reason="test reset",
+        metadata={},
+        created_at=datetime.now(timezone.utc),
+    )
+
+    class FakeEngine:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def generate_reconciliation_plan(self):
+            return mock_plan
+
+    monkeypatch.setattr("src.logic.reconciliation_engine.ReconciliationEngine", FakeEngine)
+
+    # Mock RecoveryGate
+    ensure_safe_called = []
+
+    class FakeGate:
+        def __init__(self, **kwargs):
+            self.lock_was_reacquired = False
+
+        def ensure_safe_to_execute(self, cancellation_event=None):
+            ensure_safe_called.append(True)
+
+    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", FakeGate)
+
+    # We want sleep to yield once then raise CancelledError to terminate the loop cleanly
+    sleep_calls = 0
+
+    async def mock_sleep(seconds: float):
+        nonlocal sleep_calls
+        sleep_calls += 1
+        if sleep_calls > 1:
+            raise asyncio.CancelledError()
+
+    monkeypatch.setattr(app_factory.asyncio, "sleep", mock_sleep)
+    monkeypatch.setattr(
+        app_factory,
+        "get_runtime_lifecycle_state",
+        lambda: app_factory.GraphRuntimeLifecycleState.READY,
+    )
+
+    # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
+    with pytest.raises(asyncio.CancelledError):
+        await app_factory._periodic_reconciliation_loop(
+            interval_seconds=0.1, settings=cast(Any, base_settings)
+        )  # pylint: disable=protected-access
+
+    assert ensure_safe_called == [True]

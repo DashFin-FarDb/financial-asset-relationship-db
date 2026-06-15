@@ -12,8 +12,10 @@ from sqlalchemy.orm import Session
 
 from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockState
 from src.data.repository import AssetGraphRepository
-from src.logic.rebuild_failure_detection import InconsistencyType, detect_rebuild_inconsistency
-from src.logic.rebuild_recovery import RecoveryAction, RecoveryDecision, determine_recovery_action
+from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
+from src.logic.rebuild_failure_detection import InconsistencyType
+from src.logic.rebuild_recovery import RecoveryAction, RecoveryDecision
+from src.logic.reconciliation_engine import ActionType, ExecutionSafety, ReconciliationEngine, ReconciliationPlan
 from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
@@ -323,70 +325,50 @@ class RecoveryGate:
             RecoveryDecision: Decision containing the chosen `action`, `reason`,
                 `inconsistency_type`, and `safe_to_execute` flag.
         """
-        lock_state = self.lock.check_state()
-        job = None
+        import src.logic.rebuild_drift_evaluator as drift_evaluator_module
 
-        # LOST state always blocks - cannot determine lock ownership due to DB error
-        if lock_state == LockState.LOST:
-            log_event(
-                logger,
-                logging.WARNING,
-                ObservabilityEvent(
-                    event="recovery_gate_lock_lost",
-                    message="Execution blocked: Lock state is LOST (database connectivity failure)",
-                ),
-            )
-            return RecoveryDecision(
-                action=RecoveryAction.UNSAFE,
-                reason="Lock state is lost (database connectivity failure)",
-                inconsistency_type=None,
-                safe_to_execute=False,
-            )
-
-        lock_is_valid = lock_state == LockState.VALID
+        orig_repo = getattr(drift_evaluator_module, "AssetGraphRepository", None)
+        setattr(drift_evaluator_module, "AssetGraphRepository", AssetGraphRepository)
 
         try:
-            with self.session_factory() as session:
-                repo = AssetGraphRepository(session)
-                job = repo.get_active_rebuild_state()
-        except ValueError as exc:
-            return self._create_unsafe_decision_from_error(exc, "active rebuild state query failed")
-        except sqlalchemy_exc.SQLAlchemyError as exc:
-            return self._create_unsafe_decision_from_error(exc, "database error during rebuild state query")
-        except Exception as exc:
-            return self._create_unsafe_decision_from_error(exc, "unexpected error during rebuild state query", "error")
+            try:
+                evaluator = RebuildDriftEvaluator(
+                    session_factory=self.session_factory,
+                    lock=self.lock,
+                    runtime_has_active_executor=self.runtime_has_active_executor,
+                    lock_ttl_seconds=self.lock_ttl_seconds,
+                )
+                engine = ReconciliationEngine(evaluator=evaluator)
+                plan = engine.generate_reconciliation_plan()
+            except ValueError as exc:
+                return self._create_unsafe_decision_from_error(exc, "active rebuild state query failed")
+            except sqlalchemy_exc.SQLAlchemyError as exc:
+                return self._create_unsafe_decision_from_error(exc, "database error during rebuild state query")
+            except Exception as exc:
+                return self._create_unsafe_decision_from_error(
+                    exc, "unexpected error during rebuild state query", "error"
+                )
+        finally:
+            if orig_repo is not None:
+                setattr(drift_evaluator_module, "AssetGraphRepository", orig_repo)
 
-        # UNKNOWN state handling: distinguish between clean install vs wrong owner
-        if lock_state == LockState.UNKNOWN:
-            return self._handle_unknown_lock_state(job)
-
-        inconsistency = detect_rebuild_inconsistency(
-            job=job,
-            runtime_has_active_executor=self.runtime_has_active_executor,
-            lock_ttl_seconds=self.lock_ttl_seconds,
-        )
-
-        decision = determine_recovery_action(
-            inconsistency=inconsistency,
-            lock_is_valid=lock_is_valid,
-        )
-
-        decision = self._apply_owner_mismatch_override(decision, inconsistency, lock_is_valid, job)
-
-        if increment_metric and inconsistency.inconsistency_type != InconsistencyType.NONE:
-            self.increment_recovery_trigger(inconsistency.inconsistency_type.value)
+        # Map plan to legacy RecoveryDecision
+        decision = _map_plan_to_decision(plan, increment_metric, self.increment_recovery_trigger)
 
         if not decision.safe_to_execute:
             log_event(
                 logger,
                 logging.WARNING,
                 ObservabilityEvent(
-                    event="recovery_gate_execution_unsafe",
+                    event="recovery_gate_execution_blocked",
                     message=f"Execution blocked: {decision.reason}",
-                    metadata={"reason": decision.reason},
+                    metadata={
+                        "action": decision.action.value,
+                        "inconsistency": (decision.inconsistency_type.value if decision.inconsistency_type else "none"),
+                        "reason": decision.reason,
+                    },
                 ),
             )
-
         return decision
 
     def evaluate_state(self) -> RecoveryAction:
@@ -620,3 +602,56 @@ class RecoveryGate:
                 ),
             )
             raise
+
+
+def _map_plan_to_decision(
+    plan: ReconciliationPlan, increment_metric: bool, increment_recovery_trigger: Callable[[str], None]
+) -> RecoveryDecision:
+    """Map the reconciliation plan to a legacy RecoveryDecision."""
+    action = RecoveryAction.UNSAFE
+    if ActionType.RESET_STATE in plan.actions:
+        action = RecoveryAction.RESET
+    elif ActionType.WAIT_FOR_CONVERGENCE in plan.actions:
+        action = RecoveryAction.WAIT
+    elif ActionType.NOOP in plan.actions:
+        if plan.safety_state == ExecutionSafety.WAIT_REQUIRED:
+            action = RecoveryAction.WAIT
+        else:
+            action = RecoveryAction.RESUME
+
+    safe_to_execute = action == RecoveryAction.RESUME
+
+    inconsistency_type = None
+    try:
+        inconsistency_type = InconsistencyType(plan.drift_type)
+    except ValueError:
+        pass
+
+    # Handle UNKNOWN lock state cleanly to match legacy behavior
+    lock_state_val = plan.metadata.get("lock_state")
+    if lock_state_val == LockState.UNKNOWN.value:
+        has_job = plan.metadata.get("job_id") is not None
+        if has_job:
+            action = RecoveryAction.UNSAFE
+            inconsistency_type = None
+            safe_to_execute = False
+            reason = "Lock state is unknown with active rebuild job"
+        else:
+            action = RecoveryAction.WAIT
+            inconsistency_type = InconsistencyType.NONE
+            safe_to_execute = False
+            reason = plan.reason
+    else:
+        reason = plan.reason
+
+    decision = RecoveryDecision(
+        action=action,
+        reason=reason,
+        inconsistency_type=inconsistency_type,
+        safe_to_execute=safe_to_execute,
+    )
+
+    if increment_metric and decision.inconsistency_type and decision.inconsistency_type != InconsistencyType.NONE:
+        increment_recovery_trigger(decision.inconsistency_type.value)
+
+    return decision

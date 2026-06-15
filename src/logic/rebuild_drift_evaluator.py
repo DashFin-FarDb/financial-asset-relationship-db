@@ -250,10 +250,9 @@ class RebuildDriftEvaluator:
         if not job or inconsistency_type != InconsistencyType.ORPHANED_RUNNING:
             return False, False
 
+        active_worker_id = getattr(job, "active_worker_id", None)
         owner_mismatch = (
-            job.active_worker_id is not None
-            and self.lock.holder_id is not None
-            and job.active_worker_id != self.lock.holder_id
+            active_worker_id is not None and self.lock.holder_id is not None and active_worker_id != self.lock.holder_id
         )
 
         if not owner_mismatch:
@@ -261,7 +260,8 @@ class RebuildDriftEvaluator:
 
         # Check if heartbeat is stale or missing
         # This preserves RecoveryGate's resettable orphaned-owner mismatch path
-        heartbeat_is_stale = self._is_heartbeat_stale(job.last_heartbeat_at)
+        last_heartbeat_at = getattr(job, "last_heartbeat_at", None)
+        heartbeat_is_stale = self._is_heartbeat_stale(last_heartbeat_at)
         owner_mismatch_with_stale_heartbeat = heartbeat_is_stale
 
         return owner_mismatch, owner_mismatch_with_stale_heartbeat
@@ -283,15 +283,21 @@ class RebuildDriftEvaluator:
 
         # Handle heartbeat safely - check if it has isoformat before calling
         heartbeat_str: str | None = None
-        if job.last_heartbeat_at is not None:
-            if hasattr(job.last_heartbeat_at, "isoformat"):
-                heartbeat_str = job.last_heartbeat_at.isoformat()
+        last_heartbeat_at = getattr(job, "last_heartbeat_at", None)
+        if last_heartbeat_at is not None:
+            if hasattr(last_heartbeat_at, "isoformat"):
+                heartbeat_str = last_heartbeat_at.isoformat()
             else:
-                heartbeat_str = str(job.last_heartbeat_at)
+                heartbeat_str = str(last_heartbeat_at)
+
+        job_status = getattr(job, "status", None)
+        job_status_str: str | None = None
+        if job_status is not None:
+            job_status_str = job_status.value if hasattr(job_status, "value") else str(job_status)
 
         return {
-            "job_status": job.status.value if hasattr(job.status, "value") else str(job.status),
-            "active_worker_id": job.active_worker_id,
+            "job_status": job_status_str,
+            "active_worker_id": getattr(job, "active_worker_id", None),
             "last_heartbeat_at": heartbeat_str,
             "owner_mismatch": owner_mismatch,
             "lock_holder_id": self.lock.holder_id,
