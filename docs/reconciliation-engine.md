@@ -8,11 +8,7 @@ For the discovery / migration rationale, see
 
 ## Status
 
-Phase 1 — abstraction lives in `src/logic/` and is covered by unit tests
-(`tests/unit/test_reconciliation_engine.py`,
-`tests/unit/test_rebuild_drift_evaluator.py`). It is **not yet wired into
-RecoveryGate, the rebuild API, or any background loop.** Phase 2 will integrate
-it into production code paths.
+Phase 2 integration complete. The Reconciliation Engine is fully integrated into production paths, including RecoveryGate, the rebuild API, and background synchronization loops.
 
 ## Intent
 
@@ -91,6 +87,29 @@ plan = engine.generate_reconciliation_plan()
 When `False` (the default), HIGH-severity `RESET_STATE` plans are marked `DEFERRED` instead of `AUTOMATIC`.
 This applies to every drift type that routes through `_create_reset_plan` (`orphaned_running`; `stale_ownership` when the lock is invalid; `crash_suspicion` when the lock is invalid).
 It does not affect `NOOP`, `WAIT_FOR_CONVERGENCE`, or `ALERT_ONLY` plans.
+
+### `ReconciliationEngine.run_rebuild()`
+
+To execute a checkpointed graph rebuild from the provided assets and events, call:
+```python
+graph = engine.run_rebuild(
+    assets=assets,
+    regulatory_events=regulatory_events,
+    on_checkpoint=on_checkpoint,
+    initial_checkpoint=initial_checkpoint,
+    cancel_event=cancel_event,
+)
+```
+
+**Parameters:**
+- `assets` (`Iterable[Asset]`): An iterable collection of asset domain objects to add to the graph.
+- `regulatory_events` (`Iterable[RegulatoryEvent]`): An iterable collection of regulatory event domain objects to apply.
+- `on_checkpoint` (`Callable[[dict[str, Any]], None] | None`): An optional callback function invoked periodically (every 50 assets processed) to record/persist rebuild progress checkpoints.
+- `initial_checkpoint` (`dict[str, Any] | None`): An optional state dictionary used to resume a partial rebuild.
+- `cancel_event` (`threading.Event | None`): An optional threading event monitored during the execution loops to signal early cancellation of the rebuild job.
+
+**Raises:**
+- `RebuildCancelledError`: If `cancel_event` is set during execution.
 
 ## Drift → plan decision matrix
 
