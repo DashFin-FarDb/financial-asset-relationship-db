@@ -24,16 +24,14 @@ def _inject_request_context(_logger: Any, _log_method: str, event_dict: dict[str
     """
     Inject request-scoped identifiers into the log event dictionary.
 
-    If the current request context contains `request_id` or `correlation_id`, copies those keys into `event_dict`.
+    Copies relevant trace and request context variables into `event_dict`.
 
     Returns:
-        dict: The `event_dict` updated with `request_id` and/or `correlation_id` when present.
+        dict: The `event_dict` updated with context metadata.
     """
     context = get_request_context()
-    if context.get("request_id"):
-        event_dict["request_id"] = context["request_id"]
-    if context.get("correlation_id"):
-        event_dict["correlation_id"] = context["correlation_id"]
+    for key in ("request_id", "correlation_id", "trace_id", "span_id", "parent_span_id"):
+        event_dict[key] = context.get(key)
     return event_dict
 
 
