@@ -15,12 +15,18 @@ Phase 2 integration complete. The Reconciliation Engine is fully integrated into
 `ReconciliationEngine` is a plan-only control-plane primitive. It compares a
 desired state with the observed state (via a pluggable `DriftEvaluator`) and
 emits a structured `ReconciliationPlan` describing the corrective action.
-Execution is delegated; the engine itself never mutates state, never executes a
-job, and never writes to persistence.
+The engine itself never mutates external state, never executes a database job,
+and never writes to persistence.
 
 These constraints are enforced by convention and by the dataclass design —
 `ReconciliationPlan` is frozen, and the engine has no DB/lock dependencies of
-its own (the evaluator owns those).
+its own.
+
+> [!NOTE]
+> The engine class also provides `run_rebuild()`, which serves as a stateless, in-memory
+> graph reconstruction loop. It computes relationship matrices and processes assets in memory
+> but remains entirely side-effect-free. External state transitions, locks, and DB persistence
+> are fully decoupled and managed by the orchestration layer (`api/routers/graph_admin.py`).
 
 ## Public surface
 
@@ -90,7 +96,7 @@ It does not affect `NOOP`, `WAIT_FOR_CONVERGENCE`, or `ALERT_ONLY` plans.
 
 ### `ReconciliationEngine.run_rebuild()`
 
-To execute a checkpointed graph rebuild from the provided assets and events, call:
+To perform the in-memory, side-effect-free reconstruction of a graph from the provided assets and events, call:
 
 ```python
 graph = engine.run_rebuild(
