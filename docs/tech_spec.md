@@ -12342,11 +12342,12 @@ A rebuild job transitions through the following states: `PENDING` -> `RUNNING` -
 
 ```mermaid
 stateDiagram-v2
-    [*] --> PENDING : Job Created via REST API
+    [*] --> PENDING : start_rebuild()
     PENDING --> RUNNING : mark_rebuild_job_running()
-    PENDING --> FAILED : mark_rebuild_job_failed() (Pre-start error)
+    PENDING --> FAILED : mark_rebuild_job_failed() (Init error)
+    PENDING --> CANCEL_REQUESTED : mark_rebuild_job_cancel_requested() (Operator cancellation)
 
-    RUNNING --> SUCCEEDED : mark_rebuild_job_succeeded() (Completed successfully)
+    RUNNING --> SUCCEEDED : mark_rebuild_job_succeeded() (Success path)
     RUNNING --> FAILED : mark_rebuild_job_failed() (Execution error/lock lost)
     RUNNING --> CANCEL_REQUESTED : mark_rebuild_job_cancel_requested() (Operator cancellation)
 
@@ -12358,7 +12359,7 @@ stateDiagram-v2
 
 1. **PENDING**: Initial state when a rebuild job is created via `/api/graph/rebuild`.
 2. **RUNNING**: Transited when a worker thread claims the job and provides a unique UUID `execution_id`. Only valid from `PENDING`.
-3. **CANCEL_REQUESTED**: Transited when an operator requests cancellation via `/api/graph/rebuild/jobs/{job_id}/cancel`. Only valid from `RUNNING`.
+3. **CANCEL_REQUESTED**: Transited when an operator requests cancellation via `/api/graph/rebuild/jobs/{job_id}/cancel`. Valid from both PENDING and RUNNING states.
 4. **CANCELLED**: Transited once the active worker detects the `CANCEL_REQUESTED` state (via the heartbeat keeper setting the `cancel_event` flag) and safely halts all active processes.
 5. **FAILED**: Terminal state when an unhandled exception or lock loss occurs.
 6. **SUCCEEDED**: Terminal state when graph rebuild and persistent synchronization completes successfully.
@@ -12376,23 +12377,23 @@ Tracks the state, identity, telemetry, and progress checkpoints of rebuild opera
 ```sql
 CREATE TABLE IF NOT EXISTS rebuild_jobs (
     job_id TEXT PRIMARY KEY,
-    requested_by TEXT NOT NULL,
     status TEXT NOT NULL,
+    requested_by TEXT NOT NULL,
     source TEXT,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL,
-    started_at TEXT,
-    completed_at TEXT,
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
     duration_ms INTEGER,
     node_count INTEGER,
     edge_count INTEGER,
     sanitized_failure_category TEXT,
     sanitized_failure_message TEXT,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
     active_worker_id TEXT,
-    last_heartbeat_at TEXT,
+    last_heartbeat_at TIMESTAMPTZ,
     execution_id TEXT,
     checkpoint_data TEXT,
-    cancellation_requested_at TEXT,
+    cancellation_requested_at TIMESTAMPTZ,
     CONSTRAINT ck_rebuild_jobs_status
         CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
 );
@@ -12404,6 +12405,8 @@ CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
     ON rebuild_jobs (status, created_at);
 ```
 
+*(Note: SQLite maps TIMESTAMPTZ to TEXT dynamically in local/testing setups, but production PostgreSQL maps them directly to TIMESTAMPTZ to ensure timezone-safe indexing and querying).*
+
 ### 14.2.2 Distributed Locks Table Schema (`distributed_locks`)
 
 Prevents concurrent execution of rebuild operations across instances.
@@ -12412,9 +12415,9 @@ Prevents concurrent execution of rebuild operations across instances.
 CREATE TABLE IF NOT EXISTS distributed_locks (
     lock_name TEXT PRIMARY KEY,
     holder_id TEXT NOT NULL,
-    expires_at TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
 );
 ```
 
@@ -12429,8 +12432,9 @@ To guarantee transaction safety, recovery from worker crashes, and responsive ca
 To prevent "zombie" or slow-running executors from writing stale data or updating the state of a job that has been retried or reassigned:
 
 - Every job execution is assigned a unique UUID `execution_id` upon transitioning to `RUNNING`.
-- All database mutations affecting the job record (e.g., updating checkpoint data, marking as running, succeeded, or failed) must execute an atomic conditional update verifying that the `execution_id` in the database matches the worker's current `execution_id`.
+- Worker-owned database mutations affecting the job record (specifically checkpoint updates and terminal transitions to `SUCCEEDED` or `FAILED`) must execute an atomic conditional update verifying that the `execution_id` in the database matches the worker's current `execution_id`.
 - If a mismatch is detected, the database query returns a row count of `0`, and a `ValueError` with an "Execution identity mismatch" message is raised, immediately terminating the worker's path.
+- Operator-driven state transitions, such as requesting a cancellation via the `/cancel` endpoint that updates the status to `CANCEL_REQUESTED`, are explicitly exempt from the execution ID matching check to allow operators to request cancellations while workers are running.
 
 ### 14.3.2 Checkpointed Recovery
 
@@ -12438,14 +12442,14 @@ To minimize redundant operations and allow resumes after failure or cancellation
 
 - The `checkpoint_data` text column stores a serialized JSON representation of the current rebuild progress (e.g., lists of processed asset tickers, pages fetched).
 - During the rebuild process, the worker periodically saves intermediate states via the `update_rebuild_checkpoint()` repository method.
-- When a new rebuild job is initiated, the system checks if a checkpoint exists for the target job; if found, it deserializes the state to resume asset processing from the last recorded checkpoint rather than starting from scratch.
+- Checkpoint resume applies specifically to retries or resumes utilizing the *same* job ID (reusing the same job row), as the database stores `checkpoint_data` directly on the job row. A new job ID represents a completely fresh lineage and will not automatically load prior checkpoint records.
 
 ### 14.3.3 Cooperative Cancellation Mechanics
 
 Rebuild cancellation is designed as a cooperative process between the FastAPI HTTP request handler, the background heartbeat keeper thread, and the main rebuild execution loop:
 
 1. **Trigger**: The operator sends a `POST` request to `/api/graph/rebuild/jobs/{job_id}/cancel`. The API transitions the job status to `CANCEL_REQUESTED` and sets the `cancellation_requested_at` timestamp.
-2. **Heartbeat Monitoring**: The background `_heartbeat_keeper` thread polls the job status at regular intervals (`lock_ttl // 3`).
+2. **Heartbeat Monitoring**: The background `_heartbeat_keeper` thread polls the job status at regular intervals computed as `max(lock_ttl // 3, 1)` (in seconds) to prevent division by zero or infinite loop issues if the lock TTL is configured too small.
 3. **Detection & Event Signaling**: When the `_heartbeat_keeper` retrieves the job status and detects it is `CANCEL_REQUESTED`, it logs the event, sets a thread-shared `cancel_event` (a `threading.Event` object), and terminates.
 4. **Execution Loop Halting**: The active rebuild execution loop periodically monitors the `cancel_event` flag (at key boundaries like starting a new chunk of assets or saving checkpoints).
 5. **Termination**: If `cancel_event` is set, the executor halts processing, raises a `RebuildCancelledError`, and the coordinator transitions the job to `CANCELLED` using the correct `execution_id`.
