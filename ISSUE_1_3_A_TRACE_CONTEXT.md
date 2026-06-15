@@ -11,6 +11,7 @@ Related to Phase 1.3: Lifecycle Tracing (Observability Foundation Completion).
 The FarDb FastAPI production backend currently lacks a distributed tracing context layer. While it implements correlation and request identifier context variables, it cannot track nested call hierarchy (spans), trace execution across asynchronous worker threads, or establish parent-child relationships for deep operational diagnostics.
 
 To enable complete lifecycle tracing of long-running graph rebuilds, we must first establish the trace context primitives:
+
 1. `trace_id` (representing the overall end-to-end execution path).
 2. `span_id` (representing the current execution segment).
 3. `parent_span_id` (representing the parent context, if nested).
@@ -18,6 +19,7 @@ To enable complete lifecycle tracing of long-running graph rebuilds, we must fir
 ### Describe the solution you'd like
 
 Introduce thread-safe and async-safe context variables (`contextvars.ContextVar`) to manage `trace_id`, `span_id`, and `parent_span_id` in `src/observability/context.py`.
+
 - Expose helper getters and setters.
 - Integrate these fields into the existing `get_request_context()` structured log formatter interface to allow seamless structured log injection down the line.
 
@@ -37,12 +39,14 @@ Establish trace context management variables (`trace_id`, `span_id`, `parent_spa
 ## Implementation Plan
 
 ### 1. Primitives Definition (`src/observability/context.py`)
+
 - Define three new context variables:
   - `_trace_id_ctx: ContextVar[Optional[str]]`
   - `_span_id_ctx: ContextVar[Optional[str]]`
   - `_parent_span_id_ctx: ContextVar[Optional[str]]`
 
 ### 2. Context Helper Methods (`src/observability/context.py`)
+
 - Implement the following helpers:
   - `get_trace_id() -> Optional[str]`
   - `get_span_id() -> Optional[str]`
@@ -51,6 +55,7 @@ Establish trace context management variables (`trace_id`, `span_id`, `parent_spa
   - `reset_trace_context(tokens) -> None`
 
 ### 3. Log Ingestion Interface Update (`src/observability/context.py`)
+
 - Update `get_request_context() -> dict[str, Optional[str]]` to return a dictionary containing:
   - `request_id`
   - `correlation_id`

@@ -4,7 +4,7 @@
 
 ## Context & Problem Statement
 
-*(Derived from the Feature Request Issue Template)*
+_(Derived from the Feature Request Issue Template)_
 
 **Problem:**
 The FarDb production backend (FastAPI) lacks a structured tracing context propagation layer. While it supports basic `request_id` and `correlation_id` propagation, it cannot track sub-operation lifetimes (spans) or parent-child relationships across asynchronous or thread boundaries. To implement Phase 1.3: Lifecycle Tracing, the system requires tracing context primitives (`trace_id`, `span_id`, and `parent_span_id`) that are safely managed and propagated across execution threads and asynchronous tasks.
@@ -13,8 +13,9 @@ The FarDb production backend (FastAPI) lacks a structured tracing context propag
 Introduce thread-safe and async-safe context variables (`contextvars.ContextVar`) to store `trace_id`, `span_id`, and `parent_span_id` within the `src/observability/context.py` module. Provide safe getter/setter functions and update `get_request_context()` to include the new fields.
 
 **Alternatives Considered:**
-1. *OpenTelemetry SDK*: Using a full OpenTelemetry integration was considered but rejected for this baseline to minimize dependencies and complexity, preferring lightweight `contextvars` that align with our custom structured logging and event schemas.
-2. *Dict-based thread-local storage*: Thread-locals do not automatically propagate across asynchronous tasks (`async/await`), whereas `contextvars` natively support async boundaries in Python.
+
+1. _OpenTelemetry SDK_: Using a full OpenTelemetry integration was considered but rejected for this baseline to minimize dependencies and complexity, preferring lightweight `contextvars` that align with our custom structured logging and event schemas.
+2. _Dict-based thread-local storage_: Thread-locals do not automatically propagate across asynchronous tasks (`async/await`), whereas `contextvars` natively support async boundaries in Python.
 
 ---
 
@@ -33,6 +34,7 @@ Establish the foundational context management variables and helper functions for
 ## Scope
 
 ### In Scope
+
 1. **Trace Context Variables**:
    - Define `_trace_id_ctx: ContextVar[Optional[str]]`
    - Define `_span_id_ctx: ContextVar[Optional[str]]`
@@ -47,18 +49,20 @@ Establish the foundational context management variables and helper functions for
    - Update `get_request_context()` to return a dictionary including `trace_id`, `span_id`, and `parent_span_id`.
 
 ### Out of Scope
+
 1. **Middleware Refactoring**: Modifying `api/middleware/correlation.py` to extract headers from HTTP requests is deferred to a separate, sequential PR.
 2. **Startup & Rebuild Integration**: Instrumenting startup lifecycle and background tasks with tracing spans is deferred to separate PRs.
 3. **Unit Test Changes**: Unit testing for trace context primitives, log integration, and async isolation are explicitly included in this PR.
 
 ### Files Expected to Change
+
 - [`src/observability/context.py`](../../src/observability/context.py) — Establish context variables, getters, setters, and update context getter dict.
 
 ---
 
 ## PR Triage & Description Standards
 
-*(Required by GEMINI.md global rules)*
+_(Required by GEMINI.md global rules)_
 
 - **Upstream Source**: Calls to context getters (`get_trace_id`, `get_span_id`, `get_parent_span_id`, and `get_request_context`) will be initiated by the logging setup (`src/observability/logging.py`) and future tracing middleware. The callers assume these operations are lightweight, thread-safe, and execute with $O(1)$ complexity.
 - **Downstream Impact**: The return values are merged into logging payloads and event schemas. Adding these fields to `get_request_context` will automatically propagate them to all structured logs, but will not affect performance or cause memory leaks, as context variables are garbage collected when the request/task context terminates.
@@ -81,6 +85,7 @@ _parent_span_id_ctx: ContextVar[Optional[str]] = ContextVar("parent_span_id", de
 ```
 
 And expose getters, setters, and reset helpers:
+
 ```python
 def get_trace_id() -> Optional[str]:
     """Return the current trace ID from context."""
@@ -130,6 +135,7 @@ def reset_trace_context(
 ```
 
 Update `get_request_context()` to return these fields:
+
 ```python
 def get_request_context() -> dict[str, Optional[str]]:
     """
@@ -152,15 +158,19 @@ def get_request_context() -> dict[str, Optional[str]]:
 ## Verification Plan
 
 ### Automated Tests
+
 Run the existing test suites to confirm no regressions are introduced:
+
 ```bash
 pytest tests/unit/api/observability/test_context.py -v
 pytest tests/unit/api/middleware/test_correlation.py -v
 ```
 
 ### Manual Verification
+
 Write a temporary scratch verification script in the artifacts directory (`scratch/verify_tracing_context.py`) that sets the context variables, validates getters, and resets the context.
 Run this script:
+
 ```bash
 python scratch/verify_tracing_context.py
 ```
@@ -170,10 +180,12 @@ python scratch/verify_tracing_context.py
 ## Architectural Constraints
 
 ### Must Preserve
+
 - **Thread & Async Safety**: Always use `contextvars` to manage context across asynchronous task boundaries.
 - **Backward Compatibility**: `get_request_context()` must continue to return the dictionary containing `request_id` and `correlation_id` keys intact.
 
 ### Must Not Introduce
+
 - **Global Mutators**: Avoid using global dictionaries or raw thread-locals that can bleed request boundaries in high-concurrency event loops.
 - **Heavy Callbacks**: Keep context setters/getters free of heavy logic or external database lookups.
 
@@ -184,5 +196,6 @@ python scratch/verify_tracing_context.py
 - **Low Risk**: Introducing context variables has no runtime impact on existing flows, as long as they default to `None` and the dictionary returned by `get_request_context` contains all legacy keys.
 
 ## Success Metrics
+
 - 100% of existing tests pass.
 - Verification script successfully exercises async-safe trace context propagation.
