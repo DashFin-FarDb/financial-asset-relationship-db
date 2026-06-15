@@ -12374,26 +12374,33 @@ The rebuild control plane relies on two key tables in the database schema: `rebu
 
 Tracks the state, identity, telemetry, and progress checkpoints of rebuild operations.
 
+This DDL is canonical — any change to rebuild_jobs schema must be made in migrations/ and reflected here; prefer editing migrations/ first, then update this documentation. See migrations/ and src/data/migrations.py for platform-specific (Postgres) adjustments.
+
+#### Rebuild job schema (canonical DDL)
+
+Canonical (SQLite) DDL — exact copy of migrations/001_initial.sql (relevant portion)
+
 ```sql
+-- rebuild_jobs table (canonical SQLite DDL)
 CREATE TABLE IF NOT EXISTS rebuild_jobs (
     job_id TEXT PRIMARY KEY,
-    status TEXT NOT NULL,
     requested_by TEXT NOT NULL,
+    status TEXT NOT NULL,
     source TEXT,
-    started_at TIMESTAMPTZ,
-    completed_at TIMESTAMPTZ,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
     duration_ms INTEGER,
     node_count INTEGER,
     edge_count INTEGER,
     sanitized_failure_category TEXT,
     sanitized_failure_message TEXT,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
     active_worker_id TEXT,
-    last_heartbeat_at TIMESTAMPTZ,
+    last_heartbeat_at TEXT,
     execution_id TEXT,
     checkpoint_data TEXT,
-    cancellation_requested_at TIMESTAMPTZ,
+    cancellation_requested_at TEXT,
     CONSTRAINT ck_rebuild_jobs_status
         CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
 );
@@ -12405,7 +12412,30 @@ CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
     ON rebuild_jobs (status, created_at);
 ```
 
-_(Note: SQLite maps TIMESTAMPTZ to TEXT dynamically in local/testing setups, but production PostgreSQL maps them directly to TIMESTAMPTZ to ensure timezone-safe indexing and querying. The schema defined above is a canonical mapping to the actual SQLAlchemy database models defined in [db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py#L251-L280) and migrations in [migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py#L190-L212))._
+Notes for PostgreSQL
+- Production/Postgres semantics differ in column types. The migration helper and PostgreSQL DDL use:
+  - `TIMESTAMPTZ` for timestamp columns (e.g., `last_heartbeat_at`, `cancellation_requested_at`)
+  - `VARCHAR(64)` for short identity columns (`execution_id`, `active_worker_id`)
+  - `TEXT` for `checkpoint_data`
+- The repository includes an idempotent startup helper that applies Postgres-compatible `ALTER TABLE` statements and enforces the status-check constraint; see:
+  - [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
+  - [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py) (`apply_postgresql_heartbeat_migration`)
+- Canonical Postgres column examples:
+```sql
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64);
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ;
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS execution_id VARCHAR(64);
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS checkpoint_data TEXT;
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS cancellation_requested_at TIMESTAMPTZ;
+ALTER TABLE rebuild_jobs DROP CONSTRAINT IF EXISTS ck_rebuild_jobs_status;
+ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'));
+```
+
+Links (point to the canonical files)
+- Migration (SQLite canonical): [migrations/001_initial.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/001_initial.sql)
+- Incremental migration: [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
+- Postgres migration helper and status-constraint update: [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py)
+- ORM canonical mapping: [src/data/db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py)
 
 ### 14.2.2 Distributed Locks Table Schema (`distributed_locks`)
 
