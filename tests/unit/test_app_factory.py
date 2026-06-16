@@ -292,7 +292,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(interval_seconds=0.1, settings=cast(Any, base_settings))  # pylint: disable=protected-access
+        await app_factory._periodic_reconciliation_loop(
+            interval_seconds=0.1, settings=cast(Any, base_settings)
+        )  # pylint: disable=protected-access
 
     assert ensure_safe_called == [True]
 
@@ -313,6 +315,7 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
 
     # Force an exception
     def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
+        """Raise a simulated runtime error to represent reconciliation failure."""
         raise ValueError("simulated unexpected startup error")
 
     monkeypatch.setattr(
@@ -324,6 +327,7 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
     logged_events = []
 
     def fake_log_event(logger, level, event):
+        """Append logged events to a local list for assertion."""
         logged_events.append(event)
 
     monkeypatch.setattr(app_factory, "log_event", fake_log_event)
@@ -374,6 +378,7 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
 
     # Mock reconciliation to succeed
     async def mock_perform_startup_reconciliation(*_args, **_kwargs) -> None:
+        """Mock startup reconciliation to succeed without side effects."""
         pass
 
     monkeypatch.setattr(
@@ -384,6 +389,7 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
 
     # Make get_graph raise a deterministic exception
     def _raise_get_graph():
+        """Simulate a failure in graph retrieval during startup."""
         raise RuntimeError("simulated get_graph failure")
 
     monkeypatch.setattr(app_factory, "get_graph", _raise_get_graph)
@@ -392,6 +398,7 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
     hex_values = ["deadbeef-trace", "deadbeef-span"]
 
     def fake_uuid4():
+        """Return a predictable sequence of fake UUIDs."""
         return type("U", (), {"hex": hex_values.pop(0)})()
 
     monkeypatch.setattr(app_factory, "uuid4", fake_uuid4)
@@ -400,6 +407,7 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
     logged_events = []
 
     def fake_log_event(logger, level, event):
+        """Append captured observability events to a local list."""
         logged_events.append(event)
 
     monkeypatch.setattr(app_factory, "log_event", fake_log_event)

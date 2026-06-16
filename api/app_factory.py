@@ -157,7 +157,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     trace_id = f"startup-{uuid4().hex}"
     span_id = f"startup-span-{uuid4().hex}"
 
-    logger.debug(f"Initiating traced startup sequence (trace_id={trace_id}, span_id={span_id})")
+    logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
 
     # Wrap the entire state initialization in a dedicated trace context.
     # This guarantees a fail-fast startup: if context initialization or graph
@@ -203,7 +203,7 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 asyncio.to_thread(_run_startup_reconciliation, settings, cancellation_event),
                 timeout=120,
             )
-        except (TimeoutError, asyncio.TimeoutError):
+        except TimeoutError:
             # Signal background thread to abort further processing
             cancellation_event.set()
             log_event(
