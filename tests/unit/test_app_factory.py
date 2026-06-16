@@ -505,3 +505,18 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
     results = await asyncio.gather(*tasks)
 
     assert all(r is None for r in results), "Trace context leaked into background task"
+
+
+def test_generate_startup_trace_ids_format() -> None:
+    """Verify that _generate_startup_trace_ids produces valid W3C-compatible trace and span IDs."""
+    from api.app_factory import _generate_startup_trace_ids
+
+    trace_id, span_id = _generate_startup_trace_ids()
+
+    # Trace ID should be 32 hex chars
+    assert len(trace_id) == 32
+    assert all(c in "0123456789abcdef" for c in trace_id)
+
+    # Span ID should be 16 hex chars
+    assert len(span_id) == 16
+    assert all(c in "0123456789abcdef" for c in span_id)

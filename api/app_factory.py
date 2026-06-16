@@ -175,12 +175,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     trace_id, span_id = _generate_startup_trace_ids()
 
-    logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
-
     # Wrap the entire state initialization in a dedicated trace context.
     # This guarantees a fail-fast startup: if context initialization or graph
     # load fails, it will raise immediately before FastAPI accepts HTTP traffic.
     async with async_trace_context(trace_id=trace_id, span_id=span_id):
+        logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
         try:
             if has_persistence:
                 await _perform_startup_reconciliation(settings)
