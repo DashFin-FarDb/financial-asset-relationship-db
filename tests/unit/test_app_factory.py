@@ -415,6 +415,7 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
     # Mock reconciliation to succeed
     async def mock_perform_startup_reconciliation(*_args, **_kwargs) -> None:
         """Mock startup reconciliation to succeed without side effects."""
+        await asyncio.sleep(0)  # use async feature
 
     monkeypatch.setattr(
         app_factory,
@@ -483,6 +484,7 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
     # Mock reconciliation to succeed
     async def mock_perform_startup_reconciliation(*_args, **_kwargs) -> None:
         """Mock startup reconciliation to succeed without side effects."""
+        await asyncio.sleep(0)  # use async feature
 
     monkeypatch.setattr(
         app_factory,
