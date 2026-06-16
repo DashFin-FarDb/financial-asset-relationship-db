@@ -171,11 +171,13 @@ async def test_correlation_middleware_partial_failure(monkeypatch: pytest.Monkey
     from api.middleware import correlation
 
     def failing_set_trace_context(*args, **kwargs):
+        """Mock set_trace_context to simulate a failure."""
         raise RuntimeError("simulated set_trace_context failure")
 
     monkeypatch.setattr(correlation, "set_trace_context", failing_set_trace_context)
 
     async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
+        """Mock ASGI app that does nothing."""
         pass
 
     middleware = CorrelationMiddleware(mock_app)  # type: ignore[arg-type]
@@ -306,6 +308,7 @@ async def test_correlation_middleware_header_deduplication() -> None:
     """Test that CorrelationMiddleware deduplicates headers if downstream already sets them."""
 
     async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
+        """Mock ASGI app that sets custom headers."""
         # Downstream app sets its own headers
         await send(
             {
@@ -322,11 +325,13 @@ async def test_correlation_middleware_header_deduplication() -> None:
     scope = {"type": "http", "headers": [], "state": {}}
 
     async def mock_receive():
+        """Mock ASGI receive function."""
         return {}
 
     sent_messages = []
 
     async def mock_send(msg):
+        """Mock ASGI send function."""
         sent_messages.append(msg)
 
     await middleware(scope, mock_receive, mock_send)
