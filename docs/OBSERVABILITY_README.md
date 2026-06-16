@@ -31,4 +31,10 @@ This will automatically install request and trace contexts for every incoming re
 - Respect `x-trace-id` and `x-span-id` headers when present; invalid values are dropped.
 - Ensure contexts are reset after the request completes.
 
-- Startup tracing: the application lifespan creates and applies a startup trace context (trace_id/span_id) during state initialization so observability events emitted during startup (reconciliation/get_graph/etc.) carry the same trace identifiers. See `api/app_factory.py` for implementation details.
+- Startup tracing: the application lifespan creates and applies a startup trace context (trace_id/span_id) during state initialization so observability events emitted during startup (reconciliation, get_graph, etc.) carry the same trace identifiers. For implementation details and tests, see:
+
+  - api/app_factory.py: https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/docs/trace-startup-note/api/app_factory.py
+  - tests/unit/test_app_factory.py: https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/docs/trace-startup-note/tests/unit/test_app_factory.py
+  - tests/unit/api/observability: https://github.com/DashFin-FarDb/financial-asset-relationship-db/tree/docs/trace-startup-note/tests/unit/api/observability
+
+  Format: trace_id is the full `uuid4().hex` (32 lowercase hex chars); span_id is the first 16 hex characters of `uuid4().hex` (16 lowercase hex chars).
