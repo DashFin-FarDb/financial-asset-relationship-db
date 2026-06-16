@@ -148,10 +148,14 @@ def _generate_startup_trace_ids() -> tuple[str, str]:
     """
     Generate deterministic or random trace and span IDs for startup.
 
+    Generates W3C-compatible trace identifiers (32-char trace_id, 16-char span_id).
+    These IDs can be correlated in downstream systems (e.g. Jaeger, Datadog)
+    to trace the startup lifecycle alongside structured application logs.
+
     This is extracted to a separate function primarily for testability, allowing
     unit tests to easily mock trace IDs without monkeypatching module-level uuid4.
     """
-    return f"startup-{uuid4().hex}", f"startup-span-{uuid4().hex}"
+    return uuid4().hex, uuid4().hex[:16]
 
 
 def _trace_or_unknown(val: str | None) -> str:
