@@ -1,5 +1,6 @@
 """Unit tests for CorrelationMiddleware."""
 
+import asyncio
 import re
 import uuid
 from typing import Callable
@@ -142,6 +143,7 @@ async def test_correlation_middleware_cleanup_on_error() -> None:
 
     async def failing_app(scope: dict, receive: Callable, send: Callable) -> None:
         """Simulate a downstream ASGI app that raises an exception."""
+        await asyncio.sleep(0)
         raise ValueError("Simulated downstream error")
 
     middleware = CorrelationMiddleware(failing_app)  # type: ignore[arg-type]
@@ -149,11 +151,12 @@ async def test_correlation_middleware_cleanup_on_error() -> None:
 
     async def mock_receive():
         """Mock ASGI receive function."""
+        await asyncio.sleep(0)
         return {}
 
     async def mock_send(msg):
         """Mock ASGI send function."""
-        ...
+        await asyncio.sleep(0)
 
     with pytest.raises(ValueError, match="Simulated downstream error"):
         await middleware(scope, mock_receive, mock_send)
@@ -178,18 +181,19 @@ async def test_correlation_middleware_partial_failure(monkeypatch: pytest.Monkey
 
     async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
         """Mock ASGI app that does nothing."""
-        pass
+        await asyncio.sleep(0)
 
     middleware = CorrelationMiddleware(mock_app)  # type: ignore[arg-type]
     scope = {"type": "http", "headers": [], "state": {}}
 
     async def mock_receive():
         """Mock ASGI receive function."""
+        await asyncio.sleep(0)
         return {}
 
     async def mock_send(msg):
         """Mock ASGI send function."""
-        ...
+        await asyncio.sleep(0)
 
     with pytest.raises(RuntimeError, match="simulated set_trace_context failure"):
         await middleware(scope, mock_receive, mock_send)
@@ -206,6 +210,7 @@ async def test_correlation_middleware_state_fallback() -> None:  # noqa: C901
 
     async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
         """Mock ASGI application that does nothing."""
+        await asyncio.sleep(0)
 
     middleware = CorrelationMiddleware(mock_app)  # type: ignore[arg-type]
 
@@ -240,10 +245,12 @@ async def test_correlation_middleware_state_fallback() -> None:  # noqa: C901
 
     async def mock_receive():
         """Mock ASGI receive function."""
+        await asyncio.sleep(0)
         return {}
 
     async def mock_send(msg):
         """Mock ASGI send function."""
+        await asyncio.sleep(0)
 
     await middleware(scope, mock_receive, mock_send)
 
@@ -326,6 +333,7 @@ async def test_correlation_middleware_header_deduplication() -> None:
 
     async def mock_receive():
         """Mock ASGI receive function."""
+        await asyncio.sleep(0)
         return {}
 
     sent_messages = []
@@ -340,8 +348,65 @@ async def test_correlation_middleware_header_deduplication() -> None:
     start_msg = sent_messages[0]
 
     # Assert there's only one request-id and correlation-id header, and it matches the middleware-generated one
+    headers_dict = {k.decode("latin1"): v.decode("latin1") for k, v in start_msg.get("headers", [])}
     raw_headers = [k for k, v in start_msg.get("headers", [])]
     assert raw_headers.count(b"x-request-id") == 1
     assert raw_headers.count(b"x-correlation-id") == 1
     assert raw_headers.count(b"x-trace-id") == 1
     assert raw_headers.count(b"x-span-id") == 1
+
+    # Ensure the headers were overwritten by the middleware and not duplicated
+    assert headers_dict["x-request-id"] != "downstream-req-id"
+    assert headers_dict["x-correlation-id"] != "downstream-corr-id"
+    state_dict = scope["state"]
+    assert isinstance(state_dict, dict)
+    assert headers_dict["x-request-id"] == state_dict["request_id"]
+    assert headers_dict["x-correlation-id"] == state_dict["correlation_id"]
+
+
+@pytest.mark.asyncio
+async def test_correlation_middleware_reset_contract(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that reset_trace_context is called with the exact token returned by set_trace_context."""
+    from api.middleware import correlation
+
+    expected_token = ("dummy_token1", "dummy_token2", "dummy_token3")
+    reset_called_with = None
+
+    def mock_set_trace_context(*args, **kwargs):
+        return expected_token
+
+    def mock_reset_trace_context(token):
+        nonlocal reset_called_with
+        reset_called_with = token
+
+    monkeypatch.setattr(correlation, "set_trace_context", mock_set_trace_context)
+    monkeypatch.setattr(correlation, "reset_trace_context", mock_reset_trace_context)
+
+    async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
+        await asyncio.sleep(0)
+
+    middleware = correlation.CorrelationMiddleware(mock_app)  # type: ignore[arg-type]
+    scope = {"type": "http", "headers": [], "state": {}}
+
+    async def mock_receive():
+        await asyncio.sleep(0)
+        return {}
+
+    async def mock_send(msg):
+        await asyncio.sleep(0)
+
+    await middleware(scope, mock_receive, mock_send)
+
+    assert reset_called_with is expected_token
+
+
+@pytest.mark.asyncio
+async def test_correlation_id_validation_rejects_all_zeros() -> None:
+    """Test that all-zero W3C trace and span IDs are rejected."""
+    from api.middleware.correlation import W3C_SPAN_ID_REGEX, W3C_TRACE_ID_REGEX, _extract_and_validate_w3c_id
+
+    trace_id = "0" * 32
+    span_id = "0" * 16
+
+    assert _extract_and_validate_w3c_id(trace_id, "X-Trace-ID", W3C_TRACE_ID_REGEX) is None
+    assert _extract_and_validate_w3c_id(span_id, "X-Span-ID", W3C_SPAN_ID_REGEX) is None
