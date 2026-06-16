@@ -1,5 +1,7 @@
 # Sub-Issue: Phase 1.3.a - Trace Context Model and Propagation
 
+**STATUS: COMPLETED (Merged via PR #1264)**
+
 ## Parent Roadmap
 
 Related to Phase 1.3: Lifecycle Tracing (Observability Foundation Completion).
