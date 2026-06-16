@@ -332,8 +332,71 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
         async with app_factory.lifespan(app):
             pass
 
-    assert len(logged_events) == 1
+    assert len(logged_events) == 2
+
+    # First event: startup_reconciliation_failed
     assert logged_events[0].event == "startup_reconciliation_failed"
     assert "ValueError" in logged_events[0].message
     assert logged_events[0].metadata["error"] == "ValueError"
     assert logged_events[0].metadata["message"] == "simulated unexpected startup error"
+    assert logged_events[0].metadata["phase"] == "reconciliation"
+    assert "trace_id" in logged_events[0].metadata
+    assert "span_id" in logged_events[0].metadata
+
+    # Second event: startup_failed
+    assert logged_events[1].event == "startup_failed"
+    assert "RuntimeError" in logged_events[1].message
+    assert logged_events[1].metadata["error"] == "RuntimeError"
+    assert "Failed to load persisted graph during startup" in logged_events[1].metadata["message"]
+    assert "trace_id" in logged_events[1].metadata
+    assert "span_id" in logged_events[1].metadata
+
+
+@pytest.mark.asyncio
+async def test_lifespan_emits_startup_failed_on_graph_init_error(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Lifespan must emit 'startup_failed' when an exception occurs outside reconciliation."""
+    app = FastAPI()
+
+    # Mock settings
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
+        lambda: base_settings,
+    )
+
+    # Mock reconciliation to succeed
+    async def mock_perform_startup_reconciliation(*_args, **_kwargs) -> None:
+        pass
+
+    monkeypatch.setattr(
+        app_factory,
+        "_perform_startup_reconciliation",
+        mock_perform_startup_reconciliation,
+    )
+
+    # Force an exception during graph init
+    def mock_get_graph() -> None:
+        raise ValueError("simulated graph init error")
+
+    monkeypatch.setattr(app_factory, "get_graph", mock_get_graph)
+
+    logged_events = []
+
+    def fake_log_event(logger, level, event):
+        logged_events.append(event)
+
+    monkeypatch.setattr(app_factory, "log_event", fake_log_event)
+
+    with pytest.raises(ValueError, match="simulated graph init error"):
+        async with app_factory.lifespan(app):
+            pass
+
+    assert len(logged_events) == 1
+    assert logged_events[0].event == "startup_failed"
+    assert "ValueError" in logged_events[0].message
+    assert logged_events[0].metadata["error"] == "ValueError"
+    assert logged_events[0].metadata["message"] == "simulated graph init error"
+    assert "trace_id" in logged_events[0].metadata
+    assert "span_id" in logged_events[0].metadata
