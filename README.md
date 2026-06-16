@@ -1,4 +1,4 @@
-[![Board Status](https://dev.azure.com/mohavro/2e48cc65-ae36-4c98-98b5-0eb4c1a1b5df/7f564e5b-a967-4110-9d79-7aeaaf540ef4/_apis/work/boardbadge/b59b599b-e6ab-41bd-8d76-d02d17a77a9d)](https://dev.azure.com/mohavro/2e48cc65-ae36-4c98-98b5-0eb4c1a1b5df/_boards/board/t/7f564e5b-a967-4110-9d79-7aeaaf540ef4/Microsoft.RequirementCategory)
+[![Board Status](https://dev.azure.com/mohavro/2e48cc65-ae36-4c98-98b5-0eb4c1a1b5df/7f564e5b-a967-4110-9d79-7aeaaf540ef4/_apis/work/boardbadge/b59b599b-e6ab-41bd-8d76-d02d17a77a9d)](https://dev.azu[...]
 [![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/DashFin-FarDb/financial-asset-relationship-db?utm_source=badge)
 
 # Financial Asset Relationship Database
@@ -59,9 +59,15 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
    python -m uvicorn api.main:app --reload --port 8000
    ```
 
-   Windows PowerShell users should activate `.venv\Scripts\Activate.ps1` and set the same environment variables with `$env:NAME="value"` before running the `python -m uvicorn ...` command.
+   Windows PowerShell users should activate `.venv\\Scripts\\Activate.ps1` and set the same environment variables with `$env:NAME="value"` before running the `python -m uvicorn ...` command.
 
-   The backend production entrypoint is `api.main:app`. Production deployments should run the same app object with a command equivalent to `python -m uvicorn api.main:app --host 0.0.0.0 --port "${PORT:-8000}"`. See [DEPLOYMENT.md](DEPLOYMENT.md) for runtime environment details.
+   The backend production entrypoint is `api.main:app`. Production deployments should run the same app object with a command equivalent to the following; set the PORT environment variable as needed (example shown):
+
+   ```bash
+   # set a PORT env var (example)
+   export PORT=8000
+   python -m uvicorn api.main:app --host 0.0.0.0 --port "${PORT:-8000}"
+   ```
 
 2. **Start the Next.js frontend (in a new terminal):**
 
@@ -104,6 +110,16 @@ curl http://localhost:8000/api/visualization
 ```
 
 If `/api/health` fails, fix the backend startup first. If `/api/health` works but the frontend still fails, check `NEXT_PUBLIC_API_URL` and the browser Network tab.
+
+Note: the application creates a startup trace context (trace_id/span_id) during lifespan-based state initialization, so observability events emitted during startup (reconciliation, get_graph, etc.) include trace metadata.
+
+For implementation details, see the code and tests:
+
+- [api/app_factory.py](api/app_factory.py)
+- [tests/unit/test_app_factory.py](tests/unit/test_app_factory.py)
+- [tests/unit/api/observability/](tests/unit/api/observability/)
+
+Format: trace_id is the full uuid4().hex (32 lowercase hex chars); span_id is the first 16 hex characters of uuid4().hex (16 lowercase hex chars).
 
 ### Demo/Internal UI: Gradio (Non-Production)
 
