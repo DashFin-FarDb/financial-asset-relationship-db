@@ -6,6 +6,7 @@ import logging
 import secrets
 import uuid
 from collections.abc import MutableMapping
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from starlette.datastructures import Headers, MutableHeaders
@@ -83,7 +84,17 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
     return trimmed_id
 
 
-def _inject_state(scope: Scope, request_id: str, correlation_id: str, trace_id: str, span_id: str) -> None:
+@dataclass(frozen=True)
+class CorrelationIdentifiers:
+    """A bundle of correlation and tracing identifiers."""
+
+    request_id: str
+    correlation_id: str
+    trace_id: str
+    span_id: str
+
+
+def _inject_state(scope: Scope, identifiers: CorrelationIdentifiers) -> None:
     """
     Best-effort attach identifiers to the ASGI scope's state.
 
@@ -95,10 +106,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str, trace_id: 
 
     Parameters:
         scope (Scope): The ASGI connection scope whose "state" may be modified.
-        request_id (str): Request identifier to attach to the state.
-        correlation_id (str): Correlation identifier to attach to the state.
-        trace_id (str): Trace identifier to attach to the state.
-        span_id (str): Span identifier to attach to the state.
+        identifiers (CorrelationIdentifiers): Bundled correlation identifiers.
     """
     state_obj = scope.get("state")
     if state_obj is None:
@@ -115,10 +123,10 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str, trace_id: 
     is_mapping = isinstance(state_obj, MutableMapping)
 
     for key, value in [
-        ("request_id", request_id),
-        ("correlation_id", correlation_id),
-        ("trace_id", trace_id),
-        ("span_id", span_id),
+        ("request_id", identifiers.request_id),
+        ("correlation_id", identifiers.correlation_id),
+        ("trace_id", identifiers.trace_id),
+        ("span_id", identifiers.span_id),
     ]:
         try:
             if is_mapping:
@@ -204,7 +212,22 @@ class CorrelationMiddleware:
         trace_id = raw_trace_id if raw_trace_id is not None else secrets.token_hex(16)
         span_id = raw_span_id if raw_span_id is not None else secrets.token_hex(8)
 
-        _inject_state(scope, request_id, correlation_id, trace_id, span_id)
+        logger.debug(
+            "Assigned trace identities - request_id=%s correlation_id=%s trace_id=%s span_id=%s",
+            request_id,
+            correlation_id,
+            trace_id,
+            span_id,
+        )
+
+        identifiers = CorrelationIdentifiers(
+            request_id=request_id,
+            correlation_id=correlation_id,
+            trace_id=trace_id,
+            span_id=span_id,
+        )
+
+        _inject_state(scope, identifiers)
 
         async def send_with_correlation_headers(message: MutableMapping[str, Any]) -> None:
             """Wrap the send callable to inject correlation headers."""

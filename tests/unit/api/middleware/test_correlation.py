@@ -60,8 +60,8 @@ def test_correlation_middleware_logic():
     # Case 2: Headers provided (should respect them)
     custom_req_id = "custom-req-id"
     custom_corr_id = "custom-corr-id"
-    custom_trace_id = "custom-trace-id"
-    custom_span_id = "custom-span-id"
+    custom_trace_id = "0123456789abcdef0123456789abcdef"
+    custom_span_id = "0123456789abcdef"
     response = client.get(
         "/test",
         headers={
@@ -153,14 +153,49 @@ async def test_correlation_middleware_cleanup_on_error() -> None:
 
     async def mock_send(msg):
         """Mock ASGI send function."""
-        pass
+        ...
 
     with pytest.raises(ValueError, match="Simulated downstream error"):
         await middleware(scope, mock_receive, mock_send)
 
     # After exception, context should be empty
     assert get_request_id() is None
+    assert get_correlation_id() is None
     assert get_trace_id() is None
+    assert get_span_id() is None
+
+
+@pytest.mark.asyncio
+async def test_correlation_middleware_partial_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that if set_trace_context raises, request context is still reset."""
+    from api.middleware import correlation
+
+    def failing_set_trace_context(*args, **kwargs):
+        raise RuntimeError("simulated set_trace_context failure")
+
+    monkeypatch.setattr(correlation, "set_trace_context", failing_set_trace_context)
+
+    async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
+        pass
+
+    middleware = CorrelationMiddleware(mock_app)  # type: ignore[arg-type]
+    scope = {"type": "http", "headers": [], "state": {}}
+
+    async def mock_receive():
+        """Mock ASGI receive function."""
+        return {}
+
+    async def mock_send(msg):
+        """Mock ASGI send function."""
+        ...
+
+    with pytest.raises(RuntimeError, match="simulated set_trace_context failure"):
+        await middleware(scope, mock_receive, mock_send)
+
+    # After exception, request context should be empty
+    assert get_request_id() is None
+    assert get_correlation_id() is None
+    # Note: Tokens generated for trace/span IDs are lowercase W3C-compliant hex.
 
 
 @pytest.mark.asyncio
@@ -255,3 +290,53 @@ def is_valid_uuid(val: str | None) -> bool:
         return True
     except (ValueError, TypeError):
         return False
+
+
+def test_correlation_id_validation_rejects_newlines() -> None:
+    """Test that is_valid_id rejects CRLF or newline injected headers."""
+    from src.observability.context import is_valid_id
+
+    assert is_valid_id("valid-id-123") is True
+    assert is_valid_id("invalid-id\r\nInjected-Header: true") is False
+    assert is_valid_id("invalid-id\nInjected") is False
+
+
+@pytest.mark.asyncio
+async def test_correlation_middleware_header_deduplication() -> None:
+    """Test that CorrelationMiddleware deduplicates headers if downstream already sets them."""
+
+    async def mock_app(scope: dict, receive: Callable, send: Callable) -> None:
+        # Downstream app sets its own headers
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [
+                    (b"x-request-id", b"downstream-req-id"),
+                    (b"x-correlation-id", b"downstream-corr-id"),
+                ],
+            }
+        )
+
+    middleware = CorrelationMiddleware(mock_app)  # type: ignore[arg-type]
+    scope = {"type": "http", "headers": [], "state": {}}
+
+    async def mock_receive():
+        return {}
+
+    sent_messages = []
+
+    async def mock_send(msg):
+        sent_messages.append(msg)
+
+    await middleware(scope, mock_receive, mock_send)
+
+    assert len(sent_messages) > 0
+    start_msg = sent_messages[0]
+
+    # Assert there's only one request-id and correlation-id header, and it matches the middleware-generated one
+    raw_headers = [k for k, v in start_msg.get("headers", [])]
+    assert raw_headers.count(b"x-request-id") == 1
+    assert raw_headers.count(b"x-correlation-id") == 1
+    assert raw_headers.count(b"x-trace-id") == 1
+    assert raw_headers.count(b"x-span-id") == 1
