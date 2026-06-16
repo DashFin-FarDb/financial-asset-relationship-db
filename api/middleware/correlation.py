@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import logging
+import re
 import secrets
 import uuid
 from collections.abc import MutableMapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Pattern
 
 from starlette.datastructures import Headers, MutableHeaders
 
@@ -77,6 +78,35 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
                     f"trimmed_length={min(trimmed_len, LOG_TRUNCATE_LEN)}"
                 ),
                 metadata={"header_name": header_name, "trimmed_length": trimmed_len},
+            ),
+        )
+        return None
+
+    return trimmed_id
+
+
+W3C_TRACE_ID_REGEX = re.compile(r"^[0-9a-f]{32}$")
+W3C_SPAN_ID_REGEX = re.compile(r"^[0-9a-f]{16}$")
+
+
+def _extract_and_validate_w3c_id(raw_id: str | None, header_name: str, regex: Pattern[str]) -> str | None:
+    """
+    Extract, validate against general injection, and enforce W3C strict regex formats.
+
+    Note: W3C requires trace and span IDs to be lowercase hex strings.
+    """
+    trimmed_id = _extract_and_validate_id(raw_id, header_name)
+    if trimmed_id is None:
+        return None
+
+    if not regex.match(trimmed_id):
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="correlation_id_invalid_w3c_header",
+                message=f"Invalid W3C {header_name} header received (redacted)",
+                metadata={"header_name": header_name},
             ),
         )
         return None
@@ -204,8 +234,8 @@ class CorrelationMiddleware:
         headers = Headers(scope=scope)
         raw_request_id = _extract_and_validate_id(headers.get("x-request-id"), "X-Request-ID")
         raw_correlation_id = _extract_and_validate_id(headers.get("x-correlation-id"), "X-Correlation-ID")
-        raw_trace_id = _extract_and_validate_id(headers.get("x-trace-id"), "X-Trace-ID")
-        raw_span_id = _extract_and_validate_id(headers.get("x-span-id"), "X-Span-ID")
+        raw_trace_id = _extract_and_validate_w3c_id(headers.get("x-trace-id"), "X-Trace-ID", W3C_TRACE_ID_REGEX)
+        raw_span_id = _extract_and_validate_w3c_id(headers.get("x-span-id"), "X-Span-ID", W3C_SPAN_ID_REGEX)
 
         request_id = raw_request_id if raw_request_id is not None else str(uuid.uuid4())
         correlation_id = raw_correlation_id if raw_correlation_id is not None else request_id
@@ -213,11 +243,11 @@ class CorrelationMiddleware:
         span_id = raw_span_id if raw_span_id is not None else secrets.token_hex(8)
 
         logger.debug(
-            "Assigned trace identities - request_id=%s correlation_id=%s trace_id=%s span_id=%s",
+            "Assigned trace identities - request_id=%s correlation_id=%s trace_id=%s*** span_id=%s***",
             request_id,
             correlation_id,
-            trace_id,
-            span_id,
+            trace_id[:8] if trace_id else "",
+            span_id[:4] if span_id else "",
         )
 
         identifiers = CorrelationIdentifiers(
