@@ -144,6 +144,11 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
             lock.release()
 
 
+def _generate_startup_trace_ids() -> tuple[str, str]:
+    """Generate deterministic or random trace and span IDs for startup."""
+    return f"startup-{uuid4().hex}", f"startup-span-{uuid4().hex}"
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown tasks for the FastAPI application."""
@@ -154,8 +159,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
     has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
 
-    trace_id = f"startup-{uuid4().hex}"
-    span_id = f"startup-span-{uuid4().hex}"
+    trace_id, span_id = _generate_startup_trace_ids()
 
     logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
 
@@ -228,8 +232,8 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                     "error": type(exc).__name__,
                     "message": str(exc),
                     "phase": "reconciliation",
-                    "trace_id": get_trace_id(),
-                    "span_id": get_span_id(),
+                    "trace_id": get_trace_id() or "unknown",
+                    "span_id": get_span_id() or "unknown",
                 },
             ),
         )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 from types import SimpleNamespace
 from typing import Any, cast
@@ -292,7 +293,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(interval_seconds=0.1, settings=cast(Any, base_settings))  # pylint: disable=protected-access
+        await app_factory._periodic_reconciliation_loop(
+            interval_seconds=0.1, settings=cast(Any, base_settings)
+        )  # pylint: disable=protected-access
 
     assert ensure_safe_called == [True]
 
@@ -404,14 +407,12 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
 
     monkeypatch.setattr(app_factory, "get_graph", _raise_get_graph)
 
-    # Make uuid4 deterministic so we can assert against expected trace/span ids
-    hex_values = ["deadbeef-trace", "deadbeef-span"]
+    # Make trace IDs deterministic so we can assert against expected values
+    def fake_generate_trace_ids() -> tuple[str, str]:
+        """Return a predictable sequence of trace IDs."""
+        return "startup-deadbeef-trace", "startup-span-deadbeef-span"
 
-    def fake_uuid4() -> Any:
-        """Return a predictable sequence of fake UUIDs."""
-        return type("U", (), {"hex": hex_values.pop(0)})()
-
-    monkeypatch.setattr(app_factory, "uuid4", fake_uuid4)
+    monkeypatch.setattr(app_factory, "_generate_startup_trace_ids", fake_generate_trace_ids)
 
     # Capture emitted observability events
     logged_events = []
@@ -442,3 +443,58 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
     assert "span_id" in ev.metadata, "span_id missing from startup_failed event metadata"
     assert ev.metadata["trace_id"] == expected_trace_id
     assert ev.metadata["span_id"] == expected_span_id
+
+
+@pytest.mark.asyncio
+async def test_tracing_context_does_not_leak_into_background_tasks(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Verify that tracing context from startup does not leak into background tasks."""
+    app = FastAPI()
+
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
+        lambda: base_settings,
+    )
+
+    # Mock reconciliation to succeed
+    async def mock_perform_startup_reconciliation(*_args, **_kwargs) -> None:
+        pass
+
+    monkeypatch.setattr(
+        app_factory,
+        "_perform_startup_reconciliation",
+        mock_perform_startup_reconciliation,
+    )
+
+    # Mock get_graph to succeed
+    monkeypatch.setattr(app_factory, "get_graph", lambda: None)
+
+    # Mock background task spawning to verify trace context is None inside
+    background_trace_id: str | None | Exception = Exception("Not set")
+
+    def fake_start_background_tasks(
+        has_persistence: bool, settings: Any
+    ) -> tuple[asyncio.Task, asyncio.Task, asyncio.Task]:
+        from src.observability.context import get_trace_id
+
+        async def fake_task():
+            nonlocal background_trace_id
+            background_trace_id = get_trace_id()
+
+        return asyncio.create_task(fake_task()), asyncio.create_task(fake_task()), asyncio.create_task(fake_task())
+
+    monkeypatch.setattr(app_factory, "_start_background_tasks", fake_start_background_tasks)
+
+    # Mock _perform_orderly_shutdown
+    async def fake_shutdown(*_args, **_kwargs):
+        pass
+
+    monkeypatch.setattr(app_factory, "_perform_orderly_shutdown", fake_shutdown)
+
+    async with app_factory.lifespan(app):
+        # Allow fake tasks to run
+        await asyncio.sleep(0.01)
+
+    assert background_trace_id is None, "Trace context leaked into background task"
