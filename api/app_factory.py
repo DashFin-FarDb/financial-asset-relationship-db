@@ -10,6 +10,7 @@ import threading
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 from fastapi import FastAPI
 
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 
+from src.observability.context import async_trace_context, get_span_id, get_trace_id
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 from src.observability.logging import setup_logging
@@ -142,6 +144,29 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
             lock.release()
 
 
+def _generate_startup_trace_ids() -> tuple[str, str]:
+    """
+    Generate deterministic or random trace and span IDs for startup.
+
+    Generates W3C-compatible trace identifiers (32-char trace_id, 16-char span_id).
+    These IDs can be correlated in downstream systems (e.g. Jaeger, Datadog)
+    to trace the startup lifecycle alongside structured application logs.
+
+    Note: `uuid4().hex` intrinsically returns 32 lowercase hex characters,
+    making it ideal for natively forming OpenTelemetry/W3C traceparent IDs
+    without additional transformations.
+
+    This is extracted to a separate function primarily for testability, allowing
+    unit tests to easily mock trace IDs without monkeypatching module-level uuid4.
+    """
+    return uuid4().hex, uuid4().hex[:16]
+
+
+def _trace_or_unknown(val: str | None) -> str:
+    """Return the given trace/span ID or 'unknown' if not set."""
+    return val or "unknown"
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown tasks for the FastAPI application."""
@@ -152,11 +177,34 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
     has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
 
-    if has_persistence:
-        await _perform_startup_reconciliation(settings)
+    trace_id, span_id = _generate_startup_trace_ids()
 
-    # Required initialization for all environments to ensure state validity
-    get_graph()
+    # Wrap the entire state initialization in a dedicated trace context.
+    # This guarantees a fail-fast startup: if context initialization or graph
+    # load fails, it will raise immediately before FastAPI accepts HTTP traffic.
+    async with async_trace_context(trace_id=trace_id, span_id=span_id):
+        logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
+        try:
+            if has_persistence:
+                await _perform_startup_reconciliation(settings)
+            # Required initialization for all environments to ensure state validity
+            get_graph()
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.CRITICAL,
+                ObservabilityEvent(
+                    event="startup_failed",
+                    message=f"Application startup failed: {type(exc).__name__}",
+                    metadata={
+                        "error": type(exc).__name__,
+                        "message": str(exc),
+                        "trace_id": trace_id,
+                        "span_id": span_id,
+                    },
+                ),
+            )
+            raise
 
     sync_task, slo_task, recon_task = _start_background_tasks(has_persistence, settings)
 
@@ -197,7 +245,12 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
             ObservabilityEvent(
                 event="startup_reconciliation_failed",
                 message=f"Failed to load persisted graph during startup: {type(exc).__name__}",
-                metadata={"error": type(exc).__name__},
+                metadata={
+                    "error": type(exc).__name__,
+                    "phase": "reconciliation",
+                    "trace_id": _trace_or_unknown(get_trace_id()),
+                    "span_id": _trace_or_unknown(get_span_id()),
+                },
             ),
         )
         raise RuntimeError("Failed to load persisted graph during startup") from None

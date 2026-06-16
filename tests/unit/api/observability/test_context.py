@@ -176,6 +176,20 @@ async def test_async_trace_context_manager():
 
 
 @pytest.mark.asyncio
+async def test_async_trace_context_manager_clears_on_exception():
+    """Test that the async_trace_context manager clears context on exception."""
+    assert get_trace_id() is None
+    try:
+        async with async_trace_context("async-cm-err", "async-cm-err-span"):
+            assert get_trace_id() == "async-cm-err"
+            raise ValueError("simulated error inside context")
+    except ValueError:
+        pass
+    assert get_trace_id() is None
+    assert get_span_id() is None
+
+
+@pytest.mark.asyncio
 async def test_async_request_context_manager():
     """Test the async_request_context async context manager."""
     assert get_request_id() is None
