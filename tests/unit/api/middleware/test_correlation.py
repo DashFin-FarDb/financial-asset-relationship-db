@@ -1,5 +1,6 @@
 """Unit tests for CorrelationMiddleware."""
 
+import re
 import uuid
 from typing import Callable
 
@@ -117,7 +118,8 @@ def test_correlation_middleware_logic():
     assert response.headers.get("X-Trace-ID") != dangerous_id
     assert response.headers.get("X-Span-ID") != long_id
     assert is_valid_uuid(response.headers.get("X-Request-ID"))
-    assert is_valid_uuid(response.headers.get("X-Trace-ID"))
+    assert re.fullmatch(r"[0-9a-f]{32}", response.headers.get("X-Trace-ID"))
+    assert re.fullmatch(r"[0-9a-f]{16}", response.headers.get("X-Span-ID"))
 
     # Case 5: Extremely long headers (DoS prevention)
     very_long_id = "a" * 2000
@@ -132,6 +134,30 @@ def test_correlation_middleware_logic():
     assert response.headers.get("X-Request-ID") != very_long_id
     assert response.headers.get("X-Correlation-ID") != very_long_id
     assert is_valid_uuid(response.headers.get("X-Request-ID"))
+
+
+@pytest.mark.asyncio
+async def test_correlation_middleware_cleanup_on_error() -> None:
+    """Test that context is reset even if the downstream app raises an exception."""
+
+    async def failing_app(scope: dict, receive: Callable, send: Callable) -> None:
+        raise ValueError("Simulated downstream error")
+
+    middleware = CorrelationMiddleware(failing_app)  # type: ignore[arg-type]
+    scope = {"type": "http", "headers": [], "state": {}}
+
+    async def mock_receive():
+        return {}
+
+    async def mock_send(msg):
+        pass
+
+    with pytest.raises(ValueError, match="Simulated downstream error"):
+        await middleware(scope, mock_receive, mock_send)
+
+    # After exception, context should be empty
+    assert get_request_id() is None
+    assert get_trace_id() is None
 
 
 @pytest.mark.asyncio

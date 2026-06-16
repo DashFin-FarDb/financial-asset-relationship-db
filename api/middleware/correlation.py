@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import secrets
 import uuid
 from collections.abc import MutableMapping
 from typing import TYPE_CHECKING, Any
@@ -140,7 +141,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str, trace_id: 
                     metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
                 ),
             )
-            break
+            continue
         except Exception as exc:
             log_event(
                 logger,
@@ -154,7 +155,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str, trace_id: 
                     metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
                 ),
             )
-            break
+            continue
 
 
 class CorrelationMiddleware:
@@ -200,8 +201,8 @@ class CorrelationMiddleware:
 
         request_id = raw_request_id if raw_request_id is not None else str(uuid.uuid4())
         correlation_id = raw_correlation_id if raw_correlation_id is not None else request_id
-        trace_id = raw_trace_id if raw_trace_id is not None else uuid.uuid4().hex
-        span_id = raw_span_id if raw_span_id is not None else uuid.uuid4().hex[:16]
+        trace_id = raw_trace_id if raw_trace_id is not None else secrets.token_hex(16)
+        span_id = raw_span_id if raw_span_id is not None else secrets.token_hex(8)
 
         _inject_state(scope, request_id, correlation_id, trace_id, span_id)
 
