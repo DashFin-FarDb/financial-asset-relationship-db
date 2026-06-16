@@ -292,7 +292,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(interval_seconds=0.1, settings=cast(Any, base_settings))  # pylint: disable=protected-access
+        await app_factory._periodic_reconciliation_loop(
+            interval_seconds=0.1, settings=cast(Any, base_settings)
+        )  # pylint: disable=protected-access
 
     assert ensure_safe_called == [True]
 
