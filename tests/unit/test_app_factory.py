@@ -292,7 +292,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(interval_seconds=0.1, settings=cast(Any, base_settings))  # pylint: disable=protected-access
+        await app_factory._periodic_reconciliation_loop(
+            interval_seconds=0.1, settings=cast(Any, base_settings)
+        )  # pylint: disable=protected-access
 
     assert ensure_safe_called == [True]
 
@@ -330,6 +332,13 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
 
     monkeypatch.setattr(app_factory, "log_event", fake_log_event)
 
+    init_calls: list[bool] = []
+    monkeypatch.setattr(
+        app_factory,
+        "init_rebuild_executor",
+        lambda s: init_calls.append(True),
+    )
+
     with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
         async with app_factory.lifespan(app):
             pass
@@ -341,6 +350,7 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
     assert "ValueError" in logged_events[0].message
     assert logged_events[0].metadata["error"] == "ValueError"
     assert logged_events[0].metadata["message"] == "simulated unexpected startup error"
+    assert not init_calls, "executor should not initialize when startup reconciliation fails"
     assert logged_events[0].metadata["phase"] == "reconciliation"
     assert "trace_id" in logged_events[0].metadata
     assert "span_id" in logged_events[0].metadata
