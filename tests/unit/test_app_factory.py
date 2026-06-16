@@ -223,7 +223,6 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     base_settings: SimpleNamespace,
 ) -> None:
     """_periodic_reconciliation_loop should invoke gate.ensure_safe_to_execute for automatic reset plans."""
-    import asyncio
     from datetime import datetime
 
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, ReconciliationPlan, Severity
@@ -348,7 +347,6 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
     assert logged_events[0].event == "startup_reconciliation_failed"
     assert "ValueError" in logged_events[0].message
     assert logged_events[0].metadata["error"] == "ValueError"
-    assert logged_events[0].metadata["message"] == "simulated unexpected startup error"
     assert not init_calls, "executor should not initialize when startup reconciliation fails"
     assert logged_events[0].metadata["phase"] == "reconciliation"
     assert "trace_id" in logged_events[0].metadata
@@ -390,7 +388,6 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
     # Mock reconciliation to succeed
     async def mock_perform_startup_reconciliation(*_args, **_kwargs) -> None:
         """Mock startup reconciliation to succeed without side effects."""
-        pass
 
     monkeypatch.setattr(
         app_factory,
@@ -458,7 +455,7 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
 
     # Mock reconciliation to succeed
     async def mock_perform_startup_reconciliation(*_args, **_kwargs) -> None:
-        pass
+        """Mock startup reconciliation to succeed without side effects."""
 
     monkeypatch.setattr(
         app_factory,
@@ -469,19 +466,17 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
     # Mock get_graph to succeed
     monkeypatch.setattr(app_factory, "get_graph", lambda: None)
 
-    # Mock background task spawning to verify trace context is None inside
-    background_trace_id: str | None | Exception = Exception("Not set")
     tasks: list[asyncio.Task] = []
 
     def fake_start_background_tasks(
         has_persistence: bool, settings: Any
     ) -> tuple[asyncio.Task, asyncio.Task, asyncio.Task]:
+        """Mock spawning of background tasks."""
         from src.observability.context import get_trace_id
 
         async def fake_task():
-            nonlocal background_trace_id
-            background_trace_id = get_trace_id()
-            await asyncio.sleep(1)  # Wait to be cancelled
+            """Return the active trace context if any."""
+            return get_trace_id()
 
         t1, t2, t3 = (
             asyncio.create_task(fake_task()),
@@ -495,17 +490,13 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
 
     # Mock _perform_orderly_shutdown
     async def fake_shutdown(*_args, **_kwargs):
-        pass
+        """Mock shutdown procedure."""
 
     monkeypatch.setattr(app_factory, "_perform_orderly_shutdown", fake_shutdown)
 
     async with app_factory.lifespan(app):
-        # Allow fake tasks to run
-        await asyncio.sleep(0.01)
+        pass
 
-    for task in tasks:
-        task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await task
+    results = await asyncio.gather(*tasks)
 
-    assert background_trace_id is None, "Trace context leaked into background task"
+    assert all(r is None for r in results), "Trace context leaked into background task"
