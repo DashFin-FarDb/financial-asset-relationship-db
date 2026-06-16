@@ -292,7 +292,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(interval_seconds=0.1, settings=cast(Any, base_settings))  # pylint: disable=protected-access
+        await app_factory._periodic_reconciliation_loop(
+            interval_seconds=0.1, settings=cast(Any, base_settings)
+        )  # pylint: disable=protected-access
 
     assert ensure_safe_called == [True]
 
@@ -476,6 +478,7 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
 
         async def fake_task():
             """Return the active trace context if any."""
+            await asyncio.sleep(0)  # use async feature
             return get_trace_id()
 
         t1, t2, t3 = (
@@ -491,12 +494,14 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
     # Mock _perform_orderly_shutdown
     async def fake_shutdown(*_args, **_kwargs):
         """Mock shutdown procedure."""
+        await asyncio.sleep(0)  # use async feature
 
     monkeypatch.setattr(app_factory, "_perform_orderly_shutdown", fake_shutdown)
 
     async with app_factory.lifespan(app):
         pass
 
+    assert len(tasks) == 3, "Expected 3 background tasks to be created"
     results = await asyncio.gather(*tasks)
 
     assert all(r is None for r in results), "Trace context leaked into background task"
