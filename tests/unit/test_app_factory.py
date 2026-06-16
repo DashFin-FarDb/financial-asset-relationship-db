@@ -63,6 +63,9 @@ async def test_sync_loop_stops_without_syncing_when_shutting_down(
 
     async def immediate_sleep(_seconds: float) -> None:
         """Mock sleep to return immediately."""
+        future: asyncio.Future[None] = asyncio.Future()
+        future.set_result(None)
+        await future  # use async feature
 
     monkeypatch.setattr(app_factory.asyncio, "sleep", immediate_sleep)
     monkeypatch.setattr(
@@ -75,6 +78,9 @@ async def test_sync_loop_stops_without_syncing_when_shutting_down(
 
     async def fake_to_thread(_fn, *args, **kwargs):
         """Mock to_thread to capture calls."""
+        future: asyncio.Future[None] = asyncio.Future()
+        future.set_result(None)
+        await future  # use async feature
         sync_calls.append(True)
         return None
 
@@ -276,6 +282,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     async def mock_sleep(seconds: float):
         """Mock sleep to yield once then raise CancelledError."""
+        future: asyncio.Future[None] = asyncio.Future()
+        future.set_result(None)
+        await future  # use async feature
         nonlocal sleep_calls
         sleep_calls += 1
         if sleep_calls > 1:
