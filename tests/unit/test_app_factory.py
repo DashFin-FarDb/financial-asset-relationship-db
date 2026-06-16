@@ -292,7 +292,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(interval_seconds=0.1, settings=cast(Any, base_settings))  # pylint: disable=protected-access
+        await app_factory._periodic_reconciliation_loop(
+            interval_seconds=0.1, settings=cast(Any, base_settings)
+        )  # pylint: disable=protected-access
 
     assert ensure_safe_called == [True]
 
@@ -324,7 +326,7 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
 
     logged_events = []
 
-    def fake_log_event(logger, level, event):
+    def fake_log_event(logger: Any, level: Any, event: Any) -> None:
         """Append logged events to a local list for assertion."""
         logged_events.append(event)
 
@@ -360,6 +362,10 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
     assert "Failed to load persisted graph during startup" in logged_events[1].metadata["message"]
     assert "trace_id" in logged_events[1].metadata
     assert "span_id" in logged_events[1].metadata
+
+    # Continuity: ensure the reconciliation trace context propagates to the outer startup event
+    assert logged_events[0].metadata["trace_id"] == logged_events[1].metadata["trace_id"], "Trace ID mismatch"
+    assert logged_events[0].metadata["span_id"] == logged_events[1].metadata["span_id"], "Span ID mismatch"
 
 
 @pytest.mark.asyncio
@@ -403,7 +409,7 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
     # Make uuid4 deterministic so we can assert against expected trace/span ids
     hex_values = ["deadbeef-trace", "deadbeef-span"]
 
-    def fake_uuid4():
+    def fake_uuid4() -> Any:
         """Return a predictable sequence of fake UUIDs."""
         return type("U", (), {"hex": hex_values.pop(0)})()
 
@@ -412,7 +418,7 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
     # Capture emitted observability events
     logged_events = []
 
-    def fake_log_event(logger, level, event):
+    def fake_log_event(logger: Any, level: Any, event: Any) -> None:
         """Append captured observability events to a local list."""
         logged_events.append(event)
 
