@@ -63,7 +63,6 @@ async def test_sync_loop_stops_without_syncing_when_shutting_down(
 
     async def immediate_sleep(_seconds: float) -> None:
         """Mock sleep to return immediately."""
-        pass
 
     monkeypatch.setattr(app_factory.asyncio, "sleep", immediate_sleep)
     monkeypatch.setattr(
@@ -157,23 +156,35 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
     assert not init_calls, "executor should not initialize when startup reconciliation fails"
 
 
-def test_startup_reconciliation_does_not_release_lock_without_reset_reacquire(
+@pytest.mark.parametrize(
+    "lock_reacquired, should_raise",
+    [
+        (False, True),
+        (True, False),
+    ],
+    ids=["no_reacquire_raises", "reacquired_releases"],
+)
+def test_startup_reconciliation_lock_release_behavior(
     monkeypatch: pytest.MonkeyPatch,
     base_settings: SimpleNamespace,
+    lock_reacquired: bool,
+    should_raise: bool,
 ) -> None:
-    """Startup reconciliation should skip release when RESET did not reacquire."""
+    """Startup reconciliation lock release behavior based on reacquisition."""
     fake_engine = SimpleNamespace(dispose=lambda: None)
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
 
-    class _GateNoReacquire:
-        """Mock RecoveryGate that does not reacquire the lock."""
+    class _GateMock:
+        """Mock RecoveryGate with parameterized reacquisition behavior."""
 
         def __init__(self, **_kwargs) -> None:
-            self.lock_was_reacquired = False
+            self.lock_was_reacquired = lock_reacquired
 
         def ensure_safe_to_execute(self, cancellation_event=None) -> None:
-            """Simulate blocking execution."""
-            raise ExecutionBlockedError("wait", action="wait", inconsistency_type="none")
+            """Simulate blocking execution or passing."""
+            if should_raise:
+                raise ExecutionBlockedError("wait", action="wait", inconsistency_type="none")
+            return None
 
     # FIX: Provide clean dummy context managers to support 'with session_scope()' tracking metrics
     @contextlib.contextmanager
@@ -186,47 +197,15 @@ def test_startup_reconciliation_does_not_release_lock_without_reset_reacquire(
     monkeypatch.setattr("src.data.database.create_session_factory", lambda _engine: lambda: None)
     monkeypatch.setattr("src.data.repository.session_scope", fake_session_scope)
     monkeypatch.setattr("src.data.distributed_lock.DistributedLock", lambda **_kwargs: fake_lock)
-    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", _GateNoReacquire)
+    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", _GateMock)
 
-    with pytest.raises(ExecutionBlockedError):
+    if should_raise:
+        with pytest.raises(ExecutionBlockedError):
+            app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
+        fake_lock.release.assert_not_called()
+    else:
         app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
-
-    fake_lock.release.assert_not_called()
-
-
-def test_startup_reconciliation_releases_lock_when_reset_reacquired(
-    monkeypatch: pytest.MonkeyPatch,
-    base_settings: SimpleNamespace,
-) -> None:
-    """Startup reconciliation should verify lock release when safety check resolves cleanly."""
-    fake_engine = SimpleNamespace(dispose=lambda: None)
-    fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
-
-    class _GateReacquired:
-        """Mock RecoveryGate that successfully reacquires the lock."""
-
-        def __init__(self, **_kwargs) -> None:
-            self.lock_was_reacquired = True
-
-        def ensure_safe_to_execute(self, cancellation_event=None) -> None:
-            """Allow execution."""
-            return None
-
-    @contextlib.contextmanager
-    def fake_session_scope(*args, **kwargs):
-        """Mock database session scope."""
-        yield MagicMock()
-
-    monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
-    monkeypatch.setattr("src.data.database.init_db", lambda _engine: None)
-    monkeypatch.setattr("src.data.database.create_session_factory", lambda _engine: lambda: None)
-    monkeypatch.setattr("src.data.repository.session_scope", fake_session_scope)
-    monkeypatch.setattr("src.data.distributed_lock.DistributedLock", lambda **_kwargs: fake_lock)
-    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", _GateReacquired)
-
-    app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
-
-    assert fake_lock.lock_name == "graph_rebuild"
+        assert fake_lock.lock_name == "graph_rebuild"
 
 
 @pytest.mark.asyncio
@@ -270,7 +249,6 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
         def __init__(self, *args, **kwargs):
             """Accept arguments."""
-            pass
 
         def generate_reconciliation_plan(self):
             """Return a mock reconciliation plan."""
