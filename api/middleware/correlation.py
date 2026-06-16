@@ -110,6 +110,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str, trace_id: 
             ),
         )
         return
+
     if isinstance(state_obj, MutableMapping):
         try:
             state_obj["request_id"] = request_id
@@ -243,8 +244,8 @@ class CorrelationMiddleware:
 
         request_id = raw_request_id if raw_request_id is not None else str(uuid.uuid4())
         correlation_id = raw_correlation_id if raw_correlation_id is not None else request_id
-        trace_id = raw_trace_id if raw_trace_id is not None else str(uuid.uuid4())
-        span_id = raw_span_id if raw_span_id is not None else str(uuid.uuid4())
+        trace_id = raw_trace_id if raw_trace_id is not None else uuid.uuid4().hex
+        span_id = raw_span_id if raw_span_id is not None else uuid.uuid4().hex[:16]
 
         _inject_state(scope, request_id, correlation_id, trace_id, span_id)
 
