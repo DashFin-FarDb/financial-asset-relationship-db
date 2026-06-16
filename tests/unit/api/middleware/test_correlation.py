@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
 from api.middleware.correlation import CorrelationMiddleware
-from src.observability.context import get_correlation_id, get_request_id
+from src.observability.context import get_correlation_id, get_request_id, get_span_id, get_trace_id
 
 
 def test_correlation_middleware_logic():
@@ -22,8 +22,12 @@ def test_correlation_middleware_logic():
         return {
             "ctx_request_id": get_request_id(),
             "ctx_correlation_id": get_correlation_id(),
+            "ctx_trace_id": get_trace_id(),
+            "ctx_span_id": get_span_id(),
             "state_request_id": request.state.request_id,
             "state_correlation_id": request.state.correlation_id,
+            "state_trace_id": getattr(request.state, "trace_id", None),
+            "state_span_id": getattr(request.state, "span_id", None),
         }
 
     client = TestClient(app)
@@ -35,23 +39,35 @@ def test_correlation_middleware_logic():
 
     req_id = response.headers.get("X-Request-ID")
     corr_id = response.headers.get("X-Correlation-ID")
+    trace_id = response.headers.get("X-Trace-ID")
+    span_id = response.headers.get("X-Span-ID")
 
     assert req_id is not None
     assert corr_id is not None
+    assert trace_id is not None
+    assert span_id is not None
     assert req_id == corr_id
     assert data["ctx_request_id"] == req_id
     assert data["ctx_correlation_id"] == corr_id
+    assert data["ctx_trace_id"] == trace_id
+    assert data["ctx_span_id"] == span_id
     assert data["state_request_id"] == req_id
     assert data["state_correlation_id"] == corr_id
+    assert data["state_trace_id"] == trace_id
+    assert data["state_span_id"] == span_id
 
     # Case 2: Headers provided (should respect them)
     custom_req_id = "custom-req-id"
     custom_corr_id = "custom-corr-id"
+    custom_trace_id = "custom-trace-id"
+    custom_span_id = "custom-span-id"
     response = client.get(
         "/test",
         headers={
             "X-Request-ID": custom_req_id,
             "X-Correlation-ID": custom_corr_id,
+            "X-Trace-ID": custom_trace_id,
+            "X-Span-ID": custom_span_id,
         },
     )
     assert response.status_code == 200
@@ -59,8 +75,12 @@ def test_correlation_middleware_logic():
 
     assert response.headers.get("X-Request-ID") == custom_req_id
     assert response.headers.get("X-Correlation-ID") == custom_corr_id
+    assert response.headers.get("X-Trace-ID") == custom_trace_id
+    assert response.headers.get("X-Span-ID") == custom_span_id
     assert data["ctx_request_id"] == custom_req_id
     assert data["ctx_correlation_id"] == custom_corr_id
+    assert data["ctx_trace_id"] == custom_trace_id
+    assert data["ctx_span_id"] == custom_span_id
 
     # Case 3: Only Correlation ID provided (Request ID should be generated)
     response = client.get(
@@ -85,6 +105,8 @@ def test_correlation_middleware_logic():
         headers={
             "X-Request-ID": dangerous_id,
             "X-Correlation-ID": long_id,
+            "X-Trace-ID": dangerous_id,
+            "X-Span-ID": long_id,
         },
     )
     assert response.status_code == 200
@@ -92,7 +114,10 @@ def test_correlation_middleware_logic():
     # Should have generated new IDs instead of using dangerous/long ones
     assert response.headers.get("X-Request-ID") != dangerous_id
     assert response.headers.get("X-Correlation-ID") != long_id
+    assert response.headers.get("X-Trace-ID") != dangerous_id
+    assert response.headers.get("X-Span-ID") != long_id
     assert is_valid_uuid(response.headers.get("X-Request-ID"))
+    assert is_valid_uuid(response.headers.get("X-Trace-ID"))
 
     # Case 5: Extremely long headers (DoS prevention)
     very_long_id = "a" * 2000
@@ -126,6 +151,8 @@ async def test_correlation_middleware_state_fallback() -> None:  # noqa: C901
         def __init__(self):
             self.request_id = None
             self.correlation_id = None
+            self.trace_id = None
+            self.span_id = None
 
         def __getitem__(self, key):
             raise KeyError(key)
@@ -157,6 +184,8 @@ async def test_correlation_middleware_state_fallback() -> None:  # noqa: C901
     # Should have fallen back to attribute assignment
     assert getattr(state_obj, "request_id", None) == "fallback-req-1"
     assert getattr(state_obj, "correlation_id", None) == "fallback-req-1"
+    assert getattr(state_obj, "trace_id", None) is not None
+    assert getattr(state_obj, "span_id", None) is not None
 
     # 2. Test with object that raises on setattr too (ensure it continues safely)
     class CompletelyFailingState(MutableMapping):

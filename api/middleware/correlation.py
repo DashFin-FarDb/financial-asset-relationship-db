@@ -9,7 +9,13 @@ from typing import TYPE_CHECKING, Any
 
 from starlette.datastructures import Headers, MutableHeaders
 
-from src.observability.context import is_valid_id, reset_request_context, set_request_context
+from src.observability.context import (
+    is_valid_id,
+    reset_request_context,
+    reset_trace_context,
+    set_request_context,
+    set_trace_context,
+)
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
@@ -76,7 +82,7 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
     return trimmed_id
 
 
-def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
+def _inject_state(scope: Scope, request_id: str, correlation_id: str, trace_id: str, span_id: str) -> None:
     """
     Best-effort attach identifiers to the ASGI scope's state.
 
@@ -90,6 +96,8 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
         scope (Scope): The ASGI connection scope whose "state" may be modified.
         request_id (str): Request identifier to attach to the state.
         correlation_id (str): Correlation identifier to attach to the state.
+        trace_id (str): Trace identifier to attach to the state.
+        span_id (str): Span identifier to attach to the state.
     """
     state_obj = scope.get("state")
     if state_obj is None:
@@ -106,11 +114,15 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
         try:
             state_obj["request_id"] = request_id
             state_obj["correlation_id"] = correlation_id
+            state_obj["trace_id"] = trace_id
+            state_obj["span_id"] = span_id
         except (TypeError, AttributeError) as assign_exc:
             # Fallback to attribute-style assignment for objects that don't support mapping writes
             try:
                 setattr(state_obj, "request_id", request_id)
                 setattr(state_obj, "correlation_id", correlation_id)
+                setattr(state_obj, "trace_id", trace_id)
+                setattr(state_obj, "span_id", span_id)
             except (TypeError, AttributeError) as attr_exc:
                 log_event(
                     logger,
@@ -163,6 +175,8 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
         try:
             setattr(state_obj, "request_id", request_id)
             setattr(state_obj, "correlation_id", correlation_id)
+            setattr(state_obj, "trace_id", trace_id)
+            setattr(state_obj, "span_id", span_id)
         except (TypeError, AttributeError) as exc:
             log_event(
                 logger,
@@ -224,11 +238,15 @@ class CorrelationMiddleware:
         headers = Headers(scope=scope)
         raw_request_id = _extract_and_validate_id(headers.get("x-request-id"), "X-Request-ID")
         raw_correlation_id = _extract_and_validate_id(headers.get("x-correlation-id"), "X-Correlation-ID")
+        raw_trace_id = _extract_and_validate_id(headers.get("x-trace-id"), "X-Trace-ID")
+        raw_span_id = _extract_and_validate_id(headers.get("x-span-id"), "X-Span-ID")
 
         request_id = raw_request_id if raw_request_id is not None else str(uuid.uuid4())
         correlation_id = raw_correlation_id if raw_correlation_id is not None else request_id
+        trace_id = raw_trace_id if raw_trace_id is not None else str(uuid.uuid4())
+        span_id = raw_span_id if raw_span_id is not None else str(uuid.uuid4())
 
-        _inject_state(scope, request_id, correlation_id)
+        _inject_state(scope, request_id, correlation_id, trace_id, span_id)
 
         async def send_with_correlation_headers(message: MutableMapping[str, Any]) -> None:
             """Wrap the send callable to inject correlation headers."""
@@ -237,14 +255,20 @@ class CorrelationMiddleware:
                 # Set values (replace existing) to avoid duplicate headers
                 response_headers["X-Request-ID"] = request_id
                 response_headers["X-Correlation-ID"] = correlation_id
+                response_headers["X-Trace-ID"] = trace_id
+                response_headers["X-Span-ID"] = span_id
 
             await send(message)
 
-        tokens = None
+        req_tokens = None
+        trace_tokens = None
         try:
             # Set contextvars for downstream code (including logging)
-            tokens = set_request_context(request_id, correlation_id)
+            req_tokens = set_request_context(request_id, correlation_id)
+            trace_tokens = set_trace_context(trace_id, span_id, parent_span_id=None)
             await self.app(scope, receive, send_with_correlation_headers)
         finally:
-            if tokens is not None:
-                reset_request_context(tokens)
+            if req_tokens is not None:
+                reset_request_context(req_tokens)
+            if trace_tokens is not None:
+                reset_trace_context(trace_tokens)
