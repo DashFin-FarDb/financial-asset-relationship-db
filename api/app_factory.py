@@ -152,6 +152,10 @@ def _generate_startup_trace_ids() -> tuple[str, str]:
     These IDs can be correlated in downstream systems (e.g. Jaeger, Datadog)
     to trace the startup lifecycle alongside structured application logs.
 
+    Note: `uuid4().hex` intrinsically returns 32 lowercase hex characters,
+    making it ideal for natively forming OpenTelemetry/W3C traceparent IDs
+    without additional transformations.
+
     This is extracted to a separate function primarily for testability, allowing
     unit tests to easily mock trace IDs without monkeypatching module-level uuid4.
     """

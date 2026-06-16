@@ -318,6 +318,11 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
         """Raise a simulated runtime error to represent reconciliation failure."""
         raise ValueError("simulated unexpected startup error")
 
+    # Mock _run_startup_reconciliation because it is the underlying synchronous
+    # function dispatched via asyncio.to_thread in _perform_startup_reconciliation.
+    # Monkeypatching this target specifically ensures we test the context/thread
+    # propagation boundary while properly executing and validating the exact
+    # `log_event` logic enclosed within `_perform_startup_reconciliation`'s error handling.
     monkeypatch.setattr(
         app_factory,
         "_run_startup_reconciliation",
