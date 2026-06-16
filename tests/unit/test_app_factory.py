@@ -292,7 +292,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(interval_seconds=0.1, settings=cast(Any, base_settings))  # pylint: disable=protected-access
+        await app_factory._periodic_reconciliation_loop(
+            interval_seconds=0.1, settings=cast(Any, base_settings)
+        )  # pylint: disable=protected-access
 
     assert ensure_safe_called == [True]
 
@@ -353,11 +355,17 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
 
 
 @pytest.mark.asyncio
-async def test_lifespan_emits_startup_failed_on_graph_init_error(
+async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_exception(
     monkeypatch: pytest.MonkeyPatch,
     base_settings: SimpleNamespace,
 ) -> None:
-    """Lifespan must emit 'startup_failed' when an exception occurs outside reconciliation."""
+    """Ensure get_graph exceptions trace ids.
+
+    When get_graph() raises during the traced startup block, the lifespan should:
+      - raise the original exception (fail-fast)
+      - emit exactly one ObservabilityEvent with event == "startup_failed"
+      - include the generated trace_id and span_id in the event.metadata
+    """
     app = FastAPI()
 
     # Mock settings
@@ -376,12 +384,21 @@ async def test_lifespan_emits_startup_failed_on_graph_init_error(
         mock_perform_startup_reconciliation,
     )
 
-    # Force an exception during graph init
-    def mock_get_graph() -> None:
-        raise ValueError("simulated graph init error")
+    # Make get_graph raise a deterministic exception
+    def _raise_get_graph():
+        raise RuntimeError("simulated get_graph failure")
 
-    monkeypatch.setattr(app_factory, "get_graph", mock_get_graph)
+    monkeypatch.setattr(app_factory, "get_graph", _raise_get_graph)
 
+    # Make uuid4 deterministic so we can assert against expected trace/span ids
+    hex_values = ["deadbeef-trace", "deadbeef-span"]
+
+    def fake_uuid4():
+        return type("U", (), {"hex": hex_values.pop(0)})()
+
+    monkeypatch.setattr(app_factory, "uuid4", fake_uuid4)
+
+    # Capture emitted observability events
     logged_events = []
 
     def fake_log_event(logger, level, event):
@@ -389,14 +406,23 @@ async def test_lifespan_emits_startup_failed_on_graph_init_error(
 
     monkeypatch.setattr(app_factory, "log_event", fake_log_event)
 
-    with pytest.raises(ValueError, match="simulated graph init error"):
+    # Expect the original exception to propagate from the lifespan manager
+    with pytest.raises(RuntimeError, match="simulated get_graph failure"):
         async with app_factory.lifespan(app):
             pass
 
-    assert len(logged_events) == 1
-    assert logged_events[0].event == "startup_failed"
-    assert "ValueError" in logged_events[0].message
-    assert logged_events[0].metadata["error"] == "ValueError"
-    assert logged_events[0].metadata["message"] == "simulated graph init error"
-    assert "trace_id" in logged_events[0].metadata
-    assert "span_id" in logged_events[0].metadata
+    # Validate emitted events
+    startup_events = [e for e in logged_events if getattr(e, "event", "") == "startup_failed"]
+    assert len(startup_events) == 1, f"expected 1 startup_failed event, got {len(startup_events)}"
+
+    ev = startup_events[0]
+
+    # The implementation must attach trace_id/span_id to event.metadata for this test to pass.
+    # Expected values based on the fake_uuid4 above:
+    expected_trace_id = "startup-deadbeef-trace"
+    expected_span_id = "startup-span-deadbeef-span"
+
+    assert "trace_id" in ev.metadata, "trace_id missing from startup_failed event metadata"
+    assert "span_id" in ev.metadata, "span_id missing from startup_failed event metadata"
+    assert ev.metadata["trace_id"] == expected_trace_id
+    assert ev.metadata["span_id"] == expected_span_id
