@@ -145,8 +145,18 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
 
 
 def _generate_startup_trace_ids() -> tuple[str, str]:
-    """Generate deterministic or random trace and span IDs for startup."""
+    """
+    Generate deterministic or random trace and span IDs for startup.
+
+    This is extracted to a separate function primarily for testability, allowing
+    unit tests to easily mock trace IDs without monkeypatching module-level uuid4.
+    """
     return f"startup-{uuid4().hex}", f"startup-span-{uuid4().hex}"
+
+
+def _trace_or_unknown(val: str | None) -> str:
+    """Return the given trace/span ID or 'unknown' if not set."""
+    return val or "unknown"
 
 
 @asynccontextmanager
@@ -232,8 +242,8 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                     "error": type(exc).__name__,
                     "message": str(exc),
                     "phase": "reconciliation",
-                    "trace_id": get_trace_id() or "unknown",
-                    "span_id": get_span_id() or "unknown",
+                    "trace_id": _trace_or_unknown(get_trace_id()),
+                    "span_id": _trace_or_unknown(get_span_id()),
                 },
             ),
         )

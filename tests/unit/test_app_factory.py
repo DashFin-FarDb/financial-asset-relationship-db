@@ -293,7 +293,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(interval_seconds=0.1, settings=cast(Any, base_settings))  # pylint: disable=protected-access
+        await app_factory._periodic_reconciliation_loop(
+            interval_seconds=0.1, settings=cast(Any, base_settings)
+        )  # pylint: disable=protected-access
 
     assert ensure_safe_called == [True]
 
@@ -471,6 +473,7 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
 
     # Mock background task spawning to verify trace context is None inside
     background_trace_id: str | None | Exception = Exception("Not set")
+    tasks: list[asyncio.Task] = []
 
     def fake_start_background_tasks(
         has_persistence: bool, settings: Any
@@ -480,8 +483,15 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
         async def fake_task():
             nonlocal background_trace_id
             background_trace_id = get_trace_id()
+            await asyncio.sleep(1)  # Wait to be cancelled
 
-        return asyncio.create_task(fake_task()), asyncio.create_task(fake_task()), asyncio.create_task(fake_task())
+        t1, t2, t3 = (
+            asyncio.create_task(fake_task()),
+            asyncio.create_task(fake_task()),
+            asyncio.create_task(fake_task()),
+        )
+        tasks.extend([t1, t2, t3])
+        return t1, t2, t3
 
     monkeypatch.setattr(app_factory, "_start_background_tasks", fake_start_background_tasks)
 
@@ -494,5 +504,10 @@ async def test_tracing_context_does_not_leak_into_background_tasks(
     async with app_factory.lifespan(app):
         # Allow fake tasks to run
         await asyncio.sleep(0.01)
+
+    for task in tasks:
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
 
     assert background_trace_id is None, "Trace context leaked into background task"
