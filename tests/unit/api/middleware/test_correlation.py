@@ -141,15 +141,18 @@ async def test_correlation_middleware_cleanup_on_error() -> None:
     """Test that context is reset even if the downstream app raises an exception."""
 
     async def failing_app(scope: dict, receive: Callable, send: Callable) -> None:
+        """Simulate a downstream ASGI app that raises an exception."""
         raise ValueError("Simulated downstream error")
 
     middleware = CorrelationMiddleware(failing_app)  # type: ignore[arg-type]
     scope = {"type": "http", "headers": [], "state": {}}
 
     async def mock_receive():
+        """Mock ASGI receive function."""
         return {}
 
     async def mock_send(msg):
+        """Mock ASGI send function."""
         pass
 
     with pytest.raises(ValueError, match="Simulated downstream error"):
