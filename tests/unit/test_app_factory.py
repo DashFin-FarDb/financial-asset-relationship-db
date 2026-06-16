@@ -12,7 +12,6 @@ import pytest
 from fastapi import FastAPI
 
 from api import app_factory
-from src.data.database import init_db as database_init_db
 from src.logic.recovery_gate import ExecutionBlockedError
 
 pytestmark = pytest.mark.unit
@@ -38,6 +37,7 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
     shutdown_calls = []
 
     def fake_shutdown() -> None:
+        """Mock shutdown procedure."""
         shutdown_calls.append(True)
 
     monkeypatch.setattr(
@@ -62,6 +62,7 @@ async def test_sync_loop_stops_without_syncing_when_shutting_down(
     """Background sync loop should exit cleanly once shutdown state is observed."""
 
     async def immediate_sleep(_seconds: float) -> None:
+        """Mock sleep to return immediately."""
         pass
 
     monkeypatch.setattr(app_factory.asyncio, "sleep", immediate_sleep)
@@ -74,6 +75,7 @@ async def test_sync_loop_stops_without_syncing_when_shutting_down(
     sync_calls: list[bool] = []
 
     async def fake_to_thread(_fn, *args, **kwargs):
+        """Mock to_thread to capture calls."""
         sync_calls.append(True)
         return None
 
@@ -103,6 +105,7 @@ async def test_lifespan_blocks_startup_when_reconciliation_is_execution_blocked(
     )
 
     def _raise_block(*_args, **_kwargs):
+        """Simulate an execution blocked error."""
         raise ExecutionBlockedError(
             "blocked at startup",
             action="unsafe",
@@ -138,6 +141,7 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
     )
 
     def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
+        """Simulate a reconciliation failure."""
         raise RuntimeError("reconciliation failed")
 
     monkeypatch.setattr(
@@ -162,15 +166,19 @@ def test_startup_reconciliation_does_not_release_lock_without_reset_reacquire(
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
 
     class _GateNoReacquire:
+        """Mock RecoveryGate that does not reacquire the lock."""
+
         def __init__(self, **_kwargs) -> None:
             self.lock_was_reacquired = False
 
         def ensure_safe_to_execute(self, cancellation_event=None) -> None:
+            """Simulate blocking execution."""
             raise ExecutionBlockedError("wait", action="wait", inconsistency_type="none")
 
     # FIX: Provide clean dummy context managers to support 'with session_scope()' tracking metrics
     @contextlib.contextmanager
     def fake_session_scope(*args, **kwargs):
+        """Mock database session scope."""
         yield MagicMock()
 
     monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
@@ -195,14 +203,18 @@ def test_startup_reconciliation_releases_lock_when_reset_reacquired(
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
 
     class _GateReacquired:
+        """Mock RecoveryGate that successfully reacquires the lock."""
+
         def __init__(self, **_kwargs) -> None:
             self.lock_was_reacquired = True
 
         def ensure_safe_to_execute(self, cancellation_event=None) -> None:
+            """Allow execution."""
             return None
 
     @contextlib.contextmanager
     def fake_session_scope(*args, **kwargs):
+        """Mock database session scope."""
         yield MagicMock()
 
     monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
@@ -254,10 +266,14 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     )
 
     class FakeEngine:
+        """Mock ReconciliationEngine."""
+
         def __init__(self, *args, **kwargs):
+            """Accept arguments."""
             pass
 
         def generate_reconciliation_plan(self):
+            """Return a mock reconciliation plan."""
             return mock_plan
 
     monkeypatch.setattr("src.logic.reconciliation_engine.ReconciliationEngine", FakeEngine)
@@ -266,10 +282,13 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     ensure_safe_called = []
 
     class FakeGate:
+        """Mock RecoveryGate."""
+
         def __init__(self, **kwargs):
             self.lock_was_reacquired = False
 
         def ensure_safe_to_execute(self, cancellation_event=None):
+            """Track that ensure_safe_to_execute was called."""
             ensure_safe_called.append(True)
 
     monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", FakeGate)
@@ -278,6 +297,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     sleep_calls = 0
 
     async def mock_sleep(seconds: float):
+        """Mock sleep to yield once then raise CancelledError."""
         nonlocal sleep_calls
         sleep_calls += 1
         if sleep_calls > 1:
