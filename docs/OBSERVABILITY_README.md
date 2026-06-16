@@ -30,3 +30,5 @@ This will automatically install request and trace contexts for every incoming re
 - Respect `x-request-id` and `x-correlation-id` headers when present; otherwise generate stable IDs.
 - Respect `x-trace-id` and `x-span-id` headers when present; invalid values are dropped.
 - Ensure contexts are reset after the request completes.
+
+- Startup tracing: the application lifespan creates and applies a startup trace context (trace_id/span_id) during state initialization so observability events emitted during startup (reconciliation/get_graph/etc.) carry the same trace identifiers. See `api/app_factory.py` for implementation details.
