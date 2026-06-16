@@ -297,3 +297,45 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
         )  # pylint: disable=protected-access
 
     assert ensure_safe_called == [True]
+
+
+@pytest.mark.asyncio
+async def test_lifespan_emits_failure_event_on_startup_exception(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Lifespan must emit a failure event and fail-fast when startup raises an unexpected exception."""
+    app = FastAPI()
+
+    # Mock settings
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
+        lambda: base_settings,
+    )
+
+    # Force an exception
+    def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
+        raise ValueError("simulated unexpected startup error")
+
+    monkeypatch.setattr(
+        app_factory,
+        "_run_startup_reconciliation",
+        _raise_reconciliation_failure,
+    )
+
+    logged_events = []
+
+    def fake_log_event(logger, level, event):
+        logged_events.append(event)
+
+    monkeypatch.setattr(app_factory, "log_event", fake_log_event)
+
+    with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
+        async with app_factory.lifespan(app):
+            pass
+
+    assert len(logged_events) == 1
+    assert logged_events[0].event == "startup_reconciliation_failed"
+    assert "ValueError" in logged_events[0].message
+    assert logged_events[0].metadata["error"] == "ValueError"
+    assert logged_events[0].metadata["message"] == "simulated unexpected startup error"

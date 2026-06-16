@@ -10,6 +10,7 @@ import threading
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 from fastapi import FastAPI
 
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 
+from src.observability.context import async_trace_context
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 from src.observability.logging import setup_logging
@@ -145,10 +147,6 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown tasks for the FastAPI application."""
-    from uuid import uuid4
-
-    from src.observability.context import async_trace_context
-
     from .graph_lifecycle_providers import get_graph_lifecycle_settings
 
     settings = get_graph_lifecycle_settings()
@@ -158,6 +156,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     trace_id = f"startup-{uuid4().hex}"
     span_id = f"startup-span-{uuid4().hex}"
+
+    logger.debug(f"Initiating traced startup sequence (trace_id={trace_id}, span_id={span_id})")
 
     async with async_trace_context(trace_id=trace_id, span_id=span_id):
         try:
@@ -216,7 +216,7 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
             ObservabilityEvent(
                 event="startup_reconciliation_failed",
                 message=f"Failed to load persisted graph during startup: {type(exc).__name__}",
-                metadata={"error": type(exc).__name__},
+                metadata={"error": type(exc).__name__, "message": str(exc)},
             ),
         )
         raise RuntimeError("Failed to load persisted graph during startup") from None
