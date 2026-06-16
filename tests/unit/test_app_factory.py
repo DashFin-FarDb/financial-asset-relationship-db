@@ -3,7 +3,7 @@
          "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
          lambda: base_settings,
      )
- 
+
      # Force an exception
 -    def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
 -        """Raise a simulated runtime error to represent reconciliation failure."""
