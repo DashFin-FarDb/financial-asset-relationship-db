@@ -160,11 +160,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     span_id = f"startup-span-{uuid4().hex}"
 
     async with async_trace_context(trace_id=trace_id, span_id=span_id):
-        if has_persistence:
-            await _perform_startup_reconciliation(settings)
-
-        # Required initialization for all environments to ensure state validity
-        get_graph()
+        try:
+            if has_persistence:
+                await _perform_startup_reconciliation(settings)
+            # Required initialization for all environments to ensure state validity
+            get_graph()
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.CRITICAL,
+                ObservabilityEvent(
+                    event="startup_failed",
+                    message=f"Application startup failed: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
+            raise
 
     sync_task, slo_task, recon_task = _start_background_tasks(has_persistence, settings)
 
