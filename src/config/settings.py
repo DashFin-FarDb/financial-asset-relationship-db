@@ -130,6 +130,7 @@ class Settings(BaseModel):
         """Warn if the secret key is less than 32 characters."""
         if value and len(value) < 32:
             import warnings
+
             warnings.warn("SECRET_KEY is less than 32 characters. This is insecure for production.")
         return value
 

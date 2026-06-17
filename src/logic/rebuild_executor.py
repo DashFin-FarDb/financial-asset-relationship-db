@@ -159,7 +159,7 @@ class RebuildExecutor:
     ) -> None:
         """
         Add assets to the graph and invoke checkpoints.
-        
+
         Note: Assets in `skipped_ids` are still added to the graph to ensure the graph
         state is fully reconstructed, but they are excluded from processing count metrics
         and checkpoint evaluations.
