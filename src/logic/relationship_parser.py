@@ -11,8 +11,11 @@ def parse_relationship_args(
     Normalize flexible add_relationship inputs into a canonical (rel_type, strength, bidirectional) triple.
 
     Parameters:
-        relationship_args (tuple[Any, ...]): Positional args passed to add_relationship; accepts either a single tuple (rel_type, strength) or two/three positional values (rel_type, strength[, bidirectional]).
-        kwargs (dict[str, Any]): Keyword args passed to add_relationship; may include `bidirectional` and will be validated for unknown keys.
+        relationship_args (tuple[Any, ...]): Positional args passed to add_relationship; accepts
+            either a single tuple (rel_type, strength) or two/three positional values
+            (rel_type, strength[, bidirectional]).
+        kwargs (dict[str, Any]): Keyword args passed to add_relationship; may include
+            `bidirectional` and will be validated for unknown keys.
 
     Returns:
         rel_type (str): Relationship type coerced to a string.
@@ -43,11 +46,16 @@ def _dispatch_relationship_parser(
     Choose and run the parser corresponding to the provided relationship argument shape.
 
     Parameters:
-        relationship_args (tuple[Any, ...]): Positional arguments forwarded from add_relationship; expected shapes are either a single tuple of (rel_type, strength) or two/three positional values (rel_type, strength[, bidirectional]).
-        kwargs (dict[str, Any]): Keyword arguments forwarded from add_relationship; may contain `bidirectional` for the two-argument form or be inspected/consumed by tuple form parsers.
+        relationship_args (tuple[Any, ...]): Positional arguments forwarded from add_relationship;
+            expected shapes are either a single tuple of (rel_type, strength) or two/three
+            positional values (rel_type, strength[, bidirectional]).
+        kwargs (dict[str, Any]): Keyword arguments forwarded from add_relationship; may contain
+            `bidirectional` for the two-argument form or be inspected/consumed by tuple form parsers.
 
     Returns:
-        tuple[Any, Any, bool]: A tuple (rel_type, strength, bidirectional) where `rel_type` is the relationship type, `strength` is the relationship strength, and `bidirectional` indicates whether the relationship should be added in both directions.
+        tuple[Any, Any, bool]: A tuple (rel_type, strength, bidirectional) where `rel_type` is
+            the relationship type, `strength` is the relationship strength, and `bidirectional`
+            indicates whether the relationship should be added in both directions.
 
     Raises:
         TypeError: If `relationship_args` does not match any supported shape.
@@ -73,7 +81,8 @@ def _parse_single_relationship_arg(
     kwargs: dict[str, Any],
 ) -> tuple[Any, Any, bool]:
     """
-    Parse a single positional relationship argument given as a (rel_type, strength) tuple and extract an optional "bidirectional" flag from kwargs.
+    Parse a single positional relationship argument given as a (rel_type, strength)
+    tuple and extract an optional "bidirectional" flag from kwargs.
 
     Parameters:
         relationship_arg (Any): A two-item tuple (rel_type, strength).
@@ -111,7 +120,8 @@ def _finalize_relationship_args(
     bidirectional: bool,
 ) -> tuple[str, float, bool]:
     """
-    Coerce and validate relationship inputs, returning a normalized (rel_type, strength, bidirectional) triple.
+    Coerce and validate relationship inputs, returning a normalized
+    (rel_type, strength, bidirectional) triple.
 
     Parameters:
         rel_type: Relationship type; must be a string identifying the relationship.
@@ -119,7 +129,8 @@ def _finalize_relationship_args(
         bidirectional: Flag indicating whether the relationship should be added in both directions.
 
     Returns:
-        tuple[str, float, bool]: A tuple containing the relationship type as a `str`, the strength as a `float`, and the bidirectional flag as a `bool`.
+        tuple[str, float, bool]: A tuple containing the relationship type as a `str`,
+            the strength as a `float`, and the bidirectional flag as a `bool`.
 
     Raises:
         TypeError: If `rel_type` is not a `str`.
@@ -168,7 +179,9 @@ def _parse_positional_relationship(
         TypeError: If `bidirectional` is supplied both positionally (third positional element) and via `kwargs`.
 
     Returns:
-        tuple: `(rel_type, strength, bidirectional)` where `rel_type` is the relationship type, `strength` is the relationship strength, and `bidirectional` is `True` if the relationship should be added bidirectionally, `False` otherwise.
+        tuple: `(rel_type, strength, bidirectional)` where `rel_type` is the relationship type,
+            `strength` is the relationship strength, and `bidirectional` is `True` if the
+            relationship should be added bidirectionally, `False` otherwise.
     """
     rel_type, strength = relationship_args[0], relationship_args[1]
     if len(relationship_args) == 3:
