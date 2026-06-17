@@ -344,9 +344,14 @@ class ReconciliationEngine:
         Raises:
             RebuildCancelledError: If the cancel_event is set during execution.
         """
+        from src.config.settings import get_settings
         from src.logic.asset_graph import AssetRelationshipGraph
 
-        graph = AssetRelationshipGraph()
+        settings = get_settings()
+        graph = AssetRelationshipGraph(
+            same_sector_strength=settings.same_sector_strength,
+            corporate_bond_strength=settings.corporate_bond_strength,
+        )
         skipped_ids = self._get_skipped_ids(initial_checkpoint)
 
         self._process_assets(assets, graph, skipped_ids, on_checkpoint, cancel_event)

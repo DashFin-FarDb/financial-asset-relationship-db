@@ -40,7 +40,13 @@ def create_sample_database() -> AssetRelationshipGraph:
                 message="Creating expanded sample financial database",
             ),
         )
-        graph = AssetRelationshipGraph()
+        from src.config.settings import get_settings
+
+        settings = get_settings()
+        graph = AssetRelationshipGraph(
+            same_sector_strength=settings.same_sector_strength,
+            corporate_bond_strength=settings.corporate_bond_strength,
+        )
 
         # Equities - Technology
         apple = Equity(

@@ -15,7 +15,12 @@ TopRelationship = tuple[str, str, str, float]
 class AssetRelationshipGraph:
     """Graph of assets, relationships, and regulatory events."""
 
-    def __init__(self, database_url: str | None = None) -> None:
+    def __init__(
+        self,
+        database_url: str | None = None,
+        same_sector_strength: float = 0.7,
+        corporate_bond_strength: float = 0.9,
+    ) -> None:
         """
         Initialize the AssetRelationshipGraph with empty internal stores and an
         optional database URL.
@@ -36,6 +41,8 @@ class AssetRelationshipGraph:
         self.relationships: dict[str, list[Relationship]] = {}
         self.regulatory_events: list[RegulatoryEvent] = []
         self.database_url = database_url
+        self.same_sector_strength = same_sector_strength
+        self.corporate_bond_strength = corporate_bond_strength
 
     def add_asset(self, asset: Asset) -> None:
         """
@@ -64,9 +71,6 @@ class AssetRelationshipGraph:
         After pairwise processing, applies regulatory event impacts as
         event-driven relationships.
         """
-        from src.config.settings import get_settings
-
-        settings = get_settings()
         self.relationships = {}
 
         asset_ids = list(self.assets.keys())
@@ -80,7 +84,7 @@ class AssetRelationshipGraph:
                         source_id,
                         target_id,
                         "same_sector",
-                        settings.same_sector_strength,
+                        self.same_sector_strength,
                         bidirectional=True,
                     )
 
@@ -91,7 +95,7 @@ class AssetRelationshipGraph:
                         bond_id,
                         issuer_id,
                         "corporate_link",
-                        settings.corporate_bond_strength,
+                        self.corporate_bond_strength,
                         bidirectional=False,
                     )
 

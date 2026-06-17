@@ -258,7 +258,13 @@ class RealDataFetcher:
             if source == "sample":
                 return self._fallback(), "sample"
 
-            graph = AssetRelationshipGraph()
+            from src.config.settings import get_settings
+
+            settings = get_settings()
+            graph = AssetRelationshipGraph(
+                same_sector_strength=settings.same_sector_strength,
+                corporate_bond_strength=settings.corporate_bond_strength,
+            )
             for asset in assets:
                 graph.add_asset(asset)
 
@@ -975,7 +981,13 @@ def _deserialize_graph(payload: dict[str, Any]) -> AssetRelationshipGraph:
     Returns:
         AssetRelationshipGraph: Graph populated with assets, regulatory events, and relationships.
     """
-    graph = AssetRelationshipGraph()
+    from src.config.settings import get_settings
+
+    settings = get_settings()
+    graph = AssetRelationshipGraph(
+        same_sector_strength=settings.same_sector_strength,
+        corporate_bond_strength=settings.corporate_bond_strength,
+    )
 
     for asset_data in payload.get("assets", []):
         graph.add_asset(_deserialize_asset(dict(asset_data)))
