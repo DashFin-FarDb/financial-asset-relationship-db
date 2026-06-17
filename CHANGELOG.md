@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+
 ### Changed
 - Centralized settings in `src/config/settings.py` via `pydantic-settings`
 - Decoupled `RebuildExecutor` and `ReconciliationEngine`
