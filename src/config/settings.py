@@ -202,7 +202,7 @@ def load_settings() -> Settings:
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
         gradio_host=os.getenv("GRADIO_HOST", "127.0.0.1"),
-        gradio_port=os.getenv("GRADIO_PORT", "7860"),  # type: ignore[arg-type]
+        gradio_port=os.getenv("GRADIO_SERVER_PORT", os.getenv("GRADIO_PORT", "7860")),  # type: ignore[arg-type]
         frontend_port=os.getenv("FRONTEND_PORT", "3000"),  # type: ignore[arg-type]
         # Passed as raw string to Pydantic for validation and coercion
         rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),  # type: ignore[arg-type]

@@ -1,7 +1,6 @@
 """Integration tests for rebuild checkpoint and resume flow."""
 
 import json
-import logging
 import threading
 import time
 from contextlib import contextmanager
@@ -16,15 +15,14 @@ from sqlalchemy.orm import Session
 
 import api.graph_lifecycle_providers as providers
 import api.routers.graph_admin as graph_admin
-from api.app_factory import create_app
-from api.auth import User, get_current_active_user, get_current_rebuild_operator_user
+from api.auth import User
 from api.graph_lifecycle import reset_graph
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
-from src.data.db_models import RebuildJobORM, RebuildJobStatus
+from src.data.db_models import RebuildJobStatus
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import Equity
+from src.models.financial_models import Asset, AssetClass, Equity
 
 pytestmark = pytest.mark.integration
 
@@ -83,7 +81,8 @@ async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClien
     from api.auth import get_current_active_user
     from api.main import app
 
-    async def override_get_current_active_user() -> User:
+    def override_get_current_active_user() -> User:
+        """Mock active user override."""
         return mock_active_user
 
     app.dependency_overrides[get_current_active_user] = override_get_current_active_user
@@ -113,8 +112,17 @@ def session_factory_provider(tmp_path: Path):
     engine.dispose()
 
 
+@pytest.fixture
+def raw_engine_provider(session_factory_provider):
+    """Provide and manage lifecycle for raw database engine."""
+    _, db_url = session_factory_provider
+    engine = create_engine_from_url(db_url)
+    yield engine
+    engine.dispose()
+
+
 @pytest.mark.asyncio
-async def test_checkpoint_resume_integration(session_factory_provider, monkeypatch):
+async def test_checkpoint_resume_integration(session_factory_provider, raw_engine_provider, monkeypatch):
     """Test that a crash mid-rebuild correctly writes a checkpoint and resumes successfully.
 
     Verifies the integration between the rebuild job orchestration, distributed lock,
@@ -123,15 +131,15 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
     factory, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
-    raw_factory = create_session_factory(create_engine_from_url(db_url))
+    raw_factory = create_session_factory(raw_engine_provider)
 
     # 1. Create a mocked rebuild source that throws an error after checkpoint
-    assets = [
+    assets: list[Asset] = [
         Equity(
             id=f"EQ_{i}",
             symbol=f"EQ{i}",
             name=f"Equity {i}",
-            asset_class="equity",
+            asset_class=AssetClass.EQUITY,
             sector="tech",
             price=10.0,
             currency="USD",
@@ -142,6 +150,7 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
     call_count = 0
 
     def mock_build_crash(settings, on_checkpoint=None, initial_checkpoint=None, cancel_event=None):
+        """Mock the build execution logic to crash after writing a checkpoint."""
         nonlocal call_count
         call_count += 1
 
@@ -149,7 +158,7 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
 
         # Simulate engine run_rebuild with crash
         processed = 0
-        for idx, asset in enumerate(assets):
+        for _, asset in enumerate(assets):
             graph.add_asset(asset)
             processed += 1
             if on_checkpoint and processed % 50 == 0:
@@ -168,7 +177,6 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
         return graph, "sample"
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", mock_build_crash)
-    monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", MagicMock())
 
     # Create mock lock
     mock_lock = MagicMock()
@@ -185,7 +193,10 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
             session.commit()
 
         # Run pipeline
-        with pytest.raises(RuntimeError, match="Simulated crash"):
+        with (
+            patch("api.routers.graph_admin.save_graph_to_persistence", MagicMock()),
+            pytest.raises(RuntimeError, match="Simulated crash"),
+        ):
             graph_admin._run_rebuild_pipeline(
                 raw_factory,
                 get_settings(),
@@ -201,6 +212,7 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
         with factory() as session:
             repo = AssetGraphRepository(session)
             job = repo.get_rebuild_job(job_id)
+            assert job is not None
             assert job.status == RebuildJobStatus.FAILED
             assert job.checkpoint_data is not None
 
@@ -221,7 +233,6 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
         assert initial_checkpoint["processed_count"] == 50
 
         from src.logic.rebuild_executor import RebuildExecutor
-        from src.logic.reconciliation_engine import ReconciliationEngine
 
         executor = RebuildExecutor()
         graph = executor.run_rebuild(
@@ -240,16 +251,17 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
 
         with factory() as session:
             repo = AssetGraphRepository(session)
-            # Rebuild job status transition validation requires the job not to be failed directly?
-            # Wait, mark_rebuild_job_running might only allow transitioning from PENDING.
-            # Let's override the status to PENDING so mark_rebuild_job_running succeeds, or use run_rebuild_pipeline and let it handle DB state.
-            # But run_rebuild_pipeline assumes the job is already RUNNING when it starts.
-            # If the job is FAILED, we might need to reset it to PENDING.
-            job = repo.get_rebuild_job(job_id)
-            job.status = RebuildJobStatus.PENDING
-            session.commit()
 
-            repo.mark_rebuild_job_running(job_id, resume_exec_id)
+            # Use the real recovery entrypoint pattern: create a new job to represent the retry attempt,
+            # and copy the checkpoint data to it, rather than rewriting a terminal job in-place.
+            failed_job = repo.get_rebuild_job(job_id)
+            assert failed_job is not None
+            assert failed_job.checkpoint_data is not None
+            checkpoint_data = failed_job.checkpoint_data
+
+            resume_job_id = repo.create_rebuild_job(requested_by="admin_tester")
+            repo.mark_rebuild_job_running(resume_job_id, resume_exec_id)
+            repo.update_rebuild_checkpoint(resume_job_id, resume_exec_id, checkpoint_data)
             session.commit()
 
         # Run pipeline again (resume)
@@ -257,7 +269,7 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
             raw_factory,
             get_settings(),
             db_url,
-            job_id,
+            resume_job_id,
             resume_exec_id,
             time.time(),
             threading.Event(),
@@ -269,8 +281,10 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
         # Verify job state
         with factory() as session:
             repo = AssetGraphRepository(session)
-            job = repo.get_rebuild_job(job_id)
+            job = repo.get_rebuild_job(resume_job_id)
+            assert job is not None
             assert job.status == RebuildJobStatus.SUCCEEDED
             # Checkpoint might be updated to 100, then 120
+            assert job.checkpoint_data is not None
             data = json.loads(job.checkpoint_data)
             assert data["processed_count"] == 120

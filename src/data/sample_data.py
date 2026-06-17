@@ -387,7 +387,7 @@ def create_sample_database() -> AssetRelationshipGraph:
             ObservabilityEvent(
                 event="sample_graph_creation_failed",
                 message=f"Failed to create sample database: {type(e).__name__}",
-                metadata={"error": str(e)},
+                metadata={"error": type(e).__name__},
             ),
         )
         raise
