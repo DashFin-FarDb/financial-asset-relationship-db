@@ -212,6 +212,7 @@ def test_startup_reconciliation_lock_release_behavior(
     else:
         app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
         assert fake_lock.lock_name == "graph_rebuild"
+        fake_lock.release.assert_called()
 
 
 @pytest.mark.asyncio

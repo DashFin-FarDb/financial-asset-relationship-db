@@ -67,7 +67,6 @@ class Settings(BaseModel):
 
     # Relationship strengths
     same_sector_strength: float = Field(default=0.7)
-    currency_exposure_strength: float = Field(default=0.8)
     corporate_bond_strength: float = Field(default=0.9)
 
     # Database configuration
@@ -93,7 +92,6 @@ class Settings(BaseModel):
         "random_seed",
         "line_length",
         "same_sector_strength",
-        "currency_exposure_strength",
         "corporate_bond_strength",
         "rebuild_lock_ttl_seconds",
         "slo_api_latency_avg_seconds",
@@ -176,7 +174,6 @@ def load_settings() -> Settings:
         random_seed=os.getenv("RANDOM_SEED"),  # type: ignore[arg-type]
         line_length=os.getenv("LINE_LENGTH"),  # type: ignore[arg-type]
         same_sector_strength=os.getenv("SAME_SECTOR_STRENGTH"),  # type: ignore[arg-type]
-        currency_exposure_strength=os.getenv("CURRENCY_EXPOSURE_STRENGTH"),  # type: ignore[arg-type]
         corporate_bond_strength=os.getenv("CORPORATE_BOND_STRENGTH"),  # type: ignore[arg-type]
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
         database_url=os.getenv("DATABASE_URL") or postgres_url,
