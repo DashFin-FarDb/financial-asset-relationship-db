@@ -544,7 +544,7 @@ class TestSecretKeyValidation:
 
         # Decoding with wrong key should fail
         with pytest.raises(jwt.InvalidSignatureError):
-            jwt.decode(token, "wrong_secret", algorithms=[ALGORITHM])
+            jwt.decode(token, "wrong_secret_at_least_32_bytes_long", algorithms=[ALGORITHM])
 
 
 # Mark tests that require database

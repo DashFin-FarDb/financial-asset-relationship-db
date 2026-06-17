@@ -390,7 +390,13 @@ class AssetGraphRepository:
             AssetRelationshipGraph: The reconstructed graph containing persisted assets,
             relationship rows, and regulatory events.
         """
-        graph = AssetRelationshipGraph()
+        from src.config.settings import get_settings
+
+        settings = get_settings()
+        graph = AssetRelationshipGraph(
+            same_sector_strength=settings.same_sector_strength,
+            corporate_bond_strength=settings.corporate_bond_strength,
+        )
         for asset in self.list_assets():
             graph.add_asset(asset)
         for event in self.list_regulatory_events():

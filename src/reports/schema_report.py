@@ -11,8 +11,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 def _as_int(value: Any, default: int = 0) -> int:
     """
-    Convert a value to an integer, returning a fallback when conversion is
-    not possible.
+    Convert a value to an integer, returning a fallback when conversion is not possible.
 
     Attempts to convert `value` to `int`. If `value` is `None` or cannot be
     converted, returns `default`.
@@ -34,8 +33,7 @@ def _as_int(value: Any, default: int = 0) -> int:
 
 def _as_float(value: Any, default: float = 0.0) -> float:
     """
-    Coerce a value to a float, falling back to a default when conversion is not
-    possible.
+    Coerce a value to a float, falling back to a default when conversion is not possible.
 
     Parameters:
         value (Any): Input to convert; if `None` or not convertible to float,
@@ -245,15 +243,18 @@ def _business_rules_lines() -> list[str]:
     Returns:
         list[str]: Ordered markdown lines for the "Business Rules & Constraints" section.
     """
+    from src.config.settings import get_settings
+
+    settings = get_settings()
     return [
         "",
         "## Business Rules & Constraints",
         "",
         "### Cross-Asset Rules",
-        ("- **Sector Affinity**: Assets in the same sector are linked with strength 0.7 (bidirectional)"),
+        f"- **Sector Affinity**: Assets in the same sector are linked with strength {settings.same_sector_strength:.2f} (bidirectional)",
         (
             "- **Corporate Bond Linkage**: A bond whose issuer_id matches "
-            "another asset creates a directional link (strength 0.9)"
+            f"another asset creates a directional link (strength {settings.corporate_bond_strength:.2f})"
         ),
         ("- **Currency Exposure**: Currency assets reflect FX and central-bank policy links"),
         "",
@@ -315,8 +316,9 @@ def _implementation_notes_lines() -> list[str]:
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
-    Produce a Markdown report summarizing schema, relationship
-    distributions, calculated metrics, rules, and optimization
+    Produce a Markdown report summarizing schema, metrics, and recommendations.
+
+    Summarizes schema, relationship distributions, calculated metrics, rules, and optimization
     recommendations for an asset relationship graph.
 
     Parameters:

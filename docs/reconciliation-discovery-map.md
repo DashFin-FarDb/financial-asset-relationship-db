@@ -163,8 +163,8 @@ The Financial Asset Relationship Database already contains sophisticated **impli
 │ ReconciliationPlan      │ ← Structured plan output (new)
 │ (data structure)        │    actions[], severity, execution_mode
 ├─────────────────────────┤
-│ Job Abstraction Layer   │ ← Future work (Phase 2)
-│ (execution)             │    executes plans idempotently
+│ Job Abstraction Layer   │ ← RebuildExecutor (new)
+│ (execution)             │    executes rebuilds, manages checkpoints
 └─────────────────────────┘
 ```
 
@@ -232,8 +232,9 @@ Reconciliation is **event-driven** rather than **periodic**:
 
 ### Phase 2 (Partially Completed / In Progress) 🔄
 
-- [x] Wire ReconciliationEngine into Rebuild Graph Construction (Wired via `build_rebuild_graph` in [graph_lifecycle_providers.py](../api/graph_lifecycle_providers.py#L218-L243))
-- [x] Integrated Checkpointed Rebuild Execution (Integrated in [graph_admin.py](../api/routers/graph_admin.py))
+- [x] Wire ReconciliationEngine into Rebuild Graph Construction
+- [x] Decouple rebuild execution from engine into `RebuildExecutor` (stateful application, checkpoints, resume)
+- [x] Integrated Checkpointed Rebuild Execution (Integrated in [graph_admin.py](../api/routers/graph_admin.py) using `RebuildExecutor`)
 - [x] Add reconciliation event observability (Logged via `log_event` in `ReconciliationEngine`)
 - [ ] Integrate ReconciliationEngine into RecoveryGate (Note: `RecoveryGate` currently uses legacy logic `determine_recovery_action`; complete integration is deferred)
 - [ ] Add periodic reconciliation loop (Note: Background `_graph_synchronization_loop` only syncs runtime graph; a true continuous reconciliation planner loop is deferred)

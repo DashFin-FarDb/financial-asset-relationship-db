@@ -23,10 +23,7 @@ These constraints are enforced by convention and by the dataclass design —
 its own.
 
 > [!NOTE]
-> The engine class also provides `run_rebuild()`, which serves as a stateless, in-memory
-> graph reconstruction loop. It computes relationship matrices and processes assets in memory
-> but remains entirely side-effect-free. External state transitions, locks, and DB persistence
-> are fully decoupled and managed by the orchestration layer (`api/routers/graph_admin.py`).
+> `ReconciliationEngine` is strictly a pure control-plane mapping structure that generates reconciliation plans. It has been completely decoupled from the graph rebuild execution phase. External state transitions, locks, and DB persistence, including checkpoints and resume capability, are now handled by a new class `RebuildExecutor` in `src/logic/rebuild_executor.py`.
 
 ## Public surface
 
@@ -208,12 +205,13 @@ RebuildDriftEvaluator.evaluate_drift):
 
 ## Utilities and Helpers
 
-### Stateless Graph Reconstruction Helper: `ReconciliationEngine.run_rebuild()`
+### Rebuild Execution: `RebuildExecutor.run_rebuild()`
 
-To perform the in-memory, side-effect-free reconstruction of a graph from the provided assets and events, call:
+The stateful application of operations and checkpoints is now handled by a new class `RebuildExecutor` in `src/logic/rebuild_executor.py`. To perform the reconstruction of a graph from the provided assets and events, call:
 
 ```python
-graph = engine.run_rebuild(
+executor = RebuildExecutor()
+graph = executor.run_rebuild(
     assets=assets,
     regulatory_events=regulatory_events,
     on_checkpoint=on_checkpoint,
@@ -235,4 +233,4 @@ graph = engine.run_rebuild(
 - `RebuildCancelledError`: If `cancel_event` is set during execution.
 
 > [!IMPORTANT]
-> `ReconciliationEngine.run_rebuild()` is strictly a stateless, side-effect-free in-memory helper function. It is **not** used for plan execution, database updates, or state persistence. The core `ReconciliationEngine` remains a plan-only control-plane primitive. All side-effecting operations (locks, DB updates, orchestration) are managed separately by the orchestration layer.
+> `RebuildExecutor.run_rebuild()` handles the stateful application of operations and checkpoints, and supports `cancel_event`, checkpoints, and resume capability. The core `ReconciliationEngine` remains a plan-only control-plane primitive with no side-effects. All side-effecting operations are managed separately by the orchestration layer and `RebuildExecutor`.

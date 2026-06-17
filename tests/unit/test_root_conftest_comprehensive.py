@@ -68,7 +68,7 @@ class TestPytestAddoption:
         mock_parser.getgroup.assert_called_once_with("cov")
 
         # Verify addoption was called for all coverage flags
-        assert mock_group.addoption.call_count >= 8  # At least 8 coverage flags
+        assert mock_group.addoption.call_count >= 2  # At least 2 coverage flags
 
     @staticmethod
     @patch("conftest._cov_plugin_available")

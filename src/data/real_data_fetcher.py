@@ -193,72 +193,60 @@ class RealDataFetcher:
         graph, _ = self.create_real_database_with_source()
         return graph
 
-    def create_real_database_with_source(
-        self,
-        cancel_event: threading.Event | None = None,
-    ) -> tuple[AssetRelationshipGraph, str]:
-        """
-        Create an asset relationship graph and identify its source (cache, real_data, or sample).
+    def _try_load_from_cache(self) -> "AssetRelationshipGraph | None":
+        """Attempt to load the asset relationship graph from cache.
 
-        This is the provenance-safe version of create_real_database. It returns both the
-        constructed graph and a source tag identifying where the data originated.
+        Returns:
+            AssetRelationshipGraph | None: The cached graph if successful, else None.
+        """
+        if not self.cache_path or not self.cache_path.exists():
+            return None
+        try:
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="graph_cache_load_attempt",
+                    message=f"Loading asset graph from cache at {self.cache_path}",
+                    metadata={"cache_path": str(self.cache_path)},
+                ),
+            )
+            return _load_from_cache(self.cache_path)
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_cache_load_failed",
+                    message=f"Failed to load cached dataset: {type(exc).__name__}; proceeding with standard fetch",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
+            return None
+
+    def _try_live_fetch(
+        self, cancel_event: threading.Event | None = None
+    ) -> tuple["AssetRelationshipGraph", str] | None:
+        """Attempt to fetch live data, build the graph, and optionally persist it.
 
         Args:
             cancel_event: Optional event to signal cancellation.
 
         Returns:
-            tuple[AssetRelationshipGraph, str]: A tuple containing the graph and a source
-                tag: "cache", "real_data" (for live fetches), or "sample".
+            tuple[AssetRelationshipGraph, str] | None: A tuple containing the graph and source tag, or None if failed.
         """
-        if self.cache_path and self.cache_path.exists():
-            try:
-                log_event(
-                    logger,
-                    logging.INFO,
-                    ObservabilityEvent(
-                        event="graph_cache_load_attempt",
-                        message=f"Loading asset graph from cache at {self.cache_path}",
-                        metadata={"cache_path": str(self.cache_path)},
-                    ),
-                )
-                return _load_from_cache(self.cache_path), "cache"
-            except Exception as exc:
-                log_event(
-                    logger,
-                    logging.WARNING,
-                    ObservabilityEvent(
-                        event="graph_cache_load_failed",
-                        message=f"Failed to load cached dataset: {type(exc).__name__}; proceeding with standard fetch",
-                        metadata={"error": type(exc).__name__},
-                    ),
-                )
-
-        if not self.enable_network:
-            log_event(
-                logger,
-                logging.INFO,
-                ObservabilityEvent(
-                    event="graph_network_fetching_disabled",
-                    message="Network fetching disabled. Using fallback dataset if available.",
-                ),
-            )
-            return self._fallback(), "sample"
-
-        log_event(
-            logger,
-            logging.INFO,
-            ObservabilityEvent(
-                event="graph_live_fetch_initiated",
-                message="Creating database with real financial data from Yahoo Finance",
-            ),
-        )
-
         try:
             assets, events, source = self._perform_live_raw_fetch(cancel_event)
             if source == "sample":
                 return self._fallback(), "sample"
 
-            graph = AssetRelationshipGraph()
+            from src.config.settings import get_settings
+
+            settings = get_settings()
+            graph = AssetRelationshipGraph(
+                same_sector_strength=settings.same_sector_strength,
+                corporate_bond_strength=settings.corporate_bond_strength,
+            )
             for asset in assets:
                 graph.add_asset(asset)
 
@@ -299,15 +287,62 @@ class RealDataFetcher:
                     metadata={"error": type(exc).__name__},
                 ),
             )
+            return None
+
+    def create_real_database_with_source(
+        self,
+        cancel_event: threading.Event | None = None,
+    ) -> tuple[AssetRelationshipGraph, str]:
+        """
+        Create an asset relationship graph and identify its source (cache, real_data, or sample).
+
+        This is the provenance-safe version of create_real_database. It returns both the
+        constructed graph and a source tag identifying where the data originated.
+
+        Args:
+            cancel_event: Optional event to signal cancellation.
+
+        Returns:
+            tuple[AssetRelationshipGraph, str]: A tuple containing the graph and a source
+                tag: "cache", "real_data" (for live fetches), or "sample".
+        """
+        cached_graph = self._try_load_from_cache()
+        if cached_graph is not None:
+            return cached_graph, "cache"
+
+        if not self.enable_network:
             log_event(
                 logger,
-                logging.WARNING,
+                logging.INFO,
                 ObservabilityEvent(
-                    event="graph_fetch_fallback_engaged",
-                    message="Falling back to sample data due to real data fetch failure",
+                    event="graph_network_fetching_disabled",
+                    message="Network fetching disabled. Using fallback dataset if available.",
                 ),
             )
             return self._fallback(), "sample"
+
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="graph_live_fetch_initiated",
+                message="Creating database with real financial data from Yahoo Finance",
+            ),
+        )
+
+        live_result = self._try_live_fetch(cancel_event)
+        if live_result is not None:
+            return live_result
+
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_fetch_fallback_engaged",
+                message="Falling back to sample data due to real data fetch failure",
+            ),
+        )
+        return self._fallback(), "sample"
 
     def fetch_raw_data(self) -> tuple[list[Asset], list[RegulatoryEvent]]:
         """
@@ -975,7 +1010,13 @@ def _deserialize_graph(payload: dict[str, Any]) -> AssetRelationshipGraph:
     Returns:
         AssetRelationshipGraph: Graph populated with assets, regulatory events, and relationships.
     """
-    graph = AssetRelationshipGraph()
+    from src.config.settings import get_settings
+
+    settings = get_settings()
+    graph = AssetRelationshipGraph(
+        same_sector_strength=settings.same_sector_strength,
+        corporate_bond_strength=settings.corporate_bond_strength,
+    )
 
     for asset_data in payload.get("assets", []):
         graph.add_asset(_deserialize_asset(dict(asset_data)))

@@ -61,11 +61,25 @@ class Settings(BaseModel):
     real_data_cache_path: str | None = Field(default=None)
     use_real_data_fetcher: bool = Field(default=False)
 
+    # Visualization and Formatting
+    random_seed: int = Field(default=42)
+    line_length: int = Field(default=120)
+
+    # Relationship strengths
+    same_sector_strength: float = Field(default=0.7)
+    corporate_bond_strength: float = Field(default=0.9)
+
     # Database configuration
     asset_graph_database_url: str | None = Field(default=None)
     database_url: str | None = Field(default=None)
     coordination_database_url: str | None = Field(default=None)
     postgres_url: str | None = Field(default=None)
+
+    # UI Configuration
+    gradio_host: str = Field(default="127.0.0.1")
+    gradio_port: int = Field(default=7860)
+    frontend_port: int = Field(default=3000)
+
     # Distributed lock configuration
     # Allow int | str | None to capture empty strings from os.getenv
     rebuild_lock_ttl_seconds: int = Field(
@@ -81,11 +95,16 @@ class Settings(BaseModel):
     slo_evaluation_interval_seconds: float = Field(default=60.0, ge=1.0)
 
     @field_validator(
+        "random_seed",
+        "line_length",
+        "same_sector_strength",
+        "corporate_bond_strength",
         "rebuild_lock_ttl_seconds",
         "slo_api_latency_avg_seconds",
         "slo_rebuild_duration_max_seconds",
         "slo_error_rate_threshold",
         "slo_evaluation_interval_seconds",
+        "gradio_port",
         mode="before",
     )
     @classmethod
@@ -96,12 +115,27 @@ class Settings(BaseModel):
             field_info = cls.model_fields.get(field_name)
             default = getattr(field_info, "default", 300)
             return default
-        if field_name in ("rebuild_lock_ttl_seconds", "slo_rebuild_duration_max_seconds") and isinstance(value, str):
+        if field_name in ("rebuild_lock_ttl_seconds", "slo_rebuild_duration_max_seconds", "gradio_port") and isinstance(
+            value, str
+        ):
             try:
                 return int(value)
             except ValueError:
                 raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
         # For other fields or non-string inputs, Pydantic will handle the type coercion
+        return value
+
+    @field_validator("secret_key")
+    @classmethod
+    def validate_secret_key(cls, value: str | None, info: ValidationInfo) -> str | None:
+        """Warn or raise if the secret key is less than 32 characters."""
+        if value and len(value) < 32:
+            env = info.data.get("env", "development")
+            if env not in ("development", "test"):
+                raise ValueError("SECRET_KEY must be at least 32 characters in production.")
+            import warnings
+
+            warnings.warn("SECRET_KEY is less than 32 characters. This is insecure for production.")
         return value
 
     @field_validator("slo_rebuild_duration_max_seconds")
@@ -159,10 +193,17 @@ def load_settings() -> Settings:
         graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
+        random_seed=os.getenv("RANDOM_SEED"),  # type: ignore[arg-type]
+        line_length=os.getenv("LINE_LENGTH"),  # type: ignore[arg-type]
+        same_sector_strength=os.getenv("SAME_SECTOR_STRENGTH"),  # type: ignore[arg-type]
+        corporate_bond_strength=os.getenv("CORPORATE_BOND_STRENGTH"),  # type: ignore[arg-type]
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
+        gradio_host=os.getenv("GRADIO_HOST", "127.0.0.1"),
+        gradio_port=os.getenv("GRADIO_PORT", "7860"),  # type: ignore[arg-type]
+        frontend_port=os.getenv("FRONTEND_PORT", "3000"),  # type: ignore[arg-type]
         # Passed as raw string to Pydantic for validation and coercion
         rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),  # type: ignore[arg-type]
         slo_api_latency_avg_seconds=os.getenv("SLO_API_LATENCY_AVG_SECONDS"),  # type: ignore[arg-type]
