@@ -5,9 +5,25 @@ database tests.
 from __future__ import annotations
 
 import importlib.util
+import os
+from pathlib import Path
 from typing import Any
 
 import pytest
+
+# Ensure a clean SQLite database for the authentication layer before any modules import it.
+_db_path = Path(__file__).resolve().parent / "test_auth.db"
+if _db_path.exists():
+    _db_path.unlink()
+
+# Enforce hermeticity for test runs
+os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
+os.environ.setdefault("DATABASE_URL", f"sqlite:///{_db_path}")
+os.environ.setdefault("ADMIN_USERNAME", "admin")
+os.environ.setdefault("ADMIN_PASSWORD", "changeme")
+os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
+os.environ.setdefault("ADMIN_FULL_NAME", "Test Admin")
+os.environ.setdefault("ADMIN_DISABLED", "false")
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
