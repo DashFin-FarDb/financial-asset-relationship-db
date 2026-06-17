@@ -7,7 +7,7 @@ import contextlib
 import logging
 import random
 import threading
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
@@ -165,6 +165,31 @@ def _generate_startup_trace_ids() -> tuple[str, str]:
 def _trace_or_unknown(val: str | None) -> str:
     """Return the given trace/span ID or 'unknown' if not set."""
     return val or "unknown"
+
+
+async def _run_with_generated_trace(
+    func: Callable[..., Any], *args: Any, to_thread: bool = False, **kwargs: Any
+) -> tuple[str, str, Any]:
+    """Run a callable within a generated trace context, returning trace info and result.
+
+    If the callable raises an exception, the exception is stamped with `trace_id` and `span_id`.
+    """
+    trace_id, span_id = _generate_startup_trace_ids()
+    async with async_trace_context(trace_id=trace_id, span_id=span_id):
+        try:
+            if to_thread:
+                res = await asyncio.to_thread(func, *args, **kwargs)
+            elif asyncio.iscoroutinefunction(func):
+                res = await func(*args, **kwargs)
+            else:
+                res = func(*args, **kwargs)
+            return trace_id, span_id, res
+        except Exception as exc:
+            if not hasattr(exc, "trace_id"):
+                exc.trace_id = trace_id  # type: ignore[attr-defined]
+            if not hasattr(exc, "span_id"):
+                exc.span_id = span_id  # type: ignore[attr-defined]
+            raise
 
 
 @asynccontextmanager
@@ -433,7 +458,7 @@ async def _periodic_reconciliation_loop(interval_seconds: float, settings: Graph
                             ),
                         )
 
-                await asyncio.to_thread(run_sync_reconciliation)
+                await _run_with_generated_trace(run_sync_reconciliation, to_thread=True)
 
                 # Reset interval on successful iteration
                 if is_in_error_state:
@@ -461,7 +486,11 @@ async def _periodic_reconciliation_loop(interval_seconds: float, settings: Graph
                                 f"Unexpected transient error in periodic reconciliation loop ({type(exc).__name__}). "
                                 "Engaging backoff policy."
                             ),
-                            metadata={"error": type(exc).__name__},
+                            metadata={
+                                "error": type(exc).__name__,
+                                "trace_id": getattr(exc, "trace_id", "unknown"),
+                                "span_id": getattr(exc, "span_id", "unknown"),
+                            },
                         ),
                     )
                     is_in_error_state = True
@@ -493,7 +522,7 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
             ):
                 return
 
-            await asyncio.to_thread(sync_with_latest_rebuild)
+            await _run_with_generated_trace(sync_with_latest_rebuild, to_thread=True)
 
             # Reset on successful sync
             if is_in_error_state:
@@ -521,7 +550,11 @@ async def _graph_synchronization_loop(interval_seconds: float) -> None:
                             f"Unexpected transient error in graph synchronization loop ({type(exc).__name__}). "
                             "Engaging backoff policy."
                         ),
-                        metadata={"error": type(exc).__name__},
+                        metadata={
+                            "error": type(exc).__name__,
+                            "trace_id": getattr(exc, "trace_id", "unknown"),
+                            "span_id": getattr(exc, "span_id", "unknown"),
+                        },
                     ),
                 )
                 is_in_error_state = True
@@ -558,7 +591,7 @@ async def _slo_evaluation_loop() -> None:
             ):
                 return
 
-            evaluator.evaluate_all(trigger_side_effects=True)
+            await _run_with_generated_trace(evaluator.evaluate_all, trigger_side_effects=True, to_thread=False)
 
             # Reset on success
             current_interval = base_interval
@@ -572,7 +605,11 @@ async def _slo_evaluation_loop() -> None:
                 ObservabilityEvent(
                     event="slo_background_evaluation_failed",
                     message=f"Background SLO evaluation failed: {type(exc).__name__}. Engaging backoff.",
-                    metadata={"error": type(exc).__name__},
+                    metadata={
+                        "error": type(exc).__name__,
+                        "trace_id": getattr(exc, "trace_id", "unknown"),
+                        "span_id": getattr(exc, "span_id", "unknown"),
+                    },
                 ),
             )
             # Exponential backoff
