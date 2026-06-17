@@ -72,7 +72,7 @@ class Settings(BaseModel):
 
     # Server configuration
     gradio_port: int = Field(default=7860)
-    gradio_host: str = Field(default="0.0.0.0")
+    gradio_host: str = Field(default="127.0.0.1")
 
     # Database configuration
     asset_graph_database_url: str | None = Field(default=None)
@@ -94,6 +94,12 @@ class Settings(BaseModel):
     slo_evaluation_interval_seconds: float = Field(default=60.0, ge=1.0)
 
     @field_validator(
+        "random_seed",
+        "line_length",
+        "same_sector_strength",
+        "currency_exposure_strength",
+        "corporate_bond_strength",
+        "gradio_port",
         "rebuild_lock_ttl_seconds",
         "slo_api_latency_avg_seconds",
         "slo_rebuild_duration_max_seconds",
@@ -172,13 +178,13 @@ def load_settings() -> Settings:
         graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
-        random_seed=int(os.getenv("RANDOM_SEED", 42)),
-        line_length=int(os.getenv("LINE_LENGTH", 120)),
-        same_sector_strength=float(os.getenv("SAME_SECTOR_STRENGTH", 0.7)),
-        currency_exposure_strength=float(os.getenv("CURRENCY_EXPOSURE_STRENGTH", 0.8)),
-        corporate_bond_strength=float(os.getenv("CORPORATE_BOND_STRENGTH", 0.9)),
-        gradio_port=int(os.getenv("GRADIO_PORT", 7860)),
-        gradio_host=os.getenv("GRADIO_HOST", "0.0.0.0"),
+        random_seed=os.getenv("RANDOM_SEED"),  # type: ignore[arg-type]
+        line_length=os.getenv("LINE_LENGTH"),  # type: ignore[arg-type]
+        same_sector_strength=os.getenv("SAME_SECTOR_STRENGTH"),  # type: ignore[arg-type]
+        currency_exposure_strength=os.getenv("CURRENCY_EXPOSURE_STRENGTH"),  # type: ignore[arg-type]
+        corporate_bond_strength=os.getenv("CORPORATE_BOND_STRENGTH"),  # type: ignore[arg-type]
+        gradio_port=os.getenv("GRADIO_PORT"),  # type: ignore[arg-type]
+        gradio_host=os.getenv("GRADIO_HOST", "127.0.0.1"),
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
