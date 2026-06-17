@@ -2,7 +2,7 @@
 
 **Production Architecture:** FastAPI backend + Next.js frontend
 
-This document describes the system architecture for the Financial Asset Relationship Database. The production architecture uses a FastAPI REST API backend with a Next.js/React frontend. The Gradio UI is available via `app.py` for demos and internal use as a non-production surface, but it is **not the production path**.
+This document describes the system architecture for the Financial Asset Relationship Database. The production architecture uses a FastAPI REST API backend with a Next.js/React frontend. Configuration is centralized through `src/config/settings.py` via `pydantic-settings`. The Gradio UI (`app.py`) is decoupled from production configuration and correctly acts strictly as a non-production demo endpoint, bounding its host explicitly to localhost (`127.0.0.1`). Auth keys like `SECRET_KEY` are deterministic in testing.
 
 For the architectural decision rationale, see [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architecture.md).
 
@@ -181,14 +181,15 @@ Gradio Interface Update
 ### Backend Technologies
 
 ```text
-┌─────────────────────────────────────┐
-│       Backend Stack                 │
-├─────────────────────────────────────┤
-│ FastAPI       │ REST API Framework  │
-│ Uvicorn       │ ASGI Server         │
-│ Pydantic      │ Data Validation     │
-│ Python 3.10+  │ Runtime             │
-└─────────────────────────────────────┘
+┌───────────────────────────────────────────┐
+│       Backend Stack                       │
+├───────────────────────────────────────────┤
+│ FastAPI           │ REST API Framework    │
+│ Uvicorn           │ ASGI Server           │
+│ Pydantic          │ Data Validation       │
+│ pydantic-settings │ Config Management     │
+│ Python 3.10+      │ Runtime               │
+└───────────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
 │       Core Logic Stack              │

@@ -17,7 +17,7 @@ Define and implement a checkpointing mechanism that allows the Reconciliation En
 
 ### 2. Logic Layer: Reconciliation Engine Integration
 
-- **Checkpoint Callback**: Add an optional `on_checkpoint` callback to the `ReconciliationEngine.run_rebuild` method.
+- **Checkpoint Callback**: Add an optional `on_checkpoint` callback to the `RebuildExecutor.run_rebuild` method.
 - **Engine Instrumentation**: Modify the main processing loop in `ReconciliationEngine` to invoke the checkpoint callback at bounded intervals (e.g., every 50 assets processed).
 - **Resume Initialization**: Update the engine to accept an initial `checkpoint_state` and use it to filter/skip already processed entities during reconstruction.
 

@@ -1,16 +1,30 @@
-"""Pytest configuration and fixtures for the financial asset relationship
-database tests.
-"""
+"""Pytest configuration and fixtures for the database tests."""
 
 from __future__ import annotations
 
 import importlib.util
+import os
+from pathlib import Path
 from typing import Any
 
 import pytest
 
-from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (
+# Ensure a clean SQLite database for the authentication layer before any modules import it.
+_db_path = Path(__file__).resolve().parent / "test_auth.db"
+if _db_path.exists():
+    _db_path.unlink()
+
+# Enforce hermeticity for test runs
+os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
+os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
+os.environ["ADMIN_USERNAME"] = "admin"
+os.environ["ADMIN_PASSWORD"] = os.getenv("TEST_ADMIN_PASSWORD") or "changeme"
+os.environ["ADMIN_EMAIL"] = "admin@example.com"
+os.environ["ADMIN_FULL_NAME"] = "Test Admin"
+os.environ["ADMIN_DISABLED"] = "false"
+
+from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
+from src.models.financial_models import (  # noqa: E402
     AssetClass,
     Bond,
     Commodity,
@@ -204,7 +218,7 @@ def _register_dummy_cov_options(parser: Any) -> None:
 
 
 def _safe_addoption(group: Any, *names: str, **kwargs: object) -> None:
-    """Add a pytest option while ignoring duplicate-registration conflicts."""
+    """Add a pytest option while ignoring duplicate-registration errors only."""
     try:
         group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
     except ValueError as exc:
@@ -262,7 +276,7 @@ def mock_lock():
 
 @pytest.fixture
 def mock_rebuild_job():
-    """Factory fixture to create mock rebuild jobs with specific configurations."""
+    """Create mock rebuild jobs with specific configurations."""
     from datetime import datetime, timezone
     from unittest.mock import Mock
 

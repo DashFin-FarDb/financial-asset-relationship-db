@@ -188,10 +188,10 @@ def test_bench_calculate_metrics_large(benchmark):
 
 @pytest.mark.benchmark
 def test_bench_create_sample_database(benchmark):
-    """Benchmark the full create_sample_database workflow (19 assets, 4 events)."""
+    """Benchmark the full create_sample_database workflow (19 assets, 5 events)."""
     graph = benchmark(create_sample_database)
     assert len(graph.assets) == 19
-    assert len(graph.regulatory_events) == 4
+    assert len(graph.regulatory_events) == 5
 
 
 # ---------------------------------------------------------------------------

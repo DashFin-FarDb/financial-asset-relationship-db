@@ -24,7 +24,7 @@ Ensure that rebuild executions can be reliably and safely cancelled by operators
 
 - **Schema Update**: Added `cancel_requested` status and `cancellation_requested_at` timestamp to `rebuild_jobs`.
 - **Repository Methods**: Implemented atomic state transitions (`mark_rebuild_job_cancel_requested`, `mark_rebuild_job_cancelled`) and updated heartbeat detection.
-- **Cooperative Cancellation**: Updated `ReconciliationEngine.run_rebuild` and `RealDataFetcher.fetch_raw_data_with_source` to check `cancel_event`.
+- **Cooperative Cancellation**: Updated `RebuildExecutor.run_rebuild` and `RealDataFetcher.fetch_raw_data_with_source` to check `cancel_event`.
 - **API Endpoint**: Added `POST /api/graph/rebuild/jobs/{job_id}/cancel` with operator authorization.
 - **Testing**: Added unit and integration tests (11 total) covering the full cancellation lifecycle.
 

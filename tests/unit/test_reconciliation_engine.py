@@ -510,8 +510,6 @@ class TestDriftEvaluatorProtocol:
 
     def test_run_rebuild_with_checkpoints(self) -> None:
         """Test that run_rebuild correctly invokes checkpoints and respects initial state."""
-        engine = ReconciliationEngine(MockDriftEvaluator("none", Severity.NONE))
-
         # Create 120 assets to trigger multiple checkpoints (every 50)
         assets = [
             Asset(id=f"A{i}", symbol=f"S{i}", name=f"N{i}", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
@@ -523,8 +521,12 @@ class TestDriftEvaluatorProtocol:
         def on_checkpoint(data: dict[str, Any]) -> None:
             checkpoints.append(data)
 
+        from src.logic.rebuild_executor import RebuildExecutor
+
+        executor = RebuildExecutor()
+
         # 1. Full rebuild without initial checkpoint
-        graph = engine.run_rebuild(assets=assets, regulatory_events=[], on_checkpoint=on_checkpoint)
+        graph = executor.run_rebuild(assets=assets, regulatory_events=[], on_checkpoint=on_checkpoint)
 
         assert len(graph.assets) == 120
         # Checkpoints at 50, 100, and final (total 3)
@@ -538,7 +540,7 @@ class TestDriftEvaluatorProtocol:
         checkpoints.clear()
         initial_checkpoint = {"processed_ids": [a.id for a in assets[:100]]}
 
-        graph_resumed = engine.run_rebuild(
+        graph_resumed = executor.run_rebuild(
             assets=assets,
             regulatory_events=[],
             on_checkpoint=on_checkpoint,

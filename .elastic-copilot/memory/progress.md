@@ -3,7 +3,7 @@
 ## Completed Tasks
 
 - Updated rebuild_jobs schema DDL to align with canonical migration (PR #1260).
-- Separated ReconciliationEngine.run_rebuild helper from plan-only definition.
+- Separated RebuildExecutor.run_rebuild helper from plan-only definition.
 
 ## Current Tasks
 
