@@ -233,7 +233,9 @@ def build_rebuild_graph(
                     return "none", Severity.NONE, {}
 
             engine = ReconciliationEngine(_NoOpEvaluator())
-            graph = engine.run_rebuild(
+            from src.logic.rebuild_executor import RebuildExecutor
+
+            graph = RebuildExecutor().run_rebuild(
                 assets=assets,
                 regulatory_events=events,
                 on_checkpoint=on_checkpoint,

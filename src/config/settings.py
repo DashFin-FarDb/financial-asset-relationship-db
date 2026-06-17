@@ -74,6 +74,11 @@ class Settings(BaseModel):
     database_url: str | None = Field(default=None)
     coordination_database_url: str | None = Field(default=None)
     postgres_url: str | None = Field(default=None)
+
+    # UI Configuration
+    gradio_host: str = Field(default="127.0.0.1")
+    gradio_port: int = Field(default=7860)
+
     # Distributed lock configuration
     # Allow int | str | None to capture empty strings from os.getenv
     rebuild_lock_ttl_seconds: int = Field(
@@ -98,6 +103,7 @@ class Settings(BaseModel):
         "slo_rebuild_duration_max_seconds",
         "slo_error_rate_threshold",
         "slo_evaluation_interval_seconds",
+        "gradio_port",
         mode="before",
     )
     @classmethod
@@ -108,7 +114,9 @@ class Settings(BaseModel):
             field_info = cls.model_fields.get(field_name)
             default = getattr(field_info, "default", 300)
             return default
-        if field_name in ("rebuild_lock_ttl_seconds", "slo_rebuild_duration_max_seconds") and isinstance(value, str):
+        if field_name in ("rebuild_lock_ttl_seconds", "slo_rebuild_duration_max_seconds", "gradio_port") and isinstance(
+            value, str
+        ):
             try:
                 return int(value)
             except ValueError:
@@ -179,6 +187,8 @@ def load_settings() -> Settings:
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
+        gradio_host=os.getenv("GRADIO_HOST", "127.0.0.1"),
+        gradio_port=os.getenv("GRADIO_PORT"),  # type: ignore[arg-type]
         # Passed as raw string to Pydantic for validation and coercion
         rebuild_lock_ttl_seconds=os.getenv("REBUILD_LOCK_TTL_SECONDS"),  # type: ignore[arg-type]
         slo_api_latency_avg_seconds=os.getenv("SLO_API_LATENCY_AVG_SECONDS"),  # type: ignore[arg-type]

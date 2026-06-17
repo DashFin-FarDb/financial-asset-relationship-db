@@ -122,6 +122,8 @@ class TestSettingsModel:
         assert settings.use_real_data_fetcher is False
         assert settings.database_url is None
         assert settings.asset_graph_database_url is None
+        assert settings.gradio_host == "127.0.0.1"
+        assert settings.gradio_port == 7860
         assert settings.rebuild_lock_ttl_seconds == 300
 
     def test_settings_with_explicit_values(self) -> None:
@@ -140,6 +142,8 @@ class TestSettingsModel:
             use_real_data_fetcher=True,
             database_url="sqlite:///runtime.db",
             asset_graph_database_url="postgresql://fardb_user:example_value@localhost/fardb",
+            gradio_host="0.0.0.0",
+            gradio_port=8080,
             rebuild_lock_ttl_seconds=600,
         )
         assert settings.env == "production"
@@ -228,6 +232,8 @@ class TestLoadSettings:
             "USE_REAL_DATA_FETCHER": "true",
             "DATABASE_URL": "sqlite:///env.db",
             "ASSET_GRAPH_DATABASE_URL": "postgresql://localhost/db",
+            "GRADIO_HOST": "0.0.0.0",
+            "GRADIO_PORT": "8080",
         },
     )
     def test_load_settings_from_environment(self) -> None:
@@ -246,6 +252,8 @@ class TestLoadSettings:
         assert settings.use_real_data_fetcher is True
         assert settings.database_url == "sqlite:///env.db"
         assert settings.asset_graph_database_url == "postgresql://localhost/db"
+        assert settings.gradio_host == "0.0.0.0"
+        assert settings.gradio_port == 8080
         assert settings.rebuild_lock_ttl_seconds == 300  # Default when not set
 
     @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "600"})
@@ -440,6 +448,14 @@ class TestSettingsEdgeCases:
         assert settings.database_url is None
         assert settings.asset_graph_database_url is None
         assert settings.admin_disabled is False
+        assert settings.gradio_host == "127.0.0.1"
+        assert settings.gradio_port == 7860
+
+    @patch.dict(os.environ, {"GRADIO_PORT": "abc"}, clear=True)
+    def test_gradio_port_non_integer_raises_value_error(self) -> None:
+        """Test that a non-integer GRADIO_PORT value raises a ValueError."""
+        with pytest.raises(ValueError, match=r"GRADIO_PORT|invalid literal"):
+            load_settings()
 
 
 # ---------------------------------------------------------------------------
@@ -493,3 +509,21 @@ class TestRebuildLockTTLSettings:
 
         with pytest.raises(ValidationError, match="greater than 0"):
             Settings(rebuild_lock_ttl_seconds=-10)
+
+
+def test_parse_bool_env_with_boolean():
+    """Test that _parse_bool_env returns the boolean if passed directly."""
+    from src.config.settings import _parse_bool_env
+
+    assert _parse_bool_env(True) is True
+    assert _parse_bool_env(False) is False
+
+
+def test_slo_rebuild_duration_max_seconds_invalid_bucket():
+    """Test that slo_rebuild_duration_max_seconds raises ValueError if not an allowed bucket."""
+    from pydantic import ValidationError
+
+    from src.config.settings import Settings
+
+    with pytest.raises(ValidationError, match="must match a histogram bucket boundary"):
+        Settings(slo_rebuild_duration_max_seconds=42)

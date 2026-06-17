@@ -18,12 +18,12 @@ if _db_path.exists():
 
 # Enforce hermeticity for test runs
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
-os.environ.setdefault("DATABASE_URL", f"sqlite:///{_db_path}")
-os.environ.setdefault("ADMIN_USERNAME", "admin")
-os.environ.setdefault("ADMIN_PASSWORD", "changeme")
-os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
-os.environ.setdefault("ADMIN_FULL_NAME", "Test Admin")
-os.environ.setdefault("ADMIN_DISABLED", "false")
+os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
+os.environ["ADMIN_USERNAME"] = "admin"
+os.environ["ADMIN_PASSWORD"] = "changeme"
+os.environ["ADMIN_EMAIL"] = "admin@example.com"
+os.environ["ADMIN_FULL_NAME"] = "Test Admin"
+os.environ["ADMIN_DISABLED"] = "false"
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (

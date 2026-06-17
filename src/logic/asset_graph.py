@@ -29,6 +29,10 @@ class AssetRelationshipGraph:
             database_url (str | None): Optional database connection URL to
                 persist or load graph data; stored on the instance as
                 `database_url`.
+            same_sector_strength (float): The default connection strength between
+                assets in the same sector (must be in range [-1.0, 1.0]). Defaults to 0.7.
+            corporate_bond_strength (float): The default connection strength from
+                a corporate bond to its issuer (must be in range [-1.0, 1.0]). Defaults to 0.9.
 
         Attributes created:
             assets (dict[str, Asset]): Mapping of asset ID to Asset.
@@ -41,6 +45,12 @@ class AssetRelationshipGraph:
         self.relationships: dict[str, list[Relationship]] = {}
         self.regulatory_events: list[RegulatoryEvent] = []
         self.database_url = database_url
+
+        if not (-1.0 <= same_sector_strength <= 1.0):
+            raise ValueError(f"same_sector_strength must be between -1.0 and 1.0, got {same_sector_strength}")
+        if not (-1.0 <= corporate_bond_strength <= 1.0):
+            raise ValueError(f"corporate_bond_strength must be between -1.0 and 1.0, got {corporate_bond_strength}")
+
         self.same_sector_strength = same_sector_strength
         self.corporate_bond_strength = corporate_bond_strength
 

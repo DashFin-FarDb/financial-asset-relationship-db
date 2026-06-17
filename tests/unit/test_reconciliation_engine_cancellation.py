@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
+from src.logic.rebuild_executor import RebuildExecutor
 from src.logic.reconciliation_engine import RebuildCancelledError, ReconciliationEngine, Severity
 from src.models.financial_models import Asset, AssetClass
 
@@ -20,7 +21,7 @@ class _NoOpEvaluator:
 
 def test_run_rebuild_aborts_when_cancel_event_is_set():
     """run_rebuild must raise RebuildCancelledError when cancel_event is set."""
-    engine = ReconciliationEngine(_NoOpEvaluator())
+    executor = RebuildExecutor()
     cancel_event = threading.Event()
 
     # Create some assets to process
@@ -40,12 +41,12 @@ def test_run_rebuild_aborts_when_cancel_event_is_set():
     cancel_event.set()
 
     with pytest.raises(RebuildCancelledError, match="Rebuild cancelled via API request"):
-        engine.run_rebuild(assets=assets, regulatory_events=[], cancel_event=cancel_event)
+        executor.run_rebuild(assets=assets, regulatory_events=[], cancel_event=cancel_event)
 
 
 def test_run_rebuild_aborts_mid_loop():
     """run_rebuild must raise RebuildCancelledError if cancelled during processing."""
-    engine = ReconciliationEngine(_NoOpEvaluator())
+    executor = RebuildExecutor()
     cancel_event = threading.Event()
 
     # Create assets
@@ -68,7 +69,7 @@ def test_run_rebuild_aborts_mid_loop():
             cancel_event.set()
 
     with pytest.raises(RebuildCancelledError, match="Rebuild cancelled via API request"):
-        engine.run_rebuild(
+        executor.run_rebuild(
             assets=assets,
             regulatory_events=[],
             on_checkpoint=on_checkpoint,
@@ -78,7 +79,7 @@ def test_run_rebuild_aborts_mid_loop():
 
 def test_run_rebuild_aborts_at_final_checkpoint():
     """run_rebuild must raise RebuildCancelledError if cancelled during the final checkpoint."""
-    engine = ReconciliationEngine(_NoOpEvaluator())
+    executor = RebuildExecutor()
     cancel_event = threading.Event()
 
     # Create assets (fewer than 50, so it only hits the final checkpoint)
@@ -101,7 +102,7 @@ def test_run_rebuild_aborts_at_final_checkpoint():
             cancel_event.set()
 
     with pytest.raises(RebuildCancelledError, match="Rebuild cancelled via API request"):
-        engine.run_rebuild(
+        executor.run_rebuild(
             assets=assets,
             regulatory_events=[],
             on_checkpoint=on_checkpoint,
@@ -113,7 +114,7 @@ def test_run_rebuild_aborts_during_regulatory_events():
     """run_rebuild must raise RebuildCancelledError if cancelled during regulatory event processing."""
     from src.models.financial_models import RegulatoryEvent
 
-    engine = ReconciliationEngine(_NoOpEvaluator())
+    executor = RebuildExecutor()
     cancel_event = threading.Event()
 
     assets = [
@@ -155,7 +156,7 @@ def test_run_rebuild_aborts_during_regulatory_events():
         patch("src.logic.asset_graph.AssetRelationshipGraph", side_effect=CancellingGraph),
         pytest.raises(RebuildCancelledError, match="Rebuild cancelled via API request"),
     ):
-        engine.run_rebuild(
+        executor.run_rebuild(
             assets=assets,
             regulatory_events=events,
             cancel_event=cancel_event,

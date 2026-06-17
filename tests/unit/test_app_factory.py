@@ -167,8 +167,9 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
     [
         (False, True),
         (True, False),
+        (True, True),
     ],
-    ids=["no_reacquire_raises", "reacquired_releases"],
+    ids=["no_reacquire_raises", "reacquired_releases", "reacquired_with_exception"],
 )
 def test_startup_reconciliation_lock_release_behavior(
     monkeypatch: pytest.MonkeyPatch,
@@ -208,7 +209,11 @@ def test_startup_reconciliation_lock_release_behavior(
     if should_raise:
         with pytest.raises(ExecutionBlockedError):
             app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
-        fake_lock.release.assert_not_called()
+        if lock_reacquired:
+            assert fake_lock.lock_name == "graph_rebuild"
+            fake_lock.release.assert_called()
+        else:
+            fake_lock.release.assert_not_called()
     else:
         app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
         assert fake_lock.lock_name == "graph_rebuild"

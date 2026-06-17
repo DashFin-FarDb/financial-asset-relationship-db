@@ -21,7 +21,7 @@ For the modern web frontend with REST API:
 
 **Quick Start (Both Servers):**
 
-Before using the convenience scripts, set the backend runtime environment required by `api.main:app`. The scripts do not currently load these values from `.env.example`.
+Configuration is now centralized through `src/config/settings.py` via `pydantic-settings`. While reasonable defaults are provided for local development, you can set the backend runtime environment variables required by `api.main:app` as shown below. Note that auth keys like `SECRET_KEY` are deterministic in testing environments.
 
 ```bash
 # Linux/macOS
@@ -123,4 +123,4 @@ Format: trace_id is the full uuid4().hex (32 lowercase hex chars); span_id is th
 
 ### Demo/Internal UI: Gradio (Non-Production)
 
-The Gradio UI (`app.py`) is available for demos, internal testing, and rapid prototyping. It is **not recommended for production deployment**.
+The Gradio UI (`app.py`) is decoupled from production configuration and acts strictly as a non-production demo endpoint. It explicitly bounds its host to localhost (`127.0.0.1`) unless specified otherwise. It is **not recommended for production deployment**.

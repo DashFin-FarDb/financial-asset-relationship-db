@@ -1645,7 +1645,10 @@ class FinancialAssetApp:
 
 
 if __name__ == "__main__":
+    from src.config.settings import load_settings
+
+    settings = load_settings()
     app = FinancialAssetApp()
     demo = app.create_interface()
     logger.info(AppConstants.APP_LAUNCH_INFO)
-    demo.launch(server_name="127.0.0.1", server_port=7860)
+    demo.launch(server_name=settings.gradio_host, server_port=settings.gradio_port)
