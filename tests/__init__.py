@@ -10,7 +10,7 @@ _db_path = Path(__file__).resolve().parent / "test_auth.db"
 if _db_path.exists():
     _db_path.unlink()
 
-os.environ.setdefault("SECRET_KEY", "test-secret-key-at-least-32-bytes-long")
+os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
 os.environ.setdefault("DATABASE_URL", f"sqlite:///{_db_path}")
 os.environ.setdefault("ADMIN_USERNAME", "admin")
 os.environ.setdefault("ADMIN_PASSWORD", "changeme")

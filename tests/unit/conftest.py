@@ -5,7 +5,7 @@ import os
 import pytest
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
-os.environ.setdefault("SECRET_KEY", "test-secret-key-for-ci")
+os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
 os.environ.setdefault("ADMIN_USERNAME", "admin")
 
 if "ADMIN_PASSWORD" not in os.environ:
