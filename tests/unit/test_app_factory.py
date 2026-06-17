@@ -305,9 +305,15 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(
-            interval_seconds=0.1, settings=cast(Any, base_settings)
-        )  # pylint: disable=protected-access
+        from src.logic.reconciliation_loop import periodic_reconciliation_loop
+
+        await periodic_reconciliation_loop(
+            interval_seconds=0.1,
+            settings=cast(Any, base_settings),
+            get_runtime_lifecycle_state=lambda: app_factory.GraphRuntimeLifecycleState.READY,
+            run_with_trace_fn=lambda fn, **kwargs: fn(),
+            cancel_event=None,
+        )
 
     assert ensure_safe_called == [True]
 

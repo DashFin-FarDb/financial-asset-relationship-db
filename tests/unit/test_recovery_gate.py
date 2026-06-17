@@ -73,9 +73,9 @@ def test_execution_blocked_error_exposes_action_for_unsafe(mock_session_factory,
     with pytest.raises(ExecutionBlockedError) as exc_info:
         gate.ensure_safe_to_execute()
     assert exc_info.value.action == "unsafe"
-    # LOST is a LockState, not an InconsistencyType; the early-return path sets
-    # inconsistency_type=None since no named inconsistency detection was performed.
-    assert exc_info.value.inconsistency_type is None
+    # The new engine properly models lock_lost as a drift_type, so we expect "lock_lost"
+    # rather than None.
+    assert exc_info.value.inconsistency_type == "lock_lost"
 
 
 def test_recovery_gate_blocks_on_lost_lock(mock_session_factory, mock_lock):

@@ -11,4 +11,4 @@
 - [x] Stage 5C.3C - Cancellation Integrity
 
 ## Stage 5C.4 - Periodic Background Reconciliation
-- [ ] Stage 5C.4 - Full integration of ReconciliationEngine into RecoveryGate and periodic loop
+- [x] **5C.4 RecoveryGate Integration:** `RecoveryGate` intercepts startup/periodic sequences, invoking `evaluate_drift()` -> `ReconciliationEngine` directly instead of legacy implicit rules. The reconciliation engine natively drives startup/background processing loops.

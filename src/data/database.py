@@ -53,7 +53,7 @@ def create_engine_from_url(url: str | None = None) -> Engine:
 
     is_sqlite = parsed_url.get_backend_name() == "sqlite"
     database = parsed_url.database or ""
-    query = parsed_url.query or {}
+    query: dict = dict(parsed_url.query) if getattr(parsed_url, "query", None) else {}
 
     is_sqlite_memory = is_sqlite and (database == ":memory:" or query.get("mode") == "memory")
 
@@ -114,7 +114,7 @@ def init_db(engine: Engine) -> None:
     # For non-SQLite or in-memory databases, skip migrations (they use create_all only)
     url = make_url(engine.url)
     backend = url.get_backend_name()
-    query = url.query or {}
+    query: dict = dict(url.query) if getattr(url, "query", None) else {}
     is_sqlite_memory = backend == "sqlite" and (url.database == ":memory:" or query.get("mode") == "memory")
     if backend == "sqlite" and url.database and not is_sqlite_memory:
         apply_migrations(url.database)

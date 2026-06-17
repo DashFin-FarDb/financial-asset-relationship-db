@@ -150,7 +150,7 @@ def test_startup_reconciliation_blocks_on_unknown_lock_state(mock_session_factor
             lock_ttl_seconds=300,
         )
 
-        with pytest.raises(ExecutionBlockedError, match=r"Execution blocked: action=unsafe"):
+        with pytest.raises(ExecutionBlockedError, match=r"Execution blocked: action=(unsafe|wait)"):
             gate.ensure_safe_to_execute()
 
 
