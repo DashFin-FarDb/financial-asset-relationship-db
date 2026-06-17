@@ -124,6 +124,15 @@ class Settings(BaseModel):
         # For other fields or non-string inputs, Pydantic will handle the type coercion
         return value
 
+    @field_validator("secret_key")
+    @classmethod
+    def validate_secret_key(cls, value: str | None) -> str | None:
+        """Warn if the secret key is less than 32 characters."""
+        if value and len(value) < 32:
+            import warnings
+            warnings.warn("SECRET_KEY is less than 32 characters. This is insecure for production.")
+        return value
+
     @field_validator("slo_rebuild_duration_max_seconds")
     @classmethod
     def validate_rebuild_threshold(cls, value: int) -> int:

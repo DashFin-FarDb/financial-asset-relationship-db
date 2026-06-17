@@ -43,8 +43,10 @@ class RebuildExecutor:
             assets: Iterable of assets to add to the graph.
             regulatory_events: Iterable of regulatory events to add to the graph.
             on_checkpoint: Optional callback invoked every 50 assets.
-            initial_checkpoint: Optional state used to resume a partial rebuild.
-            cancel_event: Optional event to signal rebuild cancellation.
+            initial_checkpoint: Optional dict state used to resume a partial rebuild. Expected to contain 'processed_ids' (list of str).
+            cancel_event: Optional threading.Event to signal rebuild cancellation.
+            execution_id: Optional string identifying the current execution process.
+            expected_execution_id: Optional string (or callable returning a string) identifying the expected owner. Rebuild raises if execution_id != expected_execution_id.
 
         Returns:
             AssetRelationshipGraph: The fully reconstructed graph.
@@ -155,7 +157,13 @@ class RebuildExecutor:
         skipped_ids: set[str],
         **kwargs: Any,
     ) -> None:
-        """Add assets to the graph and invoke checkpoints."""
+        """
+        Add assets to the graph and invoke checkpoints.
+        
+        Note: Assets in `skipped_ids` are still added to the graph to ensure the graph
+        state is fully reconstructed, but they are excluded from processing count metrics
+        and checkpoint evaluations.
+        """
         on_checkpoint = kwargs.get("on_checkpoint")
         cancel_event = kwargs.get("cancel_event")
         processed_count = 0

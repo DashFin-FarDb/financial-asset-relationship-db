@@ -1645,9 +1645,9 @@ class FinancialAssetApp:
 
 
 if __name__ == "__main__":
-    from src.config.settings import load_settings
+    from src.config.settings import get_settings
 
-    settings = load_settings()
+    settings = get_settings()
     app = FinancialAssetApp()
     demo = app.create_interface()
     logger.info(AppConstants.APP_LAUNCH_INFO)
