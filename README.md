@@ -21,7 +21,7 @@ For the modern web frontend with REST API:
 
 **Quick Start (Both Servers):**
 
-Configuration is now centralized through `src/config/settings.py` via `pydantic-settings`. While reasonable defaults are provided for local development, you can set the backend runtime environment variables required by `api.main:app` as shown below. Note that auth keys like `SECRET_KEY` are deterministic in testing environments.
+Configuration is now centralized through `src/config/settings.py` via `pydantic-settings`. Note that configuration settings are validated and cached at import-time. You must set these environment variables before launching the application or running the test suite. While reasonable defaults are provided for local development, you can set the backend runtime environment variables required by `api.main:app` as shown below. Note that auth keys like `SECRET_KEY` are deterministic in testing environments.
 
 ```bash
 # Linux/macOS
