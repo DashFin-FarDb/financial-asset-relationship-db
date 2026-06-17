@@ -20,7 +20,7 @@ if _db_path.exists():
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
 os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
 os.environ["ADMIN_USERNAME"] = "admin"
-os.environ["ADMIN_PASSWORD"] = os.getenv("TEST_ADMIN_PASSWORD", "changeme")
+os.environ["ADMIN_PASSWORD"] = os.getenv("TEST_ADMIN_PASSWORD") or "changeme"
 os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"

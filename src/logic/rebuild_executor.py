@@ -56,6 +56,18 @@ class RebuildExecutor:
         from src.logic.asset_graph import AssetRelationshipGraph
 
         settings = get_settings()
+
+        allowed_kwargs = {
+            "on_checkpoint",
+            "initial_checkpoint",
+            "cancel_event",
+            "execution_id",
+            "expected_execution_id",
+        }
+        unexpected = set(kwargs.keys()) - allowed_kwargs
+        if unexpected:
+            raise TypeError(f"run_rebuild got unexpected keyword arguments: {', '.join(sorted(unexpected))}")
+
         graph = AssetRelationshipGraph(
             same_sector_strength=settings.same_sector_strength,
             corporate_bond_strength=settings.corporate_bond_strength,

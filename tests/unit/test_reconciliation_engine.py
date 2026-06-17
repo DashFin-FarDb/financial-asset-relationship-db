@@ -510,8 +510,6 @@ class TestDriftEvaluatorProtocol:
 
     def test_run_rebuild_with_checkpoints(self) -> None:
         """Test that run_rebuild correctly invokes checkpoints and respects initial state."""
-        engine = ReconciliationEngine(MockDriftEvaluator("none", Severity.NONE))
-
         # Create 120 assets to trigger multiple checkpoints (every 50)
         assets = [
             Asset(id=f"A{i}", symbol=f"S{i}", name=f"N{i}", asset_class=AssetClass.EQUITY, sector="Tech", price=100.0)
