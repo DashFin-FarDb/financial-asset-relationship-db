@@ -213,6 +213,7 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
     call_count_resume = 0
 
     def mock_build_resume(settings, on_checkpoint=None, initial_checkpoint=None, cancel_event=None):
+        """Mock the build execution logic to resume from an existing checkpoint."""
         nonlocal call_count_resume
         call_count_resume += 1
 
