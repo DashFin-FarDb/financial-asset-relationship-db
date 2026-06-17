@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from src.logic.rebuild_executor import RebuildExecutor
-from src.logic.reconciliation_engine import RebuildCancelledError, ReconciliationEngine, Severity
+from src.logic.reconciliation_engine import RebuildCancelledError, Severity
 from src.models.financial_models import Asset, AssetClass
 
 

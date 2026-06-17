@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import threading
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
 from src.logic.reconciliation_engine import RebuildCancelledError
@@ -31,9 +31,7 @@ class RebuildExecutor:
         self,
         assets: Iterable[Asset],
         regulatory_events: Iterable[RegulatoryEvent],
-        on_checkpoint: Callable[[dict[str, Any]], None] | None = None,
-        initial_checkpoint: dict[str, Any] | None = None,
-        cancel_event: threading.Event | None = None,
+        **kwargs: Any,
     ) -> AssetRelationshipGraph:
         """
         Execute a checkpointed graph rebuild from the provided assets and events.
@@ -62,18 +60,51 @@ class RebuildExecutor:
             same_sector_strength=settings.same_sector_strength,
             corporate_bond_strength=settings.corporate_bond_strength,
         )
+
+        on_checkpoint = kwargs.get("on_checkpoint")
+        initial_checkpoint = kwargs.get("initial_checkpoint")
+        cancel_event = kwargs.get("cancel_event")
+
         skipped_ids = self._get_skipped_ids(initial_checkpoint)
 
-        self._process_assets(assets, graph, skipped_ids, on_checkpoint, cancel_event)
+        self._validate_execution_ownership(**kwargs)
+        self._process_assets(
+            assets,
+            graph,
+            skipped_ids,
+            on_checkpoint=on_checkpoint,
+            cancel_event=cancel_event,
+        )
 
         self._check_cancellation(cancel_event, "regulatory event preparation")
+        self._validate_execution_ownership(**kwargs)
         self._process_regulatory_events(regulatory_events, graph, cancel_event)
-        self._check_cancellation(cancel_event, "relationship building preparation")
 
+        self._check_cancellation(cancel_event, "relationship building preparation")
+        self._validate_execution_ownership(**kwargs)
         graph.build_relationships()
 
         self._log_rebuild_completion(graph)
         return graph
+
+    def _validate_execution_ownership(self, **kwargs: Any) -> None:
+        """Validate that the current execution_id matches the expected execution ownership."""
+        execution_id = kwargs.get("execution_id")
+        expected_owner = kwargs.get("expected_execution_id")
+
+        if callable(expected_owner):
+            expected_owner = expected_owner()
+
+        if execution_id and expected_owner and execution_id != expected_owner:
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="stale_execution_rejected",
+                    message=f"Stale executor rejected: {execution_id} != {expected_owner}",
+                ),
+            )
+            raise RebuildCancelledError(f"Stale execution context: {execution_id} != {expected_owner}")
 
     def _check_cancellation(self, cancel_event: threading.Event | None, stage: str = "processing") -> None:
         """Raise RebuildCancelledError if the cancel_event is set."""
@@ -110,10 +141,11 @@ class RebuildExecutor:
         assets: Iterable[Asset],
         graph: AssetRelationshipGraph,
         skipped_ids: set[str],
-        on_checkpoint: Callable[[dict[str, Any]], None] | None,
-        cancel_event: threading.Event | None,
+        **kwargs: Any,
     ) -> None:
         """Add assets to the graph and invoke checkpoints."""
+        on_checkpoint = kwargs.get("on_checkpoint")
+        cancel_event = kwargs.get("cancel_event")
         processed_count = 0
         for asset in assets:
             self._check_cancellation(cancel_event, "asset processing")

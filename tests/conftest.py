@@ -20,13 +20,13 @@ if _db_path.exists():
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
 os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
 os.environ["ADMIN_USERNAME"] = "admin"
-os.environ["ADMIN_PASSWORD"] = "changeme"
+os.environ["ADMIN_PASSWORD"] = os.getenv("TEST_ADMIN_PASSWORD", "changeme")
 os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
 
-from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (
+from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
+from src.models.financial_models import (  # noqa: E402
     AssetClass,
     Bond,
     Commodity,

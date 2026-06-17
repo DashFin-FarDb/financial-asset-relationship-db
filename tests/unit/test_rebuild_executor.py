@@ -2,7 +2,7 @@
 
 import threading
 from typing import Any
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -14,11 +14,13 @@ from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, 
 
 @pytest.fixture
 def executor():
+    """Fixture to provide a RebuildExecutor instance."""
     return RebuildExecutor()
 
 
 @pytest.fixture
 def sample_asset():
+    """Fixture to provide a sample Equity asset."""
     return Equity(
         id="TEST_EQ",
         symbol="TEQ",
@@ -33,6 +35,7 @@ def sample_asset():
 
 @pytest.fixture
 def sample_event():
+    """Fixture to provide a sample RegulatoryEvent."""
     return RegulatoryEvent(
         id="EV_1",
         asset_id="TEST_EQ",
@@ -66,7 +69,6 @@ def test_rebuild_executor_with_cancellation_during_asset_processing(executor, sa
 
 def test_rebuild_executor_checkpoints(executor, sample_asset):
     """Test that checkpoints are invoked appropriately."""
-    assets = [sample_asset] * 51  # Same ID, but it's just a mock
     # Give them unique IDs
     assets = [
         Equity(
@@ -85,6 +87,7 @@ def test_rebuild_executor_checkpoints(executor, sample_asset):
     checkpoints = []
 
     def on_checkpoint(state: dict[str, Any]):
+        """Append checkpoint state to the checkpoints list."""
         checkpoints.append(state)
 
     executor.run_rebuild(assets=assets, regulatory_events=[], on_checkpoint=on_checkpoint)
@@ -136,6 +139,7 @@ def test_rebuild_executor_resume_from_checkpoint(executor):
 
 @patch("src.logic.rebuild_executor.log_event")
 def test_rebuild_executor_cancellation_logging(mock_log, executor, sample_asset):
+    """Test that RebuildCancelledError logs a cancellation observability event."""
     cancel_event = threading.Event()
     cancel_event.set()
 
@@ -144,6 +148,6 @@ def test_rebuild_executor_cancellation_logging(mock_log, executor, sample_asset)
 
     # Verify log_event was called with the cancellation message
     mock_log.assert_called_once()
-    args, kwargs = mock_log.call_args
+    args, _ = mock_log.call_args
     observability_event = args[2]
     assert observability_event.event == "reconciliation_rebuild_cancelled"

@@ -282,11 +282,7 @@ class TestLoadSettings:
     def test_load_settings_rebuild_lock_ttl_non_integer_raises_value_error(
         self,
     ) -> None:
-        """
-        Test that a non-integer REBUILD_LOCK_TTL_SECONDS value
-        raises a deterministic ValueError during configuration parsing.
-        """
-
+        """Test that a non-integer REBUILD_LOCK_TTL_SECONDS value raises a deterministic ValueError."""
         with pytest.raises(
             ValueError,
             match=r"REBUILD_LOCK_TTL_SECONDS|invalid literal|could not convert",
@@ -513,8 +509,6 @@ class TestRebuildLockTTLSettings:
 
 def test_parse_bool_env_with_boolean():
     """Test that _parse_bool_env returns the boolean if passed directly."""
-    from src.config.settings import _parse_bool_env
-
     assert _parse_bool_env(True) is True
     assert _parse_bool_env(False) is False
 
@@ -522,8 +516,6 @@ def test_parse_bool_env_with_boolean():
 def test_slo_rebuild_duration_max_seconds_invalid_bucket():
     """Test that slo_rebuild_duration_max_seconds raises ValueError if not an allowed bucket."""
     from pydantic import ValidationError
-
-    from src.config.settings import Settings
 
     with pytest.raises(ValidationError, match="must match a histogram bucket boundary"):
         Settings(slo_rebuild_duration_max_seconds=42)
