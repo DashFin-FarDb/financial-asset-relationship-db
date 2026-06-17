@@ -217,22 +217,11 @@ def build_rebuild_graph(
 
         if settings.use_real_data_fetcher:
             from src.data.real_data_fetcher import RealDataFetcher
-            from src.logic.reconciliation_engine import ReconciliationEngine, Severity
 
             fetcher = RealDataFetcher(cache_path=settings.real_data_cache_path, enable_network=True)
             assets, events, raw_source = fetcher.fetch_raw_data_with_source(cancel_event=cancel_event)
             source = cast(GraphRebuildSource, raw_source)
 
-            # Use ReconciliationEngine to orchestrate the rebuild with checkpointing.
-            # A no-op evaluator stub is provided since drift detection is not needed here.
-            class _NoOpEvaluator:
-                """Minimal stub satisfying ReconciliationEngine's evaluator protocol."""
-
-                def evaluate_drift(self) -> tuple[str, Severity, dict[str, Any]]:
-                    """Return a no-op drift result."""
-                    return "none", Severity.NONE, {}
-
-            engine = ReconciliationEngine(_NoOpEvaluator())
             from src.logic.rebuild_executor import RebuildExecutor
 
             graph = RebuildExecutor().run_rebuild(

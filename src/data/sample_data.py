@@ -1,7 +1,6 @@
 """Build sample asset graph data for local development and demos."""
 
 import logging
-from collections.abc import Sequence
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
@@ -20,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def _get_sample_equities() -> list[Equity]:
+    """Return a list of sample Equity assets."""
     return [
         Equity(
             id="AAPL",
@@ -109,6 +109,7 @@ def _get_sample_equities() -> list[Equity]:
 
 
 def _get_sample_bonds() -> list[Bond]:
+    """Return a list of sample Bond assets."""
     return [
         Bond(
             id="AAPL_BOND_2030",
@@ -164,6 +165,7 @@ def _get_sample_bonds() -> list[Bond]:
 
 
 def _get_sample_commodities() -> list[Commodity]:
+    """Return a list of sample Commodity assets."""
     return [
         Commodity(
             id="CL_F",
@@ -219,6 +221,7 @@ def _get_sample_commodities() -> list[Commodity]:
 
 
 def _get_sample_currencies() -> list[Currency]:
+    """Return a list of sample Currency assets."""
     return [
         Currency(
             id="EURUSD",
@@ -257,6 +260,7 @@ def _get_sample_currencies() -> list[Currency]:
 
 
 def _get_sample_regulatory_events() -> list[RegulatoryEvent]:
+    """Return a list of sample RegulatoryEvent objects."""
     return [
         RegulatoryEvent(
             id="AAPL_Q4_2024",
