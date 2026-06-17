@@ -131,7 +131,7 @@ class TestSettingsModel:
         settings = Settings(
             env="production",
             allowed_origins_raw="https://example.com,https://example.org",
-            secret_key="secret",
+            secret_key="secret-key-that-is-at-least-32-bytes",
             admin_username="admin",
             admin_password="password",
             admin_email="admin@example.com",
@@ -148,7 +148,7 @@ class TestSettingsModel:
         )
         assert settings.env == "production"
         assert settings.allowed_origins_raw == "https://example.com,https://example.org"
-        assert settings.secret_key == "secret"
+        assert settings.secret_key == "secret-key-that-is-at-least-32-bytes"
         assert settings.admin_username == "admin"
         assert settings.admin_password == "password"
         assert settings.admin_email == "admin@example.com"
@@ -221,7 +221,7 @@ class TestLoadSettings:
         {
             "ENV": "production",
             "ALLOWED_ORIGINS": "https://example.com,https://example.org",
-            "SECRET_KEY": "test-secret",
+            "SECRET_KEY": "test-secret-that-is-at-least-32-bytes",
             "ADMIN_USERNAME": "admin",
             "ADMIN_PASSWORD": "adminpass",
             "ADMIN_EMAIL": "admin@example.com",
@@ -241,7 +241,7 @@ class TestLoadSettings:
         settings = load_settings()
         assert settings.env == "production"
         assert settings.allowed_origins_raw == "https://example.com,https://example.org"
-        assert settings.secret_key == "test-secret"
+        assert settings.secret_key == "test-secret-that-is-at-least-32-bytes"
         assert settings.admin_username == "admin"
         assert settings.admin_password == "adminpass"
         assert settings.admin_email == "admin@example.com"
