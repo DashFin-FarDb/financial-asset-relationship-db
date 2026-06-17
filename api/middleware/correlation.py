@@ -85,8 +85,8 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
     return trimmed_id
 
 
-W3C_TRACE_ID_REGEX = re.compile(r"^[0-9a-f]{32}$")
-W3C_SPAN_ID_REGEX = re.compile(r"^[0-9a-f]{16}$")
+W3C_TRACE_ID_REGEX = re.compile(r"^(?!0{32}$)[0-9a-f]{32}$")
+W3C_SPAN_ID_REGEX = re.compile(r"^(?!0{16}$)[0-9a-f]{16}$")
 
 
 def _extract_and_validate_w3c_id(raw_id: str | None, header_name: str, regex: Pattern[str]) -> str | None:

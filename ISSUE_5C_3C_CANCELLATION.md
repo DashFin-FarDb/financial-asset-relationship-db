@@ -35,3 +35,6 @@ Ensure that rebuild executions can be reliably and safely cancelled, including p
 
 - Zero "zombie" rebuild threads after a cancellation request.
 - Authoritative runtime state is never corrupted by a partial, cancelled run.
+
+## Status
+**COMPLETED** - Integration tests pass. Cancellation propagation via threading events, engine checks, and the `/cancel` endpoint are fully implemented.
