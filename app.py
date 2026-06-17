@@ -1642,3 +1642,13 @@ class FinancialAssetApp:
             inputs=[c["asset_selector"], graph_state],
             outputs=[c["asset_info"], c["asset_relationships"]],
         )
+
+
+if __name__ == "__main__":
+    from src.config.settings import get_settings
+
+    settings = get_settings()
+    app = FinancialAssetApp()
+    demo = app.create_interface()
+    logger.info(AppConstants.APP_LAUNCH_INFO)
+    demo.launch(server_name=settings.gradio_host, server_port=settings.gradio_port)

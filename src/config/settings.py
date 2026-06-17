@@ -61,6 +61,19 @@ class Settings(BaseModel):
     real_data_cache_path: str | None = Field(default=None)
     use_real_data_fetcher: bool = Field(default=False)
 
+    # Visualization and Formatting
+    random_seed: int = Field(default=42)
+    line_length: int = Field(default=120)
+
+    # Relationship strengths
+    same_sector_strength: float = Field(default=0.7)
+    currency_exposure_strength: float = Field(default=0.8)
+    corporate_bond_strength: float = Field(default=0.9)
+
+    # Server configuration
+    gradio_port: int = Field(default=7860)
+    gradio_host: str = Field(default="0.0.0.0")
+
     # Database configuration
     asset_graph_database_url: str | None = Field(default=None)
     database_url: str | None = Field(default=None)
@@ -159,6 +172,13 @@ def load_settings() -> Settings:
         graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
+        random_seed=int(os.getenv("RANDOM_SEED", 42)),
+        line_length=int(os.getenv("LINE_LENGTH", 120)),
+        same_sector_strength=float(os.getenv("SAME_SECTOR_STRENGTH", 0.7)),
+        currency_exposure_strength=float(os.getenv("CURRENCY_EXPOSURE_STRENGTH", 0.8)),
+        corporate_bond_strength=float(os.getenv("CORPORATE_BOND_STRENGTH", 0.9)),
+        gradio_port=int(os.getenv("GRADIO_PORT", 7860)),
+        gradio_host=os.getenv("GRADIO_HOST", "0.0.0.0"),
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,

@@ -57,13 +57,16 @@ class AssetRelationshipGraph:
         issuer links, and regulatory events.
 
         This clears the existing relationships and repopulates them by:
-        - Adding a bidirectional "same_sector" relationship (strength 0.7) between
+        - Adding a bidirectional "same_sector" relationship between
           assets that share a meaningful sector.
-        - Adding a unidirectional "corporate_link" (strength 0.9) from a bond to
+        - Adding a unidirectional "corporate_link" from a bond to
           its issuer when an issuer relationship exists.
         After pairwise processing, applies regulatory event impacts as
         event-driven relationships.
         """
+        from src.config.settings import get_settings
+
+        settings = get_settings()
         self.relationships = {}
 
         asset_ids = list(self.assets.keys())
@@ -77,7 +80,7 @@ class AssetRelationshipGraph:
                         source_id,
                         target_id,
                         "same_sector",
-                        0.7,
+                        settings.same_sector_strength,
                         bidirectional=True,
                     )
 
@@ -88,7 +91,7 @@ class AssetRelationshipGraph:
                         bond_id,
                         issuer_id,
                         "corporate_link",
-                        0.9,
+                        settings.corporate_bond_strength,
                         bidirectional=False,
                     )
 
