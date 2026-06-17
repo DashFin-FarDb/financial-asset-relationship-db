@@ -219,10 +219,11 @@ async def test_checkpoint_resume_integration(session_factory_provider, monkeypat
         assert initial_checkpoint is not None
         assert initial_checkpoint["processed_count"] == 50
 
+        from src.logic.rebuild_executor import RebuildExecutor
         from src.logic.reconciliation_engine import ReconciliationEngine
 
-        engine = ReconciliationEngine(evaluator=MagicMock())
-        graph = engine.run_rebuild(
+        executor = RebuildExecutor()
+        graph = executor.run_rebuild(
             assets=assets,
             regulatory_events=[],
             on_checkpoint=on_checkpoint,
