@@ -19,21 +19,20 @@ class AssetRelationshipGraph:
     def __init__(
         self,
         database_url: str | None = None,
-        same_sector_strength: float = 0.7,
-        corporate_bond_strength: float = 0.9,
+        same_sector_strength: float | None = None,
+        corporate_bond_strength: float | None = None,
     ) -> None:
         """
-        Initialize the AssetRelationshipGraph with empty internal stores and an
-        optional database URL.
+        Initialize the AssetRelationshipGraph with empty internal stores.
 
         Parameters:
             database_url (str | None): Optional database connection URL to
                 persist or load graph data; stored on the instance as
                 `database_url`.
-            same_sector_strength (float): The default connection strength between
-                assets in the same sector (must be in range [-1.0, 1.0]). Defaults to 0.7.
-            corporate_bond_strength (float): The default connection strength from
-                a corporate bond to its issuer (must be in range [-1.0, 1.0]). Defaults to 0.9.
+            same_sector_strength (float | None): The default connection strength between
+                assets in the same sector (must be in range [-1.0, 1.0]). Defaults to settings.
+            corporate_bond_strength (float | None): The default connection strength from
+                a corporate bond to its issuer (must be in range [-1.0, 1.0]). Defaults to settings.
 
         Attributes created:
             assets (dict[str, Asset]): Mapping of asset ID to Asset.
@@ -46,6 +45,15 @@ class AssetRelationshipGraph:
         self.relationships: dict[str, list[Relationship]] = {}
         self.regulatory_events: list[RegulatoryEvent] = []
         self.database_url = database_url
+
+        from src.config.settings import get_settings
+
+        settings = get_settings()
+
+        if same_sector_strength is None:
+            same_sector_strength = settings.same_sector_strength
+        if corporate_bond_strength is None:
+            corporate_bond_strength = settings.corporate_bond_strength
 
         if not -1.0 <= same_sector_strength <= 1.0:
             raise ValueError(f"same_sector_strength must be between -1.0 and 1.0, got {same_sector_strength}")
@@ -71,8 +79,7 @@ class AssetRelationshipGraph:
 
     def build_relationships(self) -> None:
         """
-        Rebuild the internal relationships mapping based on sector membership,
-        issuer links, and regulatory events.
+        Rebuild the internal relationships mapping based on asset metrics.
 
         This clears the existing relationships and repopulates them by:
         - Adding a bidirectional "same_sector" relationship between
@@ -289,8 +296,7 @@ class AssetRelationshipGraph:
         list[str],
     ]:
         """
-        Generate node positions, identifiers, colors, and hover
-        labels for 3D visualization.
+        Generate node positions, identifiers, colors, and hover labels for 3D visualization.
 
         Positions are arranged on a unit circle in the XY plane (z = 0).
         If there are no assets, returns a single placeholder point.
@@ -372,7 +378,7 @@ class AssetRelationshipGraph:
         related_assets: list[str],
     ) -> list[str]:
         """
-        Selects related asset IDs that exist in the graph when the source asset is present.
+        Select related asset IDs that exist in the graph when the source asset is present.
 
         Parameters:
             source_id (str): ID of the event's source asset; if this asset is not stored in the graph no targets are considered.
@@ -427,7 +433,7 @@ class AssetRelationshipGraph:
 
     def _asset_class_distribution(self) -> dict[str, int]:
         """
-        Builds a count distribution of asset_class.value among stored assets.
+        Build a count distribution of asset_class.value among stored assets.
 
         Returns:
             dist (dict[str, int]): Mapping from asset_class.value to the number of
@@ -455,8 +461,7 @@ class AssetRelationshipGraph:
     @staticmethod
     def _relationship_density(asset_count: int, rel_count: int) -> float:
         """
-        Compute relationship density as the percentage of possible directed
-        edges among assets.
+        Compute relationship density as the percentage of possible directed edges.
 
         Parameters:
             asset_count (int): Number of assets in the graph.

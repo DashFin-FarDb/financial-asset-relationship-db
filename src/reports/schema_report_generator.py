@@ -165,12 +165,17 @@ class SchemaReportGenerator:
         Returns:
             lines (List[str]): Ordered list of Markdown-formatted lines composing the section.
         """
+        from src.config.settings import get_settings
+
+        settings = get_settings()
         return [
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            "- **Sector Affinity**: Same-sector assets link at strength 0.7.",
-            ("- **Corporate Bond Linkage**: issuer_id match creates a directional link (strength 0.9)."),
+            f"- **Sector Affinity**: Same-sector assets link at strength {settings.same_sector_strength:.2f}.",
+            (
+                f"- **Corporate Bond Linkage**: issuer_id match creates a directional link (strength {settings.corporate_bond_strength:.2f})."
+            ),
             "- **Currency Exposure**: FX and central-bank policy effects included.",
             "",
             "### Regulatory Rules",

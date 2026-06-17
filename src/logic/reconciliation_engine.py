@@ -11,20 +11,15 @@ This module implements the central control-plane primitive that:
 from __future__ import annotations
 
 import logging
-import threading
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
-
-if TYPE_CHECKING:
-    from src.logic.asset_graph import AssetRelationshipGraph
-    from src.models.financial_models import Asset, RegulatoryEvent
 
 logger = logging.getLogger(__name__)
 

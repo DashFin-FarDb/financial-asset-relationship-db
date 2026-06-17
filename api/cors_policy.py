@@ -129,26 +129,34 @@ def build_allowed_origins() -> list[str]:
     settings = get_settings()
     allowed_origins: list[str] = []
 
+    frontend_port = getattr(settings, "frontend_port", 3000)
+    gradio_port = getattr(settings, "gradio_port", 7860)
+
+    def _local_origins(port_list: list[int], include_http_local_in_dev: bool) -> list[str]:
+        items = []
+        for port in port_list:
+            if include_http_local_in_dev:
+                items.extend(
+                    [
+                        f"http://localhost:{port}",
+                        f"http://127.0.0.1:{port}",
+                    ]
+                )
+            items.extend(
+                [
+                    f"https://localhost:{port}",
+                    f"https://127.0.0.1:{port}",
+                ]
+            )
+        if settings.env != "development":
+            # for production, only keep https localhost entries (if desired)
+            items = [i for i in items if i.startswith("https://")]
+        return items
+
     if settings.env == "development":
-        allowed_origins.extend(
-            [
-                "http://localhost:3000",
-                "http://localhost:7860",
-                "http://127.0.0.1:3000",
-                "http://127.0.0.1:7860",
-                "https://localhost:3000",
-                "https://localhost:7860",
-                "https://127.0.0.1:3000",
-                "https://127.0.0.1:7860",
-            ]
-        )
+        allowed_origins.extend(_local_origins([frontend_port, gradio_port], include_http_local_in_dev=True))
     else:
-        allowed_origins.extend(
-            [
-                "https://localhost:3000",
-                "https://localhost:7860",
-            ]
-        )
+        allowed_origins.extend(_local_origins([frontend_port, gradio_port], include_http_local_in_dev=False))
 
     configured_origins = settings.allowed_origins
     for origin in configured_origins:
