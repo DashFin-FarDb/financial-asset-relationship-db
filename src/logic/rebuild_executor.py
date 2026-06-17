@@ -43,10 +43,12 @@ class RebuildExecutor:
             assets: Iterable of assets to add to the graph.
             regulatory_events: Iterable of regulatory events to add to the graph.
             on_checkpoint: Optional callback invoked every 50 assets.
-            initial_checkpoint: Optional dict state used to resume a partial rebuild. Expected to contain 'processed_ids' (list of str).
+            initial_checkpoint: Optional dict state used to resume a partial rebuild. Expected to contain
+                'processed_ids' (list of str).
             cancel_event: Optional threading.Event to signal rebuild cancellation.
             execution_id: Optional string identifying the current execution process.
-            expected_execution_id: Optional string (or callable returning a string) identifying the expected owner. Rebuild raises if execution_id != expected_execution_id.
+            expected_execution_id: Optional string (or callable returning a string) identifying the expected owner.
+                Rebuild raises if execution_id != expected_execution_id.
 
         Returns:
             AssetRelationshipGraph: The fully reconstructed graph.
