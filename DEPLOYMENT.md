@@ -1,5 +1,13 @@
 # Deployment Guide - Production Architecture
 
+> **Note:** These docs use the defaults `FRONTEND_PORT=3000`, `BACKEND_PORT=8000`, and `GRADIO_SERVER_PORT=7860` for simplicity. You can override them via environment variables. Example:
+> ```bash
+> export FRONTEND_PORT=3000
+> export BACKEND_PORT=8000
+> export GRADIO_SERVER_PORT=7860
+> ```
+
+
 **Production Architecture:** FastAPI backend + Next.js frontend
 
 This guide explains how to deploy the Financial Asset Relationship Database using the production-recommended FastAPI + Next.js stack on Vercel or other cloud platforms.
@@ -106,13 +114,13 @@ The API database layer supports both **SQLite** (local/dev) and **PostgreSQL** (
    export SECRET_KEY="replace-me-for-local-dev"
    export ADMIN_USERNAME="admin"
    export ADMIN_PASSWORD="replace-me-for-local-dev"
-   python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+   python -m uvicorn api.main:app --reload --host 127.0.0.1 --port ${BACKEND_PORT:-8000}
    ```
 
-   The API will be available at `http://localhost:8000`
-   - API documentation: `http://localhost:8000/docs`
-   - Health check: `http://localhost:8000/api/health`
-   - Detailed readiness check: `http://localhost:8000/api/health/detailed`
+   The API will be available at `http://localhost:${BACKEND_PORT:-8000}`
+   - API documentation: `http://localhost:${BACKEND_PORT:-8000}/docs`
+   - Health check: `http://localhost:${BACKEND_PORT:-8000}/api/health`
+   - Detailed readiness check: `http://localhost:${BACKEND_PORT:-8000}/api/health/detailed`
 
 ### Frontend Setup
 
@@ -143,17 +151,17 @@ The API database layer supports both **SQLite** (local/dev) and **PostgreSQL** (
    npm run dev
    ```
 
-   The frontend will be available at `http://localhost:3000`
+   The frontend will be available at `http://localhost:${FRONTEND_PORT:-3000}`
 
 ### Development Workflow
 
 With both servers running:
 
-- Frontend: `http://localhost:3000`
-- Backend API: `http://localhost:8000`
-- API Docs: `http://localhost:8000/docs`
+- Frontend: `http://localhost:${FRONTEND_PORT:-3000}`
+- Backend API: `http://localhost:${BACKEND_PORT:-8000}`
+- API Docs: `http://localhost:${BACKEND_PORT:-8000}/docs`
 
-The frontend automatically connects to the backend API on port 8000.
+The frontend automatically connects to the backend API on port ${BACKEND_PORT:-8000}.
 
 ### Alternative: Gradio Demo (Non-Production)
 
@@ -166,7 +174,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-The Gradio demo will be available at `http://localhost:7860`. **This is not recommended for production deployment.**
+The Gradio demo will be available at `http://localhost:${GRADIO_SERVER_PORT:-7860}`. **This is not recommended for production deployment.**
 
 ## Vercel Deployment (Production)
 
@@ -372,7 +380,7 @@ The Next.js frontend includes:
 ### Frontend (.env.local)
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:${BACKEND_PORT:-8000}
 ```
 
 For production on Vercel, set this in the Vercel dashboard:
@@ -391,7 +399,7 @@ are loaded through `src/config/settings.py` and applied by `api/cors_policy.py`;
 
 ### API Connection Errors
 
-1. Check that the backend is running: `curl http://localhost:8000/api/health`
+1. Check that the backend is running: `curl http://localhost:${BACKEND_PORT:-8000}/api/health`
 2. For hosted readiness diagnostics, also check:
 
    ```bash

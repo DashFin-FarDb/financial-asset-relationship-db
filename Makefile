@@ -74,7 +74,7 @@ docker-build:  ## Build Docker image
 	docker build -t financial-asset-db:latest .
 
 docker-run:  ## Run Docker container
-	docker run -d -p 7860:7860 --name financial-asset-db financial-asset-db:latest
+	docker run -d -p $${GRADIO_SERVER_PORT:-7860}:$${GRADIO_SERVER_PORT:-7860} --name financial-asset-db financial-asset-db:latest
 
 docker-stop:  ## Stop Docker container
 	docker stop financial-asset-db || true

@@ -1,5 +1,13 @@
 # Quick Start Guide - Next.js + FastAPI Integration
 
+> **Note:** These docs use the defaults `FRONTEND_PORT=3000`, `BACKEND_PORT=8000`, and `GRADIO_SERVER_PORT=7860` for simplicity. You can override them via environment variables. Example:
+> ```bash
+> export FRONTEND_PORT=3000
+> export BACKEND_PORT=8000
+> export GRADIO_SERVER_PORT=7860
+> ```
+
+
 This guide will get you up and running with the new Next.js frontend in under 5 minutes.
 
 ## Prerequisites
@@ -32,14 +40,14 @@ That's it! The script will:
 1. Create a Python virtual environment
 2. Install Python dependencies
 3. Install Node.js dependencies
-4. Start the FastAPI backend on port 8000
-5. Start the Next.js frontend on port 3000
+4. Start the FastAPI backend on port ${BACKEND_PORT:-8000}
+5. Start the Next.js frontend on port ${FRONTEND_PORT:-3000}
 
 **Access the application:**
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
+- Frontend: http://localhost:${FRONTEND_PORT:-3000}
+- Backend API: http://localhost:${BACKEND_PORT:-8000}
+- API Documentation: http://localhost:${BACKEND_PORT:-8000}/docs
 
 ## Option 2: Manual Setup
 
@@ -59,7 +67,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # Start the backend
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
 ```
 
 ### Step 2: Frontend Setup (in a new terminal)
@@ -88,16 +96,16 @@ INFO:     Uvicorn running on http://0.0.0.0:8000
 INFO:     Application startup complete.
 ```
 
-Visit http://localhost:8000/docs to see the interactive API documentation.
+Visit http://localhost:${BACKEND_PORT:-8000}/docs to see the interactive API documentation.
 
 ### Frontend (Port 3000)
 
 ```text
-- ready started server on 0.0.0.0:3000, url: http://localhost:3000
+- ready started server on 0.0.0.0:3000, url: http://localhost:${FRONTEND_PORT:-3000}
 - event compiled client and server successfully
 ```
 
-Visit http://localhost:3000 to see the application.
+Visit http://localhost:${FRONTEND_PORT:-3000} to see the application.
 
 ## Using the Application
 
@@ -126,13 +134,13 @@ Visit http://localhost:3000 to see the application.
 
 ```bash
 # Health check
-curl http://localhost:8000/api/health
+curl http://localhost:${BACKEND_PORT:-8000}/api/health
 
 # Get all assets
-curl http://localhost:8000/api/assets
+curl http://localhost:${BACKEND_PORT:-8000}/api/assets
 
 # Get metrics
-curl http://localhost:8000/api/metrics
+curl http://localhost:${BACKEND_PORT:-8000}/api/metrics
 ```
 
 ### Using Python
@@ -144,7 +152,7 @@ python test_api.py
 
 ### Using Browser
 
-Visit http://localhost:8000/docs for interactive API testing.
+Visit http://localhost:${BACKEND_PORT:-8000}/docs for interactive API testing.
 
 ## Troubleshooting
 
@@ -191,7 +199,7 @@ taskkill /PID <PID> /F
 
 **Problem: API connection errors**
 
-- Check that backend is running on port 8000
+- Check that backend is running on port ${BACKEND_PORT:-8000}
 - Verify `NEXT_PUBLIC_API_URL` in `.env.local`
 - Check browser console for CORS errors
 
@@ -210,13 +218,13 @@ npm run dev
 
 ```bash
 # Start backend
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
 
 # Start with custom host
-python -m uvicorn api.main:app --host 0.0.0.0 --port 8000
+python -m uvicorn api.main:app --host 0.0.0.0 --port ${BACKEND_PORT:-8000}
 
 # Start without auto-reload (production-like)
-python -m uvicorn api.main:app --port 8000
+python -m uvicorn api.main:app --port ${BACKEND_PORT:-8000}
 ```
 
 ### Frontend
@@ -261,7 +269,7 @@ npm run lint
 
 1. Check the error messages in your terminal
 2. Review the browser console for frontend errors
-3. Visit the API docs at http://localhost:8000/docs
+3. Visit the API docs at http://localhost:${BACKEND_PORT:-8000}/docs
 4. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed troubleshooting
 
 ## Compare with Gradio UI
@@ -272,7 +280,7 @@ You can still use the original Gradio interface:
 python app.py
 ```
 
-Access at http://localhost:7860
+Access at http://localhost:${GRADIO_SERVER_PORT:-7860}
 
 Both UIs use the same underlying data and logic, so you can use whichever you prefer!
 

@@ -3,6 +3,14 @@
 
 # Financial Asset Relationship Database
 
+> **Note:** These docs use the defaults `FRONTEND_PORT=3000`, `BACKEND_PORT=8000`, and `GRADIO_SERVER_PORT=7860` for simplicity. You can override them via environment variables. Example:
+> ```bash
+> export FRONTEND_PORT=3000
+> export BACKEND_PORT=8000
+> export GRADIO_SERVER_PORT=7860
+> ```
+
+
 A comprehensive 3D visualization system for interconnected financial assets across all major classes: **Equities, Bonds, Commodities, Currencies, and Regulatory Events**.
 
 ## 🚀 Quick Start
@@ -41,7 +49,7 @@ set ADMIN_PASSWORD=replace-with-a-strong-password
 run-dev.bat
 ```
 
-This will start both the FastAPI backend (port 8000) and Next.js frontend (port 3000).
+This will start both the FastAPI backend (port ${BACKEND_PORT:-8000}) and Next.js frontend (port ${FRONTEND_PORT:-3000}).
 
 **Manual Setup:**
 
@@ -56,7 +64,7 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
    export SECRET_KEY=replace-with-a-long-random-secret
    export ADMIN_USERNAME=admin
    export ADMIN_PASSWORD=replace-with-a-strong-password
-   python -m uvicorn api.main:app --reload --port 8000
+   python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
    ```
 
    Windows PowerShell users should activate `.venv\\Scripts\\Activate.ps1` and set the same environment variables with `$env:NAME="value"` before running the `python -m uvicorn ...` command.
@@ -78,9 +86,9 @@ This will start both the FastAPI backend (port 8000) and Next.js frontend (port 
    ```
 
 3. **Access the application:**
-   - Frontend: `http://localhost:3000`
-   - Backend API: `http://localhost:8000`
-   - API Documentation: `http://localhost:8000/docs`
+   - Frontend: `http://localhost:${FRONTEND_PORT:-3000}`
+   - Backend API: `http://localhost:${BACKEND_PORT:-8000}`
+   - API Documentation: `http://localhost:${BACKEND_PORT:-8000}/docs`
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and Vercel integration.
 
@@ -99,14 +107,14 @@ export DATABASE_URL="sqlite:dev.db"
 export SECRET_KEY="change-me-to-a-long-random-secret"
 export ADMIN_USERNAME="admin"
 export ADMIN_PASSWORD="change-me"
-python -m uvicorn api.main:app --reload --port 8000
+python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
 ```
 
 Then verify:
 
 ```bash
-curl http://localhost:8000/api/health
-curl http://localhost:8000/api/visualization
+curl http://localhost:${BACKEND_PORT:-8000}/api/health
+curl http://localhost:${BACKEND_PORT:-8000}/api/visualization
 ```
 
 If `/api/health` fails, fix the backend startup first. If `/api/health` works but the frontend still fails, check `NEXT_PUBLIC_API_URL` and the browser Network tab.
