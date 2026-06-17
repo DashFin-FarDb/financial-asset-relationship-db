@@ -70,10 +70,6 @@ class Settings(BaseModel):
     currency_exposure_strength: float = Field(default=0.8)
     corporate_bond_strength: float = Field(default=0.9)
 
-    # Server configuration
-    gradio_port: int = Field(default=7860)
-    gradio_host: str = Field(default="127.0.0.1")
-
     # Database configuration
     asset_graph_database_url: str | None = Field(default=None)
     database_url: str | None = Field(default=None)
@@ -99,7 +95,6 @@ class Settings(BaseModel):
         "same_sector_strength",
         "currency_exposure_strength",
         "corporate_bond_strength",
-        "gradio_port",
         "rebuild_lock_ttl_seconds",
         "slo_api_latency_avg_seconds",
         "slo_rebuild_duration_max_seconds",
@@ -183,8 +178,6 @@ def load_settings() -> Settings:
         same_sector_strength=os.getenv("SAME_SECTOR_STRENGTH"),  # type: ignore[arg-type]
         currency_exposure_strength=os.getenv("CURRENCY_EXPOSURE_STRENGTH"),  # type: ignore[arg-type]
         corporate_bond_strength=os.getenv("CORPORATE_BOND_STRENGTH"),  # type: ignore[arg-type]
-        gradio_port=os.getenv("GRADIO_PORT"),  # type: ignore[arg-type]
-        gradio_host=os.getenv("GRADIO_HOST", "127.0.0.1"),
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
