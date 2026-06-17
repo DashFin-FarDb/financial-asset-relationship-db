@@ -3,13 +3,22 @@
 from __future__ import annotations
 
 import logging
+import re
+import secrets
 import uuid
 from collections.abc import MutableMapping
-from typing import TYPE_CHECKING, Any
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Pattern
 
 from starlette.datastructures import Headers, MutableHeaders
 
-from src.observability.context import is_valid_id, reset_request_context, set_request_context
+from src.observability.context import (
+    is_valid_id,
+    reset_request_context,
+    reset_trace_context,
+    set_request_context,
+    set_trace_context,
+)
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
@@ -76,7 +85,46 @@ def _extract_and_validate_id(raw_id: str | None, header_name: str) -> str | None
     return trimmed_id
 
 
-def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
+W3C_TRACE_ID_REGEX = re.compile(r"^[0-9a-f]{32}$")
+W3C_SPAN_ID_REGEX = re.compile(r"^[0-9a-f]{16}$")
+
+
+def _extract_and_validate_w3c_id(raw_id: str | None, header_name: str, regex: Pattern[str]) -> str | None:
+    """
+    Extract, validate against general injection, and enforce W3C strict regex formats.
+
+    Note: W3C requires trace and span IDs to be lowercase hex strings.
+    """
+    trimmed_id = _extract_and_validate_id(raw_id, header_name)
+    if trimmed_id is None:
+        return None
+
+    if not regex.match(trimmed_id):
+        log_event(
+            logger,
+            logging.DEBUG,
+            ObservabilityEvent(
+                event="correlation_id_invalid_w3c_header",
+                message=f"Invalid W3C {header_name} header received (redacted)",
+                metadata={"header_name": header_name},
+            ),
+        )
+        return None
+
+    return trimmed_id
+
+
+@dataclass(frozen=True)
+class CorrelationIdentifiers:
+    """A bundle of correlation and tracing identifiers."""
+
+    request_id: str
+    correlation_id: str
+    trace_id: str
+    span_id: str
+
+
+def _inject_state(scope: Scope, identifiers: CorrelationIdentifiers) -> None:
     """
     Best-effort attach identifiers to the ASGI scope's state.
 
@@ -88,8 +136,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
 
     Parameters:
         scope (Scope): The ASGI connection scope whose "state" may be modified.
-        request_id (str): Request identifier to attach to the state.
-        correlation_id (str): Correlation identifier to attach to the state.
+        identifiers (CorrelationIdentifiers): Bundled correlation identifiers.
     """
     state_obj = scope.get("state")
     if state_obj is None:
@@ -102,67 +149,23 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
             ),
         )
         return
-    if isinstance(state_obj, MutableMapping):
+
+    is_mapping = isinstance(state_obj, MutableMapping)
+
+    for key, value in [
+        ("request_id", identifiers.request_id),
+        ("correlation_id", identifiers.correlation_id),
+        ("trace_id", identifiers.trace_id),
+        ("span_id", identifiers.span_id),
+    ]:
         try:
-            state_obj["request_id"] = request_id
-            state_obj["correlation_id"] = correlation_id
-        except (TypeError, AttributeError) as assign_exc:
-            # Fallback to attribute-style assignment for objects that don't support mapping writes
-            try:
-                setattr(state_obj, "request_id", request_id)
-                setattr(state_obj, "correlation_id", correlation_id)
-            except (TypeError, AttributeError) as attr_exc:
-                log_event(
-                    logger,
-                    logging.WARNING,
-                    ObservabilityEvent(
-                        event="correlation_id_state_injection_failed",
-                        message=(
-                            f"Could not attach correlation IDs to state object of type {type(state_obj).__name__} "
-                            f"(map_err={type(assign_exc).__name__}, attr_err={type(attr_exc).__name__}); "
-                            "continuing without state injection"
-                        ),
-                        metadata={
-                            "state_type": type(state_obj).__name__,
-                            "map_err": type(assign_exc).__name__,
-                            "attr_err": type(attr_exc).__name__,
-                        },
-                    ),
-                )
-            except Exception as exc:
-                # Unexpected error while falling back to attribute assignment; log at debug to avoid
-                # noisy traceback for non-fatal state injection errors.
-                log_event(
-                    logger,
-                    logging.DEBUG,
-                    ObservabilityEvent(
-                        event="correlation_id_state_injection_fallback_error",
-                        message=(
-                            f"Unexpected error while falling back to attribute assignment for state "
-                            f"object {type(state_obj).__name__}: {type(exc).__name__}"
-                        ),
-                        metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
-                    ),
-                )
-        except Exception as exc:
-            # Unexpected error while assigning into mapping; log at debug to avoid noisy
-            # traceback for non-fatal state injection errors.
-            log_event(
-                logger,
-                logging.DEBUG,
-                ObservabilityEvent(
-                    event="correlation_id_state_injection_mapping_error",
-                    message=(
-                        "Unexpected error while assigning into mapping-style state "
-                        f"object {type(state_obj).__name__}: {type(exc).__name__}"
-                    ),
-                    metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
-                ),
-            )
-    else:
-        try:
-            setattr(state_obj, "request_id", request_id)
-            setattr(state_obj, "correlation_id", correlation_id)
+            if is_mapping:
+                try:
+                    state_obj[key] = value
+                    continue
+                except (TypeError, AttributeError):
+                    pass
+            setattr(state_obj, key, value)
         except (TypeError, AttributeError) as exc:
             log_event(
                 logger,
@@ -176,6 +179,7 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                     metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
                 ),
             )
+            continue
         except Exception as exc:
             log_event(
                 logger,
@@ -189,25 +193,31 @@ def _inject_state(scope: Scope, request_id: str, correlation_id: str) -> None:
                     metadata={"state_type": type(state_obj).__name__, "error": type(exc).__name__},
                 ),
             )
+            continue
 
 
 class CorrelationMiddleware:
     """
-    Middleware that manages request and correlation identifiers.
+    Middleware that manages request, correlation, and trace identifiers.
 
-    This middleware manages two semantically distinct identifiers:
+    This middleware manages four semantically distinct identifiers:
     - request_id: Scoped to a single HTTP request. Extracted from X-Request-ID
       header or generated as UUID4 if absent.
     - correlation_id: Cross-service/cross-job workflow identity. Extracted from
       X-Correlation-ID header or defaults to the request_id value for
       request-initiated workflows.
+    - trace_id: Root identifier for a distributed trace. Extracted from X-Trace-ID
+      header or generated as W3C-compliant 32-character hex if absent.
+    - span_id: Identifier for the current trace segment. Extracted from X-Span-ID
+      header or generated as W3C-compliant 16-character hex if absent.
 
     This is implemented as a plain ASGI middleware to avoid the overhead and
     edge-cases of BaseHTTPMiddleware (e.g., issues with StreamingResponse and
     background task cancellation).
 
     Security: Validates incoming IDs to prevent log/header injection.
-    Reliability: Ensures identifiers are attached to responses for both successful and error outcomes.
+    Reliability: Ensures identifiers are attached to the ASGI scope state, context
+    variables, and outgoing responses for both successful and error outcomes.
     """
 
     def __init__(self, app: ASGIApp) -> None:
@@ -224,11 +234,30 @@ class CorrelationMiddleware:
         headers = Headers(scope=scope)
         raw_request_id = _extract_and_validate_id(headers.get("x-request-id"), "X-Request-ID")
         raw_correlation_id = _extract_and_validate_id(headers.get("x-correlation-id"), "X-Correlation-ID")
+        raw_trace_id = _extract_and_validate_w3c_id(headers.get("x-trace-id"), "X-Trace-ID", W3C_TRACE_ID_REGEX)
+        raw_span_id = _extract_and_validate_w3c_id(headers.get("x-span-id"), "X-Span-ID", W3C_SPAN_ID_REGEX)
 
         request_id = raw_request_id if raw_request_id is not None else str(uuid.uuid4())
         correlation_id = raw_correlation_id if raw_correlation_id is not None else request_id
+        trace_id = raw_trace_id if raw_trace_id is not None else secrets.token_hex(16)
+        span_id = raw_span_id if raw_span_id is not None else secrets.token_hex(8)
 
-        _inject_state(scope, request_id, correlation_id)
+        logger.debug(
+            "Assigned trace identities - request_id=%s correlation_id=%s trace_id=%s*** span_id=%s***",
+            request_id,
+            correlation_id,
+            trace_id[:8] if trace_id else "",
+            span_id[:4] if span_id else "",
+        )
+
+        identifiers = CorrelationIdentifiers(
+            request_id=request_id,
+            correlation_id=correlation_id,
+            trace_id=trace_id,
+            span_id=span_id,
+        )
+
+        _inject_state(scope, identifiers)
 
         async def send_with_correlation_headers(message: MutableMapping[str, Any]) -> None:
             """Wrap the send callable to inject correlation headers."""
@@ -237,14 +266,20 @@ class CorrelationMiddleware:
                 # Set values (replace existing) to avoid duplicate headers
                 response_headers["X-Request-ID"] = request_id
                 response_headers["X-Correlation-ID"] = correlation_id
+                response_headers["X-Trace-ID"] = trace_id
+                response_headers["X-Span-ID"] = span_id
 
             await send(message)
 
-        tokens = None
+        req_tokens = None
+        trace_tokens = None
         try:
             # Set contextvars for downstream code (including logging)
-            tokens = set_request_context(request_id, correlation_id)
+            req_tokens = set_request_context(request_id, correlation_id)
+            trace_tokens = set_trace_context(trace_id, span_id, parent_span_id=None)
             await self.app(scope, receive, send_with_correlation_headers)
         finally:
-            if tokens is not None:
-                reset_request_context(tokens)
+            if req_tokens is not None:
+                reset_request_context(req_tokens)
+            if trace_tokens is not None:
+                reset_trace_context(trace_tokens)
