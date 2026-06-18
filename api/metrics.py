@@ -35,10 +35,43 @@ REBUILD_FAILURE = Counter(
     ["category"],
 )
 
+# Rebuild and State metrics
 REBUILD_DURATION = Histogram(
     "graph_rebuild_duration_seconds",
     "Time spent rebuilding the graph.",
     buckets=(1.0, 5.0, 10.0, 30.0, 60.0, 120.0, 300.0, float("inf")),
+)
+
+GRAPH_REBUILD_STATE_TRANSITION_TOTAL = Counter(
+    "graph_rebuild_state_transition_total", "Total number of rebuild job state transitions.", ["from_state", "to_state"]
+)
+
+GRAPH_REBUILD_CANCELLED_TOTAL = Counter("graph_rebuild_cancelled_total", "Total number of cancelled graph rebuilds.")
+
+REBUILD_LOCK_ACQUISITION_TOTAL = Counter(
+    "rebuild_lock_acquisition_total", "Total number of rebuild lock acquisitions.", ["status"]
+)
+
+# Reconciliation Metrics
+RECONCILIATION_DURATION = Histogram(
+    "reconciliation_duration_seconds",
+    "Time spent reconciling the graph state.",
+    buckets=(0.1, 0.5, 1.0, 5.0, 10.0, 30.0, 60.0, float("inf")),
+)
+
+# Application Lifecycle Metrics
+APPLICATION_STARTUP_DURATION = Histogram(
+    "application_startup_duration_seconds",
+    "Time spent during application startup.",
+    buckets=(0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, float("inf")),
+)
+
+APPLICATION_STARTUP_SUCCESS_TOTAL = Counter(
+    "application_startup_success_total", "Total number of successful application startups."
+)
+
+APPLICATION_STARTUP_FAILURE_TOTAL = Counter(
+    "application_startup_failure_total", "Total number of failed application startups."
 )
 
 # Graph state metrics
@@ -210,6 +243,32 @@ def record_drift_metric(drift_type: str, severity: str, execution_mode: str) -> 
         execution_mode (str): The planned execution mode.
     """
     RECONCILIATION_DRIFT_TOTAL.labels(drift_type=drift_type, severity=severity, execution_mode=execution_mode).inc()
+
+
+def record_rebuild_state_transition(from_state: str, to_state: str) -> None:
+    """
+    Record a state transition for a rebuild job.
+
+    Parameters:
+        from_state (str): The original state.
+        to_state (str): The new state.
+    """
+    GRAPH_REBUILD_STATE_TRANSITION_TOTAL.labels(from_state=from_state, to_state=to_state).inc()
+
+
+def record_rebuild_cancelled() -> None:
+    """Record that a rebuild job was successfully cancelled."""
+    GRAPH_REBUILD_CANCELLED_TOTAL.inc()
+
+
+def record_rebuild_lock_acquisition(status: str) -> None:
+    """
+    Record a rebuild lock acquisition attempt.
+
+    Parameters:
+        status (str): The outcome of the acquisition (e.g. 'acquired', 'timeout', 'error').
+    """
+    REBUILD_LOCK_ACQUISITION_TOTAL.labels(status=status).inc()
 
 
 def _initialize_from_active_job(active_job) -> None:

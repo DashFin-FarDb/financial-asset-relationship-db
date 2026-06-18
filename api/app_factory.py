@@ -7,6 +7,7 @@ import contextlib
 import logging
 import random
 import threading
+import time
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
@@ -196,6 +197,11 @@ async def _run_with_generated_trace(
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown tasks for the FastAPI application."""
     from .graph_lifecycle_providers import get_graph_lifecycle_settings
+    from .metrics import (
+        APPLICATION_STARTUP_DURATION,
+        APPLICATION_STARTUP_FAILURE_TOTAL,
+        APPLICATION_STARTUP_SUCCESS_TOTAL,
+    )
 
     settings = get_graph_lifecycle_settings()
     database_url = _get_durable_graph_database_url(settings)
@@ -207,31 +213,39 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Wrap the entire state initialization in a dedicated trace context.
     # This guarantees a fail-fast startup: if context initialization or graph
     # load fails, it will raise immediately before FastAPI accepts HTTP traffic.
-    async with async_trace_context(trace_id=trace_id, span_id=span_id):
-        logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
-        try:
-            if has_persistence:
-                await _perform_startup_reconciliation(settings)
-            # Required initialization for all environments to ensure state validity
-            get_graph()
-        except Exception as exc:
-            log_event(
-                logger,
-                logging.CRITICAL,
-                ObservabilityEvent(
-                    event="startup_failed",
-                    message=f"Application startup failed: {type(exc).__name__}",
-                    metadata={
-                        "error": type(exc).__name__,
-                        "message": str(exc),
-                        "trace_id": trace_id,
-                        "span_id": span_id,
-                    },
-                ),
-            )
-            raise
+    start_time = time.perf_counter()
+    try:
+        async with async_trace_context(trace_id=trace_id, span_id=span_id):
+            logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
+            try:
+                if has_persistence:
+                    await _perform_startup_reconciliation(settings)
+                # Required initialization for all environments to ensure state validity
+                get_graph()
+            except Exception as exc:
+                log_event(
+                    logger,
+                    logging.CRITICAL,
+                    ObservabilityEvent(
+                        event="startup_failed",
+                        message=f"Application startup failed: {type(exc).__name__}",
+                        metadata={
+                            "error": type(exc).__name__,
+                            "message": str(exc),
+                            "trace_id": trace_id,
+                            "span_id": span_id,
+                        },
+                    ),
+                )
+                raise
 
-    sync_task, slo_task, recon_task = _start_background_tasks(has_persistence, settings)
+        sync_task, slo_task, recon_task = _start_background_tasks(has_persistence, settings)
+        APPLICATION_STARTUP_SUCCESS_TOTAL.inc()
+    except Exception:
+        APPLICATION_STARTUP_FAILURE_TOTAL.inc()
+        raise
+    finally:
+        APPLICATION_STARTUP_DURATION.observe(time.perf_counter() - start_time)
 
     yield
 

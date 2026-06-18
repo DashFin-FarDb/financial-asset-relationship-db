@@ -67,6 +67,9 @@ from ..metrics import (
     REBUILD_REQUESTS,
     REBUILD_SUCCESS,
     increment_recovery_trigger,
+    record_rebuild_cancelled,
+    record_rebuild_lock_acquisition,
+    record_rebuild_state_transition,
     update_graph_metrics,
     update_rebuild_state_metric,
 )
@@ -889,6 +892,9 @@ def _finalize_cancellation_safe(session_factory: Callable[[], Session], job_id: 
     try:
         with session_scope(session_factory) as session:
             AssetGraphRepository(session).mark_rebuild_job_cancelled(job_id, execution_id=execution_id)
+            record_rebuild_state_transition("cancel_requested", "cancelled")
+            record_rebuild_cancelled()
+            update_rebuild_state_metric("cancelled")
     except Exception as final_exc:
         log_event(
             logger,
@@ -1183,14 +1189,21 @@ def _acquire_rebuild_lock(
     try:
         dist_lock.acquire()
     except LockAcquisitionTimeout as exc:
+        record_rebuild_lock_acquisition("timeout")
         raise _DistributedLockAcquisitionError(str(exc)) from exc
+    except Exception:
+        record_rebuild_lock_acquisition("error")
+        raise
 
     lock_state = dist_lock.check_state()
     if lock_state == LockState.LOST:
+        record_rebuild_lock_acquisition("lost")
         raise RuntimeError("Coordination state lost immediately after acquisition.")
     if lock_state != LockState.VALID:
+        record_rebuild_lock_acquisition("invalid")
         raise RuntimeError(f"Unexpected coordination state after acquisition: {lock_state}")
 
+    record_rebuild_lock_acquisition("acquired")
     return dist_lock
 
 
@@ -1601,6 +1614,7 @@ def _finalize_rebuild_success(
         duration_ms=_duration_ms(job_started_at),
     )
     update_rebuild_state_metric("succeeded")
+    record_rebuild_state_transition("running", "succeeded")
     return response
 
 
@@ -1615,6 +1629,7 @@ def _finalize_rebuild_failure(
     """Persist failed rebuild terminal state."""
     _mark_job_failed_safe(session_factory, job_id, execution_id, exc, _duration_ms(job_started_at))
     update_rebuild_state_metric("failed")
+    record_rebuild_state_transition("running", "failed")
 
 
 def _create_and_start_rebuild_job(
@@ -1646,9 +1661,11 @@ def _create_and_start_rebuild_job(
     """
     job_id = _create_job_safe(session_factory, user_ref)
     update_rebuild_state_metric("pending")
+    record_rebuild_state_transition("none", "pending")
     job_started_at = perf_counter()
     _mark_job_running_safe(session_factory, job_id, execution_id)
     update_rebuild_state_metric("running")
+    record_rebuild_state_transition("pending", "running")
 
     try:
         with session_scope(session_factory) as session:
@@ -1837,6 +1854,7 @@ def cancel_rebuild_job(
         repo = AssetGraphRepository(session)
         try:
             repo.mark_rebuild_job_cancel_requested(job_id)
+            record_rebuild_state_transition("pending_or_running", "cancel_requested")
         except ValueError as exc:
             # Check if job exists at all
             if "not found" in str(exc):

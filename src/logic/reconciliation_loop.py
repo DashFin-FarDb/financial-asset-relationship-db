@@ -78,8 +78,12 @@ def _run_sync_reconciliation(
     lock_ttl: int,
 ) -> None:
     """Execute a single synchronous reconciliation pass."""
-    from api.metrics import increment_recovery_trigger, record_drift_metric
+    import time
+
+    from api.metrics import RECONCILIATION_DURATION, increment_recovery_trigger, record_drift_metric
     from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+
+    start_time = time.perf_counter()
 
     _check_cancellation(cancel_event)
 
@@ -119,6 +123,8 @@ def _run_sync_reconciliation(
             ),
         )
         raise
+    finally:
+        RECONCILIATION_DURATION.observe(time.perf_counter() - start_time)
 
 
 async def _perform_reconciliation_iteration(
