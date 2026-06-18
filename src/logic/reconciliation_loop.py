@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def _check_cancellation(cancel_event: threading.Event | None) -> None:
+    """Raise RebuildCancelledError if the cancellation event is set."""
     if cancel_event and cancel_event.is_set():
         raise RebuildCancelledError("Rebuild cancelled via API request")
 
@@ -21,8 +22,9 @@ def _create_reconciliation_dependencies(
     engine: Any,
     coord_engine: Any,
     lock_ttl: int,
+    record_drift_metric: Callable,
 ) -> tuple[Any, Any, Any]:
-    from api.metrics import record_drift_metric
+    """Initialize and return coordination engine, locks, and evaluators."""
     from src.data.database import create_session_factory
     from src.data.distributed_lock import DistributedLock
     from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
@@ -59,8 +61,9 @@ def _execute_plan_if_needed(
     plan: Any,
     lock_ttl: int,
     cancel_event: threading.Event | None,
+    increment_recovery_trigger: Callable,
 ) -> None:
-    from api.metrics import increment_recovery_trigger
+    """Execute the plan using RecoveryGate if an automatic reset is required."""
     from src.logic.recovery_gate import RecoveryGate
 
     if not _should_execute_automatic_reset(plan):
@@ -87,16 +90,19 @@ def _run_sync_reconciliation(
     lock_ttl: int,
 ) -> None:
     """Execute a single synchronous reconciliation pass."""
+    from api.metrics import increment_recovery_trigger, record_drift_metric
     from src.logic.recovery_gate import ExecutionBlockedError
 
     _check_cancellation(cancel_event)
 
-    session_factory, lock, engine_inst = _create_reconciliation_dependencies(engine, coord_engine, lock_ttl)
+    session_factory, lock, engine_inst = _create_reconciliation_dependencies(
+        engine, coord_engine, lock_ttl, record_drift_metric
+    )
 
     try:
         _check_cancellation(cancel_event)
         plan = engine_inst.generate_reconciliation_plan()
-        _execute_plan_if_needed(session_factory, lock, plan, lock_ttl, cancel_event)
+        _execute_plan_if_needed(session_factory, lock, plan, lock_ttl, cancel_event, increment_recovery_trigger)
     except RebuildCancelledError:
         log_event(
             logger,
@@ -220,6 +226,7 @@ async def periodic_reconciliation_loop(
 
 
 def _setup_engines(database_url: str, coordination_database_url: str | None) -> tuple[Any, Any]:
+    """Create database engines from URLs."""
     from src.data.database import create_engine_from_url
 
     engine = create_engine_from_url(database_url)
@@ -232,6 +239,7 @@ def _setup_engines(database_url: str, coordination_database_url: str | None) -> 
 
 
 def _dispose_engines(engine: Any, coord_engine: Any) -> None:
+    """Safely dispose of main and coordination engines."""
     if engine:
         engine.dispose()
     if coord_engine and coord_engine is not engine:
@@ -239,6 +247,7 @@ def _dispose_engines(engine: Any, coord_engine: Any) -> None:
 
 
 def _handle_reconciliation_success(is_in_error_state: bool, base_interval: float) -> tuple[bool, float]:
+    """Process successful reconciliation loop and clear error states."""
     if is_in_error_state:
         log_event(
             logger,
@@ -255,6 +264,7 @@ def _handle_reconciliation_success(is_in_error_state: bool, base_interval: float
 def _handle_reconciliation_error(
     exc: Exception, is_in_error_state: bool, current_interval: float, max_interval: float
 ) -> tuple[bool, float]:
+    """Log reconciliation errors, manage state, and compute backoff intervals."""
     from src.observability.context import get_span_id, get_trace_id
 
     if not is_in_error_state:
