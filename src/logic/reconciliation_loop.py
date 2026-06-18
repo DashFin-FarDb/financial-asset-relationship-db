@@ -195,6 +195,12 @@ async def periodic_reconciliation_loop(
                 if is_shutdown_fn():
                     return
 
+                from api.app_factory import GraphRuntimeLifecycleState, get_runtime_lifecycle_state
+
+                # Skip drift evaluation while the app is still initializing or paused
+                if get_runtime_lifecycle_state() != GraphRuntimeLifecycleState.READY:
+                    continue
+
                 await _perform_reconciliation_iteration(
                     run_with_trace_fn, engine, coord_engine, cancel_event, lock_ttl_seconds
                 )

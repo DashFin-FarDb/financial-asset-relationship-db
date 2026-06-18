@@ -309,7 +309,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
         async def fake_run_with_trace(fn, **kwargs):
             """Mock run_with_trace function."""
-            await asyncio.sleep(0)
+            future: asyncio.Future[None] = asyncio.Future()
+            future.set_result(None)
+            await future
             return fn()
 
         await periodic_reconciliation_loop(
