@@ -32,14 +32,17 @@ Fully integrate `generate_reconciliation_plan()` into `RecoveryGate` and impleme
 ## Implementation Plan
 
 ### 1. `RecoveryGate` Consumption (`src/logic/recovery_gate.py`)
+
 - Modify `RecoveryGate` to invoke `generate_reconciliation_plan()` to determine drift.
 - Map the emitted `ReconciliationPlan` directly to execution commands.
 
 ### 2. Periodic Reconciliation Loop (`src/logic/reconciliation_loop.py` or similar)
+
 - Introduce a dedicated, safe background loop for executing the structured plans periodically.
 - Ensure loop implements standard cancellation checks (e.g. `RebuildCancelledError` as per Stage 5C Safety Constraints).
 
 ### 3. Cleanup Legacy Codepaths
+
 - Remove duplicate or obsolete drift-checking logic within `RecoveryGate` that is now superseded by the `ReconciliationEngine`.
 
 ---

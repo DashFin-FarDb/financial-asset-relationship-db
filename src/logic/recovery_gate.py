@@ -30,8 +30,8 @@ logger = logging.getLogger(__name__)
 class ExecutionBlockedError(Exception):
     """Raised when execution is blocked by the recovery gate.
 
-    The ``action`` attribute carries the string value of the primary ``ActionType``
-    that triggered the block.
+    The ``action`` attribute carries the legacy action contract values
+    (reset, wait, unsafe, resume).
 
     The ``inconsistency_type`` attribute usually carries the string value of the
     detected ``InconsistencyType``.
@@ -125,6 +125,16 @@ class RecoveryGate:
             created_at=datetime.now(UTC),
         )
 
+    def _map_plan_to_action(self, plan: ReconciliationPlan) -> str:
+        """Map a reconciliation plan to a legacy action string."""
+        if ActionType.RESET_STATE in plan.actions:
+            return "reset"
+        if ActionType.WAIT_FOR_CONVERGENCE in plan.actions or plan.safety_state == ExecutionSafety.WAIT_REQUIRED:
+            return "wait"
+        if ActionType.NOOP in plan.actions:
+            return "resume"
+        return "unsafe"
+
     def get_reconciliation_plan(self, increment_metric: bool = True) -> ReconciliationPlan:
         """Decide the appropriate recovery action based on lock, database, and runtime state.
 
@@ -164,9 +174,8 @@ class RecoveryGate:
                 pass
 
         # Log if not safe to execute
-        safe_to_execute = ActionType.NOOP in plan.actions and plan.safety_state == ExecutionSafety.CONVERGED
-        if not safe_to_execute:
-            action_val = plan.actions[0].value
+        action_val = self._map_plan_to_action(plan)
+        if action_val != "resume":
             log_event(
                 logger,
                 logging.WARNING,
@@ -188,115 +197,23 @@ class RecoveryGate:
         Returns the primary action value.
         """
         plan = self.get_reconciliation_plan()
-        # To maintain compatibility with some tests, we'll map back to legacy strings
-        if ActionType.RESET_STATE in plan.actions:
-            return "reset"
-        elif ActionType.WAIT_FOR_CONVERGENCE in plan.actions:
-            return "wait"
-        elif ActionType.NOOP in plan.actions:
-            if plan.safety_state == ExecutionSafety.WAIT_REQUIRED:
-                return "wait"
-            return "resume"
-        return "unsafe"
+        return self._map_plan_to_action(plan)
 
     def ensure_safe_to_execute(self, cancellation_event: threading.Event | None = None) -> None:
         """Enforce execution blocking rules and perform recovery actions."""
         self.lock_was_reacquired = False
         plan = self.get_reconciliation_plan()
-
-        action = (
-            "reset"
-            if ActionType.RESET_STATE in plan.actions
-            else (
-                "wait"
-                if (
-                    ActionType.WAIT_FOR_CONVERGENCE in plan.actions
-                    or plan.safety_state == ExecutionSafety.WAIT_REQUIRED
-                )
-                else "resume" if ActionType.NOOP in plan.actions else "unsafe"
-            )
-        )
+        action = self._map_plan_to_action(plan)
 
         if action == "reset":
-            if cancellation_event and cancellation_event.is_set():
-                return
-
-            log_event(
-                logger,
-                logging.INFO,
-                ObservabilityEvent(
-                    event="recovery_gate_reset_recovery_initiated",
-                    message=f"Recovery action RESET: attempting to reset orphaned job state. Reason: {plan.reason}",
-                    metadata={"reason": plan.reason},
-                ),
-            )
-            try:
-                self._perform_reset_recovery(cancellation_event=cancellation_event)
-
-                if cancellation_event and cancellation_event.is_set():
-                    return
-
-                new_plan = self.get_reconciliation_plan(increment_metric=False)
-                new_action = (
-                    "reset"
-                    if ActionType.RESET_STATE in new_plan.actions
-                    else (
-                        "wait"
-                        if (
-                            ActionType.WAIT_FOR_CONVERGENCE in new_plan.actions
-                            or new_plan.safety_state == ExecutionSafety.WAIT_REQUIRED
-                        )
-                        else "resume" if ActionType.NOOP in new_plan.actions else "unsafe"
-                    )
-                )
-
-                if new_action != "resume":
-                    raise ExecutionBlockedError(
-                        f"Reset recovery completed but state still unsafe: action={new_action}",
-                        action=new_action,
-                        inconsistency_type=new_plan.drift_type,
-                    )
-                log_event(
-                    logger,
-                    logging.INFO,
-                    ObservabilityEvent(
-                        event="recovery_gate_reset_recovery_succeeded",
-                        message="Reset recovery successful - execution can proceed",
-                    ),
-                )
-            except ExecutionBlockedError:
-                raise
-            except sqlalchemy_exc.SQLAlchemyError as exc:
-                log_event(
-                    logger,
-                    logging.WARNING,
-                    ObservabilityEvent(
-                        event="recovery_gate_reset_recovery_db_failed",
-                        message=f"Reset recovery failed due to database error: {type(exc).__name__}",
-                        metadata={"error": type(exc).__name__},
-                    ),
-                )
-                raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
-            except Exception as exc:
-                log_event(
-                    logger,
-                    logging.ERROR,
-                    ObservabilityEvent(
-                        event="recovery_gate_reset_recovery_unexpected_error",
-                        message=f"Unexpected error during reset recovery: {type(exc).__name__}",
-                        metadata={"error": type(exc).__name__},
-                    ),
-                )
-                raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
+            self._execute_reset_path(plan, cancellation_event)
         elif action != "resume":
             log_event(
                 logger,
                 logging.WARNING,
                 ObservabilityEvent(
                     event="recovery_gate_execution_blocked_final",
-                    message=(
-                        f"Execution blocked by recovery gate: action={action}, " f"inconsistency={plan.drift_type}"
-                    ),
+                    message=f"Execution blocked by recovery gate: action={action}, inconsistency={plan.drift_type}",
                     metadata={
                         "action": action,
                         "inconsistency": plan.drift_type,
@@ -308,6 +225,68 @@ class RecoveryGate:
                 action=action,
                 inconsistency_type=plan.drift_type,
             )
+
+    def _execute_reset_path(self, plan: ReconciliationPlan, cancellation_event: threading.Event | None) -> None:
+        """Handle the reset recovery path."""
+        if cancellation_event and cancellation_event.is_set():
+            return
+
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="recovery_gate_reset_recovery_initiated",
+                message=f"Recovery action RESET: attempting to reset orphaned job state. Reason: {plan.reason}",
+                metadata={"reason": plan.reason},
+            ),
+        )
+        try:
+            self._perform_reset_recovery(cancellation_event=cancellation_event)
+
+            if cancellation_event and cancellation_event.is_set():
+                return
+
+            new_plan = self.get_reconciliation_plan(increment_metric=False)
+            new_action = self._map_plan_to_action(new_plan)
+
+            if new_action != "resume":
+                raise ExecutionBlockedError(
+                    f"Reset recovery completed but state still unsafe: action={new_action}",
+                    action=new_action,
+                    inconsistency_type=new_plan.drift_type,
+                )
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="recovery_gate_reset_recovery_succeeded",
+                    message="Reset recovery successful - execution can proceed",
+                ),
+            )
+        except ExecutionBlockedError:
+            raise
+        except sqlalchemy_exc.SQLAlchemyError as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_reset_recovery_db_failed",
+                    message=f"Reset recovery failed due to database error: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
+            raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="recovery_gate_reset_recovery_unexpected_error",
+                    message=f"Unexpected error during reset recovery: {type(exc).__name__}",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
+            raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
 
     def _perform_reset_recovery(self, cancellation_event: threading.Event | None = None) -> None:
         """Reset an orphaned RUNNING rebuild job so a new execution can proceed."""
@@ -362,6 +341,24 @@ class RecoveryGate:
                 if active_job and active_job.status == RebuildJobStatus.RUNNING:
                     if cancellation_event and cancellation_event.is_set():
                         return
+
+                    # Owner mismatch and fresh heartbeat check
+                    current_worker = self.lock.holder_id
+                    if active_job.active_worker_id != current_worker:
+                        heartbeat_stale = True
+                        if active_job.last_heartbeat_at:
+                            heartbeat_time = active_job.last_heartbeat_at
+                            if heartbeat_time.tzinfo is None:
+                                heartbeat_time = heartbeat_time.replace(tzinfo=UTC)
+                            age = (datetime.now(UTC) - heartbeat_time).total_seconds()
+                            heartbeat_stale = age >= self.lock_ttl_seconds
+
+                        if not heartbeat_stale:
+                            raise ExecutionBlockedError(
+                                f"Cannot reset job {active_job.job_id}: active worker {active_job.active_worker_id} has fresh heartbeat",
+                                action="unsafe",
+                                inconsistency_type="orphaned_running",
+                            )
 
                     repo.mark_rebuild_job_failed(
                         active_job.job_id,

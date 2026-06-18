@@ -307,11 +307,15 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     with pytest.raises(asyncio.CancelledError):
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
+        async def fake_run_with_trace(fn, **kwargs):
+            return fn()
+
         await periodic_reconciliation_loop(
             interval_seconds=0.1,
-            settings=cast(Any, base_settings),
-            get_runtime_lifecycle_state=lambda: app_factory.GraphRuntimeLifecycleState.READY,
-            run_with_trace_fn=lambda fn, **kwargs: fn(),
+            database_url=base_settings.database_url,
+            is_shutdown_fn=lambda: False,
+            run_with_trace_fn=fake_run_with_trace,
+            coordination_database_url=base_settings.database_url,
             cancel_event=None,
         )
 

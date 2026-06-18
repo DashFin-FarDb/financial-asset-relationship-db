@@ -2,22 +2,22 @@
 
 import asyncio
 import logging
-import random
 import threading
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
-from src.logic.reconciliation_engine import ActionType, ExecutionMode, RebuildCancelledError
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
+from src.logic.reconciliation_engine import RebuildCancelledError
+from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
 
 
 async def periodic_reconciliation_loop(  # noqa: C901
     interval_seconds: float,
-    settings: Any,
-    get_runtime_lifecycle_state: Callable[[], str],
+    database_url: str,
+    is_shutdown_fn: Callable[[], bool],
     run_with_trace_fn: Callable,
+    coordination_database_url: str | None = None,
     cancel_event: threading.Event | None = None,
 ) -> None:
     """Periodically run drift planning and execute automatic recovery.
@@ -32,26 +32,30 @@ async def periodic_reconciliation_loop(  # noqa: C901
     from src.logic.reconciliation_engine import ReconciliationEngine
     from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
+    # Constant from app_factory
+    lock_ttl = 300
+
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
     max_interval = base_interval * 32
     is_in_error_state = False
 
-    # Inline resolution equivalent to _resolve_startup_reconciliation_url
-    url = getattr(settings, "asset_graph_database_url", None) or getattr(settings, "database_url", "sqlite:///:memory:")
-    engine = create_engine_from_url(url)
-    coord_url = getattr(settings, "coordination_database_url", None) or url
-    coord_engine = create_engine_from_url(coord_url) if coord_url != url else engine
-
-    # Use constant from app_factory or define here
-    lock_ttl = 300
+    engine = None
+    coord_engine = None
 
     try:
+        engine = create_engine_from_url(database_url)
+        coord_engine = (
+            create_engine_from_url(coordination_database_url)
+            if coordination_database_url and coordination_database_url != database_url
+            else engine
+        )
+
         while True:
             try:
                 await asyncio.sleep(current_interval)
 
-                if get_runtime_lifecycle_state() in ("shutting_down", "stopped"):
+                if is_shutdown_fn():
                     return
 
                 def run_sync_reconciliation() -> None:
@@ -88,7 +92,7 @@ async def periodic_reconciliation_loop(  # noqa: C901
 
                         plan = engine_inst.generate_reconciliation_plan()
 
-                        if ActionType.RESET_STATE in plan.actions and plan.execution_mode == ExecutionMode.AUTOMATIC:
+                        if _should_execute_automatic_reset(plan):
                             gate = RecoveryGate(
                                 session_factory=session_factory,
                                 lock=lock,
@@ -120,6 +124,7 @@ async def periodic_reconciliation_loop(  # noqa: C901
                                 message=f"Periodic reconciliation execution blocked: {blocked_exc}",
                             ),
                         )
+                        raise
 
                 await run_with_trace_fn(run_sync_reconciliation, to_thread=True)
 
@@ -168,11 +173,24 @@ async def periodic_reconciliation_loop(  # noqa: C901
                     )
                     is_in_error_state = True
 
-                # Exponential backoff + randomized jitter applied to next cycle
-                backoff = min(current_interval * 2, max_interval)
-                jitter = random.uniform(0, 0.1 * backoff)
-                current_interval = min(backoff + jitter, max_interval)
+                current_interval = _next_backoff_interval(current_interval, max_interval)
     finally:
-        engine.dispose()
-        if coord_engine is not engine:
+        if engine:
+            engine.dispose()
+        if coord_engine and coord_engine is not engine:
             coord_engine.dispose()
+
+
+def _should_execute_automatic_reset(plan: Any) -> bool:
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode
+
+    return ActionType.RESET_STATE in plan.actions and plan.execution_mode == ExecutionMode.AUTOMATIC
+
+
+def _next_backoff_interval(current_interval: float, max_interval: float) -> float:
+    import secrets
+
+    backoff = min(current_interval * 2, max_interval)
+    # Generate jitter dynamically using secrets (e.g. integer scaling to simulate float randomness safely)
+    jitter = (secrets.randbelow(100) / 1000.0) * backoff
+    return min(backoff + jitter, max_interval)

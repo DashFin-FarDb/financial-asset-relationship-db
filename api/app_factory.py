@@ -322,11 +322,19 @@ def _start_background_tasks(
         recon_interval = getattr(settings, "reconciliation_interval_seconds", interval)
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
+        recon_url = _resolve_startup_reconciliation_url(settings)
+        coord_url = getattr(settings, "coordination_database_url", None) or recon_url
+
         recon_task = asyncio.create_task(
             periodic_reconciliation_loop(
                 interval_seconds=recon_interval,
-                settings=settings,
-                get_runtime_lifecycle_state=get_runtime_lifecycle_state,
+                database_url=recon_url,
+                coordination_database_url=coord_url,
+                is_shutdown_fn=lambda: get_runtime_lifecycle_state()
+                in (
+                    GraphRuntimeLifecycleState.SHUTTING_DOWN,
+                    GraphRuntimeLifecycleState.STOPPED,
+                ),
                 run_with_trace_fn=_run_with_generated_trace,
                 cancel_event=None,
             )

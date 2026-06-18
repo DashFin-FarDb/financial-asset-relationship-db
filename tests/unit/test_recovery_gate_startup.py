@@ -140,7 +140,9 @@ def test_startup_reconciliation_blocks_on_unknown_lock_state(mock_session_factor
     mock_lock.check_state.return_value = LockState.UNKNOWN
 
     mock_repo = MagicMock()
-    mock_repo.get_active_rebuild_state.return_value = MagicMock(spec=RebuildJobORM)
+    active_job = MagicMock(spec=RebuildJobORM)
+    active_job.status = RebuildJobStatus.RUNNING
+    mock_repo.get_active_rebuild_state.return_value = active_job
 
     with patch("src.logic.recovery_gate.AssetGraphRepository", return_value=mock_repo):
         gate = RecoveryGate(
@@ -150,8 +152,10 @@ def test_startup_reconciliation_blocks_on_unknown_lock_state(mock_session_factor
             lock_ttl_seconds=300,
         )
 
-        with pytest.raises(ExecutionBlockedError, match=r"Execution blocked: action=(unsafe|wait)"):
+        with pytest.raises(ExecutionBlockedError) as exc_info:
             gate.ensure_safe_to_execute()
+        assert exc_info.value.action in ("unsafe", "wait")
+        assert exc_info.value.inconsistency_type != "none"
 
 
 def test_startup_reconciliation_blocks_on_db_error(mock_session_factory, mock_lock):
