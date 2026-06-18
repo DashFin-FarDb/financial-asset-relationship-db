@@ -26,19 +26,19 @@ class ICoordinationLockRepository(Protocol):
     session: Session
 
     def acquire_lock(self, *, lock_name: str, holder_id: str, ttl_seconds: int) -> LockWriteResult:
-        """Docstring."""
+        """Acquire or refresh a distributed lock in the database."""
         ...
 
     def refresh_lock(self, *, lock_name: str, holder_id: str, ttl_seconds: int) -> LockWriteResult:
-        """Docstring."""
+        """Refresh a distributed lock in the database."""
         ...
 
     def release_lock(self, *, lock_name: str, holder_id: str) -> bool:
-        """Docstring."""
+        """Release a distributed lock if held by the specified holder."""
         ...
 
     def get_lock_state(self, *, lock_name: str, holder_id: str) -> LockStateSnapshot:
-        """Docstring."""
+        """Check the current state of a distributed lock and return a materialized snapshot."""
         ...
 
 
@@ -49,123 +49,143 @@ class IAssetGraphRepository(Protocol):
     session: Session
 
     def save_graph(self, graph: AssetRelationshipGraph) -> None:
-        """Docstring."""
+        """Persist an AssetRelationshipGraph snapshot to the database."""
         ...
 
     def load_graph(self) -> AssetRelationshipGraph:
-        """Docstring."""
+        """Reconstruct an in-memory asset relationship graph from persisted rows."""
         ...
 
     def replace_assets(self, assets: Iterable[Asset]) -> None:
-        """Docstring."""
+        """Replace persisted assets with the supplied collection."""
         ...
 
     def replace_relationships_from_graph(self, relationships: dict[str, list[tuple[str, str, float]]]) -> None:
-        """Docstring."""
+        """Replace all persisted relationships with directed adjacency data."""
         ...
 
     def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
-        """Docstring."""
+        """Replace all persisted regulatory events with the supplied collection."""
         ...
 
     def upsert_asset(self, asset: Asset) -> None:
-        """Docstring."""
+        """Create or update the persistent record for a domain Asset."""
         ...
 
     def upsert_assets(self, assets: Iterable[Asset]) -> None:
-        """Docstring."""
+        """Create or update multiple assets in a single repository session."""
         ...
 
     def list_assets(self) -> list[Asset]:
-        """Docstring."""
+        """Retrieve all assets ordered by id."""
         ...
 
     def get_assets_map(self) -> dict[str, Asset]:
-        """Docstring."""
+        """Return a mapping of asset id to the corresponding Asset domain object."""
         ...
 
     def get_asset_by_id(self, asset_id: str) -> Asset | None:
-        """Docstring."""
+        """Return a single asset by its ID, or None if not found."""
         ...
 
     def delete_asset(self, asset_id: str) -> None:
-        """Docstring."""
+        """Delete an asset and cascading relationships/events."""
         ...
 
-    def add_or_update_relationship(self, *args: object, **kwargs: object) -> None:
-        """Docstring."""
+    def add_or_update_relationship(
+        self, source_id: str, target_id: str, rel_type: str, strength: float, bidirectional: bool = False
+    ) -> None:
+        """Create or update an asset relationship and stage it on the repository session."""
         ...
 
     def list_relationships(self) -> list[RelationshipRecord]:
-        """Docstring."""
+        """Retrieve all persisted relationships."""
         ...
 
     def get_relationship(self, source_id: str, target_id: str, rel_type: str) -> RelationshipRecord | None:
-        """Docstring."""
+        """Return a single relationship by its composite key, or None if not found."""
         ...
 
     def delete_relationship(self, source_id: str, target_id: str, rel_type: str) -> None:
-        """Docstring."""
+        """Delete a relationship by its composite key."""
         ...
 
     def upsert_regulatory_event(self, event: RegulatoryEvent) -> None:
-        """Docstring."""
+        """Create or update a regulatory event."""
         ...
 
     def list_regulatory_events(self) -> list[RegulatoryEvent]:
-        """Docstring."""
+        """Retrieve all regulatory events."""
         ...
 
     def delete_regulatory_event(self, event_id: str) -> None:
-        """Docstring."""
+        """Delete a regulatory event."""
         ...
 
-    def create_rebuild_job(self, *, requested_by: str, source: str | None = None) -> str:
-        """Docstring."""
+    def create_rebuild_job(self, *, requested_by: str, source: str | None = None) -> RebuildJobORM:
+        """Create a new pending rebuild job."""
+        ...
+
+    def update_rebuild_job_source(self, job_id: str, execution_id: str, source: str | None) -> None:
+        """Update the source field of a rebuild job."""
         ...
 
     def mark_rebuild_job_running(self, job_id: str, execution_id: str) -> None:
-        """Docstring."""
+        """Transition a job from PENDING to RUNNING."""
         ...
 
     def mark_rebuild_job_succeeded(
-        self,
-        job_id: str,
-        *,
-        execution_id: str,
-        node_count: int | None = None,
-        edge_count: int | None = None,
-        duration_ms: int | None = None,
+        self, job_id: str, *, execution_id: str, node_count: int, edge_count: int, duration_ms: int
     ) -> None:
-        """Docstring."""
+        """Transition a job to SUCCEEDED and record metrics."""
         ...
 
     def mark_rebuild_job_cancel_requested(self, job_id: str) -> None:
-        """Docstring."""
+        """Mark a job for cancellation."""
         ...
 
     def mark_rebuild_job_cancelled(self, job_id: str, *, execution_id: str) -> None:
-        """Docstring."""
+        """Transition a job to CANCELLED."""
         ...
 
     def mark_rebuild_job_failed(
-        self,
-        job_id: str,
-        *,
-        execution_id: str,
-        error: Exception | None = None,
-        sanitized_failure_category: str | None = None,
-        sanitized_failure_message: str | None = None,
+        self, job_id: str, *, execution_id: str | None, failure_category: str, failure_message: str, duration_ms: int
     ) -> None:
-        """Docstring."""
+        """Transition a job to FAILED and record failure details."""
         ...
 
     def get_rebuild_job(self, job_id: str) -> RebuildJobORM | None:
-        """Docstring."""
+        """Retrieve a rebuild job by its ID."""
         ...
 
-    def list_rebuild_jobs(self, *, limit: int | None = None, offset: int = 0) -> list[RebuildJobORM]:
-        """Docstring."""
+    def list_rebuild_jobs(
+        self, *, limit: int = 50, offset: int | None = None, status: str | None = None
+    ) -> list[RebuildJobORM]:
+        """List rebuild jobs, optionally filtered by status."""
+        ...
+
+    def get_latest_successful_rebuild_job(self) -> RebuildJobORM | None:
+        """Return the most recently completed SUCCEEDED job."""
+        ...
+
+    def update_rebuild_heartbeat(self, job_id: str, execution_id: str, worker_id: str) -> None:
+        """Update the heartbeat timestamp for a running rebuild job."""
+        ...
+
+    def update_rebuild_checkpoint(self, job_id: str, execution_id: str, data: str | None) -> None:
+        """Save an intermediate checkpoint for a running rebuild job."""
+        ...
+
+    def get_active_rebuild_state(self) -> RebuildJobORM | None:
+        """Return the currently RUNNING or CANCEL_REQUESTED job, if any."""
+        ...
+
+    def get_last_successful_rebuild(self) -> RebuildJobORM | None:
+        """Return the most recently completed SUCCEEDED job."""
+        ...
+
+    def get_latest_rebuild_job(self) -> RebuildJobORM | None:
+        """Return the most recently created rebuild job."""
         ...
 
 

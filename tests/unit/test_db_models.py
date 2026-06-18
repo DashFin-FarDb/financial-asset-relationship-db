@@ -15,7 +15,6 @@ import pytest
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import IntegrityError
 
-from conftest import enable_sqlite_foreign_keys
 from src.data.database import create_session_factory, init_db
 from src.data.db_models import (
     AssetORM,
@@ -26,6 +25,7 @@ from src.data.db_models import (
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
+from tests.conftest import enable_sqlite_foreign_keys
 
 pytest.importorskip("sqlalchemy")
 

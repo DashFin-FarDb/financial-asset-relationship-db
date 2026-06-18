@@ -190,6 +190,10 @@ def enable_sqlite_foreign_keys(engine: Engine) -> None:
     if engine.url.get_backend_name() != "sqlite":
         return
 
+    if getattr(engine, "_sqlite_fk_enabled", False):
+        return
+    engine._sqlite_fk_enabled = True  # type: ignore[attr-defined]
+
     @event.listens_for(engine, "connect")
     def _set_sqlite_pragma(dbapi_connection: Any, _connection_record: Any) -> None:
         cursor = dbapi_connection.cursor()

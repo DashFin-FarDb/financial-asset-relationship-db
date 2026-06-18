@@ -3,7 +3,6 @@
 import pytest
 from sqlalchemy import create_engine  # pylint: disable=import-error
 
-from conftest import enable_sqlite_foreign_keys
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -16,6 +15,7 @@ from src.models.financial_models import (
     RegulatoryActivity,
     RegulatoryEvent,
 )
+from tests.conftest import enable_sqlite_foreign_keys
 
 pytestmark = pytest.mark.unit
 
