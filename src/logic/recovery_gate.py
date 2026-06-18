@@ -131,6 +131,8 @@ class RecoveryGate:
             return "reset"
         if ActionType.WAIT_FOR_CONVERGENCE in plan.actions or plan.safety_state == ExecutionSafety.WAIT_REQUIRED:
             return "wait"
+        if ActionType.ALERT_ONLY in plan.actions:
+            return "alert_only"
         if ActionType.NOOP in plan.actions:
             return "resume"
         return "unsafe"

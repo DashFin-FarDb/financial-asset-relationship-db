@@ -104,10 +104,11 @@ async def periodic_reconciliation_loop(
     Automatically execute RecoveryGate.ensure_safe_to_execute() if a reset state
     plan with automatic execution mode is returned.
     """
+    from api.app_factory import _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS
     from src.data.database import create_engine_from_url
 
     # Constant from app_factory
-    lock_ttl = 300
+    lock_ttl = int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS)
 
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
