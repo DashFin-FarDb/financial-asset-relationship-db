@@ -12,7 +12,86 @@ from src.observability.facade import ObservabilityEvent, log_event
 logger = logging.getLogger(__name__)
 
 
-async def periodic_reconciliation_loop(  # noqa: C901
+def _run_sync_reconciliation(
+    engine: Any,
+    coord_engine: Any,
+    cancel_event: threading.Event | None,
+    lock_ttl: int,
+) -> None:
+    from api.metrics import increment_recovery_trigger, record_drift_metric
+    from src.data.database import create_session_factory
+    from src.data.distributed_lock import DistributedLock
+    from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
+    from src.logic.reconciliation_engine import ReconciliationEngine
+    from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+
+    if cancel_event and cancel_event.is_set():
+        raise RebuildCancelledError("Rebuild cancelled via API request")
+
+    session_factory = create_session_factory(engine)
+    coord_session_factory = create_session_factory(coord_engine) if coord_engine is not engine else session_factory
+
+    lock = DistributedLock(
+        coordination_session_factory=coord_session_factory,
+        lock_name="graph_rebuild",
+        ttl_seconds=lock_ttl,
+    )
+
+    evaluator = RebuildDriftEvaluator(
+        session_factory=session_factory,
+        lock=lock,
+        runtime_has_active_executor=False,
+        lock_ttl_seconds=lock_ttl,
+    )
+
+    engine_inst = ReconciliationEngine(
+        evaluator=evaluator,
+        enable_automatic_execution=True,
+        record_drift_metric=record_drift_metric,
+    )
+
+    try:
+        if cancel_event and cancel_event.is_set():
+            raise RebuildCancelledError("Rebuild cancelled via API request")
+
+        plan = engine_inst.generate_reconciliation_plan()
+
+        if _should_execute_automatic_reset(plan):
+            gate = RecoveryGate(
+                session_factory=session_factory,
+                lock=lock,
+                increment_recovery_trigger=increment_recovery_trigger,
+                runtime_has_active_executor=False,
+                lock_ttl_seconds=lock_ttl,
+            )
+            try:
+                gate.ensure_safe_to_execute(cancellation_event=cancel_event)
+            finally:
+                if getattr(gate, "lock_was_reacquired", False):
+                    lock.release()
+    except RebuildCancelledError:
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="reconciliation_loop_cancelled",
+                message="Periodic reconciliation cancelled via cancellation event",
+            ),
+        )
+        raise
+    except ExecutionBlockedError as blocked_exc:
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="reconciliation_loop_blocked",
+                message=f"Periodic reconciliation execution blocked: {blocked_exc}",
+            ),
+        )
+        raise
+
+
+async def periodic_reconciliation_loop(
     interval_seconds: float,
     database_url: str,
     is_shutdown_fn: Callable[[], bool],
@@ -25,12 +104,7 @@ async def periodic_reconciliation_loop(  # noqa: C901
     Automatically execute RecoveryGate.ensure_safe_to_execute() if a reset state
     plan with automatic execution mode is returned.
     """
-    from api.metrics import increment_recovery_trigger, record_drift_metric
-    from src.data.database import create_engine_from_url, create_session_factory
-    from src.data.distributed_lock import DistributedLock
-    from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
-    from src.logic.reconciliation_engine import ReconciliationEngine
-    from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+    from src.data.database import create_engine_from_url
 
     # Constant from app_factory
     lock_ttl = 300
@@ -58,75 +132,15 @@ async def periodic_reconciliation_loop(  # noqa: C901
                 if is_shutdown_fn():
                     return
 
-                def run_sync_reconciliation() -> None:
-                    if cancel_event and cancel_event.is_set():
-                        raise RebuildCancelledError("Rebuild cancelled via API request")
-
-                    session_factory = create_session_factory(engine)
-                    coord_session_factory = (
-                        create_session_factory(coord_engine) if coord_engine is not engine else session_factory
-                    )
-
-                    lock = DistributedLock(
-                        coordination_session_factory=coord_session_factory,
-                        lock_name="graph_rebuild",
-                        ttl_seconds=lock_ttl,
-                    )
-
-                    evaluator = RebuildDriftEvaluator(
-                        session_factory=session_factory,
-                        lock=lock,
-                        runtime_has_active_executor=False,
-                        lock_ttl_seconds=lock_ttl,
-                    )
-
-                    engine_inst = ReconciliationEngine(
-                        evaluator=evaluator,
-                        enable_automatic_execution=True,
-                        record_drift_metric=record_drift_metric,
-                    )
-
-                    try:
-                        if cancel_event and cancel_event.is_set():
-                            raise RebuildCancelledError("Rebuild cancelled via API request")
-
-                        plan = engine_inst.generate_reconciliation_plan()
-
-                        if _should_execute_automatic_reset(plan):
-                            gate = RecoveryGate(
-                                session_factory=session_factory,
-                                lock=lock,
-                                increment_recovery_trigger=increment_recovery_trigger,
-                                runtime_has_active_executor=False,
-                                lock_ttl_seconds=lock_ttl,
-                            )
-                            try:
-                                gate.ensure_safe_to_execute(cancellation_event=cancel_event)
-                            finally:
-                                if getattr(gate, "lock_was_reacquired", False):
-                                    lock.release()
-                    except RebuildCancelledError:
-                        log_event(
-                            logger,
-                            logging.INFO,
-                            ObservabilityEvent(
-                                event="reconciliation_loop_cancelled",
-                                message="Periodic reconciliation cancelled via cancellation event",
-                            ),
-                        )
-                        raise
-                    except ExecutionBlockedError as blocked_exc:
-                        log_event(
-                            logger,
-                            logging.INFO,
-                            ObservabilityEvent(
-                                event="reconciliation_loop_blocked",
-                                message=f"Periodic reconciliation execution blocked: {blocked_exc}",
-                            ),
-                        )
-                        raise
-
-                await run_with_trace_fn(run_sync_reconciliation, to_thread=True)
+                await run_with_trace_fn(
+                    lambda: _run_sync_reconciliation(
+                        engine=engine,
+                        coord_engine=coord_engine,
+                        cancel_event=cancel_event,
+                        lock_ttl=lock_ttl,
+                    ),
+                    to_thread=True,
+                )
 
                 # Reset interval on successful iteration
                 if is_in_error_state:

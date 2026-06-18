@@ -288,47 +288,63 @@ class RecoveryGate:
             )
             raise ExecutionBlockedError(f"Reset recovery failed: {type(exc).__name__}") from exc
 
+    def _ensure_lock_for_reset(self) -> None:
+        """Ensure the distributed lock is held before resetting recovery."""
+        lock_state = self.lock.check_state()
+        if lock_state == LockState.VALID:
+            return
+
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="recovery_gate_lock_reacquisition_attempt",
+                message=f"Lock state is {lock_state.value} before RESET recovery, attempting reacquisition...",
+                metadata={"lock_state": lock_state.value},
+            ),
+        )
+        try:
+            self.lock.acquire()
+        except LockAcquisitionTimeout as exc:
+            msg = f"Cannot perform RESET recovery without valid lock (state={lock_state.value})"
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="recovery_gate_lock_reacquisition_failed",
+                    message=f"{ExecutionBlockedError.__name__}: {msg}",
+                    metadata={"error": ExecutionBlockedError.__name__, "details": msg},
+                ),
+            )
+            raise ExecutionBlockedError(msg) from exc
+        self.lock_was_reacquired = True
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="recovery_gate_lock_reacquired",
+                message="Successfully reacquired lock for RESET recovery",
+            ),
+        )
+
+    def _is_heartbeat_stale(self, active_job) -> bool:
+        """Check if an active job's heartbeat is stale."""
+        if not active_job.last_heartbeat_at:
+            return True
+        heartbeat_time = active_job.last_heartbeat_at
+        if heartbeat_time.tzinfo is None:
+            heartbeat_time = heartbeat_time.replace(tzinfo=UTC)
+        age = (datetime.now(UTC) - heartbeat_time).total_seconds()
+        return age >= self.lock_ttl_seconds
+
     def _perform_reset_recovery(self, cancellation_event: threading.Event | None = None) -> None:
         """Reset an orphaned RUNNING rebuild job so a new execution can proceed."""
         from src.data.db_models import RebuildJobStatus
 
-        lock_state = self.lock.check_state()
-        if lock_state != LockState.VALID:
-            if cancellation_event and cancellation_event.is_set():
-                return
+        if cancellation_event and cancellation_event.is_set():
+            return
 
-            log_event(
-                logger,
-                logging.WARNING,
-                ObservabilityEvent(
-                    event="recovery_gate_lock_reacquisition_attempt",
-                    message=f"Lock state is {lock_state.value} before RESET recovery, attempting reacquisition...",
-                    metadata={"lock_state": lock_state.value},
-                ),
-            )
-            try:
-                self.lock.acquire()
-            except LockAcquisitionTimeout as exc:
-                msg = f"Cannot perform RESET recovery without valid lock (state={lock_state.value})"
-                log_event(
-                    logger,
-                    logging.ERROR,
-                    ObservabilityEvent(
-                        event="recovery_gate_lock_reacquisition_failed",
-                        message=f"{ExecutionBlockedError.__name__}: {msg}",
-                        metadata={"error": ExecutionBlockedError.__name__, "details": msg},
-                    ),
-                )
-                raise ExecutionBlockedError(msg) from exc
-            self.lock_was_reacquired = True
-            log_event(
-                logger,
-                logging.INFO,
-                ObservabilityEvent(
-                    event="recovery_gate_lock_reacquired",
-                    message="Successfully reacquired lock for RESET recovery",
-                ),
-            )
+        self._ensure_lock_for_reset()
 
         if cancellation_event and cancellation_event.is_set():
             return
@@ -338,52 +354,47 @@ class RecoveryGate:
                 repo = AssetGraphRepository(session)
                 active_job = repo.get_active_rebuild_state()
 
-                if active_job and active_job.status == RebuildJobStatus.RUNNING:
-                    if cancellation_event and cancellation_event.is_set():
-                        return
+                if not active_job or active_job.status != RebuildJobStatus.RUNNING:
+                    return
 
-                    # Owner mismatch and fresh heartbeat check
-                    current_worker = self.lock.holder_id
-                    if active_job.active_worker_id != current_worker:
-                        heartbeat_stale = True
-                        if active_job.last_heartbeat_at:
-                            heartbeat_time = active_job.last_heartbeat_at
-                            if heartbeat_time.tzinfo is None:
-                                heartbeat_time = heartbeat_time.replace(tzinfo=UTC)
-                            age = (datetime.now(UTC) - heartbeat_time).total_seconds()
-                            heartbeat_stale = age >= self.lock_ttl_seconds
+                if cancellation_event and cancellation_event.is_set():
+                    return
 
-                        if not heartbeat_stale:
-                            raise ExecutionBlockedError(
-                                f"Cannot reset job {active_job.job_id}: active worker {active_job.active_worker_id} has fresh heartbeat",
-                                action="unsafe",
-                                inconsistency_type="orphaned_running",
-                            )
+                current_worker = self.lock.holder_id
+                if active_job.active_worker_id != current_worker:
+                    if not self._is_heartbeat_stale(active_job):
+                        raise ExecutionBlockedError(
+                            f"Cannot reset job {active_job.job_id}: active worker {active_job.active_worker_id} has fresh heartbeat",
+                            action="unsafe",
+                            inconsistency_type="orphaned_running",
+                        )
 
-                    repo.mark_rebuild_job_failed(
-                        active_job.job_id,
-                        execution_id=active_job.execution_id,
-                        failure_category="recovery_reset",
-                        failure_message="Recovered from orphaned state by RecoveryGate",
-                        duration_ms=0,
-                    )
-                    session.commit()
-                    log_event(
-                        logger,
-                        logging.WARNING,
-                        ObservabilityEvent(
-                            event="recovery_gate_orphaned_job_reset",
-                            message=(
-                                f"Reset orphaned rebuild job {active_job.job_id} "
-                                f"(previous owner: {active_job.active_worker_id or 'unknown'})"
-                            ),
-                            metadata={
-                                "job_id": active_job.job_id,
-                                "previous_owner": active_job.active_worker_id or "unknown",
-                            },
+                repo.mark_rebuild_job_failed(
+                    active_job.job_id,
+                    execution_id=active_job.execution_id,
+                    failure_category="recovery_reset",
+                    failure_message="Recovered from orphaned state by RecoveryGate",
+                    duration_ms=0,
+                )
+                session.commit()
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="recovery_gate_orphaned_job_reset",
+                        message=(
+                            f"Reset orphaned rebuild job {active_job.job_id} "
+                            f"(previous owner: {active_job.active_worker_id or 'unknown'})"
                         ),
-                    )
+                        metadata={
+                            "job_id": active_job.job_id,
+                            "previous_owner": active_job.active_worker_id or "unknown",
+                        },
+                    ),
+                )
         except Exception as exc:
+            if isinstance(exc, ExecutionBlockedError):
+                raise
             log_event(
                 logger,
                 logging.ERROR,
