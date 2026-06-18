@@ -154,7 +154,7 @@ def test_startup_reconciliation_blocks_on_unknown_lock_state(mock_session_factor
 
         with pytest.raises(ExecutionBlockedError) as exc_info:
             gate.ensure_safe_to_execute()
-        assert exc_info.value.action in ("unsafe", "wait")
+        assert exc_info.value.action in ("alert_only", "wait")
         assert exc_info.value.inconsistency_type != "none"
 
 

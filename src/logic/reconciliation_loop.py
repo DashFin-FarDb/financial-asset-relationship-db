@@ -18,6 +18,7 @@ def _run_sync_reconciliation(
     cancel_event: threading.Event | None,
     lock_ttl: int,
 ) -> None:
+    """Execute a single synchronous reconciliation pass."""
     from api.metrics import increment_recovery_trigger, record_drift_metric
     from src.data.database import create_session_factory
     from src.data.distributed_lock import DistributedLock
@@ -91,6 +92,38 @@ def _run_sync_reconciliation(
         raise
 
 
+async def _perform_reconciliation_iteration(
+    run_with_trace_fn: Callable,
+    engine: Any,
+    coord_engine: Any,
+    cancel_event: threading.Event | None,
+    lock_ttl: int,
+) -> None:
+    """Perform a single periodic reconciliation iteration with shielding."""
+    task = asyncio.create_task(
+        run_with_trace_fn(
+            lambda: _run_sync_reconciliation(
+                engine=engine,
+                coord_engine=coord_engine,
+                cancel_event=cancel_event,
+                lock_ttl=lock_ttl,
+            ),
+            to_thread=True,
+        )
+    )
+
+    try:
+        await asyncio.shield(task)
+    except asyncio.CancelledError:
+        if cancel_event:
+            cancel_event.set()
+        try:
+            await task
+        except Exception:
+            pass
+        raise
+
+
 async def periodic_reconciliation_loop(
     interval_seconds: float,
     database_url: str,
@@ -98,17 +131,14 @@ async def periodic_reconciliation_loop(
     run_with_trace_fn: Callable,
     coordination_database_url: str | None = None,
     cancel_event: threading.Event | None = None,
+    lock_ttl_seconds: int = 300,
 ) -> None:
     """Periodically run drift planning and execute automatic recovery.
 
     Automatically execute RecoveryGate.ensure_safe_to_execute() if a reset state
     plan with automatic execution mode is returned.
     """
-    from api.app_factory import _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS
     from src.data.database import create_engine_from_url
-
-    # Constant from app_factory
-    lock_ttl = int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS)
 
     base_interval = max(1.0, float(interval_seconds))
     current_interval = base_interval
@@ -133,30 +163,10 @@ async def periodic_reconciliation_loop(
                 if is_shutdown_fn():
                     return
 
-                task = asyncio.create_task(
-                    run_with_trace_fn(
-                        lambda: _run_sync_reconciliation(
-                            engine=engine,
-                            coord_engine=coord_engine,
-                            cancel_event=cancel_event,
-                            lock_ttl=lock_ttl,
-                        ),
-                        to_thread=True,
-                    )
+                await _perform_reconciliation_iteration(
+                    run_with_trace_fn, engine, coord_engine, cancel_event, lock_ttl_seconds
                 )
 
-                try:
-                    await asyncio.shield(task)
-                except asyncio.CancelledError:
-                    if cancel_event:
-                        cancel_event.set()
-                    try:
-                        await task
-                    except Exception:
-                        pass
-                    raise
-
-                # Reset interval on successful iteration
                 if is_in_error_state:
                     log_event(
                         logger,
@@ -210,12 +220,14 @@ async def periodic_reconciliation_loop(
 
 
 def _should_execute_automatic_reset(plan: Any) -> bool:
+    """Check if the plan requires automatic reset."""
     from src.logic.reconciliation_engine import ActionType, ExecutionMode
 
     return ActionType.RESET_STATE in plan.actions and plan.execution_mode == ExecutionMode.AUTOMATIC
 
 
 def _next_backoff_interval(current_interval: float, max_interval: float) -> float:
+    """Calculate the next backoff interval with jitter."""
     import secrets
 
     backoff = min(current_interval * 2, max_interval)

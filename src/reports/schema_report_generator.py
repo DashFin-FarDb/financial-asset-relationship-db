@@ -165,7 +165,7 @@ class SchemaReportGenerator:
         Returns:
             lines (List[str]): Ordered list of Markdown-formatted lines composing the section.
         """
-        from src.config.settings import get_settings
+        from src.config.settings import get_settings  # pylint: disable=import-outside-toplevel
 
         settings = get_settings()
         return [
@@ -174,7 +174,8 @@ class SchemaReportGenerator:
             "### Cross-Asset Rules",
             f"- **Sector Affinity**: Same-sector assets link at strength {settings.same_sector_strength:.2f}.",
             (
-                f"- **Corporate Bond Linkage**: issuer_id match creates a directional link (strength {settings.corporate_bond_strength:.2f})."
+                "- **Corporate Bond Linkage**: issuer_id match creates a directional link "
+                f"(strength {settings.corporate_bond_strength:.2f})."
             ),
             "- **Currency Exposure**: FX and central-bank policy effects included.",
             "",

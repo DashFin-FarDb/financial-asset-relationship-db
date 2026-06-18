@@ -308,6 +308,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
         async def fake_run_with_trace(fn, **kwargs):
+            """Mock run_with_trace function."""
             return fn()
 
         await periodic_reconciliation_loop(
@@ -317,6 +318,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
             run_with_trace_fn=fake_run_with_trace,
             coordination_database_url=base_settings.database_url,
             cancel_event=None,
+            lock_ttl_seconds=300,
         )
 
     assert ensure_safe_called == [True]

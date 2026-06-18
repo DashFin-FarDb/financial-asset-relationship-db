@@ -363,13 +363,13 @@ class RecoveryGate:
                     return
 
                 current_worker = self.lock.holder_id
-                if active_job.active_worker_id != current_worker:
-                    if not self._is_heartbeat_stale(active_job):
-                        raise ExecutionBlockedError(
-                            f"Cannot reset job {active_job.job_id}: active worker {active_job.active_worker_id} has fresh heartbeat",
-                            action="unsafe",
-                            inconsistency_type="orphaned_running",
-                        )
+                if active_job.active_worker_id != current_worker and not self._is_heartbeat_stale(active_job):
+                    raise ExecutionBlockedError(
+                        f"Cannot reset job {active_job.job_id}: active worker "
+                        f"{active_job.active_worker_id} has fresh heartbeat",
+                        action="unsafe",
+                        inconsistency_type="orphaned_running",
+                    )
 
                 repo.mark_rebuild_job_failed(
                     active_job.job_id,

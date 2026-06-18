@@ -173,7 +173,6 @@ jobs = 0
 limit-inference-results = 100
 persistent = true
 py-version = "3.12"
-suggestion-mode = true
 
 [tool.pylint.messages_control]
 disable = [
