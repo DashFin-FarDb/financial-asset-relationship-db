@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
 # Ensure a clean SQLite database for the authentication layer before any modules import it.
 _db_path = Path(__file__).resolve().parent / "test_auth.db"
@@ -181,6 +183,18 @@ def _reset_graph():
 
     reset_graph()
     yield
+
+
+def enable_sqlite_foreign_keys(engine: Engine) -> None:
+    """Ensure SQLite engines enforce foreign-key constraints in tests."""
+    if engine.url.get_backend_name() != "sqlite":
+        return
+
+    @event.listens_for(engine, "connect")
+    def _set_sqlite_pragma(dbapi_connection: Any, _connection_record: Any) -> None:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 def pytest_addoption(parser: Any) -> None:
