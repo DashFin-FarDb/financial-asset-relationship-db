@@ -56,31 +56,19 @@ def _create_reconciliation_dependencies(
 
 
 def _execute_plan_if_needed(
-    session_factory: Any,
-    lock: Any,
+    gate: Any,
     plan: Any,
-    lock_ttl: int,
     cancel_event: threading.Event | None,
-    increment_recovery_trigger: Callable,
 ) -> None:
     """Execute the plan using RecoveryGate if an automatic reset is required."""
-    from src.logic.recovery_gate import RecoveryGate
-
     if not _should_execute_automatic_reset(plan):
         return
 
-    gate = RecoveryGate(
-        session_factory=session_factory,
-        lock=lock,
-        increment_recovery_trigger=increment_recovery_trigger,
-        runtime_has_active_executor=False,
-        lock_ttl_seconds=lock_ttl,
-    )
     try:
         gate.ensure_safe_to_execute(cancellation_event=cancel_event)
     finally:
         if getattr(gate, "lock_was_reacquired", False):
-            lock.release()
+            gate.lock.release()
 
 
 def _run_sync_reconciliation(
@@ -91,7 +79,7 @@ def _run_sync_reconciliation(
 ) -> None:
     """Execute a single synchronous reconciliation pass."""
     from api.metrics import increment_recovery_trigger, record_drift_metric
-    from src.logic.recovery_gate import ExecutionBlockedError
+    from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 
     _check_cancellation(cancel_event)
 
@@ -99,10 +87,18 @@ def _run_sync_reconciliation(
         engine, coord_engine, lock_ttl, record_drift_metric
     )
 
+    gate = RecoveryGate(
+        session_factory=session_factory,
+        lock=lock,
+        increment_recovery_trigger=increment_recovery_trigger,
+        runtime_has_active_executor=False,
+        lock_ttl_seconds=lock_ttl,
+    )
+
     try:
         _check_cancellation(cancel_event)
         plan = engine_inst.generate_reconciliation_plan()
-        _execute_plan_if_needed(session_factory, lock, plan, lock_ttl, cancel_event, increment_recovery_trigger)
+        _execute_plan_if_needed(gate, plan, cancel_event)
     except RebuildCancelledError:
         log_event(
             logger,
