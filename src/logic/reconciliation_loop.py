@@ -146,8 +146,18 @@ async def _perform_reconciliation_iteration(
             cancel_event.set()
         try:
             await task
-        except Exception:
-            pass
+        except Exception as task_exc:
+            # Task failed during cancellation - log but don't propagate
+            # since we're already handling shutdown
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="reconciliation_task_failed_during_cancellation",
+                    message=f"Reconciliation task raised {type(task_exc).__name__} during cancellation",
+                    metadata={"error": type(task_exc).__name__},
+                ),
+            )
         raise
 
 
@@ -245,6 +255,8 @@ def _handle_reconciliation_success(is_in_error_state: bool, base_interval: float
 def _handle_reconciliation_error(
     exc: Exception, is_in_error_state: bool, current_interval: float, max_interval: float
 ) -> tuple[bool, float]:
+    from src.observability.context import get_span_id, get_trace_id
+
     if not is_in_error_state:
         log_event(
             logger,
@@ -257,8 +269,8 @@ def _handle_reconciliation_error(
                 ),
                 metadata={
                     "error": type(exc).__name__,
-                    "trace_id": getattr(exc, "trace_id", "unknown"),
-                    "span_id": getattr(exc, "span_id", "unknown"),
+                    "trace_id": get_trace_id() or "unknown",
+                    "span_id": get_span_id() or "unknown",
                 },
             ),
         )

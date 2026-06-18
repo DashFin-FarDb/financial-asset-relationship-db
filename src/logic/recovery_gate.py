@@ -173,7 +173,15 @@ class RecoveryGate:
                 inc_type = InconsistencyType(plan.drift_type)
                 self.increment_recovery_trigger(inc_type.value)
             except ValueError:
-                pass
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="recovery_gate_unknown_drift_type",
+                        message=f"Unknown drift type encountered: {plan.drift_type}",
+                        metadata={"drift_type": plan.drift_type},
+                    ),
+                )
 
         # Log if not safe to execute
         action_val = self._map_plan_to_action(plan)
