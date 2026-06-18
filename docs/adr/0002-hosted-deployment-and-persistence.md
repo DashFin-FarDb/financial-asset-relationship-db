@@ -1,5 +1,7 @@
 # ADR 0002: Hosted Deployment and Durable Persistence
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
+
 ## Status
 
 Accepted — implementation pending

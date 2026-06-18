@@ -1,5 +1,7 @@
 # Reconciliation Engine
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 Reference for the control-plane primitives in `src/logic/reconciliation_engine.py`
 and the rebuild adapter in `src/logic/rebuild_drift_evaluator.py`.
 

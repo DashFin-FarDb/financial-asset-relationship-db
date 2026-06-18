@@ -1,5 +1,7 @@
 # Enterprise Deployment Operating Model
 
+For the enterprise-readiness audit, roadmap, PR plan, board, and release criteria, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 This document defines how the Financial Asset Relationship Database (FarDb) is deployed,
 promoted, verified, rolled back, and operated across environments. It distinguishes
 between basic service readiness and the stronger durable graph-persistence verification

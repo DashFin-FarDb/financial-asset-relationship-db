@@ -1,5 +1,7 @@
 # Graph persistence design
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 ## Status
 
 Design proposal. This document defines the graph persistence boundary for the next implementation phase after hosted preview verification. It intentionally does not introduce migrations, ORM models, repository implementations, runtime startup changes, or API behavior changes.

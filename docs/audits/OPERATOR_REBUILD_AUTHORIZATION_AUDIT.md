@@ -1,5 +1,7 @@
 # Operator Rebuild Authorization Boundary — Component Audit
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
+
 **Audit Date**: 2026-05-23
 **Component**: Operator Rebuild Authorization
 **Status**: ✅ **DEPLOYMENT-READY**

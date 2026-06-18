@@ -1,5 +1,7 @@
 # Production Readiness & Recovery Risks
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 This document catalogs the outstanding technical debt, validation gaps, and operational risks associated with the Stage 5C Failure Management and Recovery architecture. These risks were identified following the completion of Stages 5C.1 and 5C.2.
 
 ## 1. Lack of Realistic Graph-Scale Validation

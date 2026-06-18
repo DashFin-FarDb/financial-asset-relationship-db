@@ -1,5 +1,7 @@
 # Reconciliation Discovery Map
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 **Date:** 2026-05-20
 **Objective:** Identify current implicit reconciliation logic in the codebase
 

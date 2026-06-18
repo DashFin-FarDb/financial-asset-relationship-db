@@ -1,5 +1,7 @@
 # Observability & SLO Master Specification
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 **Date:** June 18, 2026
 **Status:** Implemented
 

@@ -94,6 +94,8 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and Verc
 
 **Hosted Deployment**: For the hosted deployment and durable persistence decision, see [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).
 
+For the full enterprise-readiness package, see [docs/enterprise-readiness-index.md](./docs/enterprise-readiness-index.md).
+
 ### Troubleshooting
 
 #### Frontend shows "Failed to load data"

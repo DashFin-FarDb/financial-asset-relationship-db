@@ -1,5 +1,7 @@
 # Observability README
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 This short README links to the tracing middleware example, shows how to enable it in a FastAPI app, and details our key observability metrics and PromQL best practices.
 
 ## Tracing middleware example
