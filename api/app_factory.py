@@ -320,8 +320,24 @@ def _start_background_tasks(
         sync_task = asyncio.create_task(_graph_synchronization_loop(interval_seconds=interval))
 
         recon_interval = getattr(settings, "reconciliation_interval_seconds", interval)
+        from src.logic.reconciliation_loop import periodic_reconciliation_loop
+
+        recon_url = _resolve_startup_reconciliation_url(settings)
+        coord_url = getattr(settings, "coordination_database_url", None) or recon_url
+
         recon_task = asyncio.create_task(
-            _periodic_reconciliation_loop(interval_seconds=recon_interval, settings=settings)
+            periodic_reconciliation_loop(
+                interval_seconds=recon_interval,
+                database_url=recon_url,
+                coordination_database_url=coord_url,
+                is_shutdown_fn=lambda: get_runtime_lifecycle_state()
+                in (
+                    GraphRuntimeLifecycleState.SHUTTING_DOWN,
+                    GraphRuntimeLifecycleState.STOPPED,
+                ),
+                run_with_trace_fn=_run_with_generated_trace,
+                cancel_event=None,
+            )
         )
 
     slo_task = asyncio.create_task(_slo_evaluation_loop())
@@ -370,139 +386,6 @@ async def _perform_orderly_shutdown(
             message="Application context lifespan termination finalized successfully.",
         ),
     )
-
-
-async def _periodic_reconciliation_loop(interval_seconds: float, settings: GraphLifecycleSettings) -> None:
-    """Periodically run drift planning and execute automatic recovery.
-
-    Automatically execute RecoveryGate.ensure_safe_to_execute() if a reset state
-    plan with automatic execution mode is returned.
-    """
-    from src.data.database import create_engine_from_url, create_session_factory
-    from src.data.distributed_lock import DistributedLock
-    from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
-    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ReconciliationEngine
-    from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
-
-    from .metrics import increment_recovery_trigger, record_drift_metric
-
-    base_interval = max(1.0, float(interval_seconds))
-    current_interval = base_interval
-    max_interval = base_interval * 32
-    is_in_error_state = False
-
-    url = _resolve_startup_reconciliation_url(settings)
-    engine = create_engine_from_url(url)
-    coord_url = getattr(settings, "coordination_database_url", None) or url
-    coord_engine = create_engine_from_url(coord_url) if coord_url != url else engine
-
-    try:
-        while True:
-            try:
-                await asyncio.sleep(current_interval)
-
-                if get_runtime_lifecycle_state() in (
-                    GraphRuntimeLifecycleState.SHUTTING_DOWN,
-                    GraphRuntimeLifecycleState.STOPPED,
-                ):
-                    return
-
-                def run_sync_reconciliation() -> None:
-                    session_factory = create_session_factory(engine)
-                    coord_session_factory = (
-                        create_session_factory(coord_engine) if coord_engine is not engine else session_factory
-                    )
-
-                    lock = DistributedLock(
-                        coordination_session_factory=coord_session_factory,
-                        lock_name="graph_rebuild",
-                        ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
-                    )
-
-                    evaluator = RebuildDriftEvaluator(
-                        session_factory=session_factory,
-                        lock=lock,
-                        runtime_has_active_executor=False,
-                        lock_ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
-                    )
-
-                    engine_inst = ReconciliationEngine(
-                        evaluator=evaluator,
-                        enable_automatic_execution=True,
-                        record_drift_metric=record_drift_metric,
-                    )
-
-                    try:
-                        plan = engine_inst.generate_reconciliation_plan()
-
-                        if ActionType.RESET_STATE in plan.actions and plan.execution_mode == ExecutionMode.AUTOMATIC:
-                            gate = RecoveryGate(
-                                session_factory=session_factory,
-                                lock=lock,
-                                increment_recovery_trigger=increment_recovery_trigger,
-                                runtime_has_active_executor=False,
-                                lock_ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
-                            )
-                            try:
-                                gate.ensure_safe_to_execute()
-                            finally:
-                                if getattr(gate, "lock_was_reacquired", False):
-                                    lock.release()
-                    except ExecutionBlockedError as blocked_exc:
-                        log_event(
-                            logger,
-                            logging.INFO,
-                            ObservabilityEvent(
-                                event="reconciliation_loop_blocked",
-                                message=f"Periodic reconciliation execution blocked: {blocked_exc}",
-                            ),
-                        )
-
-                await _run_with_generated_trace(run_sync_reconciliation, to_thread=True)
-
-                # Reset interval on successful iteration
-                if is_in_error_state:
-                    log_event(
-                        logger,
-                        logging.INFO,
-                        ObservabilityEvent(
-                            event="reconciliation_loop_connection_restored",
-                            message="Reconciliation loop DB connection restored.",
-                        ),
-                    )
-                    is_in_error_state = False
-                current_interval = base_interval
-
-            except asyncio.CancelledError:
-                raise
-            except Exception as exc:
-                if not is_in_error_state:
-                    log_event(
-                        logger,
-                        logging.WARNING,
-                        ObservabilityEvent(
-                            event="reconciliation_loop_transient_error",
-                            message=(
-                                f"Unexpected transient error in periodic reconciliation loop ({type(exc).__name__}). "
-                                "Engaging backoff policy."
-                            ),
-                            metadata={
-                                "error": type(exc).__name__,
-                                "trace_id": getattr(exc, "trace_id", "unknown"),
-                                "span_id": getattr(exc, "span_id", "unknown"),
-                            },
-                        ),
-                    )
-                    is_in_error_state = True
-
-                # Exponential backoff + randomized jitter applied to next cycle
-                backoff = min(current_interval * 2, max_interval)
-                jitter = random.uniform(0, 0.1 * backoff)
-                current_interval = min(backoff + jitter, max_interval)
-    finally:
-        engine.dispose()
-        if coord_engine is not engine:
-            coord_engine.dispose()
 
 
 async def _graph_synchronization_loop(interval_seconds: float) -> None:

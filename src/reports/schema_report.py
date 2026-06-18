@@ -77,13 +77,16 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     """
     Convert input to a list of validated top-relationship tuples.
 
-    Each tuple is (source, target, relationship_type, strength) where the first three elements are strings and `strength` is coerced to a float (defaults to 0.0 when not convertible).
+    Each tuple is (source, target, relationship_type, strength) where the first three
+    elements are strings and `strength` is coerced to a float (defaults to 0.0 when not convertible).
 
     Parameters:
-        value (Any): Expected to be a list of 4-element tuples; items that are not 4-tuples with string source, target, and relationship type are ignored.
+        value (Any): Expected to be a list of 4-element tuples; items that are not
+            4-tuples with string source, target, and relationship type are ignored.
 
     Returns:
-        list[tuple[str, str, str, float]]: Validated top-relationship tuples. Returns an empty list if `value` is not a list or contains no valid items.
+        list[tuple[str, str, str, float]]: Validated top-relationship tuples.
+            Returns an empty list if `value` is not a list or contains no valid items.
     """
     if not isinstance(value, list):
         return []
@@ -119,7 +122,8 @@ def _relationship_type_lines(metrics: Mapping[str, Any]) -> list[str]:
     Generate markdown bullet lines for each relationship type with its instance count.
 
     Parameters:
-        metrics (Mapping[str, Any]): Mapping that may contain "relationship_distribution", a mapping from relationship type string to integer count.
+        metrics (Mapping[str, Any]): Mapping that may contain "relationship_distribution",
+            a mapping from relationship type string to integer count.
 
     Returns:
         list[str]: Markdown lines like "- **{rel_type}**: {count} instances", sorted by descending count.
@@ -182,7 +186,8 @@ def _asset_class_lines(metrics: Mapping[str, Any]) -> list[str]:
     Generate markdown bullet lines describing the number of assets per asset class.
 
     Parameters:
-        metrics (Mapping[str, Any]): Metrics mapping that may contain the key "asset_class_distribution" whose value is a mapping of asset class names to integer counts.
+        metrics (Mapping[str, Any]): Metrics mapping that may contain the key "asset_class_distribution"
+            whose value is a mapping of asset class names to integer counts.
 
     Returns:
         list[str]: Markdown-formatted lines, each like "- **{asset_class}**: {count} assets".
@@ -243,7 +248,7 @@ def _business_rules_lines() -> list[str]:
     Returns:
         list[str]: Ordered markdown lines for the "Business Rules & Constraints" section.
     """
-    from src.config.settings import get_settings
+    from src.config.settings import get_settings  # pylint: disable=import-outside-toplevel
 
     settings = get_settings()
     return [
@@ -251,7 +256,10 @@ def _business_rules_lines() -> list[str]:
         "## Business Rules & Constraints",
         "",
         "### Cross-Asset Rules",
-        f"- **Sector Affinity**: Assets in the same sector are linked with strength {settings.same_sector_strength:.2f} (bidirectional)",
+        (
+            "- **Sector Affinity**: Assets in the same sector are linked with "
+            f"strength {settings.same_sector_strength:.2f} (bidirectional)"
+        ),
         (
             "- **Corporate Bond Linkage**: A bond whose issuer_id matches "
             f"another asset creates a directional link (strength {settings.corporate_bond_strength:.2f})"
@@ -276,7 +284,8 @@ def _schema_optimization_lines(
     Build the Schema Optimization section lines including the data quality score and a density-based recommendation.
 
     Parameters:
-        metrics (Mapping[str, Any]): Mapping that may include 'quality_score' (a number between 0 and 1) used to format the Data Quality Score.
+        metrics (Mapping[str, Any]): Mapping that may include 'quality_score' (a number between 0 and 1)
+            used to format the Data Quality Score.
         density (float): Network relationship density as a percentage used to determine the recommendation text.
 
     Returns:
@@ -295,8 +304,10 @@ def _schema_optimization_lines(
 
 
 def _implementation_notes_lines() -> list[str]:
-    """
-    Provide static markdown lines for the "Implementation Notes" section describing formatting and normalization conventions (timestamp format, strength normalization, impact score range, and relationship directionality).
+    """Provide static markdown lines for the "Implementation Notes" section.
+
+    This describes formatting and normalization conventions (timestamp format,
+    strength normalization, impact score range, and relationship directionality).
 
     Returns:
         lines (list[str]): A list of markdown strings forming the Implementation Notes section.

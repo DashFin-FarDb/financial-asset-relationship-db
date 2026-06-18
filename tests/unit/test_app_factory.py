@@ -296,7 +296,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
         if sleep_calls > 1:
             raise asyncio.CancelledError()
 
-    monkeypatch.setattr(app_factory.asyncio, "sleep", mock_sleep)
+    monkeypatch.setattr("src.logic.reconciliation_loop.asyncio.sleep", mock_sleep)
     monkeypatch.setattr(
         app_factory,
         "get_runtime_lifecycle_state",
@@ -305,9 +305,24 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 
     # Run the loop (it will run once, then sleep again, which raises CancelledError, terminating it)
     with pytest.raises(asyncio.CancelledError):
-        await app_factory._periodic_reconciliation_loop(
-            interval_seconds=0.1, settings=cast(Any, base_settings)
-        )  # pylint: disable=protected-access
+        from src.logic.reconciliation_loop import periodic_reconciliation_loop
+
+        async def fake_run_with_trace(fn, **kwargs):
+            """Mock run_with_trace function."""
+            future: asyncio.Future[None] = asyncio.Future()
+            future.set_result(None)
+            await future
+            return fn()
+
+        await periodic_reconciliation_loop(
+            interval_seconds=0.1,
+            database_url=base_settings.database_url,
+            is_shutdown_fn=lambda: False,
+            run_with_trace_fn=fake_run_with_trace,
+            coordination_database_url=base_settings.database_url,
+            cancel_event=None,
+            lock_ttl_seconds=300,
+        )
 
     assert ensure_safe_called == [True]
 

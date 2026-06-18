@@ -72,10 +72,10 @@ def test_execution_blocked_error_exposes_action_for_unsafe(mock_session_factory,
     # LOST → UNSAFE; verify action and inconsistency_type attributes.
     with pytest.raises(ExecutionBlockedError) as exc_info:
         gate.ensure_safe_to_execute()
-    assert exc_info.value.action == "unsafe"
-    # LOST is a LockState, not an InconsistencyType; the early-return path sets
-    # inconsistency_type=None since no named inconsistency detection was performed.
-    assert exc_info.value.inconsistency_type is None
+    assert exc_info.value.action == "alert_only"
+    # The new engine properly models lock_lost as a drift_type, so we expect "lock_lost"
+    # rather than None.
+    assert exc_info.value.inconsistency_type == "lock_lost"
 
 
 def test_recovery_gate_blocks_on_lost_lock(mock_session_factory, mock_lock):
@@ -88,7 +88,7 @@ def test_recovery_gate_blocks_on_lost_lock(mock_session_factory, mock_lock):
     )
 
     # Verify both decision API and execution blocking
-    assert gate.evaluate_state() == RecoveryAction.UNSAFE
+    assert gate.evaluate_state() == "alert_only"
 
     with pytest.raises(ExecutionBlockedError, match="Execution blocked"):
         gate.ensure_safe_to_execute()
@@ -109,8 +109,8 @@ def test_recovery_gate_lost_state_does_not_attempt_reset(mock_session_factory, m
         runtime_has_active_executor=False,
     )
 
-    # LOST state should block with action=unsafe
-    with pytest.raises(ExecutionBlockedError, match="action=unsafe"):
+    # LOST state should block with action=alert_only
+    with pytest.raises(ExecutionBlockedError, match="action=alert_only"):
         gate.ensure_safe_to_execute()
 
     mock_session_factory.assert_not_called()
@@ -154,7 +154,7 @@ def test_recovery_gate_blocks_on_orphan_with_valid_lock(mock_session_factory, mo
 
     with pytest.MonkeyPatch.context() as m:
         m.setattr("src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob())
-        assert gate.evaluate_state() == RecoveryAction.UNSAFE
+        assert gate.evaluate_state() == "alert_only"
         with pytest.raises(ExecutionBlockedError, match="Execution blocked"):
             gate.ensure_safe_to_execute()
 
@@ -183,7 +183,7 @@ def test_recovery_gate_increments_recovery_metric_on_detected_inconsistency(
     monkeypatch.setattr(
         "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: DummyJob()
     )
-    assert gate.evaluate_state() == RecoveryAction.UNSAFE
+    assert gate.evaluate_state() == "alert_only"
     assert metric_calls == [InconsistencyType.ORPHANED_RUNNING.value]
 
 
@@ -205,7 +205,7 @@ def test_recovery_gate_blocks_when_multiple_running_jobs_detected(mock_session_f
         "src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state",
         _raise_multiple_running,
     )
-    assert gate.evaluate_state() == RecoveryAction.UNSAFE
+    assert gate.evaluate_state() == "alert_only"
     # Error paths do not increment recovery triggers per _create_unsafe_decision_from_error
     # See recovery_gate.py lines 78-86: early return before metric increment
     assert metric_calls == []

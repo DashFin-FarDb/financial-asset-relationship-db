@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, MutableMapping
 
 from api.metrics import HTTP_REQUEST_DURATION_SECONDS, HTTP_REQUESTS_IN_FLIGHT, HTTP_REQUESTS_TOTAL
 from src.observability.facade import ObservabilityEvent, log_event
@@ -55,7 +55,7 @@ class RequestMetricsMiddleware:
 
         status_code = 500
 
-        async def send_wrapper(message: dict[str, Any]) -> None:
+        async def send_wrapper(message: "MutableMapping[str, Any]") -> None:
             """Wrap ASGI send to capture response status code."""
             nonlocal status_code
             if message["type"] == "http.response.start":
