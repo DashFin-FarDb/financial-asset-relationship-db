@@ -296,7 +296,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
         if sleep_calls > 1:
             raise asyncio.CancelledError()
 
-    monkeypatch.setattr(app_factory.asyncio, "sleep", mock_sleep)
+    monkeypatch.setattr("src.logic.reconciliation_loop.asyncio.sleep", mock_sleep)
     monkeypatch.setattr(
         app_factory,
         "get_runtime_lifecycle_state",

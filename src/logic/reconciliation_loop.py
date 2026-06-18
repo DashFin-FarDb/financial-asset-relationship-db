@@ -132,15 +132,28 @@ async def periodic_reconciliation_loop(
                 if is_shutdown_fn():
                     return
 
-                await run_with_trace_fn(
-                    lambda: _run_sync_reconciliation(
-                        engine=engine,
-                        coord_engine=coord_engine,
-                        cancel_event=cancel_event,
-                        lock_ttl=lock_ttl,
-                    ),
-                    to_thread=True,
+                task = asyncio.create_task(
+                    run_with_trace_fn(
+                        lambda: _run_sync_reconciliation(
+                            engine=engine,
+                            coord_engine=coord_engine,
+                            cancel_event=cancel_event,
+                            lock_ttl=lock_ttl,
+                        ),
+                        to_thread=True,
+                    )
                 )
+
+                try:
+                    await asyncio.shield(task)
+                except asyncio.CancelledError:
+                    if cancel_event:
+                        cancel_event.set()
+                    try:
+                        await task
+                    except Exception:
+                        pass
+                    raise
 
                 # Reset interval on successful iteration
                 if is_in_error_state:
