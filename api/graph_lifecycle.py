@@ -557,8 +557,9 @@ def _initialize_fallback_graph(
                 ),
             )
 
+    final_source = GraphStartupSource.EMPTY_PERSISTENCE_FALLBACK if persistence_enabled else source_id
     return graph, _create_metadata(
-        source=source_id,
+        source=final_source,
         graph=graph,
         persistence_enabled=persistence_enabled,
         persistence_saved=persistence_saved,
@@ -596,19 +597,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
         )
 
     # 2. Persisted graph
-    try:
-        persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(db_url)
-    except Exception as exc:
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="graph_startup_persistence_load_exception",
-                message=("Failed to load persisted graph, falling back " f"(exception_type={type(exc).__name__})"),
-                metadata={"error": type(exc).__name__},
-            ),
-        )
-        persisted_graph = None
+    persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(db_url)
 
     if persisted_graph is not None:
         log_event(
