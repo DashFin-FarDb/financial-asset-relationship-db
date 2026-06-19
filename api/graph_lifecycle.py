@@ -13,7 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Final
+from typing import Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.observability.events import ObservabilityEvent
@@ -442,7 +442,7 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 
 def _initialize_fallback_graph(
-    settings: Any,
+    settings: graph_lifecycle_providers.GraphLifecycleSettings,
     db_url: str | None,
     persistence_enabled: bool,
     _create_metadata: Callable[..., GraphStartupMetadata],
@@ -524,6 +524,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
         persistence_saved: bool = False,
         fallback_reason: str | None = None,
     ) -> GraphStartupMetadata:
+        """Create and populate a GraphStartupMetadata record for the initialized graph."""
         return GraphStartupMetadata(
             source=source,
             persistence_enabled=persistence_enabled,
