@@ -11,7 +11,7 @@ from sqlalchemy import exc as sqlalchemy_exc
 from sqlalchemy.orm import Session
 
 from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockState
-from src.data.repository import AssetGraphRepository
+from src.data.repository import AssetGraphRepository, RebuildFailureDetails
 from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
 from src.logic.rebuild_failure_detection import InconsistencyType
 from src.logic.reconciliation_engine import (
@@ -145,7 +145,7 @@ class RecoveryGate:
         import src.logic.rebuild_drift_evaluator as drift_evaluator_module
 
         orig_repo = getattr(drift_evaluator_module, "AssetGraphRepository", None)
-        setattr(drift_evaluator_module, "AssetGraphRepository", AssetGraphRepository)
+        drift_evaluator_module.AssetGraphRepository = AssetGraphRepository
 
         try:
             try:
@@ -165,7 +165,7 @@ class RecoveryGate:
                 return self._create_unsafe_plan_from_error(exc, "unexpected error during rebuild state query", "error")
         finally:
             if orig_repo is not None:
-                setattr(drift_evaluator_module, "AssetGraphRepository", orig_repo)
+                drift_evaluator_module.AssetGraphRepository = orig_repo
 
         if increment_metric and plan.drift_type != InconsistencyType.NONE.value:
             # Handle possible conversion errors if drift_type isn't an InconsistencyType enum value
@@ -382,9 +382,11 @@ class RecoveryGate:
                 repo.mark_rebuild_job_failed(
                     active_job.job_id,
                     execution_id=active_job.execution_id,
-                    failure_category="recovery_reset",
-                    failure_message="Recovered from orphaned state by RecoveryGate",
-                    duration_ms=0,
+                    details=RebuildFailureDetails(
+                        failure_category="recovery_reset",
+                        failure_message="Recovered from orphaned state by RecoveryGate",
+                        duration_ms=0,
+                    ),
                 )
                 session.commit()
                 log_event(

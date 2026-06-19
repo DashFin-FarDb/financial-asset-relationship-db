@@ -15,6 +15,7 @@ from .protocols import (
     LockStateSnapshot,
     LockWriteResult,
     RebuildCancellationRequestedError,
+    RebuildFailureDetails,
 )
 from .repository import (
     AssetGraphRepository,
@@ -33,6 +34,7 @@ __all__ = [
     "ICoordinationLockRepository",
     "LockStateSnapshot",
     "LockWriteResult",
+    "RebuildFailureDetails",
     "RelationshipRecord",
     "RebuildCancellationRequestedError",
     "RebuildJobORM",

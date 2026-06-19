@@ -1,5 +1,6 @@
 """Tests for startup reconciliation via RecoveryGate."""
 
+from datetime import UTC
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -84,17 +85,17 @@ def test_gate_waits_on_unknown_lock_with_no_active_job(mock_session_factory, moc
 
 def test_startup_reconciliation_performs_reset_for_orphaned_job(mock_session_factory, mock_lock):
     """Test that startup reconciliation performs RESET recovery for orphaned job."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     # Setup: Orphaned RUNNING job in DB
     orphaned_job = RebuildJobORM(
         job_id="orphaned-job-1",
         requested_by="previous-worker",
         status=RebuildJobStatus.RUNNING,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
         active_worker_id="dead-worker",
-        last_heartbeat_at=datetime(2020, 1, 1, tzinfo=timezone.utc),  # Very stale
+        last_heartbeat_at=datetime(2020, 1, 1, tzinfo=UTC),  # Very stale
     )
 
     mock_repo = MagicMock()
@@ -181,17 +182,17 @@ def test_startup_reconciliation_blocks_on_db_error(mock_session_factory, mock_lo
 
 def test_startup_reconciliation_blocks_on_fresh_remote_heartbeat(mock_session_factory, mock_lock):
     """Test that startup reconciliation blocks when remote worker has fresh heartbeat."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     # Setup: RUNNING job with different worker but FRESH heartbeat
     remote_job = RebuildJobORM(
         job_id="remote-job-1",
         requested_by="remote-worker",
         status=RebuildJobStatus.RUNNING,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
         active_worker_id="remote-worker-id",  # Different from lock holder
-        last_heartbeat_at=datetime.now(timezone.utc),  # Fresh heartbeat
+        last_heartbeat_at=datetime.now(UTC),  # Fresh heartbeat
     )
 
     mock_repo = MagicMock()
@@ -212,17 +213,17 @@ def test_startup_reconciliation_blocks_on_fresh_remote_heartbeat(mock_session_fa
 
 def test_startup_reconciliation_reacquires_lock_before_reset(mock_session_factory, mock_lock):
     """Test that startup reconciliation reacquires lock if expired before RESET."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     # Setup: Orphaned job + expired lock
     orphaned_job = RebuildJobORM(
         job_id="orphaned-job-2",
         requested_by="previous-worker",
         status=RebuildJobStatus.RUNNING,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
         active_worker_id="dead-worker",
-        last_heartbeat_at=datetime(2020, 1, 1, tzinfo=timezone.utc),
+        last_heartbeat_at=datetime(2020, 1, 1, tzinfo=UTC),
     )
 
     # First check: EXPIRED (initial eval), second check (during RESET): EXPIRED,

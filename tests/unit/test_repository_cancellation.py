@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.data.db_models import Base, RebuildJobStatus
-from src.data.repository import AssetGraphRepository, RebuildCancellationRequestedError
+from src.data.repository import AssetGraphRepository, RebuildCancellationRequestedError, RebuildFailureDetails
 
 pytestmark = pytest.mark.unit
 
@@ -58,9 +58,7 @@ def test_mark_rebuild_job_cancel_requested_fails_for_terminal_status(repo: Asset
     repo.mark_rebuild_job_failed(
         job_id_fail,
         execution_id="exec-fail",
-        failure_category="unexpected_error",
-        failure_message="oops",
-        duration_ms=100,
+        details=RebuildFailureDetails(failure_category="unexpected_error", failure_message="oops", duration_ms=100),
     )
 
     with pytest.raises(ValueError, match="Cannot transition job .* to cancel_requested"):

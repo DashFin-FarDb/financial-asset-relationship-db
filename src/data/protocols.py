@@ -15,6 +15,7 @@ from .repository import (
     LockStateSnapshot,
     LockWriteResult,
     RebuildCancellationRequestedError,
+    RebuildFailureDetails,
     RelationshipRecord,
 )
 
@@ -148,9 +149,7 @@ class IAssetGraphRepository(Protocol):
         """Transition a job to CANCELLED."""
         ...
 
-    def mark_rebuild_job_failed(
-        self, job_id: str, *, execution_id: str | None, failure_category: str, failure_message: str, duration_ms: int
-    ) -> None:
+    def mark_rebuild_job_failed(self, job_id: str, *, execution_id: str | None, details: RebuildFailureDetails) -> None:
         """Transition a job to FAILED and record failure details."""
         ...
 

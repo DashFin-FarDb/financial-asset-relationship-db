@@ -25,6 +25,8 @@ os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
 
+from datetime import UTC
+
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
     AssetClass,
@@ -295,7 +297,7 @@ def mock_lock():
 @pytest.fixture
 def mock_rebuild_job():
     """Create mock rebuild jobs with specific configurations."""
-    from datetime import datetime, timezone
+    from datetime import datetime
     from unittest.mock import Mock
 
     from src.data.db_models import RebuildJobStatus
@@ -309,7 +311,7 @@ def mock_rebuild_job():
         if status is None:
             status = RebuildJobStatus.RUNNING
         if heartbeat_at is None:
-            heartbeat_at = datetime.now(timezone.utc)
+            heartbeat_at = datetime.now(UTC)
 
         job = Mock()
         job.job_id = job_id

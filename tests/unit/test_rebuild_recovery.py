@@ -1,6 +1,6 @@
 """Unit tests for rebuild recovery decision logic (Stage 5C.1)."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -11,7 +11,7 @@ from src.logic.rebuild_recovery import RecoveryAction, determine_recovery_action
 @pytest.fixture
 def current_time():
     """Current timestamp for testing."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @pytest.fixture
