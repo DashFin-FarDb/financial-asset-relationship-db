@@ -13,7 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Final
+from typing import Any, Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.observability.events import ObservabilityEvent
@@ -39,6 +39,25 @@ class GraphStartupSource(str, Enum):  # noqa: UP042
     FAILED = "failed"
     CACHE = "cache"
     EXPLICIT_FACTORY = "explicit_factory"
+
+
+_PROVIDER_SOURCE_TO_STARTUP_SOURCE: Final[dict[str, GraphStartupSource]] = {
+    "cache": GraphStartupSource.CACHE,
+    "real_data": GraphStartupSource.REAL_DATA,
+    "sample": GraphStartupSource.SAMPLE_DATA,
+}
+
+
+def _resolve_provider_source(raw_source: str) -> GraphStartupSource:
+    """Map a provider-reported GraphRebuildSource string to a GraphStartupSource enum value.
+
+    Handles vocabulary mismatch between the provider layer (which reports ``sample``)
+    and the lifecycle enum (which uses ``sample_data``).
+    """
+    try:
+        return _PROVIDER_SOURCE_TO_STARTUP_SOURCE[raw_source]
+    except KeyError:
+        return GraphStartupSource(raw_source)
 
 
 @dataclass
@@ -444,21 +463,18 @@ def _initialize_graph() -> AssetRelationshipGraph:
 def _create_metadata(
     source: str,
     graph: AssetRelationshipGraph,
-    persistence_enabled: bool,
-    persistence_loaded: bool = False,
-    persistence_saved: bool = False,
-    fallback_reason: str | None = None,
+    **kwargs: Any,
 ) -> GraphStartupMetadata:
     """Create and populate a GraphStartupMetadata record for the initialized graph."""
     return GraphStartupMetadata(
         source=source,
-        persistence_enabled=persistence_enabled,
-        persistence_loaded=persistence_loaded,
-        persistence_saved=persistence_saved,
-        fallback_reason=fallback_reason,
         loaded_asset_count=len(graph.assets),
         loaded_relationship_count=sum(len(edges) for edges in graph.relationships.values()),
         startup_timestamp=datetime.now(timezone.utc),
+        persistence_enabled=kwargs.get("persistence_enabled", False),
+        persistence_loaded=kwargs.get("persistence_loaded", False),
+        persistence_saved=kwargs.get("persistence_saved", False),
+        fallback_reason=kwargs.get("fallback_reason", None),
     )
 
 
@@ -475,17 +491,17 @@ def _initialize_fallback_graph(
     graph: AssetRelationshipGraph | None = None
 
     if cache_path:
-        graph, _ = graph_lifecycle_providers.load_graph_from_cache_path(
+        graph, _raw_source = graph_lifecycle_providers.load_graph_from_cache_path(
             cache_path,
             enable_network=use_real_data,
         )
-        source_id = GraphStartupSource.CACHE
+        source_id = _resolve_provider_source(_raw_source)
     elif use_real_data:
         real_data_cache_path = getattr(settings, "real_data_cache_path", None)
-        graph, _ = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
+        graph, _raw_source = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
             real_data_cache_path,
         )
-        source_id = GraphStartupSource.REAL_DATA
+        source_id = _resolve_provider_source(_raw_source)
     else:
         log_event(
             logger,
@@ -549,10 +565,25 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
     # 1. Explicit factory
     if graph_state.graph_factory is not None:
         factory_graph = graph_state.graph_factory()
-        return factory_graph, _create_metadata(GraphStartupSource.EXPLICIT_FACTORY, factory_graph, persistence_enabled)
+        return factory_graph, _create_metadata(
+            GraphStartupSource.EXPLICIT_FACTORY, factory_graph, persistence_enabled=persistence_enabled
+        )
 
     # 2. Persisted graph
-    persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(db_url)
+    try:
+        persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(db_url)
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_startup_persistence_load_exception",
+                message=f"Failed to load persisted graph, falling back: {exc}",
+                metadata={"error": str(exc)},
+            ),
+        )
+        persisted_graph = None
+
     if persisted_graph is not None:
         log_event(
             logger,
@@ -583,7 +614,10 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
             )
 
         return persisted_graph, _create_metadata(
-            GraphStartupSource.PERSISTED, persisted_graph, persistence_enabled, persistence_loaded=True
+            GraphStartupSource.PERSISTED,
+            persisted_graph,
+            persistence_enabled=persistence_enabled,
+            persistence_loaded=True,
         )
 
     return _initialize_fallback_graph(settings, db_url, persistence_enabled)
