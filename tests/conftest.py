@@ -25,7 +25,7 @@ os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
 
-from datetime import UTC
+from datetime import UTC  # noqa: E402
 
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
@@ -187,20 +187,20 @@ def _reset_graph():
     yield
 
 
+def _set_sqlite_pragma(dbapi_connection: Any, _connection_record: Any) -> None:
+    """Execute PRAGMA foreign_keys=ON for an SQLite connection."""
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+
 def enable_sqlite_foreign_keys(engine: Engine) -> None:
     """Ensure SQLite engines enforce foreign-key constraints in tests."""
     if engine.url.get_backend_name() != "sqlite":
         return
 
-    if getattr(engine, "_sqlite_fk_enabled", False):
-        return
-    engine._sqlite_fk_enabled = True  # type: ignore[attr-defined]
-
-    @event.listens_for(engine, "connect")
-    def _set_sqlite_pragma(dbapi_connection: Any, _connection_record: Any) -> None:
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
+    if not event.contains(engine, "connect", _set_sqlite_pragma):
+        event.listen(engine, "connect", _set_sqlite_pragma)
 
 
 def pytest_addoption(parser: Any) -> None:
