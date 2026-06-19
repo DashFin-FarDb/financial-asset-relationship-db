@@ -552,8 +552,8 @@ def _initialize_fallback_graph(
                 logging.ERROR,
                 ObservabilityEvent(
                     event="graph_startup_persistence_save_failed",
-                    message=f"Failed to persist fallback graph during startup: {e}",
-                    metadata={"error": str(e)},
+                    message=f"Failed to persist fallback graph during startup: {type(e).__name__}",
+                    metadata={"error": type(e).__name__},
                 ),
             )
 
