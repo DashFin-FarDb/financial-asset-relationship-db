@@ -3,7 +3,7 @@
 import asyncio
 import re
 import uuid
-from typing import Callable
+from collections.abc import Callable
 
 import pytest
 from fastapi import FastAPI, Request

@@ -3,9 +3,9 @@
 import json
 import threading
 import time
+from collections.abc import AsyncGenerator, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import AsyncGenerator, Iterator
 from unittest.mock import MagicMock, patch
 
 import httpx

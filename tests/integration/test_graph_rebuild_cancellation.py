@@ -6,7 +6,6 @@ import threading
 import time
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient

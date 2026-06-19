@@ -33,7 +33,7 @@ from api.auth import (
 from api.graph_lifecycle import reset_graph
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
-from src.data.repository import AssetGraphRepository, session_scope
+from src.data.repository import AssetGraphRepository, RebuildFailureDetails, session_scope
 
 pytestmark = pytest.mark.integration
 
@@ -649,9 +649,9 @@ def test_get_rebuild_job_exposes_sanitized_failure_fields(
             repo.mark_rebuild_job_failed(
                 job_id,
                 execution_id=execution_id,
-                failure_category="database_error",
-                failure_message="Connection timeout",
-                duration_ms=2000,
+                details=RebuildFailureDetails(
+                    failure_category="database_error", failure_message="Connection timeout", duration_ms=2000
+                ),
             )
 
         response = operator_client.get(f"/api/graph/rebuild/jobs/{job_id}")

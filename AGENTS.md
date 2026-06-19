@@ -319,6 +319,7 @@ Configuration + persistence:
 ## Repo-specific conventions to keep in mind
 
 - **Production architecture:** FastAPI + Next.js is the declared production stack. Prioritize work on this stack. See `.github/AUTOMATION_SCOPE_POLICY.md`.
+- **Enterprise Readiness:** The system is transitioning to an enterprise-grade posture. Refer to `docs/enterprise-readiness-index.md` for the audit, roadmap, and PR plan. Ensure work aligns with these plans, particularly the rule that **durable persistence is the gating dependency** for restart, promotion, and DR. SQLite compatibility must be preserved.
 - **PR scope guardrails:** All PRs must include Primary Objective, In Scope, Out of Scope, Files Expected to Change, Validation Commands, and Merge Criteria.
 - **High-risk work:** Database, auth, deployment, CI, security scanner config, and persistence changes require low-autonomy contracts. See "High-risk change control" in `.github/AI_AGENT_GUARDRAILS.md`.
 - **Runtime configuration:** use `src/config/settings.py` and `load_settings()` or `get_settings()` for centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`), CORS settings, and database URL resolution are centralized through the settings layer. Some legacy/runtime seams may still use direct `os.getenv()` access where migration has been intentionally deferred; do not assume full migration away from environment reads.

@@ -275,6 +275,15 @@ def session_scope(
         session.close()
 
 
+@dataclass(frozen=True, slots=True)
+class RebuildFailureDetails:
+    """Encapsulates failure metadata for a rebuild job."""
+
+    failure_category: str
+    failure_message: str
+    duration_ms: int
+
+
 @dataclass
 class RelationshipRecord:
     """Lightweight relationship representation returned by the repository."""
@@ -1400,9 +1409,7 @@ class AssetGraphRepository:
         job_id: str,
         *,
         execution_id: str | None,
-        failure_category: str,
-        failure_message: str,
-        duration_ms: int,
+        details: RebuildFailureDetails,
     ) -> None:
         """
         Mark rebuild job as failed and persist sanitized failure metadata atomatically.
@@ -1419,10 +1426,10 @@ class AssetGraphRepository:
                 execution_id mismatches, or failure metadata exceeds bounds.
         """
         self._validate_failure_metadata(
-            failure_category=failure_category,
-            failure_message=failure_message,
+            failure_category=details.failure_category,
+            failure_message=details.failure_message,
         )
-        self._validate_non_negative_metrics(duration_ms=duration_ms)
+        self._validate_non_negative_metrics(duration_ms=details.duration_ms)
 
         # Flush any pending ORM changes to ensure UPDATE sees current state
         self.session.flush()
@@ -1447,9 +1454,9 @@ class AssetGraphRepository:
                 status=RebuildJobStatus.FAILED,
                 completed_at=now,
                 updated_at=now,
-                sanitized_failure_category=failure_category,
-                sanitized_failure_message=failure_message,
-                duration_ms=duration_ms,
+                sanitized_failure_category=details.failure_category,
+                sanitized_failure_message=details.failure_message,
+                duration_ms=details.duration_ms,
             )
         )
         result = self.session.execute(stmt)

@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
 # Ensure a clean SQLite database for the authentication layer before any modules import it.
 _db_path = Path(__file__).resolve().parent / "test_auth.db"
@@ -22,6 +24,8 @@ os.environ["ADMIN_PASSWORD"] = os.getenv("TEST_ADMIN_PASSWORD") or "changeme"
 os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
+
+from datetime import timezone  # noqa: E402
 
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
@@ -183,6 +187,22 @@ def _reset_graph():
     yield
 
 
+def _set_sqlite_pragma(dbapi_connection: Any, _connection_record: Any) -> None:
+    """Execute PRAGMA foreign_keys=ON for an SQLite connection."""
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+
+def enable_sqlite_foreign_keys(engine: Engine) -> None:
+    """Ensure SQLite engines enforce foreign-key constraints in tests."""
+    if engine.url.get_backend_name() != "sqlite":
+        return
+
+    if not event.contains(engine, "connect", _set_sqlite_pragma):
+        event.listen(engine, "connect", _set_sqlite_pragma)
+
+
 def pytest_addoption(parser: Any) -> None:
     """Register dummy coverage options when pytest-cov is unavailable."""
     if not _cov_plugin_available():
@@ -277,7 +297,7 @@ def mock_lock():
 @pytest.fixture
 def mock_rebuild_job():
     """Create mock rebuild jobs with specific configurations."""
-    from datetime import datetime, timezone
+    from datetime import datetime
     from unittest.mock import Mock
 
     from src.data.db_models import RebuildJobStatus

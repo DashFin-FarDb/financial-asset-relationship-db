@@ -30,3 +30,13 @@ The Issue Manager ensures abstract roadmap objectives are translated into immuta
 - **Single Invariant Principle:** One issue = one logical slice of the system. Cross-layer changes must be shredded into isolated issues.
 - **No Implied Context:** If a technical dependency or constraint isn't in the issue text, it doesn't exist.
 - **Immutable Boundaries:** Once assigned, scope is locked. Edge cases or peripheral optimizations require new issues.
+
+## 5. Enterprise Readiness & Production Gates
+
+All work must adhere to the Enterprise Readiness Roadmap and Release Checklist (`docs/enterprise-readiness-index.md`).
+
+- **Durable Persistence is the Gating Dependency:** Durable graph persistence is required for restart, promotion, and disaster recovery. When implementing persistence, **SQLite compatibility MUST be preserved** for local development.
+- **Promotion Requirements:** Bounded health checks are insufficient for promotion. Promotion to staging/production requires explicit durable graph-persistence smoke procedures.
+- **API Contracts:** Any changes to API contracts must eliminate ambiguity: density semantics must be normalized end-to-end, visualization payloads must be explicitly modeled, and pagination must be consistently applied.
+- **Distributed Hosting & Recovery:** Stale owners must never mutate state after a restart or lock loss. Rebuild cancellation, lock-loss, and multi-instance behavior must be deterministic.
+- **PR Scope Strictness:** Work mapped to the Enterprise Readiness PR Plan must contain **one primary decision per PR** and rigorously enforce stated out-of-scope boundaries.

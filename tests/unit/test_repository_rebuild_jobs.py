@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import create_engine
 
 from src.data.database import create_session_factory, init_db
-from src.data.repository import AssetGraphRepository
+from src.data.repository import AssetGraphRepository, RebuildFailureDetails
 
 
 @pytest.fixture
@@ -249,9 +249,11 @@ class TestRebuildJobRepository:
         repo.mark_rebuild_job_failed(
             job_id,
             execution_id="test_exec_id",
-            failure_category="rebuild_source_error",
-            failure_message="Failed to load graph from cache",
-            duration_ms=500,
+            details=RebuildFailureDetails(
+                failure_category="rebuild_source_error",
+                failure_message="Failed to load graph from cache",
+                duration_ms=500,
+            ),
         )
         repo.session.commit()
 
@@ -275,9 +277,11 @@ class TestRebuildJobRepository:
         repo.mark_rebuild_job_failed(
             job_id,
             execution_id="test_exec_id",
-            failure_category="persistence_not_configured",
-            failure_message="No persistence configured",
-            duration_ms=10,
+            details=RebuildFailureDetails(
+                failure_category="persistence_not_configured",
+                failure_message="No persistence configured",
+                duration_ms=10,
+            ),
         )
         repo.session.commit()
 
@@ -298,9 +302,7 @@ class TestRebuildJobRepository:
             repo.mark_rebuild_job_failed(
                 job_id,
                 execution_id="test_exec_id",
-                failure_category="x" * 65,
-                failure_message="error",
-                duration_ms=0,
+                details=RebuildFailureDetails(failure_category="x" * 65, failure_message="error", duration_ms=0),
             )
 
     def test_mark_rebuild_job_failed_message_too_long(self, repository_factory):
@@ -314,9 +316,7 @@ class TestRebuildJobRepository:
             repo.mark_rebuild_job_failed(
                 job_id,
                 execution_id="test_exec_id",
-                failure_category="error",
-                failure_message="x" * 513,
-                duration_ms=0,
+                details=RebuildFailureDetails(failure_category="error", failure_message="x" * 513, duration_ms=0),
             )
 
     def test_mark_rebuild_job_failed_invalid_transition(self, repository_factory):
@@ -337,9 +337,7 @@ class TestRebuildJobRepository:
             repo.mark_rebuild_job_failed(
                 job_id,
                 execution_id="test_exec_id",
-                failure_category="error",
-                failure_message="test",
-                duration_ms=0,
+                details=RebuildFailureDetails(failure_category="error", failure_message="test", duration_ms=0),
             )
 
     def test_mark_rebuild_job_failed_negative_duration(self, repository_factory):
@@ -353,9 +351,7 @@ class TestRebuildJobRepository:
             repo.mark_rebuild_job_failed(
                 job_id,
                 execution_id="test_exec_id",
-                failure_category="error",
-                failure_message="test",
-                duration_ms=-1,
+                details=RebuildFailureDetails(failure_category="error", failure_message="test", duration_ms=-1),
             )
 
     def test_get_rebuild_job_not_found(self, repository_factory):

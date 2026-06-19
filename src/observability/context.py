@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import contextlib
 import re
+from collections.abc import AsyncIterator, Iterator
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, AsyncIterator, Iterator
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from contextvars import Token

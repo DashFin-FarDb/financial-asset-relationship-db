@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from datetime import timezone
 from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import MagicMock
@@ -242,7 +243,6 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     monkeypatch.setattr("src.logic.rebuild_drift_evaluator.RebuildDriftEvaluator", MagicMock())
 
     # Mock ReconciliationEngine to return a reset plan with automatic execution mode
-    from datetime import timezone
 
     mock_plan = ReconciliationPlan(
         drift_type="orphaned_running",
