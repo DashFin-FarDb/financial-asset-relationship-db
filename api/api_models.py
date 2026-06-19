@@ -112,6 +112,10 @@ class GraphHealthResponse(BaseModel):
     lifecycle_state: str = "UNINITIALIZED"
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
+    startup_source: str = "unknown"
+    persistence_enabled: bool = False
+    persistence_loaded: bool = False
+    persistence_saved: bool = False
 
 
 class DatabaseHealthResponse(BaseModel):
