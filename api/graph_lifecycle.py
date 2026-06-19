@@ -477,7 +477,7 @@ def _create_metadata(
         persistence_loaded=kwargs.get("persistence_loaded", False),
         persistence_saved=kwargs.get("persistence_saved", False),
         fallback_reason=kwargs.get("fallback_reason"),
-)
+    )
 
 
 def _initialize_fallback_graph(
