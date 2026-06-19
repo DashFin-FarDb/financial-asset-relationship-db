@@ -216,10 +216,7 @@ def _assert_empty_db_uses_configured_source(
 
     # Guard against accidental save during fallback
     save_calls = []
-    monkeypatch.setattr(
-        AssetGraphRepository, "save_graph",
-        lambda *a, **kw: save_calls.append(("save_graph", a, kw))
-    )
+    monkeypatch.setattr(AssetGraphRepository, "save_graph", lambda *a, **kw: save_calls.append(("save_graph", a, kw)))
 
     configured_graph = _asset_only_graph()
 
