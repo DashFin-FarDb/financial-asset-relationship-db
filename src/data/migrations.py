@@ -236,7 +236,9 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
         cols_to_copy = ", ".join(cols_to_copy_list)
 
         # 3. Copy data
-        connection.execute(f"INSERT INTO rebuild_jobs_new ({cols_to_copy}) SELECT {cols_to_copy} FROM rebuild_jobs")
+        connection.execute(
+            f"INSERT INTO rebuild_jobs_new ({cols_to_copy}) SELECT {cols_to_copy} FROM rebuild_jobs"  # nosec B608
+        )
 
         # 4. Swap tables
         connection.execute("DROP TABLE rebuild_jobs")
