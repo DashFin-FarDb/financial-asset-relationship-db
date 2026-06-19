@@ -441,11 +441,31 @@ def _initialize_graph() -> AssetRelationshipGraph:
     return graph
 
 
+def _create_metadata(
+    source: str,
+    graph: AssetRelationshipGraph,
+    persistence_enabled: bool,
+    persistence_loaded: bool = False,
+    persistence_saved: bool = False,
+    fallback_reason: str | None = None,
+) -> GraphStartupMetadata:
+    """Create and populate a GraphStartupMetadata record for the initialized graph."""
+    return GraphStartupMetadata(
+        source=source,
+        persistence_enabled=persistence_enabled,
+        persistence_loaded=persistence_loaded,
+        persistence_saved=persistence_saved,
+        fallback_reason=fallback_reason,
+        loaded_asset_count=len(graph.assets),
+        loaded_relationship_count=sum(len(edges) for edges in graph.relationships.values()),
+        startup_timestamp=datetime.now(timezone.utc),
+    )
+
+
 def _initialize_fallback_graph(
     settings: graph_lifecycle_providers.GraphLifecycleSettings,
     db_url: str | None,
     persistence_enabled: bool,
-    _create_metadata: Callable[..., GraphStartupMetadata],
 ) -> tuple[AssetRelationshipGraph, GraphStartupMetadata]:
     """Initialize graph from fallback sources when persistence is unavailable or empty."""
     cache_path = getattr(settings, "graph_cache_path", None)
@@ -515,27 +535,6 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
     Returns:
         tuple[AssetRelationshipGraph, GraphStartupMetadata]: The initialized graph and its startup metadata.
     """
-
-    def _create_metadata(
-        source: str,
-        graph: AssetRelationshipGraph,
-        persistence_enabled: bool,
-        persistence_loaded: bool = False,
-        persistence_saved: bool = False,
-        fallback_reason: str | None = None,
-    ) -> GraphStartupMetadata:
-        """Create and populate a GraphStartupMetadata record for the initialized graph."""
-        return GraphStartupMetadata(
-            source=source,
-            persistence_enabled=persistence_enabled,
-            persistence_loaded=persistence_loaded,
-            persistence_saved=persistence_saved,
-            fallback_reason=fallback_reason,
-            loaded_asset_count=len(graph.assets),
-            loaded_relationship_count=sum(len(edges) for edges in graph.relationships.values()),
-            startup_timestamp=datetime.now(timezone.utc),
-        )
-
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
     db_url = _settings_asset_graph_database_url(settings)
 
@@ -587,7 +586,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
             GraphStartupSource.PERSISTED, persisted_graph, persistence_enabled, persistence_loaded=True
         )
 
-    return _initialize_fallback_graph(settings, db_url, persistence_enabled, _create_metadata)
+    return _initialize_fallback_graph(settings, db_url, persistence_enabled)
 
 
 def sync_with_latest_rebuild() -> None:
