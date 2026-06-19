@@ -93,7 +93,7 @@ class IAssetGraphRepository(Protocol):
         """Delete an asset and cascading relationships/events."""
         ...
 
-    def add_or_update_relationship(
+    def add_or_update_relationship(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self, source_id: str, target_id: str, rel_type: str, strength: float, bidirectional: bool = False
     ) -> None:
         """Create or update an asset relationship and stage it on the repository session."""
@@ -135,7 +135,7 @@ class IAssetGraphRepository(Protocol):
         """Transition a job from PENDING to RUNNING."""
         ...
 
-    def mark_rebuild_job_succeeded(
+    def mark_rebuild_job_succeeded(  # pylint: disable=too-many-arguments
         self, job_id: str, *, execution_id: str, node_count: int, edge_count: int, duration_ms: int
     ) -> None:
         """Transition a job to SUCCEEDED and record metrics."""
