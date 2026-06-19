@@ -462,20 +462,22 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 def _create_metadata(
     source: str,
-    graph: AssetRelationshipGraph,
+    graph: AssetRelationshipGraph | None,
     **kwargs: Any,
 ) -> GraphStartupMetadata:
     """Create and populate a GraphStartupMetadata record for the initialized graph."""
+    assets = getattr(graph, "assets", None) or {}
+    relationships = getattr(graph, "relationships", None) or {}
     return GraphStartupMetadata(
         source=source,
-        loaded_asset_count=len(graph.assets),
-        loaded_relationship_count=sum(len(edges) for edges in graph.relationships.values()),
+        loaded_asset_count=len(assets),
+        loaded_relationship_count=sum(len(edges) for edges in relationships.values()),
         startup_timestamp=datetime.now(timezone.utc),
         persistence_enabled=kwargs.get("persistence_enabled", False),
         persistence_loaded=kwargs.get("persistence_loaded", False),
         persistence_saved=kwargs.get("persistence_saved", False),
         fallback_reason=kwargs.get("fallback_reason", None),
-    )
+)
 
 
 def _initialize_fallback_graph(
@@ -491,18 +493,42 @@ def _initialize_fallback_graph(
     graph: AssetRelationshipGraph | None = None
 
     if cache_path:
-        graph, _raw_source = graph_lifecycle_providers.load_graph_from_cache_path(
-            cache_path,
-            enable_network=use_real_data,
-        )
-        source_id = _resolve_provider_source(_raw_source)
-    elif use_real_data:
-        real_data_cache_path = getattr(settings, "real_data_cache_path", None)
-        graph, _raw_source = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
-            real_data_cache_path,
-        )
-        source_id = _resolve_provider_source(_raw_source)
-    else:
+        try:
+            graph, _raw_source = graph_lifecycle_providers.load_graph_from_cache_path(
+                cache_path,
+                enable_network=use_real_data,
+            )
+            source_id = _resolve_provider_source(_raw_source)
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_startup_cache_load_failed",
+                    message=f"Failed to load graph from cache path, falling back: {exc.__class__.__name__}",
+                    metadata={"error": exc.__class__.__name__},
+                ),
+            )
+
+    if graph is None and use_real_data:
+        try:
+            real_data_cache_path = getattr(settings, "real_data_cache_path", None)
+            graph, _raw_source = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
+                real_data_cache_path,
+            )
+            source_id = _resolve_provider_source(_raw_source)
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_startup_real_data_fetch_failed",
+                    message=f"Failed to fetch real data, falling back: {exc.__class__.__name__}",
+                    metadata={"error": exc.__class__.__name__},
+                ),
+            )
+
+    if graph is None:
         log_event(
             logger,
             logging.INFO,
