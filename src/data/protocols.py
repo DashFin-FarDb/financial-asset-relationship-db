@@ -123,7 +123,7 @@ class IAssetGraphRepository(Protocol):
         """Delete a regulatory event."""
         ...
 
-    def create_rebuild_job(self, *, requested_by: str, source: str | None = None) -> RebuildJobORM:
+    def create_rebuild_job(self, *, requested_by: str, source: str | None = None) -> str:
         """Create a new pending rebuild job."""
         ...
 
@@ -158,7 +158,7 @@ class IAssetGraphRepository(Protocol):
         ...
 
     def list_rebuild_jobs(
-        self, *, limit: int = 50, offset: int | None = None, status: str | None = None
+        self, *, limit: int | None = None, offset: int | None = None, status: str | None = None
     ) -> list[RebuildJobORM]:
         """List rebuild jobs, optionally filtered by status."""
         ...
