@@ -476,7 +476,7 @@ def _create_metadata(
         persistence_enabled=kwargs.get("persistence_enabled", False),
         persistence_loaded=kwargs.get("persistence_loaded", False),
         persistence_saved=kwargs.get("persistence_saved", False),
-        fallback_reason=kwargs.get("fallback_reason", None),
+        fallback_reason=kwargs.get("fallback_reason"),
 )
 
 
