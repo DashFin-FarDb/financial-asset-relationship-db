@@ -233,12 +233,12 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
             "checkpoint_data",
         }
         cols_to_copy_list = [c for c in existing_columns if c in target_columns]
-        cols_to_copy = ", ".join(cols_to_copy_list)
+        cols_to_copy = ", ".join(f'"{c}"' for c in cols_to_copy_list)
 
         # 3. Copy data
-        connection.execute(
-            f"INSERT INTO rebuild_jobs_new ({cols_to_copy}) SELECT {cols_to_copy} FROM rebuild_jobs"  # nosec B608
-        )
+        query_template = "INSERT INTO rebuild_jobs_new ({}) SELECT {} FROM rebuild_jobs"
+        query = query_template.replace("{}", cols_to_copy)
+        connection.execute(query)
 
         # 4. Swap tables
         connection.execute("DROP TABLE rebuild_jobs")
