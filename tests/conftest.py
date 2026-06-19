@@ -25,7 +25,7 @@ os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
 
-from datetime import UTC  # noqa: E402
+from datetime import timezone  # noqa: E402
 
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
@@ -311,7 +311,7 @@ def mock_rebuild_job():
         if status is None:
             status = RebuildJobStatus.RUNNING
         if heartbeat_at is None:
-            heartbeat_at = datetime.now(UTC)
+            heartbeat_at = datetime.now(timezone.utc)
 
         job = Mock()
         job.job_id = job_id
