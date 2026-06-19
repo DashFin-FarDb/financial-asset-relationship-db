@@ -7,15 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from src.data.db_models import RebuildJobStatus
 
-AssetGraphSource = Literal[
-    "persisted_graph_store",
-    "sample",
-    "cache",
-    "real_data",
-    "explicit_factory",
-    "unknown",
-]
-
 GraphRebuildSource = Literal[
     "cache",
     "real_data",
