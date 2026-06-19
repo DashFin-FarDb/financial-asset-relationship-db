@@ -145,7 +145,7 @@ class RecoveryGate:
         import src.logic.rebuild_drift_evaluator as drift_evaluator_module
 
         orig_repo = getattr(drift_evaluator_module, "AssetGraphRepository", None)
-        drift_evaluator_module.AssetGraphRepository = AssetGraphRepository
+        drift_evaluator_module.AssetGraphRepository = AssetGraphRepository  # type: ignore[misc]
 
         try:
             try:
@@ -165,7 +165,7 @@ class RecoveryGate:
                 return self._create_unsafe_plan_from_error(exc, "unexpected error during rebuild state query", "error")
         finally:
             if orig_repo is not None:
-                drift_evaluator_module.AssetGraphRepository = orig_repo
+                drift_evaluator_module.AssetGraphRepository = orig_repo  # type: ignore[misc]
 
         if increment_metric and plan.drift_type != InconsistencyType.NONE.value:
             # Handle possible conversion errors if drift_type isn't an InconsistencyType enum value

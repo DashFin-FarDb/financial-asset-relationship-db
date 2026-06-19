@@ -118,7 +118,7 @@ def test_startup_reconciliation_performs_reset_for_orphaned_job(mock_session_fac
         mock_repo.mark_rebuild_job_failed.assert_called_once()
         call_args = mock_repo.mark_rebuild_job_failed.call_args
         assert call_args[0][0] == "orphaned-job-1"
-        assert call_args[1]["failure_category"] == "recovery_reset"
+        assert call_args[1]["details"].failure_category == "recovery_reset"
 
 
 def test_startup_reconciliation_blocks_on_lost_lock_state(mock_session_factory, mock_lock):

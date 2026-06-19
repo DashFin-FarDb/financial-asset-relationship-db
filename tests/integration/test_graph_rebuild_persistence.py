@@ -421,7 +421,7 @@ async def test_lock_ttl_with_job_status_tracking(session_factory_provider, monke
 
         mock_repo.mark_rebuild_job_failed.assert_called_once()
         call_args = mock_repo.mark_rebuild_job_failed.call_args
-        error_msg = call_args[1].get("failure_message", call_args[0][2] if len(call_args[0]) > 2 else "")
+        error_msg = call_args[1]["details"].failure_message
         assert "Lock lease expired" in error_msg
 
 
