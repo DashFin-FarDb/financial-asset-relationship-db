@@ -85,19 +85,16 @@ def load_persisted_graph_if_available(
     """
     Attempt to load a persisted asset relationship graph from the configured durable database.
 
-    If no durable URL is configured or the resolved URL refers to an in-memory SQLite database, no load is
-    attempted and the function returns `None`.
+    If no durable URL is configured, the resolved URL refers to an in-memory SQLite database,
+    or an error occurs while loading, the function returns ``None`` and the error is logged.
 
     Parameters:
-        database_url (str | None): Persistence database URL or `None`. Whitespace-only or empty strings
-            are treated as unset.
+        database_url (str | None): Persistence database URL or ``None``. Whitespace-only or
+            empty strings are treated as unset.
 
     Returns:
-        AssetRelationshipGraph | None: The persisted graph if one was successfully loaded; `None` if
-            durable persistence is not configured or was skipped for an in-memory SQLite URL.
-
-    Raises:
-        RuntimeError: If an unexpected error occurs while attempting to load persisted data.
+        AssetRelationshipGraph | None: The persisted graph if one was successfully loaded;
+            ``None`` otherwise.
     """
     resolved_url = _resolve_persistence_database_url(database_url)
     if resolved_url is None:
@@ -119,7 +116,7 @@ def load_persisted_graph_if_available(
                 metadata={"error": exc.__class__.__name__},
             ),
         )
-        raise RuntimeError("Failed to load persisted graph during startup") from None
+        return None
 
 
 def load_graph_from_cache_path(
