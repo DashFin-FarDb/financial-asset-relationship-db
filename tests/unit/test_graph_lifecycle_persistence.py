@@ -210,10 +210,16 @@ def _assert_empty_db_uses_configured_source(
     provider_attr: str,
     expected_source: str,
 ) -> None:
-    """Verify empty DB falls through to configured provider and reports empty_persistence_fallback."""
     database_url = _sqlite_url(tmp_path)
     _init_empty_db(database_url)
     _configure_persistence_url(monkeypatch, database_url)
+
+    # Guard against accidental save during fallback
+    save_calls = []
+    monkeypatch.setattr(
+        AssetGraphRepository, "save_graph",
+        lambda *a, **kw: save_calls.append(("save_graph", a, kw))
+    )
 
     configured_graph = _asset_only_graph()
 
@@ -228,7 +234,7 @@ def _assert_empty_db_uses_configured_source(
     )
 
     graph, startup_source = _get_graph_with_source_for_test()
-
+    assert len(save_calls) == 0, "save_graph should not be called during empty-DB fallback"
     assert graph is configured_graph
     assert set(graph.assets) == {"ASSET_ONLY"}
     assert startup_source is not None
