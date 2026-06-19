@@ -6,7 +6,7 @@ import logging
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from time import sleep, time
 from typing import Any
@@ -51,7 +51,7 @@ class LockEvent:
     event_type: LockEventType
     lock_name: str
     holder_id: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -114,8 +114,9 @@ class DistributedLock:
         holder_id: str | None = None,
         ttl_seconds: int = 300,
     ) -> None:
-        """Create a DistributedLock configured with a database session factory, lock identity,
-        and optional observability hooks.
+        """Create a DistributedLock configured with a database session factory.
+
+        Configure with lock identity and optional observability hooks.
 
         Parameters:
             session_factory (Callable[[], Session] | None): Backward-compatible factory for DB sessions;
@@ -615,7 +616,7 @@ class DistributedLock:
             return LockState.UNKNOWN
 
         if not snapshot.valid:
-            now = datetime.now(UTC)
+            now = datetime.now(timezone.utc)
             if snapshot.expires_at and snapshot.expires_at <= now:
                 return LockState.EXPIRED
             return LockState.UNKNOWN
