@@ -25,7 +25,12 @@ from sqlalchemy.orm import Session
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockLifecycleState, LockState
-from src.data.repository import RebuildFailureDetails, AssetGraphRepository, RebuildCancellationRequestedError, session_scope
+from src.data.repository import (
+    AssetGraphRepository,
+    RebuildCancellationRequestedError,
+    RebuildFailureDetails,
+    session_scope,
+)
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import RebuildCancelledError
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
@@ -1523,10 +1528,10 @@ def _mark_job_failed_safe(
             job_id,
             execution_id=execution_id,
             details=RebuildFailureDetails(
-            failure_category=_rebuild_failure_category(exc),
-            failure_message=_sanitize_failure_message(exc),
-            duration_ms=duration_ms
-        ),
+                failure_category=_rebuild_failure_category(exc),
+                failure_message=_sanitize_failure_message(exc),
+                duration_ms=duration_ms,
+            ),
         ),
         "Failed to persist rebuild job failure state.",
     )
