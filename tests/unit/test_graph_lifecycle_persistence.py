@@ -505,7 +505,7 @@ def test_invalid_configured_database_url_falls_back_without_leaking_url(
     _configure_persistence_url(monkeypatch, raw_url)
 
     with caplog.at_level(logging.ERROR):
-        metadata = graph_lifecycle.initialize_graph_runtime()
+        _, metadata = graph_lifecycle.initialize_graph_runtime()
 
     assert metadata is not None
     assert metadata.source == "sample_data"
