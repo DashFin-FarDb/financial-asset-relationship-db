@@ -551,7 +551,7 @@ def test_malformed_asset_class_persisted_row_fails_without_fallback(
     ],
     ids=["persisted_load_success", "empty_persistence_fallback", "persistence_failure"],
 )
-
+def test_startup_load_closes_session(
     setup_fn: Callable[[str], None],
     expect_error: bool,
     expected_close_count: int,
