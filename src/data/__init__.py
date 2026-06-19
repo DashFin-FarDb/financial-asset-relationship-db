@@ -12,14 +12,14 @@ from .db_models import (
 from .protocols import (
     IAssetGraphRepository,
     ICoordinationLockRepository,
-    LockStateSnapshot,
-    LockWriteResult,
-    RebuildCancellationRequestedError,
-    RebuildFailureDetails,
 )
 from .repository import (
     AssetGraphRepository,
     CoordinationLockRepository,
+    LockStateSnapshot,
+    LockWriteResult,
+    RebuildCancellationRequestedError,
+    RebuildFailureDetails,
     RelationshipRecord,
     session_scope,
 )

@@ -275,7 +275,7 @@ def session_scope(
         session.close()
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class RebuildFailureDetails:
     """Encapsulates failure metadata for a rebuild job."""
 

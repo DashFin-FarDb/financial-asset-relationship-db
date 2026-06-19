@@ -14,7 +14,6 @@ from .db_models import RebuildJobORM
 from .repository import (
     LockStateSnapshot,
     LockWriteResult,
-    RebuildCancellationRequestedError,
     RebuildFailureDetails,
     RelationshipRecord,
 )
@@ -193,5 +192,4 @@ __all__ = [
     "ICoordinationLockRepository",
     "LockStateSnapshot",
     "LockWriteResult",
-    "RebuildCancellationRequestedError",
 ]
