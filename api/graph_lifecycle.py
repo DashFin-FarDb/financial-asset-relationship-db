@@ -537,14 +537,13 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
         )
 
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
-    db_url = getattr(settings, "asset_graph_database_url", getattr(settings, "database_url", None))
+    db_url = _settings_asset_graph_database_url(settings)
 
     persistence_enabled = False
     if db_url is not None:
         try:
-            resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
-            if not graph_lifecycle_providers._is_in_memory_sqlite_url(resolved_url):
-                persistence_enabled = True
+            graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
+            persistence_enabled = True
         except Exception:
             pass
 
@@ -576,7 +575,10 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
                 logging.WARNING,
                 ObservabilityEvent(
                     event="graph_startup_job_id_initialization_failed",
-                    message=f"Failed to initialize last_synced_job_id during graph startup (exception_type={type(exc).__name__})",
+                    message=(
+                        "Failed to initialize last_synced_job_id during graph startup "
+                        f"(exception_type={type(exc).__name__})"
+                    ),
                     metadata={"error": type(exc).__name__},
                 ),
             )

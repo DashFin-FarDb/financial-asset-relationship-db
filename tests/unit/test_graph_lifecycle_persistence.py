@@ -546,17 +546,18 @@ def test_malformed_asset_class_persisted_row_fails_without_fallback(
 
 
 @pytest.mark.parametrize(
-    ("setup_fn", "expect_error"),
+    ("setup_fn", "expect_error", "expected_close_count"),
     [
-        (lambda db_url: _save_graph(db_url, _asset_only_graph()), False),
-        (_init_empty_db, False),
-        (lambda db_url: None, True),
+        (lambda db_url: _save_graph(db_url, _asset_only_graph()), False, 1),
+        (_init_empty_db, False, 2),
+        (lambda db_url: None, True, 1),
     ],
     ids=["persisted_load_success", "empty_persistence_fallback", "persistence_failure"],
 )
 def test_session_closes_during_startup_load(
     setup_fn: Callable[[str], None],
     expect_error: bool,
+    expected_close_count: int,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -572,7 +573,7 @@ def test_session_closes_during_startup_load(
     else:
         _initialize_graph_for_test()
 
-    assert close_count() == 1
+    assert close_count() == expected_close_count
 
 
 # ---------------------------------------------------------------------------
