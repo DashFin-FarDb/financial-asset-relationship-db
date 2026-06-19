@@ -36,6 +36,7 @@ from api.api_models import (
     RelationshipResponse,
     VisualizationDataResponse,
 )
+from api.graph_lifecycle import GraphStartupMetadata
 from api.graph_lifecycle_providers import GraphLifecycleSettings
 from api.main import app, validate_origin
 from api.router_helpers import _ASSET_CLASS_COLORS, _DEFAULT_COLOR, raise_asset_not_found, serialize_asset
@@ -699,6 +700,101 @@ class TestAPIEndpoints:
         data = response.json()
 
         assert "environment" not in data
+
+    def test_detailed_health_reports_persisted_startup_metadata_values(
+        self,
+        bare_client: TestClient,
+    ) -> None:
+        """Detailed health reports correct field values when graph was loaded from persisted store."""
+        from datetime import datetime, timezone
+
+        graph = Mock()
+        graph.assets = {"ASSET_A": Mock(), "ASSET_B": Mock()}
+        graph.relationships = {"ASSET_A": [Mock()]}
+
+        metadata = GraphStartupMetadata(
+            source="persisted",
+            persistence_enabled=True,
+            persistence_loaded=True,
+            persistence_saved=False,
+            fallback_reason=None,
+            loaded_asset_count=2,
+            loaded_relationship_count=1,
+            startup_timestamp=datetime.now(timezone.utc),
+        )
+
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            return_value=(graph, metadata),
+        ):
+            response = bare_client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["graph"]["startup_source"] == "persisted"
+        assert data["graph"]["persistence_enabled"] is True
+        assert data["graph"]["persistence_loaded"] is True
+        assert data["graph"]["persistence_saved"] is False
+
+    def test_detailed_health_reports_sample_startup_metadata_values(
+        self,
+        bare_client: TestClient,
+    ) -> None:
+        """Detailed health reports correct field values when graph was initialized from sample data."""
+        from datetime import datetime, timezone
+
+        graph = Mock()
+        graph.assets = {"ASSET_A": Mock()}
+        graph.relationships = {}
+
+        metadata = GraphStartupMetadata(
+            source="sample_data",
+            persistence_enabled=False,
+            persistence_loaded=False,
+            persistence_saved=False,
+            fallback_reason="persistence_disabled",
+            loaded_asset_count=1,
+            loaded_relationship_count=0,
+            startup_timestamp=datetime.now(timezone.utc),
+        )
+
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            return_value=(graph, metadata),
+        ):
+            response = bare_client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["graph"]["startup_source"] == "sample_data"
+        assert data["graph"]["persistence_enabled"] is False
+        assert data["graph"]["persistence_loaded"] is False
+        assert data["graph"]["persistence_saved"] is False
+
+    def test_detailed_health_reports_defaults_when_startup_metadata_absent(
+        self,
+        bare_client: TestClient,
+    ) -> None:
+        """Detailed health uses safe defaults when no startup metadata is available."""
+        graph = Mock()
+        graph.assets = {"ASSET_A": Mock()}
+        graph.relationships = {}
+
+        with patch(
+            "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
+            return_value=(graph, None),
+        ):
+            response = bare_client.get("/api/health/detailed")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["graph"]["startup_source"] == "unknown"
+        assert data["graph"]["persistence_enabled"] is False
+        assert data["graph"]["persistence_loaded"] is False
+        assert data["graph"]["persistence_saved"] is False
 
     def test_get_assets_all(self, client):
         """Test getting all assets without filters."""

@@ -210,14 +210,10 @@ def _assert_empty_db_uses_configured_source(
     provider_attr: str,
     expected_source: str,
 ) -> None:
-    """Verify empty DB falls through to configured provider."""
+    """Verify empty DB falls through to configured provider and saves the fallback graph."""
     database_url = _sqlite_url(tmp_path)
     _init_empty_db(database_url)
     _configure_persistence_url(monkeypatch, database_url)
-
-    def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
-        """Fail if startup attempts to save graph data."""
-        raise AssertionError("startup load must not save graph data")
 
     configured_graph = _asset_only_graph()
 
@@ -225,7 +221,6 @@ def _assert_empty_db_uses_configured_source(
         """Provide the preconfigured fallback graph."""
         return configured_graph, expected_source
 
-    monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
     monkeypatch.setattr(
         graph_lifecycle_providers,
         provider_attr,
@@ -238,6 +233,9 @@ def _assert_empty_db_uses_configured_source(
     assert set(graph.assets) == {"ASSET_ONLY"}
     assert startup_source is not None
     assert startup_source.source == expected_source
+    # When persistence is configured and empty, the fallback graph is saved so subsequent
+    # restarts can immediately restore persisted state rather than rebuilding from scratch.
+    assert startup_source.persistence_saved is True
 
 
 # ---------------------------------------------------------------------------
@@ -483,44 +481,44 @@ def test_legacy_bidirectional_row_survives_startup_load(
 # ---------------------------------------------------------------------------
 
 
-def test_missing_schema_falls_back_to_sample(
+def test_missing_schema_fails_without_fallback(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Configured persistence with missing tables should fall back."""
+    """Configured persistence with missing tables should fail startup load."""
     database_url = _sqlite_url(tmp_path)
     _configure_persistence_url(monkeypatch, database_url)
 
-    _, metadata = graph_lifecycle.initialize_graph_runtime()
-    assert metadata is not None
-    assert metadata.source == graph_lifecycle.GraphStartupSource.SAMPLE_DATA
+    with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
+        _initialize_graph_for_test()
 
 
-def test_invalid_configured_database_url_falls_back_without_leaking_url(
+def test_invalid_configured_database_url_fails_without_leaking_url(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Ensure startup falls back on invalid URL without leaking secrets."""
+    """Ensure startup fails on invalid URL without leaking secrets."""
     raw_url = "not-a-real-driver://user:secret@example.invalid/db"
     _configure_persistence_url(monkeypatch, raw_url)
 
-    with caplog.at_level(logging.ERROR):
-        _, metadata = graph_lifecycle.initialize_graph_runtime()
+    with caplog.at_level(logging.DEBUG), pytest.raises(RuntimeError) as exc_info:
+        _initialize_graph_for_test()
 
-    assert metadata is not None
-    assert metadata.source == "sample_data"
-
+    assert exc_info.value.__suppress_context__ is True
+    message = str(exc_info.value)
+    assert "Failed to load persisted graph during startup" in message
+    assert "secret" not in message
+    assert raw_url not in message
     log_output = " ".join(record.getMessage() for record in caplog.records)
-    assert "Failed to load persisted graph" in log_output
     assert "secret" not in log_output
     assert raw_url not in log_output
 
 
-def test_malformed_asset_class_persisted_row_falls_back_to_sample(
+def test_malformed_asset_class_persisted_row_fails_without_fallback(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Configured persistence with a corrupt enum value should fall back to sample."""
+    """Configured persistence with a corrupt enum value should fail startup load."""
     database_url = _sqlite_url(tmp_path)
     engine = create_engine(database_url)
     init_db(engine)
@@ -536,9 +534,8 @@ def test_malformed_asset_class_persisted_row_falls_back_to_sample(
 
     _configure_persistence_url(monkeypatch, database_url)
 
-    _, metadata = graph_lifecycle.initialize_graph_runtime()
-    assert metadata is not None
-    assert metadata.source == graph_lifecycle.GraphStartupSource.SAMPLE_DATA
+    with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
+        _initialize_graph_for_test()
 
 
 # ---------------------------------------------------------------------------
@@ -551,11 +548,11 @@ def test_malformed_asset_class_persisted_row_falls_back_to_sample(
     [
         (lambda db_url: _save_graph(db_url, _asset_only_graph()), False, 1),
         (_init_empty_db, False, 2),
-        (lambda db_url: None, False, 2),
+        (lambda db_url: None, True, 1),
     ],
     ids=["persisted_load_success", "empty_persistence_fallback", "persistence_failure"],
 )
-def test_session_closes_during_startup_load(
+
     setup_fn: Callable[[str], None],
     expect_error: bool,
     expected_close_count: int,

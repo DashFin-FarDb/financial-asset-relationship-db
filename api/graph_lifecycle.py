@@ -595,7 +595,8 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
             GraphStartupSource.EXPLICIT_FACTORY, factory_graph, persistence_enabled=persistence_enabled
         )
 
-    # 2. Persisted graph
+    # 2. Persisted graph — fail-fast if persistence is configured but fails to load.
+    # Per #1272: no silent fallback from configured persistence corruption or failure.
     try:
         persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(db_url)
     except Exception as exc:
@@ -604,11 +605,12 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
             logging.ERROR,
             ObservabilityEvent(
                 event="graph_startup_persistence_load_exception",
-                message=("Failed to load persisted graph, falling back " f"(exception_type={type(exc).__name__})"),
+                message=("Failed to load persisted graph during startup "
+                         f"(exception_type={type(exc).__name__})"),
                 metadata={"error": type(exc).__name__},
             ),
         )
-        persisted_graph = None
+        raise
 
     if persisted_graph is not None:
         log_event(
