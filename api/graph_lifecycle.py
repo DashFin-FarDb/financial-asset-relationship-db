@@ -605,8 +605,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
             logging.ERROR,
             ObservabilityEvent(
                 event="graph_startup_persistence_load_exception",
-                message=("Failed to load persisted graph during startup "
-                         f"(exception_type={type(exc).__name__})"),
+                message=("Failed to load persisted graph during startup " f"(exception_type={type(exc).__name__})"),
                 metadata={"error": type(exc).__name__},
             ),
         )
