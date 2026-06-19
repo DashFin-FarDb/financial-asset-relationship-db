@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from datetime import timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import MagicMock
@@ -253,7 +253,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
         safety_state=ExecutionSafety.RESET_REQUIRED,
         reason="test reset",
         metadata={},
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
 
     class FakeEngine:
