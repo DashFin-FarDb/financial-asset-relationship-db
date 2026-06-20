@@ -222,7 +222,10 @@ class TestHostedReadinessWorkflowEnvironment:
     """Verify the workflow environment configuration."""
 
     def test_environment_variables_configured(self, hosted_readiness_workflow):
-        """Job must define HOSTED_READINESS_BASE_URL, HOSTED_READINESS_TIMEOUT, and HOSTED_READINESS_REQUIRE_PERSISTENCE env vars."""
+        """
+        Job must define HOSTED_READINESS_BASE_URL, HOSTED_READINESS_TIMEOUT,
+        and HOSTED_READINESS_REQUIRE_PERSISTENCE env vars.
+        """
         job = hosted_readiness_workflow["jobs"]["hosted-readiness"]
         assert "env" in job, "The 'hosted-readiness' job must define 'env' section"
         env = job.get("env", {})
@@ -379,7 +382,10 @@ class TestHostedReadinessWorkflowSteps:
         ), "Script invocation must use $HOSTED_READINESS_TIMEOUT env var"
 
     def test_script_invocation_uses_require_persistence_env_var(self, hosted_readiness_steps):
-        """The script invocation must conditionally append --require-persistence using $HOSTED_READINESS_REQUIRE_PERSISTENCE."""
+        """
+        The script invocation must conditionally append --require-persistence
+        using $HOSTED_READINESS_REQUIRE_PERSISTENCE.
+        """
         run_check_step = next(
             (s for s in hosted_readiness_steps if "Run hosted readiness smoke check" in s.get("name", "")),
             None,
