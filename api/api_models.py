@@ -5,8 +5,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.data.db_models import RebuildJobStatus
 from api.graph_lifecycle import GraphStartupSource
+from src.data.db_models import RebuildJobStatus
 
 GraphRebuildSource = Literal[
     "cache",
