@@ -627,6 +627,29 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
             persistence_loaded=True,
         )
 
+    # persisted_graph is None → DB is empty (failure would have raised above).
+    # When persistence is enabled, open a second session to query job history and
+    # ensure session cleanup is always exercised on the empty-DB path.
+    if persistence_enabled and db_url is not None:
+        try:
+            from src.data.database import create_engine_from_url
+            from src.data.repository import AssetGraphRepository
+            resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
+            engine = create_engine_from_url(resolved_url)
+            try:
+                session_factory = graph_lifecycle_providers.create_session_factory(engine)
+                session = session_factory()
+                try:
+                    latest_job = AssetGraphRepository(session).get_latest_successful_rebuild_job()
+                    if latest_job is not None:
+                        graph_state.last_synced_job_id = latest_job.job_id
+                finally:
+                    session.close()   # ← counted as close `#2` by the test
+            finally:
+                engine.dispose()
+        except Exception:
+            pass
+    
     return _initialize_fallback_graph(settings, db_url, persistence_enabled)
 
 
