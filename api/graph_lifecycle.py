@@ -10,20 +10,69 @@ import logging
 import sys
 import threading
 from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
-from typing import Final
+from typing import Any, Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
 from . import graph_lifecycle_providers
-from .api_models import AssetGraphSource
 
 logger = logging.getLogger(__name__)
 
+
 # Global graph instance with thread-safe initialization and configurable
 # factory.
+
+
+class GraphStartupSource(str, Enum):  # noqa: UP042
+    """Explicit startup source origins for graph persistence lifecycle."""
+
+    PERSISTED = "persisted"
+    REAL_DATA = "real_data"
+    SAMPLE_DATA = "sample_data"
+    EMPTY_PERSISTENCE_FALLBACK = "empty_persistence_fallback"
+    REBUILD = "rebuild"
+    FAILED = "failed"
+    CACHE = "cache"
+    EXPLICIT_FACTORY = "explicit_factory"
+    UNKNOWN = "unknown"
+
+
+_PROVIDER_SOURCE_TO_STARTUP_SOURCE: Final[dict[str, GraphStartupSource]] = {
+    "cache": GraphStartupSource.CACHE,
+    "real_data": GraphStartupSource.REAL_DATA,
+    "sample": GraphStartupSource.SAMPLE_DATA,
+}
+
+
+def _resolve_provider_source(raw_source: str) -> GraphStartupSource:
+    """Map a provider-reported GraphRebuildSource string to a GraphStartupSource enum value.
+
+    Handles vocabulary mismatch between the provider layer (which reports ``sample``)
+    and the lifecycle enum (which uses ``sample_data``).
+    """
+    try:
+        return _PROVIDER_SOURCE_TO_STARTUP_SOURCE[raw_source]
+    except KeyError:
+        return GraphStartupSource(raw_source)
+
+
+@dataclass
+class GraphStartupMetadata:
+    """Metadata detailing the graph startup resolution."""
+
+    source: GraphStartupSource
+    persistence_enabled: bool
+    persistence_loaded: bool
+    persistence_saved: bool
+    fallback_reason: str | None
+    loaded_asset_count: int
+    loaded_relationship_count: int
+    startup_timestamp: datetime
 
 
 class GraphRuntimeLifecycleState(str, Enum):  # noqa: UP042 - StrEnum requires Python 3.11+
@@ -144,14 +193,15 @@ class _GraphState:
         """Create empty graph lifecycle state."""
         self.graph: AssetRelationshipGraph | None = None
         self.graph_factory: Callable[[], AssetRelationshipGraph] | None = None
-        self.startup_source: AssetGraphSource | None = None
+
+        self.startup_metadata: GraphStartupMetadata | None = None
         self.lifecycle_state = GraphRuntimeLifecycleState.UNINITIALIZED
         self.last_synced_job_id: str | None = None
 
     def clear_graph_runtime_state(self) -> None:
         """Clear graph instance state that must not survive lifecycle resets."""
         self.graph = None
-        self.startup_source = None
+        self.startup_metadata = None
         self.last_synced_job_id = None
 
 
@@ -189,7 +239,7 @@ def get_graph() -> AssetRelationshipGraph:
     return graph
 
 
-def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphSource | None]:
+def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartupMetadata | None]:
     """
     Obtain the module-global AssetRelationshipGraph and its recorded startup source.
 
@@ -200,7 +250,7 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphS
     observability event is emitted.
 
     Returns:
-        tuple[AssetRelationshipGraph, AssetGraphSource | None]: The active global graph and the source
+        tuple[AssetRelationshipGraph, GraphStartupMetadata | None]: The active global graph and the metadata
             used to initialize it (or `None` if unknown).
 
     Raises:
@@ -212,12 +262,12 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphS
             _normalize_shutdown_state()
             _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
             try:
-                graph, startup_source = _initialize_graph_with_source()
+                graph, startup_metadata = initialize_graph_runtime()
             except Exception:
                 _transition_lifecycle_state(GraphRuntimeLifecycleState.FAILED)
                 raise
             graph_state.graph = graph
-            graph_state.startup_source = startup_source
+            graph_state.startup_metadata = startup_metadata
             _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
             log_event(
                 logger,
@@ -225,14 +275,14 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, AssetGraphS
                 ObservabilityEvent(
                     event="graph_initialized",
                     message="Graph initialized successfully",
-                    metadata={"startup_source": startup_source},
+                    metadata={"startup_source": startup_metadata.source},
                 ),
             )
 
         if graph_state.graph is None:
             raise RuntimeError("Global graph initialization failed; graph is None.")
 
-        return graph_state.graph, graph_state.startup_source
+        return graph_state.graph, graph_state.startup_metadata
 
 
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
@@ -246,7 +296,7 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
             _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
-        graph_state.startup_source = "unknown"
+        graph_state.startup_metadata = None
         graph_state.last_synced_job_id = None
         _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
 
@@ -284,7 +334,7 @@ def synchronize_runtime_graph(
             _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
-        graph_state.startup_source = "unknown"
+        graph_state.startup_metadata = None
         if job_id:
             graph_state.last_synced_job_id = job_id
         if not preserve_rebuild:
@@ -326,7 +376,7 @@ def set_graph_factory(
     with graph_lock:
         graph_state.graph_factory = factory
         graph_state.graph = None
-        graph_state.startup_source = None
+        graph_state.startup_metadata = None
         graph_state.last_synced_job_id = None
         _shutdown_to_uninitialized()
 
@@ -345,7 +395,7 @@ def reset_graph() -> None:
     with graph_lock:
         graph_state.graph_factory = None
         graph_state.graph = None
-        graph_state.startup_source = None
+        graph_state.startup_metadata = None
         graph_state.last_synced_job_id = None
         _shutdown_to_uninitialized()
 
@@ -407,30 +457,197 @@ def begin_shutdown() -> None:
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """Initialize and return a graph without mutating lifecycle state."""
-    graph, _startup_source = _initialize_graph_with_source()
+    graph, _startup_metadata = initialize_graph_runtime()
     return graph
 
 
-def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphSource]:
+def _create_metadata(
+    source: GraphStartupSource,
+    graph: AssetRelationshipGraph | None,
+    **kwargs: Any,
+) -> GraphStartupMetadata:
+    """Create and populate a GraphStartupMetadata record for the initialized graph."""
+    assets = getattr(graph, "assets", None) or {}
+    relationships = getattr(graph, "relationships", None) or {}
+    return GraphStartupMetadata(
+        source=source,
+        loaded_asset_count=len(assets),
+        loaded_relationship_count=sum(len(edges) for edges in relationships.values()),
+        startup_timestamp=datetime.now(timezone.utc),
+        persistence_enabled=kwargs.get("persistence_enabled", False),
+        persistence_loaded=kwargs.get("persistence_loaded", False),
+        persistence_saved=kwargs.get("persistence_saved", False),
+        fallback_reason=kwargs.get("fallback_reason"),
+    )
+
+
+def _initialize_fallback_graph(
+    settings: graph_lifecycle_providers.GraphLifecycleSettings,
+    persistence_enabled: bool,
+) -> tuple[AssetRelationshipGraph, GraphStartupMetadata]:
+    """Initialize graph from fallback sources when persistence is unavailable or empty."""
+    cache_path = getattr(settings, "graph_cache_path", None)
+    use_real_data = bool(getattr(settings, "use_real_data_fetcher", False))
+
+    source_id = GraphStartupSource.SAMPLE_DATA
+    graph: AssetRelationshipGraph | None = None
+
+    if cache_path:
+        try:
+            graph, _raw_source = graph_lifecycle_providers.load_graph_from_cache_path(
+                cache_path,
+                enable_network=use_real_data,
+            )
+            source_id = _resolve_provider_source(_raw_source)
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_startup_cache_load_failed",
+                    message=f"Failed to load graph from cache path, falling back: {exc.__class__.__name__}",
+                    metadata={"error": exc.__class__.__name__},
+                ),
+            )
+
+    if graph is None and use_real_data:
+        try:
+            real_data_cache_path = getattr(settings, "real_data_cache_path", None)
+            graph, _raw_source = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
+                real_data_cache_path,
+            )
+            source_id = _resolve_provider_source(_raw_source)
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_startup_real_data_fetch_failed",
+                    message=f"Failed to fetch real data, falling back: {exc.__class__.__name__}",
+                    metadata={"error": exc.__class__.__name__},
+                ),
+            )
+
+    if graph is None:
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="graph_startup_source_detected",
+                message="Graph startup source: sample",
+                metadata={"source": "sample"},
+            ),
+        )
+        graph = graph_lifecycle_providers.create_sample_graph()
+        source_id = GraphStartupSource.SAMPLE_DATA
+
+    # When persistence is enabled but the DB was empty, override the source
+    # and skip saving back — the fallback graph should not be silently persisted.
+    if persistence_enabled:
+        source_id = GraphStartupSource.EMPTY_PERSISTENCE_FALLBACK
+
+    # Do not save the fallback graph back to an empty persistence store.
+    persistence_saved = False
+
+    final_source = GraphStartupSource.EMPTY_PERSISTENCE_FALLBACK if persistence_enabled else source_id
+    return graph, _create_metadata(
+        source=final_source,
+        graph=graph,
+        persistence_enabled=persistence_enabled,
+        persistence_saved=persistence_saved,
+        fallback_reason="persistence_empty" if persistence_enabled else "persistence_disabled",
+    )
+
+
+def _is_persistence_enabled(db_url: str | None) -> bool:
+    """Determine if database persistence is enabled and durable."""
+    if db_url is None:
+        return False
+    try:
+        graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
+        return True
+    except Exception:
+        return False
+
+
+def _try_initialize_last_synced_job_id(settings: graph_lifecycle_providers.GraphLifecycleSettings) -> None:
+    """Attempt to initialize last_synced_job_id from database when loading persisted graph."""
+    try:
+        latest_job_id = _query_latest_successful_rebuild_job_id(settings)
+        if latest_job_id:
+            graph_state.last_synced_job_id = latest_job_id
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_startup_job_id_initialization_failed",
+                message=(
+                    "Failed to initialize last_synced_job_id during graph startup "
+                    f"(exception_type={type(exc).__name__})"
+                ),
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+
+
+def _try_initialize_fallback_last_synced_job_id(db_url: str) -> None:
+    """Attempt to query job history and initialize last_synced_job_id on empty persistence path."""
+    try:
+        from contextlib import ExitStack
+
+        from src.data.database import create_engine_from_url
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
+        with ExitStack() as stack:
+            engine = create_engine_from_url(resolved_url)
+            stack.callback(engine.dispose)
+            session_factory = graph_lifecycle_providers.create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                latest_job = AssetGraphRepository(session).get_latest_successful_rebuild_job()
+                if latest_job is not None:
+                    graph_state.last_synced_job_id = latest_job.job_id
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_startup_job_id_initialization_failed",
+                message=(
+                    "Failed to initialize last_synced_job_id during empty persistence fallback "
+                    f"(exception_type={type(exc).__name__})"
+                ),
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+
+
+def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMetadata]:
     """
     Select and initialize an AssetRelationshipGraph and identify its startup source.
 
     The selection follows this precedence: explicit graph factory, persisted durable graph, cache file, real-data
     fetcher, then a generated sample graph. If a persisted graph is used, the function will attempt to initialize
-    the module's `last_synced_job_id` from durable persistence; if that attempt fails, initialization continues
-    without setting `last_synced_job_id`.
+    the module's `last_synced_job_id` from durable persistence.
 
     Returns:
-        tuple[AssetRelationshipGraph, AssetGraphSource]: The initialized graph and a source identifier:
-            one of "explicit_factory", "persisted_graph_store", "cache", "real_data", or "sample".
+        tuple[AssetRelationshipGraph, GraphStartupMetadata]: The initialized graph and its startup metadata.
     """
-    if graph_state.graph_factory is not None:
-        return graph_state.graph_factory(), "explicit_factory"
-
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
-    persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(
-        _settings_asset_graph_database_url(settings)
-    )
+    db_url = _settings_asset_graph_database_url(settings)
+    persistence_enabled = _is_persistence_enabled(db_url)
+
+    # 1. Explicit factory
+    if graph_state.graph_factory is not None:
+        factory_graph = graph_state.graph_factory()
+        return factory_graph, _create_metadata(
+            GraphStartupSource.EXPLICIT_FACTORY, factory_graph, persistence_enabled=persistence_enabled
+        )
+
+    # 2. Persisted graph
+    persisted_graph = graph_lifecycle_providers.load_persisted_graph_if_available(db_url)
+
     if persisted_graph is not None:
         log_event(
             logger,
@@ -441,55 +658,21 @@ def _initialize_graph_with_source() -> tuple[AssetRelationshipGraph, AssetGraphS
                 metadata={"source": "persisted_graph_store"},
             ),
         )
-
-        # Initialize last_synced_job_id from DB if possible
-        try:
-            latest_job_id = _query_latest_successful_rebuild_job_id(settings)
-            if latest_job_id:
-                graph_state.last_synced_job_id = latest_job_id
-        except Exception as exc:
-            log_event(
-                logger,
-                logging.WARNING,
-                ObservabilityEvent(
-                    event="graph_startup_job_id_initialization_failed",
-                    message=(
-                        "Failed to initialize last_synced_job_id during graph startup "
-                        f"(exception_type={type(exc).__name__})"
-                    ),
-                    metadata={"error": type(exc).__name__},
-                ),
-            )
-
-        return persisted_graph, "persisted_graph_store"
-
-    cache_path = getattr(settings, "graph_cache_path", None)
-    use_real_data = bool(getattr(settings, "use_real_data_fetcher", False))
-
-    if cache_path:
-        graph, startup_source = graph_lifecycle_providers.load_graph_from_cache_path(
-            cache_path,
-            enable_network=use_real_data,
+        _try_initialize_last_synced_job_id(settings)
+        return persisted_graph, _create_metadata(
+            GraphStartupSource.PERSISTED,
+            persisted_graph,
+            persistence_enabled=persistence_enabled,
+            persistence_loaded=True,
         )
-        return graph, startup_source
 
-    if use_real_data:
-        real_data_cache_path = getattr(settings, "real_data_cache_path", None)
-        graph, startup_source = graph_lifecycle_providers.load_graph_from_real_data_fetcher(
-            real_data_cache_path,
-        )
-        return graph, startup_source
+    # persisted_graph is None → DB is empty (failure would have raised above).
+    # When persistence is enabled, open a second session to query job history and
+    # ensure session cleanup is always exercised on the empty-DB path.
+    if persistence_enabled and db_url is not None:
+        _try_initialize_fallback_last_synced_job_id(db_url)
 
-    log_event(
-        logger,
-        logging.INFO,
-        ObservabilityEvent(
-            event="graph_startup_source_detected",
-            message="Graph startup source: sample",
-            metadata={"source": "sample"},
-        ),
-    )
-    return graph_lifecycle_providers.create_sample_graph(), "sample"
+    return _initialize_fallback_graph(settings, persistence_enabled)
 
 
 def sync_with_latest_rebuild() -> None:

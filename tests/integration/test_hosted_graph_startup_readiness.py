@@ -307,6 +307,10 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
         "lifecycle_state",
         "asset_count",
         "relationship_count",
+        "startup_source",
+        "persistence_enabled",
+        "persistence_loaded",
+        "persistence_saved",
     }
 
     # Recursively scan for sensitive values

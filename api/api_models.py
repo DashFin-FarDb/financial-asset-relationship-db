@@ -5,16 +5,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from api.graph_lifecycle import GraphStartupSource
 from src.data.db_models import RebuildJobStatus
-
-AssetGraphSource = Literal[
-    "persisted_graph_store",
-    "sample",
-    "cache",
-    "real_data",
-    "explicit_factory",
-    "unknown",
-]
 
 GraphRebuildSource = Literal[
     "cache",
@@ -112,6 +104,10 @@ class GraphHealthResponse(BaseModel):
     lifecycle_state: str = "UNINITIALIZED"
     asset_count: int = Field(ge=0)
     relationship_count: int = Field(ge=0)
+    startup_source: GraphStartupSource = GraphStartupSource.UNKNOWN
+    persistence_enabled: bool = False
+    persistence_loaded: bool = False
+    persistence_saved: bool = False
 
 
 class DatabaseHealthResponse(BaseModel):

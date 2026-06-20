@@ -468,6 +468,10 @@ class TestAPIEndpoints:
             "lifecycle_state",
             "asset_count",
             "relationship_count",
+            "startup_source",
+            "persistence_enabled",
+            "persistence_loaded",
+            "persistence_saved",
         }
         assert data["graph"]["available"] is True
         assert data["graph"]["asset_count"] > 0
@@ -580,6 +584,10 @@ class TestAPIEndpoints:
             "lifecycle_state",
             "asset_count",
             "relationship_count",
+            "startup_source",
+            "persistence_enabled",
+            "persistence_loaded",
+            "persistence_saved",
         }
         assert data["graph"]["available"] is False
         assert data["graph"]["asset_count"] == 0
@@ -596,7 +604,7 @@ class TestAPIEndpoints:
 
         with patch(
             "api.routers.system.graph_lifecycle.get_graph_with_startup_source",
-            return_value=(graph, "unknown"),
+            return_value=(graph, None),
         ):
             response = bare_client.get("/api/health/detailed")
 
@@ -609,6 +617,10 @@ class TestAPIEndpoints:
             "lifecycle_state",
             "asset_count",
             "relationship_count",
+            "startup_source",
+            "persistence_enabled",
+            "persistence_loaded",
+            "persistence_saved",
         }
         assert data["graph"]["available"] is False
         assert data["graph"]["asset_count"] == 0
