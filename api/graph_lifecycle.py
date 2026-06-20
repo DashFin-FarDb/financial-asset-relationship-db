@@ -548,15 +548,6 @@ def _initialize_fallback_graph(
 
     # Do not save the fallback graph back to an empty persistence store.
     persistence_saved = False
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="graph_startup_persistence_save_failed",
-                message=f"Failed to persist fallback graph during startup: {type(e).__name__}",
-                metadata={"error": type(e).__name__},
-            ),
-        )
 
     final_source = GraphStartupSource.EMPTY_PERSISTENCE_FALLBACK if persistence_enabled else source_id
     return graph, _create_metadata(
