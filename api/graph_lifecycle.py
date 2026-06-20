@@ -559,6 +559,70 @@ def _initialize_fallback_graph(
     )
 
 
+def _is_persistence_enabled(db_url: str | None) -> bool:
+    """Determine if database persistence is enabled and durable."""
+    if db_url is None:
+        return False
+    try:
+        graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
+        return True
+    except Exception:
+        return False
+
+
+def _try_initialize_last_synced_job_id(settings: graph_lifecycle_providers.GraphLifecycleSettings) -> None:
+    """Attempt to initialize last_synced_job_id from database when loading persisted graph."""
+    try:
+        latest_job_id = _query_latest_successful_rebuild_job_id(settings)
+        if latest_job_id:
+            graph_state.last_synced_job_id = latest_job_id
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_startup_job_id_initialization_failed",
+                message=(
+                    "Failed to initialize last_synced_job_id during graph startup "
+                    f"(exception_type={type(exc).__name__})"
+                ),
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+
+
+def _try_initialize_fallback_last_synced_job_id(db_url: str) -> None:
+    """Attempt to query job history and initialize last_synced_job_id on empty persistence path."""
+    try:
+        from contextlib import ExitStack
+
+        from src.data.database import create_engine_from_url
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
+        with ExitStack() as stack:
+            engine = create_engine_from_url(resolved_url)
+            stack.callback(engine.dispose)
+            session_factory = graph_lifecycle_providers.create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                latest_job = AssetGraphRepository(session).get_latest_successful_rebuild_job()
+                if latest_job is not None:
+                    graph_state.last_synced_job_id = latest_job.job_id
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_startup_job_id_initialization_failed",
+                message=(
+                    "Failed to initialize last_synced_job_id during empty persistence fallback "
+                    f"(exception_type={type(exc).__name__})"
+                ),
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+
+
 def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMetadata]:
     """
     Select and initialize an AssetRelationshipGraph and identify its startup source.
@@ -572,14 +636,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
     """
     settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
     db_url = _settings_asset_graph_database_url(settings)
-
-    persistence_enabled = False
-    if db_url is not None:
-        try:
-            graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
-            persistence_enabled = True
-        except Exception:
-            pass
+    persistence_enabled = _is_persistence_enabled(db_url)
 
     # 1. Explicit factory
     if graph_state.graph_factory is not None:
@@ -601,25 +658,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
                 metadata={"source": "persisted_graph_store"},
             ),
         )
-
-        try:
-            latest_job_id = _query_latest_successful_rebuild_job_id(settings)
-            if latest_job_id:
-                graph_state.last_synced_job_id = latest_job_id
-        except Exception as exc:
-            log_event(
-                logger,
-                logging.WARNING,
-                ObservabilityEvent(
-                    event="graph_startup_job_id_initialization_failed",
-                    message=(
-                        "Failed to initialize last_synced_job_id during graph startup "
-                        f"(exception_type={type(exc).__name__})"
-                    ),
-                    metadata={"error": type(exc).__name__},
-                ),
-            )
-
+        _try_initialize_last_synced_job_id(settings)
         return persisted_graph, _create_metadata(
             GraphStartupSource.PERSISTED,
             persisted_graph,
@@ -631,34 +670,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
     # When persistence is enabled, open a second session to query job history and
     # ensure session cleanup is always exercised on the empty-DB path.
     if persistence_enabled and db_url is not None:
-        try:
-            from contextlib import ExitStack
-
-            from src.data.database import create_engine_from_url
-            from src.data.repository import AssetGraphRepository, session_scope
-
-            resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
-            with ExitStack() as stack:
-                engine = create_engine_from_url(resolved_url)
-                stack.callback(engine.dispose)
-                session_factory = graph_lifecycle_providers.create_session_factory(engine)
-                with session_scope(session_factory) as session:
-                    latest_job = AssetGraphRepository(session).get_latest_successful_rebuild_job()
-                    if latest_job is not None:
-                        graph_state.last_synced_job_id = latest_job.job_id
-        except Exception as exc:
-            log_event(
-                logger,
-                logging.WARNING,
-                ObservabilityEvent(
-                    event="graph_startup_job_id_initialization_failed",
-                    message=(
-                        "Failed to initialize last_synced_job_id during empty persistence fallback "
-                        f"(exception_type={type(exc).__name__})"
-                    ),
-                    metadata={"error": type(exc).__name__},
-                ),
-            )
+        _try_initialize_fallback_last_synced_job_id(db_url)
 
     return _initialize_fallback_graph(settings, persistence_enabled)
 
