@@ -99,9 +99,11 @@ For the full enterprise-readiness package, see [docs/enterprise-readiness-index.
 ### Hosted Readiness Smoke Check
 
 You can verify a hosted deployment's liveness and readiness endpoints:
+
 ```bash
 python scripts/check_hosted_readiness.py <base_url> [--timeout SECONDS] [--require-persistence]
 ```
+
 The `--require-persistence` option enforces that the deployment has successfully loaded its asset graph from the configured database (meaning `persistence_enabled` is true, `persistence_loaded` is true, and the startup source is `"persisted"`). This persistence verification is a mandatory gate for staging and production promotions.
 
 
