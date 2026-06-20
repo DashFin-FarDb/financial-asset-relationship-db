@@ -227,8 +227,6 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     base_settings: SimpleNamespace,
 ) -> None:
     """_periodic_reconciliation_loop should invoke gate.ensure_safe_to_execute for automatic reset plans."""
-    from datetime import datetime
-
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, ReconciliationPlan, Severity
 
     fake_engine = SimpleNamespace(dispose=lambda: None)

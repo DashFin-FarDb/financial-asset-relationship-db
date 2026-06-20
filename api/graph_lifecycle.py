@@ -65,7 +65,7 @@ def _resolve_provider_source(raw_source: str) -> GraphStartupSource:
 class GraphStartupMetadata:
     """Metadata detailing the graph startup resolution."""
 
-    source: str
+    source: GraphStartupSource
     persistence_enabled: bool
     persistence_loaded: bool
     persistence_saved: bool
@@ -462,7 +462,7 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 
 def _create_metadata(
-    source: str,
+    source: GraphStartupSource,
     graph: AssetRelationshipGraph | None,
     **kwargs: Any,
 ) -> GraphStartupMetadata:

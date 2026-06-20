@@ -210,6 +210,7 @@ def _assert_empty_db_uses_configured_source(
     provider_attr: str,
     expected_source: str,
 ) -> None:
+    """Verify empty DB falls through to configured provider."""
     database_url = _sqlite_url(tmp_path)
     _init_empty_db(database_url)
     _configure_persistence_url(monkeypatch, database_url)

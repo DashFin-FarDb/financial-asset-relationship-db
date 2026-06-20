@@ -137,7 +137,7 @@ def _get_graph_health() -> GraphHealthResponse:
             lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
             asset_count=len(assets),
             relationship_count=sum(len(items) for items in relationships.values()),
-            startup_source=startup_metadata.source if startup_metadata else "unknown",
+            startup_source=startup_metadata.source if startup_metadata else graph_lifecycle.GraphStartupSource.UNKNOWN,
             persistence_enabled=startup_metadata.persistence_enabled if startup_metadata else False,
             persistence_loaded=startup_metadata.persistence_loaded if startup_metadata else False,
             persistence_saved=startup_metadata.persistence_saved if startup_metadata else False,
