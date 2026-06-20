@@ -284,6 +284,24 @@ def _readiness_status_label(value: Any) -> str:
     return "unknown"
 
 
+def _startup_source_label(value: Any) -> str:
+    """Return a bounded startup source label for operator output."""
+    valid_sources = {
+        "persisted",
+        "real_data",
+        "sample_data",
+        "empty_persistence_fallback",
+        "rebuild",
+        "failed",
+        "cache",
+        "explicit_factory",
+        "unknown",
+    }
+    if value in valid_sources:
+        return str(value)
+    return "unknown"
+
+
 def _record_detailed_shape_failures(payload: dict[str, Any], failures: list[str]) -> None:
     """Record detailed-readiness status and object-shape failures."""
     readiness_status = payload.get("status")
@@ -313,10 +331,12 @@ def _record_persistence_gate_failures(payload: dict[str, Any], failures: list[st
         if graph.get("persistence_loaded") is not True:
             failures.append("/api/health/detailed graph.persistence_loaded is not true")
         actual_source = graph.get("startup_source")
-        if actual_source != "persisted":
-            failures.append(f'/api/health/detailed graph.startup_source is "{actual_source}", expected "persisted"')
-    else:
-        failures.append("/api/health/detailed graph persistence verification skipped due to invalid graph shape")
+        if actual_source is None:
+            failures.append("/api/health/detailed graph.startup_source field is missing")
+        else:
+            source_label = _startup_source_label(actual_source)
+            if source_label != "persisted":
+                failures.append(f'/api/health/detailed graph.startup_source is "{source_label}", expected "persisted"')
 
 
 def check_detailed_readiness(

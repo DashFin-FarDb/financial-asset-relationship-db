@@ -561,6 +561,41 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
     failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
     assert '/api/health/detailed graph.startup_source is "sample_data", expected "persisted"' in failures
 
+    # Case 5: startup_source is None (missing field)
+    def fake_get_json_missing_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph"]["startup_source"] = None
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_missing_source)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    assert "/api/health/detailed graph.startup_source field is missing" in failures
+
+    # Case 6: startup_source has unsafe values
+    def fake_get_json_unsafe_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph"]["startup_source"] = "untrusted_input\nwith_control_chars"
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_unsafe_source)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    assert '/api/health/detailed graph.startup_source is "unknown", expected "persisted"' in failures
+
+    # Case 7: graph is not a dict (should not append redundant persistence-gate failure message)
+    def fake_get_json_non_dict_graph(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph"] = "not_a_dict"
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_non_dict_graph)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    # The shape check should catch it:
+    assert "/api/health/detailed graph field is not an object" in failures
+    # But there should NOT be a redundant generic verification error:
+    assert not any("skipped" in f for f in failures)
+    assert not any("graph_persistence_configured" in f for f in failures)
+    assert not any("persistence_enabled" in f for f in failures)
+
 
 def test_parse_args_handles_require_persistence() -> None:
     """CLI argument parser correctly extracts the require-persistence flag."""
