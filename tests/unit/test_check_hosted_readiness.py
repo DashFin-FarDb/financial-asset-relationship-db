@@ -318,7 +318,11 @@ def test_run_checks_reports_detailed_readiness_runtime_context(
         """Return an empty liveness failure list."""
         return []
 
-    def fake_check_detailed_readiness(base_url: str, timeout: float, *args: Any, **kwargs: Any) -> list[str]:
+    def fake_check_detailed_readiness(
+        base_url: str,
+        timeout: float,
+        require_persistence: bool = False,
+    ) -> list[str]:
         """Raise a fake detailed readiness runtime error."""
         raise RuntimeError("/api/health/detailed request failed")
 
@@ -593,6 +597,20 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
     assert "/api/health/detailed graph field is not an object" in failures
     # But there should NOT be a redundant generic verification error:
     assert not any("skipped" in f for f in failures)
+    assert not any("graph_persistence_configured" in f for f in failures)
+    assert not any("persistence_enabled" in f for f in failures)
+
+    # Case 8: graph is missing entirely from payload keys (should not double-fail or crash)
+    def fake_get_json_missing_graph(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        payload = _healthy_detailed_payload_with_persistence()
+        payload.pop("graph")
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_missing_graph)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    # Contract check should catch it:
+    assert any("graph" in f for f in failures)
+    # But no double failures or extra errors:
     assert not any("graph_persistence_configured" in f for f in failures)
     assert not any("persistence_enabled" in f for f in failures)
 
