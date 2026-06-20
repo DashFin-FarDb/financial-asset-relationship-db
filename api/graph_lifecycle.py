@@ -541,12 +541,13 @@ def _initialize_fallback_graph(
         graph = graph_lifecycle_providers.create_sample_graph()
         source_id = GraphStartupSource.SAMPLE_DATA
 
-    persistence_saved = False
+   # When persistence is enabled but the DB was empty, override the source
+   # and skip saving back — the fallback graph should not be silently persisted.
     if persistence_enabled:
-        try:
-            graph_lifecycle_providers.save_graph_to_persistence(db_url, graph)
-            persistence_saved = True
-        except Exception as e:
+        source_id = GraphStartupSource.EMPTY_PERSISTENCE_FALLBACK
+    
+    # Do not save the fallback graph back to an empty persistence store.
+    persistence_saved = False
             log_event(
                 logger,
                 logging.ERROR,
