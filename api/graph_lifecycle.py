@@ -545,7 +545,7 @@ def _initialize_fallback_graph(
    # and skip saving back — the fallback graph should not be silently persisted.
     if persistence_enabled:
         source_id = GraphStartupSource.EMPTY_PERSISTENCE_FALLBACK
-    
+
     # Do not save the fallback graph back to an empty persistence store.
     persistence_saved = False
             log_event(
