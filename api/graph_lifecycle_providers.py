@@ -116,7 +116,7 @@ def load_persisted_graph_if_available(
                 metadata={"error": exc.__class__.__name__},
             ),
         )
-        return None
+        raise RuntimeError("Failed to load persisted graph during startup") from None
 
 
 def load_graph_from_cache_path(
