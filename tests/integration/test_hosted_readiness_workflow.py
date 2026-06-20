@@ -18,13 +18,13 @@ import re
 from pathlib import Path
 
 import pytest
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HOSTED_READINESS_WORKFLOW_PATH = REPO_ROOT / ".github/workflows/hosted-readiness.yml"
 
 TRUSTED_GITHUB_REFERENCES_PATTERN = re.compile(
-    r"\b(?:inputs\.base_url|inputs\.timeout|secrets\.HOSTED_READINESS_BASE_URL)\b"
+    r"\b(?:inputs\.base_url|inputs\.timeout|inputs\.require_persistence|secrets\.HOSTED_READINESS_BASE_URL)\b"
 )
 
 PROVIDER_SECRET_NAMES = (
@@ -207,18 +207,30 @@ class TestHostedReadinessWorkflowInputs:
         assert "default" in timeout_input, "timeout input must have a 'default' value"
         assert isinstance(timeout_input["default"], str), "timeout input default must be a string"
 
+    def test_require_persistence_input_configuration(self, hosted_readiness_workflow):
+        """require_persistence input must exist and be a boolean default false."""
+        inputs = hosted_readiness_workflow["on"]["workflow_dispatch"]["inputs"]
+        assert "require_persistence" in inputs, "workflow_dispatch inputs must include 'require_persistence'"
+        input_cfg = inputs["require_persistence"]
+        assert "description" in input_cfg, "require_persistence input must have a 'description'"
+        assert input_cfg.get("default") is False, "require_persistence default must be false"
+        assert input_cfg.get("type") == "boolean", "require_persistence type must be boolean"
+
 
 @pytest.mark.integration
 class TestHostedReadinessWorkflowEnvironment:
     """Verify the workflow environment configuration."""
 
     def test_environment_variables_configured(self, hosted_readiness_workflow):
-        """Job must define HOSTED_READINESS_BASE_URL and HOSTED_READINESS_TIMEOUT env vars."""
+        """Job must define HOSTED_READINESS_BASE_URL, HOSTED_READINESS_TIMEOUT, and HOSTED_READINESS_REQUIRE_PERSISTENCE env vars."""
         job = hosted_readiness_workflow["jobs"]["hosted-readiness"]
         assert "env" in job, "The 'hosted-readiness' job must define 'env' section"
         env = job.get("env", {})
         assert "HOSTED_READINESS_BASE_URL" in env, "Job must define HOSTED_READINESS_BASE_URL env var"
         assert "HOSTED_READINESS_TIMEOUT" in env, "Job must define HOSTED_READINESS_TIMEOUT env var"
+        assert (
+            "HOSTED_READINESS_REQUIRE_PERSISTENCE" in env
+        ), "Job must define HOSTED_READINESS_REQUIRE_PERSISTENCE env var"
 
     def test_base_url_comes_from_input_or_secret(self, hosted_readiness_workflow):
         """Base URL must come from inputs.base_url or secrets.HOSTED_READINESS_BASE_URL."""
@@ -236,6 +248,14 @@ class TestHostedReadinessWorkflowEnvironment:
         assert (
             env.get("HOSTED_READINESS_TIMEOUT") == "${{ inputs.timeout }}"
         ), "HOSTED_READINESS_TIMEOUT must use inputs.timeout"
+
+    def test_require_persistence_comes_from_input(self, hosted_readiness_workflow):
+        """Require persistence must come from inputs.require_persistence."""
+        job = hosted_readiness_workflow["jobs"]["hosted-readiness"]
+        env = job.get("env", {})
+        assert (
+            env.get("HOSTED_READINESS_REQUIRE_PERSISTENCE") == "${{ inputs.require_persistence }}"
+        ), "HOSTED_READINESS_REQUIRE_PERSISTENCE must use inputs.require_persistence"
 
 
 @pytest.mark.integration
@@ -357,6 +377,19 @@ class TestHostedReadinessWorkflowSteps:
         assert (
             "$HOSTED_READINESS_TIMEOUT" in run_script or "${HOSTED_READINESS_TIMEOUT}" in run_script
         ), "Script invocation must use $HOSTED_READINESS_TIMEOUT env var"
+
+    def test_script_invocation_uses_require_persistence_env_var(self, hosted_readiness_steps):
+        """The script invocation must conditionally append --require-persistence using $HOSTED_READINESS_REQUIRE_PERSISTENCE."""
+        run_check_step = next(
+            (s for s in hosted_readiness_steps if "Run hosted readiness smoke check" in s.get("name", "")),
+            None,
+        )
+        assert run_check_step is not None
+        run_script = run_check_step.get("run", "")
+        assert "--require-persistence" in run_script, "Script invocation must check/reference --require-persistence"
+        assert (
+            "HOSTED_READINESS_REQUIRE_PERSISTENCE" in run_script
+        ), "Script invocation must check HOSTED_READINESS_REQUIRE_PERSISTENCE"
 
 
 @pytest.mark.integration

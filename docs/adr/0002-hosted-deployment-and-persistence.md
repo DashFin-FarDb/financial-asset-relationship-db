@@ -4,7 +4,7 @@ For the broader enterprise-readiness audit and rollout plan, see [docs/enterpris
 
 ## Status
 
-Accepted — implementation pending
+Implemented
 
 ## Date
 
@@ -135,13 +135,13 @@ should implement connection pooling (Phase 4) before significant traffic.
 Vercel Postgres may expose `POSTGRES_*` variables rather than `DATABASE_URL`. Phase 1 adds
 explicit settings-layer support for `POSTGRES_URL` as a fallback when `DATABASE_URL` is not set.
 
-### Phase 2: Enhanced Health Checks
+### Phase 2: Enhanced Health Checks & Durable Promotion Gate (Completed)
 
-Add `/api/health/detailed` endpoint with database connectivity, graph status, and environment validation.
+Added `/api/health/detailed` endpoint with database connectivity, graph status, and environment validation. Extended `scripts/check_hosted_readiness.py` and the GitHub Actions workflow with a `--require-persistence` parameter to verify that the graph was loaded successfully from the durable storage boundary during deployment promotion.
 
-### Phase 3: Graph Persistence (Deferred)
+### Phase 3: Graph Persistence (Completed)
 
-Design PostgreSQL schema for assets/relationships and implement graph serialization/deserialization.
+Implemented graph serialization, deserialization, and PostgreSQL repository boundary support. Verified durability of graph state across application restart cycles.
 
 ### Phase 4: Production Optimizations (Future)
 

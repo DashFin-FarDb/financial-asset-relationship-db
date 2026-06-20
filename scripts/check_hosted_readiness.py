@@ -67,7 +67,7 @@ def _resolves_to_internal_address(hostname: str) -> bool:
     except OSError:
         return False
 
-    return any(_is_internal_ip_address(result[4][0]) for result in address_info)
+    return any(_is_internal_ip_address(str(result[4][0])) for result in address_info)
 
 
 def _validate_scheme_and_host(parsed: ParseResult) -> str | None:
@@ -301,7 +301,29 @@ def _record_detailed_shape_failures(payload: dict[str, Any], failures: list[str]
         failures.append("/api/health/detailed database field is not an object")
 
 
-def check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
+def _record_persistence_gate_failures(payload: dict[str, Any], failures: list[str]) -> None:
+    """Record failures when the durable graph-persistence gate is not satisfied."""
+    if payload.get("graph_persistence_configured") is not True:
+        failures.append("/api/health/detailed graph_persistence_configured is not true")
+
+    graph = payload.get("graph")
+    if isinstance(graph, dict):
+        if graph.get("persistence_enabled") is not True:
+            failures.append("/api/health/detailed graph.persistence_enabled is not true")
+        if graph.get("persistence_loaded") is not True:
+            failures.append("/api/health/detailed graph.persistence_loaded is not true")
+        actual_source = graph.get("startup_source")
+        if actual_source != "persisted":
+            failures.append(f'/api/health/detailed graph.startup_source is "{actual_source}", expected "persisted"')
+    else:
+        failures.append("/api/health/detailed graph persistence verification skipped due to invalid graph shape")
+
+
+def check_detailed_readiness(
+    base_url: str,
+    timeout: float,
+    require_persistence: bool = False,
+) -> list[str]:
     """Return detailed readiness check failures."""
     failures: list[str] = []
     url = _build_url(base_url, "/api/health/detailed")
@@ -314,6 +336,9 @@ def check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
     _record_top_level_contract_failures(payload, failures)
     _record_forbidden_field_failures(payload, failures)
     _record_detailed_shape_failures(payload, failures)
+
+    if require_persistence:
+        _record_persistence_gate_failures(payload, failures)
 
     return failures
 
@@ -347,7 +372,7 @@ def _report_failures(failures: list[str]) -> int:
     return CHECK_FAILED
 
 
-def run_checks(base_url: str, timeout: float) -> int:
+def run_checks(base_url: str, timeout: float, require_persistence: bool = False) -> int:
     """Run hosted readiness checks and return a process exit code."""
     liveness_failures = _run_named_check("Liveness", base_url, timeout, check_liveness)
     if liveness_failures is None:
@@ -357,7 +382,7 @@ def run_checks(base_url: str, timeout: float) -> int:
         "Detailed readiness",
         base_url,
         timeout,
-        check_detailed_readiness,
+        lambda url, t: check_detailed_readiness(url, t, require_persistence),
     )
     if readiness_failures is None:
         return CHECK_FAILED
@@ -370,6 +395,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Smoke-check hosted API health/readiness endpoints.")
     parser.add_argument("base_url", help="Base URL of the hosted deployment, e.g. https://example.vercel.app")
     parser.add_argument("--timeout", type=float, default=5.0, help="Request timeout in seconds.")
+    parser.add_argument(
+        "--require-persistence",
+        action="store_true",
+        help="Prove persisted graph load rather than fallback generation.",
+    )
     return parser.parse_args(argv)
 
 
@@ -386,7 +416,7 @@ def main(argv: list[str] | None = None) -> int:
         print(base_url_error, file=sys.stderr)
         return USAGE_ERROR
 
-    return run_checks(args.base_url, args.timeout)
+    return run_checks(args.base_url, args.timeout, args.require_persistence)
 
 
 if __name__ == "__main__":

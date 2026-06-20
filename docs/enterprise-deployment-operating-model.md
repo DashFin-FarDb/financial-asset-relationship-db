@@ -111,16 +111,21 @@ Recommended diagnostic evidence, when an approved sentinel baseline exists:
 
 ## Verification and Smoke Testing
 
-`GET /api/health/detailed` is a bounded readiness signal only. It confirms in-memory graph availability and auth/application database reachability. It does **not** prove the graph was loaded from `ASSET_GRAPH_DATABASE_URL`.
+`GET /api/health/detailed` is a bounded readiness signal only. It confirms in-memory graph availability and auth/application database reachability. It does **not** prove the graph was loaded from `ASSET_GRAPH_DATABASE_URL` unless verified via the persistence-gate check.
 
 For staging and production deployment acceptance, operators must run this durable graph-persistence smoke procedure:
 
 1. Confirm `ASSET_GRAPH_DATABASE_URL` is set in the target environment.
 2. Trigger a controlled authenticated graph rebuild/persist operation through `POST /api/graph/rebuild`, or use an approved persisted baseline.
 3. Restart or redeploy the backend.
-4. Verify startup logs contain `Graph startup source: persisted_graph_store`.
-5. Call `GET /api/health/detailed` and confirm:
-   - `status` is `healthy`
+4. Run the hosted readiness checker with `--require-persistence` configured:
+   ```bash
+   python scripts/check_hosted_readiness.py <base_url> --require-persistence
+   ```
+5. Confirm the checker exits successfully (exit code 0), verifying that:
+   - `/api/health/detailed` `status` is `healthy`
+   - `graph.persistence_loaded` is `true`
+   - `graph.startup_source` is `"persisted"`
    - graph counts match the expected persisted baseline
    - auth/application database is reachable
 6. If an approved sentinel baseline exists, call `GET /api/assets` and confirm known sentinel asset IDs are present.
