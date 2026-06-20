@@ -634,6 +634,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
         try:
             from src.data.database import create_engine_from_url
             from src.data.repository import AssetGraphRepository
+
             resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
             engine = create_engine_from_url(resolved_url)
             try:
@@ -644,12 +645,12 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
                     if latest_job is not None:
                         graph_state.last_synced_job_id = latest_job.job_id
                 finally:
-                    session.close()   # ← counted as close `#2` by the test
+                    session.close()  # ← counted as close `#2` by the test
             finally:
                 engine.dispose()
         except Exception:
             pass
-    
+
     return _initialize_fallback_graph(settings, db_url, persistence_enabled)
 
 
