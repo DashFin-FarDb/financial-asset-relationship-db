@@ -482,7 +482,6 @@ def _create_metadata(
 
 def _initialize_fallback_graph(
     settings: graph_lifecycle_providers.GraphLifecycleSettings,
-    db_url: str | None,
     persistence_enabled: bool,
 ) -> tuple[AssetRelationshipGraph, GraphStartupMetadata]:
     """Initialize graph from fallback sources when persistence is unavailable or empty."""
