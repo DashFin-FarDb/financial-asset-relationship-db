@@ -93,8 +93,8 @@ def load_persisted_graph_if_available(
             empty strings are treated as unset.
 
     Returns:
-        AssetRelationshipGraph | None: The persisted graph if one was successfully loaded;
-            ``None`` otherwise.
+        On unexpected load failures, the function logs the error and raises
+        ``RuntimeError("Failed to load persisted graph during startup")``.
     """
     resolved_url = _resolve_persistence_database_url(database_url)
     if resolved_url is None:
