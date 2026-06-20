@@ -632,24 +632,33 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
     # ensure session cleanup is always exercised on the empty-DB path.
     if persistence_enabled and db_url is not None:
         try:
+            from contextlib import ExitStack
+
             from src.data.database import create_engine_from_url
-            from src.data.repository import AssetGraphRepository
+            from src.data.repository import AssetGraphRepository, session_scope
 
             resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(db_url)
-            engine = create_engine_from_url(resolved_url)
-            try:
+            with ExitStack() as stack:
+                engine = create_engine_from_url(resolved_url)
+                stack.callback(engine.dispose)
                 session_factory = graph_lifecycle_providers.create_session_factory(engine)
-                session = session_factory()
-                try:
+                with session_scope(session_factory) as session:
                     latest_job = AssetGraphRepository(session).get_latest_successful_rebuild_job()
                     if latest_job is not None:
                         graph_state.last_synced_job_id = latest_job.job_id
-                finally:
-                    session.close()  # ← counted as close `#2` by the test
-            finally:
-                engine.dispose()
-        except Exception:
-            pass
+        except Exception as exc:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="graph_startup_job_id_initialization_failed",
+                    message=(
+                        "Failed to initialize last_synced_job_id during empty persistence fallback "
+                        f"(exception_type={type(exc).__name__})"
+                    ),
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
 
     return _initialize_fallback_graph(settings, db_url, persistence_enabled)
 
