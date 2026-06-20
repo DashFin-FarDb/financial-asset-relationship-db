@@ -527,6 +527,7 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
 
     # Case 1: graph_persistence_configured is false
     def fake_get_json_no_config(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning unconfigured persistence payload."""
         payload = _healthy_detailed_payload_with_persistence()
         payload["graph_persistence_configured"] = False
         return 200, payload
@@ -537,6 +538,7 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
 
     # Case 2: persistence_enabled is false
     def fake_get_json_not_enabled(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning disabled graph persistence payload."""
         payload = _healthy_detailed_payload_with_persistence()
         payload["graph"]["persistence_enabled"] = False
         return 200, payload
@@ -547,6 +549,7 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
 
     # Case 3: persistence_loaded is false
     def fake_get_json_not_loaded(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning unloaded graph persistence payload."""
         payload = _healthy_detailed_payload_with_persistence()
         payload["graph"]["persistence_loaded"] = False
         return 200, payload
@@ -557,6 +560,7 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
 
     # Case 4: startup_source is not persisted
     def fake_get_json_wrong_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning incorrect startup source payload."""
         payload = _healthy_detailed_payload_with_persistence()
         payload["graph"]["startup_source"] = "sample_data"
         return 200, payload
@@ -567,6 +571,7 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
 
     # Case 5: startup_source is None (missing field)
     def fake_get_json_missing_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning missing startup source payload."""
         payload = _healthy_detailed_payload_with_persistence()
         payload["graph"]["startup_source"] = None
         return 200, payload
@@ -577,6 +582,7 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
 
     # Case 6: startup_source has unsafe values
     def fake_get_json_unsafe_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning unsafe startup source payload."""
         payload = _healthy_detailed_payload_with_persistence()
         payload["graph"]["startup_source"] = "untrusted_input\nwith_control_chars"
         return 200, payload
@@ -587,6 +593,7 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
 
     # Case 7: graph is not a dict (should not append redundant persistence-gate failure message)
     def fake_get_json_non_dict_graph(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning non-dictionary graph payload."""
         payload = _healthy_detailed_payload_with_persistence()
         payload["graph"] = "not_a_dict"
         return 200, payload
@@ -602,6 +609,7 @@ def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytes
 
     # Case 8: graph is missing entirely from payload keys (should not double-fail or crash)
     def fake_get_json_missing_graph(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning payload with missing graph key."""
         payload = _healthy_detailed_payload_with_persistence()
         payload.pop("graph")
         return 200, payload
