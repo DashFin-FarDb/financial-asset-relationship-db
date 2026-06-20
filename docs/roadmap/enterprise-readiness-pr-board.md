@@ -14,7 +14,7 @@ These PRs unblock the durable production path and should be prioritized first.
 | --- | --- | --- | --- | --- |
 | PR 1 | Durable Graph Persistence Schema and Repositories | Complete | Durable graph persistence models and repositories exist; SQLite compatibility retained; persistence tests pass | None, but it is the base dependency for later PRs |
 | PR 2 | Startup Load / Save Integration | Complete | Startup can load persisted graph state; rebuild path persists graph truth; restart behavior is observable and tested | PR 1 |
-| PR 3 | Durable Promotion Gate Extension | Not started | Hosted readiness proves persisted graph evidence; bounded health is no longer sufficient for staging/production promotion | PR 1, PR 2 |
+| PR 3 | Durable Promotion Gate Extension | Complete | Hosted readiness proves persisted graph evidence; bounded health is no longer sufficient for staging/production promotion | PR 1, PR 2 |
 | PR 4 | API Contract Cleanup | Not started | Density, pagination, and visualization contracts are explicit and aligned end-to-end | Can start in parallel, but should not lag behind PR 1/2 indefinitely |
 
 ## Next
