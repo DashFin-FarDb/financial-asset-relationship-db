@@ -297,8 +297,8 @@ def _startup_source_label(value: Any) -> str:
         "explicit_factory",
         "unknown",
     }
-    if value in valid_sources:
-        return str(value)
+    if isinstance(value, str) and value in valid_sources:
+        return value
     return "unknown"
 
 
