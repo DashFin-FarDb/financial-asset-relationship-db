@@ -119,9 +119,11 @@ For staging and production deployment acceptance, operators must run this durabl
 2. Trigger a controlled authenticated graph rebuild/persist operation through `POST /api/graph/rebuild`, or use an approved persisted baseline.
 3. Restart or redeploy the backend.
 4. Run the hosted readiness checker with `--require-persistence` configured:
+
    ```bash
    python scripts/check_hosted_readiness.py <base_url> --require-persistence
    ```
+
 5. Confirm the checker exits successfully (exit code 0), verifying that:
    - `/api/health/detailed` `status` is `healthy`
    - `graph.persistence_loaded` is `true`
