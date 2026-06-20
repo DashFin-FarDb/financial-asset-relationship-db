@@ -39,6 +39,7 @@ class GraphStartupSource(str, Enum):  # noqa: UP042
     FAILED = "failed"
     CACHE = "cache"
     EXPLICIT_FACTORY = "explicit_factory"
+    UNKNOWN = "unknown"
 
 
 _PROVIDER_SOURCE_TO_STARTUP_SOURCE: Final[dict[str, GraphStartupSource]] = {
@@ -659,7 +660,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
                 ),
             )
 
-    return _initialize_fallback_graph(settings, db_url, persistence_enabled)
+    return _initialize_fallback_graph(settings, persistence_enabled)
 
 
 def sync_with_latest_rebuild() -> None:
