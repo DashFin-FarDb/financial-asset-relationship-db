@@ -6808,7 +6808,7 @@ The API uses Pydantic models for type-safe request/response serialization.
 | `asset_classes`        | `Dict[str, int]` | Yes               |
 | `avg_degree`           | `float`          | Yes               |
 | `max_degree`           | `int`            | Yes               |
-| `network_density`      | `float`          | No (default: 0.0) |
+| `network_density`      | `float`          | Yes               |
 
 #### 6.3.4.2 Frontend Type Definitions
 
