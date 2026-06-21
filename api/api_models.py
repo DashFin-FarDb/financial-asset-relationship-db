@@ -43,6 +43,8 @@ class AssetPageResponse(BaseModel):
       stable pagination across requests.
     """
 
+    model_config = ConfigDict(populate_by_name=True)
+
     items: list[AssetResponse]
     total: int
     page: int
