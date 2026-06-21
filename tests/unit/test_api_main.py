@@ -745,7 +745,7 @@ class TestAPIEndpoints:
         assert client.get("/api/assets?per_page=1001").status_code == 422
 
     def test_get_assets_out_of_range_page_returns_empty_items(self, client: TestClient) -> None:
-         """Assets endpoint returns an empty page for out-of-range page requests."""
+        """Assets endpoint returns an empty page for out-of-range page requests."""
         # First get baseline total from page 1
         baseline_response = client.get("/api/assets?page=1&per_page=50")
         assert baseline_response.status_code == 200
