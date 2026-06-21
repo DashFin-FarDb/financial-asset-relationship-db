@@ -121,7 +121,7 @@ class TestAppConstants:
         assert "{total_assets}" in template
         assert "{total_relationships}" in template
         assert "{average_relationship_strength" in template
-        assert "{density" in template
+        assert "{density_pct" in template
         assert "{regulatory_event_count}" in template
         assert "{asset_class_distribution}" in template
 
