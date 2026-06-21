@@ -154,7 +154,7 @@ describe("AssetList Component", () => {
       .mockResolvedValueOnce({
         items: mockAssets,
         total: 40,
-        page: 3,
+        page: 2,
         per_page: 20,
         hasMore: false,
       });
