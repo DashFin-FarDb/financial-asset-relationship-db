@@ -83,7 +83,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       },
     } as unknown as AxiosInstance;
 
-    currentAxios = (await import("axios")).default as jest.Mocked<typeof import("axios")>;
+    currentAxios = (await import("axios")).default as jest.Mocked<typeof axios>;
     currentAxios.create.mockReturnValue(mockAxiosInstance);
 
     const apiModule = await import("../../app/lib/api");
