@@ -105,11 +105,11 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
     const params: {
       asset_class?: string;
       sector?: string;
-      offset: number;
-      limit: number;
+      page: number;
+      per_page: number;
     } = {
-      offset: (page - 1) * pageSize,
-      limit: pageSize,
+      page,
+      per_page: pageSize,
     };
 
     if (filter.asset_class) params.asset_class = filter.asset_class;

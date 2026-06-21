@@ -22,8 +22,8 @@ router = APIRouter()
 async def get_assets(
     asset_class: str | None = None,
     sector: str | None = None,
-    offset: Annotated[int, Query(ge=0)] = 0,
-    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    page: Annotated[int, Query(ge=1)] = 1,
+    per_page: Annotated[int, Query(ge=1, le=1000)] = 50,
 ) -> AssetPageResponse:
     """
     Retrieve a paginated list of assets filtered by optional asset class and sector.
@@ -31,12 +31,12 @@ async def get_assets(
     Parameters:
         asset_class (str | None): If provided, include only assets whose `asset.asset_class.value` equals this string.
         sector (str | None): If provided, include only assets whose `asset.sector` equals this string.
-        offset (int): 0-based offset/start index.
-        limit (int): Number of items per page (maximum 100).
+        page (int): 1-based page number.
+        per_page (int): Number of items per page (maximum 1000).
 
     Returns:
         AssetPageResponse: Page containing `items` (serialized assets for the requested page),
-            `total` (total matched assets), `offset`, `limit`, and `hasMore`.
+            `total` (total matched assets), `page`, and `per_page`.
 
     Raises:
         HTTPException: Propagates existing HTTP errors; raises a 500-status `HTTPException`
@@ -53,10 +53,9 @@ async def get_assets(
             assets.append(asset)
         assets.sort(key=lambda asset: asset.id)
         total = len(assets)
-        start = offset
-        end = offset + limit
+        start = (page - 1) * per_page
+        end = start + per_page
         page_assets = assets[start:end]
-        has_more = end < total
     except HTTPException:
         raise
     except Exception as e:
@@ -76,9 +75,8 @@ async def get_assets(
     return AssetPageResponse(
         items=[AssetResponse(**serialize_asset(asset)) for asset in page_assets],
         total=total,
-        offset=offset,
-        limit=limit,
-        hasMore=has_more,
+        page=page,
+        per_page=per_page,
     )
 
 

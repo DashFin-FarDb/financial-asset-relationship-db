@@ -141,8 +141,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       const page: AssetPageResponse = {
         items: [mockAsset],
         total: 1,
-        offset: 0,
-        limit: 10,
+        page: 1,
+        per_page: 10,
         hasMore: false,
       };
 
@@ -157,16 +157,16 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssets({
         asset_class: "EQUITY",
         sector: "Technology",
-        offset: 0,
-        limit: 10,
+        page: 1,
+        per_page: 10,
       });
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
         params: {
           asset_class: "EQUITY",
           sector: "Technology",
-          offset: 0,
-          limit: 10,
+          page: 1,
+          per_page: 10,
         },
         signal: undefined,
       });
@@ -176,8 +176,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       const page: AssetPageResponse = {
         items: [mockAsset],
         total: 1,
-        offset: 0,
-        limit: 50,
+        page: 1,
+        per_page: 50,
         hasMore: false,
       };
 
@@ -496,8 +496,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       const page: AssetPageResponse = {
         items: [mockAsset],
         total: 1,
-        offset: 0,
-        limit: 50,
+        page: 1,
+        per_page: 50,
         hasMore: false,
       };
 
@@ -521,8 +521,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       const page: AssetPageResponse = {
         items: [mockAsset],
         total: 1,
-        offset: 0,
-        limit: 10,
+        page: 1,
+        per_page: 10,
         hasMore: false,
       };
 
@@ -534,12 +534,12 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         config: {} as AxiosRequestConfig,
       });
 
-      const result = await api.getAssets({ offset: 0, limit: 10 });
+      const result = await api.getAssets({ page: 1, per_page: 10 });
 
       expect(result.items).toEqual([mockAsset]);
       expect(result.total).toBe(1);
-      expect(result.offset).toBe(0);
-      expect(result.limit).toBe(10);
+      expect(result.page).toBe(1);
+      expect(result.per_page).toBe(10);
     });
   });
 
@@ -738,8 +738,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         data: {
           items: largeDataset,
           total: largeDataset.length,
-          offset: 0,
-          limit: largeDataset.length,
+          page: 1,
+          per_page: largeDataset.length,
           hasMore: false,
         },
         status: 200,

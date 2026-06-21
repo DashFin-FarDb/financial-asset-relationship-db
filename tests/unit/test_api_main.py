@@ -47,14 +47,13 @@ from src.models.financial_models import AssetClass, Equity
 CORS_DEV_ORIGIN = "http://localhost:3000"
 
 
-def _assert_asset_page(data: dict[str, Any], *, offset: int = 0, limit: int = 50) -> list[dict[str, Any]]:
+def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 50) -> list[dict[str, Any]]:
     """Assert that an assets response follows the paginated contract."""
-    assert set(data) == {"items", "total", "offset", "limit", "hasMore"}
+    assert set(data) == {"items", "total", "page", "per_page"}
     assert isinstance(data["items"], list)
     assert isinstance(data["total"], int)
-    assert data["offset"] == offset
-    assert data["limit"] == limit
-    assert isinstance(data["hasMore"], bool)
+    assert data["page"] == page
+    assert data["per_page"] == per_page
     assert data["total"] >= len(data["items"])
     return data["items"]
 
@@ -552,7 +551,7 @@ class TestAPIEndpoints:
         self,
         client: TestClient,
     ) -> None:
-        """Detailed health reports graph persistence as unconfigured for invalid database URLs."""
+        """Detailed health reports as unconfigured for invalid database URLs."""
         with patch(
             "api.routers.system.get_graph_lifecycle_settings",
             return_value=GraphLifecycleSettings(
@@ -720,16 +719,16 @@ class TestAPIEndpoints:
 
     def test_get_assets_explicit_pagination(self, client: TestClient) -> None:
         """Assets endpoint supports explicit offset and limit parameters."""
-        first_response = client.get("/api/assets?offset=0&limit=2")
-        second_response = client.get("/api/assets?offset=2&limit=2")
+        first_response = client.get("/api/assets?page=1&per_page=2")
+        second_response = client.get("/api/assets?page=2&per_page=2")
 
         assert first_response.status_code == 200
         assert second_response.status_code == 200
 
         first_payload = first_response.json()
         second_payload = second_response.json()
-        first_page = _assert_asset_page(first_payload, offset=0, limit=2)
-        second_page = _assert_asset_page(second_payload, offset=2, limit=2)
+        first_page = _assert_asset_page(first_payload, page=1, per_page=2)
+        second_page = _assert_asset_page(second_payload, page=2, per_page=2)
 
         assert len(first_page) == 2
         assert len(second_page) == 2
@@ -740,22 +739,22 @@ class TestAPIEndpoints:
 
     def test_get_assets_rejects_invalid_pagination(self, client: TestClient) -> None:
         """Assets endpoint rejects invalid offset and limit values."""
-        assert client.get("/api/assets?offset=-1").status_code == 422
-        assert client.get("/api/assets?limit=0").status_code == 422
-        assert client.get("/api/assets?limit=101").status_code == 422
+        assert client.get("/api/assets?page=0").status_code == 422
+        assert client.get("/api/assets?per_page=0").status_code == 422
+        assert client.get("/api/assets?per_page=1001").status_code == 422
 
     def test_get_assets_out_of_range_page_returns_empty_items(self, client: TestClient) -> None:
         """Assets endpoint returns an empty page for out-of-range offset requests."""
         # First get baseline total from offset 0
-        baseline_response = client.get("/api/assets?offset=0&limit=50")
+        baseline_response = client.get("/api/assets?page=1&per_page=50")
         assert baseline_response.status_code == 200
         baseline_total = baseline_response.json()["total"]
 
         # Out-of-range offset should return empty items but preserve total
-        response = client.get("/api/assets?offset=999999&limit=50")
+        response = client.get("/api/assets?page=999999&per_page=50")
         assert response.status_code == 200
         payload = response.json()
-        assets = _assert_asset_page(payload, offset=999999, limit=50)
+        assets = _assert_asset_page(payload, page=999999, per_page=50)
         # BOUNDARY: out-of-range offset returns empty items
         assert assets == []
         # BOUNDARY: but total is preserved (reflects full dataset, not page slice)

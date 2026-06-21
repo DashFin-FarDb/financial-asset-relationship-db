@@ -108,15 +108,15 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should handle pagination pattern", async () => {
-      const page1 = { items: [mockAsset], total: 100, offset: 0, limit: 10, hasMore: true };
-      const page2 = { items: [mockAsset], total: 100, offset: 10, limit: 10, hasMore: true };
+      const page1 = { items: [mockAsset], total: 100, page: 1, per_page: 10, hasMore: true };
+      const page2 = { items: [mockAsset], total: 100, page: 2, per_page: 10, hasMore: true };
 
       mockAxiosInstance.get
         .mockResolvedValueOnce({ data: page1 })
         .mockResolvedValueOnce({ data: page2 });
 
-      const firstPage = await api.getAssets({ offset: 0, limit: 10 });
-      const secondPage = await api.getAssets({ offset: 10, limit: 10 });
+      const firstPage = await api.getAssets({ page: 1, per_page: 10 });
+      const secondPage = await api.getAssets({ page: 2, per_page: 10 });
 
       expect(firstPage).toEqual(page1);
       expect(secondPage).toEqual(page2);
@@ -153,7 +153,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should gracefully handle empty response after error", async () => {
-      const emptyPage = { items: [], total: 0, offset: 0, limit: 50, hasMore: false };
+      const emptyPage = { items: [], total: 0, page: 1, per_page: 50, hasMore: false };
 
       mockAxiosInstance.get
         .mockRejectedValueOnce({ response: { status: 404 } })
@@ -233,7 +233,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
     it("should NOT break: query parameter handling", async () => {
       mockAxiosInstance.get.mockResolvedValue({
-        data: { items: [], total: 0, offset: 0, limit: 50, hasMore: false },
+        data: { items: [], total: 0, page: 1, per_page: 50, hasMore: false },
       });
 
       await api.getAssets({ asset_class: "EQUITY" });

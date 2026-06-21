@@ -132,8 +132,8 @@ describe("API Client", () => {
       expect(result).toEqual(mockAssetsPage);
       expect(result.items).toHaveLength(2);
       expect(result.total).toBe(2);
-      expect(result.offset).toBe(0);
-      expect(result.limit).toBe(50);
+      expect(result.page).toBe(1);
+      expect(result.per_page).toBe(50);
     });
 
     it("should fetch assets with asset_class filter", async () => {

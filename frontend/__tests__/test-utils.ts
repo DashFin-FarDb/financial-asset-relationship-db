@@ -34,8 +34,8 @@ export const mockAssets: Asset[] = [
 export const mockAssetsPage: AssetPageResponse = {
   items: mockAssets,
   total: 2,
-  offset: 0,
-  limit: 50,
+  page: 1,
+  per_page: 50,
   hasMore: false,
 };
 

@@ -33,22 +33,20 @@ class AssetPageResponse(BaseModel):
     """Response model for paginated asset data.
 
     Pagination contract:
-    - ``offset`` is 0-indexed.
-    - ``limit`` defaults to 50; maximum accepted value is 1,000
+    - ``page`` is 1-indexed (first page = 1).
+    - ``per_page`` defaults to 50; maximum accepted value is 1,000
       (enforced by ``Query(ge=1, le=1000)`` on the route).
     - ``total`` is the exact count of assets matching the current query
       filters (not an estimate).
-    - An out-of-range ``offset`` returns an empty ``items`` list, not an error.
+    - An out-of-range ``page`` returns an empty ``items`` list, not an error.
     - Results are deterministically ordered by ``asset.id ASC`` to ensure
       stable pagination across requests.
-    - ``hasMore`` is true if there are additional items beyond the returned set.
     """
 
     items: list[AssetResponse]
     total: int
-    offset: int
-    limit: int
-    hasMore: bool
+    page: int
+    per_page: int
 
 
 class RelationshipResponse(BaseModel):

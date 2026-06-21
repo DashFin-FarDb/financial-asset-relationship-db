@@ -67,17 +67,15 @@ export interface VisualizationData {
  * Paginated asset response.
  *
  * Contract:
- * - `offset` is 0-indexed.
- * - `limit` defaults to 50; maximum is 1,000.
+ * - `page` is 1-indexed.
+ * - `per_page` defaults to 50; maximum is 1,000.
  * - `total` is the exact count matching current filters (not an estimate).
- * - An out-of-range `offset` returns an empty `items` array, not an error.
+ * - An out-of-range `page` returns an empty `items` array, not an error.
  * - Results are deterministically ordered by `asset.id ASC`.
- * - `hasMore` is true if there are additional items beyond the returned set.
  */
 export interface AssetPageResponse {
   items: Asset[];
   total: number;
-  offset: number;
-  limit: number;
-  hasMore: boolean;
+  page: number;
+  per_page: number;
 }

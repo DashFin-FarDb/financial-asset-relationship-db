@@ -51,8 +51,8 @@ describe("AssetList Component", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: mockAssets,
       total: mockAssets.length,
-      offset: 0,
-      limit: 20,
+      page: 1,
+      per_page: 20,
       hasMore: false,
     });
     mockedApi.getAssetClasses.mockResolvedValue(mockAssetClasses);
@@ -87,8 +87,8 @@ describe("AssetList Component", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: mockAssets,
       total: mockAssets.length,
-      offset: 0,
-      limit: 20,
+      page: 1,
+      per_page: 20,
       hasMore: false,
     });
 
@@ -98,8 +98,8 @@ describe("AssetList Component", () => {
       expect(mockedApi.getAssets).toHaveBeenLastCalledWith(
         {
           asset_class: "EQUITY",
-          offset: 0,
-          limit: 20,
+          page: 1,
+          per_page: 20,
         },
         expect.any(AbortSignal),
       );
@@ -115,8 +115,8 @@ describe("AssetList Component", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: [],
       total: 0,
-      offset: 0,
-      limit: 20,
+      page: 1,
+      per_page: 20,
       hasMore: false,
     });
     render(<AssetList />);
@@ -147,15 +147,15 @@ describe("AssetList Component", () => {
       .mockResolvedValueOnce({
         items: mockAssets,
         total: 40,
-        offset: 0,
-        limit: 20,
+        page: 1,
+        per_page: 20,
         hasMore: true,
       })
       .mockResolvedValueOnce({
         items: mockAssets,
         total: 40,
-        offset: 20,
-        limit: 20,
+        page: 3,
+        per_page: 20,
         hasMore: false,
       });
 
@@ -171,8 +171,8 @@ describe("AssetList Component", () => {
     await waitFor(() => {
       expect(mockedApi.getAssets).toHaveBeenLastCalledWith(
         {
-          offset: 20,
-          limit: 20,
+          page: 2,
+          per_page: 20,
         },
         expect.any(AbortSignal),
       );
@@ -184,8 +184,8 @@ describe("AssetList Component", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: mockAssets,
       total: 150,
-      offset: 100,
-      limit: 50,
+      page: 20,
+      per_page: 50,
       hasMore: false,
     });
 
@@ -195,8 +195,8 @@ describe("AssetList Component", () => {
       expect(mockedApi.getAssets).toHaveBeenCalledWith(
         {
           asset_class: "EQUITY",
-          offset: 100,
-          limit: 50,
+          page: 3,
+          per_page: 50,
         },
         expect.any(AbortSignal),
       );
@@ -210,7 +210,7 @@ describe("AssetList Component", () => {
       items: typeof mockAssets;
       total: number;
       offset: number;
-      limit: number;
+      per_page: number;
       hasMore: boolean;
     };
 
@@ -260,8 +260,8 @@ describe("AssetList Component", () => {
     secondResponse.resolve({
       items: secondAssets,
       total: secondAssets.length,
-      offset: 0,
-      limit: 20,
+      page: 1,
+      per_page: 20,
       hasMore: false,
     });
 
@@ -272,8 +272,8 @@ describe("AssetList Component", () => {
     firstResponse.resolve({
       items: firstAssets,
       total: firstAssets.length,
-      offset: 0,
-      limit: 20,
+      page: 1,
+      per_page: 20,
       hasMore: false,
     });
 

@@ -23,7 +23,7 @@ def client():
 
 def asset_items(page: dict) -> list[dict]:
     """Return asset items from a paginated assets response."""
-    assert set(page) == {"items", "total", "offset", "limit", "hasMore"}
+    assert set(page) == {"items", "total", "page", "per_page"}
     assert isinstance(page["items"], list)
     assert isinstance(page["total"], int)
     assert isinstance(page["offset"], int)
@@ -40,7 +40,7 @@ def all_asset_items(client: TestClient) -> list[dict]:
     has_more = True
 
     while has_more:
-        response = client.get(f"/api/assets?offset={offset}&limit={limit}")
+        response = client.get(f"/api/assets?page={offset}&per_page={limit}")
         assert response.status_code == 200
         payload = response.json()
         assets.extend(asset_items(payload))

@@ -44,8 +44,8 @@ export const api = {
     params?: {
       asset_class?: string;
       sector?: string;
-      offset?: number;
-      limit?: number;
+      page?: number;
+      per_page?: number;
     },
     signal?: AbortSignal,
   ): Promise<AssetPageResponse> => {
