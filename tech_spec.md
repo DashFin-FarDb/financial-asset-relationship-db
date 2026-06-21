@@ -137,7 +137,7 @@ The system is designed for integration flexibility:
 | 3D Network Visualization | Interactive Plotly-based graph rendering with rotation, zoom, and hover | `src/visualizations/`             |
 | Cross-Asset Analysis     | Automatic relationship discovery between different asset classes        | `src/logic/asset_graph.py`        |
 | Regulatory Integration   | Corporate events and SEC filings with scored impact modeling            | `src/models/financial_models.py`  |
-| Real-time Metrics        | Network statistics, network density, distribution analysis              | API `/api/graph/metrics` endpoint | 
+| Real-time Metrics        | Network statistics, network density, distribution analysis              | API `/api/graph/metrics` endpoint |
 | Asset Explorer           | Filterable table with asset class and sector filters                    | Gradio and Next.js UIs            |
 | Schema Reporting         | Auto-generated documentation of data models and business rules          | `src/reports/schema_report.py`    |
 
