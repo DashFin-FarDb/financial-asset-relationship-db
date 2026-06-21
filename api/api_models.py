@@ -47,7 +47,7 @@ class AssetPageResponse(BaseModel):
     total: int
     page: int
     per_page: int
-    hasMore: bool
+    has_more: bool = Field(..., alias="hasMore")
 
 
 class RelationshipResponse(BaseModel):
