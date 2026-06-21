@@ -189,7 +189,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
       // URL should be properly encoded/escaped
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        `/api/assets/${maliciousId}`, { signal: undefined },
+        `/api/assets/${encodeURIComponent(maliciousId)}`, { signal: undefined },
       );
     });
 
