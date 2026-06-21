@@ -119,5 +119,5 @@ def test_schema_report_recommendation_logic() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
 
-    # network_density = 12.5 -> mid range → "Well-balanced"
+    # network_density = 0.125 (12.5%) -> mid range → "Well-balanced"
     assert "Well-balanced" in md
