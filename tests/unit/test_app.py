@@ -410,7 +410,7 @@ class TestRefreshVisualization:
     def test_refresh_visualization_2d_mode(mock_fetcher, mock_viz_2d):
         """Test refresh visualization in 2D mode."""
         import plotly.graph_objects as go
-        
+
         mock_graph = MagicMock()
         mock_graph.assets = {}
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
