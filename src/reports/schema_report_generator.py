@@ -197,7 +197,7 @@ class SchemaReportGenerator:
 
         Parameters:
             metrics (Dict[str, Any]): Metrics mapping; expected keys:
-                - "density": numeric value used to select the recommendation.
+                - "network_density": numeric value used to select the recommendation.
                 - "quality_score": numeric value formatted as a percentage in the output.
 
         Returns:
