@@ -719,7 +719,7 @@ class TestAPIEndpoints:
         assert "price" in asset
 
     def test_get_assets_explicit_pagination(self, client: TestClient) -> None:
-        """Assets endpoint supports explicit offset and limit parameters."""
+        """Assets endpoint supports explicit page and per_page parameters."""
         first_response = client.get("/api/assets?page=1&per_page=2")
         second_response = client.get("/api/assets?page=2&per_page=2")
 
