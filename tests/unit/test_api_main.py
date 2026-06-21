@@ -307,7 +307,7 @@ class TestPydanticModels:
         )
         assert len(viz.nodes) == 1
         assert len(viz.edges) == 1
-        assert viz.network_density == 0.1
+        assert viz.network_density == pytest.approx(0.1)
 
     def test_detailed_health_response_model_valid(self) -> None:
         """Verify that DetailedHealthResponse accepts bounded readiness payloads."""

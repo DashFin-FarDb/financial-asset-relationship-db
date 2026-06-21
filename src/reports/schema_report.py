@@ -4,9 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Protocol
 
-from src.logic.asset_graph import AssetRelationshipGraph
+
+class GraphLike(Protocol):
+    """Protocol for objects that can calculate metrics for schema reports."""
+
+    def calculate_metrics(self) -> dict[str, Any]:
+        """Calculate graph metrics."""
+        ...
 
 
 def _as_int(value: Any, default: int = 0) -> int:
@@ -326,7 +332,7 @@ def _implementation_notes_lines() -> list[str]:
     ]
 
 
-def generate_schema_report(graph: AssetRelationshipGraph) -> str:
+def generate_schema_report(graph: GraphLike) -> str:
     """
     Produce a Markdown report summarizing schema, metrics, and recommendations.
 
@@ -334,7 +340,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     recommendations for an asset relationship graph.
 
     Parameters:
-        graph (AssetRelationshipGraph): The graph to analyze.
+        graph (GraphLike): The graph to analyze.
 
     Returns:
         A Markdown-formatted string containing:

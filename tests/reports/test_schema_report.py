@@ -65,7 +65,7 @@ class MockGraph:
 def test_schema_report_contains_sections() -> None:
     """Test that all expected sections are in the markdown output."""
     graph = MockGraph()
-    md = generate_schema_report(graph)  # type: ignore[arg-type]
+    md = generate_schema_report(graph)
 
     # Basic section anchors must exist
     required_sections = [
@@ -88,7 +88,7 @@ def test_schema_report_contains_sections() -> None:
 def test_schema_report_relationship_distribution() -> None:
     """Test that the relationship distribution is present."""
     graph = MockGraph()
-    md = generate_schema_report(graph)  # type: ignore[arg-type]
+    md = generate_schema_report(graph)
 
     assert "- **correlation**: 4 instances" in md
     assert "- **hedge**: 2 instances" in md
@@ -98,7 +98,7 @@ def test_schema_report_relationship_distribution() -> None:
 def test_schema_report_top_relationships() -> None:
     """Test that top relationships are formatted correctly."""
     graph = MockGraph()
-    md = generate_schema_report(graph)  # type: ignore[arg-type]
+    md = generate_schema_report(graph)
 
     assert "**A** → **B** (correlation, strength 0.90)" in md
     assert "**X** → **Y** (hedge, strength 0.70)" in md
@@ -108,7 +108,7 @@ def test_schema_report_top_relationships() -> None:
 def test_schema_report_quality_score() -> None:
     """Test that the data quality score is included."""
     graph = MockGraph()
-    md = generate_schema_report(graph)  # type: ignore[arg-type]
+    md = generate_schema_report(graph)
 
     assert "### Data Quality Score: 82.0%" in md
 
@@ -117,7 +117,7 @@ def test_schema_report_quality_score() -> None:
 def test_schema_report_recommendation_logic() -> None:
     """Test that optimization recommendations are correctly calculated and included."""
     graph = MockGraph()
-    md = generate_schema_report(graph)  # type: ignore[arg-type]
+    md = generate_schema_report(graph)
 
     # network_density = 12.5 -> mid range → "Well-balanced"
     assert "Well-balanced" in md

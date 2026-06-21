@@ -12,7 +12,7 @@ from ..router_helpers import get_graph, logger
 router = APIRouter()
 
 
-@router.get("/api/graph/metrics", response_model=MetricsResponse)
+@router.get("/api/graph/metrics", responses={500: {"description": "Internal server error"}})
 async def get_graph_metrics() -> MetricsResponse:
     """
     Retrieve aggregated metrics, distributions, and density for the current asset graph.
