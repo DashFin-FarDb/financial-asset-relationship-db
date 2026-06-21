@@ -23,11 +23,12 @@ def client():
 
 def asset_items(page: dict) -> list[dict]:
     """Return asset items from a paginated assets response."""
-    assert set(page) == {"items", "total", "page", "per_page"}
+    assert set(page) == {"items", "total", "page", "per_page", "hasMore"}
     assert isinstance(page["items"], list)
     assert isinstance(page["total"], int)
     assert isinstance(page["page"], int)
     assert isinstance(page["per_page"], int)
+    assert isinstance(page["hasMore"], bool)
     return page["items"]
 
 

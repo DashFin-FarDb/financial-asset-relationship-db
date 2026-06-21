@@ -47,6 +47,7 @@ class AssetPageResponse(BaseModel):
     total: int
     page: int
     per_page: int
+    hasMore: bool
 
 
 class RelationshipResponse(BaseModel):

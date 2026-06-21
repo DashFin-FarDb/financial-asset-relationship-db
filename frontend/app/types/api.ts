@@ -78,4 +78,5 @@ export interface AssetPageResponse {
   total: number;
   page: number;
   per_page: number;
+  hasMore: boolean;
 }

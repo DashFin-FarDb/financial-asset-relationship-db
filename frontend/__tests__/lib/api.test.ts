@@ -435,7 +435,6 @@ describe("API Client", () => {
         avg_degree: 0,
         max_degree: 0,
         network_density: 0,
-        relationship_density: 0,
       };
       mockAxiosInstance.get.mockResolvedValue({ data: emptyMetrics });
 
@@ -443,7 +442,6 @@ describe("API Client", () => {
 
       expect(result.total_assets).toBe(0);
       expect(result.network_density).toBe(0);
-      expect(result.relationship_density).toBe(0);
     });
 
     it("should forward AbortSignal to axios config", async () => {

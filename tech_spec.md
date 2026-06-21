@@ -137,7 +137,7 @@ The system is designed for integration flexibility:
 | 3D Network Visualization | Interactive Plotly-based graph rendering with rotation, zoom, and hover | `src/visualizations/`            |
 | Cross-Asset Analysis     | Automatic relationship discovery between different asset classes        | `src/logic/asset_graph.py`       |
 | Regulatory Integration   | Corporate events and SEC filings with scored impact modeling            | `src/models/financial_models.py` |
-| Real-time Metrics        | Network statistics, relationship density, distribution analysis         | API `/api/metrics` endpoint      |
+| Real-time Metrics        | Network statistics, relationship density, distribution analysis         | API `/api/graph/metrics` endpoint      |
 | Asset Explorer           | Filterable table with asset class and sector filters                    | Gradio and Next.js UIs           |
 | Schema Reporting         | Auto-generated documentation of data models and business rules          | `src/reports/schema_report.py`   |
 
@@ -280,10 +280,10 @@ The relationship engine discovers and manages six primary relationship types:
 
 | KPI                                | Description                               | Measurement Source      |
 | ---------------------------------- | ----------------------------------------- | ----------------------- |
-| Network Density                    | Ratio of actual to possible relationships | `/api/metrics` endpoint |
-| Average Degree                     | Mean number of connections per asset      | `/api/metrics` endpoint |
-| Max Degree                         | Highest connected asset                   | `/api/metrics` endpoint |
-| Asset Class Distribution           | Balance of asset types in network         | `/api/metrics` endpoint |
+| Network Density                    | Ratio of actual to possible relationships | `/api/graph/metrics` endpoint |
+| Average Degree                     | Mean number of connections per asset      | `/api/graph/metrics` endpoint |
+| Max Degree                         | Highest connected asset                   | `/api/graph/metrics` endpoint |
+| Asset Class Distribution           | Balance of asset types in network         | `/api/graph/metrics` endpoint |
 | Relationship Strength Distribution | Distribution of normalized weights        | Visualization layer     |
 
 ## 1.3 Scope
@@ -351,7 +351,7 @@ end
 | `/api/assets/{id}`               | GET    | Retrieve single asset details        |
 | `/api/assets/{id}/relationships` | GET    | Get relationships for specific asset |
 | `/api/relationships`             | GET    | List all relationships               |
-| `/api/metrics`                   | GET    | Network metrics and statistics       |
+| `/api/graph/metrics`                   | GET    | Network metrics and statistics       |
 | `/api/visualization`             | GET    | 3D visualization data payload        |
 | `/api/asset-classes`             | GET    | Enumerate available asset classes    |
 | `/api/sectors`                   | GET    | List industry sectors                |
@@ -739,7 +739,7 @@ Implemented in `api/main.py` using FastAPI 0.127.0. The API exposes 12 primary e
 | `/api/assets/{id}`               | GET    | Single asset details              |
 | `/api/assets/{id}/relationships` | GET    | Asset-specific relationships      |
 | `/api/relationships`             | GET    | All relationships                 |
-| `/api/metrics`                   | GET    | Network metrics                   |
+| `/api/graph/metrics`                   | GET    | Network metrics                   |
 | `/api/visualization`             | GET    | 3D visualization payload          |
 | `/api/asset-classes`             | GET    | Available asset classes           |
 | `/api/sectors`                   | GET    | Available sectors                 |
@@ -978,7 +978,7 @@ Provides quantitative insight into network structure, enabling assessment of por
 
 **Technical Context:**
 
-Backend metrics calculation in F-003 exposes data via `/api/metrics` endpoint. The MetricsResponse model includes: total_assets, total_relationships, asset_classes (Dict[str, int]), avg_degree, max_degree, and network_density (a normalised 0.0–1.0 fraction). The percentage-based network_density is an internal schema-report detail and is not part of the public API contract. Frontend rendering in `frontend/app/components/MetricsDashboard.tsx`.
+Backend metrics calculation in F-003 exposes data via `/api/graph/metrics` endpoint. The MetricsResponse model includes: total_assets, total_relationships, asset_classes (Dict[str, int]), avg_degree, max_degree, and network_density (a normalised 0.0–1.0 fraction). The percentage-based network_density is an internal schema-report detail and is not part of the public API contract. Frontend rendering in `frontend/app/components/MetricsDashboard.tsx`.
 
 **Dependencies:**
 
@@ -3283,12 +3283,12 @@ flowchart TB
 
 ### 4.3.3 Metrics Calculation Flow
 
-The metrics endpoint (`GET /api/metrics`) calculates and returns network statistics including density, degree distribution, and asset class breakdowns.
+The metrics endpoint (`GET /api/graph/metrics`) calculates and returns network statistics including density, degree distribution, and asset class breakdowns.
 
 ```mermaid
 flowchart TB
-    subgraph MetricsFlow["GET /api/metrics Workflow"]
-        MetStart([GET /api/metrics<br/>Request]) --> GetGraph3[get_graph()<br/>Thread-Safe]
+    subgraph MetricsFlow["GET /api/graph/metrics Workflow"]
+        MetStart([GET /api/graph/metrics<br/>Request]) --> GetGraph3[get_graph()<br/>Thread-Safe]
         GetGraph3 --> CallMetrics[Call calculate_metrics()]
         CallMetrics --> CountAssets[Count Total<br/>Assets]
         CountAssets --> CountRels[Count Total<br/>Relationships]
@@ -3543,7 +3543,7 @@ sequenceDiagram
 
     User->>NextJS: Navigate to Page
     NextJS->>Axios: api.getMetrics()
-    Axios->>CORS: GET /api/metrics
+    Axios->>CORS: GET /api/graph/metrics
     CORS->>CORS: Validate Origin
 
     alt Origin Valid
@@ -4101,7 +4101,7 @@ The FastAPI backend serves as the primary API gateway, exposing graph data throu
 | `/api/assets/{id}`               | GET    | Single asset details              | No                         |
 | `/api/assets/{id}/relationships` | GET    | Asset relationships               | No                         |
 | `/api/relationships`             | GET    | All relationships                 | No                         |
-| `/api/metrics`                   | GET    | Network statistics                | No                         |
+| `/api/graph/metrics`                   | GET    | Network statistics                | No                         |
 | `/api/visualization`             | GET    | 3D visualization data             | No                         |
 | `/api/asset-classes`             | GET    | Available asset class enum        | No                         |
 | `/api/sectors`                   | GET    | Available sectors                 | No                         |
@@ -4182,7 +4182,7 @@ sequenceDiagram
     Page->>Page: useEffect on mount
     Page->>API: getMetrics()
     Page->>API: getVisualizationData()
-    API->>Backend: GET /api/metrics
+    API->>Backend: GET /api/graph/metrics
     API->>Backend: GET /api/visualization
     Backend-->>API: JSON Response
     API-->>Page: Data Objects
@@ -4541,7 +4541,7 @@ The caching strategy uses atomic write operations to prevent data corruption:
 
 #### Metrics Endpoints
 
-The system exposes operational metrics through the `/api/metrics` endpoint:
+The system exposes operational metrics through the `/api/graph/metrics` endpoint:
 
 | Metric                | Description               | Source                  |
 | --------------------- | ------------------------- | ----------------------- |
@@ -6286,7 +6286,7 @@ flowchart TB
 | `/api/assets/{id}`               | GET    | Asset details       | No   | None       |
 | `/api/assets/{id}/relationships` | GET    | Asset relationships | No   | None       |
 | `/api/relationships`             | GET    | All relationships   | No   | None       |
-| `/api/metrics`                   | GET    | Network stats       | No   | None       |
+| `/api/graph/metrics`                   | GET    | Network stats       | No   | None       |
 | `/api/visualization`             | GET    | 3D visualization    | No   | None       |
 | `/api/asset-classes`             | GET    | Asset classes       | No   | None       |
 | `/api/sectors`                   | GET    | Sectors             | No   | None       |
@@ -6657,7 +6657,7 @@ The Next.js frontend communicates with the FastAPI backend through a typed API c
 | `getAssetDetail(id)`        | GET /api/assets/{id}               | Asset                       |
 | `getAssetRelationships(id)` | GET /api/assets/{id}/relationships | Relationship[]              |
 | `getAllRelationships()`     | GET /api/relationships             | Relationship[]              |
-| `getMetrics()`              | GET /api/metrics                   | Metrics                     |
+| `getMetrics()`              | GET /api/graph/metrics                   | Metrics                     |
 | `getVisualizationData()`    | GET /api/visualization             | VisualizationData           |
 | `getAssetClasses()`         | GET /api/asset-classes             | { asset_classes: string[] } |
 | `getSectors()`              | GET /api/sectors                   | { sectors: string[] }       |
@@ -6673,7 +6673,7 @@ sequenceDiagram
 
     User->>NextJS: Navigate to Page
     NextJS->>Axios: api.getMetrics()
-    Axios->>CORS: GET /api/metrics
+    Axios->>CORS: GET /api/graph/metrics
     CORS->>CORS: Validate Origin
 
     alt Origin Valid
@@ -7304,7 +7304,7 @@ flowchart TB
 | `/api/users/me`      | GET         | Yes           | Yes (10/min) | Current user info     |
 | `/api/assets`        | GET         | No            | No           | List assets           |
 | `/api/assets/{id}`   | GET         | No            | No           | Single asset details  |
-| `/api/metrics`       | GET         | No            | No           | Network statistics    |
+| `/api/graph/metrics`       | GET         | No            | No           | Network statistics    |
 | `/api/visualization` | GET         | No            | No           | 3D visualization data |
 | `/api/health`        | GET         | No            | No           | Health check          |
 
@@ -7759,7 +7759,7 @@ The current monitoring implementation provides sufficient observability for the 
 | ------------------- | --------------------- | ------------------------------------ |
 | Health Checks       | ✅ Implemented        | FastAPI endpoint, Docker HEALTHCHECK |
 | Application Logging | ✅ Implemented        | Python standard logging              |
-| Application Metrics | ✅ Implemented        | Custom `/api/metrics` endpoint       |
+| Application Metrics | ✅ Implemented        | Custom `/api/graph/metrics` endpoint       |
 | Distributed Tracing | ⚠️ Not Required       | Monolithic architecture              |
 | Log Aggregation     | ⚠️ Not Implemented    | Basic stdout logging                 |
 | Alert Management    | ⚠️ CI/CD Only         | GitHub Actions, CircleCI             |
@@ -7777,7 +7777,7 @@ flowchart TB
 
         subgraph MonitoringEndpoints[Monitoring Endpoints]
             HealthCheck["/api/health<br/>Health Check"]
-            MetricsEndpoint["/api/metrics<br/>Graph Metrics"]
+            MetricsEndpoint["/api/graph/metrics<br/>Graph Metrics"]
         end
 
         subgraph LoggingLayer[Logging Layer]
@@ -7913,7 +7913,7 @@ The system implements Python standard logging with structured output for operati
 
 **Location**: `api/main.py` (lines 563-602)
 
-The `/api/metrics` endpoint provides graph topology and network analysis metrics:
+The `/api/graph/metrics` endpoint provides graph topology and network analysis metrics:
 
 | Metric                 | Type       | Description                       |
 | ---------------------- | ---------- | --------------------------------- |
@@ -7922,8 +7922,7 @@ The `/api/metrics` endpoint provides graph topology and network analysis metrics
 | `asset_classes`        | Dictionary | Count per asset class             |
 | `avg_degree`           | Gauge      | Mean connections per node         |
 | `max_degree`           | Gauge      | Highest connected node            |
-| `network_density`      | Gauge      | Ratio of actual to possible edges |
-| `network_density` | Gauge      | Calculated relationship density   |
+| `network_density`      | Gauge      | Calculated relationship density   |
 
 #### Metrics Response Model
 
@@ -8266,7 +8265,7 @@ flowchart TB
 
 #### 6.5.6.1 Metrics Dashboard Layout
 
-The system provides operational metrics through the `/api/metrics` endpoint. A recommended dashboard layout for visualization:
+The system provides operational metrics through the `/api/graph/metrics` endpoint. A recommended dashboard layout for visualization:
 
 ```mermaid
 flowchart TB
@@ -9667,7 +9666,7 @@ sequenceDiagram
 
     par Parallel Data Fetch
         Page->>Client: getMetrics()
-        Client->>Axios: GET /api/metrics
+        Client->>Axios: GET /api/graph/metrics
         Axios->>Backend: HTTP Request
         Backend->>Graph: calculate_metrics()
         Graph-->>Backend: Metrics Data
@@ -9708,7 +9707,7 @@ sequenceDiagram
 | `/api/assets/{id}`               | GET    | Single asset details    | Asset detail view          |
 | `/api/assets/{id}/relationships` | GET    | Asset relationships     | Relationship display       |
 | `/api/relationships`             | GET    | All relationships       | Visualization edges        |
-| `/api/metrics`                   | GET    | Network statistics      | `MetricsDashboard.tsx`     |
+| `/api/graph/metrics`                   | GET    | Network statistics      | `MetricsDashboard.tsx`     |
 | `/api/visualization`             | GET    | 3D graph data           | `NetworkVisualization.tsx` |
 | `/api/asset-classes`             | GET    | Filter dropdown options | `AssetList.tsx`            |
 | `/api/sectors`                   | GET    | Filter dropdown options | `AssetList.tsx`            |
@@ -11371,7 +11370,7 @@ flowchart TB
     subgraph MonitoringStack[Infrastructure Monitoring Stack]
         subgraph ApplicationMonitoring[Application Layer]
             HealthEndpoint[/api/health<br/>Health Check]
-            MetricsEndpoint[/api/metrics<br/>Application Metrics]
+            MetricsEndpoint[/api/graph/metrics<br/>Application Metrics]
             LoggingLayer[Python Logging<br/>INFO Level]
         end
 
@@ -11424,7 +11423,7 @@ flowchart TB
 
 #### 8.7.2.2 Application Metrics Endpoint
 
-**Endpoint:** `GET /api/metrics`
+**Endpoint:** `GET /api/graph/metrics`
 
 | Metric                 | Type       | Description               |
 | ---------------------- | ---------- | ------------------------- |
@@ -12180,7 +12179,7 @@ flowchart LR
         Assets["/api/assets"]
         AssetDetail["/api/assets/{id}"]
         Relationships["/api/relationships"]
-        Metrics["/api/metrics"]
+        Metrics["/api/graph/metrics"]
         Visualization["/api/visualization"]
         Classes["/api/asset-classes"]
         Sectors["/api/sectors"]
@@ -12204,7 +12203,7 @@ flowchart LR
 | `/api/assets/{id}`               | GET    | No             | No           |
 | `/api/assets/{id}/relationships` | GET    | No             | No           |
 | `/api/relationships`             | GET    | No             | No           |
-| `/api/metrics`                   | GET    | No             | No           |
+| `/api/graph/metrics`                   | GET    | No             | No           |
 | `/api/visualization`             | GET    | No             | No           |
 | `/api/asset-classes`             | GET    | No             | No           |
 | `/api/sectors`                   | GET    | No             | No           |

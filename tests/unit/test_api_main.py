@@ -49,11 +49,12 @@ CORS_DEV_ORIGIN = "http://localhost:3000"
 
 def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 50) -> list[dict[str, Any]]:
     """Assert that an assets response follows the paginated contract."""
-    assert set(data) == {"items", "total", "page", "per_page"}
+    assert set(data) == {"items", "total", "page", "per_page", "hasMore"}
     assert isinstance(data["items"], list)
     assert isinstance(data["total"], int)
     assert data["page"] == page
     assert data["per_page"] == per_page
+    assert isinstance(data["hasMore"], bool)
     assert data["total"] >= len(data["items"])
     return data["items"]
 
