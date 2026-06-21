@@ -10,7 +10,13 @@ describe("loadAssets", () => {
     jest.clearAllMocks();
   });
 
-  it.each([0, -1])("clamps page %s to the first page before requesting assets", async (page) => {
+  it.each([
+    { page: 1, expectedPage: 1 },
+    { page: 0, expectedPage: 1 },
+    { page: -1, expectedPage: 1 },
+  ])(
+    "requests page $expectedPage when loadAssets receives page $page",
+    async ({ page, expectedPage }) => {
     mockedApi.getAssets.mockResolvedValue({
       items: [],
       total: 0,
@@ -34,10 +40,11 @@ describe("loadAssets", () => {
 
     expect(mockedApi.getAssets).toHaveBeenCalledWith(
       {
-        page: 1,
+        page: expectedPage,
         per_page: 20,
       },
       undefined,
     );
-  });
+    },
+  );
 });
