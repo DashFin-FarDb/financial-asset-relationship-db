@@ -3302,13 +3302,13 @@ flowchart TB
 
 #### Metrics Calculation Formulas
 
-| Metric              | Formula                                                         | Description                       |
-| ------------------- | --------------------------------------------------------------- | --------------------------------- |
-| Total Assets        | `len(graph.assets)`                                             | Count of all asset nodes          |
-| Total Relationships | `sum(len(edges) for edges in graph.relationships.values())`     | Count of all edges                |
-| Average Degree      | `(2 × total_relationships) / total_assets`                      | Mean connections per node         |
-| Max Degree          | `max(len(edges) for edges in graph.relationships.values())`     | Highest connected node            |
-| Network Density     | `total_relationships / (total_assets × (total_assets - 1) / 2)` | Ratio of actual to possible edges |
+| Metric              | Formula                                                         | Description                                |
+| ------------------- | --------------------------------------------------------------- | ------------------------------------------ |
+| Total Assets        | `len(graph.assets)`                                             | Count of all asset nodes                   |
+| Total Relationships | `sum(len(edges) for edges in graph.relationships.values())`     | Count of all edges                         |
+| Average Degree      | `(2 × total_relationships) / total_assets`                      | Mean connections per node                  |
+| Max Degree          | `max(len(edges) for edges in graph.relationships.values())`     | Highest connected node                     |
+| Network Density     | `total_relationships / (total_assets × (total_assets - 1))`     | Ratio of actual to possible directed edges |
 
 ## 4.4 Frontend Workflows
 
@@ -7922,7 +7922,7 @@ The `/api/graph/metrics` endpoint provides graph topology and network analysis m
 | `asset_classes`        | Dictionary | Count per asset class             |
 | `avg_degree`           | Gauge      | Mean connections per node         |
 | `max_degree`           | Gauge      | Highest connected node            |
-| `network_density`      | Gauge      | Calculated relationship density   |
+| `network_density`      | Gauge      | Calculated network density        |
 
 #### Metrics Response Model
 
@@ -8279,7 +8279,7 @@ flowchart TB
         subgraph MiddleRow[Network Analysis]
             AvgDegree[Average Degree<br/>Gauge]
             MaxDegree[Maximum Degree<br/>Gauge]
-            RelDensity[Relationship<br/>Density]
+            RelDensity[Network Density<br/>(%)]
         end
 
         subgraph BottomRow[Asset Distribution]
