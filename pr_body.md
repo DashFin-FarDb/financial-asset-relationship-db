@@ -18,8 +18,8 @@ Update frontend components and tests to align with the backend pagination and me
 
 - Fix mocked metrics shapes in test utilities
 - Refactor test assertions for synchronous and async component behavior
-- Match test cases to the updated paginated fields `limit` and `offset`
-- Align metrics test expectations to `density` instead of legacy density fields
+- Match test cases to the updated paginated fields `page` and `per_page`
+- Align metrics test expectations to `network_density` (normalized 0.0–1.0)
 
 ### Out of Scope
 
