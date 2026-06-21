@@ -9853,7 +9853,7 @@ The FastAPI backend defines Pydantic models that serialize Python objects to JSO
 | --------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `AssetResponse`             | Single asset serialization | `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, `market_cap`, `currency`, `additional_fields`                       |
 | `RelationshipResponse`      | Relationship edge data     | `source_id`, `target_id`, `relationship_type`, `strength`                                                                     |
-| `MetricsResponse`           | Network statistics         | `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`, `network_density`, `network_density` |
+| `MetricsResponse`           | Network statistics         | `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`, `network_density` |
 | `VisualizationDataResponse` | 3D graph payload           | `nodes: List[Dict]`, `edges: List[Dict]`                                                                                      |
 
 ### 7.5.3 Type Contract Alignment
