@@ -188,7 +188,6 @@ class AssetRelationshipGraph:
                 - total_assets (int): Number of participating assets (present in assets or referenced by relationships).
                 - total_relationships (int): Total number of relationships stored.
                 - average_relationship_strength (float): Mean strength across all relationships (0.0 if none).
-                - relationship_density (float): Percentage of possible directed links present (0.0–100.0).
                 - network_density (float): Normalized fraction of possible directed links present (0.0–1.0).
                 - relationship_distribution (dict[str, int]): Counts of relationships grouped by relationship type.
                 - asset_class_distribution (dict[str, int]): Counts of assets grouped by asset class value.
@@ -209,7 +208,7 @@ class AssetRelationshipGraph:
             total_relationships,
             avg_strength,
         ) = self._summarize_relationships()
-        density = self._relationship_density(
+        network_density = calculate_graph_density(
             effective_assets_count,
             total_relationships,
         )
@@ -222,8 +221,7 @@ class AssetRelationshipGraph:
             "total_assets": effective_assets_count,
             "total_relationships": total_relationships,
             "average_relationship_strength": avg_strength,
-            "relationship_density": density,
-            "network_density": density / 100.0,
+            "network_density": network_density,
             "relationship_distribution": rel_dist,
             "asset_class_distribution": asset_class_dist,
             "asset_classes": dict(asset_class_dist),
@@ -458,21 +456,22 @@ class AssetRelationshipGraph:
             return 0.0, 0
         return sum(degrees) / len(degrees), max(degrees)
 
-    @staticmethod
-    def _relationship_density(asset_count: int, rel_count: int) -> float:
-        """
-        Compute relationship density as the percentage of possible directed edges.
 
-        Parameters:
-            asset_count (int): Number of assets in the graph.
-            rel_count (int): Count of directed relationships present.
+def calculate_graph_density(asset_count: int, relationship_count: int) -> float:
+    """
+    Compute graph relationship network_density as a ratio (0.0 to 1.0).
 
-        Returns:
-            float: Percentage of possible directed edges that are present
-                   (0.0–100.0). Returns 0.0 when `asset_count` is less than or
-                   equal to 1.
-        """
-        if asset_count <= 1:
-            return 0.0
-        max_possible = asset_count * (asset_count - 1)
-        return (rel_count / max_possible) * 100.0
+    Formula for directed graph network_density is: E / (V * (V - 1))
+    Returns 0.0 if asset_count <= 1.
+
+    Parameters:
+        asset_count (int): Number of assets (nodes) in the graph.
+        relationship_count (int): Number of relationships (edges) in the graph.
+
+    Returns:
+        float: Graph network_density ratio between 0.0 and 1.0.
+    """
+    if asset_count <= 1:
+        return 0.0
+    possible_edges = asset_count * (asset_count - 1)
+    return float(relationship_count) / possible_edges

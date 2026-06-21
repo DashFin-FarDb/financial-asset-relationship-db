@@ -24,9 +24,9 @@ import {
 } from "../test-utils";
 
 jest.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("Axios Upgrade Integration Tests", () => {
+  let currentAxios: jest.Mocked<typeof axios>;
   let mockAxiosInstance: AxiosInstance;
   let api: (typeof import("../../app/lib/api"))["api"];
 
@@ -48,7 +48,8 @@ describe("Axios Upgrade Integration Tests", () => {
       },
     };
 
-    mockedAxios.create.mockReturnValue(mockAxiosInstance);
+    currentAxios = (await import("axios")).default as jest.Mocked<typeof import("axios")>;
+    currentAxios.create.mockReturnValue(mockAxiosInstance);
 
     const apiModule = await import("../../app/lib/api");
     api = apiModule.api;
@@ -107,15 +108,15 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should handle pagination pattern", async () => {
-      const page1 = { items: [mockAsset], total: 100, page: 1, per_page: 10 };
-      const page2 = { items: [mockAsset], total: 100, page: 2, per_page: 10 };
+      const page1 = { items: [mockAsset], total: 100, offset: 0, limit: 10, hasMore: true };
+      const page2 = { items: [mockAsset], total: 100, offset: 10, limit: 10, hasMore: true };
 
       mockAxiosInstance.get
         .mockResolvedValueOnce({ data: page1 })
         .mockResolvedValueOnce({ data: page2 });
 
-      const firstPage = await api.getAssets({ page: 1, per_page: 10 });
-      const secondPage = await api.getAssets({ page: 2, per_page: 10 });
+      const firstPage = await api.getAssets({ offset: 0, limit: 10 });
+      const secondPage = await api.getAssets({ offset: 10, limit: 10 });
 
       expect(firstPage).toEqual(page1);
       expect(secondPage).toEqual(page2);
@@ -152,7 +153,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should gracefully handle empty response after error", async () => {
-      const emptyPage = { items: [], total: 0, page: 1, per_page: 50 };
+      const emptyPage = { items: [], total: 0, offset: 0, limit: 50, hasMore: false };
 
       mockAxiosInstance.get
         .mockRejectedValueOnce({ response: { status: 404 } })
@@ -173,7 +174,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
   describe("Axios 1.13.2 Security Improvements", () => {
     it("should use secure defaults for baseURL", () => {
-      const config = mockedAxios.create.mock.calls[0]?.[0];
+      const config = currentAxios.create.mock.calls[0]?.[0];
 
       // Should not use http in production (mocked here)
       expect(config?.baseURL).toBeDefined();
@@ -188,12 +189,12 @@ describe("Axios Upgrade Integration Tests", () => {
 
       // URL should be properly encoded/escaped
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        `/api/assets/${maliciousId}`,
+        `/api/assets/${maliciousId}`, { signal: undefined },
       );
     });
 
     it("should maintain JSON content-type for security", () => {
-      const config = mockedAxios.create.mock.calls[0]?.[0];
+      const config = currentAxios.create.mock.calls[0]?.[0];
 
       // Prevents some types of injection attacks
       expect(config?.headers?.["Content-Type"]).toBe("application/json");
@@ -232,7 +233,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
     it("should NOT break: query parameter handling", async () => {
       mockAxiosInstance.get.mockResolvedValue({
-        data: { items: [], total: 0, page: 1, per_page: 50 },
+        data: { items: [], total: 0, offset: 0, limit: 50, hasMore: false },
       });
 
       await api.getAssets({ asset_class: "EQUITY" });
@@ -298,7 +299,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
   describe("Environment Configuration", () => {
     it("should respect NEXT_PUBLIC_API_URL environment variable", () => {
-      const config = mockedAxios.create.mock.calls[0]?.[0];
+      const config = currentAxios.create.mock.calls[0]?.[0];
 
       // Should use env var or fallback
       expect(config?.baseURL).toBeDefined();
@@ -306,7 +307,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should use reasonable defaults when env vars missing", () => {
-      const config = mockedAxios.create.mock.calls[0]?.[0];
+      const config = currentAxios.create.mock.calls[0]?.[0];
 
       // Should have baseURL even without env var
       expect(config?.baseURL).toMatch(/localhost:8000/);
@@ -315,7 +316,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
   describe("Compatibility with Testing Tools", () => {
     it("should work with Jest mock system", () => {
-      expect(mockedAxios.create).toHaveBeenCalled();
+      expect(currentAxios.create).toHaveBeenCalled();
       expect(mockAxiosInstance.get).toBeDefined();
       expect(jest.isMockFunction(mockAxiosInstance.get)).toBe(true);
     });
@@ -326,7 +327,7 @@ describe("Axios Upgrade Integration Tests", () => {
       await api.getAssetDetail("ASSET_1");
 
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1");
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1", { signal: undefined });
     });
 
     it("should support mock implementation changes", async () => {

@@ -121,7 +121,7 @@ class TestAppConstants:
         assert "{total_assets}" in template
         assert "{total_relationships}" in template
         assert "{average_relationship_strength" in template
-        assert "{relationship_density" in template
+        assert "{density" in template
         assert "{regulatory_event_count}" in template
         assert "{asset_class_distribution}" in template
 
@@ -259,7 +259,7 @@ class TestUpdateMetricsText:
             "total_assets": 100,
             "total_relationships": 250,
             "average_relationship_strength": 0.75,
-            "relationship_density": 45.5,
+            "density": 0.455,
             "regulatory_event_count": 10,
             "asset_class_distribution": {"EQUITY": 50, "BOND": 30},
             "top_relationships": [
@@ -300,7 +300,7 @@ class TestUpdateMetricsText:
             "total_assets": 10,
             "total_relationships": 5,
             "average_relationship_strength": 0.5,
-            "relationship_density": 25.0,
+            "density": 0.25,
             "regulatory_event_count": 2,
             "asset_class_distribution": {},
             "top_relationships": [
@@ -401,6 +401,7 @@ class TestUpdateAssetInfo:
 
 
 @pytest.mark.unit
+    """Tests for refresh visualization."""
 class TestRefreshVisualization:
     @staticmethod
     @patch("app.visualize_2d_graph")
@@ -590,7 +591,7 @@ class TestEdgeCases:
             "total_assets": 0,
             "total_relationships": 0,
             "average_relationship_strength": 0.0,
-            "relationship_density": 0.0,
+            "density": 0.0,
             "regulatory_event_count": 0,
             "asset_class_distribution": {},
             "top_relationships": [],

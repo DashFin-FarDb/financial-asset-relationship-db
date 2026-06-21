@@ -150,19 +150,20 @@ def _network_statistics_lines(
             - "total_assets"
             - "total_relationships"
             - "average_relationship_strength"
-            - "relationship_density"
+            - "density"
             - "regulatory_event_count"
         Missing or invalid values are coerced to sensible defaults.
 
     Returns:
         tuple[list[str], float]: A tuple where the first element is a list of markdown lines for the
         "Calculated Metrics" / "Network Statistics" section (including an "Asset Class Distribution" header),
-        and the second element is the relationship density parsed as a float.
+        and the second element is the relationship density parsed as a float percentage.
     """
     total_assets = _as_int(metrics.get("total_assets"), 0)
     total_relationships = _as_int(metrics.get("total_relationships"), 0)
     avg_strength = _as_float(metrics.get("average_relationship_strength"), 0.0)
-    density = _as_float(metrics.get("relationship_density"), 0.0)
+    density = _as_float(metrics.get("density"), 0.0)
+    density_pct = density * 100.0
     reg_events = _as_int(metrics.get("regulatory_event_count"), 0)
     lines = [
         "",
@@ -173,12 +174,12 @@ def _network_statistics_lines(
         f"- **Total Assets**: {total_assets}",
         f"- **Total Relationships**: {total_relationships}",
         f"- **Average Relationship Strength**: {avg_strength:.3f}",
-        f"- **Relationship Density**: {density:.2f}%",
+        f"- **Relationship Density**: {density_pct:.2f}%",
         f"- **Regulatory Events**: {reg_events}",
         "",
         "### Asset Class Distribution",
     ]
-    return lines, density
+    return lines, density_pct
 
 
 def _asset_class_lines(metrics: Mapping[str, Any]) -> list[str]:

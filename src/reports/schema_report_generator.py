@@ -107,7 +107,8 @@ class SchemaReportGenerator:
         total_assets = _as_int(metrics.get("total_assets"))
         total_rels = _as_int(metrics.get("total_relationships"))
         avg_strength = _as_float(metrics.get("average_relationship_strength"))
-        density = _as_float(metrics.get("relationship_density"))
+        density = _as_float(metrics.get("density"))
+        density_pct = density * 100.0
         reg_events = _as_int(metrics.get("regulatory_event_count"))
 
         return [
@@ -117,7 +118,7 @@ class SchemaReportGenerator:
             f"- **Total Assets**: {total_assets}",
             f"- **Total Relationships**: {total_rels}",
             f"- **Average Relationship Strength**: {avg_strength:.3f}",
-            f"- **Relationship Density**: {density:.2f}%",
+            f"- **Relationship Density**: {density_pct:.2f}%",
             f"- **Regulatory Events**: {reg_events}",
             "",
         ]
@@ -196,7 +197,7 @@ class SchemaReportGenerator:
 
         Parameters:
             metrics (Dict[str, Any]): Metrics mapping; expected keys:
-                - "relationship_density": numeric value used to select the recommendation.
+                - "density": numeric value used to select the recommendation.
                 - "quality_score": numeric value formatted as a percentage in the output.
 
         Returns:
@@ -206,7 +207,8 @@ class SchemaReportGenerator:
                 - density > 10.0: "Well-balanced - suitable for most analytical use-cases."
                 - otherwise: "Sparse - consider enriching relationship definitions."
         """
-        density = _as_float(metrics.get("relationship_density"))
+        density = _as_float(metrics.get("density"))
+        density_pct = density * 100.0
         quality_score = _as_float(metrics.get("quality_score"))
 
         lines = [
@@ -217,9 +219,9 @@ class SchemaReportGenerator:
             "### Recommendation:",
         ]
 
-        if density > 30.0:
+        if density_pct > 30.0:
             lines.append("High connectivity - consider normalization.")
-        elif density > 10.0:
+        elif density_pct > 10.0:
             lines.append("Well-balanced - suitable for most analytical use-cases.")
         else:
             lines.append("Sparse - consider enriching relationship definitions.")

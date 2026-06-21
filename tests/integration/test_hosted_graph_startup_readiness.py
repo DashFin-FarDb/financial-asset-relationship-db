@@ -207,7 +207,7 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
 
     with caplog.at_level(logging.INFO), TestClient(create_app()) as client:
         detailed = client.get("/api/health/detailed")
-        assets = client.get("/api/assets", params={"per_page": 1000})
+        assets = client.get("/api/assets", params={"limit": 100})
         relationships = client.get("/api/relationships")
 
     assert detailed.status_code == 200

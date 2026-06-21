@@ -44,8 +44,8 @@ export const api = {
     params?: {
       asset_class?: string;
       sector?: string;
-      page?: number;
-      per_page?: number;
+      offset?: number;
+      limit?: number;
     },
     signal?: AbortSignal,
   ): Promise<AssetPageResponse> => {
@@ -77,7 +77,7 @@ export const api = {
 
   // Metrics
   getMetrics: async (signal?: AbortSignal): Promise<Metrics> => {
-    return getData<Metrics>("/api/metrics", { signal });
+    return getData<Metrics>("/api/graph/metrics", { signal });
   },
 
   // Visualization

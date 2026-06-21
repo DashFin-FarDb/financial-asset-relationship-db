@@ -58,8 +58,9 @@ describe("Component Integration Tests", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: mockAssets,
       total: mockAssets.length,
-      page: 1,
-      per_page: 20,
+      offset: 0,
+      limit: 20,
+      hasMore: false,
     });
     mockedApi.getAssetClasses.mockResolvedValue(mockAssetClasses);
     mockedApi.getSectors.mockResolvedValue(mockSectors);
@@ -85,17 +86,15 @@ describe("Component Integration Tests", () => {
     it("should load data from API and pass to metrics dashboard", async () => {
       render(<Home />);
 
-      await waitFor(() => {
-        fireEvent.click(screen.getByText("Metrics & Analytics"));
-      });
+      fireEvent.click(screen.getByText("Metrics & Analytics"));
 
       expect(mockedApi.getMetrics).toHaveBeenCalled();
-      expect(screen.getByTestId("total-assets")).toHaveTextContent(
-        mockMetrics.total_assets.toString(),
-      );
-      expect(screen.getByTestId("total-relationships")).toHaveTextContent(
-        mockMetrics.total_relationships.toString(),
-      );
+
+      const totalAssets = await screen.findByTestId("total-assets");
+      expect(totalAssets).toHaveTextContent(mockMetrics.total_assets.toString());
+
+      const totalRels = await screen.findByTestId("total-relationships");
+      expect(totalRels).toHaveTextContent(mockMetrics.total_relationships.toString());
     });
   });
 
@@ -263,12 +262,13 @@ describe("Component Integration Tests", () => {
 
       render(<Home />);
 
-      await waitFor(() => {
-        fireEvent.click(screen.getByText("Metrics & Analytics"));
-      });
+      fireEvent.click(screen.getByText("Metrics & Analytics"));
 
-      expect(screen.getByTestId("total-assets")).toHaveTextContent("0");
-      expect(screen.getByTestId("total-relationships")).toHaveTextContent("0");
+      const totalAssets = await screen.findByTestId("total-assets");
+      expect(totalAssets).toHaveTextContent("0");
+
+      const totalRels = await screen.findByTestId("total-relationships");
+      expect(totalRels).toHaveTextContent("0");
     });
 
     it("should handle very large datasets", async () => {

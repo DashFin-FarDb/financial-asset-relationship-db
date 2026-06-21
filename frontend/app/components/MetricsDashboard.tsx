@@ -16,7 +16,7 @@ type MetricsDashboardProps = Readonly<{
  * @param props.metrics - Object containing metric values:
  *   - `total_assets`: total number of assets
  *   - `total_relationships`: total number of relationships
- *   - `network_density`: density value in the range 0–1 (rendered as percentage)
+ *   - `network_density`: network_density value in the range 0–1 (rendered as percentage)
  *   - `avg_degree`: average node degree
  *   - `max_degree`: maximum node degree
  *   - `asset_classes`: record mapping asset class names to counts

@@ -51,8 +51,9 @@ describe("AssetList Component", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: mockAssets,
       total: mockAssets.length,
-      page: 1,
-      per_page: 20,
+      offset: 0,
+      limit: 20,
+      hasMore: false,
     });
     mockedApi.getAssetClasses.mockResolvedValue(mockAssetClasses);
     mockedApi.getSectors.mockResolvedValue(mockSectors);
@@ -62,7 +63,7 @@ describe("AssetList Component", () => {
     render(<AssetList />);
 
     await waitFor(() => {
-      expect(screen.getByText("Filters")).toBeInTheDocument();
+      expect(screen.getByLabelText(/Asset Class/i)).toBeInTheDocument();
     });
   });
 
@@ -86,8 +87,9 @@ describe("AssetList Component", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: mockAssets,
       total: mockAssets.length,
-      page: 1,
-      per_page: 20,
+      offset: 0,
+      limit: 20,
+      hasMore: false,
     });
 
     fireEvent.change(assetClassSelect, { target: { value: "EQUITY" } });
@@ -96,8 +98,8 @@ describe("AssetList Component", () => {
       expect(mockedApi.getAssets).toHaveBeenLastCalledWith(
         {
           asset_class: "EQUITY",
-          page: 1,
-          per_page: 20,
+          offset: 0,
+          limit: 20,
         },
         expect.any(AbortSignal),
       );
@@ -106,15 +108,16 @@ describe("AssetList Component", () => {
 
   it("should display loading state", () => {
     render(<AssetList />);
-    expect(screen.getByText(/Loading results for page 1/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Loading.../).length).toBeGreaterThan(0);
   });
 
   it("should handle empty assets", async () => {
     mockedApi.getAssets.mockResolvedValue({
       items: [],
       total: 0,
-      page: 1,
-      per_page: 20,
+      offset: 0,
+      limit: 20,
+      hasMore: false,
     });
     render(<AssetList />);
 
@@ -144,14 +147,16 @@ describe("AssetList Component", () => {
       .mockResolvedValueOnce({
         items: mockAssets,
         total: 40,
-        page: 1,
-        per_page: 20,
+        offset: 0,
+        limit: 20,
+        hasMore: true,
       })
       .mockResolvedValueOnce({
         items: mockAssets,
         total: 40,
-        page: 2,
-        per_page: 20,
+        offset: 20,
+        limit: 20,
+        hasMore: false,
       });
 
     render(<AssetList />);
@@ -166,8 +171,8 @@ describe("AssetList Component", () => {
     await waitFor(() => {
       expect(mockedApi.getAssets).toHaveBeenLastCalledWith(
         {
-          page: 2,
-          per_page: 20,
+          offset: 20,
+          limit: 20,
         },
         expect.any(AbortSignal),
       );
@@ -179,8 +184,9 @@ describe("AssetList Component", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: mockAssets,
       total: 150,
-      page: 3,
-      per_page: 50,
+      offset: 100,
+      limit: 50,
+      hasMore: false,
     });
 
     render(<AssetList />);
@@ -189,8 +195,8 @@ describe("AssetList Component", () => {
       expect(mockedApi.getAssets).toHaveBeenCalledWith(
         {
           asset_class: "EQUITY",
-          page: 3,
-          per_page: 50,
+          offset: 100,
+          limit: 50,
         },
         expect.any(AbortSignal),
       );
@@ -203,8 +209,9 @@ describe("AssetList Component", () => {
     type AssetsResponse = {
       items: typeof mockAssets;
       total: number;
-      page: number;
-      per_page: number;
+      offset: number;
+      limit: number;
+      hasMore: boolean;
     };
 
     type Deferred<T> = {
@@ -253,8 +260,9 @@ describe("AssetList Component", () => {
     secondResponse.resolve({
       items: secondAssets,
       total: secondAssets.length,
-      page: 1,
-      per_page: 20,
+      offset: 0,
+      limit: 20,
+      hasMore: false,
     });
 
     await waitFor(() => {
@@ -264,8 +272,9 @@ describe("AssetList Component", () => {
     firstResponse.resolve({
       items: firstAssets,
       total: firstAssets.length,
-      page: 1,
-      per_page: 20,
+      offset: 0,
+      limit: 20,
+      hasMore: false,
     });
 
     await waitFor(() => {

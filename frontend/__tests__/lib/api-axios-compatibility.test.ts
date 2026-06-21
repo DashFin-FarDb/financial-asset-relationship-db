@@ -27,9 +27,9 @@ import { mockAsset, mockMetrics } from "../test-utils";
 
 // Mock axios
 jest.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("Axios 1.13.2 Compatibility Tests", () => {
+  let currentAxios: jest.Mocked<typeof axios>;
   let mockAxiosInstance: jest.Mocked<AxiosInstance>;
   let api: (typeof import("../../app/lib/api"))["api"];
 
@@ -83,7 +83,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       },
     } as unknown as AxiosInstance;
 
-    mockedAxios.create.mockReturnValue(mockAxiosInstance);
+    currentAxios = (await import("axios")).default as jest.Mocked<typeof import("axios")>;
+    currentAxios.create.mockReturnValue(mockAxiosInstance);
 
     const apiModule = await import("../../app/lib/api");
     api = apiModule.api;
@@ -95,16 +96,17 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
 
   describe("Axios Instance Creation - 1.13.2 Compatibility", () => {
     it("should create instance with correct configuration for axios 1.13.2", () => {
-      expect(mockedAxios.create).toHaveBeenCalledWith({
+      expect(currentAxios.create).toHaveBeenCalledWith(expect.objectContaining({
         baseURL: expect.any(String),
         headers: {
           "Content-Type": "application/json",
         },
-      });
+        timeout: 10000,
+      }));
     });
 
     it("should support axios 1.13.2 configuration options", () => {
-      const config = mockedAxios.create.mock.calls[0]?.[0];
+      const config = currentAxios.create.mock.calls[0]?.[0];
 
       expect(config).toBeDefined();
       expect(config?.baseURL).toBeDefined();
@@ -139,8 +141,9 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       const page: AssetPageResponse = {
         items: [mockAsset],
         total: 1,
-        page: 1,
-        per_page: 10,
+        offset: 0,
+        limit: 10,
+        hasMore: false,
       };
 
       mockAxiosInstance.get.mockResolvedValue({
@@ -154,16 +157,16 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssets({
         asset_class: "EQUITY",
         sector: "Technology",
-        page: 1,
-        per_page: 10,
+        offset: 0,
+        limit: 10,
       });
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets", {
         params: {
           asset_class: "EQUITY",
           sector: "Technology",
-          page: 1,
-          per_page: 10,
+          offset: 0,
+          limit: 10,
         },
         signal: undefined,
       });
@@ -173,8 +176,9 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       const page: AssetPageResponse = {
         items: [mockAsset],
         total: 1,
-        page: 1,
-        per_page: 50,
+        offset: 0,
+        limit: 50,
+        hasMore: false,
       };
 
       mockAxiosInstance.get.mockResolvedValue({
@@ -206,7 +210,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssetDetail("TEST-ASSET_1.2");
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        "/api/assets/TEST-ASSET_1.2",
+        "/api/assets/TEST-ASSET_1.2", { signal: undefined },
       );
     });
   });
@@ -386,7 +390,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
 
   describe("Content-Type Handling - Axios 1.13.2", () => {
     it("should set correct Content-Type header for JSON", () => {
-      const config = mockedAxios.create.mock.calls[0]?.[0];
+      const config = currentAxios.create.mock.calls[0]?.[0];
 
       expect(config?.headers?.["Content-Type"]).toBe("application/json");
     });
@@ -434,7 +438,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssetDetail("ASSET_1");
 
       // Should call with relative URL (baseURL is set on instance)
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1");
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1", { signal: undefined });
     });
 
     it("should handle paths with multiple segments", async () => {
@@ -449,7 +453,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssetRelationships("ASSET_1");
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        "/api/assets/ASSET_1/relationships",
+        "/api/assets/ASSET_1/relationships", { signal: undefined },
       );
     });
 
@@ -465,7 +469,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.healthCheck();
 
       // Should use single leading slash
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health");
+      // skipcq: JS-W1042
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health", undefined);
     });
   });
 
@@ -491,8 +496,9 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       const page: AssetPageResponse = {
         items: [mockAsset],
         total: 1,
-        page: 1,
-        per_page: 50,
+        offset: 0,
+        limit: 50,
+        hasMore: false,
       };
 
       mockAxiosInstance.get.mockResolvedValue({
@@ -515,8 +521,9 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       const page: AssetPageResponse = {
         items: [mockAsset],
         total: 1,
-        page: 1,
-        per_page: 10,
+        offset: 0,
+        limit: 10,
+        hasMore: false,
       };
 
       mockAxiosInstance.get.mockResolvedValue({
@@ -527,12 +534,12 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         config: {} as AxiosRequestConfig,
       });
 
-      const result = await api.getAssets({ page: 1, per_page: 10 });
+      const result = await api.getAssets({ offset: 0, limit: 10 });
 
       expect(result.items).toEqual([mockAsset]);
       expect(result.total).toBe(1);
-      expect(result.page).toBe(1);
-      expect(result.per_page).toBe(10);
+      expect(result.offset).toBe(0);
+      expect(result.limit).toBe(10);
     });
   });
 
@@ -603,7 +610,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssetDetail(longId);
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        `/api/assets/${longId}`,
+        `/api/assets/${longId}`, { signal: undefined },
       );
     });
 
@@ -716,7 +723,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssetDetail("ASSET_2");
 
       // Should create instance only once
-      expect(mockedAxios.create).toHaveBeenCalledTimes(1);
+      expect(currentAxios.create).toHaveBeenCalledTimes(1);
       // But call get twice
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(2);
     });
@@ -731,8 +738,9 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
         data: {
           items: largeDataset,
           total: largeDataset.length,
-          page: 1,
-          per_page: largeDataset.length,
+          offset: 0,
+          limit: largeDataset.length,
+          hasMore: false,
         },
         status: 200,
         statusText: "OK",

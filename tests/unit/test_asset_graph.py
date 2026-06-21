@@ -77,9 +77,7 @@ class TestCalculateMetricsContract:
         assert metrics["asset_classes"] == {"Equity": 2}
         assert metrics["avg_degree"] == pytest.approx(1.5)
         assert metrics["max_degree"] == 2
-        assert 0 <= metrics["relationship_density"] <= 100
         assert 0 <= metrics["network_density"] <= 1
-        assert metrics["network_density"] == pytest.approx(metrics["relationship_density"] / 100.0)
 
 
 @pytest.mark.unit

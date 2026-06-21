@@ -978,7 +978,7 @@ Provides quantitative insight into network structure, enabling assessment of por
 
 **Technical Context:**
 
-Backend metrics calculation in F-003 exposes data via `/api/metrics` endpoint. The MetricsResponse model includes: total_assets, total_relationships, asset_classes (Dict[str, int]), avg_degree, max_degree, network_density, and relationship_density. Frontend rendering in `frontend/app/components/MetricsDashboard.tsx`.
+Backend metrics calculation in F-003 exposes data via `/api/metrics` endpoint. The MetricsResponse model includes: total_assets, total_relationships, asset_classes (Dict[str, int]), avg_degree, max_degree, and network_density (a normalised 0.0–1.0 fraction). The percentage-based network_density is an internal schema-report detail and is not part of the public API contract. Frontend rendering in `frontend/app/components/MetricsDashboard.tsx`.
 
 **Dependencies:**
 
@@ -1458,7 +1458,7 @@ This section provides detailed requirements for each feature with acceptance cri
 | Attribute           | Specification                                                                                                                                        |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Requirement ID      | F-003-RQ-004                                                                                                                                         |
-| Description         | System shall calculate: total_assets, total_relationships, asset_classes distribution, avg_degree, max_degree, network_density, relationship_density |
+| Description         | System shall calculate: total_assets, total_relationships, asset_classes distribution, avg_degree, max_degree, network_density, network_density |
 | Acceptance Criteria | All metrics returned with correct values                                                                                                             |
 | Complexity          | Medium                                                                                                                                               |
 
@@ -6809,7 +6809,7 @@ The API uses Pydantic models for type-safe request/response serialization.
 | `avg_degree`           | `float`          | Yes               |
 | `max_degree`           | `int`            | Yes               |
 | `network_density`      | `float`          | Yes               |
-| `relationship_density` | `float`          | No (default: 0.0) |
+| `network_density` | `float`          | No (default: 0.0) |
 
 #### 6.3.4.2 Frontend Type Definitions
 
@@ -7924,7 +7924,7 @@ The `/api/metrics` endpoint provides graph topology and network analysis metrics
 | `avg_degree`           | Gauge      | Mean connections per node         |
 | `max_degree`           | Gauge      | Highest connected node            |
 | `network_density`      | Gauge      | Ratio of actual to possible edges |
-| `relationship_density` | Gauge      | Calculated relationship density   |
+| `network_density` | Gauge      | Calculated relationship density   |
 
 #### Metrics Response Model
 
@@ -7938,7 +7938,7 @@ MetricsResponse {
     avg_degree: float
     max_degree: int
     network_density: float
-    relationship_density: float
+    network_density: float
 }
 ```
 
@@ -9856,7 +9856,7 @@ The FastAPI backend defines Pydantic models that serialize Python objects to JSO
 | --------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `AssetResponse`             | Single asset serialization | `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, `market_cap`, `currency`, `additional_fields`                       |
 | `RelationshipResponse`      | Relationship edge data     | `source_id`, `target_id`, `relationship_type`, `strength`                                                                     |
-| `MetricsResponse`           | Network statistics         | `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`, `network_density`, `relationship_density` |
+| `MetricsResponse`           | Network statistics         | `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`, `network_density`, `network_density` |
 | `VisualizationDataResponse` | 3D graph payload           | `nodes: List[Dict]`, `edges: List[Dict]`                                                                                      |
 
 ### 7.5.3 Type Contract Alignment
@@ -9931,7 +9931,7 @@ flowchart TB
 | `avg_degree`           | Average Degree       | 2 decimal places  | Row 1, Col 3  |
 | `max_degree`           | Maximum Degree       | Integer           | Row 2, Col 1  |
 | `network_density`      | Network Density      | Percentage (×100) | Row 2, Col 2  |
-| `relationship_density` | Relationship Density | Percentage (×100) | Row 2, Col 3  |
+| `network_density` | Relationship Density | Percentage (×100) | Row 2, Col 3  |
 
 #### Asset Class Distribution
 
@@ -11437,7 +11437,7 @@ flowchart TB
 | `avg_degree`           | Gauge      | Mean connections per node |
 | `max_degree`           | Gauge      | Highest connected node    |
 | `network_density`      | Gauge      | Edge ratio metric         |
-| `relationship_density` | Gauge      | Calculated density        |
+| `network_density` | Gauge      | Calculated density        |
 
 ### 8.7.3 Performance Metrics and SLAs
 

@@ -30,12 +30,25 @@ class AssetResponse(BaseModel):
 
 
 class AssetPageResponse(BaseModel):
-    """Response model for paginated asset data."""
+    """Response model for paginated asset data.
+
+    Pagination contract:
+    - ``offset`` is 0-indexed.
+    - ``limit`` defaults to 50; maximum accepted value is 1,000
+      (enforced by ``Query(ge=1, le=1000)`` on the route).
+    - ``total`` is the exact count of assets matching the current query
+      filters (not an estimate).
+    - An out-of-range ``offset`` returns an empty ``items`` list, not an error.
+    - Results are deterministically ordered by ``asset.id ASC`` to ensure
+      stable pagination across requests.
+    - ``hasMore`` is true if there are additional items beyond the returned set.
+    """
 
     items: list[AssetResponse]
     total: int
-    page: int
-    per_page: int
+    offset: int
+    limit: int
+    hasMore: bool
 
 
 class RelationshipResponse(BaseModel):
@@ -56,7 +69,6 @@ class MetricsResponse(BaseModel):
     avg_degree: float
     max_degree: int
     network_density: float
-    relationship_density: float = 0.0
 
 
 class VisualizationNode(BaseModel):
@@ -93,6 +105,7 @@ class VisualizationDataResponse(BaseModel):
 
     nodes: list[VisualizationNode]
     edges: list[VisualizationEdge]
+    network_density: float
 
 
 class GraphHealthResponse(BaseModel):

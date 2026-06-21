@@ -132,8 +132,8 @@ describe("API Client", () => {
       expect(result).toEqual(mockAssetsPage);
       expect(result.items).toHaveLength(2);
       expect(result.total).toBe(2);
-      expect(result.page).toBe(1);
-      expect(result.per_page).toBe(50);
+      expect(result.offset).toBe(0);
+      expect(result.limit).toBe(50);
     });
 
     it("should fetch assets with asset_class filter", async () => {
@@ -406,7 +406,7 @@ describe("API Client", () => {
 
       const result = await api.getMetrics();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/metrics", {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/graph/metrics", {
         signal: undefined,
       });
       expect(result).toEqual(mockMetrics);
@@ -423,7 +423,6 @@ describe("API Client", () => {
       expect(result).toHaveProperty("avg_degree");
       expect(result).toHaveProperty("max_degree");
       expect(result).toHaveProperty("network_density");
-      expect(result).toHaveProperty("relationship_density");
       expect(typeof result.total_assets).toBe("number");
       expect(typeof result.asset_classes).toBe("object");
     });
@@ -453,7 +452,7 @@ describe("API Client", () => {
 
       await api.getMetrics(controller.signal);
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/metrics", {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/graph/metrics", {
         signal: controller.signal,
       });
     });

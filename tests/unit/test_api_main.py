@@ -47,13 +47,14 @@ from src.models.financial_models import AssetClass, Equity
 CORS_DEV_ORIGIN = "http://localhost:3000"
 
 
-def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 50) -> list[dict[str, Any]]:
+def _assert_asset_page(data: dict[str, Any], *, offset: int = 0, limit: int = 50) -> list[dict[str, Any]]:
     """Assert that an assets response follows the paginated contract."""
-    assert set(data) == {"items", "total", "page", "per_page"}
+    assert set(data) == {"items", "total", "offset", "limit", "hasMore"}
     assert isinstance(data["items"], list)
     assert isinstance(data["total"], int)
-    assert data["page"] == page
-    assert data["per_page"] == per_page
+    assert data["offset"] == offset
+    assert data["limit"] == limit
+    assert isinstance(data["hasMore"], bool)
     assert data["total"] >= len(data["items"])
     return data["items"]
 
@@ -303,9 +304,11 @@ class TestPydanticModels:
                     "strength": 0.7,
                 }
             ],
+            network_density=0.1,
         )
         assert len(viz.nodes) == 1
         assert len(viz.edges) == 1
+        assert viz.network_density == 0.1
 
     def test_detailed_health_response_model_valid(self) -> None:
         """Verify that DetailedHealthResponse accepts bounded readiness payloads."""
@@ -716,17 +719,17 @@ class TestAPIEndpoints:
         assert "price" in asset
 
     def test_get_assets_explicit_pagination(self, client: TestClient) -> None:
-        """Assets endpoint supports explicit page and per_page parameters."""
-        first_response = client.get("/api/assets?page=1&per_page=2")
-        second_response = client.get("/api/assets?page=2&per_page=2")
+        """Assets endpoint supports explicit offset and limit parameters."""
+        first_response = client.get("/api/assets?offset=0&limit=2")
+        second_response = client.get("/api/assets?offset=2&limit=2")
 
         assert first_response.status_code == 200
         assert second_response.status_code == 200
 
         first_payload = first_response.json()
         second_payload = second_response.json()
-        first_page = _assert_asset_page(first_payload, page=1, per_page=2)
-        second_page = _assert_asset_page(second_payload, page=2, per_page=2)
+        first_page = _assert_asset_page(first_payload, offset=0, limit=2)
+        second_page = _assert_asset_page(second_payload, offset=2, limit=2)
 
         assert len(first_page) == 2
         assert len(second_page) == 2
@@ -736,24 +739,24 @@ class TestAPIEndpoints:
         assert {asset["id"] for asset in first_page}.isdisjoint({asset["id"] for asset in second_page})
 
     def test_get_assets_rejects_invalid_pagination(self, client: TestClient) -> None:
-        """Assets endpoint rejects invalid page and per_page values."""
-        assert client.get("/api/assets?page=0").status_code == 422
-        assert client.get("/api/assets?per_page=0").status_code == 422
-        assert client.get("/api/assets?per_page=1001").status_code == 422
+        """Assets endpoint rejects invalid offset and limit values."""
+        assert client.get("/api/assets?offset=-1").status_code == 422
+        assert client.get("/api/assets?limit=0").status_code == 422
+        assert client.get("/api/assets?limit=101").status_code == 422
 
     def test_get_assets_out_of_range_page_returns_empty_items(self, client: TestClient) -> None:
-        """Assets endpoint returns an empty page for out-of-range page requests."""
-        # First get baseline total from page 1
-        baseline_response = client.get("/api/assets?page=1&per_page=50")
+        """Assets endpoint returns an empty page for out-of-range offset requests."""
+        # First get baseline total from offset 0
+        baseline_response = client.get("/api/assets?offset=0&limit=50")
         assert baseline_response.status_code == 200
         baseline_total = baseline_response.json()["total"]
 
-        # Out-of-range page should return empty items but preserve total
-        response = client.get("/api/assets?page=999999&per_page=50")
+        # Out-of-range offset should return empty items but preserve total
+        response = client.get("/api/assets?offset=999999&limit=50")
         assert response.status_code == 200
         payload = response.json()
-        assets = _assert_asset_page(payload, page=999999, per_page=50)
-        # BOUNDARY: out-of-range page returns empty items
+        assets = _assert_asset_page(payload, offset=999999, limit=50)
+        # BOUNDARY: out-of-range offset returns empty items
         assert assets == []
         # BOUNDARY: but total is preserved (reflects full dataset, not page slice)
         assert payload["total"] == baseline_total
@@ -948,6 +951,9 @@ class TestAPIEndpoints:
 
         assert "nodes" in viz_data
         assert "edges" in viz_data
+        assert "network_density" in viz_data
+        assert isinstance(viz_data["network_density"], float)
+        assert 0.0 <= viz_data["network_density"] <= 1.0
         assert len(viz_data["nodes"]) > 0
         assert len(viz_data["edges"]) > 0
         # BOUNDARY: All nodes must have exact key set
@@ -1164,6 +1170,20 @@ class TestIntegrationScenarios:
         assert response.status_code == 200
         viz_data = response.json()
         assert isinstance(viz_data["nodes"], list)
+
+    def test_get_graph_metrics(self, client: TestClient) -> None:
+        """Validate `/api/graph/metrics` returns the normalized MetricsResponse payload."""
+        response = client.get("/api/graph/metrics")
+        assert response.status_code == 200
+        data = response.json()
+        assert "total_assets" in data
+        assert "total_relationships" in data
+        assert "asset_classes" in data
+        assert "avg_degree" in data
+        assert "max_degree" in data
+        assert "network_density" in data
+        assert isinstance(data["network_density"], float)
+        assert 0.0 <= data["network_density"] <= 1.0
 
     def test_filter_refinement_workflow(self, client: TestClient) -> None:
         """Confirm progressive filters reduce (or keep) result sets, never increase them."""
@@ -2036,7 +2056,7 @@ class TestEndpointRegressionCases:
 
         api_main.reset_graph()
 
-    def test_metrics_relationship_density_calculation(self, client: TestClient):
+    def test_metrics_graph_gauge_exposition(self, client: TestClient):
         """Metrics payload should include graph gauges in text exposition."""
         body = _assert_metrics_text_response(client.get("/api/metrics"))
         assert "# TYPE graph_assets_count gauge" in body
