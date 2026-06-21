@@ -3306,7 +3306,7 @@ flowchart TB
 | ------------------- | --------------------------------------------------------------- | ------------------------------------------ |
 | Total Assets        | `len(graph.assets)`                                             | Count of all asset nodes                   |
 | Total Relationships | `sum(len(edges) for edges in graph.relationships.values())`     | Count of all edges                         |
-| Average Degree      | `(2 × total_relationships) / total_assets`                      | Mean connections per node                  |
+| Average Degree      | `total_relationships / max(1, len(graph.relationships))`         | Mean outgoing edges per source node (zero-degree nodes excluded) |
 | Max Degree          | `max(len(edges) for edges in graph.relationships.values())`     | Highest connected node                     |
 | Network Density     | `total_relationships / (total_assets × (total_assets - 1))`     | Ratio of actual to possible directed edges |
 
