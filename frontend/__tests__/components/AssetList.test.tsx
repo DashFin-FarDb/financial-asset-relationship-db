@@ -184,7 +184,7 @@ describe("AssetList Component", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: mockAssets,
       total: 150,
-      page: 20,
+      page: 3,
       per_page: 50,
       hasMore: false,
     });
