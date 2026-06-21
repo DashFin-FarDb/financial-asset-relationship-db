@@ -745,18 +745,17 @@ class TestAPIEndpoints:
         assert client.get("/api/assets?per_page=1001").status_code == 422
 
     def test_get_assets_out_of_range_page_returns_empty_items(self, client: TestClient) -> None:
-        """Assets endpoint returns an empty page for out-of-range offset requests."""
-        # First get baseline total from offset 0
+         """Assets endpoint returns an empty page for out-of-range page requests."""
+        # First get baseline total from page 1
         baseline_response = client.get("/api/assets?page=1&per_page=50")
         assert baseline_response.status_code == 200
         baseline_total = baseline_response.json()["total"]
-
-        # Out-of-range offset should return empty items but preserve total
+        # Out-of-range page should return empty items but preserve total
         response = client.get("/api/assets?page=999999&per_page=50")
         assert response.status_code == 200
         payload = response.json()
         assets = _assert_asset_page(payload, page=999999, per_page=50)
-        # BOUNDARY: out-of-range offset returns empty items
+        # BOUNDARY: out-of-range page returns empty items
         assert assets == []
         # BOUNDARY: but total is preserved (reflects full dataset, not page slice)
         assert payload["total"] == baseline_total
