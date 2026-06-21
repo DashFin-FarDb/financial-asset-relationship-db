@@ -48,7 +48,7 @@ describe("Axios Upgrade Integration Tests", () => {
       },
     };
 
-    currentAxios = (await import("axios")).default as jest.Mocked<typeof import("axios")>;
+    currentAxios = (await import("axios")).default as jest.Mocked<typeof axios>;
     currentAxios.create.mockReturnValue(mockAxiosInstance);
 
     const apiModule = await import("../../app/lib/api");
