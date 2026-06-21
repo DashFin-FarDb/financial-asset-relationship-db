@@ -10,7 +10,7 @@ describe("loadAssets", () => {
     jest.clearAllMocks();
   });
 
-  it("clamps invalid page values before requesting assets", async () => {
+  it.each([0, -1])("clamps page %s to the first page before requesting assets", async (page) => {
     mockedApi.getAssets.mockResolvedValue({
       items: [],
       total: 0,
@@ -24,7 +24,7 @@ describe("loadAssets", () => {
     const setError = jest.fn();
 
     await loadAssets({
-      page: 0,
+      page,
       pageSize: 20,
       filter: { asset_class: "", sector: "" },
       setAssets,
