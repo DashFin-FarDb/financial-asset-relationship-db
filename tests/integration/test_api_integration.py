@@ -215,7 +215,7 @@ class TestAuthenticationFlow:
 
     @staticmethod
     def test_token_issuance_and_validation(client):
-
+        """A valid credential should yield a token that authorizes protected endpoints."""
         credentials = {
             "username": os.environ["ADMIN_USERNAME"],
             "password": os.environ["ADMIN_PASSWORD"],
