@@ -201,7 +201,7 @@ class AssetRelationshipGraph:
                 - regulatory_event_norm (float): Normalized regulatory event count in [0.0, 1.0) using a saturating mapping.
                 - quality_score (float): Composite score in [0.0, 1.0] combining normalized average strength and regulatory-event influence.
         """
-        effective_assets_count = len(self._collect_participating_asset_ids())
+        effective_assets_count = len(self.collect_participating_asset_ids())
         (
             rel_dist,
             top_relationships,
@@ -307,7 +307,7 @@ class AssetRelationshipGraph:
             colors (list[str]): Hex color strings for each node.
             hover (list[str]): Hover text labels for each node.
         """
-        asset_ids = sorted(self._collect_participating_asset_ids())
+        asset_ids = sorted(self.collect_participating_asset_ids())
         if not asset_ids:
             positions = np.zeros((1, 3))
             return positions, ["A"], ["#888888"], ["Asset A"]
@@ -414,7 +414,7 @@ class AssetRelationshipGraph:
             return
         rels.append((target_id, rel_type, strength))
 
-    def _collect_participating_asset_ids(self) -> set[str]:
+    def collect_participating_asset_ids(self) -> set[str]:
         """
         Collect the set of asset IDs that participate in the graph.
 
