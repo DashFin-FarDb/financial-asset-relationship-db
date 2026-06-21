@@ -1,3 +1,7 @@
+/**
+ * Unit tests for asset loading helper functions, focusing on page clamping behavior.
+ */
+
 import { api } from "../../app/lib/api";
 import { loadAssets } from "../../app/lib/assetHelpers";
 
@@ -5,7 +9,7 @@ jest.mock("../../app/lib/api");
 
 const mockedApi = api as jest.Mocked<typeof api>;
 
-describe("loadAssets", () => {
+describe("loadAssets - page clamping", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
