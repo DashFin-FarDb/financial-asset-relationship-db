@@ -401,15 +401,16 @@ class TestUpdateAssetInfo:
 
 
 @pytest.mark.unit
-    """Tests for refresh visualization."""
 class TestRefreshVisualization:
+    """Tests for refresh visualization."""
+
     @staticmethod
     @patch("app.visualize_2d_graph")
     @patch("app.real_data_fetcher")
     def test_refresh_visualization_2d_mode(mock_fetcher, mock_viz_2d):
         """Test refresh visualization in 2D mode."""
         import plotly.graph_objects as go
-
+        
         mock_graph = MagicMock()
         mock_graph.assets = {}
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
