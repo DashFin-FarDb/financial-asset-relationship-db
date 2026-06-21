@@ -739,7 +739,7 @@ class TestAPIEndpoints:
         assert {asset["id"] for asset in first_page}.isdisjoint({asset["id"] for asset in second_page})
 
     def test_get_assets_rejects_invalid_pagination(self, client: TestClient) -> None:
-        """Assets endpoint rejects invalid offset and limit values."""
+        """Assets endpoint rejects invalid page and per_page values."""
         assert client.get("/api/assets?page=0").status_code == 422
         assert client.get("/api/assets?per_page=0").status_code == 422
         assert client.get("/api/assets?per_page=1001").status_code == 422
