@@ -107,7 +107,7 @@ class SchemaReportGenerator:
         total_assets = _as_int(metrics.get("total_assets"))
         total_rels = _as_int(metrics.get("total_relationships"))
         avg_strength = _as_float(metrics.get("average_relationship_strength"))
-        density = _as_float(metrics.get("density"))
+        density = _as_float(metrics.get("network_density"))
         density_pct = density * 100.0
         reg_events = _as_int(metrics.get("regulatory_event_count"))
 
@@ -207,7 +207,7 @@ class SchemaReportGenerator:
                 - density > 10.0: "Well-balanced - suitable for most analytical use-cases."
                 - otherwise: "Sparse - consider enriching relationship definitions."
         """
-        density = _as_float(metrics.get("density"))
+        density = _as_float(metrics.get("network_density"))
         density_pct = density * 100.0
         quality_score = _as_float(metrics.get("quality_score"))
 

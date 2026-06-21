@@ -33,12 +33,11 @@ TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
 
 def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
     """Return asset items from a paginated assets response."""
-    assert set(page) == {"items", "total", "offset", "limit", "hasMore"}
+    assert set(page) == {"items", "total", "page", "per_page"}
     assert isinstance(page["items"], list)
     assert isinstance(page["total"], int)
-    assert isinstance(page["offset"], int)
-    assert isinstance(page["limit"], int)
-    assert isinstance(page["hasMore"], bool)
+    assert isinstance(page["page"], int)
+    assert isinstance(page["per_page"], int)
     return page["items"]
 
 
@@ -928,11 +927,10 @@ class TestAPIBoundaryConditions:
         response = client.get("/api/assets")
         assert response.status_code == 200
         data = response.json()
-        assert data["offset"] == 0
-        assert data["limit"] == 50
+        assert data["page"] == 1
+        assert data["per_page"] == 50
         assert data["total"] == 1000
         assert len(data["items"]) == 50
-        assert data["hasMore"] is True
 
     @staticmethod
     @patch("api.main.graph")

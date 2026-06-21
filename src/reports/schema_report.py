@@ -162,7 +162,7 @@ def _network_statistics_lines(
     total_assets = _as_int(metrics.get("total_assets"), 0)
     total_relationships = _as_int(metrics.get("total_relationships"), 0)
     avg_strength = _as_float(metrics.get("average_relationship_strength"), 0.0)
-    density = _as_float(metrics.get("density"), 0.0)
+    density = _as_float(metrics.get("network_density"), 0.0)
     density_pct = density * 100.0
     reg_events = _as_int(metrics.get("regulatory_event_count"), 0)
     lines = [

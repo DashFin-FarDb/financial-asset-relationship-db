@@ -26,27 +26,27 @@ def asset_items(page: dict) -> list[dict]:
     assert set(page) == {"items", "total", "page", "per_page"}
     assert isinstance(page["items"], list)
     assert isinstance(page["total"], int)
-    assert isinstance(page["offset"], int)
-    assert isinstance(page["limit"], int)
-    assert isinstance(page["hasMore"], bool)
+    assert isinstance(page["page"], int)
+    assert isinstance(page["per_page"], int)
     return page["items"]
 
 
 def all_asset_items(client: TestClient) -> list[dict]:
     """Return all asset items across paginated assets responses."""
-    offset = 0
-    limit = 50
-    assets = []
-    has_more = True
+    first_response = client.get("/api/assets")
+    assert first_response.status_code == 200
+    first_payload = first_response.json()
+    assets = asset_items(first_payload)
 
-    while has_more:
-        response = client.get(f"/api/assets?page={offset}&per_page={limit}")
+    total = first_payload["total"]
+    per_page = first_payload["per_page"]
+
+    for page in range(2, (total + per_page - 1) // per_page + 1):
+        response = client.get(f"/api/assets?page={page}&per_page={per_page}")
         assert response.status_code == 200
-        payload = response.json()
-        assets.extend(asset_items(payload))
-        offset += limit
-        has_more = payload["hasMore"]
+        assets.extend(asset_items(response.json()))
 
+    assert len(assets) == total
     return assets
 
 
