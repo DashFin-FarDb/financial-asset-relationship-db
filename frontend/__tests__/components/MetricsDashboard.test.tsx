@@ -26,7 +26,7 @@ describe("MetricsDashboard Component", () => {
     expect(screen.getByText("42.00%")).toBeInTheDocument();
   });
 
-  it("should format network network_density as percentage", () => {
+  it("should format network_density as percentage", () => {
     render(<MetricsDashboard metrics={mockMetrics} />);
     expect(screen.getByText("42.00%")).toBeInTheDocument();
   });
@@ -102,7 +102,7 @@ describe("Edge Cases and Boundary Conditions", () => {
     expect(screen.getByText("100.00%")).toBeInTheDocument();
   });
 
-  it("should handle very small network network_density", () => {
+  it("should handle very small network_density", () => {
     const sparseMetrics: Metrics = {
       ...mockMetrics,
       network_density: 0.001,

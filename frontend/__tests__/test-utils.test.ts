@@ -952,7 +952,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     describe("Statistical Consistency", () => {
-      it("should have network network_density consistent with edge/node ratio", () => {
+      it("should have network_density consistent with edge/node ratio", () => {
         const n = mockVisualizationData.nodes.length;
         const e = mockVisualizationData.edges.length;
         const maxEdges = (n * (n - 1)) / 2;

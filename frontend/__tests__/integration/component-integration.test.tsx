@@ -58,8 +58,8 @@ describe("Component Integration Tests", () => {
     mockedApi.getAssets.mockResolvedValue({
       items: mockAssets,
       total: mockAssets.length,
-      offset: 0,
-      limit: 20,
+      page: 1,
+      per_page: 50,
       hasMore: false,
     });
     mockedApi.getAssetClasses.mockResolvedValue(mockAssetClasses);

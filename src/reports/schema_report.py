@@ -150,7 +150,7 @@ def _network_statistics_lines(
             - "total_assets"
             - "total_relationships"
             - "average_relationship_strength"
-            - "density"
+            - "network_density"
             - "regulatory_event_count"
         Missing or invalid values are coerced to sensible defaults.
 

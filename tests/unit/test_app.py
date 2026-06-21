@@ -259,7 +259,7 @@ class TestUpdateMetricsText:
             "total_assets": 100,
             "total_relationships": 250,
             "average_relationship_strength": 0.75,
-            "density": 0.455,
+            "network_density": 0.455,
             "regulatory_event_count": 10,
             "asset_class_distribution": {"EQUITY": 50, "BOND": 30},
             "top_relationships": [
@@ -300,7 +300,7 @@ class TestUpdateMetricsText:
             "total_assets": 10,
             "total_relationships": 5,
             "average_relationship_strength": 0.5,
-            "density": 0.25,
+            "network_density": 0.25,
             "regulatory_event_count": 2,
             "asset_class_distribution": {},
             "top_relationships": [
@@ -592,7 +592,7 @@ class TestEdgeCases:
             "total_assets": 0,
             "total_relationships": 0,
             "average_relationship_strength": 0.0,
-            "density": 0.0,
+            "network_density": 0.0,
             "regulatory_event_count": 0,
             "asset_class_distribution": {},
             "top_relationships": [],

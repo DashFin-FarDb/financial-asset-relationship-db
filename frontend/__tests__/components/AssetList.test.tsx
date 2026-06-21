@@ -209,7 +209,7 @@ describe("AssetList Component", () => {
     type AssetsResponse = {
       items: typeof mockAssets;
       total: number;
-      offset: number;
+      page: number;
       per_page: number;
       hasMore: boolean;
     };

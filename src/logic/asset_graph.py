@@ -464,6 +464,9 @@ def calculate_graph_density(asset_count: int, relationship_count: int) -> float:
     Formula for directed graph network_density is: E / (V * (V - 1))
     Returns 0.0 if asset_count <= 1.
 
+    Note: For graphs with multiple relationship types between the same node pair,
+    the raw ratio may exceed 1.0 and is clamped to preserve the [0, 1] contract.
+
     Parameters:
         asset_count (int): Number of assets (nodes) in the graph.
         relationship_count (int): Number of relationships (edges) in the graph.
@@ -474,4 +477,4 @@ def calculate_graph_density(asset_count: int, relationship_count: int) -> float:
     if asset_count <= 1:
         return 0.0
     possible_edges = asset_count * (asset_count - 1)
-    return float(relationship_count) / possible_edges
+    return min(1.0, float(relationship_count) / possible_edges)
