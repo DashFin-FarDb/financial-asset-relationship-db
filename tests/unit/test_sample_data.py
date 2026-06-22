@@ -329,7 +329,7 @@ class TestSampleDatabaseMetrics:
 
     @staticmethod
     def test_sample_database_has_sufficient_density():
-        """Test that sample database has reasonable relationship network_density."""
+        """Test that sample database has reasonable network density."""
         graph = create_sample_database()
 
         metrics = graph.calculate_metrics()

@@ -6,45 +6,43 @@
 - Frontend: Next.js (production path)
 - Gradio: non-production (demo/testing only)
 
-This PR strictly aligns with the Next.js frontend production path.
+No runtime architecture behavior is changed; this is a repository-state correction.
 
 ## Primary Objective
 
-Update frontend components and tests to align with the backend pagination and metrics refactor. Closes #1274
+Remove the accidental gitlink at `financial-asset-relationship-db` so checkout/cleanup operations no longer carry submodule-like index state.
 
 ## Scope
 
 ### In Scope
 
-- Fix mocked metrics shapes in test utilities
-- Refactor test assertions for synchronous and async component behavior
-- Match test cases to the updated paginated fields `page`, `per_page`, and `hasMore`
-- Align metrics test expectations to `network_density` (0.0–1.0) instead of legacy density fields
+- Delete the tracked gitlink entry (`mode 160000`) for `financial-asset-relationship-db`
+- Normalize repository tree/index state to a standard single-repo layout
+- Keep all runtime code and API/frontend behavior unchanged
 
 ### Out of Scope
 
-- Implementing persistent database storage promotion gating (non-pagination)
-- Modifying authentication or authorization session models
+- Any backend or frontend functional changes
+- Dependency, CI workflow, or infrastructure refactors
+- Test-suite refactoring or behavior updates
 
 ### Files Expected to Change
 
-- `frontend/__tests__/integration/component-integration.test.tsx`
-- `frontend/__tests__/lib/api.test.ts`
-- `frontend/__tests__/lib/api-axios-compatibility.test.ts`
-- `frontend/__tests__/lib/api-upgrade-integration.test.ts`
-- `frontend/__tests__/components/AssetList.test.tsx`
-- `frontend/__tests__/test-utils.ts`
+- `financial-asset-relationship-db` (gitlink entry removed from index/tree)
+- No source files under `api/`, `src/`, or `frontend/`
+- No docs/policy/template files
 
 ## Validation Commands
 
 ```bash
-cd frontend && npm test
+git ls-files --stage | awk '$1==160000 {print}'
+git status --short
 ```
 
 ## Merge Criteria
 
 - [x] Scope is tightly aligned to the Primary Objective
-- [x] Validation commands pass locally or in CI
+- [ ] Validation commands pass locally or in CI
 - [x] Changes align with production architecture (FastAPI + Next.js)
 
 ## Checklist
