@@ -103,6 +103,7 @@ class RebuildExecutor:
         self._log_rebuild_completion(graph)
         return graph
 
+    # Backward-compatible alias; prefer build_rebuild_graph in new call sites.
     run_rebuild = build_rebuild_graph
 
     def _validate_execution_ownership(self, **kwargs: Any) -> None:
