@@ -3283,7 +3283,7 @@ flowchart TB
 
 ### 4.3.3 Metrics Calculation Flow
 
-The metrics endpoint (`GET /api/graph/metrics`) calculates and returns network statistics including density, degree distribution, and asset class breakdowns.
+The metrics endpoint (`GET /api/graph/metrics`) calculates and returns network statistics including network_density, degree distribution, and asset class breakdowns
 
 ```mermaid
 flowchart TB
