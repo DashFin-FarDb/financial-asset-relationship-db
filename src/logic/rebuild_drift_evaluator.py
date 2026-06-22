@@ -250,9 +250,11 @@ class RebuildDriftEvaluator:
         if not job or inconsistency_type != InconsistencyType.ORPHANED_RUNNING:
             return False, False
 
-        active_worker_id = getattr(job, "active_worker_id", None)
+        job_active_worker_id = getattr(job, "active_worker_id", None)
         owner_mismatch = (
-            active_worker_id is not None and self.lock.holder_id is not None and active_worker_id != self.lock.holder_id
+            job_active_worker_id is not None
+            and self.lock.holder_id is not None
+            and job_active_worker_id != self.lock.holder_id
         )
 
         if not owner_mismatch:

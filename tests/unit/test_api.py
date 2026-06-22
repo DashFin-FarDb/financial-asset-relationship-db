@@ -33,11 +33,12 @@ TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
 
 def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
     """Return asset items from a paginated assets response."""
-    assert set(page) == {"items", "total", "page", "per_page"}
+    assert set(page) == {"items", "total", "page", "per_page", "hasMore"}
     assert isinstance(page["items"], list)
     assert isinstance(page["total"], int)
     assert isinstance(page["page"], int)
     assert isinstance(page["per_page"], int)
+    assert isinstance(page["hasMore"], bool)
     return page["items"]
 
 
@@ -138,7 +139,7 @@ def _apply_mock_graph_configuration(mock_graph_instance: Any, graph: AssetRelati
 
     Sets the mock's `assets` and `relationships`, configures `calculate_metrics.return_value` to a metrics
     dictionary (keys: `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`,
-    `network_density`, `relationship_density`), and assigns `get_3d_visualization_data` to the graph's
+    `network_density`), and assigns `get_3d_visualization_data` to the graph's
     `get_3d_visualization_data_enhanced` method.
 
     Parameters:
@@ -157,7 +158,6 @@ def _apply_mock_graph_configuration(mock_graph_instance: Any, graph: AssetRelati
         "avg_degree": metrics["avg_degree"],
         "max_degree": metrics["max_degree"],
         "network_density": metrics["network_density"],
-        "relationship_density": metrics["relationship_density"],
     }
     mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data_enhanced
 

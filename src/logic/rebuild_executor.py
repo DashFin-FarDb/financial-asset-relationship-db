@@ -27,7 +27,7 @@ _REBUILD_CANCELLED_MSG = "Rebuild cancelled via API request"
 class RebuildExecutor:
     """Handles the execution phase of graph rebuilds."""
 
-    def run_rebuild(
+    def build_rebuild_graph(
         self,
         assets: Iterable[Asset],
         regulatory_events: Iterable[RegulatoryEvent],
@@ -70,7 +70,7 @@ class RebuildExecutor:
         }
         unexpected = set(kwargs.keys()) - allowed_kwargs
         if unexpected:
-            raise TypeError(f"run_rebuild got unexpected keyword arguments: {', '.join(sorted(unexpected))}")
+            raise TypeError(f"build_rebuild_graph got unexpected keyword arguments: {', '.join(sorted(unexpected))}")
 
         graph = AssetRelationshipGraph(
             same_sector_strength=settings.same_sector_strength,
@@ -102,6 +102,9 @@ class RebuildExecutor:
 
         self._log_rebuild_completion(graph)
         return graph
+
+    # Backward-compatible alias; prefer build_rebuild_graph in new call sites.
+    run_rebuild = build_rebuild_graph
 
     def _validate_execution_ownership(self, **kwargs: Any) -> None:
         """Validate that the current execution_id matches the expected execution ownership."""

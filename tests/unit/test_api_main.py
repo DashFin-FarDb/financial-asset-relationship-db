@@ -49,11 +49,12 @@ CORS_DEV_ORIGIN = "http://localhost:3000"
 
 def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 50) -> list[dict[str, Any]]:
     """Assert that an assets response follows the paginated contract."""
-    assert set(data) == {"items", "total", "page", "per_page"}
+    assert set(data) == {"items", "total", "page", "per_page", "hasMore"}
     assert isinstance(data["items"], list)
     assert isinstance(data["total"], int)
     assert data["page"] == page
     assert data["per_page"] == per_page
+    assert isinstance(data["hasMore"], bool)
     assert data["total"] >= len(data["items"])
     return data["items"]
 
@@ -303,9 +304,11 @@ class TestPydanticModels:
                     "strength": 0.7,
                 }
             ],
+            network_density=0.1,
         )
         assert len(viz.nodes) == 1
         assert len(viz.edges) == 1
+        assert viz.network_density == pytest.approx(0.1)
 
     def test_detailed_health_response_model_valid(self) -> None:
         """Verify that DetailedHealthResponse accepts bounded readiness payloads."""
@@ -549,7 +552,7 @@ class TestAPIEndpoints:
         self,
         client: TestClient,
     ) -> None:
-        """Detailed health reports graph persistence as unconfigured for invalid database URLs."""
+        """Detailed health reports as unconfigured for invalid database URLs."""
         with patch(
             "api.routers.system.get_graph_lifecycle_settings",
             return_value=GraphLifecycleSettings(
@@ -747,7 +750,6 @@ class TestAPIEndpoints:
         baseline_response = client.get("/api/assets?page=1&per_page=50")
         assert baseline_response.status_code == 200
         baseline_total = baseline_response.json()["total"]
-
         # Out-of-range page should return empty items but preserve total
         response = client.get("/api/assets?page=999999&per_page=50")
         assert response.status_code == 200
@@ -948,6 +950,9 @@ class TestAPIEndpoints:
 
         assert "nodes" in viz_data
         assert "edges" in viz_data
+        assert "network_density" in viz_data
+        assert isinstance(viz_data["network_density"], float)
+        assert 0.0 <= viz_data["network_density"] <= 1.0
         assert len(viz_data["nodes"]) > 0
         assert len(viz_data["edges"]) > 0
         # BOUNDARY: All nodes must have exact key set
@@ -1164,6 +1169,20 @@ class TestIntegrationScenarios:
         assert response.status_code == 200
         viz_data = response.json()
         assert isinstance(viz_data["nodes"], list)
+
+    def test_get_graph_metrics(self, client: TestClient) -> None:
+        """Validate `/api/graph/metrics` returns the normalized MetricsResponse payload."""
+        response = client.get("/api/graph/metrics")
+        assert response.status_code == 200
+        data = response.json()
+        assert "total_assets" in data
+        assert "total_relationships" in data
+        assert "asset_classes" in data
+        assert "avg_degree" in data
+        assert "max_degree" in data
+        assert "network_density" in data
+        assert isinstance(data["network_density"], float)
+        assert 0.0 <= data["network_density"] <= 1.0
 
     def test_filter_refinement_workflow(self, client: TestClient) -> None:
         """Confirm progressive filters reduce (or keep) result sets, never increase them."""
@@ -2036,7 +2055,7 @@ class TestEndpointRegressionCases:
 
         api_main.reset_graph()
 
-    def test_metrics_relationship_density_calculation(self, client: TestClient):
+    def test_metrics_graph_gauge_exposition(self, client: TestClient):
         """Metrics payload should include graph gauges in text exposition."""
         body = _assert_metrics_text_response(client.get("/api/metrics"))
         assert "# TYPE graph_assets_count gauge" in body

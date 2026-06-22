@@ -188,7 +188,7 @@ class TestDataFetcherWithFallback:
         custom_graph.add_asset(custom_asset)
 
         def custom_factory():
-            """Factory function returning a preconfigured AssetRelationshipGraph for fallback."""
+            """Return a preconfigured AssetRelationshipGraph for fallback."""
             return custom_graph
 
         fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
@@ -303,7 +303,7 @@ class TestEdgeCasesAndRegressions:
         metrics = graph.calculate_metrics()
         assert metrics["total_assets"] == 1
         assert metrics["total_relationships"] == 0
-        assert metrics["relationship_density"] == pytest.approx(0.0)
+        assert metrics["network_density"] == pytest.approx(0.0)
 
     @staticmethod
     def test_large_relationship_strength_values(tmp_path):

@@ -132,7 +132,7 @@ class AppConstants:
 Total Assets: {total_assets}
 Total Relationships: {total_relationships}
 Average Relationship Strength: {average_relationship_strength:.3f}
-Relationship Density: {relationship_density:.2f}%
+Relationship Density: {density_pct:.2f}%
 Regulatory Events: {regulatory_event_count}
 
 Asset Class Distribution:
@@ -253,7 +253,7 @@ class FinancialAssetApp:
                 "average_relationship_strength",
                 0.0,
             ),
-            relationship_density=metrics.get("relationship_density", 0.0),
+            density_pct=metrics.get("network_density", 0.0) * 100.0,
             regulatory_event_count=metrics.get("regulatory_event_count", 0),
             asset_class_distribution=json.dumps(
                 metrics.get("asset_class_distribution", {}),

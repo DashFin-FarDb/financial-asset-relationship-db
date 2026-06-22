@@ -36,7 +36,7 @@ async def get_assets(
 
     Returns:
         AssetPageResponse: Page containing `items` (serialized assets for the requested page),
-            `total` (total matched assets), `page`, and `per_page`.
+            `total` (total matched assets), `page`, `per_page`, and `hasMore`.
 
     Raises:
         HTTPException: Propagates existing HTTP errors; raises a 500-status `HTTPException`
@@ -77,6 +77,7 @@ async def get_assets(
         total=total,
         page=page,
         per_page=per_page,
+        has_more=(page * per_page) < total,
     )
 
 

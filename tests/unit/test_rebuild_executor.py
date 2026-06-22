@@ -151,3 +151,17 @@ def test_rebuild_executor_cancellation_logging(mock_log, executor, sample_asset)
     args, _ = mock_log.call_args
     observability_event = args[2]
     assert observability_event.event == "reconciliation_rebuild_cancelled"
+
+
+def test_build_rebuild_graph_rejects_unexpected_kwargs(executor, sample_asset):
+    """build_rebuild_graph (and its run_rebuild alias) must raise TypeError for unknown kwargs.
+
+    The error message must reference 'build_rebuild_graph' so callers can identify
+    which method rejected the argument after the rename from run_rebuild.
+    """
+    with pytest.raises(TypeError, match="build_rebuild_graph got unexpected keyword arguments"):
+        executor.build_rebuild_graph(
+            assets=[sample_asset],
+            regulatory_events=[],
+            unknown_param="bad",
+        )

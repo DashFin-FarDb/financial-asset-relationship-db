@@ -5,7 +5,7 @@ import math
 
 from fastapi import APIRouter, HTTPException
 
-from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.asset_graph import AssetRelationshipGraph, calculate_graph_density
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import VisualizationDataResponse, VisualizationEdge, VisualizationNode
@@ -99,7 +99,9 @@ async def get_visualization_data() -> VisualizationDataResponse:
         asset_ids = list(g.assets.keys())
         nodes = _build_visualization_nodes(g, asset_ids)
         edges = _build_visualization_edges(g)
-        return VisualizationDataResponse(nodes=nodes, edges=edges)
+        effective_assets_count = len(asset_ids)
+        network_density = calculate_graph_density(effective_assets_count, len(edges))
+        return VisualizationDataResponse(nodes=nodes, edges=edges, network_density=network_density)
     except Exception as e:
         log_event(
             logger,
