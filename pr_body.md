@@ -18,13 +18,13 @@ Update frontend components and tests to align with the backend pagination and me
 
 - Fix mocked metrics shapes in test utilities
 - Refactor test assertions for synchronous and async component behavior
-- Match test cases to the updated paginated fields `page` and `per_page`
-- Align metrics test expectations to `network_density` (normalized 0.0–1.0)
+- Match test cases to the updated paginated fields `page`, `per_page`, and `hasMore`
+- Align metrics test expectations to `network_density` (0.0–1.0) instead of legacy density fields
 
 ### Out of Scope
 
-- Backend endpoints modifications
-- Changes outside of frontend components and tests
+- Implementing persistent database storage promotion gating (non-pagination)
+- Modifying authentication or authorization session models
 
 ### Files Expected to Change
 
