@@ -49,6 +49,6 @@ describe("loadAssets - page clamping", () => {
       },
       undefined,
     );
-    },
-  );
+  },
+);
 });
