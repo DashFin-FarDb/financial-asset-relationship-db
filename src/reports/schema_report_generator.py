@@ -203,8 +203,8 @@ class SchemaReportGenerator:
         Returns:
             List[str]: Markdown lines for the "Schema Optimization Metrics" section. The lines
                 include a formatted data quality score and one recommendation chosen from:
-                - density > 30.0: "High connectivity - consider normalization."
-                - density > 10.0: "Well-balanced - suitable for most analytical use-cases."
+                - density_pct > 30.0: "High connectivity - consider normalization."
+                - density_pct > 10.0: "Well-balanced - suitable for most analytical use-cases."
                 - otherwise: "Sparse - consider enriching relationship definitions."
         """
         density = _as_float(metrics.get("network_density"))
