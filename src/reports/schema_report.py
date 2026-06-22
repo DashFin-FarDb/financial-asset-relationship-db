@@ -12,7 +12,7 @@ class GraphLike(Protocol):
 
     def calculate_metrics(self) -> dict[str, Any]:
         """Calculate graph metrics."""
-        pass
+        ...
 
 
 def _as_int(value: Any, default: int = 0) -> int:
