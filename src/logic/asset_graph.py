@@ -414,7 +414,7 @@ class AssetRelationshipGraph:
             return
         rels.append((target_id, rel_type, strength))
 
-    def collect_participating_asset_ids(self) -> set[str]:
+    def collect_participating_asset_ids(self) -> set[str]:  # pylint: disable=unsubscriptable-object
         """
         Collect the set of asset IDs that participate in the graph.
 

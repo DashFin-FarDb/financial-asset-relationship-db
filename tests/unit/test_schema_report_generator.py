@@ -6,6 +6,7 @@ and _render_schema_optimization added in the density semantics normalisation PR.
 
 from __future__ import annotations
 
+# pylint: disable=protected-access,no-self-use,import-error,no-name-in-module
 import pytest
 
 from src.reports.schema_report_generator import SchemaReportGenerator

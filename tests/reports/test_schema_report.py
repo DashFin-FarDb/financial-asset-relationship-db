@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import pytest
+import pytest  # pylint: disable=import-error
 
 from src.reports.schema_report import generate_schema_report
 
@@ -21,7 +21,7 @@ class MockGraph:
     deterministic metrics dictionary for predictable output.
     """
 
-    def calculate_metrics(self) -> dict[str, Any]:
+    def calculate_metrics(self) -> dict[str, Any]:  # pylint: disable=unsubscriptable-object
         """
         Provide deterministic mock metrics for testing schema report generation.
 

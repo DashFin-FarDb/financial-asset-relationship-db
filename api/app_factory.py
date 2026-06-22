@@ -15,9 +15,6 @@ from uuid import uuid4
 
 from fastapi import FastAPI
 
-if TYPE_CHECKING:
-    from .graph_lifecycle_providers import GraphLifecycleSettings
-
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
@@ -49,6 +46,9 @@ from .routers.system import router as system_router
 from .routers.visualization import router as visualization_router
 
 # pylint: enable=import-error
+
+if TYPE_CHECKING:
+    from .graph_lifecycle_providers import GraphLifecycleSettings
 
 logger = logging.getLogger(__name__)
 

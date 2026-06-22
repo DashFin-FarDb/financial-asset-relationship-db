@@ -2,8 +2,10 @@
 
 import logging
 
+# pylint: disable=import-error
 from fastapi import APIRouter, HTTPException
 
+# pylint: enable=import-error
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import MetricsResponse

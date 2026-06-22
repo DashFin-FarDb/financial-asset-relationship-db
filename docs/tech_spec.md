@@ -978,7 +978,7 @@ Provides quantitative insight into network structure, enabling assessment of por
 
 **Technical Context:**
 
-Backend metrics calculation in F-003 exposes data via `/api/graph/metrics` endpoint. The MetricsResponse model includes: total_assets, total_relationships, asset_classes (Dict[str, int]), avg_degree, max_degree, and network_density (a normalised 0.0–1.0 fraction). The percentage-based network_density is an internal schema-report detail and is not part of the public API contract. Frontend rendering in `frontend/app/components/MetricsDashboard.tsx`.
+Backend metrics calculation in F-003 exposes data via `/api/graph/metrics` endpoint. The MetricsResponse model includes: total_assets, total_relationships, asset_classes (`Dict[str, int]`), avg_degree, max_degree, and network_density (a normalised 0.0–1.0 fraction). The percentage-based network_density is an internal schema-report detail and is not part of the public API contract. Frontend rendering in `frontend/app/components/MetricsDashboard.tsx`.
 
 **Dependencies:**
 

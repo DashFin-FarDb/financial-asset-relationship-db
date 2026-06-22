@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any, Protocol
+from typing import Any, Protocol  # pylint: disable=no-name-in-module
 
 
-class GraphLike(Protocol):
+class GraphLike(Protocol):  # pylint: disable=too-few-public-methods
     """Protocol for objects that can calculate metrics for schema reports."""
 
-    def calculate_metrics(self) -> dict[str, Any]:
+    def calculate_metrics(self) -> dict[str, Any]:  # pylint: disable=unsubscriptable-object
         """Calculate graph metrics."""
         ...
 
