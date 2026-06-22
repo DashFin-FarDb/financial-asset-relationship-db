@@ -280,7 +280,7 @@ The relationship engine discovers and manages six primary relationship types:
 
 | KPI                                | Description                               | Measurement Source      |
 | ---------------------------------- | ----------------------------------------- | ----------------------- |
-| Network Density                    | Ratio of actual to possible relationships | `/api/graph/metrics` endpoint |
+| Network Density                    | Directed graph density (0.0–1.0): ratio of actual to possible directed edges | `/api/graph/metrics` endpoint |
 | Average Degree                     | Mean number of connections per asset      | `/api/graph/metrics` endpoint |
 | Max Degree                         | Highest connected asset                   | `/api/graph/metrics` endpoint |
 | Asset Class Distribution           | Balance of asset types in network         | `/api/graph/metrics` endpoint |
