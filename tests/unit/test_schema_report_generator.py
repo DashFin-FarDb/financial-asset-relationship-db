@@ -23,8 +23,13 @@ class TestRenderCalculatedMetrics:
 
     def test_reads_network_density_key(self, generator):
         """_render_calculated_metrics must read 'network_density', not 'relationship_density'."""
-        metrics = {"network_density": 0.25, "total_assets": 4, "total_relationships": 3,
-                   "average_relationship_strength": 0.5, "regulatory_event_count": 1}
+        metrics = {
+            "network_density": 0.25,
+            "total_assets": 4,
+            "total_relationships": 3,
+            "average_relationship_strength": 0.5,
+            "regulatory_event_count": 1,
+        }
         lines = generator._render_calculated_metrics(metrics)
         combined = "\n".join(lines)
         assert "Relationship Density" in combined
@@ -32,24 +37,39 @@ class TestRenderCalculatedMetrics:
 
     def test_density_formatted_as_percentage(self, generator):
         """Density value 0.123 should render as '12.30%'."""
-        metrics = {"network_density": 0.123, "total_assets": 2, "total_relationships": 1,
-                   "average_relationship_strength": 0.8, "regulatory_event_count": 0}
+        metrics = {
+            "network_density": 0.123,
+            "total_assets": 2,
+            "total_relationships": 1,
+            "average_relationship_strength": 0.8,
+            "regulatory_event_count": 0,
+        }
         lines = generator._render_calculated_metrics(metrics)
         combined = "\n".join(lines)
         assert "12.30%" in combined
 
     def test_zero_density(self, generator):
         """Zero network_density should render as '0.00%'."""
-        metrics = {"network_density": 0.0, "total_assets": 5, "total_relationships": 0,
-                   "average_relationship_strength": 0.0, "regulatory_event_count": 0}
+        metrics = {
+            "network_density": 0.0,
+            "total_assets": 5,
+            "total_relationships": 0,
+            "average_relationship_strength": 0.0,
+            "regulatory_event_count": 0,
+        }
         lines = generator._render_calculated_metrics(metrics)
         combined = "\n".join(lines)
         assert "0.00%" in combined
 
     def test_full_density(self, generator):
         """network_density of 1.0 should render as '100.00%'."""
-        metrics = {"network_density": 1.0, "total_assets": 3, "total_relationships": 6,
-                   "average_relationship_strength": 1.0, "regulatory_event_count": 0}
+        metrics = {
+            "network_density": 1.0,
+            "total_assets": 3,
+            "total_relationships": 6,
+            "average_relationship_strength": 1.0,
+            "regulatory_event_count": 0,
+        }
         lines = generator._render_calculated_metrics(metrics)
         combined = "\n".join(lines)
         assert "100.00%" in combined
