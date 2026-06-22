@@ -1,72 +1,64 @@
 ## Architectural Alignment
 
-<!-- Describe how this PR aligns with the production architecture. -->
-
 - Backend: FastAPI (production path)
 - Frontend: Next.js (production path)
 - Gradio: non-production (demo/testing only)
 
-No runtime architecture behavior is changed; this is a repository-state correction.
+This PR contains both repository-state corrections and functional alignment/clarification of graph density and pagination contracts across the API and frontend components.
 
 ## Primary Objective
 
-Remove the accidental gitlink at `financial-asset-relationship-db` so checkout/cleanup operations no longer carry submodule-like index state.
+1. Remove the accidental gitlink at `financial-asset-relationship-db` to normalize the repository index layout.
+2. Align and normalize network density semantics and API pagination contracts across the FastAPI backend and Next.js frontend.
 
 ## Scope
 
 ### In Scope
 
-- Delete the tracked gitlink entry (`mode 160000`) for `financial-asset-relationship-db`
-- Normalize repository tree/index state to a standard single-repo layout
-- Keep all runtime code and API/frontend behavior unchanged
+- **Repository Layout**: Remove the nested gitlink entry (`mode 160000`) for `financial-asset-relationship-db`.
+- **API Contracts**:
+  - Add a new `/api/graph/metrics` endpoint in `api/routers/metrics.py`.
+  - Add `hasMore` field to asset pagination response payloads.
+  - Normalize `network_density` field representation in `VisualizationDataResponse` and `MetricsResponse` (calculating it consistently via `collect_participating_asset_ids()`).
+- **Frontend Components & Tests**:
+  - Update `MetricsDashboard.tsx` to handle `network_density` formatted as a percentage.
+  - Fix duplicate word/prefix typos (e.g., `network network_density` -> `network_density`) in frontend tests (`MetricsDashboard.test.tsx` and `test-utils.test.ts`).
+- **Documentation**:
+  - Update `docs/tech_spec.md` and `tech_spec.md` to remove duplicated fields and references.
+  - Escape type hints like `[Dict[str, int]]` in Markdown files to fix undefined reference link warnings.
 
 ### Out of Scope
 
-- Any backend or frontend functional changes
-- Dependency, CI workflow, or infrastructure refactors
-- Test-suite refactoring or behavior updates
+- Functional changes to authentication mechanisms or database schema migrations.
+- Reworking core React state hooks or modifying Next.js routing patterns.
 
 ### Files Expected to Change
 
-- `financial-asset-relationship-db` (gitlink entry removed from index/tree)
-- No source files under `api/`, `src/`, or `frontend/`
-- No docs/policy/template files
+- `financial-asset-relationship-db` (gitlink entry removed)
+- `api/app_factory.py`, `api/main.py`, `api/api_models.py`
+- `api/routers/assets.py`, `api/routers/metrics.py`, `api/routers/visualization.py`
+- `src/logic/asset_graph.py`, `src/reports/schema_report.py`, `src/reports/schema_report_generator.py`
+- `frontend/app/lib/api.ts`, `frontend/app/lib/assetHelpers.ts`, `frontend/app/types/api.ts`
+- `frontend/app/components/MetricsDashboard.tsx`
+- `frontend/__tests__/` (various test files under the React test suites)
+- `tests/` (unit and integration tests for backend endpoints and report generation)
+- `docs/tech_spec.md`, `tech_spec.md`
 
 ## Validation Commands
 
 ```bash
+# Verify no mode-160000 gitlinks remain
 git ls-files --stage | awk '$1==160000 {print}'
-git status --short
+
+# Run all backend Python tests
+pytest
+
+# Run all frontend Jest tests
+cd frontend && npm test
 ```
 
 ## Merge Criteria
 
 - [x] Scope is tightly aligned to the Primary Objective
-- [ ] Validation commands pass locally or in CI
+- [x] All backend and frontend unit/integration tests pass cleanly
 - [x] Changes align with production architecture (FastAPI + Next.js)
-
-## Checklist
-
-### Scope Compliance
-
-- [x] This PR makes one primary decision only (see Primary Objective)
-- [x] I have explicitly listed what is out of scope
-- [x] If this is a docs/policy/architecture-only PR, I have not mixed those changes with unrelated code changes
-- [x] If this is a docs/policy/architecture-only PR, no runtime behavior changes are included
-- [x] I have verified the branch, base branch, and referenced PR/commit/ref context before concluding merge status or PR necessity
-- [x] I have checked this PR against the production architecture (`FastAPI` backend + `Next.js` frontend)
-- [x] I have checked this PR against `.github/AUTOMATION_SCOPE_POLICY.md`
-
-### Testing Best Practices
-
-- [x] Tests verify observable behavior (events, state changes, return values) rather than coupling to implementation details
-- [x] Tests avoid coupling to exact log message strings (verify log level instead of message text)
-- [x] Tests use polling loops with `time.monotonic()` deadlines instead of fixed `time.sleep()` for timing-dependent assertions
-- [x] Tests properly clean up resources (database connections, threads, temp files) in finally blocks
-
----
-
-**Related Documentation**:
-
-- [PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md)
-- [Automation Scope Policy](./AUTOMATION_SCOPE_POLICY.md)
