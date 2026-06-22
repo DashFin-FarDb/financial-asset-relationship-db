@@ -12,7 +12,7 @@ class GraphLike(Protocol):  # pylint: disable=too-few-public-methods
 
     def calculate_metrics(self) -> dict[str, Any]:  # pylint: disable=unsubscriptable-object
         """Calculate graph metrics."""
-        ...
+        pass
 
 
 def _as_int(value: Any, default: int = 0) -> int:

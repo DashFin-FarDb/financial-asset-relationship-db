@@ -11,6 +11,38 @@ from collections.abc import Callable
 from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 
+__all__ = [
+    "AssetResponse",
+    "MetricsResponse",
+    "RelationshipResponse",
+    "VisualizationDataResponse",
+    "app",
+    "lifespan",
+    "ACCESS_TOKEN_EXPIRE_MINUTES",
+    "Token",
+    "User",
+    "authenticate_user",
+    "create_access_token",
+    "get_current_active_user",
+    "configure_cors",
+    "validate_origin",
+    "limiter",
+    "raise_asset_not_found",
+    "serialize_asset",
+    "assets_router",
+    "auth_router",
+    "metrics_router",
+    "relationships_router",
+    "system_router",
+    "visualization_router",
+    "ENV",
+    "graph",
+    "get_graph",
+    "set_graph",
+    "set_graph_factory",
+    "reset_graph",
+]
+
 # Backward compatibility re-exports for response models
 # noqa: F401 tells flake8 to ignore "imported but unused" warnings
 from .api_models import AssetResponse, MetricsResponse, RelationshipResponse, VisualizationDataResponse  # noqa: F401
@@ -39,7 +71,7 @@ from .rate_limit import limiter  # noqa: F401
 from .router_helpers import raise_asset_not_found, serialize_asset  # noqa: F401
 from .routers.assets import router as assets_router  # noqa: F401
 from .routers.auth import router as auth_router  # noqa: F401
-from .routers.metrics import router as metrics_router  # noqa: F401  # pylint: disable=unused-import
+from .routers.metrics import router as metrics_router  # noqa: F401
 from .routers.relationships import router as relationships_router  # noqa: F401
 from .routers.system import router as system_router  # noqa: F401
 from .routers.visualization import router as visualization_router  # noqa: F401
