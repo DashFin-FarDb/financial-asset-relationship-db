@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+# pylint: disable=no-name-in-module,too-few-public-methods,no-self-use
 from typing import Any
 
 import pytest  # pylint: disable=import-error
@@ -27,14 +28,16 @@ class MockGraph:
 
         Returns:
             dict: Fixed schema metrics including:
-                - relationship_distribution: mapping of relationship type to instance count (e.g., {"correlation": 4, "hedge": 2})
+                - relationship_distribution: mapping of relationship type
+                  to instance count (e.g., {"correlation": 4, "hedge": 2})
                 - total_assets: total number of assets
                 - total_relationships: total number of relationships
-                - average_relationship_strength: average strength value across relationships
-                - network_density: network_density metric used for recommendations
+                - average_relationship_strength: average strength value
+                - network_density: network_density metric used
                 - regulatory_event_count: count of regulatory events
                 - asset_class_distribution: mapping of asset class to count
-                - top_relationships: list of tuples (source, target, type, strength) for top relationships
+                - top_relationships: list of tuples (source, target, type,
+                  strength) for top relationships
                 - quality_score: overall data quality score (0.0–1.0)
         """
         return {
@@ -65,7 +68,7 @@ class MockGraph:
 def test_schema_report_contains_sections() -> None:
     """Test that all expected sections are in the markdown output."""
     graph = MockGraph()
-    md = generate_schema_report(graph)
+    markdown_report = generate_schema_report(graph)
 
     # Basic section anchors must exist
     required_sections = [
@@ -81,43 +84,43 @@ def test_schema_report_contains_sections() -> None:
     ]
 
     for section in required_sections:
-        assert section in md
+        assert section in markdown_report
 
 
 @pytest.mark.unit
 def test_schema_report_relationship_distribution() -> None:
     """Test that the relationship distribution is present."""
     graph = MockGraph()
-    md = generate_schema_report(graph)
+    markdown_report = generate_schema_report(graph)
 
-    assert "- **correlation**: 4 instances" in md
-    assert "- **hedge**: 2 instances" in md
+    assert "- **correlation**: 4 instances" in markdown_report
+    assert "- **hedge**: 2 instances" in markdown_report
 
 
 @pytest.mark.unit
 def test_schema_report_top_relationships() -> None:
     """Test that top relationships are formatted correctly."""
     graph = MockGraph()
-    md = generate_schema_report(graph)
+    markdown_report = generate_schema_report(graph)
 
-    assert "**A** → **B** (correlation, strength 0.90)" in md
-    assert "**X** → **Y** (hedge, strength 0.70)" in md
+    assert "**A** → **B** (correlation, strength 0.90)" in markdown_report
+    assert "**X** → **Y** (hedge, strength 0.70)" in markdown_report
 
 
 @pytest.mark.unit
 def test_schema_report_quality_score() -> None:
     """Test that the data quality score is included."""
     graph = MockGraph()
-    md = generate_schema_report(graph)
+    markdown_report = generate_schema_report(graph)
 
-    assert "### Data Quality Score: 82.0%" in md
+    assert "### Data Quality Score: 82.0%" in markdown_report
 
 
 @pytest.mark.unit
 def test_schema_report_recommendation_logic() -> None:
     """Test that optimization recommendations are correctly calculated and included."""
     graph = MockGraph()
-    md = generate_schema_report(graph)
+    markdown_report = generate_schema_report(graph)
 
     # network_density = 0.125 (12.5%) -> mid range → "Well-balanced"
-    assert "Well-balanced" in md
+    assert "Well-balanced" in markdown_report
