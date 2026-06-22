@@ -15,10 +15,10 @@ router = APIRouter()
 @router.get("/api/graph/metrics", responses={500: {"description": "Internal server error"}})
 async def get_graph_metrics() -> MetricsResponse:
     """
-    Retrieve aggregated metrics, distributions, and density for the current asset graph.
+    Retrieve aggregated graph metrics (totals, degrees, and density) for the current asset graph.
 
     Returns:
-        MetricsResponse: The calculated metrics for the graph state.
+        MetricsResponse: The calculated public metrics for the graph state.
 
     Raises:
         HTTPException: Raised with status code 500 if an internal error occurs while calculating metrics.
