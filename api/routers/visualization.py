@@ -99,7 +99,7 @@ async def get_visualization_data() -> VisualizationDataResponse:
         asset_ids = list(g.assets.keys())
         nodes = _build_visualization_nodes(g, asset_ids)
         edges = _build_visualization_edges(g)
-        network_density = calculate_graph_density(len(g.collect_participating_asset_ids()), len(edges))
+        network_density = calculate_graph_density(len(asset_ids), len(edges))
         return VisualizationDataResponse(nodes=nodes, edges=edges, network_density=network_density)
     except Exception as e:
         log_event(
