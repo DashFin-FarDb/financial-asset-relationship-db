@@ -213,7 +213,7 @@ describe("API Client", () => {
     });
 
     it("should handle empty asset list", async () => {
-      const emptyPage = { items: [], total: 0, page: 1, per_page: 50 };
+      const emptyPage = { items: [], total: 0, page: 1, per_page: 50, hasMore: false };
       mockAxiosInstance.get.mockResolvedValue({ data: emptyPage });
 
       const result = await api.getAssets();
@@ -509,7 +509,7 @@ describe("API Client", () => {
     });
 
     it("should handle empty visualization data", async () => {
-      const emptyVizData: VisualizationData = { nodes: [], edges: [] };
+      const emptyVizData: VisualizationData = { nodes: [], edges: [], network_density: 0 };
       mockAxiosInstance.get.mockResolvedValue({ data: emptyVizData });
 
       const result = await api.getVisualizationData();

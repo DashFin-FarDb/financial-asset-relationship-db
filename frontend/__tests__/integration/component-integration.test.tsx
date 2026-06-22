@@ -88,7 +88,9 @@ describe("Component Integration Tests", () => {
 
       fireEvent.click(screen.getByText("Metrics & Analytics"));
 
-      expect(mockedApi.getMetrics).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockedApi.getMetrics).toHaveBeenCalled();
+      });
 
       const totalAssets = await screen.findByTestId("total-assets");
       expect(totalAssets).toHaveTextContent(mockMetrics.total_assets.toString());
