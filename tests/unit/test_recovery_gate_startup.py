@@ -109,6 +109,7 @@ def test_startup_reconciliation_performs_reset_for_orphaned_job(mock_session_fac
             lock=mock_lock,
             runtime_has_active_executor=False,
             lock_ttl_seconds=300,
+            enable_automatic_recovery=True,
         )
 
         # Should perform RESET recovery and allow execution
@@ -242,6 +243,7 @@ def test_startup_reconciliation_reacquires_lock_before_reset(mock_session_factor
             lock=mock_lock,
             runtime_has_active_executor=False,
             lock_ttl_seconds=300,
+            enable_automatic_recovery=True,
         )
 
         # Should reacquire lock and perform RESET

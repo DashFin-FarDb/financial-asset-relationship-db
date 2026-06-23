@@ -352,6 +352,7 @@ def _start_background_tasks(
                 ),
                 run_with_trace_fn=_run_with_generated_trace,
                 cancel_event=None,
+                lock_ttl_seconds=getattr(settings, "rebuild_lock_ttl_seconds", 300),
             )
         )
 
