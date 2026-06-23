@@ -270,11 +270,11 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     # We want sleep to yield once then raise CancelledError to terminate the loop cleanly
     sleep_calls = 0
 
+    original_sleep = asyncio.sleep
+
     async def mock_sleep(seconds: float):
         """Mock sleep to yield once then raise CancelledError."""
-        f: asyncio.Future[None] = asyncio.Future()
-        f.set_result(None)
-        await f
+        await original_sleep(0)
         nonlocal sleep_calls
         sleep_calls += 1
         if sleep_calls > 1:
@@ -291,11 +291,16 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     with pytest.raises(asyncio.CancelledError):
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
+        async def fake_run_with_trace(fn, **kwargs):
+            """Run the traced callable and return an awaitable result."""
+            await original_sleep(0)
+            return fn()
+
         await periodic_reconciliation_loop(
             interval_seconds=0.1,
             database_url=base_settings.database_url,
             is_shutdown_fn=lambda: False,
-            run_with_trace_fn=lambda fn, **kwargs: fn(),
+            run_with_trace_fn=fake_run_with_trace,
             coordination_database_url=base_settings.database_url,
             cancel_event=None,
             lock_ttl_seconds=300,
@@ -563,3 +568,29 @@ def test_start_background_tasks_propagates_rebuild_lock_ttl_seconds(monkeypatch)
     recon_loop_mock.assert_called_once()
     kwargs = recon_loop_mock.call_args[1]
     assert kwargs["lock_ttl_seconds"] == 120
+
+
+def test_start_background_tasks_caps_rebuild_lock_ttl_seconds(monkeypatch) -> None:
+    """_start_background_tasks should cap periodic reconciliation lock TTL at the distributed-lock limit."""
+    settings = SimpleNamespace(
+        database_url="sqlite:///:memory:",
+        coordination_database_url="sqlite:///:memory:",
+        graph_sync_interval_seconds=60.0,
+        reconciliation_interval_seconds=30.0,
+        rebuild_lock_ttl_seconds=450,
+    )
+
+    recon_loop_mock = MagicMock()
+    monkeypatch.setattr("src.logic.reconciliation_loop.periodic_reconciliation_loop", recon_loop_mock)
+    monkeypatch.setattr("api.app_factory.init_rebuild_executor", lambda s: None)
+    monkeypatch.setattr("api.app_factory._graph_synchronization_loop", lambda interval_seconds: None)
+    monkeypatch.setattr("api.app_factory._slo_evaluation_loop", lambda: None)
+    monkeypatch.setattr("api.app_factory._resolve_startup_reconciliation_url", lambda s: "sqlite:///:memory:")
+
+    monkeypatch.setattr("api.app_factory.asyncio.create_task", MagicMock())
+
+    from api.app_factory import _start_background_tasks
+
+    _start_background_tasks(has_persistence=True, settings=cast(Any, settings))
+
+    assert recon_loop_mock.call_args[1]["lock_ttl_seconds"] == 300

@@ -1,5 +1,6 @@
 """Unit tests for the background reconciliation loop."""
 
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -17,6 +18,8 @@ from src.logic.reconciliation_loop import (
     periodic_reconciliation_loop,
 )
 from src.logic.recovery_gate import ExecutionBlockedError
+
+pytestmark = pytest.mark.unit
 
 
 @pytest.fixture
@@ -41,8 +44,18 @@ def mock_lock():
     return lock
 
 
+@pytest.fixture
+def reconciliation_loop_context(mock_db_engines, mock_session_factory, mock_lock):
+    """Return bundled loop dependencies for tests."""
+    return SimpleNamespace(
+        db_engines=mock_db_engines,
+        session_factory=mock_session_factory,
+        lock=mock_lock,
+    )
+
+
 def test_create_reconciliation_dependencies(monkeypatch):
-    """Verify that lock_ttl propagates to create_session_factory and DistributedLock."""
+    """Verify lock_ttl is bounded before constructing DistributedLock."""
     mock_session_factory_val = MagicMock()
     mock_lock_val = MagicMock()
 
@@ -66,13 +79,11 @@ def test_create_reconciliation_dependencies(monkeypatch):
     distributed_lock_mock.assert_called_once_with(
         coordination_session_factory=mock_session_factory_val,
         lock_name="graph_rebuild",
-        ttl_seconds=lock_ttl,
+        ttl_seconds=300,
     )
 
 
-def test_run_sync_reconciliation_success(
-    monkeypatch, mock_db_engines, mock_session_factory, mock_lock, make_reconciliation_plan
-):
+def test_run_sync_reconciliation_success(monkeypatch, reconciliation_loop_context, make_reconciliation_plan):
     """Verify single-pass plan consumption under normal execution."""
     plan = make_reconciliation_plan(
         drift_type="none",
@@ -95,14 +106,16 @@ def test_run_sync_reconciliation_success(
     # Mock dependencies setup
     monkeypatch.setattr(
         "src.logic.reconciliation_loop._create_reconciliation_dependencies",
-        lambda *args, **kwargs: (mock_session_factory, mock_lock),
+        lambda *args, **kwargs: (reconciliation_loop_context.session_factory, reconciliation_loop_context.lock),
     )
 
     # Also mock metrics to avoid actual prometheus interactions
     mock_duration = MagicMock()
     monkeypatch.setattr("api.metrics.RECONCILIATION_DURATION", mock_duration)
 
-    _run_sync_reconciliation(mock_db_engines[0], mock_db_engines[1], None, 300)
+    _run_sync_reconciliation(
+        reconciliation_loop_context.db_engines[0], reconciliation_loop_context.db_engines[1], None, 450
+    )
 
     # Gate should query the plan and consume it
     gate_mock.get_reconciliation_plan.assert_called_once()
@@ -112,11 +125,11 @@ def test_run_sync_reconciliation_success(
     mock_duration.observe.assert_called_once()
 
     # Lock release should not be called since lock_was_reacquired is False
-    mock_lock.release.assert_not_called()
+    reconciliation_loop_context.lock.release.assert_not_called()
 
 
 def test_run_sync_reconciliation_releases_reacquired_lock(
-    monkeypatch, mock_db_engines, mock_session_factory, mock_lock, make_reconciliation_plan
+    monkeypatch, reconciliation_loop_context, make_reconciliation_plan
 ):
     """Verify that a reacquired lock is released in the finally block."""
     plan = make_reconciliation_plan(
@@ -133,7 +146,7 @@ def test_run_sync_reconciliation_releases_reacquired_lock(
     gate_mock.get_reconciliation_plan.return_value = plan
     # Simulate that lock was reacquired during reset execution
     gate_mock.lock_was_reacquired = False
-    gate_mock.lock = mock_lock
+    gate_mock.lock = reconciliation_loop_context.lock
 
     def _consume_and_mark_reacquired(*args, **kwargs):
         gate_mock.lock_was_reacquired = True
@@ -143,18 +156,20 @@ def test_run_sync_reconciliation_releases_reacquired_lock(
     monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", lambda **kwargs: gate_mock)
     monkeypatch.setattr(
         "src.logic.reconciliation_loop._create_reconciliation_dependencies",
-        lambda *args, **kwargs: (mock_session_factory, mock_lock),
+        lambda *args, **kwargs: (reconciliation_loop_context.session_factory, reconciliation_loop_context.lock),
     )
     monkeypatch.setattr("api.metrics.RECONCILIATION_DURATION", MagicMock())
 
-    _run_sync_reconciliation(mock_db_engines[0], mock_db_engines[1], None, 300)
+    _run_sync_reconciliation(
+        reconciliation_loop_context.db_engines[0], reconciliation_loop_context.db_engines[1], None, 300
+    )
 
     # Release must be called since lock_was_reacquired is True
-    mock_lock.release.assert_called_once()
+    reconciliation_loop_context.lock.release.assert_called_once()
 
 
 def test_run_sync_reconciliation_lock_release_failure_is_caught(
-    monkeypatch, mock_db_engines, mock_session_factory, mock_lock, make_reconciliation_plan
+    monkeypatch, reconciliation_loop_context, make_reconciliation_plan
 ):
     """Verify that lock release exceptions are handled and do not propagate."""
     plan = make_reconciliation_plan(
@@ -170,19 +185,19 @@ def test_run_sync_reconciliation_lock_release_failure_is_caught(
     gate_mock = MagicMock()
     gate_mock.get_reconciliation_plan.return_value = plan
     gate_mock.lock_was_reacquired = False
-    gate_mock.lock = mock_lock
+    gate_mock.lock = reconciliation_loop_context.lock
 
     def _consume_and_mark_reacquired(*args, **kwargs):
         gate_mock.lock_was_reacquired = True
 
     gate_mock.consume_reconciliation_plan.side_effect = _consume_and_mark_reacquired
     # Mock release to fail
-    mock_lock.release.side_effect = RuntimeError("Release failed")
+    reconciliation_loop_context.lock.release.side_effect = RuntimeError("Release failed")
 
     monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", lambda **kwargs: gate_mock)
     monkeypatch.setattr(
         "src.logic.reconciliation_loop._create_reconciliation_dependencies",
-        lambda *args, **kwargs: (mock_session_factory, mock_lock),
+        lambda *args, **kwargs: (reconciliation_loop_context.session_factory, reconciliation_loop_context.lock),
     )
     monkeypatch.setattr("api.metrics.RECONCILIATION_DURATION", MagicMock())
 
@@ -191,9 +206,11 @@ def test_run_sync_reconciliation_lock_release_failure_is_caught(
     monkeypatch.setattr("src.logic.reconciliation_loop.log_event", mock_log_event)
 
     # Should not raise RuntimeError
-    _run_sync_reconciliation(mock_db_engines[0], mock_db_engines[1], None, 300)
+    _run_sync_reconciliation(
+        reconciliation_loop_context.db_engines[0], reconciliation_loop_context.db_engines[1], None, 300
+    )
 
-    mock_lock.release.assert_called_once()
+    reconciliation_loop_context.lock.release.assert_called_once()
 
     # Assert it logged the event reconciliation_loop_lock_release_failed
     log_calls = [call[0][2] for call in mock_log_event.call_args_list]
@@ -201,7 +218,7 @@ def test_run_sync_reconciliation_lock_release_failure_is_caught(
 
 
 def test_run_sync_reconciliation_blocked_error_propagates(
-    monkeypatch, mock_db_engines, mock_session_factory, mock_lock, make_reconciliation_plan
+    monkeypatch, reconciliation_loop_context, make_reconciliation_plan
 ):
     """Verify that ExecutionBlockedError propagates out of the sync loop."""
     plan = make_reconciliation_plan(
@@ -222,12 +239,14 @@ def test_run_sync_reconciliation_blocked_error_propagates(
     monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", lambda **kwargs: gate_mock)
     monkeypatch.setattr(
         "src.logic.reconciliation_loop._create_reconciliation_dependencies",
-        lambda *args, **kwargs: (mock_session_factory, mock_lock),
+        lambda *args, **kwargs: (reconciliation_loop_context.session_factory, reconciliation_loop_context.lock),
     )
     monkeypatch.setattr("api.metrics.RECONCILIATION_DURATION", MagicMock())
 
     with pytest.raises(ExecutionBlockedError):
-        _run_sync_reconciliation(mock_db_engines[0], mock_db_engines[1], None, 300)
+        _run_sync_reconciliation(
+            reconciliation_loop_context.db_engines[0], reconciliation_loop_context.db_engines[1], None, 300
+        )
 
 
 @pytest.mark.asyncio
@@ -360,3 +379,52 @@ async def test_periodic_reconciliation_loop_backoff_on_error(monkeypatch):
     assert sleep_durations[0] == 2.0
     assert sleep_durations[1] > 2.0
     assert sleep_durations[2] == 2.0
+
+
+@pytest.mark.asyncio
+async def test_periodic_reconciliation_loop_does_not_backoff_on_blocked_state(monkeypatch):
+    """Verify expected recovery gate blocks do not trigger transient-error backoff."""
+    lifecycle_mock = MagicMock(return_value=GraphRuntimeLifecycleState.READY)
+    monkeypatch.setattr("api.app_factory.get_runtime_lifecycle_state", lifecycle_mock)
+
+    monkeypatch.setattr(
+        "src.logic.reconciliation_loop._setup_engines", lambda url, coord_url: (MagicMock(), MagicMock())
+    )
+    monkeypatch.setattr("src.logic.reconciliation_loop._dispose_engines", lambda e, ce: None)
+
+    iter_calls = 0
+
+    async def mock_perform_reconciliation_iteration(*args, **kwargs):
+        nonlocal iter_calls
+        iter_calls += 1
+        if iter_calls == 1:
+            raise ExecutionBlockedError("blocked", action="wait", inconsistency_type="wait_for_convergence")
+        return None
+
+    monkeypatch.setattr(
+        "src.logic.reconciliation_loop._perform_reconciliation_iteration", mock_perform_reconciliation_iteration
+    )
+
+    shutdown_calls = 0
+
+    def mock_is_shutdown():
+        nonlocal shutdown_calls
+        shutdown_calls += 1
+        return shutdown_calls > 2
+
+    sleep_durations = []
+
+    async def mock_sleep(seconds):
+        sleep_durations.append(seconds)
+
+    monkeypatch.setattr("asyncio.sleep", mock_sleep)
+
+    await periodic_reconciliation_loop(
+        interval_seconds=2.0,
+        database_url="sqlite://",
+        is_shutdown_fn=mock_is_shutdown,
+        run_with_trace_fn=lambda fn, **kwargs: fn(),
+    )
+
+    assert iter_calls == 2
+    assert sleep_durations == [2.0, 2.0, 2.0]

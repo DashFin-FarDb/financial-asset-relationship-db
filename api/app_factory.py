@@ -340,6 +340,7 @@ def _start_background_tasks(
 
         recon_url = _resolve_startup_reconciliation_url(settings)
         coord_url = getattr(settings, "coordination_database_url", None) or recon_url
+        lock_ttl_seconds = max(1, min(int(getattr(settings, "rebuild_lock_ttl_seconds", 300)), 300))
 
         recon_task = asyncio.create_task(
             periodic_reconciliation_loop(
@@ -353,7 +354,7 @@ def _start_background_tasks(
                 ),
                 run_with_trace_fn=_run_with_generated_trace,
                 cancel_event=None,
-                lock_ttl_seconds=getattr(settings, "rebuild_lock_ttl_seconds", 300),
+                lock_ttl_seconds=lock_ttl_seconds,
             )
         )
 

@@ -286,6 +286,13 @@ def test_consume_converged_plan_allows_execution(mock_session_factory, mock_lock
     gate.consume_reconciliation_plan(plan)
 
 
+def test_recovery_gate_caps_lock_ttl_seconds(mock_session_factory, mock_lock):
+    """The recovery gate should cap lock TTL at the distributed-lock maximum."""
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, lock_ttl_seconds=450)
+
+    assert gate.lock_ttl_seconds == 300
+
+
 def test_consume_wait_plan_blocks_without_mutation(mock_session_factory, mock_lock, make_reconciliation_plan):
     """Wait plans must raise ExecutionBlockedError and not mutate state."""
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
@@ -465,3 +472,31 @@ def test_consume_reset_respects_cancellation_before_mutation(mock_session_factor
         gate.consume_reconciliation_plan(plan, cancellation_event=cancel_event)
 
     mock_perform_reset.assert_not_called()
+
+
+def test_reset_lock_reacquisition_timeout_uses_plan_drift_type(
+    mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
+):
+    """Lock reacquisition timeout should preserve the plan drift type in the block error."""
+    from src.data.distributed_lock import LockAcquisitionTimeout, LockState
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
+
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock)
+    plan = make_reconciliation_plan(
+        drift_type="crash_suspicion",
+        severity=Severity.HIGH,
+        actions=(ActionType.RESET_STATE,),
+        target_state="healthy",
+        execution_mode=ExecutionMode.AUTOMATIC,
+        safety_state=ExecutionSafety.RESET_REQUIRED,
+        reason="Crash suspected",
+    )
+    mock_lock.check_state.return_value = LockState.EXPIRED
+    mock_lock.acquire.side_effect = LockAcquisitionTimeout("timeout")
+    monkeypatch.setattr("src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: None)
+
+    with pytest.raises(ExecutionBlockedError) as exc_info:
+        gate.consume_reconciliation_plan(plan)
+
+    assert exc_info.value.action == "wait"
+    assert exc_info.value.inconsistency_type == "crash_suspicion"
