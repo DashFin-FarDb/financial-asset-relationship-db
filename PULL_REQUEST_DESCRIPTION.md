@@ -77,7 +77,7 @@ This PR documents the system as single-writer / multi-reader:
 - The invariant table is a future test target, not a claim that those tests
   already exist.
 
-## Validation
+## Validation Commands
 
 Executed successfully:
 
