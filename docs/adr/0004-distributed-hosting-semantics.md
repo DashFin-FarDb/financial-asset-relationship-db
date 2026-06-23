@@ -13,7 +13,7 @@ Accepted
 
 ## Context
 
-FarDB can be hosted with more than one backend instance. Backend instances may
+FarDb can be hosted with more than one backend instance. Backend instances may
 concurrently serve reads, perform startup load, run bounded health checks, and
 observe rebuild state. They must not concurrently write graph truth.
 
@@ -31,7 +31,7 @@ lock loss by the active rebuild worker.
 
 ## Decision
 
-FarDB uses a single-writer / multi-reader model.
+FarDb uses a single-writer / multi-reader model.
 
 Only one rebuild writer may hold the `graph_rebuild` distributed lock and
 persist graph truth at a time. Multiple backend instances may serve read traffic
@@ -43,7 +43,7 @@ graph persistence.
 
 ### 1. Authority model
 
-FarDB separates three concepts:
+FarDb separates three concepts:
 
 - **Durable graph truth**: the persisted graph state in
   `ASSET_GRAPH_DATABASE_URL`.

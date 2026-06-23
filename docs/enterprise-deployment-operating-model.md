@@ -74,7 +74,7 @@ The graph persistence store holds durable graph truth. Evidence/metadata persist
 For the full specification, see
 [ADR 0004: Distributed Hosting Semantics](adr/0004-distributed-hosting-semantics.md).
 
-FarDB supports backend scale-out for read serving using a single-writer /
+FarDb supports backend scale-out for read serving using a single-writer /
 multi-reader model:
 
 - Multiple backend instances may serve read traffic from runtime graph

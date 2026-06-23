@@ -2,7 +2,7 @@
 
 ## Summary
 
-Defines FarDB distributed hosting semantics for multi-instance backend
+Defines FarDb distributed hosting semantics for multi-instance backend
 deployments.
 
 This PR documents the system as single-writer / multi-reader:
