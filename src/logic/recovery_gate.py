@@ -452,7 +452,6 @@ class RecoveryGate:
 
         try:
             self.lock.acquire(max_retries=30)
-            self.lock_was_reacquired = True
         except LockAcquisitionTimeout as lat_exc:
             log_event(
                 logger,
@@ -475,6 +474,7 @@ class RecoveryGate:
                 action="wait",
                 inconsistency_type=drift_type,
             )
+        self.lock_was_reacquired = True
 
     def _is_heartbeat_stale(self, active_job: Any) -> bool:
         """Determine if active rebuild job heartbeat is stale."""

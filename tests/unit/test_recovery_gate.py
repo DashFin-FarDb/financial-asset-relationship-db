@@ -53,26 +53,10 @@ def _make_reset_required_plan(
     )
 
 
-def _make_plan(
-    make_reconciliation_plan,
-    *,
-    drift_type,
-    severity,
-    actions,
-    execution_mode,
-    safety_state,
-    reason,
-):
+def _make_plan(make_reconciliation_plan, overrides):
     """Return a reconciliation plan with the common healthy target state."""
-    return make_reconciliation_plan(
-        drift_type=drift_type,
-        severity=severity,
-        actions=actions,
-        target_state="healthy",
-        execution_mode=execution_mode,
-        safety_state=safety_state,
-        reason=reason,
-    )
+    defaults = {"target_state": "healthy"}
+    return make_reconciliation_plan(**{**defaults, **overrides})
 
 
 def test_recovery_gate_waits_on_unknown_lock_with_no_active_job(mock_session_factory, mock_lock):
@@ -323,12 +307,14 @@ def test_consume_converged_plan_allows_execution(mock_session_factory, mock_lock
     gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock)
     plan = _make_plan(
         make_reconciliation_plan,
-        drift_type="none",
-        severity=Severity.NONE,
-        actions=(ActionType.NOOP,),
-        execution_mode=ExecutionMode.AUTOMATIC,
-        safety_state=ExecutionSafety.CONVERGED,
-        reason="Graph is healthy",
+        {
+            "drift_type": "none",
+            "severity": Severity.NONE,
+            "actions": (ActionType.NOOP,),
+            "execution_mode": ExecutionMode.AUTOMATIC,
+            "safety_state": ExecutionSafety.CONVERGED,
+            "reason": "Graph is healthy",
+        },
     )
     # Should not raise any exception
     gate.consume_reconciliation_plan(plan)
@@ -344,12 +330,14 @@ def test_consume_blocking_plans_fail_closed(mock_session_factory, mock_lock, mak
             RecoveryGate(session_factory=mock_session_factory, lock=mock_lock),
             _make_plan(
                 make_reconciliation_plan,
-                drift_type="manual_investigation",
-                severity=Severity.HIGH,
-                actions=(ActionType.NOOP,),
-                execution_mode=ExecutionMode.MANUAL,
-                safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
-                reason="Malformed plan should fail closed",
+                {
+                    "drift_type": "manual_investigation",
+                    "severity": Severity.HIGH,
+                    "actions": (ActionType.NOOP,),
+                    "execution_mode": ExecutionMode.MANUAL,
+                    "safety_state": ExecutionSafety.MANUAL_INVESTIGATION,
+                    "reason": "Malformed plan should fail closed",
+                },
             ),
             "unsafe",
             "manual_investigation",
@@ -359,12 +347,14 @@ def test_consume_blocking_plans_fail_closed(mock_session_factory, mock_lock, mak
             RecoveryGate(session_factory=mock_session_factory, lock=mock_lock),
             _make_plan(
                 make_reconciliation_plan,
-                drift_type="wait_for_convergence",
-                severity=Severity.MEDIUM,
-                actions=(ActionType.WAIT_FOR_CONVERGENCE,),
-                execution_mode=ExecutionMode.AUTOMATIC,
-                safety_state=ExecutionSafety.WAIT_REQUIRED,
-                reason="Waiting for active build",
+                {
+                    "drift_type": "wait_for_convergence",
+                    "severity": Severity.MEDIUM,
+                    "actions": (ActionType.WAIT_FOR_CONVERGENCE,),
+                    "execution_mode": ExecutionMode.AUTOMATIC,
+                    "safety_state": ExecutionSafety.WAIT_REQUIRED,
+                    "reason": "Waiting for active build",
+                },
             ),
             "wait",
             "wait_for_convergence",
@@ -374,12 +364,14 @@ def test_consume_blocking_plans_fail_closed(mock_session_factory, mock_lock, mak
             RecoveryGate(session_factory=mock_session_factory, lock=mock_lock),
             _make_plan(
                 make_reconciliation_plan,
-                drift_type="stale_ownership",
-                severity=Severity.HIGH,
-                actions=(ActionType.ALERT_ONLY,),
-                execution_mode=ExecutionMode.MANUAL,
-                safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
-                reason="Stale ownership detected",
+                {
+                    "drift_type": "stale_ownership",
+                    "severity": Severity.HIGH,
+                    "actions": (ActionType.ALERT_ONLY,),
+                    "execution_mode": ExecutionMode.MANUAL,
+                    "safety_state": ExecutionSafety.MANUAL_INVESTIGATION,
+                    "reason": "Stale ownership detected",
+                },
             ),
             "alert_only",
             "stale_ownership",
@@ -389,12 +381,14 @@ def test_consume_blocking_plans_fail_closed(mock_session_factory, mock_lock, mak
             RecoveryGate(session_factory=mock_session_factory, lock=mock_lock),
             _make_plan(
                 make_reconciliation_plan,
-                drift_type="evaluation_failed",
-                severity=Severity.CRITICAL,
-                actions=(ActionType.ALERT_ONLY,),
-                execution_mode=ExecutionMode.MANUAL,
-                safety_state=ExecutionSafety.EVALUATION_FAILED,
-                reason="State query failed",
+                {
+                    "drift_type": "evaluation_failed",
+                    "severity": Severity.CRITICAL,
+                    "actions": (ActionType.ALERT_ONLY,),
+                    "execution_mode": ExecutionMode.MANUAL,
+                    "safety_state": ExecutionSafety.EVALUATION_FAILED,
+                    "reason": "State query failed",
+                },
             ),
             "alert_only",
             "evaluation_failed",
@@ -564,6 +558,7 @@ def test_reset_lock_reacquisition_requires_valid_lock_after_acquire(
     assert exc_info.value.action == "wait"
     assert exc_info.value.inconsistency_type == "crash_suspicion"
     mock_lock.acquire.assert_called_once_with(max_retries=30)
+    assert gate.lock_was_reacquired is False
 
 
 def test_reset_blocks_fresh_remote_owner_as_stale_ownership(
