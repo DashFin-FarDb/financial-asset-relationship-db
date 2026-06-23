@@ -360,6 +360,8 @@ class RecoveryGate:
             ExecutionSafety.INTEGRITY_COMPROMISED,
         ):
             action = self._map_plan_to_action(plan)
+            if action == "resume":
+                action = "unsafe"
             self._raise_safety_block(plan, action)
 
         if self._handle_reset_action(plan, cancellation_event):
