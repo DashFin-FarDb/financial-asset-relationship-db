@@ -5,11 +5,14 @@ from __future__ import annotations
 import importlib.util
 import os
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, Callable
 
 import pytest
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+
+if TYPE_CHECKING:
+    from src.logic.reconciliation_engine import ReconciliationPlan
 
 # Ensure a clean SQLite database for the authentication layer before any modules import it.
 _db_path = Path(__file__).resolve().parent / "test_auth.db"
@@ -321,3 +324,46 @@ def mock_rebuild_job():
         return job
 
     return _make_job
+
+
+@pytest.fixture
+def make_reconciliation_plan() -> Callable[..., ReconciliationPlan]:
+    """Return a factory function to create ReconciliationPlan instances for testing."""
+    from datetime import UTC, datetime
+
+    from src.logic.reconciliation_engine import (
+        ActionType,
+        ExecutionMode,
+        ExecutionSafety,
+        ReconciliationPlan,
+        Severity,
+    )
+
+    def _make(
+        drift_type: str = "none",
+        severity: Severity = Severity.NONE,
+        actions: tuple[ActionType, ...] = (ActionType.NOOP,),
+        target_state: str = "healthy",
+        execution_mode: ExecutionMode = ExecutionMode.AUTOMATIC,
+        safety_state: ExecutionSafety = ExecutionSafety.CONVERGED,
+        reason: str = "Graph is healthy",
+        metadata: dict[str, str | int | float | bool | None] | None = None,
+        created_at: datetime | None = None,
+    ) -> ReconciliationPlan:
+        if metadata is None:
+            metadata = {}
+        if created_at is None:
+            created_at = datetime.now(UTC)
+        return ReconciliationPlan(
+            drift_type=drift_type,
+            severity=severity,
+            actions=actions,
+            target_state=target_state,
+            execution_mode=execution_mode,
+            safety_state=safety_state,
+            reason=reason,
+            metadata=metadata,
+            created_at=created_at,
+        )
+
+    return _make

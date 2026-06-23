@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from datetime import UTC, datetime
 from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import MagicMock
@@ -225,9 +224,10 @@ def test_startup_reconciliation_lock_release_behavior(
 async def test_periodic_reconciliation_loop_triggers_recovery(
     monkeypatch: pytest.MonkeyPatch,
     base_settings: SimpleNamespace,
+    make_reconciliation_plan,
 ) -> None:
-    """_periodic_reconciliation_loop should invoke gate.ensure_safe_to_execute for automatic reset plans."""
-    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, ReconciliationPlan, Severity
+    """periodic_reconciliation_loop should retrieve and consume automatic reset reconciliation plans."""
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
 
     fake_engine = SimpleNamespace(dispose=lambda: None)
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
@@ -241,8 +241,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     monkeypatch.setattr("src.logic.rebuild_drift_evaluator.RebuildDriftEvaluator", MagicMock())
 
     # Mock ReconciliationEngine to return a reset plan with automatic execution mode
-
-    mock_plan = ReconciliationPlan(
+    mock_plan = make_reconciliation_plan(
         drift_type="orphaned_running",
         severity=Severity.CRITICAL,
         actions=(ActionType.RESET_STATE,),
@@ -250,45 +249,32 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
         execution_mode=ExecutionMode.AUTOMATIC,
         safety_state=ExecutionSafety.RESET_REQUIRED,
         reason="test reset",
-        metadata={},
-        created_at=datetime.now(UTC),
     )
 
-    class FakeEngine:
-        """Mock ReconciliationEngine."""
-
-        def __init__(self, *args, **kwargs):
-            """Accept arguments."""
-
-        def generate_reconciliation_plan(self):
-            """Return a mock reconciliation plan."""
-            return mock_plan
-
-    monkeypatch.setattr("src.logic.reconciliation_engine.ReconciliationEngine", FakeEngine)
+    fake_engine_inst = MagicMock()
+    fake_engine_inst.generate_reconciliation_plan.return_value = mock_plan
+    monkeypatch.setattr(
+        "src.logic.reconciliation_engine.ReconciliationEngine", MagicMock(return_value=fake_engine_inst)
+    )
 
     # Mock RecoveryGate
-    ensure_safe_called = []
-
-    class FakeGate:
-        """Mock RecoveryGate."""
-
-        def __init__(self, **kwargs):
-            self.lock_was_reacquired = False
-
-        def ensure_safe_to_execute(self, cancellation_event=None):
-            """Track that ensure_safe_to_execute was called."""
-            ensure_safe_called.append(True)
-
-    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", FakeGate)
+    consume_plan_called = []
+    fake_gate = MagicMock()
+    fake_gate.lock_was_reacquired = False
+    fake_gate.get_reconciliation_plan.return_value = mock_plan
+    fake_gate.consume_reconciliation_plan.side_effect = (
+        lambda plan, cancellation_event=None: consume_plan_called.append(True)
+    )
+    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", MagicMock(return_value=fake_gate))
 
     # We want sleep to yield once then raise CancelledError to terminate the loop cleanly
     sleep_calls = 0
 
+    original_sleep = asyncio.sleep
+
     async def mock_sleep(seconds: float):
         """Mock sleep to yield once then raise CancelledError."""
-        future: asyncio.Future[None] = asyncio.Future()
-        future.set_result(None)
-        await future  # use async feature
+        await original_sleep(0)
         nonlocal sleep_calls
         sleep_calls += 1
         if sleep_calls > 1:
@@ -306,10 +292,8 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
         async def fake_run_with_trace(fn, **kwargs):
-            """Mock run_with_trace function."""
-            future: asyncio.Future[None] = asyncio.Future()
-            future.set_result(None)
-            await future
+            """Run the traced callable and return an awaitable result."""
+            await original_sleep(0)
             return fn()
 
         await periodic_reconciliation_loop(
@@ -322,7 +306,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
             lock_ttl_seconds=300,
         )
 
-    assert ensure_safe_called == [True]
+    assert consume_plan_called == [True]
 
 
 @pytest.mark.asyncio
@@ -553,3 +537,46 @@ def test_generate_startup_trace_ids_format() -> None:
     # Span ID should be 16 hex chars
     assert len(span_id) == 16
     assert all(c in "0123456789abcdef" for c in span_id)
+
+
+def _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl: int, expected_ttl: int) -> None:
+    """Assert periodic reconciliation receives the bounded rebuild lock TTL."""
+    settings = SimpleNamespace(
+        database_url="sqlite:///:memory:",
+        coordination_database_url="sqlite:///:memory:",
+        graph_sync_interval_seconds=60.0,
+        reconciliation_interval_seconds=30.0,
+        rebuild_lock_ttl_seconds=configured_ttl,
+    )
+
+    recon_loop_mock = MagicMock()
+    monkeypatch.setattr("src.logic.reconciliation_loop.periodic_reconciliation_loop", recon_loop_mock)
+    monkeypatch.setattr("api.app_factory.init_rebuild_executor", lambda s: None)
+    monkeypatch.setattr("api.app_factory._graph_synchronization_loop", lambda interval_seconds: None)
+    monkeypatch.setattr("api.app_factory._slo_evaluation_loop", lambda: None)
+    monkeypatch.setattr("api.app_factory._resolve_startup_reconciliation_url", lambda s: "sqlite:///:memory:")
+
+    create_task_mock = MagicMock()
+    monkeypatch.setattr("api.app_factory.asyncio.create_task", create_task_mock)
+
+    from api.app_factory import _start_background_tasks
+
+    _start_background_tasks(has_persistence=True, settings=cast(Any, settings))
+
+    recon_loop_mock.assert_called_once()
+    assert recon_loop_mock.call_args[1]["lock_ttl_seconds"] == expected_ttl
+
+
+def test_start_background_tasks_propagates_rebuild_lock_ttl_seconds(monkeypatch) -> None:
+    """_start_background_tasks should propagate settings.rebuild_lock_ttl_seconds to periodic_reconciliation_loop."""
+    _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=120, expected_ttl=120)
+
+
+def test_start_background_tasks_caps_rebuild_lock_ttl_seconds(monkeypatch) -> None:
+    """_start_background_tasks should cap periodic reconciliation lock TTL at the distributed-lock limit."""
+    _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=450, expected_ttl=300)
+
+
+def test_start_background_tasks_floors_rebuild_lock_ttl_seconds(monkeypatch) -> None:
+    """_start_background_tasks should floor periodic reconciliation lock TTL at one second."""
+    _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=0, expected_ttl=1)

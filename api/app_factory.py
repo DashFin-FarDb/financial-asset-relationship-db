@@ -135,6 +135,7 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
         increment_recovery_trigger=increment_recovery_trigger,
         runtime_has_active_executor=False,
         lock_ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
+        enable_automatic_recovery=False,
     )
 
     try:
@@ -335,10 +336,12 @@ def _start_background_tasks(
         sync_task = asyncio.create_task(_graph_synchronization_loop(interval_seconds=interval))
 
         recon_interval = getattr(settings, "reconciliation_interval_seconds", interval)
+        from src.data.distributed_lock import MAX_TTL
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
         recon_url = _resolve_startup_reconciliation_url(settings)
         coord_url = getattr(settings, "coordination_database_url", None) or recon_url
+        lock_ttl_seconds = max(1, min(int(getattr(settings, "rebuild_lock_ttl_seconds", MAX_TTL)), MAX_TTL))
 
         recon_task = asyncio.create_task(
             periodic_reconciliation_loop(
@@ -352,6 +355,7 @@ def _start_background_tasks(
                 ),
                 run_with_trace_fn=_run_with_generated_trace,
                 cancel_event=None,
+                lock_ttl_seconds=lock_ttl_seconds,
             )
         )
 

@@ -6,10 +6,17 @@ import threading
 from collections.abc import Callable
 from typing import Any
 
+from src.data.distributed_lock import MAX_TTL
 from src.logic.reconciliation_engine import RebuildCancelledError
+from src.logic.recovery_gate import ExecutionBlockedError
 from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
+
+
+def _bound_lock_ttl(lock_ttl: int) -> int:
+    """Return a lock TTL within the distributed-lock safety bounds."""
+    return max(1, min(int(lock_ttl), MAX_TTL))
 
 
 def _check_cancellation(cancel_event: threading.Event | None) -> None:
@@ -22,53 +29,22 @@ def _create_reconciliation_dependencies(
     engine: Any,
     coord_engine: Any,
     lock_ttl: int,
-    record_drift_metric: Callable,
-) -> tuple[Any, Any, Any]:
-    """Initialize and return coordination engine, locks, and evaluators."""
+) -> tuple[Any, Any]:
+    """Initialize and return session factory and distributed lock."""
     from src.data.database import create_session_factory
     from src.data.distributed_lock import DistributedLock
-    from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
-    from src.logic.reconciliation_engine import ReconciliationEngine
 
+    bounded_lock_ttl = _bound_lock_ttl(lock_ttl)
     session_factory = create_session_factory(engine)
     coord_session_factory = create_session_factory(coord_engine) if coord_engine is not engine else session_factory
 
     lock = DistributedLock(
         coordination_session_factory=coord_session_factory,
         lock_name="graph_rebuild",
-        ttl_seconds=lock_ttl,
+        ttl_seconds=bounded_lock_ttl,
     )
 
-    evaluator = RebuildDriftEvaluator(
-        session_factory=session_factory,
-        lock=lock,
-        runtime_has_active_executor=False,
-        lock_ttl_seconds=lock_ttl,
-    )
-
-    engine_inst = ReconciliationEngine(
-        evaluator=evaluator,
-        enable_automatic_execution=True,
-        record_drift_metric=record_drift_metric,
-    )
-
-    return session_factory, lock, engine_inst
-
-
-def _execute_plan_if_needed(
-    gate: Any,
-    plan: Any,
-    cancel_event: threading.Event | None,
-) -> None:
-    """Execute the plan using RecoveryGate if an automatic reset is required."""
-    if not _should_execute_automatic_reset(plan):
-        return
-
-    try:
-        gate.ensure_safe_to_execute(cancellation_event=cancel_event)
-    finally:
-        if getattr(gate, "lock_was_reacquired", False):
-            gate.lock.release()
+    return session_factory, lock
 
 
 def _run_sync_reconciliation(
@@ -81,28 +57,29 @@ def _run_sync_reconciliation(
     import time
 
     from api.metrics import RECONCILIATION_DURATION, increment_recovery_trigger, record_drift_metric
-    from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+    from src.logic.recovery_gate import RecoveryGate
 
     start_time = time.perf_counter()
 
     _check_cancellation(cancel_event)
 
-    session_factory, lock, engine_inst = _create_reconciliation_dependencies(
-        engine, coord_engine, lock_ttl, record_drift_metric
-    )
+    bounded_lock_ttl = _bound_lock_ttl(lock_ttl)
+    session_factory, lock = _create_reconciliation_dependencies(engine, coord_engine, bounded_lock_ttl)
 
     gate = RecoveryGate(
         session_factory=session_factory,
         lock=lock,
         increment_recovery_trigger=increment_recovery_trigger,
         runtime_has_active_executor=False,
-        lock_ttl_seconds=lock_ttl,
+        lock_ttl_seconds=bounded_lock_ttl,
+        enable_automatic_recovery=True,
+        record_drift_metric=record_drift_metric,
     )
 
     try:
         _check_cancellation(cancel_event)
-        plan = engine_inst.generate_reconciliation_plan()
-        _execute_plan_if_needed(gate, plan, cancel_event)
+        plan = gate.get_reconciliation_plan()
+        gate.consume_reconciliation_plan(plan, cancellation_event=cancel_event)
     except RebuildCancelledError:
         log_event(
             logger,
@@ -124,6 +101,19 @@ def _run_sync_reconciliation(
         )
         raise
     finally:
+        if getattr(gate, "lock_was_reacquired", False):
+            try:
+                gate.lock.release()
+            except Exception as release_exc:
+                log_event(
+                    logger,
+                    logging.ERROR,
+                    ObservabilityEvent(
+                        event="reconciliation_loop_lock_release_failed",
+                        message=f"Failed to release distributed rebuild lock: {type(release_exc).__name__}",
+                        metadata={"error": type(release_exc).__name__},
+                    ),
+                )
         RECONCILIATION_DURATION.observe(time.perf_counter() - start_time)
 
 
@@ -225,6 +215,20 @@ async def periodic_reconciliation_loop(
                     ),
                 )
                 return
+            except ExecutionBlockedError as exc:
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="reconciliation_loop_blocked_state",
+                        message=f"Periodic reconciliation blocked by recovery gate: {exc}",
+                        metadata={
+                            "action": exc.action,
+                            "inconsistency": exc.inconsistency_type,
+                        },
+                    ),
+                )
+                is_in_error_state, current_interval = _handle_reconciliation_success(is_in_error_state, base_interval)
             except Exception as exc:
                 is_in_error_state, current_interval = _handle_reconciliation_error(
                     exc, is_in_error_state, current_interval, max_interval
@@ -294,13 +298,6 @@ def _handle_reconciliation_error(
         )
         is_in_error_state = True
     return is_in_error_state, _next_backoff_interval(current_interval, max_interval)
-
-
-def _should_execute_automatic_reset(plan: Any) -> bool:
-    """Check if the plan requires automatic reset."""
-    from src.logic.reconciliation_engine import ActionType, ExecutionMode
-
-    return ActionType.RESET_STATE in plan.actions and plan.execution_mode == ExecutionMode.AUTOMATIC
 
 
 def _next_backoff_interval(current_interval: float, max_interval: float) -> float:
