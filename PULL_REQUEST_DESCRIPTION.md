@@ -1,6 +1,6 @@
 # PR: Distributed Hosting Semantics Spec
 
-## Summary
+## Primary Objective
 
 Defines FarDb distributed hosting semantics for multi-instance backend
 deployments.
