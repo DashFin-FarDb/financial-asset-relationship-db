@@ -542,6 +542,8 @@ def test_reset_lock_reacquisition_requires_valid_lock_after_acquire(
     mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
 ):
     """Reset recovery must block if reacquisition does not produce a valid lock state."""
+    from src.data.distributed_lock import LockState
+
     gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = _make_reset_required_plan(
         make_reconciliation_plan,
