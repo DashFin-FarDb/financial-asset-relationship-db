@@ -286,6 +286,28 @@ def test_consume_converged_plan_allows_execution(mock_session_factory, mock_lock
     gate.consume_reconciliation_plan(plan)
 
 
+def test_consume_unknown_noop_plan_blocks_fail_closed(mock_session_factory, mock_lock, make_reconciliation_plan):
+    """NOOP only allows execution when paired with CONVERGED safety."""
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
+
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock)
+    plan = make_reconciliation_plan(
+        drift_type="manual_investigation",
+        severity=Severity.HIGH,
+        actions=(ActionType.NOOP,),
+        target_state="healthy",
+        execution_mode=ExecutionMode.MANUAL,
+        safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
+        reason="Malformed plan should fail closed",
+    )
+
+    with pytest.raises(ExecutionBlockedError) as exc_info:
+        gate.consume_reconciliation_plan(plan)
+
+    assert exc_info.value.action == "unsafe"
+    assert exc_info.value.inconsistency_type == "manual_investigation"
+
+
 def test_recovery_gate_caps_lock_ttl_seconds(mock_session_factory, mock_lock):
     """The recovery gate should cap lock TTL at the distributed-lock maximum."""
     gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, lock_ttl_seconds=450)
@@ -577,3 +599,43 @@ def test_reset_lock_reacquisition_requires_valid_lock_after_acquire(
     assert exc_info.value.action == "wait"
     assert exc_info.value.inconsistency_type == "crash_suspicion"
     mock_lock.acquire.assert_called_once_with(max_retries=30)
+
+
+def test_reset_blocks_fresh_remote_owner_as_stale_ownership(
+    mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
+):
+    """A fresh heartbeat from a different worker should block as stale ownership, not orphaned running."""
+    from datetime import UTC, datetime
+
+    from src.data.db_models import RebuildJobStatus
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
+
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
+    plan = make_reconciliation_plan(
+        drift_type="stale_ownership",
+        severity=Severity.HIGH,
+        actions=(ActionType.RESET_STATE,),
+        target_state="healthy",
+        execution_mode=ExecutionMode.AUTOMATIC,
+        safety_state=ExecutionSafety.RESET_REQUIRED,
+        reason="Ownership mismatch with fresh heartbeat",
+    )
+
+    class FreshRemoteJob:
+        status = RebuildJobStatus.RUNNING
+        job_id = "job-1"
+        execution_id = "exec-1"
+        active_worker_id = "remote-worker"
+        last_heartbeat_at = datetime.now(UTC)
+
+    mock_lock.holder_id = "current-worker"
+    repo = MagicMock()
+    repo.get_active_rebuild_state.return_value = FreshRemoteJob()
+    monkeypatch.setattr("src.logic.recovery_gate.AssetGraphRepository", lambda _session: repo)
+
+    with pytest.raises(ExecutionBlockedError) as exc_info:
+        gate.consume_reconciliation_plan(plan)
+
+    assert exc_info.value.action == "unsafe"
+    assert exc_info.value.inconsistency_type == "stale_ownership"
+    repo.mark_rebuild_job_failed.assert_not_called()

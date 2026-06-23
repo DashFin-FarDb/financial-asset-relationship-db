@@ -323,28 +323,29 @@ class RecoveryGate:
 
     def _handle_unknown_plan_block(self, plan: ReconciliationPlan) -> None:
         """Block unrecognized plan combinations without mutating state."""
-        action = self._map_plan_to_action(plan)
-        if action != "resume":
-            log_event(
-                logger,
-                logging.WARNING,
-                ObservabilityEvent(
-                    event="recovery_gate_execution_blocked_final",
-                    message=(
-                        f"Execution blocked by recovery gate for unrecognized plan: "
-                        f"action={action}, inconsistency={plan.drift_type}"
-                    ),
-                    metadata={
-                        "action": action,
-                        "inconsistency": plan.drift_type,
-                    },
+        mapped_action = self._map_plan_to_action(plan)
+        action = "unsafe" if mapped_action == "resume" else mapped_action
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="recovery_gate_execution_blocked_final",
+                message=(
+                    f"Execution blocked by recovery gate for unrecognized plan: "
+                    f"action={action}, inconsistency={plan.drift_type}"
                 ),
-            )
-            raise ExecutionBlockedError(
-                f"Execution blocked: unrecognized plan. (action={action}, inconsistency={plan.drift_type})",
-                action=action,
-                inconsistency_type=plan.drift_type,
-            )
+                metadata={
+                    "action": action,
+                    "inconsistency": plan.drift_type,
+                    "mapped_action": mapped_action,
+                },
+            ),
+        )
+        raise ExecutionBlockedError(
+            f"Execution blocked: unrecognized plan. (action={action}, inconsistency={plan.drift_type})",
+            action=action,
+            inconsistency_type=plan.drift_type,
+        )
 
     def consume_reconciliation_plan(
         self,
@@ -493,7 +494,7 @@ class RecoveryGate:
                 f"Cannot reset job {active_job.job_id}: active worker "
                 f"{active_job.active_worker_id} has fresh heartbeat",
                 action="unsafe",
-                inconsistency_type="orphaned_running",
+                inconsistency_type=InconsistencyType.STALE_OWNERSHIP.value,
             )
 
         repo.mark_rebuild_job_failed(
