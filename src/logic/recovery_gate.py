@@ -492,11 +492,12 @@ class RecoveryGate:
         """Mark active job as failed and commit."""
         current_worker = self.lock.holder_id
         if active_job.active_worker_id != current_worker and not self._is_heartbeat_stale(active_job):
+            inconsistency = InconsistencyType.STALE_OWNERSHIP.value
             raise ExecutionBlockedError(
                 f"Cannot reset job {active_job.job_id}: active worker "
-                f"{active_job.active_worker_id} has fresh heartbeat",
+                f"{active_job.active_worker_id} has fresh heartbeat (action=unsafe, inconsistency={inconsistency})",
                 action="unsafe",
-                inconsistency_type=InconsistencyType.STALE_OWNERSHIP.value,
+                inconsistency_type=inconsistency,
             )
 
         repo.mark_rebuild_job_failed(
