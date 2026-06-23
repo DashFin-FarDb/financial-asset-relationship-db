@@ -463,14 +463,14 @@ class RecoveryGate:
                 ),
             )
             raise ExecutionBlockedError(
-                f"Timeout acquiring distributed lock for reset recovery: {lat_exc}",
+                f"Timeout acquiring distributed lock for reset recovery: {lat_exc} (action=wait, inconsistency={drift_type})",
                 action="wait",
                 inconsistency_type=drift_type,
             ) from lat_exc
 
         if self.lock.check_state() != LockState.VALID:
             raise ExecutionBlockedError(
-                "Cannot perform reset recovery without valid lock after reacquisition",
+                f"Cannot perform reset recovery without valid lock after reacquisition (action=wait, inconsistency={drift_type})",
                 action="wait",
                 inconsistency_type=drift_type,
             )
