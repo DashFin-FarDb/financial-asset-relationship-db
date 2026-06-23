@@ -195,12 +195,15 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 - `docs/enterprise-deployment-operating-model.md`
 - `docs/adr/*`
-- `docs/operational-readiness-risks.md`
+- `docs/testing/*`
 - `docs/audits/*`
 
 **Validation**
 
-- documentation review only, or targeted doc lint if available
+- ADR 0004 reviewed against ADR 0002 and ADR 0003
+- enterprise operating model includes distributed hosting semantics
+- testable invariants section maps directly to PR 7
+- no production code changes included
 
 ## PR 7 — Failure-Mode and Scale Validation
 

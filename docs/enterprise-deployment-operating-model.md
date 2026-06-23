@@ -67,7 +67,58 @@ The graph persistence store holds durable graph truth. Evidence/metadata persist
 
 ### Rebuild coordination (optional)
 
-- REBUILD_LOCK_TTL_SECONDS: Time-to-live for the graph rebuild distributed lock in seconds (default: 300). Must be a positive integer. Loaded via src/config/settings.py and propagated to graph rebuild orchestration. The heartbeat refresh interval is max(1, rebuild_lock_ttl_seconds // 3) per [ADR 0003](adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md).
+- `REBUILD_LOCK_TTL_SECONDS`: Time-to-live for the graph rebuild distributed lock in seconds (default: 300). Must be a positive integer. Loaded via `src/config/settings.py` and propagated to graph rebuild orchestration. The heartbeat refresh interval is `max(1, rebuild_lock_ttl_seconds // 3)` per [ADR 0003](adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md).
+- `COORDINATION_DATABASE_URL`: Optional PostgreSQL-compatible coordination database connection string for rebuild lock/job coordination. When unset, coordination uses the same boundary as the graph/application startup configuration for the active environment. All backend instances sharing one `ASSET_GRAPH_DATABASE_URL` must share the same coordination database boundary.
+
+## Distributed Hosting Semantics
+
+For the full specification, see
+[ADR 0004: Distributed Hosting Semantics](adr/0004-distributed-hosting-semantics.md).
+
+FarDb supports backend scale-out for read serving using a single-writer /
+multi-reader model:
+
+- Multiple backend instances may serve read traffic from runtime graph
+  snapshots.
+- Scale-out does **not** increase rebuild writer concurrency.
+- Operators must assume one rebuild writer globally per graph persistence
+  boundary.
+- A rebuild writer must hold the `graph_rebuild` distributed lock before
+  mutating rebuild state or persisting graph truth.
+- A backend instance that does not hold the rebuild lock may serve reads but
+  must not persist graph truth.
+
+### Distributed Hosting and Rebuild Ownership
+
+All instances sharing `ASSET_GRAPH_DATABASE_URL` must share the same
+coordination database boundary, configured through `COORDINATION_DATABASE_URL`
+when that boundary differs from the default environment database boundary.
+`REBUILD_LOCK_TTL_SECONDS` must be consistent across instances in the same
+environment.
+
+Durable graph truth in `ASSET_GRAPH_DATABASE_URL` is authoritative for staging
+and production. Runtime graph state is an in-memory cache/snapshot. A healthy
+application database or bounded health response does not prove durable graph
+truth.
+
+Rolling redeploy may leave an in-flight rebuild in stale state. Recovery must
+occur through lock expiry plus RecoveryGate-approved reconciliation, not blind
+takeover. If another worker has a fresh heartbeat, lock ownership cannot be
+proven, persistence is unavailable, or split-brain is suspected, the system must
+block mutation. Manual operator intervention is required for suspected
+split-brain.
+
+Restart/redeploy expectations:
+
+1. With no in-flight rebuild, the new backend instance loads durable graph truth
+   and records persisted startup evidence.
+2. While another instance is actively rebuilding, a restarted instance must not
+   take over if the active owner is freshly heartbeating.
+3. If redeploy kills the active rebuild owner, a later instance may recover only
+   after stale-owner conditions and lock reacquisition requirements are
+   satisfied.
+4. During persistence commit, lock loss or uncertain ownership requires the
+   writer to abort before commit or success marking.
 
 ## Promotion Gates
 

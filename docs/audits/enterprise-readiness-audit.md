@@ -25,12 +25,12 @@ The remaining risk is concentrated in the durability and promotion layers:
 | Production architecture | Implemented as policy | `docs/adr/0001-production-architecture.md`, `README.md` | Low | Keep all new production work on FastAPI + Next.js |
 | Observability & SLOs | Implemented | `docs/OBSERVABILITY_MASTER_SPEC.md`, `docs/OBSERVABILITY_README.md`, `api/metrics.py` | Low | Add operational drills to prove the alerts answer real incidents |
 | Startup tracing / request correlation | Implemented | `api/app_factory.py`, `src/observability/*` | Low | Validate trace continuity across startup/rebuild/restart paths |
-| Rebuild coordination | Implemented and hardened | `src/logic/rebuild_executor.py`, `src/logic/recovery_gate.py`, `docs/adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md` | Medium | Finish remaining RecoveryGate / reconciliation integration |
+| Rebuild coordination | Implemented and hardened | `src/logic/rebuild_executor.py`, `src/logic/recovery_gate.py`, `src/logic/reconciliation_loop.py`, `docs/adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md` | Medium | Prove restart, stale-owner, and lock-loss behavior in PR 7 |
 | Operator rebuild authorization | Implemented | `api/auth.py`, `docs/audits/OPERATOR_REBUILD_AUTHORIZATION_AUDIT.md` | Low | Add failure auditing if operator denials matter operationally |
 | Hosted readiness smoke checks | Implemented | `.github/workflows/hosted-readiness.yml`, `scripts/check_hosted_readiness.py` | Medium | Extend smoke checks to assert durable graph persistence, not just bounded health |
 | Durable graph persistence | Designed, not fully implemented | `docs/adr/0002-hosted-deployment-and-persistence.md`, `docs/graph-persistence-design.md` | High | Implement schema/repository/save-load/startup integration PRs |
 | Restart / reload semantics | Planned, not completed | `docs/graph-persistence-design.md`, `docs/enterprise-deployment-operating-model.md` | High | Add startup load-from-persistence and post-restart verification paths |
-| Distributed hosting semantics | Partially defined | `docs/enterprise-deployment-operating-model.md`, `docs/adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md` | High | Define single-writer, split-brain, and multi-instance promotion rules |
+| Distributed hosting semantics | Documented | `docs/adr/0004-distributed-hosting-semantics.md`, `docs/enterprise-deployment-operating-model.md`, `docs/testing/distributed-hosting-invariants.md` | Medium | Prove semantics in PR 7 failure-mode and scale validation |
 | Validation / contracts | Partially hardened | `docs/phase-3-computation-layout-boundary-audit.md` | Medium | Remove density/pagination/schema ambiguity in API and frontend contracts |
 | CI/CD | Mature baseline, but not enterprise-complete | `.github/workflows/ci.yml`, `.github/workflows/ci-gate-spec.yaml`, `.github/workflows/codeql.yml`, `.github/workflows/hosted-readiness.yml` | High | Tighten promotion gates, add durable-storage and restart checks, enforce release discipline |
 | Security automation | Broad coverage, still incomplete | `.github/workflows/*`, `docs/ENV_ACCESS_AUDIT.md`, `docs/audits/OPERATOR_REBUILD_AUTHORIZATION_AUDIT.md` | High | Add supply-chain, secret, dependency, and auth-audit automation policy |
@@ -86,13 +86,16 @@ The clearest planned work is in `docs/graph-persistence-design.md` and `docs/adr
 - PostgreSQL as the hosted durable target;
 - repository boundaries for asset, relationship, regulatory-event, and graph-build state.
 
-### 2. Recovery-plane completion
+### 2. Recovery-plane validation
 
-`docs/reconciliation-engine.md` and `docs/reconciliation-discovery-map.md` still defer:
+RecoveryGate is the plan-consumption boundary for rebuild recovery decisions,
+and periodic reconciliation may consume RecoveryGate-approved plans. The
+remaining work is validation, not semantic definition:
 
-- full `RecoveryGate` consumption of reconciliation plans;
-- a periodic reconciliation loop;
-- additional drift evaluators for health, persistence, and runtime.
+- restart and redeploy behavior under in-flight rebuilds;
+- stale-owner recovery after lock expiry;
+- lock-loss abort behavior before persistence or success marking;
+- split-brain/manual-intervention paths.
 
 ### 3. Hosting and promotion hardening
 
@@ -129,13 +132,16 @@ The repo acknowledges restore as deferred, but enterprise readiness requires exp
 
 ### 3. Multi-instance and split-brain semantics
 
-Current work implies distributed hosting support, but the repo should explicitly define:
+Distributed hosting semantics are documented through
+`docs/adr/0004-distributed-hosting-semantics.md`. The system is specified as
+single-writer / multi-reader: multiple backend instances may serve reads, but
+only one rebuild writer may hold the `graph_rebuild` lock and persist graph
+truth per graph persistence boundary.
 
-- what happens if two instances start together;
-- how lock loss is handled during rebuild;
-- whether one writer or multiple readers are allowed;
-- how restart/redeploy interacts with in-flight rebuilds;
-- how to prove no stale owner mutated state after restart.
+Remaining proof work is deferred to PR 7 failure-mode and scale validation.
+That PR should convert the invariants in
+`docs/testing/distributed-hosting-invariants.md` into restart, stale-owner,
+lock-loss, hosted-readiness, and concurrency tests.
 
 ### 4. Security and supply-chain automation
 

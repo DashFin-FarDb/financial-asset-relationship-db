@@ -10,7 +10,10 @@ For the discovery / migration rationale, see
 
 ## Status
 
-Phase 2 integration in progress (partially complete). The stateless in-memory `run_rebuild()` graph reconstruction helper is integrated into the production rebuild execution pathways (called via `build_rebuild_graph` in `api/graph_lifecycle_providers.py`). Full integration of `generate_reconciliation_plan()` into `RecoveryGate` and periodic background loops is deferred to subsequent scoped roadmap tasks (Stage 5C.4 / Phase 2 to-dos).
+RecoveryGate is the plan-consumption boundary for rebuild recovery decisions.
+`ReconciliationEngine` remains plan-only. Periodic reconciliation may
+generate/consume recovery plans through RecoveryGate but must not execute graph
+rebuild work directly.
 
 ## Intent
 
@@ -26,6 +29,18 @@ its own.
 
 > [!NOTE]
 > `ReconciliationEngine` is strictly a pure control-plane mapping structure that generates reconciliation plans. It has been completely decoupled from the graph rebuild execution phase. External state transitions, locks, and DB persistence, including checkpoints and resume capability, are now handled by a new class `RebuildExecutor` in `src/logic/rebuild_executor.py`.
+
+## Distributed Hosting Relationship
+
+Distributed hosting semantics are defined in
+[ADR 0004](adr/0004-distributed-hosting-semantics.md).
+
+Reconciliation plans classify control-plane drift. They do not authorize graph
+writes by themselves. Distributed write authorization still requires proven
+`graph_rebuild` lock ownership and RecoveryGate-approved execution. Periodic
+reconciliation may inspect rebuild state and consume RecoveryGate-approved
+plans, but it is not an independent rebuild worker and must not persist graph
+truth directly.
 
 ## Public surface
 
@@ -198,8 +213,8 @@ RebuildDriftEvaluator.evaluate_drift):
   (`InconsistencyType`, `detect_rebuild_inconsistency`).
 - `src/logic/rebuild_recovery.py` — legacy `determine_recovery_action` mapping
   that the engine generalises.
-- `src/logic/recovery_gate.py` — current execution boundary that consumes
-  recovery actions; Phase 2 will let it consume `ReconciliationPlan` instead.
+- `src/logic/recovery_gate.py` — execution boundary that consumes
+  `ReconciliationPlan` values and enforces fail-closed recovery rules.
 - `src/data/distributed_lock.py` — lock primitive used by
   `RebuildDriftEvaluator`.
 
