@@ -12,8 +12,6 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from src.logic.reconciliation_engine import (
         ActionType,
         ExecutionMode,
