@@ -83,8 +83,8 @@ def test_gate_waits_on_unknown_lock_with_no_active_job(mock_session_factory, moc
         assert exc_info.value.inconsistency_type == "none"
 
 
-def test_startup_reconciliation_performs_reset_for_orphaned_job(mock_session_factory, mock_lock):
-    """Test that startup reconciliation performs RESET recovery for orphaned job."""
+def test_startup_reconciliation_blocks_orphaned_job_fail_closed(mock_session_factory, mock_lock):
+    """Startup reconciliation must not perform automatic RESET recovery for orphaned jobs."""
     from datetime import datetime
 
     # Setup: Orphaned RUNNING job in DB
@@ -109,17 +109,14 @@ def test_startup_reconciliation_performs_reset_for_orphaned_job(mock_session_fac
             lock=mock_lock,
             runtime_has_active_executor=False,
             lock_ttl_seconds=300,
-            enable_automatic_recovery=True,
         )
 
-        # Should perform RESET recovery and allow execution
-        gate.ensure_safe_to_execute()
+        with pytest.raises(ExecutionBlockedError) as exc_info:
+            gate.ensure_safe_to_execute()
 
-        # Verify RESET was performed
-        mock_repo.mark_rebuild_job_failed.assert_called_once()
-        call_args = mock_repo.mark_rebuild_job_failed.call_args
-        assert call_args[0][0] == "orphaned-job-1"
-        assert call_args[1]["details"].failure_category == "recovery_reset"
+        assert exc_info.value.action == "wait"
+        assert exc_info.value.inconsistency_type == "orphaned_running"
+        mock_repo.mark_rebuild_job_failed.assert_not_called()
 
 
 def test_startup_reconciliation_blocks_on_lost_lock_state(mock_session_factory, mock_lock):
@@ -212,8 +209,8 @@ def test_startup_reconciliation_blocks_on_fresh_remote_heartbeat(mock_session_fa
             gate.ensure_safe_to_execute()
 
 
-def test_startup_reconciliation_reacquires_lock_before_reset(mock_session_factory, mock_lock):
-    """Test that startup reconciliation reacquires lock if expired before RESET."""
+def test_startup_reconciliation_blocks_expired_orphan_without_reacquiring_lock(mock_session_factory, mock_lock):
+    """Startup reconciliation must stay fail-closed even when an orphaned job has an expired lock."""
     from datetime import datetime
 
     # Setup: Orphaned job + expired lock
@@ -227,14 +224,10 @@ def test_startup_reconciliation_reacquires_lock_before_reset(mock_session_factor
         last_heartbeat_at=datetime(2020, 1, 1, tzinfo=UTC),
     )
 
-    # First check: EXPIRED (initial eval), second check (during RESET): EXPIRED,
-    # third check (post-acquire verification): VALID, fourth check (re-eval after RESET): VALID
-    mock_lock.check_state.side_effect = [LockState.EXPIRED, LockState.EXPIRED, LockState.VALID, LockState.VALID]
-    mock_lock.acquire.return_value = True
+    mock_lock.check_state.return_value = LockState.EXPIRED
 
     mock_repo = MagicMock()
-    # Calls: 1) initial eval, 2) inside _perform_reset_recovery, 3) re-eval after RESET
-    mock_repo.get_active_rebuild_state.side_effect = [orphaned_job, orphaned_job, None]
+    mock_repo.get_active_rebuild_state.return_value = orphaned_job
     mock_repo.mark_rebuild_job_failed = MagicMock()
 
     with patch("src.logic.recovery_gate.AssetGraphRepository", return_value=mock_repo):
@@ -243,14 +236,13 @@ def test_startup_reconciliation_reacquires_lock_before_reset(mock_session_factor
             lock=mock_lock,
             runtime_has_active_executor=False,
             lock_ttl_seconds=300,
-            enable_automatic_recovery=True,
         )
 
-        # Should reacquire lock and perform RESET
-        gate.ensure_safe_to_execute()
+        with pytest.raises(ExecutionBlockedError) as exc_info:
+            gate.ensure_safe_to_execute()
 
-        # Verify lock was reacquired
-        mock_lock.acquire.assert_called_once()
-        assert gate.lock_was_reacquired is True
-        # Verify RESET was performed
-        mock_repo.mark_rebuild_job_failed.assert_called_once()
+        assert exc_info.value.action == "wait"
+        assert exc_info.value.inconsistency_type == "orphaned_running"
+        mock_lock.acquire.assert_not_called()
+        assert gate.lock_was_reacquired is False
+        mock_repo.mark_rebuild_job_failed.assert_not_called()
