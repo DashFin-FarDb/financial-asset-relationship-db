@@ -347,18 +347,30 @@ class RecoveryGate:
             inconsistency_type=plan.drift_type,
         )
 
+    def _is_terminal_safety_plan(self, plan: ReconciliationPlan) -> bool:
+        """Return True when the plan safety state must block immediately."""
+        return plan.safety_state in (
+            ExecutionSafety.EVALUATION_FAILED,
+            ExecutionSafety.OBSERVABILITY_FAILURE,
+            ExecutionSafety.UNSAFE_SPLIT_BRAIN,
+            ExecutionSafety.INTEGRITY_COMPROMISED,
+        )
+
+    def _is_wait_plan(self, plan: ReconciliationPlan) -> bool:
+        """Return True when the plan requires waiting for convergence."""
+        return ActionType.WAIT_FOR_CONVERGENCE in plan.actions or plan.safety_state == ExecutionSafety.WAIT_REQUIRED
+
+    def _is_converged_noop_plan(self, plan: ReconciliationPlan) -> bool:
+        """Return True when the plan explicitly allows execution."""
+        return ActionType.NOOP in plan.actions and plan.safety_state == ExecutionSafety.CONVERGED
+
     def consume_reconciliation_plan(
         self,
         plan: ReconciliationPlan,
         cancellation_event: threading.Event | None = None,
     ) -> None:
         """Consume a ReconciliationPlan and enforce recovery or execution blocking rules."""
-        if plan.safety_state in (
-            ExecutionSafety.EVALUATION_FAILED,
-            ExecutionSafety.OBSERVABILITY_FAILURE,
-            ExecutionSafety.UNSAFE_SPLIT_BRAIN,
-            ExecutionSafety.INTEGRITY_COMPROMISED,
-        ):
+        if self._is_terminal_safety_plan(plan):
             action = self._map_plan_to_action(plan)
             if action == "resume":
                 action = "unsafe"
@@ -367,13 +379,13 @@ class RecoveryGate:
         if self._handle_reset_action(plan, cancellation_event):
             return
 
-        if ActionType.WAIT_FOR_CONVERGENCE in plan.actions or plan.safety_state == ExecutionSafety.WAIT_REQUIRED:
+        if self._is_wait_plan(plan):
             self._raise_wait_block(plan)
 
         if ActionType.ALERT_ONLY in plan.actions:
             self._raise_alert_block(plan)
 
-        if ActionType.NOOP in plan.actions and plan.safety_state == ExecutionSafety.CONVERGED:
+        if self._is_converged_noop_plan(plan):
             # allow execution
             return
 

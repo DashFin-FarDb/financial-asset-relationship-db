@@ -539,16 +539,14 @@ def test_generate_startup_trace_ids_format() -> None:
     assert all(c in "0123456789abcdef" for c in span_id)
 
 
-def test_start_background_tasks_propagates_rebuild_lock_ttl_seconds(monkeypatch) -> None:
-    """_start_background_tasks should propagate settings.rebuild_lock_ttl_seconds to periodic_reconciliation_loop."""
-    from types import SimpleNamespace
-
+def _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl: int, expected_ttl: int) -> None:
+    """Assert periodic reconciliation receives the bounded rebuild lock TTL."""
     settings = SimpleNamespace(
         database_url="sqlite:///:memory:",
         coordination_database_url="sqlite:///:memory:",
         graph_sync_interval_seconds=60.0,
         reconciliation_interval_seconds=30.0,
-        rebuild_lock_ttl_seconds=120,
+        rebuild_lock_ttl_seconds=configured_ttl,
     )
 
     recon_loop_mock = MagicMock()
@@ -566,56 +564,19 @@ def test_start_background_tasks_propagates_rebuild_lock_ttl_seconds(monkeypatch)
     _start_background_tasks(has_persistence=True, settings=cast(Any, settings))
 
     recon_loop_mock.assert_called_once()
-    kwargs = recon_loop_mock.call_args[1]
-    assert kwargs["lock_ttl_seconds"] == 120
+    assert recon_loop_mock.call_args[1]["lock_ttl_seconds"] == expected_ttl
+
+
+def test_start_background_tasks_propagates_rebuild_lock_ttl_seconds(monkeypatch) -> None:
+    """_start_background_tasks should propagate settings.rebuild_lock_ttl_seconds to periodic_reconciliation_loop."""
+    _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=120, expected_ttl=120)
 
 
 def test_start_background_tasks_caps_rebuild_lock_ttl_seconds(monkeypatch) -> None:
     """_start_background_tasks should cap periodic reconciliation lock TTL at the distributed-lock limit."""
-    settings = SimpleNamespace(
-        database_url="sqlite:///:memory:",
-        coordination_database_url="sqlite:///:memory:",
-        graph_sync_interval_seconds=60.0,
-        reconciliation_interval_seconds=30.0,
-        rebuild_lock_ttl_seconds=450,
-    )
-
-    recon_loop_mock = MagicMock()
-    monkeypatch.setattr("src.logic.reconciliation_loop.periodic_reconciliation_loop", recon_loop_mock)
-    monkeypatch.setattr("api.app_factory.init_rebuild_executor", lambda s: None)
-    monkeypatch.setattr("api.app_factory._graph_synchronization_loop", lambda interval_seconds: None)
-    monkeypatch.setattr("api.app_factory._slo_evaluation_loop", lambda: None)
-    monkeypatch.setattr("api.app_factory._resolve_startup_reconciliation_url", lambda s: "sqlite:///:memory:")
-
-    monkeypatch.setattr("api.app_factory.asyncio.create_task", MagicMock())
-
-    from api.app_factory import _start_background_tasks
-
-    _start_background_tasks(has_persistence=True, settings=cast(Any, settings))
-
-    assert recon_loop_mock.call_args[1]["lock_ttl_seconds"] == 300
+    _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=450, expected_ttl=300)
 
 
 def test_start_background_tasks_floors_rebuild_lock_ttl_seconds(monkeypatch) -> None:
     """_start_background_tasks should floor periodic reconciliation lock TTL at one second."""
-    settings = SimpleNamespace(
-        database_url="sqlite:///:memory:",
-        coordination_database_url="sqlite:///:memory:",
-        graph_sync_interval_seconds=60.0,
-        reconciliation_interval_seconds=30.0,
-        rebuild_lock_ttl_seconds=0,
-    )
-
-    recon_loop_mock = MagicMock()
-    monkeypatch.setattr("src.logic.reconciliation_loop.periodic_reconciliation_loop", recon_loop_mock)
-    monkeypatch.setattr("api.app_factory.init_rebuild_executor", lambda s: None)
-    monkeypatch.setattr("api.app_factory._graph_synchronization_loop", lambda interval_seconds: None)
-    monkeypatch.setattr("api.app_factory._slo_evaluation_loop", lambda: None)
-    monkeypatch.setattr("api.app_factory._resolve_startup_reconciliation_url", lambda s: "sqlite:///:memory:")
-    monkeypatch.setattr("api.app_factory.asyncio.create_task", MagicMock())
-
-    from api.app_factory import _start_background_tasks
-
-    _start_background_tasks(has_persistence=True, settings=cast(Any, settings))
-
-    assert recon_loop_mock.call_args[1]["lock_ttl_seconds"] == 1
+    _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=0, expected_ttl=1)
