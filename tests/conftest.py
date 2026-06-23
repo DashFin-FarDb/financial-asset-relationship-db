@@ -12,10 +12,7 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 if TYPE_CHECKING:
-    from src.logic.reconciliation_engine import (
-        ReconciliationPlan,
-        Severity,
-    )
+    from src.logic.reconciliation_engine import ReconciliationPlan
 
 # Ensure a clean SQLite database for the authentication layer before any modules import it.
 _db_path = Path(__file__).resolve().parent / "test_auth.db"
