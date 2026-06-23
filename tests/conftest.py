@@ -13,7 +13,6 @@ from sqlalchemy.engine import Engine
 
 if TYPE_CHECKING:
     from src.logic.reconciliation_engine import (
-        ActionType,
         ExecutionMode,
         ExecutionSafety,
         ReconciliationPlan,
