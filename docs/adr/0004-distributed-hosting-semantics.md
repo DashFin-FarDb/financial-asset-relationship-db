@@ -161,8 +161,10 @@ Recovery mutation is forbidden when any of the following are true:
 3. Lock state cannot be determined.
 4. Persistence is unavailable.
 5. More than one `RUNNING` job exists.
-6. Reconciliation returns `ALERT_ONLY`, `WAIT_FOR_CONVERGENCE`,
-   `EVALUATION_FAILED`, `UNSAFE_SPLIT_BRAIN`, or `INTEGRITY_COMPROMISED`.
+6. Reconciliation returns `ALERT_ONLY` or `WAIT_FOR_CONVERGENCE`, or the
+   safety state is `EVALUATION_FAILED`, `MANUAL_INVESTIGATION`,
+   `OBSERVABILITY_FAILURE`, `UNSAFE_SPLIT_BRAIN`, or
+   `INTEGRITY_COMPROMISED`.
 
 ### 8. Restart/redeploy behavior
 
@@ -214,7 +216,7 @@ Operators must ensure:
 - `REBUILD_LOCK_TTL_SECONDS` is consistent across instances in the same
   environment;
 - all instances sharing `ASSET_GRAPH_DATABASE_URL` share the same coordination
-  database boundary, or an explicitly documented `coordination_database_url`;
+  database boundary, or an explicitly documented `COORDINATION_DATABASE_URL`;
 - rolling redeploy may leave an in-flight rebuild in stale state, and recovery
   occurs through lock expiry plus reconciliation, not blind takeover;
 - suspected split-brain requires manual operator intervention.

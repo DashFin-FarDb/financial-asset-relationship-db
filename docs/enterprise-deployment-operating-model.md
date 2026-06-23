@@ -67,7 +67,8 @@ The graph persistence store holds durable graph truth. Evidence/metadata persist
 
 ### Rebuild coordination (optional)
 
-- REBUILD_LOCK_TTL_SECONDS: Time-to-live for the graph rebuild distributed lock in seconds (default: 300). Must be a positive integer. Loaded via src/config/settings.py and propagated to graph rebuild orchestration. The heartbeat refresh interval is max(1, rebuild_lock_ttl_seconds // 3) per [ADR 0003](adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md).
+- `REBUILD_LOCK_TTL_SECONDS`: Time-to-live for the graph rebuild distributed lock in seconds (default: 300). Must be a positive integer. Loaded via `src/config/settings.py` and propagated to graph rebuild orchestration. The heartbeat refresh interval is `max(1, rebuild_lock_ttl_seconds // 3)` per [ADR 0003](adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md).
+- `COORDINATION_DATABASE_URL`: Optional PostgreSQL-compatible coordination database connection string for rebuild lock/job coordination. When unset, coordination uses the same boundary as the graph/application startup configuration for the active environment. All backend instances sharing one `ASSET_GRAPH_DATABASE_URL` must share the same coordination database boundary.
 
 ## Distributed Hosting Semantics
 
@@ -90,9 +91,10 @@ multi-reader model:
 ### Distributed Hosting and Rebuild Ownership
 
 All instances sharing `ASSET_GRAPH_DATABASE_URL` must share the same
-coordination database boundary or an explicitly documented
-`coordination_database_url`. `REBUILD_LOCK_TTL_SECONDS` must be consistent
-across instances in the same environment.
+coordination database boundary, configured through `COORDINATION_DATABASE_URL`
+when that boundary differs from the default environment database boundary.
+`REBUILD_LOCK_TTL_SECONDS` must be consistent across instances in the same
+environment.
 
 Durable graph truth in `ASSET_GRAPH_DATABASE_URL` is authoritative for staging
 and production. Runtime graph state is an in-memory cache/snapshot. A healthy
