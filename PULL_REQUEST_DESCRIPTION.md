@@ -1,64 +1,77 @@
-# PR: Phase 1.3.a - Trace Context Model and Propagation
+# PR: Convergence of Reconciliation Plan Consumption into RecoveryGate
 
-## Architectural Alignment
+## Primary seam / decision
 
-- **Backend**: FastAPI (production path)
-- **Frontend**: Next.js (production path)
-- **Gradio**: non-production (demo/testing only)
+Converge control-plane reconciliation loop and execution engine decisions into `RecoveryGate` as the single execution boundary for plan consumption, state mutation, and safety checks.
 
-This PR implements thread-safe and async-safe trace context variables (`trace_id`, `span_id`, `parent_span_id`) inside `src/observability/context.py` using standard `contextvars.ContextVar`. These changes align with our structured logging and observability design, preparing the application for deep operational span tracing.
+## Why this seam now
 
-## Primary Objective
-
-Establish trace context management variables (`trace_id`, `span_id`, `parent_span_id`) and helper primitives in a single, isolated, thread-safe, and async-safe file change to `src/observability/context.py`.
+Compliance with the Enterprise Readiness Index and Release Checklist (`docs/enterprise-readiness-index.md`), specifically the directive that durable persistence is the gating dependency. Unifying `ReconciliationPlan` consumption inside `RecoveryGate` eliminates dual-path execution logic where the background loop and the gate separately made safety and reset decisions, preventing split-brain mutations.
 
 ## Triage Data (Project Mandate)
 
-- **Upstream Source**: Calls to context getters (`get_trace_id`, `get_span_id`, `get_parent_span_id`, and `get_request_context`) will be initiated by logging and middleware components. The callers assume these operations are $O(1)$ and thread/async safe.
-- **Downstream Impact**: The return values are merged into logging payloads and event schemas. Adding these fields to `get_request_context` will automatically propagate them to all structured logs, but will not affect performance or cause memory leaks, as context variables are garbage collected when the request/task context terminates.
-- **Failure Mode**: Since `ContextVar` operations are thread-safe and isolated to current asynchronous chains, failures in context mutation do not leak state across requests or threads. If invalid/missing IDs are set, they are returned as `None`, ensuring structured logging does not fail.
+- **Upstream Source**: The FastAPI application startup lifespan (`_perform_startup_reconciliation`) and the periodic reconciliation background loop (`periodic_reconciliation_loop`) invoke `RecoveryGate.ensure_safe_to_execute()` or `RecoveryGate.consume_reconciliation_plan()`. The callers assume that these methods will safely assess the current distributed lock state, DB rebuild job records, and determine whether the worker can proceed with execution without causing conflict or split-brain conditions.
+- **Downstream Impact**: A block propagates as an `ExecutionBlockedError` back up to the caller, preventing the startup of the fastapi server or the execution of subsequent loop cycles. No database transaction resources or lock leaks can occur, because reacquired locks are deterministically released inside `finally` blocks (using the `lock_was_reacquired` flag), preventing starvation of other workers.
+- **Failure Mode**: If a database transaction fails during a state mutation (e.g., in `_perform_reset_recovery`), `RecoveryGate` intercepts the error, rollback occurs via the database context manager, and `ExecutionBlockedError` is raised. The system remains in a clean state, holding the lock or releasing it appropriately depending on whether the lock was reacquired.
 
-## Scope
+## In scope
 
-### In Scope
+- Refactored `RecoveryGate` constructor to store `enable_automatic_recovery` and `record_drift_metric`.
+- Implemented `consume_reconciliation_plan()` as the sole component mapping safety states and triggering bounded state resets.
+- Refactored `ensure_safe_to_execute()` to delegate evaluation and consumption to `consume_reconciliation_plan()`.
+- Refactored `reconciliation_loop.py` to remove duplicate engine instantiations and local reset execution blocks, delegating plan consumption fully to `RecoveryGate`.
+- Configured lock TTL seconds propagation in `app_factory.py` from settings.
+- Added comprehensive unit tests in `test_recovery_gate.py`, `test_app_factory.py`, and created `test_reconciliation_loop.py` to test plan consumption, reacquired lock release, and error backoff.
 
-- **Context Variables**: Defined `_trace_id_ctx`, `_span_id_ctx`, and `_parent_span_id_ctx` in `src/observability/context.py`.
-- **Getters & Setters**: Implemented `get_trace_id()`, `get_span_id()`, `get_parent_span_id()`, `set_trace_context(trace_id, span_id, parent_span_id)`, and `reset_trace_context(tokens)`.
-- **Structured Logging Hook**: Updated `get_request_context()` to include the new trace variables in the returned dictionary.
+## Out of scope
 
-### Out of Scope
+- Changing graph persistence or SQLite persistence semantics.
+- Hosted readiness check probes.
+- Auth model redesign or unrelated frontend visualizer updates.
 
-- **Middleware Refactoring**: Modifying `api/middleware/correlation.py` is deferred to a separate PR.
-- **Startup & Rebuild Integration**: Instrumenting startup Lifespan or Reconciliation Engine loops with tracing spans is deferred.
+## Backward compatibility contract
 
-### Files Expected to Change
+- The public `RecoveryGate.ensure_safe_to_execute()` and `RecoveryGate.evaluate_state()` methods remain fully backward compatible.
+- The `ExecutionBlockedError` exceptions continue to expose `action` and `inconsistency_type` string properties and format messages containing `(action=..., inconsistency=...)` tags to maintain exact behavior expected by the startup routing/APIs and pre-existing test assertions.
 
-- `src/observability/context.py`
+## Behavior intentionally preserved
 
-## Validation Commands
+- RecoveryGate defaults: `enable_automatic_recovery` defaults to `False` to preserve fail-closed startup/admin behavior when callers do not pass this parameter explicitly.
+- Automatic recovery in background: The periodic background loop continues to initialize `RecoveryGate` with `enable_automatic_recovery=True` to allow automatic recovery from orphaned RUNNING states.
+
+## Known issues intentionally deferred
+
+- None.
+
+## Files expected to change
+
+- `src/logic/recovery_gate.py`
+- `src/logic/reconciliation_loop.py`
+- `api/app_factory.py`
+- `tests/unit/test_recovery_gate.py`
+- `tests/unit/test_reconciliation_loop.py`
+- `tests/unit/test_app_factory.py`
+- `tests/unit/test_recovery_gate_startup.py`
+- `tests/integration/test_recovery_gate_integration.py`
+
+## Validation commands
 
 ```bash
-# Verify existing context and correlation tests pass
-pytest tests/unit/api/observability/test_context.py -v
-pytest tests/unit/api/middleware/test_correlation.py -v
+# Focused unit and integration tests
+pytest tests/unit/test_recovery_gate.py tests/unit/test_reconciliation_loop.py tests/unit/test_app_factory.py tests/unit/test_recovery_gate_startup.py tests/integration/test_recovery_gate_integration.py -v
+
+# Style/lint checks
+pre-commit run --files api/app_factory.py src/logic/reconciliation_loop.py src/logic/recovery_gate.py tests/integration/test_recovery_gate_integration.py tests/unit/test_app_factory.py tests/unit/test_recovery_gate.py tests/unit/test_recovery_gate_startup.py tests/unit/test_reconciliation_loop.py
 ```
 
-## Merge Criteria
+## Merge criteria
 
-- [x] Scope is tightly aligned to the Primary Objective
-- [x] Validation commands pass locally or in CI
-- [x] Changes align with production architecture (FastAPI + Next.js)
+- [x] PR implements one decision only (Converge Plan Consumption)
+- [x] No unrelated cleanup has been folded in
+- [x] Compatibility surface is preserved or explicitly documented
+- [x] Production architecture assumptions remain accurate (`FastAPI + Next.js`)
+- [x] Gradio/demo paths are not treated as production architecture
+- [x] Runtime dependency source of truth remains `requirements.txt`
+- [x] Any deferred issues are explicitly recorded
 
-## Checklist
-
-### Scope Compliance
-
-- [x] This PR makes one primary decision only (Trace Context Model)
-- [x] I have explicitly listed what is out of scope
-- [x] I have verified the base branch is `main`
-- [x] I have checked this PR against the production architecture
-
-### Testing Best Practices
-
-- [x] Tests verify observable behavior (isolation and retrieval)
-- [x] Tests properly clean up resources (using finally blocks for resetting contexts)
+AI-Generated: true

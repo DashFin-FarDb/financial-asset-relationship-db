@@ -53,7 +53,7 @@ def session_factory(sqlite_engine):
 
 
 def test_recovery_gate_passes_with_clean_db(session_factory):
-    """RecoveryGate allows execution when there are no running rebuild jobs.
+    """The RecoveryGate allows execution when there are no running rebuild jobs.
 
     The lock is pre-acquired so that the gate sees a VALID lock state and returns
     RESUME (clean state, no inconsistency detected).
@@ -81,7 +81,7 @@ def test_recovery_gate_passes_with_clean_db(session_factory):
 
 
 def test_recovery_gate_resets_orphaned_running_job(session_factory):
-    """RecoveryGate performs RESET recovery for an orphaned RUNNING job.
+    """The RecoveryGate performs RESET recovery for an orphaned RUNNING job.
 
     Scenario: A RUNNING job exists in the DB with an EXPIRED distributed lock
     (simulating a crashed worker whose lock TTL passed).  The gate detects
@@ -125,6 +125,7 @@ def test_recovery_gate_resets_orphaned_running_job(session_factory):
         lock=lock,
         runtime_has_active_executor=False,
         lock_ttl_seconds=_LOCK_TTL,
+        enable_automatic_recovery=True,
     )
 
     # Gate should detect ORPHANED_RUNNING → perform RESET → allow execution.
@@ -141,7 +142,7 @@ def test_recovery_gate_resets_orphaned_running_job(session_factory):
 
 
 def test_recovery_gate_blocks_on_lost_lock_state(session_factory):
-    """RecoveryGate raises ExecutionBlockedError when the lock state is LOST.
+    """The RecoveryGate raises ExecutionBlockedError when the lock state is LOST.
 
     A LOST state indicates DB connectivity failure.  The gate must block
     execution without attempting any state mutation.

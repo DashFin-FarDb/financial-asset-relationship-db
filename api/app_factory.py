@@ -135,6 +135,7 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
         increment_recovery_trigger=increment_recovery_trigger,
         runtime_has_active_executor=False,
         lock_ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
+        enable_automatic_recovery=False,
     )
 
     try:
@@ -352,6 +353,7 @@ def _start_background_tasks(
                 ),
                 run_with_trace_fn=_run_with_generated_trace,
                 cancel_event=None,
+                lock_ttl_seconds=getattr(settings, "rebuild_lock_ttl_seconds", 300),
             )
         )
 

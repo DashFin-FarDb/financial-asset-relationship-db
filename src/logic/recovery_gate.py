@@ -54,6 +54,8 @@ class RecoveryGate:
         increment_recovery_trigger: Callable[[str], None] | None = None,
         runtime_has_active_executor: bool = False,
         lock_ttl_seconds: int = 300,
+        enable_automatic_recovery: bool = False,
+        record_drift_metric: Callable[[str, str, str], None] | None = None,
     ) -> None:
         """Initialize RecoveryGate."""
         self.session_factory = session_factory
@@ -61,6 +63,8 @@ class RecoveryGate:
         self.increment_recovery_trigger = increment_recovery_trigger or (lambda _: None)
         self.runtime_has_active_executor = runtime_has_active_executor
         self.lock_ttl_seconds = lock_ttl_seconds
+        self.enable_automatic_recovery = enable_automatic_recovery
+        self.record_drift_metric = record_drift_metric or (lambda _t, _s, _e: None)
         self.lock_was_reacquired = False
 
     def _create_unsafe_plan_from_error(
@@ -155,7 +159,11 @@ class RecoveryGate:
                     runtime_has_active_executor=self.runtime_has_active_executor,
                     lock_ttl_seconds=self.lock_ttl_seconds,
                 )
-                engine = ReconciliationEngine(evaluator=evaluator)
+                engine = ReconciliationEngine(
+                    evaluator=evaluator,
+                    enable_automatic_execution=self.enable_automatic_recovery,
+                    record_drift_metric=self.record_drift_metric,
+                )
                 plan = engine.generate_reconciliation_plan()
             except ValueError as exc:
                 return self._create_unsafe_plan_from_error(exc, "active rebuild state query failed")
@@ -209,21 +217,133 @@ class RecoveryGate:
         plan = self.get_reconciliation_plan()
         return self._map_plan_to_action(plan)
 
-    def ensure_safe_to_execute(self, cancellation_event: threading.Event | None = None) -> None:
-        """Enforce execution blocking rules and perform recovery actions."""
-        self.lock_was_reacquired = False
-        plan = self.get_reconciliation_plan()
-        action = self._map_plan_to_action(plan)
-
-        if action == "reset":
-            self._execute_reset_path(plan, cancellation_event)
-        elif action != "resume":
+    def consume_reconciliation_plan(
+        self,
+        plan: ReconciliationPlan,
+        cancellation_event: threading.Event | None = None,
+    ) -> None:
+        """Consume a ReconciliationPlan and enforce recovery or execution blocking rules."""
+        if plan.safety_state in (
+            ExecutionSafety.EVALUATION_FAILED,
+            ExecutionSafety.OBSERVABILITY_FAILURE,
+            ExecutionSafety.UNSAFE_SPLIT_BRAIN,
+            ExecutionSafety.INTEGRITY_COMPROMISED,
+        ):
+            action = self._map_plan_to_action(plan)
             log_event(
                 logger,
                 logging.WARNING,
                 ObservabilityEvent(
                     event="recovery_gate_execution_blocked_final",
-                    message=f"Execution blocked by recovery gate: action={action}, inconsistency={plan.drift_type}",
+                    message=(
+                        f"Execution blocked by recovery gate safety state: "
+                        f"safety_state={plan.safety_state.value}, inconsistency={plan.drift_type}"
+                    ),
+                    metadata={
+                        "action": action,
+                        "inconsistency": plan.drift_type,
+                        "safety_state": plan.safety_state.value,
+                    },
+                ),
+            )
+            raise ExecutionBlockedError(
+                f"Execution blocked due to safety state: {plan.safety_state.value} (action={action}, inconsistency={plan.drift_type})",
+                action=action,
+                inconsistency_type=plan.drift_type,
+            )
+
+        if ActionType.RESET_STATE in plan.actions:
+            if (
+                plan.execution_mode in (ExecutionMode.AUTOMATIC, ExecutionMode.IMMEDIATE)
+                and plan.safety_state == ExecutionSafety.RESET_REQUIRED
+            ):
+                from src.logic.reconciliation_engine import RebuildCancelledError
+
+                if cancellation_event and cancellation_event.is_set():
+                    raise RebuildCancelledError("Rebuild cancelled via API request")
+
+                self._execute_reset_path(plan, cancellation_event)
+
+                if cancellation_event and cancellation_event.is_set():
+                    raise RebuildCancelledError("Rebuild cancelled via API request")
+                return
+            else:
+                action = "wait" if plan.execution_mode == ExecutionMode.DEFERRED else "alert_only"
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="recovery_gate_execution_blocked_final",
+                        message=(
+                            f"Execution blocked for non-automatic reset plan: "
+                            f"action={action}, inconsistency={plan.drift_type}"
+                        ),
+                        metadata={
+                            "action": action,
+                            "inconsistency": plan.drift_type,
+                        },
+                    ),
+                )
+                raise ExecutionBlockedError(
+                    f"Execution blocked: reset required but mode={plan.execution_mode.value} (action={action}, inconsistency={plan.drift_type})",
+                    action=action,
+                    inconsistency_type=plan.drift_type,
+                )
+
+        if ActionType.WAIT_FOR_CONVERGENCE in plan.actions or plan.safety_state == ExecutionSafety.WAIT_REQUIRED:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_execution_blocked_final",
+                    message=f"Execution blocked by recovery gate: action=wait, inconsistency={plan.drift_type}",
+                    metadata={
+                        "action": "wait",
+                        "inconsistency": plan.drift_type,
+                    },
+                ),
+            )
+            raise ExecutionBlockedError(
+                f"Execution blocked: waiting for convergence. Reason: {plan.reason} (action=wait, inconsistency={plan.drift_type})",
+                action="wait",
+                inconsistency_type=plan.drift_type,
+            )
+
+        if ActionType.ALERT_ONLY in plan.actions:
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_execution_blocked_final",
+                    message=f"Execution blocked by recovery gate: action=alert_only, inconsistency={plan.drift_type}",
+                    metadata={
+                        "action": "alert_only",
+                        "inconsistency": plan.drift_type,
+                    },
+                ),
+            )
+            raise ExecutionBlockedError(
+                f"Execution blocked: alert only. Reason: {plan.reason} (action=alert_only, inconsistency={plan.drift_type})",
+                action="alert_only",
+                inconsistency_type=plan.drift_type,
+            )
+
+        if ActionType.NOOP in plan.actions and plan.safety_state == ExecutionSafety.CONVERGED:
+            # allow execution
+            return
+
+        # Fallback
+        action = self._map_plan_to_action(plan)
+        if action != "resume":
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_gate_execution_blocked_final",
+                    message=(
+                        f"Execution blocked by recovery gate fallback: "
+                        f"action={action}, inconsistency={plan.drift_type}"
+                    ),
                     metadata={
                         "action": action,
                         "inconsistency": plan.drift_type,
@@ -231,10 +351,16 @@ class RecoveryGate:
                 ),
             )
             raise ExecutionBlockedError(
-                f"Execution blocked: action={action}, inconsistency={plan.drift_type}",
+                f"Execution blocked: fallback block. (action={action}, inconsistency={plan.drift_type})",
                 action=action,
                 inconsistency_type=plan.drift_type,
             )
+
+    def ensure_safe_to_execute(self, cancellation_event: threading.Event | None = None) -> None:
+        """Enforce execution blocking rules and perform recovery actions."""
+        self.lock_was_reacquired = False
+        plan = self.get_reconciliation_plan()
+        self.consume_reconciliation_plan(plan, cancellation_event)
 
     def _execute_reset_path(self, plan: ReconciliationPlan, cancellation_event: threading.Event | None) -> None:
         """Handle the reset recovery path."""
