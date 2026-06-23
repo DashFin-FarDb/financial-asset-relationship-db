@@ -264,4 +264,4 @@ The Financial Asset Relationship Database **already performs sophisticated recon
 4. ✅ Enables future observability and policy hooks
 5. ✅ Maintains backward compatibility with existing RecoveryGate
 
-**Status:** Reconciliation Engine is integrated into RecoveryGate plan consumption and periodic reconciliation. The engine remains plan-only; RecoveryGate and explicit rebuild orchestration remain the side-effect boundaries.
+**Status:** Reconciliation Engine is partially integrated into production paths (Phase 2 in progress; full RecoveryGate integration and periodic reconciliation loop deferred to future work).
