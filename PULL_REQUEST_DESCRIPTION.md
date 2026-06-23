@@ -82,9 +82,9 @@ The main safety objective is to remove split-brain recovery decision paths where
 - `tests/unit/test_recovery_gate.py`
   - Adds plan-consumption, reset, cancellation, TTL, and lock-reacquisition regression coverage.
 - `tests/unit/test_reconciliation_loop.py`
-  - Adds dedicated periodic reconciliation-loop unit coverage.
+  - Introduces dedicated periodic reconciliation-loop unit coverage.
 - `tests/unit/test_app_factory.py`
-  - Adds background task TTL propagation/capping coverage and fixes the loop test trace wrapper to return an awaitable.
+  - Covers background task TTL propagation/capping and fixes the loop test trace wrapper to return an awaitable.
 - `tests/unit/test_recovery_gate_startup.py`
   - Updates startup recovery-gate expectations to preserve fail-closed defaults and automatic-recovery explicitness.
 - `tests/integration/test_recovery_gate_integration.py`

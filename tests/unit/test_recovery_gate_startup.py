@@ -117,6 +117,7 @@ def test_startup_reconciliation_blocks_orphaned_job_fail_closed(mock_session_fac
         assert exc_info.value.action == "wait"
         assert exc_info.value.inconsistency_type == "orphaned_running"
         mock_repo.mark_rebuild_job_failed.assert_not_called()
+        mock_lock.acquire.assert_not_called()
 
 
 def test_startup_reconciliation_blocks_on_lost_lock_state(mock_session_factory, mock_lock):

@@ -226,7 +226,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     base_settings: SimpleNamespace,
     make_reconciliation_plan,
 ) -> None:
-    """_periodic_reconciliation_loop should invoke gate.ensure_safe_to_execute for automatic reset plans."""
+    """periodic_reconciliation_loop should retrieve and consume automatic reset reconciliation plans."""
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
 
     fake_engine = SimpleNamespace(dispose=lambda: None)
@@ -594,3 +594,28 @@ def test_start_background_tasks_caps_rebuild_lock_ttl_seconds(monkeypatch) -> No
     _start_background_tasks(has_persistence=True, settings=cast(Any, settings))
 
     assert recon_loop_mock.call_args[1]["lock_ttl_seconds"] == 300
+
+
+def test_start_background_tasks_floors_rebuild_lock_ttl_seconds(monkeypatch) -> None:
+    """_start_background_tasks should floor periodic reconciliation lock TTL at one second."""
+    settings = SimpleNamespace(
+        database_url="sqlite:///:memory:",
+        coordination_database_url="sqlite:///:memory:",
+        graph_sync_interval_seconds=60.0,
+        reconciliation_interval_seconds=30.0,
+        rebuild_lock_ttl_seconds=0,
+    )
+
+    recon_loop_mock = MagicMock()
+    monkeypatch.setattr("src.logic.reconciliation_loop.periodic_reconciliation_loop", recon_loop_mock)
+    monkeypatch.setattr("api.app_factory.init_rebuild_executor", lambda s: None)
+    monkeypatch.setattr("api.app_factory._graph_synchronization_loop", lambda interval_seconds: None)
+    monkeypatch.setattr("api.app_factory._slo_evaluation_loop", lambda: None)
+    monkeypatch.setattr("api.app_factory._resolve_startup_reconciliation_url", lambda s: "sqlite:///:memory:")
+    monkeypatch.setattr("api.app_factory.asyncio.create_task", MagicMock())
+
+    from api.app_factory import _start_background_tasks
+
+    _start_background_tasks(has_persistence=True, settings=cast(Any, settings))
+
+    assert recon_loop_mock.call_args[1]["lock_ttl_seconds"] == 1

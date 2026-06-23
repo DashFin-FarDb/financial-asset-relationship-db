@@ -57,28 +57,34 @@ def reconciliation_loop_context(mock_db_engines, mock_session_factory, mock_lock
 
 def test_create_reconciliation_dependencies(monkeypatch):
     """Verify lock_ttl is bounded before constructing DistributedLock."""
-    mock_session_factory_val = MagicMock()
+    engine_session_factory = MagicMock(name="engine_session_factory")
+    coord_session_factory = MagicMock(name="coord_session_factory")
     mock_lock_val = MagicMock()
 
-    create_session_factory_mock = MagicMock(return_value=mock_session_factory_val)
+    engine = MagicMock()
+    coord_engine = MagicMock()
+    factory_by_engine = {
+        engine: engine_session_factory,
+        coord_engine: coord_session_factory,
+    }
+
+    create_session_factory_mock = MagicMock(side_effect=lambda db_engine: factory_by_engine[db_engine])
     distributed_lock_mock = MagicMock(return_value=mock_lock_val)
 
     monkeypatch.setattr("src.data.database.create_session_factory", create_session_factory_mock)
     monkeypatch.setattr("src.data.distributed_lock.DistributedLock", distributed_lock_mock)
 
-    engine = MagicMock()
-    coord_engine = MagicMock()
     lock_ttl = 450
 
     sf, lock = _create_reconciliation_dependencies(engine, coord_engine, lock_ttl)
 
-    assert sf == mock_session_factory_val
+    assert sf == engine_session_factory
     assert lock == mock_lock_val
 
     # create_session_factory should be called twice (once for engine, once for coord_engine)
     assert create_session_factory_mock.call_count == 2
     distributed_lock_mock.assert_called_once_with(
-        coordination_session_factory=mock_session_factory_val,
+        coordination_session_factory=coord_session_factory,
         lock_name="graph_rebuild",
         ttl_seconds=300,
     )
