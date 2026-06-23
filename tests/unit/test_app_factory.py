@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from datetime import UTC, datetime
 from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import MagicMock
@@ -225,9 +224,10 @@ def test_startup_reconciliation_lock_release_behavior(
 async def test_periodic_reconciliation_loop_triggers_recovery(
     monkeypatch: pytest.MonkeyPatch,
     base_settings: SimpleNamespace,
+    make_reconciliation_plan,
 ) -> None:
     """_periodic_reconciliation_loop should invoke gate.ensure_safe_to_execute for automatic reset plans."""
-    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, ReconciliationPlan, Severity
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
 
     fake_engine = SimpleNamespace(dispose=lambda: None)
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
@@ -241,8 +241,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     monkeypatch.setattr("src.logic.rebuild_drift_evaluator.RebuildDriftEvaluator", MagicMock())
 
     # Mock ReconciliationEngine to return a reset plan with automatic execution mode
-
-    mock_plan = ReconciliationPlan(
+    mock_plan = make_reconciliation_plan(
         drift_type="orphaned_running",
         severity=Severity.CRITICAL,
         actions=(ActionType.RESET_STATE,),
@@ -250,49 +249,32 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
         execution_mode=ExecutionMode.AUTOMATIC,
         safety_state=ExecutionSafety.RESET_REQUIRED,
         reason="test reset",
-        metadata={},
-        created_at=datetime.now(UTC),
     )
 
-    class FakeEngine:
-        """Mock ReconciliationEngine."""
-
-        def __init__(self, *args, **kwargs):
-            """Accept arguments."""
-
-        def generate_reconciliation_plan(self):
-            """Return a mock reconciliation plan."""
-            return mock_plan
-
-    monkeypatch.setattr("src.logic.reconciliation_engine.ReconciliationEngine", FakeEngine)
+    fake_engine_inst = MagicMock()
+    fake_engine_inst.generate_reconciliation_plan.return_value = mock_plan
+    monkeypatch.setattr(
+        "src.logic.reconciliation_engine.ReconciliationEngine", MagicMock(return_value=fake_engine_inst)
+    )
 
     # Mock RecoveryGate
     consume_plan_called = []
-
-    class FakeGate:
-        """Mock RecoveryGate."""
-
-        def __init__(self, **kwargs):
-            self.lock_was_reacquired = False
-
-        def get_reconciliation_plan(self):
-            """Return mock plan."""
-            return mock_plan
-
-        def consume_reconciliation_plan(self, plan, cancellation_event=None):
-            """Track plan consumption call."""
-            consume_plan_called.append(True)
-
-    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", FakeGate)
+    fake_gate = MagicMock()
+    fake_gate.lock_was_reacquired = False
+    fake_gate.get_reconciliation_plan.return_value = mock_plan
+    fake_gate.consume_reconciliation_plan.side_effect = (
+        lambda plan, cancellation_event=None: consume_plan_called.append(True)
+    )
+    monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", MagicMock(return_value=fake_gate))
 
     # We want sleep to yield once then raise CancelledError to terminate the loop cleanly
     sleep_calls = 0
 
     async def mock_sleep(seconds: float):
         """Mock sleep to yield once then raise CancelledError."""
-        future: asyncio.Future[None] = asyncio.Future()
-        future.set_result(None)
-        await future  # use async feature
+        f: asyncio.Future[None] = asyncio.Future()
+        f.set_result(None)
+        await f
         nonlocal sleep_calls
         sleep_calls += 1
         if sleep_calls > 1:
@@ -309,18 +291,11 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     with pytest.raises(asyncio.CancelledError):
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
-        async def fake_run_with_trace(fn, **kwargs):
-            """Mock run_with_trace function."""
-            future: asyncio.Future[None] = asyncio.Future()
-            future.set_result(None)
-            await future
-            return fn()
-
         await periodic_reconciliation_loop(
             interval_seconds=0.1,
             database_url=base_settings.database_url,
             is_shutdown_fn=lambda: False,
-            run_with_trace_fn=fake_run_with_trace,
+            run_with_trace_fn=lambda fn, **kwargs: fn(),
             coordination_database_url=base_settings.database_url,
             cancel_event=None,
             lock_ttl_seconds=300,

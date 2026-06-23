@@ -321,3 +321,46 @@ def mock_rebuild_job():
         return job
 
     return _make_job
+
+
+@pytest.fixture
+def make_reconciliation_plan():
+    """Return a factory function to create ReconciliationPlan instances for testing."""
+    from datetime import UTC, datetime
+
+    from src.logic.reconciliation_engine import (
+        ActionType,
+        ExecutionMode,
+        ExecutionSafety,
+        ReconciliationPlan,
+        Severity,
+    )
+
+    def _make(
+        drift_type="none",
+        severity=Severity.NONE,
+        actions=(ActionType.NOOP,),
+        target_state="healthy",
+        execution_mode=ExecutionMode.AUTOMATIC,
+        safety_state=ExecutionSafety.CONVERGED,
+        reason="Graph is healthy",
+        metadata=None,
+        created_at=None,
+    ):
+        if metadata is None:
+            metadata = {}
+        if created_at is None:
+            created_at = datetime.now(UTC)
+        return ReconciliationPlan(
+            drift_type=drift_type,
+            severity=severity,
+            actions=actions,
+            target_state=target_state,
+            execution_mode=execution_mode,
+            safety_state=safety_state,
+            reason=reason,
+            metadata=metadata,
+            created_at=created_at,
+        )
+
+    return _make

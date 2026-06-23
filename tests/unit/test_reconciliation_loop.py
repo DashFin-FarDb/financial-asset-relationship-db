@@ -1,6 +1,5 @@
 """Unit tests for the background reconciliation loop."""
 
-from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,7 +9,6 @@ from src.logic.reconciliation_engine import (
     ActionType,
     ExecutionMode,
     ExecutionSafety,
-    ReconciliationPlan,
     Severity,
 )
 from src.logic.reconciliation_loop import (
@@ -72,9 +70,11 @@ def test_create_reconciliation_dependencies(monkeypatch):
     )
 
 
-def test_run_sync_reconciliation_success(monkeypatch, mock_db_engines, mock_session_factory, mock_lock):
+def test_run_sync_reconciliation_success(
+    monkeypatch, mock_db_engines, mock_session_factory, mock_lock, make_reconciliation_plan
+):
     """Verify single-pass plan consumption under normal execution."""
-    plan = ReconciliationPlan(
+    plan = make_reconciliation_plan(
         drift_type="none",
         severity=Severity.HIGH,
         actions=(ActionType.NOOP,),
@@ -82,8 +82,6 @@ def test_run_sync_reconciliation_success(monkeypatch, mock_db_engines, mock_sess
         execution_mode=ExecutionMode.AUTOMATIC,
         safety_state=ExecutionSafety.CONVERGED,
         reason="Healthy",
-        metadata={},
-        created_at=datetime.now(UTC),
     )
 
     # Mock gate methods
@@ -118,10 +116,10 @@ def test_run_sync_reconciliation_success(monkeypatch, mock_db_engines, mock_sess
 
 
 def test_run_sync_reconciliation_releases_reacquired_lock(
-    monkeypatch, mock_db_engines, mock_session_factory, mock_lock
+    monkeypatch, mock_db_engines, mock_session_factory, mock_lock, make_reconciliation_plan
 ):
     """Verify that a reacquired lock is released in the finally block."""
-    plan = ReconciliationPlan(
+    plan = make_reconciliation_plan(
         drift_type="orphaned_running",
         severity=Severity.HIGH,
         actions=(ActionType.RESET_STATE,),
@@ -129,8 +127,6 @@ def test_run_sync_reconciliation_releases_reacquired_lock(
         execution_mode=ExecutionMode.AUTOMATIC,
         safety_state=ExecutionSafety.RESET_REQUIRED,
         reason="Orphaned running",
-        metadata={},
-        created_at=datetime.now(UTC),
     )
 
     gate_mock = MagicMock()
@@ -158,10 +154,10 @@ def test_run_sync_reconciliation_releases_reacquired_lock(
 
 
 def test_run_sync_reconciliation_lock_release_failure_is_caught(
-    monkeypatch, mock_db_engines, mock_session_factory, mock_lock
+    monkeypatch, mock_db_engines, mock_session_factory, mock_lock, make_reconciliation_plan
 ):
     """Verify that lock release exceptions are handled and do not propagate."""
-    plan = ReconciliationPlan(
+    plan = make_reconciliation_plan(
         drift_type="orphaned_running",
         severity=Severity.HIGH,
         actions=(ActionType.RESET_STATE,),
@@ -169,8 +165,6 @@ def test_run_sync_reconciliation_lock_release_failure_is_caught(
         execution_mode=ExecutionMode.AUTOMATIC,
         safety_state=ExecutionSafety.RESET_REQUIRED,
         reason="Orphaned running",
-        metadata={},
-        created_at=datetime.now(UTC),
     )
 
     gate_mock = MagicMock()
@@ -207,10 +201,10 @@ def test_run_sync_reconciliation_lock_release_failure_is_caught(
 
 
 def test_run_sync_reconciliation_blocked_error_propagates(
-    monkeypatch, mock_db_engines, mock_session_factory, mock_lock
+    monkeypatch, mock_db_engines, mock_session_factory, mock_lock, make_reconciliation_plan
 ):
     """Verify that ExecutionBlockedError propagates out of the sync loop."""
-    plan = ReconciliationPlan(
+    plan = make_reconciliation_plan(
         drift_type="lock_lost",
         severity=Severity.CRITICAL,
         actions=(ActionType.ALERT_ONLY,),
@@ -218,8 +212,6 @@ def test_run_sync_reconciliation_blocked_error_propagates(
         execution_mode=ExecutionMode.MANUAL,
         safety_state=ExecutionSafety.UNSAFE_SPLIT_BRAIN,
         reason="Lock lost",
-        metadata={},
-        created_at=datetime.now(UTC),
     )
 
     gate_mock = MagicMock()
