@@ -375,7 +375,7 @@ async def test_periodic_reconciliation_loop_backoff_on_error(monkeypatch):
         interval_seconds=2.0,
         database_url="sqlite://",
         is_shutdown_fn=mock_is_shutdown,
-        run_with_trace_fn=lambda fn, **kwargs: fn(),
+        run_with_trace_fn=lambda fn, **kwargs: asyncio.to_thread(fn),
     )
 
     # Assert loop ran twice
