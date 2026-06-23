@@ -321,8 +321,8 @@ class RecoveryGate:
         """Log and raise ExecutionBlockedError for ALERT_ONLY action."""
         self._raise_action_block(plan, "alert_only", "alert only")
 
-    def _handle_fallback_block(self, plan: ReconciliationPlan) -> None:
-        """Handle fallback block logic."""
+    def _handle_unknown_plan_block(self, plan: ReconciliationPlan) -> None:
+        """Block unrecognized plan combinations without mutating state."""
         action = self._map_plan_to_action(plan)
         if action != "resume":
             log_event(
@@ -331,7 +331,7 @@ class RecoveryGate:
                 ObservabilityEvent(
                     event="recovery_gate_execution_blocked_final",
                     message=(
-                        f"Execution blocked by recovery gate fallback: "
+                        f"Execution blocked by recovery gate for unrecognized plan: "
                         f"action={action}, inconsistency={plan.drift_type}"
                     ),
                     metadata={
@@ -341,7 +341,7 @@ class RecoveryGate:
                 ),
             )
             raise ExecutionBlockedError(
-                f"Execution blocked: fallback block. (action={action}, inconsistency={plan.drift_type})",
+                f"Execution blocked: unrecognized plan. (action={action}, inconsistency={plan.drift_type})",
                 action=action,
                 inconsistency_type=plan.drift_type,
             )
@@ -374,8 +374,7 @@ class RecoveryGate:
             # allow execution
             return
 
-        # Fallback
-        self._handle_fallback_block(plan)
+        self._handle_unknown_plan_block(plan)
 
     def ensure_safe_to_execute(self, cancellation_event: threading.Event | None = None) -> None:
         """Enforce execution blocking rules and perform recovery actions."""
