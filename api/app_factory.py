@@ -336,11 +336,12 @@ def _start_background_tasks(
         sync_task = asyncio.create_task(_graph_synchronization_loop(interval_seconds=interval))
 
         recon_interval = getattr(settings, "reconciliation_interval_seconds", interval)
+        from src.data.distributed_lock import MAX_TTL
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
         recon_url = _resolve_startup_reconciliation_url(settings)
         coord_url = getattr(settings, "coordination_database_url", None) or recon_url
-        lock_ttl_seconds = max(1, min(int(getattr(settings, "rebuild_lock_ttl_seconds", 300)), 300))
+        lock_ttl_seconds = max(1, min(int(getattr(settings, "rebuild_lock_ttl_seconds", MAX_TTL)), MAX_TTL))
 
         recon_task = asyncio.create_task(
             periodic_reconciliation_loop(

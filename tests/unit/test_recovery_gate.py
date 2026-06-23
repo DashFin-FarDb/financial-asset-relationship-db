@@ -384,7 +384,7 @@ def test_consume_automatic_reset_plan_calls_reset_path(mock_session_factory, moc
     """Automatic reset plans must trigger the reset execution pathway."""
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
 
-    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock)
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = make_reconciliation_plan(
         drift_type="orphaned_running",
         severity=Severity.HIGH,
@@ -402,13 +402,62 @@ def test_consume_automatic_reset_plan_calls_reset_path(mock_session_factory, moc
     gate._execute_reset_path.assert_called_once_with(plan, None)
 
 
+def test_consume_automatic_reset_plan_blocks_when_automatic_recovery_disabled(
+    mock_session_factory, mock_lock, make_reconciliation_plan
+):
+    """Automatic reset plans must not mutate when the gate is configured fail-closed."""
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
+
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=False)
+    plan = make_reconciliation_plan(
+        drift_type="orphaned_running",
+        severity=Severity.HIGH,
+        actions=(ActionType.RESET_STATE,),
+        target_state="healthy",
+        execution_mode=ExecutionMode.AUTOMATIC,
+        safety_state=ExecutionSafety.RESET_REQUIRED,
+        reason="Auto-reset orphaned job",
+    )
+    gate._execute_reset_path = MagicMock()
+
+    with pytest.raises(ExecutionBlockedError) as exc_info:
+        gate.consume_reconciliation_plan(plan)
+
+    assert exc_info.value.action == "alert_only"
+    assert exc_info.value.inconsistency_type == "orphaned_running"
+    gate._execute_reset_path.assert_not_called()
+
+
+def test_consume_immediate_reset_plan_calls_reset_path_when_automatic_recovery_disabled(
+    mock_session_factory, mock_lock, make_reconciliation_plan
+):
+    """Immediate reset plans remain explicitly authorized even when automatic recovery is disabled."""
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
+
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=False)
+    plan = make_reconciliation_plan(
+        drift_type="orphaned_running",
+        severity=Severity.HIGH,
+        actions=(ActionType.RESET_STATE,),
+        target_state="healthy",
+        execution_mode=ExecutionMode.IMMEDIATE,
+        safety_state=ExecutionSafety.RESET_REQUIRED,
+        reason="Immediate reset orphaned job",
+    )
+    gate._execute_reset_path = MagicMock()
+
+    gate.consume_reconciliation_plan(plan)
+
+    gate._execute_reset_path.assert_called_once_with(plan, None)
+
+
 def test_consume_reset_plan_rechecks_state_after_reset(
     mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
 ):
     """Reset path must recheck plan post-reset and block if still unsafe."""
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
 
-    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock)
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = make_reconciliation_plan(
         drift_type="orphaned_running",
         severity=Severity.HIGH,
@@ -448,7 +497,7 @@ def test_consume_reset_respects_cancellation_before_mutation(mock_session_factor
 
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
 
-    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock)
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = make_reconciliation_plan(
         drift_type="orphaned_running",
         severity=Severity.HIGH,
@@ -481,7 +530,7 @@ def test_reset_lock_reacquisition_timeout_uses_plan_drift_type(
     from src.data.distributed_lock import LockAcquisitionTimeout, LockState
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
 
-    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock)
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = make_reconciliation_plan(
         drift_type="crash_suspicion",
         severity=Severity.HIGH,
@@ -500,3 +549,31 @@ def test_reset_lock_reacquisition_timeout_uses_plan_drift_type(
 
     assert exc_info.value.action == "wait"
     assert exc_info.value.inconsistency_type == "crash_suspicion"
+
+
+def test_reset_lock_reacquisition_requires_valid_lock_after_acquire(
+    mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
+):
+    """Reset recovery must block if reacquisition does not produce a valid lock state."""
+    from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
+
+    gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
+    plan = make_reconciliation_plan(
+        drift_type="crash_suspicion",
+        severity=Severity.HIGH,
+        actions=(ActionType.RESET_STATE,),
+        target_state="healthy",
+        execution_mode=ExecutionMode.AUTOMATIC,
+        safety_state=ExecutionSafety.RESET_REQUIRED,
+        reason="Crash suspected",
+    )
+    mock_lock.check_state.side_effect = [LockState.EXPIRED, LockState.EXPIRED]
+    mock_lock.acquire.return_value = True
+    monkeypatch.setattr("src.logic.recovery_gate.AssetGraphRepository.get_active_rebuild_state", lambda self: None)
+
+    with pytest.raises(ExecutionBlockedError) as exc_info:
+        gate.consume_reconciliation_plan(plan)
+
+    assert exc_info.value.action == "wait"
+    assert exc_info.value.inconsistency_type == "crash_suspicion"
+    mock_lock.acquire.assert_called_once_with(max_retries=30)

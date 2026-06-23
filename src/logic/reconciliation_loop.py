@@ -6,18 +6,17 @@ import threading
 from collections.abc import Callable
 from typing import Any
 
+from src.data.distributed_lock import MAX_TTL
 from src.logic.reconciliation_engine import RebuildCancelledError
 from src.logic.recovery_gate import ExecutionBlockedError
 from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
 
-_MAX_RECONCILIATION_LOCK_TTL_SECONDS = 300
-
 
 def _bound_lock_ttl(lock_ttl: int) -> int:
     """Return a lock TTL within the distributed-lock safety bounds."""
-    return max(1, min(int(lock_ttl), _MAX_RECONCILIATION_LOCK_TTL_SECONDS))
+    return max(1, min(int(lock_ttl), MAX_TTL))
 
 
 def _check_cancellation(cancel_event: threading.Event | None) -> None:

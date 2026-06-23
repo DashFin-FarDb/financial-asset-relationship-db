@@ -244,11 +244,11 @@ class RecoveryGate:
 
     def _should_execute_reset(self, plan: ReconciliationPlan) -> bool:
         """Return True when a reset plan is authorized for immediate mutation."""
-        return (
-            ActionType.RESET_STATE in plan.actions
-            and plan.execution_mode in (ExecutionMode.AUTOMATIC, ExecutionMode.IMMEDIATE)
-            and plan.safety_state == ExecutionSafety.RESET_REQUIRED
-        )
+        if ActionType.RESET_STATE not in plan.actions or plan.safety_state != ExecutionSafety.RESET_REQUIRED:
+            return False
+        if plan.execution_mode == ExecutionMode.IMMEDIATE:
+            return True
+        return plan.execution_mode == ExecutionMode.AUTOMATIC and self.enable_automatic_recovery
 
     def _handle_reset_action(
         self,
@@ -449,25 +449,31 @@ class RecoveryGate:
         if self.lock.check_state() == LockState.VALID:
             return
 
-        if not self.lock_was_reacquired:
-            try:
-                self.lock.acquire(max_retries=30)
-                self.lock_was_reacquired = True
-            except LockAcquisitionTimeout as lat_exc:
-                log_event(
-                    logger,
-                    logging.ERROR,
-                    ObservabilityEvent(
-                        event="recovery_gate_lock_reacquisition_failed",
-                        message="Timeout acquiring distributed lock for reset recovery",
-                        metadata={"error": "LockAcquisitionTimeout"},
-                    ),
-                )
-                raise ExecutionBlockedError(
-                    f"Timeout acquiring distributed lock for reset recovery: {lat_exc}",
-                    action="wait",
-                    inconsistency_type=drift_type,
-                ) from lat_exc
+        try:
+            self.lock.acquire(max_retries=30)
+            self.lock_was_reacquired = True
+        except LockAcquisitionTimeout as lat_exc:
+            log_event(
+                logger,
+                logging.ERROR,
+                ObservabilityEvent(
+                    event="recovery_gate_lock_reacquisition_failed",
+                    message="Timeout acquiring distributed lock for reset recovery",
+                    metadata={"error": "LockAcquisitionTimeout"},
+                ),
+            )
+            raise ExecutionBlockedError(
+                f"Timeout acquiring distributed lock for reset recovery: {lat_exc}",
+                action="wait",
+                inconsistency_type=drift_type,
+            ) from lat_exc
+
+        if self.lock.check_state() != LockState.VALID:
+            raise ExecutionBlockedError(
+                "Cannot perform reset recovery without valid lock after reacquisition",
+                action="wait",
+                inconsistency_type=drift_type,
+            )
 
     def _is_heartbeat_stale(self, active_job: Any) -> bool:
         """Determine if active rebuild job heartbeat is stale."""

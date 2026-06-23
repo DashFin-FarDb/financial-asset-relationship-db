@@ -1,5 +1,6 @@
 """Unit tests for the background reconciliation loop."""
 
+import asyncio
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -323,6 +324,7 @@ async def test_periodic_reconciliation_loop_runs_iteration_when_ready(monkeypatc
 @pytest.mark.asyncio
 async def test_periodic_reconciliation_loop_backoff_on_error(monkeypatch):
     """Verify loop backs off on error and resets on success."""
+    original_sleep = asyncio.sleep
     lifecycle_mock = MagicMock(return_value=GraphRuntimeLifecycleState.READY)
     monkeypatch.setattr("api.app_factory.get_runtime_lifecycle_state", lifecycle_mock)
 
@@ -336,6 +338,7 @@ async def test_periodic_reconciliation_loop_backoff_on_error(monkeypatch):
 
     async def mock_perform_reconciliation_iteration(*args, **kwargs):
         nonlocal iter_calls
+        await original_sleep(0)
         iter_calls += 1
         if iter_calls == 1:
             raise RuntimeError("Database error")
@@ -357,6 +360,7 @@ async def test_periodic_reconciliation_loop_backoff_on_error(monkeypatch):
     sleep_durations = []
 
     async def mock_sleep(seconds):
+        await original_sleep(0)
         sleep_durations.append(seconds)
 
     monkeypatch.setattr("asyncio.sleep", mock_sleep)
@@ -376,14 +380,15 @@ async def test_periodic_reconciliation_loop_backoff_on_error(monkeypatch):
     # 2. 4.xxxx (backed off after first iter failed)
     # 3. 2.0 (reset after second iter succeeded)
     assert len(sleep_durations) == 3
-    assert sleep_durations[0] == 2.0
+    assert sleep_durations[0] == pytest.approx(2.0)
     assert sleep_durations[1] > 2.0
-    assert sleep_durations[2] == 2.0
+    assert sleep_durations[2] == pytest.approx(2.0)
 
 
 @pytest.mark.asyncio
 async def test_periodic_reconciliation_loop_does_not_backoff_on_blocked_state(monkeypatch):
     """Verify expected recovery gate blocks do not trigger transient-error backoff."""
+    original_sleep = asyncio.sleep
     lifecycle_mock = MagicMock(return_value=GraphRuntimeLifecycleState.READY)
     monkeypatch.setattr("api.app_factory.get_runtime_lifecycle_state", lifecycle_mock)
 
@@ -396,6 +401,7 @@ async def test_periodic_reconciliation_loop_does_not_backoff_on_blocked_state(mo
 
     async def mock_perform_reconciliation_iteration(*args, **kwargs):
         nonlocal iter_calls
+        await original_sleep(0)
         iter_calls += 1
         if iter_calls == 1:
             raise ExecutionBlockedError("blocked", action="wait", inconsistency_type="wait_for_convergence")
@@ -415,6 +421,7 @@ async def test_periodic_reconciliation_loop_does_not_backoff_on_blocked_state(mo
     sleep_durations = []
 
     async def mock_sleep(seconds):
+        await original_sleep(0)
         sleep_durations.append(seconds)
 
     monkeypatch.setattr("asyncio.sleep", mock_sleep)
@@ -427,4 +434,4 @@ async def test_periodic_reconciliation_loop_does_not_backoff_on_blocked_state(mo
     )
 
     assert iter_calls == 2
-    assert sleep_durations == [2.0, 2.0, 2.0]
+    assert sleep_durations == pytest.approx([2.0, 2.0, 2.0])

@@ -228,8 +228,8 @@ def test_startup_reconciliation_reacquires_lock_before_reset(mock_session_factor
     )
 
     # First check: EXPIRED (initial eval), second check (during RESET): EXPIRED,
-    # third check (re-eval after RESET): VALID
-    mock_lock.check_state.side_effect = [LockState.EXPIRED, LockState.EXPIRED, LockState.VALID]
+    # third check (post-acquire verification): VALID, fourth check (re-eval after RESET): VALID
+    mock_lock.check_state.side_effect = [LockState.EXPIRED, LockState.EXPIRED, LockState.VALID, LockState.VALID]
     mock_lock.acquire.return_value = True
 
     mock_repo = MagicMock()
