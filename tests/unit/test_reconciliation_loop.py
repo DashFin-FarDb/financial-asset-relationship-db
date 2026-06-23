@@ -320,7 +320,7 @@ async def test_periodic_reconciliation_loop_runs_iteration_when_ready(monkeypatc
         interval_seconds=0.001,
         database_url="sqlite://",
         is_shutdown_fn=mock_is_shutdown,
-        run_with_trace_fn=lambda fn, **kwargs: fn(),
+        run_with_trace_fn=lambda fn, **kwargs: asyncio.to_thread(fn),
     )
 
     # The iteration should be called
