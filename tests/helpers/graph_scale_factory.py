@@ -10,6 +10,4 @@ def build_scale_graph(
     *,
     asset_count: int,
     relationship_count: int,
-    prefix: str = "SCALE",
-) -> AssetRelationshipGraph:
-    """Build a deterministic
+    prefix: str = "S
