@@ -233,7 +233,7 @@ def test_rebuild_failure_after_persist_does_not_corrupt_durable_graph_truth(
         with pytest.raises(graph_admin._RebuildExecutionError):  # pylint: disable=protected-access
             graph_admin._run_rebuild_pipeline(  # pylint: disable=protected-access
                 session_factory,
-                get_settings(),
+                graph_admin.get_graph_lifecycle_settings(),
                 database_url,
                 job_id,
                 "post-persist-exec",
