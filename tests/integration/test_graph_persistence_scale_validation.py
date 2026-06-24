@@ -70,7 +70,10 @@ def _assert_edge_strength(graph, asset_count: int, index: int, expected_strength
 
     source = f"{prefix}_ASSET_{source_index:05d}"
     target = f"{prefix}_ASSET_{target_index:05d}"
-    assert (target, "scale_test_link", expected_strength) in graph.relationships[source]
+    assert any(
+        t == target and rel_type == "scale_test_link" and strength == pytest.approx(expected_strength)
+        for t, rel_type, strength in graph.relationships[source]
+    )
 
 
 @pytest.mark.parametrize(
