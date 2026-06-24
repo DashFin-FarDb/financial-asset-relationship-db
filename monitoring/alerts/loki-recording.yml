@@ -11,7 +11,7 @@ groups:
         expr: sum by (slo_name) (count_over_time({app="financial-asset-relationship-db"} | json | event="slo_breach_detected" [1m]))
 
       - record: log_auth_failures_total
-        expr: sum by (event) (count_over_time({app="financial-asset-relationship-db"} | json | event=~"auth_login_failure|auth_token_expired|auth_token_invalid" [1m]))
+        expr: sum by (event) (count_over_time({app="financial-asset-relationship-db"} | json | event=~"^(auth_login_failure|auth_token_expired|auth_token_invalid)$" [1m]))
 
       - record: log_access_denied_total
-        expr: sum by (event) (count_over_time({app="financial-asset-relationship-db"} | json | event=~"auth_access_denied|auth_user_disabled" [1m]))
+        expr: sum by (event) (count_over_time({app="financial-asset-relationship-db"} | json | event=~"^(auth_access_denied|auth_user_disabled)$" [1m]))
