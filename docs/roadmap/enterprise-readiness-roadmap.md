@@ -19,7 +19,7 @@ Work that should be treated as the current focus because it closes the remaining
 | Item | Status | Why now | Dependencies |
 | --- | --- | --- | --- |
 | Durable graph persistence schema/repositories | implemented and enforced | This is the base layer for hosted durability and restart semantics | Current ORM/schema contract, SQLite compatibility rules, persistence design doc |
-| Startup graph load/save integration | implemented and enforced | Restart/reload behavior cannot be validated until persisted graph load is wired into startup | Persistence schema/repositories, graph lifecycle providers |
+| Startup graph load/save integration | implemented and enforced | Persisted graph load/save is wired into startup, making restart/reload behavior observable and testable | Persistence schema/repositories, graph lifecycle providers |
 | Durable promotion gate extension | implemented and enforced | Basic readiness is not enough for staging/production promotion | Startup persistence integration, hosted readiness workflow |
 | API contract cleanup for density, pagination, visualization models | still missing | Contract ambiguity will create production drift and testing gaps | Boundary audit decisions, frontend and API type updates |
 
