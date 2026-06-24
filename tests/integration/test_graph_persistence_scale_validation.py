@@ -18,6 +18,8 @@ from tests.helpers.graph_scale_factory import build_scale_graph
 
 pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
+EdgeExpectation = tuple[int, float]
+
 
 def _sqlite_url(tmp_path: Path, name: str = "scale-validation.db") -> str:
     """Return an isolated file-backed SQLite URL."""
@@ -60,13 +62,12 @@ def _relationship_count(graph) -> int:
     return sum(len(items) for items in graph.relationships.values())
 
 
-def _assert_edge_strength(graph, asset_count: int, index: int, expected_strength: float, prefix: str) -> None:
+def _assert_edge_strength(graph, edge: EdgeExpectation, *, asset_count: int, prefix: str) -> None:
     """Assert a deterministic scale edge survived the repository round trip."""
+    index, expected_strength = edge
     source_index = index % asset_count
     offset = (index // asset_count) + 1
     target_index = (source_index + offset) % asset_count
-    if target_index == source_index:
-        target_index = (target_index + 1) % asset_count
 
     source = f"{prefix}_ASSET_{source_index:05d}"
     target = f"{prefix}_ASSET_{target_index:05d}"
@@ -110,14 +111,13 @@ def test_representative_scale_graph_save_load_round_trip(
     assert len(set(loaded.assets)) == asset_count
 
     prefix = f"SCALE{asset_count}"
-    _assert_edge_strength(loaded, asset_count, 0, 0.01, prefix)
-    _assert_edge_strength(loaded, asset_count, min(99, relationship_count - 1), 1.0, prefix)
+    _assert_edge_strength(loaded, (0, 0.01), asset_count=asset_count, prefix=prefix)
+    _assert_edge_strength(loaded, (min(99, relationship_count - 1), 1.0), asset_count=asset_count, prefix=prefix)
     _assert_edge_strength(
         loaded,
-        asset_count,
-        relationship_count - 1,
-        ((relationship_count - 1) % 100 + 1) / 100,
-        prefix,
+        (relationship_count - 1, ((relationship_count - 1) % 100 + 1) / 100),
+        asset_count=asset_count,
+        prefix=prefix,
     )
 
 
