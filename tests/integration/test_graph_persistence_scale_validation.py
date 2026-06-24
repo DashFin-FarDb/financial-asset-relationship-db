@@ -114,7 +114,7 @@ def test_representative_scale_graph_save_load_round_trip(
     _assert_edge_strength(loaded, (min(99, relationship_count - 1), 1.0), asset_count=asset_count, prefix=prefix)
     _assert_edge_strength(
         loaded,
-        (relationship_count - 1, ((relationship_count - 1) % 100 + 1) / 100),
+        (relationship_count - 2, ((relationship_count - 2) % 100 + 1) / 100),
         asset_count=asset_count,
         prefix=prefix,
     )
