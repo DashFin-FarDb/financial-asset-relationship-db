@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-from sqlalchemy import create_engine, insert
+from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 
 import api.routers.graph_admin as graph_admin
