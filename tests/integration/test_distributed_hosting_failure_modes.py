@@ -7,12 +7,11 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-UTC = timezone.utc
-
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 
+UTC = timezone.utc
 import api.routers.graph_admin as graph_admin
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
