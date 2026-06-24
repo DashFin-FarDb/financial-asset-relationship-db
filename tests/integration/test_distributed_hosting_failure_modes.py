@@ -11,7 +11,6 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 
-UTC = timezone.utc
 import api.routers.graph_admin as graph_admin
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
@@ -20,6 +19,8 @@ from src.data.distributed_lock import DistributedLock
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 from tests.helpers.graph_scale_factory import build_scale_graph
+
+UTC = timezone.utc
 
 pytestmark = pytest.mark.integration
 
