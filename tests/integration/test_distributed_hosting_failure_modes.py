@@ -297,7 +297,7 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
         with pytest.raises(graph_admin._RebuildExecutionError) as exc_info:  # pylint: disable=protected-access
             graph_admin._run_rebuild_pipeline(  # pylint: disable=protected-access
                 session_factory,
-                get_settings(),
+                graph_admin.get_graph_lifecycle_settings(),
                 database_url,
                 job_id,
                 "lock-lost-exec",
