@@ -49,7 +49,7 @@ Important follow-on work that should be planned once the durable core is stable.
 
 ## Key Dependencies
 
-- The durable graph persistence and startup integration path (PR 1–3) is implemented and enforced, and now serves as the base dependency for restart/reload validation, promotion evidence, and realistic DR testing.
+- The durable graph persistence, startup integration, and promotion gate path (PR 1–3) is implemented and enforced, and now serves as the base dependency for restart/reload validation, promotion evidence, and realistic DR testing.
 - Contract cleanup should happen before more API consumers accumulate assumptions around the current ambiguous payload shapes.
 - Failure-mode and scale validation should exercise the merged durability path before operators treat the current guarantees as fully proven.
 - Security automation should be tied to release and promotion policy, otherwise it will remain scanner noise instead of governance.
