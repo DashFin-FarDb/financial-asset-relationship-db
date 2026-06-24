@@ -1,14 +1,18 @@
 """Authentication API routes."""
 
+import logging
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from ..auth import (
+    _SECURITY_AUDIT_LOGIN_FAILURE,
+    _SECURITY_AUDIT_LOGIN_SUCCESS,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
     User,
+    _log_security_event,
     authenticate_user,
     create_access_token,
     get_current_active_user,
@@ -37,6 +41,13 @@ async def login_for_access_token(
     """
     user = authenticate_user(form_data.username, form_data.password)
     if user is None or user is False:
+        _log_security_event(
+            _SECURITY_AUDIT_LOGIN_FAILURE,
+            attempted_username=form_data.username,
+            request=request,
+            metadata={"rate_limit_policy": "5/minute"},
+            level=logging.WARNING,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -47,6 +58,13 @@ async def login_for_access_token(
     access_token = create_access_token(
         data={"sub": user.username},  # type: ignore[union-attr]
         expires_delta=access_token_expires,
+    )
+    _log_security_event(
+        _SECURITY_AUDIT_LOGIN_SUCCESS,
+        username=user.username,  # type: ignore[union-attr]
+        request=request,
+        metadata={"rate_limit_policy": "5/minute"},
+        level=logging.INFO,
     )
     return Token(access_token=access_token, token_type="bearer")
 
