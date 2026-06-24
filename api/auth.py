@@ -2,20 +2,29 @@
 
 from __future__ import annotations
 
+# pylint: disable=import-error
+import logging
+from collections.abc import Mapping as RuntimeMapping
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, TypedDict
+from typing import Any, Dict, Mapping
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleSource]
 from pydantic import BaseModel
+from typing_extensions import Annotated, TypedDict
 
 from api.models import User, UserInDB
 from src.config.settings import Settings, get_settings, load_settings
+from src.observability.context import get_request_context
+from src.observability.facade import ObservabilityEvent, log_event
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
+
+logger = logging.getLogger(__name__)
 
 # Security configuration
 _AUTH_SETTINGS = load_settings()
@@ -25,11 +34,142 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REBUILD_OPERATOR_FORBIDDEN_DETAIL = "You do not have permission to perform destructive actions."
 REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL = "Rebuild operator authorization is not configured."
+_SECURITY_AUDIT_LOGIN_SUCCESS = "auth_login_success"
+_SECURITY_AUDIT_LOGIN_FAILURE = "auth_login_failure"
+_SECURITY_AUDIT_TOKEN_EXPIRED = "auth_token_expired"  # noqa: S105
+_SECURITY_AUDIT_TOKEN_INVALID = "auth_token_invalid"  # noqa: S105
+_SECURITY_AUDIT_USER_DISABLED = "auth_user_disabled"
+_SECURITY_AUDIT_ACCESS_DENIED = "auth_access_denied"
+_SENSITIVE_METADATA_KEYS = frozenset(
+    {
+        "password",
+        "passwd",
+        "pwd",
+        "token",
+        "accesstoken",
+        "refreshtoken",
+        "idtoken",
+        "authorization",
+        "secret",
+        "secretkey",
+        "apikey",
+        "xapikey",
+        "bearer",
+    }
+)
+_SECURITY_AUDIT_IDENTITY_MAX_LENGTH = 128
+
+__all__ = [
+    "_SECURITY_AUDIT_ACCESS_DENIED",
+    "_SECURITY_AUDIT_LOGIN_FAILURE",
+    "_SECURITY_AUDIT_LOGIN_SUCCESS",
+    "_SECURITY_AUDIT_TOKEN_EXPIRED",
+    "_SECURITY_AUDIT_TOKEN_INVALID",
+    "_SECURITY_AUDIT_USER_DISABLED",
+    "_SecurityAuditEvent",
+    "_log_security_event",
+]
 
 # Password hashing
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+@dataclass(frozen=True)
+class _SecurityAuditEvent:
+    """Bounded input payload for structured security audit logging."""
+
+    event_slug: str
+    username: str | None = None
+    attempted_username: str | None = None
+    request: Request | None = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+    level: int = logging.INFO
+
+
+def _request_security_metadata(request: Request | None = None) -> Dict[str, str | None]:
+    """Return bounded request metadata for security audit events."""
+    context = get_request_context()
+    metadata: Dict[str, str | None] = {
+        "request_id": context.get("request_id"),
+        "correlation_id": context.get("correlation_id"),
+        "trace_id": context.get("trace_id"),
+        "span_id": context.get("span_id"),
+        "endpoint": None,
+        "ip_address": None,
+    }
+
+    if request is not None:
+        metadata["endpoint"] = request.url.path
+        metadata["ip_address"] = request.client.host if request.client else None
+
+    return metadata
+
+
+def _is_sensitive_metadata_key(key: str) -> bool:
+    """Return whether a metadata key is a credential-bearing field name."""
+    normalized = key.lower().replace("_", "").replace("-", "").replace(" ", "")
+    return normalized in _SENSITIVE_METADATA_KEYS
+
+
+def _sanitize_metadata_value(value: Any) -> Any:
+    """Recursively sanitize nested metadata values before logging."""
+    if hasattr(value, "model_dump"):
+        return _sanitize_metadata_value(value.model_dump())
+    if hasattr(value, "dict"):
+        return _sanitize_metadata_value(value.dict())
+    if isinstance(value, RuntimeMapping):
+        return {
+            str(key): _sanitize_metadata_value(item)
+            for key, item in value.items()
+            if not _is_sensitive_metadata_key(str(key))
+        }
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return [_sanitize_metadata_value(item) for item in value]
+    return value
+
+
+def _safe_security_metadata(metadata: Mapping[str, Any]) -> Dict[str, Any]:
+    """Drop sensitive metadata keys recursively before emitting audit logs."""
+    return {
+        str(key): _sanitize_metadata_value(value)
+        for key, value in metadata.items()
+        if not _is_sensitive_metadata_key(str(key))
+    }
+
+
+def _bounded_security_identity(value: str | None) -> str | None:
+    """Normalize and bound user-controlled identity fields before audit logging."""
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    if not normalized:
+        return None
+    return normalized[:_SECURITY_AUDIT_IDENTITY_MAX_LENGTH]
+
+
+def _log_security_event(event: _SecurityAuditEvent) -> None:
+    """Emit a structured security audit event without credential-bearing values."""
+    event_metadata: Dict[str, Any] = _request_security_metadata(event.request)
+    username = _bounded_security_identity(event.username)
+    attempted_username = _bounded_security_identity(event.attempted_username)
+    if username is not None:
+        event_metadata["username"] = username
+    if attempted_username is not None:
+        event_metadata["attempted_username"] = attempted_username
+    if event.metadata:
+        event_metadata.update(_safe_security_metadata(event.metadata))
+
+    log_event(
+        logger,
+        event.level,
+        ObservabilityEvent(
+            event=event.event_slug,
+            message=f"Security event: {event.event_slug}",
+            metadata=event_metadata,
+        ),
+    )
 
 
 # Models
@@ -319,7 +459,10 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
+async def get_current_user(  # noqa: RUF029  # NOSONAR
+    token: str = Depends(oauth2_scheme),  # noqa: B008
+    request: Request = None,  # type: ignore[assignment]
+) -> UserInDB:
     """
     Retrieve the UserInDB identified by the JWT's subject.
 
@@ -336,9 +479,19 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserInDB:
         token=token,
         credentials_exception=credentials_exception,
         expired_exception=expired_exception,
+        request=request,
     )
     user = get_user(username)
     if user is None:
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug=_SECURITY_AUDIT_TOKEN_INVALID,
+                username=username,
+                request=request,
+                metadata={"reason": "user_not_found"},
+                level=logging.WARNING,
+            )
+        )
         raise credentials_exception
     return user
 
@@ -377,6 +530,7 @@ def _decode_username_from_token(
     token: str,
     credentials_exception: HTTPException,
     expired_exception: HTTPException,
+    request: Request | None = None,
 ) -> str:
     """
     Extract the username stored in the token's `sub` claim and validate the token.
@@ -398,15 +552,42 @@ def _decode_username_from_token(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
+            _log_security_event(
+                _SecurityAuditEvent(
+                    event_slug=_SECURITY_AUDIT_TOKEN_INVALID,
+                    request=request,
+                    metadata={"reason": "missing_subject"},
+                    level=logging.WARNING,
+                )
+            )
             raise credentials_exception
         return str(TokenData(username=username).username)
     except ExpiredSignatureError as e:
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug=_SECURITY_AUDIT_TOKEN_EXPIRED,
+                request=request,
+                metadata={"reason": "expired_signature"},
+                level=logging.WARNING,
+            )
+        )
         raise expired_exception from e
     except InvalidTokenError as e:
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug=_SECURITY_AUDIT_TOKEN_INVALID,
+                request=request,
+                metadata={"reason": "invalid_token"},
+                level=logging.WARNING,
+            )
+        )
         raise credentials_exception from e
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:  # noqa: B008
+async def get_current_active_user(  # noqa: RUF029  # NOSONAR
+    current_user: User = Depends(get_current_user),  # noqa: B008
+    request: Request = None,  # type: ignore[assignment]
+) -> User:
     """
     Verify that the authenticated user's account is active.
 
@@ -421,6 +602,15 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         User: The authenticated user's public profile (without hashed_password).
     """
     if current_user.disabled:
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug=_SECURITY_AUDIT_USER_DISABLED,
+                username=current_user.username,
+                request=request,
+                metadata={"reason": "disabled_user"},
+                level=logging.WARNING,
+            )
+        )
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
@@ -428,6 +618,7 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 def get_current_rebuild_operator_user(
     current_user: Annotated[User, Depends(get_current_active_user)],
     settings: Annotated[Settings, Depends(get_settings)],
+    request: Request = None,  # type: ignore[assignment]
 ) -> User:
     """
     Enforce operator authorization for destructive graph rebuild actions.
@@ -438,12 +629,36 @@ def get_current_rebuild_operator_user(
     configured_admin = (settings.admin_username or "").strip()
 
     if not configured_admin:
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug=_SECURITY_AUDIT_ACCESS_DENIED,
+                username=current_user.username,
+                request=request,
+                metadata={
+                    "reason": "operator_not_configured",
+                    "required_role": "operator",
+                },
+                level=logging.WARNING,
+            )
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL,
         )
 
     if current_user.username.strip() != configured_admin:
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug=_SECURITY_AUDIT_ACCESS_DENIED,
+                username=current_user.username,
+                request=request,
+                metadata={
+                    "reason": "operator_required",
+                    "required_role": "operator",
+                },
+                level=logging.WARNING,
+            )
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=REBUILD_OPERATOR_FORBIDDEN_DETAIL,

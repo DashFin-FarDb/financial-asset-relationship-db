@@ -263,16 +263,26 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 **Files likely to change**
 
-- `.github/workflows/*`
-- `.github/PULL_REQUEST_TEMPLATE/*`
-- `docs/ENV_ACCESS_AUDIT.md`
-- `docs/audits/*`
-- `docs/enterprise-deployment-operating-model.md`
+- `SECURITY.md`
+- `docs/GOVERNANCE.md`
+- `api/auth.py`
+- `api/routers/auth.py`
+- `monitoring/alerts/loki-recording.yml`
+- `.github/workflows/docker-publish.yml`
+- `tests/unit/test_auth_security_events.py`
+- `tests/unit/test_auth_router_audit_logging.py`
+- `tests/unit/test_loki_recording_rules.py`
+- `docs/audits/enterprise-readiness-audit.md`
+- `docs/roadmap/enterprise-readiness-pr-board.md`
+- `docs/roadmap/enterprise-readiness-pr-plan.md`
 
 **Validation**
 
-- workflow lint / dry-run where feasible
-- repo policy review against PR scope guardrails
+- `pytest tests/unit/test_auth_security_events.py -q`
+- `pytest tests/unit/test_auth_router_audit_logging.py -q`
+- `pytest tests/unit/test_loki_recording_rules.py -q`
+- workflow YAML parse validation
+- `python -m compileall api src tests`
 
 ## PR 9 — Backup, Restore, and DR Runbook
 
