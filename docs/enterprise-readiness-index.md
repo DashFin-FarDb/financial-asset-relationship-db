@@ -36,7 +36,7 @@ The DR documentation gap is closed at the strategy and runbook level through [AD
 
 ## Roadmap Status Snapshot
 
-Status legend for roadmap items: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
+Status legend: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
 
 | Status | Current items |
 | --- | --- |
