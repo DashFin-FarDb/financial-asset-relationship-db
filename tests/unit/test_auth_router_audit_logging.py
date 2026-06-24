@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 # pylint: disable=import-error
-
 from types import SimpleNamespace
 from unittest.mock import patch
 
