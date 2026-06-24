@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 # pylint: disable=import-error
-
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -19,11 +18,11 @@ from api.auth import (
     _SECURITY_AUDIT_USER_DISABLED,
     ALGORITHM,
     SECRET_KEY,
-    _SecurityAuditEvent,
     _build_credentials_exception,
     _build_expired_exception,
     _decode_username_from_token,
     _log_security_event,
+    _SecurityAuditEvent,
     get_current_active_user,
     get_current_rebuild_operator_user,
     get_current_user,

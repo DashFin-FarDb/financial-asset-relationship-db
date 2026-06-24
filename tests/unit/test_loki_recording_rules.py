@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 # pylint: disable=import-error
-
 from pathlib import Path
 from typing import Any, Dict, Mapping, cast
 
