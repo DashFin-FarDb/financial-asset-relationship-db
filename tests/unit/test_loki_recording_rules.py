@@ -22,8 +22,13 @@ def _recording_rules() -> Dict[str, str]:
     config = cast(Mapping[str, Any], loaded)
     groups = cast(List[Mapping[str, Any]], config.get("groups", []))
     assert groups, "Loki recording file must contain at least one group"
-    rules = cast(List[Mapping[str, str]], groups[0].get("rules", []))
-    return {rule["record"]: rule["expr"] for rule in rules}
+    rules = [
+        rule
+        for group in groups
+        for rule in cast(List[Mapping[str, Any]], group.get("rules", []))
+    ]
+    assert rules, "Loki recording groups must contain at least one rule"
+    return {cast(str, rule["record"]): cast(str, rule["expr"]) for rule in rules}
 
 
 def test_loki_recording_rules_include_auth_failure_aggregation() -> None:
