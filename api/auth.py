@@ -56,6 +56,7 @@ _SENSITIVE_METADATA_KEYS = frozenset(
         "bearer",
     }
 )
+_SECURITY_AUDIT_IDENTITY_MAX_LENGTH = 128
 
 __all__ = [
     "_SECURITY_AUDIT_ACCESS_DENIED",
@@ -137,13 +138,25 @@ def _safe_security_metadata(metadata: Mapping[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _bounded_security_identity(value: str | None) -> str | None:
+    """Normalize and bound user-controlled identity fields before audit logging."""
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    if not normalized:
+        return None
+    return normalized[:_SECURITY_AUDIT_IDENTITY_MAX_LENGTH]
+
+
 def _log_security_event(event: _SecurityAuditEvent) -> None:
     """Emit a structured security audit event without credential-bearing values."""
     event_metadata: Dict[str, Any] = _request_security_metadata(event.request)
-    if event.username is not None:
-        event_metadata["username"] = event.username
-    if event.attempted_username is not None:
-        event_metadata["attempted_username"] = event.attempted_username
+    username = _bounded_security_identity(event.username)
+    attempted_username = _bounded_security_identity(event.attempted_username)
+    if username is not None:
+        event_metadata["username"] = username
+    if attempted_username is not None:
+        event_metadata["attempted_username"] = attempted_username
     if event.metadata:
         event_metadata.update(_safe_security_metadata(event.metadata))
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 # pylint: disable=import-error
+import logging
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -13,6 +14,7 @@ from fastapi import HTTPException, status
 
 from api.auth import (
     _SECURITY_AUDIT_ACCESS_DENIED,
+    _SECURITY_AUDIT_LOGIN_FAILURE,
     _SECURITY_AUDIT_TOKEN_EXPIRED,
     _SECURITY_AUDIT_TOKEN_INVALID,
     _SECURITY_AUDIT_USER_DISABLED,
@@ -248,3 +250,44 @@ def test_safe_security_metadata_sanitizes_camelcase_and_model_values() -> None:
     assert "access-token" not in sanitized
     assert sanitized["headers"] == {"safe_header": "kept"}
     assert sanitized["claims"] == {"safe_value": "kept"}
+
+
+def test_log_security_event_bounds_user_controlled_identity_fields() -> None:
+    """User-controlled identity fields should be stripped and bounded before logging."""
+    oversized_username = f"  {'u' * 512}  "
+    oversized_attempted_username = f"  {'a' * 512}  "
+
+    with patch("api.auth.log_event") as mock_log_event:
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug=_SECURITY_AUDIT_ACCESS_DENIED,
+                username=oversized_username,
+                attempted_username=oversized_attempted_username,
+                request=_request(),
+                metadata={"reason": "operator_required"},
+                level=logging.WARNING,
+            )
+        )
+
+    metadata = _logged_event(mock_log_event).metadata
+    assert metadata["username"] == "u" * 128
+    assert metadata["attempted_username"] == "a" * 128
+
+
+def test_log_security_event_omits_blank_identity_fields() -> None:
+    """Blank identity fields should not be emitted as audit metadata."""
+    with patch("api.auth.log_event") as mock_log_event:
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug=_SECURITY_AUDIT_LOGIN_FAILURE,
+                username="   ",
+                attempted_username="\t ",
+                request=_request(),
+                metadata={"reason": "invalid_credentials"},
+                level=logging.WARNING,
+            )
+        )
+
+    metadata = _logged_event(mock_log_event).metadata
+    assert "username" not in metadata
+    assert "attempted_username" not in metadata
