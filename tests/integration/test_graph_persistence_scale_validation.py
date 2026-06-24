@@ -192,7 +192,7 @@ def test_representative_scale_rebuild_records_baseline_timing(
         with caplog.at_level(logging.INFO):
             response = graph_admin._run_rebuild_pipeline(  # pylint: disable=protected-access
                 session_factory,
-                get_settings(),
+                providers.get_graph_lifecycle_settings(),
                 database_url,
                 job_id,
                 "scale-exec",
