@@ -14,7 +14,7 @@ from sqlalchemy.pool import StaticPool
 import api.routers.graph_admin as graph_admin
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
-from src.data.db_models import DistributedLockORM, RebuildJobORM, RebuildJobStatus
+from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
