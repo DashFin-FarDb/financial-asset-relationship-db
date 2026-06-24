@@ -213,3 +213,4 @@ def test_representative_scale_rebuild_records_baseline_timing(
         elapsed_seconds,
     )
     graph_lifecycle.reset_graph()
+    get_settings.cache_clear()
