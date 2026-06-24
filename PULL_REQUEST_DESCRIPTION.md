@@ -1,55 +1,44 @@
-# PR: Distributed Hosting Semantics Spec
+# PR: Failure-Mode and Scale Validation
 
 ## Primary Objective
 
-Defines FarDb distributed hosting semantics for multi-instance backend
-deployments.
+Prove the distributed graph rebuild hosting semantics under controlled restart, crash, stale-owner, lock-loss, and
+representative-scale conditions without changing the architecture.
 
-This PR documents the system as single-writer / multi-reader:
-
-- one rebuild writer per graph persistence boundary;
-- multiple backend instances may serve reads;
-- rebuild mutation requires lock ownership;
-- stale-owner recovery is allowed only under RecoveryGate-approved conditions;
-- suspected split-brain fails closed and requires operator intervention.
+This PR is a test-and-evidence PR. It validates the single-writer / multi-reader operating model documented in PR 6
+using focused integration tests and deterministic graph fixtures.
 
 ## Scope
 
 ### In Scope
 
-- Add ADR 0004 for distributed hosting semantics.
-- Define the authority model for durable graph truth, runtime graph snapshots,
-  and the rebuild control plane.
-- Document single-writer / multi-reader behavior for multi-instance backend
-  deployments.
-- Map lock ownership, heartbeat/liveness, stale-owner recovery, split-brain,
-  restart, and redeploy semantics.
-- Update the enterprise deployment operating model with rebuild ownership
-  rules.
-- Update reconciliation documentation so plan generation remains distinct from
-  write authorization.
-- Add testable invariants for PR 7 failure-mode validation.
-- Update roadmap and audit docs to reflect PR 6 documentation completion.
+- Add integration coverage for fresh-owner protection, stale-owner reset after lock reacquisition, and restart during a
+  live foreign rebuild owner.
+- Add rebuild pipeline failure tests for crash-before-persist, post-persist metadata failure, and lock-loss fail-closed
+  behavior.
+- Add a deterministic representative graph factory for scale validation.
+- Add representative-scale persistence round-trip checks for 250/1,000 and 1,000/5,000 graph snapshots.
+- Add bounded timing tripwires for persisted startup load and rebuild persistence paths.
+- Document tested invariants and non-SLO timing evidence.
+- Update roadmap and audit docs to reflect PR 7 validation progress.
 
 ### Out of Scope
 
-- No production code changes.
-- No schema changes.
+- No architecture changes.
+- No production schema changes.
 - No frontend changes.
 - No new rebuild endpoint.
-- No new distributed scheduler or coordinator.
+- No new distributed scheduler, queue, or coordinator.
 - No multi-region support claim.
-- No Redis, queue, or external coordinator introduction.
-- No backup/restore runbook; that belongs to PR 9.
-- No failure-injection tests; that belongs to PR 7.
+- No production benchmark framework or strict performance SLO.
+- No DR/backup runbook; that remains PR 9 scope.
 
 ### Files Expected to Change
 
-- `docs/adr/0004-distributed-hosting-semantics.md`
-- `docs/testing/distributed-hosting-invariants.md`
-- `docs/enterprise-deployment-operating-model.md`
-- `docs/reconciliation-engine.md`
-- `docs/reconciliation-discovery-map.md`
+- `tests/helpers/graph_scale_factory.py`
+- `tests/integration/test_distributed_hosting_failure_modes.py`
+- `tests/integration/test_graph_persistence_scale_validation.py`
+- `docs/testing/failure-mode-and-scale-validation.md`
 - `docs/roadmap/enterprise-readiness-pr-board.md`
 - `docs/roadmap/enterprise-readiness-pr-plan.md`
 - `docs/audits/enterprise-readiness-audit.md`
@@ -57,51 +46,51 @@ This PR documents the system as single-writer / multi-reader:
 
 ## Behavior and Compatibility Notes
 
-- Backend scale-out is specified for read serving only.
-- Scale-out does not increase rebuild writer concurrency.
-- Durable graph truth in `ASSET_GRAPH_DATABASE_URL` is authoritative in
-  staging and production.
-- Runtime graph state is an in-memory snapshot/cache, not the source of truth.
-- Unknown ownership, lock loss, persistence unavailability, fresh competing
-  owners, and suspected split-brain all fail closed for mutation.
-- PR 7 remains responsible for proving these semantics with failure-mode and
-  scale validation.
+- The validation uses SQLite-backed integration fixtures to preserve the roadmap’s SQLite compatibility rule.
+- The scale graph helper is deterministic and avoids duplicate directed relationship keys so persisted counts are exact.
+- The startup scale timing test exercises the lifecycle persisted-load path directly; existing hosted readiness tests
+  continue to cover the FastAPI health/readiness surface.
+- Timing assertions are generous regression tripwires, not production SLOs.
+- No API response shape, persistence schema, lock semantics, or RecoveryGate behavior is changed.
 
 ## Delayed, Deferred, or Not Acted On
 
-- No production code, schema, frontend, scheduler, queue, or coordinator change
-  is included.
-- No multi-region behavior is claimed.
-- Backup/restore remains deferred to PR 9.
-- Failure-injection implementation and scale validation remain deferred to PR 7.
-- The invariant table is a future test target, not a claim that those tests
-  already exist.
+- Production-scale benchmarking remains out of scope.
+- Multi-region, multi-writer, queue, scheduler, and external coordinator behavior remains unsupported.
+- DR/backup/restore procedures remain deferred to PR 9.
+- Larger stress tests for memory growth and lock refresh under production-like load remain future validation work.
 
 ## Validation Commands
 
 Executed successfully:
 
 ```bash
-python -m compileall src api
+pytest tests/integration/test_graph_persistence_scale_validation.py -q
+pytest tests/integration/test_distributed_hosting_failure_modes.py -q
+pytest tests/unit/test_recovery_gate.py -q
+python -m compileall src api tests
+pre-commit run --files tests/helpers/__init__.py tests/helpers/graph_scale_factory.py tests/integration/test_distributed_hosting_failure_modes.py tests/integration/test_graph_persistence_scale_validation.py docs/testing/failure-mode-and-scale-validation.md docs/roadmap/enterprise-readiness-pr-board.md docs/roadmap/enterprise-readiness-pr-plan.md docs/audits/enterprise-readiness-audit.md PULL_REQUEST_DESCRIPTION.md
 ```
 
-Documentation consistency checks were also performed against ADR 0002, ADR
-0003, the enterprise operating model, reconciliation docs, roadmap, and audit
-notes.
+Not executed in this environment (refer to PR checks/CI for authoritative results):
+
+```bash
+pytest tests/integration/test_graph_rebuild_persistence.py -q
+pytest tests/integration/test_hosted_graph_startup_readiness.py -q
+```
 
 ## Merge Criteria
 
-- [x] ADR 0004 exists and defines single-writer / multi-reader semantics.
-- [x] Split-brain handling is explicit and fail-closed.
-- [x] Stale-owner mutation rules are explicit and narrow.
-- [x] Restart/redeploy behavior with in-flight rebuilds is documented.
-- [x] Operational expectations are reflected in the enterprise deployment
-      operating model.
-- [x] Every operational rule maps to at least one future testable invariant.
-- [x] Docs do not claim multi-region, multi-writer, queue-based, or
-      scheduler-based behavior.
-- [x] Docs distinguish current guarantees from PR 7 validation work.
-- [x] No production code, schema, or frontend change is introduced.
+- [x] Fresh foreign rebuild owners are not reset.
+- [x] Stale owners are reset only through valid RecoveryGate lock ownership.
+- [x] Restart during a live rebuild does not steal fresh ownership.
+- [x] Crash before persistence fails the job without writing partial durable graph truth.
+- [x] Post-persist metadata failure leaves durable graph truth loadable and consistent.
+- [x] Lock loss aborts before persistence or success marking.
+- [x] Representative-scale save/load round trip preserves exact counts and selected edge strengths.
+- [x] Representative persisted startup load and rebuild persist paths have bounded timing tripwires.
+- [x] Baseline evidence is documented without introducing production SLO claims.
+- [x] No architecture, schema, frontend, or API-contract changes are introduced.
 
 ## Checklist
 
@@ -109,15 +98,12 @@ notes.
 
 - [x] This PR makes one primary decision only.
 - [x] I have explicitly listed what is out of scope.
-- [x] This is a docs/spec PR.
+- [x] This is a test-and-evidence PR.
 - [x] I have verified the branch, base branch, and referenced roadmap context.
-- [x] I have checked this PR against the production architecture
-      (`FastAPI` backend + `Next.js` frontend).
-- [x] I have checked this PR against `.github/AUTOMATION_SCOPE_POLICY.md`.
+- [x] I have checked this PR against the production architecture (`FastAPI` backend + `Next.js` frontend).
 
 ### Documentation Review
 
-- [x] ADR 0004 aligns with ADR 0002 and ADR 0003.
-- [x] Enterprise operating model includes distributed hosting semantics.
-- [x] Reconciliation docs keep `ReconciliationEngine` plan-only.
-- [x] Testable invariants map directly to PR 7.
+- [x] Failure-mode evidence maps back to ADR 0004 distributed hosting semantics.
+- [x] Scale validation is documented as representative and non-SLO.
+- [x] Roadmap and audit docs distinguish current proof from deferred production-scale validation.
