@@ -113,14 +113,16 @@ def test_recovery_resets_stale_running_job_after_lock_reacquisition(sqlite_sessi
         lock_ttl_seconds=_LOCK_TTL,
         enable_automatic_recovery=True,
     )
-    gate.ensure_safe_to_execute()
+    try:
+        gate.ensure_safe_to_execute()
 
-    job = _load_job(sqlite_session_factory, job_id)
-    assert job.status == RebuildJobStatus.FAILED
-    assert job.sanitized_failure_category == "recovery_reset"
-    assert gate.lock_was_reacquired is True
-    assert lock.check_state().value == "valid"
-    lock.release()
+        job = _load_job(sqlite_session_factory, job_id)
+        assert job.status == RebuildJobStatus.FAILED
+        assert job.sanitized_failure_category == "recovery_reset"
+        assert gate.lock_was_reacquired is True
+        assert lock.check_state().value == "valid"
+    finally:
+        lock.release()
 
 
 def test_restart_during_live_rebuild_does_not_steal_fresh_owner(sqlite_session_factory) -> None:
