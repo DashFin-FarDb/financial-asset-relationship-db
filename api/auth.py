@@ -52,7 +52,7 @@ _SENSITIVE_METADATA_KEYS = frozenset(
         "secret_key",
         "api_key",
         "apikey",
-        "x-api-key",
+        "x_api_key",
         "bearer",
     }
 )
