@@ -22,7 +22,6 @@ persistence behavior.
 
 | Scenario | Expected | Test |
 |---|---|---|
-| Restart after persisted rebuild | persisted graph loads after runtime reset | `test_promotion_gate_sequence_rebuild_restart_and_persisted_startup` |
 | Crash before persist | job fails, durable truth remains empty or unchanged | `test_rebuild_crash_before_persist_marks_failed_without_partial_graph_truth` |
 | Crash after persist metadata failure | graph truth remains loadable and internally consistent | `test_rebuild_failure_after_persist_does_not_corrupt_durable_graph_truth` |
 | Fresh foreign owner | reset blocked while owner heartbeat is fresh | `test_recovery_does_not_reset_running_job_with_fresh_foreign_heartbeat` |
