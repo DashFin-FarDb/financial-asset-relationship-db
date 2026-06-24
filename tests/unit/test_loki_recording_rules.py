@@ -17,7 +17,9 @@ LOKI_RECORDING_PATH = PROJECT_ROOT / "monitoring" / "alerts" / "loki-recording.y
 
 def _recording_rules() -> Dict[str, str]:
     """Load Loki recording rules by record name."""
-    config = cast(Mapping[str, Any], yaml.safe_load(LOKI_RECORDING_PATH.read_text(encoding="utf-8")))
+    loaded = yaml.safe_load(LOKI_RECORDING_PATH.read_text(encoding="utf-8"))
+    assert isinstance(loaded, Mapping), "Loki recording file must contain a YAML mapping"
+    config = cast(Mapping[str, Any], loaded)
     groups = cast(List[Mapping[str, Any]], config.get("groups", []))
     assert groups, "Loki recording file must contain at least one group"
     rules = cast(List[Mapping[str, str]], groups[0].get("rules", []))

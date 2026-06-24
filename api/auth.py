@@ -443,7 +443,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 async def get_current_user(  # noqa: RUF029
     token: str = Depends(oauth2_scheme),  # noqa: B008
-    request: Request | None = None,
+    request: Request = None,  # type: ignore[assignment]
 ) -> UserInDB:
     """
     Retrieve the UserInDB identified by the JWT's subject.
@@ -568,7 +568,7 @@ def _decode_username_from_token(
 
 async def get_current_active_user(  # noqa: RUF029
     current_user: User = Depends(get_current_user),  # noqa: B008
-    request: Request | None = None,
+    request: Request = None,  # type: ignore[assignment]
 ) -> User:
     """
     Verify that the authenticated user's account is active.
@@ -600,7 +600,7 @@ async def get_current_active_user(  # noqa: RUF029
 def get_current_rebuild_operator_user(
     current_user: Annotated[User, Depends(get_current_active_user)],
     settings: Annotated[Settings, Depends(get_settings)],
-    request: Request | None = None,
+    request: Request = None,  # type: ignore[assignment]
 ) -> User:
     """
     Enforce operator authorization for destructive graph rebuild actions.

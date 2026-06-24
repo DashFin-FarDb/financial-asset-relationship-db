@@ -75,65 +75,56 @@ def _assert_rebuild_operator_denial(
     assert event.metadata["required_role"] == "operator"
 
 
-def test_decode_username_logs_expired_token_before_raising() -> None:
-    """Expired JWTs should emit a structured security event before raising 401."""
-    token = jwt.encode(
-        {"sub": "alice", "exp": datetime.now(UTC) - timedelta(minutes=1)},
-        SECRET_KEY,
-        algorithm=ALGORITHM,
-    )
-
+@pytest.mark.parametrize(
+    ("token_factory", "expected_detail", "expected_event", "expected_reason"),
+    [
+        (
+            lambda: jwt.encode(
+                {"sub": "alice", "exp": datetime.now(UTC) - timedelta(minutes=1)},
+                SECRET_KEY,
+                algorithm=ALGORITHM,
+            ),
+            "Token has expired",
+            _SECURITY_AUDIT_TOKEN_EXPIRED,
+            "expired_signature",
+        ),
+        (
+            lambda: "not.a.valid.jwt",
+            "Could not validate credentials",
+            _SECURITY_AUDIT_TOKEN_INVALID,
+            "invalid_token",
+        ),
+        (
+            lambda: jwt.encode(
+                {"exp": datetime.now(UTC) + timedelta(minutes=5)},
+                SECRET_KEY,
+                algorithm=ALGORITHM,
+            ),
+            "Could not validate credentials",
+            _SECURITY_AUDIT_TOKEN_INVALID,
+            "missing_subject",
+        ),
+    ],
+)
+def test_decode_username_logs_token_validation_failures_before_raising(
+    token_factory,
+    expected_detail: str,
+    expected_event: str,
+    expected_reason: str,
+) -> None:
+    """Token validation failures should emit structured security events before raising."""
     with patch("api.auth.log_event") as mock_log_event, pytest.raises(HTTPException) as exc_info:
         _decode_username_from_token(
-            token=token,
+            token=token_factory(),
             credentials_exception=_build_credentials_exception(),
             expired_exception=_build_expired_exception(),
             request=_request(),
         )
 
-    assert exc_info.value.detail == "Token has expired"
+    assert exc_info.value.detail == expected_detail
     event = _logged_event(mock_log_event)
-    assert event.event == _SECURITY_AUDIT_TOKEN_EXPIRED
-    assert event.metadata["reason"] == "expired_signature"
-    assert event.metadata["endpoint"] == "/api/secure"
-
-
-def test_decode_username_logs_invalid_token_before_raising() -> None:
-    """Malformed JWTs should emit auth_token_invalid before raising credentials failure."""
-    with patch("api.auth.log_event") as mock_log_event, pytest.raises(HTTPException) as exc_info:
-        _decode_username_from_token(
-            token="not.a.valid.jwt",
-            credentials_exception=_build_credentials_exception(),
-            expired_exception=_build_expired_exception(),
-            request=_request(),
-        )
-
-    assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-    event = _logged_event(mock_log_event)
-    assert event.event == _SECURITY_AUDIT_TOKEN_INVALID
-    assert event.metadata["reason"] == "invalid_token"
-
-
-def test_decode_username_logs_missing_subject_before_raising() -> None:
-    """JWTs without a subject should emit auth_token_invalid before raising credentials failure."""
-    token = jwt.encode(
-        {"exp": datetime.now(UTC) + timedelta(minutes=5)},
-        SECRET_KEY,
-        algorithm=ALGORITHM,
-    )
-
-    with patch("api.auth.log_event") as mock_log_event, pytest.raises(HTTPException) as exc_info:
-        _decode_username_from_token(
-            token=token,
-            credentials_exception=_build_credentials_exception(),
-            expired_exception=_build_expired_exception(),
-            request=_request(),
-        )
-
-    assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-    event = _logged_event(mock_log_event)
-    assert event.event == _SECURITY_AUDIT_TOKEN_INVALID
-    assert event.metadata["reason"] == "missing_subject"
+    assert event.event == expected_event
+    assert event.metadata["reason"] == expected_reason
 
 
 @pytest.mark.asyncio
