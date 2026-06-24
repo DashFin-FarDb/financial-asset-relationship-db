@@ -211,27 +211,38 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 **Scope**
 
-- add crash / restart / stale-owner tests;
-- add representative-scale persistence and rebuild checks;
-- record baseline timings for load and rebuild paths.
+- add crash, lock-loss, fresh-owner, stale-owner, and restart-during-live-rebuild tests;
+- add representative-scale persistence round-trip and rebuild persistence checks;
+- record non-SLO baseline timings for persisted load and rebuild paths;
+- document tested invariants and deferred validation work.
 
 **Out of scope**
 
-- major architecture changes;
-- new product features.
+- architecture changes;
+- persistence schema changes;
+- frontend behavior changes;
+- distributed schedulers, queues, or new rebuild endpoints;
+- multi-region claims;
+- DR/backup runbooks.
 
 **Files likely to change**
 
-- `tests/integration/*`
-- `tests/coordination/*` if introduced
-- `tests/failure_injection/*` if introduced
-- `docs/graph-persistence-design.md`
-- `docs/operational-readiness-risks.md`
+- `tests/integration/test_distributed_hosting_failure_modes.py`
+- `tests/integration/test_graph_persistence_scale_validation.py`
+- `tests/helpers/graph_scale_factory.py`
+- `docs/testing/failure-mode-and-scale-validation.md`
+- `docs/roadmap/enterprise-readiness-pr-board.md`
+- `docs/roadmap/enterprise-readiness-pr-plan.md`
+- `docs/audits/enterprise-readiness-audit.md`
 
 **Validation**
 
-- targeted restart / failure injection tests
-- representative load/rebuild benchmarks
+- `pytest tests/integration/test_distributed_hosting_failure_modes.py -q`
+- `pytest tests/integration/test_graph_persistence_scale_validation.py -q`
+- `pytest tests/unit/test_recovery_gate.py -q`
+- `pytest tests/integration/test_graph_rebuild_persistence.py -q`
+- `pytest tests/integration/test_hosted_graph_startup_readiness.py -q`
+- `python -m compileall src api tests`
 
 ## PR 8 — Security and Governance Hardening
 

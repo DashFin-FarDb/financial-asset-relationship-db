@@ -25,7 +25,7 @@ These PRs finish the control plane and harden the distributed execution model af
 | --- | --- | --- | --- | --- |
 | PR 5 | Recovery-Plane Completion | Partial / in progress | RecoveryGate consumes reconciliation plans or the remaining delta is explicitly documented; recovery tests pass | PR 1, existing reconciliation/recovery code |
 | PR 6 | Distributed Hosting Semantics Spec | Complete | Single-writer, split-brain, restart, and lock-loss semantics are documented and internally consistent | PR 1, PR 2 |
-| PR 7 | Failure-Mode and Scale Validation | Not started | Restart, crash, stale-owner, and larger-graph tests prove the system behaves under failure and load | PR 1, PR 2 |
+| PR 7 | Failure-Mode and Scale Validation | In progress | Restart, crash, stale-owner, and larger-graph tests prove the system behaves under failure and load | PR 1, PR 2 |
 | PR 8 | Security and Governance Hardening | Not started | Security automation and governance policy are enforceable, not just documented | Can start earlier, but should converge with the release process |
 
 ## Later

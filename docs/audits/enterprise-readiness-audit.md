@@ -30,7 +30,7 @@ The remaining risk is concentrated in the durability and promotion layers:
 | Hosted readiness smoke checks | Implemented | `.github/workflows/hosted-readiness.yml`, `scripts/check_hosted_readiness.py` | Medium | Extend smoke checks to assert durable graph persistence, not just bounded health |
 | Durable graph persistence | Designed, not fully implemented | `docs/adr/0002-hosted-deployment-and-persistence.md`, `docs/graph-persistence-design.md` | High | Implement schema/repository/save-load/startup integration PRs |
 | Restart / reload semantics | Planned, not completed | `docs/graph-persistence-design.md`, `docs/enterprise-deployment-operating-model.md` | High | Add startup load-from-persistence and post-restart verification paths |
-| Distributed hosting semantics | Documented | `docs/adr/0004-distributed-hosting-semantics.md`, `docs/enterprise-deployment-operating-model.md`, `docs/testing/distributed-hosting-invariants.md` | Medium | Prove semantics in PR 7 failure-mode and scale validation |
+| Distributed hosting semantics | Documented; validation in progress | `docs/adr/0004-distributed-hosting-semantics.md`, `docs/enterprise-deployment-operating-model.md`, `docs/testing/distributed-hosting-invariants.md`, `docs/testing/failure-mode-and-scale-validation.md` | Medium | Complete PR 7 focused validation and keep broader production-scale testing out of scope |
 | Validation / contracts | Partially hardened | `docs/phase-3-computation-layout-boundary-audit.md` | Medium | Remove density/pagination/schema ambiguity in API and frontend contracts |
 | CI/CD | Mature baseline, but not enterprise-complete | `.github/workflows/ci.yml`, `.github/workflows/ci-gate-spec.yaml`, `.github/workflows/codeql.yml`, `.github/workflows/hosted-readiness.yml` | High | Tighten promotion gates, add durable-storage and restart checks, enforce release discipline |
 | Security automation | Broad coverage, still incomplete | `.github/workflows/*`, `docs/ENV_ACCESS_AUDIT.md`, `docs/audits/OPERATOR_REBUILD_AUTHORIZATION_AUDIT.md` | High | Add supply-chain, secret, dependency, and auth-audit automation policy |
@@ -165,13 +165,14 @@ The phase-3 boundary audit shows user-facing contract drift that should be resol
 
 ### 6. Load / scale validation
 
-The repo still needs production-scale evidence for:
+PR 7 adds representative-scale SQLite validation for deterministic 250/1,000 and 1,000/5,000 graph snapshots, plus
+bounded startup-load and rebuild-persist timing tripwires. The repo still needs later production-scale evidence for:
 
 - rebuild duration under stress;
 - lock refresh timing under load;
 - memory growth during large graph rebuilds;
-- persistence load and startup replay cost;
-- CI coverage against representative graph sizes.
+- persistence load and startup replay cost beyond representative CI fixtures;
+- CI coverage against larger production-like graph sizes.
 
 ## Risk Assessment
 
