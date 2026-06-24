@@ -256,7 +256,7 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A lost lock checkpoint should fail closed before persistence or success marking."""
+    """A lost lock after graph construction should fail closed before persistence or success marking."""
     database_url = _sqlite_url(tmp_path, "lock-lost.db")
     engine = create_engine_from_url(database_url)
     try:
@@ -268,8 +268,17 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
             repo.mark_rebuild_job_running(job_id, "lock-lost-exec")
             session.commit()
 
+        lock_lost = threading.Event()
+        graph_built = False
         save_called = False
         success_called = False
+        built_graph = build_scale_graph(asset_count=5, relationship_count=10, prefix="LOST")
+
+        def build_then_lose_lock(*_args, **_kwargs):
+            nonlocal graph_built
+            graph_built = True
+            lock_lost.set()
+            return built_graph, "sample"
 
         def track_save(*_args, **_kwargs):
             nonlocal save_called
@@ -279,12 +288,11 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
             nonlocal success_called
             success_called = True
 
+        monkeypatch.setattr(graph_admin, "build_rebuild_graph", build_then_lose_lock)
         monkeypatch.setattr(graph_admin, "save_graph_to_persistence", track_save)
         monkeypatch.setattr(graph_admin, "_mark_job_succeeded_safe", track_success)  # pylint: disable=protected-access
 
-        lock_lost = threading.Event()
-        lock_lost.set()
-        with pytest.raises(graph_admin._DistributedLockLostError):  # pylint: disable=protected-access
+        with pytest.raises(graph_admin._RebuildExecutionError) as exc_info:  # pylint: disable=protected-access
             graph_admin._run_rebuild_pipeline(  # pylint: disable=protected-access
                 session_factory,
                 get_settings(),
@@ -296,6 +304,9 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
                 threading.Event(),
             )
 
+        assert isinstance(exc_info.value.cause, graph_admin._DistributedLockLostError)  # pylint: disable=protected-access
+        assert "pre-persistence" in str(exc_info.value.cause)
+        assert graph_built is True
         with session_factory() as session:
             job = AssetGraphRepository(session).get_rebuild_job(job_id)
             assert job is not None
