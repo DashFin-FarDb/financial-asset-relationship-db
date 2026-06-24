@@ -31,8 +31,8 @@ The current selected initial topology is:
 ### Rollback and Restore Ownership
 
 - **Deployment rollback owner**: Designated maintainer/operator with authority to promote a previous known-good Vercel deployment.
-- **Data restore owner**: Designated maintainer/operator responsible for future restore execution once a restore runbook exists.
-- **Backup/restore runbook status**: Full backup/restore and recovery procedures are explicitly deferred to Stage 7.
+- **Data restore owner**: Designated Restore Operator responsible for executing [the backup/restore/DR runbook](runbooks/backup-restore-dr.md) when database recovery is required.
+- **Backup/restore runbook status**: Backup, restore, and DR procedures are documented in [docs/runbooks/backup-restore-dr.md](runbooks/backup-restore-dr.md). Strategy and objectives are documented in [ADR 0005](adr/0005-backup-restore-dr-strategy.md).
 
 ## Deployment Ownership
 
@@ -213,9 +213,22 @@ After rollback:
 
 ### Data Restore Boundary
 
-- Full backup/restore remains deferred to Stage 7.
+- Data restore is documented in [docs/runbooks/backup-restore-dr.md](runbooks/backup-restore-dr.md).
 - Rollback is not equivalent to database restore.
-- Operators must treat schema changes and destructive data operations with caution until a restore runbook exists.
+- Operators must treat schema changes and destructive data operations as restore-sensitive changes and should take an ad-hoc backup before executing them.
+
+## Disaster Recovery
+
+FarDb disaster recovery is governed by [ADR 0005: Backup, Restore, and Disaster Recovery Strategy](adr/0005-backup-restore-dr-strategy.md) and executed through [the backup/restore/DR runbook](runbooks/backup-restore-dr.md).
+
+ADR 0005 defines the staging/production recovery objectives:
+
+- graph data RPO is tied to approved source-data freshness because graph data is rebuildable through `RebuildExecutor`;
+- coordination/auth data RPO is 1 hour;
+- full service RTO is 2 hours, including restore verification;
+- provider-managed PITR is primary for hosted PostgreSQL, with `pg_dump` as the portable fallback.
+
+A Vercel rollback/promotion can recover a previous application deployment, but it does **not** restore `DATABASE_URL`, `POSTGRES_URL`, or `ASSET_GRAPH_DATABASE_URL` data. When data loss, destructive writes, failed migrations, or corrupted graph persistence are suspected, operators must use the DR runbook rather than treating deployment rollback as sufficient recovery.
 
 ## Secret Handling
 
@@ -230,8 +243,11 @@ The operating model assumes named ownership for the following functions:
 - **Deploy operator**: Executes deployment to the target environment.
 - **Promotion approver**: Confirms promotion gates are satisfied before staging/production promotion.
 - **Rollback executor**: Performs Vercel rollback/promotion to restore the previous known-good deployment.
+- **Backup Operator**: Verifies backup health and executes ad-hoc backups before major changes.
+- **Restore Operator**: Executes database restore procedures and post-restore verification according to the DR runbook.
 - **Secret/config maintainer**: Owns environment-variable configuration and secret rotation.
 - **Persistence-verification operator**: Executes and records the durable graph-persistence smoke procedure.
+- **Incident Commander**: Escalation point for restore failures, data loss events, and RTO/RPO risk.
 
 One person may hold multiple roles, but the responsibilities must be explicit.
 
@@ -246,6 +262,7 @@ When the deployment is degraded or promotion evidence is incomplete:
    - missing persisted graph after restart
    - auth/application database unreachable
    - non-durable preview assumptions being incorrectly treated as staging/production evidence
+   - suspected data loss or restore requirement
 3. **Inspect**: Review backend logs and deployment metadata without exposing secrets to end users.
-4. **Mitigate**: Roll back application code/configuration when the current deployment is not trustworthy.
-5. **Re-verify**: Re-run the appropriate readiness and durable graph-persistence checks before restoring promotion confidence.
+4. **Mitigate**: Roll back application code/configuration when the current deployment is not trustworthy, or execute the DR runbook when database restore is required.
+5. **Re-verify**: Re-run the appropriate readiness, durable graph-persistence, and post-restore checks before restoring promotion confidence.

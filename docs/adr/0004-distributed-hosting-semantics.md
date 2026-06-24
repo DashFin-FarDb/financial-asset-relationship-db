@@ -249,13 +249,15 @@ failure-mode and scale tests.
 - No new distributed scheduler.
 - No multi-region support claim.
 - No Redis, queue, or external coordinator introduction.
-- No backup/restore runbook; that belongs to PR 9.
+- No backup/restore procedure definition in this ADR; restore strategy is covered by ADR 0005 and the DR runbook.
 - No failure-injection implementation; that belongs to PR 7.
 
 ## References
 
 - [ADR 0002: Hosted Deployment and Durable Persistence](./0002-hosted-deployment-and-persistence.md)
 - [ADR 0003: Distributed Lock Refresh and Heartbeat Strategy](./0003-distributed-lock-refresh-and-heartbeat-strategy.md)
+- [ADR 0005: Backup, Restore, and Disaster Recovery Strategy](./0005-backup-restore-dr-strategy.md)
+- [Backup, Restore, and DR Runbook](../runbooks/backup-restore-dr.md)
 - [Enterprise Deployment Operating Model](../enterprise-deployment-operating-model.md)
 - [Reconciliation Engine](../reconciliation-engine.md)
 - [Distributed Hosting Invariants](../testing/distributed-hosting-invariants.md)

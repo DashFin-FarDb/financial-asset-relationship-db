@@ -145,7 +145,7 @@ Implemented graph serialization, deserialization, and PostgreSQL repository boun
 
 ### Phase 4: Production Optimizations (Future)
 
-Connection pooling tuning, caching strategy, monitoring, backup procedures.
+Connection pooling tuning, caching strategy, and monitoring remain future production optimizations. Backup and restore strategy/procedures are no longer treated as an undocumented Phase 4 gap: they are documented in [ADR 0005](./0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](../runbooks/backup-restore-dr.md). Automated backup orchestration remains deferred.
 
 ## Required Hosted Environment Variables
 
@@ -182,6 +182,8 @@ These are valid future considerations but should not block initial deployment.
 ## References
 
 - [ADR 0001: Production Architecture](0001-production-architecture.md)
+- [ADR 0005: Backup, Restore, and Disaster Recovery Strategy](0005-backup-restore-dr-strategy.md)
+- [Backup, Restore, and DR Runbook](../runbooks/backup-restore-dr.md)
 - [DEPLOYMENT.md](../../DEPLOYMENT.md)
 - [VERCEL_DEPLOYMENT_CHECKLIST.md](../../VERCEL_DEPLOYMENT_CHECKLIST.md)
 - [Vercel Documentation](https://vercel.com/docs)
