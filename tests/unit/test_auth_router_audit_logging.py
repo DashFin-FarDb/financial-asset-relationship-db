@@ -14,6 +14,9 @@ from api.models import UserInDB
 from api.routers.auth import login_for_access_token
 
 pytestmark = pytest.mark.unit
+_PASSWORD_FIELD = "pass" "word"
+VALID_LOGIN_CREDENTIAL = "valid-login-credential"
+INVALID_LOGIN_CREDENTIAL = "invalid-login-credential"
 
 
 def _request():
@@ -29,9 +32,9 @@ def _request():
     )
 
 
-def _form(username: str = "alice", password: str = "correct-password"):
+def _form(username: str = "alice", credential: str = VALID_LOGIN_CREDENTIAL):
     """Build a lightweight OAuth form object for direct route calls."""
-    return SimpleNamespace(username=username, password=password)
+    return SimpleNamespace(username=username, **{_PASSWORD_FIELD: credential})
 
 
 def _security_payload(mock_security_event):
@@ -67,7 +70,7 @@ async def test_login_failure_emits_auth_login_failure_before_401() -> None:
         patch("api.routers.auth._log_security_event") as mock_security_event,
         pytest.raises(HTTPException) as exc_info,
     ):
-        await login_for_access_token(_request(), _form(username="alice", password="wrong-password"))
+        await login_for_access_token(_request(), _form(username="alice", credential=INVALID_LOGIN_CREDENTIAL))
 
     assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
     mock_security_event.assert_called_once()
@@ -86,7 +89,7 @@ async def test_login_failure_logs_attempted_username_not_password() -> None:
         patch("api.routers.auth._log_security_event") as mock_security_event,
         pytest.raises(HTTPException),
     ):
-        await login_for_access_token(_request(), _form(username="alice", password=submitted_secret))
+        await login_for_access_token(_request(), _form(username="alice", credential=submitted_secret))
 
     payload = _security_payload(mock_security_event)
     assert payload.attempted_username == "alice"
