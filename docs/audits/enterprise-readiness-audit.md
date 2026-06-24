@@ -4,7 +4,7 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 **Date:** 2026-06-24
 **Scope:** Production architecture readiness for FastAPI backend + Next.js frontend
-**Status:** Partial — durable core is implemented, with validation and governance hardening still in progress
+**Status:** Partial — durable core (PR 1–3) is implemented and enforced, with contract, validation, and governance hardening still in progress
 
 ## Executive Summary
 
@@ -12,7 +12,7 @@ The repository has made substantial progress toward enterprise readiness. Observ
 
 The remaining risk is concentrated in validation, contract, and governance layers:
 
-- durable graph persistence, startup/load/restart semantics, and durable promotion gates are implemented, but still need broader validation evidence in a few failure-mode and operational scenarios;
+- durable graph persistence (PR 1), startup load/save integration (PR 2), and durable promotion gate extension (PR 3) are implemented and enforced; broader validation evidence continues for failure-mode and operational scenarios;
 - validation and contract hardening remain incomplete in a few user-facing surfaces;
 - distributed hosting semantics need a stronger operating model;
 - CI/CD and security automation require further hardening before this should be treated as enterprise-grade production.
@@ -226,4 +226,4 @@ bounded startup-load and rebuild-persist timing tripwires. The repo still needs 
 
 ## Conclusion
 
-The repo is beyond “prototype” stage and has several enterprise-grade control-plane capabilities already in place. The remaining gap is not the existence of observability or rebuild coordination; it is the maturity of the persistence, restart, promotion, restore, and governance layers required to call this fully production-ready.
+The repo is beyond "prototype" stage and has several enterprise-grade control-plane capabilities already in place, including the implemented and enforced durability and promotion path (PR 1–3). The remaining gaps are contract hardening (PR 4), broader validation evidence around failure-mode, restart, and scale scenarios, and the governance and security automation maturity required to call this fully enterprise-production-ready.

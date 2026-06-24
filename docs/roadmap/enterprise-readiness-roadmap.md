@@ -14,7 +14,7 @@ The repo is not starting from zero. Observability, rebuild coordination, operato
 
 ## Now
 
-Work that should be treated as the current focus because it closes the remaining high-priority gaps after the durability path landed.
+The high-priority durability, startup, and promotion items (PR 1–3) are implemented and enforced. The current focus is the remaining gap in this tier: API contract cleanup (PR 4).
 
 | Item | Status | Why now | Dependencies |
 | --- | --- | --- | --- |
@@ -49,7 +49,7 @@ Important follow-on work that should be planned once the durable core is stable.
 
 ## Key Dependencies
 
-- The durable graph persistence and startup integration path is now the base dependency for restart/reload validation, promotion evidence, and realistic DR testing.
+- The durable graph persistence and startup integration path (PR 1–3) is implemented and enforced, and now serves as the base dependency for restart/reload validation, promotion evidence, and realistic DR testing.
 - Contract cleanup should happen before more API consumers accumulate assumptions around the current ambiguous payload shapes.
 - Failure-mode and scale validation should exercise the merged durability path before operators treat the current guarantees as fully proven.
 - Security automation should be tied to release and promotion policy, otherwise it will remain scanner noise instead of governance.

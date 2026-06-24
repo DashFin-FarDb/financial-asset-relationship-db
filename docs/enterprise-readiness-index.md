@@ -26,8 +26,8 @@ The repo is already strong in control-plane maturity:
 
 The remaining work is primarily around:
 
-- contract cleanup;
-- broader restart/reload, failure-mode, and scale validation;
+- contract cleanup (PR 4);
+- broader failure-mode and scale validation of the implemented durability path (PR 1–3 are implemented and enforced; validation evidence continues);
 - distributed hosting semantics;
 - security/governance automation;
 - restore rehearsal evidence.
