@@ -146,6 +146,7 @@ def test_representative_scale_startup_load_records_baseline_timing(
         "scale_startup_load_timing asset_count=250 relationship_count=1000 elapsed_seconds=%.3f",
         elapsed_seconds,
     )
+    graph_lifecycle.reset_graph()
 
 
 def test_representative_scale_rebuild_records_baseline_timing(
