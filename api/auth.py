@@ -44,15 +44,15 @@ _SENSITIVE_METADATA_KEYS = frozenset(
         "passwd",
         "pwd",
         "token",
-        "access_token",
-        "refresh_token",
-        "id_token",
+        "accesstoken",
+        "refreshtoken",
+        "idtoken",
         "authorization",
         "secret",
-        "secret_key",
-        "api_key",
+        "secretkey",
         "apikey",
-        "x_api_key",
+        "apikey",
+        "xapikey",
         "bearer",
     }
 )
@@ -107,12 +107,16 @@ def _request_security_metadata(request: Request | None = None) -> Dict[str, str 
 
 def _is_sensitive_metadata_key(key: str) -> bool:
     """Return whether a metadata key is a credential-bearing field name."""
-    normalized = key.lower().replace("-", "_").replace(" ", "_")
+    normalized = key.lower().replace("_", "").replace("-", "").replace(" ", "")
     return normalized in _SENSITIVE_METADATA_KEYS
 
 
 def _sanitize_metadata_value(value: Any) -> Any:
     """Recursively sanitize nested metadata values before logging."""
+    if hasattr(value, "model_dump"):
+        return _sanitize_metadata_value(value.model_dump())
+    if hasattr(value, "dict"):
+        return _sanitize_metadata_value(value.dict())
     if isinstance(value, Mapping):
         return {
             str(key): _sanitize_metadata_value(item)

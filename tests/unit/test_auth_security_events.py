@@ -22,6 +22,7 @@ from api.auth import (
     _build_expired_exception,
     _decode_username_from_token,
     _log_security_event,
+    _safe_security_metadata,
     _SecurityAuditEvent,
     get_current_active_user,
     get_current_rebuild_operator_user,
@@ -212,3 +213,38 @@ def test_security_event_metadata_excludes_sensitive_values_recursively() -> None
     assert metadata["claims"] == {"audience": "tests"}
     assert metadata["events"] == [{"reason": "nested_reason"}]
     assert metadata["reason"] == "operator_required"
+
+
+def test_safe_security_metadata_sanitizes_camelcase_and_model_values() -> None:
+    """Security metadata sanitization should cover key variants and Pydantic-style objects."""
+
+    class MetadataModel:
+        """Simple model-like object exposing Pydantic's model_dump API."""
+
+        def model_dump(self) -> dict[str, object]:
+            return {
+                "accessToken": "secret-token",
+                "safe_value": "kept",
+            }
+
+    sanitized = _safe_security_metadata(
+        {
+            "token_type": "bearer",
+            "accessToken": "secret-token",
+            "access_token": "secret-token",
+            "access-token": "secret-token",
+            "headers": {
+                "authorization": "Bearer secret",
+                "x-api-key": "secret-key",
+                "safe_header": "kept",
+            },
+            "claims": MetadataModel(),
+        }
+    )
+
+    assert sanitized["token_type"] == "bearer"
+    assert "accessToken" not in sanitized
+    assert "access_token" not in sanitized
+    assert "access-token" not in sanitized
+    assert sanitized["headers"] == {"safe_header": "kept"}
+    assert sanitized["claims"] == {"safe_value": "kept"}
