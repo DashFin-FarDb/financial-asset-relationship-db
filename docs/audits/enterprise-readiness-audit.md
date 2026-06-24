@@ -4,16 +4,15 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 **Date:** 2026-06-24
 **Scope:** Production architecture readiness for FastAPI backend + Next.js frontend
-**Status:** Partial — strong control-plane maturity, incomplete durability and promotion hardening
+**Status:** Partial — durable core is implemented, with validation and governance hardening still in progress
 
 ## Executive Summary
 
 The repository has made substantial progress toward enterprise readiness. Observability/SLOs are implemented, rebuild coordination is hardened, operator-only rebuild authorization exists, and the repo contains explicit production-architecture and hosted-deployment policy docs.
 
-The remaining risk is concentrated in the durability and promotion layers:
+The remaining risk is concentrated in validation, contract, and governance layers:
 
-- durable graph persistence is designed but not fully operationalized;
-- startup/load/restart semantics still need a complete implementation path;
+- durable graph persistence, startup/load/restart semantics, and durable promotion gates are implemented, but still need broader validation evidence in a few failure-mode and operational scenarios;
 - validation and contract hardening remain incomplete in a few user-facing surfaces;
 - distributed hosting semantics need a stronger operating model;
 - CI/CD and security automation require further hardening before this should be treated as enterprise-grade production.
@@ -43,9 +42,9 @@ Roadmap source-of-truth status (aligned with `docs/roadmap/enterprise-readiness-
 | Startup tracing / request correlation | Implemented | `api/app_factory.py`, `src/observability/*` | Low | Validate trace continuity across startup/rebuild/restart paths |
 | Rebuild coordination | Implemented and hardened | `src/logic/rebuild_executor.py`, `src/logic/recovery_gate.py`, `src/logic/reconciliation_loop.py`, `docs/adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md` | Medium | Prove restart, stale-owner, and lock-loss behavior in PR 7 |
 | Operator rebuild authorization | Implemented; audit logging in progress | `api/auth.py`, `docs/audits/OPERATOR_REBUILD_AUTHORIZATION_AUDIT.md` | Low | Complete PR 8 sensitive auth-event audit logging |
-| Hosted readiness smoke checks | Implemented | `.github/workflows/hosted-readiness.yml`, `scripts/check_hosted_readiness.py` | Medium | Extend smoke checks to assert durable graph persistence, not just bounded health |
-| Durable graph persistence | Designed, not fully implemented | `docs/adr/0002-hosted-deployment-and-persistence.md`, `docs/graph-persistence-design.md` | High | Implement schema/repository/save-load/startup integration PRs |
-| Restart / reload semantics | Planned, not completed | `docs/graph-persistence-design.md`, `docs/enterprise-deployment-operating-model.md` | High | Add startup load-from-persistence and post-restart verification paths |
+| Hosted readiness smoke checks | Implemented with durable-persistence promotion checks | `.github/workflows/hosted-readiness.yml`, `scripts/check_hosted_readiness.py`, `docs/enterprise-deployment-operating-model.md` | Medium | Keep smoke assertions aligned with the durable promotion policy and expand evidence where needed |
+| Durable graph persistence | Implemented and enforced | `api/graph_lifecycle_providers.py`, `api/graph_lifecycle.py`, `docs/adr/0002-hosted-deployment-and-persistence.md`, `docs/graph-persistence-design.md` | Medium | Expand failure-mode/load evidence and DR rehearsal coverage around the persisted graph path |
+| Restart / reload semantics | Implemented; broader validation in progress | `api/app_factory.py`, `api/graph_lifecycle.py`, `docs/enterprise-deployment-operating-model.md`, `docs/testing/failure-mode-and-scale-validation.md` | Medium | Extend restart, redeploy, and stale-owner validation coverage under PR 7 follow-on work |
 | Distributed hosting semantics | Documented; validation in progress | `docs/adr/0004-distributed-hosting-semantics.md`, `docs/enterprise-deployment-operating-model.md`, `docs/testing/distributed-hosting-invariants.md`, `docs/testing/failure-mode-and-scale-validation.md` | Medium | Complete PR 7 focused validation and keep broader production-scale testing out of scope |
 | Validation / contracts | Partially hardened | `docs/phase-3-computation-layout-boundary-audit.md` | Medium | Remove density/pagination/schema ambiguity in API and frontend contracts |
 | CI/CD | Mature baseline, but not enterprise-complete | `.github/workflows/ci.yml`, `.github/workflows/ci-gate-spec.yaml`, `.github/workflows/codeql.yml`, `.github/workflows/hosted-readiness.yml` | High | Tighten promotion gates, add durable-storage and restart checks, enforce release discipline |
@@ -91,16 +90,14 @@ That means the missing work is not “figuring out the architecture.” It is ex
 
 ## What Is Planned
 
-### 1. Durable graph persistence
+### 1. Durability validation and restore evidence
 
-The clearest planned work is in `docs/graph-persistence-design.md` and `docs/adr/0002-hosted-deployment-and-persistence.md`:
+The clearest remaining work after the merged durability PRs is to prove and operationalize the persisted graph path already described in `docs/graph-persistence-design.md` and `docs/adr/0002-hosted-deployment-and-persistence.md`:
 
-- normalized persistent graph storage;
-- load/rebuild semantics from durable storage;
-- atomic publish / latest-valid graph build records;
-- SQLite compatibility for local development;
-- PostgreSQL as the hosted durable target;
-- repository boundaries for asset, relationship, regulatory-event, and graph-build state.
+- restart/redeploy and stale-owner validation around persisted graph load/save behavior;
+- durable promotion evidence that continues to verify persisted graph assertions, not just bounded health;
+- restore rehearsal evidence against the implemented persistence path;
+- continued SQLite compatibility for local development and PostgreSQL-backed hosted durability.
 
 ### 2. Recovery-plane validation
 
@@ -122,7 +119,7 @@ remaining work is validation, not semantic definition:
 - operator ownership of rollback and persistence verification;
 - Stage 7 backup/restore deferral.
 
-That is a useful baseline, but it still needs implementation-backed enforcement.
+That is a useful baseline, but it still needs broader validation-backed enforcement and release evidence.
 
 ## What Is Not Yet Planned, But Should Be
 
@@ -194,10 +191,8 @@ bounded startup-load and rebuild-persist timing tripwires. The repo still needs 
 
 ### High risk
 
-- durable graph persistence is not yet complete;
-- restart/reload semantics are not yet proven end-to-end;
 - distributed hosting semantics are not yet fully specified in execution terms;
-- CI/CD still relies on policy and workflows more than on proven promotion gates;
+- CI/CD still relies on policy and workflows more than on broadly proven promotion evidence;
 - security automation is broad but not yet enterprise-complete.
 
 ### Medium risk
@@ -215,24 +210,19 @@ bounded startup-load and rebuild-persist timing tripwires. The repo still needs 
 
 ## Recommended Next PR Sequence
 
-1. **Graph persistence schema/repository PR**
-   - implement durable graph storage primitives;
-   - preserve SQLite compatibility;
-   - add explicit persistence tests.
-2. **Startup load/save integration PR**
-   - wire persisted graph load into startup;
-   - define fallback behavior when persistence is missing or invalid;
-   - make restart semantics observable.
-3. **Durable promotion gate PR**
-   - extend readiness smoke checks to prove persisted graph load;
-   - require restart/reload verification for staging/production promotion.
-4. **API contract cleanup PR**
+1. **API contract cleanup PR**
    - normalize density semantics;
    - formalize visualization models;
    - remove pagination ambiguity.
-5. **Security/governance hardening PRs**
+2. **Failure-mode and scale validation follow-up**
+   - expand restart/reload, crash, and stale-owner validation around the implemented persistence path;
+   - keep durable promotion evidence tied to persisted graph behavior.
+3. **Security/governance hardening PRs**
    - add failure audit logging, restore policy, and supply-chain enforcement;
    - document operational ownership and escalation paths.
+4. **Restore rehearsal and DR evidence follow-up**
+   - execute and record restore rehearsal against the implemented persistence layer;
+   - keep operator runbooks and release evidence aligned.
 
 ## Conclusion
 

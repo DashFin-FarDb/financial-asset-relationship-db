@@ -10,11 +10,11 @@ Status legend: **implemented and enforced**, **implemented but weakly validated*
 
 ## Summary
 
-The repo is not starting from zero. Observability, rebuild coordination, and operator authorization are in place. The remaining roadmap is about making persistence, restart, promotion, restore, and governance behavior deterministic and provable.
+The repo is not starting from zero. Observability, rebuild coordination, operator authorization, and the durable persistence/startup/promotion path are in place. The remaining roadmap is about closing contract gaps and turning the already-implemented durability and recovery path into broadly validated, operationally governed behavior.
 
 ## Now
 
-Work that should be treated as the current focus because it unblocks production durability and promotion.
+Work that should be treated as the current focus because it closes the remaining high-priority gaps after the durability path landed.
 
 | Item | Status | Why now | Dependencies |
 | --- | --- | --- | --- |
@@ -49,25 +49,22 @@ Important follow-on work that should be planned once the durable core is stable.
 
 ## Key Dependencies
 
-- Durable graph persistence is the gating dependency for restart/reload semantics, promotion gates, and realistic DR testing.
-- Startup integration is the gating dependency for proving the system can recover from restarts without losing graph truth.
+- The durable graph persistence and startup integration path is now the base dependency for restart/reload validation, promotion evidence, and realistic DR testing.
 - Contract cleanup should happen before more API consumers accumulate assumptions around the current ambiguous payload shapes.
+- Failure-mode and scale validation should exercise the merged durability path before operators treat the current guarantees as fully proven.
 - Security automation should be tied to release and promotion policy, otherwise it will remain scanner noise instead of governance.
 
 ## Risks
 
-- If persistence work slips, the repo remains preview-capable but not production-durable.
-- If restart semantics are not tested immediately after persistence implementation, the team may ship an apparently working but non-recoverable graph lifecycle.
+- If failure-mode validation slips, the repo may retain durability features that are present but not convincingly proven under restart and crash conditions.
 - If contract cleanup is deferred too long, frontend and backend assumptions will diverge further.
+- If governance and security hardening lag the implemented durability path, promotion discipline may stay policy-heavy instead of evidence-backed.
 
 ## Proposed Delivery Order
 
-1. Persistence schema/repository layer
-2. Startup load/save integration
-3. Promotion gate extension
-4. API contract cleanup
-5. Recovery-plane completion
-6. Distributed hosting semantics
-7. Failure-mode and scale validation
-8. Security and governance hardening
-9. DR / restore runbook
+1. API contract cleanup
+2. Recovery-plane completion
+3. Distributed hosting semantics
+4. Failure-mode and scale validation
+5. Security and governance hardening
+6. DR / restore evidence and rehearsal

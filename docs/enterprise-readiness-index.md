@@ -26,12 +26,11 @@ The repo is already strong in control-plane maturity:
 
 The remaining work is primarily around:
 
-- durable graph persistence;
-- restart/reload semantics;
-- promotion gates;
 - contract cleanup;
+- broader restart/reload, failure-mode, and scale validation;
 - distributed hosting semantics;
-- security/governance automation.
+- security/governance automation;
+- restore rehearsal evidence.
 
 The DR documentation gap is closed at the strategy and runbook level through [ADR 0005](adr/0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](runbooks/backup-restore-dr.md). Final release readiness still requires operators to rehearse restore at least once and record the evidence in the release process.
 
