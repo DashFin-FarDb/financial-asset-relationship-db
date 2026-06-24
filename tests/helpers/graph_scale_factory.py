@@ -6,15 +6,4 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
 
-def build_scale_graph(
-    *,
-    asset_count: int,
-    relationship_count: int,
-    prefix: str = "SCALE",
-) -> AssetRelationshipGraph:
-    """Build a deterministic graph with unique directed relationships.
-
-    Args:
-        asset_count: Number of assets to create. Must be greater than zero.
-        relationship_count: Number of unique directed relationships to create.
-        prefix: Prefix
+def build_scale_graph(*, asset_count: int, relationship_count: int, prefix: str = "SCALE") -> AssetRelationshipGraph:
