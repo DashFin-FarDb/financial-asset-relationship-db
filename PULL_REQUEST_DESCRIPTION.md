@@ -71,30 +71,46 @@ This PR addresses issue #1278 in three separated commits:
 
 ## Validation Commands
 
-To run before merge:
+Executed successfully:
 
 ```bash
 pytest tests/unit/test_auth_security_events.py -q
 pytest tests/unit/test_auth_router_audit_logging.py -q
 pytest tests/unit/test_loki_recording_rules.py -q
-pytest tests/unit/api -q
+pytest tests/unit/test_api_auth.py tests/unit/test_api_auth_comprehensive.py tests/unit/test_auth.py -q
+pytest tests/integration/test_workflow_security_advanced.py -q
+pytest tests/unit/test_workflow_yaml_files.py -q
 python -m compileall api src tests
 pre-commit run --files SECURITY.md docs/GOVERNANCE.md api/auth.py api/routers/auth.py monitoring/alerts/loki-recording.yml .github/workflows/docker-publish.yml tests/unit/test_auth_security_events.py tests/unit/test_auth_router_audit_logging.py tests/unit/test_loki_recording_rules.py
 ```
 
+Attempted locally but not completed because an existing Starlette `TestClient` middleware test timed out before returning
+a first result in this environment:
+
+```bash
+pytest tests/unit/api -q
+```
+
+Attempted locally but not completed because the existing async rebuild persistence suite timed out before returning a
+first test result in this environment:
+
+```bash
+pytest tests/integration/test_graph_rebuild_persistence.py -q --timeout=10 --timeout-method=thread
+```
+
 ## Merge Criteria
 
-- [ ] `SECURITY.md` contains VDP, secret management, incident response, artifact provenance, and SBOM policy.
-- [ ] `docs/GOVERNANCE.md` defines approval, release, exception, and automation-boundary rules.
-- [ ] Authentication success/failure emits structured `ObservabilityEvent` logs.
-- [ ] Expired/invalid tokens emit structured security events before raising.
-- [ ] Disabled-user and rebuild-operator denials emit structured warning-level events before raising.
-- [ ] Sensitive values are not logged.
-- [ ] Loki recording rules aggregate auth failures and access denials.
-- [ ] Docker publish workflow generates an SPDX SBOM outside PRs.
-- [ ] SBOM upload uses SHA-pinned GitHub Actions.
-- [ ] Tests prove audit events are emitted and sensitive fields are not logged.
-- [ ] No claims are made for controls not implemented in this PR.
+- [x] `SECURITY.md` contains VDP, secret management, incident response, artifact provenance, and SBOM policy.
+- [x] `docs/GOVERNANCE.md` defines approval, release, exception, and automation-boundary rules.
+- [x] Authentication success/failure emits structured `ObservabilityEvent` logs.
+- [x] Expired/invalid tokens emit structured security events before raising.
+- [x] Disabled-user and rebuild-operator denials emit structured warning-level events before raising.
+- [x] Sensitive values are not logged.
+- [x] Loki recording rules aggregate auth failures and access denials.
+- [x] Docker publish workflow generates an SPDX SBOM outside PRs.
+- [x] SBOM upload uses SHA-pinned GitHub Actions.
+- [x] Tests prove audit events are emitted and sensitive fields are not logged.
+- [x] No claims are made for controls not implemented in this PR.
 
 ## Checklist
 
