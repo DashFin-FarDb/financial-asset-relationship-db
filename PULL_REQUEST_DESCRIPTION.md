@@ -72,8 +72,7 @@ python -m compileall src api tests
 pre-commit run --files tests/helpers/__init__.py tests/helpers/graph_scale_factory.py tests/integration/test_distributed_hosting_failure_modes.py tests/integration/test_graph_persistence_scale_validation.py docs/testing/failure-mode-and-scale-validation.md docs/roadmap/enterprise-readiness-pr-board.md docs/roadmap/enterprise-readiness-pr-plan.md docs/audits/enterprise-readiness-audit.md PULL_REQUEST_DESCRIPTION.md
 ```
 
-Attempted locally but not completed because the existing suites hung before producing a first test result in this
-environment:
+Not executed in this environment (refer to PR checks/CI for authoritative results):
 
 ```bash
 pytest tests/integration/test_graph_rebuild_persistence.py -q
