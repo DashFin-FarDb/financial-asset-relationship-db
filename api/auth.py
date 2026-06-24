@@ -4,9 +4,10 @@ from __future__ import annotations
 
 # pylint: disable=import-error
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, Any, Dict, Mapping, TypedDict
+from typing import Annotated, Any, Dict, TypedDict
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
@@ -50,7 +51,6 @@ _SENSITIVE_METADATA_KEYS = frozenset(
         "authorization",
         "secret",
         "secretkey",
-        "apikey",
         "apikey",
         "xapikey",
         "bearer",
@@ -445,7 +445,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-async def get_current_user(  # noqa: RUF029
+async def get_current_user(  # noqa: RUF029  # NOSONAR
     token: str = Depends(oauth2_scheme),  # noqa: B008
     request: Request = None,  # type: ignore[assignment]
 ) -> UserInDB:
@@ -570,7 +570,7 @@ def _decode_username_from_token(
         raise credentials_exception from e
 
 
-async def get_current_active_user(  # noqa: RUF029
+async def get_current_active_user(  # noqa: RUF029  # NOSONAR
     current_user: User = Depends(get_current_user),  # noqa: B008
     request: Request = None,  # type: ignore[assignment]
 ) -> User:
