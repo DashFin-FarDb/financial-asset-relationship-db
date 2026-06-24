@@ -10,7 +10,7 @@ Status legend: **implemented and enforced**, **implemented but weakly validated*
 
 ## Now
 
-These PRs unblock the durable production path and should be prioritized first.
+These PRs unblock the durable production path; PR 1-3 are implemented and PR 4 remains outstanding.
 
 | PR | Title | Status | Exit Criteria | Dependencies |
 | --- | --- | --- | --- | --- |
