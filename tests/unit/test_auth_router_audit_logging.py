@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+# pylint: disable=import-error
+
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -33,6 +35,11 @@ def _form(username: str = "alice", password: str = "correct-password"):
     return SimpleNamespace(username=username, password=password)
 
 
+def _security_payload(mock_security_event):
+    """Return the _SecurityAuditEvent payload passed to the router helper."""
+    return mock_security_event.call_args.args[0]
+
+
 @pytest.mark.asyncio
 async def test_login_success_emits_auth_login_success() -> None:
     """Successful login should emit auth_login_success before returning the bearer token."""
@@ -47,9 +54,10 @@ async def test_login_success_emits_auth_login_success() -> None:
 
     assert response.access_token == "issued-token"
     mock_security_event.assert_called_once()
-    assert mock_security_event.call_args.args[0] == "auth_login_success"
-    assert mock_security_event.call_args.kwargs["username"] == "alice"
-    assert mock_security_event.call_args.kwargs["metadata"] == {"rate_limit_policy": "5/minute"}
+    payload = _security_payload(mock_security_event)
+    assert payload.event_slug == "auth_login_success"
+    assert payload.username == "alice"
+    assert payload.metadata == {"rate_limit_policy": "5/minute"}
 
 
 @pytest.mark.asyncio
@@ -64,21 +72,23 @@ async def test_login_failure_emits_auth_login_failure_before_401() -> None:
 
     assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
     mock_security_event.assert_called_once()
-    assert mock_security_event.call_args.args[0] == "auth_login_failure"
-    assert mock_security_event.call_args.kwargs["attempted_username"] == "alice"
-    assert mock_security_event.call_args.kwargs["metadata"] == {"rate_limit_policy": "5/minute"}
+    payload = _security_payload(mock_security_event)
+    assert payload.event_slug == "auth_login_failure"
+    assert payload.attempted_username == "alice"
+    assert payload.metadata == {"rate_limit_policy": "5/minute"}
 
 
 @pytest.mark.asyncio
 async def test_login_failure_logs_attempted_username_not_password() -> None:
-    """Failed login audit metadata should include username context but not the submitted password."""
+    """Failed login audit metadata should include username context but not the submitted credential."""
+    submitted_secret = "do-not-log"
     with (
         patch("api.routers.auth.authenticate_user", return_value=False),
         patch("api.routers.auth._log_security_event") as mock_security_event,
         pytest.raises(HTTPException),
     ):
-        await login_for_access_token(_request(), _form(username="alice", password="do-not-log"))
+        await login_for_access_token(_request(), _form(username="alice", password=submitted_secret))
 
-    kwargs = mock_security_event.call_args.kwargs
-    assert kwargs["attempted_username"] == "alice"
-    assert "do-not-log" not in str(kwargs)
+    payload = _security_payload(mock_security_event)
+    assert payload.attempted_username == "alice"
+    assert submitted_secret not in str(payload)
