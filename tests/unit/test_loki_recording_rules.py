@@ -1,10 +1,9 @@
 """Unit tests for Loki recording rule coverage."""
 
-from __future__ import annotations
-
-# pylint: disable=import-error
+# pylint: disable=import-error,invalid-name
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, cast
+from typing import Any, Dict, List, cast
 
 import pytest
 import yaml  # type: ignore[import-untyped]
