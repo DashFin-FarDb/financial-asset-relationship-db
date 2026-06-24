@@ -4,7 +4,7 @@ from __future__ import annotations
 
 # pylint: disable=import-error
 from pathlib import Path
-from typing import Any, Dict, Mapping, cast
+from typing import Any, Dict, List, Mapping, cast
 
 import pytest
 import yaml  # type: ignore[import-untyped]
@@ -18,9 +18,9 @@ LOKI_RECORDING_PATH = PROJECT_ROOT / "monitoring" / "alerts" / "loki-recording.y
 def _recording_rules() -> Dict[str, str]:
     """Load Loki recording rules by record name."""
     config = cast(Mapping[str, Any], yaml.safe_load(LOKI_RECORDING_PATH.read_text(encoding="utf-8")))
-    groups = cast(list[Mapping[str, Any]], config.get("groups", []))
+    groups = cast(List[Mapping[str, Any]], config.get("groups", []))
     assert groups, "Loki recording file must contain at least one group"
-    rules = cast(list[Mapping[str, str]], groups[0].get("rules", []))
+    rules = cast(List[Mapping[str, str]], groups[0].get("rules", []))
     return {rule["record"]: rule["expr"] for rule in rules}
 
 
