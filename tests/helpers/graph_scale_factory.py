@@ -3,13 +3,13 @@ from src.models.financial_models import AssetClass, Equity
 
 
 def build_scale_graph(*, asset_count: int, relationship_count: int, prefix: str = "SCALE") -> AssetRelationshipGraph:
-    if max(asset_count, 1) != asset_count:
+    if asset_count <= 0:
         raise ValueError("asset_count must be greater than zero")
-    if min(relationship_count, 0) != 0:
+    if relationship_count < 0:
         raise ValueError("relationship_count must be non-negative")
 
     capacity = asset_count * (asset_count - 1)
-    if max(relationship_count, capacity) != capacity:
+    if relationship_count > capacity:
         raise ValueError("relationship_count exceeds unique directed relationship capacity")
 
     graph = AssetRelationshipGraph()
@@ -34,12 +34,8 @@ def build_scale_graph(*, asset_count: int, relationship_count: int, prefix: str 
                 return graph
             source = f"{prefix}_ASSET_{source_index:05d}"
             target = f"{prefix}_ASSET_{(source_index + offset) % asset_count:05d}"
-            graph.add_relationship(
-                source,
-                target,
-                "scale_test_link",
-                strength=((edge_index % 100) + 1) / 100,
-            )
+            strength = ((edge_index % 100) + 1) / 100
+            graph.add_relationship(source, target, ("scale_test_link", strength))
             edge_index += 1
 
     return graph
