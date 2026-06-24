@@ -85,10 +85,10 @@ It does not apply to the Gradio demo path in `app.py`.
 
 **Exit criteria**
 
-- Backup and restore procedure exists.
-- RPO and RTO are defined.
-- Restore has been rehearsed at least once.
-- Rollback is distinguished from data restore.
+- Backup and restore procedure exists: satisfied by [docs/runbooks/backup-restore-dr.md](runbooks/backup-restore-dr.md).
+- RPO and RTO are defined: satisfied by [ADR 0005](adr/0005-backup-restore-dr-strategy.md).
+- Rollback is distinguished from data restore: satisfied by the [Enterprise Deployment Operating Model](enterprise-deployment-operating-model.md#disaster-recovery).
+- Restore has been rehearsed at least once: manual operator verification required before final enterprise release sign-off.
 
 ## Release Exit Criteria Summary
 
@@ -99,4 +99,4 @@ A release may be treated as enterprise-ready only when all of the following are 
 - core API contracts are explicit and stable;
 - rebuild/recovery behavior is deterministic under failure;
 - security and governance controls are enforceable;
-- DR / restore is documented and reheated in practice.
+- DR / restore is documented and rehearsed in practice.
