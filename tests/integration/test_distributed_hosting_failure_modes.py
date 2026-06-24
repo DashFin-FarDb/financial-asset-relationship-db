@@ -72,33 +72,47 @@ def _load_job(session_factory, job_id: str) -> RebuildJobORM:
         return job
 
 
-def test_recovery_does_not_reset_running_job_with_fresh_foreign_heartbeat(sqlite_session_factory) -> None:
-    """A freshly heartbeating foreign rebuild owner must not be reset by this instance."""
+def _assert_fresh_foreign_owner_is_not_reset(
+    session_factory,
+    *,
+    enable_automatic_recovery: bool,
+) -> ExecutionBlockedError:
+    """Assert a live foreign rebuild owner blocks recovery and remains RUNNING."""
     job_id = _create_running_job(
-        sqlite_session_factory,
+        session_factory,
         worker_id="worker-a",
         heartbeat_at=datetime.now(UTC),
     )
-    lock = DistributedLock(sqlite_session_factory, _LOCK_NAME, ttl_seconds=_LOCK_TTL)
+    lock = DistributedLock(session_factory, _LOCK_NAME, ttl_seconds=_LOCK_TTL)
     assert lock.acquire()
 
     try:
         gate = RecoveryGate(
-            session_factory=sqlite_session_factory,
+            session_factory=session_factory,
             lock=lock,
             runtime_has_active_executor=False,
             lock_ttl_seconds=_LOCK_TTL,
-            enable_automatic_recovery=True,
+            enable_automatic_recovery=enable_automatic_recovery,
         )
         with pytest.raises(ExecutionBlockedError) as exc_info:
             gate.ensure_safe_to_execute()
     finally:
         lock.release()
 
-    assert exc_info.value.action in {"alert_only", "unsafe"}
-    job = _load_job(sqlite_session_factory, job_id)
+    job = _load_job(session_factory, job_id)
     assert job.status == RebuildJobStatus.RUNNING
     assert job.active_worker_id == "worker-a"
+    return exc_info.value
+
+
+def test_recovery_does_not_reset_running_job_with_fresh_foreign_heartbeat(sqlite_session_factory) -> None:
+    """A freshly heartbeating foreign rebuild owner must not be reset by this instance."""
+    blocked = _assert_fresh_foreign_owner_is_not_reset(
+        sqlite_session_factory,
+        enable_automatic_recovery=True,
+    )
+
+    assert blocked.action in {"alert_only", "unsafe"}
 
 
 def test_recovery_resets_stale_running_job_after_lock_reacquisition(sqlite_session_factory) -> None:
@@ -128,30 +142,10 @@ def test_recovery_resets_stale_running_job_after_lock_reacquisition(sqlite_sessi
 
 def test_restart_during_live_rebuild_does_not_steal_fresh_owner(sqlite_session_factory) -> None:
     """A restarted instance must block instead of stealing a live foreign rebuild owner."""
-    job_id = _create_running_job(
+    _assert_fresh_foreign_owner_is_not_reset(
         sqlite_session_factory,
-        worker_id="worker-a",
-        heartbeat_at=datetime.now(UTC),
+        enable_automatic_recovery=False,
     )
-    lock = DistributedLock(sqlite_session_factory, _LOCK_NAME, ttl_seconds=_LOCK_TTL)
-    assert lock.acquire()
-
-    try:
-        gate = RecoveryGate(
-            session_factory=sqlite_session_factory,
-            lock=lock,
-            runtime_has_active_executor=False,
-            lock_ttl_seconds=_LOCK_TTL,
-            enable_automatic_recovery=False,
-        )
-        with pytest.raises(ExecutionBlockedError):
-            gate.ensure_safe_to_execute()
-    finally:
-        lock.release()
-
-    job = _load_job(sqlite_session_factory, job_id)
-    assert job.status == RebuildJobStatus.RUNNING
-    assert job.active_worker_id == "worker-a"
 
 
 def test_rebuild_crash_before_persist_marks_failed_without_partial_graph_truth(
