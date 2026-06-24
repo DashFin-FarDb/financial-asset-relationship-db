@@ -1,6 +1,6 @@
 # Enterprise Readiness Index
 
-**Date:** 2026-06-18
+**Date:** 2026-06-24
 **Purpose:** Single entry point for enterprise-readiness audit, roadmap, PR plan, and release criteria
 
 ## What To Read
@@ -26,14 +26,25 @@ The repo is already strong in control-plane maturity:
 
 The remaining work is primarily around:
 
-- durable graph persistence;
-- restart/reload semantics;
-- promotion gates;
-- contract cleanup;
+- contract cleanup (PR 4);
+- broader failure-mode and scale validation of the implemented durability path (PR 1–3 are implemented and enforced; validation evidence continues);
 - distributed hosting semantics;
-- security/governance automation.
+- security/governance automation;
+- restore rehearsal evidence.
 
 The DR documentation gap is closed at the strategy and runbook level through [ADR 0005](adr/0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](runbooks/backup-restore-dr.md). Final release readiness still requires operators to rehearse restore at least once and record the evidence in the release process.
+
+## Roadmap Status Snapshot
+
+Status legend: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
+
+| Status | Current items |
+| --- | --- |
+| implemented and enforced | PR 1, PR 2, PR 3 |
+| implemented but weakly validated | PR 5, PR 7, PR 8 |
+| documented only | PR 6, PR 9 |
+| superseded | none currently |
+| still missing | PR 4, multi-region / advanced hosting strategy roadmap item, continuous operational drills roadmap item |
 
 ## Recommended Reading Order
 
