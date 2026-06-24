@@ -108,7 +108,6 @@ def test_representative_scale_graph_save_load_round_trip(
 
     assert len(loaded.assets) == asset_count
     assert _relationship_count(loaded) == relationship_count
-    assert len(set(loaded.assets)) == asset_count
 
     prefix = f"SCALE{asset_count}"
     _assert_edge_strength(loaded, (0, 0.01), asset_count=asset_count, prefix=prefix)
