@@ -12,6 +12,8 @@
 | `docs/roadmap/enterprise-readiness-pr-plan.md` | PR-by-PR execution plan with validation commands |
 | `docs/roadmap/enterprise-readiness-pr-board.md` | Operational PR board with status and exit criteria |
 | `docs/release-checklist.md` | Release gates and enterprise exit criteria |
+| `docs/adr/0005-backup-restore-dr-strategy.md` | Backup, restore, DR strategy, data classification, RPO, and RTO |
+| `docs/runbooks/backup-restore-dr.md` | Operator procedures for backup verification, restore execution, and post-restore checks |
 
 ## Executive Summary
 
@@ -19,7 +21,8 @@ The repo is already strong in control-plane maturity:
 
 - observability and SLOs are implemented;
 - rebuild coordination and operator authorization are hardened;
-- production architecture is clearly declared.
+- production architecture is clearly declared;
+- backup, restore, and disaster recovery strategy/procedures are now documented.
 
 The remaining work is primarily around:
 
@@ -28,8 +31,9 @@ The remaining work is primarily around:
 - promotion gates;
 - contract cleanup;
 - distributed hosting semantics;
-- security/governance automation;
-- backup, restore, and DR.
+- security/governance automation.
+
+The DR documentation gap is closed at the strategy and runbook level through [ADR 0005](adr/0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](runbooks/backup-restore-dr.md). Final release readiness still requires operators to rehearse restore at least once and record the evidence in the release process.
 
 ## Recommended Reading Order
 
@@ -38,6 +42,8 @@ The remaining work is primarily around:
 3. `docs/roadmap/enterprise-readiness-pr-plan.md`
 4. `docs/roadmap/enterprise-readiness-pr-board.md`
 5. `docs/release-checklist.md`
+6. `docs/adr/0005-backup-restore-dr-strategy.md`
+7. `docs/runbooks/backup-restore-dr.md`
 
 ## Operational Rule
 
@@ -47,4 +53,6 @@ If a change touches production behavior, deployment, security, persistence, or r
 
 - [README.md](../README.md) — main repository entry point and production setup overview
 - [docs/adr/0002-hosted-deployment-and-persistence.md](./adr/0002-hosted-deployment-and-persistence.md) — hosted persistence decision
-- [docs/enterprise-deployment-operating-model.md](./enterprise-deployment-operating-model.md) — promotion and rollback operating model
+- [docs/adr/0005-backup-restore-dr-strategy.md](./adr/0005-backup-restore-dr-strategy.md) — backup, restore, and DR strategy
+- [docs/runbooks/backup-restore-dr.md](./runbooks/backup-restore-dr.md) — backup and restore operating procedure
+- [docs/enterprise-deployment-operating-model.md](./enterprise-deployment-operating-model.md) — promotion, rollback, and DR operating model
