@@ -6,6 +6,8 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 **Format:** Now / Next / Later
 **Purpose:** Sequence the remaining work needed to make the production stack operationally enterprise-grade
 
+Status legend: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
+
 ## Summary
 
 The repo is not starting from zero. Observability, rebuild coordination, and operator authorization are in place. The remaining roadmap is about making persistence, restart, promotion, restore, and governance behavior deterministic and provable.
@@ -39,15 +41,13 @@ Important follow-on work that should be planned once the durable core is stable.
 
 | Item | Status | Why later | Dependencies |
 | --- | --- | --- | --- |
-| Backup / restore runbook and DR testing | implemented but weakly validated | Explicitly deferred in the current operating model, but required for enterprise recovery readiness | Stable persistence layer, operator ownership model |
-| Multi-region / advanced hosting strategy | superseded | Too early until single-region durable behavior is proven | Disaster recovery, promotion gates, cost model |
+| Backup / restore runbook and DR testing | documented only | Explicitly deferred in the current operating model, but required for enterprise recovery readiness | Stable persistence layer, operator ownership model |
+| Multi-region / advanced hosting strategy | still missing | Too early until single-region durable behavior is proven | Disaster recovery, promotion gates, cost model |
 | Formal rebuild / recovery state-machine governance | implemented but weakly validated | The repo has enough logic to justify a canonical invariant spec | Recovery behavior stabilisation, operational ownership |
 | Supply-chain provenance and release integrity controls | implemented but weakly validated | Should be built against a stable release process, not ad hoc | CI/CD hardening, artifact build strategy |
 | Continuous operational drills | still missing | Needs production-like telemetry and stable runbooks first | Observability layer, alert routing, runbooks |
 
 ## Key Dependencies
-
-Status legend: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
 
 - Durable graph persistence is the gating dependency for restart/reload semantics, promotion gates, and realistic DR testing.
 - Startup integration is the gating dependency for proving the system can recover from restarts without losing graph truth.

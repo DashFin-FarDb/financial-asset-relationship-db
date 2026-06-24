@@ -6,6 +6,8 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 **Format:** Now / Next / Later
 **Purpose:** Track the sequence of PRs needed to close the remaining enterprise-readiness gaps
 
+Status legend: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
+
 ## Now
 
 These PRs unblock the durable production path and should be prioritized first.
@@ -34,11 +36,9 @@ These PRs are important, but they should come after the durable core is stable.
 
 | PR | Title | Status | Exit Criteria | Dependencies |
 | --- | --- | --- | --- | --- |
-| PR 9 | Backup, Restore, and DR Runbook | implemented but weakly validated | Backup/restore steps exist, RPO/RTO are defined, and restore has been rehearsed | Stable persistence layer, operator ownership model |
+| PR 9 | Backup, Restore, and DR Runbook | documented only | Backup/restore steps and RPO/RTO are documented; restore rehearsal evidence is still required | Stable persistence layer, operator ownership model |
 
 ## Board Notes
-
-- Status legend: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
 
 - PR 1 is the gating dependency for PR 2, PR 3, PR 7, and PR 9.
 - PR 2 is the first proof that restart behavior is safe enough for promotion.

@@ -37,15 +37,15 @@ The DR documentation gap is closed at the strategy and runbook level through [AD
 
 ## Roadmap Status Snapshot
 
-Classification legend for roadmap items: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
+Status legend for roadmap items: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
 
-Current reconciled snapshot:
-
-- implemented and enforced: PR 1, PR 2, PR 3
-- implemented but weakly validated: PR 5, PR 7, PR 8, PR 9
-- documented only: PR 6
-- superseded: multi-region / advanced hosting strategy roadmap item
-- still missing: PR 4, continuous operational drills roadmap item
+| Status | Current items |
+| --- | --- |
+| implemented and enforced | PR 1, PR 2, PR 3 |
+| implemented but weakly validated | PR 5, PR 7, PR 8 |
+| documented only | PR 6, PR 9 |
+| superseded | none currently |
+| still missing | PR 4, multi-region / advanced hosting strategy roadmap item, continuous operational drills roadmap item |
 
 ## Recommended Reading Order
 

@@ -22,7 +22,7 @@ The remaining risk is concentrated in the durability and promotion layers:
 
 Roadmap source-of-truth status (aligned with `docs/roadmap/enterprise-readiness-roadmap.md` and `docs/roadmap/enterprise-readiness-pr-board.md`):
 
-| Roadmap Item | Reconciled Status |
+| PR / Roadmap Item | Reconciled Status |
 | --- | --- |
 | PR 1 — Durable Graph Persistence Schema and Repositories | implemented and enforced |
 | PR 2 — Startup Load / Save Integration | implemented and enforced |
@@ -32,7 +32,7 @@ Roadmap source-of-truth status (aligned with `docs/roadmap/enterprise-readiness-
 | PR 6 — Distributed Hosting Semantics Spec | documented only |
 | PR 7 — Failure-Mode and Scale Validation | implemented but weakly validated |
 | PR 8 — Security and Governance Hardening | implemented but weakly validated |
-| PR 9 — Backup, Restore, and DR Runbook | implemented but weakly validated |
+| PR 9 — Backup, Restore, and DR Runbook | documented only |
 
 ## Readiness Matrix
 
