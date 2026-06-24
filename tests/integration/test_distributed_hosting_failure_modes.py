@@ -179,7 +179,7 @@ def test_rebuild_crash_before_persist_marks_failed_without_partial_graph_truth(
         with pytest.raises(RuntimeError, match="synthetic crash before persist"):
             graph_admin._run_rebuild_pipeline(  # pylint: disable=protected-access
                 session_factory,
-                get_settings(),
+                graph_admin.get_graph_lifecycle_settings(),
                 database_url,
                 job_id,
                 "crash-exec",
