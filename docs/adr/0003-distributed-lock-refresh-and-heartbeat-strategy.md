@@ -187,12 +187,15 @@ Propagated to `GraphLifecycleSettings` and consumed by `graph_admin.py` rebuild 
 4. **Retry Rebuild**: Operator can retry the rebuild request; the system enforces exclusive access
 5. **Monitor Heartbeats**: Query `last_heartbeat_at` on running jobs to verify liveness
 
+For database restore scenarios, use the full [Backup, Restore, and DR Runbook](../runbooks/backup-restore-dr.md). Restore procedures must account for restored `distributed_locks` rows with future `expires_at` values and restored `rebuild_jobs` rows in `running` or `cancel_requested` status before application restart.
+
 ## References
 
 - [src/data/distributed_lock.py](../../src/data/distributed_lock.py): Lock refresh implementation
 - [api/routers/graph_admin.py](../../api/routers/graph_admin.py): Heartbeat keeper and rebuild orchestration
 - [src/config/settings.py](../../src/config/settings.py): Typed lock TTL configuration
 - [ADR 0002: Hosted Deployment and Persistence](./0002-hosted-deployment-and-persistence.md): Related persistence guarantees
+- [Backup, Restore, and DR Runbook](../runbooks/backup-restore-dr.md): Restore-specific lock and rebuild job cleanup procedure
 
 ## Authors
 
