@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 # pylint: disable=import-error
-
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
