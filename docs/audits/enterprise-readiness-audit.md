@@ -2,7 +2,7 @@
 
 For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
 
-**Date:** 2026-06-18
+**Date:** 2026-06-24
 **Scope:** Production architecture readiness for FastAPI backend + Next.js frontend
 **Status:** Partial — strong control-plane maturity, incomplete durability and promotion hardening
 
@@ -17,6 +17,22 @@ The remaining risk is concentrated in the durability and promotion layers:
 - validation and contract hardening remain incomplete in a few user-facing surfaces;
 - distributed hosting semantics need a stronger operating model;
 - CI/CD and security automation require further hardening before this should be treated as enterprise-grade production.
+
+## Post-Roadmap Reconciliation Status
+
+Roadmap source-of-truth status (aligned with `docs/roadmap/enterprise-readiness-roadmap.md` and `docs/roadmap/enterprise-readiness-pr-board.md`):
+
+| Roadmap Item | Reconciled Status |
+| --- | --- |
+| PR 1 — Durable Graph Persistence Schema and Repositories | implemented and enforced |
+| PR 2 — Startup Load / Save Integration | implemented and enforced |
+| PR 3 — Durable Promotion Gate Extension | implemented and enforced |
+| PR 4 — API Contract Cleanup | still missing |
+| PR 5 — Recovery-Plane Completion | implemented but weakly validated |
+| PR 6 — Distributed Hosting Semantics Spec | documented only |
+| PR 7 — Failure-Mode and Scale Validation | implemented but weakly validated |
+| PR 8 — Security and Governance Hardening | implemented but weakly validated |
+| PR 9 — Backup, Restore, and DR Runbook | implemented but weakly validated |
 
 ## Readiness Matrix
 
