@@ -7,6 +7,8 @@ For the broader enterprise-readiness audit and rollout plan, see
 
 Accepted
 
+**Current interpretation:** This ADR remains a historical decision record. Current rebuild/recovery state-machine semantics, lock ownership rules, operator authority, and exception paths are governed by the canonical [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md).
+
 ## Date
 
 2026-06-23
@@ -254,10 +256,8 @@ failure-mode and scale tests.
 
 ## References
 
+- [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md): current operational authority for rebuild/recovery state-machine semantics
 - [ADR 0002: Hosted Deployment and Durable Persistence](./0002-hosted-deployment-and-persistence.md)
 - [ADR 0003: Distributed Lock Refresh and Heartbeat Strategy](./0003-distributed-lock-refresh-and-heartbeat-strategy.md)
 - [ADR 0005: Backup, Restore, and Disaster Recovery Strategy](./0005-backup-restore-dr-strategy.md)
 - [Backup, Restore, and DR Runbook](../runbooks/backup-restore-dr.md)
-- [Enterprise Deployment Operating Model](../enterprise-deployment-operating-model.md)
-- [Reconciliation Engine](../reconciliation-engine.md)
-- [Distributed Hosting Invariants](../testing/distributed-hosting-invariants.md)

@@ -32,6 +32,7 @@ Roadmap source-of-truth status (aligned with `docs/roadmap/enterprise-readiness-
 | PR 7 — Failure-Mode and Scale Validation | implemented but weakly validated |
 | PR 8 — Security and Governance Hardening | implemented but weakly validated |
 | PR 9 — Backup, Restore, and DR Runbook | documented only |
+| PR C — Governance and State-Machine Hardening | documented only |
 
 ## Readiness Matrix
 
@@ -49,7 +50,7 @@ Roadmap source-of-truth status (aligned with `docs/roadmap/enterprise-readiness-
 | Validation / contracts | Partially hardened | `docs/phase-3-computation-layout-boundary-audit.md` | Medium | Remove density/pagination/schema ambiguity in API and frontend contracts |
 | CI/CD | Mature baseline, but not enterprise-complete | `.github/workflows/ci.yml`, `.github/workflows/ci-gate-spec.yaml`, `.github/workflows/codeql.yml`, `.github/workflows/hosted-readiness.yml` | High | Tighten promotion gates, keep durable-storage and restart checks enforced and evidence-backed, enforce release discipline |
 | Security automation | Broad coverage; provenance/SBOM hardening in progress | `.github/workflows/*`, `SECURITY.md`, `docs/ENV_ACCESS_AUDIT.md`, `docs/audits/OPERATOR_REBUILD_AUTHORIZATION_AUDIT.md` | High | Complete PR 8 SBOM workflow and auth-audit policy |
-| Governance / operating model | Explicit governance policy in progress | `.github/PULL_REQUEST_TEMPLATE/*`, `docs/GOVERNANCE.md`, `docs/enterprise-deployment-operating-model.md` | Medium | Complete approval, exception, and release governance documentation |
+| Governance / operating model | Canonical state-machine governance documented; enforcement still maturing | `.github/PULL_REQUEST_TEMPLATE/*`, `docs/GOVERNANCE.md`, `docs/enterprise-deployment-operating-model.md`, `docs/governance/state-machine-and-operating-authority.md` | Medium | Enforce canonical-spec update triggers during review and continue operational drills |
 
 ## What Has Been Done
 
@@ -121,19 +122,19 @@ remaining work is validation, not semantic definition:
 
 That is a useful baseline, but it still needs broader validation-backed enforcement and release evidence.
 
+### 4. Formal state-machine governance
+
+The canonical [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md) now defines the current operational interpretation of rebuild/recovery/persistence state machines, invariants, operator ownership, exception authority, and evidence rules.
+
+Remaining work is enforcement and validation, not creation of the governing source of truth:
+
+- reviewers must require canonical-spec updates when governed behaviour changes;
+- failure-mode validation should continue proving the invariants under restart, stale-owner, lock-loss, and split-brain scenarios;
+- operational drills should verify that operators can use the spec during incidents.
+
 ## What Is Not Yet Planned, But Should Be
 
-### 1. Formal state-machine governance
-
-The repo should define one canonical state-machine/invariant document for rebuild coordination and recovery. It should state:
-
-- allowed and forbidden transitions;
-- terminal states;
-- ownership rules;
-- stale-write prevention rules;
-- exact recovery authority and exception handling.
-
-### 2. Disaster recovery and restore
+### 1. Disaster recovery and restore
 
 The repo acknowledges restore as deferred, but enterprise readiness requires explicit planning for:
 
@@ -143,10 +144,10 @@ The repo acknowledges restore as deferred, but enterprise readiness requires exp
 - schema rollback vs data restore;
 - operator escalation path during failed restore.
 
-### 3. Multi-instance and split-brain semantics
+### 2. Multi-instance and split-brain semantics
 
 Distributed hosting semantics are documented through
-`docs/adr/0004-distributed-hosting-semantics.md`. The system is specified as
+`docs/adr/0004-distributed-hosting-semantics.md`, with current operational interpretation consolidated in the canonical [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md). The system is specified as
 single-writer / multi-reader: multiple backend instances may serve reads, but
 only one rebuild writer may hold the `graph_rebuild` lock and persist graph
 truth per graph persistence boundary.
@@ -156,7 +157,7 @@ That PR should convert the invariants in
 `docs/testing/distributed-hosting-invariants.md` into restart, stale-owner,
 lock-loss, hosted-readiness, and concurrency tests.
 
-### 4. Security and supply-chain automation
+### 3. Security and supply-chain automation
 
 The repo has broad scanner coverage, but enterprise hardening should still add policy and enforcement for:
 
@@ -167,7 +168,7 @@ The repo has broad scanner coverage, but enterprise hardening should still add p
 - authorization-failure audit logging;
 - periodic review of privileged endpoints.
 
-### 5. API contract hardening
+### 4. API contract hardening
 
 The phase-3 boundary audit shows user-facing contract drift that should be resolved:
 
@@ -176,7 +177,7 @@ The phase-3 boundary audit shows user-facing contract drift that should be resol
 - visualization payloads should be strongly modeled rather than `dict[str, Any]`;
 - derived metrics should be consistently owned by either the graph engine or the API contract.
 
-### 6. Load / scale validation
+### 5. Load / scale validation
 
 PR 7 adds representative-scale SQLite validation for deterministic 250/1,000 and 1,000/5,000 graph snapshots, plus
 bounded startup-load and rebuild-persist timing tripwires. The repo still needs later production-scale evidence for:
@@ -218,12 +219,7 @@ bounded startup-load and rebuild-persist timing tripwires. The repo still needs 
    - expand restart/reload, crash, and stale-owner validation around the implemented persistence path;
    - keep durable promotion evidence tied to persisted graph behavior.
 3. **Security/governance hardening PRs**
-   - add failure audit logging, restore policy, and supply-chain enforcement;
-   - document operational ownership and escalation paths.
-4. **Restore rehearsal and DR evidence follow-up**
-   - execute and record restore rehearsal against the implemented persistence layer;
-   - keep operator runbooks and release evidence aligned.
-
-## Conclusion
-
-The repo is beyond "prototype" stage and has several enterprise-grade control-plane capabilities already in place, including the implemented and enforced durability and promotion path (PR 1–3). The remaining gaps are contract hardening (PR 4), broader validation evidence around failure-mode, restart, and scale scenarios, and the governance and security automation maturity required to call this fully enterprise-production-ready.
+   - keep canonical-spec update triggers enforced during review;
+   - continue security automation and release-provenance hardening.
+4. **Deferred PR 9 backup/restore follow-up**
+   - keep restore rehearsal evidence visible until a documented rehearsal closes the remaining DR readiness gap.

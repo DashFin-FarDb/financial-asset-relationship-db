@@ -6,6 +6,8 @@ For the broader enterprise-readiness audit and rollout plan, see [docs/enterpris
 
 Implemented
 
+**Current interpretation:** This ADR remains a historical decision record for hosted deployment and persistence strategy. Current rebuild/recovery state-machine semantics, durable-truth interpretation, operator authority, and exception paths are governed by the canonical [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md).
+
 ## Date
 
 2026-04-30
@@ -181,6 +183,7 @@ These are valid future considerations but should not block initial deployment.
 
 ## References
 
+- [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md): current operational authority for durable-truth and rebuild/recovery state-machine interpretation
 - [ADR 0001: Production Architecture](0001-production-architecture.md)
 - [ADR 0005: Backup, Restore, and Disaster Recovery Strategy](0005-backup-restore-dr-strategy.md)
 - [Backup, Restore, and DR Runbook](../runbooks/backup-restore-dr.md)

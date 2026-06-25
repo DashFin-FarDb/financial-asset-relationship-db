@@ -7,6 +7,8 @@ promoted, verified, rolled back, and operated across environments. It distinguis
 between basic service readiness and the stronger durable graph-persistence verification
 required for staging and production promotion.
 
+For current rebuild/recovery/persistence state-machine semantics, ownership rules, and exception paths, see the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md).
+
 ## Operating Topology
 
 The current selected initial topology is:
@@ -72,8 +74,8 @@ The graph persistence store holds durable graph truth. Evidence/metadata persist
 
 ## Distributed Hosting Semantics
 
-For the full specification, see
-[ADR 0004: Distributed Hosting Semantics](adr/0004-distributed-hosting-semantics.md).
+For the historical decision record, see
+[ADR 0004: Distributed Hosting Semantics](adr/0004-distributed-hosting-semantics.md). For current state-machine, ownership, and exception authority, see the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md).
 
 FarDb supports backend scale-out for read serving using a single-writer /
 multi-reader model:
@@ -248,6 +250,8 @@ The operating model assumes named ownership for the following functions:
 - **Secret/config maintainer**: Owns environment-variable configuration and secret rotation.
 - **Persistence-verification operator**: Executes and records the durable graph-persistence smoke procedure.
 - **Incident Commander**: Escalation point for restore failures, data loss events, and RTO/RPO risk.
+
+The canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md) defines the same operating roles plus explicit rebuild recovery, exception approval, and manual-intervention handoff boundaries.
 
 One person may hold multiple roles, but the responsibilities must be explicit.
 
