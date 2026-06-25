@@ -7,7 +7,13 @@ import pytest
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as graph_lifecycle_providers
 from tests.integration import restart_recovery_helpers as helpers
-from tests.integration.facade import AssetGraphRepository, DistributedLock, LockState, RecoveryGate, session_scope
+from tests.integration.facade import (
+    AssetGraphRepository,
+    DistributedLock,
+    LockState,
+    RecoveryGate,
+    session_scope,
+)
 
 pytestmark = pytest.mark.integration
 
@@ -28,7 +34,11 @@ def test_clean_restart_pipeline_loads_graph_after_gate_and_lock_acquisition(
         assert startup_source.source == graph_lifecycle.GraphStartupSource.PERSISTED
         helpers.assert_graph_contents(startup_graph)
 
-        lock = DistributedLock(session_factory, helpers.LOCK_NAME, ttl_seconds=helpers.LOCK_TTL)
+        lock = DistributedLock(
+            session_factory,
+            helpers.LOCK_NAME,
+            ttl_seconds=helpers.LOCK_TTL,
+        )
         claim = getattr(lock, "acquire")
         assert claim()
         assert lock.check_state() == LockState.VALID
