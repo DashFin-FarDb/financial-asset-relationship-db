@@ -11,7 +11,7 @@ from tests.helpers.api_pagination_graph_factory import build_asset_pagination_gr
 pytestmark = pytest.mark.integration
 
 
-`@pytest.fixture`()
+@pytest.fixture()
 def client() -> Iterator[TestClient]:
     """Provide an API client with a seeded three-asset graph."""
     api_main.reset_graph()
