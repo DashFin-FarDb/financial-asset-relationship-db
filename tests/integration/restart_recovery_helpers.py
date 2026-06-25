@@ -6,7 +6,12 @@ from sqlalchemy import create_engine
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
-from tests.integration.facade import AssetGraphRepository, create_session_factory, init_db, session_scope
+from tests.integration.facade import (
+    AssetGraphRepository,
+    create_session_factory,
+    init_db,
+    session_scope,
+)
 
 LOCK_NAME = "graph_rebuild"
 LOCK_TTL = 300
@@ -32,8 +37,20 @@ def graph() -> AssetRelationshipGraph:
                 price=100.0,
             )
         )
-    asset_graph.add_relationship("ASSET_A", "ASSET_B", "observed", 0.4, bidirectional=False)
-    asset_graph.add_relationship("ASSET_B", "ASSET_C", "observed", 0.6, bidirectional=False)
+    asset_graph.add_relationship(
+        "ASSET_A",
+        "ASSET_B",
+        "observed",
+        0.4,
+        bidirectional=False,
+    )
+    asset_graph.add_relationship(
+        "ASSET_B",
+        "ASSET_C",
+        "observed",
+        0.6,
+        bidirectional=False,
+    )
     return asset_graph
 
 
