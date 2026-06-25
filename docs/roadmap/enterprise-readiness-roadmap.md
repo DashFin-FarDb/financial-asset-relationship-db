@@ -30,10 +30,11 @@ Work that should follow immediately after the base durability path is in place.
 | Item | Status | Why next | Dependencies |
 | --- | --- | --- | --- |
 | RecoveryGate / reconciliation plan integration | implemented but weakly validated | Completes the control-plane model already introduced in docs | Reconciliation engine, rebuild executor behavior |
-| Distributed hosting semantics spec | documented only | Needed to make multi-instance behavior explicit and safe | Durable graph persistence, lock strategy, restart semantics |
+| Distributed hosting semantics spec | documented only | Historical semantics are documented in ADR 0004; current authority is consolidated in the state-machine spec | Durable graph persistence, lock strategy, restart semantics |
 | Restart/redeploy failure-mode tests | implemented but weakly validated | Production confidence depends on proving stale-owner and crash recovery behavior | Startup integration, distributed coordination logic |
 | Load and scale validation baseline | implemented but weakly validated | Enterprise readiness requires evidence under representative graph size | Durable persistence implementation, representative dataset |
 | Security automation hardening | implemented but weakly validated | Current scanning is broad but not yet a complete security governance model | Repo-wide policy decisions, release process definition |
+| Formal rebuild / recovery state-machine governance | documented only | The canonical authority now exists at `docs/governance/state-machine-and-operating-authority.md`; next work is enforcement and validation | Recovery behavior stabilisation, operational ownership |
 
 ## Later
 
@@ -43,7 +44,6 @@ Important follow-on work that should be planned once the durable core is stable.
 | --- | --- | --- | --- |
 | Backup / restore runbook and DR testing | documented only | Explicitly deferred in the current operating model, but required for enterprise recovery readiness | Stable persistence layer, operator ownership model |
 | Multi-region / advanced hosting strategy | still missing | Too early until single-region durable behavior is proven | Disaster recovery, promotion gates, cost model |
-| Formal rebuild / recovery state-machine governance | implemented but weakly validated | The repo has enough logic to justify a canonical invariant spec | Recovery behavior stabilisation, operational ownership |
 | Supply-chain provenance and release integrity controls | implemented but weakly validated | Should be built against a stable release process, not ad hoc | CI/CD hardening, artifact build strategy |
 | Continuous operational drills | still missing | Needs production-like telemetry and stable runbooks first | Observability layer, alert routing, runbooks |
 
@@ -53,6 +53,7 @@ Important follow-on work that should be planned once the durable core is stable.
 - Contract cleanup should happen before more API consumers accumulate assumptions around the current ambiguous payload shapes.
 - Failure-mode and scale validation should exercise the merged durability path before operators treat the current guarantees as fully proven.
 - Security automation should be tied to release and promotion policy, otherwise it will remain scanner noise instead of governance.
+- Changes to rebuild/recovery/persistence governance must keep `docs/governance/state-machine-and-operating-authority.md` aligned as the current authority.
 
 ## Risks
 
