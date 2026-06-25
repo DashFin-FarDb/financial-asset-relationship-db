@@ -22,6 +22,7 @@ def client() -> Iterator[TestClient]:
     finally:
         api_main.reset_graph()
 
+
 def test_assets_endpoint_reports_has_more_values_across_pages(client: TestClient) -> None:
     """Assets endpoint should report hasMore until the final page."""
     first_page = client.get("/api/assets", params={"page": 1, "per_page": 2})
