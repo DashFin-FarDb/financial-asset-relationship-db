@@ -8,6 +8,8 @@ contributions for the Financial Asset Relationship Database.
 The production architecture remains FastAPI backend plus Next.js frontend. Non-production Gradio paths are not the
 release target unless explicitly scoped.
 
+For current rebuild, recovery, persistence, state-machine, operator ownership, and exception-handling interpretation, see the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md). ADRs remain historical decision records for this area.
+
 ## Pull Request Approval Requirements
 
 Non-draft pull requests require maintainer review before merge unless an existing automation rule explicitly allows
