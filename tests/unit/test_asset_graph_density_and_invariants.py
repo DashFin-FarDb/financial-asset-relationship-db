@@ -1,5 +1,7 @@
 """Behavioural tests for asset graph density and domain invariants."""
 
+from typing import Any
+
 import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph, calculate_graph_density
@@ -8,9 +10,9 @@ from src.models.financial_models import AssetClass, Equity
 pytestmark = pytest.mark.unit
 
 
-def _equity(asset_id: str, **overrides: object) -> Equity:
+def _equity(asset_id: str, **overrides: Any) -> Equity:
     """Build an equity asset with explicit, assertable fields."""
-    values: dict[str, object] = {
+    values: dict[str, Any] = {
         "id": asset_id,
         "symbol": asset_id,
         "name": f"{asset_id} Equity",
@@ -53,8 +55,26 @@ def test_calculate_graph_density_clamps_parallel_relationship_types() -> None:
 def test_add_asset_duplicate_id_replaces_existing_asset() -> None:
     """Adding an asset with an existing ID intentionally replaces the previous asset object."""
     graph = AssetRelationshipGraph()
-    graph.add_asset(_equity("DUP", symbol="OLD", name="Old Name", sector="Technology", price=10.0, currency="USD"))
-    graph.add_asset(_equity("DUP", symbol="NEW", name="New Name", sector="Healthcare", price=20.5, currency="gbp"))
+    graph.add_asset(
+        _equity(
+            "DUP",
+            symbol="OLD",
+            name="Old Name",
+            sector="Technology",
+            price=10.0,
+            currency="USD",
+        )
+    )
+    graph.add_asset(
+        _equity(
+            "DUP",
+            symbol="NEW",
+            name="New Name",
+            sector="Healthcare",
+            price=20.5,
+            currency="gbp",
+        )
+    )
 
     loaded = graph.assets["DUP"]
     assert loaded.symbol == "NEW"
