@@ -7,12 +7,14 @@ from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
+from tests.conftest import enable_sqlite_foreign_keys
 
 pytestmark = pytest.mark.unit
 
 
 def test_repository_round_trip_preserves_asset_fields(tmp_path) -> None:
     engine = create_engine(f"sqlite:///{tmp_path / 'fields.db'}")
+    enable_sqlite_foreign_keys(engine)
     init_db(engine)
     factory = create_session_factory(engine)
     session = factory()
