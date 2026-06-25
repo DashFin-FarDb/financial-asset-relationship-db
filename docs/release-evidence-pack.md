@@ -273,6 +273,10 @@ Blocking rule:
 
 ## Release Evidence Attachment Checklist
 
+Open one release-candidate evidence issue per release candidate using the
+[Release candidate evidence capture template](../.github/ISSUE_TEMPLATE/release_candidate_evidence.md). The issue is
+the operational record for hosted evidence, scanner review, operator sign-off, and DR rehearsal proof.
+
 Before enterprise release sign-off, attach or link:
 
 - CI run for the release commit.
