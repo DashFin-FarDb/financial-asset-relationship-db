@@ -1,7 +1,7 @@
 # State Machine and Operating Authority
 
-**Status:** Current authority
-**Scope:** Rebuild coordination, runtime graph lifecycle, durable graph persistence, operator ownership, and exception handling
+**Status:** Current authority  
+**Scope:** Rebuild coordination, runtime graph lifecycle, durable graph persistence, operator ownership, and exception handling  
 **Runtime impact:** Documentation only. This specification does not change runtime behaviour.
 
 This document is the canonical operational authority for FarDb rebuild, recovery, persistence, promotion, rollback handoff, and exception-handling semantics.
@@ -148,7 +148,7 @@ A transition to the current state is a no-op. Every other transition not listed 
 | `INITIAL` | Lock object created but no lease has been acquired. |
 | `ACQUIRED` | Lock acquisition succeeded and returned a fencing token. |
 | `REFRESHED` | Lock refresh succeeded and returned a new fencing token. |
-| CONTENDED | Another holder or retry ceiling prevented acquisition/refresh. |
+| `CONTENTED` | Another holder or retry ceiling prevented acquisition/refresh. |
 | `LOST` | Refresh/check/acquire error made ownership unsafe. |
 | `RELEASED` | Current holder released the lock row. |
 
@@ -173,17 +173,19 @@ A rebuild owner proves liveness through both signals:
 
 `active_worker_id` is the worker identity that claimed heartbeat ownership. Once set, heartbeat updates from a different worker are rejected. `execution_id` is the durable identity of the execution attempt; owner-only mutations require it to match the stored job row.
 
-`last_heartbeat_at` is the durable liveness timestamp used to classify stale ownership. A `RUNNING` job is stale when no heartbeat has ever been recorded or when the heartbeat age exceeds the lock TTL. Crash suspicion is similar but requires `active_worker_id` and uses a configurable heartbeat threshold, defaulting to the TTL when unspecified.
+`last_heartbeat_at` is the durable liveness timestamp used to classify heartbeat age. The primary rebuild inconsistency classifiers in `rebuild_failure_detection` use an exclusive boundary: a recorded heartbeat is stale only when `heartbeat_age_seconds > threshold_seconds`. At exactly the lock TTL or crash-suspicion threshold, those classifiers still treat the recorded heartbeat as not stale. Missing heartbeat data remains stale immediately.
+
+`RebuildDriftEvaluator` has one narrower owner-mismatch helper used by RecoveryGate severity/reset eligibility. For that helper only, a mismatched owner's heartbeat is considered stale when it is missing, unparseable, or `heartbeat_age_seconds >= lock_ttl_seconds`. This inclusive boundary does not redefine the `STALE_OWNERSHIP` or `CRASH_SUSPICION` `InconsistencyType` classifiers; it only controls whether an owner-mismatch/orphaned-running case may be downgraded from critical split-brain risk to a resettable stale-owner path.
 
 `InconsistencyType` classifications are:
 
 | Type | Meaning |
 | --- | --- |
 | `NONE` | No detected rebuild coordination inconsistency. |
-| `STALE_OWNERSHIP` | A `RUNNING` job has missing or TTL-stale heartbeat evidence. |
-| `ORPHANED_RUNNING` | Database says `RUNNING`, but runtime reports no active executor. |
+| `STALE_OWNERSHIP` | A `RUNNING` job has no heartbeat, or its recorded heartbeat age is greater than the lock TTL. The boundary is exclusive: `age > lock_ttl_seconds`. |
+| `ORPHANED_RUNNING` | Database says `RUNNING`, but runtime reports no active executor. Owner-mismatch reset eligibility may additionally use the inclusive `age >= lock_ttl_seconds` helper described above. |
 | `ZOMBIE_EXECUTOR` | Runtime reports an active executor but there is no compatible running DB job. |
-| `CRASH_SUSPICION` | A worker is assigned but heartbeat is missing or stale beyond the crash-suspicion threshold. |
+| `CRASH_SUSPICION` | A worker is assigned and the heartbeat is missing, or the recorded heartbeat age is greater than the crash-suspicion threshold. The boundary is exclusive: `age > heartbeat_stale_threshold_seconds`. |
 
 Detection priority is zombie executor without a DB job, orphaned running, crash suspicion, stale ownership, then none.
 
