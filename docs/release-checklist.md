@@ -59,7 +59,7 @@ It does not apply to the Gradio demo path in `app.py`.
 
 **Exit criteria**
 
-- RecoveryGate behavior is fully aligned with reconciliation plan consumption or intentionally documented if deferred.
+- RecoveryGate behavior is fully aligned with the canonical state-machine and operating authority in [docs/governance/state-machine-and-operating-authority.md](governance/state-machine-and-operating-authority.md), or any intentional deferral is explicitly documented.
 - Rebuild cancellation, lock-loss, and stale-owner paths are tested.
 - No stale owner can mutate rebuild state after a restart or lock loss.
 
@@ -76,7 +76,7 @@ It does not apply to the Gradio demo path in `app.py`.
 
 **Exit criteria**
 
-- State-machine and recovery invariants are documented in one authoritative place.
+- State-machine and recovery invariants are documented in the current authoritative spec: [docs/governance/state-machine-and-operating-authority.md](governance/state-machine-and-operating-authority.md).
 - Operator ownership for deploy, rollback, restore, and persistence verification is explicit.
 - Exception handling and manual override paths are documented.
 - PR scope guardrails are followed for release-bound changes.
