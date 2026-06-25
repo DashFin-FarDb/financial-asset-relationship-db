@@ -2,70 +2,76 @@
 
 For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
 
-**Date:** 2026-06-24
-**Format:** Now / Next / Later
-**Purpose:** Sequence the remaining work needed to make the production stack operationally enterprise-grade
+**Date:** 2026-06-25
+**Format:** Release evidence / Target-environment proof / Follow-up hardening
+**Purpose:** Sequence the remaining work after the PR #1287-#1301 enterprise-readiness reconciliation point
 
-Status legend: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
+Status legend follows the [Release Evidence Pack](../release-evidence-pack.md): **Satisfied - automated**, **Satisfied - documented**, **Satisfied - manual evidence required**, **Partially satisfied**, and **Blocked**.
 
 ## Summary
 
-The repo is not starting from zero. Observability, rebuild coordination, operator authorization, and the durable persistence/startup/promotion path are in place. The remaining roadmap is about closing contract gaps and turning the already-implemented durability and recovery path into broadly validated, operationally governed behavior.
+The repo is no longer in the early enterprise-readiness remediation phase. Observability, rebuild coordination, operator authorization, durable persistence, startup/reload integration, durable promotion checks, API contract cleanup, distributed hosting semantics, governance authority, security/governance documentation, DR documentation, and the release evidence pack now exist in the repository baseline.
 
-## Now
+The remaining roadmap is about release execution: attaching target-environment evidence, rehearsing restore, and closing bounded follow-up seams without reopening the architecture.
 
-The high-priority durability, startup, and promotion items (PR 1–3) are implemented and enforced. The current focus is the remaining gap in this tier: API contract cleanup (PR 4).
+## Release Evidence Now
+
+These items must be completed or explicitly attached before treating a staging or production release as enterprise-ready.
 
 | Item | Status | Why now | Dependencies |
 | --- | --- | --- | --- |
-| Durable graph persistence schema/repositories | implemented and enforced | This is the base layer for hosted durability and restart semantics | Current ORM/schema contract, SQLite compatibility rules, persistence design doc |
-| Startup graph load/save integration | implemented and enforced | Persisted graph load/save is wired into startup, making restart/reload behavior observable and testable | Persistence schema/repositories, graph lifecycle providers |
-| Durable promotion gate extension | implemented and enforced | Basic readiness is not enough for staging/production promotion | Startup persistence integration, hosted readiness workflow |
-| API contract cleanup for density, pagination, visualization models | still missing | Contract ambiguity will create production drift and testing gaps | Boundary audit decisions, frontend and API type updates |
+| Source-of-truth reconciliation after PR #1287-#1301 | Satisfied - documented | Canonical docs must reflect the merged implementation and evidence state before the next release objective starts | Release evidence pack, release checklist, audit, PR board |
+| Hosted durable promotion evidence | Satisfied - manual evidence required | Staging/production promotion requires proof that the hosted runtime loaded durable graph truth, not only bounded health | `scripts/check_hosted_readiness.py --require-persistence`, target hosted environment, configured `ASSET_GRAPH_DATABASE_URL` |
+| Release evidence capture for the release commit | Satisfied - manual evidence required | The release evidence pack requires CI run links, smoke output, scanner summaries, and named operator sign-off | Release evidence pack, GitHub Actions, hosted staging/prod target |
+| DR restore rehearsal evidence | Satisfied - manual evidence required | DR strategy and runbook exist, but final enterprise release sign-off requires one rehearsed restore artefact | ADR 0005, backup/restore/DR runbook, staging or scratch restore target |
+| Security scanner and exception summary | Satisfied - manual evidence required | Security automation exists, but release governance requires scanner output and approved exceptions for the release commit | Security workflows, governance policy, release approver |
 
-## Next
+## Target-Environment Proof Next
 
-Work that should follow immediately after the base durability path is in place.
+These items turn repository-level readiness into operational confidence.
 
 | Item | Status | Why next | Dependencies |
 | --- | --- | --- | --- |
-| RecoveryGate / reconciliation plan integration | implemented but weakly validated | Completes the control-plane model already introduced in docs | Reconciliation engine, rebuild executor behavior |
-| Distributed hosting semantics spec | documented only | Historical semantics are documented in ADR 0004; current authority is consolidated in the state-machine spec | Durable graph persistence, lock strategy, restart semantics |
-| Restart/redeploy failure-mode tests | implemented but weakly validated | Production confidence depends on proving stale-owner and crash recovery behavior | Startup integration, distributed coordination logic |
-| Load and scale validation baseline | implemented but weakly validated | Enterprise readiness requires evidence under representative graph size | Durable persistence implementation, representative dataset |
-| Security automation hardening | implemented but weakly validated | Current scanning is broad but not yet a complete security governance model | Repo-wide policy decisions, release process definition |
-| Formal rebuild / recovery state-machine governance | documented only | The canonical authority now exists at `docs/governance/state-machine-and-operating-authority.md`; next work is enforcement and validation | Recovery behavior stabilisation, operational ownership |
+| Staging deployment operating baseline | Partially satisfied | The operating model defines the topology, but staging needs explicit provider, database-boundary, secret, and promotion evidence | Vercel project/environment mapping, durable app DB, durable graph DB, optional coordination DB |
+| Durable graph smoke procedure execution | Satisfied - manual evidence required | The procedure is documented; the next step is attaching redacted hosted output for the target environment | Rebuild or approved persisted baseline, backend restart/redeploy, readiness checker |
+| Restore rehearsal and post-restore smoke | Satisfied - manual evidence required | The DR gate remains open until restore is executed and verified at least once | Selected restore point, scratch target, post-restore readiness smoke |
+| Operator ownership sign-off | Satisfied - manual evidence required | Deploy, promotion, rollback, restore, and persistence-verification owners must be named for release | Enterprise deployment operating model, release evidence pack |
 
-## Later
+## Follow-up Hardening Later
 
-Important follow-on work that should be planned once the durable core is stable.
+These items are valid but should not be bundled into the release-evidence reconciliation PR.
 
 | Item | Status | Why later | Dependencies |
 | --- | --- | --- | --- |
-| Backup / restore runbook and DR testing | documented only | Explicitly deferred in the current operating model, but required for enterprise recovery readiness | Stable persistence layer, operator ownership model |
-| Multi-region / advanced hosting strategy | still missing | Too early until single-region durable behavior is proven | Disaster recovery, promotion gates, cost model |
-| Supply-chain provenance and release integrity controls | implemented but weakly validated | Should be built against a stable release process, not ad hoc | CI/CD hardening, artifact build strategy |
-| Continuous operational drills | still missing | Needs production-like telemetry and stable runbooks first | Observability layer, alert routing, runbooks |
+| `RebuildJobListResponse` truncation signal | Partially satisfied | Core API contract cleanup is merged, but the rebuild job-list API still lacks `total` / `has_more` semantics | Dedicated API contract PR, backend tests, frontend type update if consumed |
+| Strict stale-owner restart composition test | Partially satisfied | Lower-level stale-owner, lock-loss, and RecoveryGate behavior is proven; the exact end-to-end restart composition is optional unless release scope requires it | Existing restart/recovery helpers, distributed lock test fixtures |
+| Production-scale validation | Partially satisfied | Representative CI fixtures exist, but production-scale rebuild, lock refresh, memory, and persistence-load evidence should run outside normal CI | Stable staging dataset, performance budget, observability dashboards |
+| Continuous operational drills | Partially satisfied | Alert/runbook maturity requires repeated incident drills, not only tests and documentation | Observability stack, runbooks, named operators |
+| Multi-region / advanced hosting strategy | Partially satisfied | Too early until single-region durable staging/prod evidence and restore rehearsal are complete | Release evidence, DR evidence, cost and provider model |
 
 ## Key Dependencies
 
-- The durable graph persistence, startup integration, and promotion gate path (PR 1–3) is implemented and enforced, and now serves as the base dependency for restart/reload validation, promotion evidence, and realistic DR testing.
-- Contract cleanup should happen before more API consumers accumulate assumptions around the current ambiguous payload shapes.
-- Failure-mode and scale validation should exercise the merged durability path before operators treat the current guarantees as fully proven.
-- Security automation should be tied to release and promotion policy, otherwise it will remain scanner noise instead of governance.
-- Changes to rebuild/recovery/persistence governance must keep `docs/governance/state-machine-and-operating-authority.md` aligned as the current authority.
+- The durable graph persistence, startup integration, and promotion gate path is implemented; hosted release proof still requires target-environment evidence.
+- The release evidence pack is now the controlling release-proof document for the nine gates.
+- Contract cleanup is mostly complete, but `RebuildJobListResponse` truncation semantics must be handled in a dedicated follow-up rather than silently folded into unrelated work.
+- Failure-mode validation should continue, but optional strict stale-owner composition and production-scale evidence should not block this docs-only reconciliation unless the release scope explicitly makes them mandatory.
+- Governance changes must keep `docs/governance/state-machine-and-operating-authority.md` aligned as the current authority.
 
 ## Risks
 
-- If failure-mode validation slips, the repo may retain durability features that are present but not convincingly proven under restart and crash conditions.
-- If contract cleanup is deferred too long, frontend and backend assumptions will diverge further.
-- If governance and security hardening lag the implemented durability path, promotion discipline may stay policy-heavy instead of evidence-backed.
+- If hosted promotion evidence is not attached, repository tests may be mistaken for target-environment durable graph proof.
+- If restore rehearsal slips, the DR gate remains manual-documentation complete but operationally unproven.
+- If stale status language remains in canonical docs, future PRs will plan against obsolete roadmap assumptions.
+- If follow-up contract or scale work is bundled into release evidence capture, the repo may reintroduce broad, multi-decision PRs.
 
 ## Proposed Delivery Order
 
-1. API contract cleanup
-2. Recovery-plane completion
-3. Distributed hosting semantics
-4. Failure-mode and scale validation
-5. Security and governance hardening
-6. DR / restore evidence and rehearsal
+1. Source-of-truth reconciliation after PR #1287-#1301.
+2. RC1 release evidence capture issue.
+3. Staging deployment operating baseline.
+4. Hosted durable promotion smoke with `--require-persistence`.
+5. DR restore rehearsal and post-restore smoke evidence.
+6. Dedicated `RebuildJobListResponse` truncation signal PR.
+7. Optional strict stale-owner restart composition test.
+8. Production-scale validation and continuous operational drills.
+9. Multi-region / advanced hosting strategy.
