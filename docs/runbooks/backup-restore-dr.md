@@ -476,9 +476,11 @@ Source environment:
 Restore point:
 Restore target:
 Backup/restore mechanism:
+Effective database-boundary topology:
 Auth DB boundary result:
 Coordination DB boundary result:
 Asset graph DB boundary result:
+Scratch restore verification results:
 Post-restore readiness result:
 Post-restore health evidence:
 Post-restore assets/sentinel evidence:
