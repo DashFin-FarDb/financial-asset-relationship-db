@@ -481,6 +481,7 @@ Auth DB boundary result:
 Coordination DB boundary result:
 Asset graph DB boundary result:
 Scratch restore verification results:
+Readiness requirement: hosted readiness run with --require-persistence
 Post-restore readiness result:
 Post-restore health evidence:
 Post-restore assets/sentinel evidence:
