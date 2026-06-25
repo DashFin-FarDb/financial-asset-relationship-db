@@ -25,7 +25,10 @@ def reset_graph_lifecycle(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
 
 def _persist_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
+    from tests.conftest import enable_sqlite_foreign_keys
+
     engine = create_engine(database_url)
+    enable_sqlite_foreign_keys(engine)
     try:
         init_db(engine)
         session = create_session_factory(engine)()
