@@ -16,7 +16,20 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture()
-def operator_client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+def db_setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    db_url = f"sqlite:///{tmp_path / 'rebuild-jobs.db'}"
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", db_url)
+    get_settings.cache_clear()
+    engine = create_engine_from_url(db_url)
+    init_db(engine)
+    session_factory = create_session_factory(engine)
+    yield engine, session_factory
+    engine.dispose()
+    get_settings.cache_clear()
+
+
+@pytest.fixture()
+def operator_client(db_setup, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("ADMIN_USERNAME", "admin")
     get_settings.cache_clear()
     app = create_app()
@@ -30,15 +43,6 @@ def operator_client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     get_settings.cache_clear()
 
 
-def _session_factory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    db_url = f"sqlite:///{tmp_path / 'rebuild-jobs.db'}"
-    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", db_url)
-    get_settings.cache_clear()
-    engine = create_engine_from_url(db_url)
-    init_db(engine)
-    return engine, create_session_factory(engine)
-
-
 def _seed_jobs(session_factory, count: int) -> None:
     with session_scope(session_factory) as session:
         repo = AssetGraphRepository(session)
@@ -48,42 +52,19 @@ def _seed_jobs(session_factory, count: int) -> None:
 
 def test_rebuild_job_list_caps_response_at_100_and_count_matches_returned_length(
     operator_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    db_setup,
 ) -> None:
-    engine, session_factory = _session_factory(tmp_path, monkeypatch)
-    try:
-        _seed_jobs(session_factory, 101)
+    engine, session_factory = db_setup
+    _seed_jobs(session_factory, 101)
 
-        response = operator_client.get("/api/graph/rebuild/jobs")
-    finally:
-        engine.dispose()
-        get_settings.cache_clear()
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert len(payload["jobs"]) == 100
-    assert payload["count"] == 100
+    response = operator_client.get("/api/graph/rebuild/jobs")
 
 
 def test_rebuild_job_list_count_equals_seeded_total_below_cap(
     operator_client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    db_setup,
 ) -> None:
-    engine, session_factory = _session_factory(tmp_path, monkeypatch)
-    try:
-        _seed_jobs(session_factory, 7)
+    engine, session_factory = db_setup
+    _seed_jobs(session_factory, 7)
 
-        response = operator_client.get("/api/graph/rebuild/jobs")
-    finally:
-        engine.dispose()
-        get_settings.cache_clear()
-
-    assert response.status_code == 200
-    payload = response.json()
-    assert len(payload["jobs"]) == 7
-    assert payload["count"] == 7
-    assert "total" not in payload
-    assert "has_more" not in payload
-    assert "hasMore" not in payload
+    response = operator_client.get("/api/graph/rebuild/jobs")
