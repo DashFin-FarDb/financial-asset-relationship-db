@@ -17,6 +17,15 @@ from tests.integration.facade import (
 
 LOCK_NAME = "graph_rebuild"
 LOCK_TTL = 300
+_ASSET_SPECS: tuple[tuple[str, str, AssetClass, str, float], ...] = (
+    ("ASSET_A", "ASSET_A Equity", AssetClass.EQUITY, "Technology", 100.0),
+    ("ASSET_B", "ASSET_B Equity", AssetClass.EQUITY, "Technology", 100.0),
+    ("ASSET_C", "ASSET_C Equity", AssetClass.EQUITY, "Technology", 100.0),
+)
+_RELATIONSHIP_SPECS: tuple[tuple[str, str, str, float], ...] = (
+    ("ASSET_A", "ASSET_B", "observed", 0.4),
+    ("ASSET_B", "ASSET_C", "observed", 0.6),
+)
 
 
 def database(tmp_path: Path) -> tuple[str, Engine, sessionmaker[Session]]:
@@ -38,31 +47,25 @@ def graph() -> AssetRelationshipGraph:
     so tests can verify persistence fidelity across startup load boundaries.
     """
     asset_graph = AssetRelationshipGraph()
-    for asset_id in ("ASSET_A", "ASSET_B", "ASSET_C"):
+    for asset_id, name, asset_class, sector, price in _ASSET_SPECS:
         asset_graph.add_asset(
             Equity(
                 id=asset_id,
                 symbol=asset_id,
-                name=f"{asset_id} Equity",
-                asset_class=AssetClass.EQUITY,
-                sector="Technology",
-                price=100.0,
+                name=name,
+                asset_class=asset_class,
+                sector=sector,
+                price=price,
             )
         )
-    asset_graph.add_relationship(
-        "ASSET_A",
-        "ASSET_B",
-        "observed",
-        0.4,
-        bidirectional=False,
-    )
-    asset_graph.add_relationship(
-        "ASSET_B",
-        "ASSET_C",
-        "observed",
-        0.6,
-        bidirectional=False,
-    )
+    for source_id, target_id, relationship_type, strength in _RELATIONSHIP_SPECS:
+        asset_graph.add_relationship(
+            source_id,
+            target_id,
+            relationship_type,
+            strength,
+            bidirectional=False,
+        )
     return asset_graph
 
 
@@ -75,9 +78,8 @@ def persist_graph(session_factory: sessionmaker[Session], asset_graph: AssetRela
 def assert_graph_contents(asset_graph: AssetRelationshipGraph) -> None:
     """Assert the restart-recovery graph loaded with full asset and edge fidelity."""
     expected_assets = {
-        "ASSET_A": ("ASSET_A", "ASSET_A Equity", AssetClass.EQUITY, "Technology", 100.0),
-        "ASSET_B": ("ASSET_B", "ASSET_B Equity", AssetClass.EQUITY, "Technology", 100.0),
-        "ASSET_C": ("ASSET_C", "ASSET_C Equity", AssetClass.EQUITY, "Technology", 100.0),
+        asset_id: (asset_id, name, asset_class, sector, price)
+        for asset_id, name, asset_class, sector, price in _ASSET_SPECS
     }
     assert set(asset_graph.assets) == set(expected_assets)
     for asset_id, expected in expected_assets.items():
@@ -95,7 +97,4 @@ def assert_graph_contents(asset_graph: AssetRelationshipGraph) -> None:
         for source_id, edges in asset_graph.relationships.items()
         for target_id, relationship_type, strength in edges
     }
-    assert relationships == {
-        ("ASSET_A", "ASSET_B", "observed", 0.4),
-        ("ASSET_B", "ASSET_C", "observed", 0.6),
-    }
+    assert relationships == set(_RELATIONSHIP_SPECS)
