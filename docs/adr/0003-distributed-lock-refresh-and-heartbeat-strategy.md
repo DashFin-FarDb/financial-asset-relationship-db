@@ -4,6 +4,8 @@
 
 Accepted
 
+**Current interpretation:** This ADR remains a historical decision record. Current rebuild/recovery state-machine semantics, lock ownership rules, operator authority, and exception paths are governed by the canonical [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md).
+
 ## Date
 
 2026-04-17
@@ -191,6 +193,7 @@ For database restore scenarios, use the full [Backup, Restore, and DR Runbook](.
 
 ## References
 
+- [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md): current operational authority for rebuild/recovery state-machine semantics
 - [src/data/distributed_lock.py](../../src/data/distributed_lock.py): Lock refresh implementation
 - [api/routers/graph_admin.py](../../api/routers/graph_admin.py): Heartbeat keeper and rebuild orchestration
 - [src/config/settings.py](../../src/config/settings.py): Typed lock TTL configuration
