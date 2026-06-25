@@ -3,6 +3,8 @@
 from pathlib import Path
 
 from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
@@ -17,8 +19,12 @@ LOCK_NAME = "graph_rebuild"
 LOCK_TTL = 300
 
 
-def database(tmp_path: Path):
-    """Create an isolated restart-recovery database."""
+def database(tmp_path: Path) -> tuple[str, Engine, sessionmaker[Session]]:
+    """Create an initialized restart-recovery database and session factory.
+
+    The returned URL is suitable for startup configuration, while the engine and
+    session factory let tests seed persisted graph state and dispose resources.
+    """
     db_url = f"sqlite:///{tmp_path / 'restart-recovery.db'}"
     engine = create_engine(db_url)
     init_db(engine)
@@ -26,7 +32,11 @@ def database(tmp_path: Path):
 
 
 def graph() -> AssetRelationshipGraph:
-    """Build a deterministic graph for restart-recovery persistence tests."""
+    """Build the deterministic graph expected to survive restart recovery.
+
+    The graph intentionally includes three assets and two directed relationships
+    so tests can verify persistence fidelity across startup load boundaries.
+    """
     asset_graph = AssetRelationshipGraph()
     for asset_id in ("ASSET_A", "ASSET_B", "ASSET_C"):
         asset_graph.add_asset(
@@ -56,14 +66,14 @@ def graph() -> AssetRelationshipGraph:
     return asset_graph
 
 
-def persist_graph(session_factory, asset_graph: AssetRelationshipGraph) -> None:
-    """Persist a graph through the repository seam used by restart tests."""
+def persist_graph(session_factory: sessionmaker[Session], asset_graph: AssetRelationshipGraph) -> None:
+    """Persist restart-recovery graph truth through the repository boundary."""
     with session_scope(session_factory) as session:
         AssetGraphRepository(session).save_graph(asset_graph)
 
 
 def assert_graph_contents(asset_graph: AssetRelationshipGraph) -> None:
-    """Assert persisted graph fidelity for assets and directed relationships."""
+    """Assert the restart-recovery graph loaded with full asset and edge fidelity."""
     expected_assets = {
         "ASSET_A": ("ASSET_A", "ASSET_A Equity", AssetClass.EQUITY, "Technology", 100.0),
         "ASSET_B": ("ASSET_B", "ASSET_B Equity", AssetClass.EQUITY, "Technology", 100.0),
