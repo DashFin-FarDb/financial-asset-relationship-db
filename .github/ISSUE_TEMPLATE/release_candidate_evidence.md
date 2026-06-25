@@ -2,7 +2,7 @@
 name: Release candidate evidence capture
 about: Capture hosted and operator evidence for one enterprise release candidate
 title: "[RC EVIDENCE] "
-labels: "release, evidence, enterprise-readiness"
+labels: ["release", "evidence", "enterprise-readiness"]
 assignees: ""
 ---
 
