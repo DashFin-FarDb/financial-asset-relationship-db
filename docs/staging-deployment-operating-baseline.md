@@ -19,9 +19,9 @@ Staging uses the existing hosted topology:
 
 - Vercel-hosted Next.js frontend.
 - Vercel serverless FastAPI backend using `api.main:app`.
-- PostgreSQL-compatible app/auth database exposed through `DATABASE_URL`.
-- PostgreSQL-compatible durable graph database exposed through `ASSET_GRAPH_DATABASE_URL`.
-- Optional PostgreSQL-compatible coordination database exposed through `COORDINATION_DATABASE_URL` when separated.
+- Supabase PostgreSQL app/auth database exposed through `DATABASE_URL`.
+- Supabase PostgreSQL durable graph database exposed through `ASSET_GRAPH_DATABASE_URL`.
+- Optional Supabase PostgreSQL coordination database exposed through `COORDINATION_DATABASE_URL` when separated.
 - Vercel environment variables for secret and configuration injection.
 
 No new hosting architecture, queue, scheduler, database abstraction, or persistence rewrite is introduced by this
@@ -29,12 +29,13 @@ baseline.
 
 ## Current Provider Record
 
-The repository does not commit the concrete staging database vendor, database instance names, Vercel project IDs, or
-environment-variable values. Those values are operator-controlled and must be captured as redacted release evidence.
+The staging database provider is **Supabase**. The repository does not commit concrete Supabase project IDs, database
+instance names, Vercel project IDs, or environment-variable values. Those values are operator-controlled and must be
+captured as redacted release evidence.
 
 Before staging promotion, the release-candidate evidence issue must record:
 
-- staging database provider name;
+- staging database provider name: Supabase;
 - app/auth database boundary label;
 - asset graph database boundary label;
 - coordination database boundary label, or explicit statement that coordination shares the app/auth boundary;
@@ -67,13 +68,13 @@ durable, use PostgreSQL-compatible durable boundaries, and are approved as promo
 
 ## Staging Database Boundaries
 
-Staging must use durable PostgreSQL-compatible boundaries. SQLite is not accepted as staging durable persistence.
+Staging must use Supabase PostgreSQL durable boundaries. SQLite is not accepted as staging durable persistence.
 
 | Boundary | Environment variable | Required staging behavior | Evidence required |
 | --- | --- | --- | --- |
-| App/auth database | `DATABASE_URL` | Exists and points to a PostgreSQL-compatible durable app/auth database. | Redacted provider/project label and variable-presence confirmation. |
-| Asset graph database | `ASSET_GRAPH_DATABASE_URL` | Exists and points to the authoritative durable graph database. Must be distinct from `DATABASE_URL` unless an exception is approved. | Redacted provider/project label, distinctness confirmation, and hosted persistence smoke evidence. |
-| Coordination database | `COORDINATION_DATABASE_URL` | Exists when rebuild lock/job coordination is separated. If absent, coordination fallback boundary is documented. | Redacted provider/project label or explicit shared-boundary statement. |
+| App/auth database | `DATABASE_URL` | Exists and points to a Supabase PostgreSQL durable app/auth database. | Redacted Supabase project/database label and variable-presence confirmation. |
+| Asset graph database | `ASSET_GRAPH_DATABASE_URL` | Exists and points to the authoritative Supabase PostgreSQL durable graph database. Must be distinct from `DATABASE_URL` unless an exception is approved. | Redacted Supabase project/database label, distinctness confirmation, and hosted persistence smoke evidence. |
+| Coordination database | `COORDINATION_DATABASE_URL` | Exists when rebuild lock/job coordination is separated. If absent, coordination fallback boundary is documented. | Redacted Supabase project/database label or explicit shared-boundary statement. |
 
 Shared boundaries are allowed only when intentional and documented. If coordination shares the app/auth database, the
 release evidence must say so explicitly.
@@ -111,7 +112,8 @@ link the following evidence:
 
 - [ ] Release commit SHA and full CI run.
 - [ ] Staging Vercel project/deployment mapping for frontend and backend/API traffic.
-- [ ] Staging database provider name and redacted app/auth, graph, and coordination boundary labels.
+- [ ] Staging database provider recorded as Supabase.
+- [ ] Redacted Supabase app/auth, graph, and coordination boundary labels.
 - [ ] Confirmation that `DATABASE_URL` exists in staging.
 - [ ] Confirmation that `ASSET_GRAPH_DATABASE_URL` exists in staging.
 - [ ] Confirmation that `ASSET_GRAPH_DATABASE_URL` is distinct from `DATABASE_URL`, or approved exception details.

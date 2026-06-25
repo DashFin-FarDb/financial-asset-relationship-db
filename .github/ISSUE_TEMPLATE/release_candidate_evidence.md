@@ -36,7 +36,7 @@ Reference:
 
 - [ ] Staging Vercel frontend project/deployment mapping is recorded, if this is staging evidence.
 - [ ] Staging Vercel backend/API project/deployment mapping is recorded, if this is staging evidence.
-- [ ] Staging database provider name is recorded.
+- [ ] Staging database provider is recorded as Supabase.
 - [ ] Staging app/auth database boundary label is recorded.
 - [ ] Staging asset graph database boundary label is recorded.
 - [ ] Staging coordination database boundary label or shared-boundary fallback is recorded.
