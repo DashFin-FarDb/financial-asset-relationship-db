@@ -148,7 +148,7 @@ A transition to the current state is a no-op. Every other transition not listed 
 | `INITIAL` | Lock object created but no lease has been acquired. |
 | `ACQUIRED` | Lock acquisition succeeded and returned a fencing token. |
 | `REFRESHED` | Lock refresh succeeded and returned a new fencing token. |
-| `CONTENTED` | Another holder or retry ceiling prevented acquisition/refresh. |
+| CONTENDED | Another holder or retry ceiling prevented acquisition/refresh. |
 | `LOST` | Refresh/check/acquire error made ownership unsafe. |
 | `RELEASED` | Current holder released the lock row. |
 
