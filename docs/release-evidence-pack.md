@@ -189,7 +189,7 @@ pytest tests/integration/test_distributed_hosting_failure_modes.py -q
 
 Workflow evidence:
 
-- `.github/workflows/ci-gate-spec.yml` coordination safety gate run, where enabled.
+- `.github/workflows/ci-gate-spec.yaml` coordination safety gate run, where enabled.
 
 Manual release attachment:
 
