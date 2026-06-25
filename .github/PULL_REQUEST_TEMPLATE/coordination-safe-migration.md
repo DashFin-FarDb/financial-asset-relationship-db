@@ -46,6 +46,7 @@
 - [ ] Lock lifecycle state transitions (`INITIAL`, `ACQUIRED`, `REFRESHED`, `LOST`, `RELEASED`) are verified.
 - [ ] Immutable `LockEvent` emission is covered in tests.
 - [ ] Standardized metrics tracking (counters and latency histograms) is tested.
+- [ ] If this PR changes lock ownership, fencing, heartbeat, stale-owner, or rebuild state-machine semantics, `docs/governance/state-machine-and-operating-authority.md` is updated or the PR proves the canonical interpretation is unchanged.
 
 ## Files Expected to Change
 
@@ -79,3 +80,4 @@ flake8 <modified_files>
 - [ ] Fencing token monotonicity is verified and strictly enforced.
 - [ ] Multi-region primary-only routing rules are strictly followed.
 - [ ] Unit and integration tests pass perfectly.
+- [ ] Canonical state-machine authority is updated when governed coordination behaviour changes.
