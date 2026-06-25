@@ -8,25 +8,19 @@ from src.models.financial_models import AssetClass, Equity
 pytestmark = pytest.mark.unit
 
 
-def _equity(
-    asset_id: str,
-    *,
-    symbol: str | None = None,
-    name: str | None = None,
-    sector: str = "Technology",
-    price: float = 100.0,
-    currency: str = "USD",
-) -> Equity:
+def _equity(asset_id: str, **overrides: object) -> Equity:
     """Build an equity asset with explicit, assertable fields."""
-    return Equity(
-        id=asset_id,
-        symbol=symbol or asset_id,
-        name=name or f"{asset_id} Equity",
-        asset_class=AssetClass.EQUITY,
-        sector=sector,
-        price=price,
-        currency=currency,
-    )
+    values: dict[str, object] = {
+        "id": asset_id,
+        "symbol": asset_id,
+        "name": f"{asset_id} Equity",
+        "asset_class": AssetClass.EQUITY,
+        "sector": "Technology",
+        "price": 100.0,
+        "currency": "USD",
+    }
+    values.update(overrides)
+    return Equity(**values)
 
 
 @pytest.mark.parametrize(
