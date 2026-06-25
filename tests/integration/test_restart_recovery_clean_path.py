@@ -32,18 +32,12 @@ def test_clean_restart_pipeline_loads_graph_after_gate_and_lock_acquisition(
         graph_lifecycle.reset_graph()
         graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
-        startup_graph, startup_source = graph_lifecycle.get_graph_with_startup_source()
-        assert startup_source is not None
-        assert startup_source.source == graph_lifecycle.GraphStartupSource.PERSISTED
-        helpers.assert_graph_contents(startup_graph)
-
         lock = DistributedLock(
             session_factory,
             helpers.LOCK_NAME,
             ttl_seconds=helpers.LOCK_TTL,
         )
-        claim = getattr(lock, "acquire")
-        assert claim()
+        lock.acquire()
         assert lock.check_state() == LockState.VALID
 
         RecoveryGate(
@@ -54,6 +48,11 @@ def test_clean_restart_pipeline_loads_graph_after_gate_and_lock_acquisition(
             enable_automatic_recovery=True,
         ).ensure_safe_to_execute()
         assert lock.check_state() == LockState.VALID
+
+        startup_graph, startup_source = graph_lifecycle.get_graph_with_startup_source()
+        assert startup_source is not None
+        assert startup_source.source == graph_lifecycle.GraphStartupSource.PERSISTED
+        helpers.assert_graph_contents(startup_graph)
 
         with session_scope(session_factory) as session:
             durable_graph = AssetGraphRepository(session).load_graph()
