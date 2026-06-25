@@ -7,7 +7,7 @@
 ## Purpose
 
 This evidence pack maps each enterprise release gate to concrete automated evidence, CI or smoke commands, manual
-operator artefacts, and remaining work. It is the auditable companion to the
+operator artifacts, and remaining work. It is the auditable companion to the
 [Enterprise Release Checklist](release-checklist.md).
 
 The document distinguishes:
@@ -189,7 +189,7 @@ pytest tests/integration/test_distributed_hosting_failure_modes.py -q
 
 Workflow evidence:
 
-- `.github/workflows/ci-gate-spec.yaml` coordination safety gate run, where enabled.
+- `.github/workflows/ci-gate-spec.yml` coordination safety gate run, where enabled.
 
 Manual release attachment:
 

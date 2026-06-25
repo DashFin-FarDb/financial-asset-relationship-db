@@ -14,7 +14,7 @@ It does not apply to the Gradio demo path in `app.py`.
 
 ## Release Gates
 
-For the auditable evidence matrix, targeted validation commands, workflow evidence, and manual artefacts for these
+For the auditable evidence matrix, targeted validation commands, workflow evidence, and manual artifacts for these
 gates, see the [Release Evidence Pack](release-evidence-pack.md).
 
 ### 1. Architecture Gate
