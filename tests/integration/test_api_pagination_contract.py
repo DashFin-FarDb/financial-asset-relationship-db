@@ -6,40 +6,25 @@ import pytest
 from fastapi.testclient import TestClient
 
 import api.main as api_main
-from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import AssetClass, Equity
+from tests.helpers.api_pagination_graph_factory import build_asset_pagination_graph
 
 pytestmark = pytest.mark.integration
 
 
-def _asset(asset_id: str) -> Equity:
-    return Equity(
-        id=asset_id,
-        symbol=asset_id,
-        name=f"{asset_id} Equity",
-        asset_class=AssetClass.EQUITY,
-        sector="Technology",
-        price=100.0,
-    )
-
-
-def _graph(asset_count: int) -> AssetRelationshipGraph:
-    graph = AssetRelationshipGraph()
-    for index in range(asset_count):
-        graph.add_asset(_asset(f"ASSET_{index:02d}"))
-    return graph
-
-
 @pytest.fixture()
 def client() -> Iterator[TestClient]:
+    """Provide an API client with a seeded three-asset graph."""
     api_main.reset_graph()
-    api_main.set_graph(_graph(3))
-    with TestClient(api_main.app) as test_client:
+    api_main.set_graph(build_asset_pagination_graph(3))
+    test_client = TestClient(api_main.app)
+    try:
         yield test_client
-    api_main.reset_graph()
+    finally:
+        api_main.reset_graph()
 
 
 def test_assets_endpoint_reports_has_more_values_across_pages(client: TestClient) -> None:
+    """Assets endpoint should report hasMore until the final page."""
     first_page = client.get("/api/assets", params={"page": 1, "per_page": 2})
     final_page = client.get("/api/assets", params={"page": 2, "per_page": 2})
 
@@ -50,6 +35,7 @@ def test_assets_endpoint_reports_has_more_values_across_pages(client: TestClient
 
 
 def test_assets_endpoint_accepts_per_page_upper_boundary(client: TestClient) -> None:
+    """Assets endpoint should accept the documented per-page upper bound."""
     response = client.get("/api/assets", params={"page": 1, "per_page": 1000})
 
     assert response.status_code == 200
