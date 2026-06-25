@@ -1,70 +1,71 @@
 # Enterprise Readiness Index
 
-**Date:** 2026-06-24
-**Purpose:** Single entry point for enterprise-readiness audit, roadmap, PR plan, and release criteria
+**Date:** 2026-06-25
+**Purpose:** Single entry point for enterprise-readiness audit, roadmap, PR plan, release criteria, and release evidence
 
 ## What To Read
 
 | Document | Purpose |
 | --- | --- |
-| `docs/audits/enterprise-readiness-audit.md` | Full audit of what is done, planned, and still missing |
-| `docs/roadmap/enterprise-readiness-roadmap.md` | High-level Now / Next / Later remediation roadmap |
+| `docs/audits/enterprise-readiness-audit.md` | Full audit of what is implemented, evidence-backed, manually gated, and still deferred |
+| `docs/roadmap/enterprise-readiness-roadmap.md` | High-level release-execution roadmap after the PR #1287-#1301 reconciliation point |
 | `docs/roadmap/enterprise-readiness-pr-plan.md` | PR-by-PR execution plan with validation commands |
 | `docs/roadmap/enterprise-readiness-pr-board.md` | Operational PR board with status and exit criteria |
 | `docs/release-checklist.md` | Release gates and enterprise exit criteria |
+| `docs/release-evidence-pack.md` | Gate-by-gate release evidence matrix, targeted commands, manual artefacts, and blocker rules |
 | `docs/governance/state-machine-and-operating-authority.md` | Current operational authority for rebuild/recovery state machines, invariants, ownership, and exception paths |
 | `docs/adr/0005-backup-restore-dr-strategy.md` | Backup, restore, DR strategy, data classification, RPO, and RTO |
 | `docs/runbooks/backup-restore-dr.md` | Operator procedures for backup verification, restore execution, and post-restore checks |
 
 ## Executive Summary
 
-The repo is already strong in control-plane maturity:
+The repository has moved from enterprise-readiness remediation into release-evidence execution. The merged PR #1287-#1301 sequence means the durable persistence path, startup/reload integration, durable promotion checker, API contract cleanup, recovery/governance hardening, failure-mode validation, security/governance documentation, DR documentation, and release evidence pack are now part of the repository baseline.
 
-- observability and SLOs are implemented;
-- rebuild coordination and operator authorization are hardened;
-- production architecture is clearly declared;
-- backup, restore, and disaster recovery strategy/procedures are now documented.
+The remaining work is no longer primarily architectural. It is concentrated in live release evidence and bounded follow-up hardening:
 
-The remaining work is primarily around:
+- hosted promotion evidence showing durable graph truth in the target environment;
+- DR restore rehearsal evidence against the documented backup/restore process;
+- release-commit security scanner review and named operator sign-off;
+- a dedicated `RebuildJobListResponse` truncation signal follow-up;
+- optional strict stale-owner restart composition testing;
+- production-scale validation and continuous operational drills.
 
-- contract cleanup (PR 4);
-- broader failure-mode and scale validation of the implemented durability path (PR 1–3 are implemented and enforced; validation evidence continues);
-- distributed hosting semantics;
-- security/governance automation;
-- restore rehearsal evidence.
-
-The DR documentation gap is closed at the strategy and runbook level through [ADR 0005](adr/0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](runbooks/backup-restore-dr.md). Final release readiness still requires operators to rehearse restore at least once and record the evidence in the release process.
+The DR documentation gap is closed at the strategy and runbook level through [ADR 0005](adr/0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](runbooks/backup-restore-dr.md). Final enterprise release readiness still requires operators to rehearse restore at least once and record the evidence in the release process.
 
 ## Roadmap Status Snapshot
 
-Status legend: **implemented and enforced**, **implemented but weakly validated**, **documented only**, **superseded**, **still missing**.
+Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **Satisfied - automated**, **Satisfied - documented**, **Satisfied - manual evidence required**, **Partially satisfied**, and **Blocked**.
 
 | Status | Current items |
 | --- | --- |
-| implemented and enforced | PR 1, PR 2, PR 3 |
-| implemented but weakly validated | PR 5, PR 7, PR 8 |
-| documented only | PR 6, PR 9, PR C governance/state-machine authority |
-| superseded | none currently |
-| still missing | PR 4, multi-region / advanced hosting strategy roadmap item, continuous operational drills roadmap item |
+| Satisfied - automated | PR 1 durable graph persistence; PR 2 startup load/save integration; PR 4 core density, asset pagination, and frontend/backend contract seams; PR 5 RecoveryGate/reconciliation control-plane path; PR 7 CI-bounded failure-mode and representative-scale validation where covered |
+| Satisfied - documented | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model |
+| Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence |
+| Partially satisfied | `RebuildJobListResponse` lacks a `total` / `has_more` truncation signal; strict stale-owner restart composition remains optional unless release scope requires it; production-scale validation and continuous operational drills remain future operating-maturity work |
+| Blocked | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence, release-commit security scanner/exception review, named operator sign-off, and DR restore rehearsal evidence are attached or approved. |
 
 ## Recommended Reading Order
 
-1. `docs/audits/enterprise-readiness-audit.md`
-2. `docs/roadmap/enterprise-readiness-roadmap.md`
-3. `docs/roadmap/enterprise-readiness-pr-plan.md`
-4. `docs/roadmap/enterprise-readiness-pr-board.md`
-5. `docs/release-checklist.md`
-6. `docs/governance/state-machine-and-operating-authority.md`
-7. `docs/adr/0005-backup-restore-dr-strategy.md`
-8. `docs/runbooks/backup-restore-dr.md`
+1. `docs/release-evidence-pack.md`
+2. `docs/release-checklist.md`
+3. `docs/audits/enterprise-readiness-audit.md`
+4. `docs/roadmap/enterprise-readiness-roadmap.md`
+5. `docs/roadmap/enterprise-readiness-pr-board.md`
+6. `docs/roadmap/enterprise-readiness-pr-plan.md`
+7. `docs/governance/state-machine-and-operating-authority.md`
+8. `docs/adr/0005-backup-restore-dr-strategy.md`
+9. `docs/runbooks/backup-restore-dr.md`
 
 ## Operational Rule
 
-If a change touches production behavior, deployment, security, persistence, or recovery, it should be mapped back to one of the documents above before implementation begins.
+If a change touches production behavior, deployment, security, persistence, recovery, or release promotion, it should be mapped back to the release evidence pack and the canonical state-machine authority before implementation begins.
+
+Repository tests and documentation may satisfy implementation evidence, but staging and production promotion require target-environment evidence. A bounded health response alone must not be treated as durable graph truth.
 
 ## Related Entry Points
 
 - [README.md](../README.md) — main repository entry point and production setup overview
+- [docs/release-evidence-pack.md](./release-evidence-pack.md) — auditable release evidence matrix
 - [docs/governance/state-machine-and-operating-authority.md](./governance/state-machine-and-operating-authority.md) — current authority for rebuild/recovery/persistence state-machine governance
 - [docs/adr/0002-hosted-deployment-and-persistence.md](./adr/0002-hosted-deployment-and-persistence.md) — hosted persistence decision
 - [docs/adr/0005-backup-restore-dr-strategy.md](./adr/0005-backup-restore-dr-strategy.md) — backup, restore, and DR strategy
