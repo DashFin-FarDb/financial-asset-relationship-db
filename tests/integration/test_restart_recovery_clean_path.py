@@ -27,7 +27,9 @@ def test_clean_restart_pipeline_loads_graph_after_gate_and_lock_acquisition(
     lock = None
     try:
         helpers.persist_graph(session_factory, helpers.graph())
+        helpers.persist_graph(session_factory, helpers.graph())
         monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", db_url)
+        graph_lifecycle.reset_graph()
         graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
 
         startup_graph, startup_source = graph_lifecycle.get_graph_with_startup_source()
