@@ -4,7 +4,7 @@
 
 Accepted
 
-**Current interpretation:** This ADR remains a historical decision record. Current rebuild/recovery state-machine semantics, lock ownership rules, operator authority, and exception paths are governed by the canonical [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md).
+**Current interpretation:** This ADR remains a historical decision record. Current rebuild/recovery state-machine semantics, lock ownership rules, heartbeat refresh behaviour, stale-owner handling, operator authority, and exception paths are governed by the canonical [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md).
 
 ## Date
 
