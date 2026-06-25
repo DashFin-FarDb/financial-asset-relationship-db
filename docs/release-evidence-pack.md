@@ -267,6 +267,8 @@ Manual release attachment:
 - Effective database-boundary topology: Auth DB, Coordination DB, Asset Graph DB.
 - Scratch restore verification results.
 - Post-restore hosted readiness smoke output.
+- RPO/RTO observations and decision recorded using the
+  [restore rehearsal evidence record](runbooks/backup-restore-dr.md#restore-rehearsal-evidence-record).
 
 Blocking rule:
 
