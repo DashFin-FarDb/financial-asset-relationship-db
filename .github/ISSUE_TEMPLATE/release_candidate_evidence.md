@@ -34,7 +34,15 @@ Reference:
 
 ## Hosted Promotion Evidence
 
+- [ ] Staging Vercel frontend project/deployment mapping is recorded, if this is staging evidence.
+- [ ] Staging Vercel backend/API project/deployment mapping is recorded, if this is staging evidence.
+- [ ] Staging database provider name is recorded.
+- [ ] Staging app/auth database boundary label is recorded.
+- [ ] Staging asset graph database boundary label is recorded.
+- [ ] Staging coordination database boundary label or shared-boundary fallback is recorded.
+- [ ] Preview evidence is labelled `durable` or `non-durable`, if preview evidence is attached.
 - [ ] `ASSET_GRAPH_DATABASE_URL` is configured for the target durable graph database.
+- [ ] `ASSET_GRAPH_DATABASE_URL` is distinct from `DATABASE_URL`, or an approved exception is attached.
 - [ ] Hosted readiness was run with durable persistence required:
 
   ```bash

@@ -7,6 +7,9 @@ promoted, verified, rolled back, and operated across environments. It distinguis
 between basic service readiness and the stronger durable graph-persistence verification
 required for staging and production promotion.
 
+For staging-specific provider boundaries, Vercel environment mapping, preview durability labelling, and promotion
+evidence capture, see the [Staging Deployment Operating Baseline](staging-deployment-operating-baseline.md).
+
 For current rebuild/recovery/persistence state-machine semantics, ownership rules, and exception paths, see the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md).
 
 ## Operating Topology
@@ -27,7 +30,7 @@ The current selected initial topology is:
 
 - **Local**: Developer-owned runtime for development and testing. SQLite is allowed.
 - **Preview**: May be durable or non-durable. If non-durable, the deployment must be labeled accordingly and must not be treated as proof of production persistence behavior.
-- **Staging**: Durable pre-production verification environment. Must use the same persistence boundary class expected for production.
+- **Staging**: Durable pre-production verification environment. Must use the same persistence boundary class expected for production. The staging provider, Vercel project/deployment mapping, database boundaries, variable-presence checks, preview durability label, and promotion evidence are governed by the [Staging Deployment Operating Baseline](staging-deployment-operating-baseline.md).
 - **Production**: Durable authoritative environment.
 
 ### Rollback and Restore Ownership

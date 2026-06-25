@@ -49,6 +49,7 @@ gates, see the [Release Evidence Pack](release-evidence-pack.md).
 - Hosted readiness proves more than bounded health; it must prove durable graph evidence for staging and production.
 - Promotion requires an explicit durable graph-persistence smoke procedure.
 - A basic health check alone is not accepted as production proof.
+- Staging promotion follows the [Staging Deployment Operating Baseline](staging-deployment-operating-baseline.md).
 
 ### 5. API Contract Gate
 
