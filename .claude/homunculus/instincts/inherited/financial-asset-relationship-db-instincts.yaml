@@ -1,0 +1,321 @@
+# Instincts generated from https://github.com/DashFin-FarDb/financial-asset-relationship-db
+# Generated: 2026-06-25T20:13:01.219Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: financial-asset-relationship-db-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Commit Length
+
+## Action
+
+Keep commit messages concise (~45 characters)
+
+## Evidence
+
+- Average commit message length: 45 chars
+- Based on 3 commits
+
+---
+id: financial-asset-relationship-db-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Naming Files
+
+## Action
+
+Use kebab-case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: kebab-case
+
+---
+id: financial-asset-relationship-db-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: financial-asset-relationship-db-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: financial-asset-relationship-db-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: financial-asset-relationship-db-workflow-update-release-candidate-evidence-template-and-related-docs
+trigger: "when doing update release candidate evidence template and related docs"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Update Release Candidate Evidence Template And Related Docs
+
+## Action
+
+Follow the update-release-candidate-evidence-template-and-related-docs workflow:
+1. Edit .github/ISSUE_TEMPLATE/release_candidate_evidence.md to reflect new requirements or clarifications.
+2. Update related documentation files in docs/ (such as staging deployment baselines or release checklists) to stay consistent with the template changes.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: .github/ISSUE_TEMPLATE/release_candidate_evidence.md, docs/staging-deployment-operating-baseline.md, docs/release-checklist.md
+
+---
+id: financial-asset-relationship-db-instinct-file-naming
+trigger: "When creating or renaming a file in the codebase"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct File Naming
+
+## Action
+
+Name the file using kebab-case (e.g., my-file.ts)
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.files
+
+---
+id: financial-asset-relationship-db-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Function Naming
+
+## Action
+
+Use camelCase for the function name (e.g., getAssetData)
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.functions
+
+---
+id: financial-asset-relationship-db-instinct-class-naming
+trigger: "When creating a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Class Naming
+
+## Action
+
+Use PascalCase for the class name (e.g., AssetRelationship)
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.classes
+
+---
+id: financial-asset-relationship-db-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for the constant name (e.g., MAX_ASSET_COUNT)
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.constants
+
+---
+id: financial-asset-relationship-db-instinct-import-style
+trigger: "When importing modules in TypeScript files"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Import Style
+
+## Action
+
+Use relative import paths (e.g., import { X } from './utils')
+
+## Evidence
+
+- Pattern in codeStyle.importStyle
+
+---
+id: financial-asset-relationship-db-instinct-export-style
+trigger: "When exporting functions, classes, or constants"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Export Style
+
+## Action
+
+Use named exports (e.g., export { MyFunction })
+
+## Evidence
+
+- Pattern in codeStyle.exportStyle
+
+---
+id: financial-asset-relationship-db-instinct-test-location
+trigger: "When adding or updating tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test Location
+
+## Action
+
+Place test files in a separate test directory, not alongside source files
+
+## Evidence
+
+- Pattern in architecture.testLocation
+
+---
+id: financial-asset-relationship-db-instinct-git-commit-prefix
+trigger: "When writing a commit message for documentation changes"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Git Commit Prefix
+
+## Action
+
+Prefix the commit message with 'docs:' (e.g., docs: update release checklist)
+
+## Evidence
+
+- Pattern in commits.prefixes
+- Seen in commit 'docs: add staging operating baseline'
+
+---
+id: financial-asset-relationship-db-instinct-git-commit-format
+trigger: "When writing a commit message"
+confidence: 0.8
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Git Commit Format
+
+## Action
+
+Use a short, descriptive message (~45 characters on average)
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: financial-asset-relationship-db-instinct-update-release-docs
+trigger: "When someone needs to update release process documentation or evidence requirements"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Update Release Docs
+
+## Action
+
+Edit .github/ISSUE_TEMPLATE/release_candidate_evidence.md and update related docs in docs/ to stay consistent
+
+## Evidence
+
+- Workflow: update-release-candidate-evidence-template-and-related-docs
+- Seen in commits: 'Edit .github/ISSUE_TEMPLATE/release_candidate_evidence.md to reflect new requirements or clarifications.', 'Update related documentation files in docs/ (such as staging deployment baselines or release checklists) to stay consistent with the template changes.'
+
