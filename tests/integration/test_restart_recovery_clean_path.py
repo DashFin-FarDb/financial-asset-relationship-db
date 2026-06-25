@@ -17,6 +17,7 @@ def test_clean_restart_pipeline_loads_graph_after_gate_and_lock_acquisition(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     db_url, engine, session_factory = _database(tmp_path)
+    lock = None
     try:
         _persist_graph(session_factory, _graph())
         monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", db_url)
@@ -42,6 +43,12 @@ def test_clean_restart_pipeline_loads_graph_after_gate_and_lock_acquisition(
         with session_scope(session_factory) as session:
             durable_graph = AssetGraphRepository(session).load_graph()
         _assert_graph_contents(durable_graph)
-        lock.release()
     finally:
+        if lock is not None:
+            try:
+                lock.release()
+            except Exception:  # noqa: BLE001
+                pass
+        graph_lifecycle.reset_graph()
+        graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
         engine.dispose()
