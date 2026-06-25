@@ -29,7 +29,7 @@ These PRs finish the control plane and harden the distributed execution model af
 | PR 6 | Distributed Hosting Semantics Spec | documented only | Single-writer, split-brain, restart, and lock-loss semantics are documented and internally consistent | PR 1, PR 2 |
 | PR 7 | Failure-Mode and Scale Validation | implemented but weakly validated | Restart, crash, stale-owner, and larger-graph tests prove the system behaves under failure and load | PR 1, PR 2 |
 | PR 8 | Security and Governance Hardening | implemented but weakly validated | Security automation and governance policy are enforceable, not just documented | Can start earlier, but should converge with the release process |
-| PR C | Governance and State-Machine Hardening | documented only | Canonical state-machine authority exists and relevant docs/templates require spec updates for governed behaviour changes | PR 6, PR 8, PR 9 context |
+| PR C | Governance and State-Machine Hardening | documented only | Canonical state-machine authority exists and relevant docs/templates require spec updates for governed behaviour changes | PR 6, PR 8 |
 
 ## Later
 
@@ -45,4 +45,5 @@ These PRs are important, but they should come after the durable core is stable.
 - PR 2 is the first proof that restart behavior is safe enough for promotion.
 - PR 4 should not drift far behind because API ambiguity compounds once persistence is introduced.
 - PR 8 can be advanced as policy work, but its enforcement value depends on the release process.
+- PR 9 remains relevant DR context for PR C handoff wording, but it is not a prerequisite for the canonical governance spec.
 - PR C establishes `docs/governance/state-machine-and-operating-authority.md` as the current authority for governed rebuild/recovery/persistence semantics.
