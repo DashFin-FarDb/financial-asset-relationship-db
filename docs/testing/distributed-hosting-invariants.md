@@ -1,7 +1,9 @@
 # Distributed Hosting Invariants
 
-For the governing semantics, see
-[ADR 0004: Distributed Hosting Semantics](../adr/0004-distributed-hosting-semantics.md).
+For the governing operational semantics, see the canonical
+[State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md).
+[ADR 0004: Distributed Hosting Semantics](../adr/0004-distributed-hosting-semantics.md)
+remains the historical decision record.
 
 This document is the PR 7 validation checklist. PR 6 defines the expected
 behavior; PR 7 should convert these rows into failure-mode, startup, recovery,
