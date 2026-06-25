@@ -21,9 +21,9 @@ configuration, schema, workflow, or documentation changes.
 
 Reference:
 
-- [Release Evidence Pack](../../docs/release-evidence-pack.md)
-- [Enterprise Release Checklist](../../docs/release-checklist.md)
-- [Enterprise Deployment Operating Model](../../docs/enterprise-deployment-operating-model.md)
+- [Release Evidence Pack](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/release-evidence-pack.md)
+- [Enterprise Release Checklist](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/release-checklist.md)
+- [Enterprise Deployment Operating Model](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/enterprise-deployment-operating-model.md)
 
 ## Automated Release Commit Evidence
 
