@@ -41,6 +41,7 @@ Reference:
 - [ ] Staging app/auth database boundary label is recorded.
 - [ ] Staging asset graph database boundary label is recorded.
 - [ ] Staging coordination database boundary label or shared-boundary fallback is recorded.
+- [ ] `COORDINATION_DATABASE_URL` is configured when coordination is separated, or shared-boundary fallback is documented.
 - [ ] Preview evidence is labelled `durable` or `non-durable`, if preview evidence is attached.
 - [ ] `DATABASE_URL` is configured for the target durable app/auth database.
 - [ ] `ASSET_GRAPH_DATABASE_URL` is configured for the target durable graph database.
