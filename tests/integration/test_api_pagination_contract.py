@@ -11,17 +11,16 @@ from tests.helpers.api_pagination_graph_factory import build_asset_pagination_gr
 pytestmark = pytest.mark.integration
 
 
-@pytest.fixture()
+`@pytest.fixture`()
 def client() -> Iterator[TestClient]:
     """Provide an API client with a seeded three-asset graph."""
     api_main.reset_graph()
     api_main.set_graph(build_asset_pagination_graph(3))
-    test_client = TestClient(api_main.app)
     try:
-        yield test_client
+        with TestClient(api_main.app) as test_client:
+            yield test_client
     finally:
         api_main.reset_graph()
-
 
 def test_assets_endpoint_reports_has_more_values_across_pages(client: TestClient) -> None:
     """Assets endpoint should report hasMore until the final page."""
