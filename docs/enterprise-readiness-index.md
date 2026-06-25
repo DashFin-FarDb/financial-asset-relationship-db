@@ -42,7 +42,7 @@ Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **S
 | Satisfied - documented | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model |
 | Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence |
 | Partially satisfied | `RebuildJobListResponse` lacks a `total` / `has_more` truncation signal; strict stale-owner restart composition remains optional unless release scope requires it; production-scale validation and continuous operational drills remain future operating-maturity work |
-| Blocked | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence and DR restore rehearsal evidence are attached. |
+| Blocked | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence, release-commit security scanner/exception review, named operator sign-off, and DR restore rehearsal evidence are attached or approved. |
 
 ## Recommended Reading Order
 
