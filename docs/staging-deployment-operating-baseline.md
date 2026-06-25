@@ -123,19 +123,20 @@ link the following evidence:
 - [ ] Hosted readiness with durable persistence required:
 
   ```bash
-  python scripts/check_hosted_readiness.py <staging_base_url> --require-persistence
+  STAGING_BASE_URL="https://staging.example.com"
+  python scripts/check_hosted_readiness.py "$STAGING_BASE_URL" --require-persistence
   ```
 
 - [ ] Redacted bounded health output:
 
   ```bash
-  curl -fsS "<staging_base_url>/api/health/detailed"
+  curl -fsS "$STAGING_BASE_URL/api/health/detailed"
   ```
 
 - [ ] Redacted bounded asset smoke output or approved sentinel evidence:
 
   ```bash
-  curl -fsS "<staging_base_url>/api/assets?per_page=1"
+  curl -fsS "$STAGING_BASE_URL/api/assets?per_page=1"
   ```
 
 - [ ] Evidence confirms `graph.persistence_loaded == true`.
