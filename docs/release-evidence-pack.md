@@ -220,7 +220,7 @@ Workflow evidence:
 Manual release attachment:
 
 - Scanner summary with non-blocking failures documented by reason, owner, and follow-up issue.
-- Any CI/security exception request and explicit maintainer approval, per [Governance Policy](GOVERNANCE.md).
+- Any CI/security exception request and explicit maintainer approval, per [Governance Policy](../docs/GOVERNANCE.md).
 
 ### 8. Governance Gate
 
@@ -232,10 +232,10 @@ Required proof:
 
 Evidence sources:
 
-- [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md)
-- [Governance Policy](GOVERNANCE.md)
-- [Enterprise Release Checklist](release-checklist.md)
-- [Enterprise Deployment Operating Model](enterprise-deployment-operating-model.md)
+- [State Machine and Operating Authority](../docs/governance/state-machine-and-operating-authority.md)
+- [Governance Policy](../docs/GOVERNANCE.md)
+- [Enterprise Release Checklist](../docs/release-checklist.md)
+- [Enterprise Deployment Operating Model](../docs/enterprise-deployment-operating-model.md)
 - [Automation Scope Policy](../.github/AUTOMATION_SCOPE_POLICY.md)
 
 Manual release attachment:
