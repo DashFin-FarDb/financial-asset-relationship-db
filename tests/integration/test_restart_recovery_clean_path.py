@@ -7,7 +7,14 @@ import pytest
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as graph_lifecycle_providers
 from tests.integration.facade import AssetGraphRepository, DistributedLock, LockState, RecoveryGate, session_scope
-from tests.integration.test_restart_recovery_pipeline import _LOCK_NAME, _LOCK_TTL, _assert_graph_contents, _database, _graph, _persist_graph
+from tests.integration.test_restart_recovery_pipeline import (
+    _LOCK_NAME,
+    _LOCK_TTL,
+    _assert_graph_contents,
+    _database,
+    _graph,
+    _persist_graph,
+)
 
 pytestmark = pytest.mark.integration
 
