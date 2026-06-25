@@ -27,39 +27,56 @@ The following areas are already behaviourally proven and do not require remediat
 
 | Subsystem | Representative test files | Current assertion depth | Finding | Remediation phase |
 | --- | --- | --- | --- | --- |
-| Restart / reload | `tests/unit/test_graph_lifecycle_persistence.py`, `tests/integration/test_distributed_hosting_failure_modes.py` | Startup and reset tests prove persisted loading and fail-fast paths, but coverage is split across lifecycle and coordination seams. | Missing end-to-end restart-recovery pipeline test that executes startup, RecoveryGate, distributed lock acquisition, and durable graph load as one integrated sequence. | Phase 3 — end-to-end restart-recovery pipeline test. |
-| Persistence round trip | `tests/unit/test_repository_graph_persistence.py`, `tests/unit/test_graph_lifecycle_persistence.py` | Existing tests prove graph IDs, relationship strengths, stale-row removal, event IDs, and subtype-specific fields. | Persistence fidelity is not uniformly asserted at the field level for base asset fields (`price`, `name`, `sector`, `currency`, `asset_class`) and regulatory-event fields (`impact_score`, `related_assets`, `date`, `description`). | Phase 3 — field-level persistence round-trip fidelity tests. |
+| Restart / reload | `tests/unit/test_graph_lifecycle_persistence.py`, `tests/integration/test_distributed_hosting_failure_modes.py`, `tests/integration/test_restart_recovery_clean_path.py` | Startup and reset tests prove persisted loading and fail-fast paths. This PR adds an integrated clean restart path covering startup load, RecoveryGate evaluation, distributed lock acquisition, and durable graph load from SQLite. | Partially covered. The clean restart/reload pipeline is now behaviourally covered. A strict stale-owner-reset end-to-end pipeline remains open if Phase 3 requires that exact integrated sequence; stale-owner reset behaviour itself is already proven by the existing lock/recovery suites. | Phase 3 — clean restart path closed in this PR; optional follow-up for strict stale-owner-reset end-to-end composition only. |
+| Persistence round trip | `tests/unit/test_repository_graph_persistence.py`, `tests/unit/test_graph_lifecycle_persistence.py`, `tests/unit/test_repository_graph_persistence_fields.py`, `tests/unit/test_graph_lifecycle_persistence_fields.py` | Existing tests prove graph IDs, relationship strengths, stale-row removal, event IDs, and subtype-specific fields. This PR adds field-level equality for base asset fields and regulatory-event fields across repository and lifecycle persisted loads. | Covered. A reconstruction that drops `price`, `name`, `sector`, `currency`, `asset_class`, `impact_score`, `related_assets`, `date`, or `description` is now test-visible. | Phase 3 — closed in this PR. |
 | Lock-loss / stale-owner | `tests/unit/test_distributed_lock_runtime.py`, `tests/unit/test_rebuild_failure_detection.py`, `tests/integration/test_lock_refresh_flow.py`, `tests/integration/test_distributed_hosting_failure_modes.py` | Behavioural assertions cover lock-loss detection, stale heartbeat classification, fail-closed paths, and terminal job state. | Behaviourally proven. No remediation required. | None. |
 | RecoveryGate decisions | `tests/unit/test_recovery_gate*.py`, `tests/unit/test_rebuild_recovery.py`, `tests/integration/test_distributed_hosting_failure_modes.py` | Tests assert exact reset/block outcomes, recovery failure categories, and lock reacquisition semantics. | Behaviourally proven. No remediation required. | None. |
-| Graph smoke checks | `tests/unit/test_asset_graph.py`, `tests/unit/test_api_main.py`, visualization and metrics endpoint tests | Existing checks verify shapes, response success, and density bounded to `[0.0, 1.0]`. | Density formula only bounds-checked; formula, clamp behaviour, domain invariants, and endpoint density parity need exact behavioural assertions. | Phase 2 — density formula, domain invariant, and API parity tests. |
+| Graph smoke checks | `tests/unit/test_asset_graph.py`, `tests/unit/test_asset_graph_density_and_invariants.py`, `tests/unit/test_api_density_contract.py`, visualization and metrics endpoint tests | Existing checks verify shapes, response success, and density bounds. This PR adds exact `calculate_graph_density()` formula cases, clamp coverage, domain invariants, API density edge cases, and `/api/visualization` versus `/api/graph/metrics` parity. | Covered. Density semantics and graph smoke invariants are now behaviourally asserted rather than only range-checked. | Phase 2 — closed in this PR. |
 | Auth audit events | `tests/unit/test_auth_router_audit_logging.py`, `tests/unit/test_auth_security_events.py` | Tests assert event names, metadata normalization, bounded user fields, and failure/success paths. | Behaviourally proven. No remediation required. | None. |
-| API pagination / density | `tests/unit/test_api_main.py`, `tests/integration/test_api_integration.py`, `tests/integration/test_graph_admin_router.py` | Pagination shape is checked and invalid boundaries are rejected; density is present and range-bounded. | `hasMore` value is never asserted for non-final/final pages; `per_page=1000` lacks explicit acceptance coverage; `RebuildJobListResponse` truncates at 100 without a `total`/`has_more` signal; density parity between `/api/visualization` and `/api/graph/metrics` needs exact value coverage. | Phase 2 for density parity; Phase 4 for pagination and rebuild job-list cap/count tests. |
-| Frontend / backend type alignment | `api/api_models.py`, `frontend/app/types/api.ts`, `frontend/__tests__/integration/component-integration.test.tsx`, `frontend/__tests__/app/page.test.tsx`, `frontend/__tests__/lib/api.test.ts` | Type declarations exist on both sides, but tests have mostly exercised successful client calls and component rendering. | Load-bearing `hasMore` alias seam is not anchored by a backend serialization test; some frontend visualization mocks omit `network_density`, weakening fidelity to `VisualizationData`. | Phase 4 — backend alias serialization test, frontend mock conformance, and optional client contract assertion. |
+| API pagination / density | `tests/unit/test_api_main.py`, `tests/unit/test_api_asset_pagination_values.py`, `tests/integration/test_api_pagination_contract.py`, `tests/unit/test_api_density_contract.py`, `tests/integration/test_rebuild_job_list_contract.py` | Pagination shape and invalid boundaries were already tested. This PR adds exact `hasMore` true/false assertions, `per_page=1000` acceptance, rebuild job-list cap/count assertions, and API density parity. | Partially covered. Pagination values, density parity, and rebuild job-list cap/count are now covered. The remaining product/API design gap is that `RebuildJobListResponse` still exposes no `total` or `has_more` truncation signal; this PR documents that seam but does not change the response contract. | Phase 2 density parity closed; Phase 4 pagination and cap/count closed; truncation signal remains future API contract work. |
+| Frontend / backend type alignment | `api/api_models.py`, `frontend/app/types/api.ts`, `tests/unit/test_asset_page_response_alias.py`, `frontend/__tests__/lib/api-contract-seams.test.ts` | Type declarations exist on both sides. This PR anchors backend `AssetPageResponse` serialization to the JSON key `hasMore` and adds a frontend contract test requiring `hasMore` and `VisualizationData.network_density`. | Partially covered. The load-bearing `hasMore` alias seam and frontend `network_density` type seam are now tested. Any remaining ad hoc component-local visualization mocks that are not explicitly typed as `VisualizationData` should be converted opportunistically, but the public contract seam is now covered. | Phase 4 — backend alias and frontend contract seam closed in this PR; optional mock cleanup remains. |
 
 ## Remediation map
 
 ### Phase 2 — Graph density and smoke-test semantics
+
+Closed in this PR:
 
 - Pin `calculate_graph_density()` with exact formula cases.
 - Assert the `min(1.0, ...)` clamp for parallel relationship-type topologies.
 - Assert domain invariants for duplicate asset replacement, relationship-strength validation, duplicate relationship deduplication, and degree metrics excluding zero-degree assets.
 - Assert API density edge cases and parity between `/api/visualization` and `/api/graph/metrics`.
 
+Remaining work: none identified for Phase 2 density semantics.
+
 ### Phase 3 — Persistence fidelity and restart recovery
 
+Closed in this PR:
+
 - Extend persistence tests so a reconstructed graph that drops non-ID asset fields or regulatory-event fields fails.
-- Add an integrated restart-recovery test covering startup load, RecoveryGate evaluation, distributed lock acquisition/reacquisition, and durable graph load from SQLite.
+- Add an integrated clean restart-recovery test covering startup load, RecoveryGate evaluation, distributed lock acquisition, and durable graph load from SQLite.
+
+Remaining work:
+
+- Add a strict stale-owner-reset end-to-end restart pipeline only if the phase requires that exact composition test. Existing lock-loss, stale-owner, and RecoveryGate suites already prove the reset decision and mutation behaviour outside this integrated restart path.
 
 ### Phase 4 — API pagination and frontend/backend seam
 
+Closed in this PR:
+
 - Assert `hasMore == true` on a non-final page and `hasMore == false` on the last page in unit and integration API coverage.
 - Assert `per_page=1000` is accepted.
-- Assert rebuild job-list responses cap at 100 and report `count == len(jobs)`, while documenting that no truncation signal exists yet.
+- Assert rebuild job-list responses cap at 100 and report `count == len(jobs)`.
 - Assert `AssetPageResponse` serializes with the JSON key `hasMore`.
-- Restore frontend mock fidelity by ensuring visualization mocks include `network_density`.
+- Anchor the frontend type seam for `hasMore` and `VisualizationData.network_density`.
+
+Remaining work:
+
+- `RebuildJobListResponse` still carries no `total` or `has_more` truncation signal. This is documented as an API contract limitation and should be changed only in a dedicated contract PR.
+- Opportunistically convert any remaining ad hoc frontend visualization mocks to typed `VisualizationData` fixtures when those tests are next edited.
 
 ## Audit conclusion
 
 The strongest existing coverage is in auth audit logging, distributed lock handling, stale-owner detection, and RecoveryGate decisions. Those areas already assert exact outcomes and failure-state semantics.
 
-The weakest areas are contract boundaries: graph density semantics, pagination values, persistence field fidelity, restart-recovery composition, and frontend/backend serialization seams. These are not broad feature gaps; they are validation gaps where the implementation can work while tests still fail to pin the intended contract. This PR closes the highest-leverage gaps by adding behavioural assertions without changing production behaviour.
+This PR closes the highest-leverage validation gaps around graph density semantics, pagination values, persistence field fidelity, clean restart-recovery composition, and frontend/backend serialization seams. The remaining open items are contract design choices rather than untested happy paths: adding a rebuild job-list truncation signal, optionally adding a strict stale-owner-reset end-to-end restart pipeline, and converting residual ad hoc frontend mocks to typed fixtures.
