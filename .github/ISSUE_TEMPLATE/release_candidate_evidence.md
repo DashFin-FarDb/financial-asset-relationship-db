@@ -45,7 +45,6 @@ Reference:
 - [ ] `DATABASE_URL` is configured for the target durable app/auth database.
 - [ ] `ASSET_GRAPH_DATABASE_URL` is configured for the target durable graph database.
 - [ ] `ASSET_GRAPH_DATABASE_URL` is distinct from `DATABASE_URL`, or an approved exception is attached.
-- [ ] `COORDINATION_DATABASE_URL` is configured if coordination is separated, or fallback is documented.
 - [ ] Hosted readiness was run with durable persistence required:
 
   ```bash
