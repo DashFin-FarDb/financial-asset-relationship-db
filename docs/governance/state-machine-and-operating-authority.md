@@ -1,7 +1,7 @@
 # State Machine and Operating Authority
 
-**Status:** Current authority  
-**Scope:** Rebuild coordination, runtime graph lifecycle, durable graph persistence, operator ownership, and exception handling  
+**Status:** Current authority
+**Scope:** Rebuild coordination, runtime graph lifecycle, durable graph persistence, operator ownership, and exception handling
 **Runtime impact:** Documentation only. This specification does not change runtime behaviour.
 
 This document is the canonical operational authority for FarDb rebuild, recovery, persistence, promotion, rollback handoff, and exception-handling semantics.
