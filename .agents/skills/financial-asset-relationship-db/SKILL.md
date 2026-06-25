@@ -10,7 +10,7 @@ This skill teaches the core development patterns and conventions for the `financ
 
 ### File Naming
 - Use **kebab-case** for all file names.
-  - Example:  
+  - Example:
     ```
     asset-manager.ts
     relationship-utils.ts
@@ -44,19 +44,19 @@ This skill teaches the core development patterns and conventions for the `financ
 ## Workflows
 
 ### Documenting Code Changes
-**Trigger:** When updating or adding documentation  
+**Trigger:** When updating or adding documentation
 **Command:** `/docs-update`
 
 1. Make your documentation changes in the relevant files.
 2. Commit your changes using the `docs:` prefix.
-   - Example:  
+   - Example:
      ```
      docs: add API usage section
      ```
 3. Push your branch and open a pull request.
 
 ### Adding or Updating Code
-**Trigger:** When implementing new features or fixing bugs  
+**Trigger:** When implementing new features or fixing bugs
 **Command:** `/code-update`
 
 1. Write your code in TypeScript, following file naming and import/export conventions.
