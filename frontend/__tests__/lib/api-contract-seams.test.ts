@@ -10,7 +10,7 @@ describe("API contract seams", () => {
       hasMore: true,
     };
 
-expect(Object.keys(page)).toEqual(expect.arrayContaining(["items", "total", "page", "per_page", "hasMore"]));
+    expect(Object.keys(page)).toEqual(expect.arrayContaining(["items", "total", "page", "per_page", "hasMore"]));
   });
 
   it("requires visualization data to include network_density", () => {
