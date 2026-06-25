@@ -24,14 +24,16 @@ Unit and integration tests are now active for startup recovery and cancellation.
 - Executor crash immediately before/after completion but before state update.
 - Multiple concurrent recovery attempts simulating a split-brain environment.
 
-## 3. Missing Formal State-Machine & Invariant Documentation
+## 3. Formal State-Machine & Invariant Documentation
 
-**Status:** Medium Risk | **Impact:** Maintainability & Governance
-The distributed state machine is currently scattered across implementation files (`RebuildJobStatus`, `RecoveryAction`, `InconsistencyType`, `LockState`). A definitive architectural document must be created to describe:
+**Status:** Resolved | **Impact:** Maintainability & Governance
+The formal state-machine documentation gap is resolved by the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md), which now defines:
 
-- Every state and transition (allowed vs. forbidden).
+- Every governed rebuild/job and runtime lifecycle state and transition.
 - Terminal states and recovery actions.
-- Formal invariants (e.g., "Only one active rebuild owner may exist", "Stale owner may never mutate state").
+- Formal invariants such as single-writer ownership, stale-owner mutation blocking, lock-loss aborts, and bounded-health versus durable-truth interpretation.
+
+Future PRs that alter governed rebuild, recovery, persistence, ownership, or exception behaviour must update that canonical spec or explicitly prove that the current interpretation remains unchanged.
 
 ## 4. Observability Not Yet Validated Against Operational Scenarios
 
@@ -54,6 +56,11 @@ With the system now capable of blocking execution (`RecoveryGate`), runbooks mus
 ---
 
 ## Resolved Risks History
+
+### Risk: Formal State-Machine & Invariant Documentation (Previously Risk 3)
+
+**Status:** Resolved
+The canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md) now defines the current operational interpretation of rebuild/recovery state machines, invariants, operator ownership, exception authority, and evidence rules.
 
 ### Risk: Undefined Checkpoint/Restart Strategy (Previously Risk 2)
 
