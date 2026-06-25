@@ -136,6 +136,8 @@ Manual release attachment:
 
 - Staging/prod smoke output with secrets redacted.
 - Expected persisted graph counts or approved sentinel baseline evidence.
+- For staging, attach the provider, boundary, Vercel mapping, and preview durability evidence required by the
+  [Staging Deployment Operating Baseline](staging-deployment-operating-baseline.md).
 
 Blocking rule:
 
