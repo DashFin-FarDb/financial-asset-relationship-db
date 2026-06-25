@@ -12,6 +12,7 @@
 | `docs/roadmap/enterprise-readiness-pr-plan.md` | PR-by-PR execution plan with validation commands |
 | `docs/roadmap/enterprise-readiness-pr-board.md` | Operational PR board with status and exit criteria |
 | `docs/release-checklist.md` | Release gates and enterprise exit criteria |
+| `docs/governance/state-machine-and-operating-authority.md` | Current operational authority for rebuild/recovery state machines, invariants, ownership, and exception paths |
 | `docs/adr/0005-backup-restore-dr-strategy.md` | Backup, restore, DR strategy, data classification, RPO, and RTO |
 | `docs/runbooks/backup-restore-dr.md` | Operator procedures for backup verification, restore execution, and post-restore checks |
 
@@ -42,7 +43,7 @@ Status legend: **implemented and enforced**, **implemented but weakly validated*
 | --- | --- |
 | implemented and enforced | PR 1, PR 2, PR 3 |
 | implemented but weakly validated | PR 5, PR 7, PR 8 |
-| documented only | PR 6, PR 9 |
+| documented only | PR 6, PR 9, PR C governance/state-machine authority |
 | superseded | none currently |
 | still missing | PR 4, multi-region / advanced hosting strategy roadmap item, continuous operational drills roadmap item |
 
@@ -53,8 +54,9 @@ Status legend: **implemented and enforced**, **implemented but weakly validated*
 3. `docs/roadmap/enterprise-readiness-pr-plan.md`
 4. `docs/roadmap/enterprise-readiness-pr-board.md`
 5. `docs/release-checklist.md`
-6. `docs/adr/0005-backup-restore-dr-strategy.md`
-7. `docs/runbooks/backup-restore-dr.md`
+6. `docs/governance/state-machine-and-operating-authority.md`
+7. `docs/adr/0005-backup-restore-dr-strategy.md`
+8. `docs/runbooks/backup-restore-dr.md`
 
 ## Operational Rule
 
@@ -63,6 +65,7 @@ If a change touches production behavior, deployment, security, persistence, or r
 ## Related Entry Points
 
 - [README.md](../README.md) — main repository entry point and production setup overview
+- [docs/governance/state-machine-and-operating-authority.md](./governance/state-machine-and-operating-authority.md) — current authority for rebuild/recovery/persistence state-machine governance
 - [docs/adr/0002-hosted-deployment-and-persistence.md](./adr/0002-hosted-deployment-and-persistence.md) — hosted persistence decision
 - [docs/adr/0005-backup-restore-dr-strategy.md](./adr/0005-backup-restore-dr-strategy.md) — backup, restore, and DR strategy
 - [docs/runbooks/backup-restore-dr.md](./runbooks/backup-restore-dr.md) — backup and restore operating procedure
