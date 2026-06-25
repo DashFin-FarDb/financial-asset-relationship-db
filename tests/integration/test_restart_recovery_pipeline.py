@@ -21,7 +21,6 @@ from tests.integration.facade import (
 
 pytestmark = pytest.mark.integration
 
-_LOCK_NAME = "graph_rebuild"
 _LOCK_TTL = 300
 UTC = timezone.utc
 
