@@ -35,7 +35,6 @@ Reference:
 ## Hosted Promotion Evidence
 
 - [ ] Staging Vercel frontend project/deployment mapping is recorded, if this is staging evidence.
-- [ ] Staging Vercel frontend project/deployment mapping is recorded, if this is staging evidence.
 - [ ] Staging Vercel backend/API project/deployment mapping is recorded, if this is staging evidence.
 - [ ] Staging database provider name is recorded.
 - [ ] Staging app/auth database boundary label is recorded.
