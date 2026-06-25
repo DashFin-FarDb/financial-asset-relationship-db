@@ -6,7 +6,6 @@ import pytest
 from fastapi.testclient import TestClient
 
 import api.main as api_main
-from api.main import app
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
@@ -34,7 +33,7 @@ def _graph_with_assets(count: int) -> AssetRelationshipGraph:
 @pytest.fixture()
 def client() -> Iterator[TestClient]:
     api_main.reset_graph()
-    with TestClient(app) as test_client:
+    with TestClient(api_main.app) as test_client:
         yield test_client
     api_main.reset_graph()
 
