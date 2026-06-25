@@ -219,3 +219,7 @@ bounded startup-load and rebuild-persist timing tripwires. The repo still needs 
    - expand restart/reload, crash, and stale-owner validation around the implemented persistence path;
    - keep durable promotion evidence tied to persisted graph behavior.
 3. **Security/governance hardening PRs**
+   - keep canonical-spec update triggers enforced during review;
+   - continue security automation and release-provenance hardening.
+4. **Deferred PR 9 backup/restore follow-up**
+   - keep restore rehearsal evidence visible until a documented rehearsal closes the remaining DR readiness gap.
