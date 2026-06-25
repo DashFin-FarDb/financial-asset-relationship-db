@@ -24,18 +24,7 @@ Unit and integration tests are now active for startup recovery and cancellation.
 - Executor crash immediately before/after completion but before state update.
 - Multiple concurrent recovery attempts simulating a split-brain environment.
 
-## 3. Formal State-Machine & Invariant Documentation
-
-**Status:** Resolved | **Impact:** Maintainability & Governance
-The formal state-machine documentation gap is resolved by the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md), which now defines:
-
-- Every governed rebuild/job and runtime lifecycle state and transition.
-- Terminal states and recovery actions.
-- Formal invariants such as single-writer ownership, stale-owner mutation blocking, lock-loss aborts, and bounded-health versus durable-truth interpretation.
-
-Future PRs that alter governed rebuild, recovery, persistence, ownership, or exception behaviour must update that canonical spec or explicitly prove that the current interpretation remains unchanged.
-
-## 4. Observability Not Yet Validated Against Operational Scenarios
+## 3. Observability Not Yet Validated Against Operational Scenarios
 
 **Status:** Medium Risk | **Impact:** Operational Procedures
 Metrics, logs, and events exist, but they have not been proven to answer real-world operational questions:
@@ -44,7 +33,7 @@ Metrics, logs, and events exist, but they have not been proven to answer real-wo
 - How can an operator identify ownership loss?
 - How can an operator distinguish a recoverable failure from a terminal failure?
 
-## 5. Missing Operational Procedures (Runbooks)
+## 4. Missing Operational Procedures (Runbooks)
 
 **Status:** Low Risk | **Impact:** Governance
 With the system now capable of blocking execution (`RecoveryGate`), runbooks must be created defining:
