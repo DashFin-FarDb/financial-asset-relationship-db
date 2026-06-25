@@ -1,4 +1,4 @@
-"""Integrated restart-recovery coverage for startup, RecoveryGate, lock, and durable graph load."""
+"""Integrated restart-recovery coverage helpers for startup, RecoveryGate, lock, and durable graph load."""
 
 from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
@@ -9,14 +9,11 @@ from sqlalchemy import create_engine
 
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as graph_lifecycle_providers
-from src.data.db_models import RebuildJobORM, RebuildJobStatus
+from src.data.db_models import RebuildJobORM
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 from tests.integration.facade import (
     AssetGraphRepository,
-    DistributedLock,
-    LockState,
-    RecoveryGate,
     create_session_factory,
     init_db,
     session_scope,
