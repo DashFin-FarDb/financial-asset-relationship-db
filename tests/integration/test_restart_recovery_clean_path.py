@@ -22,6 +22,7 @@ def test_clean_restart_pipeline_loads_graph_after_gate_and_lock_acquisition(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Load persisted graph truth after acquiring the rebuild lock."""
     db_url, engine, session_factory = helpers.database(tmp_path)
     lock = None
     try:
