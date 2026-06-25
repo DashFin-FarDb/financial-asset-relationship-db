@@ -12,6 +12,7 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 - Treat durable graph persistence as the gating dependency for restart, promotion, and DR work.
 - Keep production architecture centered on FastAPI + Next.js.
 - Verify each step with focused tests before widening scope.
+- Keep governed rebuild/recovery/persistence behaviour aligned with `docs/governance/state-machine-and-operating-authority.md`.
 
 ## PR 1 — Durable Graph Persistence Schema and Repositories
 
@@ -312,9 +313,46 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 - tabletop restore review
 - documented restore rehearsal
 
+## PR C — Governance and State-Machine Hardening
+
+**Primary objective:** Establish one canonical current authority for rebuild/recovery/persistence state machines, invariants, operator ownership, exception paths, and PR scope triggers.
+
+**Scope**
+
+- create `docs/governance/state-machine-and-operating-authority.md`;
+- cross-link the spec from release, deployment, governance, ADR, index, audit, roadmap, and validation docs;
+- mark the formal state-machine documentation gap as resolved;
+- add PR-template and scope-guardrail triggers requiring the canonical spec to be updated when governed behaviour changes.
+
+**Out of scope**
+
+- runtime behavior changes;
+- backup schedule, retention, RPO/RTO, or restore-procedure changes already covered by PR 9;
+- new lock algorithms, persistence schemas, hosted readiness logic, or rebuild endpoints.
+
+**Files likely to change**
+
+- `docs/governance/state-machine-and-operating-authority.md`
+- `docs/release-checklist.md`
+- `docs/enterprise-deployment-operating-model.md`
+- `docs/GOVERNANCE.md`
+- `docs/adr/*`
+- `docs/audits/*`
+- `docs/roadmap/*`
+- `docs/PR_SCOPE_GUARDRAILS.md`
+- `.github/pull_request_template.md`
+- `.github/PULL_REQUEST_TEMPLATE/*`
+
+**Validation**
+
+- documentation-only review
+- manual link verification
+- verify no PR 9 DR procedure content is duplicated or contradicted
+
 ## Sequencing Notes
 
 - PR 1 is the gating dependency for PR 2, PR 3, PR 7, and PR 9.
 - PR 2 must land before any restart or promotion proof can be trusted.
 - PR 4 should land before frontend/API assumptions diverge further.
 - PR 8 can start earlier as documentation and workflow hardening, but enforcement should align with the release process.
+- PR C is the current governance authority companion to PR 6/PR 8/PR 9 and must remain documentation-only unless a later PR explicitly changes runtime behaviour.
