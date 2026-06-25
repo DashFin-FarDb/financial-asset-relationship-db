@@ -6,6 +6,8 @@ For the broader enterprise-readiness audit and rollout plan, see [docs/enterpris
 
 Accepted
 
+**Current interpretation:** This ADR remains a historical decision record for backup, restore, and DR strategy. Current rebuild/recovery state-machine semantics, operator authority, rollback/restore handoff boundaries, and exception paths are governed by the canonical [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md).
+
 ## Date
 
 2026-06-24
@@ -109,6 +111,7 @@ Restoration must distinguish deployment rollback from data restore. Vercel rollb
 
 ## References
 
+- [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md): current operational authority for rebuild/recovery state-machine semantics and operator handoff boundaries
 - [Backup, Restore, and DR Runbook](../runbooks/backup-restore-dr.md)
 - [ADR 0002: Hosted Deployment and Durable Persistence](./0002-hosted-deployment-and-persistence.md)
 - [ADR 0003: Distributed Lock Refresh and Heartbeat Strategy](./0003-distributed-lock-refresh-and-heartbeat-strategy.md)
