@@ -16,7 +16,9 @@ The remaining risk is concentrated in release evidence and operational proof rat
 - DR restore must be rehearsed at least once and linked to release evidence;
 - release security scanner summaries, exception records, and named operator sign-off must be attached;
 - `RebuildJobListResponse` now exposes `total` and `has_more` truncation signals;
-- strict stale-owner restart composition is now covered by the integration suite, while production-scale validation remains future or optional unless a release explicitly requires it.
+- strict stale-owner restart composition is now covered by the integration suite;
+- the operational drill and scale-validation pack now defines the representative incident drills and bounded evidence capture model;
+- production-scale validation remains future or optional unless a release explicitly requires it.
 
 ## Post-Roadmap Reconciliation Status
 
@@ -30,7 +32,7 @@ Roadmap source-of-truth status is now aligned with `docs/release-evidence-pack.m
 | PR 4 — API Contract Cleanup | Satisfied | Core density, pagination, visualization, and rebuild job-list truncation seams are aligned. |
 | PR 5 — Recovery-Plane Completion | Satisfied - automated | RecoveryGate and reconciliation path are covered by targeted tests. |
 | PR 6 — Distributed Hosting Semantics Spec | Satisfied - documented | Current interpretation is consolidated in the canonical state-machine authority. |
-| PR 7 — Failure-Mode and Scale Validation | Partially satisfied | CI-bounded validation exists; strict stale-owner composition is covered by the integration suite, while production-scale validation remains optional/future unless release-scoped. |
+| PR 7 — Failure-Mode and Scale Validation | Partially satisfied | CI-bounded validation exists; strict stale-owner composition is covered by the integration suite, the operational drill pack is documented, and production-scale validation remains optional/future unless release-scoped. |
 | PR 8 — Security and Governance Hardening | Satisfied - manual evidence required | Repository controls exist; release requires scanner summaries, exception records, and approvals. |
 | PR 9 — Backup, Restore, and DR Runbook | Satisfied - manual evidence required | Strategy/runbook exist; restore rehearsal evidence is still required. |
 | PR C — Governance and State-Machine Hardening | Satisfied - documented | Canonical state-machine authority exists; governed behavior changes must keep it aligned. |
@@ -98,6 +100,7 @@ This repo already contains the right documents for a mature program:
 - observability master/spec docs;
 - persistence design docs;
 - release checklist and release evidence pack;
+- operational drill and scale-validation pack;
 - PR templates and scope guardrails;
 - operator authorization audit/quick reference;
 - canonical state-machine and operating authority.
@@ -153,7 +156,7 @@ The following should remain separately scoped:
 
 - strict stale-owner restart composition test;
 - production-scale graph/rebuild/persistence validation;
-- continuous operational drills for observability/runbook maturity;
+- operational drill execution and evidence capture for observability/runbook maturity;
 - multi-region or advanced hosting strategy.
 
 ## Remaining Gaps
@@ -168,7 +171,7 @@ The following should remain separately scoped:
 
 - strict stale-owner restart composition;
 - production-scale validation;
-- continuous operational drills.
+- operational drill execution and evidence capture.
 
 ### Strategic deferrals
 
@@ -188,6 +191,7 @@ The following should remain separately scoped:
 
 - `RebuildJobListResponse` exposes a truncation signal;
 - strict stale-owner restart composition is covered as one end-to-end scenario;
+- the operational drill pack is documented for incident-proof evidence capture;
 - production-scale evidence remains outside the bounded CI fixture set;
 - governance exists in docs, but release ownership must still be named per release.
 
