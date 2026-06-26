@@ -33,7 +33,7 @@ These are not stale roadmap items; they are bounded follow-up objectives.
 | --- | --- | --- | --- |
 | RC1 release evidence capture | Satisfied - manual evidence required | CI run, hosted durable smoke, redacted health/assets output, scanner summary, and operator sign-off are attached for the release commit | API or runtime changes |
 | Staging deployment operating baseline | Satisfied - manual evidence required | Target environment, database boundaries, Vercel config, and durable graph store evidence are recorded without secrets | DR restore implementation |
-+| `RebuildJobListResponse` truncation signal | Satisfied - automated | Response exposes `total` and `has_more`; tests cover default cap, explicit pagination, and status-filtered truncation semantics; no frontend consumer was found | Release evidence capture |
+| `RebuildJobListResponse` truncation signal | Satisfied - automated | Response exposes `total` and `has_more`; tests cover default cap, explicit pagination, and status-filtered truncation semantics; no frontend consumer was found | Release evidence capture |
 | Strict stale-owner restart composition | Partially satisfied | End-to-end restart pipeline proves stale-owner reset after lock expiry and prevents stale owner mutation | Source-of-truth docs reconciliation |
 | Production-scale validation | Partially satisfied | Larger graph/load evidence is recorded outside normal CI or in a bounded scheduled workflow | Core release evidence PR |
 | Continuous operational drills | Partially satisfied | Operators exercise alert/runbook flows for graph load failure, lock loss, stale owner, degraded DB, and failed durable smoke | Initial staging proof |

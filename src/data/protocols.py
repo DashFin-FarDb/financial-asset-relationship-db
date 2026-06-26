@@ -164,7 +164,7 @@ class IAssetGraphRepository(Protocol):
 
     def count_rebuild_jobs(self, *, status: str | None = None) -> int:
         """Count rebuild jobs, optionally filtered by status."""
-        pass
+        ...
 
     def get_latest_successful_rebuild_job(self) -> RebuildJobORM | None:
         """Return the most recently completed SUCCEEDED job."""

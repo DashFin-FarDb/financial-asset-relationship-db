@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from fastapi.encoders import jsonable_encoder
 
 from api.auth import User
 from api.routers.graph_admin import list_rebuild_jobs
@@ -61,14 +60,14 @@ def _list_rebuild_jobs_payload(
     offset: int = 0,
     status_filter: RebuildJobStatus | None = None,
 ) -> dict[str, Any]:
-    """Call the rebuild job-list endpoint boundary and return FastAPI-encoded payload."""
+    """Call the rebuild job-list endpoint boundary and return JSON-ready payload."""
     response = list_rebuild_jobs(
         _current_user=User(username="admin", disabled=False),
         limit=limit,
         offset=offset,
         status_filter=status_filter,
     )
-    return jsonable_encoder(response)
+    return response.model_dump(mode="json")
 
 
 def test_rebuild_job_list_caps_response_at_100_and_count_matches_returned_length(
