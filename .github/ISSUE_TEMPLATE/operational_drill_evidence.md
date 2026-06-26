@@ -110,6 +110,7 @@ Approver / reviewer:
 ### Failed durable smoke
 
 - [ ] Hosted readiness command exit status was recorded.
+- [ ] Hosted readiness was run with `--require-persistence`.
 - [ ] `graph_persistence_configured` was observed.
 - [ ] `graph.persistence_enabled` was observed.
 - [ ] `graph.persistence_loaded` was observed.
