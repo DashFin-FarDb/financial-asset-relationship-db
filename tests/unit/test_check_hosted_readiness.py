@@ -701,6 +701,35 @@ def test_main_json_outputs_machine_readable_success(capsys: pytest.CaptureFixtur
     assert "example.com" not in captured.out
 
 
+def test_main_json_uses_default_redacted_base_url_label(capsys: pytest.CaptureFixture[str]) -> None:
+    """JSON mode should default to a redacted base URL label when none is provided."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return fake JSON payloads for both smoke-check endpoints."""
+        if url.endswith("/api/health"):
+            return 200, {"status": "healthy", "graph_initialized": True}
+        if url.endswith("/api/health/detailed"):
+            return 200, _healthy_detailed_payload_with_persistence()
+        raise AssertionError(f"unexpected URL: {url}")
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    try:
+        exit_code = script.main(["https://example.com", "--json"])
+    finally:
+        monkeypatch.undo()
+
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+
+    assert exit_code == script.SUCCESS
+    assert captured.err == ""
+    assert data["status"] == "passed"
+    assert data["base_url_label"] == "redacted"
+    assert "example.com" not in captured.out
+
+
 def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixture[str]) -> None:
     """JSON mode should emit valid bounded failure output with observed fields."""
     script = _load_script()
