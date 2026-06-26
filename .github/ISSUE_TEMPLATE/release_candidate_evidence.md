@@ -60,14 +60,14 @@ Reference:
 - [ ] Hosted readiness output attached with secrets redacted.
 - [ ] Redacted `/api/health/detailed` output attached.
 - [ ] Redacted `/api/assets?per_page=1` output attached.
-- [ ] `/api/health/detailed.graph_persistence_configured == true` is confirmed.
-- [ ] `/api/health/detailed.graph.persistence_enabled == true` is confirmed.
-- [ ] `/api/health/detailed.graph.persistence_loaded == true` is confirmed.
-- [ ] `/api/health/detailed.graph.startup_source == "persisted"` is confirmed.
+- [ ] /api/health/detailed response graph_persistence_configured == true is confirmed.
+- [ ] /api/health/detailed response graph.persistence_enabled == true is confirmed.
+- [ ] /api/health/detailed response graph.persistence_loaded == true is confirmed.
+- [ ] /api/health/detailed response graph.startup_source == "persisted" is confirmed.
 - [ ] Hosted durable persistence evidence object or supporting evidence issue link is recorded.
 - [ ] Persisted graph counts or approved sentinel baseline are confirmed.
 
-False-positive guardrail: CI success, documentation existence, passing repository tests, or `/api/health/detailed.status == "healthy"` alone does not prove hosted durable graph truth. Durable promotion evidence requires target-environment hosted readiness with `--require-persistence` and nested graph fields showing persisted graph load.
+False-positive guardrail: CI success, documentation existence, passing repository tests, or /api/health/detailed response status == "healthy" alone does not prove hosted durable graph truth. Durable promotion evidence requires target-environment hosted readiness with --require-persistence and nested graph fields showing persisted graph load.
 
 ## Operational Drill Evidence, if release-scoped
 
