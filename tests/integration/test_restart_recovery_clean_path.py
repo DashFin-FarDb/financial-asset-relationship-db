@@ -126,6 +126,7 @@ def test_clean_restart_pipeline_reacquires_lock_and_fences_stale_owner(
             ttl_seconds=helpers.LOCK_TTL,
             holder_id="owner-b",
         )
+        owner_b_lock.acquire()
         RecoveryGate(
             session_factory=session_factory,
             lock=owner_b_lock,
