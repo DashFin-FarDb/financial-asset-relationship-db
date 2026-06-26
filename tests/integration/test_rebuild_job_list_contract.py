@@ -54,9 +54,7 @@ def _seed_jobs(session_factory: Callable[[], Any], count: int) -> list[str]:
         ]
 
 
-def _list_rebuild_jobs_payload(...):
-    response = list_rebuild_jobs(...)
-    return response.model_dump(mode="json", by_alias=True)
+def _list_rebuild_jobs_payload(
     *,
     limit: int = 100,
     offset: int = 0,
