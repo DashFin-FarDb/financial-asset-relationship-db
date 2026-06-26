@@ -100,6 +100,7 @@ This repo already contains the right documents for a mature program:
 - observability master/spec docs;
 - persistence design docs;
 - release checklist and release evidence pack;
+- operational evidence capture framework;
 - operational drill and scale-validation pack;
 - PR templates and scope guardrails;
 - operator authorization audit/quick reference;

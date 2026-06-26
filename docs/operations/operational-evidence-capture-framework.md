@@ -192,7 +192,7 @@ Pass condition:
 Required evidence:
 
 - hosted readiness command output with `--require-persistence`;
-- redacted `graph_persistence_configured`, `persistence_loaded`, and `startup_source` evidence;
+- redacted `graph_persistence_configured`, `graph.persistence_loaded`, and `graph.startup_source` evidence;
 - target labeling that distinguishes durable from non-durable preview evidence.
 
 Pass condition:
