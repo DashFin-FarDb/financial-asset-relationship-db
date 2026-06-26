@@ -83,4 +83,5 @@ The strongest existing coverage is in auth audit logging, distributed lock handl
 This PR closes the highest-leverage validation gaps around graph density semantics, pagination values, rebuild job-list truncation,
 persistence field fidelity, clean restart-recovery composition, strict stale-owner restart composition, and frontend/backend
 serialization seams. The remaining open items are operational proof and maturity work rather than untested happy paths:
-attaching hosted restart/redeploy evidence and converting residual ad hoc frontend mocks to typed fixtures.
+attaching hosted restart/redeploy evidence, executing the operational drill pack, and converting residual ad hoc frontend
+mocks to typed fixtures.

@@ -36,7 +36,7 @@ These are not stale roadmap items; they are bounded follow-up objectives.
 | `RebuildJobListResponse` truncation signal | Satisfied - automated | Response exposes `total` and `has_more`; tests cover default cap, explicit pagination, and status-filtered truncation semantics; no frontend consumer was found | Release evidence capture |
 | Strict stale-owner restart composition | Satisfied - automated | End-to-end restart pipeline proves stale-owner reset after lock expiry, restart load, and prevents stale owner mutation | Source-of-truth docs reconciliation |
 | Production-scale validation | Partially satisfied | Larger graph/load evidence is recorded outside normal CI or in a bounded scheduled workflow | Core release evidence PR |
-| Continuous operational drills | Partially satisfied | Operators exercise alert/runbook flows for graph load failure, lock loss, stale owner, degraded DB, and failed durable smoke | Initial staging proof |
+| Continuous operational drills | Satisfied - documented | The operational drill pack defines graph load failure, lock loss, stale owner, degraded DB, and failed durable smoke flows with evidence capture guidance | Initial staging proof |
 
 ## Board Notes
 
@@ -46,3 +46,4 @@ These are not stale roadmap items; they are bounded follow-up objectives.
 - PR 6 and PR C are no longer missing specifications; they are documented authorities that require review enforcement when governed behavior changes.
 - PR 8 and PR 9 are documentation/test/policy complete for their repository scope, but release sign-off still requires scanner/exception evidence and restore rehearsal evidence.
 - Production-scale validation should remain separately tracked so it does not blur release evidence capture with new runtime scope.
+- The operational drill pack is now the canonical documentation for representative incident drills; execution evidence remains a separate follow-up artifact.
