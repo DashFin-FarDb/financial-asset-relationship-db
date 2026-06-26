@@ -10,6 +10,9 @@ This evidence pack maps each enterprise release gate to concrete automated evide
 operator artifacts, and remaining work. It is the auditable companion to the
 [Enterprise Release Checklist](release-checklist.md).
 
+For the evidence formatting and review rules that keep artifacts from overstating or understating their claim, see
+[Operational Evidence Capture Framework](operations/operational-evidence-capture-framework.md).
+
 The document distinguishes:
 
 - **implemented:** runtime or operational capability exists;
