@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
@@ -346,7 +347,7 @@ def test_get_json_uses_bounded_request_failure_message(monkeypatch: pytest.Monke
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
 
     with pytest.raises(RuntimeError) as exc_info:
-        script._get_json(_url_with_credentials("/api/health"), 5.0)
+        script._get_json("https://example.com/api/health", 5.0)
 
     message = str(exc_info.value)
 
@@ -384,7 +385,7 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
 
     with pytest.raises(RuntimeError) as exc_info:
-        script._get_json(_url_with_credentials("/api/health/detailed"), 5.0)
+        script._get_json("https://example.com/api/health/detailed", 5.0)
 
     message = str(exc_info.value)
 
@@ -410,7 +411,7 @@ def test_get_json_returns_http_error_status(monkeypatch: pytest.MonkeyPatch) -> 
 
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
 
-    status_code, payload = script._get_json(_url_with_credentials("/api/health"), 5.0)
+    status_code, payload = script._get_json("https://example.com/api/health", 5.0)
 
     assert status_code == 503
     assert payload == {}
@@ -425,6 +426,28 @@ def test_read_response_body_revalidates_request_target(monkeypatch: pytest.Monke
         return "target resolved to internal address"
 
     monkeypatch.setattr(script, "_validate_request_target", fake_validate_request_target)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        script._read_response_body(_url_with_credentials("/api/health"), 5.0)
+
+    message = str(exc_info.value)
+
+    assert message == "/api/health request target validation failed"
+    assert "secret" not in message
+    assert "example.com" not in message
+
+
+def test_read_response_body_rejects_invalid_request_target_before_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Malformed request targets should fail before the HTTP request object is used."""
+    script = _load_script()
+
+    def fail_urlopen(request: object, timeout: float) -> object:
+        """Fail if the request reaches the network layer."""
+        pytest.fail("urlopen should not be called for invalid request targets")
+
+    monkeypatch.setattr(script, "urlopen", fail_urlopen)
 
     with pytest.raises(RuntimeError) as exc_info:
         script._read_response_body(_url_with_credentials("/api/health"), 5.0)
@@ -632,3 +655,95 @@ def test_parse_args_handles_require_persistence() -> None:
 
     args_default = script.parse_args(["https://example.com"])
     assert args_default.require_persistence is False
+
+
+def test_parse_args_handles_json_mode_and_label() -> None:
+    """CLI argument parser should accept JSON output mode and a safe base URL label."""
+    script = _load_script()
+
+    args = script.parse_args(["https://example.com", "--json", "--base-url-label", "staging-api"])
+
+    assert args.json is True
+    assert args.base_url_label == "staging-api"
+
+
+def test_main_json_outputs_machine_readable_success(capsys: pytest.CaptureFixture[str]) -> None:
+    """JSON mode should emit valid bounded success output without the raw base URL."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return fake JSON payloads for both smoke-check endpoints."""
+        if url.endswith("/api/health"):
+            return 200, {"status": "healthy", "graph_initialized": True}
+        if url.endswith("/api/health/detailed"):
+            return 200, _healthy_detailed_payload_with_persistence()
+        raise AssertionError(f"unexpected URL: {url}")
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    try:
+        exit_code = script.main(["https://example.com", "--json", "--base-url-label", "staging-api"])
+    finally:
+        monkeypatch.undo()
+
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+
+    assert exit_code == script.SUCCESS
+    assert captured.err == ""
+    assert data["status"] == "passed"
+    assert data["base_url_label"] == "staging-api"
+    assert data["require_persistence"] is False
+    assert data["checks"]["liveness"] == {"passed": True, "failures": []}
+    assert data["checks"]["detailed_readiness"] == {"passed": True, "failures": []}
+    assert data["observed_fields"]["graph.persistence_loaded"] is True
+    assert data["observed_fields"]["graph.startup_source"] == "persisted"
+    assert "example.com" not in captured.out
+
+
+def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixture[str]) -> None:
+    """JSON mode should emit valid bounded failure output with observed fields."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a healthy liveness payload and a failing detailed-readiness payload."""
+        if url.endswith("/api/health"):
+            return 200, {"status": "healthy", "graph_initialized": True}
+        if url.endswith("/api/health/detailed"):
+            payload = _healthy_detailed_payload_with_persistence()
+            payload["graph"]["persistence_loaded"] = False
+            payload["graph"]["startup_source"] = "sample_data"
+            return 200, payload
+        raise AssertionError(f"unexpected URL: {url}")
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    try:
+        exit_code = script.main(
+            [
+                "https://example.com",
+                "--json",
+                "--base-url-label",
+                "staging-api",
+                "--require-persistence",
+            ]
+        )
+    finally:
+        monkeypatch.undo()
+
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+
+    assert exit_code == script.CHECK_FAILED
+    assert captured.err == ""
+    assert data["status"] == "failed"
+    assert data["base_url_label"] == "staging-api"
+    assert data["require_persistence"] is True
+    assert data["checks"]["liveness"] == {"passed": True, "failures": []}
+    assert data["checks"]["detailed_readiness"]["passed"] is False
+    assert (
+        "/api/health/detailed graph.persistence_loaded is not true" in data["checks"]["detailed_readiness"]["failures"]
+    )
+    assert data["observed_fields"]["graph.persistence_loaded"] is False
+    assert data["observed_fields"]["graph.startup_source"] == "sample_data"
+    assert "example.com" not in captured.out
