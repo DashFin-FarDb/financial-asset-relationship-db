@@ -78,11 +78,32 @@ Record named owners for this release candidate:
 
 ## Disaster Recovery Rehearsal Evidence
 
-- [ ] Restore rehearsal log attached.
-- [ ] Selected restore point recorded.
+- [ ] Restore rehearsal date recorded.
+- [ ] Restore operator recorded.
+- [ ] Source environment recorded.
+- [ ] Restore point timestamp or backup identifier recorded.
+- [ ] Scratch/non-production restore target recorded.
+- [ ] Backup/restore mechanism recorded: PITR / snapshot / logical dump / provider export / other.
 - [ ] Effective database-boundary topology recorded: Auth DB, Coordination DB, Asset Graph DB.
+- [ ] Auth/application DB boundary restore result recorded.
+- [ ] Coordination DB boundary restore result recorded, or shared-boundary fallback confirmed.
+- [ ] Asset graph DB boundary restore result recorded.
+- [ ] `DATABASE_URL` points to the restored app/auth boundary.
+- [ ] `ASSET_GRAPH_DATABASE_URL` points to the restored graph boundary, not the app/auth boundary.
+- [ ] `COORDINATION_DATABASE_URL` points to the restored coordination boundary when separated.
 - [ ] Scratch restore verification results attached.
-- [ ] Post-restore hosted readiness smoke evidence attached.
+- [ ] Post-restore hosted readiness with `--require-persistence` evidence attached.
+- [ ] Redacted post-restore `/api/health/detailed` evidence attached or summarized.
+- [ ] Redacted post-restore `/api/assets?per_page=1` or approved sentinel evidence attached or summarized.
+- [ ] Persisted graph startup source confirmed after restore.
+- [ ] Persisted graph counts or sentinel baseline checked after restore.
+- [ ] RPO target recorded.
+- [ ] Observed RPO recorded.
+- [ ] RTO target recorded.
+- [ ] Observed RTO recorded.
+- [ ] Target misses are classified as blocking or non-blocking with follow-up.
+- [ ] Restore rehearsal decision recorded: Passed / Failed / Blocked.
+- [ ] Follow-up issues are linked for unresolved ambiguity or failed steps.
 
 ## Gate Status Summary
 

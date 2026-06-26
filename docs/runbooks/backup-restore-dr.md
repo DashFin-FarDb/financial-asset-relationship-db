@@ -458,4 +458,40 @@ A restore incident or rehearsal is complete only when:
 6. `/api/health/detailed` is healthy;
 7. lifecycle state reaches `READY`;
 8. graph functional smoke testing passes;
-9. the Incident Commander or designated promotion approver accepts closure.
+9. hosted readiness with `--require-persistence` passes for staging/production restore rehearsal evidence;
+10. RPO target, observed RPO, RTO target, and observed RTO are recorded;
+11. any RPO/RTO target miss is classified as blocking or non-blocking with a follow-up issue;
+12. the restore rehearsal evidence record is attached to the release-candidate evidence issue or incident record;
+13. the Incident Commander or designated promotion approver accepts closure.
+
+## Restore Rehearsal Evidence Record
+
+Use this structure in the release-candidate evidence issue or incident record. Do not include secrets, raw database URLs,
+database dump contents, bearer tokens, private keys, or unredacted logs.
+
+```text
+Restore rehearsal date:
+Restore operator:
+Source environment:
+Restore point:
+Restore target:
+Backup/restore mechanism:
+Effective database-boundary topology:
+Auth DB boundary result:
+Coordination DB boundary result:
+Asset graph DB boundary result:
+Scratch restore verification results:
+Target miss classification (blocking/non-blocking):
+Readiness requirement: hosted readiness run with --require-persistence
+Post-restore readiness result:
+Post-restore health evidence:
+Post-restore assets/sentinel evidence:
+Persisted graph startup source:
+Persisted graph counts or sentinel baseline:
+RPO target:
+Observed RPO:
+RTO target:
+Observed RTO:
+Decision: Passed / Failed / Blocked
+Follow-up issues:
+```
