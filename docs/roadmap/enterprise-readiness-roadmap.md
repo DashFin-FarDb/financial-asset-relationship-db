@@ -46,7 +46,7 @@ These items are valid but should not be bundled into the release-evidence reconc
 | `RebuildJobListResponse` truncation signal | Satisfied | Rebuild job-list responses expose `total` and `has_more`; tests cover default cap, explicit pagination, and status-filtered truncation semantics | None |
 | Strict stale-owner restart composition test | Satisfied - automated | The dedicated restart/recovery integration test now covers owner death, lock expiry, RecoveryGate reset, persisted restart load, and stale-owner fencing | Existing restart/recovery helpers, distributed lock test fixtures |
 | Production-scale validation | Partially satisfied | Representative CI fixtures exist, but production-scale rebuild, lock refresh, memory, and persistence-load evidence should run outside normal CI | Stable staging dataset, performance budget, observability dashboards |
-| Continuous operational drills | Satisfied - documented | The operational drill pack defines representative incident drills, metrics, dashboard panels, alert surfaces, and runbook responses | Observability stack, runbooks, named operators |
+| Continuous operational drills | Satisfied - documented | The operational drill pack defines representative incident drills, metrics, dashboard panels, alert surfaces, and runbook responses; the execution-record register captures actual run artifacts | Observability stack, runbooks, named operators |
 | Multi-region / advanced hosting strategy | Partially satisfied | Too early until single-region durable staging/prod evidence and restore rehearsal are complete | Release evidence, DR evidence, cost and provider model |
 
 ## Key Dependencies
@@ -55,7 +55,7 @@ These items are valid but should not be bundled into the release-evidence reconc
 - The release evidence pack is now the controlling release-proof document for the nine gates.
 - Contract cleanup now includes `RebuildJobListResponse` truncation semantics through `total` and `has_more`.
 - Failure-mode validation should continue, but production-scale evidence should not block this docs-only reconciliation unless the release scope explicitly makes it mandatory.
-- The operational drill pack now documents the representative incident matrix; live drill execution remains an operational follow-up rather than a new CI surface.
+- The operational drill pack now documents the representative incident matrix; the execution-record register captures live drill evidence as a separate follow-up artifact rather than a new CI surface.
 - Governance changes must keep `docs/governance/state-machine-and-operating-authority.md` aligned as the current authority.
 
 ## Risks
