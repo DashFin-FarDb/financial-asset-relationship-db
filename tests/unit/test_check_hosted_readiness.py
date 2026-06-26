@@ -701,7 +701,7 @@ def test_main_json_outputs_machine_readable_success(capsys: pytest.CaptureFixtur
     assert "example.com" not in captured.out
 
 
-def test_main_json_uses_default_redacted_base_url_label(capsys: pytest.CaptureFixture[str]) -> None:
+def test_main_json_uses_default_redacted_base_url_label(capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch) -> None:
     """JSON mode should default to a redacted base URL label when none is provided."""
     script = _load_script()
 
@@ -713,12 +713,8 @@ def test_main_json_uses_default_redacted_base_url_label(capsys: pytest.CaptureFi
             return 200, _healthy_detailed_payload_with_persistence()
         raise AssertionError(f"unexpected URL: {url}")
 
-    monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setattr(script, "_get_json", fake_get_json)
-    try:
-        exit_code = script.main(["https://example.com", "--json"])
-    finally:
-        monkeypatch.undo()
+    exit_code = script.main(["https://example.com", "--json"])
 
     captured = capsys.readouterr()
     data = json.loads(captured.out)
