@@ -126,7 +126,7 @@ Do not misclassify evidence when one of the following is true:
 - metrics are missing because the scrape window was missed;
 - alerts do not fire because the pending window did not elapse;
 - dashboard panels look flat because the time range or labels are wrong;
-- an empty graph is treated as valid without an approved sentinel or baseline;
+- a valid empty graph is treated as a failure without checking for an approved sentinel or baseline;
 - a stale-owner drill is misclassified because heartbeat or TTL never actually expired;
 - DR restore is misclassified because historical lock or job rows were not cleaned before restart;
 - scale timing is treated as an SLO instead of a regression baseline.
@@ -140,7 +140,7 @@ fields that prove the exact claim.
 
 Required evidence:
 
-- startup source field shows the failure path did not falsely report persisted startup;
+- graph.startup_source field shows the failure path did not falsely report persisted startup;
 - readiness or startup output shows the expected degraded or fail-closed result;
 - `application_startup_failure_total` or equivalent startup-failure evidence is observed;
 - `graph_startup_source_detected` or `startup_reconciliation_failed` output is attached when applicable.
@@ -223,7 +223,7 @@ Provider backup availability alone does not complete the DR gate.
 Scale evidence must stay bounded and deterministic.
 
 - Use fixed graph sizes only.
-- Current sizes are 10/20, 250/1,000, and 1,000/5,000.
+- Current sizes are 10/20, 250/1,000, and 1,000/5,000 (expressed as assets/relationships).
 - Treat timing as a regression baseline, not an SLO, unless explicitly promoted.
 - Keep true production-scale validation manual, scheduled, or nightly.
 - Do not turn normal PR CI into an unbounded load-test harness.
