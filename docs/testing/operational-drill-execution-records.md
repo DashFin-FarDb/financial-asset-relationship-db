@@ -63,8 +63,9 @@ Approver / reviewer:
 
 ## Execution Register
 
-Use one row per actual drill execution. If the drill has not been run yet, leave the row open and keep the parent
-issue open. This register tracks high-level execution links and results; for detailed metric and log observations during a run, refer to the Evidence Matrix in the [Operational Drill and Scale-Validation Pack](operational-drill-and-scale-validation-pack.md).
+Use one row per actual drill execution. If the drill has not been run yet, leave that row open until the corresponding
+per-run drill evidence issue exists. This register tracks high-level execution links and results; for detailed metric
+and log observations during a run, refer to the Evidence Matrix in the [Operational Drill and Scale-Validation Pack](operational-drill-and-scale-validation-pack.md).
 
 | Drill | Execution issue / evidence link | Environment | Commit SHA | Result | Notes | Follow-up issue |
 | --- | --- | --- | --- | --- | --- | --- |

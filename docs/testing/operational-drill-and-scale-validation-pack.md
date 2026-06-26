@@ -147,7 +147,6 @@ Current automated anchors:
 - `tests/integration/test_distributed_hosting_failure_modes.py`
 - `tests/integration/test_graph_persistence_scale_validation.py`
 - `docs/testing/failure-mode-and-scale-validation.md`
-- `docs/testing/operational-drill-execution-records.md`
 
 ## How To Use This Pack
 
