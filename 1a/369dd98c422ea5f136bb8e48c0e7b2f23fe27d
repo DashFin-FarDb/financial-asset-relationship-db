@@ -1,0 +1,19 @@
+.github/ISSUE_TEMPLATE/release_candidate_evidence.md
+  s_a2375cdf388c42::t_a0360bf460ea72 16-19,31,49-50,63-67,70-79,104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "1a369dd98c422ea5f136bb8e48c0e7b2f23fe27d",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
