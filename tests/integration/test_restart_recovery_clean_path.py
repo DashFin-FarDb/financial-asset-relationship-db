@@ -8,11 +8,11 @@ import pytest
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as graph_lifecycle_providers
 from src.data.db_models import DistributedLockORM, RebuildJobORM, RebuildJobStatus
-from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockState
+from src.data.distributed_lock import DistributedLock, LockState
+from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 from tests.integration import restart_recovery_helpers as helpers
 from tests.integration.facade import (
     AssetGraphRepository,
-    RecoveryGate,
     session_scope,
 )
 
@@ -99,7 +99,7 @@ def test_clean_restart_pipeline_reacquires_lock_and_fences_stale_owner(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Restart recovery should reset a stale owner, load durable truth, and fence the previous owner."""
+    """Startup reconciliation should fail closed for a stale owner under the production recovery setting."""
     db_url, engine, session_factory = helpers.database(tmp_path)
     owner_a_lock = None
     owner_b_lock = None
@@ -127,24 +127,26 @@ def test_clean_restart_pipeline_reacquires_lock_and_fences_stale_owner(
             holder_id="owner-b",
         )
         owner_b_lock.acquire()
-        RecoveryGate(
+        gate = RecoveryGate(
             session_factory=session_factory,
             lock=owner_b_lock,
             runtime_has_active_executor=False,
             lock_ttl_seconds=helpers.LOCK_TTL,
-            enable_automatic_recovery=True,
-        ).ensure_safe_to_execute()
+            enable_automatic_recovery=False,
+        )
+        with pytest.raises(ExecutionBlockedError) as exc_info:
+            gate.ensure_safe_to_execute()
 
+        assert exc_info.value.action == "wait"
+        assert exc_info.value.inconsistency_type == "orphaned_running"
         assert owner_b_lock.check_state() == LockState.VALID
-        assert owner_b_lock.holder_id == "owner-b"
         assert owner_a_lock.check_state() == LockState.UNKNOWN
 
         with session_scope(session_factory) as session:
             repo = AssetGraphRepository(session)
             job = repo.get_rebuild_job(job_id)
             assert job is not None
-            assert job.status == RebuildJobStatus.FAILED
-            assert job.sanitized_failure_category == "recovery_reset"
+            assert job.status == RebuildJobStatus.RUNNING
             assert job.active_worker_id == "owner-a"
 
         startup_graph, startup_source = graph_lifecycle.get_graph_with_startup_source()
@@ -152,8 +154,7 @@ def test_clean_restart_pipeline_reacquires_lock_and_fences_stale_owner(
         assert startup_source.source == graph_lifecycle.GraphStartupSource.PERSISTED
         helpers.assert_graph_contents(startup_graph)
 
-        with pytest.raises(LockAcquisitionTimeout):
-            owner_a_lock.acquire(max_retries=0)
+        assert gate.lock_was_reacquired is False
     finally:
         if owner_b_lock is not None:
             owner_b_lock.release()

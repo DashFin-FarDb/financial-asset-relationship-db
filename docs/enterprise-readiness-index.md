@@ -26,7 +26,6 @@ The remaining work is no longer primarily architectural. It is concentrated in l
 - hosted promotion evidence showing durable graph truth in the target environment;
 - DR restore rehearsal evidence against the documented backup/restore process;
 - release-commit security scanner review and named operator sign-off;
-- the `RebuildJobListResponse` `total` / `has_more` truncation signal contract;
 - strict stale-owner restart composition testing;
 - production-scale validation and continuous operational drills.
 
