@@ -67,7 +67,7 @@ def _list_rebuild_jobs_payload(
         offset=offset,
         status_filter=status_filter,
     )
-    return response.model_dump(mode="json", by_alias=True)
+    return response.model_dump(mode="json")
 
 
 def test_rebuild_job_list_caps_response_at_100_and_count_matches_returned_length(
