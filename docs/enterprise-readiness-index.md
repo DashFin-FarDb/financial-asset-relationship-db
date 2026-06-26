@@ -30,7 +30,8 @@ The remaining work is no longer primarily architectural. It is concentrated in l
 - release-commit security scanner review and named operator sign-off;
 - strict stale-owner restart composition testing;
 - the operational evidence-capture framework and drill pack for classifying operational proof;
-- production-scale validation and evidence-capture discipline for operational drills.
+- the operational drill and scale-validation pack for observability and runbook proof;
+- production-scale validation and evidence-capture discipline for operational drills that stays bounded outside normal CI.
 
 The DR documentation gap is closed at the strategy and runbook level through [ADR 0005](adr/0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](runbooks/backup-restore-dr.md). Final enterprise release readiness still requires operators to rehearse restore at least once and record the evidence in the release process.
 
