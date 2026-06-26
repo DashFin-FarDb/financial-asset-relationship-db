@@ -701,7 +701,9 @@ def test_main_json_outputs_machine_readable_success(capsys: pytest.CaptureFixtur
     assert "example.com" not in captured.out
 
 
-def test_main_json_uses_default_redacted_base_url_label(capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_json_uses_default_redacted_base_url_label(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
     """JSON mode should default to a redacted base URL label when none is provided."""
     script = _load_script()
 
