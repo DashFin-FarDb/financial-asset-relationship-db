@@ -9,7 +9,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from typing import Any, NoReturn, TypeAlias, TypedDict
 from uuid import uuid4
 
-from sqlalchemy import and_, delete, insert, or_, select, update
+from sqlalchemy import and_, delete, func, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -1513,9 +1513,7 @@ class AssetGraphRepository:
         Raises:
             ValueError: If an invalid status value is provided.
         """
-        if status is not None and status not in RebuildJobStatus.values():
-            valid = RebuildJobStatus.values()
-            raise ValueError(f"Invalid rebuild job status {status!r}. Must be one of: {valid}")
+        self._validate_rebuild_job_status(status)
         stmt = select(RebuildJobORM).order_by(
             RebuildJobORM.created_at.desc(),
             RebuildJobORM.job_id.desc(),
@@ -1527,6 +1525,32 @@ class AssetGraphRepository:
         if offset is not None:
             stmt = stmt.offset(offset)
         return list(self.session.execute(stmt).scalars().all())
+
+    def count_rebuild_jobs(self, *, status: str | None = None) -> int:
+        """
+        Count rebuild jobs matching the optional status filter before pagination.
+
+        Args:
+            status: Optional status filter (pending, running, succeeded, failed, cancelled).
+
+        Returns:
+            int: Total number of rebuild job records matching the filters.
+
+        Raises:
+            ValueError: If an invalid status value is provided.
+        """
+        self._validate_rebuild_job_status(status)
+        stmt = select(func.count()).select_from(RebuildJobORM)
+        if status is not None:
+            stmt = stmt.where(RebuildJobORM.status == status)
+        return int(self.session.execute(stmt).scalar_one())
+
+    @staticmethod
+    def _validate_rebuild_job_status(status: str | None) -> None:
+        """Raise ValueError when the supplied rebuild job status is not valid."""
+        if status is not None and status not in RebuildJobStatus.values():
+            valid = RebuildJobStatus.values()
+            raise ValueError(f"Invalid rebuild job status {status!r}. Must be one of: {valid}")
 
     def get_latest_successful_rebuild_job(self) -> RebuildJobORM | None:
         """

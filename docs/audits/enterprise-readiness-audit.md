@@ -15,7 +15,7 @@ The remaining risk is concentrated in release evidence and operational proof rat
 - hosted promotion must attach target-environment evidence that durable graph truth was loaded after restart/redeploy;
 - DR restore must be rehearsed at least once and linked to release evidence;
 - release security scanner summaries, exception records, and named operator sign-off must be attached;
-- `RebuildJobListResponse` still lacks a `total` / `has_more` truncation signal;
+- `RebuildJobListResponse` now exposes `total` and `has_more` truncation signals;
 - strict stale-owner restart composition and production-scale validation remain future or optional unless a release explicitly requires them.
 
 ## Post-Roadmap Reconciliation Status
@@ -27,7 +27,7 @@ Roadmap source-of-truth status is now aligned with `docs/release-evidence-pack.m
 | PR 1 — Durable Graph Persistence Schema and Repositories | Satisfied - automated | Repository and lifecycle persistence tests cover the durable baseline. |
 | PR 2 — Startup Load / Save Integration | Satisfied - automated | Startup/reload behavior is observable and tested. |
 | PR 3 — Durable Promotion Gate Extension | Satisfied - manual evidence required | Implementation exists; staging/prod release still needs hosted `--require-persistence` evidence. |
-| PR 4 — API Contract Cleanup | Partially satisfied | Core density, pagination, and visualization seams are aligned; rebuild job-list truncation signal remains a dedicated follow-up. |
+| PR 4 — API Contract Cleanup | Satisfied | Core density, pagination, visualization, and rebuild job-list truncation seams are aligned. |
 | PR 5 — Recovery-Plane Completion | Satisfied - automated | RecoveryGate and reconciliation path are covered by targeted tests. |
 | PR 6 — Distributed Hosting Semantics Spec | Satisfied - documented | Current interpretation is consolidated in the canonical state-machine authority. |
 | PR 7 — Failure-Mode and Scale Validation | Partially satisfied | CI-bounded validation exists; strict stale-owner composition and production-scale validation remain optional/future unless release-scoped. |
@@ -48,7 +48,7 @@ Roadmap source-of-truth status is now aligned with `docs/release-evidence-pack.m
 | Durable graph persistence | Satisfied - automated | `api/graph_lifecycle_providers.py`, `api/graph_lifecycle.py`, `docs/adr/0002-hosted-deployment-and-persistence.md`, `docs/graph-persistence-design.md` | Medium | Attach hosted durable DB boundary evidence without secrets. |
 | Restart / reload semantics | Partially satisfied | `api/app_factory.py`, `api/graph_lifecycle.py`, `docs/testing/failure-mode-and-scale-validation.md`, restart/recovery tests | Medium | Attach hosted restart/redeploy evidence showing persisted startup source. |
 | Distributed hosting semantics | Satisfied - documented | `docs/adr/0004-distributed-hosting-semantics.md`, `docs/governance/state-machine-and-operating-authority.md`, `docs/testing/distributed-hosting-invariants.md` | Medium | Keep production-scale and multi-instance evidence as follow-up operating-maturity work. |
-| Validation / contracts | Partially satisfied | API density/pagination tests, frontend API seam tests, validation gap audit | Medium | Add `RebuildJobListResponse` truncation signal in a dedicated API contract PR. |
+| Validation / contracts | Satisfied | API density/pagination tests, rebuild job-list truncation tests, frontend API seam tests, validation gap audit | Low | Continue running contract tests for release commits. |
 | CI/CD | Satisfied - manual evidence required | `.github/workflows/ci.yml`, `.github/workflows/ci-gate-spec.yaml`, `.github/workflows/codeql.yml`, `.github/workflows/hosted-readiness.yml` | High until release evidence is attached | Link CI run for the release commit and document any non-blocking failures. |
 | Security automation | Satisfied - manual evidence required | `.github/workflows/*`, `SECURITY.md`, `docs/ENV_ACCESS_AUDIT.md`, `docs/audits/OPERATOR_REBUILD_AUTHORIZATION_AUDIT.md` | High until scanner evidence is reviewed | Attach scanner summary, owner, follow-up, and approvals for exceptions. |
 | Governance / operating model | Satisfied - documented | `.github/PULL_REQUEST_TEMPLATE/*`, `docs/GOVERNANCE.md`, `docs/enterprise-deployment-operating-model.md`, `docs/governance/state-machine-and-operating-authority.md`, `docs/release-evidence-pack.md` | Medium | Enforce canonical-spec update triggers during review and attach named release ownership. |
@@ -88,7 +88,7 @@ The major user-facing contract seams have been addressed:
 - visualization and metrics density behavior are pinned by tests;
 - frontend/backend API seam tests now anchor the public contract.
 
-The remaining API contract item is narrower: `RebuildJobListResponse` lacks a `total` / `has_more` truncation signal and should be changed only in a dedicated follow-up PR.
+The rebuild job-list contract now exposes `total` and `has_more`, closing the previously identified truncation signal gap.
 
 ### 4. Documentation and governance are strong
 
@@ -140,12 +140,12 @@ The DR strategy and runbook are written. Final release readiness still requires 
 
 ### 4. Dedicated API contract follow-up
 
-The only currently identified API contract follow-up is `RebuildJobListResponse` truncation semantics:
+The previously identified API contract follow-up for `RebuildJobListResponse` truncation semantics is now closed:
 
-- decide `total`, `has_more`, or both;
-- update API models and tests;
-- update frontend types if consumed;
-- document response semantics.
+- response exposes both `total` and `has_more`;
+- API models and tests cover the new contract;
+- no frontend consumer was found, so no frontend type update was required;
+- response semantics are documented in the release evidence pack and validation gap audit.
 
 ### 5. Optional validation hardening
 
@@ -166,7 +166,6 @@ The following should remain separately scoped:
 
 ### Bounded follow-up hardening
 
-- `RebuildJobListResponse` truncation signal;
 - optional strict stale-owner restart composition;
 - production-scale validation;
 - continuous operational drills.
@@ -187,7 +186,7 @@ The following should remain separately scoped:
 
 ### Medium risk
 
-- `RebuildJobListResponse` still lacks a truncation signal;
+- `RebuildJobListResponse` exposes a truncation signal;
 - optional strict stale-owner restart composition is not yet covered as one end-to-end scenario;
 - production-scale evidence remains outside the bounded CI fixture set;
 - governance exists in docs, but release ownership must still be named per release.

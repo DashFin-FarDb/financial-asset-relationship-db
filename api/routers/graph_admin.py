@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, Any, NoReturn, cast
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import text
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.exc import SQLAlchemyError
@@ -1890,9 +1890,20 @@ def cancel_rebuild_job(
 @router.get("/api/graph/rebuild/jobs")
 def list_rebuild_jobs(
     _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    limit: Annotated[int, Query(ge=1, le=_MAX_REBUILD_JOB_LIST_RESULTS)] = _MAX_REBUILD_JOB_LIST_RESULTS,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    status_filter: Annotated[RebuildJobStatus | None, Query(alias="status")] = None,
 ) -> RebuildJobListResponse:
-    """List rebuild jobs ordered newest-first."""
+    """List rebuild jobs ordered newest-first with explicit truncation metadata."""
     with _rebuild_persistence_session() as session:
-        jobs_orm = AssetGraphRepository(session).list_rebuild_jobs(limit=_MAX_REBUILD_JOB_LIST_RESULTS)
+        repo = AssetGraphRepository(session)
+        status_value = status_filter.value if status_filter is not None else None
+        jobs_orm = repo.list_rebuild_jobs(limit=limit, offset=offset, status=status_value)
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
-        return RebuildJobListResponse(jobs=jobs, count=len(jobs))
+        total = repo.count_rebuild_jobs(status=status_value)
+        return RebuildJobListResponse(
+            jobs=jobs,
+            count=len(jobs),
+            total=total,
+            has_more=offset + len(jobs) < total,
+        )

@@ -210,10 +210,16 @@ class RebuildJobResponse(BaseModel):
 class RebuildJobListResponse(BaseModel):
     """Response model for rebuild job listing.
 
-    Bounded rebuild job list structure.
+    Contract:
+    - `jobs` is the current bounded page, ordered newest-first.
+    - `count` is the number of jobs in this response page.
+    - `total` is the number of matching jobs before limit/offset pagination.
+    - `has_more` is true when another page exists after this response.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     jobs: list[RebuildJobResponse]
     count: int = Field(ge=0)
+    total: int = Field(ge=0)
+    has_more: bool
