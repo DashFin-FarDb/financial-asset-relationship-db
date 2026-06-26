@@ -16,7 +16,7 @@ load-test harness.
 
 ### In scope
 
-- 3--5 operational drills covering representative failure modes.
+- 5 operational drills covering representative failure modes.
 - Trigger, expected runtime behavior, metrics, logs/events, dashboard/alert evidence, and runbook response for each drill.
 - Deterministic, fixed-size graph validation where it stays bounded and repeatable.
 - Evidence-capture guidance that operators can fill in after a manual drill.
