@@ -44,7 +44,8 @@ The current drill set is chosen to exercise the control-plane boundaries already
 - Trigger: force graph persistence load failure in a safe non-production target.
 - Expected behavior: startup/readiness fails closed or reports a degraded state according to the startup contract.
 - Metrics to watch: `application_startup_failure_total`, `graph_rebuild_recovery_trigger_total`, and the
-  `graph_persistence_configured` / `persistence_loaded` / `startup_source` fields in `/api/health/detailed`.
+  `graph_persistence_configured` / `graph.persistence_loaded` / `graph.startup_source` fields in
+  `/api/health/detailed`.
 - Logs / events to watch: `graph_startup_source_detected` and `startup_reconciliation_failed`, plus the sanitized
   startup failure event emitted by the application lifecycle path.
 - Dashboard / alert focus: Application Lifecycle row, SLO Overview row, and any persistence-readiness alert surface.
@@ -95,8 +96,8 @@ The current drill set is chosen to exercise the control-plane boundaries already
 - Trigger: run hosted readiness with `--require-persistence` against a target without durable graph truth or with an
   intentionally invalid durable graph configuration.
 - Expected behavior: the smoke fails and cannot be used as promotion evidence.
-- Metrics to watch: `graph_persistence_configured`, `persistence_loaded`, `startup_source`, and the hosted readiness
-  command exit status.
+- Metrics to watch: `graph_persistence_configured`, `graph.persistence_loaded`, `graph.startup_source`, and the hosted
+  readiness command exit status.
 - Logs / events to watch: hosted readiness diagnostic output and the startup source evidence returned by the target.
 - Dashboard / alert focus: Promotion evidence workflow and any readiness gating dashboard that consumes the smoke.
 - Runbook response: remediate the graph persistence boundary before retrying promotion.
