@@ -38,7 +38,7 @@ FORBIDDEN_DETAILED_TOP_LEVEL_FIELDS = {
     "traceback",
 }
 
-SAFE_OBSERVED_FIELD_PATHS = ("status", "graph_persistence_configured")
+SAFE_OBSERVED_FIELDS = ("status", "graph_persistence_configured")
 
 
 class _NoRedirectHandler(HTTPRedirectHandler):
@@ -298,7 +298,7 @@ def _collect_observed_fields(payload: dict[str, Any]) -> dict[str, Any]:
     """Return safely observed readiness fields for JSON evidence output."""
     observed_fields: dict[str, Any] = {}
 
-    for field_name in SAFE_OBSERVED_FIELD_PATHS:
+    for field_name in SAFE_OBSERVED_FIELDS:
         if field_name in payload:
             observed_fields[field_name] = payload[field_name]
 
