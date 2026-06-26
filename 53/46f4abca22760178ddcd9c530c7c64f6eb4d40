@@ -1,0 +1,31 @@
+docs/audits/enterprise-readiness-audit.md
+  s_a2375cdf388c42::t_dfdb1b52d641cf 19,33,45,169,190
+docs/enterprise-readiness-index.md
+  s_a2375cdf388c42::t_738c0a3b113ee2 30,44
+docs/release-evidence-pack.md
+  s_a2375cdf388c42::t_1d1171cb66582a 38,108-109
+docs/roadmap/enterprise-readiness-pr-board.md
+  s_a2375cdf388c42::t_949e442249688b 23,37,48
+docs/roadmap/enterprise-readiness-roadmap.md
+  s_a2375cdf388c42::t_26d05f29686c00 47,57,75
+docs/validation-gap-audit.md
+  s_a2375cdf388c42::t_52641c17c93ff8 30,61-62,83-86
+tests/integration/test_restart_recovery_clean_path.py
+  s_a2375cdf388c42::t_b3cee7994d9e4e 3,10-11,22-48,96-163
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "5346f4abca22760178ddcd9c530c7c64f6eb4d40",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
