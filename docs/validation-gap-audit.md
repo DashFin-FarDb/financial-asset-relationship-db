@@ -27,7 +27,7 @@ The following areas are already behaviourally proven and do not require remediat
 
 | Subsystem | Representative test files | Current assertion depth | Finding | Remediation phase |
 | --- | --- | --- | --- | --- |
-| Restart / reload | `tests/unit/test_graph_lifecycle_persistence.py`, `tests/integration/test_distributed_hosting_failure_modes.py`, `tests/integration/test_restart_recovery_clean_path.py` | Startup and reset tests prove persisted loading and fail-fast paths. This PR adds an integrated clean restart path covering startup load, RecoveryGate evaluation, distributed lock acquisition, and durable graph load from SQLite. | Partially covered. The clean restart/reload pipeline is now behaviourally covered. A strict stale-owner-reset end-to-end pipeline remains open if Phase 3 requires that exact integrated sequence; stale-owner reset behaviour itself is already proven by the existing lock/recovery suites. | Phase 3 — clean restart path closed in this PR; optional follow-up for strict stale-owner-reset end-to-end composition only. |
+| Restart / reload | `tests/unit/test_graph_lifecycle_persistence.py`, `tests/integration/test_distributed_hosting_failure_modes.py`, `tests/integration/test_restart_recovery_clean_path.py` | Startup and reset tests prove persisted loading and fail-fast paths. This PR adds an integrated clean restart path covering startup load, RecoveryGate evaluation, distributed lock acquisition, stale-owner fencing, and durable graph load from SQLite. | Covered. The clean restart/reload pipeline and strict stale-owner restart composition are now behaviourally covered by the restart/recovery integration suite. | Phase 3 closed in this PR; hosted restart/redeploy evidence remains a separate release artifact. |
 | Persistence round trip | `tests/unit/test_repository_graph_persistence.py`, `tests/unit/test_graph_lifecycle_persistence.py`, `tests/unit/test_repository_graph_persistence_fields.py`, `tests/unit/test_graph_lifecycle_persistence_fields.py` | Existing tests prove graph IDs, relationship strengths, stale-row removal, event IDs, and subtype-specific fields. This PR adds field-level equality for base asset fields and regulatory-event fields across repository and lifecycle persisted loads. | Covered. A reconstruction that drops `price`, `name`, `sector`, `currency`, `asset_class`, `impact_score`, `related_assets`, `date`, or `description` is now test-visible. | Phase 3 — closed in this PR. |
 | Lock-loss / stale-owner | `tests/unit/test_distributed_lock_runtime.py`, `tests/unit/test_rebuild_failure_detection.py`, `tests/integration/test_lock_refresh_flow.py`, `tests/integration/test_distributed_hosting_failure_modes.py` | Behavioural assertions cover lock-loss detection, stale heartbeat classification, fail-closed paths, and terminal job state. | Behaviourally proven. No remediation required. | None. |
 | RecoveryGate decisions | `tests/unit/test_recovery_gate*.py`, `tests/unit/test_rebuild_recovery.py`, `tests/integration/test_distributed_hosting_failure_modes.py` | Tests assert exact reset/block outcomes, recovery failure categories, and lock reacquisition semantics. | Behaviourally proven. No remediation required. | None. |
@@ -58,7 +58,8 @@ Closed in this PR:
 
 Remaining work:
 
-- Add a strict stale-owner-reset end-to-end restart pipeline only if the phase requires that exact composition test. Existing lock-loss, stale-owner, and RecoveryGate suites already prove the reset decision and mutation behaviour outside this integrated restart path.
+- The strict stale-owner restart composition is now covered by the restart/recovery integration suite; existing lock-loss,
+  stale-owner, and RecoveryGate suites remain supporting evidence rather than the only proof.
 
 ### Phase 4 — API pagination and frontend/backend seam
 
@@ -79,4 +80,7 @@ Remaining work:
 
 The strongest existing coverage is in auth audit logging, distributed lock handling, stale-owner detection, and RecoveryGate decisions. Those areas already assert exact outcomes and failure-state semantics.
 
-This PR closes the highest-leverage validation gaps around graph density semantics, pagination values, rebuild job-list truncation, persistence field fidelity, clean restart-recovery composition, and frontend/backend serialization seams. The remaining open items are optional maturity work rather than untested happy paths: optionally adding a strict stale-owner-reset end-to-end restart pipeline and converting residual ad hoc frontend mocks to typed fixtures.
+This PR closes the highest-leverage validation gaps around graph density semantics, pagination values, rebuild job-list truncation,
+persistence field fidelity, clean restart-recovery composition, strict stale-owner restart composition, and frontend/backend
+serialization seams. The remaining open items are operational proof and maturity work rather than untested happy paths:
+attaching hosted restart/redeploy evidence and converting residual ad hoc frontend mocks to typed fixtures.

@@ -27,7 +27,7 @@ The remaining work is no longer primarily architectural. It is concentrated in l
 - DR restore rehearsal evidence against the documented backup/restore process;
 - release-commit security scanner review and named operator sign-off;
 - the `RebuildJobListResponse` `total` / `has_more` truncation signal contract;
-- optional strict stale-owner restart composition testing;
+- strict stale-owner restart composition testing;
 - production-scale validation and continuous operational drills.
 
 The DR documentation gap is closed at the strategy and runbook level through [ADR 0005](adr/0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](runbooks/backup-restore-dr.md). Final enterprise release readiness still requires operators to rehearse restore at least once and record the evidence in the release process.
@@ -41,7 +41,7 @@ Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **S
 | Satisfied - automated | PR 1 durable graph persistence; PR 2 startup load/save integration; PR 4 core density, asset pagination, and frontend/backend contract seams; PR 5 RecoveryGate/reconciliation control-plane path; PR 7 CI-bounded failure-mode and representative-scale validation where covered |
 | Satisfied - documented | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model |
 | Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence |
-| Partially satisfied | Strict stale-owner restart composition remains optional unless release scope requires it; production-scale validation and continuous operational drills remain future operating-maturity work |
+| Partially satisfied | Strict stale-owner restart composition is covered by integration tests; production-scale validation and continuous operational drills remain future operating-maturity work |
 | Blocked | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence, release-commit security scanner/exception review, named operator sign-off, and DR restore rehearsal evidence are attached or approved. |
 
 ## Recommended Reading Order

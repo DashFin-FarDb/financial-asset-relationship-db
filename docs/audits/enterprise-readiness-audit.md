@@ -16,7 +16,7 @@ The remaining risk is concentrated in release evidence and operational proof rat
 - DR restore must be rehearsed at least once and linked to release evidence;
 - release security scanner summaries, exception records, and named operator sign-off must be attached;
 - `RebuildJobListResponse` now exposes `total` and `has_more` truncation signals;
-- strict stale-owner restart composition and production-scale validation remain future or optional unless a release explicitly requires them.
+- strict stale-owner restart composition is now covered by the integration suite, while production-scale validation remains future or optional unless a release explicitly requires it.
 
 ## Post-Roadmap Reconciliation Status
 
@@ -30,7 +30,7 @@ Roadmap source-of-truth status is now aligned with `docs/release-evidence-pack.m
 | PR 4 — API Contract Cleanup | Satisfied | Core density, pagination, visualization, and rebuild job-list truncation seams are aligned. |
 | PR 5 — Recovery-Plane Completion | Satisfied - automated | RecoveryGate and reconciliation path are covered by targeted tests. |
 | PR 6 — Distributed Hosting Semantics Spec | Satisfied - documented | Current interpretation is consolidated in the canonical state-machine authority. |
-| PR 7 — Failure-Mode and Scale Validation | Partially satisfied | CI-bounded validation exists; strict stale-owner composition and production-scale validation remain optional/future unless release-scoped. |
+| PR 7 — Failure-Mode and Scale Validation | Partially satisfied | CI-bounded validation exists; strict stale-owner composition is covered by the integration suite, while production-scale validation remains optional/future unless release-scoped. |
 | PR 8 — Security and Governance Hardening | Satisfied - manual evidence required | Repository controls exist; release requires scanner summaries, exception records, and approvals. |
 | PR 9 — Backup, Restore, and DR Runbook | Satisfied - manual evidence required | Strategy/runbook exist; restore rehearsal evidence is still required. |
 | PR C — Governance and State-Machine Hardening | Satisfied - documented | Canonical state-machine authority exists; governed behavior changes must keep it aligned. |
@@ -42,7 +42,7 @@ Roadmap source-of-truth status is now aligned with `docs/release-evidence-pack.m
 | Production architecture | Satisfied - documented | `docs/adr/0001-production-architecture.md`, `README.md`, `docs/enterprise-deployment-operating-model.md` | Low | Keep all production work on FastAPI + Next.js. |
 | Observability & SLOs | Satisfied - automated | `docs/OBSERVABILITY_MASTER_SPEC.md`, `docs/OBSERVABILITY_README.md`, `api/metrics.py` | Low | Add operational drills to prove alerts and runbooks answer real incidents. |
 | Startup tracing / request correlation | Satisfied - automated | `api/app_factory.py`, `src/observability/*` | Low | Validate trace continuity during hosted restart/rebuild evidence capture. |
-| Rebuild coordination | Satisfied - automated | `src/logic/rebuild_executor.py`, `src/logic/recovery_gate.py`, `src/logic/reconciliation_loop.py`, `docs/adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md` | Medium | Add strict stale-owner restart composition only if release scope requires that exact end-to-end proof. |
+| Rebuild coordination | Satisfied - automated | `src/logic/rebuild_executor.py`, `src/logic/recovery_gate.py`, `src/logic/reconciliation_loop.py`, `docs/adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md` | Medium | Keep production-scale validation separate from the now-covered strict stale-owner restart composition proof. |
 | Operator rebuild authorization | Satisfied - automated | `api/auth.py`, `docs/audits/OPERATOR_REBUILD_AUTHORIZATION_AUDIT.md`, auth audit/security-event tests | Low | Attach release scanner and exception evidence where applicable. |
 | Hosted readiness smoke checks | Satisfied - manual evidence required | `.github/workflows/hosted-readiness.yml`, `scripts/check_hosted_readiness.py`, `docs/enterprise-deployment-operating-model.md`, `docs/release-evidence-pack.md` | High until evidence is attached | Run and attach hosted `--require-persistence` output for the target environment. |
 | Durable graph persistence | Satisfied - automated | `api/graph_lifecycle_providers.py`, `api/graph_lifecycle.py`, `docs/adr/0002-hosted-deployment-and-persistence.md`, `docs/graph-persistence-design.md` | Medium | Attach hosted durable DB boundary evidence without secrets. |
@@ -166,7 +166,7 @@ The following should remain separately scoped:
 
 ### Bounded follow-up hardening
 
-- optional strict stale-owner restart composition;
+- strict stale-owner restart composition;
 - production-scale validation;
 - continuous operational drills.
 
@@ -187,7 +187,7 @@ The following should remain separately scoped:
 ### Medium risk
 
 - `RebuildJobListResponse` exposes a truncation signal;
-- optional strict stale-owner restart composition is not yet covered as one end-to-end scenario;
+- strict stale-owner restart composition is covered as one end-to-end scenario;
 - production-scale evidence remains outside the bounded CI fixture set;
 - governance exists in docs, but release ownership must still be named per release.
 
