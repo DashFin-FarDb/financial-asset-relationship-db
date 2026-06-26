@@ -432,11 +432,37 @@ class TestRebuildJobRepository:
         failed_jobs = repo.list_rebuild_jobs(status="failed")
         assert len(failed_jobs) == 0
 
+    def test_count_rebuild_jobs_with_status_filter(self, repository_factory):
+        """Test counting rebuild jobs before pagination with optional status filtering."""
+        repo = repository_factory()
+
+        repo.create_rebuild_job(requested_by="user1")
+        running_job_id = repo.create_rebuild_job(requested_by="user2")
+        repo.mark_rebuild_job_running(running_job_id, "test_exec_id")
+        succeeded_job_id = repo.create_rebuild_job(requested_by="user3")
+        repo.mark_rebuild_job_running(succeeded_job_id, "test_exec_id")
+        repo.mark_rebuild_job_succeeded(
+            succeeded_job_id, execution_id="test_exec_id", node_count=10, edge_count=20, duration_ms=100
+        )
+        repo.session.commit()
+
+        assert repo.count_rebuild_jobs() == 3
+        assert repo.count_rebuild_jobs(status="pending") == 1
+        assert repo.count_rebuild_jobs(status="running") == 1
+        assert repo.count_rebuild_jobs(status="succeeded") == 1
+        assert repo.count_rebuild_jobs(status="failed") == 0
+
     def test_list_rebuild_jobs_invalid_status_raises(self, repository_factory):
         """Test that an invalid status value raises ValueError."""
         repo = repository_factory()
         with pytest.raises(ValueError, match="Invalid rebuild job status"):
             repo.list_rebuild_jobs(status="invalid_status")
+
+    def test_count_rebuild_jobs_invalid_status_raises(self, repository_factory):
+        """Test that counting with an invalid status value raises ValueError."""
+        repo = repository_factory()
+        with pytest.raises(ValueError, match="Invalid rebuild job status"):
+            repo.count_rebuild_jobs(status="invalid_status")
 
     def test_get_active_rebuild_state_raises_when_multiple_running_jobs_exist(self, repository_factory):
         """Multiple running jobs should be surfaced as an invalid state."""

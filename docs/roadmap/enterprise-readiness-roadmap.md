@@ -43,7 +43,7 @@ These items are valid but should not be bundled into the release-evidence reconc
 
 | Item | Status | Why later | Dependencies |
 | --- | --- | --- | --- |
-| `RebuildJobListResponse` truncation signal | Partially satisfied | Core API contract cleanup is merged, but the rebuild job-list API still lacks `total` / `has_more` semantics | Dedicated API contract PR, backend tests, frontend type update if consumed |
+| `RebuildJobListResponse` truncation signal | Satisfied | Rebuild job-list responses expose `total` and `has_more`; tests cover default cap, explicit pagination, and status-filtered truncation semantics | None |
 | Strict stale-owner restart composition test | Partially satisfied | Lower-level stale-owner, lock-loss, and RecoveryGate behavior is proven; the exact end-to-end restart composition is optional unless release scope requires it | Existing restart/recovery helpers, distributed lock test fixtures |
 | Production-scale validation | Partially satisfied | Representative CI fixtures exist, but production-scale rebuild, lock refresh, memory, and persistence-load evidence should run outside normal CI | Stable staging dataset, performance budget, observability dashboards |
 | Continuous operational drills | Partially satisfied | Alert/runbook maturity requires repeated incident drills, not only tests and documentation | Observability stack, runbooks, named operators |
@@ -53,7 +53,7 @@ These items are valid but should not be bundled into the release-evidence reconc
 
 - The durable graph persistence, startup integration, and promotion gate path is implemented; hosted release proof still requires target-environment evidence.
 - The release evidence pack is now the controlling release-proof document for the nine gates.
-- Contract cleanup is mostly complete, but `RebuildJobListResponse` truncation semantics must be handled in a dedicated follow-up rather than silently folded into unrelated work.
+- Contract cleanup now includes `RebuildJobListResponse` truncation semantics through `total` and `has_more`.
 - Failure-mode validation should continue, but optional strict stale-owner composition and production-scale evidence should not block this docs-only reconciliation unless the release scope explicitly makes them mandatory.
 - Governance changes must keep `docs/governance/state-machine-and-operating-authority.md` aligned as the current authority.
 
@@ -71,7 +71,7 @@ These items are valid but should not be bundled into the release-evidence reconc
 3. Staging deployment operating baseline.
 4. Hosted durable promotion smoke with `--require-persistence`.
 5. DR restore rehearsal and post-restore smoke evidence.
-6. Dedicated `RebuildJobListResponse` truncation signal PR.
+6. Dedicated `RebuildJobListResponse` truncation signal PR completed.
 7. Optional strict stale-owner restart composition test.
 8. Production-scale validation and continuous operational drills.
 9. Multi-region / advanced hosting strategy.

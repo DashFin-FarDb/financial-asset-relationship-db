@@ -37,7 +37,7 @@ traces to release evidence.
 | Durable Persistence | Satisfied - automated | Repository persistence, lifecycle persistence, hosted startup readiness, and field-fidelity tests. | Confirm hosted `ASSET_GRAPH_DATABASE_URL` points to the intended durable graph database boundary. | Yes, for staging/production promotion. | Attach hosted database configuration evidence without exposing secrets. |
 | Restart / Reload | Partially satisfied | Lifecycle persisted-startup tests and clean restart-recovery integration test. | Attach restart/redeploy evidence showing persisted startup source after graph persistence. | Yes, if restart proof is absent for staging/production. | Strict stale-owner-reset end-to-end restart composition remains optional/future; lower-level stale-owner and RecoveryGate suites already prove the behaviour. |
 | Promotion | Satisfied - manual evidence required | Hosted readiness script and workflow support `--require-persistence`; readiness endpoint exposes persisted startup evidence. | Attach staging/prod smoke output from `scripts/check_hosted_readiness.py <base_url> --require-persistence`, plus bounded `/api/assets?per_page=1` evidence. | Yes. | Hosted promotion proof remains manual until actual target-environment logs are attached. |
-| API Contract | Partially satisfied | Density formula/parity tests, pagination `hasMore` tests, `AssetPageResponse` alias tests, frontend API contract seam tests. | Confirm frontend build or CI run used for release includes the contract tests. | No, unless product requires the remaining rebuild job-list truncation signal for this release. | `RebuildJobListResponse` still lacks a `total` / `has_more` truncation signal; track as future API contract work. |
+| API Contract | Satisfied - automated | Density formula/parity tests, pagination `hasMore` tests, `AssetPageResponse` alias tests, rebuild job-list `total` / `has_more` tests, frontend API contract seam tests. | Confirm frontend build or CI run used for release includes the contract tests. | No. | None for this gate when the listed contract tests run for the release commit. |
 | Recovery / Rebuild | Satisfied - automated | Distributed lock runtime tests, RecoveryGate unit/integration tests, stale-owner tests, lock refresh flow tests. | Operator confirms no active rebuild job and valid/expired-safe `graph_rebuild` lock state before promotion. | Yes, if active rebuild or unsafe lock state exists. | None for automated proof; attach operator pre-promotion check. |
 | Security | Satisfied - manual evidence required | Auth/router audit logging tests, security-event tests, protected rebuild endpoint tests, dependency/code/workflow scanner jobs. | Record non-blocking scanner failures with reason, owner, and follow-up issue; confirm no active critical security gate is bypassed. | Yes, for unapproved critical/high security failures or undocumented gate bypasses. | Attach security scan summary and exception records where applicable. |
 | Governance | Satisfied - documented | Governance policy, state-machine authority, release checklist, ADRs, and PR scope guardrails. | Named operator ownership for deploy, rollback, restore, and persistence verification. | Yes, if owner/sign-off is missing for enterprise release. | Attach named release operator and approver sign-off. |
@@ -161,10 +161,12 @@ pytest tests/unit/test_asset_page_response_alias.py -q
 cd frontend && npm test -- api-contract-seams.test.ts
 ```
 
-Caveat:
+Rebuild job-list contract:
 
-- `RebuildJobListResponse` still has no `total` / `has_more` truncation signal. Keep this as future API contract work
-  unless product release criteria make it blocking.
+- `RebuildJobListResponse.count` is the number of jobs returned in the current page.
+- `RebuildJobListResponse.total` is the number of jobs matching the active `status` filter before `limit` / `offset`.
+- `RebuildJobListResponse.has_more` is true when another page exists after the current response.
+- The endpoint keeps the default cap of 100 jobs and supports bounded `limit`, `offset`, and `status` query parameters.
 
 Manual release attachment:
 

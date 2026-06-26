@@ -17,7 +17,7 @@ These PRs are no longer open remediation items. They form the repository baselin
 | PR 1 | Durable Graph Persistence Schema and Repositories | Satisfied - automated | Durable graph persistence models and repositories exist; SQLite compatibility retained; persistence tests pass | None, but it remains the base dependency for persistence, restart, promotion, validation, and DR evidence |
 | PR 2 | Startup Load / Save Integration | Satisfied - automated | Startup can load persisted graph state; rebuild path persists graph truth; restart behavior is observable and tested | PR 1 |
 | PR 3 | Durable Promotion Gate Extension | Satisfied - manual evidence required | Hosted readiness supports durable graph proof; staging/prod still require attached `--require-persistence` smoke output | PR 1, PR 2, hosted target environment |
-| PR 4 | API Contract Cleanup | Partially satisfied | Density, asset pagination, and visualization seams are aligned; `RebuildJobListResponse` still lacks `total` / `has_more` truncation semantics | Dedicated follow-up API contract PR for rebuild job-list truncation only |
+| PR 4 | API Contract Cleanup | Satisfied | Density, asset pagination, visualization seams, and `RebuildJobListResponse` truncation semantics are aligned | None |
 | PR 5 | Recovery-Plane Completion | Satisfied - automated | RecoveryGate/reconciliation behavior is implemented and covered by focused recovery and lock tests | PR 1, reconciliation/recovery code |
 | PR 6 | Distributed Hosting Semantics Spec | Satisfied - documented | Single-writer, split-brain, restart, and lock-loss semantics are documented and consolidated through the canonical state-machine authority | PR 1, PR 2 |
 | PR 7 | Failure-Mode and Scale Validation | Partially satisfied | Restart, crash, stale-owner, lock-loss, and representative-scale evidence exists where covered; strict stale-owner restart composition and production-scale validation remain future/optional unless release scope requires them | PR 1, PR 2, distributed coordination fixtures |
@@ -33,7 +33,7 @@ These are not stale roadmap items; they are bounded follow-up objectives.
 | --- | --- | --- | --- |
 | RC1 release evidence capture | Satisfied - manual evidence required | CI run, hosted durable smoke, redacted health/assets output, scanner summary, and operator sign-off are attached for the release commit | API or runtime changes |
 | Staging deployment operating baseline | Satisfied - manual evidence required | Target environment, database boundaries, Vercel config, and durable graph store evidence are recorded without secrets | DR restore implementation |
-| `RebuildJobListResponse` truncation signal | Partially satisfied | Response exposes `total` and/or `has_more`, tests cover truncation semantics, and frontend types are updated if consumed | Release evidence capture |
+| `RebuildJobListResponse` truncation signal | Complete | Response exposes `total` and `has_more`; tests cover default cap, explicit pagination, and status-filtered truncation semantics; no frontend consumer was found | Release evidence capture |
 | Strict stale-owner restart composition | Partially satisfied | End-to-end restart pipeline proves stale-owner reset after lock expiry and prevents stale owner mutation | Source-of-truth docs reconciliation |
 | Production-scale validation | Partially satisfied | Larger graph/load evidence is recorded outside normal CI or in a bounded scheduled workflow | Core release evidence PR |
 | Continuous operational drills | Partially satisfied | Operators exercise alert/runbook flows for graph load failure, lock loss, stale owner, degraded DB, and failed durable smoke | Initial staging proof |
@@ -42,7 +42,7 @@ These are not stale roadmap items; they are bounded follow-up objectives.
 
 - PR 1 and PR 2 remain the foundation for promotion, failure-mode, and DR evidence.
 - PR 3 is implemented, but staging/production promotion remains a manual-evidence gate until hosted output is attached.
-- PR 4 is no longer “still missing”; only the rebuild job-list truncation signal remains as a dedicated API contract follow-up.
+- PR 4 is no longer “still missing”; the rebuild job-list truncation signal is now covered by the dedicated API contract follow-up.
 - PR 6 and PR C are no longer missing specifications; they are documented authorities that require review enforcement when governed behavior changes.
 - PR 8 and PR 9 are documentation/test/policy complete for their repository scope, but release sign-off still requires scanner/exception evidence and restore rehearsal evidence.
 - Optional strict stale-owner composition and production-scale validation should remain separately tracked so they do not blur release evidence capture with new runtime scope.
