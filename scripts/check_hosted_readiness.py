@@ -174,7 +174,22 @@ def _is_timeout_exception(exc: BaseException) -> bool:
 def _validate_request_target(url: str) -> str | None:
     """Return a bounded validation error for a request URL target."""
     parsed = urlparse(url)
-    return _validate_not_internal_address(parsed)
+    validators = (
+        _validate_scheme_and_host,
+        _validate_no_credentials,
+        _validate_hostname_present,
+        _validate_not_loopback_hostname,
+        _validate_no_extra_components,
+        _validate_port,
+        _validate_not_internal_address,
+    )
+
+    for validator in validators:
+        validation_error = validator(parsed)
+        if validation_error is not None:
+            return validation_error
+
+    return None
 
 
 def _response_failure_message(endpoint: str, exc: BaseException) -> str:

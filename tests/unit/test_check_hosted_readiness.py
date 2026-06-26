@@ -347,7 +347,7 @@ def test_get_json_uses_bounded_request_failure_message(monkeypatch: pytest.Monke
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
 
     with pytest.raises(RuntimeError) as exc_info:
-        script._get_json(_url_with_credentials("/api/health"), 5.0)
+        script._get_json("https://example.com/api/health", 5.0)
 
     message = str(exc_info.value)
 
@@ -385,7 +385,7 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
 
     with pytest.raises(RuntimeError) as exc_info:
-        script._get_json(_url_with_credentials("/api/health/detailed"), 5.0)
+        script._get_json("https://example.com/api/health/detailed", 5.0)
 
     message = str(exc_info.value)
 
@@ -411,7 +411,7 @@ def test_get_json_returns_http_error_status(monkeypatch: pytest.MonkeyPatch) -> 
 
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
 
-    status_code, payload = script._get_json(_url_with_credentials("/api/health"), 5.0)
+    status_code, payload = script._get_json("https://example.com/api/health", 5.0)
 
     assert status_code == 503
     assert payload == {}
@@ -426,6 +426,28 @@ def test_read_response_body_revalidates_request_target(monkeypatch: pytest.Monke
         return "target resolved to internal address"
 
     monkeypatch.setattr(script, "_validate_request_target", fake_validate_request_target)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        script._read_response_body(_url_with_credentials("/api/health"), 5.0)
+
+    message = str(exc_info.value)
+
+    assert message == "/api/health request target validation failed"
+    assert "secret" not in message
+    assert "example.com" not in message
+
+
+def test_read_response_body_rejects_invalid_request_target_before_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Malformed request targets should fail before the HTTP request object is used."""
+    script = _load_script()
+
+    def fail_urlopen(request: object, timeout: float) -> object:
+        """Fail if the request reaches the network layer."""
+        pytest.fail("urlopen should not be called for invalid request targets")
+
+    monkeypatch.setattr(script, "urlopen", fail_urlopen)
 
     with pytest.raises(RuntimeError) as exc_info:
         script._read_response_body(_url_with_credentials("/api/health"), 5.0)
