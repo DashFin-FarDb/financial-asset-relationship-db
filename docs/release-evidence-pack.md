@@ -35,7 +35,7 @@ traces to release evidence.
 | --- | --- | --- | --- | --- | --- |
 | Architecture | Satisfied - documented | PR review confirms production code paths remain FastAPI backend and Next.js frontend. | Confirm release artefact and deployment procedure do not depend on `app.py` or Gradio. | Yes, if production artefacts depend on Gradio. | None for this gate when release artefacts target `api/` and `frontend/`. |
 | Durable Persistence | Satisfied - automated | Repository persistence, lifecycle persistence, hosted startup readiness, and field-fidelity tests. | Confirm hosted `ASSET_GRAPH_DATABASE_URL` points to the intended durable graph database boundary. | Yes, for staging/production promotion. | Attach hosted database configuration evidence without exposing secrets. |
-| Restart / Reload | Partially satisfied | Lifecycle persisted-startup tests and clean restart-recovery integration test. | Attach restart/redeploy evidence showing persisted startup source after graph persistence. | Yes, if restart proof is absent for staging/production. | Strict stale-owner-reset end-to-end restart composition remains optional/future; lower-level stale-owner and RecoveryGate suites already prove the behaviour. |
+| Restart / Reload | Partially satisfied | Lifecycle persisted-startup tests and clean restart-recovery integration test. | Attach restart/redeploy evidence showing persisted startup source after graph persistence. | Yes, if restart proof is absent for staging/production. | Strict stale-owner restart composition is now covered by the dedicated restart/recovery integration test; attach restart/redeploy evidence showing persisted startup source after graph persistence. |
 | Promotion | Satisfied - manual evidence required | Hosted readiness script and workflow support `--require-persistence`; readiness endpoint exposes persisted startup evidence. | Attach staging/prod smoke output from `scripts/check_hosted_readiness.py <base_url> --require-persistence`, plus bounded `/api/assets?per_page=1` evidence. | Yes. | Hosted promotion proof remains manual until actual target-environment logs are attached. |
 | API Contract | Satisfied - automated | Density formula/parity tests, pagination `hasMore` tests, `AssetPageResponse` alias tests, rebuild job-list `total` / `has_more` tests, frontend API contract seam tests. | Confirm frontend build or CI run used for release includes the contract tests. | No. | None for this gate when the listed contract tests run for the release commit. |
 | Recovery / Rebuild | Satisfied - automated | Distributed lock runtime tests, RecoveryGate unit/integration tests, stale-owner tests, lock refresh flow tests. | Operator confirms no active rebuild job and valid/expired-safe `graph_rebuild` lock state before promotion. | Yes, if active rebuild or unsafe lock state exists. | None for automated proof; attach operator pre-promotion check. |
@@ -105,8 +105,8 @@ pytest tests/integration/test_distributed_hosting_failure_modes.py -q
 
 Caveat:
 
-- A strict stale-owner-reset end-to-end restart pipeline is optional/future unless the release scope explicitly requires
-  that exact integrated sequence. Stale-owner and RecoveryGate behaviour are already proven by lower-level suites.
+- The exact strict stale-owner restart/recovery composition now has deterministic CI coverage; hosted restart/redeploy
+  evidence remains a separate release artifact.
 
 Manual release attachment:
 

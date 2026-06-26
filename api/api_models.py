@@ -217,9 +217,9 @@ class RebuildJobListResponse(BaseModel):
     - `has_more` is true when another page exists after this response.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     jobs: list[RebuildJobResponse]
     count: int = Field(ge=0)
     total: int = Field(ge=0)
-    has_more: bool
+    has_more: bool = Field(..., alias="hasMore")

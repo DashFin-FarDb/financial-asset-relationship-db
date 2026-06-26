@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from fastapi.encoders import jsonable_encoder
 
 from api.auth import User
 from api.routers.graph_admin import list_rebuild_jobs
@@ -61,14 +60,14 @@ def _list_rebuild_jobs_payload(
     offset: int = 0,
     status_filter: RebuildJobStatus | None = None,
 ) -> dict[str, Any]:
-    """Call the rebuild job-list endpoint boundary and return FastAPI-encoded payload."""
+    """Call the rebuild job-list endpoint boundary and return JSON-ready payload."""
     response = list_rebuild_jobs(
         _current_user=User(username="admin", disabled=False),
         limit=limit,
         offset=offset,
         status_filter=status_filter,
     )
-    return jsonable_encoder(response)
+    return response.model_dump(mode="json")
 
 
 def test_rebuild_job_list_caps_response_at_100_and_count_matches_returned_length(
@@ -100,32 +99,27 @@ def test_rebuild_job_list_count_equals_seeded_total_below_cap(
     assert "hasMore" not in payload
 
 
-def test_rebuild_job_list_has_more_false_when_offset_exhausts_total(
+@pytest.mark.parametrize(
+    ("offset", "expected_has_more"),
+    [
+        (4, False),
+        (2, True),
+    ],
+)
+def test_rebuild_job_list_has_more_with_explicit_pagination(
     db_setup: Callable[[], Any],
+    offset: int,
+    expected_has_more: bool,
 ) -> None:
-    """When the requested page exhausts matching jobs, has_more is false."""
+    """When more matching jobs exist after the requested page, has_more follows the page boundary."""
     _seed_jobs(db_setup, 7)
 
-    payload = _list_rebuild_jobs_payload(limit=3, offset=4)
+    payload = _list_rebuild_jobs_payload(limit=3, offset=offset)
 
     assert len(payload["jobs"]) == 3
     assert payload["count"] == 3
     assert payload["total"] == 7
-    assert payload["has_more"] is False
-
-
-def test_rebuild_job_list_has_more_true_with_explicit_pagination(
-    db_setup: Callable[[], Any],
-) -> None:
-    """When more matching jobs exist after the requested page, has_more is true."""
-    _seed_jobs(db_setup, 7)
-
-    payload = _list_rebuild_jobs_payload(limit=3, offset=2)
-
-    assert len(payload["jobs"]) == 3
-    assert payload["count"] == 3
-    assert payload["total"] == 7
-    assert payload["has_more"] is True
+    assert payload["has_more"] is expected_has_more
 
 
 def test_rebuild_job_list_total_and_has_more_respect_status_filter(
