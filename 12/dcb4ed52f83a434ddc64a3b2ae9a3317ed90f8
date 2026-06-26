@@ -1,0 +1,19 @@
+.github/ISSUE_TEMPLATE/operational_drill_evidence.md
+  s_a2375cdf388c42::t_a145becbf10df0 113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "12dcb4ed52f83a434ddc64a3b2ae9a3317ed90f8",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
