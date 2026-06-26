@@ -164,11 +164,11 @@ class IAssetGraphRepository(Protocol):
 
     def count_rebuild_jobs(self, *, status: str | None = None) -> int:
         """Count rebuild jobs, optionally filtered by status."""
-        ...
+        pass
 
     def get_latest_successful_rebuild_job(self) -> RebuildJobORM | None:
         """Return the most recently completed SUCCEEDED job."""
-        ...
+        pass
 
     def update_rebuild_heartbeat(self, job_id: str, execution_id: str, worker_id: str) -> None:
         """Update the heartbeat timestamp for a running rebuild job."""
