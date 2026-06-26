@@ -1,0 +1,39 @@
+api/api_models.py
+  s_a2375cdf388c42::t_5e62ac73bba0d6 213-217,224-225
+api/routers/graph_admin.py
+  s_a2375cdf388c42::t_1f708eb5579120 19,1893-1895,1897,1899-1901,1903-1909
+docs/enterprise-readiness-index.md
+  s_a2375cdf388c42::t_d3227935e37c37 29,44
+docs/release-evidence-pack.md
+  s_a2375cdf388c42::t_6b43e286ef9839 40,164,166-169
+docs/roadmap/enterprise-readiness-pr-board.md
+  s_a2375cdf388c42::t_de96f249c2844d 20,45
+docs/roadmap/enterprise-readiness-roadmap.md
+  s_a2375cdf388c42::t_1e3d02501d7623 46,56,74
+docs/validation-gap-audit.md
+  s_a2375cdf388c42::t_08cc9743d14620 36,75,82
+src/data/protocols.py
+  s_a2375cdf388c42::t_7ab563a621f9e1 165-168
+src/data/repository.py
+  s_a2375cdf388c42::t_9f6c79ab2a6eab 12,1516,1529-1554
+tests/unit/test_rebuild_job_list_response_model.py
+  s_a2375cdf388c42::t_cb84170dee2cef 1-49
+tests/unit/test_repository_rebuild_jobs.py
+  s_a2375cdf388c42::t_3eed9a5ba7bcd9 435-454,461-466
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "411b06f327079fac6a8203ccf0de8ce4efcd5513",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
