@@ -72,6 +72,6 @@ These items are valid but should not be bundled into the release-evidence reconc
 4. Hosted durable promotion smoke with `--require-persistence`.
 5. DR restore rehearsal and post-restore smoke evidence.
 6. Dedicated `RebuildJobListResponse` truncation signal PR completed.
-7. Strict stale-owner restart composition test.
+7. Strict stale-owner restart composition test completed.
 8. Production-scale validation and continuous operational drills.
 9. Multi-region / advanced hosting strategy.
