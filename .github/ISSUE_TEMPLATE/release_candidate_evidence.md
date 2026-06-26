@@ -13,6 +13,10 @@ assignees: ""
 **Target environment:** <!-- staging / production -->
 **Evidence owner:**
 **Evidence capture date:**
+**Canonical evidence framework/version:**
+**Linked operational evidence issue(s):**
+**Linked restore rehearsal evidence issue:**
+**Linked operational drill evidence issue(s), if release-scoped:**
 
 ## Scope
 
@@ -24,6 +28,7 @@ Reference:
 - [Release Evidence Pack](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/release-evidence-pack.md)
 - [Enterprise Release Checklist](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/release-checklist.md)
 - [Enterprise Deployment Operating Model](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/enterprise-deployment-operating-model.md)
+- [Operational Evidence Capture Framework](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/operations/operational-evidence-capture-framework.md)
 
 ## Automated Release Commit Evidence
 
@@ -41,7 +46,8 @@ Reference:
 - [ ] Staging asset graph database boundary label is recorded.
 - [ ] Staging coordination database boundary label or shared-boundary fallback is recorded.
 - [ ] `COORDINATION_DATABASE_URL` is configured when coordination is separated, or shared-boundary fallback is documented.
-- [ ] Preview evidence is labelled `durable` or `non-durable`, if preview evidence is attached.
+- [ ] Preview evidence is labelled `durable`, `non-durable`, or `not used`, if preview evidence is attached.
+- [ ] Non-durable preview evidence is not used as staging or production durable graph proof.
 - [ ] `DATABASE_URL` is configured for the target durable app/auth database.
 - [ ] `ASSET_GRAPH_DATABASE_URL` is configured for the target durable graph database.
 - [ ] `ASSET_GRAPH_DATABASE_URL` is distinct from `DATABASE_URL`, or an approved exception is attached.
@@ -54,8 +60,22 @@ Reference:
 - [ ] Hosted readiness output attached with secrets redacted.
 - [ ] Redacted `/api/health/detailed` output attached.
 - [ ] Redacted `/api/assets?per_page=1` output attached.
-- [ ] Persisted startup source is confirmed.
+- [ ] `/api/health/detailed.graph_persistence_configured == true` is confirmed.
+- [ ] `/api/health/detailed.graph.persistence_enabled == true` is confirmed.
+- [ ] `/api/health/detailed.graph.persistence_loaded == true` is confirmed.
+- [ ] `/api/health/detailed.graph.startup_source == "persisted"` is confirmed.
+- [ ] Hosted durable persistence evidence object or supporting evidence issue link is recorded.
 - [ ] Persisted graph counts or approved sentinel baseline are confirmed.
+
+False-positive guardrail: CI success, documentation existence, passing repository tests, or `/api/health/detailed.status == "healthy"` alone does not prove hosted durable graph truth. Durable promotion evidence requires target-environment hosted readiness with `--require-persistence` and nested graph fields showing persisted graph load.
+
+## Operational Drill Evidence, if release-scoped
+
+Use this only when a drill is directly release-blocking or explicitly included in the release scope.
+
+- [ ] Operational drill evidence issue linked, if applicable.
+- [ ] Drill result summarized: Passed / Failed / Blocked / Follow-up required / Not applicable.
+- [ ] Release impact summarized.
 
 ## Security Scanner and Exception Evidence
 
@@ -81,6 +101,7 @@ Record named owners for this release candidate:
 - [ ] Restore rehearsal date recorded.
 - [ ] Restore operator recorded.
 - [ ] Source environment recorded.
+- [ ] Restore rehearsal evidence issue linked.
 - [ ] Restore point timestamp or backup identifier recorded.
 - [ ] Scratch/non-production restore target recorded.
 - [ ] Backup/restore mechanism recorded: PITR / snapshot / logical dump / provider export / other.
