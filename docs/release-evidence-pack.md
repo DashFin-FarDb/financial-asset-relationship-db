@@ -46,6 +46,8 @@ traces to release evidence.
 | Governance | Satisfied - documented | Governance policy, state-machine authority, release checklist, ADRs, and PR scope guardrails. | Named operator ownership for deploy, rollback, restore, and persistence verification. | Yes, if owner/sign-off is missing for enterprise release. | Attach named release operator and approver sign-off. |
 | Disaster Recovery | Satisfied - manual evidence required | Backup/restore/DR runbook, ADR 0005, and deployment operating model. | Restore rehearsal log, selected restore point, database-boundary topology, and post-restore smoke evidence. | Yes, before final enterprise release sign-off. | DR restore rehearsal remains manual evidence until an actual rehearsal artefact is attached. |
 
+Current RC1 / Objective 2 follow-up live record: [docs/evidence-records/rc1-objective-2-follow-up.md](evidence-records/rc1-objective-2-follow-up.md). That record remains blocked pending live hosted, security, operator, and DR evidence.
+
 ## Gate Evidence Details
 
 ### 1. Architecture Gate
@@ -139,6 +141,8 @@ Manual release attachment:
 
 - Staging/prod smoke output with secrets redacted.
 - Expected persisted graph counts or approved sentinel baseline evidence.
+- See the [Hosted Readiness Evidence Guide](operations/hosted-readiness-evidence-guide.md) for the canonical capture,
+  classification, and redaction rules.
 - For staging, attach the provider, boundary, Vercel mapping, and preview durability evidence required by the
   [Staging Deployment Operating Baseline](staging-deployment-operating-baseline.md).
 
@@ -284,7 +288,8 @@ Blocking rule:
 
 Open one release-candidate evidence issue per release candidate using the
 [Release candidate evidence capture template](../.github/ISSUE_TEMPLATE/release_candidate_evidence.md). The issue is
-the operational record for hosted evidence, scanner review, operator sign-off, and DR rehearsal proof.
+the operational record for hosted evidence, scanner review, operator sign-off, and DR rehearsal proof. For capture and
+classification details, operators should use the [Hosted Readiness Evidence Guide](operations/hosted-readiness-evidence-guide.md).
 
 Before enterprise release sign-off, attach or link:
 
@@ -295,3 +300,4 @@ Before enterprise release sign-off, attach or link:
 - Security scanner summary and approved exception records, if any.
 - Operator sign-off for deploy, promotion, rollback, restore, and persistence verification.
 - DR restore rehearsal log and post-restore smoke evidence.
+- Live RC evidence record that collates the attached artifacts and the current gate state.
