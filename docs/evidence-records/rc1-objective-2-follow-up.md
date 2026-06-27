@@ -101,7 +101,7 @@ attached.
 - `ASSET_GRAPH_DATABASE_URL` must be distinct from `DATABASE_URL`, unless an approved exception is attached.
 - `COORDINATION_DATABASE_URL` is documented as either a separate boundary or a shared-boundary fallback.
 - Vercel frontend and backend/API labels are pending live attachment.
-- Historical preview smoke evidence exists in issue #1108, but it is non-durable and does not satisfy `--require-persistence`.
+- Historical preview smoke evidence exists in issue [#1108](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1108), but it is non-durable and does not satisfy `--require-persistence`.
 
 ### Durable evidence checklist
 
@@ -110,7 +110,7 @@ attached.
 - `graph.persistence_loaded == true`: pending live attachment.
 - `graph.startup_source == "persisted"`: pending live attachment.
 - Persisted graph counts or approved sentinel baseline: pending live attachment.
-- Historical preview smoke evidence from #1108: recorded for context only; not durable proof.
+- Historical preview smoke evidence from [#1108](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1108): recorded for context only; not durable proof.
 
 ## Security Scanner and Exception Evidence
 
