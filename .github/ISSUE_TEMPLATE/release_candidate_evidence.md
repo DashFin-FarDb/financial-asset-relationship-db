@@ -29,6 +29,7 @@ Reference:
 - [Enterprise Release Checklist](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/release-checklist.md)
 - [Enterprise Deployment Operating Model](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/enterprise-deployment-operating-model.md)
 - [Operational Evidence Capture Framework](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/operations/operational-evidence-capture-framework.md)
+- [Hosted Readiness Evidence Guide](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/operations/hosted-readiness-evidence-guide.md)
 
 ## Automated Release Commit Evidence
 

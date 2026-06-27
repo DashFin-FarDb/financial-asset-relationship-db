@@ -167,6 +167,7 @@ promotion record.
 
 ## Related Documents
 
+- [Hosted Readiness Evidence Guide](operations/hosted-readiness-evidence-guide.md)
 - [Enterprise Deployment Operating Model](enterprise-deployment-operating-model.md)
 - [Release Evidence Pack](release-evidence-pack.md)
 - [Enterprise Release Checklist](release-checklist.md)
