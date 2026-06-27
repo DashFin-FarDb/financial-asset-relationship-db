@@ -168,6 +168,10 @@ Attach or link the hosted evidence inside the release-candidate evidence issue c
 Use the release-candidate issue for the operator-facing evidence record, and keep this guide as the shared reference
 for what should be captured and how it should be classified.
 
+If the RC also maintains a committed companion record, cross-link that file from both the release-candidate issue and
+the release evidence pack so reviewers can move between the live ledger and the durable archive without re-deriving
+the evidence structure.
+
 ## Failure Classification
 
 - `Passed`: the evidence object includes the required fields and the check meets the durable proof rule.
@@ -184,6 +188,7 @@ for what should be captured and how it should be classified.
 - [Enterprise Release Checklist](../release-checklist.md)
 - [Backup, Restore, and DR Runbook](../runbooks/backup-restore-dr.md)
 - [Release candidate evidence capture template](../../.github/ISSUE_TEMPLATE/release_candidate_evidence.md)
+- [RC1 / Objective 2 follow-up evidence record](../evidence-records/rc1-objective-2-follow-up.md)
 - [ADR 0002: Hosted Deployment and Persistence](../adr/0002-hosted-deployment-and-persistence.md)
 - [ADR 0003: Distributed Lock Refresh and Heartbeat Strategy](../adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md)
 - [ADR 0004: Distributed Hosting Semantics](../adr/0004-distributed-hosting-semantics.md)
