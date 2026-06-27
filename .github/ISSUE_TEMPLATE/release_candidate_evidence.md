@@ -122,7 +122,8 @@ Record named owners for this release candidate:
 - [ ] Observed RPO recorded.
 - [ ] RTO target recorded.
 - [ ] Observed RTO recorded.
-- [ ] Target misses are classified as blocking or non-blocking with follow-up.
+- [ ] Target miss classification (Blocking / Non-blocking / Not applicable):
+- [ ] Follow-up issue for misses or ambiguity:
 - [ ] Restore rehearsal decision recorded: Passed / Failed / Blocked.
 - [ ] Follow-up issues are linked for unresolved ambiguity or failed steps.
 
