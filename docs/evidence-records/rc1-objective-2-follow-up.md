@@ -218,8 +218,8 @@ attached.
 | Durable Persistence | Partially satisfied | Repository persistence and startup tests exist, but this record does not yet attach hosted durable proof. | Yes |
 | Restart / Reload | Partially satisfied | Restart and stale-owner behavior are documented and tested in-repo; hosted restart evidence remains pending. | Yes, for target-environment sign-off |
 | Promotion | Blocked | Hosted readiness with `--require-persistence` is not yet attached in this committed record. | Yes |
-| API Contract | Satisfied - automated | Backend contract tests and rebuild job-list truncation semantics are covered in the repository. | No |
-| Recovery / Rebuild | Satisfied - automated | RecoveryGate and lock-loss handling are covered by repository tests and control-plane docs. | No |
+| API Contract | Blocked | Release-commit CI for this candidate failed/skipped, so automated contract evidence is not yet satisfied. | Yes |
+| Recovery / Rebuild | Blocked | Release-commit CI for this candidate failed/skipped, so automated recovery evidence is not yet satisfied. | Yes |
 | Security | Blocked | Scanner summaries and explicit exception records are not yet attached. | Yes |
 | Governance | Satisfied - documented | Authority, release checklist, and operator ownership rules are documented. | No |
 | Disaster Recovery | Blocked | Restore rehearsal evidence is not yet attached. | Yes |
