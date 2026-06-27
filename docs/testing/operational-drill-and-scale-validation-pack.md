@@ -164,3 +164,4 @@ Current automated anchors:
 - `docs/runbooks/backup-restore-dr.md`
 - `docs/OBSERVABILITY_MASTER_SPEC.md`
 - `docs/testing/failure-mode-and-scale-validation.md`
+- `docs/testing/operational-drill-execution-records.md`
