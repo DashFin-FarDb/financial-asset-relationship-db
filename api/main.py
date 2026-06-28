@@ -88,12 +88,13 @@ graph: AssetRelationshipGraph | None
 def __getattr__(name: str):
     if name == "graph":
         from .graph_lifecycle import get_graph
-        from .graph_lifecycle_providers import get_graph_lifecycle_settings
+        from .graph_lifecycle_providers import get_graph_lifecycle_settings, should_degrade_hosted_startup
+
         try:
             return get_graph()
         except Exception:
             settings = get_graph_lifecycle_settings()
-            if settings.allow_hosted_startup_degraded:
+            if should_degrade_hosted_startup(settings):
                 return None
             raise
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

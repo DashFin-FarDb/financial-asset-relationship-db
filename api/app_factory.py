@@ -32,7 +32,10 @@ from .graph_lifecycle import (
     get_runtime_lifecycle_state,
     sync_with_latest_rebuild,
 )
-from .graph_lifecycle_providers import is_hosted_fallback_environment, resolve_hosted_graph_database_url
+from .graph_lifecycle_providers import (
+    resolve_hosted_graph_database_url,
+    should_degrade_hosted_startup,
+)
 from .middleware.correlation import CorrelationMiddleware
 from .middleware.request_metrics import RequestMetricsMiddleware
 from .rate_limit import limiter
@@ -65,13 +68,6 @@ def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | N
             return trimmed or None
         return database_url
     return resolve_hosted_graph_database_url(settings)
-
-
-def _should_degrade_hosted_startup(settings: GraphLifecycleSettings) -> bool:
-    """Return whether hosted fallback startup failures should be downgraded to degraded boot."""
-    if getattr(settings, "asset_graph_database_url", None):
-        return False
-    return is_hosted_fallback_environment(settings) and resolve_hosted_graph_database_url(settings) is not None
 
 
 def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str:
@@ -209,6 +205,54 @@ async def _run_with_generated_trace(
             raise
 
 
+async def _initialize_application_state(
+    settings: GraphLifecycleSettings,
+    has_persistence: bool,
+    hosted_startup_degradation_allowed: bool,
+) -> None:
+    """Run startup reconciliation and initialize the graph, handling degraded startup."""
+    if has_persistence:
+        try:
+            await _perform_startup_reconciliation(settings)
+        except Exception as exc:
+            if not hosted_startup_degradation_allowed:
+                raise
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="startup_degraded",
+                    message=("Hosted fallback startup reconciliation failed; continuing with degraded boot."),
+                    metadata={
+                        "error": type(exc).__name__,
+                        "phase": "reconciliation",
+                        "trace_id": _trace_or_unknown(get_trace_id()),
+                        "span_id": _trace_or_unknown(get_span_id()),
+                    },
+                ),
+            )
+    # Required initialization for all environments to ensure state validity
+    try:
+        get_graph()
+    except Exception as exc:
+        if not hosted_startup_degradation_allowed:
+            raise
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="startup_degraded",
+                message="Hosted fallback graph bootstrap failed; continuing with degraded boot.",
+                metadata={
+                    "error": type(exc).__name__,
+                    "phase": "graph_bootstrap",
+                    "trace_id": _trace_or_unknown(get_trace_id()),
+                    "span_id": _trace_or_unknown(get_span_id()),
+                },
+            ),
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown tasks for the FastAPI application."""
@@ -223,7 +267,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     database_url = _get_durable_graph_database_url(settings)
     has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
     has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
-    hosted_startup_degradation_allowed = _should_degrade_hosted_startup(settings)
+    hosted_startup_degradation_allowed = should_degrade_hosted_startup(settings)
 
     trace_id, span_id = _generate_startup_trace_ids()
 
@@ -235,48 +279,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         async with async_trace_context(trace_id=trace_id, span_id=span_id):
             logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
             try:
-                if has_persistence:
-                    try:
-                        await _perform_startup_reconciliation(settings)
-                    except Exception as exc:
-                        if not hosted_startup_degradation_allowed:
-                            raise
-                        log_event(
-                            logger,
-                            logging.WARNING,
-                            ObservabilityEvent(
-                                event="startup_degraded",
-                                message=(
-                                    "Hosted fallback startup reconciliation failed; continuing with degraded boot."
-                                ),
-                                metadata={
-                                    "error": type(exc).__name__,
-                                    "phase": "reconciliation",
-                                    "trace_id": _trace_or_unknown(get_trace_id()),
-                                    "span_id": _trace_or_unknown(get_span_id()),
-                                },
-                            ),
-                        )
-                # Required initialization for all environments to ensure state validity
-                try:
-                    get_graph()
-                except Exception as exc:
-                    if not hosted_startup_degradation_allowed:
-                        raise
-                    log_event(
-                        logger,
-                        logging.WARNING,
-                        ObservabilityEvent(
-                            event="startup_degraded",
-                            message="Hosted fallback graph bootstrap failed; continuing with degraded boot.",
-                            metadata={
-                                "error": type(exc).__name__,
-                                "phase": "graph_bootstrap",
-                                "trace_id": _trace_or_unknown(get_trace_id()),
-                                "span_id": _trace_or_unknown(get_span_id()),
-                            },
-                        ),
-                    )
+                await _initialize_application_state(
+                    settings,
+                    has_persistence,
+                    hosted_startup_degradation_allowed,
+                )
             except Exception as exc:
                 log_event(
                     logger,

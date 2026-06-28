@@ -127,21 +127,24 @@ def resolve_hosted_graph_database_url(settings: object) -> str | None:
 
     Preference order:
     1. asset_graph_database_url when explicitly configured.
-    2. database_url as a hosted fallback when running in preview/staging or local development/testing.
+    2. database_url as a hosted fallback when running in preview/staging.
     3. None when no hosted graph persistence should be assumed.
     """
     asset_graph_database_url = _settings_value(settings, "asset_graph_database_url")
     if asset_graph_database_url:
         return asset_graph_database_url
 
-    env_name = _settings_environment(settings, "env")
-    if (
-        is_hosted_fallback_environment(settings)
-        or env_name in {DeploymentEnvironment.DEVELOPMENT, DeploymentEnvironment.TEST}
-    ):
+    if is_hosted_fallback_environment(settings):
         return _settings_value(settings, "database_url")
 
     return None
+
+
+def should_degrade_hosted_startup(settings: object) -> bool:
+    """Return whether hosted fallback startup failures should be downgraded to degraded boot."""
+    if _settings_value(settings, "asset_graph_database_url"):
+        return False
+    return is_hosted_fallback_environment(settings) and resolve_hosted_graph_database_url(settings) is not None
 
 
 def clear_graph_lifecycle_settings_cache() -> None:
