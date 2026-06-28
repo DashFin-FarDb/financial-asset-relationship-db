@@ -88,10 +88,14 @@ graph: AssetRelationshipGraph | None
 def __getattr__(name: str):
     if name == "graph":
         from .graph_lifecycle import get_graph
+        from .graph_lifecycle_providers import get_graph_lifecycle_settings
         try:
             return get_graph()
         except Exception:
-            return None
+            settings = get_graph_lifecycle_settings()
+            if settings.allow_hosted_startup_degraded:
+                return None
+            raise
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
@@ -125,9 +129,6 @@ def set_graph_factory(factory: GraphFactory | None) -> None:
 
 def reset_graph() -> None:
     """Reset the shared asset relationship graph state."""
-    global graph  # noqa: PLW0603
     _reset_graph()
-    # Clear the module-level reference so router_helpers.get_graph() falls
-    # through to the lifecycle get_graph() on the next request, which will
-    # trigger lazy re-initialization from the configured factory or settings.
-    graph = None  # type: ignore[assignment]  # Intentionally set to None (AssetRelationshipGraph | None) to signal lazy re-init on next access
+    # Remove the export entirely so module __getattr__ is used on next access.
+    globals().pop("graph", None)
