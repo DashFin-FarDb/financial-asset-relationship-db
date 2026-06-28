@@ -59,6 +59,7 @@ from ..graph_lifecycle_providers import (
     build_rebuild_graph,
     get_graph_lifecycle_settings,
     resolve_durable_graph_persistence_url,
+    resolve_hosted_graph_database_url,
     save_graph_to_persistence,
 )
 from ..metrics import (
@@ -1118,14 +1119,15 @@ def _setup_coordination_and_domain_factories(
     Raises:
         RuntimeError: If neither `coordination_database_url` nor `asset_graph_database_url` is configured.
     """
-    coordination_url = settings.coordination_database_url or settings.asset_graph_database_url
+    hosted_graph_url = resolve_hosted_graph_database_url(settings)
+    coordination_url = settings.coordination_database_url or hosted_graph_url
     if not coordination_url:
         raise RuntimeError(
             "Neither coordination_database_url nor asset_graph_database_url is configured. "
             "At least one durable database URL must be configured for rebuild coordination."
         )
 
-    resolved_domain_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+    resolved_domain_url = resolve_durable_graph_persistence_url(hosted_graph_url)
     domain_engine = None
     coordination_engine = None
 
@@ -1735,7 +1737,7 @@ def _rebuild_persistence_session() -> Generator[Session, None, None]:
     settings = get_graph_lifecycle_settings()
     engine = None
     try:
-        persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        persistence_url = resolve_durable_graph_persistence_url(resolve_hosted_graph_database_url(settings))
         engine = create_engine_from_url(persistence_url)
         session_factory = create_session_factory(engine)
 

@@ -22,6 +22,7 @@ from ..graph_lifecycle_providers import (
     GraphPersistenceNotConfiguredError,
     get_graph_lifecycle_settings,
     resolve_durable_graph_persistence_url,
+    resolve_hosted_graph_database_url,
 )
 from ..router_helpers import get_graph, logger
 from ..slo_evaluator import SLOEvaluator
@@ -238,7 +239,7 @@ def _get_graph_persistence_configured() -> bool:
     """
     try:
         settings = get_graph_lifecycle_settings()
-        resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        resolve_durable_graph_persistence_url(resolve_hosted_graph_database_url(settings))
         return True
     except (
         GraphPersistenceNotConfiguredError,

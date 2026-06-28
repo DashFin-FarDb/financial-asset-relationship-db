@@ -57,7 +57,9 @@ _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 
 def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
     """Return the configured durable graph persistence URL across old/new settings shapes."""
-    return getattr(settings, "asset_graph_database_url", getattr(settings, "database_url", None))
+    from .graph_lifecycle_providers import resolve_hosted_graph_database_url
+
+    return resolve_hosted_graph_database_url(settings)
 
 
 def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str:

@@ -56,6 +56,39 @@ def test_get_graph_lifecycle_settings_propagates_ttl_from_loaded_settings(monkey
     assert lifecycle_settings.rebuild_lock_ttl_seconds == base_settings.rebuild_lock_ttl_seconds
 
 
+def test_resolve_hosted_graph_database_url_prefers_explicit_asset_graph_url() -> None:
+    """Explicit graph persistence should override any shared hosted fallback."""
+    settings = providers.GraphLifecycleSettings(
+        asset_graph_database_url="postgresql://graph",
+        database_url="postgresql://app",
+        env="preview",
+    )
+
+    assert providers.resolve_hosted_graph_database_url(settings) == "postgresql://graph"
+
+
+def test_resolve_hosted_graph_database_url_uses_shared_hosted_database_fallback() -> None:
+    """Preview/staging deployments may fall back to the shared hosted database boundary."""
+    settings = providers.GraphLifecycleSettings(
+        asset_graph_database_url=None,
+        database_url="postgresql://shared",
+        env="preview",
+    )
+
+    assert providers.resolve_hosted_graph_database_url(settings) == "postgresql://shared"
+
+
+def test_resolve_hosted_graph_database_url_is_disabled_outside_hosted_env() -> None:
+    """Local environments should continue to avoid the hosted database fallback."""
+    settings = providers.GraphLifecycleSettings(
+        asset_graph_database_url=None,
+        database_url="postgresql://shared",
+        env="development",
+    )
+
+    assert providers.resolve_hosted_graph_database_url(settings) is None
+
+
 def test_save_graph_with_session_runs_pre_commit_check(monkeypatch: pytest.MonkeyPatch) -> None:
     """Pre-commit check should execute before committing graph persistence."""
     session = MagicMock()

@@ -38,7 +38,9 @@ class GraphLifecycleSettings:
     """
 
     asset_graph_database_url: str | None = None
+    database_url: str | None = None
     coordination_database_url: str | None = None
+    env: str = "development"
     graph_cache_path: str | None = None
     real_data_cache_path: str | None = None
     use_real_data_fetcher: bool = False
@@ -66,12 +68,32 @@ def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
     settings = get_settings()
     return GraphLifecycleSettings(
         asset_graph_database_url=settings.asset_graph_database_url,
+        database_url=settings.database_url,
         coordination_database_url=settings.coordination_database_url,
+        env=settings.env,
         graph_cache_path=settings.graph_cache_path,
         real_data_cache_path=settings.real_data_cache_path,
         use_real_data_fetcher=settings.use_real_data_fetcher,
         rebuild_lock_ttl_seconds=settings.rebuild_lock_ttl_seconds,
     )
+
+
+def resolve_hosted_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
+    """
+    Resolve the hosted graph database URL, allowing a shared Supabase boundary in hosted environments.
+
+    Preference order:
+    1. `asset_graph_database_url` when explicitly configured.
+    2. `database_url` as a hosted fallback when running in preview/staging.
+    3. `None` when no hosted graph persistence should be assumed.
+    """
+    if settings.asset_graph_database_url:
+        return settings.asset_graph_database_url
+
+    if settings.env in {"preview", "staging"} and settings.database_url:
+        return settings.database_url
+
+    return None
 
 
 def clear_graph_lifecycle_settings_cache() -> None:
