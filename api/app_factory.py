@@ -67,6 +67,13 @@ def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | N
     return resolve_hosted_graph_database_url(settings)
 
 
+def _should_degrade_hosted_startup(settings: GraphLifecycleSettings) -> bool:
+    """Return whether hosted fallback startup failures should be downgraded to degraded boot."""
+    if getattr(settings, "asset_graph_database_url", None):
+        return False
+    return resolve_hosted_graph_database_url(settings) is not None
+
+
 def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str:
     """Resolve the startup reconciliation database URL, preserving legacy test seams."""
     database_url = _get_durable_graph_database_url(settings)
@@ -216,6 +223,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     database_url = _get_durable_graph_database_url(settings)
     has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
     has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
+    hosted_startup_degradation_allowed = _should_degrade_hosted_startup(settings)
 
     trace_id, span_id = _generate_startup_trace_ids()
 
@@ -228,9 +236,47 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
             try:
                 if has_persistence:
-                    await _perform_startup_reconciliation(settings)
+                    try:
+                        await _perform_startup_reconciliation(settings)
+                    except Exception as exc:
+                        if not hosted_startup_degradation_allowed:
+                            raise
+                        log_event(
+                            logger,
+                            logging.WARNING,
+                            ObservabilityEvent(
+                                event="startup_degraded",
+                                message=(
+                                    "Hosted fallback startup reconciliation failed; continuing with degraded boot."
+                                ),
+                                metadata={
+                                    "error": type(exc).__name__,
+                                    "phase": "reconciliation",
+                                    "trace_id": _trace_or_unknown(get_trace_id()),
+                                    "span_id": _trace_or_unknown(get_span_id()),
+                                },
+                            ),
+                        )
                 # Required initialization for all environments to ensure state validity
-                get_graph()
+                try:
+                    get_graph()
+                except Exception as exc:
+                    if not hosted_startup_degradation_allowed:
+                        raise
+                    log_event(
+                        logger,
+                        logging.WARNING,
+                        ObservabilityEvent(
+                            event="startup_degraded",
+                            message="Hosted fallback graph bootstrap failed; continuing with degraded boot.",
+                            metadata={
+                                "error": type(exc).__name__,
+                                "phase": "graph_bootstrap",
+                                "trace_id": _trace_or_unknown(get_trace_id()),
+                                "span_id": _trace_or_unknown(get_span_id()),
+                            },
+                        ),
+                    )
             except Exception as exc:
                 log_event(
                     logger,

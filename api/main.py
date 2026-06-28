@@ -80,7 +80,9 @@ from .routers.visualization import router as visualization_router  # noqa: F401
 ENV = get_settings().env
 
 # Backward compatibility graph reference for older tests that patch api.main.graph.
-graph = _get_graph()
+# Keep this lazy so importing api.main does not force graph initialization before
+# the FastAPI lifespan has a chance to handle hosted startup degradation.
+graph: AssetRelationshipGraph | None = None
 
 
 def _initialize_graph() -> AssetRelationshipGraph:

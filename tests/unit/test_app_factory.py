@@ -12,6 +12,7 @@ import pytest
 from fastapi import FastAPI
 
 from api import app_factory
+from src.data.sample_data import create_sample_database
 from src.logic.recovery_gate import ExecutionBlockedError
 
 pytestmark = pytest.mark.unit
@@ -149,17 +150,90 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
         """Simulate a reconciliation failure."""
         raise RuntimeError("reconciliation failed")
 
-    monkeypatch.setattr(
-        app_factory,
-        "_run_startup_reconciliation",
-        _raise_reconciliation_failure,
-    )
+    monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _raise_reconciliation_failure)
 
-    with pytest.raises(RuntimeError, match="Failed to load persisted graph during startup"):
+    with pytest.raises(RuntimeError, match="reconciliation failed"):
         async with app_factory.lifespan(app):
             pass
 
     assert not init_calls, "executor should not initialize when startup reconciliation fails"
+
+
+@pytest.mark.asyncio
+async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Hosted fallback startup should degrade instead of crashing the app."""
+    app = FastAPI()
+    hosted_settings = SimpleNamespace(
+        **vars(base_settings),
+        env="preview",
+        vercel_env="preview",
+    )
+
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
+        lambda: hosted_settings,
+    )
+
+    def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
+        """Simulate hosted fallback startup reconciliation failure."""
+        raise RuntimeError("reconciliation failed")
+
+    monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _raise_reconciliation_failure)
+    monkeypatch.setattr(app_factory, "get_graph", lambda: create_sample_database())
+
+    background_task = asyncio.create_task(asyncio.sleep(0))
+    monkeypatch.setattr(
+        app_factory,
+        "_start_background_tasks",
+        lambda has_persistence, settings: (None, background_task, None),
+    )
+    monkeypatch.setattr(app_factory, "shutdown_rebuild_executor", lambda: None)
+
+    logged_events: list[Any] = []
+
+    def fake_log_event(_logger: Any, _level: Any, event: Any) -> None:
+        """Capture structured startup events for assertion."""
+        logged_events.append(event)
+
+    monkeypatch.setattr(app_factory, "log_event", fake_log_event)
+
+    async with app_factory.lifespan(app):
+        pass
+
+    assert any(getattr(event, "event", "") == "startup_degraded" for event in logged_events)
+    assert any(getattr(event, "metadata", {}).get("phase") == "reconciliation" for event in logged_events)
+
+
+@pytest.mark.asyncio
+async def test_lifespan_keeps_fail_fast_behavior_outside_hosted_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Non-hosted startup should still fail fast on reconciliation errors."""
+    app = FastAPI()
+    strict_settings = SimpleNamespace(
+        **vars(base_settings),
+        env="development",
+        vercel_env=None,
+    )
+
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
+        lambda: strict_settings,
+    )
+
+    def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
+        """Simulate a startup reconciliation failure."""
+        raise RuntimeError("reconciliation failed")
+
+    monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _raise_reconciliation_failure)
+
+    with pytest.raises(RuntimeError, match="reconciliation failed"):
+        async with app_factory.lifespan(app):
+            pass
 
 
 @pytest.mark.parametrize(
