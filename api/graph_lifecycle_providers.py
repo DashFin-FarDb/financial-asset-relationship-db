@@ -97,6 +97,7 @@ def resolve_hosted_graph_database_url(settings: GraphLifecycleSettings) -> str |
         return settings.database_url
     return None
 
+
 def clear_graph_lifecycle_settings_cache() -> None:
     """Clear cached settings used by graph lifecycle initialization."""
     get_settings.cache_clear()
