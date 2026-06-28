@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 GraphRebuildSource = Literal["cache", "real_data", "sample"]
 _GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
+HOSTED_FALLBACK_ENVIRONMENTS: frozenset[str] = frozenset({"preview", "staging"})
 
 
 @dataclass(frozen=True)
@@ -79,22 +80,41 @@ def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
     )
 
 
-HOSTED_FALLBACK_ENVIRONMENTS: frozenset[str] = frozenset({"preview", "staging"})
+def _settings_value(settings: object, field_name: str) -> str | None:
+    """Read a string-like value from modern or legacy settings objects."""
+    value = getattr(settings, field_name, None)
+    if value is None:
+        return None
+    if isinstance(value, str):
+        trimmed = value.strip()
+        return trimmed or None
+    return str(value)
 
 
-def resolve_hosted_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
+def _is_hosted_fallback_environment(settings: object) -> bool:
+    """Return whether hosted graph fallback should be allowed for this runtime."""
+    env_name = (_settings_value(settings, "env") or "").lower()
+    if env_name in HOSTED_FALLBACK_ENVIRONMENTS:
+        return True
+
+    return os.getenv("VERCEL_ENV", "").strip().lower() in HOSTED_FALLBACK_ENVIRONMENTS
+
+
+def resolve_hosted_graph_database_url(settings: object) -> str | None:
     """Resolve the hosted graph database URL, allowing a shared Supabase boundary in hosted environments.
+
     Preference order:
     1. `asset_graph_database_url` when explicitly configured.
     2. `database_url` as a hosted fallback when running in preview/staging.
     3. `None` when no hosted graph persistence should be assumed.
     """
-    if settings.asset_graph_database_url:
-        return settings.asset_graph_database_url
-    vercel_env = os.getenv("VERCEL_ENV", "").strip().lower()
-    hosted_env = settings.env in {"preview", "staging"} or vercel_env in {"preview", "staging"}
-    if hosted_env and settings.database_url:
-        return settings.database_url
+    asset_graph_database_url = _settings_value(settings, "asset_graph_database_url")
+    if asset_graph_database_url:
+        return asset_graph_database_url
+
+    if _is_hosted_fallback_environment(settings):
+        return _settings_value(settings, "database_url")
+
     return None
 
 

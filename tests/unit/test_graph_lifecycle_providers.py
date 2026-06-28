@@ -78,30 +78,44 @@ def test_resolve_hosted_graph_database_url_uses_shared_hosted_database_fallback(
     assert providers.resolve_hosted_graph_database_url(settings) == "postgresql://shared"
 
 
-def test_resolve_hosted_graph_database_url_honors_vercel_environment(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Vercel deployments should fall back even if the custom ENV marker is unset."""
-    monkeypatch.setenv("VERCEL_ENV", "preview")
+@pytest.mark.parametrize(
+    ("vercel_env", "expected_url"),
+    [
+        ("preview", "postgresql://shared"),
+        (None, None),
+    ],
+    ids=["vercel-preview", "no-hosted-marker"],
+)
+def test_resolve_hosted_graph_database_url_honors_vercel_environment(
+    monkeypatch: pytest.MonkeyPatch,
+    vercel_env: str | None,
+    expected_url: str | None,
+) -> None:
+    """Vercel deployments should fall back only when the hosted env marker is present."""
     settings = providers.GraphLifecycleSettings(
         asset_graph_database_url=None,
         database_url="postgresql://shared",
         env="development",
     )
 
-    assert providers.resolve_hosted_graph_database_url(settings) == "postgresql://shared"
+    monkeypatch.delenv("VERCEL_ENV", raising=False)
+    if vercel_env is not None:
+        monkeypatch.setenv("VERCEL_ENV", vercel_env)
+
+    assert providers.resolve_hosted_graph_database_url(settings) == expected_url
 
 
-def test_resolve_hosted_graph_database_url_is_disabled_outside_hosted_env(
+def test_resolve_hosted_graph_database_url_supports_legacy_settings_objects(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Local environments should continue to avoid the hosted database fallback."""
-    monkeypatch.delenv("VERCEL_ENV", raising=False)
-    settings = providers.GraphLifecycleSettings(
-        asset_graph_database_url=None,
-        database_url="postgresql://shared",
-        env="development",
-    )
+    """Legacy settings objects should keep the old database_url compatibility seam."""
 
-    assert providers.resolve_hosted_graph_database_url(settings) is None
+    class LegacySettings:
+        database_url = "postgresql://legacy"
+
+    monkeypatch.setenv("VERCEL_ENV", "preview")
+
+    assert providers.resolve_hosted_graph_database_url(LegacySettings()) == "postgresql://legacy"
 
 
 def test_save_graph_with_session_runs_pre_commit_check(monkeypatch: pytest.MonkeyPatch) -> None:
