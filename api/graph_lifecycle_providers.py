@@ -79,7 +79,15 @@ def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
     )
 
 
+HOSTED_FALLBACK_ENVIRONMENTS: frozenset[str] = frozenset({"preview", "staging"})
+
+
 def resolve_hosted_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
+    if settings.asset_graph_database_url:
+        return settings.asset_graph_database_url
+    if settings.env in HOSTED_FALLBACK_ENVIRONMENTS and settings.database_url:
+        return settings.database_url
+    return None
     """
     Resolve the hosted graph database URL, allowing a shared Supabase boundary in hosted environments.
 
@@ -95,11 +103,13 @@ def resolve_hosted_graph_database_url(settings: GraphLifecycleSettings) -> str |
     hosted_env = settings.env in {"preview", "staging", "production"} or vercel_env in {
         "preview",
         "staging",
-        "production",
-    }
+    asset_graph_url = _resolve_persistence_database_url(settings.asset_graph_database_url)
+    if asset_graph_url:
+        return asset_graph_url
 
-    if hosted_env and settings.database_url:
-        return settings.database_url
+    database_url = _resolve_persistence_database_url(settings.database_url)
+    if settings.env in {"preview", "staging"} and database_url:
+        return database_url
 
     return None
 

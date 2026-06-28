@@ -55,7 +55,11 @@ logger = logging.getLogger(__name__)
 _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 
 
+from .graph_lifecycle_providers import resolve_hosted_graph_database_url
+
+
 def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
+    return resolve_hosted_graph_database_url(settings)
     """Return the configured durable graph persistence URL across old/new settings shapes."""
     from .graph_lifecycle_providers import resolve_hosted_graph_database_url
 

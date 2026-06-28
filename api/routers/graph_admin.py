@@ -1120,10 +1120,10 @@ def _setup_coordination_and_domain_factories(
         RuntimeError: If neither `coordination_database_url` nor `asset_graph_database_url` is configured.
     """
     hosted_graph_url = resolve_hosted_graph_database_url(settings)
-    coordination_url = settings.coordination_database_url or hosted_graph_url
+    coordination_url = (settings.coordination_database_url or "").strip() or hosted_graph_url
     if not coordination_url:
         raise RuntimeError(
-            "Neither coordination_database_url nor asset_graph_database_url is configured. "
+            "Neither coordination_database_url nor asset_graph_database_url (or DATABASE_URL in preview/staging) is configured. "
             "At least one durable database URL must be configured for rebuild coordination."
         )
 
