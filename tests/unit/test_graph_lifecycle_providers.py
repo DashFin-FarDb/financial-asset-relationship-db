@@ -87,7 +87,6 @@ def test_resolve_hosted_graph_database_url_uses_shared_hosted_database_fallback(
     ids=["vercel-preview", "no-hosted-marker"],
 )
 def test_resolve_hosted_graph_database_url_honors_vercel_environment(
-    monkeypatch: pytest.MonkeyPatch,
     vercel_env: str | None,
     expected_url: str | None,
 ) -> None:
@@ -96,24 +95,18 @@ def test_resolve_hosted_graph_database_url_honors_vercel_environment(
         asset_graph_database_url=None,
         database_url="postgresql://shared",
         env="development",
+        vercel_env=vercel_env,
     )
-
-    monkeypatch.delenv("VERCEL_ENV", raising=False)
-    if vercel_env is not None:
-        monkeypatch.setenv("VERCEL_ENV", vercel_env)
 
     assert providers.resolve_hosted_graph_database_url(settings) == expected_url
 
 
-def test_resolve_hosted_graph_database_url_supports_legacy_settings_objects(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_resolve_hosted_graph_database_url_supports_legacy_settings_objects() -> None:
     """Legacy settings objects should keep the old database_url compatibility seam."""
 
     class LegacySettings:
         database_url = "postgresql://legacy"
-
-    monkeypatch.setenv("VERCEL_ENV", "preview")
+        vercel_env = "preview"
 
     assert providers.resolve_hosted_graph_database_url(LegacySettings()) == "postgresql://legacy"
 

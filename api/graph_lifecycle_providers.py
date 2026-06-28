@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -43,6 +42,7 @@ class GraphLifecycleSettings:
     database_url: str | None = None
     coordination_database_url: str | None = None
     env: str = "development"
+    vercel_env: str | None = None
     graph_cache_path: str | None = None
     real_data_cache_path: str | None = None
     use_real_data_fetcher: bool = False
@@ -73,6 +73,7 @@ def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
         database_url=settings.database_url,
         coordination_database_url=settings.coordination_database_url,
         env=settings.env,
+        vercel_env=settings.vercel_env,
         graph_cache_path=settings.graph_cache_path,
         real_data_cache_path=settings.real_data_cache_path,
         use_real_data_fetcher=settings.use_real_data_fetcher,
@@ -97,7 +98,7 @@ def _is_hosted_fallback_environment(settings: object) -> bool:
     if env_name in HOSTED_FALLBACK_ENVIRONMENTS:
         return True
 
-    return os.getenv("VERCEL_ENV", "").strip().lower() in HOSTED_FALLBACK_ENVIRONMENTS
+    return (_settings_value(settings, "vercel_env") or "").lower() in HOSTED_FALLBACK_ENVIRONMENTS
 
 
 def resolve_hosted_graph_database_url(settings: object) -> str | None:

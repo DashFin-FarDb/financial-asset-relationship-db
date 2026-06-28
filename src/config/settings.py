@@ -41,6 +41,7 @@ class Settings(BaseModel):
 
     # Environment mode
     env: str = Field(default="development")
+    vercel_env: str | None = Field(default=None)
 
     # Logging configuration
     log_level: str = Field(default="INFO")
@@ -168,7 +169,7 @@ def load_settings() -> Settings:
     """
     Load runtime settings from environment variables and return a configured Settings instance.
 
-    Reads environment variables (for example: ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL,
+    Reads environment variables (for example: ENV, VERCEL_ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL,
     POSTGRES_URL, COORDINATION_DATABASE_URL, ALLOWED_ORIGINS, REBUILD_LOCK_TTL_SECONDS)
     and maps them to Settings fields, delegating type coercion and validation to Pydantic.
     REBUILD_LOCK_TTL_SECONDS is passed unchanged for field-level parsing. DATABASE_URL
@@ -182,6 +183,7 @@ def load_settings() -> Settings:
 
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
+        vercel_env=os.getenv("VERCEL_ENV"),
         log_level=os.getenv("LOG_LEVEL", "INFO").strip().upper(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         secret_key=os.getenv("SECRET_KEY"),
