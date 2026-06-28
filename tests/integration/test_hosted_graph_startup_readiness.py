@@ -242,6 +242,7 @@ def test_preview_startup_uses_shared_supabase_boundary_when_dedicated_graph_db_i
     """Preview startup should load persisted graph truth from the shared Supabase boundary when needed."""
     database_url = _sqlite_url(tmp_path, "shared_preview.db")
     _save_graph(database_url, _seeded_hosted_graph())
+    monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     monkeypatch.setenv("ENV", "preview")
     monkeypatch.setenv("DATABASE_URL", database_url)
     providers.clear_graph_lifecycle_settings_cache()
