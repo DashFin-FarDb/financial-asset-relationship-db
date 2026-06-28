@@ -144,7 +144,8 @@ def should_degrade_hosted_startup(settings: object) -> bool:
     """Return whether hosted fallback startup failures should be downgraded to degraded boot."""
     if _settings_value(settings, "asset_graph_database_url"):
         return False
-    return _is_hosted_fallback_environment(settings) and resolve_hosted_graph_database_url(settings) is not None
+    hosted_database_url = resolve_hosted_graph_database_url(settings)
+    return _is_hosted_fallback_environment(settings) and bool(hosted_database_url and hosted_database_url.strip())
 
 
 def clear_graph_lifecycle_settings_cache() -> None:
