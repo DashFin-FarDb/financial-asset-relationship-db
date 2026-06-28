@@ -113,7 +113,7 @@ def _settings_environment(settings: object, field_name: str) -> DeploymentEnviro
         return None
 
 
-def _is_hosted_fallback_environment(settings: object) -> bool:
+def is_hosted_fallback_environment(settings: object) -> bool:
     """Return whether hosted graph fallback should be allowed for this runtime."""
     env_name = _settings_environment(settings, "env")
     if env_name in HOSTED_FALLBACK_ENVIRONMENTS:
@@ -126,15 +126,19 @@ def resolve_hosted_graph_database_url(settings: object) -> str | None:
     """Resolve the hosted graph database URL, allowing a shared Supabase boundary in hosted environments.
 
     Preference order:
-    1. `asset_graph_database_url` when explicitly configured.
-    2. `database_url` as a hosted fallback when running in preview/staging.
-    3. `None` when no hosted graph persistence should be assumed.
+    1. asset_graph_database_url when explicitly configured.
+    2. database_url as a hosted fallback when running in preview/staging or local development/testing.
+    3. None when no hosted graph persistence should be assumed.
     """
     asset_graph_database_url = _settings_value(settings, "asset_graph_database_url")
     if asset_graph_database_url:
         return asset_graph_database_url
 
-    if _is_hosted_fallback_environment(settings):
+    env_name = _settings_environment(settings, "env")
+    if (
+        is_hosted_fallback_environment(settings)
+        or env_name in {DeploymentEnvironment.DEVELOPMENT, DeploymentEnvironment.TEST}
+    ):
         return _settings_value(settings, "database_url")
 
     return None
