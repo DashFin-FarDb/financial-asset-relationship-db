@@ -89,7 +89,10 @@ def resolve_hosted_graph_database_url(settings: GraphLifecycleSettings) -> str |
         return settings.database_url
     return None
     """
-    Resolve the hosted graph database URL, allowing a shared Supabase boundary in hosted environments.
+vercel_env = os.getenv("VERCEL_ENV", "").strip().lower()
+hosted_env = settings.env in HOSTED_FALLBACK_ENVIRONMENTS or vercel_env in HOSTED_FALLBACK_ENVIRONMENTS
+if hosted_env and settings.database_url:
+    return settings.database_url
 
     Preference order:
     1. `asset_graph_database_url` when explicitly configured.
