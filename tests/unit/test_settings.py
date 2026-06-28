@@ -220,6 +220,7 @@ class TestLoadSettings:
         os.environ,
         {
             "ENV": "production",
+            "VERCEL_ENV": "preview",
             "ALLOWED_ORIGINS": "https://example.com,https://example.org",
             "SECRET_KEY": "test-secret-that-is-at-least-32-bytes",
             "ADMIN_USERNAME": "admin",
@@ -240,6 +241,7 @@ class TestLoadSettings:
         """Test loading settings from environment variables."""
         settings = load_settings()
         assert settings.env == "production"
+        assert settings.vercel_env == "preview"
         assert settings.allowed_origins_raw == "https://example.com,https://example.org"
         assert settings.secret_key == "test-secret-that-is-at-least-32-bytes"
         assert settings.admin_username == "admin"
@@ -294,6 +296,12 @@ class TestLoadSettings:
         """Test that ENV is converted to lowercase."""
         settings = load_settings()
         assert settings.env == "production"
+
+    @patch.dict(os.environ, {"VERCEL_ENV": "preview"}, clear=True)
+    def test_load_settings_vercel_env_is_loaded(self) -> None:
+        """Test that VERCEL_ENV is loaded through the typed settings layer."""
+        settings = load_settings()
+        assert settings.vercel_env == "preview"
 
     @patch.dict(os.environ, {"USE_REAL_DATA_FETCHER": "1"})
     def test_load_settings_use_real_data_fetcher_parsing(self) -> None:

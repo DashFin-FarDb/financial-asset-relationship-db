@@ -234,6 +234,43 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     assert "Graph startup source: persisted_graph_store" in log_output
 
 
+def test_preview_startup_uses_shared_supabase_boundary_when_dedicated_graph_db_is_missing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Preview startup should load persisted graph truth from the shared Supabase boundary when needed."""
+    database_url = _sqlite_url(tmp_path, "shared_preview.db")
+    _save_graph(database_url, _seeded_hosted_graph())
+    monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
+    monkeypatch.setenv("ENV", "preview")
+    monkeypatch.setenv("DATABASE_URL", database_url)
+    providers.clear_graph_lifecycle_settings_cache()
+    _reset_runtime_graph_state()
+
+    def fail_fallback_generation(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+        """Fail the test if startup unexpectedly falls back to any generation path."""
+        raise AssertionError("Fallback generation triggered unexpectedly")
+
+    monkeypatch.setattr(providers, "create_sample_graph", fail_fallback_generation)
+    monkeypatch.setattr(providers, "load_graph_from_cache_path", fail_fallback_generation)
+    monkeypatch.setattr(providers, "load_graph_from_real_data_fetcher", fail_fallback_generation)
+
+    with caplog.at_level(logging.INFO):
+        graph, startup_metadata = graph_lifecycle.get_graph_with_startup_source()
+
+    assert startup_metadata is not None
+    assert startup_metadata.persistence_enabled is True
+    assert startup_metadata.persistence_loaded is True
+    assert startup_metadata.source == graph_lifecycle.GraphStartupSource.PERSISTED
+    assert len(graph.assets) == 2
+    assert len(graph.relationships) == 2
+    assert providers.resolve_hosted_graph_database_url(providers.get_graph_lifecycle_settings()) == database_url
+
+    log_output = " ".join(record.getMessage() for record in caplog.records)
+    assert "Graph startup source: persisted_graph_store" in log_output
+
+
 def test_startup_persistence_engine_is_short_lived_and_disposed(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

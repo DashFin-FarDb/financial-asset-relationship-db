@@ -220,7 +220,7 @@ def _settings_asset_graph_database_url(
     settings: graph_lifecycle_providers.GraphLifecycleSettings,
 ) -> str | None:
     """Return the durable graph database URL across old/new settings shapes."""
-    return getattr(settings, "asset_graph_database_url", getattr(settings, "database_url", None))
+    return graph_lifecycle_providers.resolve_hosted_graph_database_url(settings)
 
 
 def _sync_state_changed(expected_last_synced_job_id: str | None | _UnsetLastSyncedJobId) -> bool:

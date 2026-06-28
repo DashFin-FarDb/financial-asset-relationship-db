@@ -56,6 +56,61 @@ def test_get_graph_lifecycle_settings_propagates_ttl_from_loaded_settings(monkey
     assert lifecycle_settings.rebuild_lock_ttl_seconds == base_settings.rebuild_lock_ttl_seconds
 
 
+def test_resolve_hosted_graph_database_url_prefers_explicit_asset_graph_url() -> None:
+    """Explicit graph persistence should override any shared hosted fallback."""
+    settings = providers.GraphLifecycleSettings(
+        asset_graph_database_url="postgresql://graph",
+        database_url="postgresql://app",
+        env="preview",
+    )
+
+    assert providers.resolve_hosted_graph_database_url(settings) == "postgresql://graph"
+
+
+def test_resolve_hosted_graph_database_url_uses_shared_hosted_database_fallback() -> None:
+    """Preview/staging deployments may fall back to the shared hosted database boundary."""
+    settings = providers.GraphLifecycleSettings(
+        asset_graph_database_url=None,
+        database_url="postgresql://shared",
+        env="preview",
+    )
+
+    assert providers.resolve_hosted_graph_database_url(settings) == "postgresql://shared"
+
+
+@pytest.mark.parametrize(
+    ("vercel_env", "expected_url"),
+    [
+        ("preview", "postgresql://shared"),
+        (None, None),
+    ],
+    ids=["vercel-preview", "no-hosted-marker"],
+)
+def test_resolve_hosted_graph_database_url_honors_vercel_environment(
+    vercel_env: str | None,
+    expected_url: str | None,
+) -> None:
+    """Vercel deployments should fall back only when the hosted env marker is present."""
+    settings = providers.GraphLifecycleSettings(
+        asset_graph_database_url=None,
+        database_url="postgresql://shared",
+        env="development",
+        vercel_env=vercel_env,
+    )
+
+    assert providers.resolve_hosted_graph_database_url(settings) == expected_url
+
+
+def test_resolve_hosted_graph_database_url_supports_legacy_settings_objects() -> None:
+    """Legacy settings objects should keep the old database_url compatibility seam."""
+
+    class LegacySettings:
+        database_url = "postgresql://legacy"
+        vercel_env = "preview"
+
+    assert providers.resolve_hosted_graph_database_url(LegacySettings()) == "postgresql://legacy"
+
+
 def test_save_graph_with_session_runs_pre_commit_check(monkeypatch: pytest.MonkeyPatch) -> None:
     """Pre-commit check should execute before committing graph persistence."""
     session = MagicMock()

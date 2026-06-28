@@ -14,7 +14,7 @@ from sqlalchemy.engine import Engine, make_url  # pylint: disable=import-error
 from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
 from sqlalchemy.orm import Session  # pylint: disable=import-error
 
-from src.config.settings import get_settings
+from src.config.settings import DeploymentEnvironment, get_settings
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import AssetORM
 from src.data.repository import AssetGraphRepository
@@ -27,6 +27,9 @@ logger = logging.getLogger(__name__)
 
 GraphRebuildSource = Literal["cache", "real_data", "sample"]
 _GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
+HOSTED_FALLBACK_ENVIRONMENTS: frozenset[DeploymentEnvironment] = frozenset(
+    {DeploymentEnvironment.PREVIEW, DeploymentEnvironment.STAGING}
+)
 
 
 @dataclass(frozen=True)
@@ -38,7 +41,10 @@ class GraphLifecycleSettings:
     """
 
     asset_graph_database_url: str | None = None
+    database_url: str | None = None
     coordination_database_url: str | None = None
+    env: DeploymentEnvironment = DeploymentEnvironment.DEVELOPMENT
+    vercel_env: DeploymentEnvironment | None = None
     graph_cache_path: str | None = None
     real_data_cache_path: str | None = None
     use_real_data_fetcher: bool = False
@@ -66,12 +72,69 @@ def get_graph_lifecycle_settings() -> GraphLifecycleSettings:
     settings = get_settings()
     return GraphLifecycleSettings(
         asset_graph_database_url=settings.asset_graph_database_url,
+        database_url=settings.database_url,
         coordination_database_url=settings.coordination_database_url,
+        env=settings.env,
+        vercel_env=settings.vercel_env,
         graph_cache_path=settings.graph_cache_path,
         real_data_cache_path=settings.real_data_cache_path,
         use_real_data_fetcher=settings.use_real_data_fetcher,
         rebuild_lock_ttl_seconds=settings.rebuild_lock_ttl_seconds,
     )
+
+
+def _settings_value(settings: object, field_name: str) -> str | None:
+    """Read a string-like value from modern or legacy settings objects."""
+    value = getattr(settings, field_name, None)
+    if value is None:
+        return None
+    if isinstance(value, str):
+        trimmed = value.strip()
+        return trimmed or None
+    return str(value)
+
+
+def _settings_environment(settings: object, field_name: str) -> DeploymentEnvironment | None:
+    """Read a deployment environment enum from modern or legacy settings objects."""
+    value = getattr(settings, field_name, None)
+    if value is None:
+        return None
+    if isinstance(value, DeploymentEnvironment):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        return DeploymentEnvironment(normalized) if normalized else None
+    try:
+        return DeploymentEnvironment(str(value).strip().lower())
+    except ValueError:
+        return None
+
+
+def _is_hosted_fallback_environment(settings: object) -> bool:
+    """Return whether hosted graph fallback should be allowed for this runtime."""
+    env_name = _settings_environment(settings, "env")
+    if env_name in HOSTED_FALLBACK_ENVIRONMENTS:
+        return True
+
+    return _settings_environment(settings, "vercel_env") in HOSTED_FALLBACK_ENVIRONMENTS
+
+
+def resolve_hosted_graph_database_url(settings: object) -> str | None:
+    """Resolve the hosted graph database URL, allowing a shared Supabase boundary in hosted environments.
+
+    Preference order:
+    1. `asset_graph_database_url` when explicitly configured.
+    2. `database_url` as a hosted fallback when running in preview/staging.
+    3. `None` when no hosted graph persistence should be assumed.
+    """
+    asset_graph_database_url = _settings_value(settings, "asset_graph_database_url")
+    if asset_graph_database_url:
+        return asset_graph_database_url
+
+    if _is_hosted_fallback_environment(settings):
+        return _settings_value(settings, "database_url")
+
+    return None
 
 
 def clear_graph_lifecycle_settings_cache() -> None:

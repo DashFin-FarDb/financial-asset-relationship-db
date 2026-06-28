@@ -32,6 +32,7 @@ from .graph_lifecycle import (
     get_runtime_lifecycle_state,
     sync_with_latest_rebuild,
 )
+from .graph_lifecycle_providers import resolve_hosted_graph_database_url
 from .middleware.correlation import CorrelationMiddleware
 from .middleware.request_metrics import RequestMetricsMiddleware
 from .rate_limit import limiter
@@ -57,7 +58,13 @@ _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 
 def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
     """Return the configured durable graph persistence URL across old/new settings shapes."""
-    return getattr(settings, "asset_graph_database_url", getattr(settings, "database_url", None))
+    if not hasattr(settings, "asset_graph_database_url"):
+        database_url = getattr(settings, "database_url", None)
+        if isinstance(database_url, str):
+            trimmed = database_url.strip()
+            return trimmed or None
+        return database_url
+    return resolve_hosted_graph_database_url(settings)
 
 
 def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str:

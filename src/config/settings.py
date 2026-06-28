@@ -9,6 +9,7 @@ database URL resolution.
 from __future__ import annotations
 
 import os
+from enum import Enum
 from functools import lru_cache
 from typing import Any
 
@@ -34,13 +35,24 @@ def _parse_csv_env(value: str) -> list[str]:
     return [s for s in (item.strip() for item in value.split(",")) if s]
 
 
+class DeploymentEnvironment(str, Enum):
+    """Fixed deployment environments supported by the application."""
+
+    DEVELOPMENT = "development"
+    TEST = "test"
+    STAGING = "staging"
+    PREVIEW = "preview"
+    PRODUCTION = "production"
+
+
 class Settings(BaseModel):
     """Runtime configuration settings."""
 
     model_config = ConfigDict(frozen=True)
 
     # Environment mode
-    env: str = Field(default="development")
+    env: DeploymentEnvironment = Field(default=DeploymentEnvironment.DEVELOPMENT)
+    vercel_env: DeploymentEnvironment | None = Field(default=None)
 
     # Logging configuration
     log_level: str = Field(default="INFO")
@@ -168,7 +180,7 @@ def load_settings() -> Settings:
     """
     Load runtime settings from environment variables and return a configured Settings instance.
 
-    Reads environment variables (for example: ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL,
+    Reads environment variables (for example: ENV, VERCEL_ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL,
     POSTGRES_URL, COORDINATION_DATABASE_URL, ALLOWED_ORIGINS, REBUILD_LOCK_TTL_SECONDS)
     and maps them to Settings fields, delegating type coercion and validation to Pydantic.
     REBUILD_LOCK_TTL_SECONDS is passed unchanged for field-level parsing. DATABASE_URL
@@ -182,6 +194,7 @@ def load_settings() -> Settings:
 
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),
+        vercel_env=os.getenv("VERCEL_ENV"),
         log_level=os.getenv("LOG_LEVEL", "INFO").strip().upper(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         secret_key=os.getenv("SECRET_KEY"),
