@@ -12,6 +12,7 @@ import pytest
 from fastapi import FastAPI
 
 from api import app_factory
+from src.config.settings import DeploymentEnvironment
 from src.data.sample_data import create_sample_database
 from src.logic.recovery_gate import ExecutionBlockedError
 
@@ -168,7 +169,7 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
     app = FastAPI()
     hosted_settings = SimpleNamespace(
         **vars(base_settings),
-        env="preview",
+        env=DeploymentEnvironment.PREVIEW,
         vercel_env="preview",
     )
 
