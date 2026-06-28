@@ -90,8 +90,11 @@ def test_resolve_hosted_graph_database_url_honors_vercel_environment(monkeypatch
     assert providers.resolve_hosted_graph_database_url(settings) == "postgresql://shared"
 
 
-def test_resolve_hosted_graph_database_url_is_disabled_outside_hosted_env() -> None:
+def test_resolve_hosted_graph_database_url_is_disabled_outside_hosted_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Local environments should continue to avoid the hosted database fallback."""
+    monkeypatch.delenv("VERCEL_ENV", raising=False)
     settings = providers.GraphLifecycleSettings(
         asset_graph_database_url=None,
         database_url="postgresql://shared",
