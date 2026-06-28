@@ -61,7 +61,7 @@ def test_resolve_hosted_graph_database_url_prefers_explicit_asset_graph_url() ->
     settings = providers.GraphLifecycleSettings(
         asset_graph_database_url="postgresql://graph",
         database_url="postgresql://app",
-        env="preview",
+        env=providers.DeploymentEnvironment.PREVIEW,
     )
 
     assert providers.resolve_hosted_graph_database_url(settings) == "postgresql://graph"
@@ -72,7 +72,7 @@ def test_resolve_hosted_graph_database_url_uses_shared_hosted_database_fallback(
     settings = providers.GraphLifecycleSettings(
         asset_graph_database_url=None,
         database_url="postgresql://shared",
-        env="preview",
+        env=providers.DeploymentEnvironment.PREVIEW,
     )
 
     assert providers.resolve_hosted_graph_database_url(settings) == "postgresql://shared"
@@ -81,20 +81,20 @@ def test_resolve_hosted_graph_database_url_uses_shared_hosted_database_fallback(
 @pytest.mark.parametrize(
     ("vercel_env", "expected_url"),
     [
-        ("preview", "postgresql://shared"),
+        (providers.DeploymentEnvironment.PREVIEW, "postgresql://shared"),
         (None, None),
     ],
     ids=["vercel-preview", "no-hosted-marker"],
 )
 def test_resolve_hosted_graph_database_url_honors_vercel_environment(
-    vercel_env: str | None,
+    vercel_env: providers.DeploymentEnvironment | None,
     expected_url: str | None,
 ) -> None:
     """Vercel deployments should fall back only when the hosted env marker is present."""
     settings = providers.GraphLifecycleSettings(
         asset_graph_database_url=None,
         database_url="postgresql://shared",
-        env="development",
+        env=providers.DeploymentEnvironment.DEVELOPMENT,
         vercel_env=vercel_env,
     )
 
@@ -106,7 +106,7 @@ def test_resolve_hosted_graph_database_url_supports_legacy_settings_objects() ->
 
     class LegacySettings:
         database_url = "postgresql://legacy"
-        vercel_env = "preview"
+        vercel_env = providers.DeploymentEnvironment.PREVIEW
 
     assert providers.resolve_hosted_graph_database_url(LegacySettings()) == "postgresql://legacy"
 
