@@ -130,9 +130,6 @@ def set_graph_factory(factory: GraphFactory | None) -> None:
 
 def reset_graph() -> None:
     """Reset the shared asset relationship graph state."""
-    global graph  # noqa: PLW0603
     _reset_graph()
-    # Keep the export set to None so hasattr‑based checks still work.
-    # The next access via __getattr__ will reinitialize from lifecycle.
-    global graph  # noqa: PLW0603
-    graph = None  # type: ignore[assignment]
+    # Remove the export entirely so module __getattr__ is used on next access.
+    globals().pop("graph", None)

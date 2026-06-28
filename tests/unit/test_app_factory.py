@@ -209,6 +209,57 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
 
 
 @pytest.mark.asyncio
+async def test_lifespan_allows_hosted_fallback_graph_bootstrap_failures_to_boot(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Hosted fallback startup should degrade instead of crashing the app when graph bootstrap fails."""
+    app = FastAPI()
+    hosted_settings = SimpleNamespace(
+        **vars(base_settings),
+        env=DeploymentEnvironment.PREVIEW,
+        vercel_env="preview",
+    )
+
+    monkeypatch.setattr(
+        "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
+        lambda: hosted_settings,
+    )
+
+    # Let reconciliation succeed
+    monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", lambda *args, **kwargs: None)
+
+    # Make get_graph fail
+    def _raise_bootstrap_failure(*_args, **_kwargs) -> Any:
+        """Simulate hosted fallback graph bootstrap failure."""
+        raise RuntimeError("graph bootstrap failed")
+
+    monkeypatch.setattr(app_factory, "get_graph", _raise_bootstrap_failure)
+
+    background_task = asyncio.create_task(asyncio.sleep(0))
+    monkeypatch.setattr(
+        app_factory,
+        "_start_background_tasks",
+        lambda has_persistence, settings: (None, background_task, None),
+    )
+    monkeypatch.setattr(app_factory, "shutdown_rebuild_executor", lambda: None)
+
+    logged_events: list[Any] = []
+
+    def fake_log_event(_logger: Any, _level: Any, event: Any) -> None:
+        """Capture structured startup events for assertion."""
+        logged_events.append(event)
+
+    monkeypatch.setattr(app_factory, "log_event", fake_log_event)
+
+    async with app_factory.lifespan(app):
+        pass
+
+    assert any(getattr(event, "event", "") == "startup_degraded" for event in logged_events)
+    assert any(getattr(event, "metadata", {}).get("phase") == "graph_bootstrap" for event in logged_events)
+
+
+@pytest.mark.asyncio
 async def test_lifespan_keeps_fail_fast_behavior_outside_hosted_fallback(
     monkeypatch: pytest.MonkeyPatch,
     base_settings: SimpleNamespace,
