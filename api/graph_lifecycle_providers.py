@@ -83,17 +83,7 @@ HOSTED_FALLBACK_ENVIRONMENTS: frozenset[str] = frozenset({"preview", "staging"})
 
 
 def resolve_hosted_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
-    if settings.asset_graph_database_url:
-        return settings.asset_graph_database_url
-    if settings.env in HOSTED_FALLBACK_ENVIRONMENTS and settings.database_url:
-        return settings.database_url
-    return None
-    """
-vercel_env = os.getenv("VERCEL_ENV", "").strip().lower()
-hosted_env = settings.env in HOSTED_FALLBACK_ENVIRONMENTS or vercel_env in HOSTED_FALLBACK_ENVIRONMENTS
-if hosted_env and settings.database_url:
-    return settings.database_url
-
+    """Resolve the hosted graph database URL, allowing a shared Supabase boundary in hosted environments.
     Preference order:
     1. `asset_graph_database_url` when explicitly configured.
     2. `database_url` as a hosted fallback when running in preview/staging.
@@ -101,38 +91,11 @@ if hosted_env and settings.database_url:
     """
     if settings.asset_graph_database_url:
         return settings.asset_graph_database_url
-
-    vercel_env = os.getenv("VERCEL_ENV", "").strip().lower()
-    hosted_env = settings.env in {"preview", "staging", "production"} or vercel_env in {
-        "preview",
-        "staging",
-    asset_graph_url = _resolve_persistence_database_url(settings.asset_graph_database_url)
-    if asset_graph_url:
-        return asset_graph_url
-
-    database_url = _resolve_persistence_database_url(settings.database_url)
-def resolve_hosted_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
-    """
-    Resolve the hosted graph database URL, allowing a shared Supabase boundary in hosted environments.
-
-    Preference order:
-    1. `asset_graph_database_url` when explicitly configured.
-    2. `database_url` as a hosted fallback when running in preview/staging.
-    3. `None` when no hosted graph persistence should be assumed.
-    """
-    if settings.asset_graph_database_url:
-        return settings.asset_graph_database_url
-
     vercel_env = os.getenv("VERCEL_ENV", "").strip().lower()
     hosted_env = settings.env in {"preview", "staging"} or vercel_env in {"preview", "staging"}
     if hosted_env and settings.database_url:
         return settings.database_url
-
     return None
-        return database_url
-
-    return None
-
 
 def clear_graph_lifecycle_settings_cache() -> None:
     """Clear cached settings used by graph lifecycle initialization."""
