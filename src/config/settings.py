@@ -9,6 +9,7 @@ database URL resolution.
 from __future__ import annotations
 
 import os
+from enum import Enum
 from functools import lru_cache
 from typing import Any
 
@@ -34,14 +35,24 @@ def _parse_csv_env(value: str) -> list[str]:
     return [s for s in (item.strip() for item in value.split(",")) if s]
 
 
+class DeploymentEnvironment(str, Enum):
+    """Fixed deployment environments supported by the application."""
+
+    DEVELOPMENT = "development"
+    TEST = "test"
+    STAGING = "staging"
+    PREVIEW = "preview"
+    PRODUCTION = "production"
+
+
 class Settings(BaseModel):
     """Runtime configuration settings."""
 
     model_config = ConfigDict(frozen=True)
 
     # Environment mode
-    env: str = Field(default="development")
-    vercel_env: str | None = Field(default=None)
+    env: DeploymentEnvironment = Field(default=DeploymentEnvironment.DEVELOPMENT)
+    vercel_env: DeploymentEnvironment | None = Field(default=None)
 
     # Logging configuration
     log_level: str = Field(default="INFO")

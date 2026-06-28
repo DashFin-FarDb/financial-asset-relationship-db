@@ -14,7 +14,7 @@ from sqlalchemy.engine import Engine, make_url  # pylint: disable=import-error
 from sqlalchemy.exc import ArgumentError  # pylint: disable=import-error
 from sqlalchemy.orm import Session  # pylint: disable=import-error
 
-from src.config.settings import get_settings
+from src.config.settings import DeploymentEnvironment, get_settings
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import AssetORM
 from src.data.repository import AssetGraphRepository
@@ -27,7 +27,9 @@ logger = logging.getLogger(__name__)
 
 GraphRebuildSource = Literal["cache", "real_data", "sample"]
 _GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
-HOSTED_FALLBACK_ENVIRONMENTS: frozenset[str] = frozenset({"preview", "staging"})
+HOSTED_FALLBACK_ENVIRONMENTS: frozenset[DeploymentEnvironment] = frozenset(
+    {DeploymentEnvironment.PREVIEW, DeploymentEnvironment.STAGING}
+)
 
 
 @dataclass(frozen=True)
@@ -41,8 +43,8 @@ class GraphLifecycleSettings:
     asset_graph_database_url: str | None = None
     database_url: str | None = None
     coordination_database_url: str | None = None
-    env: str = "development"
-    vercel_env: str | None = None
+    env: DeploymentEnvironment = DeploymentEnvironment.DEVELOPMENT
+    vercel_env: DeploymentEnvironment | None = None
     graph_cache_path: str | None = None
     real_data_cache_path: str | None = None
     use_real_data_fetcher: bool = False
@@ -92,13 +94,29 @@ def _settings_value(settings: object, field_name: str) -> str | None:
     return str(value)
 
 
+def _settings_environment(settings: object, field_name: str) -> DeploymentEnvironment | None:
+    """Read a deployment environment enum from modern or legacy settings objects."""
+    value = getattr(settings, field_name, None)
+    if value is None:
+        return None
+    if isinstance(value, DeploymentEnvironment):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        return DeploymentEnvironment(normalized) if normalized else None
+    try:
+        return DeploymentEnvironment(str(value).strip().lower())
+    except ValueError:
+        return None
+
+
 def _is_hosted_fallback_environment(settings: object) -> bool:
     """Return whether hosted graph fallback should be allowed for this runtime."""
-    env_name = (_settings_value(settings, "env") or "").lower()
+    env_name = _settings_environment(settings, "env")
     if env_name in HOSTED_FALLBACK_ENVIRONMENTS:
         return True
 
-    return (_settings_value(settings, "vercel_env") or "").lower() in HOSTED_FALLBACK_ENVIRONMENTS
+    return _settings_environment(settings, "vercel_env") in HOSTED_FALLBACK_ENVIRONMENTS
 
 
 def resolve_hosted_graph_database_url(settings: object) -> str | None:
