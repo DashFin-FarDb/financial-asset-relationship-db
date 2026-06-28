@@ -249,6 +249,7 @@ def test_preview_startup_uses_shared_supabase_boundary_when_dedicated_graph_db_i
     _reset_runtime_graph_state()
 
     try:
+
         def fail_fallback_generation(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
             """Fail the test if startup unexpectedly falls back to any generation path."""
             raise AssertionError("Fallback generation triggered unexpectedly")
