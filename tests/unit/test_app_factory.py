@@ -182,7 +182,7 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
         raise RuntimeError("reconciliation failed")
 
     monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _raise_reconciliation_failure)
-    monkeypatch.setattr(app_factory, "get_graph", lambda: create_sample_database())
+    monkeypatch.setattr(app_factory, "get_graph", create_sample_database)
 
     background_task = asyncio.create_task(asyncio.sleep(0))
     monkeypatch.setattr(

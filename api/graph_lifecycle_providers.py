@@ -103,7 +103,10 @@ def _settings_environment(settings: object, field_name: str) -> DeploymentEnviro
         return value
     if isinstance(value, str):
         normalized = value.strip().lower()
-        return DeploymentEnvironment(normalized) if normalized else None
+        try:
+            return DeploymentEnvironment(normalized) if normalized else None
+        except ValueError:
+            return None
     try:
         return DeploymentEnvironment(str(value).strip().lower())
     except ValueError:

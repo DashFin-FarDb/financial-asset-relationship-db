@@ -32,7 +32,7 @@ from .graph_lifecycle import (
     get_runtime_lifecycle_state,
     sync_with_latest_rebuild,
 )
-from .graph_lifecycle_providers import resolve_hosted_graph_database_url
+from .graph_lifecycle_providers import is_hosted_fallback_environment, resolve_hosted_graph_database_url
 from .middleware.correlation import CorrelationMiddleware
 from .middleware.request_metrics import RequestMetricsMiddleware
 from .rate_limit import limiter
@@ -71,7 +71,7 @@ def _should_degrade_hosted_startup(settings: GraphLifecycleSettings) -> bool:
     """Return whether hosted fallback startup failures should be downgraded to degraded boot."""
     if getattr(settings, "asset_graph_database_url", None):
         return False
-    return resolve_hosted_graph_database_url(settings) is not None
+    return is_hosted_fallback_environment(settings) and resolve_hosted_graph_database_url(settings) is not None
 
 
 def _resolve_startup_reconciliation_url(settings: GraphLifecycleSettings) -> str:

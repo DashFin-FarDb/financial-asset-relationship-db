@@ -82,7 +82,17 @@ ENV = get_settings().env
 # Backward compatibility graph reference for older tests that patch api.main.graph.
 # Keep this lazy so importing api.main does not force graph initialization before
 # the FastAPI lifespan has a chance to handle hosted startup degradation.
-graph: AssetRelationshipGraph | None = None
+graph: AssetRelationshipGraph | None
+
+
+def __getattr__(name: str):
+    if name == "graph":
+        from .graph_lifecycle import get_graph
+        try:
+            return get_graph()
+        except Exception:
+            return None
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
