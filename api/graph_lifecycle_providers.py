@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -90,7 +91,14 @@ def resolve_hosted_graph_database_url(settings: GraphLifecycleSettings) -> str |
     if settings.asset_graph_database_url:
         return settings.asset_graph_database_url
 
-    if settings.env in {"preview", "staging"} and settings.database_url:
+    vercel_env = os.getenv("VERCEL_ENV", "").strip().lower()
+    hosted_env = settings.env in {"preview", "staging", "production"} or vercel_env in {
+        "preview",
+        "staging",
+        "production",
+    }
+
+    if hosted_env and settings.database_url:
         return settings.database_url
 
     return None
