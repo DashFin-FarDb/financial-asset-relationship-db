@@ -131,5 +131,8 @@ def set_graph_factory(factory: GraphFactory | None) -> None:
 def reset_graph() -> None:
     """Reset the shared asset relationship graph state."""
     _reset_graph()
-    # Remove the export entirely so module __getattr__ is used on next access.
-    globals().pop("graph", None)
+    global graph  # noqa: PLW0603
+    try:
+        del graph
+    except NameError:
+        pass
