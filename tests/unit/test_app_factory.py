@@ -198,6 +198,7 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
     else:
 
         async def _async_noop(*_args, **_kwargs) -> None:
+            """Mock a successful startup reconciliation call by doing nothing (no-op)."""
             pass
 
         monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _async_noop)
