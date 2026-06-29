@@ -103,7 +103,10 @@ def _settings_environment(settings: object, field_name: str) -> DeploymentEnviro
         return value
     if isinstance(value, str):
         normalized = value.strip().lower()
-        return DeploymentEnvironment(normalized) if normalized else None
+        try:
+            return DeploymentEnvironment(normalized) if normalized else None
+        except ValueError:
+            return None
     try:
         return DeploymentEnvironment(str(value).strip().lower())
     except ValueError:
@@ -135,6 +138,14 @@ def resolve_hosted_graph_database_url(settings: object) -> str | None:
         return _settings_value(settings, "database_url")
 
     return None
+
+
+def should_degrade_hosted_startup(settings: object) -> bool:
+    """Return whether hosted fallback startup failures should be downgraded to degraded boot."""
+    if _settings_value(settings, "asset_graph_database_url"):
+        return False
+    hosted_database_url = resolve_hosted_graph_database_url(settings)
+    return _is_hosted_fallback_environment(settings) and bool(hosted_database_url and hosted_database_url.strip())
 
 
 def clear_graph_lifecycle_settings_cache() -> None:

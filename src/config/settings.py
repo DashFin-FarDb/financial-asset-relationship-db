@@ -50,7 +50,6 @@ class Settings(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    # Environment mode
     env: DeploymentEnvironment = Field(default=DeploymentEnvironment.DEVELOPMENT)
     vercel_env: DeploymentEnvironment | None = Field(default=None)
 

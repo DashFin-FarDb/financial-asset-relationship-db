@@ -18,6 +18,7 @@ from fastapi import FastAPI
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.observability.context import async_trace_context, get_span_id, get_trace_id
 from src.observability.events import ObservabilityEvent
@@ -32,7 +33,10 @@ from .graph_lifecycle import (
     get_runtime_lifecycle_state,
     sync_with_latest_rebuild,
 )
-from .graph_lifecycle_providers import resolve_hosted_graph_database_url
+from .graph_lifecycle_providers import (
+    resolve_hosted_graph_database_url,
+    should_degrade_hosted_startup,
+)
 from .middleware.correlation import CorrelationMiddleware
 from .middleware.request_metrics import RequestMetricsMiddleware
 from .rate_limit import limiter
@@ -202,6 +206,54 @@ async def _run_with_generated_trace(
             raise
 
 
+async def _initialize_application_state(
+    settings: GraphLifecycleSettings,
+    has_persistence: bool,
+    hosted_startup_degradation_allowed: bool,
+) -> None:
+    """Run startup reconciliation and initialize the graph, handling degraded startup."""
+    if has_persistence:
+        try:
+            await _perform_startup_reconciliation(settings)
+        except (SQLAlchemyError, OSError, RuntimeError) as exc:
+            if not hosted_startup_degradation_allowed:
+                raise
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="startup_degraded",
+                    message=("Hosted fallback startup reconciliation failed; continuing with degraded boot."),
+                    metadata={
+                        "error": type(exc).__name__,
+                        "phase": "reconciliation",
+                        "trace_id": _trace_or_unknown(get_trace_id()),
+                        "span_id": _trace_or_unknown(get_span_id()),
+                    },
+                ),
+            )
+    # Required initialization for all environments to ensure state validity
+    try:
+        get_graph()
+    except (SQLAlchemyError, OSError) as exc:
+        if not hosted_startup_degradation_allowed:
+            raise
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="startup_degraded",
+                message="Hosted fallback graph bootstrap failed; continuing with degraded boot.",
+                metadata={
+                    "error": type(exc).__name__,
+                    "phase": "graph_bootstrap",
+                    "trace_id": _trace_or_unknown(get_trace_id()),
+                    "span_id": _trace_or_unknown(get_span_id()),
+                },
+            ),
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown tasks for the FastAPI application."""
@@ -216,6 +268,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     database_url = _get_durable_graph_database_url(settings)
     has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
     has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
+    hosted_startup_degradation_allowed = should_degrade_hosted_startup(settings)
 
     trace_id, span_id = _generate_startup_trace_ids()
 
@@ -227,10 +280,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         async with async_trace_context(trace_id=trace_id, span_id=span_id):
             logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
             try:
-                if has_persistence:
-                    await _perform_startup_reconciliation(settings)
-                # Required initialization for all environments to ensure state validity
-                get_graph()
+                await _initialize_application_state(
+                    settings,
+                    has_persistence,
+                    hosted_startup_degradation_allowed,
+                )
             except Exception as exc:
                 log_event(
                     logger,
@@ -347,7 +401,9 @@ def _start_background_tasks(
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
         recon_url = _resolve_startup_reconciliation_url(settings)
-        coord_url = getattr(settings, "coordination_database_url", None) or recon_url
+        coord_setting = getattr(settings, "coordination_database_url", None)
+        coord_url = coord_setting.strip() if isinstance(coord_setting, str) else coord_setting
+        coord_url = coord_url or recon_url
         lock_ttl_seconds = max(1, min(int(getattr(settings, "rebuild_lock_ttl_seconds", MAX_TTL)), MAX_TTL))
 
         recon_task = asyncio.create_task(

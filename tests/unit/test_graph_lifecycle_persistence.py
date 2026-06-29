@@ -631,7 +631,7 @@ def test_api_main_and_router_helper_compatibility(
         assert router_helpers.get_graph() is api_main.graph
 
         api_main.reset_graph()
-        assert api_main.graph is None
+        assert "graph" not in vars(api_main)
         reloaded = router_helpers.get_graph()
         assert set(reloaded.assets) == {"ASSET_ONLY"}
 
