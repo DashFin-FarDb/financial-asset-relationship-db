@@ -8,7 +8,10 @@ import type {
   VisualizationData,
 } from "../types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL !== undefined
+    ? process.env.NEXT_PUBLIC_API_URL
+    : "http://localhost:8000";
 
 const apiClient = axios.create({
   baseURL: API_URL,
