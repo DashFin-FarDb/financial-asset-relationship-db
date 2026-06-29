@@ -215,7 +215,7 @@ async def _initialize_application_state(
     if has_persistence:
         try:
             await _perform_startup_reconciliation(settings)
-        except (SQLAlchemyError, OSError) as exc:
+        except (SQLAlchemyError, OSError, RuntimeError) as exc:
             if not hosted_startup_degradation_allowed:
                 raise
             log_event(
