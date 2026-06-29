@@ -230,8 +230,11 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
     async with app_factory.lifespan(app):
         pass
 
-    assert any(getattr(event, "event", "") == "startup_degraded" for event in logged_events)
-    assert any(getattr(event, "metadata", {}).get("phase") == expected_phase for event in logged_events)
+    assert any(
+        getattr(event, "event", "") == "startup_degraded"
+        and getattr(event, "metadata", {}).get("phase") == expected_phase
+        for event in logged_events
+    )
 
 
 @pytest.mark.asyncio
