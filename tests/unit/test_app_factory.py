@@ -161,11 +161,22 @@ async def test_lifespan_blocks_startup_when_reconciliation_and_defensive_init_fa
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("reconciliation_fails", "bootstrap_fails", "expected_phase"),
+    [
+        (True, False, "reconciliation"),
+        (False, True, "graph_bootstrap"),
+    ],
+    ids=["reconciliation-failure", "graph-bootstrap-failure"],
+)
 async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
     monkeypatch: pytest.MonkeyPatch,
     base_settings: SimpleNamespace,
+    reconciliation_fails: bool,
+    bootstrap_fails: bool,
+    expected_phase: str,
 ) -> None:
-    """Hosted fallback startup should degrade instead of crashing the app."""
+    """Hosted fallback startup should degrade instead of crashing the app on reconciliation or bootstrap failures."""
     app = FastAPI()
     hosted_settings = SimpleNamespace(
         **vars(base_settings),
@@ -178,12 +189,23 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
         lambda: hosted_settings,
     )
 
-    def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
-        """Simulate hosted fallback startup reconciliation failure."""
-        raise RuntimeError("reconciliation failed")
+    if reconciliation_fails:
 
-    monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _raise_reconciliation_failure)
-    monkeypatch.setattr(app_factory, "get_graph", create_sample_database)
+        def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
+            raise RuntimeError("reconciliation failed")
+
+        monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _raise_reconciliation_failure)
+    else:
+        monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", lambda *args, **kwargs: None)
+
+    if bootstrap_fails:
+
+        def _raise_bootstrap_failure(*_args, **_kwargs) -> Any:
+            raise RuntimeError("graph bootstrap failed")
+
+        monkeypatch.setattr(app_factory, "get_graph", _raise_bootstrap_failure)
+    else:
+        monkeypatch.setattr(app_factory, "get_graph", create_sample_database)
 
     background_task = asyncio.create_task(asyncio.sleep(0))
     monkeypatch.setattr(
@@ -205,58 +227,7 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
         pass
 
     assert any(getattr(event, "event", "") == "startup_degraded" for event in logged_events)
-    assert any(getattr(event, "metadata", {}).get("phase") == "reconciliation" for event in logged_events)
-
-
-@pytest.mark.asyncio
-async def test_lifespan_allows_hosted_fallback_graph_bootstrap_failures_to_boot(
-    monkeypatch: pytest.MonkeyPatch,
-    base_settings: SimpleNamespace,
-) -> None:
-    """Hosted fallback startup should degrade instead of crashing the app when graph bootstrap fails."""
-    app = FastAPI()
-    hosted_settings = SimpleNamespace(
-        **vars(base_settings),
-        env=DeploymentEnvironment.PREVIEW,
-        vercel_env="preview",
-    )
-
-    monkeypatch.setattr(
-        "api.graph_lifecycle_providers.get_graph_lifecycle_settings",
-        lambda: hosted_settings,
-    )
-
-    # Let reconciliation succeed
-    monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", lambda *args, **kwargs: None)
-
-    # Make get_graph fail
-    def _raise_bootstrap_failure(*_args, **_kwargs) -> Any:
-        """Simulate hosted fallback graph bootstrap failure."""
-        raise RuntimeError("graph bootstrap failed")
-
-    monkeypatch.setattr(app_factory, "get_graph", _raise_bootstrap_failure)
-
-    background_task = asyncio.create_task(asyncio.sleep(0))
-    monkeypatch.setattr(
-        app_factory,
-        "_start_background_tasks",
-        lambda has_persistence, settings: (None, background_task, None),
-    )
-    monkeypatch.setattr(app_factory, "shutdown_rebuild_executor", lambda: None)
-
-    logged_events: list[Any] = []
-
-    def fake_log_event(_logger: Any, _level: Any, event: Any) -> None:
-        """Capture structured startup events for assertion."""
-        logged_events.append(event)
-
-    monkeypatch.setattr(app_factory, "log_event", fake_log_event)
-
-    async with app_factory.lifespan(app):
-        pass
-
-    assert any(getattr(event, "event", "") == "startup_degraded" for event in logged_events)
-    assert any(getattr(event, "metadata", {}).get("phase") == "graph_bootstrap" for event in logged_events)
+    assert any(getattr(event, "metadata", {}).get("phase") == expected_phase for event in logged_events)
 
 
 @pytest.mark.asyncio
