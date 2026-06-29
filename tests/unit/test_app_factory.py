@@ -192,16 +192,20 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
     if reconciliation_fails:
 
         def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
-            raise RuntimeError("reconciliation failed")
+            raise OSError("reconciliation failed")
 
         monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _raise_reconciliation_failure)
     else:
-        monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", lambda *args, **kwargs: None)
+
+        async def _async_noop(*_args, **_kwargs) -> None:
+            pass
+
+        monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _async_noop)
 
     if bootstrap_fails:
 
         def _raise_bootstrap_failure(*_args, **_kwargs) -> Any:
-            raise RuntimeError("graph bootstrap failed")
+            raise OSError("graph bootstrap failed")
 
         monkeypatch.setattr(app_factory, "get_graph", _raise_bootstrap_failure)
     else:
@@ -239,7 +243,7 @@ async def test_lifespan_keeps_fail_fast_behavior_outside_hosted_fallback(
     app = FastAPI()
     strict_settings = SimpleNamespace(
         **vars(base_settings),
-        env="development",
+        env=DeploymentEnvironment.DEVELOPMENT,
         vercel_env=None,
     )
 

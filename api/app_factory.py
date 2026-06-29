@@ -18,6 +18,7 @@ from fastapi import FastAPI
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.observability.context import async_trace_context, get_span_id, get_trace_id
 from src.observability.events import ObservabilityEvent
@@ -214,7 +215,7 @@ async def _initialize_application_state(
     if has_persistence:
         try:
             await _perform_startup_reconciliation(settings)
-        except Exception as exc:
+        except (SQLAlchemyError, OSError) as exc:
             if not hosted_startup_degradation_allowed:
                 raise
             log_event(
@@ -234,7 +235,7 @@ async def _initialize_application_state(
     # Required initialization for all environments to ensure state validity
     try:
         get_graph()
-    except Exception as exc:
+    except (SQLAlchemyError, OSError) as exc:
         if not hosted_startup_degradation_allowed:
             raise
         log_event(
@@ -400,7 +401,9 @@ def _start_background_tasks(
         from src.logic.reconciliation_loop import periodic_reconciliation_loop
 
         recon_url = _resolve_startup_reconciliation_url(settings)
-        coord_url = getattr(settings, "coordination_database_url", None) or recon_url
+        coord_setting = getattr(settings, "coordination_database_url", None)
+        coord_url = coord_setting.strip() if isinstance(coord_setting, str) else coord_setting
+        coord_url = coord_url or recon_url
         lock_ttl_seconds = max(1, min(int(getattr(settings, "rebuild_lock_ttl_seconds", MAX_TTL)), MAX_TTL))
 
         recon_task = asyncio.create_task(
