@@ -135,4 +135,5 @@ def reset_graph() -> None:
     try:
         del graph
     except NameError:
+        # graph may not be bound yet; reset is intentionally idempotent.
         pass
