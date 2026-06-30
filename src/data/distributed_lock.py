@@ -343,6 +343,8 @@ class DistributedLock:
         """
         if timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be positive")
+        # Enforce the repo-wide 30-second maximum wait ceiling per GEMINI.md
+        timeout_seconds = min(timeout_seconds, 30.0)
 
         self._emit(
             LockEvent(

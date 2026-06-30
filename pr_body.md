@@ -8,7 +8,7 @@ This PR resolves repository-wide scan findings across documentation/templates al
 
 ## Primary Objective
 
-1. Align all evidence templates, roadmap, spec documents, and runbooks to consistent keys (`graph_persistence_configured`) and non-configurable TTL rules.
+1. Align all evidence templates, roadmap, spec documents, and runbooks to consistent keys (standardizing top-level references to `graph_persistence_configured` while preserving the nested `graph.persistence_enabled` contract in `/api/health/detailed`) and non-configurable TTL rules.
 2. Hard-boundary the lock-reset path and enforce the deterministic 30s lock acquisition timeout limit in the recovery gate.
 3. Broaden audit log metadata sanitization to protect sensitive credentials and prevent identifier spoofing.
 4. Eliminate resource leaks in DB test suites and add explicit edge-case assertions for API contracts.
@@ -17,7 +17,7 @@ This PR resolves repository-wide scan findings across documentation/templates al
 
 ### In Scope
 
-- **Documentation & Templates**: Align Average Degree definitions and legend statuses in specifications and roadmaps. Remove stray `graph.persistence_enabled` from issue templates.
+- **Documentation & Templates**: Align Average Degree definitions and legend statuses in specifications and roadmaps. Standardize top-level references to `graph_persistence_configured` in issue templates, while preserving the nested `graph.persistence_enabled` contract in `/api/health/detailed` as validated by `check_hosted_readiness.py`.
 - **Security & Locks**:
   - Double-check lock state validity at the reset mutation boundary.
   - Implement a deterministic 30-second ceiling on lock reacquisition.

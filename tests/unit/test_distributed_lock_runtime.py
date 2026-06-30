@@ -170,7 +170,7 @@ def test_ttl_validation_in_init() -> None:
     """Verify DistributedLock rejects TTLs exceeding 300s."""
 
     def factory():
-        """Factory function that returns None for testing."""
+        """Return None for testing."""
         return None
 
     # 300 is fine
@@ -179,3 +179,24 @@ def test_ttl_validation_in_init() -> None:
     # 301 is not
     with pytest.raises(ValueError, match="exceeds maximum allowed value of 300"):
         DistributedLock(factory, "test", ttl_seconds=301)  # type: ignore[arg-type]
+
+
+@pytest.mark.unit
+def test_acquire_timeout_seconds_clamping(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify DistributedLock.acquire clamps timeout_seconds to 30.0s."""
+    mock_repo = MagicMock()
+    monkeypatch.setattr("src.data.distributed_lock.session_scope", _mock_session_scope)
+    monkeypatch.setattr("src.data.distributed_lock.CoordinationLockRepository", lambda session: mock_repo)
+    monkeypatch.setattr("src.data.distributed_lock.sleep", lambda s: None)
+
+    # Contention: success=False
+    mock_repo.acquire_lock.return_value = SimpleNamespace(success=False)
+
+    times = [1000.0, 1035.0]
+    time_iter = iter(times)
+    monkeypatch.setattr("src.data.distributed_lock.time", lambda: next(time_iter, 1035.0))
+
+    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[return-value]
+
+    with pytest.raises(LockAcquisitionTimeout, match="within 30s ceiling"):
+        lock.acquire(max_retries=5, timeout_seconds=100.0)
