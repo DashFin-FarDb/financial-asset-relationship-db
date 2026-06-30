@@ -157,7 +157,11 @@ def _log_security_event(event: _SecurityAuditEvent) -> None:
     req_meta = _request_security_metadata(event.request)
     for k, v in req_meta.items():
         if v is not None or k not in event_metadata:
-            event_metadata[k] = v
+event_metadata: Dict[str, Any] = {}
+req_meta = _request_security_metadata(event.request)
+for k, v in req_meta.items():
+    if v is not None or k not in event_metadata:
+        event_metadata[k] = v
 
     event_metadata.update(_request_security_metadata(event.request))
     username = _bounded_security_identity(event.username)
