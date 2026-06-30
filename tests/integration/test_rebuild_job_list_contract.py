@@ -65,13 +65,16 @@ def _list_rebuild_jobs_payload(
     status_filter: RebuildJobStatus | None = None,
 ) -> dict[str, Any]:
     """Call the rebuild job-list endpoint boundary and return JSON-ready payload."""
-    with TestClient(app) as client:
-        params: dict[str, Any] = {"limit": limit, "offset": offset}
-        if status_filter is not None:
-            params["status"] = status_filter.value
-        response = client.get("/api/graph/rebuild/jobs", params=params)
-        assert response.status_code == 200
-        return response.json()
+    from unittest.mock import patch
+
+    with patch("api.app_factory._perform_startup_reconciliation"):
+        with TestClient(app) as client:
+            params: dict[str, Any] = {"limit": limit, "offset": offset}
+            if status_filter is not None:
+                params["status"] = status_filter.value
+            response = client.get("/api/graph/rebuild/jobs", params=params)
+            assert response.status_code == 200
+            return response.json()
 
 
 def test_rebuild_job_list_caps_response_at_100_and_count_matches_returned_length(

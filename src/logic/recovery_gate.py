@@ -535,7 +535,11 @@ class RecoveryGate:
                 duration_ms=0,
             ),
         )
-        if self.lock.check_state() != LockState.VALID or not self.lock.holder_id:
+        if (
+            self.lock.check_state() != LockState.VALID
+            or not self.lock.holder_id
+            or self.lock.holder_id != current_worker
+        ):
             raise ExecutionBlockedError(
                 f"Cannot commit reset for job {active_job.job_id}: lock lost "
                 f"(action=wait, inconsistency={drift_type})",
