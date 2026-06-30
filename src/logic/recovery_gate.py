@@ -540,6 +540,7 @@ class RecoveryGate:
             or not self.lock.holder_id
             or self.lock.holder_id != current_worker
         ):
+            session.rollback()
             raise ExecutionBlockedError(
                 f"Cannot commit reset for job {active_job.job_id}: lock lost "
                 f"(action=wait, inconsistency={drift_type})",
