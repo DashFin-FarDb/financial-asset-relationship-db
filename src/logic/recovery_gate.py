@@ -544,7 +544,12 @@ class RecoveryGate:
             try:
                 session.rollback()
             except Exception:
-                pass
+                logger.debug(
+                    "Rollback failed while handling lock-loss during reset for job %s; "
+                    "continuing to raise ExecutionBlockedError",
+                    job_id,
+                    exc_info=True,
+                )
             raise ExecutionBlockedError(
                 f"Cannot commit reset for job {job_id}: lock lost " f"(action=wait, inconsistency={drift_type})",
                 action="wait",
