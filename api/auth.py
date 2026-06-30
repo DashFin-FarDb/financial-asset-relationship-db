@@ -112,8 +112,8 @@ def _is_sensitive_metadata_key(key: str) -> bool:
     normalized = key.lower().replace("_", "").replace("-", "").replace(" ", "")
     if normalized == "tokentype":
         return False
-    return normalized in _SENSITIVE_METADATA_KEYS or normalized.endswith(
-        ("password", "passwd", "pwd", "token", "authorization", "secret", "apikey")
+    sensitive_substrings = ("password", "passwd", "pwd", "token", "authorization", "secret", "apikey")
+    return normalized in _SENSITIVE_METADATA_KEYS or any(sub in normalized for sub in sensitive_substrings)
     )
 
 
