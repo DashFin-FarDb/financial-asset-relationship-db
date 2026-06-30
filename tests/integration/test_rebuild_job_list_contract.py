@@ -40,9 +40,9 @@ def db_setup(
         yield session_factory
     finally:
         if get_current_rebuild_operator_user in app.dependency_overrides:
+            del app.dependency_overrides[get_current_rebuild_operator_user]
         engine.dispose()
         get_settings.cache_clear()
-
 
 def _seed_jobs(session_factory: Callable[[], Any], count: int) -> list[str]:
     """Seed rebuild jobs and preserve insertion order in persistence."""
