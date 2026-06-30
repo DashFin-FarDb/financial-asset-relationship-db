@@ -5,9 +5,10 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi.testclient import TestClient
 
-from api.auth import User
-from api.routers.graph_admin import list_rebuild_jobs
+from api.auth import User, get_current_rebuild_operator_user
+from api.main import app
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url
 from src.data.db_models import RebuildJobStatus
@@ -34,9 +35,11 @@ def db_setup(
     engine = create_engine_from_url(db_url)
     init_db(engine)
     session_factory = create_session_factory(engine)
+    app.dependency_overrides[get_current_rebuild_operator_user] = lambda: User(username="admin", disabled=False)
     try:
         yield session_factory
     finally:
+        app.dependency_overrides.clear()
         engine.dispose()
         get_settings.cache_clear()
 
@@ -61,13 +64,13 @@ def _list_rebuild_jobs_payload(
     status_filter: RebuildJobStatus | None = None,
 ) -> dict[str, Any]:
     """Call the rebuild job-list endpoint boundary and return JSON-ready payload."""
-    response = list_rebuild_jobs(
-        _current_user=User(username="admin", disabled=False),
-        limit=limit,
-        offset=offset,
-        status_filter=status_filter,
-    )
-    return response.model_dump(mode="json")
+    client = TestClient(app)
+    params: dict[str, Any] = {"limit": limit, "offset": offset}
+    if status_filter is not None:
+        params["status"] = status_filter.value
+    response = client.get("/api/graph/rebuild/jobs", params=params)
+    assert response.status_code == 200
+    return response.json()
 
 
 def test_rebuild_job_list_caps_response_at_100_and_count_matches_returned_length(
@@ -81,7 +84,7 @@ def test_rebuild_job_list_caps_response_at_100_and_count_matches_returned_length
     assert len(payload["jobs"]) == 100
     assert payload["count"] == 100
     assert payload["total"] == 101
-    assert payload["has_more"] is True
+    assert payload["hasMore"] is True
 
 
 def test_rebuild_job_list_count_equals_seeded_total_below_cap(
@@ -95,8 +98,7 @@ def test_rebuild_job_list_count_equals_seeded_total_below_cap(
     assert len(payload["jobs"]) == 7
     assert payload["count"] == 7
     assert payload["total"] == 7
-    assert payload["has_more"] is False
-    assert "hasMore" not in payload
+    assert payload["hasMore"] is False
 
 
 @pytest.mark.parametrize(
@@ -119,7 +121,7 @@ def test_rebuild_job_list_has_more_with_explicit_pagination(
     assert len(payload["jobs"]) == 3
     assert payload["count"] == 3
     assert payload["total"] == 7
-    assert payload["has_more"] is expected_has_more
+    assert payload["hasMore"] is expected_has_more
 
 
 def test_rebuild_job_list_total_and_has_more_respect_status_filter(
@@ -137,5 +139,5 @@ def test_rebuild_job_list_total_and_has_more_respect_status_filter(
     assert len(payload["jobs"]) == 1
     assert payload["count"] == 1
     assert payload["total"] == 2
-    assert payload["has_more"] is True
+    assert payload["hasMore"] is True
     assert payload["jobs"][0]["status"] == "running"

@@ -278,22 +278,24 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
     with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
         settings = get_settings()
         engine_for_test = create_engine_from_url(db_url)
-        session_factory = create_session_factory(engine_for_test)
-        job_started_at = time.time()
-        lock_lost_event = threading.Event()
-        execution_id = "test-exec-pipe"
+        try:
+            session_factory = create_session_factory(engine_for_test)
+            job_started_at = time.time()
+            lock_lost_event = threading.Event()
+            execution_id = "test-exec-pipe"
 
-        graph_admin._run_rebuild_pipeline(
-            session_factory,
-            settings,
-            db_url,
-            job_id,
-            execution_id,
-            job_started_at,
-            lock_lost_event,
-            threading.Event(),
-        )
-        engine_for_test.dispose()
+            graph_admin._run_rebuild_pipeline(
+                session_factory,
+                settings,
+                db_url,
+                job_id,
+                execution_id,
+                job_started_at,
+                lock_lost_event,
+                threading.Event(),
+            )
+        finally:
+            engine_for_test.dispose()
 
         mock_repo.mark_rebuild_job_succeeded.assert_called_once()
 

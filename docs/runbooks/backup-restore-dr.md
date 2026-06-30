@@ -194,7 +194,7 @@ WHERE lock_name = 'graph_rebuild';
 
 If the current live database contains a `distributed_locks` row with a future `expires_at`, either:
 
-1. wait for TTL expiry; the operational maximum assumption is 300 seconds unless `REBUILD_LOCK_TTL_SECONDS` has been configured differently; or
+1. wait for TTL expiry; the operational maximum assumption is 300 seconds; or
 2. manually delete the row after confirming no live rebuild writer from the current environment is active.
 
 Manual deletion:

@@ -94,12 +94,32 @@ class TestRenderSchemaOptimization:
         combined = "\n".join(lines)
         assert "Sparse" in combined
 
+        # Exact boundary check at 10% (0.10)
+        metrics_boundary = {"network_density": 0.10, "quality_score": 0.8}
+        lines_boundary = generator._render_schema_optimization(metrics_boundary)
+        assert "Sparse" in "\n".join(lines_boundary)
+
     def test_well_balanced_recommendation(self, generator):
         """density_pct in (10.0, 30.0] should produce a 'Well-balanced' recommendation."""
         metrics = {"network_density": 0.20, "quality_score": 0.9}
         lines = generator._render_schema_optimization(metrics)
         combined = "\n".join(lines)
         assert "Well-balanced" in combined
+
+        # Exact boundary check just above 10% (e.g. 0.1001)
+        metrics_above_10 = {"network_density": 0.1001, "quality_score": 0.9}
+        lines_above_10 = generator._render_schema_optimization(metrics_above_10)
+        assert "Well-balanced" in "\n".join(lines_above_10)
+
+        # Exact boundary check at 30% (0.30)
+        metrics_boundary = {"network_density": 0.30, "quality_score": 0.9}
+        lines_boundary = generator._render_schema_optimization(metrics_boundary)
+        assert "Well-balanced" in "\n".join(lines_boundary)
+
+        # Exact boundary check just above 30% (e.g. 0.3001)
+        metrics_above_30 = {"network_density": 0.3001, "quality_score": 0.9}
+        lines_above_30 = generator._render_schema_optimization(metrics_above_30)
+        assert "High connectivity" in "\n".join(lines_above_30)
 
     def test_high_connectivity_recommendation(self, generator):
         """density_pct > 30.0 should produce a 'High connectivity' recommendation."""

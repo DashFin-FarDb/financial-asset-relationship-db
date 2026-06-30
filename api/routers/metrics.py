@@ -36,6 +36,8 @@ async def get_graph_metrics() -> MetricsResponse:
             max_degree=metrics_dict["max_degree"],
             network_density=metrics_dict["network_density"],
         )
+    except HTTPException:
+        raise
     except Exception as e:
         log_event(
             logger,

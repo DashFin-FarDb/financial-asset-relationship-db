@@ -43,7 +43,7 @@ These items are valid but should not be bundled into the release-evidence reconc
 
 | Item | Status | Why later | Dependencies |
 | --- | --- | --- | --- |
-| `RebuildJobListResponse` truncation signal | Satisfied | Rebuild job-list responses expose `total` and `has_more`; tests cover default cap, explicit pagination, and status-filtered truncation semantics | None |
+| `RebuildJobListResponse` truncation signal | Satisfied - automated | Rebuild job-list responses expose `total` and `has_more`; tests cover default cap, explicit pagination, and status-filtered truncation semantics | None |
 | Strict stale-owner restart composition test | Satisfied - automated | The dedicated restart/recovery integration test now covers owner death, lock expiry, RecoveryGate reset, persisted restart load, and stale-owner fencing | Existing restart/recovery helpers, distributed lock test fixtures |
 | Production-scale validation | Partially satisfied | Representative CI fixtures exist, but production-scale rebuild, lock refresh, memory, and persistence-load evidence should run outside normal CI | Stable staging dataset, performance budget, observability dashboards |
 | Continuous operational drills | Satisfied - documented | The operational drill pack defines representative incident drills, metrics, dashboard panels, alert surfaces, and runbook responses; the execution-record register captures actual run artifacts | Observability stack, runbooks, named operators |

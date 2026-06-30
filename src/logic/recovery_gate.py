@@ -465,7 +465,7 @@ class RecoveryGate:
             return
 
         try:
-            self.lock.acquire(max_retries=30)
+            self.lock.acquire(max_retries=30, timeout_seconds=30.0)
         except LockAcquisitionTimeout as lat_exc:
             log_event(
                 logger,
@@ -500,8 +500,22 @@ class RecoveryGate:
         age = (datetime.now(UTC) - heartbeat_time).total_seconds()
         return age >= self.lock_ttl_seconds
 
-    def _reset_active_job(self, active_job: Any, repo: AssetGraphRepository, session: Any) -> None:
+    def _reset_active_job(
+        self,
+        active_job: Any,
+        repo: AssetGraphRepository,
+        session: Any,
+        drift_type: str,
+    ) -> None:
         """Mark active job as failed and commit."""
+        if self.lock.check_state() != LockState.VALID or not self.lock.holder_id:
+            raise ExecutionBlockedError(
+                f"Cannot reset job {active_job.job_id}: lock lost before reset "
+                f"(action=wait, inconsistency={drift_type})",
+                action="wait",
+                inconsistency_type=drift_type,
+            )
+
         current_worker = self.lock.holder_id
         if active_job.active_worker_id != current_worker and not self._is_heartbeat_stale(active_job):
             inconsistency = InconsistencyType.STALE_OWNERSHIP.value
@@ -521,6 +535,13 @@ class RecoveryGate:
                 duration_ms=0,
             ),
         )
+        if self.lock.check_state() != LockState.VALID or not self.lock.holder_id:
+            raise ExecutionBlockedError(
+                f"Cannot commit reset for job {active_job.job_id}: lock lost "
+                f"(action=wait, inconsistency={drift_type})",
+                action="wait",
+                inconsistency_type=drift_type,
+            )
         session.commit()
 
     def _perform_reset_recovery(
@@ -550,7 +571,7 @@ class RecoveryGate:
                 if cancellation_event and cancellation_event.is_set():
                     return
 
-                self._reset_active_job(active_job, repo, session)
+                self._reset_active_job(active_job, repo, session, drift_type)
 
                 log_event(
                     logger,

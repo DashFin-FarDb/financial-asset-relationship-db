@@ -246,6 +246,7 @@ class DistributedLock:
         start_time: float,
         retries: int,
         max_retries: int,
+        timeout_seconds: float = 30.0,
     ) -> None:
         """
         Handle and classify exceptions raised during lock acquisition attempts.
@@ -255,9 +256,10 @@ class DistributedLock:
             start_time (float): Start timestamp of the overall acquisition process.
             retries (int): Number of retries attempted so far.
             max_retries (int): Allowed maximum number of retries.
+            timeout_seconds (float): Timeout ceiling in seconds.
 
         Raises:
-            LockAcquisitionTimeout: If database error occurs and retry limit or 30s limit is reached.
+            LockAcquisitionTimeout: If database error occurs and retry limit or timeout limit is reached.
             Exception: Re-raises the caught exception if not a DB connectivity error.
         """
         self._emit(
@@ -272,7 +274,7 @@ class DistributedLock:
         if not isinstance(exc, (SQLAlchemyError, OSError)):
             self._set_state(LockLifecycleState.LOST)
             raise exc
-        if retries >= max_retries or (time() - start_time) >= 30.0:
+        if retries >= max_retries or (time() - start_time) >= timeout_seconds:
             self._set_state(LockLifecycleState.LOST)
             msg = (
                 f"Failed to acquire lock '{self.lock_name}' "
@@ -280,7 +282,13 @@ class DistributedLock:
             )
             raise LockAcquisitionTimeout(msg) from exc
 
-    def _handle_acquire_contention(self, start_time: float, retries: int, max_retries: int) -> float:
+    def _handle_acquire_contention(
+        self,
+        start_time: float,
+        retries: int,
+        max_retries: int,
+        timeout_seconds: float = 30.0,
+    ) -> float:
         """
         Handle contested lock state checks, asserting wait ceilings and retries.
 
@@ -288,15 +296,16 @@ class DistributedLock:
             start_time (float): Start timestamp of the overall acquisition process.
             retries (int): Number of retries attempted so far.
             max_retries (int): Allowed maximum number of retries.
+            timeout_seconds (float): Timeout ceiling in seconds.
 
         Returns:
             float: Elapsed time in seconds since the start of acquisition.
 
         Raises:
-            LockAcquisitionTimeout: If the retry budget or 30-second ceiling is exceeded.
+            LockAcquisitionTimeout: If the retry budget or timeout ceiling is exceeded.
         """
         elapsed = time() - start_time
-        if retries >= max_retries or elapsed >= 30.0:
+        if retries >= max_retries or elapsed >= timeout_seconds:
             self._set_state(LockLifecycleState.CONTENTED)
             self._emit(
                 LockEvent(
@@ -307,13 +316,15 @@ class DistributedLock:
             )
             self._metric("lock_timeout_total")
             msg = (
-                f"Failed to acquire lock '{self.lock_name}' within 30s ceiling "
+                f"Failed to acquire lock '{self.lock_name}' within {int(timeout_seconds)}s ceiling "
                 f"(elapsed: {elapsed:.2f}s, max_retries: {max_retries})"
             )
             raise LockAcquisitionTimeout(msg)
         return elapsed
 
-    def acquire(self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0) -> LockLease:
+    def acquire(
+        self, *, retry_interval_seconds: float = 1.0, max_retries: int = 0, timeout_seconds: float = 30.0
+    ) -> LockLease:
         """
         Attempt to acquire the distributed lock, using deterministic back-off.
 
@@ -321,12 +332,13 @@ class DistributedLock:
             retry_interval_seconds (float): Initial seconds to wait between retry attempts.
             max_retries (int): Maximum number of retry attempts before giving up.
                 The operation is always capped by a 30s total wait ceiling per GEMINI.md.
+            timeout_seconds (float): Timeout ceiling in seconds.
 
         Returns:
             LockLease: Active lease with lifecycle state and fencing token when acquisition succeeds.
 
         Raises:
-            LockAcquisitionTimeout: If the lock is not acquired within the configured retries or the 30s ceiling.
+            LockAcquisitionTimeout: If the lock is not acquired within the configured retries or the timeout ceiling.
             Exception: Re-raises unexpected exceptions encountered during acquisition.
         """
         self._emit(
@@ -359,12 +371,12 @@ class DistributedLock:
                     self._metric("lock_acquired_total")
                     return LockLease(state=LockLifecycleState.ACQUIRED, fencing_token=self._fencing_token)
             except Exception as exc:
-                self._handle_acquire_exception(exc, start_time, retries, max_retries)
+                self._handle_acquire_exception(exc, start_time, retries, max_retries, timeout_seconds)
 
-            elapsed = self._handle_acquire_contention(start_time, retries, max_retries)
+            elapsed = self._handle_acquire_contention(start_time, retries, max_retries, timeout_seconds)
 
-            # Deterministic exponential back-off bounded by the 30s ceiling
-            sleep_duration = min(current_interval, 30.0 - elapsed)
+            # Deterministic exponential back-off bounded by the timeout ceiling
+            sleep_duration = min(current_interval, timeout_seconds - elapsed)
             if sleep_duration > 0:
                 log_event(
                     logger,

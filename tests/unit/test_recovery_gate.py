@@ -559,7 +559,7 @@ def test_reset_lock_reacquisition_requires_valid_lock_after_acquire(
 
     assert exc_info.value.action == "wait"
     assert exc_info.value.inconsistency_type == "crash_suspicion"
-    mock_lock.acquire.assert_called_once_with(max_retries=30)
+    mock_lock.acquire.assert_called_once_with(max_retries=30, timeout_seconds=30.0)
     assert gate.lock_was_reacquired is False
 
 

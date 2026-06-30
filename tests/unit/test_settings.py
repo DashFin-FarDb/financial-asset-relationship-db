@@ -12,7 +12,14 @@ from unittest.mock import patch
 
 import pytest
 
-from src.config.settings import Settings, _parse_bool_env, _parse_csv_env, get_settings, load_settings
+from src.config.settings import (
+    DeploymentEnvironment,
+    Settings,
+    _parse_bool_env,
+    _parse_csv_env,
+    get_settings,
+    load_settings,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -240,8 +247,8 @@ class TestLoadSettings:
     def test_load_settings_from_environment(self) -> None:
         """Test loading settings from environment variables."""
         settings = load_settings()
-        assert settings.env == "production"
-        assert settings.vercel_env == "preview"
+        assert settings.env == DeploymentEnvironment.PRODUCTION
+        assert settings.vercel_env == DeploymentEnvironment.PREVIEW
         assert settings.allowed_origins_raw == "https://example.com,https://example.org"
         assert settings.secret_key == "test-secret-that-is-at-least-32-bytes"
         assert settings.admin_username == "admin"
@@ -295,13 +302,13 @@ class TestLoadSettings:
     def test_load_settings_env_lowercase(self) -> None:
         """Test that ENV is converted to lowercase."""
         settings = load_settings()
-        assert settings.env == "production"
+        assert settings.env == DeploymentEnvironment.PRODUCTION
 
     @patch.dict(os.environ, {"VERCEL_ENV": "preview"}, clear=True)
     def test_load_settings_vercel_env_is_loaded(self) -> None:
         """Test that VERCEL_ENV is loaded through the typed settings layer."""
         settings = load_settings()
-        assert settings.vercel_env == "preview"
+        assert settings.vercel_env == DeploymentEnvironment.PREVIEW
 
     @patch.dict(os.environ, {"USE_REAL_DATA_FETCHER": "1"})
     def test_load_settings_use_real_data_fetcher_parsing(self) -> None:

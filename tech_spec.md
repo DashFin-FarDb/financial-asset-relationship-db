@@ -281,7 +281,7 @@ The relationship engine discovers and manages six primary relationship types:
 | KPI                                | Description                               | Measurement Source      |
 | ---------------------------------- | ----------------------------------------- | ----------------------- |
 | Network Density                    | Ratio of actual to possible relationships | `/api/graph/metrics` endpoint |
-| Average Degree                     | Mean number of connections per asset      | `/api/graph/metrics` endpoint |
+| Average Degree                     | Mean outgoing relationship count for source assets (zero-degree assets are excluded) | `/api/graph/metrics` endpoint |
 | Max Degree                         | Highest connected asset                   | `/api/graph/metrics` endpoint |
 | Asset Class Distribution           | Balance of asset types in network         | `/api/graph/metrics` endpoint |
 | Relationship Strength Distribution | Distribution of normalized weights        | Visualization layer     |
@@ -11987,7 +11987,7 @@ This glossary defines key terms used throughout the Technical Specification, org
 | **Asset**                      | A financial instrument with tradeable value. Base domain entity requiring id, symbol, name, asset_class, sector, and price fields.            |
 | **Asset Class**                | Category classification for financial instruments. Supported values: Equity, Fixed Income, Commodity, Currency, Derivative.                   |
 | **Asset Relationship Graph**   | Core in-memory data structure storing assets as nodes and relationships as weighted edges in an adjacency list format.                        |
-| **Average Degree**             | Network metric representing the mean number of connections per node, calculated as (2 × total_relationships) / total_assets.                  |
+| **Average Degree**             | Network metric representing the mean outgoing relationship count for source assets, calculated as total_relationships / len(source_assets) (zero-degree assets are excluded). |
 | **Bidirectional Relationship** | A relationship type where the connection applies equally in both directions (e.g., same_sector, income_comparison).                           |
 | **Bond**                       | Fixed income security with specialized attributes: yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.               |
 | **Commodity**                  | Asset class representing tradeable goods contracts with attributes: contract_size, delivery_date, and volatility.                             |
