@@ -62,7 +62,7 @@ Reference:
 - [ ] Redacted `/api/health/detailed` output attached.
 - [ ] Redacted `/api/assets?per_page=1` output attached.
 - [ ] /api/health/detailed response graph_persistence_configured == true is confirmed.
-- [ ] /api/health/detailed response graph_persistence_configured == true is confirmed.
+- [ ] /api/health/detailed response graph.persistence_enabled == true is confirmed.
 - [ ] /api/health/detailed response graph.persistence_loaded == true is confirmed.
 - [ ] /api/health/detailed response graph.startup_source == "persisted" is confirmed.
 - [ ] Hosted durable persistence evidence object or supporting evidence issue link is recorded.
