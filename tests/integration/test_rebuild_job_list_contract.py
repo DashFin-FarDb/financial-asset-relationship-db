@@ -44,6 +44,7 @@ def db_setup(
         engine.dispose()
         get_settings.cache_clear()
 
+
 def _seed_jobs(session_factory: Callable[[], Any], count: int) -> list[str]:
     """Seed rebuild jobs and preserve insertion order in persistence."""
     with session_scope(session_factory) as session:
