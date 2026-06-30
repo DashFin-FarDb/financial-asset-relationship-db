@@ -78,9 +78,9 @@ The staging topology is defined in [docs/staging-deployment-operating-baseline.m
 | Operator | mohavro |
 | Capture timestamp UTC | 2026-06-29T12:44:00Z |
 | Command or observation source | `python scripts/check_hosted_readiness.py https://financial-asset-relationship-db-nine.vercel.app --require-persistence` |
-| Expected result | `graph_persistence_configured == true`, `graph.persistence_enabled == true`, `graph.persistence_loaded == true`, `graph.startup_source == "persisted"`. |
+| Expected result | `graph_persistence_configured == true`, `graph.persistence_loaded == true`, `graph.startup_source == "persisted"`. |
 | Actual result | Smoke check passed with 100% fidelity. Detailed health check shows status healthy, graph_persistence_configured: true, and startup_source: persisted. |
-| Relevant fields observed | `/api/health/detailed` status healthy, `graph_persistence_configured == true`, `graph.persistence_enabled == true`, `graph.persistence_loaded == true`, `graph.startup_source == "persisted"`, `database.configured == true`, `database.reachable == true` |
+| Relevant fields observed | `/api/health/detailed` status healthy, `graph_persistence_configured == true`, `graph.persistence_loaded == true`, `graph.startup_source == "persisted"`, `database.configured == true`, `database.reachable == true` |
 | Metrics observed | `asset_count`: 19, `relationship_count`: 73 |
 | Logs/events observed | Cold-start initialization resolved startup reconciliation cleanly via the Supabase connection string. |
 | Dashboard/alert observed | Health status dashboard green. |
@@ -100,7 +100,6 @@ The staging topology is defined in [docs/staging-deployment-operating-baseline.m
 ### Durable evidence checklist
 
 - `graph_persistence_configured == true`: Passed - verified via check_hosted_readiness.py smoke tests.
-- `graph.persistence_enabled == true`: Passed - verified via check_hosted_readiness.py smoke tests.
 - `graph.persistence_loaded == true`: Passed - verified via check_hosted_readiness.py smoke tests.
 - `graph.startup_source == "persisted"`: Passed - verified via check_hosted_readiness.py smoke tests.
 - Persisted graph counts or approved sentinel baseline: 19 assets, 73 relationships.
