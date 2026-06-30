@@ -24,7 +24,7 @@ Align all repository documentation, issue templates, and specifications with the
 ## Success Criteria
 
 - Pre-commit checks pass on all modified files.
-- No references to the outdated `graph.persistence_enabled` key remain in issue templates.
+- No top-level references to the outdated `graph_persistence_enabled` key remain in issue templates.
 - All documentation files accurately reflect repository architectural constraints.
 
 ## Status

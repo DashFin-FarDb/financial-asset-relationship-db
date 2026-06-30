@@ -19,14 +19,14 @@ Strengthen lock validation boundaries during resets, enforce the deterministic 3
 4. **Authoritative Audit Log Fields**:
    - Restructure log metadata merging in `api/auth.py`'s `_log_security_event` to prevent arbitrary user-provided payloads from overriding canonical context fields (`request_id`, `username`, etc.).
 5. **Pagination Boundary Validation**:
-   - Encode bounds in `api/api_models.py`'s `MetricsResponse` pagination fields (`total >= 0`, `page >= 1`, `1 <= per_page <= 1000`) using Pydantic `Field` validation.
+   - Encode bounds in `api/api_models.py`'s `AssetPageResponse` pagination fields (`total >= 0`, `page >= 1`, `1 <= per_page <= 1000`) using Pydantic `Field` validation.
 6. **Metrics HTTPException Propagation**:
    - Ensure `api/routers/metrics.py` propagates `HTTPException` instances without swallowing them into a generic `500 Server Error` response.
 
 ## Success Criteria
 
 - Lock-loss during job reset raises `ExecutionBlockedError` and prevents DB commits.
-- Lock acquisition times out in exactly 30s.
+- Lock acquisition times out within 30s.
 - Sensitive credentials do not leak to logging streams.
 - Invalid pagination requests are rejected by schema validators.
 

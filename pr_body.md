@@ -41,7 +41,9 @@ This PR resolves repository-wide scan findings across documentation/templates al
 - `docs/runbooks/backup-restore-dr.md`
 - `.github/ISSUE_TEMPLATE/*`
 - `src/logic/recovery_gate.py`
+- `src/data/distributed_lock.py`
 - `api/auth.py`, `api/api_models.py`, `api/routers/metrics.py`
+- `tests/unit/test_distributed_lock_runtime.py`
 - `tests/*` (various unit and integration tests)
 
 ## Triage Data
