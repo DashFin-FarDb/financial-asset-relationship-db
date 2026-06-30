@@ -186,9 +186,11 @@ def _log_security_event(event: _SecurityAuditEvent) -> None:
     log_event(
         logger,
         event.level,
-        "security_audit_event",
-        event.action,
-        **event_metadata,
+        ObservabilityEvent(
+            event=event.event_slug,
+            message=event.action,
+            metadata=event_metadata,
+        ),
     )
 
     req_meta = _request_security_metadata(event.request)
@@ -209,9 +211,11 @@ def _log_security_event(event: _SecurityAuditEvent) -> None:
     log_event(
         logger,
         logging.INFO,
-        "security_audit_event",
-        event.action,
-        **event_metadata,
+        ObservabilityEvent(
+            event=event.event_slug,
+            message=event.action,
+            metadata=event_metadata,
+        ),
     )
     event_metadata.update(_request_security_metadata(event.request))
     username = _bounded_security_identity(event.username)
