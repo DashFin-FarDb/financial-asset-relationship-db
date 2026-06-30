@@ -39,7 +39,7 @@ def db_setup(
     try:
         yield session_factory
     finally:
-        app.dependency_overrides.clear()
+        if get_current_rebuild_operator_user in app.dependency_overrides:
         engine.dispose()
         get_settings.cache_clear()
 
