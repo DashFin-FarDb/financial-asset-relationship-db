@@ -114,7 +114,7 @@ def _is_sensitive_metadata_key(key: str) -> bool:
         return False
     sensitive_substrings = ("password", "passwd", "pwd", "token", "authorization", "secret", "apikey")
     return normalized in _SENSITIVE_METADATA_KEYS or any(sub in normalized for sub in sensitive_substrings)
-    )
+    return normalized in _SENSITIVE_METADATA_KEYS or any(sub in normalized for sub in sensitive_substrings)
 
 
 def _sanitize_metadata_value(value: Any) -> Any:
