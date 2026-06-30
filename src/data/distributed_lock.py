@@ -331,7 +331,7 @@ class DistributedLock:
         Parameters:
             retry_interval_seconds (float): Initial seconds to wait between retry attempts.
             max_retries (int): Maximum number of retry attempts before giving up.
-                The operation is always capped by a 30s total wait ceiling per GEMINI.md.
+                The operation is capped by the timeout_seconds ceiling (default 30s per GEMINI.md).
             timeout_seconds (float): Timeout ceiling in seconds.
 
         Returns:
@@ -341,6 +341,9 @@ class DistributedLock:
             LockAcquisitionTimeout: If the lock is not acquired within the configured retries or the timeout ceiling.
             Exception: Re-raises unexpected exceptions encountered during acquisition.
         """
+        if timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be positive")
+
         self._emit(
             LockEvent(
                 LockEventType.ACQUIRE_ATTEMPT,
