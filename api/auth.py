@@ -155,7 +155,7 @@ def _bounded_security_identity(value: str | None) -> str | None:
 def _log_security_event(event: _SecurityAuditEvent) -> None:
     """Emit a structured security audit event without credential-bearing values."""
     event_metadata: Dict[str, Any] = _safe_security_metadata(event.metadata)
-    
+
     req_meta = _request_security_metadata(event.request)
     for k, v in req_meta.items():
         if v is not None or k not in event_metadata:
