@@ -50,11 +50,11 @@ jobs:
 
       - name: Run Gate Tests (Durable Persistence)
         run: |
-          pytest tests/unit/test_repository_graph_persistence.py -q --junitxml=results-persistence-1.xml || true
-          pytest tests/unit/test_graph_lifecycle_persistence.py -q --junitxml=results-persistence-2.xml || true
-          pytest tests/unit/test_repository_graph_persistence_fields.py -q --junitxml=results-persistence-3.xml || true
-          pytest tests/unit/test_graph_lifecycle_persistence_fields.py -q --junitxml=results-persistence-4.xml || true
-          pytest tests/integration/test_hosted_graph_startup_readiness.py -q --junitxml=results-persistence-5.xml || true
+          pytest tests/unit/test_repository_graph_persistence.py -q --junitxml=results-persistence-1.xml
+          pytest tests/unit/test_graph_lifecycle_persistence.py -q --junitxml=results-persistence-2.xml
+          pytest tests/unit/test_repository_graph_persistence_fields.py -q --junitxml=results-persistence-3.xml
+          pytest tests/unit/test_graph_lifecycle_persistence_fields.py -q --junitxml=results-persistence-4.xml
+          pytest tests/integration/test_hosted_graph_startup_readiness.py -q --junitxml=results-persistence-5.xml
 
       - name: Run Gate Tests (Restart/Reload)
         run: |
