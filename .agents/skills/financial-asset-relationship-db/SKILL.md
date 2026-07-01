@@ -1,32 +1,37 @@
-```markdown
+````markdown
 # financial-asset-relationship-db Development Patterns
 
 > Auto-generated skill from repository analysis
 
 ## Overview
+
 This skill teaches the core development patterns and workflows for the `financial-asset-relationship-db` repository, a TypeScript codebase for managing financial asset relationships. It covers coding conventions, code style, commit practices, and automated workflows for maintaining code quality and consistency.
 
 ## Coding Conventions
 
 ### File Naming
+
 - Use **kebab-case** for all file names.
-  - Example:  
+  - Example:
     ```
     asset-relationship-manager.ts
     financial-entity.test.ts
     ```
 
 ### Import Style
+
 - Use **relative imports** for modules within the project.
   - Example:
     ```typescript
-    import { calculateRisk } from './risk-calculator'
-    import { Asset } from '../models/asset'
+    import { calculateRisk } from "./risk-calculator";
+    import { Asset } from "../models/asset";
     ```
 
 ### Export Style
+
 - Use **named exports** for all exported functions, types, and constants.
   - Example:
+
     ```typescript
     // Good
     export function getAssetById(id: string): Asset { ... }
@@ -36,6 +41,7 @@ This skill teaches the core development patterns and workflows for the `financia
     ```
 
 ### Commit Message Patterns
+
 - Use prefixes: `style`, `test`, `chore`, `fix`, `feat`
 - Keep commit messages concise (~58 characters on average)
   - Example:
@@ -47,6 +53,7 @@ This skill teaches the core development patterns and workflows for the `financia
 ## Workflows
 
 ### ESLint Configuration Update
+
 **Trigger:** When updating, migrating, or refactoring ESLint configuration for the frontend  
 **Command:** `/eslint-config-update`
 
@@ -56,6 +63,7 @@ This skill teaches the core development patterns and workflows for the `financia
 4. Commit changes with a message indicating ESLint config update or migration.
 
 **Files Involved:**
+
 - `frontend/.eslintrc.json`
 - `frontend/eslint.config.mjs`
 - `frontend/.eslintignore`
@@ -64,14 +72,16 @@ This skill teaches the core development patterns and workflows for the `financia
 - `frontend/__tests__/config/eslint-upgrade-validation.test.ts`
 
 **Example Commit Message:**
-```
+````
+
 chore: migrate ESLint config to new format and update dependencies
-```
+
+````
 
 ---
 
 ### Code Formatting Standardization
-**Trigger:** When enforcing or fixing code style issues across the codebase, especially after major changes or before releases  
+**Trigger:** When enforcing or fixing code style issues across the codebase, especially after major changes or before releases
 **Command:** `/format-code`
 
 1. Run code formatters (e.g., Prettier) on relevant files.
@@ -84,9 +94,10 @@ chore: migrate ESLint config to new format and update dependencies
 **Example Command:**
 ```bash
 npx prettier --write .
-```
+````
 
 **Example Commit Message:**
+
 ```
 style: format codebase with Prettier for consistency
 ```
@@ -99,21 +110,25 @@ style: format codebase with Prettier for consistency
 - Place tests alongside implementation or in dedicated `__tests__` directories.
 
 **Example Test File:**
+
 ```typescript
 // asset-relationship.test.ts
-import { getAssetById } from './asset-relationship-manager'
+import { getAssetById } from "./asset-relationship-manager";
 
-describe('getAssetById', () => {
-  it('returns the correct asset for a valid id', () => {
+describe("getAssetById", () => {
+  it("returns the correct asset for a valid id", () => {
     // ...test implementation
-  })
-})
+  });
+});
 ```
 
 ## Commands
 
-| Command                | Purpose                                                |
-|------------------------|--------------------------------------------------------|
-| /eslint-config-update  | Update or migrate ESLint configuration                 |
-| /format-code           | Apply automated code formatting across the codebase    |
+| Command               | Purpose                                             |
+| --------------------- | --------------------------------------------------- |
+| /eslint-config-update | Update or migrate ESLint configuration              |
+| /format-code          | Apply automated code formatting across the codebase |
+
+```
+
 ```
