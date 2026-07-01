@@ -42,7 +42,7 @@ jobs:
             echo "::add-mask::$URL"
           fi
 
-          python scripts/check_hosted_readiness.py $URL --json --require-persistence > readiness-output.json
+          python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
