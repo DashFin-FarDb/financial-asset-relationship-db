@@ -367,4 +367,3 @@ Run multiple code formatters (Autopep8, Black, isort, Prettier, Ruff Formatter, 
 - Workflow: code-formatting-with-multi-tool
 - Commit: 'style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS'
 - Files: frontend/eslint.config.mjs, docs/ci-required-checks-policy.md
-
