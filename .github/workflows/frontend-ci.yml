@@ -1,0 +1,37 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+      - 'api/api_models.py'
+      - 'frontend/app/types/api.ts'
+      - 'frontend/__tests__/lib/api-contract-seams.test.ts'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+      - 'api/api_models.py'
+      - 'frontend/app/types/api.ts'
+      - 'frontend/__tests__/lib/api-contract-seams.test.ts'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and Test
+        uses: ./.github/actions/ci-common
+        with:
+          language: node
+          node-version: '>=20.9.0'
+          working-directory: frontend
+          dependency-paths: frontend/package-lock.json
+          install: npm ci
+          test: |
+            npm run lint
+            npm test -- --ci
+          build: npm run build

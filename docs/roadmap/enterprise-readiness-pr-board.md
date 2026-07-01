@@ -25,6 +25,8 @@ These PRs are no longer open remediation items. They form the repository baselin
 | PR 9 | Backup, Restore, and DR Runbook | Satisfied - manual evidence required | Backup/restore strategy and runbook exist; release sign-off still requires actual restore rehearsal and post-restore smoke evidence | Stable persistence layer, restore operator, scratch/staging restore target |
 | PR C | Governance and State-Machine Hardening | Satisfied - documented | Canonical state-machine authority exists and must be updated when governed behavior changes | PR 6, PR 8, review discipline |
 
+| Objective 8 | Release and Deployment Automation Layer | Partially satisfied | GitHub Actions is the canonical PR gate; heavyweight jobs shifted; production containers split; staging verification automated | Stable CI platform, Docker |
+
 ## Remaining Dedicated Follow-ups
 
 These are not stale roadmap items; they are bounded follow-up objectives.
