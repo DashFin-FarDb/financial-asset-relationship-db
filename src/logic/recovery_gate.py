@@ -237,7 +237,8 @@ class RecoveryGate:
             ),
         )
         raise ExecutionBlockedError(
-            f"Execution blocked due to safety state: {plan.safety_state.value} (action={action}, inconsistency={plan.drift_type})",
+            f"Execution blocked due to safety state: {plan.safety_state.value} "
+            f"(action={action}, inconsistency={plan.drift_type})",
             action=action,
             inconsistency_type=plan.drift_type,
         )
@@ -278,8 +279,7 @@ class RecoveryGate:
             ObservabilityEvent(
                 event="recovery_gate_execution_blocked_final",
                 message=(
-                    f"Execution blocked for non-automatic reset plan: "
-                    f"action={action}, inconsistency={plan.drift_type}"
+                    f"Execution blocked for non-automatic reset plan: action={action}, inconsistency={plan.drift_type}"
                 ),
                 metadata={
                     "action": action,
@@ -288,7 +288,8 @@ class RecoveryGate:
             ),
         )
         raise ExecutionBlockedError(
-            f"Execution blocked: reset required but mode={plan.execution_mode.value} (action={action}, inconsistency={plan.drift_type})",
+            f"Execution blocked: reset required but mode={plan.execution_mode.value} "
+            f"(action={action}, inconsistency={plan.drift_type})",
             action=action,
             inconsistency_type=plan.drift_type,
         )
@@ -308,7 +309,8 @@ class RecoveryGate:
             ),
         )
         raise ExecutionBlockedError(
-            f"Execution blocked: {reason_prefix}. Reason: {plan.reason} (action={action}, inconsistency={plan.drift_type})",
+            f"Execution blocked: {reason_prefix}. Reason: {plan.reason} "
+            f"(action={action}, inconsistency={plan.drift_type})",
             action=action,
             inconsistency_type=plan.drift_type,
         )
@@ -465,7 +467,7 @@ class RecoveryGate:
             return
 
         try:
-            self.lock.acquire(max_retries=30)
+            self.lock.acquire(max_retries=30, timeout_seconds=30.0)
         except LockAcquisitionTimeout as lat_exc:
             log_event(
                 logger,
@@ -477,14 +479,16 @@ class RecoveryGate:
                 ),
             )
             raise ExecutionBlockedError(
-                f"Timeout acquiring distributed lock for reset recovery: {lat_exc} (action=wait, inconsistency={drift_type})",
+                f"Timeout acquiring distributed lock for reset recovery: {lat_exc} "
+                f"(action=wait, inconsistency={drift_type})",
                 action="wait",
                 inconsistency_type=drift_type,
             ) from lat_exc
 
         if self.lock.check_state() != LockState.VALID:
             raise ExecutionBlockedError(
-                f"Cannot perform reset recovery without valid lock after reacquisition (action=wait, inconsistency={drift_type})",
+                f"Cannot perform reset recovery without valid lock after reacquisition "
+                f"(action=wait, inconsistency={drift_type})",
                 action="wait",
                 inconsistency_type=drift_type,
             )
@@ -500,8 +504,22 @@ class RecoveryGate:
         age = (datetime.now(UTC) - heartbeat_time).total_seconds()
         return age >= self.lock_ttl_seconds
 
-    def _reset_active_job(self, active_job: Any, repo: AssetGraphRepository, session: Any) -> None:
+    def _reset_active_job(
+        self,
+        active_job: Any,
+        repo: AssetGraphRepository,
+        session: Any,
+        drift_type: str,
+    ) -> None:
         """Mark active job as failed and commit."""
+        if self.lock.check_state() != LockState.VALID or not self.lock.holder_id:
+            raise ExecutionBlockedError(
+                f"Cannot reset job {active_job.job_id}: lock lost before reset "
+                f"(action=wait, inconsistency={drift_type})",
+                action="wait",
+                inconsistency_type=drift_type,
+            )
+
         current_worker = self.lock.holder_id
         if active_job.active_worker_id != current_worker and not self._is_heartbeat_stale(active_job):
             inconsistency = InconsistencyType.STALE_OWNERSHIP.value
@@ -521,6 +539,26 @@ class RecoveryGate:
                 duration_ms=0,
             ),
         )
+        if (
+            self.lock.check_state() != LockState.VALID
+            or not self.lock.holder_id
+            or self.lock.holder_id != current_worker
+        ):
+            job_id = active_job.job_id
+            try:
+                session.rollback()
+            except Exception:
+                logger.debug(
+                    "Rollback failed while handling lock-loss during reset for job %s; "
+                    "continuing to raise ExecutionBlockedError",
+                    job_id,
+                    exc_info=True,
+                )
+            raise ExecutionBlockedError(
+                f"Cannot commit reset for job {job_id}: lock lost (action=wait, inconsistency={drift_type})",
+                action="wait",
+                inconsistency_type=drift_type,
+            )
         session.commit()
 
     def _perform_reset_recovery(
@@ -550,7 +588,7 @@ class RecoveryGate:
                 if cancellation_event and cancellation_event.is_set():
                     return
 
-                self._reset_active_job(active_job, repo, session)
+                self._reset_active_job(active_job, repo, session, drift_type)
 
                 log_event(
                     logger,

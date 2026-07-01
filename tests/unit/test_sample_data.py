@@ -336,7 +336,7 @@ class TestSampleDatabaseMetrics:
 
         # Should have some relationships
         assert metrics["total_relationships"] > 0
-        assert metrics["network_density"] > 0
+        assert 0 < metrics["network_density"] <= 1.0
 
     @staticmethod
     def test_sample_database_metrics_structure():

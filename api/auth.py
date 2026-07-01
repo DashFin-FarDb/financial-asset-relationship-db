@@ -110,7 +110,10 @@ def _request_security_metadata(request: Request | None = None) -> Dict[str, str 
 def _is_sensitive_metadata_key(key: str) -> bool:
     """Return whether a metadata key is a credential-bearing field name."""
     normalized = key.lower().replace("_", "").replace("-", "").replace(" ", "")
-    return normalized in _SENSITIVE_METADATA_KEYS
+    if normalized == "tokentype":
+        return False
+    sensitive_substrings = ("password", "passwd", "pwd", "token", "authorization", "secret", "apikey")
+    return normalized in _SENSITIVE_METADATA_KEYS or any(sub in normalized for sub in sensitive_substrings)
 
 
 def _sanitize_metadata_value(value: Any) -> Any:
@@ -151,15 +154,18 @@ def _bounded_security_identity(value: str | None) -> str | None:
 
 def _log_security_event(event: _SecurityAuditEvent) -> None:
     """Emit a structured security audit event without credential-bearing values."""
-    event_metadata: Dict[str, Any] = _request_security_metadata(event.request)
+    event_metadata: Dict[str, Any] = _safe_security_metadata(event.metadata) if event.metadata else {}
+
+    req_meta = _request_security_metadata(event.request)
+    for k, v in req_meta.items():
+        event_metadata[k] = v
+
     username = _bounded_security_identity(event.username)
     attempted_username = _bounded_security_identity(event.attempted_username)
     if username is not None:
         event_metadata["username"] = username
     if attempted_username is not None:
         event_metadata["attempted_username"] = attempted_username
-    if event.metadata:
-        event_metadata.update(_safe_security_metadata(event.metadata))
 
     log_event(
         logger,
@@ -251,8 +257,11 @@ class UserRepository:
         The `disabled` column is stored as `1` when `is_disabled` is truthy, otherwise `0`.
 
         Parameters:
-            user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
-            **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`, `is_disabled`) which override values in `user_profile` when present; unexpected keys cause a `TypeError`.
+            user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`,
+                `user_full_name`, `is_disabled`.
+            **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`,
+                `is_disabled`) which override values in `user_profile` when present;
+                unexpected keys cause a `TypeError`.
         """
         profile = user_profile.copy() if user_profile is not None else {}
 
@@ -471,7 +480,8 @@ async def get_current_user(  # noqa: RUF029  # NOSONAR
 
     Raises:
         HTTPException: 401 with detail "Token has expired" when the token has expired.
-        HTTPException: 401 with detail "Could not validate credentials" when the token is invalid, missing a subject, or no matching user is found.
+        HTTPException: 401 with detail "Could not validate credentials" when the token is invalid, missing a subject,
+            or no matching user is found.
     """
     credentials_exception = _build_credentials_exception()
     expired_exception = _build_expired_exception()
@@ -501,7 +511,8 @@ def _build_credentials_exception() -> HTTPException:
     Build the HTTPException used when authentication credentials are invalid.
 
     Returns:
-        HTTPException: 401 Unauthorized with detail "Could not validate credentials" and header "WWW-Authenticate: Bearer".
+        HTTPException: 401 Unauthorized with detail "Could not validate credentials" and header
+            "WWW-Authenticate: Bearer".
     """
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

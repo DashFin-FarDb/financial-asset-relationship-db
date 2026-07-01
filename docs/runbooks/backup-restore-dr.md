@@ -194,7 +194,7 @@ WHERE lock_name = 'graph_rebuild';
 
 If the current live database contains a `distributed_locks` row with a future `expires_at`, either:
 
-1. wait for TTL expiry; the operational maximum assumption is 300 seconds unless `REBUILD_LOCK_TTL_SECONDS` has been configured differently; or
+1. wait for TTL expiry; the operational maximum assumption is 300 seconds; or
 2. manually delete the row after confirming no live rebuild writer from the current environment is active.
 
 Manual deletion:
@@ -420,11 +420,11 @@ Confirm expected sentinel assets and directed relationship strengths are present
 
 The deploying organization must assign named owners for the following roles before treating staging or production as enterprise-ready.
 
-| Role | Responsibility | Required access |
-| --- | --- | --- |
-| **Backup Operator** | Verifies provider-managed backup health, confirms retention windows, and executes ad-hoc backups before major changes. | Provider console read access, database read/backup access, secure backup storage access. |
-| **Restore Operator** | Executes restore procedures, runs post-restore/pre-restart cleanup, performs post-restore verification, and updates database connection strings when approved. | Database admin access, provider console restore access, Vercel environment/deployment access. |
-| **Incident Commander** | Owns escalation, coordinates restore decisions, accepts residual risk, and decides whether RTO breach or data loss must be declared. | Incident-management authority and access to the responsible engineering/operator contacts. |
+| Role                   | Responsibility                                                                                                                                                 | Required access                                                                               |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **Backup Operator**    | Verifies provider-managed backup health, confirms retention windows, and executes ad-hoc backups before major changes.                                         | Provider console read access, database read/backup access, secure backup storage access.      |
+| **Restore Operator**   | Executes restore procedures, runs post-restore/pre-restart cleanup, performs post-restore verification, and updates database connection strings when approved. | Database admin access, provider console restore access, Vercel environment/deployment access. |
+| **Incident Commander** | Owns escalation, coordinates restore decisions, accepts residual risk, and decides whether RTO breach or data loss must be declared.                           | Incident-management authority and access to the responsible engineering/operator contacts.    |
 
 One person may hold multiple roles, but the active role for each incident must be explicit in the incident record.
 

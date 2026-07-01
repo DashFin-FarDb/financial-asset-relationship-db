@@ -78,8 +78,8 @@ python scripts/check_hosted_readiness.py <base_url> --require-persistence
 **Post-restore readiness result (`--require-persistence`):**
 **Redacted `/api/health/detailed` evidence:**
 **Redacted `/api/assets?per_page=1` or approved sentinel evidence:**
-**`graph_persistence_configured`:**
 **`graph.persistence_enabled`:**
+**`graph_persistence_configured`:**
 **`graph.persistence_loaded`:**
 **`graph.startup_source`:**
 **Persisted graph counts or approved sentinel baseline:**

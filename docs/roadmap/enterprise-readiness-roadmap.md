@@ -18,36 +18,36 @@ The remaining roadmap is about release execution: attaching target-environment e
 
 These items must be completed or explicitly attached before treating a staging or production release as enterprise-ready.
 
-| Item | Status | Why now | Dependencies |
-| --- | --- | --- | --- |
-| Source-of-truth reconciliation after PR #1287-#1301 | Satisfied - documented | Canonical docs must reflect the merged implementation and evidence state before the next release objective starts | Release evidence pack, release checklist, audit, PR board |
-| Hosted durable promotion evidence | Satisfied - manual evidence required | Staging/production promotion requires proof that the hosted runtime loaded durable graph truth, not only bounded health | `scripts/check_hosted_readiness.py --require-persistence`, target hosted environment, configured `ASSET_GRAPH_DATABASE_URL` |
-| Release evidence capture for the release commit | Satisfied - manual evidence required | The release evidence pack requires CI run links, smoke output, scanner summaries, and named operator sign-off | Release evidence pack, GitHub Actions, hosted staging/prod target |
-| DR restore rehearsal evidence | Satisfied - manual evidence required | DR strategy and runbook exist, but final enterprise release sign-off requires one rehearsed restore artefact | ADR 0005, backup/restore/DR runbook, staging or scratch restore target |
-| Security scanner and exception summary | Satisfied - manual evidence required | Security automation exists, but release governance requires scanner output and approved exceptions for the release commit | Security workflows, governance policy, release approver |
+| Item                                                | Status                               | Why now                                                                                                                   | Dependencies                                                                                                                |
+| --------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Source-of-truth reconciliation after PR #1287-#1301 | Satisfied - documented               | Canonical docs must reflect the merged implementation and evidence state before the next release objective starts         | Release evidence pack, release checklist, audit, PR board                                                                   |
+| Hosted durable promotion evidence                   | Satisfied - manual evidence required | Staging/production promotion requires proof that the hosted runtime loaded durable graph truth, not only bounded health   | `scripts/check_hosted_readiness.py --require-persistence`, target hosted environment, configured `ASSET_GRAPH_DATABASE_URL` |
+| Release evidence capture for the release commit     | Satisfied - manual evidence required | The release evidence pack requires CI run links, smoke output, scanner summaries, and named operator sign-off             | Release evidence pack, GitHub Actions, hosted staging/prod target                                                           |
+| DR restore rehearsal evidence                       | Satisfied - manual evidence required | DR strategy and runbook exist, but final enterprise release sign-off requires one rehearsed restore artefact              | ADR 0005, backup/restore/DR runbook, staging or scratch restore target                                                      |
+| Security scanner and exception summary              | Satisfied - manual evidence required | Security automation exists, but release governance requires scanner output and approved exceptions for the release commit | Security workflows, governance policy, release approver                                                                     |
 
 ## Target-Environment Proof Next
 
 These items turn repository-level readiness into operational confidence.
 
-| Item | Status | Why next | Dependencies |
-| --- | --- | --- | --- |
-| Staging deployment operating baseline | Partially satisfied | The operating model defines the topology, but staging needs explicit provider, database-boundary, secret, and promotion evidence | Vercel project/environment mapping, durable app DB, durable graph DB, optional coordination DB |
-| Durable graph smoke procedure execution | Satisfied - manual evidence required | The procedure is documented; the next step is attaching redacted hosted output for the target environment | Rebuild or approved persisted baseline, backend restart/redeploy, readiness checker |
-| Restore rehearsal and post-restore smoke | Satisfied - manual evidence required | The DR gate remains open until restore is executed and verified at least once | Selected restore point, scratch target, post-restore readiness smoke |
-| Operator ownership sign-off | Satisfied - manual evidence required | Deploy, promotion, rollback, restore, and persistence-verification owners must be named for release | Enterprise deployment operating model, release evidence pack |
+| Item                                     | Status                               | Why next                                                                                                                         | Dependencies                                                                                   |
+| ---------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Staging deployment operating baseline    | Partially satisfied                  | The operating model defines the topology, but staging needs explicit provider, database-boundary, secret, and promotion evidence | Vercel project/environment mapping, durable app DB, durable graph DB, optional coordination DB |
+| Durable graph smoke procedure execution  | Satisfied - manual evidence required | The procedure is documented; the next step is attaching redacted hosted output for the target environment                        | Rebuild or approved persisted baseline, backend restart/redeploy, readiness checker            |
+| Restore rehearsal and post-restore smoke | Satisfied - manual evidence required | The DR gate remains open until restore is executed and verified at least once                                                    | Selected restore point, scratch target, post-restore readiness smoke                           |
+| Operator ownership sign-off              | Satisfied - manual evidence required | Deploy, promotion, rollback, restore, and persistence-verification owners must be named for release                              | Enterprise deployment operating model, release evidence pack                                   |
 
 ## Follow-up Hardening Later
 
 These items are valid but should not be bundled into the release-evidence reconciliation PR.
 
-| Item | Status | Why later | Dependencies |
-| --- | --- | --- | --- |
-| `RebuildJobListResponse` truncation signal | Satisfied | Rebuild job-list responses expose `total` and `has_more`; tests cover default cap, explicit pagination, and status-filtered truncation semantics | None |
-| Strict stale-owner restart composition test | Satisfied - automated | The dedicated restart/recovery integration test now covers owner death, lock expiry, RecoveryGate reset, persisted restart load, and stale-owner fencing | Existing restart/recovery helpers, distributed lock test fixtures |
-| Production-scale validation | Partially satisfied | Representative CI fixtures exist, but production-scale rebuild, lock refresh, memory, and persistence-load evidence should run outside normal CI | Stable staging dataset, performance budget, observability dashboards |
-| Continuous operational drills | Satisfied - documented | The operational drill pack defines representative incident drills, metrics, dashboard panels, alert surfaces, and runbook responses; the execution-record register captures actual run artifacts | Observability stack, runbooks, named operators |
-| Multi-region / advanced hosting strategy | Partially satisfied | Too early until single-region durable staging/prod evidence and restore rehearsal are complete | Release evidence, DR evidence, cost and provider model |
+| Item                                        | Status                 | Why later                                                                                                                                                                                        | Dependencies                                                         |
+| ------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| `RebuildJobListResponse` truncation signal  | Satisfied - automated  | Rebuild job-list responses expose `total` and `hasMore`; tests cover default cap, explicit pagination, and status-filtered truncation semantics                                                  | None                                                                 |
+| Strict stale-owner restart composition test | Satisfied - automated  | The dedicated restart/recovery integration test now covers owner death, lock expiry, RecoveryGate reset, persisted restart load, and stale-owner fencing                                         | Existing restart/recovery helpers, distributed lock test fixtures    |
+| Production-scale validation                 | Partially satisfied    | Representative CI fixtures exist, but production-scale rebuild, lock refresh, memory, and persistence-load evidence should run outside normal CI                                                 | Stable staging dataset, performance budget, observability dashboards |
+| Continuous operational drills               | Satisfied - documented | The operational drill pack defines representative incident drills, metrics, dashboard panels, alert surfaces, and runbook responses; the execution-record register captures actual run artifacts | Observability stack, runbooks, named operators                       |
+| Multi-region / advanced hosting strategy    | Partially satisfied    | Too early until single-region durable staging/prod evidence and restore rehearsal are complete                                                                                                   | Release evidence, DR evidence, cost and provider model               |
 
 ## Key Dependencies
 
