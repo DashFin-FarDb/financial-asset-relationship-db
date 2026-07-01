@@ -1,6 +1,7 @@
 import js from '@eslint/js'
 import globals from 'globals'
 import tsParser from '@typescript-eslint/parser'
+import reactPlugin from 'eslint-plugin-react'
 
 export default [
   js.configs.recommended,
@@ -17,6 +18,9 @@ export default [
   },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
+    plugins: {
+      react: reactPlugin
+    },
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 'latest',

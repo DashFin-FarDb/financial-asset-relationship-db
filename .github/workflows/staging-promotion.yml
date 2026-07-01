@@ -11,8 +11,8 @@ on:
         description: 'Path to the release-candidate evidence file'
         required: true
       base_url:
-        description: 'Staging base URL'
-        required: true
+        description: 'Staging base URL (optional; falls back to HOSTED_READINESS_BASE_URL secret)'
+        required: false
 
 jobs:
   promotion-gate:

@@ -11,8 +11,8 @@ def verify_staging_promotion(evidence_file: str):
         print(f"Error: Evidence file {evidence_file} not found.")
         sys.exit(1)
 
-    evidence_path = Path(evidence_file).resolve()
-    if ".." in str(evidence_path) or not evidence_path.is_relative_to(Path.cwd()):
+    evidence_path = Path(evidence_file).resolve(strict=True)
+    if not evidence_path.is_relative_to(Path.cwd().resolve()):
         print(f"Error: Invalid evidence file path {evidence_file}.")
         sys.exit(1)
     with open(evidence_path, "r", encoding="utf-8") as f:
@@ -32,7 +32,12 @@ def verify_staging_promotion(evidence_file: str):
     if "asset_graph_database_url" not in content:
         missing.append("ASSET_GRAPH_DATABASE_URL boundary confirmation")
 
-    if "distinct" not in content and "exception" not in content and "shared-boundary statement" not in content:
+    if (
+        "distinct asset_graph_database_url" not in content
+        and "asset_graph_database_url distinct" not in content
+        and "exception" not in content
+        and "shared-boundary statement" not in content
+    ):
         missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
 
     # 4. coordination boundary or explicit shared-boundary statement
