@@ -172,17 +172,17 @@ Record named owners for this release candidate:
 
 ## Gate Status Summary
 
-| Gate                | Status                               | Evidence link or note                                                       | Release blocker? |
-| ------------------- | ------------------------------------ | --------------------------------------------------------------------------- | ---------------- |
-| Architecture        | Satisfied - documented               | Declared in Tech Spec and deployment baseline.                              | No               |
-| Durable Persistence | Satisfied - hosted evidence attached | Verified via staging database configuration.                                | No               |
-| Restart / Reload    | Satisfied - hosted evidence attached | Fresh deployment startup verified from persistent database boundary.        | No               |
-| Promotion           | Satisfied (objective scope)          | Staging hosted readiness smoke verification passed for persistence proof.   | No               |
-| API Contract        | Satisfied                            | Fully compliant with Pydantic validation and serialization.                 | No               |
-| Recovery / Rebuild  | Satisfied                            | Reconciliation Engine verified.                                             | No               |
-| Security            | Satisfied (objective scope)          | Clean scans from Bandit and Snyk for objective surface.                     | No               |
-| Governance          | Satisfied - documented               | Process baseline documented and validated.                                  | No               |
-| Disaster Recovery   | Satisfied (objective scope)          | Restore rehearsal validated.                                                | No               |
+| Gate                | Status                               | Evidence link or note                                                     | Release blocker? |
+| ------------------- | ------------------------------------ | ------------------------------------------------------------------------- | ---------------- |
+| Architecture        | Satisfied - documented               | Declared in Tech Spec and deployment baseline.                            | No               |
+| Durable Persistence | Satisfied - hosted evidence attached | Verified via staging database configuration.                              | No               |
+| Restart / Reload    | Satisfied - hosted evidence attached | Fresh deployment startup verified from persistent database boundary.      | No               |
+| Promotion           | Satisfied (objective scope)          | Staging hosted readiness smoke verification passed for persistence proof. | No               |
+| API Contract        | Satisfied                            | Fully compliant with Pydantic validation and serialization.               | No               |
+| Recovery / Rebuild  | Satisfied                            | Reconciliation Engine verified.                                           | No               |
+| Security            | Satisfied (objective scope)          | Clean scans from Bandit and Snyk for objective surface.                   | No               |
+| Governance          | Satisfied - documented               | Process baseline documented and validated.                                | No               |
+| Disaster Recovery   | Satisfied (objective scope)          | Restore rehearsal validated.                                              | No               |
 
 ## Remaining Inputs Needed
 
