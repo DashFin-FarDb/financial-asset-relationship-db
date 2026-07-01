@@ -34,7 +34,9 @@ jobs:
         with:
           language: python
           python-version: '3.12'
-          dependency-paths: 'requirements.txt\nrequirements-dev.txt'
+          dependency-paths: |
+            requirements.txt
+            requirements-dev.txt
           install: |
             pip install -r requirements.txt
             pip install -r requirements-dev.txt
