@@ -93,9 +93,9 @@ The staging topology is defined in [docs/staging-deployment-operating-baseline.m
 ### Topology record
 
 - Staging database provider: Supabase.
-- `ASSET_GRAPH_DATABASE_URL` is distinct from `DATABASE_URL` and points to the production DB boundary.
-- `COORDINATION_DATABASE_URL` is configured to point to the production database coordination boundary.
-- Vercel frontend and backend/API labels are verified on production target `financial-asset-relationship-db-nine.vercel.app`.
+- `ASSET_GRAPH_DATABASE_URL` is distinct from `DATABASE_URL` and points to the staging DB boundary.
+- `COORDINATION_DATABASE_URL` is configured to point to the staging database coordination boundary.
+- Vercel frontend and backend/API labels are verified on staging target `financial-asset-relationship-db-nine.vercel.app`.
 
 ### Durable evidence checklist
 
