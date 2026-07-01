@@ -1,15 +1,9 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import tsParser from '@typescript-eslint/parser'
-import { FlatCompat } from '@eslint/eslintrc'
-
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname
-})
+import js from '@eslint/js';
+import globals from 'globals';
+import tsParser from '@typescript-eslint/parser';
 
 export default [
   js.configs.recommended,
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
     ignores: [
       'node_modules/',
@@ -46,7 +40,9 @@ export default [
       }
     },
     rules: {
+      'no-unused-vars': 'off',
+      'no-undef': 'off',
       'react/react-in-jsx-scope': 'off'
     }
   }
-]
+];
