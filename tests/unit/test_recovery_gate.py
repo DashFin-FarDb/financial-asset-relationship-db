@@ -180,6 +180,8 @@ def test_recovery_gate_blocks_on_orphan_with_valid_lock(mock_session_factory, mo
     from src.data.db_models import RebuildJobStatus
 
     class DummyJob:
+        """Mock rebuild job."""
+
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "worker-1"
@@ -208,6 +210,8 @@ def test_recovery_gate_increments_recovery_metric_on_detected_inconsistency(
     from src.data.db_models import RebuildJobStatus
 
     class DummyJob:
+        """Mock rebuild job."""
+
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "worker-1"
@@ -257,6 +261,8 @@ def test_recovery_gate_error_message_includes_decision_reason(mock_session_facto
     from src.data.db_models import RebuildJobStatus
 
     class DummyJob:
+        """Mock rebuild job."""
+
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "other-worker"
@@ -289,6 +295,8 @@ def test_recovery_gate_orphaned_with_new_lock_owner_returns_reset(mock_session_f
     from src.data.db_models import RebuildJobStatus
 
     class DummyJob:
+        """Mock rebuild job."""
+
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "stale-worker"
@@ -610,6 +618,8 @@ def test_reset_active_job_blocks_on_lock_loss_and_guards_rollback(mock_session_f
     from src.data.db_models import RebuildJobStatus
 
     class DummyJob:
+        """Mock rebuild job."""
+
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "stale-worker"

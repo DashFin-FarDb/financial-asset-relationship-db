@@ -360,6 +360,8 @@ class DistributedLock:
         retries = 0
 
         while True:
+            if (time() - start_time) >= timeout_seconds:
+                self._handle_acquire_contention(start_time, retries, max_retries, timeout_seconds)
             try:
                 res = self._attempt_lock_acquisition()
                 if res.success:
