@@ -105,7 +105,7 @@ jobs:
           fi
 
           if [ -n "$URL" ]; then
-            python scripts/check_hosted_readiness.py $URL --json $LABEL_FLAG $PERSISTENCE_FLAG > readiness-output.json || true
+            python scripts/check_hosted_readiness.py "$URL" --json $LABEL_FLAG $PERSISTENCE_FLAG > readiness-output.json || true
           else
             echo "{}" > readiness-output.json
           fi
