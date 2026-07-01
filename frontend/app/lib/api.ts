@@ -8,7 +8,10 @@ import type {
   VisualizationData,
 } from "../types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL !== undefined
+    ? process.env.NEXT_PUBLIC_API_URL
+    : "http://localhost:8000";
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -56,14 +59,14 @@ export const api = {
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Asset> => {
-    return getData<Asset>(`/api/assets/${assetId}`, { signal });
+    return getData<Asset>(`/api/assets/${encodeURIComponent(assetId)}`, { signal });
   },
 
   getAssetRelationships: async (
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Relationship[]> => {
-    return getData<Relationship[]>(`/api/assets/${assetId}/relationships`, {
+    return getData<Relationship[]>(`/api/assets/${encodeURIComponent(assetId)}/relationships`, {
       signal,
     });
   },
@@ -77,7 +80,7 @@ export const api = {
 
   // Metrics
   getMetrics: async (signal?: AbortSignal): Promise<Metrics> => {
-    return getData<Metrics>("/api/metrics", { signal });
+    return getData<Metrics>("/api/graph/metrics", { signal });
   },
 
   // Visualization

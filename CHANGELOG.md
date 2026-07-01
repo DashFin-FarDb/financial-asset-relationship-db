@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+
+### Changed
+- Centralized settings in `src/config/settings.py` via `pydantic-settings`
+- Decoupled `RebuildExecutor` and `ReconciliationEngine`
+- Parameterized developer scripts and docs, removing hardcoded connection strengths and ports
+
 ### Fixed
 
 - Removed inappropriate CI/CD workflow files that were causing build failures:

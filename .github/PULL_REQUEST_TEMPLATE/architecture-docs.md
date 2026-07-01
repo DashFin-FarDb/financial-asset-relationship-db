@@ -48,9 +48,11 @@
 
 -
 -
+-
 
 ### Potential Concerns
 
+-
 -
 -
 
@@ -75,11 +77,13 @@
 - [ ] No runtime code changes are included
 - [ ] All cross-references are updated
 - [ ] Changes align with existing architectural boundaries
+- [ ] If this PR changes rebuild/recovery/persistence governance, the canonical state-machine authority is updated or the PR proves the interpretation is unchanged
 
 ## Related Documents
 
 <!-- Link to related ADRs, policies, or documentation -->
 
+-
 -
 -
 
@@ -99,6 +103,7 @@
 - [ ] Changes do not contradict existing ADRs
 - [ ] If adding an ADR, it follows the ADR template format
 - [ ] Policy changes are documented with rationale
+- [ ] Current operational interpretation for governed rebuild/recovery/persistence behaviour is aligned with `docs/governance/state-machine-and-operating-authority.md`
 
 ### Scope Compliance
 
@@ -126,6 +131,7 @@
 - Verify architectural consistency across all modified documents
 - Check that the scope is well-defined and respected
 - Ensure no runtime code changes are included
+- Verify canonical state-machine authority updates when governed behaviour changes
 
 **Related Documentation**:
 

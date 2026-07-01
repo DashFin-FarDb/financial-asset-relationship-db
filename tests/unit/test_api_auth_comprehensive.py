@@ -422,7 +422,7 @@ class TestDecodeUsernameFromToken:
         from datetime import datetime, timedelta
 
         payload = {"sub": "eve", "exp": (datetime.now(UTC) + timedelta(minutes=30)).timestamp()}
-        token = jwt.encode(payload, "wrong-secret", algorithm=ALGORITHM)
+        token = jwt.encode(payload, "wrong-secret-that-is-at-least-32-bytes-long", algorithm=ALGORITHM)
         cred_exc, exp_exc = self._make_exceptions()
 
         with pytest.raises(HTTPException) as exc_info:

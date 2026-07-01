@@ -185,9 +185,7 @@ class TestSampleRelationships:
 
     @staticmethod
     def test_relationships_have_valid_strength():
-        """
-        Checks that every relationship in the sample graph has a strength value between 0 and 1 inclusive.
-        """
+        """Check that every relationship has a strength value between 0 and 1 inclusive."""
         graph = create_sample_database()
 
         for _source_id, rels in graph.relationships.items():
@@ -331,14 +329,14 @@ class TestSampleDatabaseMetrics:
 
     @staticmethod
     def test_sample_database_has_sufficient_density():
-        """Test that sample database has reasonable relationship density."""
+        """Test that sample database has reasonable network density."""
         graph = create_sample_database()
 
         metrics = graph.calculate_metrics()
 
         # Should have some relationships
         assert metrics["total_relationships"] > 0
-        assert metrics["relationship_density"] > 0
+        assert 0 < metrics["network_density"] <= 1.0
 
     @staticmethod
     def test_sample_database_metrics_structure():

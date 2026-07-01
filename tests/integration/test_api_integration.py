@@ -23,11 +23,12 @@ def client():
 
 def asset_items(page: dict) -> list[dict]:
     """Return asset items from a paginated assets response."""
-    assert set(page) == {"items", "total", "page", "per_page"}
+    assert set(page) == {"items", "total", "page", "per_page", "hasMore"}
     assert isinstance(page["items"], list)
     assert isinstance(page["total"], int)
     assert isinstance(page["page"], int)
     assert isinstance(page["per_page"], int)
+    assert isinstance(page["hasMore"], bool)
     return page["items"]
 
 
@@ -81,25 +82,14 @@ class TestCompleteAPIFlow:
 
     @staticmethod
     def test_metrics_consistency(client):
-        """Test that metrics are consistent with actual data."""
-        # Get metrics
+        """Test that metrics endpoint exposes Prometheus/OpenMetrics text."""
         metrics_response = client.get("/api/metrics")
         assert metrics_response.status_code == 200
-        metrics = metrics_response.json()
-
-        # Get all assets
-        assets = all_asset_items(client)
-
-        # Verify metrics match actual counts
-        assert metrics["total_assets"] == len(assets)
-
-        # Verify asset class counts
-        asset_class_counts = {}
-        for asset in assets:
-            ac = asset["asset_class"]
-            asset_class_counts[ac] = asset_class_counts.get(ac, 0) + 1
-
-        assert metrics["asset_classes"] == asset_class_counts
+        assert "text/plain" in metrics_response.headers.get("content-type", "")
+        body = metrics_response.text
+        assert "graph_rebuild_requests_total" in body
+        assert "graph_assets_count" in body
+        assert "graph_relationships_count" in body
 
     @staticmethod
     def test_visualization_data_consistency(client):
@@ -227,7 +217,6 @@ class TestAuthenticationFlow:
     @staticmethod
     def test_token_issuance_and_validation(client):
         """A valid credential should yield a token that authorizes protected endpoints."""
-
         credentials = {
             "username": os.environ["ADMIN_USERNAME"],
             "password": os.environ["ADMIN_PASSWORD"],

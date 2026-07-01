@@ -261,8 +261,8 @@ class TestRecommendations:
         metrics = populated_graph.calculate_metrics()
 
         assert (
-            metrics["relationship_density"] > 30
-        ), f"Expected density > 30 for fully connected graph, got {metrics['relationship_density']}"
+            metrics["network_density"] > 0.30
+        ), f"Expected density > 0.30 for fully connected graph, got {metrics['network_density']}"
         assert "High connectivity" in report or "normalization" in report
 
     @staticmethod
@@ -270,11 +270,11 @@ class TestRecommendations:
         """Test recommendation for well-balanced graphs."""
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
-        density = metrics["relationship_density"]
+        density = metrics["network_density"]
 
-        if density > 30:
+        if density > 0.30:
             assert "High connectivity" in report or "normalization" in report
-        elif density > 10:
+        elif density > 0.10:
             assert "Well-balanced" in report or "optimal" in report
         else:
             assert "Sparse" in report or "adding more relationships" in report
@@ -287,8 +287,8 @@ class TestRecommendations:
 
         metrics = empty_graph.calculate_metrics()
         assert (
-            metrics["relationship_density"] <= 10
-        ), f"Expected density <= 10 for single-asset graph, got {metrics['relationship_density']}"
+            metrics["network_density"] <= 0.10
+        ), f"Expected density <= 0.10 for single-asset graph, got {metrics['network_density']}"
         assert "Sparse" in report or "adding more relationships" in report
 
 

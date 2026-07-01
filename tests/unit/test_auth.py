@@ -10,7 +10,7 @@ This module tests:
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import Mock, patch
 
 import pytest
@@ -544,7 +544,7 @@ class TestSecretKeyValidation:
 
         # Decoding with wrong key should fail
         with pytest.raises(jwt.InvalidSignatureError):
-            jwt.decode(token, "wrong_secret", algorithms=[ALGORITHM])
+            jwt.decode(token, "wrong_secret_at_least_32_bytes_long", algorithms=[ALGORITHM])
 
 
 # Mark tests that require database
@@ -952,7 +952,7 @@ class TestGetCurrentUserEdgeCases:
         from api.auth import ALGORITHM, SECRET_KEY
 
         # Create token without 'sub'
-        token_data = {"exp": datetime.utcnow() + timedelta(minutes=30)}
+        token_data = {"exp": datetime.now(UTC) + timedelta(minutes=30)}
         token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
 
         with pytest.raises(HTTPException) as exc_info:

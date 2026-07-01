@@ -53,6 +53,7 @@ describe("AssetList Component", () => {
       total: mockAssets.length,
       page: 1,
       per_page: 20,
+      hasMore: false,
     });
     mockedApi.getAssetClasses.mockResolvedValue(mockAssetClasses);
     mockedApi.getSectors.mockResolvedValue(mockSectors);
@@ -62,7 +63,7 @@ describe("AssetList Component", () => {
     render(<AssetList />);
 
     await waitFor(() => {
-      expect(screen.getByText("Filters")).toBeInTheDocument();
+      expect(screen.getByLabelText(/Asset Class/i)).toBeInTheDocument();
     });
   });
 
@@ -88,6 +89,7 @@ describe("AssetList Component", () => {
       total: mockAssets.length,
       page: 1,
       per_page: 20,
+      hasMore: false,
     });
 
     fireEvent.change(assetClassSelect, { target: { value: "EQUITY" } });
@@ -106,7 +108,7 @@ describe("AssetList Component", () => {
 
   it("should display loading state", () => {
     render(<AssetList />);
-    expect(screen.getByText(/Loading results for page 1/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Loading.../).length).toBeGreaterThan(0);
   });
 
   it("should handle empty assets", async () => {
@@ -115,6 +117,7 @@ describe("AssetList Component", () => {
       total: 0,
       page: 1,
       per_page: 20,
+      hasMore: false,
     });
     render(<AssetList />);
 
@@ -146,12 +149,14 @@ describe("AssetList Component", () => {
         total: 40,
         page: 1,
         per_page: 20,
+        hasMore: true,
       })
       .mockResolvedValueOnce({
         items: mockAssets,
         total: 40,
         page: 2,
         per_page: 20,
+        hasMore: false,
       });
 
     render(<AssetList />);
@@ -181,6 +186,7 @@ describe("AssetList Component", () => {
       total: 150,
       page: 3,
       per_page: 50,
+      hasMore: false,
     });
 
     render(<AssetList />);
@@ -205,6 +211,7 @@ describe("AssetList Component", () => {
       total: number;
       page: number;
       per_page: number;
+      hasMore: boolean;
     };
 
     type Deferred<T> = {
@@ -255,6 +262,7 @@ describe("AssetList Component", () => {
       total: secondAssets.length,
       page: 1,
       per_page: 20,
+      hasMore: false,
     });
 
     await waitFor(() => {
@@ -266,6 +274,7 @@ describe("AssetList Component", () => {
       total: firstAssets.length,
       page: 1,
       per_page: 20,
+      hasMore: false,
     });
 
     await waitFor(() => {

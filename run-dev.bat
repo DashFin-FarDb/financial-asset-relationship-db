@@ -46,8 +46,10 @@ echo 📥 Installing Python dependencies...
 pip install -r requirements.txt
 
 REM Start backend in background
-echo 🔧 Starting FastAPI backend on port 8000...
-start /B python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+if "%BACKEND_PORT%"=="" set BACKEND_PORT=8000
+if "%FRONTEND_PORT%"=="" set FRONTEND_PORT=3000
+echo 🔧 Starting FastAPI backend on port %BACKEND_PORT%...
+start /B python -m uvicorn api.main:app --reload --host 127.0.0.1 --port %BACKEND_PORT%
 
 REM Wait for backend to start
 timeout /t 3 /nobreak >nul
@@ -61,17 +63,18 @@ if not exist "frontend\node_modules\" (
 )
 
 REM Start frontend
-echo ⚛️  Starting Next.js frontend on port 3000...
+echo ⚛️  Starting Next.js frontend (suggested port %FRONTEND_PORT%)...
 cd frontend
+set "PORT=%FRONTEND_PORT%"
 start /B npm run dev
 cd ..
 
 echo.
 echo ✅ Development servers started!
 echo.
-echo 📍 Frontend: http://localhost:3000
-echo 📍 Backend API: http://localhost:8000
-echo 📍 API Docs: http://localhost:8000/docs
+echo 📍 Frontend: http://localhost:%FRONTEND_PORT%
+echo 📍 Backend API: http://localhost:%BACKEND_PORT%
+echo 📍 API Docs: http://localhost:%BACKEND_PORT%/docs
 echo.
 echo Press Ctrl+C to stop the servers
 echo.

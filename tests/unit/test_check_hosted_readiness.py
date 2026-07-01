@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
@@ -28,7 +29,26 @@ def _healthy_detailed_payload() -> dict[str, Any]:
     """Return a healthy detailed-readiness payload for tests."""
     return {
         "status": "healthy",
+        "graph_persistence_configured": True,
         "graph": {"available": True, "asset_count": 19, "relationship_count": 57},
+        "database": {"configured": True, "type": "postgresql", "reachable": True},
+    }
+
+
+def _healthy_detailed_payload_with_persistence() -> dict[str, Any]:
+    """Return a healthy detailed-readiness payload with active persistence for tests."""
+    return {
+        "status": "healthy",
+        "graph_persistence_configured": True,
+        "graph": {
+            "available": True,
+            "asset_count": 19,
+            "relationship_count": 57,
+            "persistence_enabled": True,
+            "persistence_loaded": True,
+            "persistence_saved": False,
+            "startup_source": "persisted",
+        },
         "database": {"configured": True, "type": "postgresql", "reachable": True},
     }
 
@@ -210,7 +230,8 @@ def test_detailed_readiness_rejects_missing_top_level_fields(monkeypatch: pytest
     failures = script.check_detailed_readiness("https://example.com", 5.0)
 
     assert (
-        "/api/health/detailed returned top-level field mismatch: missing=['database', 'graph'], unexpected=[]"
+        "/api/health/detailed returned top-level field mismatch: "
+        "missing=['database', 'graph', 'graph_persistence_configured'], unexpected=[]"
     ) in failures
 
 
@@ -222,6 +243,7 @@ def test_detailed_readiness_rejects_non_object_graph_or_database(monkeypatch: py
         """Return a detailed readiness response with non-object fields."""
         return 200, {
             "status": "healthy",
+            "graph_persistence_configured": True,
             "graph": [],
             "database": [],
         }
@@ -232,6 +254,25 @@ def test_detailed_readiness_rejects_non_object_graph_or_database(monkeypatch: py
 
     assert "/api/health/detailed graph field is not an object" in failures
     assert "/api/health/detailed database field is not an object" in failures
+
+
+def test_detailed_readiness_rejects_non_boolean_graph_persistence_configured(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Detailed readiness check rejects non-boolean graph_persistence_configured values."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a detailed readiness response with an invalid persistence-configured type."""
+        payload = _healthy_detailed_payload()
+        payload["graph_persistence_configured"] = "true"
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+
+    failures = script.check_detailed_readiness("https://example.com", 5.0)
+
+    assert "/api/health/detailed graph_persistence_configured field is not a boolean" in failures
 
 
 def test_run_checks_returns_failure_on_runtime_error(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -278,7 +319,11 @@ def test_run_checks_reports_detailed_readiness_runtime_context(
         """Return an empty liveness failure list."""
         return []
 
-    def fake_check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
+    def fake_check_detailed_readiness(
+        base_url: str,
+        timeout: float,
+        require_persistence: bool = False,
+    ) -> list[str]:
         """Raise a fake detailed readiness runtime error."""
         raise RuntimeError("/api/health/detailed request failed")
 
@@ -302,7 +347,7 @@ def test_get_json_uses_bounded_request_failure_message(monkeypatch: pytest.Monke
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
 
     with pytest.raises(RuntimeError) as exc_info:
-        script._get_json(_url_with_credentials("/api/health"), 5.0)
+        script._get_json("https://example.com/api/health", 5.0)
 
     message = str(exc_info.value)
 
@@ -333,14 +378,14 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
             """Return invalid JSON bytes."""
             return b"not-json"
 
-    def fake_urlopen(request: object, timeout: float) -> FakeResponse:
+    def fake_urlopen(request: object, timeout: float) -> "FakeResponse":
         """Return a fake response with invalid JSON."""
         return FakeResponse()
 
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
 
     with pytest.raises(RuntimeError) as exc_info:
-        script._get_json(_url_with_credentials("/api/health/detailed"), 5.0)
+        script._get_json("https://example.com/api/health/detailed", 5.0)
 
     message = str(exc_info.value)
 
@@ -366,7 +411,7 @@ def test_get_json_returns_http_error_status(monkeypatch: pytest.MonkeyPatch) -> 
 
     monkeypatch.setattr(script, "urlopen", fake_urlopen)
 
-    status_code, payload = script._get_json(_url_with_credentials("/api/health"), 5.0)
+    status_code, payload = script._get_json("https://example.com/api/health", 5.0)
 
     assert status_code == 503
     assert payload == {}
@@ -381,6 +426,28 @@ def test_read_response_body_revalidates_request_target(monkeypatch: pytest.Monke
         return "target resolved to internal address"
 
     monkeypatch.setattr(script, "_validate_request_target", fake_validate_request_target)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        script._read_response_body(_url_with_credentials("/api/health"), 5.0)
+
+    message = str(exc_info.value)
+
+    assert message == "/api/health request target validation failed"
+    assert "secret" not in message
+    assert "example.com" not in message
+
+
+def test_read_response_body_rejects_invalid_request_target_before_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Malformed request targets should fail before the HTTP request object is used."""
+    script = _load_script()
+
+    def fail_urlopen(request: object, timeout: float) -> object:
+        """Fail if the request reaches the network layer."""
+        pytest.fail("urlopen should not be called for invalid request targets")
+
+    monkeypatch.setattr(script, "urlopen", fail_urlopen)
 
     with pytest.raises(RuntimeError) as exc_info:
         script._read_response_body(_url_with_credentials("/api/health"), 5.0)
@@ -462,3 +529,248 @@ def test_main_rejects_hostname_that_resolves_to_internal_address(monkeypatch: py
     monkeypatch.setattr(script.socket, "getaddrinfo", fake_getaddrinfo)
 
     assert script.main(["https://metadata.example.com"]) == script.USAGE_ERROR
+
+
+def test_detailed_readiness_with_require_persistence_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Detailed readiness check accepts a persistent payload when require_persistence is True."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a fake successful detailed readiness response with persistence."""
+        return 200, _healthy_detailed_payload_with_persistence()
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+
+    assert script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True) == []
+
+
+def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Detailed readiness check rejects non-persistent or misconfigured payloads when require_persistence is True."""
+    script = _load_script()
+
+    # Case 1: graph_persistence_configured is false
+    def fake_get_json_no_config(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning unconfigured persistence payload."""
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph_persistence_configured"] = False
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_no_config)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    assert "/api/health/detailed graph_persistence_configured is not true" in failures
+
+    # Case 2: persistence_enabled is false
+    def fake_get_json_not_enabled(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning disabled graph persistence payload."""
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph"]["persistence_enabled"] = False
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_not_enabled)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    assert "/api/health/detailed graph.persistence_enabled is not true" in failures
+
+    # Case 3: persistence_loaded is false
+    def fake_get_json_not_loaded(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning unloaded graph persistence payload."""
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph"]["persistence_loaded"] = False
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_not_loaded)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    assert "/api/health/detailed graph.persistence_loaded is not true" in failures
+
+    # Case 4: startup_source is not persisted
+    def fake_get_json_wrong_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning incorrect startup source payload."""
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph"]["startup_source"] = "sample_data"
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_wrong_source)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    assert '/api/health/detailed graph.startup_source is "sample_data", expected "persisted"' in failures
+
+    # Case 5: startup_source is None (missing field)
+    def fake_get_json_missing_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning missing startup source payload."""
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph"]["startup_source"] = None
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_missing_source)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    assert "/api/health/detailed graph.startup_source field is missing" in failures
+
+    # Case 6: startup_source has unsafe values
+    def fake_get_json_unsafe_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning unsafe startup source payload."""
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph"]["startup_source"] = "untrusted_input\nwith_control_chars"
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_unsafe_source)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    assert '/api/health/detailed graph.startup_source is "unknown", expected "persisted"' in failures
+
+    # Case 7: graph is not a dict (should not append redundant persistence-gate failure message)
+    def fake_get_json_non_dict_graph(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning non-dictionary graph payload."""
+        payload = _healthy_detailed_payload_with_persistence()
+        payload["graph"] = "not_a_dict"
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_non_dict_graph)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    # The shape check should catch it:
+    assert "/api/health/detailed graph field is not an object" in failures
+    # But there should NOT be a redundant generic verification error:
+    assert not any("skipped" in f for f in failures)
+    assert not any("graph_persistence_configured" in f for f in failures)
+    assert not any("persistence_enabled" in f for f in failures)
+
+    # Case 8: graph is missing entirely from payload keys (should not double-fail or crash)
+    def fake_get_json_missing_graph(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Mock JSON fetch returning payload with missing graph key."""
+        payload = _healthy_detailed_payload_with_persistence()
+        payload.pop("graph")
+        return 200, payload
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json_missing_graph)
+    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
+    # Contract check should catch it:
+    assert any("graph" in f for f in failures)
+    # But no double failures or extra errors:
+    assert not any("graph_persistence_configured" in f for f in failures)
+    assert not any("persistence_enabled" in f for f in failures)
+
+
+def test_parse_args_handles_require_persistence() -> None:
+    """CLI argument parser correctly extracts the require-persistence flag."""
+    script = _load_script()
+
+    args = script.parse_args(["https://example.com", "--require-persistence"])
+    assert args.require_persistence is True
+
+    args_default = script.parse_args(["https://example.com"])
+    assert args_default.require_persistence is False
+
+
+def test_parse_args_handles_json_mode_and_label() -> None:
+    """CLI argument parser should accept JSON output mode and a safe base URL label."""
+    script = _load_script()
+
+    args = script.parse_args(["https://example.com", "--json", "--base-url-label", "staging-api"])
+
+    assert args.json is True
+    assert args.base_url_label == "staging-api"
+
+
+def test_main_json_outputs_machine_readable_success(capsys: pytest.CaptureFixture[str]) -> None:
+    """JSON mode should emit valid bounded success output without the raw base URL."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return fake JSON payloads for both smoke-check endpoints."""
+        if url.endswith("/api/health"):
+            return 200, {"status": "healthy", "graph_initialized": True}
+        if url.endswith("/api/health/detailed"):
+            return 200, _healthy_detailed_payload_with_persistence()
+        raise AssertionError(f"unexpected URL: {url}")
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    try:
+        exit_code = script.main(["https://example.com", "--json", "--base-url-label", "staging-api"])
+    finally:
+        monkeypatch.undo()
+
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+
+    assert exit_code == script.SUCCESS
+    assert captured.err == ""
+    assert data["status"] == "passed"
+    assert data["base_url_label"] == "staging-api"
+    assert data["require_persistence"] is False
+    assert data["checks"]["liveness"] == {"passed": True, "failures": []}
+    assert data["checks"]["detailed_readiness"] == {"passed": True, "failures": []}
+    assert data["observed_fields"]["graph.persistence_loaded"] is True
+    assert data["observed_fields"]["graph.startup_source"] == "persisted"
+    assert "example.com" not in captured.out
+
+
+def test_main_json_uses_default_redacted_base_url_label(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """JSON mode should default to a redacted base URL label when none is provided."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return fake JSON payloads for both smoke-check endpoints."""
+        if url.endswith("/api/health"):
+            return 200, {"status": "healthy", "graph_initialized": True}
+        if url.endswith("/api/health/detailed"):
+            return 200, _healthy_detailed_payload_with_persistence()
+        raise AssertionError(f"unexpected URL: {url}")
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    exit_code = script.main(["https://example.com", "--json"])
+
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+
+    assert exit_code == script.SUCCESS
+    assert captured.err == ""
+    assert data["status"] == "passed"
+    assert data["base_url_label"] == "redacted"
+    assert "example.com" not in captured.out
+
+
+def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixture[str]) -> None:
+    """JSON mode should emit valid bounded failure output with observed fields."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        """Return a healthy liveness payload and a failing detailed-readiness payload."""
+        if url.endswith("/api/health"):
+            return 200, {"status": "healthy", "graph_initialized": True}
+        if url.endswith("/api/health/detailed"):
+            payload = _healthy_detailed_payload_with_persistence()
+            payload["graph"]["persistence_loaded"] = False
+            payload["graph"]["startup_source"] = "sample_data"
+            return 200, payload
+        raise AssertionError(f"unexpected URL: {url}")
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    try:
+        exit_code = script.main(
+            [
+                "https://example.com",
+                "--json",
+                "--base-url-label",
+                "staging-api",
+                "--require-persistence",
+            ]
+        )
+    finally:
+        monkeypatch.undo()
+
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+
+    assert exit_code == script.CHECK_FAILED
+    assert captured.err == ""
+    assert data["status"] == "failed"
+    assert data["base_url_label"] == "staging-api"
+    assert data["require_persistence"] is True
+    assert data["checks"]["liveness"] == {"passed": True, "failures": []}
+    assert data["checks"]["detailed_readiness"]["passed"] is False
+    assert (
+        "/api/health/detailed graph.persistence_loaded is not true" in data["checks"]["detailed_readiness"]["failures"]
+    )
+    assert data["observed_fields"]["graph.persistence_loaded"] is False
+    assert data["observed_fields"]["graph.startup_source"] == "sample_data"
+    assert "example.com" not in captured.out

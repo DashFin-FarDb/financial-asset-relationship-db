@@ -56,3 +56,40 @@ CREATE TABLE IF NOT EXISTS regulatory_event_assets (
     CONSTRAINT fk_related_asset FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE,
     CONSTRAINT uq_event_asset UNIQUE (event_id, asset_id)
 );
+
+CREATE TABLE IF NOT EXISTS rebuild_jobs (
+    job_id TEXT PRIMARY KEY,
+    requested_by TEXT NOT NULL,
+    status TEXT NOT NULL,
+    source TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
+    duration_ms INTEGER,
+    node_count INTEGER,
+    edge_count INTEGER,
+    sanitized_failure_category TEXT,
+    sanitized_failure_message TEXT,
+    active_worker_id TEXT,
+    last_heartbeat_at TEXT,
+    execution_id TEXT,
+    checkpoint_data TEXT,
+    cancellation_requested_at TEXT,
+    CONSTRAINT ck_rebuild_jobs_status
+        CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
+);
+
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at
+    ON rebuild_jobs (created_at);
+
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
+    ON rebuild_jobs (status, created_at);
+
+CREATE TABLE IF NOT EXISTS distributed_locks (
+    lock_name TEXT PRIMARY KEY,
+    holder_id TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
