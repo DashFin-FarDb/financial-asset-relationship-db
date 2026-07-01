@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --max-warnings 10 --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint . --max-warnings 10",
     "test": "jest --silent",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --silent",
