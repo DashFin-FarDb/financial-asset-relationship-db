@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@vercel/analytics": "^1.6.1",
-    "axios": "^1.16.0",
+// Update frontend/__tests__/config/package-integration.test.ts and frontend/__tests__/config/package-lock-validation.test.ts assertions from 1.15.0/^1.13.5 to 1.16.0/^1.16.0
     "next": "16.2.3",
     "plotly.js": "^2.27.0",
     "react": "^19.2.7",
