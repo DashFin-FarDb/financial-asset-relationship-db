@@ -1,6 +1,6 @@
-import js from '@eslint/js';
-import globals from 'globals';
-import tsParser from '@typescript-eslint/parser';
+import js from '@eslint/js'
+import globals from 'globals'
+import tsParser from '@typescript-eslint/parser'
 
 export default [
   js.configs.recommended,
@@ -45,4 +45,4 @@ export default [
       'react/react-in-jsx-scope': 'off'
     }
   }
-];
+]
