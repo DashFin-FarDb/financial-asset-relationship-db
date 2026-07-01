@@ -134,8 +134,6 @@ describe("Package-lock.json Validation", () => {
       expect(axiosLock?.integrity).toMatch(/^sha\d+-/);
     });
 
-
-
     it("axios dependencies should be resolved", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
       if (axiosLock?.dependencies) {
@@ -467,10 +465,6 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("License Information", () => {
-
-
-
-
     it("should not have GPL-licensed dependencies (if policy requires)", () => {
       // This is optional - some projects restrict GPL
       Object.entries(packageLock.packages).forEach(
