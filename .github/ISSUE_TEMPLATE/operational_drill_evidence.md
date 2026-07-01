@@ -71,8 +71,8 @@ Approver / reviewer:
 
 ### Failed graph load
 
-- [ ] `graph_persistence_configured` observed.
 - [ ] `graph.persistence_enabled` observed.
+- [ ] `graph_persistence_configured` observed.
 - [ ] `graph.persistence_loaded` observed.
 - [ ] `graph.startup_source` observed.
 - [ ] No false persisted-graph claim was emitted.
@@ -111,8 +111,8 @@ Approver / reviewer:
 
 - [ ] Hosted readiness command exit status was recorded.
 - [ ] Hosted readiness was run with `--require-persistence`.
-- [ ] `graph_persistence_configured` was observed.
 - [ ] `graph.persistence_enabled` was observed.
+- [ ] `graph_persistence_configured` was observed.
 - [ ] `graph.persistence_loaded` was observed.
 - [ ] `graph.startup_source` was observed.
 - [ ] Assets smoke result was recorded.

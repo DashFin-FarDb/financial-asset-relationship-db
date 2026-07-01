@@ -951,6 +951,7 @@ class TestAPIEndpoints:
         assert "nodes" in viz_data
         assert "edges" in viz_data
         assert "network_density" in viz_data
+        assert "relationship_density" not in viz_data
         assert isinstance(viz_data["network_density"], float)
         assert 0.0 <= viz_data["network_density"] <= 1.0
         assert len(viz_data["nodes"]) > 0
@@ -1181,6 +1182,7 @@ class TestIntegrationScenarios:
         assert "avg_degree" in data
         assert "max_degree" in data
         assert "network_density" in data
+        assert "relationship_density" not in data
         assert isinstance(data["network_density"], float)
         assert 0.0 <= data["network_density"] <= 1.0
 

@@ -180,6 +180,8 @@ def test_recovery_gate_blocks_on_orphan_with_valid_lock(mock_session_factory, mo
     from src.data.db_models import RebuildJobStatus
 
     class DummyJob:
+        """Mock rebuild job."""
+
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "worker-1"
@@ -208,6 +210,8 @@ def test_recovery_gate_increments_recovery_metric_on_detected_inconsistency(
     from src.data.db_models import RebuildJobStatus
 
     class DummyJob:
+        """Mock rebuild job."""
+
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "worker-1"
@@ -231,6 +235,7 @@ def test_recovery_gate_blocks_when_multiple_running_jobs_detected(mock_session_f
     )
 
     def _raise_multiple_running(_self):
+        """Raise an exception to mock detecting multiple running jobs."""
         raise ValueError("Multiple rebuild jobs are in RUNNING state")
 
     monkeypatch.setattr(
@@ -257,6 +262,8 @@ def test_recovery_gate_error_message_includes_decision_reason(mock_session_facto
     from src.data.db_models import RebuildJobStatus
 
     class DummyJob:
+        """Mock rebuild job."""
+
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "other-worker"
@@ -289,6 +296,8 @@ def test_recovery_gate_orphaned_with_new_lock_owner_returns_reset(mock_session_f
     from src.data.db_models import RebuildJobStatus
 
     class DummyJob:
+        """Mock rebuild job."""
+
         status = RebuildJobStatus.RUNNING
         job_id = "job-1"
         active_worker_id = "stale-worker"
@@ -485,6 +494,7 @@ def test_consume_reset_plan_rechecks_state_after_reset(
     )
 
     def mock_get_reconciliation_plan(increment_metric=True):
+        """Return an unsafe mock reconciliation plan."""
         return unsafe_plan
 
     gate.get_reconciliation_plan = mock_get_reconciliation_plan
@@ -519,7 +529,7 @@ def test_reset_lock_reacquisition_timeout_uses_plan_drift_type(
     mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
 ):
     """Lock reacquisition timeout should preserve the plan drift type in the block error."""
-    from src.data.distributed_lock import LockAcquisitionTimeout, LockState
+    from src.data.distributed_lock import LockAcquisitionTimeout
 
     gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = _make_reset_required_plan(
@@ -542,8 +552,6 @@ def test_reset_lock_reacquisition_requires_valid_lock_after_acquire(
     mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
 ):
     """Reset recovery must block if reacquisition does not produce a valid lock state."""
-    from src.data.distributed_lock import LockState
-
     gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = _make_reset_required_plan(
         make_reconciliation_plan,
@@ -559,7 +567,7 @@ def test_reset_lock_reacquisition_requires_valid_lock_after_acquire(
 
     assert exc_info.value.action == "wait"
     assert exc_info.value.inconsistency_type == "crash_suspicion"
-    mock_lock.acquire.assert_called_once_with(max_retries=30)
+    mock_lock.acquire.assert_called_once_with(max_retries=30, timeout_seconds=30.0)
     assert gate.lock_was_reacquired is False
 
 
@@ -597,3 +605,42 @@ def test_reset_blocks_fresh_remote_owner_as_stale_ownership(
     assert exc_info.value.action == "unsafe"
     assert exc_info.value.inconsistency_type == "stale_ownership"
     repo.mark_rebuild_job_failed.assert_not_called()
+
+
+def test_reset_active_job_blocks_on_lock_loss_and_guards_rollback(mock_session_factory, mock_lock, monkeypatch):
+    """Test _reset_active_job guards against rollback failure and missing lock holder."""
+    gate = RecoveryGate(
+        session_factory=mock_session_factory,
+        lock=mock_lock,
+        runtime_has_active_executor=False,
+    )
+
+    from src.data.db_models import RebuildJobStatus
+
+    class DummyJob:
+        """Mock rebuild job."""
+
+        status = RebuildJobStatus.RUNNING
+        job_id = "job-1"
+        active_worker_id = "stale-worker"
+        execution_id = "exec-1"
+        last_heartbeat_at = None
+
+    mock_lock.check_state.return_value = LockState.VALID
+    mock_lock.holder_id = "worker-1"
+
+    mock_session = mock_session_factory.return_value
+    mock_session.rollback.side_effect = RuntimeError("DB connection lost during rollback")
+
+    repo = MagicMock()
+
+    def _lose_lock(*args, **kwargs):
+        """Mock side effect to simulate losing the lock."""
+        mock_lock.holder_id = None
+
+    repo.mark_rebuild_job_failed.side_effect = _lose_lock
+
+    with pytest.raises(ExecutionBlockedError, match="lock lost"):
+        gate._reset_active_job(DummyJob(), repo, mock_session, "test_drift")
+
+    assert mock_session.rollback.call_count == 1

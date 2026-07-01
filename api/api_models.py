@@ -46,9 +46,9 @@ class AssetPageResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     items: list[AssetResponse]
-    total: int
-    page: int
-    per_page: int
+    total: int = Field(ge=0)
+    page: int = Field(ge=1)
+    per_page: int = Field(ge=1, le=1000)
     has_more: bool = Field(..., alias="hasMore")
 
 
@@ -164,7 +164,10 @@ class DetailedHealthResponse(BaseModel):
     graph_persistence_configured: bool = Field(
         default=False,
         title="Graph persistence configured",
-        description="Indicates whether durable graph persistence is configured (durable, non-memory store). Defaults to False for backwards compatibility.",
+        description=(
+            "Indicates whether durable graph persistence is configured (durable, non-memory store). "
+            "Defaults to False for backwards compatibility."
+        ),
         examples=[False, True],
     )
     graph: GraphHealthResponse

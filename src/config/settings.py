@@ -141,7 +141,9 @@ class Settings(BaseModel):
     def validate_secret_key(cls, value: str | None, info: ValidationInfo) -> str | None:
         """Warn or raise if the secret key is less than 32 characters."""
         if value and len(value) < 32:
-            env = info.data.get("env", "development")
+            env = info.data.get("env", DeploymentEnvironment.DEVELOPMENT)
+            if isinstance(env, DeploymentEnvironment):
+                env = env.value
             if env not in ("development", "test"):
                 raise ValueError("SECRET_KEY must be at least 32 characters in production.")
             import warnings
@@ -192,8 +194,8 @@ def load_settings() -> Settings:
     postgres_url = os.getenv("POSTGRES_URL")
 
     return Settings(
-        env=os.getenv("ENV", "development").strip().lower(),
-        vercel_env=os.getenv("VERCEL_ENV"),
+        env=os.getenv("ENV", "development").strip().lower(),  # type: ignore[arg-type]
+        vercel_env=os.getenv("VERCEL_ENV"),  # type: ignore[arg-type]
         log_level=os.getenv("LOG_LEVEL", "INFO").strip().upper(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         secret_key=os.getenv("SECRET_KEY"),

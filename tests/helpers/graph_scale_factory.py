@@ -59,7 +59,9 @@ def build_scale_graph(*, asset_count: int, relationship_count: int, prefix: str 
         graph.add_relationship(
             _asset_id(prefix, source_index),
             _asset_id(prefix, target_index),
-            ("scale_test_link", strength),
+            "scale_test_link",
+            strength,
+            bidirectional=False,
         )
 
     return graph
