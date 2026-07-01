@@ -1,0 +1,370 @@
+# Instincts generated from https://github.com/DashFin-FarDb/financial-asset-relationship-db
+# Generated: 2026-07-01T17:50:11.318Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: financial-asset-relationship-db-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Commit Length
+
+## Action
+
+Write moderate-length commit messages (~63 characters)
+
+## Evidence
+
+- Average commit message length: 63 chars
+- Based on 12 commits
+
+---
+id: financial-asset-relationship-db-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Naming Files
+
+## Action
+
+Use kebab-case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: kebab-case
+
+---
+id: financial-asset-relationship-db-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: financial-asset-relationship-db-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: financial-asset-relationship-db-workflow-eslint-config-update-and-refactor
+trigger: "when doing eslint config update and refactor"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Eslint Config Update And Refactor
+
+## Action
+
+Follow the eslint-config-update-and-refactor workflow:
+1. Edit or replace frontend/.eslintrc.json and/or frontend/.eslintignore
+2. Add or modify frontend/eslint.config.mjs
+3. Update frontend/package.json and frontend/package-lock.json to reflect new ESLint dependencies
+4. Optionally remove or add compatibility layers (e.g., FlatCompat)
+5. Remove or update related test files if necessary
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: frontend/.eslintrc.json, frontend/.eslintignore, frontend/eslint.config.mjs
+
+---
+id: financial-asset-relationship-db-workflow-code-formatting-with-multi-tool
+trigger: "when doing code formatting with multi tool"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Workflow Code Formatting With Multi Tool
+
+## Action
+
+Follow the code-formatting-with-multi-tool workflow:
+1. Run code formatters on affected files
+2. Commit changes to files with style fixes
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: frontend/eslint.config.mjs, docs/ci-required-checks-policy.md, docs/enterprise-readiness-index.md
+
+---
+id: financial-asset-relationship-db-instinct-file-naming
+trigger: "When creating or renaming files in the codebase"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct File Naming
+
+## Action
+
+Use kebab-case for file names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.files
+- All files in examples use kebab-case
+
+---
+id: financial-asset-relationship-db-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Function Naming
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.functions
+
+---
+id: financial-asset-relationship-db-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Class Naming
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.classes
+
+---
+id: financial-asset-relationship-db-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.constants
+
+---
+id: financial-asset-relationship-db-instinct-import-style
+trigger: "When importing modules in TypeScript files"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Import Style
+
+## Action
+
+Use relative import paths
+
+## Evidence
+
+- Pattern in codeStyle.importStyle
+
+---
+id: financial-asset-relationship-db-instinct-export-style
+trigger: "When exporting modules or functions"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in codeStyle.exportStyle
+
+---
+id: financial-asset-relationship-db-instinct-test-location
+trigger: "When adding or updating tests"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test Location
+
+## Action
+
+Place test files in locations relevant to the code being tested (mixed location)
+
+## Evidence
+
+- architecture.folderStructure.testLocation is 'mixed'
+- frontend/__tests__/config/eslint-upgrade-validation.test.ts
+
+---
+id: financial-asset-relationship-db-instinct-test-naming
+trigger: "When naming test files"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Test Naming
+
+## Action
+
+Use .test.ts suffix for TypeScript test files
+
+## Evidence
+
+- frontend/__tests__/config/eslint-upgrade-validation.test.ts
+
+---
+id: financial-asset-relationship-db-instinct-commit-prefix
+trigger: "When writing a commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Commit Prefix
+
+## Action
+
+Start the commit message with a conventional prefix (style, test, chore, fix, feat)
+
+## Evidence
+
+- Pattern in commits.prefixes
+- Examples: 'test: ...', 'chore: ...', 'style: ...', 'fix: ...', 'feat: ...'
+
+---
+id: financial-asset-relationship-db-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Commit Length
+
+## Action
+
+Keep the commit message concise, around 60-70 characters
+
+## Evidence
+
+- commits.averageLength is 63
+
+---
+id: financial-asset-relationship-db-instinct-eslint-config-update
+trigger: "When someone wants to change how ESLint is configured or upgrade its setup in the frontend"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Eslint Config Update
+
+## Action
+
+Edit or replace ESLint config files, update dependencies, and adjust related tests as needed
+
+## Evidence
+
+- Workflow: eslint-config-update-and-refactor
+- Commits: 'chore: migrate eslint configuration to flat config', 'fix: resolve circular structure in ESLint by removing FlatCompat'
+- Files: frontend/.eslintrc.json, frontend/eslint.config.mjs, frontend/package.json, frontend/__tests__/config/eslint-upgrade-validation.test.ts
+
+---
+id: financial-asset-relationship-db-instinct-code-formatting-multi-tool
+trigger: "When someone wants to fix style issues or reformat code after major changes"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: DashFin-FarDb/financial-asset-relationship-db
+---
+
+# Financial Asset Relationship Db Instinct Code Formatting Multi Tool
+
+## Action
+
+Run multiple code formatters (Autopep8, Black, isort, Prettier, Ruff Formatter, StandardJS) and commit the changes
+
+## Evidence
+
+- Workflow: code-formatting-with-multi-tool
+- Commit: 'style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS'
+- Files: frontend/eslint.config.mjs, docs/ci-required-checks-policy.md
+
