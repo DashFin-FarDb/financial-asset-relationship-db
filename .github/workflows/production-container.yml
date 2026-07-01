@@ -23,8 +23,11 @@ jobs:
 
       - name: Smoke Test API
         run: |
-          docker run -d --name api_test -p 8000:8000 -e ENV=production fardb-api
-
+          docker run -d --name api_test -p 8000:8000 \
+            -e ENV=production \
+            -e DATABASE_URL="sqlite:////tmp/fardb.db" \
+            -e SECRET_KEY="ci-smoke-test-secret-key-32-chars-min" \
+            fardb-api
           # Poll until healthy
           timeout=30
           count=0
