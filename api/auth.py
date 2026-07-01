@@ -260,7 +260,8 @@ class UserRepository:
             user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`,
                 `user_full_name`, `is_disabled`.
             **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`,
-                `is_disabled`) which override values in `user_profile` when present; unexpected keys cause a `TypeError`.
+                `is_disabled`) which override values in `user_profile` when present;
+                unexpected keys cause a `TypeError`.
         """
         profile = user_profile.copy() if user_profile is not None else {}
 
