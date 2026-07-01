@@ -1,16 +1,30 @@
-# Docker Deployment Guide
+# Docker Guide (Gradio Demo Path)
 
-This guide explains how to run the Financial Asset Relationship Database using Docker and Docker Compose.
+> **Note:** These docs use the defaults `FRONTEND_PORT=3000`, `BACKEND_PORT=8000`, and `GRADIO_SERVER_PORT=7860` for simplicity. You can override them via environment variables. Example:
+> ```bash
+> export FRONTEND_PORT=3000
+> export BACKEND_PORT=8000
+> export GRADIO_SERVER_PORT=7860
+> ```
+
+
+This guide explains how to run the Financial Asset Relationship Database's Gradio demo using Docker and Docker
+Compose.
+
+The declared production architecture is the FastAPI backend plus Next.js frontend. This Dockerfile and
+`docker-compose.yml` currently start `app.py` on port `7860`, so they are for demos and internal testing, not the
+canonical production backend deployment path. For the production backend entrypoint and runtime requirements, see
+`DEPLOYMENT.md`.
 
 ## Quick Start
 
-### Using Docker Compose (Recommended)
+### Using Docker Compose (Gradio demo)
 
 ```bash
 # Build and start the application
 docker-compose up --build
 
-# Access the application at http://localhost:7860
+# Access the Gradio demo at http://localhost:${GRADIO_SERVER_PORT:-7860}
 ```
 
 ### Using Docker Directly
@@ -19,10 +33,10 @@ docker-compose up --build
 # Build the image
 docker build -t financial-asset-db .
 
-# Run the container
-docker run -p 7860:7860 financial-asset-db
+# Run the Gradio demo container
+docker run -p ${GRADIO_SERVER_PORT:-7860}:${GRADIO_SERVER_PORT:-7860} financial-asset-db
 
-# Access the application at http://localhost:7860
+# Access the Gradio demo at http://localhost:${GRADIO_SERVER_PORT:-7860}
 ```
 
 ## Docker Compose Options
@@ -38,7 +52,7 @@ docker-compose up
 
 Changes to `src/` will be reflected immediately (may require app restart).
 
-### Production Mode
+### Detached Demo Mode
 
 Build and run in detached mode:
 
@@ -96,13 +110,13 @@ docker build --no-cache -t financial-asset-db .
 
 ```bash
 # Run container
-docker run -p 7860:7860 financial-asset-db
+docker run -p ${GRADIO_SERVER_PORT:-7860}:${GRADIO_SERVER_PORT:-7860} financial-asset-db
 
 # Run in background
-docker run -d -p 7860:7860 --name financial-asset-db financial-asset-db
+docker run -d -p ${GRADIO_SERVER_PORT:-7860}:${GRADIO_SERVER_PORT:-7860} --name financial-asset-db financial-asset-db
 
 # Run with environment variables
-docker run -p 7860:7860 -e GRADIO_SERVER_NAME=0.0.0.0 financial-asset-db
+docker run -p ${GRADIO_SERVER_PORT:-7860}:${GRADIO_SERVER_PORT:-7860} -e GRADIO_SERVER_NAME=0.0.0.0 financial-asset-db
 ```
 
 ### Manage
@@ -223,7 +237,7 @@ If using PostgreSQL:
    - Use `docker-compose` for easier management
    - Keep development and production configs separate
 
-4. **Production**
+4. **Demo Operations**
    - Use specific image tags (not `latest`)
    - Set resource limits (CPU, memory)
    - Configure proper logging and monitoring
@@ -231,7 +245,7 @@ If using PostgreSQL:
 
 ## Multi-Stage Build (Advanced)
 
-For smaller production images, create a multi-stage Dockerfile:
+For smaller Gradio demo images, create a multi-stage Dockerfile:
 
 ```dockerfile
 # Build stage
@@ -249,9 +263,9 @@ ENV PATH=/root/.local/bin:$PATH
 CMD ["python", "app.py"]
 ```
 
-## Kubernetes Deployment (Optional)
+## Kubernetes Demo Deployment (Optional)
 
-For Kubernetes deployment, create manifests:
+For Kubernetes demo deployment, create manifests:
 
 ```yaml
 # deployment.yaml

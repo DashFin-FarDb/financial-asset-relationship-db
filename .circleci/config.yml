@@ -16,7 +16,7 @@ executors:
 
   node-executor:
     docker:
-      - image: cimg/node:25.9.0
+      - image: cimg/node:26.1.0 # Node 26: confirm frontend compatibility (Next.js 16 requires Node >=20.9); update frontend/package.json engines and run full CI build
     working_directory: ~/project
     resource_class: medium
     environment:

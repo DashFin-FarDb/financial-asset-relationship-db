@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import enum
+from datetime import datetime
+
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
+    DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -21,6 +28,22 @@ from src.data.base import Base
 ASSET_ID_FK = "assets.id"
 REGULATORY_EVENT_ID_FK = "regulatory_events.id"
 CASCADE_DELETE_ORPHAN = "all, delete-orphan"
+
+
+class RebuildJobStatus(enum.StrEnum):
+    """Valid status values for a RebuildJobORM record."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    CANCEL_REQUESTED = "cancel_requested"
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Return a list of all valid status string values."""
+        return [status.value for status in cls]
 
 
 class AssetORM(Base):
@@ -191,3 +214,67 @@ class RegulatoryEventAssetORM(Base):
         back_populates="related_assets",
     )
     asset: Mapped[AssetORM] = relationship("AssetORM")
+
+
+class RebuildJobORM(Base):
+    """Persistent rebuild job record tracking graph rebuild operations."""
+
+    __tablename__ = "rebuild_jobs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'cancel_requested')",
+            name="ck_rebuild_jobs_status",
+        ),
+        Index("ix_rebuild_jobs_created_at", "created_at"),
+        Index("ix_rebuild_jobs_status_created_at", "status", "created_at"),
+    )
+
+    job_id: Mapped[str] = mapped_column(String, primary_key=True)
+    requested_by: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    source: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    node_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    edge_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sanitized_failure_category: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+    )
+    sanitized_failure_message: Mapped[str | None] = mapped_column(
+        String(512),
+        nullable=True,
+    )
+    # Stage 5C.3: Execution Identity
+    execution_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # Stage 5C.1: Recovery state tracking
+    active_worker_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    last_heartbeat_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    # Stage 5C.3B: Checkpointed Recovery
+    checkpoint_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Stage 5C.3C: Cancellation Integrity
+    cancellation_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+
+class DistributedLockORM(Base):
+    """Persistent representation of a distributed lock."""
+
+    __tablename__ = "distributed_locks"
+
+    lock_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    holder_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

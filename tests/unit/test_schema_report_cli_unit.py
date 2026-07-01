@@ -811,6 +811,12 @@ class TestSecurityAndSafety:
         isolated_dir = tmp_path / "isolated"
         isolated_dir.mkdir()
 
+        monkeypatch.setattr(
+            cli_module,
+            "_PROJECT_MARKERS",
+            ("__definitely_not_a_project_root_marker__",),
+        )
+
         # Change to that directory
         monkeypatch.chdir(isolated_dir)
 

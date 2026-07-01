@@ -1,0 +1,66 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "panels": [
+    {
+      "title": "Current Rebuild State",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "graph_rebuild_state_status",
+          "legendFormat": "State"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "-1": { "text": "UNKNOWN", "color": "grey" }, "0": { "text": "NONE", "color": "blue" }, "1": { "text": "PENDING", "color": "orange" }, "2": { "text": "RUNNING", "color": "green" }, "3": { "text": "SUCCEEDED", "color": "green" }, "4": { "text": "FAILED", "color": "red" }, "5": { "text": "CANCELLED", "color": "red" } } }
+          ]
+        }
+      }
+    },
+    {
+      "title": "Rebuild Duration (Average)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        {
+          "expr": "rate(graph_rebuild_duration_seconds_sum[1h]) / rate(graph_rebuild_duration_seconds_count[1h])",
+          "legendFormat": "Avg Duration"
+        }
+      ]
+    },
+    {
+      "title": "Rebuild Outcomes (Success vs Failure)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        {
+          "expr": "sum(rate(graph_rebuild_success_total[1h]))",
+          "legendFormat": "Successes"
+        },
+        {
+          "expr": "sum(rate(graph_rebuild_failure_total[1h]))",
+          "legendFormat": "Failures"
+        }
+      ]
+    },
+    {
+      "title": "Recovery Triggers",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "sum by (inconsistency_type) (rate(graph_rebuild_recovery_trigger_total[1h]))",
+          "legendFormat": "{{inconsistency_type}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["core", "rebuild"],
+  "title": "Rebuild Operations",
+  "version": 1
+}

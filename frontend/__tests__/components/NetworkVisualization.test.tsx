@@ -79,6 +79,7 @@ describe("NetworkVisualization Component", () => {
     const newData: VisualizationData = {
       nodes: [],
       edges: [],
+      network_density: 0,
     };
 
     rerender(<NetworkVisualization data={newData} />);
@@ -106,6 +107,7 @@ describe("NetworkVisualization Component", () => {
         relationship_type: "TEST",
         strength: 0.5,
       })),
+      network_density: 0,
     };
 
     render(<NetworkVisualization data={bigData} />);

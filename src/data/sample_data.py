@@ -1,7 +1,6 @@
 """Build sample asset graph data for local development and demos."""
 
 import logging
-from collections.abc import Sequence
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
@@ -13,25 +12,16 @@ from src.models.financial_models import (
     RegulatoryActivity,
     RegulatoryEvent,
 )
+from src.observability.events import ObservabilityEvent
+from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
 
 
-def create_sample_database() -> AssetRelationshipGraph:
-    """
-    Create an in-memory sample AssetRelationshipGraph populated with diversified financial assets and regulatory events.
-
-    Constructs a graph containing equities, corporate and government bonds, commodities, and currencies; registers several regulatory events that reference related assets; and builds inter-asset relationships to produce a connected sample dataset.
-
-    Returns:
-        AssetRelationshipGraph: Populated graph containing the sample assets, regulatory events, and their established relationships.
-    """
-    try:
-        logger.info("Creating expanded sample financial database")
-        graph = AssetRelationshipGraph()
-
-        # Equities - Technology
-        apple = Equity(
+def _get_sample_equities() -> list[Equity]:
+    """Return a list of sample Equity assets."""
+    return [
+        Equity(
             id="AAPL",
             symbol="AAPL",
             name="Apple Inc.",
@@ -42,9 +32,8 @@ def create_sample_database() -> AssetRelationshipGraph:
             pe_ratio=25.5,
             dividend_yield=0.005,
             earnings_per_share=5.89,
-        )
-
-        microsoft = Equity(
+        ),
+        Equity(
             id="MSFT",
             symbol="MSFT",
             name="Microsoft Corporation",
@@ -55,9 +44,8 @@ def create_sample_database() -> AssetRelationshipGraph:
             pe_ratio=28.2,
             dividend_yield=0.007,
             earnings_per_share=11.34,
-        )
-
-        nvidia = Equity(
+        ),
+        Equity(
             id="NVDA",
             symbol="NVDA",
             name="NVIDIA Corporation",
@@ -68,10 +56,8 @@ def create_sample_database() -> AssetRelationshipGraph:
             pe_ratio=45.8,
             dividend_yield=0.002,
             earnings_per_share=9.82,
-        )
-
-        # Equities - Energy
-        exxon = Equity(
+        ),
+        Equity(
             id="XOM",
             symbol="XOM",
             name="Exxon Mobil",
@@ -80,179 +66,175 @@ def create_sample_database() -> AssetRelationshipGraph:
             price=110.00,
             market_cap=450e9,
             pe_ratio=12.3,
-            dividend_yield=0.035,
-            earnings_per_share=8.95,
-        )
-
-        chevron = Equity(
+            dividend_yield=0.032,
+            earnings_per_share=8.94,
+        ),
+        Equity(
             id="CVX",
             symbol="CVX",
             name="Chevron Corporation",
             asset_class=AssetClass.EQUITY,
             sector="Energy",
-            price=155.00,
-            market_cap=290e9,
-            pe_ratio=14.7,
-            dividend_yield=0.031,
-            earnings_per_share=10.55,
-        )
-
-        # Equities - Finance
-        jpmorgan = Equity(
+            price=160.00,
+            market_cap=300e9,
+            pe_ratio=11.5,
+            dividend_yield=0.038,
+            earnings_per_share=13.91,
+        ),
+        Equity(
             id="JPM",
             symbol="JPM",
             name="JPMorgan Chase & Co.",
             asset_class=AssetClass.EQUITY,
-            sector="Finance",
+            sector="Financials",
             price=145.00,
             market_cap=420e9,
-            pe_ratio=11.8,
-            dividend_yield=0.025,
-            earnings_per_share=12.29,
-        )
-
-        # Equities - Healthcare
-        johnson_and_johnson = Equity(
+            pe_ratio=10.2,
+            dividend_yield=0.028,
+            earnings_per_share=14.21,
+        ),
+        Equity(
             id="JNJ",
             symbol="JNJ",
             name="Johnson & Johnson",
             asset_class=AssetClass.EQUITY,
             sector="Healthcare",
             price=165.00,
-            market_cap=435e9,
-            pe_ratio=15.6,
-            dividend_yield=0.029,
-            earnings_per_share=10.57,
-        )
+            market_cap=430e9,
+            pe_ratio=34.5,
+            dividend_yield=0.028,
+            earnings_per_share=4.78,
+        ),
+    ]
 
-        # Bonds - Corporate
-        apple_bond = Bond(
+
+def _get_sample_bonds() -> list[Bond]:
+    """Return a list of sample Bond assets."""
+    return [
+        Bond(
             id="AAPL_BOND_2030",
             symbol="AAPL30",
-            name="Apple Inc. 2030 Bond",
+            name="Apple 2030 Bond",
             asset_class=AssetClass.FIXED_INCOME,
             sector="Technology",
-            price=102.50,
-            yield_to_maturity=0.025,
-            coupon_rate=0.02,
-            maturity_date="2030-01-15",
+            price=98.50,
+            yield_to_maturity=0.045,
+            coupon_rate=0.04,
+            maturity_date="2030-01-01",
             credit_rating="AA+",
             issuer_id="AAPL",
-        )
-
-        microsoft_bond = Bond(
+        ),
+        Bond(
             id="MSFT_BOND_2028",
             symbol="MSFT28",
-            name="Microsoft Corp. 2028 Bond",
+            name="Microsoft 2028 Bond",
             asset_class=AssetClass.FIXED_INCOME,
             sector="Technology",
-            price=103.25,
-            yield_to_maturity=0.028,
-            coupon_rate=0.023,
+            price=102.10,
+            yield_to_maturity=0.038,
+            coupon_rate=0.04,
             maturity_date="2028-06-15",
             credit_rating="AAA",
             issuer_id="MSFT",
-        )
-
-        # Bonds - Government
-        us_10y = Bond(
-            id="US10Y",
+        ),
+        Bond(
+            id="US_10Y",
             symbol="US10Y",
-            name="US 10-Year Treasury",
+            name="US Treasury 10-Year Note",
             asset_class=AssetClass.FIXED_INCOME,
             sector="Government",
-            price=98.50,
+            price=95.00,
             yield_to_maturity=0.042,
-            coupon_rate=0.035,
-            maturity_date="2034-02-15",
+            coupon_rate=0.04,
+            maturity_date="2033-08-15",
             credit_rating="AAA",
-        )
-
-        us_2y = Bond(
-            id="US2Y",
+        ),
+        Bond(
+            id="US_2Y",
             symbol="US2Y",
-            name="US 2-Year Treasury",
+            name="US Treasury 2-Year Note",
             asset_class=AssetClass.FIXED_INCOME,
             sector="Government",
-            price=99.85,
-            yield_to_maturity=0.045,
-            coupon_rate=0.04,
-            maturity_date="2026-03-31",
+            price=98.00,
+            yield_to_maturity=0.048,
+            coupon_rate=0.05,
+            maturity_date="2025-08-15",
             credit_rating="AAA",
-        )
+        ),
+    ]
 
-        # Commodities - Energy
-        crude_oil = Commodity(
-            id="CL_CRUDE",
-            symbol="CL",
-            name="WTI Crude Oil",
+
+def _get_sample_commodities() -> list[Commodity]:
+    """Return a list of sample Commodity assets."""
+    return [
+        Commodity(
+            id="CL_F",
+            symbol="CL=F",
+            name="Crude Oil WTI",
             asset_class=AssetClass.COMMODITY,
             sector="Energy",
-            price=88.50,
+            price=82.00,
             contract_size=1000,
-            volatility=0.35,
-        )
-
-        natural_gas = Commodity(
-            id="NG_NGAS",
-            symbol="NG",
-            name="Henry Hub Natural Gas",
+            volatility=0.25,
+        ),
+        Commodity(
+            id="NG_F",
+            symbol="NG=F",
+            name="Natural Gas",
             asset_class=AssetClass.COMMODITY,
             sector="Energy",
-            price=3.20,
+            price=2.80,
             contract_size=10000,
             volatility=0.45,
-        )
-
-        # Commodities - Precious Metals
-        gold = Commodity(
-            id="GC_GOLD",
-            symbol="GC",
-            name="COMEX Gold",
+        ),
+        Commodity(
+            id="GC_F",
+            symbol="GC=F",
+            name="Gold",
             asset_class=AssetClass.COMMODITY,
             sector="Precious Metals",
-            price=2050.00,
+            price=1950.00,
             contract_size=100,
             volatility=0.15,
-        )
-
-        silver = Commodity(
-            id="SI_SILVER",
-            symbol="SI",
-            name="COMEX Silver",
+        ),
+        Commodity(
+            id="SI_F",
+            symbol="SI=F",
+            name="Silver",
             asset_class=AssetClass.COMMODITY,
             sector="Precious Metals",
-            price=24.50,
+            price=23.50,
             contract_size=5000,
-            volatility=0.25,
-        )
-
-        # Commodities - Agricultural
-        corn = Commodity(
-            id="ZC_CORN",
-            symbol="ZC",
-            name="CBOT Corn",
+            volatility=0.20,
+        ),
+        Commodity(
+            id="ZC_F",
+            symbol="ZC=F",
+            name="Corn",
             asset_class=AssetClass.COMMODITY,
-            sector="Agricultural",
-            price=4.85,
+            sector="Agriculture",
+            price=480.00,
             contract_size=5000,
-            volatility=0.30,
-        )
+            volatility=0.18,
+        ),
+    ]
 
-        # Currencies - Major Pairs
-        usd_eur = Currency(
+
+def _get_sample_currencies() -> list[Currency]:
+    """Return a list of sample Currency assets."""
+    return [
+        Currency(
             id="EURUSD",
             symbol="EUR",
             name="Euro",
             asset_class=AssetClass.CURRENCY,
             sector="Forex",
-            price=1.10,
-            exchange_rate=1.10,
-            country="EU",
-            central_bank_rate=0.035,
-        )
-
-        usd_jpy = Currency(
+            price=1.08,
+            exchange_rate=1.08,
+            country="Eurozone",
+            central_bank_rate=0.04,
+        ),
+        Currency(
             id="USDJPY",
             symbol="JPY",
             name="Japanese Yen",
@@ -262,9 +244,8 @@ def create_sample_database() -> AssetRelationshipGraph:
             exchange_rate=150.0,
             country="Japan",
             central_bank_rate=0.001,
-        )
-
-        usd_gbp = Currency(
+        ),
+        Currency(
             id="GBPUSD",
             symbol="GBP",
             name="British Pound",
@@ -274,36 +255,14 @@ def create_sample_database() -> AssetRelationshipGraph:
             exchange_rate=1.28,
             country="UK",
             central_bank_rate=0.0525,
-        )
+        ),
+    ]
 
-        # Add all assets to graph
-        all_assets = [
-            apple,
-            microsoft,
-            nvidia,
-            exxon,
-            chevron,
-            jpmorgan,
-            johnson_and_johnson,
-            apple_bond,
-            microsoft_bond,
-            us_10y,
-            us_2y,
-            crude_oil,
-            natural_gas,
-            gold,
-            silver,
-            corn,
-            usd_eur,
-            usd_jpy,
-            usd_gbp,
-        ]
 
-        for asset in all_assets:
-            graph.add_asset(asset)
-
-        # Add regulatory events
-        tech_earnings = RegulatoryEvent(
+def _get_sample_regulatory_events() -> list[RegulatoryEvent]:
+    """Return a list of sample RegulatoryEvent objects."""
+    return [
+        RegulatoryEvent(
             id="AAPL_Q4_2024",
             asset_id="AAPL",
             event_type=RegulatoryActivity.EARNINGS_REPORT,
@@ -311,93 +270,124 @@ def create_sample_database() -> AssetRelationshipGraph:
             description="Q4 2024 Earnings Beat",
             impact_score=0.15,
             related_assets=["MSFT", "NVDA", "AAPL_BOND_2030"],
-        )
-
-        energy_dividend = RegulatoryEvent(
-            id="XOM_DIV_2024",
-            asset_id="XOM",
+        ),
+        RegulatoryEvent(
+            id="US_RATE_HIKE_2023",
+            asset_id="US_10Y",
+            event_type=RegulatoryActivity.REGULATORY_FILING,
+            date="2023-07-26",
+            description="Federal Reserve 25bp Rate Hike",
+            impact_score=-0.25,
+            related_assets=["US_2Y", "EURUSD", "GBPUSD", "USDJPY", "AAPL", "MSFT", "XOM", "JPM", "GC_F"],
+        ),
+        RegulatoryEvent(
+            id="TECH_ANTITRUST_2023",
+            asset_id="AAPL",
+            event_type=RegulatoryActivity.LEGAL_PROCEEDING,
+            date="2023-09-15",
+            description="EU Antitrust Investigation",
+            impact_score=-0.40,
+            related_assets=["MSFT"],
+        ),
+        RegulatoryEvent(
+            id="OPEC_CUT_2023",
+            asset_id="CL_F",
+            event_type=RegulatoryActivity.COMPLIANCE_UPDATE,
+            date="2023-11-30",
+            description="OPEC+ Production Cut",
+            impact_score=0.60,
+            related_assets=["XOM", "CVX"],
+        ),
+        RegulatoryEvent(
+            id="JPM_DIVIDEND_2024",
+            asset_id="JPM",
             event_type=RegulatoryActivity.DIVIDEND_ANNOUNCEMENT,
             date="2024-02-10",
-            description="Quarterly Dividend Increase",
-            impact_score=0.10,
-            related_assets=["CVX", "CL_CRUDE", "NG_NGAS"],
-        )
-
-        fed_rate_decision = RegulatoryEvent(
-            id="FED_RATE_2024",
-            asset_id="US10Y",
-            event_type=RegulatoryActivity.SEC_FILING,
-            date="2024-03-20",
-            description="Federal Reserve Rate Cut",
-            impact_score=0.25,
-            related_assets=["US2Y", "JPM", "AAPL_BOND_2030", "MSFT_BOND_2028"],
-        )
-
-        commodity_volatility = RegulatoryEvent(
-            id="ENERGY_VOLATILITY",
-            asset_id="CL_CRUDE",
-            event_type=RegulatoryActivity.SEC_FILING,
-            date="2024-01-15",
-            description="Geopolitical Energy Market Disruption",
-            impact_score=-0.20,
-            related_assets=["NG_NGAS", "XOM", "CVX"],
-        )
-
-        graph.add_regulatory_event(tech_earnings)
-        graph.add_regulatory_event(energy_dividend)
-        graph.add_regulatory_event(fed_rate_decision)
-        graph.add_regulatory_event(commodity_volatility)
-
-        # Build all relationships
-        graph.build_relationships()
-
-        asset_count = len(graph.assets)
-        relationship_count = sum(len(rels) for rels in graph.relationships.values())
-        logger.info(
-            "Expanded sample database created with %s assets and %s relationships",
-            asset_count,
-            relationship_count,
-        )
-        _log_asset_class_coverage(all_assets)
-
-        return graph
-    except Exception as e:
-        logger.error("Failed to create sample database: %s", e)
-        raise
+            description="Dividend Increased by 5%",
+            impact_score=0.20,
+            related_assets=[],
+        ),
+    ]
 
 
-def _log_asset_class_coverage(all_assets: Sequence[object]) -> None:
+def create_sample_database() -> AssetRelationshipGraph:
     """
-    Log how many sample assets belong to each AssetClass to the module logger.
-
-    Counts Equity, Fixed Income, Commodity, and Currency by inspecting each item's
-    `asset_class` attribute and emits a single INFO-level log line with the four totals.
-
-    Parameters:
-        all_assets (Sequence[object]): Sequence of asset instances; each should expose an
-            `asset_class` attribute whose value is a member of `AssetClass`.
-    """
-    logger.info(
-        "Asset classes covered: Equity (%s), Fixed Income (%s), Commodity (%s), Currency (%s)",
-        _count_assets_by_class(all_assets, AssetClass.EQUITY),
-        _count_assets_by_class(all_assets, AssetClass.FIXED_INCOME),
-        _count_assets_by_class(all_assets, AssetClass.COMMODITY),
-        _count_assets_by_class(all_assets, AssetClass.CURRENCY),
-    )
-
-
-def _count_assets_by_class(
-    all_assets: list[object],
-    asset_class: AssetClass,
-) -> int:
-    """
-    Count assets whose `asset_class` attribute equals the given AssetClass.
-
-    Parameters:
-        all_assets (list[object]): Sequence of asset-like objects; some items may not have an `asset_class` attribute.
-        asset_class (AssetClass): AssetClass value to match.
+    Create an in-memory sample graph populated with diversified financial assets and regulatory events.
 
     Returns:
-        int: Number of assets whose `asset_class` equals the provided `asset_class`.
+        AssetRelationshipGraph: Populated graph containing the sample assets, registered
+            regulatory events, and their established relationships.
     """
-    return sum(1 for asset in all_assets if getattr(asset, "asset_class", None) == asset_class)
+    try:
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="sample_graph_creation_initiated",
+                message="Creating expanded sample financial database",
+            ),
+        )
+        from src.config.settings import get_settings
+
+        settings = get_settings()
+        graph = AssetRelationshipGraph(
+            same_sector_strength=settings.same_sector_strength,
+            corporate_bond_strength=settings.corporate_bond_strength,
+        )
+
+        all_assets = _get_sample_equities() + _get_sample_bonds() + _get_sample_commodities() + _get_sample_currencies()
+        for asset in all_assets:
+            graph.add_asset(asset)
+
+        for event in _get_sample_regulatory_events():
+            graph.add_regulatory_event(event)
+
+        graph.build_relationships()
+
+        # Add some custom empirical relationships
+        graph.relationships["AAPL"].append(("MSFT", "competitor", 0.3))
+        graph.relationships["MSFT"].append(("AAPL", "competitor", 0.3))
+
+        graph.relationships["XOM"].append(("CVX", "competitor", 0.2))
+        graph.relationships["CVX"].append(("XOM", "competitor", 0.2))
+
+        graph.relationships["AAPL"].append(("AAPL_BOND_2030", "corporate_link", settings.corporate_bond_strength))
+        graph.relationships["MSFT"].append(("MSFT_BOND_2028", "corporate_link", settings.corporate_bond_strength))
+
+        graph.relationships["US_10Y"].append(("US_2Y", "yield_curve", 0.9))
+        graph.relationships["US_2Y"].append(("US_10Y", "yield_curve", 0.9))
+
+        graph.relationships["CL_F"].append(("XOM", "cost_input", 0.7))
+        graph.relationships["CL_F"].append(("CVX", "cost_input", 0.7))
+        graph.relationships["NG_F"].append(("XOM", "cost_input", 0.5))
+
+        graph.relationships["GC_F"].append(("SI_F", "correlation", 0.85))
+        graph.relationships["SI_F"].append(("GC_F", "correlation", 0.85))
+
+        graph.relationships["EURUSD"].append(("GBPUSD", "correlation", 0.75))
+        graph.relationships["USDJPY"].append(("US_10Y", "correlation", 0.65))
+
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="sample_graph_creation_completed",
+                message=(
+                    f"Sample database created with {len(graph.assets)} assets and "
+                    f"{sum(len(rels) for rels in graph.relationships.values())} relationships"
+                ),
+            ),
+        )
+        return graph
+
+    except Exception as e:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="sample_graph_creation_failed",
+                message=f"Failed to create sample database: {type(e).__name__}",
+                metadata={"error": type(e).__name__},
+            ),
+        )
+        raise

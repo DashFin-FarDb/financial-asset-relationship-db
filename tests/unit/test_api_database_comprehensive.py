@@ -15,13 +15,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from api.database import (
-    _connect,
-    _get_database_url,
-    _is_memory_db,
-    _resolve_sqlite_path,
-    get_connection,
-)
+from api.database import _connect, _get_database_url, _is_memory_db, _resolve_sqlite_path, get_connection
 
 
 @pytest.fixture(autouse=True)
@@ -76,7 +70,7 @@ class TestGetDatabaseUrl:
             with pytest.raises(ValueError) as exc_info:
                 _get_database_url()
 
-        assert "DATABASE_URL environment variable must be set" in str(exc_info.value)
+        assert "No database URL configured" in str(exc_info.value)
 
 
 class TestResolveSqlitePath:

@@ -9,11 +9,7 @@ from fastapi.responses import Response  # pylint: disable=import-error
 
 from src.api.dependencies import get_graph
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.reports.integration import (
-    export_report,
-    generate_html_report,
-    generate_markdown_report,
-)
+from src.reports.integration import export_report, generate_html_report, generate_markdown_report
 
 router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 
@@ -30,7 +26,9 @@ def schema_report(
     Serve the schema report in either Markdown or HTML.
 
     Parameters:
-        report_format (Literal["md", "html"]): Desired output format. `"md"` returns the report as Markdown with media type `text/markdown; charset=utf-8`; `"html"` returns the report as HTML with media type `text/html; charset=utf-8`.
+        report_format (Literal["md", "html"]): Desired output format. `"md"` returns
+            the report as Markdown with media type `text/markdown; charset=utf-8`;
+            `"html"` returns the report as HTML with media type `text/html; charset=utf-8`.
 
     Returns:
         Response: HTTP response containing the rendered report content with the appropriate media type.

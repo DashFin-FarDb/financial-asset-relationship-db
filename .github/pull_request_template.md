@@ -66,6 +66,14 @@
 - [ ] I have verified the branch, base branch, and referenced PR/commit/ref context before concluding merge status or PR necessity
 - [ ] I have checked this PR against the production architecture (`FastAPI` backend + `Next.js` frontend)
 - [ ] I have checked this PR against `.github/AUTOMATION_SCOPE_POLICY.md`
+- [ ] If this PR changes governed rebuild/recovery/persistence behaviour, I updated `docs/governance/state-machine-and-operating-authority.md` or explicitly proved the canonical interpretation is unchanged
+
+### Testing Best Practices
+
+- [ ] Tests verify observable behavior (events, state changes, return values) rather than coupling to implementation details
+- [ ] Tests avoid coupling to exact log message strings (verify log level instead of message text)
+- [ ] Tests use polling loops with `time.monotonic()` deadlines instead of fixed `time.sleep()` for timing-dependent assertions
+- [ ] Tests properly clean up resources (database connections, threads, temp files) in finally blocks
 
 ---
 

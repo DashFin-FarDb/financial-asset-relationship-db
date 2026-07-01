@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import tempfile
+import threading
 from collections.abc import Iterator
 from typing import Any
 from unittest.mock import Mock, patch
@@ -22,7 +24,7 @@ import pytest
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool, StaticPool
 
 from api.database import (
     _cleanup_memory_connection,
@@ -293,6 +295,22 @@ class TestDatabaseInitialization:
             assert result is not None  # nosec B101
             assert result.value == "persisted"  # nosec B101
 
+    def test_init_db_applies_postgres_heartbeat_migration(self) -> None:
+        """init_db should invoke PostgreSQL compatibility migration for postgres engines."""
+        engine = Mock(spec=Engine)
+        engine.url = "postgresql://user:pass@localhost/testdb"
+
+        with (
+            patch("src.data.database.Base.metadata.create_all") as create_all,
+            patch("src.data.migrations.apply_migrations") as apply_sqlite_migrations,
+            patch("src.data.migrations.apply_postgresql_heartbeat_migration") as apply_postgres_migration,
+        ):
+            init_db(engine)
+
+        create_all.assert_called_once_with(engine)
+        apply_postgres_migration.assert_called_once_with(engine)
+        apply_sqlite_migrations.assert_not_called()
+
 
 # ---------------------------------------------------------------------------
 # Transaction scope tests
@@ -518,8 +536,6 @@ class TestConcurrentDatabaseAccess:
 
     def test_concurrent_session_creation(self, engine: Engine) -> None:
         """Multiple concurrent sessions should be safe."""
-        import threading
-
         factory = create_session_factory(engine)
         sessions: list[Any] = []
         errors: list[Exception] = []
@@ -546,9 +562,15 @@ class TestConcurrentDatabaseAccess:
         assert len(errors) == 0
         assert len(sessions) == 10
 
-    def test_concurrent_reads_safe(self, engine: Engine, isolated_base) -> None:
-        """Concurrent reads should not interfere with each other."""
-        import threading
+    # pylint: disable=too-many-locals
+    def test_concurrent_reads_safe(self, isolated_base) -> None:
+        """Concurrent reads should not interfere with each other.
+
+        Uses a temporary file-based SQLite database with NullPool so each reader
+        thread opens its own database connection. This validates concurrent
+        read-session behavior without relying on a shared in-memory SQLite
+        connection from StaticPool.
+        """
 
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent read validation."""
@@ -557,39 +579,51 @@ class TestConcurrentDatabaseAccess:
             id = Column(Integer, primary_key=True)
             value = Column(String)
 
-        init_db(engine)
-        factory = create_session_factory(engine)
-
-        with session_scope(factory) as session:
-            for i in range(100):
-                session.add(TestModel(id=i, value=f"value_{i}"))
-
         results: list[int] = []
         errors: list[Exception] = []
 
-        def read_data() -> None:
-            """
-            Worker executed by a thread to perform a read-only count query and record results.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db_url = f"sqlite:///{os.path.join(tmpdir, 'concurrent_reads.db')}"
+            # NullPool: each session opens its own SQLite connection, so concurrent
+            # reads are exercised at the database level rather than through a single
+            # shared in-memory connection.
+            file_engine = create_engine(
+                db_url,
+                poolclass=NullPool,
+                connect_args={"timeout": 30},
+            )
+            init_db(file_engine)
+            factory = create_session_factory(file_engine)
 
-            Appends the number of rows in `TestModel` to the shared `results`
-            list. If an exception occurs, appends the exception instance to the
-            shared `errors` list. Obtains a session from the module-level
-            session factory and does not return a value.
-            """
-            try:
-                with session_scope(factory) as session:
-                    count = session.query(TestModel).count()
-                    results.append(count)
-            except Exception as exc:  # noqa: BLE001
-                errors.append(exc)
+            with session_scope(factory) as session:
+                for i in range(100):
+                    session.add(TestModel(id=i, value=f"value_{i}"))
 
-        threads = [threading.Thread(target=read_data) for _ in range(10)]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+            def read_data() -> None:
+                """
+                Worker executed by a thread to perform a read-only count query.
 
-        assert len(errors) == 0
+                Appends the number of rows in `TestModel` to the shared `results`
+                list. If an exception occurs, appends the exception instance to the
+                shared `errors` list.
+                """
+                try:
+                    with session_scope(factory) as session:
+                        count = session.query(TestModel).count()
+                        results.append(count)
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(exc)
+
+            threads = [threading.Thread(target=read_data) for _ in range(10)]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+
+            file_engine.dispose()
+
+        assert len(errors) == 0, f"Unexpected errors under concurrent reads: {errors}"
+        assert len(results) == 10
         assert all(count == 100 for count in results)
 
     def test_concurrent_writes(self, isolated_base) -> None:
@@ -601,12 +635,6 @@ class TestConcurrentDatabaseAccess:
         complete successfully, validating the DB/session stack under concurrency
         without relying on any Python-level locking.
         """
-        import os
-        import tempfile
-        import threading
-
-        from sqlalchemy import create_engine as _create_engine
-        from sqlalchemy.pool import NullPool
 
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for concurrent write validation."""
@@ -621,7 +649,7 @@ class TestConcurrentDatabaseAccess:
             # NullPool: each call to session_scope opens its own SQLite connection
             # so concurrent access is exercised at the database level, not masked
             # by a shared in-memory connection.
-            file_engine = _create_engine(
+            file_engine = create_engine(
                 db_url,
                 poolclass=NullPool,
                 connect_args={"timeout": 30},  # wait up to 30 s for the DB lock
@@ -1077,7 +1105,8 @@ class TestNestedConnectionCalls:
         # Outer get_connection call
         with get_connection() as outer_conn:
             # Create a test table
-            outer_conn.execute("CREATE TABLE IF NOT EXISTS test_table (id INTEGER PRIMARY KEY, value TEXT)")
+            outer_conn.execute("DROP TABLE IF EXISTS test_table")
+            outer_conn.execute("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)")
             outer_conn.commit()
 
             # Nested execute() which calls get_connection() internally

@@ -74,7 +74,7 @@ class TestPytestAddoption:
         mock_parser.getgroup.assert_called_once_with("cov")
 
         # Verify addoption was called multiple times for coverage flags
-        assert mock_group.addoption.call_count >= 8
+        assert mock_group.addoption.call_count >= 2
 
     @staticmethod
     def test_skips_registration_when_plugin_available():

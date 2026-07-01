@@ -1,22 +1,23 @@
 """Comprehensive unit tests for FastAPI backend.
 
-This module tests all API endpoints including:
+This module tests all API endpoints listed below, excluding `/api/metrics`:
 - Health checks and root endpoint
 - Asset retrieval with filtering
 - Asset details and relationships
-- Metrics calculation
 - Visualization data generation
 - CORS configuration
 - Error handling and edge cases
 """
 
 from collections.abc import Callable
+from typing import Any
 from unittest.mock import PropertyMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app, validate_origin
+from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 
@@ -28,6 +29,17 @@ TEST_ORIGIN_HTTP_LOOPBACK = "http://127.0.0.1:8000"  # nosec B104
 TEST_ORIGIN_HTTPS_LOCALHOST = "https://localhost:3000"
 TEST_ORIGIN_HTTPS_LOOPBACK = "https://127.0.0.1:8000"
 TEST_ORIGIN_FTP_LOCALHOST = "ftp://localhost:3000"  # Invalid protocol test case
+
+
+def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return asset items from a paginated assets response."""
+    assert set(page) == {"items", "total", "page", "per_page", "hasMore"}
+    assert isinstance(page["items"], list)
+    assert isinstance(page["total"], int)
+    assert isinstance(page["page"], int)
+    assert isinstance(page["per_page"], int)
+    assert isinstance(page["hasMore"], bool)
+    return page["items"]
 
 
 @pytest.fixture
@@ -121,20 +133,32 @@ def mock_graph():
     return graph
 
 
-def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRelationshipGraph) -> None:
+def _apply_mock_graph_configuration(mock_graph_instance: Any, graph: AssetRelationshipGraph) -> None:
     """
-    Copy core attributes from a concrete AssetRelationshipGraph onto a mocked graph used in tests.
+    Configure a mock graph object's public attributes to mirror a concrete AssetRelationshipGraph for tests.
 
-    This sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data attributes to mirror the provided graph, allowing tests to reuse a consistent mocked graph surface.
+    Sets the mock's `assets` and `relationships`, configures `calculate_metrics.return_value` to a metrics
+    dictionary (keys: `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`,
+    `network_density`), and assigns `get_3d_visualization_data` to the graph's
+    `get_3d_visualization_data_enhanced` method.
 
     Parameters:
-        mock_graph_instance (object): The mocked graph object (typically a unittest.mock.Mock) to configure.
-        graph (AssetRelationshipGraph): The concrete AssetRelationshipGraph whose attributes will be copied.
+        mock_graph_instance (object): Mock object to configure (typically a unittest.mock.Mock).
+        graph (AssetRelationshipGraph): Source graph whose public attributes and metrics are copied.
     """
+    metrics = graph.calculate_metrics()
+
     # The patched object is a Mock from unittest.mock; we set attributes dynamically.
     mock_graph_instance.assets = graph.assets
     mock_graph_instance.relationships = graph.relationships
-    mock_graph_instance.calculate_metrics = graph.calculate_metrics
+    mock_graph_instance.calculate_metrics.return_value = {
+        "total_assets": metrics["total_assets"],
+        "total_relationships": metrics["total_relationships"],
+        "asset_classes": metrics["asset_classes"],
+        "avg_degree": metrics["avg_degree"],
+        "max_degree": metrics["max_degree"],
+        "network_density": metrics["network_density"],
+    }
     mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data_enhanced
 
 
@@ -143,7 +167,9 @@ def apply_mock_graph() -> Callable[[object, AssetRelationshipGraph], None]:
     """
     Provide a helper callable that wires a patched/mock graph object to a concrete AssetRelationshipGraph instance.
 
-    The returned callable takes (mock_graph_instance, graph) and copies the concrete graph's public surface — including assets, relationships, and callable methods used by tests — onto the mocked graph so tests can use the concrete graph state through the mock.
+    The returned callable takes (mock_graph_instance, graph) and copies the concrete graph's
+    public surface — including assets, relationships, and callable methods used by tests —
+    onto the mocked graph so tests can use the concrete graph state through the mock.
 
     Returns:
         callable: A function accepting (mock_graph_instance, graph) which applies the configuration.
@@ -190,10 +216,17 @@ class TestCORSValidation:
             assert validate_origin(TEST_ORIGIN_HTTP_LOOPBACK) is True
 
     @staticmethod
-    def test_validate_origin_localhost_https_always():
-        """Test HTTPS localhost is always valid."""
+    def test_validate_origin_localhost_https_policy():
+        """Test HTTPS localhost is valid, while HTTPS loopback is development-only."""
+        get_settings.cache_clear()
         assert validate_origin(TEST_ORIGIN_HTTPS_LOCALHOST) is True
-        assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is True
+        with patch.dict("os.environ", {"ENV": "development"}):
+            get_settings.cache_clear()
+            assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is True
+        with patch.dict("os.environ", {"ENV": "production"}):
+            get_settings.cache_clear()
+            assert validate_origin(TEST_ORIGIN_HTTPS_LOOPBACK) is False
+        get_settings.cache_clear()
 
     @staticmethod
     def test_validate_origin_vercel_urls():
@@ -233,7 +266,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 4  # equity, bond, commodity, currency
 
         # Verify structure
@@ -253,7 +286,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 1
         assert data[0]["asset_class"] == "Equity"
         assert data[0]["symbol"] == "AAPL"
@@ -265,7 +298,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?sector=Technology")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 1
         assert data[0]["sector"] == "Technology"
 
@@ -276,7 +309,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?asset_class=Equity&sector=Technology")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
         assert len(data) == 1
         assert data[0]["asset_class"] == "Equity"
         assert data[0]["sector"] == "Technology"
@@ -288,7 +321,7 @@ class TestAssetsEndpoint:
 
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
-        data = response.json()
+        data = asset_items(response.json())
 
         equity = data[0]
         assert "additional_fields" in equity
@@ -397,45 +430,6 @@ class TestRelationshipsEndpoint:
 
 
 @pytest.mark.unit
-class TestMetricsEndpoint:
-    """Test metrics calculation endpoint."""
-
-    @patch("api.main.graph")
-    def test_get_metrics(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test retrieving network metrics."""
-        apply_mock_graph(mock_graph_instance, mock_graph)
-
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-
-        assert "total_assets" in data
-        assert "total_relationships" in data
-        assert "asset_classes" in data
-        assert "avg_degree" in data
-        assert "max_degree" in data
-        assert "network_density" in data
-
-        assert data["total_assets"] == 4
-        assert isinstance(data["asset_classes"], dict)
-        assert data["avg_degree"] >= 0
-        assert data["network_density"] >= 0
-
-    @patch("api.main.graph")
-    def test_metrics_asset_class_distribution(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test asset class distribution in metrics."""
-        apply_mock_graph(mock_graph_instance, mock_graph)
-
-        response = client.get("/api/metrics")
-        data = response.json()
-
-        assert "Equity" in data["asset_classes"]
-        assert "Fixed Income" in data["asset_classes"]
-        assert data["asset_classes"]["Equity"] == 1
-        assert data["asset_classes"]["Fixed Income"] == 1
-
-
-@pytest.mark.unit
 class TestVisualizationEndpoint:
     """Test 3D visualization data endpoint."""
 
@@ -537,7 +531,7 @@ class TestEdgeCases:
 
     @patch("api.main.graph")
     def test_empty_graph(self, mock_graph_instance, client):
-        """Test handling of empty graph."""
+        """Assets endpoint remains available for empty graphs."""
         empty_graph = AssetRelationshipGraph()
         # Ensure the patched graph has an empty assets mapping as well as relationships.
         mock_graph_instance.assets = empty_graph.assets
@@ -546,13 +540,7 @@ class TestEdgeCases:
 
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assert len(response.json()) == 0
-
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["total_relationships"] == 0
+        assert len(asset_items(response.json())) == 0
 
     @patch("api.main.graph")
     def test_special_characters_in_asset_id(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
@@ -570,7 +558,7 @@ class TestEdgeCases:
 
         response = client.get("/api/assets?sector=NonExistent")
         assert response.status_code == 200
-        assert len(response.json()) == 0
+        assert len(asset_items(response.json())) == 0
 
 
 @pytest.mark.unit
@@ -591,7 +579,7 @@ class TestConcurrency:
         # All should succeed
         for response in responses:
             assert response.status_code == 200
-            assert len(response.json()) == 4
+            assert len(asset_items(response.json())) == 4
 
 
 @pytest.mark.unit
@@ -601,14 +589,16 @@ class TestResponseValidation:
     @patch("api.main.graph")
     def test_asset_response_schema(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """
-        Validate that each asset in the /api/assets response matches the expected schema.
+        Validate that each asset returned by GET /api/assets conforms to the expected response schema.
 
-        Checks that required fields are present and have the correct types (id, symbol, name, asset_class, sector, price, currency) and that `market_cap`, when not null, is a number.
+        Checks that required fields `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, and `currency`
+        are present with string types for the text fields and numeric type (`int` or `float`) for `price`.
+        If `market_cap` is not `None`, asserts it is numeric (`int` or `float`).
         """
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         response = client.get("/api/assets")
-        data = response.json()
+        data = asset_items(response.json())
 
         for asset in data:
             # Required fields
@@ -720,9 +710,9 @@ class TestRealDataFetcherFallback:
         assert graph is not None
         assert isinstance(graph, AssetRelationshipGraph)
 
-    @patch("src.data.real_data_fetcher.logger")
+    @patch("src.data.real_data_fetcher.log_event")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    def test_real_data_fetcher_logs_fallback_on_exception(self, mock_fetch_equity, mock_logger):
+    def test_real_data_fetcher_logs_fallback_on_exception(self, mock_fetch_equity, mock_log_event):
         """Test that RealDataFetcher logs when falling back to sample data."""
         from src.data.real_data_fetcher import RealDataFetcher
 
@@ -732,16 +722,14 @@ class TestRealDataFetcherFallback:
         fetcher = RealDataFetcher()
         fetcher.create_real_database()
 
-        # Verify error and warning were logged
-        assert mock_logger.exception.called
-        assert mock_logger.warning.called
-        # Check that "Falling back" message was logged
-        warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
-        assert any("Falling back" in call for call in warning_calls)
+        # Verify error and warning events were emitted
+        event_names = [call.args[2].event for call in mock_log_event.call_args_list]
+        assert "graph_live_fetch_failed" in event_names
+        assert "graph_fetch_fallback_engaged" in event_names
 
-    @patch("src.data.real_data_fetcher.logger")
+    @patch("src.data.real_data_fetcher.log_event")
     @patch("yfinance.Ticker")
-    def test_individual_asset_class_fetch_failures_logged(self, mock_ticker, mock_logger):
+    def test_individual_asset_class_fetch_failures_logged(self, mock_ticker, mock_log_event):
         """Test that individual asset class fetch failures are logged properly."""
         from src.data.real_data_fetcher import RealDataFetcher
 
@@ -751,12 +739,13 @@ class TestRealDataFetcherFallback:
         fetcher = RealDataFetcher()
         fetcher.create_real_database()
 
-        # Should log errors for each failed fetch
-        assert mock_logger.exception.call_count > 0  # Multiple fetch attempts failed
+        # Should log failure events for each failed fetch
+        event_names = [call.args[2].event for call in mock_log_event.call_args_list]
+        assert any(name.startswith("graph_fetch_") and name.endswith("_failed") for name in event_names)
 
     @staticmethod
     def test_real_data_fetcher_loads_from_cache(tmp_path):
-        """RealDataFetcher should return cached dataset when available."""
+        """Verify that RealDataFetcher returns cached dataset when available."""
         from src.data.real_data_fetcher import RealDataFetcher, _save_to_cache
         from src.data.sample_data import create_sample_database
 
@@ -799,7 +788,9 @@ class TestCacheCorruptionRegression:
         """
         Verify concurrent cache reads do not raise errors and produce consistent graphs.
 
-        Spawns multiple threads that each instantiate a RealDataFetcher pointed at the same cache file and create a database from it; the test asserts no thread raises an exception and every returned graph has the same number of assets as the reference graph.
+        Spawns multiple threads that each instantiate a RealDataFetcher pointed at the same
+        cache file and create a database from it; the test asserts no thread raises an exception
+        and every returned graph has the same number of assets as the reference graph.
         """
         import threading
 
@@ -936,7 +927,11 @@ class TestAPIBoundaryConditions:
         # Should not timeout or error
         response = client.get("/api/assets")
         assert response.status_code == 200
-        assert len(response.json()) == 1000
+        data = response.json()
+        assert data["page"] == 1
+        assert data["per_page"] == 50
+        assert data["total"] == 1000
+        assert len(data["items"]) == 50
 
     @staticmethod
     @patch("api.main.graph")
@@ -981,28 +976,13 @@ class TestNegativeScenarios:
 
     @staticmethod
     def test_validate_origin_with_unicode_domain():
-        """
-        Verify that validate_origin accepts an HTTPS internationalized domain name (IDN) such as "https://münchen.de".
+        """Verify that validate_origin accepts an HTTPS internationalized domain name.
+
+        Uses an internationalized domain name (IDN) such as "https://münchen.de".
         """
         result = validate_origin("https://münchen.de")
         # IDN with HTTPS: validate_origin should accept valid HTTPS domains
         assert result is True
-
-    @staticmethod
-    @patch("api.main.graph")
-    def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
-        """Negative: Metrics with empty graph should not cause division by zero."""
-        empty_graph = AssetRelationshipGraph()
-        mock_graph_instance.assets = empty_graph.assets
-        mock_graph_instance.relationships = empty_graph.relationships
-        mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
-
-        # Should not raise ZeroDivisionError
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["network_density"] == 0
 
 
 class TestUserInDBClassRefactoring:
@@ -1052,109 +1032,8 @@ class TestUserInDBClassRefactoring:
         assert user.hashed_password == "$2b$12$hash"
 
 
-class TestIsTruthyHelperFunction:
-    """Comprehensive tests for the _is_truthy helper function."""
-
-    def test_is_truthy_with_true_variations(self):
-        """Test _is_truthy recognizes 'true' in various cases."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("true") is True
-        assert _is_truthy("True") is True
-        assert _is_truthy("TRUE") is True
-        assert _is_truthy("TrUe") is True
-
-    def test_is_truthy_with_numeric_one(self):
-        """Test _is_truthy recognizes '1' as truthy."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("1") is True
-
-    def test_is_truthy_with_yes_variations(self):
-        """Test _is_truthy recognizes 'yes' in various cases."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("yes") is True
-        assert _is_truthy("Yes") is True
-        assert _is_truthy("YES") is True
-        assert _is_truthy("YeS") is True
-
-    def test_is_truthy_with_on_variations(self):
-        """Test _is_truthy recognizes 'on' in various cases."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("on") is True
-        assert _is_truthy("On") is True
-        assert _is_truthy("ON") is True
-        assert _is_truthy("oN") is True
-
-    def test_is_truthy_with_false_string(self):
-        """Test _is_truthy returns False for 'false' string."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("false") is False
-        assert _is_truthy("False") is False
-        assert _is_truthy("FALSE") is False
-
-    def test_is_truthy_with_numeric_zero(self):
-        """Test _is_truthy returns False for '0'."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("0") is False
-
-    def test_is_truthy_with_no_string(self):
-        """Test _is_truthy returns False for 'no'."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("no") is False
-        assert _is_truthy("No") is False
-        assert _is_truthy("NO") is False
-
-    def test_is_truthy_with_none_value(self):
-        """Test _is_truthy handles None gracefully."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy(None) is False
-
-    def test_is_truthy_with_empty_string(self):
-        """Test _is_truthy handles empty string."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("") is False
-
-    def test_is_truthy_with_whitespace_string(self):
-        """Test _is_truthy with whitespace string."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("   ") is False
-
-    def test_is_truthy_with_arbitrary_strings(self):
-        """Test _is_truthy returns False for unrecognized strings."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy("maybe") is False
-        assert _is_truthy("random") is False
-        assert _is_truthy("2") is False
-        assert _is_truthy("off") is False
-        assert _is_truthy("disabled") is False
-
-    def test_is_truthy_with_truthy_strings_containing_spaces(self):
-        """Test _is_truthy with truthy values that have leading/trailing spaces."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy(" true") is False  # Has leading space
-        assert _is_truthy("true ") is False  # Has trailing space
-
-
 class TestAuthModuleDocstringUpdates:
     """Test that auth module docstrings are present and descriptive."""
-
-    def test_is_truthy_function_has_proper_docstring(self):
-        """Test that _is_truthy has updated docstring."""
-        from api.auth import _is_truthy
-
-        assert _is_truthy.__doc__ is not None
-        assert "Determine whether a string value represents a truthy boolean" in _is_truthy.__doc__
 
     def test_user_repository_get_user_docstring(self):
         """Test that UserRepository.get_user has proper docstring."""

@@ -1,6 +1,12 @@
-"""Metrics API routes."""
+"""Graph metrics API routes."""
 
+import logging
+
+# pylint: disable=import-error
 from fastapi import APIRouter, HTTPException
+
+# pylint: enable=import-error
+from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import MetricsResponse
 from ..router_helpers import get_graph, logger
@@ -8,33 +14,40 @@ from ..router_helpers import get_graph, logger
 router = APIRouter()
 
 
-@router.get("/api/metrics", response_model=MetricsResponse)
-async def get_metrics() -> MetricsResponse:
-    """Return summary metrics for the asset relationship graph."""
+@router.get("/api/graph/metrics", responses={500: {"description": "Internal server error"}})
+async def get_graph_metrics() -> MetricsResponse:
+    """
+    Retrieve aggregated graph metrics (totals, degrees, and density) for the current asset graph.
+
+    Returns:
+        MetricsResponse: The calculated public metrics for the graph state.
+
+    Raises:
+        HTTPException: Raised with status code 500 if an internal error occurs while calculating metrics.
+    """
     try:
         g = get_graph()
-        metrics = g.calculate_metrics()
-
-        asset_classes = {}
-        for asset in g.assets.values():
-            key = asset.asset_class.value
-            asset_classes[key] = asset_classes.get(key, 0) + 1
-
-        degrees = [len(rels) for rels in g.relationships.values()]
-        avg_degree = sum(degrees) / len(degrees) if degrees else 0.0
-        max_degree = max(degrees) if degrees else 0
-
+        metrics_dict = g.calculate_metrics()
         return MetricsResponse(
-            total_assets=metrics["total_assets"],
-            total_relationships=metrics["total_relationships"],
-            asset_classes=asset_classes,
-            avg_degree=avg_degree,
-            max_degree=max_degree,
-            network_density=metrics.get("relationship_density", 0.0),
-            relationship_density=metrics.get("relationship_density", 0.0),
+            total_assets=metrics_dict["total_assets"],
+            total_relationships=metrics_dict["total_relationships"],
+            asset_classes=metrics_dict["asset_classes"],
+            avg_degree=metrics_dict["avg_degree"],
+            max_degree=metrics_dict["max_degree"],
+            network_density=metrics_dict["network_density"],
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.exception("Error getting metrics:")
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="api_get_graph_metrics_failed",
+                message=f"Error getting graph metrics: {type(e).__name__}",
+                metadata={"error": type(e).__name__},
+            ),
+        )
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred. Please try again later.",

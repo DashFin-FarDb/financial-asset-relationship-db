@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file is hosted and maintained by Dosu (dosu.dev). It provides guidance to AI coding agents when working with code in this repository.
 
 ## IMPORTANT: Production Architecture Declaration
 
@@ -53,14 +53,16 @@ pip install -r requirements-dev.txt
 
 Note: importing `api.main` imports `api.auth` and `api.database`, which **require env vars**.
 
-Minimum env vars for startup (see `api/auth.py` and `api/database.py`; these are not currently provided via `src/config/settings.py`):
+Minimum env vars for startup (see `api/auth.py` and `api/database.py`):
 
 - `DATABASE_URL` (SQLite URL; e.g. `sqlite:///./dev.db` or `sqlite:///:memory:`)
-- `SECRET_KEY` (JWT signing key)
+- `SECRET_KEY` (JWT signing key) — now centralized via `src/config/settings.py`
 - Either pre-populated user credentials in the DB, or seed via:
   - `ADMIN_USERNAME`
   - `ADMIN_PASSWORD`
   - optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
+
+Auth settings (`SECRET_KEY`, `ADMIN_*`) are now centralized in `src/config/settings.py` (PR #1059).
 
 Start the API:
 
@@ -172,9 +174,34 @@ make test
 make test-fast
 make lint
 make format
+make format-check
 make type-check
 make check
+make pre-commit         # install pre-commit hooks
+make pre-commit-run     # run pre-commit hooks on all files
+make run                # runs `python app.py` (Gradio - non-production)
+make clean              # remove caches, coverage, build artifacts
 ```
+
+Docker targets (Gradio image - non-production): `make docker-build`, `make docker-run`,
+`make docker-stop`, `make docker-clean`, `make docker-compose-up`, `make docker-compose-down`,
+`make docker-compose-logs`, `make docker-shell`, `make docker-dev`.
+
+Run `make help` for the full target list with descriptions.
+
+### Utility scripts (in `scripts/`)
+
+- `scripts/check_hosted_readiness.py` — Smoke-check a hosted deployment's
+  liveness/readiness endpoints. Usage:
+
+  ```pwsh
+  python scripts/check_hosted_readiness.py <base_url> [--timeout SECONDS]
+  ```
+
+- `scripts/validate_manifest.py` — Validate `.elastic-copilot/memory/systemManifest.md`
+  for duplicate level-2 headings (markdownlint MD024).
+- `scripts/deduplicate_manifest.py` — Deduplicate level-2 sections in `.elastic-copilot/memory/systemManifest.md`.
+  Note: the script currently contains a partial implementation; complete it before relying on this command.
 
 ### Docker (Gradio app - NON-PRODUCTION)
 
@@ -184,6 +211,21 @@ docker-compose up --build
 
 Note: Docker configuration currently references Gradio. Aligning deployment artifacts with production architecture is deferred work per ADR 0001.
 
+### Hosted readiness smoke check
+
+`scripts/check_hosted_readiness.py` performs a bounded liveness/readiness probe against a hosted deployment. It is wired into the manual GitHub Actions workflow `.github/workflows/hosted-readiness.yml` (trigger via `workflow_dispatch`).
+
+Inputs/env:
+
+- `base_url` workflow input or `HOSTED_READINESS_BASE_URL` repository secret (the workflow skips when neither is set)
+- `timeout` workflow input (seconds; defaults to `10`)
+
+Run locally:
+
+```pwsh
+python scripts/check_hosted_readiness.py <base_url> --timeout 10
+```
+
 ## High-level architecture
 
 ### Core domain model (Python)
@@ -192,6 +234,28 @@ Note: Docker configuration currently references Gradio. Aligning deployment arti
   - Defines the canonical **domain dataclasses**: `Asset` and subclasses (`Equity`, `Bond`, `Commodity`, `Currency`), plus `RegulatoryEvent`.
   - Enums: `AssetClass`, `RegulatoryActivity`.
   - `__post_init__` performs lightweight validation (e.g., currency code format, impact score range).
+
+### Reconciliation / rebuild control plane
+
+- `src/logic/reconciliation_engine.py` — Purely functional engine that consumes
+  Desired State + Observed State, computes drift, and generates execution-agnostic
+  Reconciliation Plans (no side effects).
+- `src/logic/rebuild_failure_detection.py` — Drift/inconsistency detection
+  (orphaned-running, zombie executor, crash suspicion, stale ownership).
+- `src/logic/rebuild_recovery.py` — Maps detected drift to deterministic recovery
+  actions (RESUME, etc.).
+- `src/logic/rebuild_drift_evaluator.py` — Evaluator adapter between drift
+  detection and the reconciliation engine.
+- `src/logic/recovery_gate.py` — Recovery gate hardening for rebuild flows.
+- See `docs/reconciliation-discovery-map.md` for the mapping between the
+  pre-existing implicit reconciliation primitives and the formal engine.
+
+### Stage 5C Safety Constraints
+
+When modifying or implementing rebuild jobs and processing loops, the following constraints must be strictly adhered to:
+
+- **State Mutations:** Any state mutation on rebuild jobs must validate the current `execution_id` to ensure execution safety and avoid stale mutations.
+- **Cancellation Check:** Any new or modified processing loop must periodically check the `cancel_event` (such as `threading.Event` or equivalent) and raise `RebuildCancelledError` if it is set.
 
 ### Relationship graph engine
 
@@ -237,9 +301,14 @@ FastAPI graph initialization in `api/main.py`:
 
 Configuration + persistence:
 
-- `src/config/settings.py` — Centralized typed runtime configuration for the settings introduced so far. It does not yet replace all direct `os.getenv()` usage across the repository.
+- `src/config/settings.py` — Centralized typed runtime configuration including:
+  - Environment mode (`ENV`)
+  - CORS configuration (`ALLOWED_ORIGINS`)
+  - Auth settings (`SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`)
+  - Graph data source settings (`GRAPH_CACHE_PATH`, `REAL_DATA_CACHE_PATH`, `USE_REAL_DATA_FETCHER`)
+  - Database URLs (`DATABASE_URL`, `ASSET_GRAPH_DATABASE_URL`)
 - `api/database.py` — SQLite connection management driven by `DATABASE_URL`.
-- `api/auth.py` — JWT auth (`SECRET_KEY` required) and user seeding via `ADMIN_*` env vars.
+- `api/auth.py` — JWT auth and user seeding; reads config from `src/config/settings.py` via `load_settings()`.
 
 ### Next.js frontend
 
@@ -250,8 +319,11 @@ Configuration + persistence:
 ## Repo-specific conventions to keep in mind
 
 - **Production architecture:** FastAPI + Next.js is the declared production stack. Prioritize work on this stack. See `.github/AUTOMATION_SCOPE_POLICY.md`.
+- **Enterprise Readiness:** The system is transitioning to an enterprise-grade posture. Refer to `docs/enterprise-readiness-index.md` for the audit, roadmap, and PR plan. Ensure work aligns with these plans, particularly the rule that **durable persistence is the gating dependency** for restart, promotion, and DR. SQLite compatibility must be preserved.
 - **PR scope guardrails:** All PRs must include Primary Objective, In Scope, Out of Scope, Files Expected to Change, Validation Commands, and Merge Criteria.
-- **Runtime configuration:** Use `src/config/settings.py` and `get_settings()` for the settings currently centralized there. Do not assume all existing env vars have been migrated yet.
+- **High-risk work:** Database, auth, deployment, CI, security scanner config, and persistence changes require low-autonomy contracts. See "High-risk change control" in `.github/AI_AGENT_GUARDRAILS.md`.
+- **Runtime configuration:** use `src/config/settings.py` and `load_settings()` or `get_settings()` for centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`), CORS settings, and database URL resolution are centralized through the settings layer. Some legacy/runtime seams may still use direct `os.getenv()` access where migration has been intentionally deferred; do not assume full migration away from environment reads.
+- **Pre-commit hooks:** Run `pre-commit run --files <files>` before committing. Key checks: black (120 char lines), flake8-docstrings (D101/D102/D103), ruff, mypy.
 - **Plotting/visualization:** Standardized on **Plotly** (see `AI_RULES.md`).
 - When changing relationship semantics or graph-derived metrics, expect to update:
   - the graph engine (`src/logic/asset_graph.py`)
@@ -265,3 +337,9 @@ CircleCI (`.circleci/config.yml`) runs:
 
 - Python: flake8 (critical errors), pytest with coverage, safety + bandit
 - Frontend: `npm run lint`, `npm run build`
+
+GitHub Actions (`.github/workflows/`) include, among others:
+
+- `ci.yml` — primary CI pipeline
+- `hosted-readiness.yml` — manual (`workflow_dispatch`) hosted deployment smoke check (see "Hosted readiness smoke check" above)
+- A range of security/scanner workflows (CodeQL, Bandit, Bearer, Semgrep, Snyk, Trivy, etc.)

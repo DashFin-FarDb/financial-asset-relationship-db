@@ -6,6 +6,40 @@ set -e
 echo "🚀 Starting Financial Asset Relationship Database Development Environment"
 echo ""
 
+# Check required environment variables
+echo "🔍 Checking required environment variables..."
+required_vars=(DATABASE_URL SECRET_KEY ADMIN_USERNAME ADMIN_PASSWORD)
+missing_vars=()
+
+for var in "${required_vars[@]}"; do
+  if [[ -z "${!var:-}" ]]; then
+    missing_vars+=("$var")
+  fi
+done
+
+if [[ ${#missing_vars[@]} -ne 0 ]]; then
+  {
+    echo ""
+    echo "❌ Error: Missing required backend environment variables:"
+    for var in "${missing_vars[@]}"; do
+      echo "   - $var"
+    done
+    echo ""
+    echo "Set required variables before running ./run-dev.sh:"
+    echo ""
+    echo "  export DATABASE_URL=sqlite:dev.db"
+    echo "  export SECRET_KEY=replace-with-a-long-random-secret"
+    echo "  export ADMIN_USERNAME=admin"
+    echo "  export ADMIN_PASSWORD=replace-with-a-strong-password"
+    echo ""
+    echo "See README.md and .env.example for more details."
+  } >&2
+  exit 1
+fi
+
+echo "✓ All required environment variables are set"
+echo ""
+
 # Check if virtual environment exists
 if [ ! -d ".venv" ]; then
     echo "📦 Creating Python virtual environment..."
@@ -20,9 +54,13 @@ source .venv/bin/activate
 echo "📥 Installing Python dependencies..."
 pip install -r requirements.txt
 
+# Allow overriding ports via env; fall back to 8000/3000
+BACKEND_PORT="${BACKEND_PORT:-8000}"
+FRONTEND_PORT="${FRONTEND_PORT:-3000}"
+
 # Start backend in background
-echo "🔧 Starting FastAPI backend on port 8000..."
-python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000 &
+echo "🔧 Starting FastAPI backend on port ${BACKEND_PORT}..."
+python -m uvicorn api.main:app --reload --host 127.0.0.1 --port "${BACKEND_PORT}" &
 BACKEND_PID=$!
 
 # Wait for backend to start
@@ -36,19 +74,20 @@ if [ ! -d "frontend/node_modules" ]; then
     cd ..
 fi
 
-# Start frontend
-echo "⚛️  Starting Next.js frontend on port 3000..."
+# Start frontend using FRONTEND_PORT env (frontend tooling can still auto-pick an available port)
+echo "⚛️  Starting Next.js frontend (suggested port ${FRONTEND_PORT})..."
 cd frontend
-npm run dev &
+# many Next.js dev processes read PORT; pass it explicitly for deterministic tests
+PORT="${FRONTEND_PORT}" npm run dev &
 FRONTEND_PID=$!
 cd ..
 
 echo ""
 echo "✅ Development servers started!"
 echo ""
-echo "📍 Frontend: http://localhost:3000"
-echo "📍 Backend API: http://localhost:8000"
-echo "📍 API Docs: http://localhost:8000/docs"
+echo "📍 Frontend: http://localhost:${FRONTEND_PORT}"
+echo "📍 Backend API: http://localhost:${BACKEND_PORT}"
+echo "📍 API Docs: http://localhost:${BACKEND_PORT}/docs"
 echo ""
 echo "Press Ctrl+C to stop both servers"
 echo ""
