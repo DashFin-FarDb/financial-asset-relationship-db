@@ -11,7 +11,11 @@ def verify_staging_promotion(evidence_file: str):
         print(f"Error: Evidence file {evidence_file} not found.")
         sys.exit(1)
 
-    with open(evidence_file, "r", encoding="utf-8") as f:
+    evidence_path = Path(evidence_file).resolve()
+    if ".." in str(evidence_path) or not evidence_path.is_relative_to(Path.cwd()):
+        print(f"Error: Invalid evidence file path {evidence_file}.")
+        sys.exit(1)
+    with open(evidence_path, "r", encoding="utf-8") as f:
         content = f.read().lower()
 
     missing = []
