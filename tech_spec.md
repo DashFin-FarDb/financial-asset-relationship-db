@@ -12007,7 +12007,7 @@ This glossary defines key terms used throughout the Technical Specification, org
 | **Income Comparison**          | Bidirectional relationship comparing dividend yields to bond yields for cross-asset income analysis.                                                                          |
 | **Market Cap**                 | Market Capitalization; total market value of a company's outstanding shares.                                                                                                  |
 | **Max Degree**                 | Network metric representing the highest-connected node in the graph by edge count.                                                                                            |
-| **Network Density**            | Ratio of actual relationships to maximum possible relationships, calculated as total_edges / (nodes × (nodes-1) / 2).                                                         |
+| **Network Density**            | Ratio of actual relationships to maximum possible relationships, calculated as total_edges / (nodes × (nodes-1)) (directed).                                                |
 | **P/E Ratio**                  | Price-to-Earnings ratio; stock price divided by earnings per share, indicating valuation.                                                                                     |
 | **Regulatory Activity**        | Enumerated type of corporate or regulatory event: earnings_report, sec_filing, dividend_announcement, bond_issuance, acquisition, bankruptcy.                                 |
 | **Regulatory Event**           | Corporate or regulatory activity affecting one or more assets with dated occurrence, description, and scored impact.                                                          |
