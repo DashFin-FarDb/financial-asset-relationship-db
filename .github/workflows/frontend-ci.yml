@@ -18,6 +18,9 @@ on:
       - 'frontend/__tests__/lib/api-contract-seams.test.ts'
       - '.github/workflows/frontend-ci.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
