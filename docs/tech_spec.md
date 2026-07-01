@@ -4543,13 +4543,13 @@ The caching strategy uses atomic write operations to prevent data corruption:
 
 The system exposes operational metrics through the `/api/graph/metrics` endpoint:
 
-| Metric                | Description               | Source                  |
-| --------------------- | ------------------------- | ----------------------- |
-| `total_assets`        | Count of nodes in graph   | `len(graph.assets)`     |
-| `total_relationships` | Count of edges            | Sum of adjacency lists  |
+| Metric                | Description                       | Source                  |
+| --------------------- | --------------------------------- | ----------------------- |
+| `total_assets`        | Count of nodes in graph           | `len(graph.assets)`     |
+| `total_relationships` | Count of edges                    | Sum of adjacency lists  |
 | `average_degree`      | Mean connections per source asset | Calculated statistic    |
-| `max_degree`          | Highest connected node    | Maximum adjacency count |
-| `network_density`     | Edge ratio                | Actual/possible edges   |
+| `max_degree`          | Highest connected node            | Maximum adjacency count |
+| `network_density`     | Edge ratio                        | Actual/possible edges   |
 
 #### Health Check
 
@@ -7915,14 +7915,14 @@ The system implements Python standard logging with structured output for operati
 
 The `/api/graph/metrics` endpoint provides graph topology and network analysis metrics:
 
-| Metric                | Type       | Description                |
-| --------------------- | ---------- | -------------------------- |
-| `total_assets`        | Counter    | Count of nodes in graph    |
-| `total_relationships` | Counter    | Count of edges in graph    |
-| `asset_classes`       | Dictionary | Count per asset class      |
-| `avg_degree`          | Gauge      | Mean connections per source asset  |
-| `max_degree`          | Gauge      | Highest connected node     |
-| `network_density`     | Gauge      | Calculated network density |
+| Metric                | Type       | Description                       |
+| --------------------- | ---------- | --------------------------------- |
+| `total_assets`        | Counter    | Count of nodes in graph           |
+| `total_relationships` | Counter    | Count of edges in graph           |
+| `asset_classes`       | Dictionary | Count per asset class             |
+| `avg_degree`          | Gauge      | Mean connections per source asset |
+| `max_degree`          | Gauge      | Highest connected node            |
+| `network_density`     | Gauge      | Calculated network density        |
 
 #### Metrics Response Model
 
@@ -11425,14 +11425,14 @@ flowchart TB
 
 **Endpoint:** `GET /api/graph/metrics`
 
-| Metric                | Type       | Description               |
-| --------------------- | ---------- | ------------------------- |
-| `total_assets`        | Counter    | Count of nodes in graph   |
-| `total_relationships` | Counter    | Count of edges in graph   |
-| `asset_classes`       | Dictionary | Count per asset class     |
+| Metric                | Type       | Description                       |
+| --------------------- | ---------- | --------------------------------- |
+| `total_assets`        | Counter    | Count of nodes in graph           |
+| `total_relationships` | Counter    | Count of edges in graph           |
+| `asset_classes`       | Dictionary | Count per asset class             |
 | `avg_degree`          | Gauge      | Mean connections per source asset |
-| `max_degree`          | Gauge      | Highest connected node    |
-| `network_density`     | Gauge      | Calculated density        |
+| `max_degree`          | Gauge      | Highest connected node            |
+| `network_density`     | Gauge      | Calculated density                |
 
 ### 8.7.3 Performance Metrics and SLAs
 
@@ -11982,39 +11982,39 @@ This glossary defines key terms used throughout the Technical Specification, org
 
 ### 9.2.1 Financial Domain Terms
 
-| Term                           | Definition                                                                                                                                                                    |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Asset**                      | A financial instrument with tradeable value. Base domain entity requiring id, symbol, name, asset_class, sector, and price fields.                                            |
-| **Asset Class**                | Category classification for financial instruments. Supported values: Equity, Fixed Income, Commodity, Currency, Derivative.                                                   |
-| **Asset Relationship Graph**   | Core in-memory data structure storing assets as nodes and relationships as weighted edges in an adjacency list format.                                                        |
+| Term                           | Definition                                                                                                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Asset**                      | A financial instrument with tradeable value. Base domain entity requiring id, symbol, name, asset_class, sector, and price fields.                                                    |
+| **Asset Class**                | Category classification for financial instruments. Supported values: Equity, Fixed Income, Commodity, Currency, Derivative.                                                           |
+| **Asset Relationship Graph**   | Core in-memory data structure storing assets as nodes and relationships as weighted edges in an adjacency list format.                                                                |
 | **Average Degree**             | Network metric representing the mean outgoing relationship count for source assets, calculated as total_relationships / max(1, len(source_assets)) (zero-degree assets are excluded). |
-| **Bidirectional Relationship** | A relationship type where the connection applies equally in both directions (e.g., same_sector, income_comparison).                                                           |
-| **Bond**                       | Fixed income security with specialized attributes: yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.                                               |
-| **Commodity**                  | Asset class representing tradeable goods contracts with attributes: contract_size, delivery_date, and volatility.                                                             |
-| **Commodity Exposure**         | Directional relationship linking equity companies to commodity price movements based on sector exposure.                                                                      |
-| **Corporate Bond to Equity**   | Directional relationship linking bonds to issuing companies via issuer_id matching equity id.                                                                                 |
-| **Coupon Rate**                | Annual interest rate paid on a bond's face value, expressed as a percentage.                                                                                                  |
-| **Credit Rating**              | Assessment of bond issuer creditworthiness, typically represented as letter grades (e.g., AAA, BBB).                                                                          |
-| **Currency**                   | Asset class for foreign exchange pairs with attributes: exchange_rate, country, and central_bank_rate.                                                                        |
-| **Currency Risk**              | Directional relationship for assets with non-USD currency exposure, indicating foreign exchange risk.                                                                         |
-| **Derivative**                 | Financial instrument whose value is derived from underlying assets. Reserved for future expansion.                                                                            |
-| **Directional Relationship**   | A relationship type where the connection flows from source to target (e.g., corporate_bond_to_equity).                                                                        |
-| **Dividend Yield**             | Annual dividend payment as percentage of stock price, applicable to equity assets.                                                                                            |
-| **Earnings Per Share (EPS)**   | Company profitability metric calculated as net income divided by outstanding shares.                                                                                          |
-| **Equity**                     | Stock/share ownership in a company with attributes: pe_ratio, dividend_yield, earnings_per_share, and book_value.                                                             |
-| **Fixed Income**               | Asset class for bonds and debt securities generating regular income payments.                                                                                                 |
-| **Impact Score**               | Numerical measure (-1.0 to +1.0) representing regulatory event impact. Negative indicates adverse impact, positive indicates favorable.                                       |
-| **Income Comparison**          | Bidirectional relationship comparing dividend yields to bond yields for cross-asset income analysis.                                                                          |
-| **Market Cap**                 | Market Capitalization; total market value of a company's outstanding shares.                                                                                                  |
-| **Max Degree**                 | Network metric representing the highest-connected node in the graph by edge count.                                                                                            |
-| **Network Density**            | Ratio of actual relationships to maximum possible relationships, calculated as total_edges / (nodes × (nodes-1)) (directed).                                                  |
-| **P/E Ratio**                  | Price-to-Earnings ratio; stock price divided by earnings per share, indicating valuation.                                                                                     |
-| **Regulatory Activity**        | Enumerated type of corporate or regulatory event: earnings_report, sec_filing, dividend_announcement, bond_issuance, acquisition, bankruptcy.                                 |
-| **Regulatory Event**           | Corporate or regulatory activity affecting one or more assets with dated occurrence, description, and scored impact.                                                          |
-| **Relationship Strength**      | Normalized weight (0.0-1.0) indicating connection intensity between assets in a relationship.                                                                                 |
-| **Same Sector**                | Bidirectional relationship linking assets operating in the same industry sector classification.                                                                               |
-| **Sector**                     | Industry classification for assets (e.g., Technology, Energy, Financial Services, Healthcare).                                                                                |
-| **Yield to Maturity (YTM)**    | Total return anticipated on a bond if held until maturity, accounting for coupon payments and price difference.                                                               |
+| **Bidirectional Relationship** | A relationship type where the connection applies equally in both directions (e.g., same_sector, income_comparison).                                                                   |
+| **Bond**                       | Fixed income security with specialized attributes: yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.                                                       |
+| **Commodity**                  | Asset class representing tradeable goods contracts with attributes: contract_size, delivery_date, and volatility.                                                                     |
+| **Commodity Exposure**         | Directional relationship linking equity companies to commodity price movements based on sector exposure.                                                                              |
+| **Corporate Bond to Equity**   | Directional relationship linking bonds to issuing companies via issuer_id matching equity id.                                                                                         |
+| **Coupon Rate**                | Annual interest rate paid on a bond's face value, expressed as a percentage.                                                                                                          |
+| **Credit Rating**              | Assessment of bond issuer creditworthiness, typically represented as letter grades (e.g., AAA, BBB).                                                                                  |
+| **Currency**                   | Asset class for foreign exchange pairs with attributes: exchange_rate, country, and central_bank_rate.                                                                                |
+| **Currency Risk**              | Directional relationship for assets with non-USD currency exposure, indicating foreign exchange risk.                                                                                 |
+| **Derivative**                 | Financial instrument whose value is derived from underlying assets. Reserved for future expansion.                                                                                    |
+| **Directional Relationship**   | A relationship type where the connection flows from source to target (e.g., corporate_bond_to_equity).                                                                                |
+| **Dividend Yield**             | Annual dividend payment as percentage of stock price, applicable to equity assets.                                                                                                    |
+| **Earnings Per Share (EPS)**   | Company profitability metric calculated as net income divided by outstanding shares.                                                                                                  |
+| **Equity**                     | Stock/share ownership in a company with attributes: pe_ratio, dividend_yield, earnings_per_share, and book_value.                                                                     |
+| **Fixed Income**               | Asset class for bonds and debt securities generating regular income payments.                                                                                                         |
+| **Impact Score**               | Numerical measure (-1.0 to +1.0) representing regulatory event impact. Negative indicates adverse impact, positive indicates favorable.                                               |
+| **Income Comparison**          | Bidirectional relationship comparing dividend yields to bond yields for cross-asset income analysis.                                                                                  |
+| **Market Cap**                 | Market Capitalization; total market value of a company's outstanding shares.                                                                                                          |
+| **Max Degree**                 | Network metric representing the highest-connected node in the graph by edge count.                                                                                                    |
+| **Network Density**            | Ratio of actual relationships to maximum possible relationships, calculated as total_edges / (nodes × (nodes-1)) (directed).                                                          |
+| **P/E Ratio**                  | Price-to-Earnings ratio; stock price divided by earnings per share, indicating valuation.                                                                                             |
+| **Regulatory Activity**        | Enumerated type of corporate or regulatory event: earnings_report, sec_filing, dividend_announcement, bond_issuance, acquisition, bankruptcy.                                         |
+| **Regulatory Event**           | Corporate or regulatory activity affecting one or more assets with dated occurrence, description, and scored impact.                                                                  |
+| **Relationship Strength**      | Normalized weight (0.0-1.0) indicating connection intensity between assets in a relationship.                                                                                         |
+| **Same Sector**                | Bidirectional relationship linking assets operating in the same industry sector classification.                                                                                       |
+| **Sector**                     | Industry classification for assets (e.g., Technology, Energy, Financial Services, Healthcare).                                                                                        |
+| **Yield to Maturity (YTM)**    | Total return anticipated on a bond if held until maturity, accounting for coupon payments and price difference.                                                                       |
 
 ### 9.2.2 Technical Architecture Terms
 
