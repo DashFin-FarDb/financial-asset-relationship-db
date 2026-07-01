@@ -200,3 +200,13 @@ def test_acquire_timeout_seconds_clamping(monkeypatch: pytest.MonkeyPatch) -> No
 
     with pytest.raises(LockAcquisitionTimeout, match="within 30s ceiling"):
         lock.acquire(max_retries=5, timeout_seconds=100.0)
+
+
+@pytest.mark.unit
+def test_acquire_timeout_seconds_non_positive() -> None:
+    """Verify DistributedLock.acquire raises ValueError for non-positive timeout."""
+    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[return-value]
+    with pytest.raises(ValueError, match="timeout_seconds must be positive"):
+        lock.acquire(timeout_seconds=0.0)
+    with pytest.raises(ValueError, match="timeout_seconds must be positive"):
+        lock.acquire(timeout_seconds=-1.0)

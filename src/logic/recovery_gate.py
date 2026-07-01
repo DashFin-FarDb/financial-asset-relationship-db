@@ -551,7 +551,7 @@ class RecoveryGate:
                     exc_info=True,
                 )
             raise ExecutionBlockedError(
-                f"Cannot commit reset for job {job_id}: lock lost " f"(action=wait, inconsistency={drift_type})",
+                f"Cannot commit reset for job {job_id}: lock lost (action=wait, inconsistency={drift_type})",
                 action="wait",
                 inconsistency_type=drift_type,
             )

@@ -597,3 +597,34 @@ def test_reset_blocks_fresh_remote_owner_as_stale_ownership(
     assert exc_info.value.action == "unsafe"
     assert exc_info.value.inconsistency_type == "stale_ownership"
     repo.mark_rebuild_job_failed.assert_not_called()
+
+
+def test_reset_active_job_blocks_on_lock_loss_and_guards_rollback(mock_session_factory, mock_lock, monkeypatch):
+    """Test _reset_active_job guards against rollback failure and missing lock holder."""
+    gate = RecoveryGate(
+        session_factory=mock_session_factory,
+        lock=mock_lock,
+        runtime_has_active_executor=False,
+    )
+
+    from src.data.db_models import RebuildJobStatus
+
+    class DummyJob:
+        status = RebuildJobStatus.RUNNING
+        job_id = "job-1"
+        active_worker_id = "stale-worker"
+        execution_id = "exec-1"
+        last_heartbeat_at = None
+
+    mock_lock.check_state.return_value = LockState.VALID
+    mock_lock.holder_id = None  # simulate lock lost / no holder
+
+    mock_session = mock_session_factory.return_value
+    mock_session.rollback.side_effect = RuntimeError("DB connection lost during rollback")
+
+    # We call _reset_active_job directly to test its internal logic
+    # First we need to monkeypatch the repo mark_rebuild_job_failed so it doesn't fail early
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr("src.logic.recovery_gate.AssetGraphRepository.mark_rebuild_job_failed", lambda *args, **kwargs: None)
+        with pytest.raises(ExecutionBlockedError, match="lock lost"):
+            gate._reset_active_job(mock_session, DummyJob(), "worker-1", "test_drift")
