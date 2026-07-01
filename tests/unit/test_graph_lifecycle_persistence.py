@@ -13,15 +13,11 @@ from sqlalchemy import create_engine, text  # pylint: disable=import-error
 
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as graph_lifecycle_providers
+from api.graph_lifecycle import GraphStartupMetadata
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (
-    AssetClass,
-    Equity,
-    RegulatoryActivity,
-    RegulatoryEvent,
-)
+from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
 
 pytestmark = pytest.mark.unit
 
@@ -138,7 +134,7 @@ def _initialize_graph_for_test() -> AssetRelationshipGraph:
     return graph_lifecycle._initialize_graph()  # pylint: disable=protected-access
 
 
-def _get_graph_with_source_for_test() -> tuple[AssetRelationshipGraph, str | None]:
+def _get_graph_with_source_for_test() -> tuple[AssetRelationshipGraph, GraphStartupMetadata | None]:
     """Get the active graph and tracked startup source via the public lifecycle helper."""
     return graph_lifecycle.get_graph_with_startup_source()
 
@@ -219,17 +215,16 @@ def _assert_empty_db_uses_configured_source(
     _init_empty_db(database_url)
     _configure_persistence_url(monkeypatch, database_url)
 
-    def fail_save_graph(*_args: Any, **_kwargs: Any) -> None:
-        """Fail if startup attempts to save graph data."""
-        raise AssertionError("startup load must not save graph data")
+    # Guard against accidental save during fallback
+    save_calls = []
+    monkeypatch.setattr(AssetGraphRepository, "save_graph", lambda *a, **kw: save_calls.append(("save_graph", a, kw)))
 
     configured_graph = _asset_only_graph()
 
-    def load_configured_graph(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+    def load_configured_graph(*_args: Any, **_kwargs: Any) -> tuple[AssetRelationshipGraph, str]:
         """Provide the preconfigured fallback graph."""
-        return configured_graph
+        return configured_graph, expected_source
 
-    monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
     monkeypatch.setattr(
         graph_lifecycle_providers,
         provider_attr,
@@ -237,10 +232,11 @@ def _assert_empty_db_uses_configured_source(
     )
 
     graph, startup_source = _get_graph_with_source_for_test()
-
+    assert len(save_calls) == 0, "save_graph should not be called during empty-DB fallback"
     assert graph is configured_graph
     assert set(graph.assets) == {"ASSET_ONLY"}
-    assert startup_source == expected_source
+    assert startup_source is not None
+    assert startup_source.source == graph_lifecycle.GraphStartupSource.EMPTY_PERSISTENCE_FALLBACK
 
 
 # ---------------------------------------------------------------------------
@@ -268,7 +264,8 @@ def test_factory_precedence_skips_persistence_load(
     graph, startup_source = _get_graph_with_source_for_test()
 
     assert graph is factory_graph
-    assert startup_source == "explicit_factory"
+    assert startup_source is not None
+    assert startup_source.source == "explicit_factory"
 
 
 @pytest.mark.parametrize("configured_value", [None, "", "   "])
@@ -291,7 +288,7 @@ def test_persistence_disabled_preserves_sample_fallback(
     graph = _initialize_graph_for_test()
 
     assert graph.assets
-    assert graph_lifecycle.graph_state.startup_source is None
+    assert graph_lifecycle.graph_state.startup_metadata is None
 
 
 def test_initialize_graph_does_not_commit_startup_source_state(
@@ -304,7 +301,7 @@ def test_initialize_graph_does_not_commit_startup_source_state(
 
     assert graph.assets
     assert graph_lifecycle.graph_state.graph is None
-    assert graph_lifecycle.graph_state.startup_source is None
+    assert graph_lifecycle.graph_state.startup_metadata is None
 
 
 @pytest.mark.parametrize(
@@ -342,31 +339,29 @@ def test_in_memory_sqlite_url_skips_persistence_load(
 # ---------------------------------------------------------------------------
 
 
-def test_empty_configured_db_honors_graph_cache_path_before_sample_fallback(
+@pytest.mark.parametrize(
+    ("env_var", "env_val", "provider_attr", "expected_source"),
+    [
+        ("GRAPH_CACHE_PATH", "/tmp/graph-cache.json", "load_graph_from_cache_path", "cache"),
+        ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher", "real_data"),
+    ],
+)
+def test_empty_configured_db_honors_fallback_provider(
+    env_var: str,
+    env_val: str,
+    provider_attr: str,
+    expected_source: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Empty persistence should fall through to GRAPH_CACHE_PATH."""
-    monkeypatch.setenv("GRAPH_CACHE_PATH", "/tmp/graph-cache.json")
+    # pylint: disable=too-many-positional-arguments
+    """Empty persistence should fall through to configured fallback providers before sample data."""
+    monkeypatch.setenv(env_var, env_val)
     _assert_empty_db_uses_configured_source(
         tmp_path,
         monkeypatch,
-        "load_graph_from_cache_path",
-        "cache",
-    )
-
-
-def test_empty_configured_db_honors_real_data_fetcher_before_sample_fallback(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Empty persistence should fall through to USE_REAL_DATA_FETCHER."""
-    monkeypatch.setenv("USE_REAL_DATA_FETCHER", "1")
-    _assert_empty_db_uses_configured_source(
-        tmp_path,
-        monkeypatch,
-        "load_graph_from_real_data_fetcher",
-        "real_data",
+        provider_attr,
+        expected_source,
     )
 
 
@@ -389,7 +384,8 @@ def test_persisted_asset_only_graph_loads(
     assert set(loaded.assets) == {"ASSET_ONLY"}
     assert not loaded.relationships
     assert not loaded.regulatory_events
-    assert startup_source == "persisted_graph_store"
+    assert startup_source is not None
+    assert startup_source.source == "persisted"
 
 
 def test_persisted_full_graph_loads(
@@ -407,52 +403,40 @@ def test_persisted_full_graph_loads(
     assert _relationship_strength(loaded, "ASSET_A", "ASSET_B", "directed_alpha") == pytest.approx(0.4)
     assert _relationship_strength(loaded, "ASSET_B", "ASSET_A", "directed_alpha") == pytest.approx(0.9)
     assert [event.id for event in loaded.regulatory_events] == ["EVENT_A"]
-    assert startup_source == "persisted_graph_store"
+    assert startup_source is not None
+    assert startup_source.source == "persisted"
 
 
-def test_populated_persistence_wins_over_graph_cache_path(
+@pytest.mark.parametrize(
+    ("env_var", "env_val", "provider_attr", "fallback_name"),
+    [
+        ("GRAPH_CACHE_PATH", "/tmp/graph-cache.json", "load_graph_from_cache_path", "cache"),
+        ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher", "real-data"),
+    ],
+)
+def test_populated_persistence_wins_over_fallback_provider(
+    env_var: str,
+    env_val: str,
+    provider_attr: str,
+    fallback_name: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Populated persistence should win over GRAPH_CACHE_PATH."""
+    # pylint: disable=too-many-positional-arguments
+    """Populated persistence should win over configured fallback providers."""
     database_url = _sqlite_url(tmp_path)
     _save_graph(database_url, _asset_only_graph())
     _configure_persistence_url(monkeypatch, database_url)
-    monkeypatch.setenv("GRAPH_CACHE_PATH", "/tmp/graph-cache.json")
+    monkeypatch.setenv(env_var, env_val)
 
-    def fail_cache_load(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
-        """Fail if cache fallback is used before persistence."""
-        raise AssertionError("cache fallback must not run when persistence is populated")
-
-    monkeypatch.setattr(
-        graph_lifecycle_providers,
-        "load_graph_from_cache_path",
-        fail_cache_load,
-    )
-
-    loaded = _initialize_graph_for_test()
-
-    assert set(loaded.assets) == {"ASSET_ONLY"}
-
-
-def test_populated_persistence_wins_over_real_data_fetcher(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Populated persistence should win over USE_REAL_DATA_FETCHER."""
-    database_url = _sqlite_url(tmp_path)
-    _save_graph(database_url, _asset_only_graph())
-    _configure_persistence_url(monkeypatch, database_url)
-    monkeypatch.setenv("USE_REAL_DATA_FETCHER", "1")
-
-    def fail_real_data_load(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
-        """Fail if real-data fallback is used before persistence."""
-        raise AssertionError("real-data fallback must not run when persistence is populated")
+    def fail_fallback_load(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+        """Fail if fallback is used before persistence."""
+        raise AssertionError(f"{fallback_name} fallback must not run when persistence is populated")
 
     monkeypatch.setattr(
         graph_lifecycle_providers,
-        "load_graph_from_real_data_fetcher",
-        fail_real_data_load,
+        provider_attr,
+        fail_fallback_load,
     )
 
     loaded = _initialize_graph_for_test()
@@ -526,7 +510,9 @@ def test_invalid_configured_database_url_fails_without_leaking_url(
     assert "Failed to load persisted graph during startup" in message
     assert "secret" not in message
     assert raw_url not in message
+
     log_output = " ".join(record.getMessage() for record in caplog.records)
+    assert "Failed to load persisted graph" in log_output
     assert "secret" not in log_output
     assert raw_url not in log_output
 
@@ -560,49 +546,35 @@ def test_malformed_asset_class_persisted_row_fails_without_fallback(
 # ---------------------------------------------------------------------------
 
 
-def test_session_closes_on_persisted_load_success(
+@pytest.mark.parametrize(
+    ("setup_fn", "expect_error", "expected_close_count"),
+    [
+        (lambda db_url: _save_graph(db_url, _asset_only_graph()), False, 1),
+        (_init_empty_db, False, 2),
+        (lambda db_url: None, True, 1),
+    ],
+    ids=["persisted_load_success", "empty_persistence_fallback", "persistence_failure"],
+)
+def test_startup_load_closes_session(
+    setup_fn: Callable[[str], None],
+    expect_error: bool,
+    expected_close_count: int,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Startup load should close the session after persisted load."""
+    """Startup load should close the session regardless of load outcome."""
     database_url = _sqlite_url(tmp_path)
-    _save_graph(database_url, _asset_only_graph())
+    setup_fn(database_url)
     _configure_persistence_url(monkeypatch, database_url)
     close_count = _patch_session_close_counter(monkeypatch)
 
-    _initialize_graph_for_test()
-
-    assert close_count() == 1
-
-
-def test_session_closes_on_empty_persistence_fallback(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Startup load should close the session before empty-store fallback."""
-    database_url = _sqlite_url(tmp_path)
-    _init_empty_db(database_url)
-    _configure_persistence_url(monkeypatch, database_url)
-    close_count = _patch_session_close_counter(monkeypatch)
-
-    _initialize_graph_for_test()
-
-    assert close_count() == 1
-
-
-def test_session_closes_on_persistence_failure(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Startup load should close the session after load failure."""
-    database_url = _sqlite_url(tmp_path)
-    _configure_persistence_url(monkeypatch, database_url)
-    close_count = _patch_session_close_counter(monkeypatch)
-
-    with pytest.raises(RuntimeError):
+    if expect_error:
+        with pytest.raises(RuntimeError):
+            _initialize_graph_for_test()
+    else:
         _initialize_graph_for_test()
 
-    assert close_count() == 1
+    assert close_count() == expected_close_count
 
 
 # ---------------------------------------------------------------------------
@@ -626,14 +598,16 @@ def test_reset_reloads_persisted_graph_without_saving(
     monkeypatch.setattr(AssetGraphRepository, "save_graph", fail_save_graph)
 
     first, first_startup_source = graph_lifecycle.get_graph_with_startup_source()
-    assert first_startup_source == "persisted_graph_store"
+    assert first_startup_source is not None
+    assert first_startup_source.source == "persisted"
     graph_lifecycle.reset_graph()
-    assert graph_lifecycle.graph_state.startup_source is None
+    assert graph_lifecycle.graph_state.startup_metadata is None
     second, second_startup_source = graph_lifecycle.get_graph_with_startup_source()
 
     assert first is not second
     assert set(second.assets) == {"ASSET_ONLY"}
-    assert second_startup_source == "persisted_graph_store"
+    assert second_startup_source is not None
+    assert second_startup_source.source == "persisted"
 
 
 def test_api_main_and_router_helper_compatibility(
@@ -657,7 +631,7 @@ def test_api_main_and_router_helper_compatibility(
         assert router_helpers.get_graph() is api_main.graph
 
         api_main.reset_graph()
-        assert api_main.graph is None
+        assert "graph" not in vars(api_main)
         reloaded = router_helpers.get_graph()
         assert set(reloaded.assets) == {"ASSET_ONLY"}
 

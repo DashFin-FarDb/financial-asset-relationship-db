@@ -1,19 +1,68 @@
 """System and metadata API routes."""
 
-from typing import Any, Literal, NoReturn, cast, get_args
+import logging
+from typing import Any, Literal, NoReturn, cast
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
+from src.observability.facade import ObservabilityEvent, log_event
 
 from .. import graph_lifecycle
-from ..api_models import DatabaseHealthResponse, DetailedHealthResponse, GraphHealthResponse, GraphStartupSource
+from ..api_models import (
+    DatabaseHealthResponse,
+    DetailedHealthResponse,
+    GraphHealthResponse,
+    SLOEvaluationResultModel,
+    SLOSummary,
+)
+from ..graph_lifecycle_providers import (
+    GraphPersistenceNonDurableError,
+    GraphPersistenceNotConfiguredError,
+    get_graph_lifecycle_settings,
+    resolve_durable_graph_persistence_url,
+    resolve_hosted_graph_database_url,
+)
 from ..router_helpers import get_graph, logger
+from ..slo_evaluator import SLOEvaluator
 
 router = APIRouter()
 
 SUPPORTED_DATABASE_TYPE = Literal["sqlite", "postgresql"]
-SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES: frozenset[str] = frozenset(get_args(GraphStartupSource))
+
+
+def _get_slo_summary() -> SLOSummary:
+    """Evaluate all SLOs and return a summary without triggering side-effects."""
+    try:
+        evaluator = SLOEvaluator()
+        # Side-effects (metrics/logs) are handled by background task, not GET request
+        results = evaluator.evaluate_all(trigger_side_effects=False)
+        overall_compliant = all(r.is_compliant for r in results)
+
+        eval_models = [
+            SLOEvaluationResultModel(
+                slo_name=r.slo_name,
+                is_compliant=r.is_compliant,
+                current_value=r.current_value,
+                threshold=r.threshold,
+                margin=r.margin,
+            )
+            for r in results
+        ]
+
+        return SLOSummary(overall_compliant=overall_compliant, evaluations=eval_models)
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="slo_evaluation_failed",
+                message=f"Error evaluating SLOs: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        raise HTTPException(status_code=500, detail="SLO evaluation failed") from exc
 
 
 @router.get("/")
@@ -39,9 +88,27 @@ async def health_check() -> dict[str, Any]:
 
 
 def _get_graph_health() -> GraphHealthResponse:
-    """Return bounded, non-secret graph readiness details."""
+    """
+    Report bounded graph readiness and inventory counts for health checks.
+
+    Reads the application's graph (assets and relationships)
+
+    and returns a GraphHealthResponse containing availability,
+
+    the current runtime lifecycle state, the total number of assets, and the total number of relationships.
+
+    If the graph containers are not dictionary-shaped or an error occurs while reading the graph,
+
+    returns `available=False` with asset and relationship counts set to 0.
+
+    Returns:
+        GraphHealthResponse: `available` indicating graph readiness;
+        `lifecycle_state` as the current runtime lifecycle state value;
+        `asset_count` as the number of assets;
+        `relationship_count` as the summed length of relationship collections.
+    """
     try:
-        graph, startup_source = graph_lifecycle.get_graph_with_startup_source()
+        graph, startup_metadata = graph_lifecycle.get_graph_with_startup_source()
         assets = getattr(graph, "assets", {})
         relationships = getattr(graph, "relationships", {})
 
@@ -51,13 +118,19 @@ def _get_graph_health() -> GraphHealthResponse:
             relationships = {}
 
         if not isinstance(assets, dict) or not isinstance(relationships, dict):
-            logger.warning("Detailed health graph check found unsupported graph container shape")
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="health_check_graph_unsupported_shape",
+                    message="Detailed health graph check found unsupported graph container shape",
+                ),
+            )
             return GraphHealthResponse(
                 available=False,
                 lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
                 asset_count=0,
                 relationship_count=0,
-                graph_startup_source=None,
             )
 
         return GraphHealthResponse(
@@ -65,32 +138,49 @@ def _get_graph_health() -> GraphHealthResponse:
             lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
             asset_count=len(assets),
             relationship_count=sum(len(items) for items in relationships.values()),
-            graph_startup_source=_bound_graph_startup_source(startup_source),
+            startup_source=startup_metadata.source if startup_metadata else graph_lifecycle.GraphStartupSource.UNKNOWN,
+            persistence_enabled=startup_metadata.persistence_enabled if startup_metadata else False,
+            persistence_loaded=startup_metadata.persistence_loaded if startup_metadata else False,
+            persistence_saved=startup_metadata.persistence_saved if startup_metadata else False,
         )
     except Exception:
-        logger.warning("Detailed health graph check failed")
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="health_check_graph_failed",
+                message="Detailed health graph check failed",
+            ),
+        )
         return GraphHealthResponse(
             available=False,
             lifecycle_state=graph_lifecycle.get_runtime_lifecycle_state().value,
             asset_count=0,
             relationship_count=0,
-            graph_startup_source=None,
         )
 
 
-def _bound_graph_startup_source(value: object) -> GraphStartupSource:
-    """Return a bounded startup-source label safe for the public health response."""
-    if value in SUPPORTED_GRAPH_STARTUP_SOURCE_VALUES:
-        return cast(GraphStartupSource, value)
-    return "unknown"
-
-
 def _get_database_health() -> DatabaseHealthResponse:
-    """Return bounded, non-secret auth database readiness details."""
+    """
+    Report whether an auth/database layer is configured and reachable for health checks.
+
+    Returns:
+        DatabaseHealthResponse: `configured` is `True` if a supported database type is configured,
+        `type` is the detected database type (`"sqlite"`, `"postgresql"`, or `"unknown"`),
+        and `reachable` is `True` if a simple connectivity query succeeded,
+        `False` otherwise.
+    """
     try:
         from api import database
     except Exception:
-        logger.warning("Detailed health database configuration check failed")
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="health_check_database_config_failed",
+                message="Detailed health database configuration check failed",
+            ),
+        )
         return DatabaseHealthResponse(
             configured=False,
             type="unknown",
@@ -99,7 +189,15 @@ def _get_database_health() -> DatabaseHealthResponse:
 
     database_type_raw = getattr(database, "DATABASE_TYPE", "unknown")
     if database_type_raw not in {"sqlite", "postgresql"}:
-        logger.warning("Detailed health database check found unsupported database type")
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="health_check_database_unsupported_type",
+                message="Detailed health database check found unsupported database type",
+                metadata={"database_type": str(database_type_raw)},
+            ),
+        )
         return DatabaseHealthResponse(
             configured=False,
             type="unknown",
@@ -111,7 +209,14 @@ def _get_database_health() -> DatabaseHealthResponse:
     try:
         database.fetch_value("SELECT 1")
     except Exception:
-        logger.warning("Detailed health database reachability check failed")
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="health_check_database_unreachable",
+                message="Detailed health database reachability check failed",
+            ),
+        )
         return DatabaseHealthResponse(
             configured=True,
             type=database_type,
@@ -125,24 +230,107 @@ def _get_database_health() -> DatabaseHealthResponse:
     )
 
 
+def _get_graph_persistence_configured() -> bool:
+    """
+    Determine whether durable graph persistence is explicitly configured.
+
+    Returns:
+        bool: `True` if durable graph persistence is configured, `False` otherwise.
+    """
+    try:
+        settings = get_graph_lifecycle_settings()
+        resolve_durable_graph_persistence_url(resolve_hosted_graph_database_url(settings))
+        return True
+    except (
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+    ):
+        return False
+    except Exception as exc:
+        # Removed exc_info=True to prevent leaking connection secrets in tracebacks
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_persistence_config_check_failed",
+                message=f"Unexpected error checking graph persistence configuration: {type(exc).__name__}",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        return False
+
+
 @router.get("/api/health/detailed")
 def detailed_health_check() -> DetailedHealthResponse:
-    """Return bounded, non-secret readiness information for hosted deployment."""
+    """Return detailed health including graph persistence configuration."""
     graph_health = _get_graph_health()
     database_health = _get_database_health()
 
-    status_value = "healthy" if graph_health.available and database_health.reachable else "degraded"
+    status_value: Literal["healthy", "degraded"] = (
+        "healthy" if graph_health.available and database_health.reachable else "degraded"
+    )
 
     return DetailedHealthResponse(
         status=status_value,
+        graph_persistence_configured=_get_graph_persistence_configured(),
         graph=graph_health,
         database=database_health,
     )
 
 
+@router.get(
+    "/api/slo/status",
+    responses={500: {"description": "SLO evaluation failed"}},
+)
+def get_slo_status() -> SLOSummary:
+    """Return the current SLO compliance status."""
+    return _get_slo_summary()
+
+
+@router.get("/api/metrics")
+async def metrics() -> Response:
+    """
+    Expose Prometheus metrics in OpenMetrics format.
+
+    Returns:
+        Response: HTTP response containing OpenMetrics-formatted metrics with the OpenMetrics media type;
+            on generation failure returns a 500 response with plain-text body "metrics generation error".
+    """
+    try:
+        return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="prometheus_metrics_generation_failed",
+                message="Error generating Prometheus metrics; failing scrape request",
+                metadata={"error": type(exc).__name__},
+            ),
+        )
+        return Response(status_code=500, content="metrics generation error", media_type="text/plain")
+
+
 def _raise_system_route_error(message: str, exc: Exception) -> NoReturn:
-    """Log a system route failure and raise the public internal-error response."""
-    logger.exception(message)
+    """
+    Emit a structured observability event for a system-route failure and raise a public HTTP 500 error.
+
+    Parameters:
+        message (str): Contextual message to include in the observability event.
+        exc (Exception): The original exception that triggered the failure.
+
+    Raises:
+        HTTPException: Always raises an HTTP 500 error with a generic internal-error detail.
+    """
+    log_event(
+        logger,
+        logging.ERROR,
+        ObservabilityEvent(
+            event="system_route_failure",
+            message=f"{message} {type(exc).__name__}",
+            metadata={"error": type(exc).__name__},
+        ),
+    )
     raise HTTPException(
         status_code=500,
         detail="An internal error occurred. Please try again later.",

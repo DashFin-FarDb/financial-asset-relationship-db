@@ -8,10 +8,14 @@ from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     AssetClass,
+    Bond,
+    Commodity,
+    Currency,
     Equity,
     RegulatoryActivity,
     RegulatoryEvent,
 )
+from tests.conftest import enable_sqlite_foreign_keys
 
 pytestmark = pytest.mark.unit
 
@@ -21,6 +25,7 @@ def repository_factory(tmp_path):
     """Provide a factory for creating repository instances."""
     db_path = tmp_path / "graph_persistence.db"
     engine = create_engine(f"sqlite:///{db_path}")
+    enable_sqlite_foreign_keys(engine)
     init_db(engine)
     factory = create_session_factory(engine)
 
@@ -306,3 +311,138 @@ class TestGraphPersistenceRoundTrip:
         assert assets[0].name == "Second Equity"
         assert assets[0].sector == "Finance"
         assert assets[0].price == pytest.approx(250.0)
+
+    @staticmethod
+    def test_save_load_graph_preserves_bond_commodity_and_currency_subtypes(repository_factory) -> None:
+        """Persist and restore non-equity asset subtypes without losing fields."""
+        repository = repository_factory()
+        graph = AssetRelationshipGraph()
+        bond = Bond(
+            id="BOND_1",
+            symbol="B1",
+            name="Bond One",
+            asset_class=AssetClass.FIXED_INCOME,
+            sector="Finance",
+            price=101.5,
+            yield_to_maturity=0.031,
+            coupon_rate=0.028,
+            maturity_date="2031-06-01",
+            credit_rating="AA",
+            issuer_id="ISSUER_1",
+        )
+        commodity = Commodity(
+            id="COMMODITY_1",
+            symbol="C1",
+            name="Commodity One",
+            asset_class=AssetClass.COMMODITY,
+            sector="Materials",
+            price=55.0,
+            contract_size=100.0,
+            delivery_date="2025-09-30",
+            volatility=0.25,
+        )
+        currency = Currency(
+            id="CURRENCY_1",
+            symbol="CU1",
+            name="Currency One",
+            asset_class=AssetClass.CURRENCY,
+            sector="Currency",
+            price=1.05,
+            exchange_rate=1.05,
+            country="Eurozone",
+            central_bank_rate=0.04,
+        )
+        for asset in (bond, commodity, currency):
+            graph.add_asset(asset)
+
+        repository.save_graph(graph)
+        repository.session.commit()
+
+        loaded = repository_factory().load_graph()
+        loaded_bond = loaded.assets["BOND_1"]
+        loaded_commodity = loaded.assets["COMMODITY_1"]
+        loaded_currency = loaded.assets["CURRENCY_1"]
+
+        assert isinstance(loaded_bond, Bond)
+        assert loaded_bond.issuer_id == "ISSUER_1"
+        assert loaded_bond.yield_to_maturity == pytest.approx(0.031)
+        assert loaded_bond.coupon_rate == pytest.approx(0.028)
+        assert loaded_bond.maturity_date == "2031-06-01"
+        assert loaded_bond.credit_rating == "AA"
+        assert isinstance(loaded_commodity, Commodity)
+        assert loaded_commodity.contract_size == pytest.approx(100.0)
+        assert loaded_commodity.delivery_date == "2025-09-30"
+        assert loaded_commodity.volatility == pytest.approx(0.25)
+        assert isinstance(loaded_currency, Currency)
+        assert loaded_currency.exchange_rate == pytest.approx(1.05)
+        assert loaded_currency.country == "Eurozone"
+        assert loaded_currency.central_bank_rate == pytest.approx(0.04)
+
+    @staticmethod
+    def test_save_graph_replaces_existing_snapshot_with_empty_graph(repository_factory) -> None:
+        """Saving an empty graph should remove all previously persisted rows."""
+        repository = repository_factory()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(_equity("KEEP", "KEEP"))
+        graph.add_regulatory_event(_event("KEEP_EVENT", "KEEP"))
+        graph.add_relationship("KEEP", "KEEP", "self", 0.0)
+
+        repository.save_graph(graph)
+        repository.session.commit()
+
+        repository.save_graph(AssetRelationshipGraph())
+        repository.session.commit()
+
+        reloaded = repository_factory().load_graph()
+        assert reloaded.assets == {}
+        assert reloaded.relationships == {}
+        assert reloaded.regulatory_events == []
+
+    @staticmethod
+    def test_save_graph_handles_assets_only_graph(repository_factory) -> None:
+        """Saving assets without relationships or events should round-trip cleanly."""
+        repository = repository_factory()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(_equity("ASSET_ONLY_1", "A1"))
+        graph.add_asset(_equity("ASSET_ONLY_2", "A2", sector="Healthcare"))
+        repository.save_graph(graph)
+        repository.session.commit()
+
+        loaded = repository_factory().load_graph()
+        assert set(loaded.assets) == {"ASSET_ONLY_1", "ASSET_ONLY_2"}
+        assert loaded.relationships == {}
+        assert loaded.regulatory_events == []
+
+    @staticmethod
+    def test_save_graph_preserves_empty_related_assets_on_regulatory_events(repository_factory) -> None:
+        """Events with no related assets should persist as empty collections."""
+        repository = repository_factory()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(_equity("EVENT_ONLY", "EO"))
+        graph.add_regulatory_event(_event("EVENT_EMPTY", "EVENT_ONLY", []))
+        repository.save_graph(graph)
+        repository.session.commit()
+
+        loaded_event = repository_factory().list_regulatory_events()[0]
+        assert loaded_event.related_assets == []
+
+    @staticmethod
+    def test_replace_relationships_supports_boundary_strengths(repository_factory) -> None:
+        """Relationship persistence should round-trip boundary strength values."""
+        repository = repository_factory()
+        graph = AssetRelationshipGraph()
+        graph.add_asset(_equity("SRC", "SRC"))
+        graph.add_asset(_equity("DST", "DST"))
+        graph.add_relationship("SRC", "DST", "boundary_zero", 0.0)
+        graph.add_relationship("SRC", "DST", "boundary_one", 1.0)
+        graph.add_relationship("SRC", "DST", "boundary_negative", -1.0)
+
+        repository.save_graph(graph)
+        repository.session.commit()
+
+        strengths = {record.relationship_type: record.strength for record in repository.list_relationships()}
+        assert strengths == {
+            "boundary_zero": pytest.approx(0.0),
+            "boundary_one": pytest.approx(1.0),
+            "boundary_negative": pytest.approx(-1.0),
+        }

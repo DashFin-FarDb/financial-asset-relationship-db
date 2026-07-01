@@ -38,6 +38,8 @@ FORBIDDEN_DETAILED_TOP_LEVEL_FIELDS = {
     "traceback",
 }
 
+SAFE_OBSERVED_FIELDS = ("status", "graph_persistence_configured")
+
 
 class _NoRedirectHandler(HTTPRedirectHandler):
     """Disable automatic HTTP redirect following for bounded smoke checks."""
@@ -67,7 +69,7 @@ def _resolves_to_internal_address(hostname: str) -> bool:
     except OSError:
         return False
 
-    return any(_is_internal_ip_address(result[4][0]) for result in address_info)
+    return any(_is_internal_ip_address(str(result[4][0])) for result in address_info)
 
 
 def _validate_scheme_and_host(parsed: ParseResult) -> str | None:
@@ -172,7 +174,22 @@ def _is_timeout_exception(exc: BaseException) -> bool:
 def _validate_request_target(url: str) -> str | None:
     """Return a bounded validation error for a request URL target."""
     parsed = urlparse(url)
-    return _validate_not_internal_address(parsed)
+    validators = (
+        _validate_scheme_and_host,
+        _validate_no_credentials,
+        _validate_hostname_present,
+        _validate_not_loopback_hostname,
+        _validate_no_extra_components,
+        _validate_port,
+        _validate_not_internal_address,
+    )
+
+    for validator in validators:
+        validation_error = validator(parsed)
+        if validation_error is not None:
+            return validation_error
+
+    return None
 
 
 def _response_failure_message(endpoint: str, exc: BaseException) -> str:
@@ -258,7 +275,7 @@ def check_liveness(base_url: str, timeout: float) -> list[str]:
 
 def _record_top_level_contract_failures(payload: dict[str, Any], failures: list[str]) -> None:
     """Record top-level detailed-readiness contract failures."""
-    expected_top_level = {"status", "graph", "database"}
+    expected_top_level = {"status", "graph_persistence_configured", "graph", "database"}
     actual_top_level = set(payload)
     missing_top_level = sorted(expected_top_level - actual_top_level)
     unexpected_top_level = sorted(actual_top_level - expected_top_level)
@@ -277,10 +294,58 @@ def _record_forbidden_field_failures(payload: dict[str, Any], failures: list[str
         failures.append(f"/api/health/detailed exposed forbidden top-level fields: {leaked_fields}")
 
 
+def _collect_observed_fields(payload: dict[str, Any]) -> dict[str, Any]:
+    """Return safely observed readiness fields for JSON evidence output."""
+    observed_fields: dict[str, Any] = {}
+
+    for field_name in SAFE_OBSERVED_FIELDS:
+        if field_name in payload:
+            observed_fields[field_name] = payload[field_name]
+
+    graph = payload.get("graph")
+    if isinstance(graph, dict):
+        for field_name in (
+            "available",
+            "asset_count",
+            "relationship_count",
+            "persistence_enabled",
+            "persistence_loaded",
+            "startup_source",
+        ):
+            if field_name in graph:
+                observed_fields[f"graph.{field_name}"] = graph[field_name]
+
+    database = payload.get("database")
+    if isinstance(database, dict):
+        for field_name in ("configured", "reachable"):
+            if field_name in database:
+                observed_fields[f"database.{field_name}"] = database[field_name]
+
+    return observed_fields
+
+
 def _readiness_status_label(value: Any) -> str:
     """Return a bounded readiness status label for operator output."""
     if value in {"healthy", "degraded"}:
         return str(value)
+    return "unknown"
+
+
+def _startup_source_label(value: Any) -> str:
+    """Return a bounded startup source label for operator output."""
+    valid_sources = {
+        "persisted",
+        "real_data",
+        "sample_data",
+        "empty_persistence_fallback",
+        "rebuild",
+        "failed",
+        "cache",
+        "explicit_factory",
+        "unknown",
+    }
+    if isinstance(value, str) and value in valid_sources:
+        return value
     return "unknown"
 
 
@@ -291,6 +356,9 @@ def _record_detailed_shape_failures(payload: dict[str, Any], failures: list[str]
         status_label = _readiness_status_label(readiness_status)
         failures.append(f'/api/health/detailed status is "{status_label}", expected "healthy"')
 
+    if not isinstance(payload.get("graph_persistence_configured"), bool):
+        failures.append("/api/health/detailed graph_persistence_configured field is not a boolean")
+
     if not isinstance(payload.get("graph"), dict):
         failures.append("/api/health/detailed graph field is not an object")
 
@@ -298,21 +366,57 @@ def _record_detailed_shape_failures(payload: dict[str, Any], failures: list[str]
         failures.append("/api/health/detailed database field is not an object")
 
 
-def check_detailed_readiness(base_url: str, timeout: float) -> list[str]:
-    """Return detailed readiness check failures."""
+def _record_persistence_gate_failures(payload: dict[str, Any], failures: list[str]) -> None:
+    """Record failures when the durable graph-persistence gate is not satisfied."""
+    if payload.get("graph_persistence_configured") is not True:
+        failures.append("/api/health/detailed graph_persistence_configured is not true")
+
+    graph = payload.get("graph")
+    if isinstance(graph, dict):
+        if graph.get("persistence_enabled") is not True:
+            failures.append("/api/health/detailed graph.persistence_enabled is not true")
+        if graph.get("persistence_loaded") is not True:
+            failures.append("/api/health/detailed graph.persistence_loaded is not true")
+        actual_source = graph.get("startup_source")
+        if actual_source is None:
+            failures.append("/api/health/detailed graph.startup_source field is missing")
+        else:
+            source_label = _startup_source_label(actual_source)
+            if source_label != "persisted":
+                failures.append(f'/api/health/detailed graph.startup_source is "{source_label}", expected "persisted"')
+
+
+def _build_detailed_readiness_report(
+    base_url: str,
+    timeout: float,
+    require_persistence: bool = False,
+) -> tuple[list[str], dict[str, Any]]:
+    """Return detailed readiness failures and observed fields."""
     failures: list[str] = []
     url = _build_url(base_url, "/api/health/detailed")
     status_code, payload = _get_json(url, timeout)
 
     if status_code != 200:
         failures.append(f"/api/health/detailed returned HTTP {status_code}")
-        return failures
+        return failures, {}
 
     _record_top_level_contract_failures(payload, failures)
     _record_forbidden_field_failures(payload, failures)
     _record_detailed_shape_failures(payload, failures)
 
-    return failures
+    if require_persistence:
+        _record_persistence_gate_failures(payload, failures)
+
+    return failures, _collect_observed_fields(payload)
+
+
+def check_detailed_readiness(
+    base_url: str,
+    timeout: float,
+    require_persistence: bool = False,
+) -> list[str]:
+    """Return detailed readiness check failures."""
+    return _build_detailed_readiness_report(base_url, timeout, require_persistence)[0]
 
 
 def _run_named_check(
@@ -344,8 +448,86 @@ def _report_failures(failures: list[str]) -> int:
     return CHECK_FAILED
 
 
-def run_checks(base_url: str, timeout: float) -> int:
+def _report_json_result(result: dict[str, Any]) -> int:
+    """Emit structured JSON readiness output and return the process exit code."""
+    json.dump(result, sys.stdout, indent=2, sort_keys=True)
+    sys.stdout.write("\n")
+    return SUCCESS if result.get("status") == "passed" else CHECK_FAILED
+
+
+def _run_named_check_json(
+    label: str,
+    base_url: str,
+    timeout: float,
+    check: Callable[[str, float], list[str]],
+) -> tuple[list[str], bool]:
+    """Run a named check for JSON output, preserving bounded failures."""
+    try:
+        return check(base_url, timeout), False
+    except RuntimeError as exc:
+        return [f"{label} check failed: {exc}"], True
+    except Exception:
+        return [f"{label} check failed: unexpected error"], True
+
+
+def _run_json_checks(
+    base_url: str,
+    timeout: float,
+    require_persistence: bool = False,
+    base_url_label: str = "redacted",
+) -> int:
+    """Run hosted readiness checks and emit JSON output."""
+    liveness_failures, liveness_had_runtime_error = _run_named_check_json(
+        "Liveness",
+        base_url,
+        timeout,
+        check_liveness,
+    )
+    detailed_failures: list[str]
+    observed_fields: dict[str, Any]
+
+    if liveness_had_runtime_error:
+        detailed_failures = ["Detailed readiness check not run because liveness check failed"]
+        observed_fields = {}
+    else:
+        try:
+            detailed_failures, observed_fields = _build_detailed_readiness_report(
+                base_url,
+                timeout,
+                require_persistence,
+            )
+        except RuntimeError as exc:
+            detailed_failures = [f"Detailed readiness check failed: {exc}"]
+            observed_fields = {}
+        except Exception:
+            detailed_failures = ["Detailed readiness check failed: unexpected error"]
+            observed_fields = {}
+
+    result = {
+        "status": "passed" if not (liveness_failures or detailed_failures) else "failed",
+        "base_url_label": base_url_label,
+        "require_persistence": require_persistence,
+        "checks": {
+            "liveness": {"passed": not liveness_failures, "failures": liveness_failures},
+            "detailed_readiness": {"passed": not detailed_failures, "failures": detailed_failures},
+        },
+        "observed_fields": observed_fields,
+    }
+    return _report_json_result(result)
+
+
+def run_checks(
+    base_url: str,
+    timeout: float,
+    require_persistence: bool = False,
+    *,
+    json_output: bool = False,
+    base_url_label: str = "redacted",
+) -> int:
     """Run hosted readiness checks and return a process exit code."""
+    if json_output:
+        return _run_json_checks(base_url, timeout, require_persistence, base_url_label)
+
     liveness_failures = _run_named_check("Liveness", base_url, timeout, check_liveness)
     if liveness_failures is None:
         return CHECK_FAILED
@@ -354,7 +536,7 @@ def run_checks(base_url: str, timeout: float) -> int:
         "Detailed readiness",
         base_url,
         timeout,
-        check_detailed_readiness,
+        lambda url, t: check_detailed_readiness(url, t, require_persistence),
     )
     if readiness_failures is None:
         return CHECK_FAILED
@@ -367,6 +549,17 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Smoke-check hosted API health/readiness endpoints.")
     parser.add_argument("base_url", help="Base URL of the hosted deployment, e.g. https://example.vercel.app")
     parser.add_argument("--timeout", type=float, default=5.0, help="Request timeout in seconds.")
+    parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON output.")
+    parser.add_argument(
+        "--base-url-label",
+        default="redacted",
+        help="Operator-safe label to include in JSON output instead of the raw base URL.",
+    )
+    parser.add_argument(
+        "--require-persistence",
+        action="store_true",
+        help="Prove persisted graph load rather than fallback generation.",
+    )
     return parser.parse_args(argv)
 
 
@@ -383,7 +576,13 @@ def main(argv: list[str] | None = None) -> int:
         print(base_url_error, file=sys.stderr)
         return USAGE_ERROR
 
-    return run_checks(args.base_url, args.timeout)
+    return run_checks(
+        args.base_url,
+        args.timeout,
+        args.require_persistence,
+        json_output=args.json,
+        base_url_label=args.base_url_label,
+    )
 
 
 if __name__ == "__main__":

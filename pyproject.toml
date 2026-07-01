@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "bleach>=6.1.0",
-    "gradio>=5.11.0,<6.0.0",
+    "gradio>=6.13.0",
     "Markdown>=3.4,<4.0",
     "curl-cffi>=0.7.0",
     "requests>=2.32.2",
@@ -39,6 +39,7 @@ dependencies = [
     "pydantic==2.12.5",
     "h11==0.16.0",
     "PyYAML==6.0.3",
+    "prometheus-client>=0.19.0",
     "ruamel.yaml==0.18.17",
     "mangum==0.17.0",
     "psycopg2-binary>=2.9.9",
@@ -48,6 +49,7 @@ dependencies = [
     "PyJWT>=2.8.0",
     "passlib[bcrypt]>=1.7.4",
     "slowapi>=0.1.4",
+    "structlog>=24.1.0",
 ]
 
 [project.optional-dependencies]
@@ -55,6 +57,7 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-codspeed>=4.0.0",
     "flake8>=6.0.0",
     "pylint>=2.17.0",
     "mypy>=1.0.0",
@@ -70,6 +73,7 @@ python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
+norecursedirs = ["benchmarks"]
 addopts = [
     "-v",
     "--strict-markers",
@@ -78,6 +82,7 @@ markers = [
     "unit: Unit tests",
     "integration: Integration tests",
     "slow: Slow running tests",
+    "benchmark: Performance benchmark tests",
 ]
 
 [tool.coverage.run]
@@ -117,6 +122,10 @@ extend-exclude = '''
   | dist
 )/
 '''
+
+[tool.isort]
+profile = "black"
+line_length = 120
 
 [tool.ruff]
 line-length = 120
@@ -164,7 +173,6 @@ jobs = 0
 limit-inference-results = 100
 persistent = true
 py-version = "3.12"
-suggestion-mode = true
 
 [tool.pylint.messages_control]
 disable = [
@@ -192,7 +200,7 @@ max-returns = 6
 max-statements = 50
 
 [tool.bandit]
-exclude_dirs = ["tests"]
+exclude_dirs = [".venv"]
 skips = ["B101"]
 
 [tool.codeflash]

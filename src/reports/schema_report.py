@@ -4,15 +4,20 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Protocol  # pylint: disable=no-name-in-module
 
-from src.logic.asset_graph import AssetRelationshipGraph
+
+class GraphLike(Protocol):  # pylint: disable=too-few-public-methods
+    """Protocol for objects that can calculate metrics for schema reports."""
+
+    def calculate_metrics(self) -> dict[str, Any]:  # pylint: disable=unsubscriptable-object
+        """Calculate graph metrics."""
+        pass
 
 
 def _as_int(value: Any, default: int = 0) -> int:
     """
-    Convert a value to an integer, returning a fallback when conversion is
-    not possible.
+    Convert a value to an integer, returning a fallback when conversion is not possible.
 
     Attempts to convert `value` to `int`. If `value` is `None` or cannot be
     converted, returns `default`.
@@ -34,8 +39,7 @@ def _as_int(value: Any, default: int = 0) -> int:
 
 def _as_float(value: Any, default: float = 0.0) -> float:
     """
-    Coerce a value to a float, falling back to a default when conversion is not
-    possible.
+    Coerce a value to a float, falling back to a default when conversion is not possible.
 
     Parameters:
         value (Any): Input to convert; if `None` or not convertible to float,
@@ -79,13 +83,16 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     """
     Convert input to a list of validated top-relationship tuples.
 
-    Each tuple is (source, target, relationship_type, strength) where the first three elements are strings and `strength` is coerced to a float (defaults to 0.0 when not convertible).
+    Each tuple is (source, target, relationship_type, strength) where the first three
+    elements are strings and `strength` is coerced to a float (defaults to 0.0 when not convertible).
 
     Parameters:
-        value (Any): Expected to be a list of 4-element tuples; items that are not 4-tuples with string source, target, and relationship type are ignored.
+        value (Any): Expected to be a list of 4-element tuples; items that are not
+            4-tuples with string source, target, and relationship type are ignored.
 
     Returns:
-        list[tuple[str, str, str, float]]: Validated top-relationship tuples. Returns an empty list if `value` is not a list or contains no valid items.
+        list[tuple[str, str, str, float]]: Validated top-relationship tuples.
+            Returns an empty list if `value` is not a list or contains no valid items.
     """
     if not isinstance(value, list):
         return []
@@ -121,7 +128,8 @@ def _relationship_type_lines(metrics: Mapping[str, Any]) -> list[str]:
     Generate markdown bullet lines for each relationship type with its instance count.
 
     Parameters:
-        metrics (Mapping[str, Any]): Mapping that may contain "relationship_distribution", a mapping from relationship type string to integer count.
+        metrics (Mapping[str, Any]): Mapping that may contain "relationship_distribution",
+            a mapping from relationship type string to integer count.
 
     Returns:
         list[str]: Markdown lines like "- **{rel_type}**: {count} instances", sorted by descending count.
@@ -148,19 +156,20 @@ def _network_statistics_lines(
             - "total_assets"
             - "total_relationships"
             - "average_relationship_strength"
-            - "relationship_density"
+            - "network_density"
             - "regulatory_event_count"
         Missing or invalid values are coerced to sensible defaults.
 
     Returns:
         tuple[list[str], float]: A tuple where the first element is a list of markdown lines for the
         "Calculated Metrics" / "Network Statistics" section (including an "Asset Class Distribution" header),
-        and the second element is the relationship density parsed as a float.
+        and the second element is the relationship density parsed as a float percentage.
     """
     total_assets = _as_int(metrics.get("total_assets"), 0)
     total_relationships = _as_int(metrics.get("total_relationships"), 0)
     avg_strength = _as_float(metrics.get("average_relationship_strength"), 0.0)
-    density = _as_float(metrics.get("relationship_density"), 0.0)
+    density = _as_float(metrics.get("network_density"), 0.0)
+    density_pct = density * 100.0
     reg_events = _as_int(metrics.get("regulatory_event_count"), 0)
     lines = [
         "",
@@ -171,12 +180,12 @@ def _network_statistics_lines(
         f"- **Total Assets**: {total_assets}",
         f"- **Total Relationships**: {total_relationships}",
         f"- **Average Relationship Strength**: {avg_strength:.3f}",
-        f"- **Relationship Density**: {density:.2f}%",
+        f"- **Relationship Density**: {density_pct:.2f}%",
         f"- **Regulatory Events**: {reg_events}",
         "",
         "### Asset Class Distribution",
     ]
-    return lines, density
+    return lines, density_pct
 
 
 def _asset_class_lines(metrics: Mapping[str, Any]) -> list[str]:
@@ -184,7 +193,8 @@ def _asset_class_lines(metrics: Mapping[str, Any]) -> list[str]:
     Generate markdown bullet lines describing the number of assets per asset class.
 
     Parameters:
-        metrics (Mapping[str, Any]): Metrics mapping that may contain the key "asset_class_distribution" whose value is a mapping of asset class names to integer counts.
+        metrics (Mapping[str, Any]): Metrics mapping that may contain the key "asset_class_distribution"
+            whose value is a mapping of asset class names to integer counts.
 
     Returns:
         list[str]: Markdown-formatted lines, each like "- **{asset_class}**: {count} assets".
@@ -245,15 +255,21 @@ def _business_rules_lines() -> list[str]:
     Returns:
         list[str]: Ordered markdown lines for the "Business Rules & Constraints" section.
     """
+    from src.config.settings import get_settings  # pylint: disable=import-outside-toplevel
+
+    settings = get_settings()
     return [
         "",
         "## Business Rules & Constraints",
         "",
         "### Cross-Asset Rules",
-        ("- **Sector Affinity**: Assets in the same sector are linked with strength 0.7 (bidirectional)"),
+        (
+            "- **Sector Affinity**: Assets in the same sector are linked with "
+            f"strength {settings.same_sector_strength:.2f} (bidirectional)"
+        ),
         (
             "- **Corporate Bond Linkage**: A bond whose issuer_id matches "
-            "another asset creates a directional link (strength 0.9)"
+            f"another asset creates a directional link (strength {settings.corporate_bond_strength:.2f})"
         ),
         ("- **Currency Exposure**: Currency assets reflect FX and central-bank policy links"),
         "",
@@ -275,7 +291,8 @@ def _schema_optimization_lines(
     Build the Schema Optimization section lines including the data quality score and a density-based recommendation.
 
     Parameters:
-        metrics (Mapping[str, Any]): Mapping that may include 'quality_score' (a number between 0 and 1) used to format the Data Quality Score.
+        metrics (Mapping[str, Any]): Mapping that may include 'quality_score' (a number between 0 and 1)
+            used to format the Data Quality Score.
         density (float): Network relationship density as a percentage used to determine the recommendation text.
 
     Returns:
@@ -294,8 +311,10 @@ def _schema_optimization_lines(
 
 
 def _implementation_notes_lines() -> list[str]:
-    """
-    Provide static markdown lines for the "Implementation Notes" section describing formatting and normalization conventions (timestamp format, strength normalization, impact score range, and relationship directionality).
+    """Provide static markdown lines for the "Implementation Notes" section.
+
+    This describes formatting and normalization conventions (timestamp format,
+    strength normalization, impact score range, and relationship directionality).
 
     Returns:
         lines (list[str]): A list of markdown strings forming the Implementation Notes section.
@@ -313,14 +332,15 @@ def _implementation_notes_lines() -> list[str]:
     ]
 
 
-def generate_schema_report(graph: AssetRelationshipGraph) -> str:
+def generate_schema_report(graph: GraphLike) -> str:
     """
-    Produce a Markdown report summarizing schema, relationship
-    distributions, calculated metrics, rules, and optimization
+    Produce a Markdown report summarizing schema, metrics, and recommendations.
+
+    Summarizes schema, relationship distributions, calculated metrics, rules, and optimization
     recommendations for an asset relationship graph.
 
     Parameters:
-        graph (AssetRelationshipGraph): The graph to analyze.
+        graph (GraphLike): The graph to analyze.
 
     Returns:
         A Markdown-formatted string containing:

@@ -99,6 +99,7 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
     querySummary,
     signal,
   } = options;
+  const safePage = Math.max(1, page);
   setError(null);
 
   try {
@@ -108,7 +109,7 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
       page: number;
       per_page: number;
     } = {
-      page,
+      page: safePage,
       per_page: pageSize,
     };
 

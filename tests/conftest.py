@@ -1,16 +1,37 @@
-"""Pytest configuration and fixtures for the financial asset relationship
-database tests.
-"""
+"""Pytest configuration and fixtures for the database tests."""
 
 from __future__ import annotations
 
 import importlib.util
-from typing import Any
+import os
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Callable
 
 import pytest
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
-from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (
+if TYPE_CHECKING:
+    from src.logic.reconciliation_engine import ReconciliationPlan
+
+# Ensure a clean SQLite database for the authentication layer before any modules import it.
+_db_path = Path(__file__).resolve().parent / "test_auth.db"
+if _db_path.exists():
+    _db_path.unlink()
+
+# Enforce hermeticity for test runs
+os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
+os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
+os.environ["ADMIN_USERNAME"] = "admin"
+os.environ["ADMIN_PASSWORD"] = os.getenv("TEST_ADMIN_PASSWORD") or "changeme"
+os.environ["ADMIN_EMAIL"] = "admin@example.com"
+os.environ["ADMIN_FULL_NAME"] = "Test Admin"
+os.environ["ADMIN_DISABLED"] = "false"
+
+from datetime import timezone  # noqa: E402
+
+from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
+from src.models.financial_models import (  # noqa: E402
     AssetClass,
     Bond,
     Commodity,
@@ -169,6 +190,22 @@ def _reset_graph():
     yield
 
 
+def _set_sqlite_pragma(dbapi_connection: Any, _connection_record: Any) -> None:
+    """Execute PRAGMA foreign_keys=ON for an SQLite connection."""
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+
+def enable_sqlite_foreign_keys(engine: Engine) -> None:
+    """Ensure SQLite engines enforce foreign-key constraints in tests."""
+    if engine.url.get_backend_name() != "sqlite":
+        return
+
+    if not event.contains(engine, "connect", _set_sqlite_pragma):
+        event.listen(engine, "connect", _set_sqlite_pragma)
+
+
 def pytest_addoption(parser: Any) -> None:
     """Register dummy coverage options when pytest-cov is unavailable."""
     if not _cov_plugin_available():
@@ -183,7 +220,8 @@ def _cov_plugin_available() -> bool:
 def _register_dummy_cov_options(parser: Any) -> None:
     """Register dummy --cov and --cov-report options."""
     group = parser.getgroup("cov")
-    group.addoption(
+    _safe_addoption(
+        group,
         "--cov",
         action="append",
         dest="cov",
@@ -191,7 +229,8 @@ def _register_dummy_cov_options(parser: Any) -> None:
         metavar="path",
         help="Dummy option registered when pytest-cov is unavailable.",
     )
-    group.addoption(
+    _safe_addoption(
+        group,
         "--cov-report",
         action="append",
         dest="cov_report",
@@ -199,6 +238,15 @@ def _register_dummy_cov_options(parser: Any) -> None:
         metavar="type",
         help="Dummy option registered when pytest-cov is unavailable.",
     )
+
+
+def _safe_addoption(group: Any, *names: str, **kwargs: object) -> None:
+    """Add a pytest option while ignoring duplicate-registration errors only."""
+    try:
+        group.addoption(*names, **kwargs)  # type: ignore[attr-defined]
+    except ValueError as exc:
+        if "already added" not in str(exc):
+            raise
 
 
 @pytest.fixture
@@ -223,3 +271,99 @@ def dividend_stock():
         dividend_yield=0.04,
         earnings_per_share=6.67,
     )
+
+
+# Fixtures for rebuild drift evaluator tests
+
+
+@pytest.fixture
+def mock_session_factory():
+    """Create a mock session factory for drift evaluator tests."""
+    from unittest.mock import MagicMock, Mock
+
+    session_factory = Mock()
+    mock_session = MagicMock()
+    session_factory.return_value = mock_session
+    mock_session.__enter__.return_value = mock_session
+    mock_session.__exit__.return_value = None
+    return session_factory, mock_session
+
+
+@pytest.fixture
+def mock_lock():
+    """Create a mock distributed lock for drift evaluator tests."""
+    from unittest.mock import Mock
+
+    return Mock()
+
+
+@pytest.fixture
+def mock_rebuild_job():
+    """Create mock rebuild jobs with specific configurations."""
+    from datetime import datetime
+    from unittest.mock import Mock
+
+    from src.data.db_models import RebuildJobStatus
+
+    def _make_job(
+        job_id: str = "test-job-123",
+        status=None,
+        active_worker_id: str | None = "worker-456",
+        heartbeat_at: datetime | None = None,
+    ):
+        if status is None:
+            status = RebuildJobStatus.RUNNING
+        if heartbeat_at is None:
+            heartbeat_at = datetime.now(timezone.utc)
+
+        job = Mock()
+        job.job_id = job_id
+        job.status = status
+        job.active_worker_id = active_worker_id
+        job.last_heartbeat_at = heartbeat_at
+        return job
+
+    return _make_job
+
+
+@pytest.fixture
+def make_reconciliation_plan() -> Callable[..., ReconciliationPlan]:
+    """Return a factory function to create ReconciliationPlan instances for testing."""
+    from datetime import UTC, datetime
+
+    from src.logic.reconciliation_engine import (
+        ActionType,
+        ExecutionMode,
+        ExecutionSafety,
+        ReconciliationPlan,
+        Severity,
+    )
+
+    def _make(
+        drift_type: str = "none",
+        severity: Severity = Severity.NONE,
+        actions: tuple[ActionType, ...] = (ActionType.NOOP,),
+        target_state: str = "healthy",
+        execution_mode: ExecutionMode = ExecutionMode.AUTOMATIC,
+        safety_state: ExecutionSafety = ExecutionSafety.CONVERGED,
+        reason: str = "Graph is healthy",
+        metadata: dict[str, str | int | float | bool | None] | None = None,
+        created_at: datetime | None = None,
+    ) -> ReconciliationPlan:
+        if metadata is None:
+            metadata = {}
+        if created_at is None:
+            created_at = datetime.now(UTC)
+        return ReconciliationPlan(
+            drift_type=drift_type,
+            severity=severity,
+            actions=actions,
+            target_state=target_state,
+            execution_mode=execution_mode,
+            safety_state=safety_state,
+            reason=reason,
+            metadata=metadata,
+            created_at=created_at,
+        )
+
+    return _make

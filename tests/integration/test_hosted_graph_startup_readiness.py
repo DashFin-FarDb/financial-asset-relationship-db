@@ -15,7 +15,9 @@ from fastapi.testclient import TestClient  # pylint: disable=import-error
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as providers
 from api.app_factory import create_app
+from api.auth import User, get_current_active_user
 from api.routers import graph_admin
+from src.config.settings import get_settings
 from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -29,7 +31,7 @@ def _reset_runtime_graph_state() -> None:
     graph_lifecycle.reset_graph()
     api_main = sys.modules.get("api.main")
     if api_main is not None and hasattr(api_main, "graph"):
-        api_main.graph = None
+        api_main.graph = None  # type: ignore[attr-defined]
 
 
 @pytest.fixture(autouse=True)
@@ -40,6 +42,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
         "GRAPH_CACHE_PATH",
         "REAL_DATA_CACHE_PATH",
         "USE_REAL_DATA_FETCHER",
+        "ADMIN_USERNAME",
     ):
         monkeypatch.delenv(name, raising=False)
     providers.clear_graph_lifecycle_settings_cache()
@@ -116,6 +119,24 @@ def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -
     _reset_runtime_graph_state()
 
 
+def _authorized_active_user_app(monkeypatch: pytest.MonkeyPatch):
+    """Create an app with an active authenticated test user and pinned admin configuration."""
+    # Force the environment state
+    monkeypatch.setenv("ADMIN_USERNAME", "admin")
+
+    # Ensure create_app() picks up the newly injected environment variable
+    get_settings.cache_clear()
+
+    app = create_app()
+
+    def active_user() -> User:
+        """Return a generic authenticated test user for the existing rebuild auth contract."""
+        return User(username="admin", disabled=False)
+
+    app.dependency_overrides[get_current_active_user] = active_user
+    return app
+
+
 @dataclass
 class _DisposeTracker:
     """Track engine disposal calls."""
@@ -186,7 +207,7 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
 
     with caplog.at_level(logging.INFO), TestClient(create_app()) as client:
         detailed = client.get("/api/health/detailed")
-        assets = client.get("/api/assets", params={"per_page": 1000})
+        assets = client.get("/api/assets", params={"per_page": 100})
         relationships = client.get("/api/relationships")
 
     assert detailed.status_code == 200
@@ -197,7 +218,6 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     assert graph_payload["available"] is True
     assert graph_payload["asset_count"] == 2
     assert graph_payload["relationship_count"] == 2
-    assert graph_payload["graph_startup_source"] == "persisted_graph_store"
 
     asset_ids = {item["id"] for item in assets.json()["items"]}
     assert {"HOSTED_A", "HOSTED_B"} <= asset_ids
@@ -210,6 +230,47 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
     loaded = graph_lifecycle.get_graph()
     assert [event.id for event in loaded.regulatory_events] == ["HOSTED_EVENT_A"]
 
+    log_output = " ".join(record.getMessage() for record in caplog.records)
+    assert "Graph startup source: persisted_graph_store" in log_output
+
+
+def test_preview_startup_uses_shared_supabase_boundary_when_dedicated_graph_db_is_missing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Preview startup should load persisted graph truth from the shared Supabase boundary when needed."""
+    database_url = _sqlite_url(tmp_path, "shared_preview.db")
+    _save_graph(database_url, _seeded_hosted_graph())
+    monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
+    monkeypatch.setenv("ENV", "preview")
+    monkeypatch.setenv("DATABASE_URL", database_url)
+    providers.clear_graph_lifecycle_settings_cache()
+    _reset_runtime_graph_state()
+
+    try:
+
+        def fail_fallback_generation(*_args: Any, **_kwargs: Any) -> AssetRelationshipGraph:
+            """Fail the test if startup unexpectedly falls back to any generation path."""
+            raise AssertionError("Fallback generation triggered unexpectedly")
+
+        monkeypatch.setattr(providers, "create_sample_graph", fail_fallback_generation)
+        monkeypatch.setattr(providers, "load_graph_from_cache_path", fail_fallback_generation)
+        monkeypatch.setattr(providers, "load_graph_from_real_data_fetcher", fail_fallback_generation)
+
+        with caplog.at_level(logging.INFO):
+            graph, startup_metadata = graph_lifecycle.get_graph_with_startup_source()
+
+        assert startup_metadata is not None
+        assert startup_metadata.persistence_enabled is True
+        assert startup_metadata.persistence_loaded is True
+        assert startup_metadata.source == graph_lifecycle.GraphStartupSource.PERSISTED
+        assert len(graph.assets) == 2
+        assert len(graph.relationships) == 2
+        assert providers.resolve_hosted_graph_database_url(providers.get_graph_lifecycle_settings()) == database_url
+    finally:
+        providers.clear_graph_lifecycle_settings_cache()
+        _reset_runtime_graph_state()
     log_output = " ".join(record.getMessage() for record in caplog.records)
     assert "Graph startup source: persisted_graph_store" in log_output
 
@@ -281,13 +342,16 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
     payload = response.json()
 
     # Verify expected contract shape
-    assert set(payload) == {"status", "graph", "database"}
+    assert set(payload) == {"status", "graph_persistence_configured", "graph", "database"}
     assert set(payload["graph"]) == {
         "available",
         "lifecycle_state",
         "asset_count",
         "relationship_count",
-        "graph_startup_source",
+        "startup_source",
+        "persistence_enabled",
+        "persistence_loaded",
+        "persistence_saved",
     }
 
     # Recursively scan for sensitive values
@@ -303,6 +367,40 @@ def test_hosted_detailed_readiness_output_is_secret_safe(
         assert forbidden not in joined
 
 
+def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Promotion gate sequence should prove persisted startup and configured durable graph persistence."""
+    database_url = _sqlite_url(tmp_path, "promotion-gate.db")
+    _init_empty_db(database_url)
+    _configure_persistence(monkeypatch, database_url)
+
+    with TestClient(_authorized_active_user_app(monkeypatch)) as client:
+        rebuild_response = client.post("/api/graph/rebuild")
+
+    assert rebuild_response.status_code == 200
+    rebuild_payload = rebuild_response.json()
+    assert rebuild_payload["status"] == "persisted"
+
+    persisted_asset_count = rebuild_payload["asset_count"]
+    persisted_relationship_count = rebuild_payload["relationship_count"]
+
+    # Simulate restart by clearing runtime graph state before startup checks.
+    _reset_runtime_graph_state()
+
+    with TestClient(create_app()) as client:
+        detailed_response = client.get("/api/health/detailed")
+
+    assert detailed_response.status_code == 200
+    payload = detailed_response.json()
+    assert payload["status"] == "healthy"
+    assert isinstance(payload["graph_persistence_configured"], bool) and payload["graph_persistence_configured"] is True
+    assert payload["graph"]["lifecycle_state"] == graph_lifecycle.GraphRuntimeLifecycleState.READY.value
+    assert payload["graph"]["asset_count"] == persisted_asset_count
+    assert payload["graph"]["relationship_count"] == persisted_relationship_count
+
+
 def test_unreachable_persistence_fails_startup_with_sanitized_error(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
@@ -315,6 +413,9 @@ def test_unreachable_persistence_fails_startup_with_sanitized_error(
         """Simulate a driver failure containing sensitive connection details."""
         raise RuntimeError(f"driver failure for {raw_url}")
 
+    import src.data.database
+
+    monkeypatch.setattr(src.data.database, "create_engine_from_url", fail_create_engine)
     monkeypatch.setattr(providers, "create_engine_from_url", fail_create_engine)
 
     startup_error = "Failed to load persisted graph during startup"

@@ -1,9 +1,16 @@
 # Enterprise Deployment Operating Model
 
+For the enterprise-readiness audit, roadmap, PR plan, board, and release criteria, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 This document defines how the Financial Asset Relationship Database (FarDb) is deployed,
 promoted, verified, rolled back, and operated across environments. It distinguishes
 between basic service readiness and the stronger durable graph-persistence verification
 required for staging and production promotion.
+
+For staging-specific provider boundaries, Vercel environment mapping, preview durability labelling, and promotion
+evidence capture, see the [Staging Deployment Operating Baseline](staging-deployment-operating-baseline.md).
+
+For current rebuild/recovery/persistence state-machine semantics, ownership rules, and exception paths, see the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md).
 
 ## Operating Topology
 
@@ -23,14 +30,14 @@ The current selected initial topology is:
 
 - **Local**: Developer-owned runtime for development and testing. SQLite is allowed.
 - **Preview**: May be durable or non-durable. If non-durable, the deployment must be labeled accordingly and must not be treated as proof of production persistence behavior.
-- **Staging**: Durable pre-production verification environment. Must use the same persistence boundary class expected for production.
+- **Staging**: Durable pre-production verification environment. Must use the same persistence boundary class expected for production. The staging provider, Vercel project/deployment mapping, database boundaries, variable-presence checks, preview durability label, and promotion evidence are governed by the [Staging Deployment Operating Baseline](staging-deployment-operating-baseline.md).
 - **Production**: Durable authoritative environment.
 
 ### Rollback and Restore Ownership
 
 - **Deployment rollback owner**: Designated maintainer/operator with authority to promote a previous known-good Vercel deployment.
-- **Data restore owner**: Designated maintainer/operator responsible for future restore execution once a restore runbook exists.
-- **Backup/restore runbook status**: Full backup/restore and recovery procedures are explicitly deferred to Stage 7.
+- **Data restore owner**: Designated Restore Operator responsible for executing [the backup/restore/DR runbook](runbooks/backup-restore-dr.md) when database recovery is required.
+- **Backup/restore runbook status**: Backup, restore, and DR procedures are documented in [docs/runbooks/backup-restore-dr.md](runbooks/backup-restore-dr.md). Strategy and objectives are documented in [ADR 0005](adr/0005-backup-restore-dr-strategy.md).
 
 ## Deployment Ownership
 
@@ -62,6 +69,61 @@ The graph persistence store holds durable graph truth. Evidence/metadata persist
 
 - `SECRET_KEY`: Long random string for JWT signing.
 - `ADMIN_USERNAME` / `ADMIN_PASSWORD`: Bootstrap credentials when the auth/application database does not yet contain a usable user.
+
+### Rebuild coordination (optional)
+
+- `REBUILD_LOCK_TTL_SECONDS`: Time-to-live for the graph rebuild distributed lock in seconds (default: 300). Must be a positive integer. Loaded via `src/config/settings.py` and propagated to graph rebuild orchestration. The heartbeat refresh interval is `max(1, rebuild_lock_ttl_seconds // 3)` per [ADR 0003](adr/0003-distributed-lock-refresh-and-heartbeat-strategy.md).
+- `COORDINATION_DATABASE_URL`: Optional PostgreSQL-compatible coordination database connection string for rebuild lock/job coordination. When unset, coordination uses the same boundary as the graph/application startup configuration for the active environment. All backend instances sharing one `ASSET_GRAPH_DATABASE_URL` must share the same coordination database boundary.
+
+## Distributed Hosting Semantics
+
+For the historical decision record, see
+[ADR 0004: Distributed Hosting Semantics](adr/0004-distributed-hosting-semantics.md). For current state-machine, ownership, and exception authority, see the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md).
+
+FarDb supports backend scale-out for read serving using a single-writer /
+multi-reader model:
+
+- Multiple backend instances may serve read traffic from runtime graph
+  snapshots.
+- Scale-out does **not** increase rebuild writer concurrency.
+- Operators must assume one rebuild writer globally per graph persistence
+  boundary.
+- A rebuild writer must hold the `graph_rebuild` distributed lock before
+  mutating rebuild state or persisting graph truth.
+- A backend instance that does not hold the rebuild lock may serve reads but
+  must not persist graph truth.
+
+### Distributed Hosting and Rebuild Ownership
+
+All instances sharing `ASSET_GRAPH_DATABASE_URL` must share the same
+coordination database boundary, configured through `COORDINATION_DATABASE_URL`
+when that boundary differs from the default environment database boundary.
+`REBUILD_LOCK_TTL_SECONDS` must be consistent across instances in the same
+environment.
+
+Durable graph truth in `ASSET_GRAPH_DATABASE_URL` is authoritative for staging
+and production. Runtime graph state is an in-memory cache/snapshot. A healthy
+application database or bounded health response does not prove durable graph
+truth.
+
+Rolling redeploy may leave an in-flight rebuild in stale state. Recovery must
+occur through lock expiry plus RecoveryGate-approved reconciliation, not blind
+takeover. If another worker has a fresh heartbeat, lock ownership cannot be
+proven, persistence is unavailable, or split-brain is suspected, the system must
+block mutation. Manual operator intervention is required for suspected
+split-brain.
+
+Restart/redeploy expectations:
+
+1. With no in-flight rebuild, the new backend instance loads durable graph truth
+   and records persisted startup evidence.
+2. While another instance is actively rebuilding, a restarted instance must not
+   take over if the active owner is freshly heartbeating.
+3. If redeploy kills the active rebuild owner, a later instance may recover only
+   after stale-owner conditions and lock reacquisition requirements are
+   satisfied.
+4. During persistence commit, lock loss or uncertain ownership requires the
+   writer to abort before commit or success marking.
 
 ## Promotion Gates
 
@@ -105,16 +167,23 @@ Recommended diagnostic evidence, when an approved sentinel baseline exists:
 
 ## Verification and Smoke Testing
 
-`GET /api/health/detailed` is a bounded readiness signal only. It confirms in-memory graph availability and auth/application database reachability. It does **not** prove the graph was loaded from `ASSET_GRAPH_DATABASE_URL`.
+`GET /api/health/detailed` is a bounded readiness signal only. It confirms in-memory graph availability and auth/application database reachability. It does **not** prove the graph was loaded from `ASSET_GRAPH_DATABASE_URL` unless verified via the persistence-gate check.
 
 For staging and production deployment acceptance, operators must run this durable graph-persistence smoke procedure:
 
 1. Confirm `ASSET_GRAPH_DATABASE_URL` is set in the target environment.
 2. Trigger a controlled authenticated graph rebuild/persist operation through `POST /api/graph/rebuild`, or use an approved persisted baseline.
 3. Restart or redeploy the backend.
-4. Verify startup logs contain `Graph startup source: persisted_graph_store`.
-5. Call `GET /api/health/detailed` and confirm:
-   - `status` is `healthy`
+4. Run the hosted readiness checker with `--require-persistence` configured:
+
+   ```bash
+   python scripts/check_hosted_readiness.py <base_url> --require-persistence
+   ```
+
+5. Confirm the checker exits successfully (exit code 0), verifying that:
+   - `/api/health/detailed` `status` is `healthy`
+   - `graph.persistence_loaded` is `true`
+   - `graph.startup_source` is `"persisted"`
    - graph counts match the expected persisted baseline
    - auth/application database is reachable
 6. If an approved sentinel baseline exists, call `GET /api/assets` and confirm known sentinel asset IDs are present.
@@ -149,9 +218,22 @@ After rollback:
 
 ### Data Restore Boundary
 
-- Full backup/restore remains deferred to Stage 7.
+- Data restore is documented in [docs/runbooks/backup-restore-dr.md](runbooks/backup-restore-dr.md).
 - Rollback is not equivalent to database restore.
-- Operators must treat schema changes and destructive data operations with caution until a restore runbook exists.
+- Operators must treat schema changes and destructive data operations as restore-sensitive changes and should take an ad-hoc backup before executing them.
+
+## Disaster Recovery
+
+FarDb disaster recovery is governed by [ADR 0005: Backup, Restore, and Disaster Recovery Strategy](adr/0005-backup-restore-dr-strategy.md) and executed through [the backup/restore/DR runbook](runbooks/backup-restore-dr.md).
+
+ADR 0005 defines the staging/production recovery objectives:
+
+- graph data RPO is tied to approved source-data freshness because graph data is rebuildable through `RebuildExecutor`;
+- coordination/auth data RPO is 1 hour;
+- full service RTO is 2 hours, including restore verification;
+- provider-managed PITR is primary for hosted PostgreSQL, with `pg_dump` as the portable fallback.
+
+A Vercel rollback/promotion can recover a previous application deployment, but it does **not** restore `DATABASE_URL`, `POSTGRES_URL`, or `ASSET_GRAPH_DATABASE_URL` data. When data loss, destructive writes, failed migrations, or corrupted graph persistence are suspected, operators must use the DR runbook rather than treating deployment rollback as sufficient recovery.
 
 ## Secret Handling
 
@@ -166,8 +248,13 @@ The operating model assumes named ownership for the following functions:
 - **Deploy operator**: Executes deployment to the target environment.
 - **Promotion approver**: Confirms promotion gates are satisfied before staging/production promotion.
 - **Rollback executor**: Performs Vercel rollback/promotion to restore the previous known-good deployment.
+- **Backup Operator**: Verifies backup health and executes ad-hoc backups before major changes.
+- **Restore Operator**: Executes database restore procedures and post-restore verification according to the DR runbook.
 - **Secret/config maintainer**: Owns environment-variable configuration and secret rotation.
 - **Persistence-verification operator**: Executes and records the durable graph-persistence smoke procedure.
+- **Incident Commander**: Escalation point for restore failures, data loss events, and RTO/RPO risk.
+
+The canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md) defines the same operating roles plus explicit rebuild recovery, exception approval, and manual-intervention handoff boundaries.
 
 One person may hold multiple roles, but the responsibilities must be explicit.
 
@@ -182,6 +269,7 @@ When the deployment is degraded or promotion evidence is incomplete:
    - missing persisted graph after restart
    - auth/application database unreachable
    - non-durable preview assumptions being incorrectly treated as staging/production evidence
+   - suspected data loss or restore requirement
 3. **Inspect**: Review backend logs and deployment metadata without exposing secrets to end users.
-4. **Mitigate**: Roll back application code/configuration when the current deployment is not trustworthy.
-5. **Re-verify**: Re-run the appropriate readiness and durable graph-persistence checks before restoring promotion confidence.
+4. **Mitigate**: Roll back application code/configuration when the current deployment is not trustworthy, or execute the DR runbook when database restore is required.
+5. **Re-verify**: Re-run the appropriate readiness, durable graph-persistence, and post-restore checks before restoring promotion confidence.

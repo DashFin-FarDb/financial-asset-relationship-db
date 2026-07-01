@@ -1,5 +1,7 @@
 # Phase 3 Computation/Layout Boundary Audit
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 ## Outcome
 
 The computation boundary is mostly isolated, but not ideal.

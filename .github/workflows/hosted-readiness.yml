@@ -12,6 +12,11 @@ name: Hosted readiness smoke check
         required: false
         default: "10"
         type: string
+      require_persistence:
+        description: "Prove persisted graph load rather than fallback generation."
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,6 +30,7 @@ jobs:
     env:
       HOSTED_READINESS_BASE_URL: ${{ inputs.base_url || secrets.HOSTED_READINESS_BASE_URL }}
       HOSTED_READINESS_TIMEOUT: ${{ inputs.timeout }}
+      HOSTED_READINESS_REQUIRE_PERSISTENCE: ${{ inputs.require_persistence }}
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -41,4 +47,8 @@ jobs:
           mask_value="${mask_value//$'\r'/%0D}"
           mask_value="${mask_value//$'\n'/%0A}"
           printf '::add-mask::%s\n' "$mask_value"
-          python scripts/check_hosted_readiness.py "$HOSTED_READINESS_BASE_URL" --timeout "$HOSTED_READINESS_TIMEOUT"
+          cmd=(python scripts/check_hosted_readiness.py "$HOSTED_READINESS_BASE_URL" --timeout "$HOSTED_READINESS_TIMEOUT")
+          if [ "${HOSTED_READINESS_REQUIRE_PERSISTENCE}" = "true" ]; then
+            cmd+=(--require-persistence)
+          fi
+          "${cmd[@]}"

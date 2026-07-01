@@ -71,12 +71,25 @@ CREATE TABLE IF NOT EXISTS rebuild_jobs (
     edge_count INTEGER,
     sanitized_failure_category TEXT,
     sanitized_failure_message TEXT,
+    active_worker_id TEXT,
+    last_heartbeat_at TEXT,
+    execution_id TEXT,
+    checkpoint_data TEXT,
+    cancellation_requested_at TEXT,
     CONSTRAINT ck_rebuild_jobs_status
-        CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled'))
+        CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
 );
 
-CREATE INDEX ix_rebuild_jobs_created_at
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at
     ON rebuild_jobs (created_at);
 
-CREATE INDEX ix_rebuild_jobs_status_created_at
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
     ON rebuild_jobs (status, created_at);
+
+CREATE TABLE IF NOT EXISTS distributed_locks (
+    lock_name TEXT PRIMARY KEY,
+    holder_id TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);

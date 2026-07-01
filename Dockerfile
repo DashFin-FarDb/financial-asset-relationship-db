@@ -7,7 +7,8 @@ FROM python:3.12-slim-trixie
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    GRADIO_SERVER_PORT=7860
 
 # Set working directory
 WORKDIR /app
@@ -38,7 +39,7 @@ EXPOSE 7860
 
 # Health check using curl (more reliable than Python imports)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7860/ || exit 1
+    CMD sh -c 'curl -f http://localhost:${GRADIO_SERVER_PORT}/ || exit 1'
 
 # Run the application
 CMD ["python", "app.py"]

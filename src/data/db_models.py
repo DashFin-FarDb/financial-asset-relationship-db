@@ -14,6 +14,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,7 +30,7 @@ REGULATORY_EVENT_ID_FK = "regulatory_events.id"
 CASCADE_DELETE_ORPHAN = "all, delete-orphan"
 
 
-class RebuildJobStatus(str, enum.Enum):
+class RebuildJobStatus(enum.StrEnum):
     """Valid status values for a RebuildJobORM record."""
 
     PENDING = "pending"
@@ -37,11 +38,12 @@ class RebuildJobStatus(str, enum.Enum):
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    CANCEL_REQUESTED = "cancel_requested"
 
     @classmethod
     def values(cls) -> list[str]:
-        """Return the list of all valid status string values (e.g. ['pending', 'running', ...])."""
-        return [m.value for m in cls]
+        """Return a list of all valid status string values."""
+        return [status.value for status in cls]
 
 
 class AssetORM(Base):
@@ -220,7 +222,7 @@ class RebuildJobORM(Base):
     __tablename__ = "rebuild_jobs"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled')",
+            "status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'cancel_requested')",
             name="ck_rebuild_jobs_status",
         ),
         Index("ix_rebuild_jobs_created_at", "created_at"),
@@ -246,3 +248,33 @@ class RebuildJobORM(Base):
         String(512),
         nullable=True,
     )
+    # Stage 5C.3: Execution Identity
+    execution_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # Stage 5C.1: Recovery state tracking
+    active_worker_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    last_heartbeat_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    # Stage 5C.3B: Checkpointed Recovery
+    checkpoint_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Stage 5C.3C: Cancellation Integrity
+    cancellation_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+
+class DistributedLockORM(Base):
+    """Persistent representation of a distributed lock."""
+
+    __tablename__ = "distributed_locks"
+
+    lock_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    holder_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

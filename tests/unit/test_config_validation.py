@@ -503,9 +503,7 @@ class TestRequirementsTxt:
 
     @staticmethod
     def test_requirements_has_pydantic(requirements):
-        """
-        Verify that "pydantic" is present in the provided requirements (case-insensitive).
-        """
+        """Verify that "pydantic" is present in the provided requirements."""
         assert any("pydantic" in req.lower() for req in requirements)
 
     def test_requirements_has_version_constraints(self, requirements):
@@ -568,12 +566,8 @@ class TestConfigurationConsistency:
 
     @staticmethod
     def test_env_and_next_config():
-        """Test that .env and next.config.js both contain NEXT_PUBLIC_API_URL."""
-        env_path = Path(".env.local")
-        if not env_path.exists():
-            env_path = Path(".env.example")
-
-        with open(env_path) as f:
+        """Test that the repo env template and next.config.js both contain NEXT_PUBLIC_API_URL."""
+        with open(".env.example") as f:
             env_content = f.read()
 
         # Check next.config.js

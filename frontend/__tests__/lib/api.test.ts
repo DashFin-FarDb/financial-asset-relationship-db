@@ -213,7 +213,7 @@ describe("API Client", () => {
     });
 
     it("should handle empty asset list", async () => {
-      const emptyPage = { items: [], total: 0, page: 1, per_page: 50 };
+      const emptyPage = { items: [], total: 0, page: 1, per_page: 50, hasMore: false };
       mockAxiosInstance.get.mockResolvedValue({ data: emptyPage });
 
       const result = await api.getAssets();
@@ -406,7 +406,7 @@ describe("API Client", () => {
 
       const result = await api.getMetrics();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/metrics", {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/graph/metrics", {
         signal: undefined,
       });
       expect(result).toEqual(mockMetrics);
@@ -423,7 +423,6 @@ describe("API Client", () => {
       expect(result).toHaveProperty("avg_degree");
       expect(result).toHaveProperty("max_degree");
       expect(result).toHaveProperty("network_density");
-      expect(result).toHaveProperty("relationship_density");
       expect(typeof result.total_assets).toBe("number");
       expect(typeof result.asset_classes).toBe("object");
     });
@@ -436,7 +435,6 @@ describe("API Client", () => {
         avg_degree: 0,
         max_degree: 0,
         network_density: 0,
-        relationship_density: 0,
       };
       mockAxiosInstance.get.mockResolvedValue({ data: emptyMetrics });
 
@@ -444,7 +442,6 @@ describe("API Client", () => {
 
       expect(result.total_assets).toBe(0);
       expect(result.network_density).toBe(0);
-      expect(result.relationship_density).toBe(0);
     });
 
     it("should forward AbortSignal to axios config", async () => {
@@ -453,7 +450,7 @@ describe("API Client", () => {
 
       await api.getMetrics(controller.signal);
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/metrics", {
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/graph/metrics", {
         signal: controller.signal,
       });
     });
@@ -512,7 +509,7 @@ describe("API Client", () => {
     });
 
     it("should handle empty visualization data", async () => {
-      const emptyVizData: VisualizationData = { nodes: [], edges: [] };
+      const emptyVizData: VisualizationData = { nodes: [], edges: [], network_density: 0 };
       mockAxiosInstance.get.mockResolvedValue({ data: emptyVizData });
 
       const result = await api.getVisualizationData();

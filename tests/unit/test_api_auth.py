@@ -67,7 +67,7 @@ class TestSecretHandling:
     def test_verify_incorrect_secret(self):
         """Test that incorrect secret verification returns False."""
         secret_value = "correct_secret_value"
-        wrong_secret_value = "wrong_secret_value"
+        wrong_secret_value = "wrong_secret_value_at_least_32_bytes_long"
         hashed = get_password_hash(secret_value)
 
         assert verify_password(wrong_secret_value, hashed) is False
@@ -228,7 +228,7 @@ class TestAuthentication:
         mock_get_user.return_value = mock_user
         mock_verify.return_value = False
 
-        result = authenticate_user("testuser", "wrong_secret_value")
+        result = authenticate_user("testuser", "wrong_secret_value_at_least_32_bytes_long")
 
         assert result is False
 
@@ -295,7 +295,7 @@ class TestJWTTokens:
         token = create_access_token(data)
 
         with pytest.raises(InvalidTokenError):
-            jwt.decode(token, "wrong_secret", algorithms=[ALGORITHM])
+            jwt.decode(token, "wrong_secret_at_least_32_bytes_long", algorithms=[ALGORITHM])
 
     def test_token_expiration(self):
         """Test that token includes expiration time."""

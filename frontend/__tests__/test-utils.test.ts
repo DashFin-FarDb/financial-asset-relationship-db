@@ -586,7 +586,7 @@ describe("test-utils Mock Data Validation", () => {
       });
     });
 
-    it("should have network density within valid range", () => {
+    it("should have network_density within valid range", () => {
       expect(mockMetrics.network_density).toBeGreaterThanOrEqual(0);
       expect(mockMetrics.network_density).toBeLessThanOrEqual(1);
     });
@@ -725,7 +725,7 @@ describe("test-utils Mock Data Validation", () => {
         });
       });
 
-      it("should have network density between 0 and 1", () => {
+      it("should have network_density between 0 and 1", () => {
         expect(mockMetrics.network_density).toBeGreaterThanOrEqual(0);
         expect(mockMetrics.network_density).toBeLessThanOrEqual(1);
       });
@@ -952,7 +952,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     describe("Statistical Consistency", () => {
-      it("should have network density consistent with edge/node ratio", () => {
+      it("should compute visualization density within the valid range", () => {
         const n = mockVisualizationData.nodes.length;
         const e = mockVisualizationData.edges.length;
         const maxEdges = (n * (n - 1)) / 2;

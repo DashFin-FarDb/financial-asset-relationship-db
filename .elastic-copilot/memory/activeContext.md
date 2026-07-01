@@ -2,27 +2,29 @@
 
 ## Current Phase
 
-Set-up/Maintenance
+Implementation / Integration
 
 ## Current Task
 
-System Initialized
+Integrating `ReconciliationEngine` plan generation into `RecoveryGate` and adding a periodic background reconciliation loop in `api/app_factory.py`.
 
 ## Focus Areas
 
-- TBD
+- `src/logic/recovery_gate.py`
+- `api/app_factory.py`
+- `src/logic/reconciliation_engine.py`
 
 ## Recently Modified Files
 
-- Updated systemManifest.md with project scan
-- Updated dependencyMatrix.md with dependency information
+- `docs/tech_spec.md` (Updated rebuild_jobs schema to match migration DDL)
+- `docs/reconciliation-engine.md` (Decoupled run_rebuild helper)
+- `docs/reconciliation-discovery-map.md` (Updated state and Roadmap deviation)
 
 ## Open Questions
 
-- TBD
+- None.
 
 ## Next Steps
 
-- Review project dependencies in systemManifest.md
-- Check dependency matrix for key connections
-- Define core implementation components
+- Formulate implementation plan for replacing legacy inconsistency detection in `RecoveryGate` with `ReconciliationEngine.generate_reconciliation_plan()`.
+- Plan background reconciliation loop.

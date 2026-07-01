@@ -9,7 +9,7 @@ This module contains comprehensive unit tests for the database models including:
 - Model field validation and nullable constraints
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 import pytest
 from sqlalchemy import create_engine, inspect
@@ -19,10 +19,13 @@ from src.data.database import create_session_factory, init_db
 from src.data.db_models import (
     AssetORM,
     AssetRelationshipORM,
+    DistributedLockORM,
     RebuildJobORM,
+    RebuildJobStatus,
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
+from tests.conftest import enable_sqlite_foreign_keys
 
 pytest.importorskip("sqlalchemy")
 
@@ -42,6 +45,7 @@ def db_session(tmp_path):
     """
     db_path = tmp_path / "test.db"
     engine = create_engine(f"sqlite:///{db_path}")
+    enable_sqlite_foreign_keys(engine)
     init_db(engine)
     factory = create_session_factory(engine)
     session = factory()
@@ -330,7 +334,7 @@ class TestAssetRelationshipORM:
             db_session.commit()
 
     def test_relationship_cascade_delete(self, db_session):
-        """Test that relationships are deleted when assets are deleted."""
+        """Test that relationships are deleted by the database when assets are deleted."""
         asset1 = AssetORM(
             id="CASCADE1",
             symbol="C1",
@@ -361,13 +365,63 @@ class TestAssetRelationshipORM:
         db_session.add(rel)
         db_session.commit()
 
-        # Delete source asset
-        db_session.delete(asset1)
+        # Delete source asset using raw SQL so the cascade is enforced by the database.
+        db_session.execute(AssetORM.__table__.delete().where(AssetORM.id == "CASCADE1"))
         db_session.commit()
 
         # Relationship should be deleted
         remaining = db_session.query(AssetRelationshipORM).filter_by(source_asset_id="CASCADE1").first()
         assert remaining is None
+
+    def test_relationship_cascade_delete_on_target_asset(self, db_session):
+        """Test that target-side cascades are enforced by the database."""
+        source = AssetORM(
+            id="TARGET_SRC",
+            symbol="TS",
+            name="Target Source",
+            asset_class="equity",
+            sector="Tech",
+            price=100.0,
+            currency="USD",
+        )
+        target = AssetORM(
+            id="TARGET_DST",
+            symbol="TD",
+            name="Target Destination",
+            asset_class="equity",
+            sector="Tech",
+            price=200.0,
+            currency="USD",
+        )
+        db_session.add_all([source, target])
+        db_session.commit()
+
+        relationship = AssetRelationshipORM(
+            source_asset_id="TARGET_SRC",
+            target_asset_id="TARGET_DST",
+            relationship_type="target_cascade",
+            strength=0.5,
+        )
+        db_session.add(relationship)
+        db_session.commit()
+
+        db_session.execute(AssetORM.__table__.delete().where(AssetORM.id == "TARGET_DST"))
+        db_session.commit()
+
+        assert db_session.query(AssetRelationshipORM).filter_by(source_asset_id="TARGET_SRC").first() is None
+
+    def test_foreign_key_violation_requires_enforcement(self, db_session):
+        """Test that FK violations fail when SQLite foreign keys are enabled."""
+        relationship = AssetRelationshipORM(
+            source_asset_id="missing-source",
+            target_asset_id="missing-target",
+            relationship_type="invalid_fk",
+            strength=0.5,
+        )
+        db_session.add(relationship)
+
+        with pytest.raises(IntegrityError):
+            db_session.commit()
 
     def test_bidirectional_flag(self, db_session):
         """Test bidirectional flag on relationships."""
@@ -442,6 +496,42 @@ class TestAssetRelationshipORM:
         relationships = db_session.query(AssetRelationshipORM).filter_by(source_asset_id="STRENGTH1").all()
         assert len(relationships) == 3
 
+    def test_relationship_strength_boundary_values(self, db_session):
+        """Test that the database round-trips strength boundary values."""
+        asset1 = AssetORM(
+            id="BOUNDARY1",
+            symbol="B1",
+            name="Boundary 1",
+            asset_class="equity",
+            sector="Tech",
+            price=100.0,
+            currency="USD",
+        )
+        asset2 = AssetORM(
+            id="BOUNDARY2",
+            symbol="B2",
+            name="Boundary 2",
+            asset_class="equity",
+            sector="Tech",
+            price=200.0,
+            currency="USD",
+        )
+        db_session.add_all([asset1, asset2])
+        db_session.commit()
+
+        for strength in [0.0, 1.0, -1.0]:
+            rel = AssetRelationshipORM(
+                source_asset_id="BOUNDARY1",
+                target_asset_id="BOUNDARY2",
+                relationship_type=f"boundary_{strength}",
+                strength=strength,
+            )
+            db_session.add(rel)
+        db_session.commit()
+
+        relationships = db_session.query(AssetRelationshipORM).filter_by(source_asset_id="BOUNDARY1").all()
+        assert {rel.strength for rel in relationships} == {0.0, 1.0, -1.0}
+
 
 @pytest.mark.unit
 class TestRegulatoryEventORM:
@@ -515,6 +605,35 @@ class TestRegulatoryEventORM:
         # Event should be deleted
         remaining = db_session.query(RegulatoryEventORM).filter_by(id="EVENT_002").first()
         assert remaining is None
+
+    def test_regulatory_event_related_assets_empty_round_trip(self, db_session):
+        """Test that events with no related assets persist cleanly."""
+        asset = AssetORM(
+            id="EMPTY_EVENT_ASSET",
+            symbol="EE",
+            name="Empty Event Asset",
+            asset_class="equity",
+            sector="Tech",
+            price=100.0,
+            currency="USD",
+        )
+        db_session.add(asset)
+        db_session.commit()
+
+        event = RegulatoryEventORM(
+            id="EMPTY_EVENT",
+            asset_id="EMPTY_EVENT_ASSET",
+            event_type="SEC_FILING",
+            date="2024-01-01",
+            description="No related assets",
+            impact_score=0.1,
+        )
+        db_session.add(event)
+        db_session.commit()
+
+        retrieved = db_session.query(RegulatoryEventORM).filter_by(id="EMPTY_EVENT").first()
+        assert retrieved is not None
+        assert retrieved.related_assets == []
 
     def test_regulatory_event_with_related_assets(self, db_session):
         """Test regulatory event with related assets."""
@@ -699,7 +818,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-123",
             requested_by="test_user",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             source="sample",
             created_at=now,
             updated_at=now,
@@ -710,7 +829,7 @@ class TestRebuildJobORM:
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-123").first()
         assert retrieved is not None
         assert retrieved.requested_by == "test_user"
-        assert retrieved.status == "pending"
+        assert retrieved.status == RebuildJobStatus.PENDING
         assert retrieved.source == "sample"
         assert retrieved.started_at is None
         assert retrieved.completed_at is None
@@ -727,7 +846,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-456",
             requested_by="test_user",
-            status="succeeded",
+            status=RebuildJobStatus.SUCCEEDED,
             source="real_data",
             created_at=now,
             updated_at=now,
@@ -742,7 +861,7 @@ class TestRebuildJobORM:
 
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-456").first()
         assert retrieved is not None
-        assert retrieved.status == "succeeded"
+        assert retrieved.status == RebuildJobStatus.SUCCEEDED
         assert retrieved.source == "real_data"
         assert retrieved.duration_ms == 1234
         assert retrieved.node_count == 100
@@ -757,7 +876,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-789",
             requested_by="test_user",
-            status="failed",
+            status=RebuildJobStatus.FAILED,
             source="cache",
             created_at=now,
             updated_at=now,
@@ -772,7 +891,7 @@ class TestRebuildJobORM:
 
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-789").first()
         assert retrieved is not None
-        assert retrieved.status == "failed"
+        assert retrieved.status == RebuildJobStatus.FAILED
         assert retrieved.sanitized_failure_category == "rebuild_source_error"
         assert retrieved.sanitized_failure_message == "Failed to load graph from cache"
         assert retrieved.node_count is None
@@ -784,7 +903,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-required",
             requested_by="test_user",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             created_at=datetime.now(timezone.utc),  # noqa: UP017
             updated_at=datetime.now(timezone.utc),  # noqa: UP017
         )
@@ -802,7 +921,7 @@ class TestRebuildJobORM:
         job1 = RebuildJobORM(
             job_id="duplicate-id",
             requested_by="user1",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             created_at=now,
             updated_at=now,
         )
@@ -812,7 +931,7 @@ class TestRebuildJobORM:
         job2 = RebuildJobORM(
             job_id="duplicate-id",
             requested_by="user2",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             created_at=now,
             updated_at=now,
         )
@@ -828,7 +947,7 @@ class TestRebuildJobORM:
         job = RebuildJobORM(
             job_id="test-job-update",
             requested_by="test_user",
-            status="pending",
+            status=RebuildJobStatus.PENDING,
             created_at=now,
             updated_at=now,
         )
@@ -836,17 +955,17 @@ class TestRebuildJobORM:
         db_session.commit()
 
         # Update to running
-        job.status = "running"
+        job.status = RebuildJobStatus.RUNNING
         job.started_at = now
         job.updated_at = datetime.now(timezone.utc)  # noqa: UP017
         db_session.commit()
 
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-update").first()
-        assert retrieved.status == "running"
+        assert retrieved.status == RebuildJobStatus.RUNNING
         assert retrieved.started_at is not None
 
         # Update to succeeded
-        job.status = "succeeded"
+        job.status = RebuildJobStatus.SUCCEEDED
         job.completed_at = datetime.now(timezone.utc)  # noqa: UP017
         job.duration_ms = 1000
         job.node_count = 50
@@ -854,8 +973,109 @@ class TestRebuildJobORM:
         db_session.commit()
 
         retrieved = db_session.query(RebuildJobORM).filter_by(job_id="test-job-update").first()
-        assert retrieved.status == "succeeded"
+        assert retrieved.status == RebuildJobStatus.SUCCEEDED
         assert retrieved.completed_at is not None
         assert retrieved.duration_ms == 1000
         assert retrieved.node_count == 50
         assert retrieved.edge_count == 100
+
+    def test_rebuild_job_invalid_status_fails_db_check_constraint(self, db_session):
+        """Test that invalid statuses are rejected by the database CHECK constraint."""
+        now = datetime.now(UTC)
+        job = RebuildJobORM(
+            job_id="invalid-status",
+            requested_by="test_user",
+            status="definitely_invalid",
+            created_at=now,
+            updated_at=now,
+        )
+        db_session.add(job)
+
+        with pytest.raises(IntegrityError):
+            db_session.commit()
+
+    def test_rebuild_job_cancel_statuses_round_trip(self, db_session):
+        """Test that cancel-requested and cancelled statuses round-trip correctly."""
+        now = datetime.now(UTC)
+        cancel_requested = RebuildJobORM(
+            job_id="cancel-requested",
+            requested_by="test_user",
+            status=RebuildJobStatus.CANCEL_REQUESTED,
+            created_at=now,
+            updated_at=now,
+            cancellation_requested_at=now,
+        )
+        cancelled = RebuildJobORM(
+            job_id="cancelled",
+            requested_by="test_user",
+            status=RebuildJobStatus.CANCELLED,
+            created_at=now,
+            updated_at=now,
+            completed_at=now,
+        )
+        db_session.add_all([cancel_requested, cancelled])
+        db_session.commit()
+
+        retrieved_requested = db_session.query(RebuildJobORM).filter_by(job_id="cancel-requested").first()
+        retrieved_cancelled = db_session.query(RebuildJobORM).filter_by(job_id="cancelled").first()
+
+        assert retrieved_requested is not None
+        assert retrieved_requested.status == RebuildJobStatus.CANCEL_REQUESTED
+        assert retrieved_requested.cancellation_requested_at == now.replace(tzinfo=None)
+        assert retrieved_cancelled is not None
+        assert retrieved_cancelled.status == RebuildJobStatus.CANCELLED
+
+    def test_rebuild_job_recovery_columns_exist_after_init_db(self, tmp_path):
+        """Test that migration-added recovery columns are present after init_db."""
+        db_path = tmp_path / "rebuild_columns.db"
+        engine = create_engine(f"sqlite:///{db_path}")
+        enable_sqlite_foreign_keys(engine)
+        init_db(engine)
+
+        try:
+            inspector = inspect(engine)
+            columns = {column["name"] for column in inspector.get_columns("rebuild_jobs")}
+        finally:
+            engine.dispose()
+
+        assert {"active_worker_id", "last_heartbeat_at", "checkpoint_data", "cancellation_requested_at"}.issubset(
+            columns
+        )
+
+
+@pytest.mark.unit
+class TestDistributedLockORM:
+    """Test cases for DistributedLockORM model."""
+
+    def test_distributed_lock_crud_and_timestamp_round_trip(self, db_session):
+        """Test distributed lock CRUD and timestamp persistence."""
+        now = datetime.now(UTC)
+        lock = DistributedLockORM(
+            lock_name="test-lock",
+            holder_id="holder-1",
+            expires_at=now,
+            created_at=now,
+            updated_at=now,
+        )
+        db_session.add(lock)
+        db_session.commit()
+
+        retrieved = db_session.query(DistributedLockORM).filter_by(lock_name="test-lock").first()
+        assert retrieved is not None
+        assert retrieved.holder_id == "holder-1"
+        assert retrieved.created_at == now.replace(tzinfo=None)
+        assert retrieved.updated_at == now.replace(tzinfo=None)
+        assert retrieved.expires_at == now.replace(tzinfo=None)
+
+        retrieved.holder_id = "holder-2"
+        retrieved.updated_at = now.replace(microsecond=123456)
+        db_session.commit()
+
+        updated = db_session.query(DistributedLockORM).filter_by(lock_name="test-lock").first()
+        assert updated is not None
+        assert updated.holder_id == "holder-2"
+        assert updated.updated_at == now.replace(tzinfo=None, microsecond=123456)
+
+        db_session.delete(updated)
+        db_session.commit()
+        assert db_session.query(DistributedLockORM).filter_by(lock_name="test-lock").first() is None

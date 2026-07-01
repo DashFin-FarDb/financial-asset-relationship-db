@@ -1,0 +1,79 @@
+groups:
+  - name: fardb-slo
+    rules:
+      - alert: ApiAvailabilityFastBurn
+        expr: |
+          (
+            sum(rate(http_requests_total{status_group="5xx"}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.005
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: API availability burn rate is critical
+          description: Availability is below 99.5% over the last 5 minutes.
+
+      - alert: ApiLatencyP95High
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m]))
+            by (le)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: P95 latency exceeds SLO
+
+      - alert: RebuildFailuresDetected
+        expr: |
+          increase(graph_rebuild_failure_total[15m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: Rebuild failures detected
+
+      - alert: RebuildFailuresCritical
+        expr: |
+          increase(graph_rebuild_failure_total[1h]) >= 3
+        for: 0m
+        labels:
+          severity: critical
+
+      - alert: RebuildHeartbeatStale
+        expr: |
+          time() - rebuild_heartbeat_last_success_timestamp > 120
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Rebuild heartbeat stale
+
+      - alert: RecoveryTriggered
+        expr: |
+          increase(graph_rebuild_recovery_trigger_total[15m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+
+      - alert: RecoveryStorm
+        expr: |
+          increase(graph_rebuild_recovery_trigger_total[1h]) > 5
+        for: 0m
+        labels:
+          severity: critical
+
+      - alert: CriticalDriftDetected
+        expr: |
+          increase(
+            reconciliation_drift_total{
+              severity="critical"
+            }[15m]
+          ) > 0
+        for: 0m
+        labels:
+          severity: critical

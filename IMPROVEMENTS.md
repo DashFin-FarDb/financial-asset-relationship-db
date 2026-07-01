@@ -56,34 +56,9 @@ def calculate_metrics(self) -> Dict[str, Any]:
 
 ### 3. Configuration Management
 
-**Issue:** Hardcoded values scattered throughout code
+**Status:** ✅ **Implemented**. Configuration is now centralized through `src/config/settings.py` via `pydantic-settings`. The Gradio UI (`app.py`) is decoupled from production configuration and acts strictly as a non-production demo endpoint, with `gradio_host` explicitly bound to localhost (`127.0.0.1`) unless specified otherwise. Auth keys like `SECRET_KEY` are deterministic in testing.
 
-**Examples:**
-
-- Random seed: `np.random.seed(42)`
-- Relationship strengths: `0.7`, `0.8`, `0.9`
-- Gradio port: `7860`
-
-**Recommendation:** Create `src/config.py`:
-
-```python
-# src/config.py
-class Config:
-    # Visualization
-    RANDOM_SEED = 42
-    LINE_LENGTH = 120
-
-    # Relationship strengths
-    SAME_SECTOR_STRENGTH = 0.7
-    CURRENCY_EXPOSURE_STRENGTH = 0.8
-    CORPORATE_BOND_STRENGTH = 0.9
-
-    # Server
-    GRADIO_PORT = 7860
-    GRADIO_HOST = "0.0.0.0"
-```
-
-**Status:** Recommended for future release
+*Previous issue description:* Hardcoded values were scattered throughout the code. Core configurations are now centrally managed, replacing the previously recommended `src/config.py` structure with a robust `pydantic-settings` setup.
 
 ### 4. Logging Enhancement
 
