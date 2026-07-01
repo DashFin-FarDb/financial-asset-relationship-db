@@ -45,7 +45,8 @@ export default [
     },
     rules: {
       'no-unused-vars': 'off',
-      'no-undef': 'off'
+      'no-undef': 'off',
+      'react/react-in-jsx-scope': 'off'
     }
   }
 ]
