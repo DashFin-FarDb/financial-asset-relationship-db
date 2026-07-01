@@ -13,7 +13,7 @@
     "test:ci": "jest --silent --ci --coverage --testResultsProcessor=\"jest-junit\""
   },
   "engines": {
-    "node": ">=18.17.0",
+    "node": ">=20.9.0",
     "npm": ">=8.0.0"
   },
   "dependencies": {
