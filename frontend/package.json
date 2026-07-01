@@ -18,7 +18,9 @@
   },
   "dependencies": {
     "@vercel/analytics": "^1.6.1",
-    "axios": "^1.18.1",
+// Update version assertions in config tests to match axios ^1.18.1 and lock 1.18.1
+expect(axiosRange).toBe("^1.18.1");
+expect(axiosLock?.version).toBe("1.18.1");
     "next": "16.2.3",
     "plotly.js": "^2.27.0",
     "react": "^19.2.7",
