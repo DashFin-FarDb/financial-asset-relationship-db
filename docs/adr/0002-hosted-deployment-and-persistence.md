@@ -1,8 +1,12 @@
 # ADR 0002: Hosted Deployment and Durable Persistence
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
+
 ## Status
 
-Accepted — implementation pending
+Implemented
+
+**Current interpretation:** This ADR remains a historical decision record for hosted deployment and persistence strategy. Current rebuild/recovery state-machine semantics, durable-truth interpretation, operator authority, and exception paths are governed by the canonical [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md).
 
 ## Date
 
@@ -133,17 +137,17 @@ should implement connection pooling (Phase 4) before significant traffic.
 Vercel Postgres may expose `POSTGRES_*` variables rather than `DATABASE_URL`. Phase 1 adds
 explicit settings-layer support for `POSTGRES_URL` as a fallback when `DATABASE_URL` is not set.
 
-### Phase 2: Enhanced Health Checks
+### Phase 2: Enhanced Health Checks & Durable Promotion Gate (Completed)
 
-Add `/api/health/detailed` endpoint with database connectivity, graph status, and environment validation.
+Added `/api/health/detailed` endpoint with database connectivity, graph status, and environment validation. Extended `scripts/check_hosted_readiness.py` and the GitHub Actions workflow with a `--require-persistence` parameter to verify that the graph was loaded successfully from the durable storage boundary during deployment promotion.
 
-### Phase 3: Graph Persistence (Deferred)
+### Phase 3: Graph Persistence (Completed)
 
-Design PostgreSQL schema for assets/relationships and implement graph serialization/deserialization.
+Implemented graph serialization, deserialization, and PostgreSQL repository boundary support. Verified durability of graph state across application restart cycles.
 
 ### Phase 4: Production Optimizations (Future)
 
-Connection pooling tuning, caching strategy, monitoring, backup procedures.
+Connection pooling tuning, caching strategy, and monitoring remain future production optimizations. Backup and restore strategy/procedures are no longer treated as an undocumented Phase 4 gap: they are documented in [ADR 0005](./0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](../runbooks/backup-restore-dr.md). Automated backup orchestration remains deferred.
 
 ## Required Hosted Environment Variables
 
@@ -179,7 +183,10 @@ These are valid future considerations but should not block initial deployment.
 
 ## References
 
+- [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md): current operational authority for durable-truth and rebuild/recovery state-machine interpretation
 - [ADR 0001: Production Architecture](0001-production-architecture.md)
+- [ADR 0005: Backup, Restore, and Disaster Recovery Strategy](0005-backup-restore-dr-strategy.md)
+- [Backup, Restore, and DR Runbook](../runbooks/backup-restore-dr.md)
 - [DEPLOYMENT.md](../../DEPLOYMENT.md)
 - [VERCEL_DEPLOYMENT_CHECKLIST.md](../../VERCEL_DEPLOYMENT_CHECKLIST.md)
 - [Vercel Documentation](https://vercel.com/docs)

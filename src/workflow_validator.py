@@ -1,7 +1,9 @@
+"""Workflow validation module."""
+
 import os
 from typing import Any
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 
 class ValidationResult:
@@ -21,9 +23,9 @@ class ValidationResult:
         errors: list[str],
         workflow_data: Any,
     ):
-        """
-        Initialize a ValidationResult representing the outcome of validating a
-        workflow YAML file.
+        """Initialize a ValidationResult.
+
+        This represents the outcome of validating a workflow YAML file.
 
         Parameters:
             is_valid (bool): True when validation passed, False when one or
@@ -40,11 +42,8 @@ class ValidationResult:
         self.workflow_data = workflow_data
 
 
-def validate_workflow(workflow_path: str) -> ValidationResult:
-    """
-    Validate a workflow YAML file located at the given filesystem path.
-
-
+def validate_workflow(workflow_path: str) -> ValidationResult:  # pylint: disable=too-many-return-statements
+    """Validate a workflow YAML file located at the given filesystem path.
 
     Performs YAML parsing and verifies the file is a mapping with a top-level
     'jobs' key. On success returns a ValidationResult with is_valid set to True

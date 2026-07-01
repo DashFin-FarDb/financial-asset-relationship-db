@@ -132,14 +132,14 @@ The system is designed for integration flexibility:
 
 #### Primary System Capabilities
 
-| Capability               | Description                                                             | Implementation                   |
-| ------------------------ | ----------------------------------------------------------------------- | -------------------------------- |
-| 3D Network Visualization | Interactive Plotly-based graph rendering with rotation, zoom, and hover | `src/visualizations/`            |
-| Cross-Asset Analysis     | Automatic relationship discovery between different asset classes        | `src/logic/asset_graph.py`       |
-| Regulatory Integration   | Corporate events and SEC filings with scored impact modeling            | `src/models/financial_models.py` |
-| Real-time Metrics        | Network statistics, relationship density, distribution analysis         | API `/api/metrics` endpoint      |
-| Asset Explorer           | Filterable table with asset class and sector filters                    | Gradio and Next.js UIs           |
-| Schema Reporting         | Auto-generated documentation of data models and business rules          | `src/reports/schema_report.py`   |
+| Capability               | Description                                                             | Implementation                    |
+| ------------------------ | ----------------------------------------------------------------------- | --------------------------------- |
+| 3D Network Visualization | Interactive Plotly-based graph rendering with rotation, zoom, and hover | `src/visualizations/`             |
+| Cross-Asset Analysis     | Automatic relationship discovery between different asset classes        | `src/logic/asset_graph.py`        |
+| Regulatory Integration   | Corporate events and SEC filings with scored impact modeling            | `src/models/financial_models.py`  |
+| Real-time Metrics        | Network statistics, network density, distribution analysis              | API `/api/graph/metrics` endpoint |
+| Asset Explorer           | Filterable table with asset class and sector filters                    | Gradio and Next.js UIs            |
+| Schema Reporting         | Auto-generated documentation of data models and business rules          | `src/reports/schema_report.py`    |
 
 #### Major System Components
 
@@ -278,13 +278,13 @@ The relationship engine discovers and manages six primary relationship types:
 
 #### Key Performance Indicators
 
-| KPI                                | Description                               | Measurement Source      |
-| ---------------------------------- | ----------------------------------------- | ----------------------- |
-| Network Density                    | Ratio of actual to possible relationships | `/api/metrics` endpoint |
-| Average Degree                     | Mean number of connections per asset      | `/api/metrics` endpoint |
-| Max Degree                         | Highest connected asset                   | `/api/metrics` endpoint |
-| Asset Class Distribution           | Balance of asset types in network         | `/api/metrics` endpoint |
-| Relationship Strength Distribution | Distribution of normalized weights        | Visualization layer     |
+| KPI                                | Description                                                                          | Measurement Source            |
+| ---------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------- |
+| Network Density                    | Directed graph density (0.0–1.0): ratio of actual to possible directed edges         | `/api/graph/metrics` endpoint |
+| Average Degree                     | Mean outgoing relationship count for source assets (zero-degree assets are excluded) | `/api/graph/metrics` endpoint |
+| Max Degree                         | Highest connected asset                                                              | `/api/graph/metrics` endpoint |
+| Asset Class Distribution           | Balance of asset types in network                                                    | `/api/graph/metrics` endpoint |
+| Relationship Strength Distribution | Distribution of normalized weights                                                   | Visualization layer           |
 
 ## 1.3 Scope
 
@@ -351,7 +351,7 @@ end
 | `/api/assets/{id}`               | GET    | Retrieve single asset details        |
 | `/api/assets/{id}/relationships` | GET    | Get relationships for specific asset |
 | `/api/relationships`             | GET    | List all relationships               |
-| `/api/metrics`                   | GET    | Network metrics and statistics       |
+| `/api/graph/metrics`             | GET    | Network metrics and statistics       |
 | `/api/visualization`             | GET    | 3D visualization data payload        |
 | `/api/asset-classes`             | GET    | Enumerate available asset classes    |
 | `/api/sectors`                   | GET    | List industry sectors                |
@@ -739,7 +739,7 @@ Implemented in `api/main.py` using FastAPI 0.127.0. The API exposes 12 primary e
 | `/api/assets/{id}`               | GET    | Single asset details              |
 | `/api/assets/{id}/relationships` | GET    | Asset-specific relationships      |
 | `/api/relationships`             | GET    | All relationships                 |
-| `/api/metrics`                   | GET    | Network metrics                   |
+| `/api/graph/metrics`             | GET    | Network metrics                   |
 | `/api/visualization`             | GET    | 3D visualization payload          |
 | `/api/asset-classes`             | GET    | Available asset classes           |
 | `/api/sectors`                   | GET    | Available sectors                 |
@@ -978,7 +978,7 @@ Provides quantitative insight into network structure, enabling assessment of por
 
 **Technical Context:**
 
-Backend metrics calculation in F-003 exposes data via `/api/metrics` endpoint. The MetricsResponse model includes: total_assets, total_relationships, asset_classes (Dict[str, int]), avg_degree, max_degree, network_density, and relationship_density. Frontend rendering in `frontend/app/components/MetricsDashboard.tsx`.
+Backend metrics calculation in F-003 exposes data via `/api/graph/metrics` endpoint. The MetricsResponse model includes: total_assets, total_relationships, asset_classes (`Dict[str, int]`), avg_degree, max_degree, and network_density (a normalised 0.0–1.0 fraction). The percentage-based network_density is an internal schema-report detail and is not part of the public API contract. Frontend rendering in `frontend/app/components/MetricsDashboard.tsx`.
 
 **Dependencies:**
 
@@ -1455,12 +1455,12 @@ This section provides detailed requirements for each feature with acceptance cri
 
 **F-003-RQ-004: Network Metrics Calculation**
 
-| Attribute           | Specification                                                                                                                                        |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Requirement ID      | F-003-RQ-004                                                                                                                                         |
-| Description         | System shall calculate: total_assets, total_relationships, asset_classes distribution, avg_degree, max_degree, network_density, relationship_density |
-| Acceptance Criteria | All metrics returned with correct values                                                                                                             |
-| Complexity          | Medium                                                                                                                                               |
+| Attribute           | Specification                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Requirement ID      | F-003-RQ-004                                                                                                                   |
+| Description         | System shall calculate: total_assets, total_relationships, asset_classes distribution, avg_degree, max_degree, network_density |
+| Acceptance Criteria | All metrics returned with correct values                                                                                       |
+| Complexity          | Medium                                                                                                                         |
 
 ---
 
@@ -3283,12 +3283,12 @@ flowchart TB
 
 ### 4.3.3 Metrics Calculation Flow
 
-The metrics endpoint (`GET /api/metrics`) calculates and returns network statistics including density, degree distribution, and asset class breakdowns.
+The metrics endpoint (`GET /api/graph/metrics`) calculates and returns network statistics including density, degree distribution, and asset class breakdowns.
 
 ```mermaid
 flowchart TB
-    subgraph MetricsFlow["GET /api/metrics Workflow"]
-        MetStart([GET /api/metrics<br/>Request]) --> GetGraph3[get_graph()<br/>Thread-Safe]
+    subgraph MetricsFlow["GET /api/graph/metrics Workflow"]
+        MetStart([GET /api/graph/metrics<br/>Request]) --> GetGraph3[get_graph()<br/>Thread-Safe]
         GetGraph3 --> CallMetrics[Call calculate_metrics()]
         CallMetrics --> CountAssets[Count Total<br/>Assets]
         CountAssets --> CountRels[Count Total<br/>Relationships]
@@ -3302,13 +3302,13 @@ flowchart TB
 
 #### Metrics Calculation Formulas
 
-| Metric              | Formula                                                         | Description                       |
-| ------------------- | --------------------------------------------------------------- | --------------------------------- |
-| Total Assets        | `len(graph.assets)`                                             | Count of all asset nodes          |
-| Total Relationships | `sum(len(edges) for edges in graph.relationships.values())`     | Count of all edges                |
-| Average Degree      | `(2 × total_relationships) / total_assets`                      | Mean connections per node         |
-| Max Degree          | `max(len(edges) for edges in graph.relationships.values())`     | Highest connected node            |
-| Network Density     | `total_relationships / (total_assets × (total_assets - 1) / 2)` | Ratio of actual to possible edges |
+| Metric              | Formula                                                                                                    | Description                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Total Assets        | `len(graph.collect_participating_asset_ids())`                                                             | Count of all participating asset IDs (stored assets plus relationship targets) |
+| Total Relationships | `sum(len(edges) for edges in graph.relationships.values())`                                                | Count of all edges                                                             |
+| Average Degree      | `total_relationships / max(1, len(graph.relationships))`                                                   | Mean outgoing edges per source node (zero-degree nodes excluded)               |
+| Max Degree          | `max(len(edges) for edges in graph.relationships.values())`                                                | Highest connected node                                                         |
+| Network Density     | `0.0 when total_assets < 2; otherwise min(1.0, total_relationships / (total_assets × (total_assets - 1)))` | Ratio of actual to possible directed edges (clamped to 1.0)                    |
 
 ## 4.4 Frontend Workflows
 
@@ -3543,7 +3543,7 @@ sequenceDiagram
 
     User->>NextJS: Navigate to Page
     NextJS->>Axios: api.getMetrics()
-    Axios->>CORS: GET /api/metrics
+    Axios->>CORS: GET /api/graph/metrics
     CORS->>CORS: Validate Origin
 
     alt Origin Valid
@@ -4101,7 +4101,7 @@ The FastAPI backend serves as the primary API gateway, exposing graph data throu
 | `/api/assets/{id}`               | GET    | Single asset details              | No                         |
 | `/api/assets/{id}/relationships` | GET    | Asset relationships               | No                         |
 | `/api/relationships`             | GET    | All relationships                 | No                         |
-| `/api/metrics`                   | GET    | Network statistics                | No                         |
+| `/api/graph/metrics`             | GET    | Network statistics                | No                         |
 | `/api/visualization`             | GET    | 3D visualization data             | No                         |
 | `/api/asset-classes`             | GET    | Available asset class enum        | No                         |
 | `/api/sectors`                   | GET    | Available sectors                 | No                         |
@@ -4182,7 +4182,7 @@ sequenceDiagram
     Page->>Page: useEffect on mount
     Page->>API: getMetrics()
     Page->>API: getVisualizationData()
-    API->>Backend: GET /api/metrics
+    API->>Backend: GET /api/graph/metrics
     API->>Backend: GET /api/visualization
     Backend-->>API: JSON Response
     API-->>Page: Data Objects
@@ -4541,15 +4541,15 @@ The caching strategy uses atomic write operations to prevent data corruption:
 
 #### Metrics Endpoints
 
-The system exposes operational metrics through the `/api/metrics` endpoint:
+The system exposes operational metrics through the `/api/graph/metrics` endpoint:
 
-| Metric                | Description               | Source                  |
-| --------------------- | ------------------------- | ----------------------- |
-| `total_assets`        | Count of nodes in graph   | `len(graph.assets)`     |
-| `total_relationships` | Count of edges            | Sum of adjacency lists  |
-| `average_degree`      | Mean connections per node | Calculated statistic    |
-| `max_degree`          | Highest connected node    | Maximum adjacency count |
-| `network_density`     | Edge ratio                | Actual/possible edges   |
+| Metric                | Description                       | Source                  |
+| --------------------- | --------------------------------- | ----------------------- |
+| `total_assets`        | Count of nodes in graph           | `len(graph.assets)`     |
+| `total_relationships` | Count of edges                    | Sum of adjacency lists  |
+| `average_degree`      | Mean connections per source asset | Calculated statistic    |
+| `max_degree`          | Highest connected node            | Maximum adjacency count |
+| `network_density`     | Edge ratio                        | Actual/possible edges   |
 
 #### Health Check
 
@@ -6286,7 +6286,7 @@ flowchart TB
 | `/api/assets/{id}`               | GET    | Asset details       | No   | None       |
 | `/api/assets/{id}/relationships` | GET    | Asset relationships | No   | None       |
 | `/api/relationships`             | GET    | All relationships   | No   | None       |
-| `/api/metrics`                   | GET    | Network stats       | No   | None       |
+| `/api/graph/metrics`             | GET    | Network stats       | No   | None       |
 | `/api/visualization`             | GET    | 3D visualization    | No   | None       |
 | `/api/asset-classes`             | GET    | Asset classes       | No   | None       |
 | `/api/sectors`                   | GET    | Sectors             | No   | None       |
@@ -6657,7 +6657,7 @@ The Next.js frontend communicates with the FastAPI backend through a typed API c
 | `getAssetDetail(id)`        | GET /api/assets/{id}               | Asset                       |
 | `getAssetRelationships(id)` | GET /api/assets/{id}/relationships | Relationship[]              |
 | `getAllRelationships()`     | GET /api/relationships             | Relationship[]              |
-| `getMetrics()`              | GET /api/metrics                   | Metrics                     |
+| `getMetrics()`              | GET /api/graph/metrics             | Metrics                     |
 | `getVisualizationData()`    | GET /api/visualization             | VisualizationData           |
 | `getAssetClasses()`         | GET /api/asset-classes             | { asset_classes: string[] } |
 | `getSectors()`              | GET /api/sectors                   | { sectors: string[] }       |
@@ -6673,7 +6673,7 @@ sequenceDiagram
 
     User->>NextJS: Navigate to Page
     NextJS->>Axios: api.getMetrics()
-    Axios->>CORS: GET /api/metrics
+    Axios->>CORS: GET /api/graph/metrics
     CORS->>CORS: Validate Origin
 
     alt Origin Valid
@@ -6801,15 +6801,14 @@ The API uses Pydantic models for type-safe request/response serialization.
 
 #### MetricsResponse Model
 
-| Field                  | Type             | Required          |
-| ---------------------- | ---------------- | ----------------- |
-| `total_assets`         | `int`            | Yes               |
-| `total_relationships`  | `int`            | Yes               |
-| `asset_classes`        | `Dict[str, int]` | Yes               |
-| `avg_degree`           | `float`          | Yes               |
-| `max_degree`           | `int`            | Yes               |
-| `network_density`      | `float`          | Yes               |
-| `relationship_density` | `float`          | No (default: 0.0) |
+| Field                 | Type             | Required |
+| --------------------- | ---------------- | -------- |
+| `total_assets`        | `int`            | Yes      |
+| `total_relationships` | `int`            | Yes      |
+| `asset_classes`       | `Dict[str, int]` | Yes      |
+| `avg_degree`          | `float`          | Yes      |
+| `max_degree`          | `int`            | Yes      |
+| `network_density`     | `float`          | Yes      |
 
 #### 6.3.4.2 Frontend Type Definitions
 
@@ -7305,7 +7304,7 @@ flowchart TB
 | `/api/users/me`      | GET         | Yes           | Yes (10/min) | Current user info     |
 | `/api/assets`        | GET         | No            | No           | List assets           |
 | `/api/assets/{id}`   | GET         | No            | No           | Single asset details  |
-| `/api/metrics`       | GET         | No            | No           | Network statistics    |
+| `/api/graph/metrics` | GET         | No            | No           | Network statistics    |
 | `/api/visualization` | GET         | No            | No           | 3D visualization data |
 | `/api/health`        | GET         | No            | No           | Health check          |
 
@@ -7760,7 +7759,7 @@ The current monitoring implementation provides sufficient observability for the 
 | ------------------- | --------------------- | ------------------------------------ |
 | Health Checks       | ✅ Implemented        | FastAPI endpoint, Docker HEALTHCHECK |
 | Application Logging | ✅ Implemented        | Python standard logging              |
-| Application Metrics | ✅ Implemented        | Custom `/api/metrics` endpoint       |
+| Application Metrics | ✅ Implemented        | Custom `/api/graph/metrics` endpoint |
 | Distributed Tracing | ⚠️ Not Required       | Monolithic architecture              |
 | Log Aggregation     | ⚠️ Not Implemented    | Basic stdout logging                 |
 | Alert Management    | ⚠️ CI/CD Only         | GitHub Actions, CircleCI             |
@@ -7778,7 +7777,7 @@ flowchart TB
 
         subgraph MonitoringEndpoints[Monitoring Endpoints]
             HealthCheck["/api/health<br/>Health Check"]
-            MetricsEndpoint["/api/metrics<br/>Graph Metrics"]
+            MetricsEndpoint["/api/graph/metrics<br/>Graph Metrics"]
         end
 
         subgraph LoggingLayer[Logging Layer]
@@ -7914,17 +7913,16 @@ The system implements Python standard logging with structured output for operati
 
 **Location**: `api/main.py` (lines 563-602)
 
-The `/api/metrics` endpoint provides graph topology and network analysis metrics:
+The `/api/graph/metrics` endpoint provides graph topology and network analysis metrics:
 
-| Metric                 | Type       | Description                       |
-| ---------------------- | ---------- | --------------------------------- |
-| `total_assets`         | Counter    | Count of nodes in graph           |
-| `total_relationships`  | Counter    | Count of edges in graph           |
-| `asset_classes`        | Dictionary | Count per asset class             |
-| `avg_degree`           | Gauge      | Mean connections per node         |
-| `max_degree`           | Gauge      | Highest connected node            |
-| `network_density`      | Gauge      | Ratio of actual to possible edges |
-| `relationship_density` | Gauge      | Calculated relationship density   |
+| Metric                | Type       | Description                       |
+| --------------------- | ---------- | --------------------------------- |
+| `total_assets`        | Counter    | Count of nodes in graph           |
+| `total_relationships` | Counter    | Count of edges in graph           |
+| `asset_classes`       | Dictionary | Count per asset class             |
+| `avg_degree`          | Gauge      | Mean connections per source asset |
+| `max_degree`          | Gauge      | Highest connected node            |
+| `network_density`     | Gauge      | Calculated network density        |
 
 #### Metrics Response Model
 
@@ -7938,7 +7936,6 @@ MetricsResponse {
     avg_degree: float
     max_degree: int
     network_density: float
-    relationship_density: float
 }
 ```
 
@@ -8268,7 +8265,7 @@ flowchart TB
 
 #### 6.5.6.1 Metrics Dashboard Layout
 
-The system provides operational metrics through the `/api/metrics` endpoint. A recommended dashboard layout for visualization:
+The system provides operational metrics through the `/api/graph/metrics` endpoint. A recommended dashboard layout for visualization:
 
 ```mermaid
 flowchart TB
@@ -8282,7 +8279,7 @@ flowchart TB
         subgraph MiddleRow[Network Analysis]
             AvgDegree[Average Degree<br/>Gauge]
             MaxDegree[Maximum Degree<br/>Gauge]
-            RelDensity[Relationship<br/>Density]
+            RelDensity[Network Density<br/>(%)]
         end
 
         subgraph BottomRow[Asset Distribution]
@@ -9669,7 +9666,7 @@ sequenceDiagram
 
     par Parallel Data Fetch
         Page->>Client: getMetrics()
-        Client->>Axios: GET /api/metrics
+        Client->>Axios: GET /api/graph/metrics
         Axios->>Backend: HTTP Request
         Backend->>Graph: calculate_metrics()
         Graph-->>Backend: Metrics Data
@@ -9710,7 +9707,7 @@ sequenceDiagram
 | `/api/assets/{id}`               | GET    | Single asset details    | Asset detail view          |
 | `/api/assets/{id}/relationships` | GET    | Asset relationships     | Relationship display       |
 | `/api/relationships`             | GET    | All relationships       | Visualization edges        |
-| `/api/metrics`                   | GET    | Network statistics      | `MetricsDashboard.tsx`     |
+| `/api/graph/metrics`             | GET    | Network statistics      | `MetricsDashboard.tsx`     |
 | `/api/visualization`             | GET    | 3D graph data           | `NetworkVisualization.tsx` |
 | `/api/asset-classes`             | GET    | Filter dropdown options | `AssetList.tsx`            |
 | `/api/sectors`                   | GET    | Filter dropdown options | `AssetList.tsx`            |
@@ -9852,12 +9849,12 @@ The FastAPI backend defines Pydantic models that serialize Python objects to JSO
 
 **Location**: `api/main.py`
 
-| Model                       | Purpose                    | Key Fields                                                                                                                    |
-| --------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `AssetResponse`             | Single asset serialization | `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, `market_cap`, `currency`, `additional_fields`                       |
-| `RelationshipResponse`      | Relationship edge data     | `source_id`, `target_id`, `relationship_type`, `strength`                                                                     |
-| `MetricsResponse`           | Network statistics         | `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`, `network_density`, `relationship_density` |
-| `VisualizationDataResponse` | 3D graph payload           | `nodes: List[Dict]`, `edges: List[Dict]`                                                                                      |
+| Model                       | Purpose                    | Key Fields                                                                                              |
+| --------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `AssetResponse`             | Single asset serialization | `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, `market_cap`, `currency`, `additional_fields` |
+| `RelationshipResponse`      | Relationship edge data     | `source_id`, `target_id`, `relationship_type`, `strength`                                               |
+| `MetricsResponse`           | Network statistics         | `total_assets`, `total_relationships`, `asset_classes`, `avg_degree`, `max_degree`, `network_density`   |
+| `VisualizationDataResponse` | 3D graph payload           | `nodes: List[Dict]`, `edges: List[Dict]`                                                                |
 
 ### 7.5.3 Type Contract Alignment
 
@@ -9924,14 +9921,13 @@ flowchart TB
 
 #### Metrics Display Grid
 
-| Metric                 | Label                | Format            | Grid Position |
-| ---------------------- | -------------------- | ----------------- | ------------- |
-| `total_assets`         | Total Assets         | Integer           | Row 1, Col 1  |
-| `total_relationships`  | Total Relationships  | Integer           | Row 1, Col 2  |
-| `avg_degree`           | Average Degree       | 2 decimal places  | Row 1, Col 3  |
-| `max_degree`           | Maximum Degree       | Integer           | Row 2, Col 1  |
-| `network_density`      | Network Density      | Percentage (×100) | Row 2, Col 2  |
-| `relationship_density` | Relationship Density | Percentage (×100) | Row 2, Col 3  |
+| Metric                | Label               | Format            | Grid Position |
+| --------------------- | ------------------- | ----------------- | ------------- |
+| `total_assets`        | Total Assets        | Integer           | Row 1, Col 1  |
+| `total_relationships` | Total Relationships | Integer           | Row 1, Col 2  |
+| `avg_degree`          | Average Degree      | 2 decimal places  | Row 1, Col 3  |
+| `max_degree`          | Maximum Degree      | Integer           | Row 2, Col 1  |
+| `network_density`     | Network Density     | Percentage (×100) | Row 2, Col 2  |
 
 #### Asset Class Distribution
 
@@ -11374,7 +11370,7 @@ flowchart TB
     subgraph MonitoringStack[Infrastructure Monitoring Stack]
         subgraph ApplicationMonitoring[Application Layer]
             HealthEndpoint[/api/health<br/>Health Check]
-            MetricsEndpoint[/api/metrics<br/>Application Metrics]
+            MetricsEndpoint[/api/graph/metrics<br/>Application Metrics]
             LoggingLayer[Python Logging<br/>INFO Level]
         end
 
@@ -11427,17 +11423,16 @@ flowchart TB
 
 #### 8.7.2.2 Application Metrics Endpoint
 
-**Endpoint:** `GET /api/metrics`
+**Endpoint:** `GET /api/graph/metrics`
 
-| Metric                 | Type       | Description               |
-| ---------------------- | ---------- | ------------------------- |
-| `total_assets`         | Counter    | Count of nodes in graph   |
-| `total_relationships`  | Counter    | Count of edges in graph   |
-| `asset_classes`        | Dictionary | Count per asset class     |
-| `avg_degree`           | Gauge      | Mean connections per node |
-| `max_degree`           | Gauge      | Highest connected node    |
-| `network_density`      | Gauge      | Edge ratio metric         |
-| `relationship_density` | Gauge      | Calculated density        |
+| Metric                | Type       | Description                       |
+| --------------------- | ---------- | --------------------------------- |
+| `total_assets`        | Counter    | Count of nodes in graph           |
+| `total_relationships` | Counter    | Count of edges in graph           |
+| `asset_classes`       | Dictionary | Count per asset class             |
+| `avg_degree`          | Gauge      | Mean connections per source asset |
+| `max_degree`          | Gauge      | Highest connected node            |
+| `network_density`     | Gauge      | Calculated density                |
 
 ### 8.7.3 Performance Metrics and SLAs
 
@@ -11987,39 +11982,39 @@ This glossary defines key terms used throughout the Technical Specification, org
 
 ### 9.2.1 Financial Domain Terms
 
-| Term                           | Definition                                                                                                                                    |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Asset**                      | A financial instrument with tradeable value. Base domain entity requiring id, symbol, name, asset_class, sector, and price fields.            |
-| **Asset Class**                | Category classification for financial instruments. Supported values: Equity, Fixed Income, Commodity, Currency, Derivative.                   |
-| **Asset Relationship Graph**   | Core in-memory data structure storing assets as nodes and relationships as weighted edges in an adjacency list format.                        |
-| **Average Degree**             | Network metric representing the mean number of connections per node, calculated as (2 × total_relationships) / total_assets.                  |
-| **Bidirectional Relationship** | A relationship type where the connection applies equally in both directions (e.g., same_sector, income_comparison).                           |
-| **Bond**                       | Fixed income security with specialized attributes: yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.               |
-| **Commodity**                  | Asset class representing tradeable goods contracts with attributes: contract_size, delivery_date, and volatility.                             |
-| **Commodity Exposure**         | Directional relationship linking equity companies to commodity price movements based on sector exposure.                                      |
-| **Corporate Bond to Equity**   | Directional relationship linking bonds to issuing companies via issuer_id matching equity id.                                                 |
-| **Coupon Rate**                | Annual interest rate paid on a bond's face value, expressed as a percentage.                                                                  |
-| **Credit Rating**              | Assessment of bond issuer creditworthiness, typically represented as letter grades (e.g., AAA, BBB).                                          |
-| **Currency**                   | Asset class for foreign exchange pairs with attributes: exchange_rate, country, and central_bank_rate.                                        |
-| **Currency Risk**              | Directional relationship for assets with non-USD currency exposure, indicating foreign exchange risk.                                         |
-| **Derivative**                 | Financial instrument whose value is derived from underlying assets. Reserved for future expansion.                                            |
-| **Directional Relationship**   | A relationship type where the connection flows from source to target (e.g., corporate_bond_to_equity).                                        |
-| **Dividend Yield**             | Annual dividend payment as percentage of stock price, applicable to equity assets.                                                            |
-| **Earnings Per Share (EPS)**   | Company profitability metric calculated as net income divided by outstanding shares.                                                          |
-| **Equity**                     | Stock/share ownership in a company with attributes: pe_ratio, dividend_yield, earnings_per_share, and book_value.                             |
-| **Fixed Income**               | Asset class for bonds and debt securities generating regular income payments.                                                                 |
-| **Impact Score**               | Numerical measure (-1.0 to +1.0) representing regulatory event impact. Negative indicates adverse impact, positive indicates favorable.       |
-| **Income Comparison**          | Bidirectional relationship comparing dividend yields to bond yields for cross-asset income analysis.                                          |
-| **Market Cap**                 | Market Capitalization; total market value of a company's outstanding shares.                                                                  |
-| **Max Degree**                 | Network metric representing the highest-connected node in the graph by edge count.                                                            |
-| **Network Density**            | Ratio of actual relationships to maximum possible relationships, calculated as total_edges / (nodes × (nodes-1) / 2).                         |
-| **P/E Ratio**                  | Price-to-Earnings ratio; stock price divided by earnings per share, indicating valuation.                                                     |
-| **Regulatory Activity**        | Enumerated type of corporate or regulatory event: earnings_report, sec_filing, dividend_announcement, bond_issuance, acquisition, bankruptcy. |
-| **Regulatory Event**           | Corporate or regulatory activity affecting one or more assets with dated occurrence, description, and scored impact.                          |
-| **Relationship Strength**      | Normalized weight (0.0-1.0) indicating connection intensity between assets in a relationship.                                                 |
-| **Same Sector**                | Bidirectional relationship linking assets operating in the same industry sector classification.                                               |
-| **Sector**                     | Industry classification for assets (e.g., Technology, Energy, Financial Services, Healthcare).                                                |
-| **Yield to Maturity (YTM)**    | Total return anticipated on a bond if held until maturity, accounting for coupon payments and price difference.                               |
+| Term                           | Definition                                                                                                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Asset**                      | A financial instrument with tradeable value. Base domain entity requiring id, symbol, name, asset_class, sector, and price fields.                                                    |
+| **Asset Class**                | Category classification for financial instruments. Supported values: Equity, Fixed Income, Commodity, Currency, Derivative.                                                           |
+| **Asset Relationship Graph**   | Core in-memory data structure storing assets as nodes and relationships as weighted edges in an adjacency list format.                                                                |
+| **Average Degree**             | Network metric representing the mean outgoing relationship count for source assets, calculated as total_relationships / max(1, len(source_assets)) (zero-degree assets are excluded). |
+| **Bidirectional Relationship** | A relationship type where the connection applies equally in both directions (e.g., same_sector, income_comparison).                                                                   |
+| **Bond**                       | Fixed income security with specialized attributes: yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.                                                       |
+| **Commodity**                  | Asset class representing tradeable goods contracts with attributes: contract_size, delivery_date, and volatility.                                                                     |
+| **Commodity Exposure**         | Directional relationship linking equity companies to commodity price movements based on sector exposure.                                                                              |
+| **Corporate Bond to Equity**   | Directional relationship linking bonds to issuing companies via issuer_id matching equity id.                                                                                         |
+| **Coupon Rate**                | Annual interest rate paid on a bond's face value, expressed as a percentage.                                                                                                          |
+| **Credit Rating**              | Assessment of bond issuer creditworthiness, typically represented as letter grades (e.g., AAA, BBB).                                                                                  |
+| **Currency**                   | Asset class for foreign exchange pairs with attributes: exchange_rate, country, and central_bank_rate.                                                                                |
+| **Currency Risk**              | Directional relationship for assets with non-USD currency exposure, indicating foreign exchange risk.                                                                                 |
+| **Derivative**                 | Financial instrument whose value is derived from underlying assets. Reserved for future expansion.                                                                                    |
+| **Directional Relationship**   | A relationship type where the connection flows from source to target (e.g., corporate_bond_to_equity).                                                                                |
+| **Dividend Yield**             | Annual dividend payment as percentage of stock price, applicable to equity assets.                                                                                                    |
+| **Earnings Per Share (EPS)**   | Company profitability metric calculated as net income divided by outstanding shares.                                                                                                  |
+| **Equity**                     | Stock/share ownership in a company with attributes: pe_ratio, dividend_yield, earnings_per_share, and book_value.                                                                     |
+| **Fixed Income**               | Asset class for bonds and debt securities generating regular income payments.                                                                                                         |
+| **Impact Score**               | Numerical measure (-1.0 to +1.0) representing regulatory event impact. Negative indicates adverse impact, positive indicates favorable.                                               |
+| **Income Comparison**          | Bidirectional relationship comparing dividend yields to bond yields for cross-asset income analysis.                                                                                  |
+| **Market Cap**                 | Market Capitalization; total market value of a company's outstanding shares.                                                                                                          |
+| **Max Degree**                 | Network metric representing the highest-connected node in the graph by edge count.                                                                                                    |
+| **Network Density**            | Ratio of actual relationships to maximum possible relationships, calculated as total_edges / (nodes × (nodes-1)) (directed).                                                          |
+| **P/E Ratio**                  | Price-to-Earnings ratio; stock price divided by earnings per share, indicating valuation.                                                                                             |
+| **Regulatory Activity**        | Enumerated type of corporate or regulatory event: earnings_report, sec_filing, dividend_announcement, bond_issuance, acquisition, bankruptcy.                                         |
+| **Regulatory Event**           | Corporate or regulatory activity affecting one or more assets with dated occurrence, description, and scored impact.                                                                  |
+| **Relationship Strength**      | Normalized weight (0.0-1.0) indicating connection intensity between assets in a relationship.                                                                                         |
+| **Same Sector**                | Bidirectional relationship linking assets operating in the same industry sector classification.                                                                                       |
+| **Sector**                     | Industry classification for assets (e.g., Technology, Energy, Financial Services, Healthcare).                                                                                        |
+| **Yield to Maturity (YTM)**    | Total return anticipated on a bond if held until maturity, accounting for coupon payments and price difference.                                                                       |
 
 ### 9.2.2 Technical Architecture Terms
 
@@ -12184,7 +12179,7 @@ flowchart LR
         Assets["/api/assets"]
         AssetDetail["/api/assets/{id}"]
         Relationships["/api/relationships"]
-        Metrics["/api/metrics"]
+        Metrics["/api/graph/metrics"]
         Visualization["/api/visualization"]
         Classes["/api/asset-classes"]
         Sectors["/api/sectors"]
@@ -12208,7 +12203,7 @@ flowchart LR
 | `/api/assets/{id}`               | GET    | No             | No           |
 | `/api/assets/{id}/relationships` | GET    | No             | No           |
 | `/api/relationships`             | GET    | No             | No           |
-| `/api/metrics`                   | GET    | No             | No           |
+| `/api/graph/metrics`             | GET    | No             | No           |
 | `/api/visualization`             | GET    | No             | No           |
 | `/api/asset-classes`             | GET    | No             | No           |
 | `/api/sectors`                   | GET    | No             | No           |
@@ -12326,3 +12321,176 @@ This index maps key topics to their primary documentation locations within this 
 | OpenAPI 3.x | API documentation specification               |
 | OAuth2      | Bearer token authentication scheme            |
 | RFC 7519    | JSON Web Token standard                       |
+
+---
+
+# 14. Rebuild Control Plane & Cancellation Integrity
+
+This section defines the architecture, execution rules, lifecycle state machine, database schemas, and verification constraints for the Rebuild Control Plane. The control plane manages graph rebuild operations asynchronously, ensuring execution identity, checkpointed recovery, and cooperative cancellation under heavy loads.
+
+> [!IMPORTANT]
+> This control plane operates strictly within the **Production Architecture** (FastAPI backend in `api/` + Next.js frontend in `frontend/`). The legacy/non-production Gradio UI (`app.py`) does not orchestrate or participate in this control plane.
+
+## 14.1 Rebuild Job Lifecycle State Machine
+
+A rebuild job transitions through the following states: `PENDING` -> `RUNNING` -> `SUCCEEDED` / `FAILED` / `CANCEL_REQUESTED` -> `CANCELLED`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING : start_rebuild()
+    PENDING --> RUNNING : mark_rebuild_job_running()
+    PENDING --> FAILED : mark_rebuild_job_failed() (Init error)
+    PENDING --> CANCEL_REQUESTED : mark_rebuild_job_cancel_requested() (Operator cancellation)
+
+    RUNNING --> SUCCEEDED : mark_rebuild_job_succeeded() (Success path)
+    RUNNING --> FAILED : mark_rebuild_job_failed() (Execution error/lock lost)
+    RUNNING --> CANCEL_REQUESTED : mark_rebuild_job_cancel_requested() (Operator cancellation)
+
+    CANCEL_REQUESTED --> CANCELLED : mark_rebuild_job_cancelled() (Cooperative cleanup complete)
+    CANCEL_REQUESTED --> FAILED : mark_rebuild_job_failed() (Error during cancellation)
+```
+
+### 14.1.1 State Transition Matrix and Validation Rules
+
+1. **PENDING**: Initial state when a rebuild job is created via `/api/graph/rebuild`.
+2. **RUNNING**: Transited when a worker thread claims the job and provides a unique UUID `execution_id`. Only valid from `PENDING`.
+3. **CANCEL_REQUESTED**: Transited when an operator requests cancellation via `/api/graph/rebuild/jobs/{job_id}/cancel`. Valid from both PENDING and RUNNING states.
+4. **CANCELLED**: Transited once the active worker detects the `CANCEL_REQUESTED` state (via the heartbeat keeper setting the `cancel_event` flag) and safely halts all active processes.
+5. **FAILED**: Terminal state when an unhandled exception or lock loss occurs.
+6. **SUCCEEDED**: Terminal state when graph rebuild and persistent synchronization completes successfully.
+
+---
+
+## 14.2 Relational Database Schemas
+
+The rebuild control plane relies on two key tables in the database schema: `rebuild_jobs` and `distributed_locks`.
+
+### 14.2.1 Rebuild Jobs Table Schema (`rebuild_jobs`)
+
+Tracks the state, identity, telemetry, and progress checkpoints of rebuild operations.
+
+This DDL is canonical — any change to rebuild_jobs schema must be made in migrations/ and reflected here; prefer editing migrations/ first, then update this documentation. See migrations/ and src/data/migrations.py for platform-specific (Postgres) adjustments.
+
+#### Rebuild job schema (canonical DDL)
+
+Canonical (SQLite) DDL — exact copy of migrations/001_initial.sql (relevant portion)
+
+```sql
+-- rebuild_jobs table (canonical SQLite DDL)
+CREATE TABLE IF NOT EXISTS rebuild_jobs (
+    job_id TEXT PRIMARY KEY,
+    requested_by TEXT NOT NULL,
+    status TEXT NOT NULL,
+    source TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    started_at TEXT,
+    completed_at TEXT,
+    duration_ms INTEGER,
+    node_count INTEGER,
+    edge_count INTEGER,
+    sanitized_failure_category TEXT,
+    sanitized_failure_message TEXT,
+    active_worker_id TEXT,
+    last_heartbeat_at TEXT,
+    execution_id TEXT,
+    checkpoint_data TEXT,
+    cancellation_requested_at TEXT,
+    CONSTRAINT ck_rebuild_jobs_status
+        CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
+);
+
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_created_at
+    ON rebuild_jobs (created_at);
+
+CREATE INDEX IF NOT EXISTS ix_rebuild_jobs_status_created_at
+    ON rebuild_jobs (status, created_at);
+```
+
+Notes for PostgreSQL
+
+- Production/Postgres semantics differ in column types. The migration helper and PostgreSQL DDL use:
+  - `TIMESTAMPTZ` for timestamp columns (e.g., `last_heartbeat_at`, `cancellation_requested_at`)
+  - `VARCHAR(64)` for short identity columns (`execution_id`, `active_worker_id`)
+  - `TEXT` for `checkpoint_data`
+- The repository includes an idempotent startup helper that applies Postgres-compatible `ALTER TABLE` statements and enforces the status-check constraint; see:
+  - [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
+  - [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py) (`apply_postgresql_heartbeat_migration`)
+- Canonical Postgres column examples:
+
+```sql
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64);
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ;
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS execution_id VARCHAR(64);
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS checkpoint_data TEXT;
+ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS cancellation_requested_at TIMESTAMPTZ;
+ALTER TABLE rebuild_jobs DROP CONSTRAINT IF EXISTS ck_rebuild_jobs_status;
+ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'));
+```
+
+Links (point to the canonical files)
+
+- Migration (SQLite canonical): [migrations/001_initial.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/001_initial.sql)
+- Incremental migration: [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
+- Postgres migration helper and status-constraint update: [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py)
+- ORM canonical mapping: [src/data/db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py)
+
+### 14.2.2 Distributed Locks Table Schema (`distributed_locks`)
+
+Prevents concurrent execution of rebuild operations across instances.
+
+```sql
+CREATE TABLE IF NOT EXISTS distributed_locks (
+    lock_name TEXT PRIMARY KEY,
+    holder_id TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
+);
+
+_(Note: This schema represents the canonical mapping to the SQLAlchemy model defined in [db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py#L271-L280))._
+
+```
+
+---
+
+## 14.3 Stage 5C Architectural Constraints
+
+To guarantee transaction safety, recovery from worker crashes, and responsive cancellation, the system enforces three strict architectural constraints:
+
+### 14.3.1 Execution Identity (Strict UUID Validation)
+
+To prevent "zombie" or slow-running executors from writing stale data or updating the state of a job that has been retried or reassigned:
+
+- Every job execution is assigned a unique UUID `execution_id` upon transitioning to `RUNNING`.
+- Worker-owned database mutations affecting the job record (specifically checkpoint updates and terminal transitions to `SUCCEEDED` or `FAILED`) must execute an atomic conditional update verifying that the `execution_id` in the database matches the worker's current `execution_id`.
+- If a mismatch is detected, the database query returns a row count of `0`, and a `ValueError` with an "Execution identity mismatch" message is raised, immediately terminating the worker's path.
+- Operator-driven state transitions, such as requesting a cancellation via the `/cancel` endpoint that updates the status to `CANCEL_REQUESTED`, are explicitly exempt from the execution ID matching check to allow operators to request cancellations while workers are running.
+
+### 14.3.2 Checkpointed Recovery
+
+To minimize redundant operations and allow resumes after failure or cancellation:
+
+- The `checkpoint_data` text column stores a serialized JSON representation of the current rebuild progress (e.g., lists of processed asset tickers, pages fetched).
+- During the rebuild process, the worker periodically saves intermediate states via the `update_rebuild_checkpoint()` repository method.
+- Checkpoint resume applies specifically to retries or resumes utilizing the _same_ job ID (reusing the same job row), as the database stores `checkpoint_data` directly on the job row. A new job ID represents a completely fresh lineage and will not automatically load prior checkpoint records.
+
+### 14.3.3 Cooperative Cancellation Mechanics
+
+Rebuild cancellation is designed as a cooperative process between the FastAPI HTTP request handler, the background heartbeat keeper thread, and the main rebuild execution loop:
+
+1. **Trigger**: The operator sends a `POST` request to `/api/graph/rebuild/jobs/{job_id}/cancel`. The API transitions the job status to `CANCEL_REQUESTED` and sets the `cancellation_requested_at` timestamp.
+2. **Heartbeat Monitoring**: The background `_heartbeat_keeper` thread polls the job status at regular intervals computed as `max(lock_ttl // 3, 1)` (in seconds) to prevent division by zero or infinite loop issues if the lock TTL is configured too small.
+3. **Detection & Event Signaling**: When the `_heartbeat_keeper` retrieves the job status and detects it is `CANCEL_REQUESTED`, it logs the event, sets a thread-shared `cancel_event` (a `threading.Event` object), and terminates.
+4. **Execution Loop Halting**: The active rebuild execution loop periodically monitors the `cancel_event` flag (at key boundaries like starting a new chunk of assets or saving checkpoints).
+5. **Termination**: If `cancel_event` is set, the executor halts processing, raises a `RebuildCancelledError`, and the coordinator transitions the job to `CANCELLED` using the correct `execution_id`.
+
+### 14.3.4 Pre-Merge Verification and Local Validation
+
+To verify that the documentation remains in sync with the codebase prior to merging changes:
+
+1. **Format/Style Check**: Run the pre-commit hooks to ensure markdown formatting, linting, and other repo policies are met:
+   ```bash
+   git diff --cached --name-only | xargs pre-commit run --files
+   ```
+2. **Schema & DDL Sync Verification**: Confirm column order and timezone-safe data types match the migration definitions exactly by comparing this specification with the DDL in [migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py#L190-L212) and the ORM classes in [db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py#L251-L280). Run queries or schema diffs on local databases using tool comparisons to ensure parity.

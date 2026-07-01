@@ -82,6 +82,19 @@ Not in scope:
 - dependency policy changes
 - validator semantics changes
 
+## Canonical spec update trigger
+
+A PR must update `docs/governance/state-machine-and-operating-authority.md`, or explicitly prove the canonical interpretation is unchanged, whenever it changes any of the following governed behaviours:
+
+- rebuild state transitions, terminal states, or conditional-update guards;
+- lock ownership, lock-state classification, fencing-token behaviour, or lock TTL bounds;
+- heartbeat, stale-owner, `active_worker_id`, `last_heartbeat_at`, or `execution_id` semantics;
+- durable-persistence promotion evidence or bounded-health versus durable-truth interpretation;
+- rollback/restore handoff boundaries;
+- operator authorization, exception authority, or manual-intervention handling.
+
+Reviewers should treat a PR that changes any of these behaviours without addressing the canonical spec as incomplete.
+
 ## Size guidance
 
 These are guardrails, not hard limits.
@@ -143,5 +156,6 @@ Reviewers should ask:
 - are any files only present because the scope drifted?
 - is the PR solving the root issue or only the current failing validator?
 - does the PR description overstate what has been proven?
+- if this changes governed rebuild/recovery/persistence behaviour, does it update `docs/governance/state-machine-and-operating-authority.md` or prove the canonical interpretation is unchanged?
 
 If the answer is unclear, request a split before merge.

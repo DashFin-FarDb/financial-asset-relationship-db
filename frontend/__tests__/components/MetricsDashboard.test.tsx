@@ -26,7 +26,7 @@ describe("MetricsDashboard Component", () => {
     expect(screen.getByText("42.00%")).toBeInTheDocument();
   });
 
-  it("should format network density as percentage", () => {
+  it("should format network_density as percentage", () => {
     render(<MetricsDashboard metrics={mockMetrics} />);
     expect(screen.getByText("42.00%")).toBeInTheDocument();
   });
@@ -102,7 +102,7 @@ describe("Edge Cases and Boundary Conditions", () => {
     expect(screen.getByText("100.00%")).toBeInTheDocument();
   });
 
-  it("should handle very small network density", () => {
+  it("should handle very small network_density", () => {
     const sparseMetrics: Metrics = {
       ...mockMetrics,
       network_density: 0.001,
@@ -157,14 +157,14 @@ describe("Edge Cases and Boundary Conditions", () => {
 });
 
 describe("Data Formatting and Display", () => {
-  it("should always format density with 2 decimal places", () => {
+  it("should always format network_density with 2 decimal places", () => {
     const testCases = [0.1, 0.123, 0.999, 0.5555];
 
-    testCases.forEach((density) => {
-      const testMetrics: Metrics = { ...mockMetrics, network_density: density };
+    testCases.forEach((network_density) => {
+      const testMetrics: Metrics = { ...mockMetrics, network_density };
       const { unmount } = render(<MetricsDashboard metrics={testMetrics} />);
 
-      const formatted = `${(density * 100).toFixed(2)}%`;
+      const formatted = `${(network_density * 100).toFixed(2)}%`;
       expect(screen.getByText(formatted)).toBeInTheDocument();
 
       unmount();

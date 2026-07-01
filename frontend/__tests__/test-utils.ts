@@ -36,6 +36,7 @@ export const mockAssetsPage: AssetPageResponse = {
   total: 2,
   page: 1,
   per_page: 50,
+  hasMore: false,
 };
 
 export const mockAsset: Asset = {
@@ -103,7 +104,6 @@ export const mockMetrics: Metrics = {
   avg_degree: 5.6,
   max_degree: 12,
   network_density: 0.42,
-  relationship_density: 0.28,
 };
 
 export const mockVisualizationData: VisualizationData = {
@@ -139,6 +139,7 @@ export const mockVisualizationData: VisualizationData = {
       strength: 0.7,
     },
   ],
+  network_density: 0.42,
 };
 
 export const mockVizData: VisualizationData = {
@@ -174,4 +175,5 @@ export const mockVizData: VisualizationData = {
       strength: 0.7,
     },
   ],
+  network_density: 0.42,
 };

@@ -1,613 +1,107 @@
-# Security Best Practices
+# Security Policy
 
-This document outlines security considerations and best practices for the Financial Asset Relationship Database.
+This document defines the repository-owned security policy for the Financial Asset Relationship Database.
 
-## Current Security Status
+## Vulnerability Disclosure Policy
 
-### ✅ Implemented Security Measures
+Security vulnerabilities must be reported privately through GitHub Security Advisories.
 
-1. **Code Scanning**
-   - CodeQL security scanning (0 alerts)
-   - Dependency review on pull requests
-   - Trivy Docker image scanning
+Do not report exploitable vulnerabilities in public issues, pull requests, discussions, or commit messages before
+coordinated disclosure.
 
-2. **Input Validation**
-   - Price validation (non-negative)
-   - Currency code validation (3-letter ISO)
-   - Impact score validation (-1 to 1)
-   - Date format validation (ISO 8601)
+### Response Targets
 
-3. **Docker Security**
-   - Non-root user (appuser)
-   - Minimal base image (Python 3.11-slim)
-   - No hardcoded secrets
-   - Health checks configured
+| Severity | Acknowledgement | Triage Target | Remediation Target |
+| --- | --- | --- | --- |
+| Critical | Within 48 hours | 1 business day | 7 calendar days where practical |
+| High | Within 48 hours | 3 business days | 14 calendar days |
+| Medium | Within 48 hours | 5 business days | 30 calendar days |
+| Low | Within 48 hours | 10 business days | Next planned maintenance window or 90 days |
 
-4. **Dependency Management**
-   - Requirements pinned with minimum versions
-   - Regular security scanning in CI/CD
+### Disclosure Process
 
-## Security Checklist
+1. Reporter submits a private GitHub Security Advisory.
+2. Maintainer acknowledges within 48 hours.
+3. Maintainer assigns severity.
+4. Fix is developed privately where required.
+5. Public disclosure occurs after release or after a 90-day embargo, whichever comes first, unless a different timeline
+   is mutually agreed.
 
-### Before Production Deployment
+## Secret Management Policy
 
-- [ ] Change all default passwords
-- [ ] Enable HTTPS/TLS
-- [ ] Set up API authentication
-- [ ] Configure rate limiting
-- [ ] Enable CORS with specific origins
-- [ ] Set up logging and monitoring
-- [ ] Configure backup and recovery
-- [ ] Set up secrets management
-- [ ] Enable audit logging
-- [ ] Configure network policies
+Secrets must be stored outside the repository and injected through approved runtime or CI/CD secret mechanisms.
 
-### For API Endpoints (Future)
+### Rotation Schedule
 
-- [ ] Implement JWT authentication
-- [ ] Add request validation
-- [ ] Rate limit per user/IP
-- [ ] Implement CSRF protection
-- [ ] Add request signing
-- [ ] Enable API versioning
-- [ ] Set up WAF (Web Application Firewall)
+| Secret Class | Required Rotation |
+| --- | --- |
+| JWT signing key / `SECRET_KEY` | Every 90 days |
+| CI/CD tokens | Every 90 days |
+| Database credentials | Every 180 days |
+| Emergency rotation | Immediately on suspected leak, unauthorized access, or maintainer departure |
 
-### For Database (When Added)
+### Leak Response
 
-- [ ] Use connection pooling
-- [ ] Enable encryption at rest
-- [ ] Enable encryption in transit
-- [ ] Set up user roles and permissions
-- [ ] Enable audit logging
-- [ ] Regular backups configured
-- [ ] SQL injection prevention (use parameterized queries)
+1. Immediately revoke or rotate the exposed secret.
+2. Identify the exposure window.
+3. Audit relevant access logs.
+4. Check CI logs, release artifacts, Docker image history, and repository history for secret exposure.
+5. Produce an incident report within 24 hours.
+6. Create follow-up corrective actions.
 
-## Security Recommendations
+### Current Technical Enforcement
 
-### 1. Authentication & Authorization
+`src/config/settings.py` is the current enforcement point for `SECRET_KEY` strength. `Settings.validate_secret_key`
+raises for values shorter than 32 characters in non-development and non-test environments. Development and test
+environments receive a warning instead so local workflows remain usable.
 
-#### JWT Implementation (for APIs)
+## Incident Response Framework
 
-```python
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer
-import jwt
+| Severity | Description | Acknowledgement Target |
+| --- | --- | --- |
+| P1 / Critical | Active exploitation, credential compromise, production data exposure, or release artifact compromise | 1 hour |
+| P2 / High | High-impact vulnerability without confirmed exploitation, privilege escalation, authentication bypass | 4 hours |
+| P3 / Medium | Limited-impact vulnerability, misconfiguration, non-critical dependency issue | Next business day |
+| P4 / Low | Hardening issue, low-impact scanner finding, documentation/security hygiene | Next business day |
 
-security = HTTPBearer()
+### Escalation Path
 
-def verify_token(credentials: HTTPBearer = Depends(security)):
-    try:
-        payload = jwt.decode(
-            credentials.credentials,
-            SECRET_KEY,
-            algorithms=["HS256"]
-        )
-        return payload
-    except jwt.JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials"
-        )
-```
+1. Repository maintainer
+2. Organization security contact
+3. Hosting/provider support or package registry support
+4. External reporting or user notification where legally or contractually required
 
-#### Role-Based Access Control (RBAC)
+### Post-Incident Review
 
-```python
-from enum import Enum
+P1 and P2 incidents require a post-incident review covering timeline, root cause, detection gap, remediation, and
+prevention actions.
 
-class Role(Enum):
-    ADMIN = "admin"
-    USER = "user"
-    READONLY = "readonly"
+## Artifact Provenance and Integrity
 
-def require_role(required_role: Role):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            user_role = get_current_user_role()
-            if user_role.value < required_role.value:
-                raise HTTPException(status_code=403)
-            return func(*args, **kwargs)
-        return wrapper
-    return decorator
+Production Docker images must be signed with Cosign using Sigstore keyless signing.
 
-@require_role(Role.ADMIN)
-def delete_asset(asset_id: str):
-    pass
-```
+Sigstore Fulcio certificates bind the signing identity to the GitHub Actions workflow identity. Rekor transparency log
+entries provide tamper-evident public signing records where supported.
 
-### 2. Input Sanitization
+PyPI publishing must use OIDC trusted publishing where configured.
 
-#### For User-Generated Content
-
-```python
-import bleach
-from html import escape
-
-def sanitize_html(content: str) -> str:
-    """Sanitize HTML content to prevent XSS."""
-    allowed_tags = ['p', 'br', 'strong', 'em', 'u']
-    return bleach.clean(content, tags=allowed_tags, strip=True)
-
-def sanitize_text(text: str, max_length: int = 1000) -> str:
-    """Sanitize plain text input."""
-    # Escape HTML
-    text = escape(text)
-    # Limit length
-    text = text[:max_length]
-    # Remove control characters
-    text = ''.join(char for char in text if ord(char) >= 32 or char in '\n\r\t')
-    return text.strip()
-```
-
-#### For SQL Queries (when adding database)
-
-```python
-from sqlalchemy import text
-
-# BAD - SQL injection vulnerability
-query = f"SELECT * FROM assets WHERE id = '{asset_id}'"
-
-# GOOD - Use parameterized queries
-query = text("SELECT * FROM assets WHERE id = :asset_id")
-result = session.execute(query, {"asset_id": asset_id})
-```
-
-### 3. Secrets Management
-
-#### Environment Variables
-
-```python
-import os
-from pathlib import Path
-from dotenv import load_dotenv
-
-# Load from .env file (development only)
-load_dotenv()
-
-DATABASE_URL = os.getenv('DATABASE_URL')
-SECRET_KEY = os.getenv('SECRET_KEY')
-API_KEY = os.getenv('API_KEY')
-
-if not all([DATABASE_URL, SECRET_KEY, API_KEY]):
-    raise ValueError("Missing required environment variables")
-```
-
-#### Using Secret Managers (Production)
-
-```python
-# AWS Secrets Manager
-import boto3
-import json
-
-def get_secret(secret_name: str) -> dict:
-    client = boto3.client('secretsmanager')
-    response = client.get_secret_value(SecretId=secret_name)
-    return json.loads(response['SecretString'])
-
-# Azure Key Vault
-from azure.keyvault.secrets import SecretClient
-from azure.identity import DefaultAzureCredential
-
-credential = DefaultAzureCredential()
-client = SecretClient(vault_url="https://myvault.vault.azure.net/", credential=credential)
-secret = client.get_secret("database-url").value
-```
-
-### 4. Rate Limiting
-
-#### Simple Rate Limiter
-
-```python
-from fastapi import Request, HTTPException
-from fastapi.responses import JSONResponse
-import time
-from collections import defaultdict
-from threading import Lock
-
-class RateLimiter:
-    def __init__(self, requests_per_minute: int = 60):
-        self.requests_per_minute = requests_per_minute
-        self.requests = defaultdict(list)
-        self.lock = Lock()
-
-    def is_allowed(self, client_id: str) -> bool:
-        with self.lock:
-            now = time.time()
-            minute_ago = now - 60
-
-            # Clean old requests
-            self.requests[client_id] = [
-                req_time for req_time in self.requests[client_id]
-                if req_time > minute_ago
-            ]
-
-            # Check limit
-            if len(self.requests[client_id]) >= self.requests_per_minute:
-                return False
-
-            # Add current request
-            self.requests[client_id].append(now)
-            return True
-
-rate_limiter = RateLimiter(requests_per_minute=60)
-
-async def rate_limit_middleware(request: Request, call_next):
-    client_id = request.client.host
-    if not rate_limiter.is_allowed(client_id):
-        return JSONResponse(
-            status_code=429,
-            content={"detail": "Too many requests"}
-        )
-    return await call_next(request)
-```
-
-### 5. HTTPS/TLS Configuration
-
-#### For Production Deployment
-
-```python
-# Use SSL certificates
-import ssl
-
-ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-ssl_context.load_cert_chain('cert.pem', 'key.pem')
-
-# For Gradio
-interface.launch(
-    server_name="0.0.0.0",
-    server_port=443,
-    ssl_keyfile="key.pem",
-    ssl_certfile="cert.pem"
-)
-```
-
-#### Let's Encrypt with Certbot
+Production consumers should verify image signatures before deployment. Example:
 
 ```bash
-# Install certbot
-sudo apt-get install certbot
-
-# Get certificate
-sudo certbot certonly --standalone -d yourdomain.com
-
-# Certificates will be in /etc/letsencrypt/live/yourdomain.com/
+cosign verify \
+  --certificate-identity-regexp 'https://github.com/DashFin-FarDb/financial-asset-relationship-db/.github/workflows/docker-publish.yml@refs/tags/v.*' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  ghcr.io/DashFin-FarDb/financial-asset-relationship-db:<version>
 ```
 
-### 6. CORS Configuration
+## SBOM Policy
 
-#### Secure CORS Setup
+Docker publish runs outside pull requests must generate a Software Bill of Materials.
 
-```python
-from fastapi.middleware.cors import CORSMiddleware
+- SBOM format: SPDX JSON.
+- Availability: GitHub Actions release artifacts for non-PR Docker publish runs.
+- Future target: publish SBOM as an OCI artifact associated with the GHCR image.
+- Future target: SLSA provenance attestations for Docker and Python packages.
+- Recommended path: `slsa-framework/slsa-github-generator`.
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://yourdomain.com",
-        "https://app.yourdomain.com"
-    ],  # Specific origins only, not "*"
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],  # Only needed methods
-    allow_headers=["Authorization", "Content-Type"],
-    max_age=3600,
-)
-```
-
-### 7. Logging Security Events
-
-#### Security Event Logger
-
-```python
-import logging
-import json
-from datetime import datetime
-
-security_logger = logging.getLogger('security')
-security_logger.setLevel(logging.INFO)
-
-def log_security_event(event_type: str, user_id: str = None, **kwargs):
-    """Log security-relevant events."""
-    event = {
-        "timestamp": datetime.utcnow().isoformat(),
-        "event_type": event_type,
-        "user_id": user_id,
-        **kwargs
-    }
-    security_logger.info(json.dumps(event))
-
-# Usage
-log_security_event("login_attempt", user_id="user123", success=True)
-log_security_event("unauthorized_access", ip="192.168.1.1", path="/admin")
-```
-
-### 8. Error Handling
-
-#### Secure Error Messages
-
-```python
-# BAD - Exposes internal details
-@app.exception_handler(Exception)
-async def exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"detail": str(exc)}  # Exposes stack trace
-    )
-
-# GOOD - Generic message, log details
-@app.exception_handler(Exception)
-async def exception_handler(request: Request, exc: Exception):
-    logger.exception(f"Unhandled exception: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"}
-    )
-```
-
-### 9. Docker Security
-
-#### Security Best Practices
-
-```dockerfile
-# Use specific version, not latest
-FROM python:3.11-slim
-
-# Run as non-root
-RUN useradd -m -u 1000 appuser
-USER appuser
-
-# Don't copy unnecessary files
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Use health checks
-HEALTHCHECK --interval=30s --timeout=10s \
-  CMD python -c "import requests; requests.get('http://localhost:7860')"
-
-# Set security options
-LABEL security.no-new-privileges=true
-```
-
-#### Docker Compose Security
-
-```yaml
-services:
-  app:
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
-```
-
-### 10. Regular Security Audits
-
-#### Automated Scanning
-
-```bash
-# Python dependencies
-pip install safety
-safety check
-
-# Code security
-pip install bandit
-bandit -r src/
-
-# Docker images
-docker scan financial-asset-db:latest
-
-# Secrets in code
-pip install detect-secrets
-detect-secrets scan
-```
-
-#### Manual Reviews
-
-- Review access logs regularly
-- Check for suspicious patterns
-- Update dependencies monthly
-- Review and rotate credentials quarterly
-- Conduct penetration testing annually
-
-## Incident Response Plan
-
-### If Security Issue Discovered
-
-1. **Assess Impact**
-   - Identify affected systems
-   - Determine data exposure
-   - Evaluate severity
-
-2. **Contain**
-   - Isolate affected systems
-   - Revoke compromised credentials
-   - Block suspicious IPs
-
-3. **Investigate**
-   - Review logs
-   - Identify root cause
-   - Document timeline
-
-4. **Remediate**
-   - Apply patches
-   - Update configurations
-   - Rotate credentials
-
-5. **Notify**
-   - Inform affected users
-   - Report to authorities if required
-   - Document lessons learned
-
-## GitHub Actions Security Workflows
-
-This repository includes multiple automated security scanning workflows. Each workflow requires specific secrets to be configured in the repository settings (Settings > Secrets and variables > Actions).
-
-### Required Secrets Configuration
-
-#### Bearer Security Scanning
-
-**Workflow:** `.github/workflows/bearer.yml`
-
-**Required Secret:** `BEARER_TOKEN`
-
-**Setup Instructions:**
-
-1. Create a free account at [Bearer.com](https://www.bearer.com/)
-2. Navigate to your Bearer dashboard
-3. Generate an API key/token for your project
-4. In GitHub repository settings, go to Settings > Secrets and variables > Actions
-5. Click "New repository secret"
-6. Name: `BEARER_TOKEN`
-7. Value: Paste your Bearer API key
-8. Click "Add secret"
-
-**Documentation:** [Bearer GitHub Actions Setup](https://docs.bearer.com/reference/ci-integrations/#github-actions)
-
-#### Snyk Security Scanning
-
-**Workflows:**
-
-- `.github/workflows/snyk-security.yml`
-- `.github/workflows/snyk-container.yml`
-- `.github/workflows/snyk-infrastructure.yml`
-
-**Required Secret:** `SNYK_TOKEN`
-
-**Setup Instructions:**
-
-1. Sign up for free at [Snyk.io](https://snyk.io/login)
-2. Go to Account Settings > General > API Token
-3. Click "Generate new token" or copy existing token
-4. Add to GitHub repository secrets as `SNYK_TOKEN`
-
-**Documentation:** [Snyk Actions Documentation](https://github.com/snyk/actions#getting-your-snyk-token)
-
-#### SonarCloud Analysis
-
-**Workflow:** `.github/workflows/sonarcloud.yml`
-
-**Required Secret:** `SONAR_TOKEN`
-
-**Setup Instructions:**
-
-1. Login to [SonarCloud.io](https://sonarcloud.io/) using your GitHub account
-2. Import your project/repository
-3. Go to My Account > Security (or https://sonarcloud.io/account/security/)
-4. Generate a new token
-5. Add to GitHub repository secrets as `SONAR_TOKEN`
-6. Update the workflow file with your `projectKey` and `organization` values
-
-**Documentation:** [SonarCloud GitHub Integration](https://docs.sonarcloud.io/getting-started/github/)
-
-#### SonarQube Analysis
-
-**Workflow:** `.github/workflows/sonarqube.yml`
-
-**Required Secrets:**
-
-- `SONAR_TOKEN` - Authentication token for SonarQube instance
-- `SONAR_HOST_URL` - URL of your SonarQube instance
-
-**Setup Instructions:**
-
-1. Access your SonarQube instance
-2. Navigate to My Account > Security
-3. Generate a new token
-4. Add both secrets to GitHub repository settings
-
-#### Codacy Security Scan
-
-**Workflow:** `.github/workflows/codacy.yml`
-
-**Required Secret:** `CODACY_PROJECT_TOKEN`
-
-**Setup Instructions:**
-
-1. Sign up at [Codacy.com](https://www.codacy.com/)
-2. Add your repository to Codacy
-3. Go to Project Settings > Integrations > GitHub
-4. Copy your project token
-5. Add to GitHub repository secrets as `CODACY_PROJECT_TOKEN`
-
-**Documentation:** [Codacy Analysis CLI](https://github.com/codacy/codacy-analysis-cli#project-token)
-
-#### Veracode Security Scanning
-
-**Workflow:** `.github/workflows/veracode.yml`
-
-**Required Secrets:**
-
-- `VERACODE_API_ID` - Veracode API credentials ID
-- `VERACODE_API_KEY` - Veracode API credentials key
-
-**Setup Instructions:**
-
-1. Log in to [Veracode Platform](https://web.analysiscenter.veracode.com/)
-2. Go to Account > API Credentials
-3. Generate API credentials
-4. Add both ID and Key to GitHub repository secrets
-
-**Documentation:** [Veracode API Credentials](https://docs.veracode.com/r/c_api_credentials3)
-
-### Security Workflow Best Practices
-
-1. **Token Rotation**: Rotate all security scanning tokens every 90 days
-2. **Least Privilege**: Use tokens with minimum required permissions
-3. **Token Storage**: Never commit tokens to source code or logs
-4. **Monitoring**: Regularly check workflow runs for unauthorized access attempts
-5. **Audit Logs**: Review GitHub audit logs for secret access patterns
-
-### Troubleshooting Security Workflows
-
-#### Workflow Fails with Authentication Error
-
-- Verify the secret name matches exactly (case-sensitive)
-- Check token hasn't expired or been revoked
-- Ensure token has correct permissions for the service
-
-#### Workflow Skips or Doesn't Run
-
-- GitHub automatically validates workflow syntax when you push changes
-- Use GitHub's workflow editor for syntax highlighting and validation
-- Verify branch and path filters match your changes
-- Review GitHub Actions logs for error messages
-
-#### Rate Limiting Issues
-
-- Some services have API rate limits
-- Consider scheduling scans during off-peak hours
-- Use `schedule` triggers instead of running on every push
-
-### Optional Workflow Secrets
-
-Some workflows can operate without additional secrets beyond the automatically provided `GITHUB_TOKEN`:
-
-- **CodeQL**: Uses `GITHUB_TOKEN` (automatically provided by GitHub Actions)
-- **Bandit**: Uses `GITHUB_TOKEN` (automatically provided by GitHub Actions)
-- **Trivy**: No secrets required for basic scanning
-- **ESLint**: No secrets required (JavaScript linter)
-- **Hadolint**: No secrets required (Dockerfile linter)
-
-## Security Resources
-
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [CWE Top 25](https://cwe.mitre.org/top25/)
-- [Python Security Best Practices](https://python.readthedocs.io/en/stable/library/security_warnings.html)
-- [Docker Security Best Practices](https://docs.docker.com/engine/security/)
-- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
-- [GitHub Actions Security Hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
-
-## Contact
-
-For security issues, contact: mohavro@users.noreply.github.com
-
-**Never** publish security vulnerabilities in public issues. Use responsible disclosure.
-
----
-
-**Last Updated:** October 30, 2025
-**Version:** 1.0
-**Author:** GitHub Copilot Code Agent
+This repository does not currently claim SLSA compliance.

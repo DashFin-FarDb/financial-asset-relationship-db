@@ -11,29 +11,55 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.data.repository import AssetGraphRepository
-from src.models.financial_models import (
-    AssetClass,
-    Bond,
-    Equity,
-    RegulatoryActivity,
-    RegulatoryEvent,
-)
+from src.models.financial_models import AssetClass, Bond, Equity, RegulatoryActivity, RegulatoryEvent
 
 pytest.importorskip("sqlalchemy")
 
 
 def _apply_migration(database_path: Path) -> None:
     """
-    Apply database migrations by executing the initial SQL script.
+    Apply database migrations using the production migration runner.
 
+    This ensures tests validate the same migration path used in production.
     The migration script is static/trusted (repository-owned), not user-controlled.
     """
-    migrations_path = Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
-    sql = migrations_path.read_text(encoding="utf-8")
+    from src.data.migrations import apply_migrations
 
-    # executescript() is required for multi-statement DDL migrations.
-    with sqlite3.connect(database_path) as connection:
-        connection.executescript(sql)  # nosec pythonsecurity:S3649
+    apply_migrations(database_path)
+
+
+def test_migration_adds_rebuild_recovery_columns_for_existing_tables(tmp_path: Path) -> None:
+    """Applying migration to an existing rebuild_jobs table should add recovery columns."""
+    db_path = tmp_path / "migration_upgrade.db"
+    with sqlite3.connect(db_path) as connection:
+        connection.executescript("""
+            CREATE TABLE rebuild_jobs (
+                job_id TEXT PRIMARY KEY,
+                requested_by TEXT NOT NULL,
+                status TEXT NOT NULL,
+                source TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                started_at TEXT,
+                completed_at TEXT,
+                duration_ms INTEGER,
+                node_count INTEGER,
+                edge_count INTEGER,
+                sanitized_failure_category TEXT,
+                sanitized_failure_message TEXT
+            );
+            CREATE INDEX ix_rebuild_jobs_created_at
+                ON rebuild_jobs (created_at);
+            CREATE INDEX ix_rebuild_jobs_status_created_at
+                ON rebuild_jobs (status, created_at);
+            """)
+
+    _apply_migration(db_path)
+
+    with sqlite3.connect(db_path) as connection:
+        columns = [row[1] for row in connection.execute("PRAGMA table_info(rebuild_jobs)")]
+    assert "active_worker_id" in columns  # nosec B101
+    assert "last_heartbeat_at" in columns  # nosec B101
 
 
 @pytest.fixture()
@@ -103,6 +129,31 @@ def test_asset_crud_flow(db_session: Session) -> None:
 
     assets = repo.get_assets_map()
     assert "EQ1" not in assets  # nosec B101
+
+
+def test_rebuild_job_crud_flow_with_migration_schema(db_session: Session) -> None:
+    """Rebuild-job repository methods should work against migration-initialized schema."""
+    repo = AssetGraphRepository(db_session)
+
+    job_id = repo.create_rebuild_job(requested_by="operator", source="sample")
+    execution_id = "test-exec-id"
+    repo.mark_rebuild_job_running(job_id, execution_id)
+    repo.mark_rebuild_job_succeeded(
+        job_id,
+        execution_id=execution_id,
+        node_count=5,
+        edge_count=8,
+        duration_ms=123,
+    )
+    db_session.commit()
+    db_session.expire_all()
+
+    job = repo.get_rebuild_job(job_id)
+    assert job is not None  # nosec B101
+    assert job.status == "succeeded"  # nosec B101
+    assert job.node_count == 5  # nosec B101
+    assert job.edge_count == 8  # nosec B101
+    assert job.duration_ms == 123  # nosec B101
 
 
 def test_relationship_and_event_crud_flow(db_session: Session) -> None:

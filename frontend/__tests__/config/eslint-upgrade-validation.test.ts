@@ -177,8 +177,8 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       expect(packageJson.devDependencies["eslint-config-next"]).toBeDefined();
     });
 
-    it("eslint-config-next range should be ^15.0.0", () => {
-      expect(packageJson.devDependencies["eslint-config-next"]).toBe("^15.0.0");
+    it("eslint-config-next range should be ^15.5.15", () => {
+      expect(packageJson.devDependencies["eslint-config-next"]).toBe("^15.5.15");
     });
 
     it("eslint-config-next should no longer be on version 14", () => {
@@ -229,10 +229,10 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       ).toBeDefined();
     });
 
-    it("eslint-config-next locked version should be 15.0.0", () => {
+    it("eslint-config-next locked version should be 15.5.15", () => {
       expect(
         packageLock.packages["node_modules/eslint-config-next"]?.version,
-      ).toBe("15.0.0");
+      ).toBe("15.5.15");
     });
 
     it("eslint-config-next should no longer resolve to 14.x", () => {
@@ -277,10 +277,10 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       ).toBeDefined();
     });
 
-    it("@next/eslint-plugin-next locked version should be 15.0.0", () => {
+    it("@next/eslint-plugin-next locked version should be 15.5.15", () => {
       expect(
         packageLock.packages["node_modules/@next/eslint-plugin-next"]?.version,
-      ).toBe("15.0.0");
+      ).toBe("15.5.15");
     });
 
     it("@next/eslint-plugin-next 15.0.0 should depend on fast-glob, not glob", () => {

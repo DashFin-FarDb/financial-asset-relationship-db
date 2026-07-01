@@ -6,12 +6,7 @@ from collections.abc import Callable, Iterable
 from typing import Any
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.reports.helpers import (
-    _as_float,
-    _as_int,
-    _as_str_int_map,
-    _as_top_relationships,
-)
+from src.reports.helpers import _as_float, _as_int, _as_str_int_map, _as_top_relationships
 
 Formatter = Callable[[Iterable[str]], str]
 Metrics = dict[str, Any]
@@ -23,9 +18,7 @@ def _default_formatter(lines: Iterable[str]) -> str:
 
 
 class SchemaReportGenerator:
-    """
-    Generate a structured Markdown schema + metrics report for an
-    AssetRelationshipGraph.
+    """Generate a structured Markdown schema + metrics report for an AssetRelationshipGraph.
 
     This class provides a modular architecture where each logical
     section of the report is rendered independently to support
@@ -37,6 +30,7 @@ class SchemaReportGenerator:
         graph: AssetRelationshipGraph,
         formatter: Formatter | None = None,
     ) -> None:
+        """Initialize the generator with a graph and an optional custom formatter."""
         self.graph = graph
         self.formatter: Formatter = formatter or _default_formatter
 
@@ -81,7 +75,8 @@ class SchemaReportGenerator:
         """
         Return a Markdown "Schema Overview" section listing supported entity types.
 
-        The section includes an H2 heading, an "Entity Types" subsection, and one line per entity describing key attributes.
+        The section includes an H2 heading, an "Entity Types" subsection, and one line
+        per entity describing key attributes.
 
         Returns:
             List[str]: Markdown-formatted lines for the Schema Overview section.
@@ -108,13 +103,12 @@ class SchemaReportGenerator:
         return lines
 
     def _render_calculated_metrics(self, metrics: Metrics) -> list[str]:
-        """Render calculated network metrics such as total assets,
-        relationships, density, and events.
-        """
+        """Render calculated network metrics such as total assets, relationships, density, and events."""
         total_assets = _as_int(metrics.get("total_assets"))
         total_rels = _as_int(metrics.get("total_relationships"))
         avg_strength = _as_float(metrics.get("average_relationship_strength"))
-        density = _as_float(metrics.get("relationship_density"))
+        density = _as_float(metrics.get("network_density"))
+        density_pct = density * 100.0
         reg_events = _as_int(metrics.get("regulatory_event_count"))
 
         return [
@@ -124,7 +118,7 @@ class SchemaReportGenerator:
             f"- **Total Assets**: {total_assets}",
             f"- **Total Relationships**: {total_rels}",
             f"- **Average Relationship Strength**: {avg_strength:.3f}",
-            f"- **Relationship Density**: {density:.2f}%",
+            f"- **Relationship Density**: {density_pct:.2f}%",
             f"- **Regulatory Events**: {reg_events}",
             "",
         ]
@@ -148,7 +142,8 @@ class SchemaReportGenerator:
 
         Returns:
             List[str]: Markdown lines for the "## Top Relationships" section. If no relationships are present,
-                the list includes a single placeholder bullet "- No relationships recorded yet." followed by a blank line.
+                the list includes a single placeholder bullet "- No relationships recorded yet."
+                followed by a blank line.
         """
         top = _as_top_relationships(metrics.get("top_relationships"))
         lines = ["## Top Relationships", ""]
@@ -171,12 +166,18 @@ class SchemaReportGenerator:
         Returns:
             lines (List[str]): Ordered list of Markdown-formatted lines composing the section.
         """
+        from src.config.settings import get_settings  # pylint: disable=import-outside-toplevel
+
+        settings = get_settings()
         return [
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            "- **Sector Affinity**: Same-sector assets link at strength 0.7.",
-            ("- **Corporate Bond Linkage**: issuer_id match creates a directional link (strength 0.9)."),
+            f"- **Sector Affinity**: Same-sector assets link at strength {settings.same_sector_strength:.2f}.",
+            (
+                "- **Corporate Bond Linkage**: issuer_id match creates a directional link "
+                f"(strength {settings.corporate_bond_strength:.2f})."
+            ),
             "- **Currency Exposure**: FX and central-bank policy effects included.",
             "",
             "### Regulatory Rules",
@@ -190,21 +191,24 @@ class SchemaReportGenerator:
         ]
 
     def _render_schema_optimization(self, metrics: Metrics) -> list[str]:
-        """
-        Render schema optimization section lines including a data quality score and a single recommendation determined by relationship density.
+        """Render schema optimization lines including a data quality score.
+
+        The section includes a single recommendation determined by relationship density.
 
         Parameters:
             metrics (Dict[str, Any]): Metrics mapping; expected keys:
-                - "relationship_density": numeric value used to select the recommendation.
+                - "network_density": numeric value used to select the recommendation.
                 - "quality_score": numeric value formatted as a percentage in the output.
 
         Returns:
-            List[str]: Markdown lines for the "Schema Optimization Metrics" section. The lines include a formatted data quality score and one recommendation chosen from:
-                - density > 30.0: "High connectivity - consider normalization."
-                - density > 10.0: "Well-balanced - suitable for most analytical use-cases."
+            List[str]: Markdown lines for the "Schema Optimization Metrics" section. The lines
+                include a formatted data quality score and one recommendation chosen from:
+                - density_pct > 30.0: "High connectivity - consider normalization."
+                - density_pct > 10.0: "Well-balanced - suitable for most analytical use-cases."
                 - otherwise: "Sparse - consider enriching relationship definitions."
         """
-        density = _as_float(metrics.get("relationship_density"))
+        density = _as_float(metrics.get("network_density"))
+        density_pct = density * 100.0
         quality_score = _as_float(metrics.get("quality_score"))
 
         lines = [
@@ -215,9 +219,9 @@ class SchemaReportGenerator:
             "### Recommendation:",
         ]
 
-        if density > 30.0:
+        if density_pct > 30.0:
             lines.append("High connectivity - consider normalization.")
-        elif density > 10.0:
+        elif density_pct > 10.0:
             lines.append("Well-balanced - suitable for most analytical use-cases.")
         else:
             lines.append("Sparse - consider enriching relationship definitions.")

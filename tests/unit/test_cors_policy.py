@@ -18,12 +18,17 @@ def clear_settings_cache() -> Generator[None, None, None]:
     get_settings.cache_clear()
 
 
-_LOOPBACK_ORIGINS = [
+_HTTP_LOOPBACK_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://127.0.0.1:7860",
+]
+
+_HTTPS_LOOPBACK_ORIGINS = [
     "https://127.0.0.1:3000",
     "https://127.0.0.1:7860",
 ]
+
+_LOOPBACK_ORIGINS = _HTTP_LOOPBACK_ORIGINS + _HTTPS_LOOPBACK_ORIGINS
 
 
 @pytest.mark.unit
@@ -39,8 +44,10 @@ def test_development_allowed_origins_include_loopback_frontend(monkeypatch: pyte
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("origin", _LOOPBACK_ORIGINS)
-def test_production_allowed_origins_exclude_loopback_frontend(monkeypatch: pytest.MonkeyPatch, origin: str) -> None:
+@pytest.mark.parametrize("origin", _HTTP_LOOPBACK_ORIGINS)
+def test_production_allowed_origins_exclude_http_loopback_frontend(
+    monkeypatch: pytest.MonkeyPatch, origin: str
+) -> None:
     """Production CORS defaults do not allow loopback frontend origins."""
     monkeypatch.setenv("ENV", "production")
     monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
@@ -51,9 +58,11 @@ def test_production_allowed_origins_exclude_loopback_frontend(monkeypatch: pytes
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("origin", _LOOPBACK_ORIGINS)
-def test_production_validate_origin_excludes_loopback_frontend(monkeypatch: pytest.MonkeyPatch, origin: str) -> None:
-    """Production origin validation rejects all loopback frontend origins by default."""
+@pytest.mark.parametrize("origin", _HTTP_LOOPBACK_ORIGINS)
+def test_production_validate_origin_excludes_http_loopback_frontend(
+    monkeypatch: pytest.MonkeyPatch, origin: str
+) -> None:
+    """Production origin validation rejects HTTP loopback frontend origins by default."""
     monkeypatch.setenv("ENV", "production")
     monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
 

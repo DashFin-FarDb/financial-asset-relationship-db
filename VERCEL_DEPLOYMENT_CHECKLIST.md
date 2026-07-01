@@ -3,7 +3,11 @@
 Use this checklist to ensure a smooth deployment to Vercel.
 
 **Database Support:** The API database layer supports both SQLite (local/dev) and PostgreSQL (production).
-See [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md) for the deployment strategy.
+See
+[docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md)
+for the deployment strategy and
+[docs/enterprise-deployment-operating-model.md](docs/enterprise-deployment-operating-model.md)
+for the full operating model.
 
 ## Pre-Deployment Checklist
 
@@ -97,7 +101,10 @@ In the Vercel dashboard, add:
   - [ ] `ADMIN_USERNAME`
   - [ ] `ADMIN_PASSWORD`
   - [ ] Optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
-- [ ] Optional: `ASSET_GRAPH_DATABASE_URL` if using graph repository persistence flows
+- [ ] `ASSET_GRAPH_DATABASE_URL` = graph persistence connection string
+  - Optional only for local or explicitly non-durable preview/demo deployments
+  - Required for staging and production durable graph-persistence promotion
+  - For hosted staging/production, use a durable PostgreSQL-compatible URL
 - [ ] Optional backend settings as needed: `ENV`, `ALLOWED_ORIGINS`, `GRAPH_CACHE_PATH`, `REAL_DATA_CACHE_PATH`, `USE_REAL_DATA_FETCHER`
 
 #### Step 5: Deploy
@@ -153,6 +160,9 @@ vercel env add NEXT_PUBLIC_API_URL production
 vercel env add DATABASE_URL production
 vercel env add SECRET_KEY production
 
+# Required for staging/production durable graph-persistence promotion
+vercel env add ASSET_GRAPH_DATABASE_URL production
+
 # Bootstrap credentials, only if the configured database does not already contain a usable user
 vercel env add ADMIN_USERNAME production
 vercel env add ADMIN_PASSWORD production
@@ -174,7 +184,20 @@ vercel --prod
 - [ ] Verify detailed readiness: `https://your-project.vercel.app/api/health/detailed`
 - [ ] Confirm detailed readiness returns only bounded non-secret fields: `status`, `graph`, and `database`
 - [ ] Confirm the response does not expose environment names, database URLs, paths, hostnames, usernames, provider names, exception messages, or secrets
+- [ ] Treat `GET /api/health/detailed` as a readiness check only, not as proof of durable graph-persistence startup
 - [ ] Test API docs: `https://your-project.vercel.app/docs`
+
+### 1a. Staging/Production Durable Graph-Persistence Verification
+
+Run this subsection for staging and production promotions. Do not use basic readiness alone as durable graph-persistence proof.
+
+- [ ] Confirm `ASSET_GRAPH_DATABASE_URL` is configured in the target environment
+- [ ] Perform an authenticated graph rebuild/persist operation, or use an approved persisted baseline
+- [ ] Restart or redeploy the backend after persistence is written
+- [ ] Verify startup logs include `Graph startup source: persisted_graph_store`
+- [ ] Verify `GET /api/health/detailed` returns `status: "healthy"` and bounded graph counts match the expected persisted baseline
+- [ ] If an approved sentinel baseline exists, verify sentinel asset IDs through `GET /api/assets`
+- [ ] If an approved sentinel baseline exists, verify sentinel directed relationships through `GET /api/relationships`
 
 ### 2. Test Functionality
 
@@ -336,12 +359,15 @@ If deployment fails or has issues:
 - [ ] Navigate to Deployments
 - [ ] Find previous working deployment
 - [ ] Click "Promote to Production"
+- [ ] Re-run readiness checks after rollback
+- [ ] For staging/production, re-run the durable graph-persistence verification checklist after rollback
+- [ ] Treat deployment rollback as code/config rollback only, not automatic data restore
 
-### Local Fallback
+### Local Non-Production Fallback
 
-- [ ] Keep Gradio UI as fallback: `python app.py`
-- [ ] Document how to switch between UIs
-- [ ] Maintain both deployment methods
+- [ ] Use Gradio (`python app.py`) only for demos or internal non-production testing
+- [ ] Do not present Gradio as a production rollback or backup mechanism
+- [ ] Refer to `docs/enterprise-deployment-operating-model.md` for production rollback boundaries
 
 ## Resources
 

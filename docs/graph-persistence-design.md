@@ -1,5 +1,7 @@
 # Graph persistence design
 
+For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
+
 ## Status
 
 Design proposal. This document defines the graph persistence boundary for the next implementation phase after hosted preview verification. It intentionally does not introduce migrations, ORM models, repository implementations, runtime startup changes, or API behavior changes.
@@ -379,6 +381,7 @@ Atomicity and publication rules:
 - A build must not become latest valid unless foreign-key integrity checks pass for required graph truth tables.
 - On write failure, the build must be rolled back where possible or marked `failed`; partial writes must not be considered durable graph state.
 - Concurrent rebuild attempts should be serialized by application-level locking (e.g., file-based locks for SQLite or distributed locks for hosted environments) or a single-writer application policy. Database advisory locking can be used as an optimization where available.
+- Rebuild execution and checkpoints are handled by `RebuildExecutor` (in `src/logic/rebuild_executor.py`), which supports `cancel_event`, checkpoints, and resume capability. The `ReconciliationEngine` remains strictly a pure control-plane mapping structure that generates reconciliation plans without side-effects.
 
 Staleness should be based on explicit signals rather than incidental process state:
 

@@ -11,6 +11,38 @@ from collections.abc import Callable
 from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 
+__all__ = [
+    "AssetResponse",
+    "MetricsResponse",
+    "RelationshipResponse",
+    "VisualizationDataResponse",
+    "app",
+    "lifespan",
+    "ACCESS_TOKEN_EXPIRE_MINUTES",
+    "Token",
+    "User",
+    "authenticate_user",
+    "create_access_token",
+    "get_current_active_user",
+    "configure_cors",
+    "validate_origin",
+    "limiter",
+    "raise_asset_not_found",
+    "serialize_asset",
+    "assets_router",
+    "auth_router",
+    "metrics_router",
+    "relationships_router",
+    "system_router",
+    "visualization_router",
+    "ENV",
+    "graph",
+    "get_graph",
+    "set_graph",
+    "set_graph_factory",
+    "reset_graph",
+]
+
 # Backward compatibility re-exports for response models
 # noqa: F401 tells flake8 to ignore "imported but unused" warnings
 from .api_models import AssetResponse, MetricsResponse, RelationshipResponse, VisualizationDataResponse  # noqa: F401
@@ -35,7 +67,7 @@ from .graph_lifecycle import set_graph_factory as _set_graph_factory
 # Import and re-export limiter for backward compatibility
 from .rate_limit import limiter  # noqa: F401
 
-# Backward compatibility re-exports for helper functions
+# Backward compatibility export for older tests and callers.
 from .router_helpers import raise_asset_not_found, serialize_asset  # noqa: F401
 from .routers.assets import router as assets_router  # noqa: F401
 from .routers.auth import router as auth_router  # noqa: F401
@@ -48,7 +80,24 @@ from .routers.visualization import router as visualization_router  # noqa: F401
 ENV = get_settings().env
 
 # Backward compatibility graph reference for older tests that patch api.main.graph.
-graph = _get_graph()
+# Keep this lazy so importing api.main does not force graph initialization before
+# the FastAPI lifespan has a chance to handle hosted startup degradation.
+graph: AssetRelationshipGraph | None
+
+
+def __getattr__(name: str):
+    if name == "graph":
+        from .graph_lifecycle import get_graph
+        from .graph_lifecycle_providers import get_graph_lifecycle_settings, should_degrade_hosted_startup
+
+        try:
+            return get_graph()
+        except Exception:
+            settings = get_graph_lifecycle_settings()
+            if should_degrade_hosted_startup(settings):
+                return None
+            raise
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
@@ -81,9 +130,10 @@ def set_graph_factory(factory: GraphFactory | None) -> None:
 
 def reset_graph() -> None:
     """Reset the shared asset relationship graph state."""
-    global graph  # noqa: PLW0603
     _reset_graph()
-    # Clear the module-level reference so router_helpers.get_graph() falls
-    # through to the lifecycle get_graph() on the next request, which will
-    # trigger lazy re-initialization from the configured factory or settings.
-    graph = None  # type: ignore[assignment]  # Intentionally set to None (AssetRelationshipGraph | None) to signal lazy re-init on next access
+    global graph  # noqa: PLW0603
+    try:
+        del graph
+    except NameError:
+        # graph may not be bound yet; reset is intentionally idempotent.
+        pass
