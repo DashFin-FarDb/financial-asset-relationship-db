@@ -141,7 +141,9 @@ class Settings(BaseModel):
     def validate_secret_key(cls, value: str | None, info: ValidationInfo) -> str | None:
         """Warn or raise if the secret key is less than 32 characters."""
         if value and len(value) < 32:
-            env = info.data.get("env", "development")
+            env = info.data.get("env", DeploymentEnvironment.DEVELOPMENT)
+            if isinstance(env, DeploymentEnvironment):
+                env = env.value
             if env not in ("development", "test"):
                 raise ValueError("SECRET_KEY must be at least 32 characters in production.")
             import warnings
