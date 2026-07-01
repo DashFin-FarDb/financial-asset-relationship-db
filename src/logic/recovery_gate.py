@@ -237,7 +237,8 @@ class RecoveryGate:
             ),
         )
         raise ExecutionBlockedError(
-            f"Execution blocked due to safety state: {plan.safety_state.value} (action={action}, inconsistency={plan.drift_type})",
+            f"Execution blocked due to safety state: {plan.safety_state.value} "
+            f"(action={action}, inconsistency={plan.drift_type})",
             action=action,
             inconsistency_type=plan.drift_type,
         )
@@ -287,7 +288,8 @@ class RecoveryGate:
             ),
         )
         raise ExecutionBlockedError(
-            f"Execution blocked: reset required but mode={plan.execution_mode.value} (action={action}, inconsistency={plan.drift_type})",
+            f"Execution blocked: reset required but mode={plan.execution_mode.value} "
+            f"(action={action}, inconsistency={plan.drift_type})",
             action=action,
             inconsistency_type=plan.drift_type,
         )
@@ -307,7 +309,8 @@ class RecoveryGate:
             ),
         )
         raise ExecutionBlockedError(
-            f"Execution blocked: {reason_prefix}. Reason: {plan.reason} (action={action}, inconsistency={plan.drift_type})",
+            f"Execution blocked: {reason_prefix}. Reason: {plan.reason} "
+            f"(action={action}, inconsistency={plan.drift_type})",
             action=action,
             inconsistency_type=plan.drift_type,
         )
@@ -476,14 +479,16 @@ class RecoveryGate:
                 ),
             )
             raise ExecutionBlockedError(
-                f"Timeout acquiring distributed lock for reset recovery: {lat_exc} (action=wait, inconsistency={drift_type})",
+                f"Timeout acquiring distributed lock for reset recovery: {lat_exc} "
+                f"(action=wait, inconsistency={drift_type})",
                 action="wait",
                 inconsistency_type=drift_type,
             ) from lat_exc
 
         if self.lock.check_state() != LockState.VALID:
             raise ExecutionBlockedError(
-                f"Cannot perform reset recovery without valid lock after reacquisition (action=wait, inconsistency={drift_type})",
+                f"Cannot perform reset recovery without valid lock after reacquisition "
+                f"(action=wait, inconsistency={drift_type})",
                 action="wait",
                 inconsistency_type=drift_type,
             )

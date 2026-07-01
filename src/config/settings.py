@@ -192,8 +192,8 @@ def load_settings() -> Settings:
     postgres_url = os.getenv("POSTGRES_URL")
 
     return Settings(
-        env=os.getenv("ENV", "development").strip().lower(),
-        vercel_env=os.getenv("VERCEL_ENV"),
+        env=os.getenv("ENV", "development").strip().lower(),  # type: ignore[arg-type]
+        vercel_env=os.getenv("VERCEL_ENV"),  # type: ignore[arg-type]
         log_level=os.getenv("LOG_LEVEL", "INFO").strip().upper(),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         secret_key=os.getenv("SECRET_KEY"),

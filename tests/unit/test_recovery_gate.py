@@ -235,6 +235,7 @@ def test_recovery_gate_blocks_when_multiple_running_jobs_detected(mock_session_f
     )
 
     def _raise_multiple_running(_self):
+        """Raise an exception to mock detecting multiple running jobs."""
         raise ValueError("Multiple rebuild jobs are in RUNNING state")
 
     monkeypatch.setattr(
@@ -493,6 +494,7 @@ def test_consume_reset_plan_rechecks_state_after_reset(
     )
 
     def mock_get_reconciliation_plan(increment_metric=True):
+        """Return an unsafe mock reconciliation plan."""
         return unsafe_plan
 
     gate.get_reconciliation_plan = mock_get_reconciliation_plan
@@ -527,7 +529,7 @@ def test_reset_lock_reacquisition_timeout_uses_plan_drift_type(
     mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
 ):
     """Lock reacquisition timeout should preserve the plan drift type in the block error."""
-    from src.data.distributed_lock import LockAcquisitionTimeout, LockState
+    from src.data.distributed_lock import LockAcquisitionTimeout
 
     gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = _make_reset_required_plan(
@@ -550,8 +552,6 @@ def test_reset_lock_reacquisition_requires_valid_lock_after_acquire(
     mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
 ):
     """Reset recovery must block if reacquisition does not produce a valid lock state."""
-    from src.data.distributed_lock import LockState
-
     gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = _make_reset_required_plan(
         make_reconciliation_plan,
@@ -635,6 +635,7 @@ def test_reset_active_job_blocks_on_lock_loss_and_guards_rollback(mock_session_f
     repo = MagicMock()
 
     def _lose_lock(*args, **kwargs):
+        """Mock side effect to simulate losing the lock."""
         mock_lock.holder_id = None
 
     repo.mark_rebuild_job_failed.side_effect = _lose_lock

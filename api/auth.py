@@ -257,8 +257,10 @@ class UserRepository:
         The `disabled` column is stored as `1` when `is_disabled` is truthy, otherwise `0`.
 
         Parameters:
-            user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
-            **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`, `is_disabled`) which override values in `user_profile` when present; unexpected keys cause a `TypeError`.
+            user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`,
+                `user_full_name`, `is_disabled`.
+            **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`,
+                `is_disabled`) which override values in `user_profile` when present; unexpected keys cause a `TypeError`.
         """
         profile = user_profile.copy() if user_profile is not None else {}
 
@@ -477,7 +479,8 @@ async def get_current_user(  # noqa: RUF029  # NOSONAR
 
     Raises:
         HTTPException: 401 with detail "Token has expired" when the token has expired.
-        HTTPException: 401 with detail "Could not validate credentials" when the token is invalid, missing a subject, or no matching user is found.
+        HTTPException: 401 with detail "Could not validate credentials" when the token is invalid, missing a subject,
+            or no matching user is found.
     """
     credentials_exception = _build_credentials_exception()
     expired_exception = _build_expired_exception()
@@ -507,7 +510,8 @@ def _build_credentials_exception() -> HTTPException:
     Build the HTTPException used when authentication credentials are invalid.
 
     Returns:
-        HTTPException: 401 Unauthorized with detail "Could not validate credentials" and header "WWW-Authenticate: Bearer".
+        HTTPException: 401 Unauthorized with detail "Could not validate credentials" and header
+            "WWW-Authenticate: Bearer".
     """
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

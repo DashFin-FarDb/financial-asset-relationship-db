@@ -13,6 +13,7 @@ pytestmark = pytest.mark.unit
 
 
 def _equity(asset_id: str) -> Equity:
+    """Create a mock Equity asset."""
     return Equity(
         id=asset_id,
         symbol=asset_id,
@@ -24,6 +25,7 @@ def _equity(asset_id: str) -> Equity:
 
 
 def _graph_with_assets(count: int) -> AssetRelationshipGraph:
+    """Create an AssetRelationshipGraph with a given number of assets."""
     graph = AssetRelationshipGraph()
     for index in range(count):
         graph.add_asset(_equity(f"ASSET_{index:02d}"))
@@ -40,6 +42,7 @@ def client() -> Iterator[TestClient]:
 
 
 def _assert_density(client: TestClient, expected: float) -> None:
+    """Assert the density from both the metrics and visualization endpoints matches expected."""
     metrics_response = client.get("/api/graph/metrics")
     visualization_response = client.get("/api/visualization")
 
