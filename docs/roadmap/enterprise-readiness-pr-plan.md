@@ -351,15 +351,9 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 ## Objective 8 — Release and Deployment Automation Layer
 
-
-
 **Primary objective:** Automate release-evidence gates, staging promotion verification, and production container validation without altering the runtime architecture.
 
-
-
 **Scope**
-
-
 
 - automate release-evidence gate tests;
 
@@ -371,11 +365,7 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 - codify CI policy and shift heavyweight scanners off the PR path.
 
-
-
 **Out of scope**
-
-
 
 - new graph features;
 
@@ -387,11 +377,7 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 - operational drill scheduler (deferred follow-up).
 
-
-
 **Files likely to change**
-
-
 
 - `.github/workflows/*`
 
@@ -403,16 +389,11 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 - `docs/ci-required-checks-policy.md`
 
-
-
 **Validation**
-
-
 
 - Follow-up instructions provided to close issue #1330 as completed.
 
 - Follow-up instructions provided to close/supersede/rebase stale PRs #1060 and #1069.
-
 
 ## Sequencing Notes
 
