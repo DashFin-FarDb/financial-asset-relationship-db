@@ -316,7 +316,7 @@ class DistributedLock:
             )
             self._metric("lock_timeout_total")
             msg = (
-                f"Failed to acquire lock '{self.lock_name}' within {int(timeout_seconds)}s ceiling "
+                f"Failed to acquire lock '{self.lock_name}' within {timeout_seconds:g}s ceiling "
                 f"(elapsed: {elapsed:.2f}s, max_retries: {max_retries})"
             )
             raise LockAcquisitionTimeout(msg)
