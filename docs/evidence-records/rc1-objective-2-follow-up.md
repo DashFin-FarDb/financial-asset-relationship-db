@@ -154,7 +154,7 @@ The staging topology is defined in [docs/staging-deployment-operating-baseline.m
 
 | Role                           | Named owner | Sign-off status | Notes                                                           |
 | ------------------------------ | ----------- | --------------- | --------------------------------------------------------------- |
-| Deploy operator                | mohavro     | Approved        | Successfully completed deployment to staging.                 |
+| Deploy operator                | mohavro     | Approved        | Successfully completed deployment to staging.                   |
 | Promotion approver             | mohavro     | Approved        | Hosted durable proof successfully attached and validated.       |
 | Rollback owner                 | mohavro     | Approved        | Operating rollback playbooks confirmed ready.                   |
 | Restore operator               | mohavro     | Approved        | DR restore runbook steps successfully validated.                |
