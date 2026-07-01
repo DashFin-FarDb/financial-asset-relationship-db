@@ -70,14 +70,16 @@ jobs:
 
       - name: Test Environment Variable Failure Behavior
         run: |
-          # Start with invalid configuration to test exit behavior
-          # e.g. run something that fails fast if env is bad, like a missing DB URL for a specific command if applicable
-          # For now, just test that it starts but we can assert we get 500s or specific behavior when we hit detailed health
-          # Or if the app crashes entirely. Let's see if we can assert exit behavior.
-          # Here we just check that it runs and doesn't crash with defaults, but let's test a bad DATABASE_URL if that crashes startup.
-          # We'll just run it with a dummy bad config.
-          docker run --name api_bad_env -e DATABASE_URL="bad_scheme://bad" fardb-api || exit_code=$?
-          if [ -z "$exit_code" ]; then
-             echo "We expected it to fail or at least be observable"
+          set +e
+          docker run --name api_bad_env \
+            -e ENV=production \
+            -e SECRET_KEY="ci-smoke-test-secret-key-32-chars-min" \
+            -e DATABASE_URL="bad_scheme://bad" \
+            fardb-api
+          exit_code=$?
+          set -e
+          if [ "$exit_code" -eq 0 ]; then
+            echo "Expected container to fail with invalid DATABASE_URL"
+            exit 1
           fi
           docker rm api_bad_env || true
