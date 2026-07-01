@@ -4547,7 +4547,7 @@ The system exposes operational metrics through the `/api/graph/metrics` endpoint
 | --------------------- | ------------------------- | ----------------------- |
 | `total_assets`        | Count of nodes in graph   | `len(graph.assets)`     |
 | `total_relationships` | Count of edges            | Sum of adjacency lists  |
-| `average_degree`      | Mean connections per node | Calculated statistic    |
+| `average_degree`      | Mean connections per source asset | Calculated statistic    |
 | `max_degree`          | Highest connected node    | Maximum adjacency count |
 | `network_density`     | Edge ratio                | Actual/possible edges   |
 
@@ -7920,7 +7920,7 @@ The `/api/graph/metrics` endpoint provides graph topology and network analysis m
 | `total_assets`        | Counter    | Count of nodes in graph    |
 | `total_relationships` | Counter    | Count of edges in graph    |
 | `asset_classes`       | Dictionary | Count per asset class      |
-| `avg_degree`          | Gauge      | Mean connections per node  |
+| `avg_degree`          | Gauge      | Mean connections per source asset  |
 | `max_degree`          | Gauge      | Highest connected node     |
 | `network_density`     | Gauge      | Calculated network density |
 
@@ -11430,7 +11430,7 @@ flowchart TB
 | `total_assets`        | Counter    | Count of nodes in graph   |
 | `total_relationships` | Counter    | Count of edges in graph   |
 | `asset_classes`       | Dictionary | Count per asset class     |
-| `avg_degree`          | Gauge      | Mean connections per node |
+| `avg_degree`          | Gauge      | Mean connections per source asset |
 | `max_degree`          | Gauge      | Highest connected node    |
 | `network_density`     | Gauge      | Calculated density        |
 
@@ -11987,7 +11987,7 @@ This glossary defines key terms used throughout the Technical Specification, org
 | **Asset**                      | A financial instrument with tradeable value. Base domain entity requiring id, symbol, name, asset_class, sector, and price fields.                                            |
 | **Asset Class**                | Category classification for financial instruments. Supported values: Equity, Fixed Income, Commodity, Currency, Derivative.                                                   |
 | **Asset Relationship Graph**   | Core in-memory data structure storing assets as nodes and relationships as weighted edges in an adjacency list format.                                                        |
-| **Average Degree**             | Network metric representing the mean outgoing relationship count for source assets, calculated as total_relationships / len(source_assets) (zero-degree assets are excluded). |
+| **Average Degree**             | Network metric representing the mean outgoing relationship count for source assets, calculated as total_relationships / max(1, len(source_assets)) (zero-degree assets are excluded). |
 | **Bidirectional Relationship** | A relationship type where the connection applies equally in both directions (e.g., same_sector, income_comparison).                                                           |
 | **Bond**                       | Fixed income security with specialized attributes: yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.                                               |
 | **Commodity**                  | Asset class representing tradeable goods contracts with attributes: contract_size, delivery_date, and volatility.                                                             |
