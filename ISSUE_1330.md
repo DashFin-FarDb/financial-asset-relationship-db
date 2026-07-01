@@ -64,11 +64,13 @@ Reference:
 ### Staging Promotion Smoke Verification
 
 **Durable Hosted Readiness Summary:**
-* **Hosted readiness verification command:** `python scripts/check_hosted_readiness.py https://financial-asset-relationship-db-nine.vercel.app --require-persistence`
-* **Smoke check result:** PASS (passed with 100% fidelity)
-* **Observed database state:** 19 assets, 73 relationships loaded from the persistent database store.
+
+- **Hosted readiness verification command:** `python scripts/check_hosted_readiness.py https://financial-asset-relationship-db-nine.vercel.app --require-persistence`
+- **Smoke check result:** PASS (passed with 100% fidelity)
+- **Observed database state:** 19 assets, 73 relationships loaded from the persistent database store.
 
 **Redacted `/api/health/detailed` response:**
+
 ```json
 {
   "status": "healthy",
@@ -86,6 +88,7 @@ Reference:
 ```
 
 **Redacted `/api/assets?per_page=1` response:**
+
 ```json
 {
   "items": [
@@ -120,13 +123,13 @@ Scanners Bandit, Snyk Security, and others have completed successfully with zero
 
 Record named owners for this release candidate:
 
-| Role | Named owner | Sign-off status | Notes |
-| --- | --- | --- | --- |
-| Deploy operator | mohavro | Approved | Staging deployment has been promoted and validated. |
-| Promotion approver | mohavro | Approved | Staging target proof verification succeeded. |
-| Rollback owner | mohavro | Approved | Rollback procedures are verified. |
-| Restore operator | mohavro | Approved | Restore rehearsal was successfully executed. |
-| Persistence verification owner | mohavro | Approved | Persisted graph startup validated. |
+| Role                           | Named owner | Sign-off status | Notes                                               |
+| ------------------------------ | ----------- | --------------- | --------------------------------------------------- |
+| Deploy operator                | mohavro     | Approved        | Staging deployment has been promoted and validated. |
+| Promotion approver             | mohavro     | Approved        | Staging target proof verification succeeded.        |
+| Rollback owner                 | mohavro     | Approved        | Rollback procedures are verified.                   |
+| Restore operator               | mohavro     | Approved        | Restore rehearsal was successfully executed.        |
+| Persistence verification owner | mohavro     | Approved        | Persisted graph startup validated.                  |
 
 ## Disaster Recovery Rehearsal Evidence
 
@@ -159,6 +162,7 @@ Record named owners for this release candidate:
 - [x] Restore rehearsal decision recorded: Passed
 
 ### DR Rehearsal Details
+
 - **Restore point:** 2026-06-29T12:00:00Z
 - **Source environment:** Production (replica)
 - **Scratch restore target:** `fardb_restore_scratch` (Supabase branch)
@@ -168,17 +172,17 @@ Record named owners for this release candidate:
 
 ## Gate Status Summary
 
-| Gate | Status | Evidence link or note | Release blocker? |
-| --- | --- | --- | --- |
-| Architecture | Satisfied - documented | Declared in Tech Spec and deployment baseline. | No |
-| Durable Persistence | Satisfied - hosted evidence attached | Verified via staging database configuration. | No |
-| Restart / Reload | Satisfied - hosted evidence attached | Fresh deployment startup verified from persistent database boundary. | No |
-| Promotion | Satisfied - hosted evidence attached | Staging hosted readiness smoke verification passed. | No |
-| API Contract | Satisfied | Fully compliant with Pydantic validation and serialization. | No |
-| Recovery / Rebuild | Satisfied | Reconciliation Engine verified. | No |
-| Security | Satisfied | Clean scans from Bandit and Snyk. | No |
-| Governance | Satisfied - documented | Process baseline documented and validated. | No |
-| Disaster Recovery | Satisfied | Restore rehearsal validated. | No |
+| Gate                | Status                               | Evidence link or note                                                | Release blocker? |
+| ------------------- | ------------------------------------ | -------------------------------------------------------------------- | ---------------- |
+| Architecture        | Satisfied - documented               | Declared in Tech Spec and deployment baseline.                       | No               |
+| Durable Persistence | Satisfied - hosted evidence attached | Verified via staging database configuration.                         | No               |
+| Restart / Reload    | Satisfied - hosted evidence attached | Fresh deployment startup verified from persistent database boundary. | No               |
+| Promotion           | Satisfied - hosted evidence attached | Staging hosted readiness smoke verification passed.                  | No               |
+| API Contract        | Satisfied                            | Fully compliant with Pydantic validation and serialization.          | No               |
+| Recovery / Rebuild  | Satisfied                            | Reconciliation Engine verified.                                      | No               |
+| Security            | Satisfied                            | Clean scans from Bandit and Snyk.                                    | No               |
+| Governance          | Satisfied - documented               | Process baseline documented and validated.                           | No               |
+| Disaster Recovery   | Satisfied                            | Restore rehearsal validated.                                         | No               |
 
 ## Remaining Inputs Needed
 

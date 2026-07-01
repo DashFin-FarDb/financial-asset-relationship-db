@@ -278,8 +278,7 @@ class RecoveryGate:
             ObservabilityEvent(
                 event="recovery_gate_execution_blocked_final",
                 message=(
-                    f"Execution blocked for non-automatic reset plan: "
-                    f"action={action}, inconsistency={plan.drift_type}"
+                    f"Execution blocked for non-automatic reset plan: action={action}, inconsistency={plan.drift_type}"
                 ),
                 metadata={
                     "action": action,
