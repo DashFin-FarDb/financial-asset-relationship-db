@@ -52,11 +52,11 @@ jobs:
           python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
 
       - name: Upload Artifacts
+        if: always()
         uses: actions/upload-artifact@5d5d22a31266ced268874388b761e4b58bb5c2f3 # v4
         with:
           name: staging-readiness
           path: readiness-output.json
-
       - name: Assert Persistence Loaded
         run: |
           if [ "$(jq -r '.observed_fields."graph.persistence_loaded"' readiness-output.json)" != "true" ]; then
