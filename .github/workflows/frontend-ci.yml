@@ -25,11 +25,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-node-version: '20.9.0'
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Run frontend CI common
+        uses: ./.github/actions/ci-common
+        with:
+          language: node
+          node-version: '20.9.0'
+          working-directory: frontend
           dependency-paths: frontend/package-lock.json
           install: npm ci
           test: |
             npm run lint
-            npm test -- --ci
+            npm run test:ci
           build: npm run build
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4
+        with:
+          name: frontend-test-results
+          path: frontend/junit.xml

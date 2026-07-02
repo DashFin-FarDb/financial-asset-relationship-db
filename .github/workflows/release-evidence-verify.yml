@@ -96,20 +96,23 @@ jobs:
         continue-on-error: true
         env:
           HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
+          BASE_URL_INPUT: ${{ github.event.inputs.base_url }}
+          REQUIRE_PERSISTENCE: ${{ github.event.inputs.require_persistence }}
+          BASE_URL_LABEL: ${{ github.event.inputs.base_url_label }}
         run: |
-          URL="${{ github.event.inputs.base_url || env.HOSTED_READINESS_BASE_URL }}"
+          URL="${BASE_URL_INPUT:-$HOSTED_READINESS_BASE_URL}"
           if [ -n "$URL" ]; then
             echo "::add-mask::$URL"
           fi
 
           PERSISTENCE_FLAG=""
-          if [ "${{ github.event.inputs.require_persistence }}" == "true" ]; then
+          if [ "$REQUIRE_PERSISTENCE" == "true" ]; then
             PERSISTENCE_FLAG="--require-persistence"
           fi
 
           LABEL_FLAG=""
-          if [ -n "${{ github.event.inputs.base_url_label }}" ]; then
-            LABEL_FLAG="--base-url-label ${{ github.event.inputs.base_url_label }}"
+          if [ -n "$BASE_URL_LABEL" ]; then
+            LABEL_FLAG="--base-url-label $BASE_URL_LABEL"
           fi
 
           if [ -n "$URL" ]; then

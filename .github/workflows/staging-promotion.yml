@@ -38,8 +38,9 @@ jobs:
         id: readiness
         env:
           HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
+          BASE_URL_INPUT: ${{ github.event.inputs.base_url }}
         run: |
-          URL="${{ github.event.inputs.base_url || env.HOSTED_READINESS_BASE_URL }}"
+          URL="${BASE_URL_INPUT:-$HOSTED_READINESS_BASE_URL}"
           if [ -z "$URL" ]; then
             echo "Error: Base URL is missing"
             exit 1
