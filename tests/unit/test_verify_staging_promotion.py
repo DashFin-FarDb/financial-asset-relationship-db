@@ -87,6 +87,8 @@ def test_verify_staging_promotion_failure(tmp_path):
         with pytest.raises(SystemExit) as exc_info:
             verify_staging_promotion(str(evidence_path))
     assert exc_info.value.code == 1
+
+
 @patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
 @patch("scripts.verify_staging_promotion.Path.is_file", return_value=False)
 def test_verify_staging_promotion_directory(mock_is_file, mock_exists):
