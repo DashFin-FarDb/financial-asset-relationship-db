@@ -1,7 +1,7 @@
-import js from '@eslint/js';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
-import nextVitals from 'eslint-config-next/core-web-vitals';
+import js from '@eslint/js'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
+import nextVitals from 'eslint-config-next/core-web-vitals'
 
 export default tseslint.config(
   js.configs.recommended,
@@ -43,4 +43,4 @@ export default tseslint.config(
       'react/react-in-jsx-scope': 'off'
     }
   }
-);
+)
