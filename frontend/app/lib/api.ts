@@ -53,10 +53,7 @@ export const api = {
     return getData<AssetPageResponse>("/api/assets", { params, signal });
   },
 
-  getAssetDetail: (
-    assetId: string,
-    signal?: AbortSignal,
-  ): Promise<Asset> => {
+  getAssetDetail: (assetId: string, signal?: AbortSignal): Promise<Asset> => {
     return getData<Asset>(`/api/assets/${encodeURIComponent(assetId)}`, {
       signal,
     });
@@ -75,9 +72,7 @@ export const api = {
   },
 
   // Relationships
-  getAllRelationships: (
-    signal?: AbortSignal,
-  ): Promise<Relationship[]> => {
+  getAllRelationships: (signal?: AbortSignal): Promise<Relationship[]> => {
     return getData<Relationship[]>("/api/relationships", { signal });
   },
 
@@ -87,9 +82,7 @@ export const api = {
   },
 
   // Visualization
-  getVisualizationData: (
-    signal?: AbortSignal,
-  ): Promise<VisualizationData> => {
+  getVisualizationData: (signal?: AbortSignal): Promise<VisualizationData> => {
     return getData<VisualizationData>("/api/visualization", { signal });
   },
 
