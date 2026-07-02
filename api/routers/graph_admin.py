@@ -1913,5 +1913,5 @@ def list_rebuild_jobs(
             jobs=jobs,
             count=len(jobs),
             total=total,
-            has_more=offset + len(jobs) < total,
+            hasMore=offset + len(jobs) < total,
         )
