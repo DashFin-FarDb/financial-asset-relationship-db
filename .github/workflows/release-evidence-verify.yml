@@ -124,31 +124,32 @@ jobs:
           if [ -n "$URL" ]; then
             echo "::add-mask::$URL"
           fi
-
+      
           PERSISTENCE_FLAG=""
           if [ "$REQUIRE_PERSISTENCE" == "true" ]; then
             PERSISTENCE_FLAG="--require-persistence"
           fi
-
+      
           LABEL_ARGS=()
           if [ -n "$BASE_URL_LABEL" ]; then
             LABEL_ARGS=(--base-url-label "$BASE_URL_LABEL")
           fi
-
+      
           if [ -n "$URL" ]; then
             python scripts/check_hosted_readiness.py "$URL" --json "${LABEL_ARGS[@]}" $PERSISTENCE_FLAG > readiness-output.json
           else
             echo "{}" > readiness-output.json
           fi
+      
       - name: Upload Artifacts
         if: always()
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b761e4b58bb5c2f3 # v4
+        uses: actions/upload-artifact@v4
         with:
           name: release-evidence
           path: |
             results-*.xml
             readiness-output.json
-
+      
       - name: Assert All Gates Passed
         if: always()
         run: |
@@ -161,7 +162,7 @@ jobs:
             echo "One or more gate tests failed!"
             exit 1
           fi
-
+      
       - name: Emit Gate Summary
         if: always()
         run: |
@@ -171,13 +172,12 @@ jobs:
           import os
           import sys
           import xml.etree.ElementTree as ET
-
-
+      
           def junit_status(pattern: str) -> str:
               files = sorted(glob.glob(pattern))
               if not files:
                   return "MISSING"
-
+      
               failures = 0
               errors = 0
               for path in files:
@@ -186,10 +186,9 @@ jobs:
                   for suite in suites:
                       failures += int(suite.attrib.get("failures", 0))
                       errors += int(suite.attrib.get("errors", 0))
-
+      
               return "PASS" if failures == 0 and errors == 0 else "FAIL"
-
-
+      
           def json_status(path: str) -> str:
               try:
                   with open(path, "r", encoding="utf-8") as handle:
@@ -206,8 +205,7 @@ jobs:
                   return "SKIPPED"
               except Exception:
                   return "FAIL"
-
-
+      
           gates = [
               ("Durable Persistence", junit_status("results-persistence-*.xml"), "results-persistence-*.xml"),
               ("Restart / Reload", junit_status("results-restart-*.xml"), "results-restart-*.xml"),
@@ -216,7 +214,7 @@ jobs:
               ("Security", junit_status("results-security-*.xml"), "results-security-*.xml"),
               ("Promotion (hosted readiness)", json_status("readiness-output.json"), "readiness-output.json"),
           ]
-
+      
           overall_ok = True
           summary_path = os.environ["GITHUB_STEP_SUMMARY"]
           with open(summary_path, "a", encoding="utf-8") as out:
@@ -227,6 +225,6 @@ jobs:
                   out.write(f"| {gate} | {status} | {evidence} |\n")
                   if status not in ("PASS", "SKIPPED"):
                       overall_ok = False
-
+      
           sys.exit(0 if overall_ok else 1)
           PY
