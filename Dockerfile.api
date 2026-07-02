@@ -9,7 +9,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 COPY api/ ./api/
 
-RUN groupadd -r appuser && useradd -r -g appuser appuser && chown -R appuser:appuser /app
+RUN groupadd -r appuser \
+  && useradd -r -g appuser appuser \
+  && mkdir -p /data \
+  && chown -R appuser:appuser /app /data
 USER appuser
 
 ENV PYTHONPATH=/app
