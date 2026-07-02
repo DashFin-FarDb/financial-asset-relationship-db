@@ -62,7 +62,7 @@ jobs:
             count=$((count+1))
             if [ $count -ge $timeout ]; then
               echo "Frontend failed to start within $timeout seconds"
-              docker logs frontend_test
+Add logging: docker logs api_bad_env >> config-failure-audit.log 2>&1 before cleanup, and upload as artifact for audit trail retention.
               exit 1
             fi
             sleep 1
