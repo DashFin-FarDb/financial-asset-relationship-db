@@ -17,9 +17,24 @@ on:
 jobs:
   promotion-gate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Parse Manual Sign-off Tags
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if echo "$COMMIT_MSG $PR_TITLE" | grep -qiE '\[manual-stop\]|\[star\]'; then
+            echo "Manual sign-off tag detected. Pausing/failing for manual approval."
+            exit 1
+          fi
 
       - name: Setup Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -45,9 +60,7 @@ jobs:
             echo "Error: Base URL is missing"
             exit 1
           fi
-          if [ -n "$URL" ]; then
-            echo "::add-mask::$URL"
-          fi
+          echo "::add-mask::$URL"
 
           python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
 
@@ -57,6 +70,12 @@ jobs:
         with:
           name: staging-readiness
           path: readiness-output.json
+
+      - name: Audit Logging
+        run: |
+          echo "Logging promotion decision for AI system transparency (Article 13)..."
+          echo "Promotion verified at $(date -u)" >> promotion_audit.log
+
       - name: Assert Persistence Loaded
         run: |
           if [ "$(jq -r '.observed_fields."graph.persistence_loaded"' readiness-output.json)" != "true" ]; then

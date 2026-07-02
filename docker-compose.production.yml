@@ -12,8 +12,10 @@ services:
     environment:
       - ENV=production
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      # Note for Operators: This version switches from host bind mount (./data) to named volume (api-data).
+      # Migrate existing data manually to the docker volume before deployment to avoid data loss.
       - DATABASE_URL=${DATABASE_URL:-sqlite:////data/fardb.db}
-      - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-${DATABASE_URL:-sqlite:////data/fardb.db}}
+      - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////data/fardb.db}
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
