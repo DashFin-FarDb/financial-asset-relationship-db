@@ -84,7 +84,7 @@ def verify_staging_promotion(evidence_file: str) -> None:
     evidence_path = Path(evidence_file).resolve(strict=True)
     repo_root = Path(__file__).resolve().parent.parent
     if not evidence_path.is_relative_to(repo_root):
-        print(f"Error: Invalid evidence file path {evidence_file}.")
+        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {repo_root}.")
         sys.exit(1)
     with open(evidence_path, "r", encoding="utf-8") as f:
         content = f.read().lower()
