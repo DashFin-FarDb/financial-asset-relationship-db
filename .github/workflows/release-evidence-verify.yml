@@ -89,7 +89,7 @@ jobs:
 
       - name: Run Gate Tests (API Contract)
         id: gate_api
-        continue-on-error: true
+Add gate test: pytest tests/unit/test_human_override_mechanism.py verifying stop/pause capability and response time <5 seconds as per Article 14(5).
         run: |
           set +e
           status=0
