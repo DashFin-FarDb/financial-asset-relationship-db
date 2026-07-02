@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: '3.12'
 
-Add audit logging: echo "Promotion decision for $(date): ${{ github.sha }}" >> promotion-audit.log && upload as artifact with retention policy.
+      - name: Install Dependencies
         run: pip install -r requirements.txt
 
       - name: Verify Staging Baseline Checklist

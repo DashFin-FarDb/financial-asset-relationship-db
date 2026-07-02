@@ -1,5 +1,3 @@
-Add documentation step: Create AI-SYSTEM-CARD.md containing model purpose, version, capabilities, limitations, and deployment scope. Upload as artifact: path: AI-SYSTEM-CARD.md
-
 on:
   workflow_dispatch:
     inputs:
@@ -143,7 +141,7 @@ jobs:
 
       - name: Upload Artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b761e4b58bb5c2f3 # v4
         with:
           name: release-evidence
           path: |
