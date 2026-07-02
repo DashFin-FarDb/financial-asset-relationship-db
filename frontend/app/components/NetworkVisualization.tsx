@@ -115,34 +115,31 @@ function buildEdgeTraces(
   edges: VisualizationData["edges"],
 ): EdgeTrace[] {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
-  return edges.reduce<EdgeTrace[]>(
-    (acc, edge) => {
-      const sourceNode = nodeMap.get(edge.source);
-      const targetNode = nodeMap.get(edge.target);
+  return edges.reduce<EdgeTrace[]>((acc, edge) => {
+    const sourceNode = nodeMap.get(edge.source);
+    const targetNode = nodeMap.get(edge.target);
 
-      if (!sourceNode || !targetNode) {
-        // Skip invalid edges without logging to avoid leaking potentially sensitive asset IDs
-        return acc;
-      }
-
-      acc.push({
-        type: "scatter3d",
-        mode: "lines",
-        x: [sourceNode.x, targetNode.x],
-        y: [sourceNode.y, targetNode.y],
-        z: [sourceNode.z, targetNode.z],
-        line: {
-          color: `rgba(125, 125, 125, ${edge.strength})`,
-          width: edge.strength * 3,
-        },
-        hoverinfo: "none",
-        showlegend: false,
-      });
-
+    if (!sourceNode || !targetNode) {
+      // Skip invalid edges without logging to avoid leaking potentially sensitive asset IDs
       return acc;
-    },
-    []
-  );
+    }
+
+    acc.push({
+      type: "scatter3d",
+      mode: "lines",
+      x: [sourceNode.x, targetNode.x],
+      y: [sourceNode.y, targetNode.y],
+      z: [sourceNode.z, targetNode.z],
+      line: {
+        color: `rgba(125, 125, 125, ${edge.strength})`,
+        width: edge.strength * 3,
+      },
+      hoverinfo: "none",
+      showlegend: false,
+    });
+
+    return acc;
+  }, []);
 }
 
 /**
@@ -212,7 +209,6 @@ export default function NetworkVisualization({
     }
     return prepareVisualizationData(data);
   }, [data]);
-
 
   const { plotData, status, message } = preparation;
 
