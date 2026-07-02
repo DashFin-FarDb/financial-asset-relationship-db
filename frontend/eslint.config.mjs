@@ -43,7 +43,7 @@ export default tseslint.config(
     rules: {
       'react/react-in-jsx-scope': 'off',
       'react-hooks/exhaustive-deps': 'warn',
-      'react-hooks/set-state-in-effect': 'off',
+-      'react-hooks/set-state-in-effect': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'error',
