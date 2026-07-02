@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import type { VisualizationData } from "../types/api";
 
@@ -59,7 +59,6 @@ type VisualizationPreparation = {
   status: VisualizationStatus;
   message: string;
   plotData: Array<EdgeTrace | NodeTrace>;
-  warnings?: string[];
 };
 
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
@@ -114,21 +113,19 @@ function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
 function buildEdgeTraces(
   nodes: VisualizationData["nodes"],
   edges: VisualizationData["edges"],
-): { edgeTraces: EdgeTrace[]; warnings: string[] } {
+): EdgeTrace[] {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
-  return edges.reduce<{ edgeTraces: EdgeTrace[]; warnings: string[] }>(
+  return edges.reduce<EdgeTrace[]>(
     (acc, edge) => {
       const sourceNode = nodeMap.get(edge.source);
       const targetNode = nodeMap.get(edge.target);
 
       if (!sourceNode || !targetNode) {
-        acc.warnings.push(
-          `Missing node for edge: source=${edge.source}, target=${edge.target}`,
-        );
+        // Skip invalid edges without logging to avoid leaking potentially sensitive asset IDs
         return acc;
       }
 
-      acc.edgeTraces.push({
+      acc.push({
         type: "scatter3d",
         mode: "lines",
         x: [sourceNode.x, targetNode.x],
@@ -144,7 +141,7 @@ function buildEdgeTraces(
 
       return acc;
     },
-    { edgeTraces: [], warnings: [] },
+    []
   );
 }
 
@@ -183,13 +180,12 @@ function prepareVisualizationData(
   }
 
   const nodeTrace = buildNodeTrace(nodes);
-  const { edgeTraces, warnings } = buildEdgeTraces(nodes, edges);
+  const edgeTraces = buildEdgeTraces(nodes, edges);
 
   return {
     status: "ready",
     message: "",
     plotData: [...edgeTraces, nodeTrace],
-    warnings,
   };
 }
 
@@ -217,11 +213,6 @@ export default function NetworkVisualization({
     return prepareVisualizationData(data);
   }, [data]);
 
-  useEffect(() => {
-    if (preparation.warnings && preparation.warnings.length > 0) {
-      preparation.warnings.forEach((w) => console.warn(w));
-    }
-  }, [preparation.warnings]);
 
   const { plotData, status, message } = preparation;
 
