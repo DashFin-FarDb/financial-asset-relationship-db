@@ -193,8 +193,10 @@ jobs:
           def json_status(path: str) -> str:
               try:
                   with open(path, "r", encoding="utf-8") as handle:
-                      json.load(handle)
-                  return "PASS"
+                      data = json.load(handle)
+                      if not data or "status" not in data:
+                          return "SKIPPED"
+                      return "PASS" if data.get("status") == "passed" else "FAIL"
               except FileNotFoundError:
                   return "MISSING"
               except Exception:
@@ -218,7 +220,7 @@ jobs:
               out.write("| --- | --- | --- |\n")
               for gate, status, evidence in gates:
                   out.write(f"| {gate} | {status} | {evidence} |\n")
-                  if status != "PASS":
+                  if status not in ("PASS", "SKIPPED"):
                       overall_ok = False
 
           sys.exit(0 if overall_ok else 1)

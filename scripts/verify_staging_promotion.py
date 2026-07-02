@@ -72,8 +72,12 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
 
 def verify_staging_promotion(evidence_file: str) -> None:
     """Verify baseline items in a staging promotion evidence file."""
-    if not Path(evidence_file).exists():
-        print(f"Error: Evidence file {evidence_file} not found.")
+    evidence_path_obj = Path(evidence_file)
+    if not evidence_path_obj.exists():
+        print(f"Error: Evidence path {evidence_file} does not exist.")
+        sys.exit(1)
+    if not evidence_path_obj.is_file():
+        print(f"Error: Evidence path {evidence_file} is not a regular file.")
         sys.exit(1)
 
     evidence_path = Path(evidence_file).resolve(strict=True)
