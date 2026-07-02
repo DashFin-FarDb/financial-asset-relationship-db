@@ -23,7 +23,7 @@ export default tseslint.config(
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     plugins: {
-      'react': reactPlugin,
+      react: reactPlugin,
       'react-hooks': reactHooksPlugin,
       '@next/next': nextPlugin
     },
