@@ -28,7 +28,8 @@ These checks run on PRs but are not strictly required for merge (e.g., they migh
 These are heavyweight or scanner jobs that run on a daily/weekly schedule or during a release-candidate cut to reduce PR noise. Some scanners may still run on PRs when their workflow `on:` includes `pull_request`/`push`.
 
 - Scheduled / release-only: Snyk Security/Container/Infrastructure (`snyk-*.yml`), Bearer (`bearer.yml`)
-- Scheduled + PR/push: Trivy (`trivy.yml`), Bandit (`bandit.yml`), Semgrep (`semgrep.yml`), CodeQL (`codeql.yml`), Dependency Check (`dependency-check.yml`)
+- Scheduled + push-to-main: Trivy (`trivy.yml`), Bandit (`bandit.yml`), CodeQL (`codeql.yml`), Dependency Check (`dependency-check.yml`)
+- Scheduled + PR/push: Semgrep (`semgrep.yml`)
 
 ## Platform Deduplication
 
