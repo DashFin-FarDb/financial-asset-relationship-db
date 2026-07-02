@@ -21,7 +21,6 @@ These checks run on every PR and push to `main`. They must pass before a PR can 
 
 These checks run on PRs but are not strictly required for merge (e.g., they might fail due to strictness, but give useful feedback).
 
-- CodeQL
 - Dependabot PRs (though patch/minor updates can auto-merge if tests pass).
 
 ### 3. Scheduled / Release-Only

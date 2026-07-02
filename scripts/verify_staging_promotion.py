@@ -1,11 +1,12 @@
 """Staging promotion verification script."""
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
 
-def verify_staging_promotion(evidence_file: str):
+def verify_staging_promotion(evidence_file: str):  # noqa: C901
     """Verify baseline items in a staging promotion evidence file."""
     if not Path(evidence_file).exists():
         print(f"Error: Evidence file {evidence_file} not found.")
@@ -26,7 +27,7 @@ def verify_staging_promotion(evidence_file: str):
         missing.append("Supabase provider label")
 
     # 2. DATABASE_URL boundary
-    if "database_url" not in content:
+    if not re.search(r"\bdatabase_url\b", content):
         missing.append("DATABASE_URL boundary confirmation")
 
     # 3. distinct ASSET_GRAPH_DATABASE_URL boundary (or approved exception)
@@ -77,6 +78,8 @@ def verify_staging_promotion(evidence_file: str):
     if (
         "persistence_loaded == true" not in content
         and 'startup_source == "persisted"' not in content
+        and '"persistence_loaded": true' not in content
+        and '"startup_source": "persisted"' not in content
         and "persistence-loaded proof" not in content
     ):
         missing.append("Persistence-loaded proof (graph.persistence_loaded == true)")
