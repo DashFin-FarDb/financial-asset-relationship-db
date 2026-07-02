@@ -130,13 +130,13 @@ jobs:
             PERSISTENCE_FLAG="--require-persistence"
           fi
 
-          LABEL_FLAG=""
+          LABEL_ARGS=()
           if [ -n "$BASE_URL_LABEL" ]; then
-            LABEL_FLAG="--base-url-label $BASE_URL_LABEL"
+            LABEL_ARGS=(--base-url-label "$BASE_URL_LABEL")
           fi
 
           if [ -n "$URL" ]; then
-            python scripts/check_hosted_readiness.py "$URL" --json $LABEL_FLAG $PERSISTENCE_FLAG > readiness-output.json
+            python scripts/check_hosted_readiness.py "$URL" --json "${LABEL_ARGS[@]}" $PERSISTENCE_FLAG > readiness-output.json
           else
             echo "{}" > readiness-output.json
           fi
