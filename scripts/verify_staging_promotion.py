@@ -92,10 +92,9 @@ def verify_staging_promotion(evidence_file: str) -> None:
     _check_operational_evidence(content, missing)
 
     if missing:
-        print(
-            "Staging promotion blocked. The following required baseline items are missing or not
-            explicitly confirmed in the evidence file:"
-        )
+        print("Staging promotion blocked. The following required baseline items are missing or not
+              explicitly confirmed in the evidence file:"
+              )
         for item in missing:
             print(f"  - {item}")
         sys.exit(1)
