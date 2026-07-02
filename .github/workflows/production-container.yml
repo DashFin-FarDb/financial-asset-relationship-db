@@ -71,15 +71,17 @@ jobs:
       - name: Test Environment Variable Failure Behavior
         run: |
           set +e
-          docker run --name api_bad_env \
+          timeout 15s docker run --name api_bad_env \
             -e ENV=production \
             -e SECRET_KEY="ci-smoke-test-secret-key-32-chars-min" \
             -e DATABASE_URL="bad_scheme://bad" \
             fardb-api
           exit_code=$?
           set -e
-          if [ "$exit_code" -eq 0 ]; then
-            echo "Expected container to fail with invalid DATABASE_URL"
+
+          docker rm -f api_bad_env >/dev/null 2>&1 || true
+
+          if [ "$exit_code" -eq 0 ] || [ "$exit_code" -eq 124 ]; then
+            echo "Expected container to exit quickly with a non-zero status for invalid DATABASE_URL"
             exit 1
           fi
-          docker rm api_bad_env || true
