@@ -12,7 +12,7 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
       - DATABASE_URL=${DATABASE_URL:-sqlite:////tmp/fardb.db}
       - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////tmp/fardb.db}
-      - SECRET_KEY=${SECRET_KEY}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
