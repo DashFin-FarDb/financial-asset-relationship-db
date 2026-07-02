@@ -64,9 +64,12 @@ jobs:
       - name: Run Gate Tests (Restart/Reload)
         continue-on-error: true
         run: |
-          pytest tests/integration/test_restart_recovery_clean_path.py -q --junitxml=results-restart-1.xml
+          set +e
+          status=0
+          pytest tests/integration/test_restart_recovery_clean_path.py -q --junitxml=results-restart-1.xml || status=1
           # De-duplicated tests/integration/test_distributed_hosting_failure_modes.py (it's also in Recovery/Rebuild, so we'll run it there or here)
-          pytest tests/integration/test_distributed_hosting_failure_modes.py -q --junitxml=results-restart-2.xml
+          pytest tests/integration/test_distributed_hosting_failure_modes.py -q --junitxml=results-restart-2.xml || status=1
+          exit $status
 
       - name: Run Gate Tests (Recovery/Rebuild)
         continue-on-error: true
