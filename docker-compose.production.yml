@@ -8,7 +8,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./data:/data
+      - api-data:/data
     environment:
       - ENV=production
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
