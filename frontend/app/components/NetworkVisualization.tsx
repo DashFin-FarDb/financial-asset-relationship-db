@@ -114,9 +114,9 @@ function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
 function buildEdgeTraces(
   nodes: VisualizationData["nodes"],
   edges: VisualizationData["edges"],
-): { edgeTraces: EdgeTrace[], warnings: string[] } {
+): { edgeTraces: EdgeTrace[]; warnings: string[] } {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
-  return edges.reduce<{ edgeTraces: EdgeTrace[], warnings: string[] }>(
+  return edges.reduce<{ edgeTraces: EdgeTrace[]; warnings: string[] }>(
     (acc, edge) => {
       const sourceNode = nodeMap.get(edge.source);
       const targetNode = nodeMap.get(edge.target);
@@ -144,7 +144,7 @@ function buildEdgeTraces(
 
       return acc;
     },
-    { edgeTraces: [], warnings: [] }
+    { edgeTraces: [], warnings: [] },
   );
 }
 
@@ -219,7 +219,7 @@ export default function NetworkVisualization({
 
   useEffect(() => {
     if (preparation.warnings && preparation.warnings.length > 0) {
-      preparation.warnings.forEach(w => console.warn(w));
+      preparation.warnings.forEach((w) => console.warn(w));
     }
   }, [preparation.warnings]);
 
