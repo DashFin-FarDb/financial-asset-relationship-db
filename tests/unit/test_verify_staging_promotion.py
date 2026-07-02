@@ -77,19 +77,16 @@ def test_verify_staging_promotion_success(tmp_path):
     assert exc_info.value.code == 0
 
 
-@patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
-@patch("scripts.verify_staging_promotion.Path.is_file", return_value=True)
-@patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True)
-@patch("scripts.verify_staging_promotion.Path.resolve")
-def test_verify_staging_promotion_failure(mock_resolve, mock_is_relative_to, mock_is_file, mock_exists):
+def test_verify_staging_promotion_failure(tmp_path):
     """Test failed staging promotion verification."""
-    mock_resolve.return_value = mock_resolve
-    invalid_content = "missing almost everything"
-    with patch("builtins.open", mock_open(read_data=invalid_content)):
-        with pytest.raises(SystemExit) as exc_info:
-            verify_staging_promotion("dummy_path.md")
-        assert exc_info.value.code == 1
+    evidence_path = tmp_path / "evidence.md"
+    evidence_path.write_text("missing almost everything", encoding="utf-8")
 
+    # tmp_path is outside the repo root, so bypass the repo-relative constraint for this unit test.
+    with patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True):
+        with pytest.raises(SystemExit) as exc_info:
+            verify_staging_promotion(str(evidence_path))
+    assert exc_info.value.code == 1
 
 @patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
 @patch("scripts.verify_staging_promotion.Path.is_file", return_value=False)
