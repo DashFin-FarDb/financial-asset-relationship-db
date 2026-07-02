@@ -190,22 +190,22 @@ jobs:
               return "PASS" if failures == 0 and errors == 0 else "FAIL"
 
 
-           def json_status(path: str) -> str:
-               try:
-                   with open(path, "r", encoding="utf-8") as handle:
-                       data = json.load(handle)
-                   if not data:
-                       return "SKIPPED"
-                   status = data.get("status")
-                   if status == "passed":
-                       return "PASS"
-                   if status == "skipped":
-                       return "SKIPPED"
-                   return "FAIL"
-               except FileNotFoundError:
-                   return "SKIPPED"
-               except Exception:
-                   return "FAIL"
+          def json_status(path: str) -> str:
+              try:
+                  with open(path, "r", encoding="utf-8") as handle:
+                      data = json.load(handle)
+                  if not data:
+                      return "SKIPPED"
+                  status = data.get("status")
+                  if status == "passed":
+                      return "PASS"
+                  if status == "skipped":
+                      return "SKIPPED"
+                  return "FAIL"
+              except FileNotFoundError:
+                  return "SKIPPED"
+              except Exception:
+                  return "FAIL"
 
 
           gates = [
