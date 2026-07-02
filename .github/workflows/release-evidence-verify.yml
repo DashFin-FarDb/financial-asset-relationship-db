@@ -1,3 +1,5 @@
+name: Release Evidence Verify
+
 on:
   workflow_dispatch:
     inputs:
@@ -152,11 +154,11 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.gate_persistence.outcome }}" == "failure" ] || \
-             [ "${{ steps.gate_restart.outcome }}" == "failure" ] || \
-             [ "${{ steps.gate_recovery.outcome }}" == "failure" ] || \
-             [ "${{ steps.gate_api.outcome }}" == "failure" ] || \
-             [ "${{ steps.gate_security.outcome }}" == "failure" ] || \
-             [ "${{ steps.gate_hosted.outcome }}" == "failure" ]; then
+          [ "${{ steps.gate_restart.outcome }}" == "failure" ] || \
+          [ "${{ steps.gate_recovery.outcome }}" == "failure" ] || \
+          [ "${{ steps.gate_api.outcome }}" == "failure" ] || \
+          [ "${{ steps.gate_security.outcome }}" == "failure" ] || \
+          [ "${{ steps.gate_hosted.outcome }}" == "failure" ]; then
             echo "One or more gate tests failed!"
             exit 1
           fi
