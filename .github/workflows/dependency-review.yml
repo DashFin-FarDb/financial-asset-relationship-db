@@ -62,10 +62,10 @@ jobs:
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
         with:
           comment-summary-in-pr: always
-        fail-on-severity: moderate
-        # AI System Requirement (Article 15 - Robustness & Documentation):
-        # We enforce GPL/LGPL denial to ensure the resulting system and graph engine
-        # maintains deterministic deployment capabilities without introducing viral
-        # licensing conditions that would restrict proprietary auditing and monitoring layers.
-        deny-licenses: GPL-1.0-or-later, LGPL-2.0-or-later
-        #   retry-on-snapshot-warnings: true
+          fail-on-severity: moderate
+          # AI System Requirement (Article 15 - Robustness & Documentation):
+          # We enforce GPL/LGPL denial to ensure the resulting system and graph engine
+          # maintains deterministic deployment capabilities without introducing viral
+          # licensing conditions that would restrict proprietary auditing and monitoring layers.
+          deny-licenses: GPL-1.0-or-later, LGPL-2.0-or-later
+          # retry-on-snapshot-warnings: true

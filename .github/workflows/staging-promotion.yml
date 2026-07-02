@@ -21,21 +21,14 @@ on:
 jobs:
   promotion-gate:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'staging-manual-gate' || '' }}
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           persist-credentials: false
-
-      - name: Parse Manual Sign-off Tags
-        env:
-          INPUT_TAGS: ${{ github.event.inputs.tags }}
-        run: |
-          if echo "$INPUT_TAGS" | grep -qiE '\[manual-stop\]|\[star\]'; then
-            echo "Manual sign-off tag detected. Pausing/failing for manual approval."
-            exit 1
-          fi
 
       - name: Setup Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -78,9 +71,10 @@ jobs:
           echo "Assertion passed: graph is persistence loaded."
 
       - name: Audit Logging
+        if: always()
         run: |
           echo "Logging promotion decision for AI system transparency (Article 13)..."
-          echo "Promotion verified at $(date -u)" >> promotion_audit.log
+          echo "Promotion run at $(date -u) — result: ${{ job.status }}" >> promotion_audit.log
 
       - name: Upload Artifacts
         if: always()

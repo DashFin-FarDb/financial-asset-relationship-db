@@ -47,6 +47,7 @@ export default tseslint.config(
       }
     },
     rules: {
+      ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs['core-web-vitals'].rules,
