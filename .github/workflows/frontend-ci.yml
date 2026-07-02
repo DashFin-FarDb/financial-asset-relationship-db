@@ -46,3 +46,4 @@ jobs:
         with:
           name: frontend-test-results
           path: frontend/junit.xml
+          if-no-files-found: error
