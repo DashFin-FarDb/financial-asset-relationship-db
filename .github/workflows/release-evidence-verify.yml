@@ -146,15 +146,61 @@ jobs:
       - name: Emit Gate Summary
         if: always()
         run: |
-          echo "## Release Evidence Gate Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Gate | Status | Evidence |" >> $GITHUB_STEP_SUMMARY
-          echo "| --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
-          echo "| Architecture | Computed | - |" >> $GITHUB_STEP_SUMMARY
-          echo "| Durable Persistence | Computed | results-persistence-*.xml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Restart / Reload | Computed | results-restart-*.xml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Promotion | Computed | readiness-output.json |" >> $GITHUB_STEP_SUMMARY
-          echo "| API Contract | Computed | results-api-*.xml, npm test |" >> $GITHUB_STEP_SUMMARY
-          echo "| Recovery / Rebuild | Computed | results-recovery-*.xml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security | Computed | results-security-*.xml |" >> $GITHUB_STEP_SUMMARY
-          echo "| Governance | Computed | - |" >> $GITHUB_STEP_SUMMARY
-          echo "| Disaster Recovery | Computed | - |" >> $GITHUB_STEP_SUMMARY
+          python - <<'PY'
+          import glob
+          import json
+          import os
+          import sys
+          import xml.etree.ElementTree as ET
+
+
+          def junit_status(pattern: str) -> str:
+              files = sorted(glob.glob(pattern))
+              if not files:
+                  return "MISSING"
+
+              failures = 0
+              errors = 0
+              for path in files:
+                  root = ET.parse(path).getroot()
+                  suites = root.findall("testsuite") if root.tag == "testsuites" else [root]
+                  for suite in suites:
+                      failures += int(suite.attrib.get("failures", 0))
+                      errors += int(suite.attrib.get("errors", 0))
+
+              return "PASS" if failures == 0 and errors == 0 else "FAIL"
+
+
+          def json_status(path: str) -> str:
+              try:
+                  with open(path, "r", encoding="utf-8") as handle:
+                      json.load(handle)
+                  return "PASS"
+              except FileNotFoundError:
+                  return "MISSING"
+              except Exception:
+                  return "FAIL"
+
+
+          gates = [
+              ("Durable Persistence", junit_status("results-persistence-*.xml"), "results-persistence-*.xml"),
+              ("Restart / Reload", junit_status("results-restart-*.xml"), "results-restart-*.xml"),
+              ("Recovery / Rebuild", junit_status("results-recovery-*.xml"), "results-recovery-*.xml"),
+              ("API Contract", junit_status("results-api-*.xml"), "results-api-*.xml"),
+              ("Security", junit_status("results-security-*.xml"), "results-security-*.xml"),
+              ("Promotion (hosted readiness)", json_status("readiness-output.json"), "readiness-output.json"),
+          ]
+
+          overall_ok = True
+          summary_path = os.environ["GITHUB_STEP_SUMMARY"]
+          with open(summary_path, "a", encoding="utf-8") as out:
+              out.write("## Release Evidence Gate Summary\n")
+              out.write("| Gate | Status | Evidence |\n")
+              out.write("| --- | --- | --- |\n")
+              for gate, status, evidence in gates:
+                  out.write(f"| {gate} | {status} | {evidence} |\n")
+                  if status != "PASS":
+                      overall_ok = False
+
+          sys.exit(0 if overall_ok else 1)
+          PY
