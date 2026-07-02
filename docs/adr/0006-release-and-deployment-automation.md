@@ -15,7 +15,7 @@ As the project approaches enterprise readiness, the manual overhead of executing
 ## Decision
 
 1. **GitHub Actions as the Canonical PR Gate:** We designate GitHub Actions as the canonical platform for PR gates.
-2. **Heavyweight Job Scheduling:** Heavyweight scanner jobs (e.g., CodeQL, Trivy) and container publishing jobs will no longer run on every PR. Instead, they will run on scheduled intervals or within specific release-gate contexts.
+2. **Heavyweight Job Scheduling:** Heavyweight scanner jobs (e.g., CodeQL, Trivy) and container publishing jobs will primarily run on scheduled intervals or within specific release-gate contexts (some scanners may still run on PRs/pushes per CI policy).
 3. **Production Container Split:** Production containers (FastAPI backend and Next.js frontend) will be split from the existing Gradio demo image. Dedicated Dockerfiles (`Dockerfile.api`, `Dockerfile.frontend`) and a `docker-compose.production.yml` will manage the production stack.
 4. **Governed Automation:** The automation layer will be strictly bound to the constraints in `docs/GOVERNANCE.md`.
 
