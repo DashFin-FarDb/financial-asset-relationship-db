@@ -8,8 +8,8 @@ import type {
   VisualizationData,
 } from "../types/api";
 
-const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, "");
-const API_URL = envUrl || "";
+const envUrl = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = envUrl ? envUrl : "http://localhost:8000";
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -30,20 +30,18 @@ async function getData<T>(
   path: string,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  const response = config
-    ? await apiClient.get<T>(path, config)
-    : await apiClient.get<T>(path);
+  const response = await apiClient.get<T>(path, config);
   return response.data;
 }
 
 export const api = {
   // Health check
-  healthCheck: () => {
-    return getData<{ status: string }>("/api/health");
+  healthCheck: async () => {
+    return getData("/api/health");
   },
 
   // Assets
-  getAssets: (
+  getAssets: async (
     params?: {
       asset_class?: string;
       sector?: string;
@@ -55,45 +53,47 @@ export const api = {
     return getData<AssetPageResponse>("/api/assets", { params, signal });
   },
 
-  getAssetDetail: (assetId: string, signal?: AbortSignal): Promise<Asset> => {
-    return getData<Asset>(`/api/assets/${encodeURIComponent(assetId)}`, {
+  getAssetDetail: async (
+    assetId: string,
+    signal?: AbortSignal,
+  ): Promise<Asset> => {
+    return getData<Asset>(`/api/assets/${encodeURIComponent(assetId)}`, { signal });
+  },
+
+  getAssetRelationships: async (
+    assetId: string,
+    signal?: AbortSignal,
+  ): Promise<Relationship[]> => {
+    return getData<Relationship[]>(`/api/assets/${encodeURIComponent(assetId)}/relationships`, {
       signal,
     });
   },
 
-  getAssetRelationships: (
-    assetId: string,
+  // Relationships
+  getAllRelationships: async (
     signal?: AbortSignal,
   ): Promise<Relationship[]> => {
-    return getData<Relationship[]>(
-      `/api/assets/${encodeURIComponent(assetId)}/relationships`,
-      {
-        signal,
-      },
-    );
-  },
-
-  // Relationships
-  getAllRelationships: (signal?: AbortSignal): Promise<Relationship[]> => {
     return getData<Relationship[]>("/api/relationships", { signal });
   },
 
   // Metrics
-  getMetrics: (signal?: AbortSignal): Promise<Metrics> => {
+  getMetrics: async (signal?: AbortSignal): Promise<Metrics> => {
     return getData<Metrics>("/api/graph/metrics", { signal });
   },
 
   // Visualization
-  getVisualizationData: (signal?: AbortSignal): Promise<VisualizationData> => {
+  getVisualizationData: async (
+    signal?: AbortSignal,
+  ): Promise<VisualizationData> => {
     return getData<VisualizationData>("/api/visualization", { signal });
   },
 
   // Metadata
-  getAssetClasses: (): Promise<{ asset_classes: string[] }> => {
+  getAssetClasses: async (): Promise<{ asset_classes: string[] }> => {
     return getData<{ asset_classes: string[] }>("/api/asset-classes");
   },
 
-  getSectors: (): Promise<{ sectors: string[] }> => {
+  getSectors: async (): Promise<{ sectors: string[] }> => {
     return getData<{ sectors: string[] }>("/api/sectors");
   },
 };
