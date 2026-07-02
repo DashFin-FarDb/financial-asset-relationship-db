@@ -658,10 +658,18 @@ class TestConfigurationConsistency:
             with open(ci_path, encoding="utf-8") as f:
                 ci_config = yaml.safe_load(f)
 
-            # Both should test Python (versions may differ slightly)
-            # Just ensure both have Python configuration
-            assert "python" in str(circleci_config).lower()
-            assert "python" in str(ci_config).lower()
+            # Extract python version from CircleCI config
+            python_executor = circleci_config.get("executors", {}).get("python-executor", {})
+            circleci_image = python_executor.get("docker", [{}])[0].get("image", "")
+            assert "python:" in circleci_image, f"Could not find python image in CircleCI config: {circleci_image}"
+            circleci_python_version = circleci_image.split(":")[-1]
+
+            # Extract python versions from GitHub Actions CI workflow
+            matrix_versions = ci_config.get("jobs", {}).get("test", {}).get("strategy", {}).get("matrix", {}).get("python-version", [])
+            assert matrix_versions, "Could not find python-version matrix in ci.yml"
+            
+            # Assert that the CircleCI python version is one of the supported versions in GitHub Actions
+            assert circleci_python_version in matrix_versions, f"CircleCI python version {circleci_python_version} not in CI matrix {matrix_versions}"
 
     def test_node_version_consistency(self):
         """Node versions should be reasonable across configs."""
@@ -675,14 +683,3 @@ class TestConfigurationConsistency:
         assert "node" in content.lower()
         # Should have a reasonable version
         assert "node:" in content or "cimg/node" in content
-
-    def test_python_version_consistency(self):
-        """Python versions should be consistent across configs."""
-        # CI workflow
-        ci_path = PROJECT_ROOT / ".github" / "workflows" / "ci.yml"
-        if ci_path.exists():
-            with open(ci_path, encoding="utf-8") as f:
-                ci_config = yaml.safe_load(f)
-
-            # Ensure GitHub Actions CI has Python configuration
-            assert "python" in str(ci_config).lower()
