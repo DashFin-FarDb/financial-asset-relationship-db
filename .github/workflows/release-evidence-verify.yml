@@ -1,4 +1,4 @@
-name: Release Evidence Verify
+Add documentation step: Create AI-SYSTEM-CARD.md containing model purpose, version, capabilities, limitations, and deployment scope. Upload as artifact: path: AI-SYSTEM-CARD.md
 
 on:
   workflow_dispatch:
