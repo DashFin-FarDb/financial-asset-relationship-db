@@ -39,7 +39,7 @@ jobs:
           install: npm ci
           test: |
             npm run lint
-            npm run test:ci
+            npx jest --silent --ci --coverage --reporters=default --reporters=jest-junit
           build: npm run build
 
       - name: Upload Test Results
