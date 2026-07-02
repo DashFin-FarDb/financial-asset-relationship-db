@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 import dynamic from "next/dynamic";
 import type { VisualizationData } from "../types/api";
 
