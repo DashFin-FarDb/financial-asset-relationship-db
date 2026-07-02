@@ -24,11 +24,13 @@ jobs:
         run: docker build --build-arg NEXT_PUBLIC_API_URL=http://localhost:8000 -t fardb-frontend -f Dockerfile.frontend .
 
       - name: Smoke Test API
+        env:
+          SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY }}
         run: |
           docker run -d --name api_test -p 8000:8000 \
             -e ENV=production \
             -e DATABASE_URL="sqlite:////tmp/fardb.db" \
-            -e SECRET_KEY="${{ secrets.CI_SMOKE_TEST_SECRET_KEY }}" \
+            -e SECRET_KEY="$SECRET_KEY" \
             fardb-api
           # Poll until healthy
           timeout=30
@@ -72,11 +74,13 @@ jobs:
           docker rm frontend_test
 
       - name: Test Environment Variable Failure Behavior
+        env:
+          SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY }}
         run: |
           set +e
           timeout 15s docker run --name api_bad_env \
             -e ENV=production \
-            -e SECRET_KEY="${{ secrets.CI_SMOKE_TEST_SECRET_KEY }}" \
+            -e SECRET_KEY="$SECRET_KEY" \
             -e DATABASE_URL="bad_scheme://bad" \
             fardb-api
           exit_code=$?

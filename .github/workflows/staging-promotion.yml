@@ -13,6 +13,10 @@ on:
       base_url:
         description: 'Staging base URL (optional; falls back to HOSTED_READINESS_BASE_URL secret)'
         required: false
+      tags:
+        description: 'Manual sign-off tags (e.g., [manual-stop] or [star])'
+        required: false
+        default: ''
 
 jobs:
   promotion-gate:
@@ -22,16 +26,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with:
-          python-version: '3.12'
-
       - name: Parse Manual Sign-off Tags
+        env:
+          INPUT_TAGS: ${{ github.event.inputs.tags }}
         run: |
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          if echo "$COMMIT_MSG $PR_TITLE" | grep -qiE '\[manual-stop\]|\[star\]'; then
+          if echo "$INPUT_TAGS" | grep -qiE '\[manual-stop\]|\[star\]'; then
             echo "Manual sign-off tag detected. Pausing/failing for manual approval."
             exit 1
           fi
