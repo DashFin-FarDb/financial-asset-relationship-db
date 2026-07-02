@@ -9,10 +9,10 @@ services:
       - "8000:8000"
     environment:
       - ENV=production
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:?Set ALLOWED_ORIGINS}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
       - DATABASE_URL=${DATABASE_URL:-sqlite:////tmp/fardb.db}
       - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////tmp/fardb.db}
-      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
+      - SECRET_KEY=${SECRET_KEY:-}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
