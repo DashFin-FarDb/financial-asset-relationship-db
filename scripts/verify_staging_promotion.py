@@ -23,14 +23,14 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
     if "asset_graph_database_url" not in content:
         missing.append("ASSET_GRAPH_DATABASE_URL boundary confirmation")
 
-    if (
-        "distinct asset_graph_database_url" not in content
-        and "asset_graph_database_url distinct" not in content
-        and "approved exception" not in content
-        and "shared-boundary statement" not in content
-    ):
+    distinct_confirmed = bool(
+        re.search(
+            r"\basset_graph_database_url\b.*\bdistinct\b|\bdistinct\b.*\basset_graph_database_url\b",
+            content,
+        )
+    )
+    if not distinct_confirmed and "approved exception" not in content and "shared-boundary statement" not in content:
         missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
-
     if (
         "coordination_database_url" not in content
         and "shared-boundary statement" not in content
