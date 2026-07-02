@@ -99,9 +99,12 @@ jobs:
       - name: Run Gate Tests (Security)
         continue-on-error: true
         run: |
-          pytest tests/unit/test_auth_router_audit_logging.py -q --junitxml=results-security-1.xml
-          pytest tests/unit/test_auth_security_events.py -q --junitxml=results-security-2.xml
-          pytest tests/integration/test_graph_admin_router.py -q --junitxml=results-security-3.xml
+          set +e
+          status=0
+          pytest tests/unit/test_auth_router_audit_logging.py -q --junitxml=results-security-1.xml || status=1
+          pytest tests/unit/test_auth_security_events.py -q --junitxml=results-security-2.xml || status=1
+          pytest tests/integration/test_graph_admin_router.py -q --junitxml=results-security-3.xml || status=1
+          exit $status
 
       - name: Check Hosted Readiness
         continue-on-error: true
