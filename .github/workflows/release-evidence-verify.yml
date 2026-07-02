@@ -175,8 +175,6 @@ jobs:
 
           def junit_status(pattern: str) -> str:
               files = sorted(glob.glob(pattern))
-          def junit_status(pattern: str) -> str:
-              files = sorted(glob.glob(pattern))
               if not files:
                   return "MISSING"
 

@@ -21,7 +21,7 @@ jobs:
         run: docker build -t fardb-api -f Dockerfile.api .
 
       - name: Build Frontend Container
-        run: docker build -t fardb-frontend -f Dockerfile.frontend .
+        run: docker build --build-arg NEXT_PUBLIC_API_URL=http://localhost:8000 -t fardb-frontend -f Dockerfile.frontend .
 
       - name: Smoke Test API
         run: |
@@ -52,8 +52,9 @@ jobs:
 
       - name: Smoke Test Frontend
         run: |
-          docker run -d --name frontend_test -p 3000:3000 fardb-frontend
-
+          docker run -d --name frontend_test -p 3000:3000 \
+            -e NEXT_PUBLIC_API_URL=http://localhost:8000 \
+            fardb-frontend
           # Poll until healthy (basic TCP check for Next.js)
           timeout=30
           count=0
