@@ -57,16 +57,21 @@ export const api = {
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Asset> => {
-    return getData<Asset>(`/api/assets/${encodeURIComponent(assetId)}`, { signal });
+    return getData<Asset>(`/api/assets/${encodeURIComponent(assetId)}`, {
+      signal,
+    });
   },
 
   getAssetRelationships: async (
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Relationship[]> => {
-    return getData<Relationship[]>(`/api/assets/${encodeURIComponent(assetId)}/relationships`, {
-      signal,
-    });
+    return getData<Relationship[]>(
+      `/api/assets/${encodeURIComponent(assetId)}/relationships`,
+      {
+        signal,
+      },
+    );
   },
 
   // Relationships
