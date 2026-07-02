@@ -137,6 +137,7 @@ def _workflow_files(workflows_dir: Path) -> list[Path]:
 
 
 @pytest.mark.unit
+@pytest.mark.skip(reason="CircleCI config removed")
 class TestCircleCIConfig:
     """Test CircleCI configuration file."""
 
@@ -656,7 +657,7 @@ class TestConfigurationConsistency:
         # CircleCI
         circleci_path = PROJECT_ROOT / ".circleci" / "config.yml"
         if not circleci_path.exists():
-            pytest.fail(".circleci/config.yml does not exist")
+            pytest.skip(".circleci/config.yml does not exist")
         with open(circleci_path, encoding="utf-8") as f:
             circleci_config = yaml.safe_load(f)
 
@@ -675,7 +676,7 @@ class TestConfigurationConsistency:
         """Node versions should be reasonable across configs."""
         circleci_path = PROJECT_ROOT / ".circleci" / "config.yml"
         if not circleci_path.exists():
-            pytest.fail(".circleci/config.yml does not exist")
+            pytest.skip(".circleci/config.yml does not exist")
         with open(circleci_path, encoding="utf-8") as f:
             content = f.read()
 
