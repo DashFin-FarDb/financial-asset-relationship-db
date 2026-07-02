@@ -62,19 +62,19 @@ def test_check_operational_evidence():
     assert "Asset smoke evidence" in missing
 
 
-@patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
-@patch("scripts.verify_staging_promotion.Path.is_file", return_value=True)
-@patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True)
-@patch("scripts.verify_staging_promotion.Path.resolve")
-def test_verify_staging_promotion_success(mock_resolve, mock_is_relative_to, mock_is_file, mock_exists):
+def test_verify_staging_promotion_success(tmp_path):
     """Test successful staging promotion verification."""
-    mock_resolve.return_value = mock_resolve
-    valid_content = "supabase vercel mapping database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement persistence_loaded == true durable preview asset smoke evidence named owners scanner summary"
-    with patch("builtins.open", mock_open(read_data=valid_content)):
-        with pytest.raises(SystemExit) as exc_info:
-            verify_staging_promotion("dummy_path.md")
-        assert exc_info.value.code == 0
+    evidence_path = tmp_path / "evidence.md"
+    evidence_path.write_text(
+        "supabase vercel mapping database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement "
+        "persistence_loaded == true durable preview asset smoke evidence named owners scanner summary",
+        encoding="utf-8",
+    )
 
+    with patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True):
+        with pytest.raises(SystemExit) as exc_info:
+            verify_staging_promotion(str(evidence_path))
+    assert exc_info.value.code == 0
 
 @patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
 @patch("scripts.verify_staging_promotion.Path.is_file", return_value=True)

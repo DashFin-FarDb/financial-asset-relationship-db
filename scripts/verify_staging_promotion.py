@@ -44,6 +44,7 @@ def _check_persistence_proof(content: str, missing: List[str]) -> None:
     if (
         "persistence_loaded == true" not in content
         and 'startup_source == "persisted"' not in content
+        and 'startup_source="persisted"' not in content
         and '"persistence_loaded": true' not in content
         and '"startup_source": "persisted"' not in content
         and "persistence-loaded proof" not in content
