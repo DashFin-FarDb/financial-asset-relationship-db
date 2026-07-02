@@ -7,10 +7,16 @@
 # See https://docs.bearer.com/guides/bearer-cloud/
 name: Bearer
 
-on:
+"on":
+  push:
+    branches: ["main"]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    # The branches below must be a subset of the branches above
+    branches: ["main"]
   schedule:
-    - cron: "0 0 * * *"
-  workflow_dispatch:
+    - cron: '16 8 * * 1'
+
 jobs:
   bearer:
     permissions:

@@ -18,10 +18,14 @@
 
 name: Snyk Security
 
-on:
+"on":
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
   schedule:
-    - cron: "0 0 * * *"
-  workflow_dispatch:
+    - cron: '0 8 * * 1'  # Run weekly on Mondays at 8 AM UTC
+
 permissions:
   contents: read
 
