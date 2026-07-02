@@ -33,6 +33,7 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
         missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
     if (
         "coordination_database_url" not in content
+        and "coordination shares" not in content
         and "shared-boundary statement" not in content
         and "fallback boundary" not in content
     ):
