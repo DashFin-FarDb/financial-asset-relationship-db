@@ -25,8 +25,9 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
 
     distinct_confirmed = bool(
         re.search(
-            r"\basset_graph_database_url\b.*\bdistinct\b|\bdistinct\b.*\basset_graph_database_url\b",
+            r"(?:\basset_graph_database_url\b.*\bdistinct\b|\bdistinct\b.*\basset_graph_database_url\b)",
             content,
+            flags=re.DOTALL,
         )
     )
     if not distinct_confirmed and "approved exception" not in content and "shared-boundary statement" not in content:
