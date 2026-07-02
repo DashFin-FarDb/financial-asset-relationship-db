@@ -104,7 +104,7 @@ function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
 /**
  * Build Plotly 3D line traces for network edges from node and edge lists.
  *
- * Skips edges whose source or target node is missing and logs a warning in that case.
+ * Skips edges whose source or target node is missing.
  *
  * @param nodes - Nodes with unique `id` and numeric `x`, `y`, `z` coordinates.
  * @param edges - Edges with `source` and `target` node ids and a numeric `strength` between 0 and 1.
