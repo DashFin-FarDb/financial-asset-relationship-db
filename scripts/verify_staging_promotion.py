@@ -26,7 +26,7 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
     if (
         "distinct asset_graph_database_url" not in content
         and "asset_graph_database_url distinct" not in content
-        and "exception" not in content
+        and "approved exception" not in content
         and "shared-boundary statement" not in content
     ):
         missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
