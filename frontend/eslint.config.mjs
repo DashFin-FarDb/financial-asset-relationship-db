@@ -14,6 +14,7 @@ export default tseslint.config(
       'dist/',
       'build/',
       'coverage/',
+      '*.config.js',
       '__tests__/test-utils.test.ts',
       '__tests__/test-utils.ts'
     ]
@@ -40,7 +41,18 @@ export default tseslint.config(
       }
     },
     rules: {
-      'react/react-in-jsx-scope': 'off'
+      'react/react-in-jsx-scope': 'off',
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/set-state-in-effect': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_'
+        }
+      ]
     }
   }
 )
