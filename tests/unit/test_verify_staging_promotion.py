@@ -76,6 +76,7 @@ def test_verify_staging_promotion_success(tmp_path):
             verify_staging_promotion(str(evidence_path))
     assert exc_info.value.code == 0
 
+
 @patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
 @patch("scripts.verify_staging_promotion.Path.is_file", return_value=True)
 @patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True)
