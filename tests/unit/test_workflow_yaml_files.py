@@ -665,11 +665,19 @@ class TestConfigurationConsistency:
             circleci_python_version = circleci_image.split(":")[-1]
 
             # Extract python versions from GitHub Actions CI workflow
-            matrix_versions = ci_config.get("jobs", {}).get("test", {}).get("strategy", {}).get("matrix", {}).get("python-version", [])
+            matrix_versions = (
+                ci_config.get("jobs", {})
+                .get("test", {})
+                .get("strategy", {})
+                .get("matrix", {})
+                .get("python-version", [])
+            )
             assert matrix_versions, "Could not find python-version matrix in ci.yml"
-            
+
             # Assert that the CircleCI python version is one of the supported versions in GitHub Actions
-            assert circleci_python_version in matrix_versions, f"CircleCI python version {circleci_python_version} not in CI matrix {matrix_versions}"
+            assert (
+                circleci_python_version in matrix_versions
+            ), f"CircleCI python version {circleci_python_version} not in CI matrix {matrix_versions}"
 
     def test_node_version_consistency(self):
         """Node versions should be reasonable across configs."""
