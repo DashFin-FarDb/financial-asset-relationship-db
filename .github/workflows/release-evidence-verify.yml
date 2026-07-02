@@ -57,7 +57,7 @@ jobs:
         uses: ./.github/actions/ci-common
         with:
           language: node
-          node-version: '20.9.0'
+          node-version: '22'
           working-directory: frontend
           dependency-paths: frontend/package-lock.json
           install: npm ci

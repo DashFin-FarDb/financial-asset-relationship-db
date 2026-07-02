@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import dynamic from "next/dynamic";
 import type { VisualizationData } from "../types/api";
 
@@ -200,21 +200,15 @@ function prepareVisualizationData(
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<Array<EdgeTrace | NodeTrace>>([]);
-  const [status, setStatus] = useState<VisualizationStatus>("loading");
-  const [message, setMessage] = useState("Loading visualization...");
-
-  useEffect(() => {
+  const { plotData, status, message } = useMemo(() => {
     if (!data) {
-      setPlotData([]);
-      setStatus("empty");
-      setMessage("No visualization data available.");
-      return;
+      return {
+        plotData: [],
+        status: "empty" as VisualizationStatus,
+        message: "No visualization data available.",
+      };
     }
-    const preparation = prepareVisualizationData(data);
-    setPlotData(preparation.plotData);
-    setStatus(preparation.status);
-    setMessage(preparation.message);
+    return prepareVisualizationData(data);
   }, [data]);
 
   if (status !== "ready") {

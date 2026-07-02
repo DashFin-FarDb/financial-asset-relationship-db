@@ -347,10 +347,7 @@ class TestGitHubWorkflows:
         if not workflow_path.exists():
             pytest.fail(f"{request.param} does not exist")
         with open(workflow_path, encoding="utf-8") as f:
-            try:
-                return request.param, yaml.safe_load(f)
-            except yaml.YAMLError as exc:
-                pytest.fail(f"{request.param} has invalid YAML syntax: {exc}")
+            return request.param, yaml.safe_load(f)
 
     def test_workflow_valid_yaml(self, workflow_file):
         """All workflow files are valid YAML."""
@@ -548,10 +545,7 @@ class TestWorkflowSecurity:
             if "secrets." not in content:
                 continue
 
-            try:
-                config = yaml.safe_load(content)
-            except yaml.YAMLError as exc:
-                pytest.fail(f"{workflow_file.name} has invalid YAML syntax: {exc}")
+            config = yaml.safe_load(content)
 
             # This is a best practice, not a hard requirement.
             if not _workflow_has_permissions(config):
@@ -642,10 +636,7 @@ class TestYAMLSyntaxAllFiles:
             file_path = PROJECT_ROOT / yaml_file
             if file_path.exists():
                 with open(file_path, encoding="utf-8") as f:
-                    try:
-                        list(yaml.safe_load_all(f))
-                    except yaml.YAMLError as e:
-                        pytest.fail(f"{yaml_file} has invalid YAML syntax: {e}")
+                    list(yaml.safe_load_all(f))
 
 
 @pytest.mark.integration
