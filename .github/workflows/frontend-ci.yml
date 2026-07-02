@@ -9,6 +9,7 @@ on:
       - 'frontend/app/types/api.ts'
       - 'frontend/__tests__/lib/api-contract-seams.test.ts'
       - '.github/workflows/frontend-ci.yml'
+      - '.github/actions/ci-common/**'
   pull_request:
     branches: [ "main" ]
     paths:
@@ -17,6 +18,7 @@ on:
       - 'frontend/app/types/api.ts'
       - 'frontend/__tests__/lib/api-contract-seams.test.ts'
       - '.github/workflows/frontend-ci.yml'
+      - '.github/actions/ci-common/**'
 
 permissions:
   contents: read
