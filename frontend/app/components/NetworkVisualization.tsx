@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import type { VisualizationData } from "../types/api";
 
@@ -59,6 +59,7 @@ type VisualizationPreparation = {
   status: VisualizationStatus;
   message: string;
   plotData: Array<EdgeTrace | NodeTrace>;
+  warnings?: string[];
 };
 
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
@@ -113,35 +114,38 @@ function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
 function buildEdgeTraces(
   nodes: VisualizationData["nodes"],
   edges: VisualizationData["edges"],
-): EdgeTrace[] {
+): { edgeTraces: EdgeTrace[], warnings: string[] } {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
-  return edges.reduce<EdgeTrace[]>((acc, edge) => {
-    const sourceNode = nodeMap.get(edge.source);
-    const targetNode = nodeMap.get(edge.target);
+  return edges.reduce<{ edgeTraces: EdgeTrace[], warnings: string[] }>(
+    (acc, edge) => {
+      const sourceNode = nodeMap.get(edge.source);
+      const targetNode = nodeMap.get(edge.target);
 
-    if (!sourceNode || !targetNode) {
-      console.warn(
-        `Missing node for edge: source=${edge.source}, target=${edge.target}`,
-      );
+      if (!sourceNode || !targetNode) {
+        acc.warnings.push(
+          `Missing node for edge: source=${edge.source}, target=${edge.target}`,
+        );
+        return acc;
+      }
+
+      acc.edgeTraces.push({
+        type: "scatter3d",
+        mode: "lines",
+        x: [sourceNode.x, targetNode.x],
+        y: [sourceNode.y, targetNode.y],
+        z: [sourceNode.z, targetNode.z],
+        line: {
+          color: `rgba(125, 125, 125, ${edge.strength})`,
+          width: edge.strength * 3,
+        },
+        hoverinfo: "none",
+        showlegend: false,
+      });
+
       return acc;
-    }
-
-    acc.push({
-      type: "scatter3d",
-      mode: "lines",
-      x: [sourceNode.x, targetNode.x],
-      y: [sourceNode.y, targetNode.y],
-      z: [sourceNode.z, targetNode.z],
-      line: {
-        color: `rgba(125, 125, 125, ${edge.strength})`,
-        width: edge.strength * 3,
-      },
-      hoverinfo: "none",
-      showlegend: false,
-    });
-
-    return acc;
-  }, []);
+    },
+    { edgeTraces: [], warnings: [] }
+  );
 }
 
 /**
@@ -179,11 +183,13 @@ function prepareVisualizationData(
   }
 
   const nodeTrace = buildNodeTrace(nodes);
-  const edgeTraces = buildEdgeTraces(nodes, edges);
+  const { edgeTraces, warnings } = buildEdgeTraces(nodes, edges);
+
   return {
     status: "ready",
     message: "",
     plotData: [...edgeTraces, nodeTrace],
+    warnings,
   };
 }
 
@@ -200,22 +206,24 @@ function prepareVisualizationData(
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<Array<EdgeTrace | NodeTrace>>([]);
-  const [status, setStatus] = useState<VisualizationStatus>("loading");
-  const [message, setMessage] = useState("Loading visualization...");
+  const preparation = useMemo<VisualizationPreparation>(() => {
+    if (!data) {
+      return {
+        status: "empty",
+        message: "No visualization data available.",
+        plotData: [],
+      };
+    }
+    return prepareVisualizationData(data);
+  }, [data]);
 
   useEffect(() => {
-    if (!data) {
-      setPlotData([]);
-      setStatus("empty");
-      setMessage("No visualization data available.");
-      return;
+    if (preparation.warnings && preparation.warnings.length > 0) {
+      preparation.warnings.forEach(w => console.warn(w));
     }
-    const preparation = prepareVisualizationData(data);
-    setPlotData(preparation.plotData);
-    setStatus(preparation.status);
-    setMessage(preparation.message);
-  }, [data]);
+  }, [preparation.warnings]);
+
+  const { plotData, status, message } = preparation;
 
   if (status !== "ready") {
     const isUrgent = status === "tooLarge";

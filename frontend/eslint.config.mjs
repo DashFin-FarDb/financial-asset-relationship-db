@@ -46,6 +46,11 @@ export default tseslint.config(
         afterEach: 'readonly'
       }
     },
+    settings: {
+      react: {
+        version: 'detect'
+      }
+    },
     rules: {
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
