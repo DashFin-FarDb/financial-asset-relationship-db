@@ -19,10 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
 
@@ -30,7 +30,9 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Verify Staging Baseline Checklist
-        run: python scripts/verify_staging_promotion.py "${{ github.event.inputs.evidence_file }}"
+        env:
+          EVIDENCE_FILE: ${{ github.event.inputs.evidence_file }}
+        run: python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
 
       - name: Check Hosted Readiness
         id: readiness
@@ -38,6 +40,10 @@ jobs:
           HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
         run: |
           URL="${{ github.event.inputs.base_url || env.HOSTED_READINESS_BASE_URL }}"
+          if [ -z "$URL" ]; then
+            echo "Error: Base URL is missing"
+            exit 1
+          fi
           if [ -n "$URL" ]; then
             echo "::add-mask::$URL"
           fi
@@ -45,18 +51,18 @@ jobs:
           python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b761e4b58bb5c2f3 # v4
         with:
           name: staging-readiness
           path: readiness-output.json
 
       - name: Assert Persistence Loaded
         run: |
-          if ! grep -q '"persistence_loaded": true' readiness-output.json; then
+          if [ "$(jq -r '.observed_fields."graph.persistence_loaded"' readiness-output.json)" != "true" ]; then
             echo "Error: persistence_loaded is not true in the readiness output."
             exit 1
           fi
-          if ! grep -q '"startup_source": "persisted"' readiness-output.json; then
+          if [ "$(jq -r '.observed_fields."graph.startup_source"' readiness-output.json)" != "persisted" ]; then
             echo "Error: startup_source is not \"persisted\" in the readiness output."
             exit 1
           fi

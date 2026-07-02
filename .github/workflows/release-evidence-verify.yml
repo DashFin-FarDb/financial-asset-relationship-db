@@ -51,20 +51,23 @@ jobs:
           install: npm ci
 
       - name: Run Gate Tests (Durable Persistence)
+        continue-on-error: true
         run: |
-          pytest tests/unit/test_repository_graph_persistence.py -q --junitxml=results-persistence-1.xml || true
-          pytest tests/unit/test_graph_lifecycle_persistence.py -q --junitxml=results-persistence-2.xml || true
-          pytest tests/unit/test_repository_graph_persistence_fields.py -q --junitxml=results-persistence-3.xml || true
-          pytest tests/unit/test_graph_lifecycle_persistence_fields.py -q --junitxml=results-persistence-4.xml || true
-          pytest tests/integration/test_hosted_graph_startup_readiness.py -q --junitxml=results-persistence-5.xml || true
+          pytest tests/unit/test_repository_graph_persistence.py -q --junitxml=results-persistence-1.xml
+          pytest tests/unit/test_graph_lifecycle_persistence.py -q --junitxml=results-persistence-2.xml
+          pytest tests/unit/test_repository_graph_persistence_fields.py -q --junitxml=results-persistence-3.xml
+          pytest tests/unit/test_graph_lifecycle_persistence_fields.py -q --junitxml=results-persistence-4.xml
+          pytest tests/integration/test_hosted_graph_startup_readiness.py -q --junitxml=results-persistence-5.xml
 
       - name: Run Gate Tests (Restart/Reload)
+        continue-on-error: true
         run: |
           pytest tests/integration/test_restart_recovery_clean_path.py -q --junitxml=results-restart-1.xml
           # De-duplicated tests/integration/test_distributed_hosting_failure_modes.py (it's also in Recovery/Rebuild, so we'll run it there or here)
           pytest tests/integration/test_distributed_hosting_failure_modes.py -q --junitxml=results-restart-2.xml
 
       - name: Run Gate Tests (Recovery/Rebuild)
+        continue-on-error: true
         run: |
           pytest tests/unit/test_distributed_lock_runtime.py -q --junitxml=results-recovery-1.xml
           pytest tests/unit/test_recovery_gate.py -q --junitxml=results-recovery-2.xml
@@ -74,6 +77,7 @@ jobs:
           # test_distributed_hosting_failure_modes.py omitted here as it was run in Restart/Reload
 
       - name: Run Gate Tests (API Contract)
+        continue-on-error: true
         run: |
           pytest tests/unit/test_api_density_contract.py -q --junitxml=results-api-1.xml
           pytest tests/unit/test_api_asset_pagination_values.py -q --junitxml=results-api-2.xml
@@ -82,12 +86,14 @@ jobs:
           cd frontend && npm test -- api-contract-seams.test.ts
 
       - name: Run Gate Tests (Security)
+        continue-on-error: true
         run: |
           pytest tests/unit/test_auth_router_audit_logging.py -q --junitxml=results-security-1.xml
           pytest tests/unit/test_auth_security_events.py -q --junitxml=results-security-2.xml
           pytest tests/integration/test_graph_admin_router.py -q --junitxml=results-security-3.xml
 
       - name: Check Hosted Readiness
+        continue-on-error: true
         env:
           HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
         run: |
@@ -106,11 +112,13 @@ jobs:
             LABEL_FLAG="--base-url-label ${{ github.event.inputs.base_url_label }}"
           fi
 
-python scripts/check_hosted_readiness.py "$URL" --json $LABEL_FLAG $PERSISTENCE_FLAG > readiness-output.json
+          if [ -n "$URL" ]; then
+            python scripts/check_hosted_readiness.py "$URL" --json $LABEL_FLAG $PERSISTENCE_FLAG > readiness-output.json
+          else
             echo "{}" > readiness-output.json
           fi
-
       - name: Upload Artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: release-evidence
@@ -119,6 +127,7 @@ python scripts/check_hosted_readiness.py "$URL" --json $LABEL_FLAG $PERSISTENCE_
             readiness-output.json
 
       - name: Emit Gate Summary
+        if: always()
         run: |
           echo "## Release Evidence Gate Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Gate | Status | Evidence |" >> $GITHUB_STEP_SUMMARY

@@ -1,10 +1,12 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import tsParser from '@typescript-eslint/parser'
-import reactPlugin from 'eslint-plugin-react'
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import nextVitals from 'eslint-config-next/core-web-vitals';
 
-export default [
+export default tseslint.config(
   js.configs.recommended,
+  ...tseslint.configs.recommended,
+  ...nextVitals,
   {
     ignores: [
       'node_modules/',
@@ -18,13 +20,12 @@ export default [
   },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
-    plugins: {
-      react: reactPlugin
-    },
     languageOptions: {
-      parser: tsParser,
-      ecmaVersion: 'latest',
-      sourceType: 'module',
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true
+        }
+      },
       globals: {
         ...globals.browser,
         ...globals.node,
@@ -36,17 +37,10 @@ export default [
         beforeEach: 'readonly',
         afterAll: 'readonly',
         afterEach: 'readonly'
-      },
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true
-        }
       }
     },
     rules: {
-      'no-unused-vars': 'off',
-      'no-undef': 'off',
       'react/react-in-jsx-scope': 'off'
     }
   }
-]
+);
