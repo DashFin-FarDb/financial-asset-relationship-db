@@ -87,11 +87,14 @@ jobs:
       - name: Run Gate Tests (API Contract)
         continue-on-error: true
         run: |
-          pytest tests/unit/test_api_density_contract.py -q --junitxml=results-api-1.xml
-          pytest tests/unit/test_api_asset_pagination_values.py -q --junitxml=results-api-2.xml
-          pytest tests/integration/test_api_pagination_contract.py -q --junitxml=results-api-3.xml
-          pytest tests/unit/test_asset_page_response_alias.py -q --junitxml=results-api-4.xml
-          cd frontend && npm test -- api-contract-seams.test.ts
+          set +e
+          status=0
+          pytest tests/unit/test_api_density_contract.py -q --junitxml=results-api-1.xml || status=1
+          pytest tests/unit/test_api_asset_pagination_values.py -q --junitxml=results-api-2.xml || status=1
+          pytest tests/integration/test_api_pagination_contract.py -q --junitxml=results-api-3.xml || status=1
+          pytest tests/unit/test_asset_page_response_alias.py -q --junitxml=results-api-4.xml || status=1
+          (cd frontend && npm test -- api-contract-seams.test.ts) || status=1
+          exit $status
 
       - name: Run Gate Tests (Security)
         continue-on-error: true
