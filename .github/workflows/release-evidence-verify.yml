@@ -175,6 +175,8 @@ jobs:
 
           def junit_status(pattern: str) -> str:
               files = sorted(glob.glob(pattern))
+          def junit_status(pattern: str) -> str:
+              files = sorted(glob.glob(pattern))
               if not files:
                   return "MISSING"
 
@@ -194,9 +196,9 @@ jobs:
               try:
                   with open(path, "r", encoding="utf-8") as handle:
                       data = json.load(handle)
-                      if not data or "status" not in data:
-                          return "SKIPPED"
-                      return "PASS" if data.get("status") == "passed" else "FAIL"
+                  if not data:
+                      return "MISSING"
+                  return "PASS" if data.get("status") == "passed" else "FAIL"
               except FileNotFoundError:
                   return "MISSING"
               except Exception:
