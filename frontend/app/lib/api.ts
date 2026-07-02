@@ -36,12 +36,12 @@ async function getData<T>(
 
 export const api = {
   // Health check
-  healthCheck: async () => {
+  healthCheck: () => {
     return getData("/api/health");
   },
 
   // Assets
-  getAssets: async (
+  getAssets: (
     params?: {
       asset_class?: string;
       sector?: string;
@@ -53,7 +53,7 @@ export const api = {
     return getData<AssetPageResponse>("/api/assets", { params, signal });
   },
 
-  getAssetDetail: async (
+  getAssetDetail: (
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Asset> => {
@@ -62,7 +62,7 @@ export const api = {
     });
   },
 
-  getAssetRelationships: async (
+  getAssetRelationships: (
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Relationship[]> => {
@@ -75,30 +75,30 @@ export const api = {
   },
 
   // Relationships
-  getAllRelationships: async (
+  getAllRelationships: (
     signal?: AbortSignal,
   ): Promise<Relationship[]> => {
     return getData<Relationship[]>("/api/relationships", { signal });
   },
 
   // Metrics
-  getMetrics: async (signal?: AbortSignal): Promise<Metrics> => {
+  getMetrics: (signal?: AbortSignal): Promise<Metrics> => {
     return getData<Metrics>("/api/graph/metrics", { signal });
   },
 
   // Visualization
-  getVisualizationData: async (
+  getVisualizationData: (
     signal?: AbortSignal,
   ): Promise<VisualizationData> => {
     return getData<VisualizationData>("/api/visualization", { signal });
   },
 
   // Metadata
-  getAssetClasses: async (): Promise<{ asset_classes: string[] }> => {
+  getAssetClasses: (): Promise<{ asset_classes: string[] }> => {
     return getData<{ asset_classes: string[] }>("/api/asset-classes");
   },
 
-  getSectors: async (): Promise<{ sectors: string[] }> => {
+  getSectors: (): Promise<{ sectors: string[] }> => {
     return getData<{ sectors: string[] }>("/api/sectors");
   },
 };
