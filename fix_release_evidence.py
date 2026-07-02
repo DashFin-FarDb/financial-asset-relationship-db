@@ -1,4 +1,4 @@
-with open('.github/workflows/release-evidence-verify.yml', 'r') as f:
+with open(".github/workflows/release-evidence-verify.yml", "r") as f:
     content = f.read()
 
 # 1. Add tags input
@@ -44,5 +44,5 @@ if old_steps in content:
 else:
     print("Could not find old_steps")
 
-with open('.github/workflows/release-evidence-verify.yml', 'w') as f:
+with open(".github/workflows/release-evidence-verify.yml", "w") as f:
     f.write(content)

@@ -1,6 +1,6 @@
 import re
 
-with open('.github/workflows/release-evidence-verify.yml', 'r') as f:
+with open(".github/workflows/release-evidence-verify.yml", "r") as f:
     content = f.read()
 
 # 1. Update the documentation check step
@@ -86,7 +86,7 @@ if old_summary in content:
     content = content.replace(old_summary, new_summary)
 else:
     print("Could not find old_summary")
-    
+
 # Remove human override test
 old_api = """          pytest tests/unit/test_human_override_mechanism.py -q --junitxml=results-api-5.xml || status=1
           pytest tests/unit/test_api_density_contract.py -q --junitxml=results-api-1.xml || status=1"""
@@ -96,5 +96,5 @@ if old_api in content:
 else:
     print("Could not find old_api")
 
-with open('.github/workflows/release-evidence-verify.yml', 'w') as f:
+with open(".github/workflows/release-evidence-verify.yml", "w") as f:
     f.write(content)

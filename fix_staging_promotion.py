@@ -1,4 +1,4 @@
-with open('.github/workflows/staging-promotion.yml', 'r') as f:
+with open(".github/workflows/staging-promotion.yml", "r") as f:
     content = f.read()
 
 # 1. Update Checkout step
@@ -71,5 +71,5 @@ if old_trailing.strip() in content.strip():
 else:
     print("Could not find old_trailing")
 
-with open('.github/workflows/staging-promotion.yml', 'w') as f:
-    f.write(content + '\n')
+with open(".github/workflows/staging-promotion.yml", "w") as f:
+    f.write(content + "\n")

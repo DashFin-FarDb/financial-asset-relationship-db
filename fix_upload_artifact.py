@@ -1,4 +1,4 @@
-with open('.github/workflows/release-evidence-verify.yml', 'r') as f:
+with open(".github/workflows/release-evidence-verify.yml", "r") as f:
     content = f.read()
 
 old_upload = """      - name: Upload Artifacts
@@ -24,6 +24,6 @@ if old_upload in content:
     content = content.replace(old_upload, new_upload)
 else:
     print("Could not find old_upload")
-    
-with open('.github/workflows/release-evidence-verify.yml', 'w') as f:
+
+with open(".github/workflows/release-evidence-verify.yml", "w") as f:
     f.write(content)
