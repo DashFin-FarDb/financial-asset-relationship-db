@@ -1,0 +1,88 @@
+"""Unit tests for the staging promotion verification script."""
+
+from unittest.mock import mock_open, patch
+
+import pytest
+
+from scripts.verify_staging_promotion import (
+    _check_database_boundaries,
+    _check_operational_evidence,
+    _check_persistence_proof,
+    _check_provider_labels,
+    verify_staging_promotion,
+)
+
+
+def test_check_provider_labels():
+    """Test that provider and hosting labels are correctly checked."""
+    missing = []
+    _check_provider_labels("supabase vercel mapping", missing)
+    assert not missing
+
+    missing = []
+    _check_provider_labels("some random text", missing)
+    assert "Supabase provider label" in missing
+    assert "Vercel mapping (frontend/backend traffic)" in missing
+
+
+def test_check_database_boundaries():
+    """Test that database boundary confirmations are correctly checked."""
+    missing = []
+    _check_database_boundaries(
+        "database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement", missing
+    )
+    assert not missing
+
+    missing = []
+    _check_database_boundaries("missing boundary confirmation", missing)
+    assert "DATABASE_URL boundary confirmation" in missing
+    assert "ASSET_GRAPH_DATABASE_URL boundary confirmation" in missing
+
+
+def test_check_persistence_proof():
+    """Test that durability/persistence proofs are correctly checked."""
+    missing = []
+    _check_persistence_proof("persistence_loaded == true durable preview", missing)
+    assert not missing
+
+    missing = []
+    _check_persistence_proof("missing proof", missing)
+    assert "Persistence-loaded proof (graph.persistence_loaded == true)" in missing
+    assert "Durable/non-durable preview label" in missing
+
+
+def test_check_operational_evidence():
+    """Test that operational evidence like smoke tests are correctly checked."""
+    missing = []
+    _check_operational_evidence("asset smoke evidence named owners scanner summary", missing)
+    assert not missing
+
+    missing = []
+    _check_operational_evidence("no evidence", missing)
+    assert "Asset smoke evidence" in missing
+
+
+@patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
+@patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True)
+@patch("scripts.verify_staging_promotion.Path.resolve")
+def test_verify_staging_promotion_success(mock_resolve, mock_is_relative_to, mock_exists):
+    """Test successful staging promotion verification."""
+    mock_resolve.return_value = mock_resolve
+    valid_content = "supabase vercel mapping database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement persistence_loaded == true durable preview asset smoke evidence named owners scanner summary"
+    with patch("builtins.open", mock_open(read_data=valid_content)):
+        with pytest.raises(SystemExit) as exc_info:
+            verify_staging_promotion("dummy_path.md")
+        assert exc_info.value.code == 0
+
+
+@patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
+@patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True)
+@patch("scripts.verify_staging_promotion.Path.resolve")
+def test_verify_staging_promotion_failure(mock_resolve, mock_is_relative_to, mock_exists):
+    """Test failed staging promotion verification."""
+    mock_resolve.return_value = mock_resolve
+    invalid_content = "missing almost everything"
+    with patch("builtins.open", mock_open(read_data=invalid_content)):
+        with pytest.raises(SystemExit) as exc_info:
+            verify_staging_promotion("dummy_path.md")
+        assert exc_info.value.code == 1

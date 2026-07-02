@@ -50,6 +50,7 @@ jobs:
           install: npm ci
 
       - name: Run Gate Tests (Durable Persistence)
+        id: gate_persistence
         continue-on-error: true
         run: |
           set +e
@@ -62,6 +63,7 @@ jobs:
           exit $exit_code
 
       - name: Run Gate Tests (Restart/Reload)
+        id: gate_restart
         continue-on-error: true
         run: |
           set +e
@@ -72,6 +74,7 @@ jobs:
           exit $status
 
       - name: Run Gate Tests (Recovery/Rebuild)
+        id: gate_recovery
         continue-on-error: true
         run: |
           set +e
@@ -85,6 +88,7 @@ jobs:
           exit $status
 
       - name: Run Gate Tests (API Contract)
+        id: gate_api
         continue-on-error: true
         run: |
           set +e
@@ -97,6 +101,7 @@ jobs:
           exit $status
 
       - name: Run Gate Tests (Security)
+        id: gate_security
         continue-on-error: true
         run: |
           set +e
@@ -107,6 +112,7 @@ jobs:
           exit $status
 
       - name: Check Hosted Readiness
+        id: gate_hosted
         continue-on-error: true
         env:
           HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
@@ -142,6 +148,19 @@ jobs:
           path: |
             results-*.xml
             readiness-output.json
+
+      - name: Assert All Gates Passed
+        if: always()
+        run: |
+          if [ "${{ steps.gate_persistence.outcome }}" == "failure" ] || \
+             [ "${{ steps.gate_restart.outcome }}" == "failure" ] || \
+             [ "${{ steps.gate_recovery.outcome }}" == "failure" ] || \
+             [ "${{ steps.gate_api.outcome }}" == "failure" ] || \
+             [ "${{ steps.gate_security.outcome }}" == "failure" ] || \
+             [ "${{ steps.gate_hosted.outcome }}" == "failure" ]; then
+            echo "One or more gate tests failed!"
+            exit 1
+          fi
 
       - name: Emit Gate Summary
         if: always()
