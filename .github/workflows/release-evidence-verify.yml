@@ -74,12 +74,15 @@ jobs:
       - name: Run Gate Tests (Recovery/Rebuild)
         continue-on-error: true
         run: |
-          pytest tests/unit/test_distributed_lock_runtime.py -q --junitxml=results-recovery-1.xml
-          pytest tests/unit/test_recovery_gate.py -q --junitxml=results-recovery-2.xml
-          pytest tests/unit/test_recovery_gate_startup.py -q --junitxml=results-recovery-3.xml
-          pytest tests/integration/test_recovery_gate_integration.py -q --junitxml=results-recovery-4.xml
-          pytest tests/integration/test_lock_refresh_flow.py -q --junitxml=results-recovery-5.xml
+          set +e
+          status=0
+          pytest tests/unit/test_distributed_lock_runtime.py -q --junitxml=results-recovery-1.xml || status=1
+          pytest tests/unit/test_recovery_gate.py -q --junitxml=results-recovery-2.xml || status=1
+          pytest tests/unit/test_recovery_gate_startup.py -q --junitxml=results-recovery-3.xml || status=1
+          pytest tests/integration/test_recovery_gate_integration.py -q --junitxml=results-recovery-4.xml || status=1
+          pytest tests/integration/test_lock_refresh_flow.py -q --junitxml=results-recovery-5.xml || status=1
           # test_distributed_hosting_failure_modes.py omitted here as it was run in Restart/Reload
+          exit $status
 
       - name: Run Gate Tests (API Contract)
         continue-on-error: true
