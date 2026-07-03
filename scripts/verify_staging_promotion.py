@@ -53,39 +53,33 @@ def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa:
     if not json_blocks:
         json_blocks = re.findall(r"(\{[\s\S]*?\})", content)
 
-    found_configured = False
-    found_enabled = False
-    found_loaded = False
-    found_source = False
+    found_all_in_one = False
 
     for block in json_blocks:
         try:
             data = json.loads(block)
             if not isinstance(data, dict):
                 continue
-
-            if data.get("graph_persistence_configured") is True:
-                found_configured = True
-
+            
+            configured = data.get("graph_persistence_configured") is True
+            
             graph_data = data.get("graph", {})
+            enabled = False
+            loaded = False
+            source = False
             if isinstance(graph_data, dict):
-                if graph_data.get("persistence_enabled") is True:
-                    found_enabled = True
-                if graph_data.get("persistence_loaded") is True:
-                    found_loaded = True
-                if graph_data.get("startup_source") == "persisted":
-                    found_source = True
+                enabled = graph_data.get("persistence_enabled") is True
+                loaded = graph_data.get("persistence_loaded") is True
+                source = graph_data.get("startup_source") == "persisted"
+                
+            if configured and enabled and loaded and source:
+                found_all_in_one = True
+                break
         except json.JSONDecodeError:
             continue
 
-    if not found_configured:
-        missing.append("graph_persistence_configured == true (in parsed JSON)")
-    if not found_enabled:
-        missing.append("graph.persistence_enabled == true (in parsed JSON)")
-    if not found_loaded:
-        missing.append("graph.persistence_loaded == true (in parsed JSON)")
-    if not found_source:
-        missing.append('graph.startup_source == "persisted" (in parsed JSON)')
+    if not found_all_in_one:
+        missing.append("Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')")
 
     if (
         "durable preview" not in content

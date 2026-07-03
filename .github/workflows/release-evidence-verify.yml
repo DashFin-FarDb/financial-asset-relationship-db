@@ -16,6 +16,10 @@ on:
         description: 'Require persistence proof'
         type: boolean
         default: true
+      strict_rc_gate:
+        description: 'Strict RC promotion gate (fails if hosted readiness is skipped)'
+        type: boolean
+        default: false
       tags:
         description: 'Manual sign-off tags (e.g., [manual-stop] or [star])'
         required: false
@@ -189,6 +193,8 @@ jobs:
 
       - name: Assert All Gates Passed
         if: always()
+        env:
+          STRICT_RC_GATE: ${{ inputs.strict_rc_gate }}
         run: |
           if [ "${{ steps.gate_persistence.outcome }}" == "failure" ] || \
           [ "${{ steps.gate_restart.outcome }}" == "failure" ] || \
@@ -199,6 +205,16 @@ jobs:
           [ "${{ steps.gate_docs.outcome }}" == "failure" ]; then
             echo "One or more gate tests failed!"
             exit 1
+          fi
+
+          if [ "$STRICT_RC_GATE" == "true" ]; then
+            # We assume JSON output has `{"status": "passed"}` if successful
+            # Since {} is written on skip, jq will return null
+            status=$(jq -r '.status // "skipped"' readiness-output.json)
+            if [ "$status" != "passed" ]; then
+              echo "Hosted readiness was skipped or failed. This is not allowed for a strict RC promotion gate."
+              exit 1
+            fi
           fi
 
       - name: Emit Gate Summary
