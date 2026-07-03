@@ -13,9 +13,9 @@
 #
 # 2. Navigate to the "Integrate" page in the SOOS app (https://app.soos.io/integrate/dast/). Note the "API Credentials" section of this page; the keys you will need for the next step are here.
 #
-# 3. Set up your SOOS API Key, SOOS Client Id, and Target URL as Github Secrets named SOOS_API_KEY, SOOS_CLIENT_ID, and SOOS_DAST_TARGET_URL.
+# 3. Set up your SOOS API Key, SOOS Client Id, and Target URL as GitHub Secrets named SOOS_API_KEY, SOOS_CLIENT_ID, and SOOS_DAST_TARGET_URL.
 #
-# 4. (Optional) If you'd like to upload SARIF results of DAST scans to GitHub, set SOOS_GITHUB_PAT with your Github Personal Access Token.
+# 4. (Optional) If you'd like to upload SARIF results of DAST scans to GitHub, set SOOS_GITHUB_PAT with your GitHub Personal Access Token.
 #
 #  Check for the latest version here: https://github.com/marketplace/actions/soos-dast
 
