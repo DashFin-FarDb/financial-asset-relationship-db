@@ -55,9 +55,7 @@ jobs:
       - name: Smoke Test Frontend
         run: |
           docker run -d --name frontend_test -p 3000:3000 \
-            -e NEXT_PUBLIC_API_URL=http://localhost:8000 \
             fardb-frontend
-          # Poll until healthy (basic TCP check for Next.js)
           timeout=30
           count=0
           while ! curl -fsS http://localhost:3000 > /dev/null; do
