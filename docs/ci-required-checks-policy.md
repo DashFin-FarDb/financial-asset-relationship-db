@@ -27,13 +27,13 @@ These checks run on PRs but are not strictly required for merge (e.g., they migh
 
 To balance developer velocity with security rigor, we enforce distinct required-check policies based on the deployment path:
 
-| Scanner Context | Standard PR (Blocking?) | Release Candidate (Blocking?) | Emergency Release (Blocking?) | Scheduled Audit (Blocking?) |
-| --- | --- | --- | --- | --- |
-| Snyk Code/Container | No | Yes | No | Yes |
-| CodeQL / Semgrep | No | Yes | No | Yes |
-| APIsec DAST / SOOS | No | Yes | No | Yes |
-| Dependency Check | No | Yes | No | Yes |
-| Trivy / Bandit | No | Yes | No | Yes |
+| Scanner Context     | Standard PR (Blocking?) | Release Candidate (Blocking?) | Emergency Release (Blocking?) | Scheduled Audit (Blocking?) |
+| ------------------- | ----------------------- | ----------------------------- | ----------------------------- | --------------------------- |
+| Snyk Code/Container | No                      | Yes                           | No                            | Yes                         |
+| CodeQL / Semgrep    | No                      | Yes                           | No                            | Yes                         |
+| APIsec DAST / SOOS  | No                      | Yes                           | No                            | Yes                         |
+| Dependency Check    | No                      | Yes                           | No                            | Yes                         |
+| Trivy / Bandit      | No                      | Yes                           | No                            | Yes                         |
 
 - **Standard PR Path:** Scanners are advisory or deferred to the nightly schedule. They do not block merge.
 - **Release Candidate Path:** All defined scanners MUST be run and MUST pass (or have findings explicitly approved) before a release candidate can be promoted to staging or production.
