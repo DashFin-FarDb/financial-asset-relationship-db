@@ -41,5 +41,5 @@ These are heavyweight or scanner jobs that run on a daily/weekly schedule or dur
 Update branch protection rules in GitHub settings to require:
 
 - `Frontend CI / build`
-- `CI / test`
+- `Python CI / Test Python 3.10`, `Python CI / Test Python 3.11`, `Python CI / Test Python 3.12`
 - `Production Container / build-and-smoke-test`
