@@ -224,7 +224,10 @@ class TestGitHubWorkflows:
         if not workflow_path.exists():
             pytest.fail(f"{request.param} does not exist")
         with open(workflow_path, encoding="utf-8") as f:
-            return request.param, yaml.safe_load(f)
+            try:
+                return request.param, yaml.safe_load(f)
+            except yaml.YAMLError as exc:
+                pytest.fail(f"{request.param} is not valid YAML: {exc}")
 
     def test_workflow_valid_yaml(self, workflow_file):
         """All workflow files are valid YAML."""
