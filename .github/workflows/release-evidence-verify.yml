@@ -31,7 +31,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          ref: ${{ github.event.inputs.release_sha }}
+          fetch-depth: 0
+
+      - name: Validate and Checkout Release SHA
+        run: |
+          if ! git merge-base --is-ancestor ${{ github.event.inputs.release_sha }} origin/main; then
+            echo "Error: release_sha ${{ github.event.inputs.release_sha }} is not an ancestor of origin/main."
+            exit 1
+          fi
+          git checkout ${{ github.event.inputs.release_sha }}
 
       - name: Parse Manual Sign-off Tags
         env:
