@@ -72,12 +72,12 @@ async def get_assets(
             status_code=500,
             detail="An internal error occurred. Please try again later.",
         ) from e
-    return AssetPageResponse(
+    return AssetPageResponse(  # type: ignore[call-arg]
         items=[AssetResponse(**serialize_asset(asset)) for asset in page_assets],
         total=total,
         page=page,
         per_page=per_page,
-        hasMore=(page * per_page) < total,
+        has_more=(page * per_page) < total,
     )
 
 

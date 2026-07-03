@@ -153,9 +153,11 @@ export default function Home() {
    * Loads metrics and visualization data from the API.
    * Sets loading states during fetch and handles errors by logging and setting error message.
    */
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const loadData = useCallback(async (isRetry = false) => {
+    if (isRetry) {
+      setLoading(true);
+      setError(null);
+    }
 
     try {
       const [metricsData, visualizationData] = await Promise.all([
@@ -178,8 +180,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadData();
+    const init = async () => {
+      await loadData();
+    };
+    init();
   }, [loadData]);
 
   const handleTabChange = useCallback((tab: HomeTab) => {
@@ -211,7 +215,7 @@ export default function Home() {
           activeTab={activeTab}
           vizData={vizData}
           metrics={metrics}
-          onRetry={loadData}
+          onRetry={() => loadData(true)}
         />
       </div>
 

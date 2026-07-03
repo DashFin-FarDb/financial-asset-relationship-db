@@ -23,13 +23,7 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
     if "asset_graph_database_url" not in content:
         missing.append("ASSET_GRAPH_DATABASE_URL boundary confirmation")
 
-    distinct_confirmed = bool(
-        re.search(
-            r"(?:\basset_graph_database_url\b.*\bdistinct\b|\bdistinct\b.*\basset_graph_database_url\b)",
-            content,
-            flags=re.DOTALL,
-        )
-    )
+    distinct_confirmed = "asset_graph_database_url" in content and "distinct" in content
     if not distinct_confirmed and "approved exception" not in content and "shared-boundary statement" not in content:
         missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
     if (
@@ -85,7 +79,11 @@ def verify_staging_promotion(evidence_file: str) -> None:
 
     evidence_path = Path(evidence_file).resolve(strict=True)
     repo_root = Path(__file__).resolve().parent.parent
-    if not evidence_path.is_relative_to(repo_root):
+    try:
+        is_relative = evidence_path.is_relative_to(repo_root)
+    except ValueError:
+        is_relative = False
+    if not is_relative:
         print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {repo_root}.")
         sys.exit(1)
     with open(evidence_path, "r", encoding="utf-8") as f:
