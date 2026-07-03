@@ -9,6 +9,7 @@ from scripts.verify_staging_promotion import (
     _check_operational_evidence,
     _check_persistence_proof,
     _check_provider_labels,
+    _check_urls,
     verify_staging_promotion,
 )
 
@@ -42,24 +43,53 @@ def test_check_database_boundaries():
 def test_check_persistence_proof():
     """Test that durability/persistence proofs are correctly checked."""
     missing = []
-    _check_persistence_proof("persistence_loaded == true durable preview", missing)
+    _check_persistence_proof(
+        'graph_persistence_configured graph.persistence_enabled graph.persistence_loaded graph.startup_source == "persisted" durable preview',
+        missing,
+    )
     assert not missing
 
     missing = []
     _check_persistence_proof("missing proof", missing)
-    assert "Persistence-loaded proof (graph.persistence_loaded == true)" in missing
+    assert "graph_persistence_configured" in missing
+    assert "graph.persistence_enabled" in missing
+    assert "graph.persistence_loaded" in missing
+    assert 'graph.startup_source == "persisted"' in missing
     assert "Durable/non-durable preview label" in missing
+
+
+def test_check_urls():
+    """Test that URLs are correctly checked."""
+    missing = []
+    _check_urls("https://github.com/org/repo/actions/runs/123", missing)
+    assert not missing
+
+    missing = []
+    _check_urls("https://github.com/org/repo/actions", missing)
+    assert "Specific workflow run URL or artifact URL" in missing
+    assert "Generic Actions URLs are not allowed" in missing
 
 
 def test_check_operational_evidence():
     """Test that operational evidence like smoke tests are correctly checked."""
     missing = []
-    _check_operational_evidence("asset smoke evidence named owners scanner summary", missing)
+    _check_operational_evidence(
+        "asset smoke evidence hosted readiness health json named owners scanner summary", missing
+    )
     assert not missing
 
     missing = []
     _check_operational_evidence("no evidence", missing)
     assert "Asset smoke evidence" in missing
+    assert "hosted readiness" in missing
+    assert "health JSON" in missing
+
+    missing = []
+    _check_operational_evidence(
+        "asset smoke evidence hosted readiness health json named owners scanner summary secret: supersecretvalue",
+        missing,
+    )
+    assert "Non-redacted evidence found (secrets/tokens must be redacted)" in missing
 
 
 def test_verify_staging_promotion_success(tmp_path):
@@ -67,7 +97,8 @@ def test_verify_staging_promotion_success(tmp_path):
     evidence_path = tmp_path / "evidence.md"
     evidence_path.write_text(
         "supabase vercel mapping database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement "
-        "persistence_loaded == true durable preview asset smoke evidence named owners scanner summary",
+        'graph_persistence_configured graph.persistence_enabled graph.persistence_loaded graph.startup_source == "persisted" durable preview '
+        "https://github.com/org/repo/actions/runs/123 asset smoke evidence hosted readiness health json named owners scanner summary",
         encoding="utf-8",
     )
 

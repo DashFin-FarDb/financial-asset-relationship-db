@@ -1,5 +1,18 @@
 name: Production Container
 
+# EVIDENCE BOUNDARY STATEMENT:
+# This workflow proves that the Dockerfiles for the API and frontend can build successfully,
+# and that the resulting containers can start and pass basic local liveness checks (smoke tests).
+#
+# THIS WORKFLOW DOES NOT PROVE:
+# - Live hosted readiness
+# - Production promotion safety
+# - Hosted durable graph persistence
+#
+# Do not use a successful run of this workflow as evidence for the 'graph_persistence_configured',
+# 'graph.persistence_enabled', 'graph.persistence_loaded', or 'graph.startup_source == "persisted"'
+# release gates.
+
 on:
   push:
     branches: [ "main" ]

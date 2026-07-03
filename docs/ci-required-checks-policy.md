@@ -23,13 +23,22 @@ These checks run on PRs but are not strictly required for merge (e.g., they migh
 
 - Dependabot PRs (though patch/minor updates can auto-merge if tests pass).
 
-### 3. Scheduled / Release-Only
+### 3. Security Scanners and Compliance Checks
 
-These are heavyweight or scanner jobs that run on a daily/weekly schedule or during a release-candidate cut to reduce PR noise. Some scanners may still run on PRs when their workflow `on:` includes `pull_request`/`push`.
+To balance developer velocity with security rigor, we enforce distinct required-check policies based on the deployment path:
 
-- Scheduled / release-only: Snyk Security/Container/Infrastructure (`snyk-*.yml`), Bearer (`bearer.yml`)
-- Scheduled + push-to-main: Trivy (`trivy.yml`), Bandit (`bandit.yml`), CodeQL (`codeql.yml`), Dependency Check (`dependency-check.yml`)
-- Scheduled + PR/push: Semgrep (`semgrep.yml`)
+| Scanner Context | Standard PR (Blocking?) | Release Candidate (Blocking?) | Emergency Release (Blocking?) | Scheduled Audit (Blocking?) |
+| --- | --- | --- | --- | --- |
+| Snyk Code/Container | No | Yes | No | Yes |
+| CodeQL / Semgrep | No | Yes | No | Yes |
+| APIsec DAST / SOOS | No | Yes | No | Yes |
+| Dependency Check | No | Yes | No | Yes |
+| Trivy / Bandit | No | Yes | No | Yes |
+
+- **Standard PR Path:** Scanners are advisory or deferred to the nightly schedule. They do not block merge.
+- **Release Candidate Path:** All defined scanners MUST be run and MUST pass (or have findings explicitly approved) before a release candidate can be promoted to staging or production.
+- **Emergency Release Path:** Scanners may be bypassed via an exception process, but the post-incident process requires a retroactive audit.
+- **Scheduled Audit:** Scanners run automatically. Failures generate alerts that must be triaged within SLA.
 
 ## Platform Deduplication
 

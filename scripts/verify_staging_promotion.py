@@ -47,15 +47,18 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
 
 def _check_persistence_proof(content: str, missing: List[str]) -> None:
     """Check for durability/persistence proofs."""
+    if "graph_persistence_configured" not in content:
+        missing.append("graph_persistence_configured")
+    if "graph.persistence_enabled" not in content and "persistence_enabled" not in content:
+        missing.append("graph.persistence_enabled")
+    if "graph.persistence_loaded" not in content and "persistence_loaded" not in content:
+        missing.append("graph.persistence_loaded")
     if (
-        "persistence_loaded == true" not in content
-        and 'startup_source == "persisted"' not in content
+        'startup_source == "persisted"' not in content
         and 'startup_source="persisted"' not in content
-        and '"persistence_loaded": true' not in content
         and '"startup_source": "persisted"' not in content
-        and "persistence-loaded proof" not in content
     ):
-        missing.append("Persistence-loaded proof (graph.persistence_loaded == true)")
+        missing.append('graph.startup_source == "persisted"')
 
     if (
         "durable preview" not in content
@@ -65,16 +68,35 @@ def _check_persistence_proof(content: str, missing: List[str]) -> None:
         missing.append("Durable/non-durable preview label")
 
 
+def _check_urls(content: str, missing: List[str]) -> None:
+    """Check for valid, specific URLs and reject generic Actions URLs."""
+    if "/actions/runs/" not in content and "/artifacts/" not in content:
+        missing.append("Specific workflow run URL or artifact URL")
+
+    if re.search(r"https://github\.com/[^/]+/[^/]+/actions/?(?:\s|\)|$)", content):
+        missing.append("Generic Actions URLs are not allowed")
+
+
 def _check_operational_evidence(content: str, missing: List[str]) -> None:
     """Check for smoke tests, ownership, and scanner summaries."""
     if "asset smoke evidence" not in content and "/api/assets?per_page=1" not in content:
         missing.append("Asset smoke evidence")
+
+    if "hosted readiness" not in content:
+        missing.append("hosted readiness")
+
+    if "health json" not in content and "health.json" not in content:
+        missing.append("health JSON")
 
     if "named owners" not in content and "deploy operator" not in content and "promotion approver" not in content:
         missing.append("Named owners (deploy, promotion, rollback, restore, persistence-verification)")
 
     if "scanner summary" not in content and "security scanner" not in content:
         missing.append("Scanner summary")
+
+    # Simple heuristic for unredacted secrets/tokens
+    if re.search(r"(?i)(password|secret|token|key)[\"']?\s*[:=]\s*[\"']?[^\s\*]{8,}", content):
+        missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
 
 
 def verify_staging_promotion(evidence_file: str) -> None:
@@ -101,6 +123,7 @@ def verify_staging_promotion(evidence_file: str) -> None:
     _check_provider_labels(content, missing)
     _check_database_boundaries(content, missing)
     _check_persistence_proof(content, missing)
+    _check_urls(content, missing)
     _check_operational_evidence(content, missing)
 
     if missing:
