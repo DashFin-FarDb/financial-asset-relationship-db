@@ -52,13 +52,13 @@ jobs:
           fi
       - name: Run SOOS DAST Analysis
         if: steps.check_secrets.outputs.skip != 'true'
-        uses: soos-io/soos-dast-github-action@a7eb40b94c1c81eb76b178ba1befdc21823f86fa
+        uses: soos-io/soos-dast-github-action@v2
         with:
           client_id: ${{ secrets.SOOS_CLIENT_ID }}
           api_key: ${{ secrets.SOOS_API_KEY }}
-          project_name: "<YOUR-PROJECT-NAME>"
+          project_name: "financial-asset-relationship-db"
           scan_mode: "baseline"
-          target_url: "https://www.example.com/"
+          target_url: "http://localhost:3000/"
           export_format: "Sarif"
           export_file_type: "Json"
       - name: Find and rename SARIF file since it is unique
