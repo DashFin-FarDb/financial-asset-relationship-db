@@ -60,6 +60,24 @@ def test_check_persistence_proof():
     _check_persistence_proof(valid_json, missing)
     assert not missing
 
+    # Positive case: hosted-readiness JSON with observed_fields dot-keys
+    missing = []
+    observed_fields_json = """
+    ```json
+    {
+      "observed_fields": {
+        "graph_persistence_configured": true,
+        "graph.persistence_enabled": true,
+        "graph.persistence_loaded": true,
+        "graph.startup_source": "persisted"
+      }
+    }
+    ```
+    durable preview
+    """
+    _check_persistence_proof(observed_fields_json, missing)
+    assert not missing
+
     # Negative case: missing completely
     missing = []
     _check_persistence_proof("missing proof", missing)

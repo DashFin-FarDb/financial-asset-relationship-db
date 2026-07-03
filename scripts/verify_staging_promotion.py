@@ -101,16 +101,23 @@ def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa:
             if not isinstance(data, dict):
                 continue
 
-            configured = data.get("graph_persistence_configured") is True
+            observed = data.get("observed_fields")
+            if isinstance(observed, dict):
+                configured = observed.get("graph_persistence_configured") is True
+                enabled = observed.get("graph.persistence_enabled") is True
+                loaded = observed.get("graph.persistence_loaded") is True
+                source = observed.get("graph.startup_source") == "persisted"
+            else:
+                configured = data.get("graph_persistence_configured") is True
 
-            graph_data = data.get("graph", {})
-            enabled = False
-            loaded = False
-            source = False
-            if isinstance(graph_data, dict):
-                enabled = graph_data.get("persistence_enabled") is True
-                loaded = graph_data.get("persistence_loaded") is True
-                source = graph_data.get("startup_source") == "persisted"
+                graph_data = data.get("graph", {})
+                enabled = False
+                loaded = False
+                source = False
+                if isinstance(graph_data, dict):
+                    enabled = graph_data.get("persistence_enabled") is True
+                    loaded = graph_data.get("persistence_loaded") is True
+                    source = graph_data.get("startup_source") == "persisted"
 
             if configured and enabled and loaded and source:
                 found_all_in_one = True
