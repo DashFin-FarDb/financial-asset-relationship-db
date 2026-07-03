@@ -22,7 +22,7 @@ jobs:
   promotion-gate:
     runs-on: ubuntu-latest
     environment:
-      name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'staging-manual-gate' || '' }}
+      name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'staging-manual-gate' || 'staging' }}
     timeout-minutes: 15
     steps:
       - name: Checkout
