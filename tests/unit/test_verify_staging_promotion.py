@@ -71,9 +71,10 @@ def test_verify_staging_promotion_success(tmp_path):
         encoding="utf-8",
     )
 
-    with patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True):  # skipcq: PTC-W0062
+    evidence_path_str = str(evidence_path)
+    with patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True):
         with pytest.raises(SystemExit) as exc_info:
-            verify_staging_promotion(str(evidence_path))
+            verify_staging_promotion(evidence_path_str)
     assert exc_info.value.code == 0
 
 
@@ -83,9 +84,10 @@ def test_verify_staging_promotion_failure(tmp_path):
     evidence_path.write_text("missing almost everything", encoding="utf-8")
 
     # tmp_path is outside the repo root, so bypass the repo-relative constraint for this unit test.
-    with patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True):  # skipcq: PTC-W0062
+    evidence_path_str = str(evidence_path)
+    with patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True):
         with pytest.raises(SystemExit) as exc_info:
-            verify_staging_promotion(str(evidence_path))
+            verify_staging_promotion(evidence_path_str)
     assert exc_info.value.code == 1
 
 
