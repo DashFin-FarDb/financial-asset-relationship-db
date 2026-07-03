@@ -1098,6 +1098,7 @@ def _run_rebuild_pipeline(
             resolved_url=resolved_url,
             source=source,
         )
+        raise AssertionError("_handle_rebuild_failure returned unexpectedly")
 
 
 def _setup_coordination_and_domain_factories(

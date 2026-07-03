@@ -44,7 +44,7 @@ jobs:
       - name: Check if SOOS secrets are configured
         id: check_secrets
         run: |
-          if [ -z "${{ secrets.SOOS_API_KEY }}" ] || [ -z "${{ secrets.SOOS_CLIENT_ID }}" ]; then
+          if [ -z "${{ secrets.SOOS_API_KEY }}" ] || [ -z "${{ secrets.SOOS_CLIENT_ID }}" ] || [ -z "${{ secrets.SOOS_DAST_TARGET_URL }}" ]; then
             echo "SOOS secrets not configured, skipping scan"
             echo "skip=true" >> $GITHUB_OUTPUT
           else
@@ -52,13 +52,13 @@ jobs:
           fi
       - name: Run SOOS DAST Analysis
         if: steps.check_secrets.outputs.skip != 'true'
-        uses: soos-io/soos-dast-github-action@v2
+        uses: leftrightleft/soos-dast-github-action@9624812b061995551d09d5dccbc3f9d0c6fa5b78
         with:
           client_id: ${{ secrets.SOOS_CLIENT_ID }}
           api_key: ${{ secrets.SOOS_API_KEY }}
           project_name: "financial-asset-relationship-db"
           scan_mode: "baseline"
-          target_url: "http://localhost:3000/"
+          target_url: ${{ secrets.SOOS_DAST_TARGET_URL }}
           export_format: "Sarif"
           export_file_type: "Json"
       - name: Find and rename SARIF file since it is unique

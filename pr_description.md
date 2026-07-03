@@ -42,7 +42,7 @@ Implement Objective 8 (Release and Deployment Automation Layer) including CI gat
 - `scripts/verify_staging_promotion.py`: Staging baseline check.
 - `Dockerfile.api`, `Dockerfile.frontend`, `docker-compose.production.yml`: Production Docker setups.
 - `.github/dependabot.yml`, `.github/workflows/dependency-review.yml`: Dependabot configuration.
-- `.circleci/config.yml`: Deleted.
+- `.circleci/config.yml`: Retained as a minimal stub for legacy branch protection requirements.
 - `.github/workflows/*.yml`: Scanner configurations updated to schedule.
 
 ## Validation Commands
@@ -81,5 +81,5 @@ docker-compose -f docker-compose.production.yml build
 
 **Related Documentation**:
 
-- [PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md)
-- [Automation Scope Policy](./AUTOMATION_SCOPE_POLICY.md)
+- [PR Scope Guardrails](docs/PR_SCOPE_GUARDRAILS.md)
+- [Automation Scope Policy](.github/AUTOMATION_SCOPE_POLICY.md)
