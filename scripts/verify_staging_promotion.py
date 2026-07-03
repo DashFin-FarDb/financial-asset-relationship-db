@@ -60,9 +60,9 @@ def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa:
             data = json.loads(block)
             if not isinstance(data, dict):
                 continue
-            
+
             configured = data.get("graph_persistence_configured") is True
-            
+
             graph_data = data.get("graph", {})
             enabled = False
             loaded = False
@@ -71,7 +71,7 @@ def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa:
                 enabled = graph_data.get("persistence_enabled") is True
                 loaded = graph_data.get("persistence_loaded") is True
                 source = graph_data.get("startup_source") == "persisted"
-                
+
             if configured and enabled and loaded and source:
                 found_all_in_one = True
                 break
@@ -79,7 +79,9 @@ def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa:
             continue
 
     if not found_all_in_one:
-        missing.append("Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')")
+        missing.append(
+            "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
+        )
 
     if (
         "durable preview" not in content

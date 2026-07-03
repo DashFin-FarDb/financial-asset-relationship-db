@@ -63,12 +63,15 @@ def test_check_persistence_proof():
     # Negative case: missing completely
     missing = []
     _check_persistence_proof("missing proof", missing)
-    assert "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')" in missing
+    assert (
+        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
+        in missing
+    )
     assert "Durable/non-durable preview label" in missing
 
     # Negative cases: false boolean values and wrong startup_source
     missing = []
-    false_json = '''
+    false_json = """
     {
       "graph_persistence_configured": false,
       "graph": {
@@ -78,13 +81,16 @@ def test_check_persistence_proof():
       }
     }
     durable preview
-    '''
+    """
     _check_persistence_proof(false_json, missing)
-    assert "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')" in missing
+    assert (
+        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
+        in missing
+    )
 
     # Negative case: bare field outside of `graph` object
     missing = []
-    bare_json = '''
+    bare_json = """
     {
       "graph_persistence_configured": true,
       "persistence_enabled": true,
@@ -93,24 +99,30 @@ def test_check_persistence_proof():
       "graph": {}
     }
     durable preview
-    '''
+    """
     _check_persistence_proof(bare_json, missing)
-    assert "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')" in missing
+    assert (
+        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
+        in missing
+    )
 
     # Negative case: prose only (does not contain actual JSON object)
     missing = []
-    prose_evidence = '''
+    prose_evidence = """
     We expect graph_persistence_configured == true.
     Also graph.persistence_enabled: true and graph.persistence_loaded: true.
     The graph.startup_source should be "persisted".
     durable preview
-    '''
+    """
     _check_persistence_proof(prose_evidence, missing)
-    assert "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')" in missing
+    assert (
+        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
+        in missing
+    )
 
     # Negative case: required fields split across separate JSON blocks
     missing = []
-    split_json = '''
+    split_json = """
     Here is the first block:
     ```json
     {
@@ -128,9 +140,12 @@ def test_check_persistence_proof():
     }
     ```
     durable preview
-    '''
+    """
     _check_persistence_proof(split_json, missing)
-    assert "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')" in missing
+    assert (
+        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
+        in missing
+    )
 
 
 def test_check_urls():
