@@ -1914,9 +1914,9 @@ def list_rebuild_jobs(
         jobs_orm = repo.list_rebuild_jobs(limit=limit, offset=offset, status=status_value)
         jobs = [_orm_to_response(job_orm) for job_orm in jobs_orm]
         total = repo.count_rebuild_jobs(status=status_value)
-        return RebuildJobListResponse(  # type: ignore[call-arg]
+        return RebuildJobListResponse(
             jobs=jobs,
             count=len(jobs),
             total=total,
-            has_more=offset + len(jobs) < total,
+            hasMore=offset + len(jobs) < total,
         )

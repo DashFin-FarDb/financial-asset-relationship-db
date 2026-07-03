@@ -467,7 +467,7 @@ class TestWorkflowPaths:
 
     @pytest.mark.unit
     def test_apisec_workflow_path_filters(self):
-        """Apisec workflow has appropriate path filters."""
+        """APIsec workflow has appropriate path filters."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "apisec-scan.yml"
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml does not exist")
