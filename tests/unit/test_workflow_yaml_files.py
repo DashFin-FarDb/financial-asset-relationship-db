@@ -317,7 +317,7 @@ class TestSpecificWorkflows:
             assert len(versions) >= 2, "Should test multiple Python versions"
 
     def test_apisec_workflow_has_secrets(self):
-        """Apisec workflow references required secrets."""
+        """APIsec workflow references required secrets."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "apisec-scan.yml"
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml does not exist")
@@ -347,7 +347,7 @@ class TestSpecificWorkflows:
             assert bandit_job["permissions"]["security-events"] == "write"
 
     def test_codeql_workflow_languages(self):
-        """Codeql workflow specifies languages to analyze."""
+        """CodeQL workflow specifies languages to analyze."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "codeql.yml"
         if not workflow_path.exists():
             pytest.skip("codeql.yml does not exist")
