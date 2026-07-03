@@ -52,7 +52,7 @@ jobs:
           fi
       - name: Run SOOS DAST Analysis
         if: steps.check_secrets.outputs.skip != 'true'
-        uses: leftrightleft/soos-dast-github-action@9624812b061995551d09d5dccbc3f9d0c6fa5b78
+        uses: soos-io/soos-dast-github-action@a7eb40b94c1c81eb76b178ba1befdc21823f86fa
         with:
           client_id: ${{ secrets.SOOS_CLIENT_ID }}
           api_key: ${{ secrets.SOOS_API_KEY }}
