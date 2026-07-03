@@ -31,6 +31,8 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'staging-manual-gate' || 'release-evidence' }}
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -52,8 +54,9 @@ jobs:
           INPUT_TAGS: ${{ github.event.inputs.tags }}
         run: |
           if echo "$INPUT_TAGS" | grep -qiE '\[manual-stop\]|\[star\]'; then
-            echo "Manual sign-off tag detected. Pausing/failing for manual approval."
-            exit 1
+            echo "Manual sign-off tag detected; protected GitHub Environment approval was required before this job started."
+          else
+            echo "No manual sign-off tag detected."
           fi
       - name: Install Dependencies
         uses: ./.github/actions/ci-common
