@@ -180,6 +180,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    /**
+     * Internal async initialization wrapper to prevent react-hooks/set-state-in-effect issues.
+     */
     const init = async () => {
       await loadData();
     };

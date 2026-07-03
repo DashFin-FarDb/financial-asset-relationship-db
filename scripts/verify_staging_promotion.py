@@ -15,6 +15,24 @@ def _check_provider_labels(content: str, missing: List[str]) -> None:
         missing.append("Vercel mapping (frontend/backend traffic)")
 
 
+def _check_distinct_boundary(content: str, missing: List[str]) -> None:
+    """Check for distinct graph boundary definitions."""
+    distinct_confirmed = "asset_graph_database_url" in content and "distinct" in content
+    if not distinct_confirmed and "approved exception" not in content and "shared-boundary statement" not in content:
+        missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
+
+
+def _check_coordination_boundary(content: str, missing: List[str]) -> None:
+    """Check for coordination boundary definitions."""
+    if (
+        "coordination_database_url" not in content
+        and "coordination shares" not in content
+        and "shared-boundary statement" not in content
+        and "fallback boundary" not in content
+    ):
+        missing.append("Coordination boundary or explicit shared-boundary statement")
+
+
 def _check_database_boundaries(content: str, missing: List[str]) -> None:
     """Check for required database boundary definitions."""
     if not re.search(r"\bdatabase_url\b", content):
@@ -23,16 +41,8 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
     if "asset_graph_database_url" not in content:
         missing.append("ASSET_GRAPH_DATABASE_URL boundary confirmation")
 
-    distinct_confirmed = "asset_graph_database_url" in content and "distinct" in content
-    if not distinct_confirmed and "approved exception" not in content and "shared-boundary statement" not in content:
-        missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
-    if (
-        "coordination_database_url" not in content
-        and "coordination shares" not in content
-        and "shared-boundary statement" not in content
-        and "fallback boundary" not in content
-    ):
-        missing.append("Coordination boundary or explicit shared-boundary statement")
+    _check_distinct_boundary(content, missing)
+    _check_coordination_boundary(content, missing)
 
 
 def _check_persistence_proof(content: str, missing: List[str]) -> None:
