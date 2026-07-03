@@ -1098,7 +1098,7 @@ def _run_rebuild_pipeline(
             resolved_url=resolved_url,
             source=source,
         )
-        raise AssertionError("_handle_rebuild_failure returned unexpectedly")
+        raise
 
 
 def _setup_coordination_and_domain_factories(
@@ -1919,5 +1919,5 @@ def list_rebuild_jobs(
             jobs=jobs,
             count=len(jobs),
             total=total,
-            hasMore=offset + len(jobs) < total,
+            has_more=offset + len(jobs) < total,
         )

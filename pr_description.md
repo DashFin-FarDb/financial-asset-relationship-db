@@ -23,7 +23,7 @@ Implement Objective 8 (Release and Deployment Automation Layer) including CI gat
 - Configured frontend CI via `.github/workflows/frontend-ci.yml` and installed `jest-junit`.
 - Added `Dockerfile.api`, `Dockerfile.frontend`, and `docker-compose.production.yml` for isolated production containers.
 - Created `.github/workflows/production-container.yml` to build and smoke test the production container track.
-- Deduplicated CircleCI pipelines (deleted `.circleci`) and shifted heavy scanner jobs to run on schedule/release logic.
+- Reduced `.circleci/config.yml` to a minimal stub for legacy branch protection requirements, shifting heavy scanner jobs to run on schedule/release logic.
 - Codified CI required checks policy in `docs/ci-required-checks-policy.md`.
 - Implemented `dependabot.yml` for grouped dependency updates and enabled `fail-on-severity` for `dependency-review.yml`.
 

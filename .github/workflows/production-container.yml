@@ -25,7 +25,7 @@ jobs:
 
       - name: Smoke Test API
         env:
-          SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY }}
+          SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
         run: |
           docker run -d --name api_test -p 8000:8000 \
             -e ENV=production \
@@ -75,7 +75,7 @@ jobs:
 
       - name: Test Environment Variable Failure Behavior
         env:
-          SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY }}
+          SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
         run: |
           set +e
           timeout 15s docker run --name api_bad_env \
