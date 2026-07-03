@@ -513,7 +513,10 @@ class TestYAMLSyntaxAllFiles:
             file_path = PROJECT_ROOT / yaml_file
             if file_path.exists():
                 with open(file_path, encoding="utf-8") as f:
-                    list(yaml.safe_load_all(f))
+                    try:
+                        list(yaml.safe_load_all(f))
+                    except yaml.YAMLError as e:
+                        pytest.fail(f"{yaml_file} has invalid YAML syntax: {e}")
 
 
 @pytest.mark.integration
