@@ -23,7 +23,7 @@ Implement Objective 8 (Release and Deployment Automation Layer) including CI gat
 - Configured frontend CI via `.github/workflows/frontend-ci.yml` and installed `jest-junit`.
 - Added `Dockerfile.api`, `Dockerfile.frontend`, and `docker-compose.production.yml` for isolated production containers.
 - Created `.github/workflows/production-container.yml` to build and smoke test the production container track.
-- Removed `.circleci/config.yml` as part of CI platform deduplication (GitHub Actions is the canonical PR gate); update any legacy branch protection rules that still reference CircleCI.
+- Deleted `.circleci/config.yml` entirely as part of CI platform deduplication (CircleCI is no longer in use; GitHub Actions is the canonical PR gate). Any legacy branch protection rules that still reference CircleCI must be updated to reference GitHub Actions required checks instead.
 - Codified CI required checks policy in `docs/ci-required-checks-policy.md`.
 - Implemented `dependabot.yml` for grouped dependency updates and enabled `fail-on-severity` for `dependency-review.yml`.
 
@@ -42,7 +42,7 @@ Implement Objective 8 (Release and Deployment Automation Layer) including CI gat
 - `scripts/verify_staging_promotion.py`: Staging baseline check.
 - `Dockerfile.api`, `Dockerfile.frontend`, `docker-compose.production.yml`: Production Docker setups.
 - `.github/dependabot.yml`, `.github/workflows/dependency-review.yml`: Dependabot configuration.
-- `.circleci/config.yml`: Removed as part of CI platform deduplication (branch protection should rely on GitHub Actions required checks).
+- `.circleci/config.yml`: Deleted entirely as part of CI platform deduplication (CircleCI is no longer in use; branch protection must rely on GitHub Actions required checks).
 - `.github/workflows/*.yml`: Scanner configurations updated to schedule.
 
 ## Validation Commands
