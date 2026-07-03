@@ -1,6 +1,7 @@
 """Staging promotion verification script."""
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -45,20 +46,46 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
     _check_coordination_boundary(content, missing)
 
 
-def _check_persistence_proof(content: str, missing: List[str]) -> None:
-    """Check for durability/persistence proofs."""
-    if "graph_persistence_configured" not in content:
-        missing.append("graph_persistence_configured")
-    if "graph.persistence_enabled" not in content and "persistence_enabled" not in content:
-        missing.append("graph.persistence_enabled")
-    if "graph.persistence_loaded" not in content and "persistence_loaded" not in content:
-        missing.append("graph.persistence_loaded")
-    if (
-        'startup_source == "persisted"' not in content
-        and 'startup_source="persisted"' not in content
-        and '"startup_source": "persisted"' not in content
-    ):
-        missing.append('graph.startup_source == "persisted"')
+def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa: C901
+    """Check for durability/persistence proofs by parsing JSON payloads."""
+    # Try to find JSON blocks (markdown or bare curly braces)
+    json_blocks = re.findall(r"```(?:json)?\s*(\{.*?\})\s*```", content, re.DOTALL | re.IGNORECASE)
+    if not json_blocks:
+        json_blocks = re.findall(r"(\{[\s\S]*?\})", content)
+
+    found_configured = False
+    found_enabled = False
+    found_loaded = False
+    found_source = False
+
+    for block in json_blocks:
+        try:
+            data = json.loads(block)
+            if not isinstance(data, dict):
+                continue
+
+            if data.get("graph_persistence_configured") is True:
+                found_configured = True
+
+            graph_data = data.get("graph", {})
+            if isinstance(graph_data, dict):
+                if graph_data.get("persistence_enabled") is True:
+                    found_enabled = True
+                if graph_data.get("persistence_loaded") is True:
+                    found_loaded = True
+                if graph_data.get("startup_source") == "persisted":
+                    found_source = True
+        except json.JSONDecodeError:
+            continue
+
+    if not found_configured:
+        missing.append("graph_persistence_configured == true (in parsed JSON)")
+    if not found_enabled:
+        missing.append("graph.persistence_enabled == true (in parsed JSON)")
+    if not found_loaded:
+        missing.append("graph.persistence_loaded == true (in parsed JSON)")
+    if not found_source:
+        missing.append('graph.startup_source == "persisted" (in parsed JSON)')
 
     if (
         "durable preview" not in content

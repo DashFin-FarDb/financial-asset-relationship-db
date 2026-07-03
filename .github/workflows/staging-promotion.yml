@@ -60,6 +60,14 @@ jobs:
 
       - name: Assert Persistence Loaded
         run: |
+          if [ "$(jq -r '.observed_fields."graph_persistence_configured"' readiness-output.json)" != "true" ]; then
+            echo "Error: graph_persistence_configured is not true in the readiness output."
+            exit 1
+          fi
+          if [ "$(jq -r '.observed_fields."graph.persistence_enabled"' readiness-output.json)" != "true" ]; then
+            echo "Error: graph.persistence_enabled is not true in the readiness output."
+            exit 1
+          fi
           if [ "$(jq -r '.observed_fields."graph.persistence_loaded"' readiness-output.json)" != "true" ]; then
             echo "Error: persistence_loaded is not true in the readiness output."
             exit 1

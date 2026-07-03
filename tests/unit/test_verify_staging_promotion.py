@@ -41,21 +41,83 @@ def test_check_database_boundaries():
 
 
 def test_check_persistence_proof():
-    """Test that durability/persistence proofs are correctly checked."""
+    """Test that durability/persistence proofs are correctly checked via JSON payloads."""
+    # Positive case: valid JSON block
     missing = []
-    _check_persistence_proof(
-        'graph_persistence_configured graph.persistence_enabled graph.persistence_loaded graph.startup_source == "persisted" durable preview',
-        missing,
-    )
+    valid_json = """
+    ```json
+    {
+      "graph_persistence_configured": true,
+      "graph": {
+        "persistence_enabled": true,
+        "persistence_loaded": true,
+        "startup_source": "persisted"
+      }
+    }
+    ```
+    durable preview
+    """
+    _check_persistence_proof(valid_json, missing)
     assert not missing
 
+    # Negative case: missing completely
     missing = []
     _check_persistence_proof("missing proof", missing)
-    assert "graph_persistence_configured" in missing
-    assert "graph.persistence_enabled" in missing
-    assert "graph.persistence_loaded" in missing
-    assert 'graph.startup_source == "persisted"' in missing
+    assert "graph_persistence_configured == true (in parsed JSON)" in missing
+    assert "graph.persistence_enabled == true (in parsed JSON)" in missing
+    assert "graph.persistence_loaded == true (in parsed JSON)" in missing
+    assert 'graph.startup_source == "persisted" (in parsed JSON)' in missing
     assert "Durable/non-durable preview label" in missing
+
+    # Negative cases: false boolean values and wrong startup_source
+    missing = []
+    false_json = """
+    {
+      "graph_persistence_configured": false,
+      "graph": {
+        "persistence_enabled": false,
+        "persistence_loaded": false,
+        "startup_source": "sample"
+      }
+    }
+    durable preview
+    """
+    _check_persistence_proof(false_json, missing)
+    assert "graph_persistence_configured == true (in parsed JSON)" in missing
+    assert "graph.persistence_enabled == true (in parsed JSON)" in missing
+    assert "graph.persistence_loaded == true (in parsed JSON)" in missing
+    assert 'graph.startup_source == "persisted" (in parsed JSON)' in missing
+
+    # Negative case: bare field outside of `graph` object
+    missing = []
+    bare_json = """
+    {
+      "graph_persistence_configured": true,
+      "persistence_enabled": true,
+      "persistence_loaded": true,
+      "startup_source": "persisted",
+      "graph": {}
+    }
+    durable preview
+    """
+    _check_persistence_proof(bare_json, missing)
+    assert "graph.persistence_enabled == true (in parsed JSON)" in missing
+    assert "graph.persistence_loaded == true (in parsed JSON)" in missing
+    assert 'graph.startup_source == "persisted" (in parsed JSON)' in missing
+
+    # Negative case: prose only (does not contain actual JSON object)
+    missing = []
+    prose_evidence = """
+    We expect graph_persistence_configured == true.
+    Also graph.persistence_enabled: true and graph.persistence_loaded: true.
+    The graph.startup_source should be "persisted".
+    durable preview
+    """
+    _check_persistence_proof(prose_evidence, missing)
+    assert "graph_persistence_configured == true (in parsed JSON)" in missing
+    assert "graph.persistence_enabled == true (in parsed JSON)" in missing
+    assert "graph.persistence_loaded == true (in parsed JSON)" in missing
+    assert 'graph.startup_source == "persisted" (in parsed JSON)' in missing
 
 
 def test_check_urls():
@@ -97,8 +159,18 @@ def test_verify_staging_promotion_success(tmp_path):
     evidence_path = tmp_path / "evidence.md"
     evidence_path.write_text(
         "supabase vercel mapping database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement "
-        'graph_persistence_configured graph.persistence_enabled graph.persistence_loaded graph.startup_source == "persisted" durable preview '
-        "https://github.com/org/repo/actions/runs/123 asset smoke evidence hosted readiness health json named owners scanner summary",
+        "durable preview "
+        "https://github.com/org/repo/actions/runs/123 asset smoke evidence hosted readiness health json named owners scanner summary "
+        "```json\n"
+        "{\n"
+        '  "graph_persistence_configured": true,\n'
+        '  "graph": {\n'
+        '    "persistence_enabled": true,\n'
+        '    "persistence_loaded": true,\n'
+        '    "startup_source": "persisted"\n'
+        "  }\n"
+        "}\n"
+        "```",
         encoding="utf-8",
     )
 
