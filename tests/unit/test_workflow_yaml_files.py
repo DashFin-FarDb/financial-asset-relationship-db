@@ -224,10 +224,7 @@ class TestGitHubWorkflows:
         if not workflow_path.exists():
             pytest.fail(f"{request.param} does not exist")
         with open(workflow_path, encoding="utf-8") as f:
-            try:
-                return request.param, yaml.safe_load(f)
-            except yaml.YAMLError as exc:
-                pytest.fail(f"{request.param} has invalid YAML syntax: {exc}")
+            return request.param, yaml.safe_load(f)
 
     def test_workflow_valid_yaml(self, workflow_file):
         """All workflow files are valid YAML."""
@@ -317,7 +314,7 @@ class TestSpecificWorkflows:
             assert len(versions) >= 2, "Should test multiple Python versions"
 
     def test_apisec_workflow_has_secrets(self):
-        """APIsec workflow references required secrets."""
+        """The APIsec workflow references required secrets."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "apisec-scan.yml"
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml does not exist")
@@ -347,7 +344,7 @@ class TestSpecificWorkflows:
             assert bandit_job["permissions"]["security-events"] == "write"
 
     def test_codeql_workflow_languages(self):
-        """CodeQL workflow specifies languages to analyze."""
+        """The CodeQL workflow specifies languages to analyze."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "codeql.yml"
         if not workflow_path.exists():
             pytest.skip("codeql.yml does not exist")
@@ -425,10 +422,7 @@ class TestWorkflowSecurity:
             if "secrets." not in content:
                 continue
 
-            try:
-                config = yaml.safe_load(content)
-            except yaml.YAMLError as exc:
-                pytest.fail(f"{workflow_file.name} has invalid YAML syntax: {exc}")
+            config = yaml.safe_load(content)
 
             # This is a best practice, not a hard requirement.
             if not _workflow_has_permissions(config):
@@ -467,7 +461,7 @@ class TestWorkflowPaths:
 
     @pytest.mark.unit
     def test_apisec_workflow_path_filters(self):
-        """APIsec workflow has appropriate path filters."""
+        """The APIsec workflow has appropriate path filters."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "apisec-scan.yml"
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml does not exist")
@@ -519,10 +513,7 @@ class TestYAMLSyntaxAllFiles:
             file_path = PROJECT_ROOT / yaml_file
             if file_path.exists():
                 with open(file_path, encoding="utf-8") as f:
-                    try:
-                        list(yaml.safe_load_all(f))
-                    except yaml.YAMLError as e:
-                        pytest.fail(f"{yaml_file} has invalid YAML syntax: {e}")
+                    list(yaml.safe_load_all(f))
 
 
 @pytest.mark.integration

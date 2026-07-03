@@ -43,8 +43,12 @@ jobs:
     steps:
       - name: Check if SOOS secrets are configured
         id: check_secrets
+        env:
+          SOOS_API_KEY: ${{ secrets.SOOS_API_KEY }}
+          SOOS_CLIENT_ID: ${{ secrets.SOOS_CLIENT_ID }}
+          SOOS_DAST_TARGET_URL: ${{ secrets.SOOS_DAST_TARGET_URL }}
         run: |
-          if [ -z "${{ secrets.SOOS_API_KEY }}" ] || [ -z "${{ secrets.SOOS_CLIENT_ID }}" ] || [ -z "${{ secrets.SOOS_DAST_TARGET_URL }}" ]; then
+          if [ -z "$SOOS_API_KEY" ] || [ -z "$SOOS_CLIENT_ID" ] || [ -z "$SOOS_DAST_TARGET_URL" ]; then
             echo "SOOS secrets not configured, skipping scan"
             echo "skip=true" >> $GITHUB_OUTPUT
           else
@@ -52,7 +56,7 @@ jobs:
           fi
       - name: Run SOOS DAST Analysis
         if: steps.check_secrets.outputs.skip != 'true'
-        uses: soos-io/soos-dast-github-action@a7eb40b94c1c81eb76b178ba1befdc21823f86fa
+        uses: soos-io/soos-dast-github-action@v2
         with:
           client_id: ${{ secrets.SOOS_CLIENT_ID }}
           api_key: ${{ secrets.SOOS_API_KEY }}
