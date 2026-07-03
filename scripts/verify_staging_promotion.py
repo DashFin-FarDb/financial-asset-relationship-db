@@ -48,10 +48,50 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
 
 def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa: C901
     """Check for durability/persistence proofs by parsing JSON payloads."""
-    # Try to find JSON blocks (markdown or bare curly braces)
-    json_blocks = re.findall(r"```(?:json)?\s*(\{.*?\})\s*```", content, re.DOTALL | re.IGNORECASE)
+
+    def _extract_balanced_json_objects(source: str) -> List[str]:
+        """Extract brace-balanced JSON object candidates from source text."""
+        blocks: List[str] = []
+        start: int | None = None
+        depth = 0
+        in_string = False
+        escaped = False
+
+        for index, char in enumerate(source):
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    in_string = False
+                continue
+
+            if char == '"':
+                in_string = True
+                continue
+
+            if char == "{":
+                if depth == 0:
+                    start = index
+                depth += 1
+                continue
+
+            if char == "}" and depth > 0:
+                depth -= 1
+                if depth == 0 and start is not None:
+                    blocks.append(source[start : index + 1])
+                    start = None
+
+        return blocks
+
+    # First inspect fenced blocks, then fall back to brace-balanced objects in the full evidence text.
+    fenced_blocks = re.findall(r"```(?:json)?\s*([^`]*)```", content, re.IGNORECASE)
+    json_blocks: List[str] = []
+    for fenced_block in fenced_blocks:
+        json_blocks.extend(_extract_balanced_json_objects(fenced_block))
     if not json_blocks:
-        json_blocks = re.findall(r"(\{[\s\S]*?\})", content)
+        json_blocks = _extract_balanced_json_objects(content)
 
     found_all_in_one = False
 
@@ -96,7 +136,8 @@ def _check_urls(content: str, missing: List[str]) -> None:
     if "/actions/runs/" not in content and "/artifacts/" not in content:
         missing.append("Specific workflow run URL or artifact URL")
 
-    if re.search(r"https://github\.com/[^/]+/[^/]+/actions/?(?:\s|\)|$)", content):
+    generic_actions_pattern = r"https://github\.com/[^/\s)]+/[^/\s)]+/actions(?!/runs/)(?:[^\s)]*)?"
+    if re.search(generic_actions_pattern, content):
         missing.append("Generic Actions URLs are not allowed")
 
 
