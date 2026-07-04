@@ -166,9 +166,7 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
         missing.append("Scanner summary")
 
     # Simple heuristic for unredacted secrets/tokens (allow common redaction markers)
-    secret_pattern = (
-        r"(?i)(?:\b|_)(password|secret|token|key)(?:\b|_)['\"]?\s*[:=]\s*['\"]?(?!\*+|\[?redacted\]?|<redacted>|x{4,})[^\s\*]{8,}"
-    )
+    secret_pattern = r"(?i)(?:\b|_)(password|secret|token|key)(?:\b|_)['\"]?\s*[:=]\s*['\"]?(?!\*+|\[?redacted\]?|<redacted>|x{4,})[^\s\*]{8,}"
     if re.search(secret_pattern, content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
 
