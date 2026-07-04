@@ -95,9 +95,9 @@ class TestPRAgentConfigChanges:
         """
         limits = config_data.get("limits", {})
         max_execution_time = limits.get("max_execution_time")
-        assert (
-            isinstance(max_execution_time, int) and max_execution_time > 0
-        ), "limits.max_execution_time should be a positive integer"
+        assert isinstance(max_execution_time, int) and max_execution_time > 0, (
+            "limits.max_execution_time should be a positive integer"
+        )
 
     def test_quality_standards_preserved(self, config_data: dict[str, Any]):
         """
@@ -374,9 +374,9 @@ class TestCodacyInstructionsChanges:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
-        assert (
-            "git remote -v" not in content and "unless really necessary" not in content
-        ), "Codacy instructions should be simplified"
+        assert "git remote -v" not in content and "unless really necessary" not in content, (
+            "Codacy instructions should be simplified"
+        )
 
     @staticmethod
     def test_codacy_critical_rules_present(codacy_instructions_path: Path):
