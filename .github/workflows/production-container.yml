@@ -39,12 +39,16 @@ jobs:
       - name: Smoke Test API
         env:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
+          ADMIN_USERNAME: ci-admin
+          ADMIN_PASSWORD: ci-admin-password
         run: |
           docker run -d --name api_test -p 8000:8000 \
             -e ENV=production \
             -e DATABASE_URL="sqlite:////tmp/fardb.db" \
             -e ASSET_GRAPH_DATABASE_URL="sqlite:////tmp/fardb.db" \
             -e SECRET_KEY="$SECRET_KEY" \
+            -e ADMIN_USERNAME="$ADMIN_USERNAME" \
+            -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
             fardb-api
           # Poll until healthy
           timeout=30
@@ -88,11 +92,15 @@ jobs:
       - name: Test Environment Variable Failure Behavior
         env:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
+          ADMIN_USERNAME: ci-admin
+          ADMIN_PASSWORD: ci-admin-password
         run: |
           set +e
           timeout 15s docker run --name api_bad_env \
             -e ENV=production \
             -e SECRET_KEY="$SECRET_KEY" \
+            -e ADMIN_USERNAME="$ADMIN_USERNAME" \
+            -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
             -e DATABASE_URL="bad_scheme://bad" \
             fardb-api
           exit_code=$?
