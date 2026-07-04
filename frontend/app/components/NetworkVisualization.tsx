@@ -120,7 +120,11 @@ function buildEdgeTraces(
     const targetNode = nodeMap.get(edge.target);
 
     if (!sourceNode || !targetNode) {
-      // Skip invalid edges without logging to avoid leaking potentially sensitive asset IDs
+      if (process.env.NODE_ENV === "development") {
+        console.debug(
+          `[Development Only] Skipping invalid edge: source ${edge.source} or target ${edge.target} not found.`
+        );
+      }
       return acc;
     }
 
