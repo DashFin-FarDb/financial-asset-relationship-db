@@ -105,7 +105,10 @@ describe("API Client", () => {
 
       const result = await api.healthCheck();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health", undefined);
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/health",
+        undefined,
+      );
       expect(result).toEqual({ status: "healthy" });
     });
 
@@ -213,7 +216,13 @@ describe("API Client", () => {
     });
 
     it("should handle empty asset list", async () => {
-      const emptyPage = { items: [], total: 0, page: 1, per_page: 50, hasMore: false };
+      const emptyPage = {
+        items: [],
+        total: 0,
+        page: 1,
+        per_page: 50,
+        hasMore: false,
+      };
       mockAxiosInstance.get.mockResolvedValue({ data: emptyPage });
 
       const result = await api.getAssets();
@@ -509,7 +518,11 @@ describe("API Client", () => {
     });
 
     it("should handle empty visualization data", async () => {
-      const emptyVizData: VisualizationData = { nodes: [], edges: [], network_density: 0 };
+      const emptyVizData: VisualizationData = {
+        nodes: [],
+        edges: [],
+        network_density: 0,
+      };
       mockAxiosInstance.get.mockResolvedValue({ data: emptyVizData });
 
       const result = await api.getVisualizationData();
@@ -539,7 +552,10 @@ describe("API Client", () => {
 
       const result = await api.getAssetClasses();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/asset-classes", undefined);
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/asset-classes",
+        undefined,
+      );
       expect(result).toEqual(mockAssetClasses);
       expect(result.asset_classes).toHaveLength(4);
     });
@@ -572,7 +588,10 @@ describe("API Client", () => {
 
       const result = await api.getSectors();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/sectors", undefined);
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/sectors",
+        undefined,
+      );
       expect(result).toEqual(mockSectors);
       expect(result.sectors).toHaveLength(3);
     });

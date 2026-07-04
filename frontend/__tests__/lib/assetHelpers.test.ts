@@ -21,34 +21,34 @@ describe("loadAssets - page clamping", () => {
   ])(
     "requests page $expectedPage when loadAssets receives page $page",
     async ({ page, expectedPage }) => {
-    mockedApi.getAssets.mockResolvedValue({
-      items: [],
-      total: 0,
-      page: 1,
-      per_page: 20,
-      hasMore: false,
-    });
-
-    const setAssets = jest.fn();
-    const setTotal = jest.fn();
-    const setError = jest.fn();
-
-    await loadAssets({
-      page,
-      pageSize: 20,
-      filter: { asset_class: "", sector: "" },
-      setAssets,
-      setTotal,
-      setError,
-    });
-
-    expect(mockedApi.getAssets).toHaveBeenCalledWith(
-      {
-        page: expectedPage,
+      mockedApi.getAssets.mockResolvedValue({
+        items: [],
+        total: 0,
+        page: 1,
         per_page: 20,
-      },
-      undefined,
-    );
-  },
-);
+        hasMore: false,
+      });
+
+      const setAssets = jest.fn();
+      const setTotal = jest.fn();
+      const setError = jest.fn();
+
+      await loadAssets({
+        page,
+        pageSize: 20,
+        filter: { asset_class: "", sector: "" },
+        setAssets,
+        setTotal,
+        setError,
+      });
+
+      expect(mockedApi.getAssets).toHaveBeenCalledWith(
+        {
+          page: expectedPage,
+          per_page: 20,
+        },
+        undefined,
+      );
+    },
+  );
 });

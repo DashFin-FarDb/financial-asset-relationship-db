@@ -1,15 +1,15 @@
 // Learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom'
+import "@testing-library/jest-dom";
 
 // Provide default environment values used throughout the app so tests
 // do not fail due to a missing NEXT_PUBLIC_API_URL/NEXT_PUBLIC_API_BASE_URL.
 const defaultApiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  'http://localhost:8000'
+  "http://localhost:8000";
 
-process.env.NEXT_PUBLIC_API_URL = defaultApiBaseUrl
-process.env.NEXT_PUBLIC_API_BASE_URL = defaultApiBaseUrl
+process.env.NEXT_PUBLIC_API_URL = defaultApiBaseUrl;
+process.env.NEXT_PUBLIC_API_BASE_URL = defaultApiBaseUrl;
 
 /**
  * Invoke all registered MediaQueryList listeners and onchange callback.
@@ -19,12 +19,12 @@ process.env.NEXT_PUBLIC_API_BASE_URL = defaultApiBaseUrl
  */
 const emitMediaQueryChange = (listeners, event, onchange) => {
   for (const listener of listeners) {
-    listener(event)
+    listener(event);
   }
-  if (typeof onchange === 'function') {
-    onchange(event)
+  if (typeof onchange === "function") {
+    onchange(event);
   }
-}
+};
 
 /**
  * Add listener only if it is callable.
@@ -32,8 +32,8 @@ const emitMediaQueryChange = (listeners, event, onchange) => {
  * @param {unknown} listener Candidate listener.
  */
 const addListenerIfFunction = (listeners, listener) => {
-  if (typeof listener === 'function') listeners.add(listener)
-}
+  if (typeof listener === "function") listeners.add(listener);
+};
 
 /**
  * Add event listener only for MediaQueryList "change" events.
@@ -42,10 +42,10 @@ const addListenerIfFunction = (listeners, listener) => {
  * @param {unknown} listener Candidate listener.
  */
 const addChangeEventListener = (listeners, eventName, listener) => {
-  if (eventName === 'change' && typeof listener === 'function') {
-    listeners.add(listener)
+  if (eventName === "change" && typeof listener === "function") {
+    listeners.add(listener);
   }
-}
+};
 
 /**
  * Creates a mock matchMedia function for testing.
@@ -54,8 +54,8 @@ const addChangeEventListener = (listeners, eventName, listener) => {
  * @returns {function(string): object} Factory producing MediaQueryList mocks.
  */
 const createMatchMedia = ({ defaultMatches = false } = {}) => {
-  const listeners = new Set()
-  let matches = Boolean(defaultMatches)
+  const listeners = new Set();
+  let matches = Boolean(defaultMatches);
 
   /**
    * Factory function to create a mock MediaQueryList.
@@ -63,83 +63,83 @@ const createMatchMedia = ({ defaultMatches = false } = {}) => {
    * @returns {object} Mock MediaQueryList with addListener, removeListener, and setMatches.
    */
   const mqlFactory = (query) => {
-    const media = String(query ?? '')
+    const media = String(query ?? "");
 
     const mql = {
-      get matches () {
-        return matches
+      get matches() {
+        return matches;
       },
       media,
       onchange: null,
 
-      setMatches (newValue) {
-        matches = Boolean(newValue)
-        const event = { type: 'change', matches, media }
+      setMatches(newValue) {
+        matches = Boolean(newValue);
+        const event = { type: "change", matches, media };
         const notifyListeners = () =>
-          emitMediaQueryChange(listeners, event, mql.onchange)
+          emitMediaQueryChange(listeners, event, mql.onchange);
 
-        setTimeout(notifyListeners, 0)
+        setTimeout(notifyListeners, 0);
       },
 
       addListener: jest.fn((listener) =>
-        addListenerIfFunction(listeners, listener)
+        addListenerIfFunction(listeners, listener),
       ),
       removeListener: jest.fn((listener) => {
-        listeners.delete(listener)
+        listeners.delete(listener);
       }),
 
       addEventListener: jest.fn((eventName, listener) =>
-        addChangeEventListener(listeners, eventName, listener)
+        addChangeEventListener(listeners, eventName, listener),
       ),
       removeEventListener: jest.fn((eventName, listener) => {
-        if (eventName === 'change') listeners.delete(listener)
+        if (eventName === "change") listeners.delete(listener);
       }),
 
       dispatchEvent: jest.fn((event) => {
-        emitMediaQueryChange(listeners, event, mql.onchange)
-        return true
-      })
-    }
+        emitMediaQueryChange(listeners, event, mql.onchange);
+        return true;
+      }),
+    };
 
-    return mql
-  }
+    return mql;
+  };
 
-  const mockFn = jest.fn(mqlFactory)
+  const mockFn = jest.fn(mqlFactory);
 
-  mockFn.clearListeners = () => listeners.clear()
+  mockFn.clearListeners = () => listeners.clear();
 
-  return mockFn
-}
+  return mockFn;
+};
 
-Object.defineProperty(globalThis, 'matchMedia', {
+Object.defineProperty(globalThis, "matchMedia", {
   configurable: true,
   writable: true,
-  value: createMatchMedia()
-})
+  value: createMatchMedia(),
+});
 
 /**
  * A mock implementation of IntersectionObserver for testing environments.
  * Tracks observed elements and allows manual triggering of callbacks.
  */
 class MockIntersectionObserver {
-  constructor (callback = () => undefined, options = {}) {
-    this._callback = callback
-    this._options = options
-    this._elements = new Set()
+  constructor(callback = () => undefined, options = {}) {
+    this._callback = callback;
+    this._options = options;
+    this._elements = new Set();
 
     this.observe = jest.fn((element) => {
-      if (element) this._elements.add(element)
-    })
+      if (element) this._elements.add(element);
+    });
 
     this.unobserve = jest.fn((element) => {
-      this._elements.delete(element)
-    })
+      this._elements.delete(element);
+    });
 
     this.disconnect = jest.fn(() => {
-      this._elements.clear()
-    })
+      this._elements.clear();
+    });
 
-    this.takeRecords = jest.fn(() => [])
+    this.takeRecords = jest.fn(() => []);
   }
 
   /**
@@ -147,19 +147,19 @@ class MockIntersectionObserver {
    * @param {IntersectionObserverEntry|IntersectionObserverEntry[]} entries - Single or array of entries to dispatch to the callback.
    * @returns {void}
    */
-  triggerCallback (entries = []) {
-    if (typeof this._callback !== 'function') return
-    const normalizedEntries = Array.isArray(entries) ? entries : [entries]
-    this._callback(normalizedEntries, this)
+  triggerCallback(entries = []) {
+    if (typeof this._callback !== "function") return;
+    const normalizedEntries = Array.isArray(entries) ? entries : [entries];
+    this._callback(normalizedEntries, this);
   }
 }
 
-Object.defineProperty(globalThis, 'IntersectionObserver', {
+Object.defineProperty(globalThis, "IntersectionObserver", {
   configurable: true,
   writable: true,
-  value: MockIntersectionObserver
-})
+  value: MockIntersectionObserver,
+});
 
 afterEach(() => {
-  globalThis.matchMedia = createMatchMedia()
-})
+  globalThis.matchMedia = createMatchMedia();
+});
