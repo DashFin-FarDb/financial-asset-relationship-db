@@ -8,7 +8,7 @@ import type {
   VisualizationData,
 } from "../types/api";
 
-const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, "");
 const API_URL = envUrl || "http://localhost:8000";
 
 const apiClient = axios.create({
