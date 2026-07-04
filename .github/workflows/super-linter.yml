@@ -48,5 +48,8 @@ jobs:
           VALIDATE_JAVASCRIPT_ES: false
           VALIDATE_JAVASCRIPT_STANDARD: false
           VALIDATE_JSHINT: false
+          VALIDATE_JAVASCRIPT_JSX: false
           VALIDATE_TYPESCRIPT_ES: false
           VALIDATE_TYPESCRIPT_STANDARD: false
+          VALIDATE_TYPESCRIPT_TSX: false
+          VALIDATE_JSCPD: false
