@@ -37,7 +37,7 @@ async function getData<T>(
 export const api = {
   // Health check
   healthCheck: () => {
-    return getData("/api/health");
+    return getData<{ status: string }>("/api/health");
   },
 
   // Assets

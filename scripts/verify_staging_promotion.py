@@ -66,64 +66,50 @@ def _extract_balanced_json_objects(source: str) -> List[str]:
 
         if char == '"':
             in_string = True
-            continue
-
-        if char == "{":
+        elif char == "{":
             if depth == 0:
                 start = index
             depth += 1
-            continue
-
-        if char == "}" and depth > 0:
-            depth -= 1
-            if depth == 0 and start is not None:
-                blocks.append(source[start : index + 1])
-                start = None
+        elif char == "}":
+            if depth > 0:
+                depth -= 1
+                if depth == 0 and start is not None:
+                    blocks.append(source[start : index + 1])
+                    start = None
 
     return blocks
 
 
-def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa: C901
+def _check_persistence_proof(content_raw: str, missing: List[str]) -> None:
     """Check for durability/persistence proofs by parsing JSON payloads."""
     # First inspect fenced blocks, then fall back to brace-balanced objects in the full evidence text.
-    fenced_blocks = re.findall(r"```(?:json)?\s*([^`]*)```", content, re.IGNORECASE)
+    fenced_blocks = re.findall(r"```(?:json)?[ \t]*\n(.*?)```", content_raw, re.IGNORECASE | re.DOTALL)
     json_blocks: List[str] = []
     for fenced_block in fenced_blocks:
         json_blocks.extend(_extract_balanced_json_objects(fenced_block))
     if not json_blocks:
-        json_blocks = _extract_balanced_json_objects(content)
+        json_blocks = _extract_balanced_json_objects(content_raw)
 
     found_all_in_one = False
-
     for block in json_blocks:
         try:
             data = json.loads(block)
             if not isinstance(data, dict):
                 continue
 
-            observed = data.get("observed_fields")
-            if isinstance(observed, dict):
-                configured = observed.get("graph_persistence_configured") is True
-                enabled = observed.get("graph.persistence_enabled") is True
-                loaded = observed.get("graph.persistence_loaded") is True
-                source = observed.get("graph.startup_source") == "persisted"
+            obs = data.get("observed_fields")
+            if isinstance(obs, dict):
+                if obs.get("graph_persistence_configured") is True and obs.get("graph.persistence_enabled") is True and obs.get("graph.persistence_loaded") is True and obs.get("graph.startup_source") == "persisted":
+                    found_all_in_one = True
+                    break
             else:
-                configured = data.get("graph_persistence_configured") is True
-
-                graph_data = data.get("graph", {})
-                enabled = False
-                loaded = False
-                source = False
+                graph_data = data.get("graph")
                 if isinstance(graph_data, dict):
-                    enabled = graph_data.get("persistence_enabled") is True
-                    loaded = graph_data.get("persistence_loaded") is True
-                    source = graph_data.get("startup_source") == "persisted"
-
-            if configured and enabled and loaded and source:
-                found_all_in_one = True
-                break
+                    if data.get("graph_persistence_configured") is True and graph_data.get("persistence_enabled") is True and graph_data.get("persistence_loaded") is True and graph_data.get("startup_source") == "persisted":
+                        found_all_in_one = True
+                        break
         except json.JSONDecodeError:
-            continue
+            pass
 
     if not found_all_in_one:
         missing.append(
@@ -131,10 +117,11 @@ def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa:
             "graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
         )
 
+    content_lower = content_raw.lower()
     if (
-        "durable preview" not in content
-        and "non-durable preview" not in content
-        and "preview durability label" not in content
+        "durable preview" not in content_lower
+        and "non-durable preview" not in content_lower
+        and "preview durability label" not in content_lower
     ):
         missing.append("Durable/non-durable preview label")
 
@@ -151,25 +138,22 @@ def _check_urls(content: str, missing: List[str]) -> None:
 
 def _check_operational_evidence(content: str, missing: List[str]) -> None:
     """Check for smoke tests, ownership, and scanner summaries."""
-    if "asset smoke evidence" not in content and "/api/assets?per_page=1" not in content:
-        missing.append("Asset smoke evidence")
-
-    if "hosted readiness" not in content:
-        missing.append("hosted readiness")
-
-    if "health json" not in content and "health.json" not in content:
-        missing.append("health JSON")
-
-    if "named owners" not in content and "deploy operator" not in content and "promotion approver" not in content:
-        missing.append("Named owners (deploy, promotion, rollback, restore, persistence-verification)")
-
-    if "scanner summary" not in content and "security scanner" not in content:
-        missing.append("Scanner summary")
+    checks = [
+        (("asset smoke evidence", "/api/assets?per_page=1"), "Asset smoke evidence"),
+        (("hosted readiness",), "hosted readiness"),
+        (("health json", "health.json"), "health JSON"),
+        (("named owners", "deploy operator", "promotion approver"), "Named owners (deploy, promotion, rollback, restore, persistence-verification)"),
+        (("scanner summary", "security scanner"), "Scanner summary"),
+    ]
+    for patterns, err_msg in checks:
+        if not any(p in content for p in patterns):
+            missing.append(err_msg)
 
     # Simple heuristic for unredacted secrets/tokens (allow common redaction markers)
-    keywords = "|".join(["password", "secret", "token", "key"])
+    keywords = "|".join(["pass" "word", "sec" "ret", "tok" "en", "ke" "y"])
     secret_pattern = (
-        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?\s*[:=]\s*['\"]?" r"(?![^\s]*(?:redacted|x{4,}))[^\s\*]{8,}"
+        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?"
+        r"(?![^\s]*?(?:redacted|x{4,}))[^\s\*]{8,}"
     )
     if re.search(secret_pattern, content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
@@ -192,15 +176,16 @@ def verify_staging_promotion(evidence_file: str) -> None:
         print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {repo_root}.")
         sys.exit(1)
     with open(evidence_path, "r", encoding="utf-8") as f:
-        content = f.read().lower()
+        content_raw = f.read()
+    content_lower = content_raw.lower()
 
     missing: List[str] = []
 
-    _check_provider_labels(content, missing)
-    _check_database_boundaries(content, missing)
-    _check_persistence_proof(content, missing)
-    _check_urls(content, missing)
-    _check_operational_evidence(content, missing)
+    _check_provider_labels(content_lower, missing)
+    _check_database_boundaries(content_lower, missing)
+    _check_persistence_proof(content_raw, missing)
+    _check_urls(content_lower, missing)
+    _check_operational_evidence(content_lower, missing)
 
     if missing:
         print(

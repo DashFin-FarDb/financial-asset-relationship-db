@@ -13,7 +13,7 @@ const Plot = dynamic(() => import("react-plotly.js"), {
 });
 
 type NetworkVisualizationProps = Readonly<{
-  data: VisualizationData;
+  data: VisualizationData | null;
 }>;
 
 type EdgeTrace = {
