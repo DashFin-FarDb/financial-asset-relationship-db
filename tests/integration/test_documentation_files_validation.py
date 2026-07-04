@@ -251,7 +251,7 @@ class TestDocumentationFilesValidation:
         """Heading levels should not jump by more than one level."""
         import re
 
-        heading_pattern = re.compile(r"^(#{1,6})\s+.+$")
+        heading_pattern = re.compile(r"^(#{1,6})\s+\S")
         hierarchy_errors: list[tuple[Path, str]] = [
             (md_file, msg)
             for md_file in markdown_files
