@@ -127,10 +127,9 @@ class TestWorkflowSecretHandling:
                 for step_idx, step in enumerate(steps):
                     if "actions/upload-artifact" in step.get("uses", ""):
                         step_str = str(step)
-                        assert "secrets." not in step_str, (
-                            f"Secret reference in artifact upload: {workflow['path']} "
-                            f"job '{job_name}' step {step_idx}"
-                        )
+                        assert (
+                            "secrets." not in step_str
+                        ), f"Secret reference in artifact upload: {workflow['path']} job '{job_name}' step {step_idx}"
 
 
 class TestWorkflowPermissionsHardening:
@@ -154,9 +153,9 @@ class TestWorkflowPermissionsHardening:
             all_jobs_have_permissions = all(
                 isinstance(job, dict) and ("permissions" in job or "uses" in job) for job in jobs.values()
             )
-            assert all_jobs_have_permissions, (
-                f"Workflow {workflow['path']} should define permissions " "(either top-level or on each job)"
-            )
+            assert (
+                all_jobs_have_permissions
+            ), f"Workflow {workflow['path']} should define permissions (either top-level or on each job)"
 
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):

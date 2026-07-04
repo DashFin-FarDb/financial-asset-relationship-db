@@ -367,8 +367,8 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
     fake_gate = MagicMock()
     fake_gate.lock_was_reacquired = False
     fake_gate.get_reconciliation_plan.return_value = mock_plan
-    fake_gate.consume_reconciliation_plan.side_effect = (
-        lambda plan, cancellation_event=None: consume_plan_called.append(True)
+    fake_gate.consume_reconciliation_plan.side_effect = lambda plan, cancellation_event=None: (
+        consume_plan_called.append(True)
     )
     monkeypatch.setattr("src.logic.recovery_gate.RecoveryGate", MagicMock(return_value=fake_gate))
 
