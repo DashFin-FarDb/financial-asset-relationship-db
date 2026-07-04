@@ -169,8 +169,7 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
     # Simple heuristic for unredacted secrets/tokens (allow common redaction markers)
     keywords = "|".join(["pass" "word", "sec" "ret", "tok" "en", "ke" "y"])
     secret_pattern = (
-        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?\s*[:=]\s*['\"]?"
-        r"(?![^\s]*(?:redacted|x{4,}))[^\s\*]{8,}"
+        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?\s*[:=]\s*['\"]?" r"(?![^\s]*(?:redacted|x{4,}))[^\s\*]{8,}"
     )
     if re.search(secret_pattern, content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
