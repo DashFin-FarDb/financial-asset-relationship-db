@@ -99,13 +99,23 @@ def _check_persistence_proof(content_raw: str, missing: List[str]) -> None:
 
             obs = data.get("observed_fields")
             if isinstance(obs, dict):
-                if obs.get("graph_persistence_configured") is True and obs.get("graph.persistence_enabled") is True and obs.get("graph.persistence_loaded") is True and obs.get("graph.startup_source") == "persisted":
+                if (
+                    obs.get("graph_persistence_configured") is True
+                    and obs.get("graph.persistence_enabled") is True
+                    and obs.get("graph.persistence_loaded") is True
+                    and obs.get("graph.startup_source") == "persisted"
+                ):
                     found_all_in_one = True
                     break
             else:
                 graph_data = data.get("graph")
                 if isinstance(graph_data, dict):
-                    if data.get("graph_persistence_configured") is True and graph_data.get("persistence_enabled") is True and graph_data.get("persistence_loaded") is True and graph_data.get("startup_source") == "persisted":
+                    if (
+                        data.get("graph_persistence_configured") is True
+                        and graph_data.get("persistence_enabled") is True
+                        and graph_data.get("persistence_loaded") is True
+                        and graph_data.get("startup_source") == "persisted"
+                    ):
                         found_all_in_one = True
                         break
         except json.JSONDecodeError:
@@ -142,7 +152,10 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
         (("asset smoke evidence", "/api/assets?per_page=1"), "Asset smoke evidence"),
         (("hosted readiness",), "hosted readiness"),
         (("health json", "health.json"), "health JSON"),
-        (("named owners", "deploy operator", "promotion approver"), "Named owners (deploy, promotion, rollback, restore, persistence-verification)"),
+        (
+            ("named owners", "deploy operator", "promotion approver"),
+            "Named owners (deploy, promotion, rollback, restore, persistence-verification)",
+        ),
         (("scanner summary", "security scanner"), "Scanner summary"),
     ]
     for patterns, err_msg in checks:
@@ -150,10 +163,9 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
             missing.append(err_msg)
 
     # Simple heuristic for unredacted secrets/tokens (allow common redaction markers)
-    keywords = "|".join(["pass" "word", "sec" "ret", "tok" "en", "ke" "y"])
+    keywords = "|".join(["password", "secret", "token", "key"])
     secret_pattern = (
-        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?"
-        r"(?![^\s]*?(?:redacted|x{4,}))[^\s\*]{8,}"
+        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?" r"(?![^\s]*?(?:redacted|x{4,}))[^\s\*]{8,}"
     )
     if re.search(secret_pattern, content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
