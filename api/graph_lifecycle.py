@@ -11,7 +11,7 @@ import sys
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Final
 
@@ -342,7 +342,7 @@ def synchronize_runtime_graph(
 
         api_main = sys.modules.get("api.main")
         if api_main is not None and hasattr(api_main, "graph"):
-            setattr(api_main, "graph", graph_instance)
+            api_main.graph = graph_instance
         return True
 
 
@@ -473,7 +473,7 @@ def _create_metadata(
         source=source,
         loaded_asset_count=len(assets),
         loaded_relationship_count=sum(len(edges) for edges in relationships.values()),
-        startup_timestamp=datetime.now(timezone.utc),
+        startup_timestamp=datetime.now(UTC),
         persistence_enabled=kwargs.get("persistence_enabled", False),
         persistence_loaded=kwargs.get("persistence_loaded", False),
         persistence_saved=kwargs.get("persistence_saved", False),

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import threading
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -19,7 +19,7 @@ from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 from tests.helpers.graph_scale_factory import build_scale_graph
 
-UTC = timezone.utc
+UTC = UTC
 
 pytestmark = pytest.mark.integration
 
@@ -299,9 +299,7 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
                 threading.Event(),
             )
 
-        assert isinstance(
-            exc_info.value.cause, graph_admin._DistributedLockLostError
-        )  # pylint: disable=protected-access
+        assert isinstance(exc_info.value.cause, graph_admin._DistributedLockLostError)  # pylint: disable=protected-access
         assert "pre-persistence" in str(exc_info.value.cause)
         assert graph_built is True
         with session_factory() as session:

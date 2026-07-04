@@ -42,9 +42,10 @@ from __future__ import annotations
 import atexit
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
@@ -281,7 +282,7 @@ def _create_postgres_connection():
         import psycopg2.extras  # type: ignore[import-untyped]
     except ImportError as exc:
         raise ImportError(
-            "psycopg2-binary is required for PostgreSQL support. " "Install it with: pip install psycopg2-binary"
+            "psycopg2-binary is required for PostgreSQL support. Install it with: pip install psycopg2-binary"
         ) from exc
 
     conn = psycopg2.connect(DATABASE_URL)

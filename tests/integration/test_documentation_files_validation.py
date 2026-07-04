@@ -207,7 +207,7 @@ class TestDocumentationFilesValidation:
                         table_errors.append(
                             (
                                 md_file,
-                                (f"Line {idx + 1}: expected {expected_cols} " f"columns, found {col_count}"),
+                                (f"Line {idx + 1}: expected {expected_cols} columns, found {col_count}"),
                             ),
                         )
 

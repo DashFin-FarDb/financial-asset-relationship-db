@@ -8,7 +8,8 @@ import secrets
 import uuid
 from collections.abc import MutableMapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Pattern
+from re import Pattern
+from typing import TYPE_CHECKING, Any
 
 from starlette.datastructures import Headers, MutableHeaders
 
