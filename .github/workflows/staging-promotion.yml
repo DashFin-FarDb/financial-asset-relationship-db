@@ -69,7 +69,7 @@ jobs:
             exit 1
           fi
           if [ "$(jq -r '.observed_fields."graph.persistence_loaded"' readiness-output.json)" != "true" ]; then
-            echo "Error: persistence_loaded is not true in the readiness output."
+            echo "Error: graph.persistence_loaded is not true in the readiness output."
             exit 1
           fi
           if [ "$(jq -r '.observed_fields."graph.startup_source"' readiness-output.json)" != "persisted" ]; then
