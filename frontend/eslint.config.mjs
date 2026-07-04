@@ -15,7 +15,6 @@ export default tseslint.config(
       "dist/",
       "build/",
       "coverage/",
-      "*.config.js",
       "__tests__/test-utils.test.ts",
       "__tests__/test-utils.ts",
     ],
