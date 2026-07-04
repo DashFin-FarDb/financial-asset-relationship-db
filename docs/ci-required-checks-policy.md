@@ -11,7 +11,7 @@ GitHub Actions is the canonical PR gate. We shift heavyweight scanners off the p
 
 ### 1. Required for Merge
 
-These checks run on every PR and push to `main`. They must pass before a PR can be merged.
+These checks run on PRs and pushes to `main` when their relevant paths are modified. They must pass before a PR can be merged (note that path-filtered workflows require special handling in branch protection rules to avoid permanently blocking PRs that don't trigger them).
 
 - **Frontend CI (`frontend-ci.yml`)**: Lint, test, and build for the Next.js frontend.
 - **Backend CI (`ci.yml`)**: Python lint, format, type-check, and unit/integration tests.
