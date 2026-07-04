@@ -122,7 +122,7 @@ function buildEdgeTraces(
     if (!sourceNode || !targetNode) {
       if (process.env.NODE_ENV === "development") {
         console.debug(
-          `[Development Only] Skipping invalid edge: source ${edge.source} or target ${edge.target} not found.`
+          `[Development Only] Skipping invalid edge: source ${edge.source} or target ${edge.target} not found.`,
         );
       }
       return acc;
