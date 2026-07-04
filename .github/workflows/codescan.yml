@@ -48,7 +48,7 @@ jobs:
             uses: codescan-io/codescan-scanner-action@5b2e8c5683ef6a5adc8fa3b7950bb07debccce12
             env:
               JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-              PATH: ${{ steps.setup-java.outputs.path }}/bin:${{ env.PATH }}
+              PATH: ${{ steps.setup-java.outputs.path }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
             with:
               login: ${{ secrets.CODESCAN_AUTH_TOKEN }}
               organization: ${{ secrets.CODESCAN_ORGANIZATION_KEY }}
