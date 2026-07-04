@@ -45,6 +45,12 @@ Implement Objective 8 (Release and Deployment Automation Layer) including CI gat
 - `.circleci/config.yml`: Converted to a stub as part of CI platform deduplication (CircleCI is no longer in use; branch protection must rely on GitHub Actions required checks).
 - `.github/workflows/*.yml`: Scanner configurations updated to schedule.
 
+## Triage Data (GEMINI.md requirements)
+
+- **Upstream Source:** GitHub PR opens/synchronize events triggering CI pipelines which assume non-blocking fast feedback. CI/CD triggers building these containers for promotion, assuming hermetic and cached builds.
+- **Downstream Impact:** Reduces queue starvation in CI runners. Fast paths (linting, tests) no longer delayed by DAST/OSV scans. Isolated scaling of frontend and backend processes eliminates shared fate with non-production workloads.
+- **Failure Mode:** CI fails safely blocking merges if required steps fail. Deletion of redundant tests ensures no false-positive failures. Container crash leaves orchestrator (Docker/K8s) to restart the specific tier without affecting the other.
+
 ## Validation Commands
 
 ```bash
