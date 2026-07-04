@@ -32,15 +32,15 @@ jobs:
           - name: Checkout repository
             uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
           - name: Cache files
-            uses: actions/cache@2f8e54208210a422b2efd51efaa6bd6d7ca8920f # v3
+            uses: actions/cache@v4
             with:
-              path: |
-                ~/.sonar
-              key: ${{ runner.os }}-sonar
-              restore-keys: ${{ runner.os }}-sonar
+              path: ~/.sonar/cache
+              key: ${{ runner.os }}-sonar-${{ hashFiles('**/pom.xml', '**/build.gradle*', '**/settings.gradle*') }}
+              restore-keys: |
+                ${{ runner.os }}-sonar-
           - name: Set up JDK 17
             id: setup-java
-            uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3
+            uses: actions/setup-java@v4
             with:
               java-version: '17'
               distribution: 'temurin'
