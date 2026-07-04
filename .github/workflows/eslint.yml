@@ -30,10 +30,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - name: Install ESLint
+      - name: Install dependencies
         run: |
-          npm install eslint@8.10.0
-          npm install @microsoft/eslint-formatter-sarif@3.1.0
+          cd frontend
+          npm install
+          npm install @microsoft/eslint-formatter-sarif@3.1.0 --no-save
 
       - name: Run ESLint
         env:
@@ -41,8 +42,6 @@ jobs:
         run: |
           cd frontend
           npx eslint . \
-            --config .eslintrc.json \
-            --ext .js,.jsx,.ts,.tsx \
             --format @microsoft/eslint-formatter-sarif \
             --output-file ../eslint-results.sarif
         continue-on-error: true
