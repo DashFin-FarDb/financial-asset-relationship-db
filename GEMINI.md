@@ -40,3 +40,7 @@ All work must adhere to the Enterprise Readiness Roadmap and Release Checklist (
 - **API Contracts:** Any changes to API contracts must eliminate ambiguity: density semantics must be normalized end-to-end, visualization payloads must be explicitly modeled, and pagination must be consistently applied.
 - **Distributed Hosting & Recovery:** Stale owners must never mutate state after a restart or lock loss. Rebuild cancellation, lock-loss, and multi-instance behavior must be deterministic.
 - **PR Scope Strictness:** Work mapped to the Enterprise Readiness PR Plan must contain **one primary decision per PR** and rigorously enforce stated out-of-scope boundaries.
+
+## 6. Template Adherence
+
+All documentation, Pull Requests, and Issues MUST strictly use the corresponding repository-specific templates (found in `.github/ISSUE_TEMPLATE`, `.github/PULL_REQUEST_TEMPLATE.md`, etc.). Always customize the template directly for the specific context of the task at hand rather than inventing a freeform structure.
