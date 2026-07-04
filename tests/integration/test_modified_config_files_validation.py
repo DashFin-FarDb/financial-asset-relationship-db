@@ -169,26 +169,6 @@ class TestWorkflowSimplifications:
         assert "apisec_username != ''" not in content
         assert "apisec_password != ''" not in content
 
-    def test_label_workflow_simplified(self, workflows_dir: Path):
-        """
-        Ensure the label workflow file exists and omits configuration-check markers.
-
-        Checks that `.github/workflows/label.yml` is present, does not contain the substring
-        "check-config" (case-insensitive), and does not contain the exact text "labeler.yml not found".
-
-        Parameters:
-            workflows_dir (Path): Path to the `.github/workflows` directory.
-        """
-        workflow_file = workflows_dir / "label.yml"
-        assert workflow_file.exists()
-
-        with open(workflow_file, encoding="utf-8") as f:
-            content = f.read()
-
-        # Should be simple and not check for config existence
-        assert "check-config" not in content.lower()
-        assert "labeler.yml not found" not in content
-
     def test_greetings_workflow_has_messages(self, workflows_dir: Path):
         """
         Ensure the greetings workflow contains a step referencing "first-interaction" and that

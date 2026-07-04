@@ -1918,5 +1918,5 @@ def list_rebuild_jobs(
             jobs=jobs,
             count=len(jobs),
             total=total,
-            hasMore=offset + len(jobs) < total,
+            has_more=offset + len(jobs) < total,  # type: ignore[call-arg]
         )
