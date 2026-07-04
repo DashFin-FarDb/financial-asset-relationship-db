@@ -44,7 +44,6 @@ jobs:
         run: |
           docker run -d --name api_test -p 8000:8000 \
             -e ENV=production \
-            -e HAS_DURABLE_GRAPH_PERSISTENCE=false \
             -e DATABASE_URL="sqlite:////tmp/fardb.db" \
             -e SECRET_KEY="$SECRET_KEY" \
             -e ADMIN_USERNAME="$ADMIN_USERNAME" \
