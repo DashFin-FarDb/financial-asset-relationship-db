@@ -1,0 +1,116 @@
+name: Production Container
+
+# EVIDENCE BOUNDARY STATEMENT:
+# This workflow proves that the Dockerfiles for the API and frontend can build successfully,
+# and that the resulting containers can start and pass basic local liveness checks (smoke tests).
+#
+# THIS WORKFLOW DOES NOT PROVE:
+# - Live hosted readiness
+# - Production promotion safety
+# - Hosted durable graph persistence
+#
+# Do not use a successful run of this workflow as evidence for the 'graph_persistence_configured',
+# 'graph.persistence_enabled', 'graph.persistence_loaded', or 'graph.startup_source == "persisted"'
+# release gates.
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Build API Container
+        run: docker build -t fardb-api -f Dockerfile.api .
+
+      - name: Build Frontend Container
+        run: docker build --build-arg NEXT_PUBLIC_API_URL=http://localhost:8000 -t fardb-frontend -f Dockerfile.frontend .
+
+      - name: Smoke Test API
+        env:
+          SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
+          ADMIN_USERNAME: ci-admin
+          ADMIN_PASSWORD: ci-admin-password
+        run: |
+          docker run -d --name api_test -p 8000:8000 \
+            -e ENV=production \
+            -e DATABASE_URL="sqlite:////tmp/fardb.db" \
+            -e SECRET_KEY="$SECRET_KEY" \
+            -e ADMIN_USERNAME="$ADMIN_USERNAME" \
+            -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            fardb-api
+          # Poll until healthy
+          timeout=30
+          count=0
+          while ! curl -fsS http://localhost:8000/api/health > /dev/null; do
+            count=$((count+1))
+            if [ $count -ge $timeout ]; then
+              echo "API failed to start within $timeout seconds"
+              docker logs api_test
+              exit 1
+            fi
+            sleep 1
+          done
+
+          # Validate endpoints
+          curl -fsS http://localhost:8000/api/health
+          curl -fsS http://localhost:8000/api/health/detailed
+
+          docker stop api_test
+          docker rm api_test
+
+      - name: Smoke Test Frontend
+        run: |
+          docker run -d --name frontend_test -p 3000:3000 \
+            fardb-frontend
+          timeout=30
+          count=0
+          while ! curl -fsS http://localhost:3000 > /dev/null; do
+            count=$((count+1))
+            if [ $count -ge $timeout ]; then
+              echo "Frontend failed to start within $timeout seconds"
+              docker logs frontend_test || true
+              exit 1
+            fi
+            sleep 1
+          done
+
+          docker stop frontend_test
+          docker rm frontend_test
+
+      - name: Test Environment Variable Failure Behavior
+        env:
+          SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
+          ADMIN_USERNAME: ci-admin
+          ADMIN_PASSWORD: ci-admin-password
+        run: |
+          set +e
+          timeout 15s docker run --name api_bad_env \
+            -e ENV=production \
+            -e SECRET_KEY="$SECRET_KEY" \
+            -e ADMIN_USERNAME="$ADMIN_USERNAME" \
+            -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            -e DATABASE_URL="bad_scheme://bad" \
+            fardb-api
+          exit_code=$?
+          set -e
+
+          if [ "$exit_code" -eq 0 ] || [ "$exit_code" -eq 124 ]; then
+            echo "Expected container to exit quickly with a non-zero status for invalid DATABASE_URL"
+            echo "::error::API container configuration failure: Invalid DATABASE_URL did not cause fast failure."
+            docker logs api_bad_env || true
+            docker rm -f api_bad_env >/dev/null 2>&1 || true
+            exit 1
+          fi
+
+          docker rm -f api_bad_env >/dev/null 2>&1 || true

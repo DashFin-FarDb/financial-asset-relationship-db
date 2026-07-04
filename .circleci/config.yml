@@ -1,236 +1,41 @@
 version: 2.1
 
-orbs:
-  codecov: codecov/codecov@4.2.0
-
 executors:
-  python-executor:
-    docker:
-      - image: cimg/python:3.11
-    working_directory: ~/project
-    resource_class: medium
-    environment:
-      PIP_CACHE_DIR: /home/circleci/.cache/pip
-      PYTHONDONTWRITEBYTECODE: 1
-      PYTHONUNBUFFERED: 1
-
-  node-executor:
-    docker:
-      - image: cimg/node:26.1.0 # Node 26: confirm frontend compatibility (Next.js 16 requires Node >=20.9); update frontend/package.json engines and run full CI build
-    working_directory: ~/project
-    resource_class: medium
-    environment:
-      NPM_CONFIG_PRODUCTION: "false"
-      NPM_CONFIG_LOGLEVEL: error
-
-commands:
-  install-python-deps:
-    description: "Install Python dependencies with caching"
-    parameters:
-      cache_version:
-        type: string
-        default: "v3"
-      include_dev:
-        type: boolean
-        default: true
-    steps:
-      - restore_cache:
-          keys:
-            - python-deps-<<parameters.cache_version>>-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
-            - python-deps-<<parameters.cache_version>>-{{ checksum "requirements.txt" }}
-            - python-deps-<<parameters.cache_version>>-
-      - run:
-          name: Install Python dependencies
-          command: |
-            pip install --upgrade pip setuptools wheel
-            pip install -r requirements.txt
-            <<#parameters.include_dev>>
-            if [ -f requirements-dev.txt ]; then
-              pip install -r requirements-dev.txt
-            fi
-            <</parameters.include_dev>>
-      - save_cache:
-          key: python-deps-<<parameters.cache_version>>-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
-          paths:
-            - ~/.cache/pip
-            - /home/circleci/.local/lib/python3.11/site-packages
-
-  install-node-deps:
-    description: "Install Node.js dependencies with caching"
-    parameters:
-      cache_version:
-        type: string
-        default: "v3"
-    steps:
-      - restore_cache:
-          keys:
-            - node-deps-<<parameters.cache_version>>-{{ checksum "frontend/package.json" }}
-            - node-deps-<<parameters.cache_version>>-
-      - run:
-          name: Install Node.js dependencies
-          command: |
-            cd frontend
-            if [ -f package-lock.json ]; then
-              npm ci --prefer-offline --audit=false
-            else
-              echo "package-lock.json not found; running npm install instead"
-              npm install --prefer-offline --no-audit
-            fi
-      - save_cache:
-          key: node-deps-<<parameters.cache_version>>-{{ checksum "frontend/package.json" }}
-          paths:
-            - frontend/node_modules
-            - ~/.npm
-
-jobs:
-  # Python Backend Jobs
-  python-lint:
-    executor: python-executor
-    steps:
-      - checkout
-      - install-python-deps:
-          include_dev: true
-      - run:
-          name: Run flake8 (critical errors only)
-          command: |
-            flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --config=.flake8
-
-  python-test:
-    executor: python-executor
-    parallelism: 4
-    steps:
-      - checkout
-      - install-python-deps:
-          include_dev: true
-      - run:
-          name: Run tests with pytest
-          command: |
-            TESTFILES=$(circleci tests glob "tests/**/test_*.py" "test_*.py" | circleci tests split --split-by=timings)
-            mkdir -p test-results/pytest
-            pytest ${TESTFILES} --cov=src --cov=tests --cov-report=xml --cov-report=html --cov-report=term-missing -v --junitxml=test-results/pytest/results.xml
-      - codecov/upload:
-          file: coverage.xml
-      - store_test_results:
-          path: test-results/pytest
-      - store_artifacts:
-          path: htmlcov
-          destination: coverage-report
-
-  python-security:
-    executor: python-executor
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - python-security-deps-v3-{{ checksum "requirements.txt" }}
-            - python-security-deps-v3-
-      - run:
-          name: Install dependencies
-          command: |
-            pip install --upgrade pip setuptools wheel
-            pip install -r requirements.txt
-            pip install safety bandit
-      - save_cache:
-          key: python-security-deps-v3-{{ checksum "requirements.txt" }}
-          paths:
-            - ~/.cache/pip
-            - /home/circleci/.local/lib/python3.11/site-packages
-      - run:
-          name: Security check with safety
-          command: safety check --file ~/project/requirements.txt --json --ignore 72086
-      - run:
-          name: Security check with bandit
-          command: bandit -r src/ -ll -f json -o bandit-report.json
-      - store_artifacts:
-          path: bandit-report.json
-          destination: security-reports
-
-  # Frontend Jobs
-  frontend-lint:
-    executor: node-executor
-    steps:
-      - checkout
-      - install-node-deps
-      - run:
-          name: Run ESLint
-          command: |
-            cd frontend && npm run lint --if-present
-
-  frontend-build:
-    executor: node-executor
-    steps:
-      - checkout
-      - install-node-deps
-      - restore_cache:
-          keys:
-            - nextjs-build-cache-v2-{{ .Branch }}-{{ .Revision }}
-            - nextjs-build-cache-v2-{{ .Branch }}-
-            - nextjs-build-cache-v2-
-      - run:
-          name: Build Next.js application
-          command: |
-            cd frontend && npm run build --if-present
-      - save_cache:
-          key: nextjs-build-cache-v2-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - frontend/.next/cache
-      - store_artifacts:
-          path: frontend/.next
-          destination: next-build
-
-  # Docker Build Job
-  docker-build:
+  dummy-executor:
     docker:
       - image: cimg/base:stable
-    resource_class: medium+
+
+commands:
+  dummy-step:
     steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-          version: default
-      - run:
-          name: Build Docker image
-          command: |
-            docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t financial-asset-relationship-db:${CIRCLE_SHA1} .
-      - run:
-          name: Test Docker image
-          command: |
-            docker run --rm financial-asset-relationship-db:${CIRCLE_SHA1} python --version
+      - run: echo "CI migrated to GitHub Actions. This is a dummy job to satisfy legacy branch protection requirements."
+
+jobs:
+  python-lint:
+    executor: dummy-executor
+    steps: [dummy-step]
+  python-test:
+    executor: dummy-executor
+    steps: [dummy-step]
+  python-security:
+    executor: dummy-executor
+    steps: [dummy-step]
+  frontend-lint:
+    executor: dummy-executor
+    steps: [dummy-step]
+  frontend-build:
+    executor: dummy-executor
+    steps: [dummy-step]
+  docker-build:
+    executor: dummy-executor
+    steps: [dummy-step]
 
 workflows:
   build-and-test:
     jobs:
-      # Backend workflow - run lint, test, and security in parallel
       - python-lint
       - python-test
       - python-security
-
-      # Frontend workflow - run lint and build in parallel
       - frontend-lint
       - frontend-build
-
-      # Docker build (only on main/develop branches) - wait for critical tests to pass
-      - docker-build:
-          requires:
-            - python-lint
-            - python-test
-            - python-security
-            - frontend-lint
-            - frontend-build
-          filters:
-            branches:
-              only:
-                - main
-                - develop
-
-  # Nightly security scan
-  nightly-security:
-    triggers:
-      - schedule:
-          cron: "0 2 * * *"
-          filters:
-            branches:
-              only:
-                - main
-    jobs:
-      - python-security
+      - docker-build

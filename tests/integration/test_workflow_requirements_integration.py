@@ -168,9 +168,9 @@ class TestPyYAMLAvailability:
         requirements = parse_requirements(REQUIREMENTS_FILE)
         package_names = [pkg for pkg, _ in requirements]
 
-        assert "types-PyYAML" in package_names, (
-            "types-PyYAML should be in requirements-dev.txt for static type checking " "of code that uses PyYAML"
-        )
+        assert (
+            "types-PyYAML" in package_names
+        ), "types-PyYAML should be in requirements-dev.txt for static type checking of code that uses PyYAML"
 
 
 class TestRequirementsMatchWorkflowNeeds:
