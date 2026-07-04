@@ -119,7 +119,8 @@ def _check_persistence_proof(content_raw: str, missing: List[str]) -> None:
                         found_all_in_one = True
                         break
         except json.JSONDecodeError:
-            pass
+            # Candidate blocks are best-effort extracts and may not be valid JSON; skip and keep scanning.
+            continue
 
     if not found_all_in_one:
         missing.append(
