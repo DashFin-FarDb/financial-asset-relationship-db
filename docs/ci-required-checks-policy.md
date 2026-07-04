@@ -47,8 +47,8 @@ To balance developer velocity with security rigor, we enforce distinct required-
 
 ## Follow-up Actions for Maintainers
 
-Update branch protection rules in GitHub settings to require:
+Update branch protection rules in GitHub settings to require the exact check-run names (copy these from the GitHub UI if they differ based on your platform runner context):
 
-- `Frontend CI / build`
+- `build` (from the Frontend CI workflow)
 - `Python CI / Test Python 3.10`, `Python CI / Test Python 3.11`, `Python CI / Test Python 3.12`
-- `Production Container / build-and-smoke-test`
+- `build-and-smoke-test` (from the Production Container workflow)
