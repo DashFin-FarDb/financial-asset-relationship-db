@@ -13,9 +13,9 @@ GitHub Actions is the canonical PR gate. We shift heavyweight scanners off the p
 
 These checks run on every PR and push to `main`. They must pass before a PR can be merged.
 
-- **Frontend CI (`frontend-ci.yml`)**: Lint, test, and build for the Next.js frontend.
+- **Frontend CI (`node.js.yml`)**: Lint, test, and build for the Next.js frontend (Node.js CI).
 - **Backend CI (`ci.yml`)**: Python lint, format, type-check, and unit/integration tests.
-- **Production Container Smoke (`production-container.yml`)**: Verifies that the FastAPI and Next.js Docker images build and start cleanly.
+- **Docker Image CI (`docker-image.yml`)**: Verifies that the Docker image builds cleanly.
 
 ### 2. Advisory
 
@@ -49,6 +49,6 @@ To balance developer velocity with security rigor, we enforce distinct required-
 
 Update branch protection rules in GitHub settings to require:
 
-- `Frontend CI / build`
+- `build (18.x)`, `build (20.x)`, `build (22.x)`
 - `Python CI / Test Python 3.10`, `Python CI / Test Python 3.11`, `Python CI / Test Python 3.12`
-- `Production Container / build-and-smoke-test`
+- `build` (Docker Image CI)
