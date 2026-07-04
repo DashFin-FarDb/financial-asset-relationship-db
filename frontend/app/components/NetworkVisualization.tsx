@@ -228,6 +228,7 @@ export default function NetworkVisualization({
   return (
     <div className="w-full h-[800px]">
       <Plot
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data={plotData as any}
         layout={{
           title: "3D Asset Relationship Network",
