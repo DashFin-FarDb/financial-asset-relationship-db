@@ -105,10 +105,7 @@ describe("API Client", () => {
 
       const result = await api.healthCheck();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        "/api/health",
-        undefined,
-      );
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health");
       expect(result).toEqual({ status: "healthy" });
     });
 
@@ -552,10 +549,7 @@ describe("API Client", () => {
 
       const result = await api.getAssetClasses();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        "/api/asset-classes",
-        undefined,
-      );
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/asset-classes");
       expect(result).toEqual(mockAssetClasses);
       expect(result.asset_classes).toHaveLength(4);
     });
@@ -588,10 +582,7 @@ describe("API Client", () => {
 
       const result = await api.getSectors();
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        "/api/sectors",
-        undefined,
-      );
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/sectors");
       expect(result).toEqual(mockSectors);
       expect(result.sectors).toHaveLength(3);
     });

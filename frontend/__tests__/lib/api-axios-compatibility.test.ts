@@ -476,11 +476,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.healthCheck();
 
       // Should use single leading slash
-      // skipcq: JS-W1042
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        "/api/health",
-        undefined,
-      );
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health");
     });
   });
 

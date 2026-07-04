@@ -42,13 +42,10 @@ describe("loadAssets - page clamping", () => {
         setError,
       });
 
-      expect(mockedApi.getAssets).toHaveBeenCalledWith(
-        {
-          page: expectedPage,
-          per_page: 20,
-        },
-        undefined,
-      );
+      expect(mockedApi.getAssets).toHaveBeenCalledWith({
+        page: expectedPage,
+        per_page: 20,
+      });
     },
   );
 });
