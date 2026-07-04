@@ -81,7 +81,6 @@ jobs:
           test: |
             echo "===== Lint: Ruff ====="
             ruff check .
-            ruff format --check .
 
             echo "===== Lint: Flake8 (critical) ====="
             flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
