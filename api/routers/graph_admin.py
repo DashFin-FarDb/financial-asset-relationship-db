@@ -1099,6 +1099,7 @@ def _run_rebuild_pipeline(
             source=source,
         )
 
+
 def _setup_coordination_and_domain_factories(
     settings: GraphLifecycleSettings,
 ) -> tuple[Callable[[], Session], Callable[[], Session], str, Engine, Engine | None]:

@@ -221,7 +221,10 @@ def test_verify_staging_promotion_success(tmp_path):
     )
 
     evidence_path_str = str(evidence_path)
-    with patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True), pytest.raises(SystemExit) as exc_info:
+    with (
+        patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True),
+        pytest.raises(SystemExit) as exc_info,
+    ):
         verify_staging_promotion(evidence_path_str)
     assert exc_info.value.code == 0
 
@@ -233,7 +236,10 @@ def test_verify_staging_promotion_failure(tmp_path):
 
     # tmp_path is outside the repo root, so bypass the repo-relative constraint for this unit test.
     evidence_path_str = str(evidence_path)
-    with patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True), pytest.raises(SystemExit) as exc_info:
+    with (
+        patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True),
+        pytest.raises(SystemExit) as exc_info,
+    ):
         verify_staging_promotion(evidence_path_str)
     assert exc_info.value.code == 1
 
