@@ -11,7 +11,7 @@ GitHub Actions is the canonical PR gate. We shift heavyweight scanners off the p
 
 ### 1. Required for Merge
 
-These checks run on every PR and push to `main`. They must pass before a PR can be merged.
+These checks run on PRs and pushes to `main` when their relevant paths are modified. They must pass before a PR can be merged (note that path-filtered workflows require special handling in branch protection rules to avoid permanently blocking PRs that don't trigger them).
 
 - **Frontend CI (`node.js.yml`)**: Lint, test, and build for the Next.js frontend (Node.js CI).
 - **Backend CI (`ci.yml`)**: Python lint, format, type-check, and unit/integration tests.
@@ -49,6 +49,6 @@ To balance developer velocity with security rigor, we enforce distinct required-
 
 Update branch protection rules in GitHub settings to require:
 
-- `build (18.x)`, `build (20.x)`, `build (22.x)`
+- `Node.js CI / build (18.x)`, `Node.js CI / build (20.x)`, `Node.js CI / build (22.x)`
 - `Python CI / Test Python 3.10`, `Python CI / Test Python 3.11`, `Python CI / Test Python 3.12`
-- `build` (Docker Image CI)
+- `Docker Image CI / build`
