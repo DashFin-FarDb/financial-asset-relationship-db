@@ -43,4 +43,4 @@ All work must adhere to the Enterprise Readiness Roadmap and Release Checklist (
 
 ## 6. Template Adherence
 
-All documentation, Pull Requests, and Issues MUST strictly use the corresponding repository-specific templates (found in `.github/ISSUE_TEMPLATE`, `.github/PULL_REQUEST_TEMPLATE.md`, etc.). Always customize the template directly for the specific context of the task at hand rather than inventing a freeform structure.
+All documentation, Pull Requests, and Issues MUST strictly use the corresponding repository-specific templates (found in `.github/ISSUE_TEMPLATE`, `.github/pull_request_template.md`, etc.). Always customize the template directly for the specific context of the task at hand rather than inventing a freeform structure.
