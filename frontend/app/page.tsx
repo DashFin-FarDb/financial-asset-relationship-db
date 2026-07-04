@@ -178,7 +178,13 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    loadData();
+    /**
+     * Internal async initialization wrapper to prevent react-hooks/set-state-in-effect issues.
+     */
+    const init = async () => {
+      await loadData();
+    };
+    init();
   }, [loadData]);
 
   const handleTabChange = useCallback((tab: HomeTab) => {
