@@ -422,7 +422,10 @@ class TestWorkflowSecurity:
             if "secrets." not in content:
                 continue
 
-            config = yaml.safe_load(content)
+            try:
+                config = yaml.safe_load(content)
+            except yaml.YAMLError as exc:
+                pytest.fail(f"{workflow_file.name} has invalid YAML syntax: {exc}")
 
             # This is a best practice, not a hard requirement.
             if not _workflow_has_permissions(config):
