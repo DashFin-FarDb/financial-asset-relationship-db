@@ -43,11 +43,12 @@ jobs:
             uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3
             with:
               java-version: '17'
-              distribution: 'adopt'
+              distribution: 'temurin'
           - name: Run Analysis
             uses: codescan-io/codescan-scanner-action@5b2e8c5683ef6a5adc8fa3b7950bb07debccce12
             env:
               JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+              PATH: ${{ steps.setup-java.outputs.path }}/bin:${{ env.PATH }}
             with:
               login: ${{ secrets.CODESCAN_AUTH_TOKEN }}
               organization: ${{ secrets.CODESCAN_ORGANIZATION_KEY }}
