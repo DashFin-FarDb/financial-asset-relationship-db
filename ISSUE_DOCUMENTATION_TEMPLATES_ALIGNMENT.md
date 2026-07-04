@@ -19,7 +19,7 @@ Align all repository documentation, issue templates, and specifications with the
 4. **Issue Templates Persistent Keys Alignment**:
    - Update `.github/ISSUE_TEMPLATE/operational_drill_evidence.md`, `.github/ISSUE_TEMPLATE/release_candidate_evidence.md`, and `.github/ISSUE_TEMPLATE/restore_rehearsal_evidence.md` to replace top-level references with `graph_persistence_configured` while preserving nested `graph.persistence_enabled` where it validates the graph object structure.
 5. **PR Body Refresh**:
-   - Update `pr_body.md` to describe the correct scope of this branch (fixing documentation, security boundaries, and test edge cases) instead of legacy Gitlink/graph density renames.
+   - Removed `pr_body.md` since it caused template confusion.
 
 ## Success Criteria
 
