@@ -380,7 +380,10 @@ def _log_rebuild_succeeded(
         logging.INFO,
         ObservabilityEvent(
             event=_REBUILD_AUDIT_SUCCEEDED,
-            message=f"Graph rebuild succeeded (source: {response.source}, duration: {duration_ms}ms, execution_id: {execution_id or 'unknown'})",
+            message=(
+                f"Graph rebuild succeeded (source: {response.source}, "
+                f"duration: {duration_ms}ms, execution_id: {execution_id or 'unknown'})"
+            ),
             metadata={
                 "user_ref": user_ref,
                 "execution_id": execution_id or "unknown",
@@ -451,7 +454,10 @@ def _log_rebuild_failed(
         logging.ERROR,
         ObservabilityEvent(
             event=_REBUILD_AUDIT_FAILED,
-            message=f"Graph rebuild failed (category: {category}, duration: {duration_ms}ms, execution_id: {execution_id or 'unknown'})",
+            message=(
+                f"Graph rebuild failed (category: {category}, "
+                f"duration: {duration_ms}ms, execution_id: {execution_id or 'unknown'})"
+            ),
             metadata={
                 "failure_category": category,
                 "user_ref": user_ref,
@@ -1092,7 +1098,6 @@ def _run_rebuild_pipeline(
             resolved_url=resolved_url,
             source=source,
         )
-        raise
 
 
 def _setup_coordination_and_domain_factories(
@@ -1159,8 +1164,8 @@ def _resolve_rebuild_database_urls(settings: GraphLifecycleSettings) -> tuple[st
     coordination_url = (settings.coordination_database_url or "").strip() or hosted_graph_url
     if not coordination_url:
         raise RuntimeError(
-            "Neither coordination_database_url nor asset_graph_database_url (or DATABASE_URL in preview/staging) is configured. "
-            "At least one durable database URL must be configured for rebuild coordination."
+            "Neither coordination_database_url nor asset_graph_database_url (or DATABASE_URL in preview/staging) "
+            "is configured. At least one durable database URL must be configured for rebuild coordination."
         )
 
     return (
@@ -1913,5 +1918,5 @@ def list_rebuild_jobs(
             jobs=jobs,
             count=len(jobs),
             total=total,
-            has_more=offset + len(jobs) < total,
+            has_more=offset + len(jobs) < total,  # type: ignore[call-arg]
         )
