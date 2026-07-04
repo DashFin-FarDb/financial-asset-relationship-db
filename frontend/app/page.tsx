@@ -153,33 +153,56 @@ export default function Home() {
    * Loads metrics and visualization data from the API.
    * Sets loading states during fetch and handles errors by logging and setting error message.
    */
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
+  const fetchDashboardData = useCallback(async () => {
     try {
       const [metricsData, visualizationData] = await Promise.all([
         api.getMetrics(),
         api.getVisualizationData(),
       ]);
-
-      setMetrics(metricsData);
-      setVizData(visualizationData);
+      return { metricsData, visualizationData, error: null };
     } catch (err) {
       if (process.env.NODE_ENV === "production") {
         console.error("Error loading data");
       } else {
         console.error("Error loading data:", err);
       }
-      setError("Failed to load data. Please ensure the API server is running.");
-    } finally {
-      setLoading(false);
+      return {
+        metricsData: null,
+        visualizationData: null,
+        error: "Failed to load data. Please ensure the API server is running.",
+      };
     }
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    const load = async () => {
+      const result = await fetchDashboardData();
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setMetrics(result.metricsData);
+        setVizData(result.visualizationData);
+        setError(null);
+      }
+      setLoading(false);
+    };
+
+    load();
+  }, [fetchDashboardData]);
+
+  const handleRetry = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const result = await fetchDashboardData();
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setMetrics(result.metricsData);
+      setVizData(result.visualizationData);
+      setError(null);
+    }
+    setLoading(false);
+  }, [fetchDashboardData]);
 
   const handleTabChange = useCallback((tab: HomeTab) => {
     setActiveTab(tab);
@@ -210,7 +233,7 @@ export default function Home() {
           activeTab={activeTab}
           vizData={vizData}
           metrics={metrics}
-          onRetry={loadData}
+          onRetry={handleRetry}
         />
       </div>
 
