@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@42375524db6727caec46211a6a262f106db3f7f7
         with:
           # Match your project's Python version
           python-version: '3.12'
