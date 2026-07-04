@@ -175,6 +175,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    /**
+     * Executes the initial data fetch and updates component state.
+     * Evaluates the result and sets appropriate UI states (loading, error, data).
+     */
     const load = async () => {
       const result = await fetchDashboardData();
       if (result.error) {
@@ -190,6 +194,10 @@ export default function Home() {
     load();
   }, [fetchDashboardData]);
 
+  /**
+   * Refetches the dashboard data and updates component state.
+   * Useful when the previous fetch failed or manual refresh is required.
+   */
   const handleRetry = useCallback(async () => {
     setLoading(true);
     setError(null);
