@@ -108,9 +108,9 @@ class TestRequirementsDependencyCompatibility:
 
         unexpected_overlap = overlap - allowed_overlap
 
-        assert (
-            not unexpected_overlap
-        ), f"Unexpected overlapping packages between requirements.txt and requirements-dev.txt: {unexpected_overlap}"
+        assert not unexpected_overlap, (
+            f"Unexpected overlapping packages between requirements.txt and requirements-dev.txt: {unexpected_overlap}"
+        )
 
 
 class TestRequirementsInstallability:
