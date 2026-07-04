@@ -46,7 +46,7 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
     _check_coordination_boundary(content, missing)
 
 
-def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa: C901
+def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa: C901  # skipcq: PY-R1000
     """Check for durability/persistence proofs by parsing JSON payloads."""
 
     def _extract_balanced_json_objects(source: str) -> List[str]:
@@ -127,7 +127,8 @@ def _check_persistence_proof(content: str, missing: List[str]) -> None:  # noqa:
 
     if not found_all_in_one:
         missing.append(
-            "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
+            "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, "
+            "graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
         )
 
     if (

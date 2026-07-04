@@ -1098,8 +1098,6 @@ def _run_rebuild_pipeline(
             resolved_url=resolved_url,
             source=source,
         )
-        raise
-
 
 def _setup_coordination_and_domain_factories(
     settings: GraphLifecycleSettings,
