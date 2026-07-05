@@ -1,4 +1,4 @@
-```markdown
+````markdown
 # financial-asset-relationship-db Development Patterns
 
 > Auto-generated skill from repository analysis
@@ -10,10 +10,12 @@ This skill teaches the core development patterns, coding conventions, and common
 ## Coding Conventions
 
 **File Naming**
+
 - Use camelCase for Python and other code files.
   - Example: `financialAssetManager.py`, `dataLoader.py`
 
 **Import Style**
+
 - Use relative imports within Python modules.
   - Example:
     ```python
@@ -22,6 +24,7 @@ This skill teaches the core development patterns, coding conventions, and common
     ```
 
 **Export Style**
+
 - Use default exports (Python modules/classes/functions as the main export).
   - Example:
     ```python
@@ -31,6 +34,7 @@ This skill teaches the core development patterns, coding conventions, and common
     ```
 
 **Commit Message Patterns**
+
 - Use prefixes like `style:`, `fix:`, `chore:` for clarity.
   - Example: `style: format code with Black`
   - Example: `fix: correct asset relationship calculation`
@@ -38,6 +42,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ## Workflows
 
 ### CI Workflow Update and Fix
+
 **Trigger:** When addressing CI/CD pipeline issues, updating workflow permissions, or responding to automated PR review findings.
 **Command:** `/ci-workflow-fix`
 
@@ -48,6 +53,7 @@ This skill teaches the core development patterns, coding conventions, and common
 4. Push changes and verify CI/CD passes.
 
 **Files Involved:**
+
 - `.github/workflows/frontend-ci.yml`
 - `.github/workflows/release-evidence-verify.yml`
 - `.github/workflows/staging-promotion.yml`
@@ -66,6 +72,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ---
 
 ### ESLint Config Update
+
 **Trigger:** When changing ESLint rules, migrating config formats, or fixing lint-related CI failures.
 **Command:** `/eslint-update`
 
@@ -76,6 +83,7 @@ This skill teaches the core development patterns, coding conventions, and common
 4. Push changes and ensure frontend lint passes.
 
 **Files Involved:**
+
 - `frontend/eslint.config.mjs`
 - `frontend/.eslintrc.json`
 - `frontend/.eslintignore`
@@ -85,6 +93,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ---
 
 ### Code Formatting & Style Fix
+
 **Trigger:** When enforcing code style or fixing formatting issues introduced by previous commits.
 **Command:** `/format-code`
 
@@ -98,6 +107,7 @@ This skill teaches the core development patterns, coding conventions, and common
 3. Push changes.
 
 **Files Involved:**
+
 - `frontend/eslint.config.mjs`
 - `docs/ci-required-checks-policy.md`
 - `docs/enterprise-readiness-index.md`
@@ -107,6 +117,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ---
 
 ### Docker and Deployment Config Update
+
 **Trigger:** When adjusting deployment configuration, Docker images, or related scripts.
 **Command:** `/deployment-config-update`
 
@@ -117,6 +128,7 @@ This skill teaches the core development patterns, coding conventions, and common
 4. Push changes and verify deployment pipeline.
 
 **Files Involved:**
+
 - `Dockerfile.api`
 - `Dockerfile.frontend`
 - `docker-compose.production.yml`
@@ -127,6 +139,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ---
 
 ### Dependabot Config Update
+
 **Trigger:** When changing how Dependabot operates (e.g., adding cooldown periods, fixing accidental deletions).
 **Command:** `/dependabot-config`
 
@@ -136,11 +149,13 @@ This skill teaches the core development patterns, coding conventions, and common
 3. Push changes.
 
 **Files Involved:**
+
 - `.github/dependabot.yml`
 
 ---
 
 ### Frontend Package Update
+
 **Trigger:** When upgrading frontend dependencies or fixing compatibility issues.
 **Command:** `/frontend-deps-update`
 
@@ -150,6 +165,7 @@ This skill teaches the core development patterns, coding conventions, and common
 3. Push changes and verify frontend builds and tests pass.
 
 **Files Involved:**
+
 - `frontend/package.json`
 - `frontend/package-lock.json`
 
@@ -165,12 +181,12 @@ This skill teaches the core development patterns, coding conventions, and common
 
 ## Commands
 
-| Command                 | Purpose                                                         |
-|-------------------------|-----------------------------------------------------------------|
-| /ci-workflow-fix        | Update or fix CI/CD workflow YAML files                         |
-| /eslint-update          | Update or fix ESLint configuration for the frontend             |
-| /format-code            | Apply code formatting and style fixes                           |
+| Command                   | Purpose                                                        |
+| ------------------------- | -------------------------------------------------------------- |
+| /ci-workflow-fix          | Update or fix CI/CD workflow YAML files                        |
+| /eslint-update            | Update or fix ESLint configuration for the frontend            |
+| /format-code              | Apply code formatting and style fixes                          |
 | /deployment-config-update | Update Dockerfiles, deployment scripts, or related docs        |
-| /dependabot-config      | Update the Dependabot configuration file                        |
-| /frontend-deps-update   | Update frontend dependencies (package.json, package-lock.json)  |
-```
+| /dependabot-config        | Update the Dependabot configuration file                       |
+| /frontend-deps-update     | Update frontend dependencies (package.json, package-lock.json) |
+````
