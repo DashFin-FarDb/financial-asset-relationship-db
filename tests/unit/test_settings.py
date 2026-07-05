@@ -195,6 +195,51 @@ class TestSettingsModel:
         with pytest.raises(ValueError, match="SECRET_KEY environment variable"):
             _ = settings.required_secret_key
 
+    @pytest.mark.parametrize(
+        ("field_name", "field_value"),
+        [
+            ("secret_key", ""),
+            ("secret_key", "   "),
+            ("admin_username", ""),
+            ("admin_password", ""),
+        ],
+    )
+    def test_production_rejects_empty_required_secrets(self, field_name: str, field_value: str) -> None:
+        """Test that production rejects missing or empty required secret fields."""
+        values = {
+            "env": DeploymentEnvironment.PRODUCTION,
+            "secret_key": "secret-key-that-is-at-least-32-bytes",
+            "admin_username": "admin",
+            "admin_password": "configured-value",
+            field_name: field_value,
+        }
+        with pytest.raises(ValueError, match="non-empty deployment credentials") as exc_info:
+            Settings(**values)
+        error_message = str(exc_info.value)
+        assert "SECRET_KEY" not in error_message
+        assert "ADMIN_USERNAME" not in error_message
+        assert "ADMIN_PASSWORD" not in error_message
+        assert "secret_key" not in error_message
+        assert "admin_username" not in error_message
+        assert "admin_password" not in error_message
+        assert "secret-key-that-is-at-least-32-bytes" not in error_message
+        assert "configured-value" not in error_message
+
+    def test_production_validates_trimmed_secret_key_length(self) -> None:
+        """Test that whitespace padding cannot satisfy production secret length."""
+        with pytest.raises(ValueError, match="SECRET_KEY must be at least 32 characters"):
+            Settings(
+                env=DeploymentEnvironment.PRODUCTION,
+                secret_key=" " * 32 + "short-secret" + " " * 32,
+                admin_username="admin",
+                admin_password="configured-value",
+            )
+
+    def test_development_allows_empty_required_secrets(self) -> None:
+        """Test that local development keeps permissive empty-secret behavior."""
+        settings = Settings(env=DeploymentEnvironment.DEVELOPMENT, secret_key="", admin_username="", admin_password="")
+        assert settings.secret_key == ""
+
 
 # ---------------------------------------------------------------------------
 # Settings loading tests
@@ -264,6 +309,30 @@ class TestLoadSettings:
         assert settings.gradio_host == "127.0.0.2"
         assert settings.gradio_port == 8080
         assert settings.rebuild_lock_ttl_seconds == 300  # Default when not set
+
+    @patch.dict(
+        os.environ,
+        {
+            "ENV": "production",
+            "SECRET_KEY": "",
+            "ADMIN_USERNAME": "",
+            "ADMIN_PASSWORD": "",
+        },
+        clear=True,
+    )
+    def test_load_settings_rejects_empty_production_secrets(self) -> None:
+        """Test that production env loading fails fast on Compose-style empty strings."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="non-empty deployment credentials") as exc_info:
+            load_settings()
+        error_message = str(exc_info.value)
+        assert "SECRET_KEY" not in error_message
+        assert "ADMIN_USERNAME" not in error_message
+        assert "ADMIN_PASSWORD" not in error_message
+        assert "secret_key" not in error_message
+        assert "admin_username" not in error_message
+        assert "admin_password" not in error_message
 
     @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "600"})
     def test_load_settings_rebuild_lock_ttl_from_env(self) -> None:

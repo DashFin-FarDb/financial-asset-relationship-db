@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import enum
 from datetime import datetime
 
 from sqlalchemy import (
@@ -20,6 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.data.base import Base
+from src.utils.enum_compat import StrEnum
 
 # ---------------------------------------------------------------------------
 # Foreign key target constants (avoid duplicated string literals – Sonar S1192)
@@ -30,7 +30,7 @@ REGULATORY_EVENT_ID_FK = "regulatory_events.id"
 CASCADE_DELETE_ORPHAN = "all, delete-orphan"
 
 
-class RebuildJobStatus(enum.StrEnum):
+class RebuildJobStatus(StrEnum):
     """Valid status values for a RebuildJobORM record."""
 
     PENDING = "pending"
