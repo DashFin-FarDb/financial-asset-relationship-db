@@ -1098,6 +1098,7 @@ def _run_rebuild_pipeline(
             resolved_url=resolved_url,
             source=source,
         )
+        raise
 
 
 def _setup_coordination_and_domain_factories(
@@ -1918,5 +1919,5 @@ def list_rebuild_jobs(
             jobs=jobs,
             count=len(jobs),
             total=total,
-            has_more=offset + len(jobs) < total,  # type: ignore[call-arg]
+            hasMore=offset + len(jobs) < total,
         )
