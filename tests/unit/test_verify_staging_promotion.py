@@ -14,6 +14,7 @@ from scripts.verify_staging_promotion import (
 )
 
 
+@pytest.mark.unit
 def test_check_provider_labels():
     """Test that provider and hosting labels are correctly checked."""
     missing = []
@@ -26,6 +27,7 @@ def test_check_provider_labels():
     assert "Vercel mapping (frontend/backend traffic)" in missing
 
 
+@pytest.mark.unit
 def test_check_database_boundaries():
     """Test that database boundary confirmations are correctly checked."""
     missing = []
@@ -40,9 +42,9 @@ def test_check_database_boundaries():
     assert "ASSET_GRAPH_DATABASE_URL boundary confirmation" in missing
 
 
-def test_check_persistence_proof():
-    """Test that durability/persistence proofs are correctly checked via JSON payloads."""
-    # Positive case: valid JSON block
+@pytest.mark.unit
+def test_persistence_proof_valid_json():
+    """Test valid persistence proofs with correct JSON blocks."""
     missing = []
     valid_json = """
     ```json
@@ -60,7 +62,10 @@ def test_check_persistence_proof():
     _check_persistence_proof(valid_json, missing)
     assert not missing
 
-    # Positive case: hosted-readiness JSON with observed_fields dot-keys
+
+@pytest.mark.unit
+def test_persistence_proof_observed_fields():
+    """Test valid persistence proofs using observed_fields dot notation."""
     missing = []
     observed_fields_json = """
     ```json
@@ -78,15 +83,19 @@ def test_check_persistence_proof():
     _check_persistence_proof(observed_fields_json, missing)
     assert not missing
 
-    # Negative case: missing completely
+
+@pytest.mark.unit
+def test_persistence_proof_missing():
+    """Test missing persistence proofs entirely."""
     missing = []
     _check_persistence_proof("missing proof", missing)
-    assert (
-        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
-        in missing
-    )
+    assert any("Complete durable graph proof in a single JSON block" in m for m in missing)
     assert "Durable/non-durable preview label" in missing
 
+
+@pytest.mark.unit
+def test_persistence_proof_invalid_data():
+    """Test invalid JSON data for persistence proofs (false values, wrong source, prose)."""
     # Negative cases: false boolean values and wrong startup_source
     missing = []
     false_json = """
@@ -101,12 +110,8 @@ def test_check_persistence_proof():
     durable preview
     """
     _check_persistence_proof(false_json, missing)
-    assert (
-        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
-        in missing
-    )
+    assert any("Complete durable graph proof in a single JSON block" in m for m in missing)
 
-    # Negative case: bare field outside of `graph` object
     missing = []
     bare_json = """
     {
@@ -119,12 +124,8 @@ def test_check_persistence_proof():
     durable preview
     """
     _check_persistence_proof(bare_json, missing)
-    assert (
-        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
-        in missing
-    )
+    assert any("Complete durable graph proof in a single JSON block" in m for m in missing)
 
-    # Negative case: prose only (does not contain actual JSON object)
     missing = []
     prose_evidence = """
     We expect graph_persistence_configured == true.
@@ -133,12 +134,8 @@ def test_check_persistence_proof():
     durable preview
     """
     _check_persistence_proof(prose_evidence, missing)
-    assert (
-        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
-        in missing
-    )
+    assert any("Complete durable graph proof in a single JSON block" in m for m in missing)
 
-    # Negative case: required fields split across separate JSON blocks
     missing = []
     split_json = """
     Here is the first block:
@@ -160,12 +157,10 @@ def test_check_persistence_proof():
     durable preview
     """
     _check_persistence_proof(split_json, missing)
-    assert (
-        "Complete durable graph proof in a single JSON block (requires graph_persistence_configured, graph.persistence_enabled, graph.persistence_loaded, and graph.startup_source == 'persisted')"
-        in missing
-    )
+    assert any("Complete durable graph proof in a single JSON block" in m for m in missing)
 
 
+@pytest.mark.unit
 def test_check_urls():
     """Test that URLs are correctly checked."""
     missing = []
@@ -178,35 +173,37 @@ def test_check_urls():
     assert "Generic Actions URLs are not allowed" in missing
 
 
+@pytest.mark.unit
 def test_check_operational_evidence():
     """Test that operational evidence like smoke tests are correctly checked."""
     missing = []
     _check_operational_evidence(
-        "asset smoke evidence hosted readiness health json named owners scanner summary", missing
+        "asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary", missing
     )
     assert not missing
 
     missing = []
     _check_operational_evidence("no evidence", missing)
     assert "Asset smoke evidence" in missing
-    assert "hosted readiness" in missing
+    assert "hosted readiness --require-persistence command" in missing
     assert "health JSON" in missing
 
     missing = []
     _check_operational_evidence(
-        "asset smoke evidence hosted readiness health json named owners scanner summary secret: supersecretvalue",
+        "asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary secret: supersecretvalue",
         missing,
     )
     assert "Non-redacted evidence found (secrets/tokens must be redacted)" in missing
 
 
+@pytest.mark.unit
 def test_verify_staging_promotion_success(tmp_path):
     """Test successful staging promotion verification."""
     evidence_path = tmp_path / "evidence.md"
     evidence_path.write_text(
         "supabase vercel mapping database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement "
         "durable preview "
-        "https://github.com/org/repo/actions/runs/123 asset smoke evidence hosted readiness health json named owners scanner summary "
+        "https://github.com/org/repo/actions/runs/123 asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary "
         "```json\n"
         "{\n"
         '  "graph_persistence_configured": true,\n'
@@ -223,31 +220,45 @@ def test_verify_staging_promotion_success(tmp_path):
     evidence_path_str = str(evidence_path)
     with (
         patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True),
+        patch("scripts.verify_staging_promotion.Path.is_symlink", return_value=False),
         pytest.raises(SystemExit) as exc_info,
     ):
         verify_staging_promotion(evidence_path_str)
     assert exc_info.value.code == 0
 
 
+@pytest.mark.unit
 def test_verify_staging_promotion_failure(tmp_path):
     """Test failed staging promotion verification."""
     evidence_path = tmp_path / "evidence.md"
     evidence_path.write_text("missing almost everything", encoding="utf-8")
 
-    # tmp_path is outside the repo root, so bypass the repo-relative constraint for this unit test.
     evidence_path_str = str(evidence_path)
     with (
         patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True),
+        patch("scripts.verify_staging_promotion.Path.is_symlink", return_value=False),
         pytest.raises(SystemExit) as exc_info,
     ):
         verify_staging_promotion(evidence_path_str)
     assert exc_info.value.code == 1
 
 
+@pytest.mark.unit
 @patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
 @patch("scripts.verify_staging_promotion.Path.is_file", return_value=False)
 def test_verify_staging_promotion_directory(mock_is_file, mock_exists):
     """Test that providing a directory instead of a file raises a clean error."""
     with pytest.raises(SystemExit) as exc_info:
         verify_staging_promotion("some_directory")
+    assert exc_info.value.code == 1
+
+
+@pytest.mark.unit
+@patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
+@patch("scripts.verify_staging_promotion.Path.is_file", return_value=True)
+@patch("scripts.verify_staging_promotion.Path.is_symlink", return_value=True)
+def test_verify_staging_promotion_symlink(mock_is_symlink, mock_is_file, mock_exists):
+    """Test that providing a symlink raises a clean error."""
+    with pytest.raises(SystemExit) as exc_info:
+        verify_staging_promotion("some_symlink")
     assert exc_info.value.code == 1

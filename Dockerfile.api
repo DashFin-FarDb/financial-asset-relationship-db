@@ -2,8 +2,8 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \
+COPY requirements-api.txt ./requirements.txt
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \
     && pip install --no-cache-dir -r requirements.txt \
     && groupadd -r appuser \
     && useradd -r -g appuser appuser \
@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 
 COPY --chown=appuser:appuser src/ ./src/
 COPY --chown=appuser:appuser api/ ./api/
-
-USER appuser
+COPY --chown=appuser:appuser scripts/api_entrypoint.sh ./scripts/api_entrypoint.sh
+RUN chmod +x ./scripts/api_entrypoint.sh
 
 ENV PYTHONPATH=/app
 ENV PORT=8000
@@ -23,4 +23,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 
 EXPOSE ${PORT}
 
+ENTRYPOINT ["/app/scripts/api_entrypoint.sh"]
 CMD ["sh", "-c", "exec uvicorn api.main:app --host 0.0.0.0 --port ${PORT}"]

@@ -46,80 +46,93 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
     _check_coordination_boundary(content, missing)
 
 
+def _process_json_char(char: str, state: dict) -> bool:
+    """Process a character for the JSON extraction state machine."""
+    if state["in_string"]:
+        if state["escaped"]:
+            state["escaped"] = False
+        elif char == "\\":
+            state["escaped"] = True
+        elif char == '"':
+            state["in_string"] = False
+        return False
+
+    if char == '"':
+        state["in_string"] = True
+    elif char == "{":
+        if state["depth"] == 0:
+            state["start"] = state["index"]
+        state["depth"] += 1
+    elif char == "}":
+        if state["depth"] > 0:
+            state["depth"] -= 1
+            if state["depth"] == 0 and state["start"] is not None:
+                return True
+    return False
+
+
 def _extract_balanced_json_objects(source: str) -> List[str]:
     """Extract brace-balanced JSON object candidates from source text."""
     blocks: List[str] = []
-    start: int | None = None
-    depth = 0
-    in_string = False
-    escaped = False
+    state = {"start": None, "depth": 0, "in_string": False, "escaped": False, "index": 0}
 
     for index, char in enumerate(source):
-        if in_string:
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                escaped = True
-            elif char == '"':
-                in_string = False
-            continue
-
-        if char == '"':
-            in_string = True
-        elif char == "{":
-            if depth == 0:
-                start = index
-            depth += 1
-        elif char == "}":
-            if depth > 0:
-                depth -= 1
-                if depth == 0 and start is not None:
-                    blocks.append(source[start : index + 1])
-                    start = None
+        state["index"] = index
+        if _process_json_char(char, state):
+            blocks.append(source[state["start"] : index + 1])
+            state["start"] = None
 
     return blocks
 
 
-def _check_persistence_proof(content_raw: str, missing: List[str]) -> None:
-    """Check for durability/persistence proofs by parsing JSON payloads."""
-    # First inspect fenced blocks, then fall back to brace-balanced objects in the full evidence text.
+def _validate_persistence_data(data: dict) -> bool:
+    """Validate a parsed JSON dict for persistence proofs."""
+    obs = data.get("observed_fields")
+    if isinstance(obs, dict):
+        if (
+            obs.get("graph_persistence_configured") is True
+            and obs.get("graph.persistence_enabled") is True
+            and obs.get("graph.persistence_loaded") is True
+            and obs.get("graph.startup_source") == "persisted"
+        ):
+            return True
+
+    graph_data = data.get("graph")
+    if isinstance(graph_data, dict):
+        if (
+            data.get("graph_persistence_configured") is True
+            and graph_data.get("persistence_enabled") is True
+            and graph_data.get("persistence_loaded") is True
+            and graph_data.get("startup_source") == "persisted"
+        ):
+            return True
+
+    return False
+
+
+def _extract_json_blocks(content_raw: str) -> List[str]:
+    """Extract JSON blocks from markdown fences or brace-balanced fallbacks."""
     fenced_blocks = re.findall(r"```(?:json)?[ \t]*\n(.*?)```", content_raw, re.IGNORECASE | re.DOTALL)
     json_blocks: List[str] = []
     for fenced_block in fenced_blocks:
         json_blocks.extend(_extract_balanced_json_objects(fenced_block))
     if not json_blocks:
         json_blocks = _extract_balanced_json_objects(content_raw)
+    return json_blocks
+
+
+def _check_persistence_proof(content_raw: str, missing: List[str]) -> None:
+    """Check for durability/persistence proofs by parsing JSON payloads."""
+    json_blocks = _extract_json_blocks(content_raw)
 
     found_all_in_one = False
     for block in json_blocks:
         try:
             data = json.loads(block)
-            if not isinstance(data, dict):
-                continue
-
-            obs = data.get("observed_fields")
-            if isinstance(obs, dict):
-                if (
-                    obs.get("graph_persistence_configured") is True
-                    and obs.get("graph.persistence_enabled") is True
-                    and obs.get("graph.persistence_loaded") is True
-                    and obs.get("graph.startup_source") == "persisted"
-                ):
-                    found_all_in_one = True
-                    break
-            else:
-                graph_data = data.get("graph")
-                if isinstance(graph_data, dict):
-                    if (
-                        data.get("graph_persistence_configured") is True
-                        and graph_data.get("persistence_enabled") is True
-                        and graph_data.get("persistence_loaded") is True
-                        and graph_data.get("startup_source") == "persisted"
-                    ):
-                        found_all_in_one = True
-                        break
+            if isinstance(data, dict) and _validate_persistence_data(data):
+                found_all_in_one = True
+                break
         except json.JSONDecodeError:
-            # Candidate blocks are best-effort extracts and may not be valid JSON; skip and keep scanning.
             continue
 
     if not found_all_in_one:
@@ -143,7 +156,7 @@ def _check_urls(content: str, missing: List[str]) -> None:
         missing.append("Specific workflow run URL or artifact URL")
 
     generic_actions_pattern = r"https://github\.com/[^/\s)]+/[^/\s)]+/actions(?!/runs/)(?:[^\s)]*)?"
-    if re.search(generic_actions_pattern, content):
+    if re.search(generic_actions_pattern, content, flags=re.IGNORECASE):
         missing.append("Generic Actions URLs are not allowed")
 
 
@@ -151,7 +164,7 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
     """Check for smoke tests, ownership, and scanner summaries."""
     checks = [
         (("asset smoke evidence", "/api/assets?per_page=1"), "Asset smoke evidence"),
-        (("hosted readiness",), "hosted readiness"),
+        (("hosted readiness --require-persistence",), "hosted readiness --require-persistence command"),
         (("health json", "health.json"), "health JSON"),
         (
             ("named owners", "deploy operator", "promotion approver"),
@@ -163,10 +176,11 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
         if not any(p in content for p in patterns):
             missing.append(err_msg)
 
-    # Simple heuristic for unredacted secrets/tokens (allow common redaction markers)
+    # Standard: Explicitly allow common redaction markers like [REDACTED], xxxx, ****.
     keywords = "|".join(["password", "secret", "token", "key"])
     secret_pattern = (
-        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?" r"(?![^\s]*?(?:redacted|x{4,}))[^\s\*]{8,}"
+        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?"
+        r"(?![^\s]*?(?:redacted|x{4,}|\*{4,}))[^\s]{8,}"
     )
     if re.search(secret_pattern, content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
@@ -181,8 +195,11 @@ def verify_staging_promotion(evidence_file: str) -> None:
     if not evidence_path_obj.is_file():
         print(f"Error: Evidence path {evidence_file} is not a regular file.")
         sys.exit(1)
+    if evidence_path_obj.is_symlink():
+        print(f"Error: Evidence path {evidence_file} is a symlink. Symlinks are not allowed.")
+        sys.exit(1)
 
-    evidence_path = Path(evidence_file).resolve(strict=True)
+    evidence_path = evidence_path_obj.resolve(strict=True)
     repo_root = Path(__file__).resolve().parent.parent
     is_relative = evidence_path.is_relative_to(repo_root)
     if not is_relative:
