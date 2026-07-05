@@ -140,7 +140,7 @@ class Settings(BaseModel):
     @classmethod
     def validate_secret_key(cls, value: str | None, info: ValidationInfo) -> str | None:
         """Warn or raise if the secret key is less than 32 characters."""
-        if value and len(value) < 32:
+        if value and value.strip() and len(value) < 32:
             env = info.data.get("env", DeploymentEnvironment.DEVELOPMENT)
             if isinstance(env, DeploymentEnvironment):
                 env = env.value
@@ -157,17 +157,9 @@ class Settings(BaseModel):
         if self.env != DeploymentEnvironment.PRODUCTION:
             return self
 
-        empty_fields = [
-            env_name
-            for env_name, value in (
-                ("SECRET_KEY", self.secret_key),
-                ("ADMIN_USERNAME", self.admin_username),
-                ("ADMIN_PASSWORD", self.admin_password),
-            )
-            if value is None or not value.strip()
-        ]
-        if empty_fields:
-            raise ValueError(f"Production requires non-empty values for: {', '.join(empty_fields)}")
+        required_values = (self.secret_key, self.admin_username, self.admin_password)
+        if any(value is None or not value.strip() for value in required_values):
+            raise ValueError("Production requires non-empty deployment credentials.")
         return self
 
     @field_validator("slo_rebuild_duration_max_seconds")

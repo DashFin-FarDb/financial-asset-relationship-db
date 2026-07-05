@@ -196,15 +196,15 @@ class TestSettingsModel:
             _ = settings.required_secret_key
 
     @pytest.mark.parametrize(
-        ("field_name", "field_value", "env_name"),
+        ("field_name", "field_value"),
         [
-            ("secret_key", "", "SECRET_KEY"),
-            ("secret_key", "   ", "SECRET_KEY"),
-            ("admin_username", "", "ADMIN_USERNAME"),
-            ("admin_password", "", "ADMIN_PASSWORD"),
+            ("secret_key", ""),
+            ("secret_key", "   "),
+            ("admin_username", ""),
+            ("admin_password", ""),
         ],
     )
-    def test_production_rejects_empty_required_secrets(self, field_name: str, field_value: str, env_name: str) -> None:
+    def test_production_rejects_empty_required_secrets(self, field_name: str, field_value: str) -> None:
         """Test that production rejects missing or empty required secret fields."""
         values = {
             "env": DeploymentEnvironment.PRODUCTION,
@@ -213,8 +213,11 @@ class TestSettingsModel:
             "admin_password": "adminpass",
             field_name: field_value,
         }
-        with pytest.raises(ValueError, match=env_name):
+        with pytest.raises(ValueError, match="non-empty deployment credentials") as exc_info:
             Settings(**values)
+        assert "SECRET_KEY" not in str(exc_info.value)
+        assert "ADMIN_USERNAME" not in str(exc_info.value)
+        assert "ADMIN_PASSWORD" not in str(exc_info.value)
 
     def test_development_allows_empty_required_secrets(self) -> None:
         """Test that local development keeps permissive empty-secret behavior."""
@@ -305,8 +308,11 @@ class TestLoadSettings:
         """Test that production env loading fails fast on Compose-style empty strings."""
         from pydantic import ValidationError
 
-        with pytest.raises(ValidationError, match="SECRET_KEY"):
+        with pytest.raises(ValidationError, match="non-empty deployment credentials") as exc_info:
             load_settings()
+        assert "SECRET_KEY" not in str(exc_info.value)
+        assert "ADMIN_USERNAME" not in str(exc_info.value)
+        assert "ADMIN_PASSWORD" not in str(exc_info.value)
 
     @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "600"})
     def test_load_settings_rebuild_lock_ttl_from_env(self) -> None:

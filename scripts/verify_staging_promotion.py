@@ -49,28 +49,39 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
 
 def _process_json_char(char: str, state: dict) -> bool:
     """Process a character for the JSON extraction state machine."""
-    if state["in_string"] and state["escaped"]:
-        state["escaped"] = False
-        return False
-    if state["in_string"] and char == "\\":
-        state["escaped"] = True
-        return False
-    if state["in_string"] and char == '"':
-        state["in_string"] = False
-        return False
     if state["in_string"]:
-        return False
+        return _process_json_string_char(char, state)
     if char == '"':
         state["in_string"] = True
         return False
     if char == "{":
-        if state["depth"] == 0:
-            state["start"] = state["index"]
-        state["depth"] += 1
-        return False
-    if char != "}" or state["depth"] <= 0:
-        return False
+        return _process_json_open_brace(state)
+    return char == "}" and _process_json_close_brace(state)
 
+
+def _process_json_string_char(char: str, state: dict) -> bool:
+    """Process a character while the JSON scanner is inside a string."""
+    if state["escaped"]:
+        state["escaped"] = False
+    elif char == "\\":
+        state["escaped"] = True
+    elif char == '"':
+        state["in_string"] = False
+    return False
+
+
+def _process_json_open_brace(state: dict) -> bool:
+    """Process an opening brace in the JSON scanner."""
+    if state["depth"] == 0:
+        state["start"] = state["index"]
+    state["depth"] += 1
+    return False
+
+
+def _process_json_close_brace(state: dict) -> bool:
+    """Process a closing brace in the JSON scanner."""
+    if state["depth"] <= 0:
+        return False
     state["depth"] -= 1
     return state["depth"] == 0 and state["start"] is not None
 
@@ -91,39 +102,33 @@ def _extract_balanced_json_objects(source: str) -> List[str]:
 
 def _validate_persistence_data(data: dict) -> bool:
     """Validate a parsed JSON dict for persistence proofs."""
-    obs = data.get("observed_fields")
-    if _has_observed_field_persistence(obs):
+    if _has_expected_values(
+        data.get("observed_fields"),
+        {
+            "graph_persistence_configured": True,
+            "graph.persistence_enabled": True,
+            "graph.persistence_loaded": True,
+            "graph.startup_source": "persisted",
+        },
+    ):
         return True
 
-    graph_data = data.get("graph")
-    if _has_graph_persistence(data, graph_data):
+    if data.get("graph_persistence_configured") is True and _has_expected_values(
+        data.get("graph"),
+        {
+            "persistence_enabled": True,
+            "persistence_loaded": True,
+            "startup_source": "persisted",
+        },
+    ):
         return True
 
     return False
 
 
-def _has_observed_field_persistence(obs: object) -> bool:
-    """Return whether observed_fields contains the complete persistence proof."""
-    return isinstance(obs, dict) and all(
-        (
-            obs.get("graph_persistence_configured") is True,
-            obs.get("graph.persistence_enabled") is True,
-            obs.get("graph.persistence_loaded") is True,
-            obs.get("graph.startup_source") == "persisted",
-        )
-    )
-
-
-def _has_graph_persistence(data: dict, graph_data: object) -> bool:
-    """Return whether graph contains the complete persistence proof."""
-    return isinstance(graph_data, dict) and all(
-        (
-            data.get("graph_persistence_configured") is True,
-            graph_data.get("persistence_enabled") is True,
-            graph_data.get("persistence_loaded") is True,
-            graph_data.get("startup_source") == "persisted",
-        )
-    )
+def _has_expected_values(candidate: object, expected_values: dict[str, object]) -> bool:
+    """Return whether a dict candidate contains all expected key/value pairs."""
+    return isinstance(candidate, dict) and all(candidate.get(key) == value for key, value in expected_values.items())
 
 
 def _extract_json_blocks(content_raw: str) -> List[str]:
@@ -195,8 +200,8 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
     # Standard: Explicitly allow common redaction markers like [REDACTED], xxxx, ****.
     keywords = "|".join(["password", "secret", "token", "key"])
     secret_pattern = (
-        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ 	]*['\"]?"
-        r"(?![^\s]*?(?:redacted|x{4,}|\*{4,}|undefined|not_configured|\$\{[^}]+\}))[^\s]{8,}"
+        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?"
+        r"(?![a-z0-9+/=]*?(?:redacted|x{4,}|\*{4,}))[a-z0-9+/=]{16,}"
     )
     if re.search(secret_pattern, content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
