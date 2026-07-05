@@ -38,7 +38,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ## Workflows
 
 ### CI Workflow Update and Fix
-**Trigger:** When addressing CI/CD pipeline issues, updating workflow permissions, or responding to automated PR review findings.  
+**Trigger:** When addressing CI/CD pipeline issues, updating workflow permissions, or responding to automated PR review findings.
 **Command:** `/ci-workflow-fix`
 
 1. Edit one or more files in `.github/workflows/` (e.g., `frontend-ci.yml`, `release-evidence-verify.yml`).
@@ -66,7 +66,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ---
 
 ### ESLint Config Update
-**Trigger:** When changing ESLint rules, migrating config formats, or fixing lint-related CI failures.  
+**Trigger:** When changing ESLint rules, migrating config formats, or fixing lint-related CI failures.
 **Command:** `/eslint-update`
 
 1. Edit `frontend/eslint.config.mjs` (and possibly `.eslintrc.json`, `.eslintignore`).
@@ -85,7 +85,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ---
 
 ### Code Formatting & Style Fix
-**Trigger:** When enforcing code style or fixing formatting issues introduced by previous commits.  
+**Trigger:** When enforcing code style or fixing formatting issues introduced by previous commits.
 **Command:** `/format-code`
 
 1. Run code formatters on affected files (e.g., Black for Python, Prettier for JS).
@@ -107,7 +107,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ---
 
 ### Docker and Deployment Config Update
-**Trigger:** When adjusting deployment configuration, Docker images, or related scripts.  
+**Trigger:** When adjusting deployment configuration, Docker images, or related scripts.
 **Command:** `/deployment-config-update`
 
 1. Edit deployment-related files (`Dockerfile.api`, `Dockerfile.frontend`, `docker-compose.production.yml`, or `scripts/verify_staging_promotion.py`).
@@ -127,7 +127,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ---
 
 ### Dependabot Config Update
-**Trigger:** When changing how Dependabot operates (e.g., adding cooldown periods, fixing accidental deletions).  
+**Trigger:** When changing how Dependabot operates (e.g., adding cooldown periods, fixing accidental deletions).
 **Command:** `/dependabot-config`
 
 1. Edit `.github/dependabot.yml` as needed.
@@ -141,7 +141,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ---
 
 ### Frontend Package Update
-**Trigger:** When upgrading frontend dependencies or fixing compatibility issues.  
+**Trigger:** When upgrading frontend dependencies or fixing compatibility issues.
 **Command:** `/frontend-deps-update`
 
 1. Edit `frontend/package.json` and/or `frontend/package-lock.json` to update dependencies.
