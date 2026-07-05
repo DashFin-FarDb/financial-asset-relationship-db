@@ -11,8 +11,8 @@ This skill teaches the core development patterns, coding conventions, and common
 
 **File Naming**
 
-- Use camelCase for Python and other code files.
-  - Example: `financialAssetManager.py`, `dataLoader.py`
+- Use snake_case for Python files and modules.
+  - Example: asset_graph.py, financial_models.py
 
 **Import Style**
 
@@ -44,7 +44,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ### CI Workflow Update and Fix
 
 **Trigger:** When addressing CI/CD pipeline issues, updating workflow permissions, or responding to automated PR review findings.
-**Command:** `/ci-workflow-fix`
+**Command:** /ci-workflow-update-and-fix
 
 1. Edit one or more files in `.github/workflows/` (e.g., `frontend-ci.yml`, `release-evidence-verify.yml`).
 2. Make necessary changes to fix pipelines, update permissions, or resolve security findings.
@@ -74,8 +74,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ### ESLint Config Update
 
 **Trigger:** When changing ESLint rules, migrating config formats, or fixing lint-related CI failures.
-**Command:** `/eslint-update`
-
+**Command:** /eslint-config-update
 1. Edit `frontend/eslint.config.mjs` (and possibly `.eslintrc.json`, `.eslintignore`).
 2. Update `frontend/package.json` and/or `package-lock.json` if dependencies change.
 3. Commit with a message referencing ESLint, config, or lint errors.
@@ -95,7 +94,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ### Code Formatting & Style Fix
 
 **Trigger:** When enforcing code style or fixing formatting issues introduced by previous commits.
-**Command:** `/format-code`
+**Command:** /code-formatting-style-fix
 
 1. Run code formatters on affected files (e.g., Black for Python, Prettier for JS).
    - Example:
@@ -182,9 +181,9 @@ This skill teaches the core development patterns, coding conventions, and common
 
 | Command                   | Purpose                                                        |
 | ------------------------- | -------------------------------------------------------------- |
-| /ci-workflow-fix          | Update or fix CI/CD workflow YAML files                        |
-| /eslint-update            | Update or fix ESLint configuration for the frontend            |
-| /format-code              | Apply code formatting and style fixes                          |
+| /ci-workflow-update-and-fix | Update or fix CI/CD workflow YAML files                      |
+| /eslint-config-update     | Update or fix ESLint configuration for the frontend            |
+| /code-formatting-style-fix | Apply code formatting and style fixes                        |
 | /deployment-config-update | Update Dockerfiles, deployment scripts, or related docs        |
 | /dependabot-config        | Update the Dependabot configuration file                       |
 | /frontend-deps-update     | Update frontend dependencies (package.json, package-lock.json) |
