@@ -195,8 +195,8 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
     # Standard: Explicitly allow common redaction markers like [REDACTED], xxxx, ****.
     keywords = "|".join(["password", "secret", "token", "key"])
     secret_pattern = (
-        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?"
-        r"(?![a-z0-9+/=]*?(?:redacted|x{4,}|\*{4,}))[a-z0-9+/=]{16,}"
+        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ 	]*['\"]?"
+        r"(?![^\s]*?(?:redacted|x{4,}|\*{4,}|undefined|not_configured|\$\{[^}]+\}))[^\s]{8,}"
     )
     if re.search(secret_pattern, content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
