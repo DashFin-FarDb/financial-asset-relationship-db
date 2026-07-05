@@ -77,7 +77,7 @@ def load_yaml_safe(file_path: Path) -> dict[str, Any]:
         yaml.YAMLError: If the file contains invalid YAML.
     """
     with open(file_path, encoding="utf-8") as f:
-        return yaml.load(f, Loader=GitHubActionsYamlLoader)  # nosec B506  # nosec B506
+        return yaml.load(f, Loader=GitHubActionsYamlLoader)  # nosec B506
 
 
 def check_duplicate_keys(file_path: Path) -> list[str]:
