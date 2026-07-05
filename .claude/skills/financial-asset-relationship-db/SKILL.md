@@ -12,7 +12,7 @@ This skill teaches the core development patterns, coding conventions, and common
 **File Naming**
 
 - Use `snake_case` for Python files and modules.
-   - Example: `asset_graph.py`, `financial_models.py`
+  - Example: `asset_graph.py`, `financial_models.py`
 
 **Import Style**
 
