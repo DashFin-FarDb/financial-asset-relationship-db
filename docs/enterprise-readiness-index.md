@@ -5,19 +5,20 @@
 
 ## What To Read
 
-| Document | Purpose |
-| --- | --- |
-| `docs/audits/enterprise-readiness-audit.md` | Full audit of what is implemented, evidence-backed, manually gated, and still deferred |
-| `docs/roadmap/enterprise-readiness-roadmap.md` | High-level release-execution roadmap after the PR #1287-#1301 reconciliation point |
-| `docs/roadmap/enterprise-readiness-pr-plan.md` | PR-by-PR execution plan with validation commands |
-| `docs/roadmap/enterprise-readiness-pr-board.md` | Operational PR board with status and exit criteria |
-| `docs/release-checklist.md` | Release gates and enterprise exit criteria |
-| `docs/release-evidence-pack.md` | Gate-by-gate release evidence matrix, targeted commands, manual artefacts, and blocker rules |
-| `docs/operations/operational-evidence-capture-framework.md` | Canonical evidence grammar for classifying, redacting, and reviewing operational proof artifacts |
+| Document                                                      | Purpose                                                                                                                    |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `docs/audits/enterprise-readiness-audit.md`                   | Full audit of what is implemented, evidence-backed, manually gated, and still deferred                                     |
+| `docs/roadmap/enterprise-readiness-roadmap.md`                | High-level release-execution roadmap after the PR #1287-#1301 reconciliation point                                         |
+| `docs/roadmap/enterprise-readiness-pr-plan.md`                | PR-by-PR execution plan with validation commands                                                                           |
+| `docs/roadmap/enterprise-readiness-pr-board.md`               | Operational PR board with status and exit criteria                                                                         |
+| `docs/release-checklist.md`                                   | Release gates and enterprise exit criteria                                                                                 |
+| `docs/release-evidence-pack.md`                               | Gate-by-gate release evidence matrix, targeted commands, manual artefacts, and blocker rules                               |
+| `docs/operations/operational-evidence-capture-framework.md`   | Canonical evidence grammar for classifying, redacting, and reviewing operational proof artifacts                           |
 | `docs/testing/operational-drill-and-scale-validation-pack.md` | Operational drill matrix and bounded scale-validation guidance for observability, SLO, dashboard, alert, and runbook proof |
-| `docs/governance/state-machine-and-operating-authority.md` | Current operational authority for rebuild/recovery state machines, invariants, ownership, and exception paths |
-| `docs/adr/0005-backup-restore-dr-strategy.md` | Backup, restore, DR strategy, data classification, RPO, and RTO |
-| `docs/runbooks/backup-restore-dr.md` | Operator procedures for backup verification, restore execution, and post-restore checks |
+| `docs/governance/state-machine-and-operating-authority.md`    | Current operational authority for rebuild/recovery state machines, invariants, ownership, and exception paths              |
+| `docs/adr/0006-release-and-deployment-automation.md`          | Release and Deployment automation strategy, GitHub actions constraints                                                     |
+| `docs/adr/0005-backup-restore-dr-strategy.md`                 | Backup, restore, DR strategy, data classification, RPO, and RTO                                                            |
+| `docs/runbooks/backup-restore-dr.md`                          | Operator procedures for backup verification, restore execution, and post-restore checks                                    |
 
 ## Executive Summary
 
@@ -39,13 +40,13 @@ The DR documentation gap is closed at the strategy and runbook level through [AD
 
 Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **Satisfied - automated**, **Satisfied - documented**, **Satisfied - manual evidence required**, **Partially satisfied**, and **Blocked**.
 
-| Status | Current items |
-| --- | --- |
-| Satisfied - automated | PR 1 durable graph persistence; PR 2 startup load/save integration; PR 4 core density, asset pagination, and frontend/backend contract seams; PR 5 RecoveryGate/reconciliation control-plane path; PR 7 CI-bounded failure-mode and representative-scale validation where covered |
-| Satisfied - documented | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model |
-| Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence |
-| Partially satisfied | Strict stale-owner restart composition is covered by integration tests; the operational evidence-capture framework and drill pack are documented; production-scale validation remains future operating-maturity work |
-| Blocked | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence, release-commit security scanner/exception review, named operator sign-off, and DR restore rehearsal evidence are attached or approved. |
+| Status                               | Current items                                                                                                                                                                                                                                                                                       |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Satisfied - automated                | PR 1 durable graph persistence; PR 2 startup load/save integration; PR 4 core density, asset pagination, and frontend/backend contract seams; PR 5 RecoveryGate/reconciliation control-plane path; PR 7 CI-bounded failure-mode and representative-scale validation where covered                   |
+| Satisfied - documented               | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model                                                                                                                                                                 |
+| Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence                                                                                                       |
+| Partially satisfied                  | Strict stale-owner restart composition is covered by integration tests; the operational evidence-capture framework and drill pack are documented; production-scale validation remains future operating-maturity work                                                                                |
+| Blocked                              | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence, release-commit security scanner/exception review, named operator sign-off, and DR restore rehearsal evidence are attached or approved. |
 
 ## Recommended Reading Order
 
@@ -73,6 +74,7 @@ Repository tests and documentation may satisfy implementation evidence, but stag
 - [docs/testing/operational-drill-and-scale-validation-pack.md](./testing/operational-drill-and-scale-validation-pack.md) — operator-facing drill matrix and bounded scale-validation guidance
 - [docs/governance/state-machine-and-operating-authority.md](./governance/state-machine-and-operating-authority.md) — current authority for rebuild/recovery/persistence state-machine governance
 - [docs/adr/0002-hosted-deployment-and-persistence.md](./adr/0002-hosted-deployment-and-persistence.md) — hosted persistence decision
+- [docs/adr/0006-release-and-deployment-automation.md](./adr/0006-release-and-deployment-automation.md) — release and deployment automation strategy
 - [docs/adr/0005-backup-restore-dr-strategy.md](./adr/0005-backup-restore-dr-strategy.md) — backup, restore, and DR strategy
 - [docs/runbooks/backup-restore-dr.md](./runbooks/backup-restore-dr.md) — backup and restore operating procedure
 - [docs/enterprise-deployment-operating-model.md](./enterprise-deployment-operating-model.md) — promotion, rollback, and DR operating model

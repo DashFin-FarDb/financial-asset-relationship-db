@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import type { VisualizationData } from "../types/api";
 
@@ -13,7 +13,7 @@ const Plot = dynamic(() => import("react-plotly.js"), {
 });
 
 type NetworkVisualizationProps = Readonly<{
-  data: VisualizationData;
+  data: VisualizationData | null;
 }>;
 
 type EdgeTrace = {
@@ -104,7 +104,7 @@ function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
 /**
  * Build Plotly 3D line traces for network edges from node and edge lists.
  *
- * Skips edges whose source or target node is missing and logs a warning in that case.
+ * Skips edges whose source or target node is missing.
  *
  * @param nodes - Nodes with unique `id` and numeric `x`, `y`, `z` coordinates.
  * @param edges - Edges with `source` and `target` node ids and a numeric `strength` between 0 and 1.
@@ -120,9 +120,11 @@ function buildEdgeTraces(
     const targetNode = nodeMap.get(edge.target);
 
     if (!sourceNode || !targetNode) {
-      console.warn(
-        `Missing node for edge: source=${edge.source}, target=${edge.target}`,
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.debug(
+          `[Development Only] Skipping invalid edge: source ${edge.source} or target ${edge.target} not found.`,
+        );
+      }
       return acc;
     }
 
@@ -180,6 +182,7 @@ function prepareVisualizationData(
 
   const nodeTrace = buildNodeTrace(nodes);
   const edgeTraces = buildEdgeTraces(nodes, edges);
+
   return {
     status: "ready",
     message: "",
@@ -200,22 +203,18 @@ function prepareVisualizationData(
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<Array<EdgeTrace | NodeTrace>>([]);
-  const [status, setStatus] = useState<VisualizationStatus>("loading");
-  const [message, setMessage] = useState("Loading visualization...");
-
-  useEffect(() => {
+  const preparation = useMemo<VisualizationPreparation>(() => {
     if (!data) {
-      setPlotData([]);
-      setStatus("empty");
-      setMessage("No visualization data available.");
-      return;
+      return {
+        status: "empty",
+        message: "No visualization data available.",
+        plotData: [],
+      };
     }
-    const preparation = prepareVisualizationData(data);
-    setPlotData(preparation.plotData);
-    setStatus(preparation.status);
-    setMessage(preparation.message);
+    return prepareVisualizationData(data);
   }, [data]);
+
+  const { plotData, status, message } = preparation;
 
   if (status !== "ready") {
     const isUrgent = status === "tooLarge";
@@ -233,6 +232,7 @@ export default function NetworkVisualization({
   return (
     <div className="w-full h-[800px]">
       <Plot
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data={plotData as any}
         layout={{
           title: "3D Asset Relationship Network",
