@@ -180,12 +180,12 @@ This skill teaches the core development patterns, coding conventions, and common
 
 ## Commands
 
-| Command                   | Purpose                                                        |
-| ------------------------- | -------------------------------------------------------------- |
-| /ci-workflow-update-and-fix | Update or fix CI/CD workflow YAML files                      |
-| /eslint-config-update     | Update or fix ESLint configuration for the frontend            |
-| /code-formatting-style-fix | Apply code formatting and style fixes                        |
-| /deployment-config-update | Update Dockerfiles, deployment scripts, or related docs        |
-| /dependabot-config        | Update the Dependabot configuration file                       |
-| /frontend-deps-update     | Update frontend dependencies (package.json, package-lock.json) |
+| Command                     | Purpose                                                        |
+| --------------------------- | -------------------------------------------------------------- |
+| /ci-workflow-update-and-fix | Update or fix CI/CD workflow YAML files                        |
+| /eslint-config-update       | Update or fix ESLint configuration for the frontend            |
+| /code-formatting-style-fix  | Apply code formatting and style fixes                          |
+| /deployment-config-update   | Update Dockerfiles, deployment scripts, or related docs        |
+| /dependabot-config          | Update the Dependabot configuration file                       |
+| /frontend-deps-update       | Update frontend dependencies (package.json, package-lock.json) |
 ````
