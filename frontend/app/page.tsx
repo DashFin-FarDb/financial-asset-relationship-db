@@ -150,6 +150,14 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const requestIdRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   /**
    * Loads metrics and visualization data from the API.
@@ -184,7 +192,7 @@ export default function Home() {
       error: string | null;
       requestId: number;
     }) => {
-      if (result.requestId !== requestIdRef.current) return;
+      if (result.requestId !== requestIdRef.current || !mountedRef.current) return;
       if (result.error) {
         setError(result.error);
       } else {
