@@ -127,9 +127,9 @@ class TestWorkflowSecretHandling:
                 for step_idx, step in enumerate(steps):
                     if "actions/upload-artifact" in step.get("uses", ""):
                         step_str = str(step)
-                        assert "secrets." not in step_str, (
-                            f"Secret reference in artifact upload: {workflow['path']} job '{job_name}' step {step_idx}"
-                        )
+                        assert (
+                            "secrets." not in step_str
+                        ), f"Secret reference in artifact upload: {workflow['path']} job '{job_name}' step {step_idx}"
 
 
 class TestWorkflowPermissionsHardening:
@@ -153,9 +153,9 @@ class TestWorkflowPermissionsHardening:
             all_jobs_have_permissions = all(
                 isinstance(job, dict) and ("permissions" in job or "uses" in job) for job in jobs.values()
             )
-            assert all_jobs_have_permissions, (
-                f"Workflow {workflow['path']} should define permissions (either top-level or on each job)"
-            )
+            assert (
+                all_jobs_have_permissions
+            ), f"Workflow {workflow['path']} should define permissions (either top-level or on each job)"
 
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):
@@ -202,9 +202,9 @@ class TestWorkflowPermissionsHardening:
                     "packages",  # Package publishing
                 }
                 unexpected_write = set(default_write_perms) - allowed_write_perms
-                assert len(unexpected_write) == 0, (
-                    f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
-                )
+                assert (
+                    len(unexpected_write) == 0
+                ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
 
     @staticmethod
     def test_no_workflows_with_write_all_permission(all_workflows):
@@ -251,9 +251,9 @@ class TestWorkflowSupplyChainSecurity:
         """
         if "@" in action:
             version = action.split("@")[1]
-            assert re.match(r"^[a-f0-9]{40}$", version.lower()), (
-                f"Action {action} in {workflow_path} job '{job_name}' step {step_idx} must be pinned to a SHA"
-            )
+            assert re.match(
+                r"^[a-f0-9]{40}$", version.lower()
+            ), f"Action {action} in {workflow_path} job '{job_name}' step {step_idx} must be pinned to a SHA"
 
     @staticmethod
     def _validate_workflow_job_steps(workflow, sha_exempt_actions):
@@ -305,6 +305,6 @@ class TestWorkflowSupplyChainSecurity:
                 raw_content,
                 re.IGNORECASE,
             )
-            assert len(insecure_downloads) == 0, (
-                f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
-            )
+            assert (
+                len(insecure_downloads) == 0
+            ), f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"

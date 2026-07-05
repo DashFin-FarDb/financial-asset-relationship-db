@@ -105,6 +105,8 @@ def test_resolve_hosted_graph_database_url_supports_legacy_settings_objects() ->
     """Legacy settings objects should keep the old database_url compatibility seam."""
 
     class LegacySettings:
+        """Mock settings object representing legacy configuration."""
+
         database_url = "postgresql://legacy"
         vercel_env = providers.DeploymentEnvironment.PREVIEW
 
@@ -119,7 +121,9 @@ def test_save_graph_with_session_runs_pre_commit_check(monkeypatch: pytest.Monke
 
     monkeypatch.setattr(providers.AssetGraphRepository, "save_graph", lambda self, _graph: None)
 
-    providers._save_graph_with_session(session, graph, pre_commit_check=pre_commit_check)  # pylint: disable=protected-access
+    providers._save_graph_with_session(
+        session, graph, pre_commit_check=pre_commit_check
+    )  # pylint: disable=protected-access
 
     pre_commit_check.assert_called_once_with()
     session.commit.assert_called_once_with()
@@ -139,7 +143,9 @@ def test_save_graph_with_session_rolls_back_when_pre_commit_check_fails(
         raise RuntimeError("lost lock")
 
     with pytest.raises(RuntimeError):
-        providers._save_graph_with_session(session, graph, pre_commit_check=fail_pre_commit)  # pylint: disable=protected-access
+        providers._save_graph_with_session(
+            session, graph, pre_commit_check=fail_pre_commit
+        )  # pylint: disable=protected-access
 
     session.rollback.assert_called_once_with()
     session.commit.assert_not_called()

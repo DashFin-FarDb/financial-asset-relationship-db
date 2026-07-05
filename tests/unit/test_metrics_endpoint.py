@@ -6,6 +6,7 @@ Contract:
 - Metric generation failures return HTTP 500 plaintext errors
 """
 
+from typing import Generator
 from unittest.mock import patch
 
 import pytest
@@ -38,7 +39,7 @@ def _assert_metrics_text_response(response) -> str:
 
 
 @pytest.fixture
-def client() -> TestClient:
+def client() -> Generator[TestClient, None, None]:
     """Create an isolated TestClient for /api/metrics tests with automatic teardown."""
     with TestClient(create_app(), base_url="https://testserver") as test_client:
         yield test_client

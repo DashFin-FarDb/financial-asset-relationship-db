@@ -72,7 +72,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.fixture
 def mock_active_user() -> User:
     """Provide a mock active admin user for integration tests."""
-    return User(username="admin_tester", email="admin@example.com", is_disabled=False, full_name="Admin User")
+    return User(username="admin_tester", email="admin@example.com", disabled=False, full_name="Admin User")
 
 
 @pytest.fixture
@@ -86,7 +86,7 @@ async def test_client(mock_active_user: User) -> AsyncGenerator[httpx.AsyncClien
         return mock_active_user
 
     app.dependency_overrides[get_current_active_user] = override_get_current_active_user
-    async with httpx.AsyncClient(app=app, base_url="http://testserver") as client:
+    async with httpx.AsyncClient(app=app, base_url="http://testserver") as client:  # type: ignore[call-arg]
         yield client
     app.dependency_overrides.clear()
 

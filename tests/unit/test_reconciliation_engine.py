@@ -43,7 +43,7 @@ class TestReconciliationPlan:
         plan = ReconciliationPlan(
             drift_type="test_drift",
             severity=Severity.MEDIUM,
-            actions=[ActionType.RESET_STATE],
+            actions=(ActionType.RESET_STATE,),
             target_state="Target state description",
             execution_mode=ExecutionMode.DEFERRED,
             safety_state=ExecutionSafety.RESET_REQUIRED,
@@ -63,7 +63,7 @@ class TestReconciliationPlan:
             ReconciliationPlan(
                 drift_type="test_drift",
                 severity=Severity.MEDIUM,
-                actions=[],  # Empty actions list
+                actions=(),  # Empty actions list
                 target_state="Target state",
                 execution_mode=ExecutionMode.AUTOMATIC,
                 safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
@@ -78,7 +78,7 @@ class TestReconciliationPlan:
         plan_valid = ReconciliationPlan(
             drift_type="none",
             severity=Severity.NONE,
-            actions=[ActionType.NOOP],
+            actions=(ActionType.NOOP,),
             target_state="Already converged",
             execution_mode=ExecutionMode.AUTOMATIC,
             safety_state=ExecutionSafety.CONVERGED,
@@ -93,7 +93,7 @@ class TestReconciliationPlan:
             ReconciliationPlan(
                 drift_type="none",
                 severity=Severity.NONE,
-                actions=[ActionType.ALERT_ONLY],  # Wrong action for NONE severity
+                actions=(ActionType.ALERT_ONLY,),  # Wrong action for NONE severity
                 target_state="Target",
                 execution_mode=ExecutionMode.AUTOMATIC,
                 safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
@@ -109,7 +109,7 @@ class TestReconciliationPlan:
             ReconciliationPlan(
                 drift_type="test_drift",
                 severity=Severity.MEDIUM,
-                actions=["invalid_action"],  # type: ignore[list-item]  # Intentional for test
+                actions=("invalid_action",),  # type: ignore[arg-type]  # Intentional for test
                 target_state="Target state",
                 execution_mode=ExecutionMode.DEFERRED,
                 safety_state=ExecutionSafety.RESET_REQUIRED,
@@ -123,7 +123,7 @@ class TestReconciliationPlan:
             ReconciliationPlan(
                 drift_type="test_drift",
                 severity=Severity.HIGH,
-                actions=[ActionType.RESET_STATE, "invalid_action"],  # type: ignore[list-item]  # Intentional for test
+                actions=(ActionType.RESET_STATE, "invalid_action"),  # type: ignore[arg-type]  # Intentional for test
                 target_state="Target state",
                 execution_mode=ExecutionMode.DEFERRED,
                 safety_state=ExecutionSafety.RESET_REQUIRED,
@@ -179,7 +179,7 @@ class TestReconciliationEngine:
         assert "converged" in plan.reason.lower()
 
     @pytest.mark.parametrize("true_value", ["true", "True", "TRUE", "1", "yes", "y", "t"], ids=repr)
-    def test_lock_is_valid_string_truthy_variants(self, true_value) -> None:
+    def test_lock_is_valid_string_truthy_variants(self, true_value: Any) -> None:
         """Test that lock_is_valid parsing handles common truthy string representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": true_value})
         engine = ReconciliationEngine(evaluator)
@@ -188,7 +188,7 @@ class TestReconciliationEngine:
         assert plan.execution_mode == ExecutionMode.AUTOMATIC
 
     @pytest.mark.parametrize("false_value", ["false", "False", "FALSE", "0", "no", "n", "f", ""], ids=repr)
-    def test_lock_is_valid_string_falsy_variants(self, false_value) -> None:
+    def test_lock_is_valid_string_falsy_variants(self, false_value: Any) -> None:
         """Test that lock_is_valid parsing handles common falsy string representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": false_value})
         engine = ReconciliationEngine(evaluator)
@@ -206,7 +206,7 @@ class TestReconciliationEngine:
             pytest.param(-1, id="int_-1"),
         ],
     )
-    def test_lock_is_valid_number_truthy_variants(self, true_value) -> None:
+    def test_lock_is_valid_number_truthy_variants(self, true_value: Any) -> None:
         """Test that lock_is_valid parsing handles numeric truthy representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": true_value})
         engine = ReconciliationEngine(evaluator)
@@ -221,7 +221,7 @@ class TestReconciliationEngine:
             pytest.param(0.0, id="float_0.0"),
         ],
     )
-    def test_lock_is_valid_number_falsy_variants(self, false_value) -> None:
+    def test_lock_is_valid_number_falsy_variants(self, false_value: Any) -> None:
         """Test that lock_is_valid parsing handles numeric falsy representations."""
         evaluator = MockDriftEvaluator("none", Severity.NONE, metadata={"lock_is_valid": false_value})
         engine = ReconciliationEngine(evaluator)
@@ -264,6 +264,7 @@ class TestReconciliationEngine:
         assert "unsafe" in plan.reason.lower()
 
     def test_critical_lock_lost_is_integrity_compromised(self) -> None:
+        """Test critical lock lost is flagged as integrity compromised."""
         evaluator = MockDriftEvaluator("lock_lost", Severity.CRITICAL, metadata={"lock_is_valid": False})
         engine = ReconciliationEngine(evaluator)
 
@@ -274,6 +275,7 @@ class TestReconciliationEngine:
         assert plan.safety_state == ExecutionSafety.INTEGRITY_COMPROMISED
 
     def test_critical_persistence_unavailable_is_observability_failure(self) -> None:
+        """Test critical persistence unavailable is flagged as observability failure."""
         evaluator = MockDriftEvaluator("persistence_unavailable", Severity.CRITICAL)
         engine = ReconciliationEngine(evaluator)
 
@@ -427,7 +429,7 @@ class TestReconciliationEngine:
 
     def test_plan_includes_metadata(self) -> None:
         """Test that generated plan includes metadata from drift evaluation."""
-        test_metadata = {
+        test_metadata: dict[str, Any] = {
             "job_id": "test-job-123",
             "lock_state": "valid",
             "worker_id": "worker-456",
@@ -497,8 +499,8 @@ class TestDriftEvaluatorProtocol:
 
         # Create a minimal protocol-compliant evaluator
         class MinimalEvaluator:
-            def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | bool | None]]:
-                return "test_drift", Severity.LOW, {}
+            def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
+                return "minimal", Severity.NONE, {}
 
         evaluator = MinimalEvaluator()
         engine = ReconciliationEngine(evaluator)

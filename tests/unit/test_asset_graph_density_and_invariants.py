@@ -100,7 +100,7 @@ def test_relationship_strength_guards_reject_values_outside_signed_unit_range(
 ) -> None:
     """Relationship-generation strengths are bounded to [-1.0, 1.0]."""
     with pytest.raises(ValueError, match=message):
-        AssetRelationshipGraph(**kwargs)
+        AssetRelationshipGraph(**kwargs)  # type: ignore[arg-type]
 
 
 def test_duplicate_relationships_are_deduped_by_target_and_type() -> None:
