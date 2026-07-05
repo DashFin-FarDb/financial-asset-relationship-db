@@ -304,9 +304,7 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
                 threading.Event(),
             )
 
-        assert isinstance(
-            exc_info.value.cause, graph_admin._DistributedLockLostError
-        )  # pylint: disable=protected-access
+        assert isinstance(exc_info.value.cause, graph_admin._DistributedLockLostError)  # pylint: disable=protected-access
         assert "pre-persistence" in str(exc_info.value.cause)
         assert graph_built is True
         with session_factory() as session:
