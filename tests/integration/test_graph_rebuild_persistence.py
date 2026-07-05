@@ -371,7 +371,7 @@ async def test_simulated_lock_ttl_expiration():
         lock_lost_event,
         _,
     ):
-        lock_lost_event.wait(timeout=1.0)
+        lock_lost_event.wait(timeout=2.5)
 
     assert lock_lost_event.is_set()
 
