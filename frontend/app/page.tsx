@@ -174,7 +174,11 @@ export default function Home() {
     }
   }, []);
   const applyResult = useCallback(
-    (result: { metricsData: Metrics | null; visualizationData: VisualizationData | null; error: string | null }) => {
+    (result: {
+      metricsData: Metrics | null;
+      visualizationData: VisualizationData | null;
+      error: string | null;
+    }) => {
       if (result.error) {
         setError(result.error);
       } else {
