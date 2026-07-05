@@ -173,11 +173,10 @@ This skill teaches the core development patterns, coding conventions, and common
 
 ## Testing Patterns
 
-- **Framework:** Unknown (no standard detected).
-- **Test File Pattern:** Files named with `.test.ts` (TypeScript).
-  - Example: `assetRelationship.test.ts`
-- **Location:** Likely in the frontend or test directories.
-- **Note:** No Python-specific test framework detected; if adding Python tests, follow similar naming conventions (`test_*.py`) and consider using `pytest` or `unittest`.
+- **Framework:** `pytest` (Python)
+- **Test File Pattern:** `test_*.py` and `*_test.py`
+- **Location:** `tests/` (configured in `pyproject.toml`)
+- **Note:** `tests/benchmarks/` is excluded from default runs via `norecursedirs`.
 
 ## Commands
 
