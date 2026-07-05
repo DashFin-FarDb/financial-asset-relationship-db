@@ -115,9 +115,9 @@ class TestPyYAMLDependencyAddition:
                     types_version = int(types_match.group(1))
 
         if pyyaml_version and types_version:
-            assert pyyaml_version == types_version, (
-                f"types-PyYAML version {types_version} should match PyYAML version {pyyaml_version}"
-            )
+            assert (
+                pyyaml_version == types_version
+            ), f"types-PyYAML version {types_version} should match PyYAML version {pyyaml_version}"
 
 
 class TestRequirementsDevYAMLUsage:
