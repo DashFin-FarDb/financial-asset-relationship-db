@@ -165,6 +165,8 @@ ignore_missing_imports = true
 module = [
     "plotly.*",
     "yfinance.*",
+    "gradio.*",
+    "dataclasses_json.*",
 ]
 ignore_missing_imports = true
 
