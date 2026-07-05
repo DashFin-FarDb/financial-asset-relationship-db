@@ -326,7 +326,7 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 asyncio.to_thread(_run_startup_reconciliation, settings, cancellation_event),
                 timeout=120,
             )
-        except (TimeoutError, asyncio.TimeoutError):
+        except (TimeoutError, asyncio.TimeoutError):  # pylint: disable=overlapping-except
             # Signal background thread to abort further processing
             cancellation_event.set()
             log_event(
@@ -411,10 +411,12 @@ def _start_background_tasks(
                 interval_seconds=recon_interval,
                 database_url=recon_url,
                 coordination_database_url=coord_url,
-                is_shutdown_fn=lambda: get_runtime_lifecycle_state()
-                in (
-                    GraphRuntimeLifecycleState.SHUTTING_DOWN,
-                    GraphRuntimeLifecycleState.STOPPED,
+                is_shutdown_fn=lambda: (
+                    get_runtime_lifecycle_state()
+                    in (
+                        GraphRuntimeLifecycleState.SHUTTING_DOWN,
+                        GraphRuntimeLifecycleState.STOPPED,
+                    )
                 ),
                 run_with_trace_fn=_run_with_generated_trace,
                 cancel_event=None,

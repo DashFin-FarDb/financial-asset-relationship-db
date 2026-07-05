@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from api.api_models import RebuildJobListResponse, RebuildJobResponse
+from api.api_models import RebuildJobListResponse, RebuildJobResponse, RebuildJobStatus
 
 
 def _job_response(job_id: str) -> RebuildJobResponse:
@@ -13,7 +13,7 @@ def _job_response(job_id: str) -> RebuildJobResponse:
     now = datetime.now(UTC)
     return RebuildJobResponse(
         job_id=job_id,
-        status="pending",
+        status=RebuildJobStatus.PENDING,
         source="sample",
         requested_by="operator",
         created_at=now,
@@ -34,7 +34,7 @@ def test_rebuild_job_list_response_exposes_truncation_contract() -> None:
         jobs=[_job_response("job-1")],
         count=1,
         total=2,
-        has_more=True,
+        hasMore=True,
     )
 
     assert response.model_dump()["jobs"][0]["job_id"] == "job-1"
@@ -46,4 +46,4 @@ def test_rebuild_job_list_response_exposes_truncation_contract() -> None:
 def test_rebuild_job_list_response_requires_truncation_fields() -> None:
     """The additive contract fields should be required for new API responses."""
     with pytest.raises(ValidationError):
-        RebuildJobListResponse(jobs=[], count=0)
+        RebuildJobListResponse(jobs=[], count=0)  # type: ignore[call-arg]

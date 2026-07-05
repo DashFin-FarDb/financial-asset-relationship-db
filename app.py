@@ -458,7 +458,7 @@ class FinancialAssetApp:
         show_regulatory: bool = True,
         show_all_relationships: bool = True,
         toggle_arrows: bool = True,
-    ) -> tuple[go.Figure, gr.Update]:
+    ) -> tuple[go.Figure, dict]:
         """Adapter for Gradio callbacks with unpacked relationship flags."""
         return self._refresh_visualization_core(
             _graph_state,
@@ -483,7 +483,7 @@ class FinancialAssetApp:
         view_mode: str,
         layout_type: str,
         relationship_flags: tuple[bool, ...],
-    ) -> tuple[go.Figure, gr.Update]:
+    ) -> tuple[go.Figure, dict]:
         """
         Render the asset relationship graph for the selected view and relationship filters.
 
@@ -499,7 +499,7 @@ class FinancialAssetApp:
                  show_all_relationships, toggle_arrows)
 
         Returns:
-            tuple[go.Figure, gr.Update]: A Plotly Figure for the visualization and a Gradio Update
+            tuple[go.Figure, dict]: A Plotly Figure for the visualization and a Gradio Update
                 controlling error visibility
             (`gr.Update(visible=False)` on success; `gr.Update(value=<error message>, visible=True)` on failure).
         """
@@ -578,7 +578,7 @@ class FinancialAssetApp:
         graph_state: AssetRelationshipGraph,
         view_mode: str,
         layout_type: str,
-    ) -> tuple[go.Figure, gr.Update]:
+    ) -> tuple[go.Figure, dict]:
         """
         Refresh the visualization using all relationship visibility toggles enabled.
 
@@ -783,7 +783,7 @@ class FinancialAssetApp:
         )
 
     @staticmethod
-    def show_formula_details(_formula_name: str, graph_state: AssetRelationshipGraph) -> tuple[go.Figure, gr.Update]:
+    def show_formula_details(_formula_name: str, graph_state: AssetRelationshipGraph) -> tuple[go.Figure, dict]:
         """
         Show the detailed visualization for a selected formula.
 
@@ -794,7 +794,7 @@ class FinancialAssetApp:
             graph_state (AssetRelationshipGraph): The graph used to derive the formula details and visualization.
 
         Returns:
-            tuple[go.Figure, gr.Update]: A Plotly Figure for the formula detail view and a Gradio Update
+            tuple[go.Figure, dict]: A Plotly Figure for the formula detail view and a Gradio Update
                 that sets the detail message and visibility.
         """
         try:

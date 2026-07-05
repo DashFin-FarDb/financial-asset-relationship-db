@@ -14,7 +14,7 @@ from api.models import UserInDB
 from api.routers.auth import login_for_access_token
 
 pytestmark = pytest.mark.unit
-_PASSWORD_FIELD = "pass" "word"
+_PASSWORD_FIELD = "password"  # nosec  # DevSkim: ignore all
 VALID_LOGIN_CREDENTIAL = "valid-login-credential"
 INVALID_LOGIN_CREDENTIAL = "invalid-login-credential"
 

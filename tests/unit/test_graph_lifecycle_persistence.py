@@ -342,7 +342,7 @@ def test_in_memory_sqlite_url_skips_persistence_load(
 @pytest.mark.parametrize(
     ("env_var", "env_val", "provider_attr", "expected_source"),
     [
-        ("GRAPH_CACHE_PATH", "/tmp/graph-cache.json", "load_graph_from_cache_path", "cache"),
+        ("GRAPH_CACHE_PATH", "fake_tmp/graph-cache.json", "load_graph_from_cache_path", "cache"),
         ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher", "real_data"),
     ],
 )
@@ -410,7 +410,7 @@ def test_persisted_full_graph_loads(
 @pytest.mark.parametrize(
     ("env_var", "env_val", "provider_attr", "fallback_name"),
     [
-        ("GRAPH_CACHE_PATH", "/tmp/graph-cache.json", "load_graph_from_cache_path", "cache"),
+        ("GRAPH_CACHE_PATH", "fake_tmp/graph-cache.json", "load_graph_from_cache_path", "cache"),
         ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher", "real-data"),
     ],
 )

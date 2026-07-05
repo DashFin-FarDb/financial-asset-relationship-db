@@ -256,4 +256,4 @@ class TestRebuildDriftEvaluator:
         assert severity == Severity.CRITICAL
         assert metadata["lock_state"] == "lost"
         assert metadata["lock_is_valid"] is False
-        assert "lost" in metadata["reason"].lower()
+        assert "lost" in str(metadata["reason"]).lower()

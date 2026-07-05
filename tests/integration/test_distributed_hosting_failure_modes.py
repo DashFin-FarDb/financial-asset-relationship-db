@@ -165,6 +165,7 @@ def test_rebuild_crash_before_persist_marks_failed_without_partial_graph_truth(
             session.commit()
 
         def fail_build(*_args, **_kwargs):
+            """Simulate a failure during graph building."""
             raise RuntimeError("synthetic crash before persist")
 
         monkeypatch.setattr(graph_admin, "build_rebuild_graph", fail_build)
@@ -219,6 +220,7 @@ def test_rebuild_failure_after_persist_does_not_corrupt_durable_graph_truth(
         )
 
         def fail_success(*_args, **_kwargs):
+            """Simulate a failure while marking the job as succeeded."""
             raise RuntimeError("synthetic success metadata failure")
 
         monkeypatch.setattr(graph_admin, "_mark_job_succeeded_safe", fail_success)  # pylint: disable=protected-access
@@ -270,16 +272,19 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
         built_graph = build_scale_graph(asset_count=5, relationship_count=10, prefix="LOST")
 
         def build_then_lose_lock(*_args, **_kwargs):
+            """Build the graph and immediately simulate losing the distributed lock."""
             nonlocal graph_built
             graph_built = True
             lock_lost.set()
             return built_graph, "sample"
 
         def track_save(*_args, **_kwargs):
+            """Track if the graph save function was called."""
             nonlocal save_called
             save_called = True
 
         def track_success(*_args, **_kwargs):
+            """Track if the job success function was called."""
             nonlocal success_called
             success_called = True
 
@@ -299,9 +304,7 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
                 threading.Event(),
             )
 
-        assert isinstance(
-            exc_info.value.cause, graph_admin._DistributedLockLostError
-        )  # pylint: disable=protected-access
+        assert isinstance(exc_info.value.cause, graph_admin._DistributedLockLostError)  # pylint: disable=protected-access
         assert "pre-persistence" in str(exc_info.value.cause)
         assert graph_built is True
         with session_factory() as session:
