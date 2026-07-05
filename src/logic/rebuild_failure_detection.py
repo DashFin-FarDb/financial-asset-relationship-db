@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
+
+UTC = timezone.utc
 
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 

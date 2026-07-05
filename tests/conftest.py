@@ -29,7 +29,8 @@ os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
 
-from datetime import UTC  # noqa: E402
+from datetime import timezone  # noqa: E402
+UTC = timezone.utc
 
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402

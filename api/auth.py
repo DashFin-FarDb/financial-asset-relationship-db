@@ -7,8 +7,10 @@ import logging
 from collections.abc import Mapping
 from collections.abc import Mapping as RuntimeMapping
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
+
+UTC = timezone.utc
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status

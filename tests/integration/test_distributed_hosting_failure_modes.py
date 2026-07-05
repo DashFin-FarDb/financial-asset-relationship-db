@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import threading
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+UTC = timezone.utc
 
 import pytest
 from sqlalchemy import create_engine

@@ -11,8 +11,10 @@ import sys
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
+
+UTC = timezone.utc
 from typing import Any, Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
