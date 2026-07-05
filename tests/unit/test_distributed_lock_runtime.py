@@ -31,7 +31,7 @@ def test_acquire_raises_on_persistence_error(monkeypatch: pytest.MonkeyPatch) ->
             return False
 
     monkeypatch.setattr("src.data.distributed_lock.session_scope", lambda _factory: _FailingScope())
-    lock = DistributedLock(lambda: None, "graph_rebuild")  # type: ignore[return-value]
+    lock = DistributedLock(lambda: None, "graph_rebuild")  # type: ignore[arg-type,return-value]
 
     with pytest.raises(RuntimeError, match="db unavailable"):
         lock.acquire()
@@ -49,7 +49,7 @@ def test_check_state_reraises_unexpected_runtime_error(monkeypatch: pytest.Monke
             return False
 
     monkeypatch.setattr("src.data.distributed_lock.session_scope", lambda _factory: _FailingScope())
-    lock = DistributedLock(lambda: None, "graph_rebuild")  # type: ignore[return-value]
+    lock = DistributedLock(lambda: None, "graph_rebuild")  # type: ignore[arg-type,return-value]
 
     with pytest.raises(RuntimeError, match="db unavailable"):
         lock.check_state()
@@ -75,7 +75,7 @@ def mock_lock_env(monkeypatch: pytest.MonkeyPatch) -> tuple[MagicMock, Distribut
     monkeypatch.setattr("src.data.distributed_lock.session_scope", _mock_session_scope)
     monkeypatch.setattr("src.data.distributed_lock.CoordinationLockRepository", lambda session: mock_repo)
     monkeypatch.setattr("src.data.distributed_lock.sleep", lambda seconds: None)
-    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[return-value]
+    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[arg-type,return-value]
     return mock_repo, lock
 
 
@@ -156,7 +156,7 @@ def test_acquire_timeout_after_30s(monkeypatch: pytest.MonkeyPatch) -> None:
     time_iter = iter(times)
     monkeypatch.setattr("src.data.distributed_lock.time", lambda: next(time_iter, 1035.0))
 
-    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[return-value]
+    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[arg-type,return-value]
 
     with pytest.raises(LockAcquisitionTimeout, match="Failed to acquire lock 'test_lock' within 30s ceiling"):
         lock.acquire(max_retries=10)
@@ -174,11 +174,11 @@ def test_ttl_validation_in_init() -> None:
         return None
 
     # 300 is fine
-    DistributedLock(factory, "test", ttl_seconds=300)  # type: ignore[arg-type]
+    DistributedLock(factory, "test", ttl_seconds=300)  # type: ignore[arg-type,return-value]
 
     # 301 is not
     with pytest.raises(ValueError, match="exceeds maximum allowed value of 300"):
-        DistributedLock(factory, "test", ttl_seconds=301)  # type: ignore[arg-type]
+        DistributedLock(factory, "test", ttl_seconds=301)  # type: ignore[arg-type,return-value]
 
 
 @pytest.mark.unit
@@ -196,7 +196,7 @@ def test_acquire_timeout_seconds_clamping(monkeypatch: pytest.MonkeyPatch) -> No
     time_iter = iter(times)
     monkeypatch.setattr("src.data.distributed_lock.time", lambda: next(time_iter, 1035.0))
 
-    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[return-value]
+    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[arg-type,return-value]
 
     with pytest.raises(LockAcquisitionTimeout, match="within 30s ceiling"):
         lock.acquire(max_retries=5, timeout_seconds=100.0)
@@ -205,7 +205,7 @@ def test_acquire_timeout_seconds_clamping(monkeypatch: pytest.MonkeyPatch) -> No
 @pytest.mark.unit
 def test_acquire_timeout_seconds_non_positive() -> None:
     """Verify DistributedLock.acquire raises ValueError for non-positive timeout."""
-    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[return-value]
+    lock = DistributedLock(lambda: None, "test_lock")  # type: ignore[arg-type,return-value]
     with pytest.raises(ValueError, match="timeout_seconds must be positive"):
         lock.acquire(timeout_seconds=0.0)
     with pytest.raises(ValueError, match="timeout_seconds must be positive"):

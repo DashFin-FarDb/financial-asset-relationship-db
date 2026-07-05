@@ -1,0 +1,68 @@
+name: PyTest
+
+on:
+  # Run tests on PRs to verify code doesn't break before merge
+  pull_request:
+    types: [opened, synchronize]
+    # Your production branch. If not the default, update here and set Target Branch at https://gitauto.ai/dashboard/rules to match
+    branches: [main]
+    paths:
+      - '**/*.py'
+      - requirements.txt
+      - requirements-dev.txt
+      - pyproject.toml
+      - setup.cfg
+      - '!.github/workflows/**'
+  # Run tests after merge and collect coverage as canonical source of truth
+  push:
+    # Your production branch. If not the default, update here and set Target Branch at https://gitauto.ai/dashboard/rules to match
+    branches: [main]
+    paths:
+      - '**/*.py'
+      - requirements.txt
+      - requirements-dev.txt
+      - pyproject.toml
+      - setup.cfg
+  # Allow manual trigger for debugging
+  workflow_dispatch:
+
+# Cancel older runs when new commits are pushed to the same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Set up Python
+        uses: actions/setup-python@42375524db6727caec46211a6a262f106db3f7f7
+        with:
+          # Match your project's Python version
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Run tests
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            python -m pytest
+          else
+            python -m pytest --cov --cov-report=lcov:coverage/lcov.info
+          fi
+
+      - name: Upload coverage report
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: coverage-report
+          path: coverage/lcov.info

@@ -1073,7 +1073,7 @@ def test_write_output_to_stdout(capsys):
 
     with (
         patch.dict(os.environ, {}, clear=True),
-        patch("tempfile.gettempdir", return_value="/tmp"),
+        patch("tempfile.gettempdir", return_value="fake_tmp"),
         patch("builtins.open", mock_open()),
     ):
         generate_status.write_output(content)
@@ -1086,7 +1086,7 @@ def test_write_output_to_temp_file():
     """Test write_output writes to temp file."""
     content = "Test report content"
 
-    with patch.dict(os.environ, {}, clear=True), patch("tempfile.gettempdir", return_value="/tmp"):
+    with patch.dict(os.environ, {}, clear=True), patch("tempfile.gettempdir", return_value="fake_tmp"):
         m = mock_open()
         with patch("builtins.open", m):
             generate_status.write_output(content)
@@ -1100,9 +1100,12 @@ def test_write_output_to_temp_file():
 def test_write_output_to_github_step_summary():
     """Test write_output writes to GITHUB_STEP_SUMMARY."""
     content = "Test report"
-    summary_file = "/tmp/github_summary.md"
+    summary_file = "fake_tmp/github_summary.md"
 
-    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}):
+    with (
+        patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}),
+        patch("tempfile.gettempdir", return_value="fake_tmp"),
+    ):
         m = mock_open()
         with patch("builtins.open", m):
             generate_status.write_output(content)
@@ -1118,7 +1121,7 @@ def test_write_output_handles_io_error_temp_file(capsys):
 
     with (
         patch.dict(os.environ, {}, clear=True),
-        patch("tempfile.gettempdir", return_value="/tmp"),
+        patch("tempfile.gettempdir", return_value="fake_tmp"),
         patch("builtins.open", side_effect=OSError("Disk full")),
     ):
         generate_status.write_output(content)
@@ -1130,10 +1133,11 @@ def test_write_output_handles_io_error_temp_file(capsys):
 def test_write_output_handles_io_error_github_summary(capsys):
     """Test write_output handles IOError for GitHub summary."""
     content = "Test content"
-    summary_file = "/tmp/summary.md"
+    summary_file = "fake_tmp/summary.md"
 
     with (
         patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}),
+        patch("tempfile.gettempdir", return_value="fake_tmp"),
         patch("builtins.open", side_effect=OSError("Permission denied")),
     ):
         generate_status.write_output(content)
@@ -1211,7 +1215,7 @@ def test_main_success_flow(mock_pr, mock_review_approved, mock_check_run_success
     with (
         patch.dict(os.environ, env, clear=True),
         patch("generate_status.Github") as mock_github_class,
-        patch("tempfile.gettempdir", return_value="/tmp"),
+        patch("tempfile.gettempdir", return_value="fake_tmp"),
         patch("builtins.open", mock_open()),
     ):
         # Setup mocks
@@ -1425,9 +1429,9 @@ def test_pull_request_type_accessible_in_module():
     """
     # If the module imported successfully (it was imported at the top of this
     # test file), PullRequest should be accessible in the module's globals.
-    assert hasattr(
-        generate_status, "PullRequest"
-    ), "generate_status module should expose PullRequest after importing it from github.PullRequest"
+    assert hasattr(generate_status, "PullRequest"), (
+        "generate_status module should expose PullRequest after importing it from github.PullRequest"
+    )
 
     # Also verify we can independently import the same symbol
     from github.PullRequest import PullRequest as PR
