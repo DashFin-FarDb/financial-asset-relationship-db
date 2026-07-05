@@ -43,6 +43,18 @@ def test_check_database_boundaries():
 
 
 @pytest.mark.unit
+def test_check_database_boundaries_requires_distinct_near_asset_graph_url():
+    """Test that unrelated distinct wording does not confirm database separation."""
+    missing = []
+    _check_database_boundaries(
+        "database_url asset_graph_database_url coordination_database_url\n"
+        "a distinct operational checklist item appears elsewhere",
+        missing,
+    )
+    assert "Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception" in missing
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize(
     "proof_json",
     [
@@ -199,6 +211,14 @@ def test_check_operational_evidence():
         missing,
     )
     assert "Non-redacted evidence found (secrets/tokens must be redacted)" not in missing
+
+    missing = []
+    _check_operational_evidence(
+        "asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary "
+        f"secret: {'a' * 10000}",
+        missing,
+    )
+    assert "Non-redacted evidence found (secrets/tokens must be redacted)" in missing
 
 
 @pytest.mark.unit

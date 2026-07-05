@@ -219,6 +219,16 @@ class TestSettingsModel:
         assert "ADMIN_USERNAME" not in str(exc_info.value)
         assert "ADMIN_PASSWORD" not in str(exc_info.value)
 
+    def test_production_validates_trimmed_secret_key_length(self) -> None:
+        """Test that whitespace padding cannot satisfy production secret length."""
+        with pytest.raises(ValueError, match="SECRET_KEY must be at least 32 characters"):
+            Settings(
+                env=DeploymentEnvironment.PRODUCTION,
+                secret_key=" " * 32 + "short-secret" + " " * 32,
+                admin_username="admin",
+                admin_password="configured-value",
+            )
+
     def test_development_allows_empty_required_secrets(self) -> None:
         """Test that local development keeps permissive empty-secret behavior."""
         settings = Settings(env=DeploymentEnvironment.DEVELOPMENT, secret_key="", admin_username="", admin_password="")

@@ -8,6 +8,16 @@ import sys
 from pathlib import Path
 from typing import List
 
+SECRET_ASSIGNMENT_PATTERN = re.compile(
+    r"(?i)"
+    r"(?:\b|_)(?:password|secret|token|key)(?:\b|_)"
+    r"['\"]?[ \t]*[:=][ \t]*['\"]?"
+    r"(?P<value>[a-z0-9+/=]{16,})"
+)
+DISTINCT_BOUNDARY_PATTERN = re.compile(
+    r"\basset_graph_database_url\b[^\n]{0,80}\bdistinct\b" r"|\bdistinct\b[^\n]{0,80}\basset_graph_database_url\b"
+)
+
 
 def _check_provider_labels(content: str, missing: List[str]) -> None:
     """Check for provider and hosting labels."""
@@ -19,7 +29,7 @@ def _check_provider_labels(content: str, missing: List[str]) -> None:
 
 def _check_distinct_boundary(content: str, missing: List[str]) -> None:
     """Check for distinct graph boundary definitions."""
-    distinct_confirmed = "asset_graph_database_url" in content and "distinct" in content
+    distinct_confirmed = DISTINCT_BOUNDARY_PATTERN.search(content) is not None
     if not distinct_confirmed and "approved exception" not in content and "shared-boundary statement" not in content:
         missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
 
@@ -200,14 +210,18 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
         if not any(p in content for p in patterns):
             missing.append(err_msg)
 
-    # Standard: Explicitly allow common redaction markers like [REDACTED], xxxx, ****.
-    keywords = "|".join(["password", "secret", "token", "key"])
-    secret_pattern = (
-        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?"
-        r"(?![a-z0-9+/=]*?(?:redacted|x{4,}|\*{4,}))[a-z0-9+/=]{16,}"
-    )
-    if re.search(secret_pattern, content):
+    if _contains_unredacted_secret(content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
+
+
+def _contains_unredacted_secret(content: str) -> bool:
+    """Return whether evidence contains a likely non-redacted secret assignment."""
+    for match in SECRET_ASSIGNMENT_PATTERN.finditer(content):
+        value = match.group("value").lower()
+        if "redacted" in value or set(value) == {"x"}:
+            continue
+        return True
+    return False
 
 
 def _read_evidence_file(evidence_file: str) -> str:
