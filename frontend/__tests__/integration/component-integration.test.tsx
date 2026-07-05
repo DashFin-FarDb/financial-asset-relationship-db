@@ -93,10 +93,14 @@ describe("Component Integration Tests", () => {
       });
 
       const totalAssets = await screen.findByTestId("total-assets");
-      expect(totalAssets).toHaveTextContent(mockMetrics.total_assets.toString());
+      expect(totalAssets).toHaveTextContent(
+        mockMetrics.total_assets.toString(),
+      );
 
       const totalRels = await screen.findByTestId("total-relationships");
-      expect(totalRels).toHaveTextContent(mockMetrics.total_relationships.toString());
+      expect(totalRels).toHaveTextContent(
+        mockMetrics.total_relationships.toString(),
+      );
     });
   });
 

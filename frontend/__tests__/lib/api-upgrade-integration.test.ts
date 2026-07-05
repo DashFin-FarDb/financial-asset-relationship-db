@@ -108,8 +108,20 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should handle pagination pattern", async () => {
-      const page1 = { items: [mockAsset], total: 100, page: 1, per_page: 10, hasMore: true };
-      const page2 = { items: [mockAsset], total: 100, page: 2, per_page: 10, hasMore: true };
+      const page1 = {
+        items: [mockAsset],
+        total: 100,
+        page: 1,
+        per_page: 10,
+        hasMore: true,
+      };
+      const page2 = {
+        items: [mockAsset],
+        total: 100,
+        page: 2,
+        per_page: 10,
+        hasMore: true,
+      };
 
       mockAxiosInstance.get
         .mockResolvedValueOnce({ data: page1 })
@@ -153,7 +165,13 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should gracefully handle empty response after error", async () => {
-      const emptyPage = { items: [], total: 0, page: 1, per_page: 50, hasMore: false };
+      const emptyPage = {
+        items: [],
+        total: 0,
+        page: 1,
+        per_page: 50,
+        hasMore: false,
+      };
 
       mockAxiosInstance.get
         .mockRejectedValueOnce({ response: { status: 404 } })
@@ -189,7 +207,8 @@ describe("Axios Upgrade Integration Tests", () => {
 
       // URL should be properly encoded/escaped
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        `/api/assets/${encodeURIComponent(maliciousId)}`, { signal: undefined },
+        `/api/assets/${encodeURIComponent(maliciousId)}`,
+        { signal: undefined },
       );
     });
 
@@ -327,7 +346,10 @@ describe("Axios Upgrade Integration Tests", () => {
       await api.getAssetDetail("ASSET_1");
 
       expect(mockAxiosInstance.get).toHaveBeenCalledTimes(1);
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1", { signal: undefined });
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/assets/ASSET_1",
+        { signal: undefined },
+      );
     });
 
     it("should support mock implementation changes", async () => {

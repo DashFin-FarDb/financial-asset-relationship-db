@@ -29,7 +29,7 @@ def _parse_dev_extras(pyproject_path: Path) -> list[str]:
         try:
             import tomllib  # type: ignore[import]
         except ImportError:
-            import tomli as tomllib  # type: ignore[import]
+            import tomli as tomllib  # type: ignore[import,no-redef]
 
         with open(pyproject_path, "rb") as f:
             data = tomllib.load(f)
@@ -93,9 +93,9 @@ def test_pyproject_has_dev_extras(dev_extras: list[str]) -> None:
 def test_types_pyyaml_present_in_dev_extras(dev_extras: list[str]) -> None:
     """Verify types-PyYAML is listed in the dev extras."""
     lowered = [dep.lower() for dep in dev_extras]
-    assert any(
-        "types-pyyaml" in dep for dep in lowered
-    ), "types-PyYAML should be listed under [project.optional-dependencies] dev in pyproject.toml"
+    assert any("types-pyyaml" in dep for dep in lowered), (
+        "types-PyYAML should be listed under [project.optional-dependencies] dev in pyproject.toml"
+    )
 
 
 def test_types_pyyaml_minimum_version_is_6_0_12(dev_extras: list[str]) -> None:
@@ -122,9 +122,9 @@ def test_types_pyyaml_minimum_version_is_6_0_12(dev_extras: list[str]) -> None:
 
     min_ver = tuple(int(x) for x in min_ver_str.split(".") if x.isdigit())
     required_floor = (6, 0, 12)
-    assert (
-        min_ver >= required_floor
-    ), f"types-PyYAML in pyproject.toml dev extras should be >=6.0.12 but got >={min_ver_str}"
+    assert min_ver >= required_floor, (
+        f"types-PyYAML in pyproject.toml dev extras should be >=6.0.12 but got >={min_ver_str}"
+    )
 
 
 def test_types_pyyaml_old_floor_not_used(dev_extras: list[str]) -> None:
@@ -136,11 +136,12 @@ def test_types_pyyaml_old_floor_not_used(dev_extras: list[str]) -> None:
     types_pyyaml_entry = next((dep for dep in dev_extras if dep.lower().startswith("types-pyyaml")), None)
     if types_pyyaml_entry is None:
         pytest.skip("types-PyYAML not found in dev extras")
+        return
 
     # Confirm the entry does not pin to 6.0.0 exactly
-    assert (
-        ">=6.0.0" not in types_pyyaml_entry
-    ), "types-PyYAML constraint should have been bumped from >=6.0.0 to >=6.0.12"
+    assert ">=6.0.0" not in types_pyyaml_entry, (
+        "types-PyYAML constraint should have been bumped from >=6.0.0 to >=6.0.12"
+    )
 
 
 # ----------------------------------

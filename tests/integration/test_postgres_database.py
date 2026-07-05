@@ -18,7 +18,7 @@ Security:
 from __future__ import annotations
 
 import os
-from typing import Final
+from typing import Final, cast
 
 import pytest
 
@@ -38,10 +38,7 @@ PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
 
 
 def _get_database_url() -> str | None:
-    """
-    Get database URL from env vars
-    (prefer ASSET_GRAPH..., fallback DATABASE_URL).
-    """
+    """Get database URL from env vars (prefer ASSET_GRAPH..., fallback DATABASE_URL)."""
     # Prefer the same env var used by the app.
     # Fall back for legacy/local usage.
     return os.getenv("ASSET_GRAPH_DATABASE_URL") or os.getenv("DATABASE_URL")
@@ -118,6 +115,8 @@ def _read_validated_database_url() -> str:
     database_url = _get_database_url()
     if not database_url:
         pytest.skip("No database URL provided. Set ASSET_GRAPH_DATABASE_URL (preferred) or DATABASE_URL.")
+
+    assert database_url is not None
     if any(token in database_url for token in PLACEHOLDER_TOKENS):
         pytest.skip("Database URL contains a placeholder password token")
     if database_url.strip().lower().startswith("sqlite"):
@@ -151,7 +150,7 @@ def test_postgres_connection_smoke() -> None:
     """
     _ensure_live_test_enabled()
     database_url = _read_validated_database_url()
-    row = _run_smoke_query(database_url)
+    row = cast("tuple[str, str, str]", _run_smoke_query(database_url))
 
     assert row is not None  # nosec B101
     assert len(row) == 3  # nosec B101

@@ -136,11 +136,11 @@ class TestSettingsModel:
     def test_settings_with_explicit_values(self) -> None:
         """Test Settings initialization with explicit values."""
         settings = Settings(
-            env="production",
+            env="production",  # type: ignore[arg-type]
             allowed_origins_raw="https://example.com,https://example.org",
             secret_key="secret-key-that-is-at-least-32-bytes",
             admin_username="admin",
-            admin_password="password",
+            admin_password="password",  # DevSkim: ignore all
             admin_email="admin@example.com",
             admin_full_name="Admin User",
             admin_disabled=True,
@@ -149,7 +149,7 @@ class TestSettingsModel:
             use_real_data_fetcher=True,
             database_url="sqlite:///runtime.db",
             asset_graph_database_url="postgresql://fardb_user:example_value@localhost/fardb",
-            gradio_host="0.0.0.0",
+            gradio_host="127.0.0.2",
             gradio_port=8080,
             rebuild_lock_ttl_seconds=600,
         )
@@ -240,7 +240,7 @@ class TestLoadSettings:
             "USE_REAL_DATA_FETCHER": "true",
             "DATABASE_URL": "sqlite:///env.db",
             "ASSET_GRAPH_DATABASE_URL": "postgresql://localhost/db",
-            "GRADIO_HOST": "0.0.0.0",
+            "GRADIO_HOST": "127.0.0.2",
             "GRADIO_PORT": "8080",
         },
     )
@@ -261,7 +261,7 @@ class TestLoadSettings:
         assert settings.use_real_data_fetcher is True
         assert settings.database_url == "sqlite:///env.db"
         assert settings.asset_graph_database_url == "postgresql://localhost/db"
-        assert settings.gradio_host == "0.0.0.0"
+        assert settings.gradio_host == "127.0.0.2"
         assert settings.gradio_port == 8080
         assert settings.rebuild_lock_ttl_seconds == 300  # Default when not set
 
@@ -480,7 +480,7 @@ class TestSettingsValidation:
     def test_settings_accepts_valid_types(self) -> None:
         """Test that Settings accepts valid types."""
         settings = Settings(
-            env="staging",
+            env="staging",  # type: ignore[arg-type]
             allowed_origins_raw="https://example.com",
             graph_cache_path="/path",
             real_data_cache_path="/path2",

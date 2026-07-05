@@ -116,7 +116,9 @@ export const loadAssets = async (options: LoadAssetsOptions) => {
     if (filter.asset_class) params.asset_class = filter.asset_class;
     if (filter.sector) params.sector = filter.sector;
 
-    const data = await api.getAssets(params, signal);
+    const data = signal
+      ? await api.getAssets(params, signal)
+      : await api.getAssets(params);
 
     // Ignore results if request was aborted while in-flight
     if (signal?.aborted) {
