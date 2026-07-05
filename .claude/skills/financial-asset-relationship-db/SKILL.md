@@ -11,8 +11,8 @@ This skill teaches the core development patterns, coding conventions, and common
 
 **File Naming**
 
-- Use camelCase for Python and other code files.
-  - Example: `financialAssetManager.py`, `dataLoader.py`
+- Use `snake_case` for Python files and modules.
+   - Example: `asset_graph.py`, `financial_models.py`
 
 **Import Style**
 
@@ -44,7 +44,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ### CI Workflow Update and Fix
 
 **Trigger:** When addressing CI/CD pipeline issues, updating workflow permissions, or responding to automated PR review findings.
-**Command:** `/ci-workflow-fix`
+**Command:** `/ci-workflow-update-and-fix`
 
 1. Edit one or more files in `.github/workflows/` (e.g., `frontend-ci.yml`, `release-evidence-verify.yml`).
 2. Make necessary changes to fix pipelines, update permissions, or resolve security findings.
@@ -74,7 +74,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ### ESLint Config Update
 
 **Trigger:** When changing ESLint rules, migrating config formats, or fixing lint-related CI failures.
-**Command:** `/eslint-update`
+**Command:** `/eslint-config-update`
 
 1. Edit `frontend/eslint.config.mjs` (and possibly `.eslintrc.json`, `.eslintignore`).
 2. Update `frontend/package.json` and/or `package-lock.json` if dependencies change.
