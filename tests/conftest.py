@@ -30,6 +30,7 @@ os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
 
 from datetime import timezone  # noqa: E402
+
 UTC = timezone.utc
 
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402

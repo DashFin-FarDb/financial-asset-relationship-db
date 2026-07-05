@@ -10,9 +10,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 
+from src.data.db_models import RebuildJobORM, RebuildJobStatus
+
 UTC = timezone.utc
 
-from src.data.db_models import RebuildJobORM, RebuildJobStatus
 
 logger = logging.getLogger(__name__)
 

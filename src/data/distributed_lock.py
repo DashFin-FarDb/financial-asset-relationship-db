@@ -8,8 +8,6 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-
-UTC = timezone.utc
 from time import sleep, time
 from typing import Any
 
@@ -19,6 +17,9 @@ from sqlalchemy.orm import Session
 from src.data.repository import CoordinationLockRepository, LockStateSnapshot, LockWriteResult, session_scope
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
+
+UTC = timezone.utc
+
 
 logger = logging.getLogger(__name__)
 

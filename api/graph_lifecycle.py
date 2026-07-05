@@ -13,8 +13,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-
-UTC = timezone.utc
 from typing import Any, Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -22,6 +20,9 @@ from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
 from . import graph_lifecycle_providers
+
+UTC = timezone.utc
+
 
 logger = logging.getLogger(__name__)
 

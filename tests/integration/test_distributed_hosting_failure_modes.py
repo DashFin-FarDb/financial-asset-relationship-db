@@ -7,8 +7,6 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-UTC = timezone.utc
-
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
@@ -20,6 +18,9 @@ from src.data.distributed_lock import DistributedLock
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 from tests.helpers.graph_scale_factory import build_scale_graph
+
+UTC = timezone.utc
+
 
 pytestmark = pytest.mark.integration
 

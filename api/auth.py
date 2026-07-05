@@ -10,8 +10,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
 
-UTC = timezone.utc
-
 import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
@@ -26,6 +24,9 @@ from src.observability.context import get_request_context
 from src.observability.facade import ObservabilityEvent, log_event
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
+
+UTC = timezone.utc
+
 
 logger = logging.getLogger(__name__)
 
