@@ -1,4 +1,5 @@
 """Unit tests for validating .openhands/microagents configuration files.
+
 # NOTE: One test (test_proper_grammar_and_punctuation) currently fails because it correctly
 # identified a typo in the source file .openhands/microagents/repo_engineer_lead.md:
 # There is a double period ("code..") at the end of one sentence. This demonstrates that
@@ -18,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 
 @pytest.mark.unit
@@ -40,8 +41,7 @@ class TestMicroagentValidation:
 
     @staticmethod
     def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
-        """
-        Extracts YAML frontmatter and the remaining markdown body from a markdown string.
+        """Extract YAML frontmatter and the remaining markdown body from a markdown string.
 
         Leading whitespace before the frontmatter is ignored. The frontmatter must be delimited by lines containing only `---` and parse as valid YAML.
 
@@ -343,7 +343,7 @@ class TestAllMicroagents(TestMicroagentValidation):
 
             # Should have frontmatter (after stripping leading whitespace)
             content = content.lstrip()
-            assert re.match(r"^---\s*\n.*?\n---\s*\n", content, re.DOTALL), (
+            assert re.match(r"^---[ \t\r]*\n.*?\n---[ \t\r]*\n", content, re.DOTALL), (
                 f"{file_path.name} should have valid frontmatter"
             )
 
@@ -693,9 +693,7 @@ class TestMicroagentBoundaryConditions:
 
     @staticmethod
     def test_microagent_with_minimal_valid_frontmatter(tmp_path):
-        """
-        Verifies that a markdown microagent file containing the minimal required YAML frontmatter can be parsed and its fields extracted.
-        """
+        """Verify that a minimal valid microagent file can be parsed and extracted."""
         test_file = tmp_path / "minimal.md"
         test_file.write_text("""---
 name: test
