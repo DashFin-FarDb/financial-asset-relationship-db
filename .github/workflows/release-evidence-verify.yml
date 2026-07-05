@@ -40,7 +40,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Validate and Checkout Release SHA
+      - name: Validate Release SHA
         env:
           RELEASE_SHA: ${{ github.event.inputs.release_sha }}
         run: |
@@ -48,7 +48,13 @@ jobs:
             echo "Error: release_sha $RELEASE_SHA is not an ancestor of origin/main."
             exit 1
           fi
-          git checkout "$RELEASE_SHA"
+
+      - name: Checkout Release SHA
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.inputs.release_sha }}
+          path: release-source
+          persist-credentials: false
 
       - name: Parse Manual Sign-off Tags
         env:
@@ -65,8 +71,9 @@ jobs:
           language: python
           python-version: '3.12'
           dependency-paths: |
-            requirements.txt
-            requirements-dev.txt
+            release-source/requirements.txt
+            release-source/requirements-dev.txt
+          working-directory: release-source
           install: |
             pip install -r requirements.txt
             pip install -r requirements-dev.txt
@@ -76,13 +83,14 @@ jobs:
         with:
           language: node
           node-version: '22'
-          working-directory: frontend
-          dependency-paths: frontend/package-lock.json
+          working-directory: release-source/frontend
+          dependency-paths: release-source/frontend/package-lock.json
           install: npm ci
 
       - name: Run Gate Tests (Durable Persistence)
         id: gate_persistence
         continue-on-error: true
+        working-directory: release-source
         run: |
           set +e
           exit_code=0
@@ -96,6 +104,7 @@ jobs:
       - name: Run Gate Tests (Restart/Reload)
         id: gate_restart
         continue-on-error: true
+        working-directory: release-source
         run: |
           set +e
           status=0
@@ -107,6 +116,7 @@ jobs:
       - name: Run Gate Tests (Recovery/Rebuild)
         id: gate_recovery
         continue-on-error: true
+        working-directory: release-source
         run: |
           set +e
           status=0
@@ -121,6 +131,7 @@ jobs:
       - name: Run Gate Tests (API Contract)
         id: gate_api
         continue-on-error: true
+        working-directory: release-source
         run: |
           set +e
           status=0
@@ -135,6 +146,7 @@ jobs:
       - name: Verify AI System Documentation Requirements
         id: gate_docs
         continue-on-error: true
+        working-directory: release-source
         run: |
           echo "Verifying Article 13/14 transparency and human oversight documentation..."
           if [ ! -f "docs/ai_system_spec.md" ]; then
@@ -147,6 +159,7 @@ jobs:
       - name: Run Gate Tests (Security)
         id: gate_security
         continue-on-error: true
+        working-directory: release-source
         run: |
           set +e
           status=0
@@ -158,6 +171,7 @@ jobs:
       - name: Check Hosted Readiness
         id: gate_hosted
         continue-on-error: true
+        working-directory: release-source
         env:
           HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
           BASE_URL_INPUT: ${{ github.event.inputs.base_url }}
@@ -191,22 +205,28 @@ jobs:
         with:
           name: release-evidence
           path: |
-            results-*.xml
-            readiness-output.json
-            docs-readiness.json
+            release-source/results-*.xml
+            release-source/readiness-output.json
+            release-source/docs-readiness.json
 
       - name: Assert All Gates Passed
         if: always()
+        working-directory: release-source
         env:
           STRICT_RC_GATE: ${{ inputs.strict_rc_gate }}
         run: |
-          if [ "${{ steps.gate_persistence.outcome }}" == "failure" ] || \
-          [ "${{ steps.gate_restart.outcome }}" == "failure" ] || \
-          [ "${{ steps.gate_recovery.outcome }}" == "failure" ] || \
-          [ "${{ steps.gate_api.outcome }}" == "failure" ] || \
-          [ "${{ steps.gate_security.outcome }}" == "failure" ] || \
-          [ "${{ steps.gate_hosted.outcome }}" == "failure" ] || \
-          [ "${{ steps.gate_docs.outcome }}" == "failure" ]; then
+          docs_status=$(jq -r '.status // "skipped"' docs-readiness.json 2>/dev/null || echo "skipped")
+          readiness_status=$(jq -r '.status // "skipped"' readiness-output.json 2>/dev/null || echo "skipped")
+
+          if [ "${{ steps.gate_persistence.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_restart.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_recovery.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_api.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_security.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_hosted.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_docs.outcome }}" != "success" ] || \
+          [ "$readiness_status" != "passed" ] || \
+          [ "$docs_status" != "passed" ]; then
             echo "One or more gate tests failed!"
             exit 1
           fi
@@ -223,6 +243,7 @@ jobs:
 
       - name: Emit Gate Summary
         if: always()
+        working-directory: release-source
         run: |
           python - <<'PY'
           import glob

@@ -110,11 +110,12 @@ ci:
   max_check_retries: 2
 
   required_checks:
-    - "frontend-lint"
-    - "frontend-build"
-    - "python-lint"
-    - "python-test"
-    - "ci/circleci"
+    - "Test Python 3.10"
+    - "Test Python 3.11"
+    - "Test Python 3.12"
+    - "Security checks"
+    - "Run eslint scanning"
+    - "build"
 
   optional_checks:
     - "netlify"
