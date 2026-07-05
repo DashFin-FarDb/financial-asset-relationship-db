@@ -176,8 +176,11 @@ def _check_urls(content: str, missing: List[str]) -> None:
     if "/actions/runs/" not in content and "/artifacts/" not in content:
         missing.append("Specific workflow run URL or artifact URL")
 
-    generic_actions_pattern = r"https://github\.com/[^/\s)]+/[^/\s)]+/actions(?!/runs/)(?:[^\s)]*)?"
-    if re.search(generic_actions_pattern, content, flags=re.IGNORECASE):
+    generic_actions_patterns = [
+        r"https://github\.com/[^/\s)]+/[^/\s)]+/actions(?:$|[\s)])",
+        r"https://github\.com/[^/\s)]+/[^/\s)]+/actions/(?!runs/)[^\s)]+",
+    ]
+    if any(re.search(pattern, content, flags=re.IGNORECASE) for pattern in generic_actions_patterns):
         missing.append("Generic Actions URLs are not allowed")
 
 

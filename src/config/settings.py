@@ -13,7 +13,7 @@ from enum import Enum
 from functools import lru_cache
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
 def _parse_bool_env(value: str | None) -> bool:
@@ -62,7 +62,7 @@ class Settings(BaseModel):
     # Auth configuration
     secret_key: str | None = Field(default=None)
     admin_username: str | None = Field(default=None)
-    admin_password: str | None = Field(default=None)
+    admin_password: str | None = Field(default=None, validate_default=True)
     admin_email: str | None = Field(default=None)
     admin_full_name: str | None = Field(default=None)
     admin_disabled: bool = Field(default=False)
@@ -151,16 +151,18 @@ class Settings(BaseModel):
             warnings.warn("SECRET_KEY is less than 32 characters. This is insecure for production.")
         return value
 
-    @model_validator(mode="after")
-    def validate_production_required_secrets(self) -> "Settings":
+    @field_validator("admin_password")
+    @classmethod
+    def validate_production_required_secrets(cls, value: str | None, info: ValidationInfo) -> str | None:
         """Fail fast when production receives missing or empty required secrets."""
-        if self.env != DeploymentEnvironment.PRODUCTION:
-            return self
+        env = info.data.get("env", DeploymentEnvironment.DEVELOPMENT)
+        if env != DeploymentEnvironment.PRODUCTION:
+            return value
 
-        required_values = (self.secret_key, self.admin_username, self.admin_password)
+        required_values = (info.data.get("secret_key"), info.data.get("admin_username"), value)
         if any(value is None or not value.strip() for value in required_values):
             raise ValueError("Production requires non-empty deployment credentials.")
-        return self
+        return value
 
     @field_validator("slo_rebuild_duration_max_seconds")
     @classmethod

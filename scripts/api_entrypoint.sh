@@ -2,7 +2,7 @@
 set -e
 
 # Ensure data directory has correct permissions
-if [ -d "/data" ]; then
+if [[ -d "/data" ]]; then
     chown -R appuser:appuser /data
 fi
 

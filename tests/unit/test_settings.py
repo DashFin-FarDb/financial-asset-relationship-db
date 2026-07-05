@@ -210,7 +210,7 @@ class TestSettingsModel:
             "env": DeploymentEnvironment.PRODUCTION,
             "secret_key": "secret-key-that-is-at-least-32-bytes",
             "admin_username": "admin",
-            "admin_password": "adminpass",
+            "admin_password": "configured-value",
             field_name: field_value,
         }
         with pytest.raises(ValueError, match="non-empty deployment credentials") as exc_info:
