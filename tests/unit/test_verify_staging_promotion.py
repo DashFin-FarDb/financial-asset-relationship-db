@@ -279,6 +279,17 @@ def test_verify_staging_promotion_directory(mock_is_file, mock_exists):
 
 
 @pytest.mark.unit
+def test_verify_staging_promotion_rejects_traversal_before_filesystem_access():
+    """Test that path traversal is rejected before symlink checks touch the filesystem."""
+    with (
+        patch("scripts.verify_staging_promotion.Path.is_symlink", side_effect=AssertionError("unexpected access")),
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        verify_staging_promotion("../outside.md")
+    assert exc_info.value.code == 1
+
+
+@pytest.mark.unit
 def test_verify_staging_promotion_symlink(tmp_path):
     """Test that providing a real symlink raises a clean error before path resolution."""
     target = tmp_path / "evidence.md"

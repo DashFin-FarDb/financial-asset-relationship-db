@@ -229,12 +229,17 @@ def _read_evidence_file(evidence_file: str) -> str:
     repo_root = Path(__file__).resolve().parent.parent
     requested_path = Path(evidence_file)
     evidence_path = requested_path if requested_path.is_absolute() else repo_root / requested_path
+    absolute_path = Path(os.path.abspath(evidence_path))
 
-    if evidence_path.is_symlink():
+    if not absolute_path.is_relative_to(repo_root):
+        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {repo_root}.")
+        sys.exit(1)
+
+    if absolute_path.is_symlink():
         print(f"Error: Evidence path {evidence_file} is a symlink.")
         sys.exit(1)
 
-    normalized_path = evidence_path.resolve(strict=False)
+    normalized_path = absolute_path.resolve(strict=False)
 
     if not normalized_path.is_relative_to(repo_root):
         print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {repo_root}.")
@@ -242,7 +247,7 @@ def _read_evidence_file(evidence_file: str) -> str:
 
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
     try:
-        fd = os.open(evidence_path, flags)
+        fd = os.open(absolute_path, flags)
     except FileNotFoundError:
         print(f"Error: Evidence path {evidence_file} does not exist.")
         sys.exit(1)
