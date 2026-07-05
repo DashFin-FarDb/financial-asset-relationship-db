@@ -151,7 +151,7 @@ class Settings(BaseModel):
             warnings.warn("SECRET_KEY is less than 32 characters. This is insecure for production.")
         return value
 
-    def model_post_init(self, __context: Any) -> None:
+    def model_post_init(self, __context: Any, /) -> None:
         """Fail fast when production receives missing or empty required secrets."""
         if self.env != DeploymentEnvironment.PRODUCTION:
             return
