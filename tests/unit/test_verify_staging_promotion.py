@@ -242,13 +242,11 @@ def test_verify_staging_promotion_success(tmp_path):
         encoding="utf-8",
     )
 
-    evidence_path_str = str(evidence_path)
     with (
-        patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True),
-        patch("scripts.verify_staging_promotion.Path.is_symlink", return_value=False),
+        patch("scripts.verify_staging_promotion.REPO_ROOT", tmp_path),
         pytest.raises(SystemExit) as exc_info,
     ):
-        verify_staging_promotion(evidence_path_str)
+        verify_staging_promotion("evidence.md")
     assert exc_info.value.code == 0
 
 
@@ -258,13 +256,11 @@ def test_verify_staging_promotion_failure(tmp_path):
     evidence_path = tmp_path / "evidence.md"
     evidence_path.write_text("missing almost everything", encoding="utf-8")
 
-    evidence_path_str = str(evidence_path)
     with (
-        patch("scripts.verify_staging_promotion.Path.is_relative_to", return_value=True),
-        patch("scripts.verify_staging_promotion.Path.is_symlink", return_value=False),
+        patch("scripts.verify_staging_promotion.REPO_ROOT", tmp_path),
         pytest.raises(SystemExit) as exc_info,
     ):
-        verify_staging_promotion(evidence_path_str)
+        verify_staging_promotion("evidence.md")
     assert exc_info.value.code == 1
 
 
@@ -281,11 +277,17 @@ def test_verify_staging_promotion_directory(mock_is_file, mock_exists):
 @pytest.mark.unit
 def test_verify_staging_promotion_rejects_traversal_before_filesystem_access():
     """Test that path traversal is rejected before symlink checks touch the filesystem."""
-    with (
-        patch("scripts.verify_staging_promotion.Path.is_symlink", side_effect=AssertionError("unexpected access")),
-        pytest.raises(SystemExit) as exc_info,
-    ):
-        verify_staging_promotion("../outside.md")
+    with patch("scripts.verify_staging_promotion.Path.is_symlink", side_effect=AssertionError("unexpected access")):
+        exc_info = pytest.raises(SystemExit, verify_staging_promotion, "../outside.md")
+    assert exc_info.value.code == 1
+
+
+@pytest.mark.unit
+def test_verify_staging_promotion_rejects_absolute_path_before_filesystem_access(tmp_path):
+    """Test that absolute paths are rejected before symlink checks touch the filesystem."""
+    absolute_path = str(tmp_path / "evidence.md")
+    with patch("scripts.verify_staging_promotion.Path.is_symlink", side_effect=AssertionError("unexpected access")):
+        exc_info = pytest.raises(SystemExit, verify_staging_promotion, absolute_path)
     assert exc_info.value.code == 1
 
 
@@ -300,6 +302,6 @@ def test_verify_staging_promotion_symlink(tmp_path):
     except (OSError, NotImplementedError) as exc:
         pytest.skip(f"Symlink creation is not supported in this environment: {exc}")
 
-    symlink_path = str(symlink)
-    exc_info = pytest.raises(SystemExit, verify_staging_promotion, symlink_path)
+    with patch("scripts.verify_staging_promotion.REPO_ROOT", tmp_path):
+        exc_info = pytest.raises(SystemExit, verify_staging_promotion, "evidence-link.md")
     assert exc_info.value.code == 1

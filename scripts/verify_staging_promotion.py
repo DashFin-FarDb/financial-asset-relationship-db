@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 from typing import List
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
 SECRET_ASSIGNMENT_PATTERN = re.compile(
     "".join(
         (
@@ -233,36 +235,49 @@ def _contains_unredacted_secret(content: str) -> bool:
     return False
 
 
+def _validated_relative_evidence_path(evidence_file: str) -> str:
+    """Return a validated repo-relative evidence path."""
+    normalized_input = evidence_file.replace("\\", "/")
+    parts = [part for part in normalized_input.split("/") if part not in ("", ".")]
+    if (
+        not normalized_input
+        or "\x00" in normalized_input
+        or os.path.isabs(evidence_file)
+        or not parts
+        or any(part == ".." for part in parts)
+    ):
+        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be a repo-relative path.")
+        sys.exit(1)
+    return os.path.join(*parts)
+
+
 def _read_evidence_file(evidence_file: str) -> str:
     """Read an evidence file within the repo without following final-component symlinks."""
-    repo_root = Path(__file__).resolve().parent.parent
-    requested_path = Path(evidence_file)
-    evidence_path = requested_path if requested_path.is_absolute() else repo_root / requested_path
-    absolute_path = Path(os.path.abspath(evidence_path))
+    relative_path = _validated_relative_evidence_path(evidence_file)
+    evidence_path = REPO_ROOT / relative_path
 
-    if not absolute_path.is_relative_to(repo_root):
-        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {repo_root}.")
-        sys.exit(1)
-
-    if absolute_path.is_symlink():
+    if evidence_path.is_symlink():
         print(f"Error: Evidence path {evidence_file} is a symlink.")
         sys.exit(1)
 
-    normalized_path = absolute_path.resolve(strict=False)
+    normalized_path = evidence_path.resolve(strict=False)
 
-    if not normalized_path.is_relative_to(repo_root):
-        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {repo_root}.")
+    if not normalized_path.is_relative_to(REPO_ROOT):
+        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {REPO_ROOT}.")
         sys.exit(1)
 
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    repo_fd = os.open(REPO_ROOT, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
     try:
-        fd = os.open(absolute_path, flags)
+        fd = os.open(relative_path, flags, dir_fd=repo_fd)
     except FileNotFoundError:
         print(f"Error: Evidence path {evidence_file} does not exist.")
         sys.exit(1)
     except OSError as exc:
         print(f"Error: Unable to open evidence path {evidence_file}: {exc}")
         sys.exit(1)
+    finally:
+        os.close(repo_fd)
 
     file_stat = os.fstat(fd)
     if not stat_is_regular_file(file_stat.st_mode):
@@ -307,7 +322,7 @@ def verify_staging_promotion(evidence_file: str) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Verify staging promotion baseline items in an evidence file.")
-    parser.add_argument("evidence_file", help="Path to the release-candidate evidence Markdown file.")
+    parser.add_argument("evidence_file", help="Repo-relative path to the release-candidate evidence Markdown file.")
     args = parser.parse_args()
 
     verify_staging_promotion(args.evidence_file)
