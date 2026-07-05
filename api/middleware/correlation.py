@@ -165,7 +165,7 @@ def _inject_state(scope: Scope, identifiers: CorrelationIdentifiers) -> None:
                     continue
                 except (TypeError, AttributeError):
                     # Mapping-style assignment is best-effort; if unsupported, fall back to attribute assignment.
-                    mapping_assignment_failed = True
+                    pass
             setattr(state_obj, key, value)
         except (TypeError, AttributeError) as exc:
             log_event(
