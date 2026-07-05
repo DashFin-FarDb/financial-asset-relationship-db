@@ -37,7 +37,7 @@ source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
 
 ## Action
 
-Use camelCase naming convention
+Use snake_case naming convention for Python files and modules
 
 ## Evidence
 
@@ -385,7 +385,7 @@ Start the commit message with a type prefix such as 'style', 'fix', or 'chore'
 - Seen in commit: 'style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS'
 
 ---
-id: financial-asset-relationship-db-instinct-commit-length
+id: financial-asset-relationship-db-instinct-commit-length-2
 trigger: "When writing a commit message"
 confidence: 0.7
 domain: git
