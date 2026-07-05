@@ -173,14 +173,8 @@ export default function Home() {
       };
     }
   }, []);
-
-  useEffect(() => {
-    /**
-     * Executes the initial data fetch and updates component state.
-     * Evaluates the result and sets appropriate UI states (loading, error, data).
-     */
-    const load = async () => {
-      const result = await fetchDashboardData();
+  const applyResult = useCallback(
+    (result: { metricsData: Metrics | null; visualizationData: VisualizationData | null; error: string | null }) => {
       if (result.error) {
         setError(result.error);
       } else {
@@ -189,11 +183,20 @@ export default function Home() {
         setError(null);
       }
       setLoading(false);
+    },
+    [],
+  );
+  useEffect(() => {
+    /**
+     * Executes the initial data fetch and updates component state.
+     * Evaluates the result and sets appropriate UI states (loading, error, data).
+     */
+    const load = async () => {
+      const result = await fetchDashboardData();
+      applyResult(result);
     };
-
     load();
-  }, [fetchDashboardData]);
-
+  }, [fetchDashboardData, applyResult]);
   /**
    * Refetches the dashboard data and updates component state.
    * Useful when the previous fetch failed or manual refresh is required.
@@ -202,15 +205,8 @@ export default function Home() {
     setLoading(true);
     setError(null);
     const result = await fetchDashboardData();
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setMetrics(result.metricsData);
-      setVizData(result.visualizationData);
-      setError(null);
-    }
-    setLoading(false);
-  }, [fetchDashboardData]);
+    applyResult(result);
+  }, [fetchDashboardData, applyResult]);
 
   const handleTabChange = useCallback((tab: HomeTab) => {
     setActiveTab(tab);
