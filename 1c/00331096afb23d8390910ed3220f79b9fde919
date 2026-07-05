@@ -1,0 +1,23 @@
+scripts/verify_staging_promotion.py
+  s_8d43d0750b87ca::t_bf6dfabc8cf43b 218-222,231
+Dockerfile.frontend
+  s_8d43d0750b87ca::t_b5fb7dbbb8b221 25-28,36
+tests/unit/test_verify_staging_promotion.py
+  s_8d43d0750b87ca::t_1c3b2152f1499d 262-271,273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1c00331096afb23d8390910ed3220f79b9fde919",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
