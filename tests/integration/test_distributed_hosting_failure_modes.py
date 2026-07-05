@@ -19,8 +19,6 @@ from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 from tests.helpers.graph_scale_factory import build_scale_graph
 
-UTC = UTC
-
 pytestmark = pytest.mark.integration
 
 _LOCK_NAME = "graph_rebuild"
