@@ -259,11 +259,16 @@ def test_verify_staging_promotion_directory(mock_is_file, mock_exists):
 
 
 @pytest.mark.unit
-@patch("scripts.verify_staging_promotion.Path.exists", return_value=True)
-@patch("scripts.verify_staging_promotion.Path.is_file", return_value=True)
-@patch("scripts.verify_staging_promotion.Path.is_symlink", return_value=True)
-def test_verify_staging_promotion_symlink(mock_is_symlink, mock_is_file, mock_exists):
-    """Test that providing a symlink raises a clean error."""
+def test_verify_staging_promotion_symlink(tmp_path):
+    """Test that providing a real symlink raises a clean error before path resolution."""
+    target = tmp_path / "evidence.md"
+    target.write_text("supabase vercel mapping", encoding="utf-8")
+    symlink = tmp_path / "evidence-link.md"
+    try:
+        symlink.symlink_to(target)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"Symlink creation is not supported in this environment: {exc}")
+
     with pytest.raises(SystemExit) as exc_info:
-        verify_staging_promotion("some_symlink")
+        verify_staging_promotion(str(symlink))
     assert exc_info.value.code == 1
