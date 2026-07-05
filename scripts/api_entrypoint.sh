@@ -7,4 +7,4 @@ if [ -d "/data" ]; then
 fi
 
 # Drop privileges and execute the given command
-exec runuser -u appuser -- "$@"
+exec setpriv --reuid=appuser --regid=appuser --init-groups -- "$@"

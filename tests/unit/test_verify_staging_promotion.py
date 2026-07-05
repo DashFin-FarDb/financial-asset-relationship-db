@@ -43,44 +43,41 @@ def test_check_database_boundaries():
 
 
 @pytest.mark.unit
-def test_persistence_proof_valid_json():
-    """Test valid persistence proofs with correct JSON blocks."""
+@pytest.mark.parametrize(
+    "proof_json",
+    [
+        """
+        ```json
+        {
+          "graph_persistence_configured": true,
+          "graph": {
+            "persistence_enabled": true,
+            "persistence_loaded": true,
+            "startup_source": "persisted"
+          }
+        }
+        ```
+        durable preview
+        """,
+        """
+        ```json
+        {
+          "observed_fields": {
+            "graph_persistence_configured": true,
+            "graph.persistence_enabled": true,
+            "graph.persistence_loaded": true,
+            "graph.startup_source": "persisted"
+          }
+        }
+        ```
+        durable preview
+        """,
+    ],
+)
+def test_persistence_proof_valid_json(proof_json):
+    """Test valid persistence proofs with supported JSON shapes."""
     missing = []
-    valid_json = """
-    ```json
-    {
-      "graph_persistence_configured": true,
-      "graph": {
-        "persistence_enabled": true,
-        "persistence_loaded": true,
-        "startup_source": "persisted"
-      }
-    }
-    ```
-    durable preview
-    """
-    _check_persistence_proof(valid_json, missing)
-    assert not missing
-
-
-@pytest.mark.unit
-def test_persistence_proof_observed_fields():
-    """Test valid persistence proofs using observed_fields dot notation."""
-    missing = []
-    observed_fields_json = """
-    ```json
-    {
-      "observed_fields": {
-        "graph_persistence_configured": true,
-        "graph.persistence_enabled": true,
-        "graph.persistence_loaded": true,
-        "graph.startup_source": "persisted"
-      }
-    }
-    ```
-    durable preview
-    """
-    _check_persistence_proof(observed_fields_json, missing)
+    _check_persistence_proof(proof_json, missing)
     assert not missing
 
 
@@ -194,6 +191,14 @@ def test_check_operational_evidence():
         missing,
     )
     assert "Non-redacted evidence found (secrets/tokens must be redacted)" in missing
+
+    missing = []
+    _check_operational_evidence(
+        "asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary "
+        "secret: benign-narrative-string",
+        missing,
+    )
+    assert "Non-redacted evidence found (secrets/tokens must be redacted)" not in missing
 
 
 @pytest.mark.unit

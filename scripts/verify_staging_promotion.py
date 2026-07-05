@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -48,27 +49,30 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
 
 def _process_json_char(char: str, state: dict) -> bool:
     """Process a character for the JSON extraction state machine."""
-    if state["in_string"]:
-        if state["escaped"]:
-            state["escaped"] = False
-        elif char == "\\":
-            state["escaped"] = True
-        elif char == '"':
-            state["in_string"] = False
+    if state["in_string"] and state["escaped"]:
+        state["escaped"] = False
         return False
-
+    if state["in_string"] and char == "\\":
+        state["escaped"] = True
+        return False
+    if state["in_string"] and char == '"':
+        state["in_string"] = False
+        return False
+    if state["in_string"]:
+        return False
     if char == '"':
         state["in_string"] = True
-    elif char == "{":
+        return False
+    if char == "{":
         if state["depth"] == 0:
             state["start"] = state["index"]
         state["depth"] += 1
-    elif char == "}":
-        if state["depth"] > 0:
-            state["depth"] -= 1
-            if state["depth"] == 0 and state["start"] is not None:
-                return True
-    return False
+        return False
+    if char != "}" or state["depth"] <= 0:
+        return False
+
+    state["depth"] -= 1
+    return state["depth"] == 0 and state["start"] is not None
 
 
 def _extract_balanced_json_objects(source: str) -> List[str]:
@@ -88,26 +92,38 @@ def _extract_balanced_json_objects(source: str) -> List[str]:
 def _validate_persistence_data(data: dict) -> bool:
     """Validate a parsed JSON dict for persistence proofs."""
     obs = data.get("observed_fields")
-    if isinstance(obs, dict):
-        if (
-            obs.get("graph_persistence_configured") is True
-            and obs.get("graph.persistence_enabled") is True
-            and obs.get("graph.persistence_loaded") is True
-            and obs.get("graph.startup_source") == "persisted"
-        ):
-            return True
+    if _has_observed_field_persistence(obs):
+        return True
 
     graph_data = data.get("graph")
-    if isinstance(graph_data, dict):
-        if (
-            data.get("graph_persistence_configured") is True
-            and graph_data.get("persistence_enabled") is True
-            and graph_data.get("persistence_loaded") is True
-            and graph_data.get("startup_source") == "persisted"
-        ):
-            return True
+    if _has_graph_persistence(data, graph_data):
+        return True
 
     return False
+
+
+def _has_observed_field_persistence(obs: object) -> bool:
+    """Return whether observed_fields contains the complete persistence proof."""
+    return isinstance(obs, dict) and all(
+        (
+            obs.get("graph_persistence_configured") is True,
+            obs.get("graph.persistence_enabled") is True,
+            obs.get("graph.persistence_loaded") is True,
+            obs.get("graph.startup_source") == "persisted",
+        )
+    )
+
+
+def _has_graph_persistence(data: dict, graph_data: object) -> bool:
+    """Return whether graph contains the complete persistence proof."""
+    return isinstance(graph_data, dict) and all(
+        (
+            data.get("graph_persistence_configured") is True,
+            graph_data.get("persistence_enabled") is True,
+            graph_data.get("persistence_loaded") is True,
+            graph_data.get("startup_source") == "persisted",
+        )
+    )
 
 
 def _extract_json_blocks(content_raw: str) -> List[str]:
@@ -180,33 +196,51 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
     keywords = "|".join(["password", "secret", "token", "key"])
     secret_pattern = (
         rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?"
-        r"(?![^\s]*?(?:redacted|x{4,}|\*{4,}))[^\s]{8,}"
+        r"(?![a-z0-9+/=]*?(?:redacted|x{4,}|\*{4,}))[a-z0-9+/=]{16,}"
     )
     if re.search(secret_pattern, content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
 
 
-def verify_staging_promotion(evidence_file: str) -> None:
-    """Verify baseline items in a staging promotion evidence file."""
-    evidence_path_obj = Path(evidence_file)
-    if not evidence_path_obj.exists():
-        print(f"Error: Evidence path {evidence_file} does not exist.")
-        sys.exit(1)
-    if not evidence_path_obj.is_file():
-        print(f"Error: Evidence path {evidence_file} is not a regular file.")
-        sys.exit(1)
-    if evidence_path_obj.is_symlink():
-        print(f"Error: Evidence path {evidence_file} is a symlink. Symlinks are not allowed.")
-        sys.exit(1)
-
-    evidence_path = evidence_path_obj.resolve(strict=True)
+def _read_evidence_file(evidence_file: str) -> str:
+    """Read an evidence file within the repo without following final-component symlinks."""
     repo_root = Path(__file__).resolve().parent.parent
-    is_relative = evidence_path.is_relative_to(repo_root)
-    if not is_relative:
+    requested_path = Path(evidence_file)
+    evidence_path = requested_path if requested_path.is_absolute() else repo_root / requested_path
+    normalized_path = evidence_path.resolve(strict=False)
+
+    if not normalized_path.is_relative_to(repo_root):
         print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {repo_root}.")
         sys.exit(1)
-    with open(evidence_path, "r", encoding="utf-8") as f:
-        content_raw = f.read()
+
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        fd = os.open(normalized_path, flags)
+    except FileNotFoundError:
+        print(f"Error: Evidence path {evidence_file} does not exist.")
+        sys.exit(1)
+    except OSError as exc:
+        print(f"Error: Unable to open evidence path {evidence_file}: {exc}")
+        sys.exit(1)
+
+    file_stat = os.fstat(fd)
+    if not stat_is_regular_file(file_stat.st_mode):
+        os.close(fd)
+        print(f"Error: Evidence path {evidence_file} is not a regular file.")
+        sys.exit(1)
+
+    with os.fdopen(fd, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def stat_is_regular_file(mode: int) -> bool:
+    """Return whether a stat mode represents a regular file."""
+    return (mode & 0o170000) == 0o100000
+
+
+def verify_staging_promotion(evidence_file: str) -> None:
+    """Verify baseline items in a staging promotion evidence file."""
+    content_raw = _read_evidence_file(evidence_file)
     content_lower = content_raw.lower()
 
     missing: List[str] = []

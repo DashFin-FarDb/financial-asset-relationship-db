@@ -12,7 +12,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
 
 COPY --chown=appuser:appuser src/ ./src/
 COPY --chown=appuser:appuser api/ ./api/
-COPY --chown=appuser:appuser scripts/api_entrypoint.sh ./scripts/api_entrypoint.sh
+COPY scripts/api_entrypoint.sh ./scripts/api_entrypoint.sh
 RUN chmod +x ./scripts/api_entrypoint.sh
 
 ENV PYTHONPATH=/app

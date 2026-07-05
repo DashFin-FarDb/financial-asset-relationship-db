@@ -195,6 +195,32 @@ class TestSettingsModel:
         with pytest.raises(ValueError, match="SECRET_KEY environment variable"):
             _ = settings.required_secret_key
 
+    @pytest.mark.parametrize(
+        ("field_name", "field_value", "env_name"),
+        [
+            ("secret_key", "", "SECRET_KEY"),
+            ("secret_key", "   ", "SECRET_KEY"),
+            ("admin_username", "", "ADMIN_USERNAME"),
+            ("admin_password", "", "ADMIN_PASSWORD"),
+        ],
+    )
+    def test_production_rejects_empty_required_secrets(self, field_name: str, field_value: str, env_name: str) -> None:
+        """Test that production rejects missing or empty required secret fields."""
+        values = {
+            "env": DeploymentEnvironment.PRODUCTION,
+            "secret_key": "secret-key-that-is-at-least-32-bytes",
+            "admin_username": "admin",
+            "admin_password": "adminpass",
+            field_name: field_value,
+        }
+        with pytest.raises(ValueError, match=env_name):
+            Settings(**values)
+
+    def test_development_allows_empty_required_secrets(self) -> None:
+        """Test that local development keeps permissive empty-secret behavior."""
+        settings = Settings(env=DeploymentEnvironment.DEVELOPMENT, secret_key="", admin_username="", admin_password="")
+        assert settings.secret_key == ""
+
 
 # ---------------------------------------------------------------------------
 # Settings loading tests
@@ -264,6 +290,23 @@ class TestLoadSettings:
         assert settings.gradio_host == "127.0.0.2"
         assert settings.gradio_port == 8080
         assert settings.rebuild_lock_ttl_seconds == 300  # Default when not set
+
+    @patch.dict(
+        os.environ,
+        {
+            "ENV": "production",
+            "SECRET_KEY": "",
+            "ADMIN_USERNAME": "",
+            "ADMIN_PASSWORD": "",
+        },
+        clear=True,
+    )
+    def test_load_settings_rejects_empty_production_secrets(self) -> None:
+        """Test that production env loading fails fast on Compose-style empty strings."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="SECRET_KEY"):
+            load_settings()
 
     @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "600"})
     def test_load_settings_rebuild_lock_ttl_from_env(self) -> None:

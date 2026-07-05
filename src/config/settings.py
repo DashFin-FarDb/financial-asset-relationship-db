@@ -13,7 +13,7 @@ from enum import Enum
 from functools import lru_cache
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator, model_validator
 
 
 def _parse_bool_env(value: str | None) -> bool:
@@ -150,6 +150,25 @@ class Settings(BaseModel):
 
             warnings.warn("SECRET_KEY is less than 32 characters. This is insecure for production.")
         return value
+
+    @model_validator(mode="after")
+    def validate_production_required_secrets(self) -> "Settings":
+        """Fail fast when production receives missing or empty required secrets."""
+        if self.env != DeploymentEnvironment.PRODUCTION:
+            return self
+
+        empty_fields = [
+            env_name
+            for env_name, value in (
+                ("SECRET_KEY", self.secret_key),
+                ("ADMIN_USERNAME", self.admin_username),
+                ("ADMIN_PASSWORD", self.admin_password),
+            )
+            if value is None or not value.strip()
+        ]
+        if empty_fields:
+            raise ValueError(f"Production requires non-empty values for: {', '.join(empty_fields)}")
+        return self
 
     @field_validator("slo_rebuild_duration_max_seconds")
     @classmethod

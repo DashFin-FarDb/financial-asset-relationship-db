@@ -26,7 +26,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -35,4 +35,8 @@ services:
         condition: service_healthy
 
 volumes:
+  # Operator migration note:
+  # The API now stores coordination/auth data at /data/app.db and graph persistence at /data/graph.db by default.
+  # Both files live in the api-data named volume, but they are separate SQLite databases; migrate or back up both
+  # paths when moving from older bind-mounted ./data deployments or when restoring production state.
   api-data:
