@@ -9,12 +9,13 @@ Tests the simplified PR agent configuration, ensuring:
 """
 
 import re
-from enum import StrEnum
 from pathlib import Path
 
 import numpy as np
 import pytest
 import yaml
+
+from src.utils.enum_compat import StrEnum
 
 pytestmark = pytest.mark.integration
 
