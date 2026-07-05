@@ -95,7 +95,7 @@ This skill teaches the core development patterns, coding conventions, and common
 ### Code Formatting & Style Fix
 
 **Trigger:** When enforcing code style or fixing formatting issues introduced by previous commits.
-**Command:** `/format-code`
+**Command:** `/code-formatting-style-fix`
 
 1. Run code formatters on affected files (e.g., Black for Python, Prettier for JS).
    - Example:
