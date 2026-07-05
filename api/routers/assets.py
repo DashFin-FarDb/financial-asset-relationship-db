@@ -77,7 +77,7 @@ async def get_assets(
         total=total,
         page=page,
         per_page=per_page,
-        has_more=(page * per_page) < total,
+        hasMore=(page * per_page) < total,
     )
 
 

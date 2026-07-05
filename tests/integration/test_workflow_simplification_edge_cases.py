@@ -1,3 +1,5 @@
+"""Tests for GitHub Actions workflow consistency and edge cases."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Mapping
@@ -21,12 +23,16 @@ WORKFLOWS_DIR = ROOT_DIR / ".github" / "workflows"
 
 
 class Step(TypedDict, total=False):
+    """Type definition for a workflow step."""
+
     uses: str
     run: str
     with_: dict[str, Any]
 
 
 class Job(TypedDict, total=False):
+    """Type definition for a workflow job."""
+
     steps: list[Step]
     concurrency: dict[str, Any]
 
@@ -40,6 +46,7 @@ Workflow = dict[str, Any]
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
+    """Load a YAML file into a dictionary."""
     if not path.exists():
         pytest.skip(f"{path.name} not found")
     with path.open(encoding="utf-8") as fh:
@@ -47,12 +54,14 @@ def load_yaml(path: Path) -> dict[str, Any]:
 
 
 def iter_workflow_files() -> Iterator[Path]:
+    """Iterate over all workflow files in the .github/workflows directory."""
     if not WORKFLOWS_DIR.exists():
         pytest.skip("Workflows directory not found")
     yield from WORKFLOWS_DIR.glob("*.yml")
 
 
 def iter_workflows() -> Iterator[tuple[Path, Workflow]]:
+    """Iterate over all loaded workflows."""
     for path in iter_workflow_files():
         try:
             yield path, load_yaml(path)
@@ -66,17 +75,19 @@ def iter_workflows() -> Iterator[tuple[Path, Workflow]]:
 
 
 def iter_jobs(workflow: Mapping[str, Any]) -> Iterable[Job]:
+    """Iterate over all jobs in a workflow."""
     jobs = workflow.get("jobs")
     if isinstance(jobs, dict):
         yield from jobs.values()
 
 
 def iter_steps(job: Mapping[str, Any]) -> Iterable[Step]:
+    """Iterate over all steps in a job."""
     steps = job.get("steps")
     if isinstance(steps, list):
         for step in steps:
             if isinstance(step, dict):
-                yield step
+                yield step  # type: ignore[misc]
 
 
 def extract_python_versions(workflow: Mapping[str, Any]) -> set[str]:
@@ -107,11 +118,13 @@ def extract_python_versions(workflow: Mapping[str, Any]) -> set[str]:
 
 @pytest.fixture(scope="session")
 def all_workflows() -> list[tuple[Path, Workflow]]:
+    """Fixture providing all workflows."""
     return list(iter_workflows())
 
 
 @pytest.fixture(scope="session")
 def all_steps(all_workflows: list[tuple[Path, Workflow]]) -> list[Step]:
+    """Fixture providing all steps from all workflows."""
     steps: list[Step] = []
     for _, workflow in all_workflows:
         for job in iter_jobs(workflow):
@@ -125,11 +138,15 @@ def all_steps(all_workflows: list[tuple[Path, Workflow]]) -> list[Step]:
 
 
 class TestGreetingsWorkflowEdgeCases:
+    """Tests for the greetings.yml workflow."""
+
     @pytest.fixture
     def workflow(self) -> Workflow:
+        """Fixture providing the greetings workflow."""
         return load_yaml(WORKFLOWS_DIR / "greetings.yml")
 
     def test_first_interaction_is_versioned(self, workflow: Workflow) -> None:
+        """Ensure the first-interaction step uses a versioned action."""
         steps = [
             step
             for job in iter_jobs(workflow)
@@ -147,11 +164,15 @@ class TestGreetingsWorkflowEdgeCases:
 
 
 class TestAPISecWorkflowEdgeCases:
+    """Tests for the apisec-scan.yml workflow."""
+
     @pytest.fixture
     def workflow(self) -> Workflow:
+        """Fixture providing the apisec-scan workflow."""
         return load_yaml(WORKFLOWS_DIR / "apisec-scan.yml")
 
     def test_concurrency_model(self, workflow: Workflow) -> None:
+        """Ensure concurrency is properly configured."""
         for job in iter_jobs(workflow):
             conc = job.get("concurrency")
             if conc:
@@ -159,6 +180,7 @@ class TestAPISecWorkflowEdgeCases:
                 assert "cancel-in-progress" in conc
 
     def test_apisec_steps_configured(self, workflow: Workflow) -> None:
+        """Ensure APIsec steps are properly configured with versioning."""
         for job in iter_jobs(workflow):
             for step in iter_steps(job):
                 uses = step.get("uses", "").lower()
@@ -177,10 +199,13 @@ class TestAPISecWorkflowEdgeCases:
 
 
 class TestWorkflowConsistency:
+    """Tests for cross-workflow consistency."""
+
     def test_python_versions_consistent(
         self,
         all_workflows: list[tuple[Path, Workflow]],
     ) -> None:
+        """Ensure Python versions are consistent across workflows."""
         versions: set[str] = set()
 
         for _, workflow in all_workflows:
@@ -191,6 +216,7 @@ class TestWorkflowConsistency:
             assert len(versions) <= 3
 
     def test_checkout_versions(self, all_steps: list[Step]) -> None:
+        """Ensure checkout actions use proper versioning."""
         checkouts = [step["uses"] for step in all_steps if "uses" in step and "checkout" in step["uses"].lower()]
         if checkouts:
             # Accept either @v4 tags or SHA pins (40-char hex) as valid pinned versions
@@ -207,6 +233,7 @@ class TestWorkflowConsistency:
         self,
         all_workflows: list[tuple[Path, Workflow]],
     ) -> None:
+        """Ensure permissions are declared in workflows."""
         for _path, workflow in all_workflows:
             perms = workflow.get("permissions")
             if perms is not None:

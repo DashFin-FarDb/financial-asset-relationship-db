@@ -284,7 +284,7 @@ class TestPydanticModels:
         """Verify that VisualizationDataResponse accepts node/edge lists for graph rendering."""
         viz = VisualizationDataResponse(
             nodes=[
-                {
+                {  # type: ignore[list-item]
                     "id": "AAPL",
                     "symbol": "AAPL",
                     "name": "Apple Inc.",
@@ -297,7 +297,7 @@ class TestPydanticModels:
                 }
             ],
             edges=[
-                {
+                {  # type: ignore[list-item]
                     "source": "AAPL",
                     "target": "MSFT",
                     "relationship_type": "same_sector",
@@ -337,7 +337,7 @@ class TestPydanticModels:
         with pytest.raises(ValueError):
             DetailedHealthResponse(
                 status="healthy",
-                environment="production",
+                environment="production",  # type: ignore[call-arg]
                 graph_persistence_configured=True,
                 graph=GraphHealthResponse(
                     available=True,
@@ -355,7 +355,7 @@ class TestPydanticModels:
         """Verify that DetailedHealthResponse restricts status and database type values."""
         with pytest.raises(ValueError):
             DetailedHealthResponse(
-                status="unknown",
+                status="unknown",  # type: ignore[arg-type]
                 graph_persistence_configured=True,
                 graph=GraphHealthResponse(
                     available=True,
@@ -380,7 +380,7 @@ class TestPydanticModels:
                 ),
                 database=DatabaseHealthResponse(
                     configured=True,
-                    type="mysql",
+                    type="mysql",  # type: ignore[arg-type]
                     reachable=True,
                 ),
             )

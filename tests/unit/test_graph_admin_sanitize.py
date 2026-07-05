@@ -1,5 +1,7 @@
 """Unit tests for _sanitize_failure_message and related helpers in graph_admin."""
 
+# pylint: disable=protected-access
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,10 +13,7 @@ from api.graph_lifecycle_providers import (
     GraphPersistenceSaveError,
     GraphRebuildSourceError,
 )
-from api.routers.graph_admin import (
-    _sanitize_failure_message,  # pylint: disable=protected-access
-    _validate_coordination_database_primary,
-)
+from api.routers.graph_admin import _sanitize_failure_message, _validate_coordination_database_primary
 
 
 @pytest.mark.unit
