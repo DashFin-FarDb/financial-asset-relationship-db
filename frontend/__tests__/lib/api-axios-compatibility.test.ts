@@ -96,13 +96,15 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
 
   describe("Axios Instance Creation - 1.13.2 Compatibility", () => {
     it("should create instance with correct configuration for axios 1.13.2", () => {
-      expect(currentAxios.create).toHaveBeenCalledWith(expect.objectContaining({
-        baseURL: expect.any(String),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        timeout: 10000,
-      }));
+      expect(currentAxios.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          baseURL: expect.any(String),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        }),
+      );
     });
 
     it("should support axios 1.13.2 configuration options", () => {
@@ -210,7 +212,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssetDetail("TEST-ASSET_1.2");
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        "/api/assets/TEST-ASSET_1.2", { signal: undefined },
+        "/api/assets/TEST-ASSET_1.2",
+        { signal: undefined },
       );
     });
   });
@@ -438,7 +441,10 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssetDetail("ASSET_1");
 
       // Should call with relative URL (baseURL is set on instance)
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1", { signal: undefined });
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/assets/ASSET_1",
+        { signal: undefined },
+      );
     });
 
     it("should handle paths with multiple segments", async () => {
@@ -453,7 +459,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssetRelationships("ASSET_1");
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        "/api/assets/ASSET_1/relationships", { signal: undefined },
+        "/api/assets/ASSET_1/relationships",
+        { signal: undefined },
       );
     });
 
@@ -469,8 +476,7 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.healthCheck();
 
       // Should use single leading slash
-      // skipcq: JS-W1042
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health", undefined);
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/health");
     });
   });
 
@@ -610,7 +616,8 @@ describe("Axios 1.13.2 Compatibility Tests", () => {
       await api.getAssetDetail(longId);
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(
-        `/api/assets/${longId}`, { signal: undefined },
+        `/api/assets/${longId}`,
+        { signal: undefined },
       );
     });
 
