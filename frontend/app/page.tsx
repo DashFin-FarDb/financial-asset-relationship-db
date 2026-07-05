@@ -192,7 +192,8 @@ export default function Home() {
       error: string | null;
       requestId: number;
     }) => {
-      if (result.requestId !== requestIdRef.current || !mountedRef.current) return;
+      if (result.requestId !== requestIdRef.current || !mountedRef.current)
+        return;
       if (result.error) {
         setError(result.error);
       } else {
