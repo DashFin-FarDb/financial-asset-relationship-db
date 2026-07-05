@@ -9,13 +9,22 @@ from pathlib import Path
 from typing import List
 
 SECRET_ASSIGNMENT_PATTERN = re.compile(
-    r"(?i)"
-    r"(?:\b|_)(?:password|secret|token|key)(?:\b|_)"
-    r"['\"]?[ \t]*[:=][ \t]*['\"]?"
-    r"(?P<value>[a-z0-9+/=]{16,})"
+    "".join(
+        (
+            r"(?i)",
+            r"(?:\b|_)(?:password|secret|token|key)(?:\b|_)",
+            r"['\"]?[ \t]*[:=][ \t]*['\"]?",
+            r"(?P<value>[a-z0-9+/=]{16,})",
+        )
+    )
 )
 DISTINCT_BOUNDARY_PATTERN = re.compile(
-    r"\basset_graph_database_url\b[^\n]{0,80}\bdistinct\b" r"|\bdistinct\b[^\n]{0,80}\basset_graph_database_url\b"
+    "|".join(
+        (
+            r"\basset_graph_database_url\b[^\n]{0,80}\bdistinct\b",
+            r"\bdistinct\b[^\n]{0,80}\basset_graph_database_url\b",
+        )
+    )
 )
 
 

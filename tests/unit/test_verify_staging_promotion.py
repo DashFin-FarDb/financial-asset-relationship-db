@@ -300,6 +300,7 @@ def test_verify_staging_promotion_symlink(tmp_path):
     except (OSError, NotImplementedError) as exc:
         pytest.skip(f"Symlink creation is not supported in this environment: {exc}")
 
+    symlink_path = str(symlink)
     with pytest.raises(SystemExit) as exc_info:
-        verify_staging_promotion(str(symlink))
+        verify_staging_promotion(symlink_path)
     assert exc_info.value.code == 1
