@@ -62,7 +62,7 @@ Use relative imports for project files
 ## Evidence
 
 - Import analysis shows relative import pattern
-- Example: import { x } from '../lib/x'
+- Example: from .models import Asset
 
 ---
 id: financial-asset-relationship-db-export-style
@@ -77,7 +77,7 @@ source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
 
 ## Action
 
-Prefer default exports
+Prefer default exports for frontend JavaScript/TypeScript modules
 
 ## Evidence
 
@@ -117,11 +117,11 @@ source_repo: https://github.com/DashFin-FarDb/financial-asset-relationship-db
 
 ## Action
 
-Name test files using the pattern: *.test.ts
+Name test files using the pattern: test_*.py or *_test.py
 
 ## Evidence
 
-- File pattern: *.test.ts
+- File pattern: test_*.py or *_test.py
 - Consistent across test files
 
 ---
@@ -279,7 +279,7 @@ source_repo: DashFin-FarDb/financial-asset-relationship-db
 
 ## Action
 
-Name files and functions in camelCase, classes in PascalCase, and constants in SCREAMING_SNAKE_CASE
+Name files and functions in snake_case, classes in PascalCase, and constants in SCREAMING_SNAKE_CASE
 
 ## Evidence
 
@@ -319,7 +319,7 @@ source_repo: DashFin-FarDb/financial-asset-relationship-db
 
 ## Action
 
-Use default export style
+Use default export style for frontend JavaScript/TypeScript modules
 
 ## Evidence
 
@@ -338,7 +338,7 @@ source_repo: DashFin-FarDb/financial-asset-relationship-db
 
 ## Action
 
-Name test files with the pattern *.test.ts
+Name test files with the pattern test_*.py or *_test.py
 
 ## Evidence
 
