@@ -215,9 +215,15 @@ class TestSettingsModel:
         }
         with pytest.raises(ValueError, match="non-empty deployment credentials") as exc_info:
             Settings(**values)
-        assert "SECRET_KEY" not in str(exc_info.value)
-        assert "ADMIN_USERNAME" not in str(exc_info.value)
-        assert "ADMIN_PASSWORD" not in str(exc_info.value)
+        error_message = str(exc_info.value)
+        assert "SECRET_KEY" not in error_message
+        assert "ADMIN_USERNAME" not in error_message
+        assert "ADMIN_PASSWORD" not in error_message
+        assert "secret_key" not in error_message
+        assert "admin_username" not in error_message
+        assert "admin_password" not in error_message
+        assert "secret-key-that-is-at-least-32-bytes" not in error_message
+        assert "configured-value" not in error_message
 
     def test_production_validates_trimmed_secret_key_length(self) -> None:
         """Test that whitespace padding cannot satisfy production secret length."""
@@ -320,9 +326,13 @@ class TestLoadSettings:
 
         with pytest.raises(ValidationError, match="non-empty deployment credentials") as exc_info:
             load_settings()
-        assert "SECRET_KEY" not in str(exc_info.value)
-        assert "ADMIN_USERNAME" not in str(exc_info.value)
-        assert "ADMIN_PASSWORD" not in str(exc_info.value)
+        error_message = str(exc_info.value)
+        assert "SECRET_KEY" not in error_message
+        assert "ADMIN_USERNAME" not in error_message
+        assert "ADMIN_PASSWORD" not in error_message
+        assert "secret_key" not in error_message
+        assert "admin_username" not in error_message
+        assert "admin_password" not in error_message
 
     @patch.dict(os.environ, {"REBUILD_LOCK_TTL_SECONDS": "600"})
     def test_load_settings_rebuild_lock_ttl_from_env(self) -> None:

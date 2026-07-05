@@ -48,7 +48,7 @@ class DeploymentEnvironment(str, Enum):
 class Settings(BaseModel):
     """Runtime configuration settings."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, hide_input_in_errors=True)
 
     env: DeploymentEnvironment = Field(default=DeploymentEnvironment.DEVELOPMENT)
     vercel_env: DeploymentEnvironment | None = Field(default=None)
