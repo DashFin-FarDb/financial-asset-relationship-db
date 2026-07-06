@@ -6,11 +6,9 @@ COPY requirements-api.txt ./requirements.txt
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-RUN groupadd -r appuser \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir -r requirements.txt \
+    && groupadd -r appuser \
     && useradd -r -g appuser appuser \
     && mkdir -p /data \
     && chown -R appuser:appuser /data
