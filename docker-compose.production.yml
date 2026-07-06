@@ -15,18 +15,24 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
       # Note for Operators: This version switches from host bind mount (./data) to named volume (api-data).
       # Migrate existing data manually to the docker volume before deployment to avoid data loss.
-      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/app.db}
-      - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////data/graph.db}
-      - SECRET_KEY=${SECRET_KEY}
-      - ADMIN_USERNAME=${ADMIN_USERNAME}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/fardb.db}
+      - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////data/fardb.db}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required for first-run bootstrap}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD is required for first-run bootstrap}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -35,8 +41,4 @@ services:
         condition: service_healthy
 
 volumes:
-  # Operator migration note:
-  # The API now stores coordination/auth data at /data/app.db and graph persistence at /data/graph.db by default.
-  # Both files live in the api-data named volume, but they are separate SQLite databases; migrate or back up both
-  # paths when moving from older bind-mounted ./data deployments or when restoring production state.
   api-data:
