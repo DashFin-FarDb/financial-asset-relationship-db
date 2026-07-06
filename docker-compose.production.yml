@@ -17,6 +17,8 @@ services:
       - DATABASE_URL=${DATABASE_URL:-sqlite:////data/fardb.db}
       - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////data/fardb.db}
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required for first-run bootstrap}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD is required for first-run bootstrap}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
