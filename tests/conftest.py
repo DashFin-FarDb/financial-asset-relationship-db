@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import importlib.util
 import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from sqlalchemy import event
@@ -29,6 +30,8 @@ os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
 
 from datetime import timezone  # noqa: E402
+
+UTC = timezone.utc
 
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
@@ -311,10 +314,11 @@ def mock_rebuild_job():
         active_worker_id: str | None = "worker-456",
         heartbeat_at: datetime | None = None,
     ):
+        """Build a mock RebuildJob with configurable fields for tests."""
         if status is None:
             status = RebuildJobStatus.RUNNING
         if heartbeat_at is None:
-            heartbeat_at = datetime.now(timezone.utc)
+            heartbeat_at = datetime.now(UTC)
 
         job = Mock()
         job.job_id = job_id
@@ -329,7 +333,7 @@ def mock_rebuild_job():
 @pytest.fixture
 def make_reconciliation_plan() -> Callable[..., ReconciliationPlan]:
     """Return a factory function to create ReconciliationPlan instances for testing."""
-    from datetime import UTC, datetime
+    from datetime import datetime
 
     from src.logic.reconciliation_engine import (
         ActionType,
@@ -350,6 +354,7 @@ def make_reconciliation_plan() -> Callable[..., ReconciliationPlan]:
         metadata: dict[str, str | int | float | bool | None] | None = None,
         created_at: datetime | None = None,
     ) -> ReconciliationPlan:
+        """Build a ReconciliationPlan with sensible defaults for tests."""
         if metadata is None:
             metadata = {}
         if created_at is None:

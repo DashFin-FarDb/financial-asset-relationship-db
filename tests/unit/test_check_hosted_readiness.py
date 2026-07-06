@@ -378,7 +378,7 @@ def test_get_json_reports_invalid_json_with_endpoint_only(monkeypatch: pytest.Mo
             """Return invalid JSON bytes."""
             return b"not-json"
 
-    def fake_urlopen(request: object, timeout: float) -> "FakeResponse":
+    def fake_urlopen(request: object, timeout: float) -> FakeResponse:
         """Return a fake response with invalid JSON."""
         return FakeResponse()
 

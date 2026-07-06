@@ -8,7 +8,7 @@ import secrets
 import uuid
 from collections.abc import MutableMapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Pattern
+from typing import TYPE_CHECKING, Any
 
 from starlette.datastructures import Headers, MutableHeaders
 
@@ -89,7 +89,7 @@ W3C_TRACE_ID_REGEX = re.compile(r"^(?!0{32}$)[0-9a-f]{32}$")
 W3C_SPAN_ID_REGEX = re.compile(r"^(?!0{16}$)[0-9a-f]{16}$")
 
 
-def _extract_and_validate_w3c_id(raw_id: str | None, header_name: str, regex: Pattern[str]) -> str | None:
+def _extract_and_validate_w3c_id(raw_id: str | None, header_name: str, regex: re.Pattern[str]) -> str | None:
     """
     Extract, validate against general injection, and enforce W3C strict regex formats.
 
@@ -164,7 +164,7 @@ def _inject_state(scope: Scope, identifiers: CorrelationIdentifiers) -> None:
                     state_obj[key] = value
                     continue
                 except (TypeError, AttributeError):
-                    # Mapping-style assignment is best-effort; fall back to attribute-style below.
+                    # Mapping-style assignment is best-effort; if unsupported, fall back to attribute assignment.
                     pass
             setattr(state_obj, key, value)
         except (TypeError, AttributeError) as exc:

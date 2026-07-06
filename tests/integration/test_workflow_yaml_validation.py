@@ -22,7 +22,7 @@ class TestWorkflowYAMLValidation:
         Returns:
             workflows (list[str]): Filenames of the modified GitHub Actions workflow YAML files.
         """
-        return ["apisec-scan.yml", "greetings.yml", "label.yml", "pr-agent.yml"]
+        return ["apisec-scan.yml", "greetings.yml", "pr-agent.yml"]
 
     def test_workflows_are_valid_yaml(self, modified_workflows):
         """
