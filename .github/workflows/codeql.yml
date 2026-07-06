@@ -11,39 +11,14 @@
 #
 name: "CodeQL Advanced"
 
-"on":
-  push:
-    branches: [ "main", "Default" ]
-    paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '.github/workflows/codeql.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - '**/*.png'
-      - '**/*.jpg'
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [ "main", "Default" ]
-    paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '.github/workflows/codeql.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - '**/*.png'
-      - '**/*.jpg'
+on:
   schedule:
-    - cron: '33 20 * * 1'
-
+    - cron: "30 1 * * *"
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

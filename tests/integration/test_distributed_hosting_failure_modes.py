@@ -21,6 +21,7 @@ from tests.helpers.graph_scale_factory import build_scale_graph
 
 UTC = timezone.utc
 
+
 pytestmark = pytest.mark.integration
 
 _LOCK_NAME = "graph_rebuild"

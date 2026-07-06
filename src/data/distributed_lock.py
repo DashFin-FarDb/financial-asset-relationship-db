@@ -18,6 +18,9 @@ from src.data.repository import CoordinationLockRepository, LockStateSnapshot, L
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
+UTC = timezone.utc
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,7 +54,7 @@ class LockEvent:
     event_type: LockEventType
     lock_name: str
     holder_id: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -635,7 +638,7 @@ class DistributedLock:
             return LockState.UNKNOWN
 
         if not snapshot.valid:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if snapshot.expires_at and snapshot.expires_at <= now:
                 return LockState.EXPIRED
             return LockState.UNKNOWN

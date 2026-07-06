@@ -12,6 +12,9 @@ from enum import Enum
 
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 
+UTC = timezone.utc
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +45,7 @@ def _to_aware_utc(value: datetime) -> datetime:
     this normalization would misinterpret the instant.
     """
     if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
+        return value.replace(tzinfo=UTC)
     return value
 
 
@@ -76,7 +79,7 @@ def detect_stale_ownership(
         # Running without any heartbeat is stale
         return True
 
-    current_time = _to_aware_utc(now) if now is not None else datetime.now(timezone.utc)
+    current_time = _to_aware_utc(now) if now is not None else datetime.now(UTC)
     heartbeat_at = _to_aware_utc(job.last_heartbeat_at)
     age = current_time - heartbeat_at
     return age.total_seconds() > ttl_seconds
@@ -140,7 +143,7 @@ def detect_crash_suspicion(
         # Worker assigned but never heartbeat - suspicious
         return True
 
-    current_time = _to_aware_utc(now) if now is not None else datetime.now(timezone.utc)
+    current_time = _to_aware_utc(now) if now is not None else datetime.now(UTC)
     heartbeat_at = _to_aware_utc(job.last_heartbeat_at)
     age = current_time - heartbeat_at
     return age.total_seconds() > heartbeat_stale_threshold_seconds
@@ -271,7 +274,7 @@ def detect_rebuild_inconsistency(
     Returns:
         RebuildInconsistency describing the detected issue or NONE.
     """
-    current_time = _to_aware_utc(now) if now is not None else datetime.now(timezone.utc)
+    current_time = _to_aware_utc(now) if now is not None else datetime.now(UTC)
     heartbeat_threshold = heartbeat_threshold_seconds if heartbeat_threshold_seconds is not None else lock_ttl_seconds
 
     # No job in DB - check if runtime thinks it's running
