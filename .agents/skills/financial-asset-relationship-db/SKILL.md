@@ -188,4 +188,3 @@ It emphasizes consistent code style, automated workflows for CI/CD, dependency m
 | /deployment-config-update   | Update Dockerfiles, deployment scripts, or related docs        |
 | /dependabot-config          | Update the Dependabot configuration file                       |
 | /frontend-deps-update       | Update frontend dependencies (package.json, package-lock.json) |
-
