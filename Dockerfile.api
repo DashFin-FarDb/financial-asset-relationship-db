@@ -2,11 +2,14 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir -r requirements.txt
-
-RUN groupadd -r appuser && useradd -r -g appuser appuser && mkdir -p /data && chown -R appuser:appuser /data
+COPY requirements-api.txt .
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir -r requirements-api.txt \
+    && groupadd -r appuser \
+    && useradd -r -g appuser appuser \
+    && mkdir -p /data \
+    && chown -R appuser:appuser /data
 
 COPY src/ ./src/
 COPY api/ ./api/

@@ -50,10 +50,23 @@ def test_check_database_boundaries_requires_distinct_near_asset_graph_url():
     missing = []
     _check_database_boundaries(
         "database_url asset_graph_database_url coordination_database_url\n"
-        "a distinct operational checklist item appears elsewhere",
+        + ("operational evidence " * 8)
+        + "a distinct operational checklist item appears elsewhere",
         missing,
     )
     assert "Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception" in missing
+
+
+@pytest.mark.unit
+def test_check_database_boundaries_accepts_nearby_distinct_boundary():
+    """Test that nearby natural-language distinct wording still satisfies the boundary check."""
+    missing = []
+    _check_database_boundaries(
+        "database_url asset_graph_database_url coordination_database_url\n"
+        "asset_graph_database_url is distinct from coordination_database_url within this deployment boundary",
+        missing,
+    )
+    assert "Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception" not in missing
 
 
 @pytest.mark.unit

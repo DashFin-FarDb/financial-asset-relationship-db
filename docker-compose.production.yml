@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
+    restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
@@ -32,6 +33,7 @@ services:
       dockerfile: Dockerfile.frontend
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+    restart: unless-stopped
     ports:
       - "3000:3000"
     depends_on:

@@ -9,7 +9,7 @@ import type {
 } from "../types/api";
 
 const envUrl = process.env.NEXT_PUBLIC_API_URL;
-const API_URL = envUrl ? envUrl : "http://localhost:8000";
+const API_URL = envUrl ?? "http://localhost:8000";
 
 const apiClient = axios.create({
   baseURL: API_URL,

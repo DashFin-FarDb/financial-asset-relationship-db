@@ -10,6 +10,14 @@ from pathlib import Path
 from typing import List, TypedDict
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+DISTINCT_BOUNDARY_PATTERN = re.compile(
+    "|".join(
+        (
+            r"\basset_graph_database_url\b[^\n]{0,80}\bdistinct\b",
+            r"\bdistinct\b[^\n]{0,80}\basset_graph_database_url\b",
+        )
+    )
+)
 
 
 class JsonScanState(TypedDict):
@@ -31,13 +39,8 @@ def _check_provider_labels(content: str, missing: List[str]) -> None:
 
 def _check_distinct_boundary(content: str, missing: List[str]) -> None:
     """Check for distinct graph boundary definitions."""
-    distinct_confirmed = (
-        "distinct asset_graph_database_url" in content
-        or "asset_graph_database_url distinct" in content
-        or "shared-boundary statement" in content
-        or "approved exception" in content
-    )
-    if not distinct_confirmed:
+    distinct_confirmed = DISTINCT_BOUNDARY_PATTERN.search(content) is not None
+    if not distinct_confirmed and "approved exception" not in content and "shared-boundary statement" not in content:
         missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
 
 
