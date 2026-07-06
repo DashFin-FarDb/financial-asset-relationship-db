@@ -1,6 +1,6 @@
 interface:
   display_name: "Financial Asset Relationship Db"
   short_description: "Repo-specific patterns and workflows for financial-asset-relationship-db"
-  default_prompt: "Use the financial-asset-relationship-db repo skill to follow existing architecture, testing, and workflow conventions."
+  default_prompt: "Use the repo specific skill to follow existing architecture, testing, and workflow conventions."
 policy:
   allow_implicit_invocation: true
