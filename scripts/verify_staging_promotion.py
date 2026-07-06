@@ -202,6 +202,7 @@ def _read_evidence_file(evidence_file: str) -> str:
         try:
             os.close(file_fd)
         except OSError:
+            # Best-effort cleanup: ignore close errors so the original exception is re-raised.
             pass
         raise
 
