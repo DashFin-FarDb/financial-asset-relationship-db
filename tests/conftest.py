@@ -314,6 +314,7 @@ def mock_rebuild_job():
         active_worker_id: str | None = "worker-456",
         heartbeat_at: datetime | None = None,
     ):
+        """Build a mock RebuildJob with configurable fields for tests."""
         if status is None:
             status = RebuildJobStatus.RUNNING
         if heartbeat_at is None:
@@ -332,7 +333,7 @@ def mock_rebuild_job():
 @pytest.fixture
 def make_reconciliation_plan() -> Callable[..., ReconciliationPlan]:
     """Return a factory function to create ReconciliationPlan instances for testing."""
-    from datetime import UTC, datetime
+    from datetime import datetime
 
     from src.logic.reconciliation_engine import (
         ActionType,
@@ -353,6 +354,7 @@ def make_reconciliation_plan() -> Callable[..., ReconciliationPlan]:
         metadata: dict[str, str | int | float | bool | None] | None = None,
         created_at: datetime | None = None,
     ) -> ReconciliationPlan:
+        """Build a ReconciliationPlan with sensible defaults for tests."""
         if metadata is None:
             metadata = {}
         if created_at is None:

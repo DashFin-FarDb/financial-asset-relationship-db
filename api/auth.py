@@ -5,7 +5,6 @@ from __future__ import annotations
 # pylint: disable=import-error
 import logging
 from collections.abc import Mapping
-from collections.abc import Mapping as RuntimeMapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
@@ -126,7 +125,7 @@ def _sanitize_metadata_value(value: Any) -> Any:
         return _sanitize_metadata_value(value.model_dump())
     if hasattr(value, "dict"):
         return _sanitize_metadata_value(value.dict())
-    if isinstance(value, RuntimeMapping):
+    if isinstance(value, Mapping):
         return {
             str(key): _sanitize_metadata_value(item)
             for key, item in value.items()
