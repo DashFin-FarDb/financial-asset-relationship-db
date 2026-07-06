@@ -224,19 +224,23 @@ jobs:
           [ "${{ steps.gate_api.outcome }}" != "success" ] || \
           [ "${{ steps.gate_security.outcome }}" != "success" ] || \
           [ "${{ steps.gate_hosted.outcome }}" != "success" ] || \
-          [ "${{ steps.gate_docs.outcome }}" != "success" ] || \
-          [ "$readiness_status" != "passed" ] || \
-          [ "$docs_status" != "passed" ]; then
+          [ "${{ steps.gate_docs.outcome }}" != "success" ]; then
             echo "One or more gate tests failed!"
             exit 1
           fi
 
           if [ "$STRICT_RC_GATE" == "true" ]; then
-            # We assume JSON output has `{"status": "passed"}` if successful
-            # Since {} is written on skip, jq will return null
-            status=$(jq -r '.status // "skipped"' readiness-output.json)
-            if [ "$status" != "passed" ]; then
-              echo "Hosted readiness was skipped or failed. This is not allowed for a strict RC promotion gate."
+            if [ "$readiness_status" != "passed" ] || [ "$docs_status" != "passed" ]; then
+              echo "Strict RC promotion requires hosted readiness and docs checks to pass."
+              exit 1
+            fi
+          else
+            if [ "$readiness_status" != "passed" ] && [ "$readiness_status" != "skipped" ]; then
+              echo "Hosted readiness must pass or be intentionally skipped."
+              exit 1
+            fi
+            if [ "$docs_status" != "passed" ] && [ "$docs_status" != "skipped" ]; then
+              echo "Docs readiness must pass or be intentionally skipped."
               exit 1
             fi
           fi
