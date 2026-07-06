@@ -1,0 +1,28 @@
+src/config/settings.py
+  s_a2375cdf388c42::t_96b201e1cefd56 44,172,186
+api/graph_lifecycle_providers.py
+  s_a2375cdf388c42::t_e3dd5ae89b01d9 45,76,101
+tests/unit/test_graph_lifecycle_providers.py
+  s_a2375cdf388c42::t_22f7bd37cbca0b 104
+  s_a2375cdf388c42::t_d1d858696eb15f 98
+  s_a2375cdf388c42::t_8dc338826583e9 109
+tests/unit/test_settings.py
+  s_a2375cdf388c42::t_be872f4098042c 223,244,300-304
+  s_a2375cdf388c42::t_77f1a9b982273b 305
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "3101543489220c4c0e217a3a616ae9e8dd090fea",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

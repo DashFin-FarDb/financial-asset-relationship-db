@@ -1,0 +1,35 @@
+api/app_factory.py
+  s_a2375cdf388c42::t_f9299407e52661 60-62
+api/graph_lifecycle.py
+  s_a2375cdf388c42::t_4a0d9ce036a913 223
+api/routers/graph_admin.py
+  s_a2375cdf388c42::t_db173f526ccf6f 62
+  s_a2375cdf388c42::t_8bc6a55ede6031 1122-1123,1130,1740
+tests/integration/test_hosted_graph_startup_readiness.py
+  s_a2375cdf388c42::t_a4ad217594c6bb 258-259,261-267
+  s_a2375cdf388c42::t_3a03d2913ed122 237-257,260,268-272
+tests/unit/test_graph_lifecycle_providers.py
+  s_a2375cdf388c42::t_32e3dea8430896 59-91
+api/graph_lifecycle_providers.py
+  s_a2375cdf388c42::t_5d00e471b94c4c 41,43,71,73,81-96
+  s_a2375cdf388c42::t_f2953fa64339ef 97-98
+api/routers/system.py
+  s_a2375cdf388c42::t_db173f526ccf6f 25
+  s_a2375cdf388c42::t_9d0ddd46d6aa8d 242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "0ed986345c6ea39581d12b72c42a8cc3fb57aa1e",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

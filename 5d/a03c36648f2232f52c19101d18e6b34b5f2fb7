@@ -1,0 +1,31 @@
+api/app_factory.py
+  s_a2375cdf388c42::t_27fec61851faf6 70-76,226,239-254,257-259,261-274,277-279
+  s_a2375cdf388c42::t_605297bcd77f9e 255-256,275-276
+tests/unit/test_app_factory.py
+  s_a2375cdf388c42::t_43ac91fdc88fa0 15
+  s_a2375cdf388c42::t_d47126dbcaa8fa 234
+  s_a2375cdf388c42::t_02a3314a880caf 155
+  s_a2375cdf388c42::t_ac3fece356e2dc 207
+  s_a2375cdf388c42::t_21ae394b02b562 153
+  s_a2375cdf388c42::t_75130e2a45d918 162-187,190-206,208-225,228-233
+  s_a2375cdf388c42::t_55c954cb8047ba 154
+  s_a2375cdf388c42::t_eb06d9957cee6b 156-161
+api/main.py
+  s_a2375cdf388c42::t_5d0bc038fa36c4 83-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "5da03c36648f2232f52c19101d18e6b34b5f2fb7",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
