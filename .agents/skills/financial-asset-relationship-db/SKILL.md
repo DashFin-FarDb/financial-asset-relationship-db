@@ -4,8 +4,10 @@
 
 ## Overview
 
-This skill teaches the core development patterns, coding conventions, and common workflows used in the `financial-asset-relationship-db` repository. The project is primarily Python-based, with supporting frontend and CI/CD configuration files.
-It emphasizes consistent code style, automated workflows for CI/CD, dependency management, and deployment configuration. This guide will help contributors quickly align with the project's standards and efficiently use the available automation.
+- This skill teaches the core development patterns, coding conventions, and common workflows used in the `financial-asset-relationship-db` repository. 
+- The project is primarily Python-based, with supporting frontend and CI/CD configuration files.
+- It emphasizes consistent code style, automated workflows for CI/CD, dependency management, and deployment configuration. 
+- This guide will help contributors quickly align with the project's standards and efficiently use the available automation.
 
 ## Coding Conventions
 
