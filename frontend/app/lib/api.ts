@@ -30,7 +30,7 @@ async function getData<T>(
   path: string,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  const response = await apiClient.get<T>(path, config);
+  const response = config ? await apiClient.get<T>(path, config) : await apiClient.get<T>(path);
   return response.data;
 }
 
