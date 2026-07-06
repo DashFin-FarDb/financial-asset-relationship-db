@@ -162,9 +162,9 @@ class TestStepsConfiguration:
             # Accept either SHA (40 chars) or v4+ tag
             if len(version) == 40:
                 # SHA format - verify it's hexadecimal
-                assert all(c in "0123456789abcdef" for c in version.lower()), (
-                    f"Checkout version should be valid SHA: {version}"
-                )
+                assert all(
+                    c in "0123456789abcdef" for c in version.lower()
+                ), f"Checkout version should be valid SHA: {version}"
             else:
                 # Tag format - should be v4 or later
                 assert "v4" in version or "v5" in version, f"Checkout tag must be v4 or later (found {version})"
@@ -188,14 +188,14 @@ class TestStepsConfiguration:
             # Accept either SHA (40 chars) or v4+ tag
             if len(version) == 40:
                 # SHA format - verify it's hexadecimal
-                assert all(c in "0123456789abcdef" for c in version.lower()), (
-                    f"Debricked version should be valid SHA: {version}"
-                )
+                assert all(
+                    c in "0123456789abcdef" for c in version.lower()
+                ), f"Debricked version should be valid SHA: {version}"
             else:
                 # Tag format - should be v4 or later
-                assert version.startswith("v") and any(char.isdigit() for char in version), (
-                    f"Debricked action tag must be a valid semantic version (found {version})"
-                )
+                assert version.startswith("v") and any(
+                    char.isdigit() for char in version
+                ), f"Debricked action tag must be a valid semantic version (found {version})"
 
 
 class TestSecretHandling:
@@ -214,9 +214,9 @@ class TestSecretHandling:
             token = env["DEBRICKED_TOKEN"]
             # Use strict pattern match to ensure exact secret reference format
             # Allows optional whitespace around 'secrets.DEBRICKED_TOKEN' but nothing else
-            assert re.fullmatch(r"\$\{\{\s*secrets\.DEBRICKED_TOKEN\s*\}\}", token.strip()), (
-                f"DEBRICKED_TOKEN must be exactly '${{ secrets.DEBRICKED_TOKEN }}', found '{token}'"
-            )
+            assert re.fullmatch(
+                r"\$\{\{\s*secrets\.DEBRICKED_TOKEN\s*\}\}", token.strip()
+            ), f"DEBRICKED_TOKEN must be exactly '${{ secrets.DEBRICKED_TOKEN }}', found '{token}'"
 
     @staticmethod
     def test_no_hardcoded_secrets(workflow_content: str):
@@ -375,9 +375,9 @@ class TestComplianceWithIssue492:
         granted_permissions = set(permissions.keys())
 
         # All required permissions should be present
-        assert required_permissions.issubset(granted_permissions), (
-            f"Missing required permissions: {required_permissions - granted_permissions}"
-        )
+        assert required_permissions.issubset(
+            granted_permissions
+        ), f"Missing required permissions: {required_permissions - granted_permissions}"
 
         # No write permissions except security-events
         for perm, value in permissions.items():
