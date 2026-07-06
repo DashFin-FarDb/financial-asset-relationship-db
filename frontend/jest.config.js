@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const nextJest = require("next/jest");
 
 const createJestConfig = nextJest({
@@ -16,7 +18,7 @@ const customJestConfig = {
   testPathIgnorePatterns: [
     "/node_modules/",
     // Exclude test-utils.ts as it's a helper module, not a test file
-    "/__tests__/test-utils\\.ts$",
+    "<rootDir>/__tests__/test-utils.ts",
   ],
   collectCoverageFrom: [
     "app/**/*.{js,jsx,ts,tsx}",

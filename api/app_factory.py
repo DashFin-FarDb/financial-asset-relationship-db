@@ -326,7 +326,7 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 asyncio.to_thread(_run_startup_reconciliation, settings, cancellation_event),
                 timeout=120,
             )
-        except TimeoutError:
+        except (TimeoutError, asyncio.TimeoutError):  # pylint: disable=overlapping-except
             # Signal background thread to abort further processing
             cancellation_event.set()
             log_event(
