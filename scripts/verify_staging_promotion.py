@@ -2,10 +2,22 @@
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, TypedDict
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+class JsonScanState(TypedDict):
+    """Mutable scanner state used to extract brace-balanced JSON blocks."""
+
+    start: int | None
+    depth: int
+    in_string: bool
+    escaped: bool
 
 
 def _check_provider_labels(content: str, missing: List[str]) -> None:
@@ -39,88 +51,152 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
     if not re.search(r"\bdatabase_url\b", content):
         missing.append("DATABASE_URL boundary confirmation")
 
-    if "asset_graph_database_url" not in content:
+    asset_graph_present = "asset_graph_database_url" in content
+    if not asset_graph_present:
         missing.append("ASSET_GRAPH_DATABASE_URL boundary confirmation")
-
-    _check_distinct_boundary(content, missing)
+    else:
+        _check_distinct_boundary(content, missing)
     _check_coordination_boundary(content, missing)
+
+
+def _advance_json_scan(state: JsonScanState, char: str, index: int) -> tuple[int, int] | None:
+    """Advance the JSON span scanner by one character."""
+    if state["in_string"]:
+        if state["escaped"]:
+            state["escaped"] = False
+        elif char == "\\":
+            state["escaped"] = True
+        elif char == '"':
+            state["in_string"] = False
+        return None
+
+    if char == '"':
+        state["in_string"] = True
+        return None
+
+    if char == "{":
+        if state["depth"] == 0:
+            state["start"] = index
+        state["depth"] += 1
+        return None
+
+    if char == "}" and state["depth"] > 0:
+        state["depth"] -= 1
+        if state["depth"] == 0 and state["start"] is not None:
+            start = state["start"]
+            state["start"] = None
+            return (start, index + 1)
+
+    return None
 
 
 def _extract_balanced_json_objects(source: str) -> List[str]:
     """Extract brace-balanced JSON object candidates from source text."""
+    state: JsonScanState = {"start": None, "depth": 0, "in_string": False, "escaped": False}
     blocks: List[str] = []
-    start: int | None = None
-    depth = 0
-    in_string = False
-    escaped = False
-
     for index, char in enumerate(source):
-        if in_string:
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                escaped = True
-            elif char == '"':
-                in_string = False
-            continue
-
-        if char == '"':
-            in_string = True
-        elif char == "{":
-            if depth == 0:
-                start = index
-            depth += 1
-        elif char == "}":
-            if depth > 0:
-                depth -= 1
-                if depth == 0 and start is not None:
-                    blocks.append(source[start : index + 1])
-                    start = None
-
+        span = _advance_json_scan(state, char, index)
+        if span is not None:
+            blocks.append(source[span[0] : span[1]])
     return blocks
+
+
+def _json_object_has_persistence_proof(data: dict[str, object]) -> bool:
+    """Return whether a parsed JSON object contains the persistence proof fields."""
+    observed_fields = data.get("observed_fields")
+    if isinstance(observed_fields, dict):
+        return (
+            observed_fields.get("graph_persistence_configured") is True
+            and observed_fields.get("graph.persistence_enabled") is True
+            and observed_fields.get("graph.persistence_loaded") is True
+            and observed_fields.get("graph.startup_source") == "persisted"
+        )
+
+    graph_data = data.get("graph")
+    if isinstance(graph_data, dict):
+        return (
+            data.get("graph_persistence_configured") is True
+            and graph_data.get("persistence_enabled") is True
+            and graph_data.get("persistence_loaded") is True
+            and graph_data.get("startup_source") == "persisted"
+        )
+
+    return False
+
+
+def _parse_json_block(block: str) -> dict[str, object] | None:
+    """Parse a JSON block and return a dict payload if it is valid."""
+    try:
+        data = json.loads(block)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _iter_parsed_json_blocks(content_raw: str) -> List[dict[str, object]]:
+    """Extract and parse candidate JSON blocks from a blob of markdown text."""
+    fenced_blocks = re.findall(r"```(?:json)?[ \t]*\n(.*?)```", content_raw, re.IGNORECASE | re.DOTALL)
+    candidate_blocks: List[str] = []
+    for fenced_block in fenced_blocks:
+        candidate_blocks.extend(_extract_balanced_json_objects(fenced_block))
+    if not candidate_blocks:
+        candidate_blocks = _extract_balanced_json_objects(content_raw)
+
+    parsed_blocks: List[dict[str, object]] = []
+    for block in candidate_blocks:
+        parsed_block = _parse_json_block(block)
+        if parsed_block is not None:
+            parsed_blocks.append(parsed_block)
+    return parsed_blocks
+
+
+def _repo_relative_evidence_path(evidence_file: str) -> Path:
+    """Validate the caller-provided evidence path as a repo-relative path."""
+    normalized = evidence_file.replace("\\", "/")
+    candidate = Path(normalized)
+    if candidate.is_absolute() or any(part in ("", ".", "..") for part in candidate.parts):
+        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be a repo-relative path.")
+        sys.exit(1)
+    return candidate
+
+
+def _open_repo_file_no_symlink(path: Path):
+    """Open a file under the repo root without following symlinks."""
+    repo_fd = os.open(REPO_ROOT, os.O_RDONLY | os.O_DIRECTORY)
+    current_fd = repo_fd
+    try:
+        parts = path.parts
+        for index, part in enumerate(parts):
+            is_last = index == len(parts) - 1
+            flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+            if not is_last:
+                flags |= os.O_DIRECTORY
+            next_fd = os.open(part, flags, dir_fd=current_fd)
+            if current_fd != repo_fd:
+                os.close(current_fd)
+            current_fd = next_fd
+        return current_fd
+    except Exception:
+        if current_fd != repo_fd:
+            os.close(current_fd)
+        raise
+    finally:
+        os.close(repo_fd)
+
+
+def _read_evidence_file(evidence_file: str) -> str:
+    """Read an evidence file within the repo without following symlinks."""
+    relative_path = _repo_relative_evidence_path(evidence_file)
+    file_fd = _open_repo_file_no_symlink(relative_path)
+    with os.fdopen(file_fd, "r", encoding="utf-8") as handle:
+        return handle.read()
 
 
 def _check_persistence_proof(content_raw: str, missing: List[str]) -> None:
     """Check for durability/persistence proofs by parsing JSON payloads."""
-    # First inspect fenced blocks, then fall back to brace-balanced objects in the full evidence text.
-    fenced_blocks = re.findall(r"```(?:json)?[ \t]*\n(.*?)```", content_raw, re.IGNORECASE | re.DOTALL)
-    json_blocks: List[str] = []
-    for fenced_block in fenced_blocks:
-        json_blocks.extend(_extract_balanced_json_objects(fenced_block))
-    if not json_blocks:
-        json_blocks = _extract_balanced_json_objects(content_raw)
-
-    found_all_in_one = False
-    for block in json_blocks:
-        try:
-            data = json.loads(block)
-            if not isinstance(data, dict):
-                continue
-
-            obs = data.get("observed_fields")
-            if isinstance(obs, dict):
-                if (
-                    obs.get("graph_persistence_configured") is True
-                    and obs.get("graph.persistence_enabled") is True
-                    and obs.get("graph.persistence_loaded") is True
-                    and obs.get("graph.startup_source") == "persisted"
-                ):
-                    found_all_in_one = True
-                    break
-            else:
-                graph_data = data.get("graph")
-                if isinstance(graph_data, dict):
-                    if (
-                        data.get("graph_persistence_configured") is True
-                        and graph_data.get("persistence_enabled") is True
-                        and graph_data.get("persistence_loaded") is True
-                        and graph_data.get("startup_source") == "persisted"
-                    ):
-                        found_all_in_one = True
-                        break
-        except json.JSONDecodeError:
-            # Candidate blocks are best-effort extracts and may not be valid JSON; skip and keep scanning.
-            continue
+    found_all_in_one = any(
+        _json_object_has_persistence_proof(parsed_block) for parsed_block in _iter_parsed_json_blocks(content_raw)
+    )
 
     if not found_all_in_one:
         missing.append(
