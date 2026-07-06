@@ -942,7 +942,7 @@ def test_write_output_to_stdout(capsys):
         mock_file = mock_open()
         mock_temp.return_value.__enter__ = lambda self: mock_file()
         mock_temp.return_value.__exit__ = lambda self, *args: None
-        mock_file.return_value.name = "/tmp/fix_proposals_test.md"
+        mock_file.return_value.name = "fake_tmp/fix_proposals_test.md"
 
         suggest_fixes.write_output(report)
 
@@ -956,7 +956,7 @@ def test_write_output_to_temp_file():
 
     with patch.dict(os.environ, {}, clear=True), patch("tempfile.NamedTemporaryFile") as mock_temp:
         mock_file = Mock()
-        mock_file.name = "/tmp/test.md"
+        mock_file.name = "fake_tmp/test.md"
         mock_temp.return_value.__enter__ = lambda self: mock_file
         mock_temp.return_value.__exit__ = lambda self, *args: None
 
@@ -974,7 +974,7 @@ def test_write_output_to_temp_file():
 def test_write_output_to_github_step_summary():
     """Test write_output writes to GITHUB_STEP_SUMMARY."""
     report = "Test report"
-    summary_file = "/tmp/github_summary.md"
+    summary_file = "fake_tmp/github_summary.md"
 
     # Create a clean environment with GITHUB_STEP_SUMMARY but without RUNNER_TEMP
     # to skip the security path-check
@@ -984,7 +984,7 @@ def test_write_output_to_github_step_summary():
         m = mock_open()
         with patch("builtins.open", m), patch("tempfile.NamedTemporaryFile") as mock_temp:
             mock_file = Mock()
-            mock_file.name = "/tmp/test.md"
+            mock_file.name = "fake_tmp/test.md"
             mock_temp.return_value.__enter__ = lambda self: mock_file
             mock_temp.return_value.__exit__ = lambda self, *args: None
 
@@ -1009,7 +1009,7 @@ def test_write_output_handles_io_error_temp_file(capsys):
 def test_write_output_handles_io_error_github_summary(capsys):
     """Test write_output handles IOError for GitHub summary."""
     report = "Test content"
-    summary_file = "/tmp/summary.md"
+    summary_file = "fake_tmp/summary.md"
 
     # Create a clean environment with GITHUB_STEP_SUMMARY but without RUNNER_TEMP
     # to skip the security path-check and hit the IOError
@@ -1021,7 +1021,7 @@ def test_write_output_handles_io_error_github_summary(capsys):
         patch("tempfile.NamedTemporaryFile") as mock_temp,
     ):
         mock_file = Mock()
-        mock_file.name = "/tmp/test.md"
+        mock_file.name = "fake_tmp/test.md"
         mock_temp.return_value.__enter__ = lambda self: mock_file
         mock_temp.return_value.__exit__ = lambda self, *args: None
 
@@ -1109,7 +1109,7 @@ def test_main_success_flow(mock_pr, mock_comment, capsys):
 
         with patch("suggest_fixes.Github") as mock_github_class, patch("tempfile.NamedTemporaryFile") as mock_temp:
             mock_file = Mock()
-            mock_file.name = "/tmp/test.md"
+            mock_file.name = "fake_tmp/test.md"
             mock_temp.return_value.__enter__ = lambda self: mock_file
             mock_temp.return_value.__exit__ = lambda self, *args: None
 
@@ -1173,7 +1173,7 @@ def test_main_with_no_actionable_items(mock_pr, capsys):
 
         with patch("suggest_fixes.Github") as mock_github_class, patch("tempfile.NamedTemporaryFile") as mock_temp:
             mock_file = Mock()
-            mock_file.name = "/tmp/test.md"
+            mock_file.name = "fake_tmp/test.md"
             mock_temp.return_value.__enter__ = lambda self: mock_file
             mock_temp.return_value.__exit__ = lambda self, *args: None
 

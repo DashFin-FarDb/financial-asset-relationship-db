@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - api-data:/data
+    environment:
+      - ENV=production
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      # Note for Operators: This version switches from host bind mount (./data) to named volume (api-data).
+      # Migrate existing data manually to the docker volume before deployment to avoid data loss.
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/app.db}
+      - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////data/graph.db}
+      - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  # Operator migration note:
+  # The API now stores coordination/auth data at /data/app.db and graph persistence at /data/graph.db by default.
+  # Both files live in the api-data named volume, but they are separate SQLite databases; migrate or back up both
+  # paths when moving from older bind-mounted ./data deployments or when restoring production state.
+  api-data:

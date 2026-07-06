@@ -192,6 +192,7 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
     if reconciliation_fails:
 
         def _raise_reconciliation_failure(*_args, **_kwargs) -> None:
+            """Mock a failed reconciliation attempt by raising an error."""
             raise OSError("reconciliation failed")
 
         monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _raise_reconciliation_failure)
@@ -199,13 +200,13 @@ async def test_lifespan_allows_hosted_fallback_startup_failures_to_boot(
 
         async def _async_noop(*_args, **_kwargs) -> None:
             """Mock a successful startup reconciliation call by doing nothing (no-op)."""
-            pass
 
         monkeypatch.setattr(app_factory, "_perform_startup_reconciliation", _async_noop)
 
     if bootstrap_fails:
 
         def _raise_bootstrap_failure(*_args, **_kwargs) -> Any:
+            """Mock a failed graph bootstrap by raising an error."""
             raise OSError("graph bootstrap failed")
 
         monkeypatch.setattr(app_factory, "get_graph", _raise_bootstrap_failure)

@@ -358,6 +358,7 @@ class TestBearerWorkflowSecurity:
     def test_no_hardcoded_secrets(bearer_workflow_raw):
         """Verify no secrets are hardcoded in the workflow."""
         # Common patterns for secrets
+        # DevSkim: ignore all
         secret_patterns = ["password", "api_key", "token", "secret"]
         lines = bearer_workflow_raw.lower().split("\n")
 

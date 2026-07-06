@@ -349,6 +349,52 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 - manual link verification
 - verify no PR 9 DR procedure content is duplicated or contradicted
 
+## Objective 8 — Release and Deployment Automation Layer
+
+**Primary objective:** Automate release-evidence gates, staging promotion verification, and production container validation without altering the runtime architecture.
+
+**Scope**
+
+- automate release-evidence gate tests;
+
+- executable staging promotion baseline verification;
+
+- frontend path-filtered CI and fixed jest-junit dependency;
+
+- split FastAPI/Next.js production containers from Gradio;
+
+- codify CI policy and shift heavyweight scanners off the PR path.
+
+**Out of scope**
+
+- new graph features;
+
+- new persistence architecture;
+
+- new hosting-provider choices;
+
+- major frontend redesign;
+
+- operational drill scheduler (deferred follow-up).
+
+**Files likely to change**
+
+- `.github/workflows/*`
+
+- `scripts/*`
+
+- `Dockerfile.api`, `Dockerfile.frontend`, `docker-compose.production.yml`
+
+- `frontend/package.json`
+
+- `docs/ci-required-checks-policy.md`
+
+**Validation**
+
+- Follow-up instructions provided to close issue #1330 as completed.
+
+- Follow-up instructions provided to close/supersede/rebase stale PRs #1060 and #1069.
+
 ## Sequencing Notes
 
 - PR 1 is the gating dependency for PR 2, PR 3, PR 7, and PR 9.

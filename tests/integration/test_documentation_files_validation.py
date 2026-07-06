@@ -103,7 +103,7 @@ class TestDocumentationFilesValidation:
     ) -> None:
         """Markdown should be parseable if the markdown lib is available."""
         try:
-            import markdown  # type: ignore[import-not-found]
+            import markdown  # type: ignore[import-not-found,import-untyped]  # pylint: disable=import-outside-toplevel
         except ImportError:
             pytest.skip(
                 "markdown package not installed; skipping parseability checks.",
@@ -115,7 +115,7 @@ class TestDocumentationFilesValidation:
             content = md_file.read_text(encoding="utf-8")
             try:
                 markdown.markdown(content)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:  # noqa: BLE001  # pylint: disable=broad-exception-caught
                 parse_errors.append((md_file, str(exc)))
 
         assert not parse_errors, "Markdown parse errors:\n" + "\n".join(f"{path}: {err}" for path, err in parse_errors)
@@ -125,8 +125,6 @@ class TestDocumentationFilesValidation:
         markdown_files: list[Path],
     ) -> None:
         """Links should use basic [text](url) structure without obvious issues."""
-        import re
-
         bad_links: list[tuple[Path, str]] = []
 
         link_pattern = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
@@ -249,9 +247,7 @@ class TestDocumentationFilesValidation:
         markdown_files: list[Path],
     ) -> None:
         """Heading levels should not jump by more than one level."""
-        import re
-
-        heading_pattern = re.compile(r"^(#{1,6})\s+.+$")
+        heading_pattern = re.compile(r"^(#{1,6})\s+\S")
         hierarchy_errors: list[tuple[Path, str]] = [
             (md_file, msg)
             for md_file in markdown_files

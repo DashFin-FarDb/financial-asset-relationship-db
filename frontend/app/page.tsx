@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { api } from "./lib/api";
 import NetworkVisualization from "./components/NetworkVisualization";
 import MetricsDashboard from "./components/MetricsDashboard";
@@ -149,37 +149,83 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const requestIdRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   /**
    * Loads metrics and visualization data from the API.
    * Sets loading states during fetch and handles errors by logging and setting error message.
    */
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
+  const fetchDashboardData = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     try {
       const [metricsData, visualizationData] = await Promise.all([
         api.getMetrics(),
         api.getVisualizationData(),
       ]);
-
-      setMetrics(metricsData);
-      setVizData(visualizationData);
+      return { metricsData, visualizationData, error: null, requestId };
     } catch (err) {
       if (process.env.NODE_ENV === "production") {
         console.error("Error loading data");
       } else {
         console.error("Error loading data:", err);
       }
-      setError("Failed to load data. Please ensure the API server is running.");
-    } finally {
-      setLoading(false);
+      return {
+        metricsData: null,
+        visualizationData: null,
+        error: "Failed to load data. Please ensure the API server is running.",
+        requestId,
+      };
     }
   }, []);
-
+  const applyResult = useCallback(
+    (result: {
+      metricsData: Metrics | null;
+      visualizationData: VisualizationData | null;
+      error: string | null;
+      requestId: number;
+    }) => {
+      if (result.requestId !== requestIdRef.current || !mountedRef.current)
+        return;
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setMetrics(result.metricsData);
+        setVizData(result.visualizationData);
+        setError(null);
+      }
+      setLoading(false);
+    },
+    [],
+  );
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    /**
+     * Executes the initial data fetch and updates component state.
+     * Evaluates the result and sets appropriate UI states (loading, error, data).
+     */
+    const load = async () => {
+      const result = await fetchDashboardData();
+      applyResult(result);
+    };
+    load();
+  }, [fetchDashboardData, applyResult]);
+  /**
+   * Refetches the dashboard data and updates component state.
+   * Useful when the previous fetch failed or manual refresh is required.
+   */
+  const handleRetry = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const result = await fetchDashboardData();
+    applyResult(result);
+  }, [fetchDashboardData, applyResult]);
 
   const handleTabChange = useCallback((tab: HomeTab) => {
     setActiveTab(tab);
@@ -210,7 +256,7 @@ export default function Home() {
           activeTab={activeTab}
           vizData={vizData}
           metrics={metrics}
-          onRetry={loadData}
+          onRetry={handleRetry}
         />
       </div>
 

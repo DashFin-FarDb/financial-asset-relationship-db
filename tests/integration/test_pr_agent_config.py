@@ -1,5 +1,4 @@
-"""
-Comprehensive validation tests for .github/pr-agent-config.yml
+"""Comprehensive validation tests for .github/pr-agent-config.yml.
 
 This test suite validates the PR agent configuration file to ensure:
 - Valid YAML structure
@@ -429,7 +428,7 @@ class TestConfigurationConsistency:
         )
 
         try:
-            yaml.load(content, Loader=DuplicateKeyLoader)
+            yaml.load(content, Loader=DuplicateKeyLoader)  # nosec B506
         except yaml.constructor.ConstructorError as e:
             pytest.fail(f"Duplicate keys found in YAML: {e}")
 
@@ -520,11 +519,10 @@ class TestEdgeCases:
         check_length(config)
 
     def test_no_circular_references(self, config):
-        """Configuration should not have circular references."""
+        """Check that there are no circular references in the configuration."""
 
-        # YAML safe_load prevents circular references, but let's be explicit
         def check_circular(obj, seen=None):
-            """Recursively checks for circular references within the given object and raises an AssertionError if any are found."""
+            """Recursively check for circular references."""
             if seen is None:
                 seen = set()
 

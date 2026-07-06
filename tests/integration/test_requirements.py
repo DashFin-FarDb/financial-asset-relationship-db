@@ -441,7 +441,7 @@ class TestComprehensiveValidation:
     @staticmethod
     def test_version_consistency(requirements: list[tuple[str, str]]):
         """Test that version specifications are consistent in style."""
-        version_styles = {}
+        version_styles: dict[str, list[str]] = {}
         for pkg, ver in requirements:
             if ver:
                 if ver.startswith(">="):
@@ -454,7 +454,7 @@ class TestComprehensiveValidation:
         # Should use consistent versioning strategy (mostly one style)
         if version_styles:
             max_style = max(version_styles.values(), key=len)
-            total_versioned = sum(len(v) for v in version_styles.values())
+            total_versioned = sum([len(v) for v in version_styles.values()])
             assert len(max_style) >= total_versioned * 0.6, "Version specifications should be consistent in style"
 
     @staticmethod

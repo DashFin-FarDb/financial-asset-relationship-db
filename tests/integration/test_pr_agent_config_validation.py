@@ -9,12 +9,13 @@ Tests the simplified PR agent configuration, ensuring:
 """
 
 import re
-from enum import StrEnum
 from pathlib import Path
 
 import numpy as np
 import pytest
 import yaml
+
+from src.utils.enum_compat import StrEnum
 
 pytestmark = pytest.mark.integration
 
@@ -329,7 +330,7 @@ class TestPRAgentConfigYAMLValidity:
 
         # Using yaml.load() with custom Loader is required for duplicate key detection.
         # DuplicateKeyLoader extends SafeLoader, so this is secure.
-        yaml.load(content, Loader=DuplicateKeyLoader)
+        yaml.load(content, Loader=DuplicateKeyLoader)  # nosec B506
 
     @staticmethod
     def test_consistent_indentation():
@@ -388,7 +389,7 @@ class TestPRAgentConfigSecurity:
         Parameters:
             pr_agent_config (dict[str, object]): Parsed PR agent YAML configuration to inspect.
         """
-        suspected = []
+        suspected: list[tuple[str, str]] = []
         TestPRAgentConfigSecurity.scan(pr_agent_config, suspected)
 
         def _redact(value: str) -> str:
@@ -426,9 +427,7 @@ class TestPRAgentConfigSecurity:
         templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
         def is_allowed_placeholder(v: object) -> bool:
-            """
-            Determine if a value v is an allowed placeholder or templated variable.
-            """
+            """Determine if a value v is an allowed placeholder or templated variable."""
             if v is None:
                 return True
             if isinstance(v, str):

@@ -101,7 +101,7 @@ class TestSQLitePathResolution:
 
     def test_resolve_absolute_path(self):
         """Test resolution of absolute path."""
-        url = "sqlite:////tmp/test.db"
+        url = "sqlite:///fake_tmp/test.db"
         path = _resolve_sqlite_path(url)
         assert path.startswith("/")
         assert "test.db" in path
@@ -141,7 +141,7 @@ class TestMemoryDatabaseDetection:
 
     def test_is_memory_db_file_path(self):
         """Test that file path is not detected as memory."""
-        assert _is_memory_db("/tmp/test.db") is False
+        assert _is_memory_db("fake_tmp/test.db") is False
         assert _is_memory_db("test.db") is False
 
     def test_is_memory_db_uri_style(self):

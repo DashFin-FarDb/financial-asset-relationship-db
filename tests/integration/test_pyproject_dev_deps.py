@@ -29,7 +29,7 @@ def _parse_dev_extras(pyproject_path: Path) -> list[str]:
         try:
             import tomllib  # type: ignore[import]
         except ImportError:
-            import tomli as tomllib  # type: ignore[import]
+            import tomli as tomllib  # type: ignore[import,no-redef]
 
         with open(pyproject_path, "rb") as f:
             data = tomllib.load(f)
@@ -136,6 +136,7 @@ def test_types_pyyaml_old_floor_not_used(dev_extras: list[str]) -> None:
     types_pyyaml_entry = next((dep for dep in dev_extras if dep.lower().startswith("types-pyyaml")), None)
     if types_pyyaml_entry is None:
         pytest.skip("types-PyYAML not found in dev extras")
+        return
 
     # Confirm the entry does not pin to 6.0.0 exactly
     assert ">=6.0.0" not in types_pyyaml_entry, (
