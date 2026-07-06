@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import re
+import stat
 import sys
 from pathlib import Path
 from typing import List, TypedDict
@@ -30,8 +31,13 @@ def _check_provider_labels(content: str, missing: List[str]) -> None:
 
 def _check_distinct_boundary(content: str, missing: List[str]) -> None:
     """Check for distinct graph boundary definitions."""
-    distinct_confirmed = "asset_graph_database_url" in content and "distinct" in content
-    if not distinct_confirmed and "approved exception" not in content and "shared-boundary statement" not in content:
+    distinct_confirmed = (
+        "distinct asset_graph_database_url" in content
+        or "asset_graph_database_url distinct" in content
+        or "shared-boundary statement" in content
+        or "approved exception" in content
+    )
+    if not distinct_confirmed:
         missing.append("Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception")
 
 
@@ -168,7 +174,7 @@ def _open_repo_file_no_symlink(path: Path):
         parts = path.parts
         for index, part in enumerate(parts):
             is_last = index == len(parts) - 1
-            flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+            flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
             if not is_last:
                 flags |= os.O_DIRECTORY
             next_fd = os.open(part, flags, dir_fd=current_fd)
@@ -188,7 +194,18 @@ def _read_evidence_file(evidence_file: str) -> str:
     """Read an evidence file within the repo without following symlinks."""
     relative_path = _repo_relative_evidence_path(evidence_file)
     file_fd = _open_repo_file_no_symlink(relative_path)
-    with os.fdopen(file_fd, "r", encoding="utf-8") as handle:
+    try:
+        if not stat.S_ISREG(os.fstat(file_fd).st_mode):
+            raise OSError(f"Evidence path {evidence_file} is not a regular file.")
+        handle = os.fdopen(file_fd, "r", encoding="utf-8")
+    except Exception:
+        try:
+            os.close(file_fd)
+        except OSError:
+            pass
+        raise
+
+    with handle:
         return handle.read()
 
 
@@ -250,7 +267,7 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
 
 def verify_staging_promotion(evidence_file: str) -> None:
     """Verify baseline items in a staging promotion evidence file."""
-    evidence_path_obj = Path(evidence_file)
+    evidence_path_obj = REPO_ROOT / _repo_relative_evidence_path(evidence_file)
     if not evidence_path_obj.exists():
         print(f"Error: Evidence path {evidence_file} does not exist.")
         sys.exit(1)
@@ -258,14 +275,11 @@ def verify_staging_promotion(evidence_file: str) -> None:
         print(f"Error: Evidence path {evidence_file} is not a regular file.")
         sys.exit(1)
 
-    evidence_path = Path(evidence_file).resolve(strict=True)
-    repo_root = Path(__file__).resolve().parent.parent
-    is_relative = evidence_path.is_relative_to(repo_root)
-    if not is_relative:
-        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {repo_root}.")
+    try:
+        content_raw = _read_evidence_file(evidence_file)
+    except OSError as exc:
+        print(f"Error: {exc}")
         sys.exit(1)
-    with open(evidence_path, "r", encoding="utf-8") as f:
-        content_raw = f.read()
     content_lower = content_raw.lower()
 
     missing: List[str] = []
