@@ -35,7 +35,7 @@ jobs:
       name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'staging-manual-gate' || 'release-evidence' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -50,7 +50,7 @@ jobs:
           fi
 
       - name: Checkout Release SHA
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ github.event.inputs.release_sha }}
           path: release-source
@@ -201,7 +201,7 @@ jobs:
 
       - name: Upload Artifacts
         if: always()
-        uses: actions/upload-artifact@6543ce64cb6eb0d110ebf6fb5b172aeb41d3b5b6 # v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: release-evidence
           path: |
