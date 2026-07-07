@@ -48,12 +48,7 @@ def _checkout_dirs_from_job(job: object) -> set[str]:
 
 
 def _checkout_dynamic_dirs(workflow_yaml: dict) -> set[str]:
-    dynamic_dirs: set[str] = set()
-
-    for job in workflow_yaml.get("jobs", {}).values():
-        dynamic_dirs.update(_checkout_dirs_from_job(job))
-
-    return dynamic_dirs
+    return set().union(*(_checkout_dirs_from_job(job) for job in workflow_yaml.get("jobs", {}).values()))
 
 
 def _referenced_workflow_paths(content: str) -> list[str]:
