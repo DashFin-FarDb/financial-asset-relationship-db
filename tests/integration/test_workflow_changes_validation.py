@@ -8,6 +8,7 @@ Tests specific changes made to workflow files, including:
 - APISec scan workflow modifications
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -330,8 +331,6 @@ class TestWorkflowIntegration:
         workflows_dir = Path(".github/workflows")
         repo_root = Path(".")
 
-        import re
-
         for workflow_file in workflows_dir.glob("*.yml"):
             with open(workflow_file) as f:
                 content = f.read()
@@ -354,7 +353,7 @@ class TestWorkflowIntegration:
                     if "actions/checkout" in uses:
                         checkout_path = str(step.get("with", {}).get("path", "")).strip().lstrip("./")
                         if checkout_path and "$" not in checkout_path:
-                            dynamic_dirs.add(checkout_path.split("/")[0])
+                            dynamic_dirs.add(Path(checkout_path).parts[0])
 
             # Common path patterns to check
             path_patterns = [
@@ -371,7 +370,8 @@ class TestWorkflowIntegration:
                     # Skip variables and wildcards
                     if "$" not in path and "*" not in path:
                         # Skip directories created at runtime by actions/checkout
-                        if path.split("/")[0] in dynamic_dirs:
+                        path_parts = Path(path).parts
+                        if path_parts and path_parts[0] in dynamic_dirs:
                             continue
                         full_path = repo_root / path
                         assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
