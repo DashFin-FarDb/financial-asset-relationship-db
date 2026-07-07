@@ -14,6 +14,10 @@ It does not apply to the Gradio demo path in `app.py`.
 
 ## Release Gates
 
+Run **Release Evidence Verify** (`.github/workflows/release-evidence-verify.yml`) as the reproducible mechanism for
+executing automated gate evidence and generating the release-evidence artifact + gate summary for the selected release
+commit.
+
 For the auditable evidence matrix, targeted validation commands, workflow evidence, and manual artifacts for these
 gates, see the [Release Evidence Pack](release-evidence-pack.md).
 
