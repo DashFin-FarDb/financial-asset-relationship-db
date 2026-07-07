@@ -44,6 +44,7 @@ jobs:
             with:
               java-version: '17'
               distribution: 'temurin'
+          # Use scanner-action 2.0 commit to avoid Java 11 runtime incompatibility seen in run 28841416705.
           - name: Run Analysis
             uses: codescan-io/codescan-scanner-action@955d3d1b4a9e374064189719484005ce8e08a749
             env:
