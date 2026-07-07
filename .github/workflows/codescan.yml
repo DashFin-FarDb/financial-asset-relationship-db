@@ -45,7 +45,7 @@ jobs:
               java-version: '17'
               distribution: 'temurin'
           - name: Run Analysis
-            uses: codescan-io/codescan-scanner-action@955d3d1b4a9e374064189719484005ce8e08a749 # 2.0
+            uses: codescan-io/codescan-scanner-action@955d3d1b4a9e374064189719484005ce8e08a749
             env:
               JAVA_HOME: ${{ steps.setup-java.outputs.path }}
               PATH: ${{ steps.setup-java.outputs.path }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
