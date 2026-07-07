@@ -325,18 +325,38 @@ class TestWorkflowIntegration:
         """
         Verify that file paths referenced in workflow YAML files exist in the repository.
 
-        Scans .github/workflows/*.yml for path-like references (for example `working-directory` and `path`), normalizes leading `./`, ignores references containing variables (`$`) or wildcards (`*`), and asserts that each remaining referenced path exists.
+        Scans .github/workflows/*.yml for path-like references (for example `working-directory` and `path`), normalizes leading `./`, ignores references containing variables (`$`) or wildcards (`*`), skips directories that are dynamically created by `actions/checkout` steps (i.e. checkout `path:` destinations), and asserts that each remaining referenced path exists.
         """
         workflows_dir = Path(".github/workflows")
         repo_root = Path(".")
+
+        import re
 
         for workflow_file in workflows_dir.glob("*.yml"):
             with open(workflow_file) as f:
                 content = f.read()
 
-            # Common path patterns to check
-            import re
+            # Collect paths that are dynamically created by actions/checkout at runtime.
+            # These directories do not exist statically in the repository, so they must
+            # be excluded from the existence check.
+            dynamic_dirs: set[str] = set()
+            try:
+                workflow_yaml = yaml.safe_load(content) or {}
+            except yaml.YAMLError:
+                workflow_yaml = {}
+            for job in workflow_yaml.get("jobs", {}).values():
+                if not isinstance(job, dict):
+                    continue
+                for step in job.get("steps", []):
+                    if not isinstance(step, dict):
+                        continue
+                    uses = str(step.get("uses", ""))
+                    if "actions/checkout" in uses:
+                        checkout_path = str(step.get("with", {}).get("path", "")).strip().lstrip("./")
+                        if checkout_path and "$" not in checkout_path:
+                            dynamic_dirs.add(checkout_path.split("/")[0])
 
+            # Common path patterns to check
             path_patterns = [
                 r"working-directory:\s+(.+)",
                 r'path:\s+["\']([^"\']+)["\']',
@@ -350,6 +370,9 @@ class TestWorkflowIntegration:
                         path = path[2:]
                     # Skip variables and wildcards
                     if "$" not in path and "*" not in path:
+                        # Skip directories created at runtime by actions/checkout
+                        if path.split("/")[0] in dynamic_dirs:
+                            continue
                         full_path = repo_root / path
                         assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
 
