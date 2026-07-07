@@ -125,7 +125,7 @@ jobs:
           pytest tests/unit/test_recovery_gate_startup.py -q --junitxml=results-recovery-3.xml || status=1
           pytest tests/integration/test_recovery_gate_integration.py -q --junitxml=results-recovery-4.xml || status=1
           pytest tests/integration/test_lock_refresh_flow.py -q --junitxml=results-recovery-5.xml || status=1
-          pytest tests/integration/test_distributed_hosting_failure_modes.py -q --junitxml=results-recovery-6.xml || status=1
+          # Keep distributed_hosting_failure_modes in Restart/Reload to avoid duplicate runtime/noise.
           exit $status
 
       - name: Run Gate Tests (API Contract)

@@ -216,8 +216,12 @@ pytest tests/unit/test_recovery_gate.py -q
 pytest tests/unit/test_recovery_gate_startup.py -q
 pytest tests/integration/test_recovery_gate_integration.py -q
 pytest tests/integration/test_lock_refresh_flow.py -q
-pytest tests/integration/test_distributed_hosting_failure_modes.py -q
 ```
+
+Note:
+
+- `tests/integration/test_distributed_hosting_failure_modes.py` is exercised in the Restart / Reload gate to avoid
+  duplicate runtime and duplicate failure signaling across gates.
 
 Workflow evidence:
 
