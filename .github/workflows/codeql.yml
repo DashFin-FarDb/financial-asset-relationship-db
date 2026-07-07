@@ -114,12 +114,3 @@ jobs:
       uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 # v4
       with:
         category: "/language:${{matrix.language}}"
-        # Do not upload SARIF when GitHub default setup is also enabled for this
-        # repository. Uploading from an advanced setup while default setup is
-        # active causes a processing error:
-        #   "CodeQL analyses from advanced configurations cannot be processed
-        #    when the default setup is enabled"
-        # The default setup handles dashboard uploads; this workflow still runs
-        # the analysis locally (preserving the custom config-file exclusions
-        # for local validation) but skips the conflicting upload.
-        upload: never
