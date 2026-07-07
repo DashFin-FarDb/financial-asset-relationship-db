@@ -107,7 +107,7 @@ class TestMergifyConfigIntegration:
         """
         Auto-merge rules must reference 'check-success=Test Python 3.12'.
 
-        Matching the actual CI job name in ci.yml.
+        Matching the actual CI job name in .github/workflows/ci.yml.
         """
         config = load_config()
         rules = config["pull_request_rules"]
