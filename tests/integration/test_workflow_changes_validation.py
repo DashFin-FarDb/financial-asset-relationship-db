@@ -386,7 +386,8 @@ class TestWorkflowIntegration:
                 if _is_runtime_checkout_path(path, dynamic_dirs):
                     continue
                 full_path = repo_root / path
-                assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
+                if not full_path.exists():
+                    pytest.fail(f"Path {path} referenced in {workflow_file.name} doesn't exist")
 
 
 class TestDependencyCheckWorkflowPresence:
