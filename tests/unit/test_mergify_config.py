@@ -817,9 +817,9 @@ class TestMergifyBoundaryConditions:
         assert dep_rule is not None, "Dependabot auto-merge rule not found"
 
         conditions = " ".join(str(c) for c in dep_rule.get("conditions", []))
-        assert "#files <= 5" in conditions or "#files<=5" in conditions, (
-            "Dependabot auto-merge should limit to 5 changed files"
-        )
+        assert (
+            "#files <= 5" in conditions or "#files<=5" in conditions
+        ), "Dependabot auto-merge should limit to 5 changed files"
 
     def test_stale_threshold_is_14_days(self):
         """Test that PRs are marked stale after 14 days."""
