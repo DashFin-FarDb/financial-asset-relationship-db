@@ -105,7 +105,8 @@ class TestMergifyConfigIntegration:
 
     def test_ci_check_name_in_auto_merge_rules(self):
         """
-        Auto-merge rules must reference 'check-success=Test Python 3.12',
+        Verify auto-merge rules reference 'check-success=Test Python 3.12'.
+
         matching the actual CI job name in ci.yml.
         """
         config = load_config()
@@ -142,6 +143,8 @@ class TestMergifyConfigIntegration:
 
     def test_stale_rules_are_paired(self):
         """
+        Verify stale management has both add and remove rules.
+
         Both a 'mark stale' rule (adds stale label) and a 'remove stale' rule
         (removes stale label) must exist so stale management is reversible.
         """
@@ -186,6 +189,7 @@ class TestMergifyComplexScenarios:
     def test_size_label_updates_when_pr_changes(self):
         """
         Verify size labels use 'toggle' so they update automatically when PR grows/shrinks.
+
         This prevents stale labels when a PR is updated with more/fewer changes.
         """
         config = load_config()
@@ -318,9 +322,9 @@ class TestMergifySecurityAndSafety:
 
     def test_no_auto_merge_for_large_changes(self):
         """
-        Verify that Dependabot's auto-merge rule limits large changes by requiring a '#changed-files' condition.
+        Verify that Dependabot's auto-merge rule limits large changes by requiring a '#files <= 5' condition.
 
-        Asserts a Dependabot auto-merge rule exists and that its conditions include '#changed-files' to prevent merging large dependency updates without review.
+        Asserts a Dependabot auto-merge rule exists and that its conditions include '#files <= 5' to prevent merging large dependency updates without review.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -336,7 +340,7 @@ class TestMergifySecurityAndSafety:
         assert dep_auto_merge is not None, "Dependabot auto-merge rule not found"
 
         conditions = " ".join(str(c) for c in dep_auto_merge.get("conditions", []))
-        assert "#changed-files" in conditions, "Dependabot auto-merge should limit changed files"
+        assert "#files <= 5" in conditions, "Dependabot auto-merge should limit changed files"
 
     def test_auto_merge_uses_safe_merge_method(self):
         """
@@ -378,7 +382,8 @@ class TestMergifySecurityAndSafety:
 
     def test_stale_management_excludes_closed_prs(self):
         """
-        Verify stale marking doesn't apply to closed PRs.
+        Verify stale marking does not apply to closed PRs.
+
         This prevents unnecessary label operations on closed PRs.
         """
         config = load_config()
@@ -398,6 +403,7 @@ class TestMergifyRulePriority:
     def test_all_size_tiers_are_mutually_exclusive(self):
         """
         Verify exactly one size tier applies to any given line count.
+
         This prevents multiple size labels on a single PR.
         """
         config = load_config()
@@ -434,6 +440,7 @@ class TestMergifyRulePriority:
     def test_rule_names_are_unique(self):
         """
         Verify all rules have unique names.
+
         Duplicate names could cause confusion in Mergify dashboard.
         """
         config = load_config()

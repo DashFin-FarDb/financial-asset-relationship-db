@@ -107,7 +107,7 @@ pull_request_rules:
       - "-draft"
       - "-author=dependabot[bot]"
       - "-author=snyk-bot"
-      - "#reviewers=0"
+      - "#review-requested=0"
     actions:
       request_reviews:
         users:
@@ -129,7 +129,7 @@ pull_request_rules:
     conditions:
       - "author=dependabot[bot]"
       - "label=dependencies"
-      - "#changed-files <= 5"
+      - "#files <= 5"
       - "check-success=Test Python 3.12"
     actions:
       merge:
