@@ -27,7 +27,7 @@ def _checkout_dir_from_step(step: object) -> str | None:
     if "actions/checkout" not in str(step.get("uses", "")):
         return None
 
-    checkout_path = str((step.get("with") or {}).get("path", "")).strip()
+    checkout_path = str((step.get("with") or {}).get("path", "")).strip().removeprefix("./")
     if checkout_path.startswith("./"):
         checkout_path = checkout_path[2:]
     if not checkout_path or "$" in checkout_path:
