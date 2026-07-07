@@ -1,0 +1,23 @@
+.github/workflows/release-evidence-verify.yml
+  s_8d43d0750b87ca::t_d28225fe36b836 227,233-243
+Dockerfile.api
+  s_8d43d0750b87ca::t_d28225fe36b836 9-13
+Dockerfile.frontend
+  s_8d43d0750b87ca::t_d28225fe36b836 8-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "65904bcb7d5668f23cbed6b20aed8da128157b7b",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
