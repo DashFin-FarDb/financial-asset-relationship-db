@@ -22,7 +22,11 @@
 
 ## Executive Summary
 
-The repository has moved from enterprise-readiness remediation into release-evidence execution. The merged PR #1287-#1301 sequence means the durable persistence path, startup/reload integration, durable promotion checker, API contract cleanup, recovery/governance hardening, failure-mode validation, security/governance documentation, DR documentation, and release evidence pack are now part of the repository baseline.
+The repository has moved from enterprise-readiness remediation into release-evidence execution.
+The merged PR #1287-#1301 sequence means the durable persistence path, startup/reload integration,
+durable promotion checker, API contract cleanup, recovery/governance hardening, failure-mode
+validation, security/governance documentation, DR documentation, and release evidence pack are now
+part of the repository baseline.
 
 The remaining work is no longer primarily architectural. It is concentrated in live release evidence and bounded follow-up hardening:
 

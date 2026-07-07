@@ -50,7 +50,13 @@ traces to release evidence.
 | Governance          | Satisfied - documented               | Governance policy, state-machine authority, release checklist, ADRs, and PR scope guardrails.                                                                            | Named operator ownership for deploy, rollback, restore, and persistence verification.                                                                       | Yes, if owner/sign-off is missing for enterprise release.                          | Attach named release operator and approver sign-off.                                                                                                                                                 |
 | Disaster Recovery   | Satisfied - manual evidence required | Backup/restore/DR runbook, ADR 0005, and deployment operating model.                                                                                                     | Restore rehearsal log, selected restore point, database-boundary topology, and post-restore smoke evidence.                                                 | Yes, before final enterprise release sign-off.                                     | DR restore rehearsal remains manual evidence until an actual rehearsal artefact is attached.                                                                                                         |
 
-Current RC1 / Objective 2 follow-up live record: [issue #1330](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1330). The committed companion record is [docs/evidence-records/rc1-objective-2-follow-up.md](evidence-records/rc1-objective-2-follow-up.md). The live record has been fully verified, executed, and approved for its objective-scope items; several release gates (DR, Promotion, Security) still require manual evidence per their respective blocking rules.
+Current RC1 / Objective 2 follow-up live record:
+[issue #1330](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1330).
+The committed companion record is
+[docs/evidence-records/rc1-objective-2-follow-up.md](evidence-records/rc1-objective-2-follow-up.md).
+The live record has been fully verified, executed, and approved for its objective-scope items;
+several release gates (DR, Promotion, Security) still require manual evidence per their respective
+blocking rules.
 
 ## Gate Evidence Details
 
