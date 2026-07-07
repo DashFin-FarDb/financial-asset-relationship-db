@@ -140,6 +140,9 @@ class TestMergifyConfigIntegration:
                 f"Review-request rule '{rule['name']}' must exclude dependabot[bot]"
             )
             assert "-author=snyk-bot" in conditions, f"Review-request rule '{rule['name']}' must exclude snyk-bot"
+            assert "#review-requested=0" in conditions, (
+                f"Review-request rule '{rule['name']}' must require no pending review requests"
+            )
 
     def test_stale_rules_are_paired(self):
         """
