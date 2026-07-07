@@ -34,16 +34,24 @@ def _checkout_dir_from_step(step: object) -> str | None:
     return Path(checkout_path).parts[0]
 
 
+def _checkout_dirs_from_job(job: object) -> set[str]:
+    if not isinstance(job, dict):
+        return set()
+
+    checkout_dirs: set[str] = set()
+    for step in job.get("steps", []):
+        checkout_dir = _checkout_dir_from_step(step)
+        if checkout_dir:
+            checkout_dirs.add(checkout_dir)
+
+    return checkout_dirs
+
+
 def _checkout_dynamic_dirs(workflow_yaml: dict) -> set[str]:
     dynamic_dirs: set[str] = set()
 
     for job in workflow_yaml.get("jobs", {}).values():
-        if not isinstance(job, dict):
-            continue
-        for step in job.get("steps", []):
-            checkout_dir = _checkout_dir_from_step(step)
-            if checkout_dir:
-                dynamic_dirs.add(checkout_dir)
+        dynamic_dirs.update(_checkout_dirs_from_job(job))
 
     return dynamic_dirs
 
