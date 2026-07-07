@@ -339,7 +339,9 @@ class TestMergifySecurityAndSafety:
         assert dep_auto_merge is not None, "Dependabot auto-merge rule not found"
 
         conditions = " ".join(str(c) for c in dep_auto_merge.get("conditions", []))
-        assert "#files <= 5" in conditions, "Dependabot auto-merge should limit changed files"
+        assert "#files <= 5" in conditions or "#files<=5" in conditions, (
+            "Dependabot auto-merge should limit changed files"
+        )
 
     def test_auto_merge_uses_safe_merge_method(self):
         """
