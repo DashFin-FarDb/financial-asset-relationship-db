@@ -20,17 +20,32 @@ def _load_yaml(path: Path) -> dict:
         return yaml.safe_load(f) or {}
 
 
+def _checkout_dir_from_step(step: object) -> str | None:
+    if not isinstance(step, dict):
+        return None
+
+    if "actions/checkout" not in str(step.get("uses", "")):
+        return None
+
+    checkout_path = str((step.get("with") or {}).get("path", "")).strip().lstrip("./")
+    if not checkout_path or "$" in checkout_path:
+        return None
+
+    return Path(checkout_path).parts[0]
+
+
 def _checkout_dynamic_dirs(workflow_yaml: dict) -> set[str]:
-    return {
-        Path(checkout_path).parts[0]
-        for job in workflow_yaml.get("jobs", {}).values()
-        if isinstance(job, dict)
-        for step in job.get("steps", [])
-        if isinstance(step, dict)
-        if "actions/checkout" in str(step.get("uses", ""))
-        for checkout_path in [str((step.get("with") or {}).get("path", "")).strip().lstrip("./")]
-        if checkout_path and "$" not in checkout_path
-    }
+    dynamic_dirs: set[str] = set()
+
+    for job in workflow_yaml.get("jobs", {}).values():
+        if not isinstance(job, dict):
+            continue
+        for step in job.get("steps", []):
+            checkout_dir = _checkout_dir_from_step(step)
+            if checkout_dir:
+                dynamic_dirs.add(checkout_dir)
+
+    return dynamic_dirs
 
 
 def _referenced_workflow_paths(content: str) -> list[str]:
