@@ -13,6 +13,10 @@ operator artifacts, and remaining work. It is the auditable companion to the
 For the evidence formatting and review rules that keep artifacts from overstating or understating their claim, see
 [Operational Evidence Capture Framework](operations/operational-evidence-capture-framework.md).
 
+The manual **Release Evidence Verify** workflow run (`.github/workflows/release-evidence-verify.yml`) is the single
+reproducible mechanism for generating the JUnit/readiness artifacts and gate summary used by this pack's evidence
+status model.
+
 The document distinguishes:
 
 - **implemented:** runtime or operational capability exists;
@@ -92,6 +96,11 @@ Manual release attachment:
 - Confirmation that `ASSET_GRAPH_DATABASE_URL` is configured for the target environment.
 - Redacted provider/database boundary evidence proving the graph persistence store is durable.
 
+Workflow evidence:
+
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (Durable Persistence)` step and `release-evidence`
+  artifact).
+
 ### 3. Restart / Reload Gate
 
 Required proof:
@@ -118,6 +127,11 @@ Manual release attachment:
 - Restart/redeploy log or smoke output showing `graph.persistence_loaded == true` and
   `graph.startup_source == "persisted"` after persistence is written.
 
+Workflow evidence:
+
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (Restart/Reload)` step and `release-evidence`
+  artifact).
+
 ### 4. Promotion Gate
 
 Required proof:
@@ -135,6 +149,8 @@ curl -fsS "<base_url>/api/assets?per_page=1"
 
 Workflow evidence:
 
+- `.github/workflows/release-evidence-verify.yml` (`Check Hosted Readiness` step with `--json` and optional
+  `--require-persistence`, plus gate summary output).
 - `.github/workflows/hosted-readiness.yml` run for the target environment when configured.
 
 Manual release attachment:
@@ -179,6 +195,11 @@ Manual release attachment:
 
 - CI run or local validation summary showing backend and frontend API contract checks executed for the release commit.
 
+Workflow evidence:
+
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (API Contract)` step and `release-evidence`
+  artifact).
+
 ### 6. Recovery / Rebuild Gate
 
 Required proof:
@@ -200,6 +221,8 @@ pytest tests/integration/test_distributed_hosting_failure_modes.py -q
 
 Workflow evidence:
 
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (Recovery/Rebuild)` step and `release-evidence`
+  artifact).
 - `.github/workflows/ci-gate-spec.yaml` coordination safety gate run, where enabled.
 
 Manual release attachment:
@@ -225,6 +248,8 @@ pytest tests/integration/test_graph_admin_router.py -q
 
 Workflow evidence:
 
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (Security)` step and `release-evidence`
+  artifact).
 - Relevant GitHub security workflows, including CodeQL, Bandit, Bearer, Semgrep, Snyk, Trivy, dependency review, and
   workflow scanners where configured for the release branch.
 

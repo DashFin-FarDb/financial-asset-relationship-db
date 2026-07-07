@@ -26,9 +26,11 @@ The repository has moved from enterprise-readiness remediation into release-evid
 
 The remaining work is no longer primarily architectural. It is concentrated in live release evidence and bounded follow-up hardening:
 
-- hosted promotion evidence showing durable graph truth in the target environment;
+- hosted promotion evidence showing durable graph truth in the target environment (coordinated via
+  `.github/workflows/release-evidence-verify.yml` and attached target-environment outputs);
 - DR restore rehearsal evidence against the documented backup/restore process;
-- release-commit security scanner review and named operator sign-off;
+- release-commit security scanner review and named operator sign-off (captured/reviewed via
+  `.github/workflows/release-evidence-verify.yml` plus scanner workflows);
 - strict stale-owner restart composition testing;
 - the operational evidence-capture framework and drill pack for classifying operational proof;
 - the operational drill and scale-validation pack for observability and runbook proof;
@@ -46,7 +48,7 @@ Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **S
 | Satisfied - documented               | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model                                                                                                                                                                 |
 | Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence                                                                                                       |
 | Partially satisfied                  | Strict stale-owner restart composition is covered by integration tests; the operational evidence-capture framework and drill pack are documented; production-scale validation remains future operating-maturity work                                                                                |
-| Blocked                              | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence, release-commit security scanner/exception review, named operator sign-off, and DR restore rehearsal evidence are attached or approved. |
+| Blocked                              | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence and release-commit security scanner/exception review are attached via `.github/workflows/release-evidence-verify.yml` (plus source workflows), and named operator sign-off + DR restore rehearsal evidence are attached or approved. |
 
 ## Recommended Reading Order
 
