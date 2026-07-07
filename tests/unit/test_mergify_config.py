@@ -616,6 +616,16 @@ class TestMergifyReviewAutomation:
                 conditions = " ".join(str(c) for c in rule.get("conditions", []))
                 assert "-draft" in conditions, f"Review-request rule '{rule['name']}' should exclude drafts"
 
+    def test_review_request_requires_no_pending_review_requests(self):
+        """Test that the review-request rule only fires when no review requests are pending."""
+        rules = self._load_rules()
+        for rule in rules:
+            if "request_reviews" in rule.get("actions", {}):
+                conditions = " ".join(str(c) for c in rule.get("conditions", []))
+                assert "#review-requested=0" in conditions, (
+                    f"Review-request rule '{rule['name']}' should require no pending review requests"
+                )
+
     def test_dismiss_stale_reviews_rule_exists(self):
         """Test that a dismiss_reviews rule exists."""
         rules = self._load_rules()
