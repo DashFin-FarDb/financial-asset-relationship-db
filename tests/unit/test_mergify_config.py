@@ -652,7 +652,7 @@ class TestMergifyAutoMerge:
         Return pull request rules that define a merge action.
 
         Returns:
-                list: A list of rule dictionaries that include a 'merge' key in their `actions` mapping.
+            list: A list of rule dictionaries that include a 'merge' key in their `actions` mapping.
         """
         return [r for r in self._load_rules() if "merge" in r.get("actions", {})]
 
