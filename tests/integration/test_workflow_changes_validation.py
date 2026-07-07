@@ -351,7 +351,7 @@ class TestWorkflowIntegration:
                         continue
                     uses = str(step.get("uses", ""))
                     if "actions/checkout" in uses:
-                        checkout_path = str(step.get("with", {}).get("path", "")).strip().lstrip("./")
+                        checkout_path = str((step.get("with") or {}).get("path", "")).strip().lstrip("./")
                         if checkout_path and "$" not in checkout_path:
                             dynamic_dirs.add(Path(checkout_path).parts[0])
 
