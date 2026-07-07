@@ -1,0 +1,21 @@
+.github/workflows/codeql.yml
+  s_a9079a96cd0b29::t_c4d752c7d352cb 14,16-28,30-46
+.github/workflows/codescan.yml
+  s_a9079a96cd0b29::t_30fd08ea2c531c 35,37-40,43,46,48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "33c46261466d9679b02e916a4544d28a87604de7",
+  "prompts": {},
+  "sessions": {
+    "s_a9079a96cd0b29": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bef-eab7-7292-8e06-0aa00e3538ed",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
