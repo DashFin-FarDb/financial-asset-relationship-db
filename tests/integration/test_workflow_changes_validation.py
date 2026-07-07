@@ -15,6 +15,49 @@ import pytest
 import yaml
 
 
+def _load_yaml(path: Path) -> dict:
+    with open(path) as f:
+        return yaml.safe_load(f) or {}
+
+
+def _checkout_dynamic_dirs(workflow_yaml: dict) -> set[str]:
+    dynamic_dirs: set[str] = set()
+
+    for job in workflow_yaml.get("jobs", {}).values():
+        if not isinstance(job, dict):
+            continue
+        for step in job.get("steps", []):
+            if not isinstance(step, dict):
+                continue
+            uses = str(step.get("uses", ""))
+            if "actions/checkout" not in uses:
+                continue
+            checkout_path = str((step.get("with") or {}).get("path", "")).strip().lstrip("./")
+            if checkout_path and "$" not in checkout_path:
+                dynamic_dirs.add(Path(checkout_path).parts[0])
+
+    return dynamic_dirs
+
+
+def _referenced_workflow_paths(content: str) -> list[str]:
+    referenced_paths: list[str] = []
+
+    for pattern in (r"working-directory:\s+(.+)", r'path:\s+["\']([^"\']+)["\']'):
+        for match in re.findall(pattern, content):
+            path = match.strip()
+            if path.startswith("./"):
+                path = path[2:]
+            if "$" not in path and "*" not in path:
+                referenced_paths.append(path)
+
+    return referenced_paths
+
+
+def _is_runtime_checkout_path(path: str, dynamic_dirs: set[str]) -> bool:
+    path_parts = Path(path).parts
+    return bool(path_parts and path_parts[0] in dynamic_dirs)
+
+
 class TestPRAgentWorkflowChanges:
     """Test PR agent workflow simplification changes."""
 
@@ -27,9 +70,7 @@ class TestPRAgentWorkflowChanges:
         Returns:
             dict: Parsed contents of .github/workflows/pr-agent.yml as native Python objects.
         """
-        workflow_path = Path(".github/workflows/pr-agent.yml")
-        with open(workflow_path) as f:
-            return yaml.safe_load(f)
+        return _load_yaml(Path(".github/workflows/pr-agent.yml"))
 
     def test_pr_agent_workflow_structure(self, pr_agent_workflow):
         """Verify PR agent workflow has expected structure."""
@@ -110,9 +151,7 @@ class TestGreetingsWorkflowChanges:
         Returns:
             Parsed workflow content as native Python structures (typically a dict).
         """
-        workflow_path = Path(".github/workflows/greetings.yml")
-        with open(workflow_path) as f:
-            return yaml.safe_load(f)
+        return _load_yaml(Path(".github/workflows/greetings.yml"))
 
     @staticmethod
     def test_greetings_workflow_simplified(greetings_workflow):
@@ -144,9 +183,7 @@ class TestAPISecWorkflowChanges:
         Returns:
             workflow (dict): Parsed content of .github/workflows/apisec-scan.yml.
         """
-        workflow_path = Path(".github/workflows/apisec-scan.yml")
-        with open(workflow_path) as f:
-            return yaml.safe_load(f)
+        return _load_yaml(Path(".github/workflows/apisec-scan.yml"))
 
     @staticmethod
     def test_apisec_no_credential_checks(apisec_workflow):
@@ -332,49 +369,15 @@ class TestWorkflowIntegration:
         repo_root = Path(".")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file) as f:
-                content = f.read()
+            content = workflow_file.read_text()
+            workflow_yaml = _load_yaml(workflow_file)
+            dynamic_dirs = _checkout_dynamic_dirs(workflow_yaml)
 
-            # Collect paths that are dynamically created by actions/checkout at runtime.
-            # These directories do not exist statically in the repository, so they must
-            # be excluded from the existence check.
-            dynamic_dirs: set[str] = set()
-            try:
-                workflow_yaml = yaml.safe_load(content) or {}
-            except yaml.YAMLError:
-                workflow_yaml = {}
-            for job in workflow_yaml.get("jobs", {}).values():
-                if not isinstance(job, dict):
+            for path in _referenced_workflow_paths(content):
+                if _is_runtime_checkout_path(path, dynamic_dirs):
                     continue
-                for step in job.get("steps", []):
-                    if not isinstance(step, dict):
-                        continue
-                    uses = str(step.get("uses", ""))
-                    if "actions/checkout" in uses:
-                        checkout_path = str((step.get("with") or {}).get("path", "")).strip().lstrip("./")
-                        if checkout_path and "$" not in checkout_path:
-                            dynamic_dirs.add(Path(checkout_path).parts[0])
-
-            # Common path patterns to check
-            path_patterns = [
-                r"working-directory:\s+(.+)",
-                r'path:\s+["\']([^"\']+)["\']',
-            ]
-
-            for pattern in path_patterns:
-                matches = re.findall(pattern, content)
-                for match in matches:
-                    path = match.strip()
-                    if path.startswith("./"):
-                        path = path[2:]
-                    # Skip variables and wildcards
-                    if "$" not in path and "*" not in path:
-                        # Skip directories created at runtime by actions/checkout
-                        path_parts = Path(path).parts
-                        if path_parts and path_parts[0] in dynamic_dirs:
-                            continue
-                        full_path = repo_root / path
-                        assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
+                full_path = repo_root / path
+                assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
 
 
 class TestDependencyCheckWorkflowPresence:
