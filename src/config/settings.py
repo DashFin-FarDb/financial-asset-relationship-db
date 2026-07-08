@@ -48,7 +48,7 @@ class DeploymentEnvironment(str, Enum):
 class Settings(BaseModel):
     """Runtime configuration settings."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, hide_input_in_errors=True)
 
     env: DeploymentEnvironment = Field(default=DeploymentEnvironment.DEVELOPMENT)
     vercel_env: DeploymentEnvironment | None = Field(default=None)
@@ -140,7 +140,8 @@ class Settings(BaseModel):
     @classmethod
     def validate_secret_key(cls, value: str | None, info: ValidationInfo) -> str | None:
         """Warn or raise if the secret key is less than 32 characters."""
-        if value and len(value) < 32:
+        stripped_value = value.strip() if value else ""
+        if stripped_value and len(stripped_value) < 32:
             env = info.data.get("env", DeploymentEnvironment.DEVELOPMENT)
             if isinstance(env, DeploymentEnvironment):
                 env = env.value
@@ -150,6 +151,15 @@ class Settings(BaseModel):
 
             warnings.warn("SECRET_KEY is less than 32 characters. This is insecure for production.")
         return value
+
+    def model_post_init(self, __context: Any, /) -> None:
+        """Fail fast when production receives missing or empty required secrets."""
+        if self.env != DeploymentEnvironment.PRODUCTION:
+            return
+
+        required_values = (self.secret_key, self.admin_username, self.admin_password)
+        if any(value is None or not value.strip() for value in required_values):
+            raise ValueError("Production requires non-empty deployment credentials.")
 
     @field_validator("slo_rebuild_duration_max_seconds")
     @classmethod

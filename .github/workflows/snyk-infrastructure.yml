@@ -47,8 +47,10 @@ jobs:
           # Add the path to the configuration file that you would like to test.
           # For example `deployment.yaml` for a Kubernetes deployment manifest
           # or `main.tf` for a Terraform configuration file
-          file: your-file-to-test.yaml
+          file: .
+          sarif: true
       - name: Upload result to GitHub Code Scanning
+        if: ${{ hashFiles('snyk.sarif') != '' }}
         uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
         with:
           sarif_file: snyk.sarif

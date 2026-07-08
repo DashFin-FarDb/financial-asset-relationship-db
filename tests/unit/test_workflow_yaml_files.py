@@ -137,128 +137,6 @@ def _workflow_files(workflows_dir: Path) -> list[Path]:
 
 
 @pytest.mark.unit
-class TestCircleCIConfig:
-    """Test CircleCI configuration file."""
-
-    @pytest.fixture
-    def circleci_config(self):
-        """Load CircleCI config."""
-        config_path = PROJECT_ROOT / ".circleci" / "config.yml"
-        with open(config_path, encoding="utf-8") as f:
-            return yaml.safe_load(f)
-
-    def test_circleci_config_valid_yaml(self):
-        """CircleCI config is valid YAML."""
-        config_path = PROJECT_ROOT / ".circleci" / "config.yml"
-        with open(config_path, encoding="utf-8") as f:
-            config = yaml.safe_load(f)
-        assert config is not None
-
-    def test_circleci_config_has_version(self, circleci_config):
-        """CircleCI config specifies version."""
-        assert "version" in circleci_config
-        assert circleci_config["version"] in [2.1, "2.1", 2]
-
-    def test_circleci_config_has_orbs(self, circleci_config):
-        """CircleCI config defines required orbs."""
-        assert "orbs" in circleci_config
-        orbs = circleci_config["orbs"]
-        assert isinstance(orbs, dict)
-        assert "codecov" in orbs
-
-    def test_circleci_config_has_executors(self, circleci_config):
-        """CircleCI config defines executors."""
-        assert "executors" in circleci_config
-        executors = circleci_config["executors"]
-        assert "python-executor" in executors
-        assert "node-executor" in executors
-
-    def test_circleci_config_has_jobs(self, circleci_config):
-        """CircleCI config defines required jobs."""
-        assert "jobs" in circleci_config
-        jobs = circleci_config["jobs"]
-
-        # Python jobs
-        assert "python-lint" in jobs
-        assert "python-test" in jobs
-        assert "python-security" in jobs
-
-        # Frontend jobs
-        assert "frontend-lint" in jobs
-        assert "frontend-build" in jobs
-
-        # Docker job
-        assert "docker-build" in jobs
-
-    def test_circleci_python_lint_job_structure(self, circleci_config):
-        """python-lint job has proper structure."""
-        job = circleci_config["jobs"]["python-lint"]
-
-        assert "executor" in job
-        assert job["executor"] == "python-executor"
-        assert "steps" in job
-
-        steps = job["steps"]
-        has_checkout = any(step == "checkout" or (isinstance(step, dict) and "checkout" in step) for step in steps)
-        assert has_checkout
-
-    def test_circleci_python_test_job_coverage(self, circleci_config):
-        """python-test job includes coverage reporting."""
-        jobs = circleci_config.get("jobs")
-        assert isinstance(jobs, dict), "jobs section is missing or invalid"
-        assert "python-test" in jobs, "python-test job not found"
-        job = jobs["python-test"]
-        assert isinstance(job, dict), "python-test job must be a mapping/dict"
-        steps = job.get("steps")
-        assert isinstance(steps, list), "python-test.steps must be a list"
-
-        has_pytest = _has_pytest_with_coverage(steps)
-        has_codecov = _has_codecov_upload_step(steps)
-
-        assert has_pytest, "pytest with coverage not found"
-        assert has_codecov, "codecov upload not found"
-
-    def test_circleci_config_has_workflows(self, circleci_config):
-        """CircleCI config defines workflows."""
-        assert "workflows" in circleci_config
-        workflows = circleci_config["workflows"]
-
-        assert "build-and-test" in workflows
-        assert "nightly-security" in workflows
-
-    def test_circleci_workflow_job_dependencies(self, circleci_config):
-        """CircleCI workflow defines proper job dependencies."""
-        workflows = circleci_config.get("workflows")
-        assert isinstance(workflows, dict), "workflows section is missing or invalid"
-        assert "build-and-test" in workflows, "build-and-test workflow not found"
-        workflow = workflows["build-and-test"]
-        assert isinstance(workflow, dict), "build-and-test workflow must be a mapping/dict"
-        jobs = workflow.get("jobs")
-        assert isinstance(jobs, list), "build-and-test.jobs must be a list"
-
-        # Backend jobs can run in parallel, but docker-build should gate on them.
-        assert _workflow_has_job(jobs, "python-lint")
-        assert _workflow_has_job(jobs, "python-test")
-
-        docker_build_entry = _workflow_job_config(jobs, "docker-build")
-
-        assert docker_build_entry is not None
-        assert "requires" in docker_build_entry
-        assert "python-lint" in docker_build_entry["requires"]
-        assert "python-test" in docker_build_entry["requires"]
-
-    def test_circleci_nightly_security_schedule(self, circleci_config):
-        """CircleCI nightly security workflow has cron schedule."""
-        workflow = circleci_config["workflows"]["nightly-security"]
-
-        assert "triggers" in workflow
-        triggers = workflow["triggers"]
-        assert len(triggers) > 0
-        assert "schedule" in triggers[0]
-        assert "cron" in triggers[0]["schedule"]
-
-
-@pytest.mark.unit
 class TestCodacyConfig:
     """Test Codacy configuration file."""
 
@@ -328,9 +206,7 @@ class TestGitHubWorkflows:
             "codacy.yml",
             "codeflash.yaml",
             "codeql.yml",
-            "codescan.yml",
             "contrast-scan.yml",
-            "debricked.yml",
             "dependency-review.yml",
             "devskim.yml",
             "docker-image.yml",
@@ -347,9 +223,10 @@ class TestGitHubWorkflows:
             pytest.fail(f"{request.param} does not exist")
         with open(workflow_path, encoding="utf-8") as f:
             try:
-                return request.param, yaml.safe_load(f)
-            except yaml.YAMLError as exc:
-                pytest.fail(f"{request.param} has invalid YAML syntax: {exc}")
+                config = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in {request.param}: {e}")
+            return request.param, config
 
     def test_workflow_valid_yaml(self, workflow_file):
         """All workflow files are valid YAML."""
@@ -439,7 +316,7 @@ class TestSpecificWorkflows:
             assert len(versions) >= 2, "Should test multiple Python versions"
 
     def test_apisec_workflow_has_secrets(self):
-        """APIsec workflow references required secrets."""
+        """The APIsec workflow references required secrets."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "apisec-scan.yml"
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml does not exist")
@@ -469,7 +346,7 @@ class TestSpecificWorkflows:
             assert bandit_job["permissions"]["security-events"] == "write"
 
     def test_codeql_workflow_languages(self):
-        """CodeQL workflow specifies languages to analyze."""
+        """The CodeQL workflow specifies languages to analyze."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "codeql.yml"
         if not workflow_path.exists():
             pytest.skip("codeql.yml does not exist")
@@ -549,8 +426,8 @@ class TestWorkflowSecurity:
 
             try:
                 config = yaml.safe_load(content)
-            except yaml.YAMLError as exc:
-                pytest.fail(f"{workflow_file.name} has invalid YAML syntax: {exc}")
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in {workflow_file.name}: {e}")
 
             # This is a best practice, not a hard requirement.
             if not _workflow_has_permissions(config):
@@ -589,7 +466,7 @@ class TestWorkflowPaths:
 
     @pytest.mark.unit
     def test_apisec_workflow_path_filters(self):
-        """APIsec workflow has appropriate path filters."""
+        """The APIsec workflow has appropriate path filters."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "apisec-scan.yml"
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml does not exist")
@@ -625,9 +502,7 @@ class TestYAMLSyntaxAllFiles:
             ".github/workflows/codacy.yml",
             ".github/workflows/codeflash.yaml",
             ".github/workflows/codeql.yml",
-            ".github/workflows/codescan.yml",
             ".github/workflows/contrast-scan.yml",
-            ".github/workflows/debricked.yml",
             ".github/workflows/dependency-review.yml",
             ".github/workflows/devskim.yml",
             ".github/workflows/docker-image.yml",
@@ -644,42 +519,9 @@ class TestYAMLSyntaxAllFiles:
                     try:
                         list(yaml.safe_load_all(f))
                     except yaml.YAMLError as e:
-                        pytest.fail(f"{yaml_file} has invalid YAML syntax: {e}")
+                        pytest.fail(f"Invalid YAML in {yaml_file}: {e}")
 
 
 @pytest.mark.integration
 class TestConfigurationConsistency:
     """Test consistency across configuration files."""
-
-    def test_python_version_consistency(self):
-        """Python versions should be consistent across configs."""
-        # CircleCI
-        circleci_path = PROJECT_ROOT / ".circleci" / "config.yml"
-        if not circleci_path.exists():
-            pytest.fail(".circleci/config.yml does not exist")
-        with open(circleci_path, encoding="utf-8") as f:
-            circleci_config = yaml.safe_load(f)
-
-        # CI workflow
-        ci_path = PROJECT_ROOT / ".github" / "workflows" / "ci.yml"
-        if ci_path.exists():
-            with open(ci_path, encoding="utf-8") as f:
-                ci_config = yaml.safe_load(f)
-
-            # Both should test Python (versions may differ slightly)
-            # Just ensure both have Python configuration
-            assert "python" in str(circleci_config).lower()
-            assert "python" in str(ci_config).lower()
-
-    def test_node_version_consistency(self):
-        """Node versions should be reasonable across configs."""
-        circleci_path = PROJECT_ROOT / ".circleci" / "config.yml"
-        if not circleci_path.exists():
-            pytest.fail(".circleci/config.yml does not exist")
-        with open(circleci_path, encoding="utf-8") as f:
-            content = f.read()
-
-        # Should reference Node in frontend jobs
-        assert "node" in content.lower()
-        # Should have a reasonable version
-        assert "node:" in content or "cimg/node" in content

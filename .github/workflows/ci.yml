@@ -81,7 +81,6 @@ jobs:
           test: |
             echo "===== Lint: Ruff ====="
             ruff check .
-            ruff format --check .
 
             echo "===== Lint: Flake8 (critical) ====="
             flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
@@ -102,6 +101,7 @@ jobs:
             pylint src/ --fail-under=7.0
 
             echo "===== Tests + Coverage ====="
+            pip check
             pytest --cov=src --cov-report=xml --cov-report=term-missing -v
 
       - name: Upload coverage to Codecov

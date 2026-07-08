@@ -4,10 +4,10 @@ from __future__ import annotations
 
 # pylint: disable=import-error
 import logging
-from collections.abc import Mapping as RuntimeMapping
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Mapping
+from typing import Annotated, Any
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
@@ -15,7 +15,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
 from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleSource]
 from pydantic import BaseModel
-from typing_extensions import Annotated, TypedDict
+from typing_extensions import TypedDict
 
 from api.models import User, UserInDB
 from src.config.settings import Settings, get_settings, load_settings
@@ -23,6 +23,9 @@ from src.observability.context import get_request_context
 from src.observability.facade import ObservabilityEvent, log_event
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
+
+UTC = timezone.utc
+
 
 logger = logging.getLogger(__name__)
 
@@ -88,10 +91,10 @@ class _SecurityAuditEvent:
     level: int = logging.INFO
 
 
-def _request_security_metadata(request: Request | None = None) -> Dict[str, str | None]:
+def _request_security_metadata(request: Request | None = None) -> dict[str, str | None]:
     """Return bounded request metadata for security audit events."""
     context = get_request_context()
-    metadata: Dict[str, str | None] = {
+    metadata: dict[str, str | None] = {
         "request_id": context.get("request_id"),
         "correlation_id": context.get("correlation_id"),
         "trace_id": context.get("trace_id"),
@@ -122,7 +125,7 @@ def _sanitize_metadata_value(value: Any) -> Any:
         return _sanitize_metadata_value(value.model_dump())
     if hasattr(value, "dict"):
         return _sanitize_metadata_value(value.dict())
-    if isinstance(value, RuntimeMapping):
+    if isinstance(value, Mapping):
         return {
             str(key): _sanitize_metadata_value(item)
             for key, item in value.items()
@@ -133,7 +136,7 @@ def _sanitize_metadata_value(value: Any) -> Any:
     return value
 
 
-def _safe_security_metadata(metadata: Mapping[str, Any]) -> Dict[str, Any]:
+def _safe_security_metadata(metadata: Mapping[str, Any]) -> dict[str, Any]:
     """Drop sensitive metadata keys recursively before emitting audit logs."""
     return {
         str(key): _sanitize_metadata_value(value)
@@ -154,7 +157,7 @@ def _bounded_security_identity(value: str | None) -> str | None:
 
 def _log_security_event(event: _SecurityAuditEvent) -> None:
     """Emit a structured security audit event without credential-bearing values."""
-    event_metadata: Dict[str, Any] = _safe_security_metadata(event.metadata) if event.metadata else {}
+    event_metadata: dict[str, Any] = _safe_security_metadata(event.metadata) if event.metadata else {}
 
     req_meta = _request_security_metadata(event.request)
     for k, v in req_meta.items():
@@ -460,9 +463,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     """
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

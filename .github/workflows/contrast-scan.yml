@@ -80,15 +80,42 @@ jobs:
     # -name: Build Project
     # ...
     # Scan Artifact
+    - name: Preflight Contrast scan inputs
+      id: contrast_preflight
+      env:
+        CONTRAST_API_KEY: ${{ secrets.CONTRAST_API_KEY }}
+        CONTRAST_ORGANIZATION_ID: ${{ secrets.CONTRAST_ORGANIZATION_ID }}
+        CONTRAST_AUTH_HEADER: ${{ secrets.CONTRAST_AUTH_HEADER }}
+        CONTRAST_ARTIFACT_PATH: ${{ vars.CONTRAST_ARTIFACT_PATH }}
+      run: |
+        if [ -z "${CONTRAST_API_KEY}" ] || [ -z "${CONTRAST_ORGANIZATION_ID}" ] || [ -z "${CONTRAST_AUTH_HEADER}" ]; then
+          echo "Contrast secrets are not configured; skipping scan."
+          echo "run_scan=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        if [ -z "${CONTRAST_ARTIFACT_PATH}" ]; then
+          echo "Contrast artifact path is not configured (vars.CONTRAST_ARTIFACT_PATH); skipping scan."
+          echo "run_scan=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        if [ ! -f "${CONTRAST_ARTIFACT_PATH}" ]; then
+          echo "Contrast artifact not found at ${CONTRAST_ARTIFACT_PATH}; skipping scan."
+          echo "run_scan=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        echo "artifact_path=${CONTRAST_ARTIFACT_PATH}" >> "$GITHUB_OUTPUT"
+        echo "run_scan=true" >> "$GITHUB_OUTPUT"
     - name: Contrast Scan Action
+      if: steps.contrast_preflight.outputs.run_scan == 'true'
       uses: Contrast-Security-OSS/contrastscan-action@7352a45d9678ec8a434cf061b07ffb51c1e351a1
       with:
-        artifact: mypath/target/myartifact.jar # replace this path with the path to your built artifact
+        artifact: ${{ steps.contrast_preflight.outputs.artifact_path }}
         apiKey: ${{ secrets.CONTRAST_API_KEY }}
         orgId: ${{ secrets.CONTRAST_ORGANIZATION_ID }}
         authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
     #Upload the results to GitHub
     - name: Upload SARIF file
+      if: steps.contrast_preflight.outputs.run_scan == 'true'
       uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
       with:
         sarif_file: results.sarif # The file name must be 'results.sarif', as this is what the Github Action will output

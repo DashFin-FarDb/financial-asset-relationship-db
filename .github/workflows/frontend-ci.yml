@@ -1,0 +1,53 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+      - 'api/api_models.py'
+      - 'frontend/app/types/api.ts'
+      - 'frontend/__tests__/lib/api-contract-seams.test.ts'
+      - '.github/workflows/frontend-ci.yml'
+      - '.github/actions/ci-common/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+      - 'api/api_models.py'
+      - 'frontend/app/types/api.ts'
+      - 'frontend/__tests__/lib/api-contract-seams.test.ts'
+      - '.github/workflows/frontend-ci.yml'
+      - '.github/actions/ci-common/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Run frontend CI common
+        uses: ./.github/actions/ci-common
+        with:
+          language: node
+          node-version: '22'
+          working-directory: frontend
+          dependency-paths: frontend/package-lock.json
+          install: npm ci
+          test: |
+            npm run lint
+            npm run test:coverage -- --ci
+          build: npm run build
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4
+        with:
+          name: frontend-test-results
+          path: frontend/junit.xml
+          if-no-files-found: warn

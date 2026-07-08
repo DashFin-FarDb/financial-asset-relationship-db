@@ -3,7 +3,7 @@
 # pylint: disable=import-error,invalid-name
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 import pytest
 import yaml  # type: ignore[import-untyped]
@@ -14,14 +14,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 LOKI_RECORDING_PATH = PROJECT_ROOT / "monitoring" / "alerts" / "loki-recording.yml"
 
 
-def _recording_rules() -> Dict[str, str]:
+def _recording_rules() -> dict[str, str]:
     """Load Loki recording rules by record name."""
     loaded = yaml.safe_load(LOKI_RECORDING_PATH.read_text(encoding="utf-8"))
     assert isinstance(loaded, Mapping), "Loki recording file must contain a YAML mapping"
     config = cast(Mapping[str, Any], loaded)
-    groups = cast(List[Mapping[str, Any]], config.get("groups", []))
+    groups = cast(list[Mapping[str, Any]], config.get("groups", []))
     assert groups, "Loki recording file must contain at least one group"
-    rules = [rule for group in groups for rule in cast(List[Mapping[str, Any]], group.get("rules", []))]
+    rules = [rule for group in groups for rule in cast(list[Mapping[str, Any]], group.get("rules", []))]
     assert rules, "Loki recording groups must contain at least one rule"
     return {cast(str, rule["record"]): cast(str, rule["expr"]) for rule in rules}
 

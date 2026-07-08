@@ -42,9 +42,10 @@ from __future__ import annotations
 import atexit
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings

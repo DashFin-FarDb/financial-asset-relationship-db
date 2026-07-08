@@ -14,12 +14,12 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from enum import StrEnum
 from typing import Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
+from src.utils.enum_compat import StrEnum
 
 logger = logging.getLogger(__name__)
 

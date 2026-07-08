@@ -1,0 +1,318 @@
+name: Release Evidence Verify
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: 'Commit SHA to verify'
+        required: true
+      base_url:
+        description: 'Hosted readiness base URL'
+        required: false
+      base_url_label:
+        description: 'Hosted readiness base URL label'
+        required: false
+      require_persistence:
+        description: 'Require persistence proof'
+        type: boolean
+        default: true
+      strict_rc_gate:
+        description: 'Strict RC promotion gate (fails if hosted readiness is skipped)'
+        type: boolean
+        default: false
+      tags:
+        description: 'Manual sign-off tags (e.g., [manual-stop] or [star])'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'staging-manual-gate' || 'release-evidence' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate Release SHA
+        env:
+          RELEASE_SHA: ${{ github.event.inputs.release_sha }}
+        run: |
+          if ! git merge-base --is-ancestor "$RELEASE_SHA" origin/main; then
+            echo "Error: release_sha $RELEASE_SHA is not an ancestor of origin/main."
+            exit 1
+          fi
+
+      - name: Checkout Release SHA
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.inputs.release_sha }}
+          path: release-source
+          persist-credentials: false
+
+      - name: Parse Manual Sign-off Tags
+        env:
+          INPUT_TAGS: ${{ github.event.inputs.tags }}
+        run: |
+          if echo "$INPUT_TAGS" | grep -qiE '\[manual-stop\]|\[star\]'; then
+            echo "Manual sign-off tag detected; protected GitHub Environment approval was required before this job started."
+          else
+            echo "No manual sign-off tag detected."
+          fi
+      - name: Install Dependencies
+        uses: ./.github/actions/ci-common
+        with:
+          language: python
+          python-version: '3.12'
+          dependency-paths: |
+            release-source/requirements.txt
+            release-source/requirements-dev.txt
+          working-directory: release-source
+          install: |
+            pip install -r requirements.txt
+            pip install -r requirements-dev.txt
+
+      - name: Install Frontend Dependencies
+        uses: ./.github/actions/ci-common
+        with:
+          language: node
+          node-version: '22'
+          working-directory: release-source/frontend
+          dependency-paths: release-source/frontend/package-lock.json
+          install: npm ci
+
+      - name: Run Gate Tests (Durable Persistence)
+        id: gate_persistence
+        continue-on-error: true
+        working-directory: release-source
+        run: |
+          set +e
+          exit_code=0
+          pytest tests/unit/test_repository_graph_persistence.py -q --junitxml=results-persistence-1.xml || exit_code=1
+          pytest tests/unit/test_graph_lifecycle_persistence.py -q --junitxml=results-persistence-2.xml || exit_code=1
+          pytest tests/unit/test_repository_graph_persistence_fields.py -q --junitxml=results-persistence-3.xml || exit_code=1
+          pytest tests/unit/test_graph_lifecycle_persistence_fields.py -q --junitxml=results-persistence-4.xml || exit_code=1
+          pytest tests/integration/test_hosted_graph_startup_readiness.py -q --junitxml=results-persistence-5.xml || exit_code=1
+          exit $exit_code
+
+      - name: Run Gate Tests (Restart/Reload)
+        id: gate_restart
+        continue-on-error: true
+        working-directory: release-source
+        run: |
+          set +e
+          status=0
+          pytest tests/unit/test_graph_lifecycle_persistence.py -q --junitxml=results-restart-0.xml || status=1
+          pytest tests/integration/test_restart_recovery_clean_path.py -q --junitxml=results-restart-1.xml || status=1
+          pytest tests/integration/test_distributed_hosting_failure_modes.py -q --junitxml=results-restart-2.xml || status=1
+          exit $status
+
+      - name: Run Gate Tests (Recovery/Rebuild)
+        id: gate_recovery
+        continue-on-error: true
+        working-directory: release-source
+        run: |
+          set +e
+          status=0
+          pytest tests/unit/test_distributed_lock_runtime.py -q --junitxml=results-recovery-1.xml || status=1
+          pytest tests/unit/test_recovery_gate.py -q --junitxml=results-recovery-2.xml || status=1
+          pytest tests/unit/test_recovery_gate_startup.py -q --junitxml=results-recovery-3.xml || status=1
+          pytest tests/integration/test_recovery_gate_integration.py -q --junitxml=results-recovery-4.xml || status=1
+          pytest tests/integration/test_lock_refresh_flow.py -q --junitxml=results-recovery-5.xml || status=1
+          # tests/integration/test_distributed_hosting_failure_modes.py is exercised in Restart/Reload gate (see docs/release-evidence-pack.md)
+          exit $status
+
+      - name: Run Gate Tests (API Contract)
+        id: gate_api
+        continue-on-error: true
+        working-directory: release-source
+        run: |
+          set +e
+          status=0
+          pytest tests/unit/test_api_density_contract.py -q --junitxml=results-api-1.xml || status=1
+          pytest tests/unit/test_api_asset_pagination_values.py -q --junitxml=results-api-2.xml || status=1
+          pytest tests/integration/test_api_pagination_contract.py -q --junitxml=results-api-3.xml || status=1
+          pytest tests/unit/test_asset_page_response_alias.py -q --junitxml=results-api-4.xml || status=1
+          (cd frontend && npm test -- api-contract-seams.test.ts) || status=1
+          exit $status
+
+
+      - name: Verify AI System Documentation Requirements
+        id: gate_docs
+        continue-on-error: true
+        working-directory: release-source
+        run: |
+          echo "Verifying Article 13/14 transparency and human oversight documentation..."
+          if [ ! -f "docs/ai_system_spec.md" ]; then
+            echo "Warning: Missing AI System Specification (docs/ai_system_spec.md); marking docs gate as SKIPPED."
+            echo '{"status": "skipped"}' > docs-readiness.json
+            exit 0
+          fi
+          echo '{"status": "passed"}' > docs-readiness.json
+          exit 0
+      - name: Run Gate Tests (Security)
+        id: gate_security
+        continue-on-error: true
+        working-directory: release-source
+        run: |
+          set +e
+          status=0
+          pytest tests/unit/test_auth_router_audit_logging.py -q --junitxml=results-security-1.xml || status=1
+          pytest tests/unit/test_auth_security_events.py -q --junitxml=results-security-2.xml || status=1
+          pytest tests/integration/test_graph_admin_router.py -q --junitxml=results-security-3.xml || status=1
+          exit $status
+
+      - name: Check Hosted Readiness
+        id: gate_hosted
+        continue-on-error: true
+        working-directory: release-source
+        env:
+          HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
+          BASE_URL_INPUT: ${{ github.event.inputs.base_url }}
+          REQUIRE_PERSISTENCE: ${{ github.event.inputs.require_persistence }}
+          BASE_URL_LABEL: ${{ github.event.inputs.base_url_label }}
+        run: |
+          URL="${BASE_URL_INPUT:-$HOSTED_READINESS_BASE_URL}"
+          if [ -n "$URL" ]; then
+            echo "::add-mask::$URL"
+          fi
+
+          PERSISTENCE_FLAG=""
+          if [ "$REQUIRE_PERSISTENCE" == "true" ]; then
+            PERSISTENCE_FLAG="--require-persistence"
+          fi
+
+          LABEL_ARGS=()
+          if [ -n "$BASE_URL_LABEL" ]; then
+            LABEL_ARGS=(--base-url-label "$BASE_URL_LABEL")
+          fi
+
+          if [ -n "$URL" ]; then
+            python scripts/check_hosted_readiness.py "$URL" --json "${LABEL_ARGS[@]}" $PERSISTENCE_FLAG > readiness-output.json
+          else
+            echo "{}" > readiness-output.json
+          fi
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@6543ce64cb6eb0d110ebf6fb5b172aeb41d3b5b6 # v4
+        with:
+          name: release-evidence
+          path: |
+            release-source/results-*.xml
+            release-source/readiness-output.json
+            release-source/docs-readiness.json
+
+      - name: Assert All Gates Passed
+        if: always()
+        working-directory: release-source
+        env:
+          STRICT_RC_GATE: ${{ inputs.strict_rc_gate }}
+        run: |
+          docs_status=$(jq -r '.status // "skipped"' docs-readiness.json 2>/dev/null || echo "skipped")
+          readiness_status=$(jq -r '.status // "skipped"' readiness-output.json 2>/dev/null || echo "skipped")
+
+          if [ "${{ steps.gate_persistence.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_restart.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_recovery.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_api.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_security.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_hosted.outcome }}" != "success" ] || \
+          [ "${{ steps.gate_docs.outcome }}" != "success" ]; then
+            echo "One or more gate tests failed!"
+            exit 1
+          fi
+
+          if [ "$STRICT_RC_GATE" == "true" ]; then
+            if [ "$readiness_status" != "passed" ] || [ "$docs_status" != "passed" ]; then
+              echo "Strict RC promotion requires hosted readiness and docs checks to pass."
+              exit 1
+            fi
+          else
+            if [ "$readiness_status" != "passed" ] && [ "$readiness_status" != "skipped" ]; then
+              echo "Hosted readiness must pass or be intentionally skipped."
+              exit 1
+            fi
+            if [ "$docs_status" != "passed" ] && [ "$docs_status" != "skipped" ]; then
+              echo "Docs readiness must pass or be intentionally skipped."
+              exit 1
+            fi
+          fi
+
+      - name: Emit Gate Summary
+        if: always()
+        working-directory: release-source
+        run: |
+          python - <<'PY'
+          import glob
+          import json
+          import os
+          import sys
+          import xml.etree.ElementTree as ET
+
+          def junit_status(pattern: str) -> str:
+              files = sorted(glob.glob(pattern))
+              if not files:
+                  return "MISSING"
+
+              failures = 0
+              errors = 0
+              for path in files:
+                  root = ET.parse(path).getroot()
+                  suites = root.findall("testsuite") if root.tag == "testsuites" else [root]
+                  for suite in suites:
+                      failures += int(suite.attrib.get("failures", 0))
+                      errors += int(suite.attrib.get("errors", 0))
+
+              return "PASS" if failures == 0 and errors == 0 else "FAIL"
+
+          def json_status(path: str) -> str:
+              try:
+                  with open(path, "r", encoding="utf-8") as handle:
+                      data = json.load(handle)
+                  if not data:
+                      return "SKIPPED"
+                  status = data.get("status")
+                  if status == "passed":
+                      return "PASS"
+                  if status == "skipped":
+                      return "SKIPPED"
+                  return "FAIL"
+              except FileNotFoundError:
+                  return "SKIPPED"
+              except Exception:
+                  return "FAIL"
+
+          gates = [
+              ("Architecture", "MANUAL EVIDENCE REQUIRED", "docs/adr/0001-production-architecture.md; docs/enterprise-deployment-operating-model.md"),
+              ("Durable Persistence", junit_status("results-persistence-*.xml"), "results-persistence-*.xml"),
+              ("Restart / Reload", junit_status("results-restart-*.xml"), "results-restart-*.xml"),
+              ("Promotion", json_status("readiness-output.json"), "readiness-output.json"),
+              ("API Contract", junit_status("results-api-*.xml"), "results-api-*.xml"),
+              ("Recovery / Rebuild", junit_status("results-recovery-*.xml"), "results-recovery-*.xml"),
+              ("Security", junit_status("results-security-*.xml"), "results-security-*.xml"),
+              ("Governance", "MANUAL EVIDENCE REQUIRED", "docs/GOVERNANCE.md; docs/governance/state-machine-and-operating-authority.md"),
+              ("Disaster Recovery", "MANUAL EVIDENCE REQUIRED", "docs/runbooks/backup-restore-dr.md; docs/adr/0005-backup-restore-dr-strategy.md"),
+          ]
+
+          summary_path = os.environ["GITHUB_STEP_SUMMARY"]
+          with open(summary_path, "a", encoding="utf-8") as out:
+              out.write("## Release Evidence Gate Summary\n")
+              out.write("| Gate | Status | Evidence |\n")
+              out.write("| --- | --- | --- |\n")
+              for gate, status, evidence in gates:
+                  out.write(f"| {gate} | {status} | {evidence} |\n")
+              out.write("\n")
+              out.write("Supplementary checks (not part of the nine canonical gates):\n")
+              out.write(
+                  f"- AI System Documentation (Article 13/14): {json_status('docs-readiness.json')} (`docs-readiness.json`)\n"
+              )
+
+          sys.exit(0)
+          PY

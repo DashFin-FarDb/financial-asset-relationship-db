@@ -1,0 +1,93 @@
+name: Staging Promotion
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      evidence_file:
+        description: 'Path to the release-candidate evidence file'
+        required: true
+      base_url:
+        description: 'Staging base URL (optional; falls back to HOSTED_READINESS_BASE_URL secret)'
+        required: false
+      tags:
+        description: 'Manual sign-off tags (e.g., [manual-stop] or [star])'
+        required: false
+        default: ''
+
+jobs:
+  promotion-gate:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'staging-manual-gate' || 'staging' }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify Staging Baseline Checklist
+        env:
+          EVIDENCE_FILE: ${{ github.event.inputs.evidence_file }}
+        run: python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
+
+      - name: Check Hosted Readiness
+        id: readiness
+        env:
+          HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
+          BASE_URL_INPUT: ${{ github.event.inputs.base_url }}
+        run: |
+          URL="${BASE_URL_INPUT:-$HOSTED_READINESS_BASE_URL}"
+          if [ -z "$URL" ]; then
+            echo "Error: Base URL is missing"
+            exit 1
+          fi
+          echo "::add-mask::$URL"
+
+          python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
+
+      - name: Assert Persistence Loaded
+        run: |
+          if [ "$(jq -r '.observed_fields."graph_persistence_configured"' readiness-output.json)" != "true" ]; then
+            echo "Error: graph_persistence_configured is not true in the readiness output."
+            exit 1
+          fi
+          if [ "$(jq -r '.observed_fields."graph.persistence_enabled"' readiness-output.json)" != "true" ]; then
+            echo "Error: graph.persistence_enabled is not true in the readiness output."
+            exit 1
+          fi
+          if [ "$(jq -r '.observed_fields."graph.persistence_loaded"' readiness-output.json)" != "true" ]; then
+            echo "Error: graph.persistence_loaded is not true in the readiness output."
+            exit 1
+          fi
+          if [ "$(jq -r '.observed_fields."graph.startup_source"' readiness-output.json)" != "persisted" ]; then
+            echo "Error: startup_source is not \"persisted\" in the readiness output."
+            exit 1
+          fi
+          echo "Assertion passed: graph is persistence loaded."
+
+      - name: Audit Logging
+        if: always()
+        run: |
+          echo "Logging promotion decision for AI system transparency (Article 13)..."
+          echo "Promotion run at $(date -u) — result: ${{ job.status }}" >> promotion_audit.log
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b761e4b58bb5c2f3 # v4
+        with:
+          name: staging-readiness
+          path: |
+            readiness-output.json
+            promotion_audit.log
