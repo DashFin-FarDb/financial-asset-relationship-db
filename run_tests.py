@@ -30,7 +30,7 @@ def _validate_pytest_args(args: list[str]) -> list[str]:
         list[str]: The input arguments in the same order after validation.
 
     Raises:
-        ValueError: If any argument contains NUL (\\x00), newline (\\n), or carriage return (\\r).
+        ValueError: If any argument contains NUL (\x00), newline (\n), or carriage return (\r).
     """
     validated: list[str] = []
     for arg in args:
