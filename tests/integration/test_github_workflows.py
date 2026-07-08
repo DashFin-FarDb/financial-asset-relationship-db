@@ -598,9 +598,7 @@ class TestWorkflowEdgeCases:
         with open(workflow_file, encoding="utf-8") as f:
             content = f.read()
 
-        assert (
-            "\t" not in content
-        ), f"Workflow {workflow_file.name} contains tab characters. YAML files should use spaces for indentation, not tabs."
+        assert "\t" not in content, "YAML indentation must use spaces, not tabs."
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_consistent_indentation(self, workflow_file: Path):
