@@ -117,7 +117,7 @@ def check_duplicate_headings(manifest_path: Path) -> int:
 
 
 def main():
-    """Main entry point for the validation script."""
+    """Run the validation script."""
     manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
     exit_code = check_duplicate_headings(manifest_path)
     sys.exit(exit_code)

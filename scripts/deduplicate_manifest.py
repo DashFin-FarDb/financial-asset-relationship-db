@@ -175,7 +175,7 @@ def count_duplicates(sections: list[tuple[str, str]]) -> dict[str, int]:
 
 
 def _has_invalid_path_chars(user_value: str) -> bool:
-    """
+    r"""
     Detect whether a path string contains NUL, newline, or carriage return characters.
 
     Parameters:

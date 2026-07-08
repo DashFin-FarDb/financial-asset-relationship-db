@@ -31,6 +31,7 @@ class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
     def __getattr__(self, name: str):
         """
         Dynamically resolves attribute access under a lock to avoid race conditions.
+
         If the attribute is callable, returns a wrapper that locks around calls;
         otherwise, returns a defensive deep copy of the attribute.
         """
@@ -41,10 +42,7 @@ class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
             if callable(attr):
 
                 def _wrapped(*args, **kwargs):
-                    """
-                    Thread-safe wrapper for callable attributes that acquires the lock
-                    before invocation.
-                    """
+                    """Thread-safe wrapper for callable attributes."""
                     with self._lock:
                         return attr(*args, **kwargs)
 
@@ -62,9 +60,10 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 
 def _get_3d_layout_resource() -> str:
     """
-    Provides the current 3D visualization payload for UI and spatial reasoning.
+    Return the current 3D visualization payload for UI and spatial reasoning.
 
-    The JSON encodes:
+    The payload encodes:
+
     - asset_ids: sequence of asset identifiers corresponding to positions
     - positions: list of [x, y, z] coordinates for each asset
     - colors: color values for each asset
