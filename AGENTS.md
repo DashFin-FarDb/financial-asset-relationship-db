@@ -355,4 +355,4 @@ Environment is Linux with Python 3.12 and Node 22. Dependencies (Python `.venv` 
 - **Frontend → backend wiring:** start the frontend with `NEXT_PUBLIC_API_URL=http://localhost:8000` (defaults to that anyway). Public dashboard routes (visualization/metrics/assets) need no login; only `/token`, `/api/users/me`, and rebuild-admin endpoints require JWT.
 - **Backend serves sample data by default** (19 assets / 73 relationships); no external DB or `USE_REAL_DATA_FETCHER` needed for local E2E.
 - **`python3-venv` system package** is required to create the venv and is installed during environment setup (not part of the update script).
-- **Known pre-existing test failures (not environment issues):** `tests/unit/test_workflow_yaml_files.py` errors on `codeql.yml` because `.github/workflows/codeql.yml` does not exist in the repo. The rest of the suite passes (~7777 passed).
+- **Known pre-existing test failures (not environment issues):** `tests/unit/test_workflow_yaml_files.py` fails on `codeql.yml` (via `pytest.fail`) because `.github/workflows/codeql.yml` does not exist in the repo. The rest of the suite passes (~7777 passed).
