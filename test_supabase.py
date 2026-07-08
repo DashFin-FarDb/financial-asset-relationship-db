@@ -78,8 +78,6 @@ def _read_supabase_credentials() -> tuple[str, str]:
 
     if not supabase_url or not supabase_key:
         pytest.skip("Missing SUPABASE_URL and/or SUPABASE_KEY")
-    assert supabase_url is not None
-    assert supabase_key is not None
     if any(tok in supabase_key for tok in PLACEHOLDER_TOKENS):
         pytest.skip("SUPABASE_KEY appears to be a placeholder")
     return supabase_url, supabase_key
