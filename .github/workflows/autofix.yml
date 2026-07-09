@@ -12,14 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      # Use uv to ensure we have the same ruff version in CI and locally.
+      # Use uv to install formatter/linter tools consistently in CI.
       - uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867
         with:
           version: "0.4.15"
       # Fix lint errors
       - run: uvx ruff check --fix-only .
-      # Format code
-      - run: uvx ruff format .
+      # Format code with the same formatter enforced by pre-commit and CI.
+      - run: uvx black .
 
 
       - uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27
