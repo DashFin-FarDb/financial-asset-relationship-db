@@ -17,10 +17,10 @@ if str(_SCRIPTS_ROOT) not in sys.path:
 
 from compound.schema import (  # noqa: E402
     LEDGER_PATH,
+    RUNTIME_PATH,
     Observation,
     ObservationSource,
     PathPolicyError,
-    RUNTIME_PATH,
     SchemaError,
     WriterMode,
     assert_writable,
