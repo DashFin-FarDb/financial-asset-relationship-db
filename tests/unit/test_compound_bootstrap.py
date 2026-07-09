@@ -12,7 +12,7 @@ SCRIPTS_ROOT = REPO_ROOT / "scripts"
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
-from compound.bootstrap import scrape_recent_prs, seed_from_docs  # noqa: E402
+from compound.bootstrap import _select_recent_prs, scrape_recent_prs, seed_from_docs  # noqa: E402
 from compound.schema import DOMAINS, parse_observation_line  # noqa: E402
 
 
@@ -113,3 +113,15 @@ class TestCompoundBootstrap:
                 domains.update(obs.domains)
         assert "api" in domains
         assert "architecture" in domains
+
+    def test_select_recent_prs_filters_after_constant_gh_command(self) -> None:
+        """PR scrape filtering happens in Python after the fixed gh command."""
+        data = [
+            {"number": 1, "updatedAt": "2026-07-01T00:00:00Z"},
+            {"number": 2, "updatedAt": "2026-07-09T00:00:00Z"},
+            {"number": 3, "updatedAt": "2026-07-10T00:00:00Z"},
+        ]
+
+        selected = _select_recent_prs(data, limit=1, updated_since="2026-07-09")
+
+        assert selected == [{"number": 2, "updatedAt": "2026-07-09T00:00:00Z"}]

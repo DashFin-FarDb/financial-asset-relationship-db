@@ -156,17 +156,22 @@ class PathPolicyError(PermissionError):
 def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
     """Normalize an optional string or sequence of strings into a tuple."""
     if value is None:
-        return tuple()
+        return ()
     if isinstance(value, str):
-        return tuple([value])
+        return (value,)
     if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
-        items = []
-        for item in value:
-            if not isinstance(item, str):
-                raise SchemaError(f"{field_name} entries must be strings")
-            items.append(item)
-        return tuple(items)
+        return _strings_from_sequence(value, field_name)
     raise SchemaError(f"{field_name} must be a string or list of strings")
+
+
+def _strings_from_sequence(value: Sequence[Any], field_name: str) -> tuple[str, ...]:
+    """Validate that every sequence item is a string."""
+    items: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            raise SchemaError(f"{field_name} entries must be strings")
+        items.append(item)
+    return tuple(items)
 
 
 def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
@@ -244,31 +249,31 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     if not isinstance(version, int) or isinstance(version, bool):
         raise SchemaError("watched-series version must be an integer")
 
-    prs_raw = data["prs"]
-    labels_raw = data["labels"]
-    globs_raw = data["path_globs"]
-    if not isinstance(prs_raw, list) or not isinstance(labels_raw, list) or not isinstance(globs_raw, list):
+    return WatchedSeries(
+        version=version,
+        prs=_int_list(data["prs"], "prs"),
+        labels=list(_strings_from_list(data["labels"], "labels")),
+        path_globs=list(_strings_from_list(data["path_globs"], "path_globs")),
+    )
+
+
+def _int_list(value: Any, field_name: str) -> list[int]:
+    """Validate a watched-series integer list."""
+    if not isinstance(value, list):
         raise SchemaError("watched-series prs, labels, and path_globs must be lists")
-
-    prs: list[int] = []
-    for item in prs_raw:
+    items: list[int] = []
+    for item in value:
         if not isinstance(item, int) or isinstance(item, bool):
-            raise SchemaError("watched-series prs must be integers")
-        prs.append(item)
+            raise SchemaError(f"watched-series {field_name} must be integers")
+        items.append(item)
+    return items
 
-    labels: list[str] = []
-    for item in labels_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series labels must be strings")
-        labels.append(item)
 
-    path_globs: list[str] = []
-    for item in globs_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series path_globs must be strings")
-        path_globs.append(item)
-
-    return WatchedSeries(version=version, prs=prs, labels=labels, path_globs=path_globs)
+def _strings_from_list(value: Any, field_name: str) -> tuple[str, ...]:
+    """Validate a watched-series string list."""
+    if not isinstance(value, list):
+        raise SchemaError("watched-series prs, labels, and path_globs must be lists")
+    return _strings_from_sequence(value, f"watched-series {field_name}")
 
 
 def normalize_repo_relative(path: str | Path) -> str:

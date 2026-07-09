@@ -233,6 +233,14 @@ def _sync_state_changed(expected_last_synced_job_id: str | None | _UnsetLastSync
     return graph_state.last_synced_job_id != expected_last_synced_job_id
 
 
+def _mirror_graph_to_legacy_api_main(graph_instance: AssetRelationshipGraph) -> None:
+    """Mirror graph state to api.main when that legacy module is already loaded."""
+    api_main = sys.modules.get("api.main")
+    if api_main is None or "graph" not in api_main.__dict__:
+        return
+    api_main.__dict__["graph"] = graph_instance
+
+
 def get_graph() -> AssetRelationshipGraph:
     """Get the module-global graph, initializing it when needed."""
     if graph_state.graph is not None:
@@ -343,9 +351,7 @@ def synchronize_runtime_graph(
         if not preserve_rebuild:
             _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
 
-        api_main = sys.modules.get("api.main")
-        if api_main is not None and hasattr(api_main, "graph"):
-            setattr(api_main, "graph", graph_instance)
+        _mirror_graph_to_legacy_api_main(graph_instance)
         return True
 
 

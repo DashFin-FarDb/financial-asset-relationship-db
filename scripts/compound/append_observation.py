@@ -29,6 +29,13 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_RUNTIME_DATA: dict[str, str | int | None] = {
+    "writer_mode": WriterMode.DUAL.value,
+    "conflict_count": 0,
+    "conflict_window_minutes": 30,
+    "last_conflict_at": None,
+}
+RUNTIME_INT_KEYS = {"conflict_count", "conflict_window_minutes"}
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
@@ -75,26 +82,35 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
 
 def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
     """Parse the small runtime.yml key set without requiring PyYAML."""
-    data: dict[str, str | int | None] = {
-        "writer_mode": WriterMode.DUAL.value,
-        "conflict_count": 0,
-        "conflict_window_minutes": 30,
-        "last_conflict_at": None,
-    }
+    data = dict(DEFAULT_RUNTIME_DATA)
     for line in text.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or ":" not in stripped:
+        entry = _runtime_entry_from_line(line)
+        if entry is None:
             continue
-        key, value = stripped.split(":", 1)
-        key = key.strip()
-        value = value.strip()
-        if key == "writer_mode":
-            data[key] = value
-        elif key in {"conflict_count", "conflict_window_minutes"}:
-            data[key] = int(value)
-        elif key == "last_conflict_at":
-            data[key] = None if value in {"null", "~", ""} else value
+        key, value = entry
+        data[key] = _parse_runtime_value(key, value)
     return data
+
+
+def _runtime_entry_from_line(line: str) -> tuple[str, str] | None:
+    """Return a runtime.yml key/value pair from one simple YAML line."""
+    stripped = line.strip()
+    if not stripped or stripped.startswith("#") or ":" not in stripped:
+        return None
+    key, value = stripped.split(":", 1)
+    normalized_key = key.strip()
+    if normalized_key not in DEFAULT_RUNTIME_DATA:
+        return None
+    return normalized_key, value.strip()
+
+
+def _parse_runtime_value(key: str, value: str) -> str | int | None:
+    """Parse a supported runtime.yml scalar value."""
+    if key in RUNTIME_INT_KEYS:
+        return int(value)
+    if key == "last_conflict_at" and value in {"null", "~", ""}:
+        return None
+    return value
 
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
@@ -124,37 +140,35 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     runtime_path = _repo_path(RUNTIME_PATH, root)
     assert_writable(RUNTIME_PATH)
     current = datetime.now(timezone.utc) if now is None else now
-    if runtime_path.exists():
-        data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
-    else:
-        data = {
-            "writer_mode": WriterMode.DUAL.value,
-            "conflict_count": 0,
-            "conflict_window_minutes": 30,
-            "last_conflict_at": None,
-        }
-
-    window_minutes = int(data.get("conflict_window_minutes") or 30)
-    last_raw = data.get("last_conflict_at")
-    count = int(data.get("conflict_count") or 0)
-    if isinstance(last_raw, str) and last_raw not in {"null", ""}:
-        try:
-            last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
-            age_minutes = (current - last_at).total_seconds() / 60.0
-            if age_minutes > window_minutes:
-                count = 0
-        except ValueError:
-            count = 0
-    else:
-        count = 0
-
-    count += 1
+    data = _read_runtime_data(runtime_path)
+    count = _current_conflict_count(data, current) + 1
     data["conflict_count"] = count
     data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
     if count >= 3:
         data["writer_mode"] = WriterMode.GITHUB_ONLY.value
     _write_runtime_yaml(runtime_path, data)
     return WriterMode(str(data["writer_mode"]))
+
+
+def _read_runtime_data(runtime_path: Path) -> dict[str, str | int | None]:
+    """Read runtime state or return defaults when no file exists."""
+    if runtime_path.exists():
+        return _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
+    return dict(DEFAULT_RUNTIME_DATA)
+
+
+def _current_conflict_count(data: Mapping[str, Any], current: datetime) -> int:
+    """Return the conflict count that is still inside the configured window."""
+    last_raw = data.get("last_conflict_at")
+    if not isinstance(last_raw, str) or last_raw in {"null", ""}:
+        return 0
+    try:
+        last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
+    except ValueError:
+        return 0
+    window_minutes = int(data.get("conflict_window_minutes") or 30)
+    age_minutes = (current - last_at).total_seconds() / 60.0
+    return 0 if age_minutes > window_minutes else int(data.get("conflict_count") or 0)
 
 
 def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
