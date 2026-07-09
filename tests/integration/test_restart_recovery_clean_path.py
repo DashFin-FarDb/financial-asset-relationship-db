@@ -1,6 +1,6 @@
 """Clean restart-recovery path using the real lifecycle and persistence seams."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -15,6 +15,8 @@ from tests.integration.facade import (
     AssetGraphRepository,
     session_scope,
 )
+
+UTC = timezone.utc
 
 pytestmark = pytest.mark.integration
 
