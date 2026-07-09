@@ -521,6 +521,7 @@ class TestArchitectureMdProductionLabels:
         # The label should be near Next.js
         nextjs_pos = content.find("Next.js UI")
         production_label_pos = content.find("** PRODUCTION **")
+        assert nextjs_pos != -1, "Next.js UI must appear in the architecture diagram"
         assert production_label_pos != -1, "PRODUCTION label must be present"
         # They should be close (within 200 characters of each other in the diagram)
         assert abs(nextjs_pos - production_label_pos) < 200, "PRODUCTION label should be near Next.js UI"
