@@ -34,6 +34,20 @@ def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     return root / Path(relative)
 
 
+def _resolve_repo_file(file_path: Path, repo_root: Path | None = None) -> Path:
+    """Resolve a caller-supplied file path and require it to stay inside the repo."""
+    root = (repo_root or REPO_ROOT).resolve()
+    candidate = file_path if file_path.is_absolute() else root / file_path
+    resolved = candidate.resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
+        raise PathPolicyError("--file must point inside the repository root") from exc
+    if not resolved.is_file():
+        raise PathPolicyError(f"--file does not exist or is not a file: {file_path}")
+    return resolved
+
+
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     """Read dual-writer mode from docs/compound/runtime.yml."""
     runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
@@ -243,7 +257,11 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else json.loads(Path(args.file).read_text(encoding="utf-8"))
+        if args.json:
+            payload = json.loads(args.json)
+        else:
+            input_file = _resolve_repo_file(args.file, args.repo_root)
+            payload = json.loads(input_file.read_text(encoding="utf-8"))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:
