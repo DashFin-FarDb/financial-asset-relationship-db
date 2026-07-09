@@ -248,6 +248,7 @@ class TestDependencyChangePRTemplate:
         bare_editable = [c for c in commands if c == "pip install -e ."]
         dev_editable = [c for c in commands if c == 'pip install -e ".[dev]"']
 
+        assert len(bare_editable) >= 1, "Validation section must include 'pip install -e .'"
         assert len(bare_editable) == 1, (
             f"'pip install -e .' must appear exactly once; found {len(bare_editable)} occurrences"
         )

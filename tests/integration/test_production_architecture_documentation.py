@@ -31,10 +31,6 @@ ADR_0001 = REPO_ROOT / "docs" / "adr" / "0001-production-architecture.md"
 # Helpers
 # ---------------------------------------------------------------------------
 
-# Max character distance for "label appears near heading/diagram entry" checks.
-_LABEL_PROXIMITY_CHARS = 200
-
-
 def _load(path: Path) -> str:
     assert path.exists(), f"Required file not found: {path}"
     return path.read_text(encoding="utf-8")
@@ -523,13 +519,10 @@ class TestArchitectureMdProductionLabels:
         assert "PRODUCTION" in content
         # The label should be near Next.js
         nextjs_pos = content.find("Next.js UI")
-        assert nextjs_pos != -1, "Next.js UI must appear in the documentation"
         production_label_pos = content.find("** PRODUCTION **")
         assert production_label_pos != -1, "PRODUCTION label must be present"
-        # They should be close in the diagram
-        assert abs(nextjs_pos - production_label_pos) < _LABEL_PROXIMITY_CHARS, (
-            "PRODUCTION label should be near Next.js UI"
-        )
+        # They should be close (within 200 characters of each other in the diagram)
+        assert abs(nextjs_pos - production_label_pos) < 200, "PRODUCTION label should be near Next.js UI"
 
     def test_has_non_production_label_for_gradio(self, content: str) -> None:
         assert "NON-PRODUCTION" in content
@@ -576,7 +569,7 @@ class TestArchitectureMdProductionLabels:
         nextjs_stack_pos = content.find("Next.js Frontend Stack")
         production_label = content.find("** PRODUCTION **", nextjs_stack_pos)
         assert nextjs_stack_pos != -1, "Next.js Frontend Stack section must exist"
-        assert production_label != -1 and production_label < nextjs_stack_pos + _LABEL_PROXIMITY_CHARS, (
+        assert production_label != -1 and production_label < nextjs_stack_pos + 200, (
             "PRODUCTION label must appear in Next.js stack section"
         )
 
@@ -584,7 +577,7 @@ class TestArchitectureMdProductionLabels:
         gradio_stack_pos = content.find("Gradio Frontend Stack")
         non_prod_label = content.find("** NON-PRODUCTION **", gradio_stack_pos)
         assert gradio_stack_pos != -1, "Gradio Frontend Stack section must exist"
-        assert non_prod_label != -1 and non_prod_label < gradio_stack_pos + _LABEL_PROXIMITY_CHARS, (
+        assert non_prod_label != -1 and non_prod_label < gradio_stack_pos + 200, (
             "NON-PRODUCTION label must appear in Gradio stack section"
         )
 
