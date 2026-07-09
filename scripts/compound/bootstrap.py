@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
+import subprocess  # nosec B404 - gh is invoked with a fixed argv list and shell=False.
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -116,7 +116,7 @@ def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | Non
     command.extend(["--json", GH_PR_JSON_FIELDS])
 
     try:
-        completed = subprocess.run(
+        completed = subprocess.run(  # nosec B603 - command is fixed and user values are pre-validated.
             command,
             check=False,
             capture_output=True,
