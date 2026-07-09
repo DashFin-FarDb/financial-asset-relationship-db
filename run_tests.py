@@ -17,16 +17,6 @@ def _has_control_chars(value: str) -> bool:
         bool: True if `value` contains NUL (`\\x00`), newline (`\\n`), or carriage return (`\\r`), False otherwise.
     """
     return any(char in value for char in ("\x00", "\n", "\r"))
-    r"""
-    Determine whether the string contains any disallowed control characters: NUL, line feed, or carriage return.
-
-    Parameters:
-        value (str): The string to inspect.
-
-    Returns:
-        bool: True if `value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), False otherwise.
-    """
-    return any(char in value for char in ("\x00", "\n", "\r"))
 
 
 def _validate_pytest_args(args: list[str]) -> list[str]:
