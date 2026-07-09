@@ -358,7 +358,7 @@ class TestDecodeUsernameFromToken:
 
     def _payload(self, username: str | None, *, minutes_from_now: int = 30) -> dict:
         """Build a token payload with optional subject and relative expiration."""
-        payload = {"exp": self._exp_timestamp(minutes_from_now=minutes_from_now)}
+        payload: dict[str, object] = {"exp": self._exp_timestamp(minutes_from_now=minutes_from_now)}
         if username is not None:
             payload["sub"] = username
         return payload
