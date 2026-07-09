@@ -77,10 +77,11 @@ def _read_supabase_credentials() -> tuple[str, str]:
 
     if supabase_url is None or supabase_key is None:
         pytest.skip("Missing SUPABASE_URL and/or SUPABASE_KEY")
-    # Narrow for type checkers that do not treat pytest.skip as NoReturn.
-    assert supabase_url is not None and supabase_key is not None
+        # Narrow for type checkers that do not treat pytest.skip as NoReturn.
+        raise RuntimeError("pytest.skip returned unexpectedly")
     if any(tok in supabase_key for tok in PLACEHOLDER_TOKENS):
         pytest.skip("SUPABASE_KEY appears to be a placeholder")
+        raise RuntimeError("pytest.skip returned unexpectedly")
     return supabase_url, supabase_key
 
 
