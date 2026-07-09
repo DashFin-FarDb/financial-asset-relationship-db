@@ -14,7 +14,7 @@ def _has_control_chars(value: str) -> bool:
         value (str): The string to inspect.
 
     Returns:
-        bool: True if `value` contains NUL (`\\x00`), newline (`\\n`), or carriage return (`\\r`), False otherwise.
+        bool: True if `value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), False otherwise.
     """
     return any(char in value for char in ("\x00", "\n", "\r"))
 
