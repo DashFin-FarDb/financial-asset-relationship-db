@@ -1305,7 +1305,7 @@ class TestYieldToMaturityFormula:
         assert r"\sum" in formula.latex
 
     def test_ytm_formula_latex_contains_frac(self):
-        """_yield_to_maturity_formula LaTeX string uses \\frac notation."""
+        r"""_yield_to_maturity_formula LaTeX string uses \\frac notation."""
         graph = self._make_bond_graph(yield_to_maturity=0.03)
         formula = FormulaicAnalyzer._yield_to_maturity_formula(graph)
         assert r"\frac" in formula.latex
@@ -1454,8 +1454,9 @@ class TestExtractFundamentalFormulasWithBonds:
 
     @staticmethod
     def test_ytm_and_dividend_yield_both_present_when_applicable():
-        """_extract_fundamental_formulas includes both YTM and Dividend Yield formulas
-        when the graph has a bond and a dividend-paying stock."""
+        """
+        Include both YTM and Dividend Yield when bond and dividend stock exist.
+        """
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
         graph.add_asset(
