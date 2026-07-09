@@ -280,8 +280,7 @@ def generate_markdown(status: PRStatus) -> str:
 
 def write_output(content: str) -> None:
     """
-    Write the PR Markdown report to the GitHub Actions step summary when allowed,
-    to a standard temp file, and to stdout.
+    Write the PR Markdown report to summary, temp file, and stdout.
 
     If the GITHUB_STEP_SUMMARY environment variable is set and resolves inside the system
     temporary directory, append content to that file; otherwise skip the step-summary write

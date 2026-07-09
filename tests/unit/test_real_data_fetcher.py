@@ -201,36 +201,36 @@ class TestGetYfinanceLazyImport:
                 sys.modules.pop("yfinance", None)
 
     @staticmethod
-    @patch("src.data.real_data_fetcher._get_yfinance")
-    def test_fetch_equity_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+    def test_fetch_equity_raises_runtime_error_when_yfinance_missing():
         """_fetch_equity_data raises RuntimeError when yfinance is unavailable."""
-        mock_get_yf.side_effect = RuntimeError("yfinance is unavailable in the current environment")
-        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
-            RealDataFetcher._fetch_equity_data()
+        with patch("src.data.real_data_fetcher._get_yfinance") as mock_get_yf:
+            mock_get_yf.side_effect = RuntimeError("yfinance is unavailable in the current environment")
+            with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+                RealDataFetcher._fetch_equity_data()
 
     @staticmethod
-    @patch("src.data.real_data_fetcher._get_yfinance")
-    def test_fetch_bond_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+    def test_fetch_bond_raises_runtime_error_when_yfinance_missing():
         """_fetch_bond_data raises RuntimeError when yfinance is unavailable."""
-        mock_get_yf.side_effect = RuntimeError("yfinance is unavailable in the current environment")
-        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
-            RealDataFetcher._fetch_bond_data()
+        with patch("src.data.real_data_fetcher._get_yfinance") as mock_get_yf:
+            mock_get_yf.side_effect = RuntimeError("yfinance is unavailable in the current environment")
+            with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+                RealDataFetcher._fetch_bond_data()
 
     @staticmethod
-    @patch("src.data.real_data_fetcher._get_yfinance")
-    def test_fetch_commodity_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+    def test_fetch_commodity_raises_runtime_error_when_yfinance_missing():
         """_fetch_commodity_data raises RuntimeError when yfinance is unavailable."""
-        mock_get_yf.side_effect = RuntimeError("yfinance is unavailable in the current environment")
-        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
-            RealDataFetcher._fetch_commodity_data()
+        with patch("src.data.real_data_fetcher._get_yfinance") as mock_get_yf:
+            mock_get_yf.side_effect = RuntimeError("yfinance is unavailable in the current environment")
+            with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+                RealDataFetcher._fetch_commodity_data()
 
     @staticmethod
-    @patch("src.data.real_data_fetcher._get_yfinance")
-    def test_fetch_currency_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+    def test_fetch_currency_raises_runtime_error_when_yfinance_missing():
         """_fetch_currency_data raises RuntimeError when yfinance is unavailable."""
-        mock_get_yf.side_effect = RuntimeError("yfinance is unavailable in the current environment")
-        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
-            RealDataFetcher._fetch_currency_data()
+        with patch("src.data.real_data_fetcher._get_yfinance") as mock_get_yf:
+            mock_get_yf.side_effect = RuntimeError("yfinance is unavailable in the current environment")
+            with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+                RealDataFetcher._fetch_currency_data()
 
 
 @pytest.mark.unit
@@ -293,40 +293,36 @@ class TestCreateRealDatabase:
         assert len(graph.assets) > 0
 
     @staticmethod
-    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data")
-    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
-    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
-    @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    def test_create_database_with_network(
-        mock_events,
-        mock_currency,
-        mock_commodity,
-        mock_bond,
-        mock_equity,
-    ):
+    def test_create_database_with_network():
         """Test database creation with network enabled."""
-        mock_equity.return_value = [
-            Equity(
-                id="TEST",
-                symbol="TEST",
-                name="Test Equity",
-                asset_class=AssetClass.EQUITY,
-                sector="Technology",
-                price=100.0,
-            )
-        ]
-        mock_bond.return_value = []
-        mock_commodity.return_value = []
-        mock_currency.return_value = []
-        mock_events.return_value = []
+        with (
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data") as mock_equity,
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data") as mock_bond,
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data") as mock_commodity,
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data") as mock_currency,
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events") as mock_events,
+        ):
+            mock_equity.return_value = [
+                Equity(
+                    id="TEST",
+                    symbol="TEST",
+                    name="Test Equity",
+                    asset_class=AssetClass.EQUITY,
+                    sector="Technology",
+                    price=100.0,
+                )
+            ]
+            mock_bond.return_value = []
+            mock_commodity.return_value = []
+            mock_currency.return_value = []
+            mock_events.return_value = []
 
-        fetcher = RealDataFetcher(enable_network=True)
-        graph = fetcher.create_real_database()
+            fetcher = RealDataFetcher(enable_network=True)
+            graph = fetcher.create_real_database()
 
-        assert isinstance(graph, AssetRelationshipGraph)
-        assert "TEST" in graph.assets
-        mock_equity.assert_called_once()
+            assert isinstance(graph, AssetRelationshipGraph)
+            assert "TEST" in graph.assets
+            mock_equity.assert_called_once()
 
     @staticmethod
     def test_create_database_with_cache(tmp_path):
@@ -352,15 +348,15 @@ class TestCreateRealDatabase:
         assert loaded_graph.assets["CACHED"].name == "Cached Equity"
 
     @staticmethod
-    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    def test_create_database_fetch_failure_uses_fallback(mock_equity):
+    def test_create_database_fetch_failure_uses_fallback():
         """Test that fetch failure falls back to sample data."""
-        mock_equity.side_effect = Exception("Network error")
+        with patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data") as mock_equity:
+            mock_equity.side_effect = Exception("Network error")
 
-        fetcher = RealDataFetcher(enable_network=True)
-        graph = fetcher.create_real_database()
+            fetcher = RealDataFetcher(enable_network=True)
+            graph = fetcher.create_real_database()
 
-        assert isinstance(graph, AssetRelationshipGraph)
+            assert isinstance(graph, AssetRelationshipGraph)
 
 
 @pytest.mark.unit
@@ -754,18 +750,19 @@ class TestCreateRealDatabaseFunction:
     """Test the module-level create_real_database function."""
 
     @staticmethod
-    @patch("src.data.real_data_fetcher.RealDataFetcher")
-    def test_create_real_database_function(mock_fetcher_class):
-        mock_instance = Mock()
-        mock_graph = AssetRelationshipGraph()
-        mock_instance.create_real_database.return_value = mock_graph
-        mock_fetcher_class.return_value = mock_instance
+    def test_create_real_database_function():
+        """Module-level create_real_database delegates to RealDataFetcher."""
+        with patch("src.data.real_data_fetcher.RealDataFetcher") as mock_fetcher_class:
+            mock_instance = Mock()
+            mock_graph = AssetRelationshipGraph()
+            mock_instance.create_real_database.return_value = mock_graph
+            mock_fetcher_class.return_value = mock_instance
 
-        result = create_real_database()
+            result = create_real_database()
 
-        mock_fetcher_class.assert_called_once_with()
-        mock_instance.create_real_database.assert_called_once()
-        assert result == mock_graph
+            mock_fetcher_class.assert_called_once_with()
+            mock_instance.create_real_database.assert_called_once()
+            assert result == mock_graph
 
 
 @pytest.mark.unit
@@ -791,33 +788,28 @@ class TestEdgeCases:
         assert isinstance(graph, AssetRelationshipGraph)
 
     @staticmethod
-    @patch("src.data.real_data_fetcher._save_to_cache")
-    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data")
-    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
-    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
-    @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    def test_cache_save_failure_doesnt_prevent_return(
-        mock_events,
-        mock_currency,
-        mock_commodity,
-        mock_bond,
-        mock_equity,
-        mock_save,
-        tmp_path,
-    ):
-        mock_equity.return_value = []
-        mock_bond.return_value = []
-        mock_commodity.return_value = []
-        mock_currency.return_value = []
-        mock_events.return_value = []
-        mock_save.side_effect = Exception("Save failed")
+    def test_cache_save_failure_doesnt_prevent_return(tmp_path):
+        """Cache save failures should not prevent returning a graph."""
+        with (
+            patch("src.data.real_data_fetcher._save_to_cache") as mock_save,
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data") as mock_equity,
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data") as mock_bond,
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data") as mock_commodity,
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data") as mock_currency,
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events") as mock_events,
+        ):
+            mock_equity.return_value = []
+            mock_bond.return_value = []
+            mock_commodity.return_value = []
+            mock_currency.return_value = []
+            mock_events.return_value = []
+            mock_save.side_effect = Exception("Save failed")
 
-        cache_path = tmp_path / "cache.json"
-        fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
-        graph = fetcher.create_real_database()
+            cache_path = tmp_path / "cache.json"
+            fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
+            graph = fetcher.create_real_database()
 
-        assert isinstance(graph, AssetRelationshipGraph)
+            assert isinstance(graph, AssetRelationshipGraph)
 
     @staticmethod
     def test_deserialize_asset_with_missing_type():
