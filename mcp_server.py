@@ -112,11 +112,7 @@ def _register_mcp_handlers(mcp: FastMCP) -> None:
             price (float): Current price of the equity.
 
         Returns:
-            str: On success, returns either
-                - "Successfully added: {name} ({symbol})" if inserted into the graph, or
-                - "Successfully validated (Graph mutation not supported): {name} ({symbol})"
-                  if validation succeeded but the graph does not support mutation.
-                If validation fails, returns "Validation Error: {error_message}".
+            str: Success message, or a validation error string.
         """
         try:
             new_equity = Equity(

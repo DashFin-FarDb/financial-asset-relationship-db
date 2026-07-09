@@ -906,13 +906,8 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> dict[str, Any]:
     Convert an AssetRelationshipGraph into a JSON-serializable dictionary.
 
     Returns:
-        payload (dict): A JSON-friendly mapping with the following keys:
-            - "assets": list of serialized asset objects.
-            - "regulatory_events": list of serialized regulatory event objects.
-            - "relationships": mapping from source asset id to a list of objects each containing
-              "target", "relationship_type", and "strength".
-            - "incoming_relationships": mapping from target asset id to a list of objects each
-              containing "source", "relationship_type", and "strength".
+        payload (dict): A JSON-friendly mapping with keys assets, regulatory_events,
+        relationships, and incoming_relationships.
     """
     incoming_relationships: dict[str, list[tuple[str, str, float]]] = {}
 
@@ -992,8 +987,7 @@ def _deserialize_event(data: dict[str, Any]) -> RegulatoryEvent:
             where `event_type` is the stored enum value.
 
     Returns:
-        RegulatoryEvent: A reconstructed RegulatoryEvent with `event_type` converted back
-                         to the RegulatoryActivity enum.
+        RegulatoryEvent: A reconstructed RegulatoryEvent with event_type restored.
     """
     data = dict(data)
     data["event_type"] = RegulatoryActivity(data["event_type"])
