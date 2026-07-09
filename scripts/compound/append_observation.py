@@ -65,14 +65,26 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     return WriterMode.DUAL
 
 
-def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
-    """Parse the small runtime.yml key set without requiring PyYAML."""
-    data: dict[str, str | int | None] = {
+def _default_runtime_data() -> dict[str, str | int | None]:
+    return {
         "writer_mode": WriterMode.DUAL.value,
         "conflict_count": 0,
         "conflict_window_minutes": 30,
         "last_conflict_at": None,
     }
+
+
+def _parse_runtime_value(key: str, value: str) -> str | int | None:
+    if key in {"conflict_count", "conflict_window_minutes"}:
+        return int(value)
+    if key == "last_conflict_at":
+        return None if value in {"null", "~", ""} else value
+    return value
+
+
+def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
+    """Parse the small runtime.yml key set without requiring PyYAML."""
+    data = _default_runtime_data()
     for line in text.splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#") or ":" not in stripped:
@@ -80,12 +92,8 @@ def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
         key, value = stripped.split(":", 1)
         key = key.strip()
         value = value.strip()
-        if key == "writer_mode":
-            data[key] = value
-        elif key in {"conflict_count", "conflict_window_minutes"}:
-            data[key] = int(value)
-        elif key == "last_conflict_at":
-            data[key] = None if value in {"null", "~", ""} else value
+        if key in data:
+            data[key] = _parse_runtime_value(key, value)
     return data
 
 
@@ -107,6 +115,31 @@ def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
+def _load_runtime_data(runtime_path: Path) -> dict[str, str | int | None]:
+    if runtime_path.exists():
+        return _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
+    return _default_runtime_data()
+
+
+def _is_outside_conflict_window(last_raw: str | int | None, current: datetime, window_minutes: int) -> bool:
+    if not isinstance(last_raw, str) or last_raw in {"null", ""}:
+        return True
+    try:
+        last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
+    except ValueError:
+        return True
+    age_minutes = (current - last_at).total_seconds() / 60.0
+    return age_minutes > window_minutes
+
+
+def _next_conflict_count(data: Mapping[str, Any], current: datetime) -> int:
+    window_minutes = int(data.get("conflict_window_minutes") or 30)
+    count = int(data.get("conflict_count") or 0)
+    if _is_outside_conflict_window(data.get("last_conflict_at"), current, window_minutes):
+        return 1
+    return count + 1
+
+
 def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None = None) -> WriterMode:
     """Increment conflict_count and flip to github_only when threshold is met.
 
@@ -116,31 +149,8 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     runtime_path = _repo_path("docs/compound/runtime.yml", root)
     assert_writable("docs/compound/runtime.yml")
     current = datetime.now(timezone.utc) if now is None else now
-    if runtime_path.exists():
-        data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
-    else:
-        data = {
-            "writer_mode": WriterMode.DUAL.value,
-            "conflict_count": 0,
-            "conflict_window_minutes": 30,
-            "last_conflict_at": None,
-        }
-
-    window_minutes = int(data.get("conflict_window_minutes") or 30)
-    last_raw = data.get("last_conflict_at")
-    count = int(data.get("conflict_count") or 0)
-    if isinstance(last_raw, str) and last_raw not in {"null", ""}:
-        try:
-            last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
-            age_minutes = (current - last_at).total_seconds() / 60.0
-            if age_minutes > window_minutes:
-                count = 0
-        except ValueError:
-            count = 0
-    else:
-        count = 0
-
-    count += 1
+    data = _load_runtime_data(runtime_path)
+    count = _next_conflict_count(data, current)
     data["conflict_count"] = count
     data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
     if count >= 3:
