@@ -910,9 +910,9 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> dict[str, Any]:
             - "assets": list of serialized asset objects.
             - "regulatory_events": list of serialized regulatory event objects.
             - "relationships": mapping from source asset id to a list of objects each containing
-              "target", "relationship_type", and "strength".
+                "target", "relationship_type", and "strength".
             - "incoming_relationships": mapping from target asset id to a list of objects each
-              containing "source", "relationship_type", and "strength".
+                containing "source", "relationship_type", and "strength".
     """
     incoming_relationships: dict[str, list[tuple[str, str, float]]] = {}
 
@@ -993,7 +993,7 @@ def _deserialize_event(data: dict[str, Any]) -> RegulatoryEvent:
 
     Returns:
         RegulatoryEvent: A reconstructed RegulatoryEvent with `event_type` converted back
-                         to the RegulatoryActivity enum.
+            to the RegulatoryActivity enum.
     """
     data = dict(data)
     data["event_type"] = RegulatoryActivity(data["event_type"])

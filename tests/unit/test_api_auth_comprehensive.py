@@ -58,7 +58,9 @@ def sample_user():
     Create a reusable sample UserInDB instance for tests.
 
     Returns:
-        UserInDB: A UserInDB populated with username "testuser", email "test@example.com", full_name "Test User", disabled False, and a placeholder hashed_password.
+        UserInDB: A UserInDB populated with username "testuser", email
+            "test@example.com", full_name "Test User", disabled False, and a
+            placeholder hashed_password.
     """
     return UserInDB(
         username="testuser",

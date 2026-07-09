@@ -455,7 +455,7 @@ class TestDistributedLockObservability:
         mock_metrics.inc.assert_any_call("lock_release_total", None)
 
     def test_refresh_transient_error_exponential_backoff_and_failed_state(self, monkeypatch, bound_session_factory):
-        """Test refresh event flows, state transition to LOST, and backoff sleep delays on transient error exhaustion."""
+        """Test refresh failure flow, LOST transition, and transient-error backoff."""
         mock_refresh_lock = MagicMock(side_effect=SQLAlchemyError("transient db error"))
         monkeypatch.setattr(CoordinationLockRepository, "refresh_lock", mock_refresh_lock)
 
