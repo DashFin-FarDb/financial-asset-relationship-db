@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
@@ -25,6 +28,7 @@ from compound.schema import (  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GH_PR_JSON_FIELDS = "number,title,state,mergedAt,updatedAt,labels,files"
+GITHUB_API_URL = "https://api.github.com"
 MAX_PR_SCRAPE_LIMIT = 100
 
 # Seed docs → primary domain mapping (read-only inputs; never written).
@@ -99,36 +103,82 @@ def seed_from_docs(repo_root: Path) -> list[str]:
     return [_seed_doc(repo_root, rel_path, domains) for rel_path, domains in SEED_DOCS]
 
 
-def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | None:
-    command = [
-        "gh",
-        "pr",
-        "list",
-        "--state",
-        "all",
-        "--limit",
-        str(_bounded_pr_limit(limit)),
-    ]
-    if updated_since is not None:
-        command.extend(["--search", _updated_since_filter(updated_since)])
-    command.extend(["--json", GH_PR_JSON_FIELDS])
+def _github_repository() -> str | None:
+    """Return owner/repo from the Actions environment when valid."""
+    repository = os.getenv("GITHUB_REPOSITORY", "")
+    owner, separator, name = repository.partition("/")
+    if not separator or not owner or not name:
+        return None
+    return repository
 
+
+def _github_headers() -> dict[str, str]:
+    """Return GitHub REST headers for optional token-authenticated reads."""
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "financial-asset-relationship-db-compound-bootstrap",
+    }
+    token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+def _fetch_github_json(url: str) -> Any | None:
+    """Fetch JSON from GitHub REST, returning None on unavailable API responses."""
+    request = Request(url, headers=_github_headers())
     try:
-        completed = subprocess.run(
-            command,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=60,
-        )
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+        with urlopen(request, timeout=60) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError):
         return None
-    if completed.returncode != 0:
+
+
+def _fetch_pr_files(repository: str, number: int) -> list[dict[str, str]]:
+    query = urlencode({"per_page": "100"})
+    files = _fetch_github_json(f"{GITHUB_API_URL}/repos/{repository}/pulls/{number}/files?{query}")
+    if not isinstance(files, list):
+        return []
+    return [
+        {"path": str(file_entry["filename"])}
+        for file_entry in files
+        if isinstance(file_entry, dict) and file_entry.get("filename")
+    ]
+
+
+def _normalize_pr_entry(repository: str, pr: dict[str, Any]) -> dict[str, Any] | None:
+    number = pr.get("number")
+    if not isinstance(number, int):
         return None
-    try:
-        return json.loads(completed.stdout)
-    except json.JSONDecodeError:
+    return {
+        "number": number,
+        "title": pr.get("title"),
+        "state": pr.get("state"),
+        "mergedAt": pr.get("merged_at"),
+        "updatedAt": pr.get("updated_at"),
+        "labels": pr.get("labels", []),
+        "files": _fetch_pr_files(repository, number),
+    }
+
+
+def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | None:
+    repository = _github_repository()
+    if repository is None:
         return None
+    cutoff = _updated_since_filter(updated_since).removeprefix("updated:>=") if updated_since is not None else None
+    query = urlencode(
+        {"state": "all", "per_page": str(_bounded_pr_limit(limit)), "sort": "updated", "direction": "desc"}
+    )
+    pull_requests = _fetch_github_json(f"{GITHUB_API_URL}/repos/{repository}/pulls?{query}")
+    if not isinstance(pull_requests, list):
+        return None
+    return [
+        normalized
+        for pr in pull_requests
+        if isinstance(pr, dict) and (cutoff is None or str(pr.get("updated_at", ""))[:10] >= cutoff)
+        if (normalized := _normalize_pr_entry(repository, pr)) is not None
+    ]
 
 
 def _observation_status_for_pr(pr: dict[str, Any]) -> str:

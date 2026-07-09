@@ -80,3 +80,10 @@ class TestArchitectureCompoundWorkflow:
         assert 'git checkout "${TRIGGER_SHA}" -- scripts/compound' in text
         assert "continue-on-error:" not in text
         assert "cancel-in-progress: false" in text
+
+    def test_observation_payload_stays_inside_checkout(self) -> None:
+        """append_observation --file must receive a repo-local payload path."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert 'mktemp "${PWD}/.observation.XXXXXX.json"' in text
+        assert 'python scripts/compound/append_observation.py --file "$OBSERVATION_FILE"' in text
+        assert "/tmp/observation.json" not in text

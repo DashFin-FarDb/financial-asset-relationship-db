@@ -168,13 +168,18 @@ def _as_str_list(value: Any, field_name: str) -> list[str]:
     if isinstance(value, str):
         return [value]
     if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
-        items = []
-        for item in value:
-            if not isinstance(item, str):
-                raise SchemaError(f"{field_name} entries must be strings")
-            items.append(item)
-        return items
+        return _validated_str_sequence(value, field_name)
     raise SchemaError(f"{field_name} must be a string or list of strings")
+
+
+def _validated_str_sequence(value: Sequence[Any], field_name: str) -> list[str]:
+    """Validate a sequence contains only strings."""
+    items: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            raise SchemaError(f"{field_name} entries must be strings")
+        items.append(item)
+    return items
 
 
 def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:

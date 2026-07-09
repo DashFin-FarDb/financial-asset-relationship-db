@@ -290,31 +290,49 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _record_push_conflict_cli(repo_root: Path | None) -> int:
+    """Handle the push-conflict CLI mode."""
+    mode = record_push_conflict(repo_root)
+    print(f"recorded push conflict; writer_mode={mode.value}")
+    return 0
+
+
+def _require_payload_source(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    """Require exactly one observation payload source."""
+    if bool(args.json) == bool(args.file):
+        parser.error("Provide exactly one of --json or --file")
+
+
+def _load_cli_payload(args: argparse.Namespace) -> Any:
+    """Load an observation payload from CLI arguments."""
+    if args.json:
+        return json.loads(args.json)
+    input_file = _resolve_repo_file(args.file, args.repo_root)
+    return json.loads(input_file.read_text(encoding="utf-8"))
+
+
+def _handle_cli_payload(args: argparse.Namespace, payload: Any) -> int:
+    """Validate or append a loaded CLI observation payload."""
+    if not isinstance(payload, Mapping):
+        raise SchemaError("Observation payload must be a JSON object")
+    if args.validate_only:
+        observation_from_mapping(payload)
+        print("validated")
+        return 0
+    _, message = append_observation(payload, repo_root=args.repo_root)
+    print(message)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint for appending a single observation."""
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
         if args.record_push_conflict:
-            mode = record_push_conflict(args.repo_root)
-            print(f"recorded push conflict; writer_mode={mode.value}")
-            return 0
-        if bool(args.json) == bool(args.file):
-            parser.error("Provide exactly one of --json or --file")
-        if args.json:
-            payload = json.loads(args.json)
-        else:
-            input_file = _resolve_repo_file(args.file, args.repo_root)
-            payload = json.loads(input_file.read_text(encoding="utf-8"))
-        if not isinstance(payload, Mapping):
-            raise SchemaError("Observation payload must be a JSON object")
-        if args.validate_only:
-            observation_from_mapping(payload)
-            print("validated")
-            return 0
-        _, message = append_observation(payload, repo_root=args.repo_root)
-        print(message)
-        return 0
+            return _record_push_conflict_cli(args.repo_root)
+        _require_payload_source(parser, args)
+        return _handle_cli_payload(args, _load_cli_payload(args))
     except (SchemaError, PathPolicyError, json.JSONDecodeError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
