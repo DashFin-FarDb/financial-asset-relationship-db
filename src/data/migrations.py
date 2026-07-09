@@ -362,10 +362,12 @@ def _apply_postgresql_status_constraint_update(connection) -> None:
     connection.execute(text("ALTER TABLE rebuild_jobs DROP CONSTRAINT IF EXISTS ck_rebuild_jobs_status"))
 
     # 2. Add the updated constraint
-    connection.execute(text("""
+    connection.execute(
+        text("""
         ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status
             CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
-    """))
+    """)
+    )
 
 
 # ---------------------------------------------------------------------------
