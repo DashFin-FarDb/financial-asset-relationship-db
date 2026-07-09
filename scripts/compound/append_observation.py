@@ -28,11 +28,22 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+RUNTIME_REL_PATH = "docs/compound/runtime.yml"
+DEFAULT_RUNTIME_DATA: dict[str, str | int | None] = {
+    "writer_mode": WriterMode.DUAL.value,
+    "conflict_count": 0,
+    "conflict_window_minutes": 30,
+    "last_conflict_at": None,
+}
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     root = repo_root or REPO_ROOT
     return root / Path(relative)
+
+
+def _runtime_path(repo_root: Path | None = None) -> Path:
+    return _repo_path(RUNTIME_REL_PATH, repo_root)
 
 
 def _read_repo_input_file(file_path: Path, repo_root: Path | None = None) -> str:
@@ -50,7 +61,7 @@ def _read_repo_input_file(file_path: Path, repo_root: Path | None = None) -> str
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     """Read dual-writer mode from docs/compound/runtime.yml."""
-    runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
+    runtime_path = _runtime_path(repo_root)
     if not runtime_path.exists():
         return WriterMode.DUAL
     text = runtime_path.read_text(encoding="utf-8")
@@ -67,31 +78,30 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
 
 def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
     """Parse the small runtime.yml key set without requiring PyYAML."""
-    data: dict[str, str | int | None] = {
-        "writer_mode": WriterMode.DUAL.value,
-        "conflict_count": 0,
-        "conflict_window_minutes": 30,
-        "last_conflict_at": None,
-    }
+    data = dict(DEFAULT_RUNTIME_DATA)
     for line in text.splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#") or ":" not in stripped:
             continue
-        key, value = stripped.split(":", 1)
-        key = key.strip()
-        value = value.strip()
-        if key == "writer_mode":
-            data[key] = value
-        elif key in {"conflict_count", "conflict_window_minutes"}:
-            data[key] = int(value)
-        elif key == "last_conflict_at":
-            data[key] = None if value in {"null", "~", ""} else value
+        _apply_runtime_entry(data, stripped)
     return data
+
+
+def _apply_runtime_entry(data: dict[str, str | int | None], line: str) -> None:
+    key, raw_value = line.split(":", 1)
+    key = key.strip()
+    value = raw_value.strip()
+    if key == "writer_mode":
+        data[key] = value
+    elif key in {"conflict_count", "conflict_window_minutes"}:
+        data[key] = int(value)
+    elif key == "last_conflict_at":
+        data[key] = None if value in {"null", "~", ""} else value
 
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     """Write runtime.yml with the fixed key set."""
-    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else "docs/compound/runtime.yml")
+    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else RUNTIME_REL_PATH)
     lines = [
         "# Architecture-expert dual-writer runtime mode.",
         "# writer_mode: dual | github_only",
@@ -107,39 +117,47 @@ def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
+def _read_runtime_data(runtime_path: Path) -> dict[str, str | int | None]:
+    if runtime_path.exists():
+        return _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
+    return dict(DEFAULT_RUNTIME_DATA)
+
+
+def _reset_count_if_outside_window(
+    *,
+    count: int,
+    last_raw: str | int | None,
+    current: datetime,
+    window_minutes: int,
+) -> int:
+    if not isinstance(last_raw, str) or last_raw in {"null", ""}:
+        return 0
+    try:
+        last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
+    except ValueError:
+        return 0
+    age_minutes = (current - last_at).total_seconds() / 60.0
+    return 0 if age_minutes > window_minutes else count
+
+
 def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None = None) -> WriterMode:
     """Increment conflict_count and flip to github_only when threshold is met.
 
     Threshold: >=3 conflicts within conflict_window_minutes (plan A12).
     """
     root = repo_root or REPO_ROOT
-    runtime_path = _repo_path("docs/compound/runtime.yml", root)
-    assert_writable("docs/compound/runtime.yml")
+    runtime_path = _runtime_path(root)
+    assert_writable(RUNTIME_REL_PATH)
     current = datetime.now(timezone.utc) if now is None else now
-    if runtime_path.exists():
-        data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
-    else:
-        data = {
-            "writer_mode": WriterMode.DUAL.value,
-            "conflict_count": 0,
-            "conflict_window_minutes": 30,
-            "last_conflict_at": None,
-        }
-
+    data = _read_runtime_data(runtime_path)
     window_minutes = int(data.get("conflict_window_minutes") or 30)
-    last_raw = data.get("last_conflict_at")
     count = int(data.get("conflict_count") or 0)
-    if isinstance(last_raw, str) and last_raw not in {"null", ""}:
-        try:
-            last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
-            age_minutes = (current - last_at).total_seconds() / 60.0
-            if age_minutes > window_minutes:
-                count = 0
-        except ValueError:
-            count = 0
-    else:
-        count = 0
-
+    count = _reset_count_if_outside_window(
+        count=count,
+        last_raw=data.get("last_conflict_at"),
+        current=current,
+        window_minutes=window_minutes,
+    )
     count += 1
     data["conflict_count"] = count
     data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")

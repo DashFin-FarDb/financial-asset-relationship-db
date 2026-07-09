@@ -154,18 +154,19 @@ class PathPolicyError(PermissionError):
 
 
 def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
+    items: list[str] = []
     if value is None:
-        return ()
-    if isinstance(value, str):
-        return (value,)
-    if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
-        items = []
+        pass
+    elif isinstance(value, str):
+        items.append(value)
+    elif isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
         for item in value:
             if not isinstance(item, str):
                 raise SchemaError(f"{field_name} entries must be strings")
             items.append(item)
-        return tuple(items)
-    raise SchemaError(f"{field_name} must be a string or list of strings")
+    else:
+        raise SchemaError(f"{field_name} must be a string or list of strings")
+    return tuple(items)
 
 
 def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
