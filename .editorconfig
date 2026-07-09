@@ -16,6 +16,11 @@ indent_style = space
 indent_size = 4
 max_line_length = 120
 
+[tests/**/*.py]
+indent_style = space
+indent_size = 2
+max_line_length = 400
+
 # YAML files
 [*.{yml,yaml}]
 indent_style = space

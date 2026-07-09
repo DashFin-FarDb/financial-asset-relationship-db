@@ -351,7 +351,7 @@ def generate_schema_report(graph: GraphLike) -> str:
         - Asset class distribution and top relationships
         - Business, regulatory, and valuation rules
         - Data quality score, density-based recommendations,
-          and implementation notes
+        and implementation notes
     """
     metrics: dict[str, Any] = graph.calculate_metrics()
 

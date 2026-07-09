@@ -432,7 +432,7 @@ class ReconciliationEngine:
         Maps known drift types to standardized plan templates:
         - `InconsistencyType.ORPHANED_RUNNING.value` -> reset plan.
         - `InconsistencyType.STALE_OWNERSHIP.value` and `InconsistencyType.CRASH_SUSPICION.value`
-          -> wait plan if `lock_is_valid` is true, otherwise reset plan.
+        -> wait plan if `lock_is_valid` is true, otherwise reset plan.
         - `InconsistencyType.ZOMBIE_EXECUTOR.value` -> alert-only manual investigation plan (unsafe split-brain).
         - Unknown drift types -> alert-only manual investigation plan and emits an observability event.
 
