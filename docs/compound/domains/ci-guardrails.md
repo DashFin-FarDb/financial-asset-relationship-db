@@ -36,3 +36,5 @@ _No landed observations yet._
   - evidence: pr:1427
 - **pr:1430** (provisional): x()   x 
   - evidence: pr:1430
+- **pr:1431** (provisional): fix(ci): repair autofix branch gates
+  - evidence: pr:1431
