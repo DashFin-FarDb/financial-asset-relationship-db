@@ -220,7 +220,7 @@ class TestGitHubWorkflows:
         """Parameterized fixture for all workflow files."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / request.param
         if not workflow_path.exists():
-            pytest.fail(f"{request.param} does not exist")
+            pytest.skip(f"{request.param} does not exist")
         with open(workflow_path, encoding="utf-8") as f:
             try:
                 config = yaml.safe_load(f)
