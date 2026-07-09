@@ -6,7 +6,7 @@ import math
 import threading
 from collections.abc import Callable
 from dataclasses import asdict
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, cast
@@ -27,6 +27,7 @@ from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
+UTC = timezone.utc
 
 
 class FetchCancelledError(RebuildCancelledError):

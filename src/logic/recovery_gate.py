@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import exc as sqlalchemy_exc
@@ -25,6 +25,7 @@ from src.logic.reconciliation_engine import (
 )
 from src.observability.facade import ObservabilityEvent, log_event
 
+UTC = timezone.utc
 logger = logging.getLogger(__name__)
 
 

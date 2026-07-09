@@ -14,7 +14,7 @@ import sys
 import tempfile
 import traceback
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 try:
     from github import Github, GithubException
@@ -23,6 +23,8 @@ try:
     _PYGITHUB_AVAILABLE = True
 except ImportError:
     _PYGITHUB_AVAILABLE = False
+
+UTC = timezone.utc
 
 
 @dataclass(frozen=True)
