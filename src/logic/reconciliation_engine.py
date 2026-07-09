@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
@@ -22,6 +22,7 @@ from src.observability.logger import log_event
 from src.utils.enum_compat import StrEnum
 
 logger = logging.getLogger(__name__)
+UTC = timezone.utc
 
 _REBUILD_CANCELLED_MSG = "Rebuild cancelled via API request"
 
