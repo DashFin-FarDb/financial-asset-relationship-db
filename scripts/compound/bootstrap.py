@@ -10,7 +10,7 @@ import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping, Sequence
 
 _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
@@ -26,7 +26,20 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-GH_ARG_PATTERN = re.compile(r"^[A-Za-z0-9_./:>=,-]+$")
+GH_JSON_FIELDS = "number,title,state,mergedAt,updatedAt,labels,files"
+GH_SAFE_ARG = re.compile(r"^[A-Za-z0-9_.,:/=<>#-]+$")
+GH_ALLOWED_TOKENS = frozenset(
+    {
+        "pr",
+        "list",
+        "--state",
+        "all",
+        "--limit",
+        "--search",
+        "--json",
+        GH_JSON_FIELDS,
+    }
+)
 
 # Seed docs → primary domain mapping (read-only inputs; never written).
 SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -51,60 +64,65 @@ def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _validated_gh_args(args: list[str]) -> list[str] | None:
-    """Return gh args only when they match the bounded PR-list contract."""
-    if args[:2] != ["pr", "list"]:
-        return None
-    for value in args:
-        if not GH_ARG_PATTERN.fullmatch(value):
-            return None
-    if "--limit" not in args or "--json" not in args or "--state" not in args:
-        return None
-    try:
-        limit = int(args[args.index("--limit") + 1])
-    except (IndexError, ValueError):
-        return None
-    if not 1 <= limit <= 100:
-        return None
-    return args
+def _validate_seed_domains(domains: Sequence[str]) -> None:
+    for domain in domains:
+        if domain not in DOMAINS:
+            raise SchemaError(f"Invalid seed domain {domain}")
+
+
+def _seed_doc_payload(rel_path: str, domains: Sequence[str]) -> dict[str, Any]:
+    _validate_seed_domains(domains)
+    return {
+        "observation_id": f"bootstrap-doc-{Path(rel_path).stem}",
+        "source": ObservationSource.BOOTSTRAP.value,
+        "event_type": "seed.doc",
+        "status": ObservationStatus.LANDED.value,
+        "primary_ref": f"doc:{rel_path}",
+        "summary": f"Bootstrap seed from {rel_path}",
+        "domains": list(domains),
+        "refs": [rel_path],
+        "evidence_pointers": [rel_path],
+        "created_at": _now(),
+    }
+
+
+def _append_seed_doc(repo_root: Path, rel_path: str, domains: Sequence[str]) -> str:
+    payload = _seed_doc_payload(rel_path, domains)
+    _, message = append_observation(payload, repo_root=repo_root)
+    return f"{rel_path}: {message}"
 
 
 def seed_from_docs(repo_root: Path) -> list[str]:
     """Emit landed bootstrap observations from existing allowlisted seed docs."""
     messages: list[str] = []
     for rel_path, domains in SEED_DOCS:
-        path = repo_root / rel_path
-        if not path.exists():
+        if not (repo_root / rel_path).exists():
             messages.append(f"skip missing seed doc: {rel_path}")
             continue
-        for domain in domains:
-            if domain not in DOMAINS:
-                raise SchemaError(f"Invalid seed domain {domain}")
-        payload = {
-            "observation_id": f"bootstrap-doc-{Path(rel_path).stem}",
-            "source": ObservationSource.BOOTSTRAP.value,
-            "event_type": "seed.doc",
-            "status": ObservationStatus.LANDED.value,
-            "primary_ref": f"doc:{rel_path}",
-            "summary": f"Bootstrap seed from {rel_path}",
-            "domains": list(domains),
-            "refs": [rel_path],
-            "evidence_pointers": [rel_path],
-            "created_at": _now(),
-        }
-        _, message = append_observation(payload, repo_root=repo_root)
-        messages.append(f"{rel_path}: {message}")
+        messages.append(_append_seed_doc(repo_root, rel_path, domains))
     return messages
 
 
-def _gh_json(args: list[str]) -> Any | None:
-    safe_args = _validated_gh_args(args)
-    if safe_args is None:
-        return None
+def _validate_gh_args(args: Sequence[str]) -> list[str]:
+    """Return a sanitized gh argument vector for the bounded PR scrape."""
+    safe_args: list[str] = []
+    for arg in args:
+        if not arg or "\x00" in arg or "\n" in arg or "\r" in arg:
+            raise SchemaError("Unsafe gh argument")
+        if arg not in GH_ALLOWED_TOKENS and GH_SAFE_ARG.fullmatch(arg) is None:
+            raise SchemaError(f"Unsafe gh argument: {arg}")
+        safe_args.append(arg)
+    if safe_args[:2] != ["pr", "list"]:
+        raise SchemaError("Only 'gh pr list' is supported")
+    return safe_args
+
+
+def _gh_json(args: Sequence[str]) -> Any | None:
     gh_path = shutil.which("gh")
     if gh_path is None:
         return None
     try:
+        safe_args = _validate_gh_args(args)
         completed = subprocess.run(
             [gh_path, *safe_args],
             check=False,
@@ -114,12 +132,77 @@ def _gh_json(args: list[str]) -> Any | None:
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return None
+    except SchemaError:
+        return None
     if completed.returncode != 0:
         return None
     try:
         return json.loads(completed.stdout)
     except json.JSONDecodeError:
         return None
+
+
+def _bounded_pr_limit(limit: int) -> int:
+    if limit < 1 or limit > 100:
+        raise SchemaError("--pr-limit must be between 1 and 100")
+    return limit
+
+
+def _pr_list_args(limit: int, *, cutoff: str | None = None) -> list[str]:
+    args = [
+        "pr",
+        "list",
+        "--state",
+        "all",
+        "--limit",
+        str(_bounded_pr_limit(limit)),
+    ]
+    if cutoff is not None:
+        args.extend(["--search", f"updated:>={cutoff}"])
+    args.extend(["--json", GH_JSON_FIELDS])
+    return args
+
+
+def _load_recent_prs(limit: int, cutoff: str) -> Any | None:
+    data = _gh_json(_pr_list_args(limit, cutoff=cutoff))
+    if data is None:
+        data = _gh_json(_pr_list_args(limit))
+    return data
+
+
+def _pr_file_paths(pr: Mapping[str, Any]) -> list[str]:
+    paths: list[str] = []
+    for entry in pr.get("files") or []:
+        if isinstance(entry, str):
+            paths.append(entry)
+        elif isinstance(entry, Mapping):
+            path = entry.get("path") or entry.get("filename")
+            if path:
+                paths.append(str(path))
+    return paths
+
+
+def _pr_status(pr: Mapping[str, Any]) -> str:
+    state = str(pr.get("state") or "").upper()
+    merged = bool(pr.get("mergedAt"))
+    return ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
+
+
+def _pr_payload(pr: Mapping[str, Any], number: int) -> dict[str, Any]:
+    title = str(pr.get("title") or f"PR #{number}")
+    paths = _pr_file_paths(pr)
+    return {
+        "observation_id": f"bootstrap-pr-{number}",
+        "source": ObservationSource.BOOTSTRAP.value,
+        "event_type": "seed.pull_request",
+        "status": _pr_status(pr),
+        "primary_ref": f"pr:{number}",
+        "summary": title[:240],
+        "domains": list(detect_domains_from_paths(paths)),
+        "refs": [f"pr:{number}"],
+        "evidence_pointers": [f"github:pr:{number}"],
+        "created_at": _now(),
+    }
 
 
 def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> list[str]:
@@ -129,69 +212,18 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
     PRs when the search filter is unsupported.
     """
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
-    json_fields = "number,title,state,mergedAt,updatedAt,labels,files"
-    data = _gh_json(
-        [
-            "pr",
-            "list",
-            "--state",
-            "all",
-            "--limit",
-            str(limit),
-            "--search",
-            f"updated:>={cutoff}",
-            "--json",
-            json_fields,
-        ]
-    )
-    if data is None:
-        data = _gh_json(
-            [
-                "pr",
-                "list",
-                "--state",
-                "all",
-                "--limit",
-                str(limit),
-                "--json",
-                json_fields,
-            ]
-        )
+    data = _load_recent_prs(limit, cutoff)
     if data is None:
         return ["PR scrape skipped: gh unavailable or failed"]
 
     messages: list[str] = []
     for pr in data:
+        if not isinstance(pr, Mapping):
+            continue
         number = pr.get("number")
         if not isinstance(number, int):
             continue
-        state = str(pr.get("state") or "").upper()
-        merged = bool(pr.get("mergedAt"))
-        status = ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
-        title = str(pr.get("title") or f"PR #{number}")
-        file_entries = pr.get("files") or []
-        paths: list[str] = []
-        for entry in file_entries:
-            if isinstance(entry, str):
-                paths.append(entry)
-            elif isinstance(entry, dict) and entry.get("path"):
-                paths.append(str(entry["path"]))
-            elif isinstance(entry, dict) and entry.get("filename"):
-                paths.append(str(entry["filename"]))
-        domains = list(detect_domains_from_paths(paths))
-        payload = {
-            "observation_id": f"bootstrap-pr-{number}",
-            "source": ObservationSource.BOOTSTRAP.value,
-            "event_type": "seed.pull_request",
-            "status": status,
-            "primary_ref": f"pr:{number}",
-            "summary": title[:240],
-            "domains": domains,
-            "refs": [f"pr:{number}"],
-            "evidence_pointers": [f"github:pr:{number}"],
-            "created_at": _now(),
-        }
-        _, message = append_observation(payload, repo_root=repo_root)
+        _, message = append_observation(_pr_payload(pr, number), repo_root=repo_root)
         messages.append(f"pr:{number}: {message}")
     return messages
 

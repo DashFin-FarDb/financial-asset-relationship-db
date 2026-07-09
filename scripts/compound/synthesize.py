@@ -91,20 +91,20 @@ def should_hot_path_synthesize(
     return True
 
 
+def _is_preferred_observation(candidate: Observation, existing: Observation) -> bool:
+    if candidate.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
+        return True
+    if existing.status is ObservationStatus.LANDED and candidate.status is ObservationStatus.PROVISIONAL:
+        return False
+    return candidate.created_at >= existing.created_at
+
+
 def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
     """Keep the latest observation per primary_ref (landed preferred over provisional)."""
     by_ref: dict[str, Observation] = {}
     for obs in observations:
         existing = by_ref.get(obs.primary_ref)
-        if existing is None:
-            by_ref[obs.primary_ref] = obs
-            continue
-        if obs.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
-            by_ref[obs.primary_ref] = obs
-            continue
-        if obs.created_at >= existing.created_at and not (
-            existing.status is ObservationStatus.LANDED and obs.status is ObservationStatus.PROVISIONAL
-        ):
+        if existing is None or _is_preferred_observation(obs, existing):
             by_ref[obs.primary_ref] = obs
     return list(by_ref.values())
 
