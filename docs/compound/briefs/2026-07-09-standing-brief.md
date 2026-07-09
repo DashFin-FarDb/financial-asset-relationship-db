@@ -15,11 +15,13 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1409**: x()    
 - [provisional] **pr:1414**: x() y    w
 - [provisional] **pr:1417**: x()   ww  
+- [provisional] **pr:1421**: x()  ww v   
 
 ### api
 - [provisional] **pr:1398**: fix(ci): address compound scanner failures
 - [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
 - [provisional] **pr:1414**: x() y    w
+- [provisional] **pr:1421**: x()  ww v   
 
 ### persistence
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
@@ -28,6 +30,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 - [provisional] **pr:1409**: x()    
 - [provisional] **pr:1414**: x() y    w
+- [provisional] **pr:1421**: x()  ww v   
 
 ### ci-guardrails
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
@@ -39,10 +42,12 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1409**: x()    
 - [provisional] **pr:1414**: x() y    w
 - [provisional] **pr:1417**: x()   ww  
+- [provisional] **pr:1421**: x()  ww v   
 
 ### rebuild-reconciliation
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 - [provisional] **pr:1414**: x() y    w
+- [provisional] **pr:1421**: x()  ww v   
 
 ### deployment
 _No changes recorded._

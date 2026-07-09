@@ -50,7 +50,10 @@ def load_ledger(ledger_path: Path) -> list[Observation]:
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
-        observations.append(parse_observation_line(stripped))
+        try:
+            observations.append(parse_observation_line(stripped))
+        except SchemaError:
+            continue
     return observations
 
 
@@ -91,22 +94,23 @@ def should_hot_path_synthesize(
     return True
 
 
-def _is_preferred_observation(candidate: Observation, existing: Observation) -> bool:
-    if candidate.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
-        return True
-    if existing.status is ObservationStatus.LANDED and candidate.status is ObservationStatus.PROVISIONAL:
-        return False
-    return candidate.created_at >= existing.created_at
-
-
 def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
     """Keep the latest observation per primary_ref (landed preferred over provisional)."""
     by_ref: dict[str, Observation] = {}
     for obs in observations:
         existing = by_ref.get(obs.primary_ref)
-        if existing is None or _is_preferred_observation(obs, existing):
+        if existing is None or _should_replace_observation(existing, obs):
             by_ref[obs.primary_ref] = obs
     return list(by_ref.values())
+
+
+def _should_replace_observation(existing: Observation, candidate: Observation) -> bool:
+    """Return True when candidate is the preferred observation for a primary_ref."""
+    if candidate.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
+        return True
+    if existing.status is ObservationStatus.LANDED and candidate.status is ObservationStatus.PROVISIONAL:
+        return False
+    return candidate.created_at >= existing.created_at
 
 
 def _render_section(title: str, items: list[Observation]) -> str:
