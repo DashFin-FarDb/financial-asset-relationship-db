@@ -4,7 +4,7 @@ name: Architecture Compound
 # Never auto-merges to main. Emitters append; synthesize alone rewrites canon docs.
 
 "on":
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened, labeled, closed]
   push:
     branches: [main]
@@ -31,7 +31,8 @@ jobs:
     name: Synthesize knowledge branch
     runs-on: ubuntu-latest
     # Write-capable synthesis never runs on pull_request because PRs control
-    # the workflow file and scripts before they land on main.
+    # the workflow file and scripts before they land on main. PR observation
+    # uses pull_request_target so trusted base-branch code appends the record.
     if: github.event_name != 'pull_request'
     permissions:
       contents: write
@@ -92,7 +93,7 @@ jobs:
           set -euo pipefail
           SOURCE_PYTHONPATH="${GITHUB_WORKSPACE}/source/scripts"
           FORCE_SYNTH="false"
-          if [ "$EVENT_NAME" = "pull_request" ]; then
+          if [ "$EVENT_NAME" = "pull_request" ] || [ "$EVENT_NAME" = "pull_request_target" ]; then
             if [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]; then
               STATUS="landed"
               EVENT_TYPE="pull_request.closed"
@@ -106,8 +107,16 @@ jobs:
             FILES_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --paginate -q '.[].filename' 2>/dev/null | jq -R -s -c 'split("\n")|map(select(length>0))' || echo '[]')
           elif [ "$EVENT_NAME" = "push" ]; then
             STATUS="landed"
-            PRIMARY_REF="sha:${GITHUB_SHA}"
-            SUMMARY="Merge/push to main ${GITHUB_SHA}"
+            MERGED_PR_JSON=$(gh api -H "Accept: application/vnd.github+json" "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" 2>/dev/null || echo '[]')
+            MERGED_PR_NUMBER=$(jq -r 'map(select(.merged_at != null)) | sort_by(.merged_at) | last | .number // empty' <<<"$MERGED_PR_JSON")
+            MERGED_PR_TITLE=$(jq -r 'map(select(.merged_at != null)) | sort_by(.merged_at) | last | .title // empty' <<<"$MERGED_PR_JSON")
+            if [ -n "$MERGED_PR_NUMBER" ]; then
+              PRIMARY_REF="pr:${MERGED_PR_NUMBER}"
+              SUMMARY=$(jq -rn --arg t "$MERGED_PR_TITLE" --arg sha "$GITHUB_SHA" 'if $t == "" then "Merge/push to main " + $sha else $t end | .[:240]')
+            else
+              PRIMARY_REF="sha:${GITHUB_SHA}"
+              SUMMARY="Merge/push to main ${GITHUB_SHA}"
+            fi
             EVENT_TYPE="push.main"
             FORCE_SYNTH="true"
             FILES_JSON=$(jq -c '[((.commits // [])[] | (.modified // [])[], (.added // [])[], (.removed // [])[])] | unique | map(select(. != null and . != ""))' "$GITHUB_EVENT_PATH" 2>/dev/null || echo '[]')
