@@ -30,7 +30,7 @@ class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
 
     def __getattr__(self, name: str):
         """
-        Dynamically resolves attribute access under a lock to avoid race conditions.
+        Resolve attribute access under a lock to avoid race conditions.
 
         If the attribute is callable, returns a wrapper that locks around calls;
         otherwise, returns a defensive deep copy of the attribute.
