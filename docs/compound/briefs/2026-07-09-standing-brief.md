@@ -6,8 +6,8 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
-- [provisional] **pr:1392**: () -x  w 
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
+- [provisional] **pr:1392**: () -x  w 
 
 ### api
 _No changes recorded._
@@ -16,8 +16,8 @@ _No changes recorded._
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
 
 ### ci-guardrails
-- [provisional] **pr:1392**: () -x  w 
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
+- [provisional] **pr:1392**: () -x  w 
 
 ### rebuild-reconciliation
 _No changes recorded._
