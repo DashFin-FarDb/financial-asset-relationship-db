@@ -80,11 +80,13 @@ def should_hot_path_synthesize(
     if force:
         return True
     hint = (event_hint or "").lower()
-    if "merge" in hint or hint in {"push", "workflow_dispatch", "manual"}:
+    if "merge" in hint or hint in {"push", "push.main", "workflow_dispatch", "manual"}:
         return True
     if not observations:
         return True
-    if all(is_dependency_bot_observation(obs) for obs in observations):
+    # Gate on the triggering (newest) observation only — not the full historical ledger.
+    newest = max(observations, key=lambda obs: (obs.created_at or "", obs.observation_id))
+    if is_dependency_bot_observation(newest):
         return False
     return True
 

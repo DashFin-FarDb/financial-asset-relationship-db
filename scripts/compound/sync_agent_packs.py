@@ -108,7 +108,11 @@ rebuild/reconciliation, or deployment/readiness:
 
 def build_openhands_microagent(index_text: str) -> str:
     """Build OpenHands microagent with required frontmatter."""
-    body = _sanitize_pack_body(f"""# Architecture Expert Microagent
+    # Sanitize only the index excerpt; leave static Rules unsanitized (matches Cursor packs).
+    excerpt = _sanitize_pack_body(index_text[:1500]).replace("\n# ", "\n## ")
+    if excerpt.startswith("# "):
+        excerpt = "## " + excerpt[2:]
+    body = f"""# Architecture Expert Microagent
 
 Compounded architecture memory for this repository.
 
@@ -118,12 +122,12 @@ Compounded architecture memory for this repository.
 - Distinguish provisional vs landed claims.
 - Cite or propose annotation for ADRs/policy; never rewrite them.
 - Do not overwrite `AGENTS.md`.
-- Additive to PR Agent / existing reviewers — do not disable them.
+- Additive to PR Agent / existing reviewers - do not disable them.
 
 ## Index excerpt
 
-{index_text[:1500]}
-""")
+{excerpt}
+"""
     return (
         "---\n"
         "name: architecture-expert\n"

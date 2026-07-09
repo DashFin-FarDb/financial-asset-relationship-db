@@ -17,11 +17,12 @@ Compounded architecture memory for this repository.
 - Read `docs/compound/` before answering seam/API/persistence questions.
 - Distinguish provisional vs landed claims.
 - Cite or propose annotation for ADRs/policy; never rewrite them.
-- Additive to PR Agent / existing reviewers — do not disable them.
+- Do not overwrite `AGENTS.md`.
+- Additive to PR Agent / existing reviewers - do not disable them.
 
 ## Index excerpt
 
-# Architecture Expert Compound Index
+## Architecture Expert Compound Index
 
 Docs-first memory for architecture, seams, API, persistence/SQL, CI/guardrails,
 rebuild/reconciliation, and deployment/readiness.

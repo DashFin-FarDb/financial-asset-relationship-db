@@ -10,6 +10,9 @@ topic: architecture-expert-agent
 product_contract_preservation: "Product Contract unchanged — planning resolved deferred layout/runtime forks only"
 ---
 
+<!-- markdownlint-disable MD013 MD025 -->
+<!-- textlint-disable -->
+
 # Architecture Expert Agent - Plan
 
 ## Goal Capsule

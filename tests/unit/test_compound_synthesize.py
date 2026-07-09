@@ -147,6 +147,38 @@ class TestCompoundSynthesize:
         assert synthesize(synth_repo) == {}
         assert synthesize(synth_repo, force=True)
 
+    def test_dependabot_batching_ignores_historical_non_bot(self) -> None:
+        """Newest dependabot event still batches even if older non-bot rows exist."""
+        from compound.schema import observation_from_mapping
+
+        mixed = [
+            observation_from_mapping(
+                {
+                    "observation_id": "old",
+                    "source": "github",
+                    "event_type": "pull_request.opened",
+                    "status": "provisional",
+                    "primary_ref": "pr:1",
+                    "summary": "Architecture seam change",
+                    "domains": ["architecture"],
+                    "created_at": "2026-06-01T00:00:00Z",
+                }
+            ),
+            observation_from_mapping(
+                {
+                    "observation_id": "new",
+                    "source": "github",
+                    "event_type": "pull_request.synchronize",
+                    "status": "provisional",
+                    "primary_ref": "pr:1366",
+                    "summary": "chore(deps): bump the python-dependencies group",
+                    "domains": ["ci-guardrails"],
+                    "created_at": "2026-07-09T00:00:00Z",
+                }
+            ),
+        ]
+        assert should_hot_path_synthesize(mixed) is False
+
     def test_refuse_denylisted_write(self) -> None:
         """Path policy rejects ADR writes."""
         with pytest.raises(PathPolicyError):

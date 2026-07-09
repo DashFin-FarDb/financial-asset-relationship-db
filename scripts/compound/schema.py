@@ -271,11 +271,23 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
 
 
 def normalize_repo_relative(path: str | Path) -> str:
-    """Normalize a path to forward-slash repo-relative form."""
+    """Normalize a path to forward-slash repo-relative form.
+
+    Rejects ``..`` segments so allowlist/denylist checks cannot be bypassed via
+    traversal (for example ``docs/compound/../../AGENTS.md``).
+    """
     text = str(path).replace("\\", "/")
     while text.startswith("./"):
         text = text[2:]
-    return text.lstrip("/")
+    text = text.lstrip("/")
+    parts: list[str] = []
+    for part in text.split("/"):
+        if part in {"", "."}:
+            continue
+        if part == "..":
+            raise PathPolicyError(f"Path traversal rejected: {path}")
+        parts.append(part)
+    return "/".join(parts)
 
 
 def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
@@ -285,7 +297,10 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     """
     found: list[str] = []
     for raw in paths:
-        normalized = normalize_repo_relative(raw)
+        try:
+            normalized = normalize_repo_relative(raw)
+        except PathPolicyError:
+            continue
         for prefix, domain in _PATH_DOMAIN_RULES:
             if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
                 if domain not in found:
@@ -296,7 +311,10 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
 
 def is_denylisted(path: str | Path) -> bool:
     """Return True if path matches the closed write denylist."""
-    normalized = normalize_repo_relative(path)
+    try:
+        normalized = normalize_repo_relative(path)
+    except PathPolicyError:
+        return True
     for prefix in WRITE_DENYLIST_PREFIXES:
         if prefix.endswith("/"):
             if normalized.startswith(prefix) or normalized == prefix.rstrip("/"):
@@ -308,7 +326,10 @@ def is_denylisted(path: str | Path) -> bool:
 
 def is_allowlisted(path: str | Path) -> bool:
     """Return True if path is under the write allowlist."""
-    normalized = normalize_repo_relative(path)
+    try:
+        normalized = normalize_repo_relative(path)
+    except PathPolicyError:
+        return False
     for prefix in WRITE_ALLOWLIST_PREFIXES:
         if prefix.endswith("/"):
             if normalized.startswith(prefix):

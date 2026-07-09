@@ -243,10 +243,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        if args.json:
-            payload = json.loads(args.json)
-        else:
-            payload = json.loads(Path(args.file).read_text(encoding="utf-8"))
+        payload = json.loads(args.json) if args.json else json.loads(Path(args.file).read_text(encoding="utf-8"))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:

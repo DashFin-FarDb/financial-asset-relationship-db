@@ -22,6 +22,7 @@ from compound.schema import (  # noqa: E402
     detect_domains_from_paths,
     is_allowlisted,
     is_denylisted,
+    normalize_repo_relative,
     observation_from_mapping,
     watched_series_from_mapping,
 )
@@ -111,3 +112,12 @@ class TestCompoundSchema:
         multi = detect_domains_from_paths(["api/auth.py", "docs/adr/0001-production-architecture.md"])
         assert "api" in multi
         assert "architecture" in multi
+
+    def test_path_traversal_rejected_by_policy(self) -> None:
+        """``..`` segments cannot bypass allowlist/denylist checks."""
+        with pytest.raises(PathPolicyError, match="traversal"):
+            normalize_repo_relative("docs/compound/../../AGENTS.md")
+        with pytest.raises(PathPolicyError, match="traversal"):
+            assert_writable("docs/compound/../../AGENTS.md")
+        assert is_denylisted("docs/compound/../../AGENTS.md")
+        assert not is_allowlisted("docs/compound/../../AGENTS.md")
