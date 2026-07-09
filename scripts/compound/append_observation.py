@@ -16,6 +16,7 @@ if str(_SCRIPTS_ROOT) not in sys.path:
 
 from compound.schema import (  # noqa: E402
     LEDGER_PATH,
+    RUNTIME_PATH,
     Observation,
     ObservationSource,
     PathPolicyError,
@@ -27,6 +28,7 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+RUNTIME_REL_PATH = RUNTIME_PATH.as_posix()
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
@@ -49,8 +51,8 @@ def _resolve_repo_file(file_path: Path, repo_root: Path | None = None) -> Path:
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
-    """Read dual-writer mode from docs/compound/runtime.yml."""
-    runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
+    """Read dual-writer mode from the runtime config."""
+    runtime_path = _repo_path(RUNTIME_PATH, repo_root)
     if not runtime_path.exists():
         return WriterMode.DUAL
     text = runtime_path.read_text(encoding="utf-8")
@@ -99,7 +101,7 @@ def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     """Write runtime.yml with the fixed key set."""
-    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else "docs/compound/runtime.yml")
+    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else RUNTIME_REL_PATH)
     lines = [
         "# Architecture-expert dual-writer runtime mode.",
         "# writer_mode: dual | github_only",
@@ -146,8 +148,8 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     Threshold: >=3 conflicts within conflict_window_minutes (plan A12).
     """
     root = repo_root or REPO_ROOT
-    runtime_path = _repo_path("docs/compound/runtime.yml", root)
-    assert_writable("docs/compound/runtime.yml")
+    runtime_path = _repo_path(RUNTIME_PATH, root)
+    assert_writable(RUNTIME_REL_PATH)
     current = datetime.now(timezone.utc) if now is None else now
     data = _load_runtime_data(runtime_path)
     count = _next_conflict_count(data, current)
@@ -176,6 +178,49 @@ def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
     return keys
 
 
+def _prepare_observation_payload(
+    data: Mapping[str, Any],
+    source_override: ObservationSource | None,
+) -> dict[str, Any]:
+    payload = dict(data)
+    if source_override is not None:
+        payload["source"] = source_override.value
+    if not payload.get("observation_id"):
+        payload["observation_id"] = f"obs-{uuid4().hex[:12]}"
+    if not payload.get("created_at"):
+        payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return payload
+
+
+def _cursor_write_blocked(
+    observation: Observation,
+    writer_mode: WriterMode,
+    allow_cursor_when_github_only: bool,
+) -> bool:
+    return (
+        writer_mode is WriterMode.GITHUB_ONLY
+        and observation.source is ObservationSource.CURSOR
+        and not allow_cursor_when_github_only
+    )
+
+
+def _ensure_ledger_exists(ledger_path: Path) -> None:
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    if ledger_path.exists():
+        return
+    ledger_path.write_text(
+        "# Architecture Expert observation ledger (JSONL, append-only).\n"
+        "# schema_version=1 — see scripts/compound/schema.py\n",
+        encoding="utf-8",
+    )
+
+
+def _append_ledger_line(ledger_path: Path, observation: Observation) -> None:
+    with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
+        handle.write(observation.to_json_line())
+        handle.write("\n")
+
+
 def append_observation(
     data: Mapping[str, Any],
     *,
@@ -192,22 +237,10 @@ def append_observation(
     assert_writable(ledger_rel)
     ledger_path = _repo_path(LEDGER_PATH, root)
 
-    payload = dict(data)
-    if source_override is not None:
-        payload["source"] = source_override.value
-    if not payload.get("observation_id"):
-        payload["observation_id"] = f"obs-{uuid4().hex[:12]}"
-    if not payload.get("created_at"):
-        payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    observation = observation_from_mapping(payload)
+    observation = observation_from_mapping(_prepare_observation_payload(data, source_override))
 
     writer_mode = read_writer_mode(root)
-    if (
-        writer_mode is WriterMode.GITHUB_ONLY
-        and observation.source is ObservationSource.CURSOR
-        and not allow_cursor_when_github_only
-    ):
+    if _cursor_write_blocked(observation, writer_mode, allow_cursor_when_github_only):
         return (
             None,
             "writer_mode=github_only: Cursor continuous emit no-ops; "
@@ -218,17 +251,8 @@ def append_observation(
     if observation.dedupe_key() in existing:
         return None, f"idempotent-no-op for {observation.dedupe_key()}"
 
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    if not ledger_path.exists():
-        ledger_path.write_text(
-            "# Architecture Expert observation ledger (JSONL, append-only).\n"
-            "# schema_version=1 — see scripts/compound/schema.py\n",
-            encoding="utf-8",
-        )
-
-    with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
-        handle.write(observation.to_json_line())
-        handle.write("\n")
+    _ensure_ledger_exists(ledger_path)
+    _append_ledger_line(ledger_path, observation)
 
     return observation, f"appended {observation.observation_id}"
 

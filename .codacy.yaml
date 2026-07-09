@@ -1,0 +1,10 @@
+---
+exclude_paths:
+  - ".qlty/**"
+  - "asset_graph.db"
+  - "bin/deepsource"
+engines:
+  eslint:
+    exclude_paths:
+      - "frontend/**"
+      - "src/monitoring/dashboards/**"

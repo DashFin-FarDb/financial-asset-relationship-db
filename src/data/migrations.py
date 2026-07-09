@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 from sqlalchemy import inspect, text
@@ -60,8 +61,6 @@ def apply_migrations(db_path: Path | str) -> None:
     db_path = Path(db_path)
     # migrations/ is at repository root, not under src/
     migrations_dir = Path(__file__).resolve().parents[2] / "migrations"
-
-    from contextlib import closing
 
     with closing(sqlite3.connect(db_path)) as connection, connection:
         # Migration 001: Base schema (always safe to run, uses IF NOT EXISTS)
@@ -363,12 +362,10 @@ def _apply_postgresql_status_constraint_update(connection) -> None:
     connection.execute(text("ALTER TABLE rebuild_jobs DROP CONSTRAINT IF EXISTS ck_rebuild_jobs_status"))
 
     # 2. Add the updated constraint
-    connection.execute(
-        text("""
+    connection.execute(text("""
         ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status
             CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
-    """)
-    )
+    """))
 
 
 # ---------------------------------------------------------------------------

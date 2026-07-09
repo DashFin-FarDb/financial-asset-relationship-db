@@ -107,14 +107,22 @@ def _validate_gh_args(args: Sequence[str]) -> list[str]:
     """Return a sanitized gh argument vector for the bounded PR scrape."""
     safe_args: list[str] = []
     for arg in args:
-        if not arg or "\x00" in arg or "\n" in arg or "\r" in arg:
-            raise SchemaError("Unsafe gh argument")
-        if arg not in GH_ALLOWED_TOKENS and GH_SAFE_ARG.fullmatch(arg) is None:
+        if not _is_safe_gh_arg(arg):
             raise SchemaError(f"Unsafe gh argument: {arg}")
         safe_args.append(arg)
-    if safe_args[:2] != ["pr", "list"]:
-        raise SchemaError("Only 'gh pr list' is supported")
+    _require_pr_list_args(safe_args)
     return safe_args
+
+
+def _is_safe_gh_arg(arg: str) -> bool:
+    if not arg or "\x00" in arg or "\n" in arg or "\r" in arg:
+        return False
+    return arg in GH_ALLOWED_TOKENS or GH_SAFE_ARG.fullmatch(arg) is not None
+
+
+def _require_pr_list_args(args: Sequence[str]) -> None:
+    if args[:2] != ["pr", "list"]:
+        raise SchemaError("Only 'gh pr list' is supported")
 
 
 def _gh_json(args: Sequence[str]) -> Any | None:
@@ -173,13 +181,19 @@ def _load_recent_prs(limit: int, cutoff: str) -> Any | None:
 def _pr_file_paths(pr: Mapping[str, Any]) -> list[str]:
     paths: list[str] = []
     for entry in pr.get("files") or []:
-        if isinstance(entry, str):
-            paths.append(entry)
-        elif isinstance(entry, Mapping):
-            path = entry.get("path") or entry.get("filename")
-            if path:
-                paths.append(str(path))
+        path = _pr_file_path(entry)
+        if path is not None:
+            paths.append(path)
     return paths
+
+
+def _pr_file_path(entry: Any) -> str | None:
+    if isinstance(entry, str):
+        return entry
+    if not isinstance(entry, Mapping):
+        return None
+    path = entry.get("path") or entry.get("filename")
+    return str(path) if path else None
 
 
 def _pr_status(pr: Mapping[str, Any]) -> str:
