@@ -153,45 +153,40 @@ class PathPolicyError(PermissionError):
     """Raised when a write target violates allowlist/denylist policy."""
 
 
-def _as_str_list(value: Any, field_name: str) -> list[str]:
-    """Coerce an optional string/list field to a list of strings."""
+def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
     if value is None:
-        return []
+        return ()
     if isinstance(value, str):
-        return [value]
+        return (value,)
     if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
         items = []
         for item in value:
             if not isinstance(item, str):
                 raise SchemaError(f"{field_name} entries must be strings")
             items.append(item)
-        return items
+        return tuple(items)
     raise SchemaError(f"{field_name} must be a string or list of strings")
 
 
-def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
-    """Coerce an optional string/list field to a tuple of strings."""
-    return tuple(_as_str_list(value, field_name))
-
-
-def _as_int_list(value: Any, field_name: str) -> list[int]:
-    """Validate that a watched-series field is a list of integers."""
-    if not isinstance(value, list):
-        raise SchemaError(f"watched-series {field_name} must be a list")
-    items: list[int] = []
-    for item in value:
-        if not isinstance(item, int) or isinstance(item, bool):
-            raise SchemaError(f"watched-series {field_name} must be integers")
-        items.append(item)
-    return items
-
-
-def _as_required_str_list(data: Mapping[str, Any], key: str) -> list[str]:
-    """Validate that a required watched-series key is a list of strings."""
+def _require_list(data: Mapping[str, Any], key: str) -> list[Any]:
     value = data[key]
     if not isinstance(value, list):
         raise SchemaError(f"watched-series {key} must be a list")
-    return _as_str_list(value, key)
+    return value
+
+
+def _require_int_list(data: Mapping[str, Any], key: str) -> list[int]:
+    items = _require_list(data, key)
+    if any(not isinstance(item, int) or isinstance(item, bool) for item in items):
+        raise SchemaError(f"watched-series {key} must be integers")
+    return list(items)
+
+
+def _require_str_list(data: Mapping[str, Any], key: str) -> list[str]:
+    items = _require_list(data, key)
+    if any(not isinstance(item, str) for item in items):
+        raise SchemaError(f"watched-series {key} must be strings")
+    return list(items)
 
 
 def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
@@ -271,9 +266,9 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
 
     return WatchedSeries(
         version=version,
-        prs=_as_int_list(data["prs"], "prs"),
-        labels=_as_required_str_list(data, "labels"),
-        path_globs=_as_required_str_list(data, "path_globs"),
+        prs=_require_int_list(data, "prs"),
+        labels=_require_str_list(data, "labels"),
+        path_globs=_require_str_list(data, "path_globs"),
     )
 
 
@@ -316,13 +311,6 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     return tuple(found) if found else ("architecture",)
 
 
-def _matches_policy_prefix(normalized: str, prefix: str) -> bool:
-    """Return True when a normalized path matches a policy prefix."""
-    if prefix.endswith("/"):
-        return normalized.startswith(prefix) or normalized == prefix.rstrip("/")
-    return normalized == prefix
-
-
 def is_denylisted(path: str | Path) -> bool:
     """Return True if path matches the closed write denylist."""
     try:
@@ -339,6 +327,12 @@ def is_allowlisted(path: str | Path) -> bool:
     except PathPolicyError:
         return False
     return any(_matches_policy_prefix(normalized, prefix) for prefix in WRITE_ALLOWLIST_PREFIXES)
+
+
+def _matches_policy_prefix(normalized: str, prefix: str) -> bool:
+    if prefix.endswith("/"):
+        return normalized.startswith(prefix) or normalized == prefix.rstrip("/")
+    return normalized == prefix
 
 
 def assert_writable(path: str | Path) -> str:

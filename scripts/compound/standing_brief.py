@@ -12,31 +12,21 @@ _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
 
-from compound.schema import (  # noqa: E402
-    BRIEFS_DIR,
-    DOMAINS,
-    LEDGER_PATH,
-    Observation,
-    PathPolicyError,
-    SchemaError,
-    assert_writable,
-)
+from compound.schema import BRIEFS_DIR, DOMAINS, LEDGER_PATH, assert_writable  # noqa: E402
 from compound.synthesize import _latest_by_primary_ref, load_ledger  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
-def _observations_by_domain(observations: list[Observation]) -> dict[str, list[Observation]]:
-    """Group latest observations by domain."""
-    by_domain: dict[str, list[Observation]] = defaultdict(list)
+def _group_by_domain(observations: list) -> dict[str, list]:
+    by_domain: dict[str, list] = defaultdict(list)
     for obs in _latest_by_primary_ref(observations):
         for domain in obs.domains:
             by_domain[domain].append(obs)
     return by_domain
 
 
-def _domain_brief_lines(domain: str, items: list[Observation]) -> list[str]:
-    """Render one standing brief domain section."""
+def _render_domain_section(domain: str, items: list) -> list[str]:
     lines = [f"### {domain}"]
     if not items:
         return [*lines, "_No changes recorded._", ""]
@@ -46,9 +36,10 @@ def _domain_brief_lines(domain: str, items: list[Observation]) -> list[str]:
     return lines
 
 
-def render_standing_brief(observations: list[Observation], *, as_of: str | None = None) -> str:
+def render_standing_brief(observations: list, *, as_of: str | None = None) -> str:
     """Render a standing brief markdown document."""
     stamp = as_of or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    by_domain = _group_by_domain(observations)
     lines = [
         f"# Standing brief — {stamp}",
         "",
@@ -58,9 +49,8 @@ def render_standing_brief(observations: list[Observation], *, as_of: str | None 
         "## Seam movement by domain",
         "",
     ]
-    by_domain = _observations_by_domain(observations)
     for domain in DOMAINS:
-        lines.extend(_domain_brief_lines(domain, by_domain.get(domain, [])))
+        lines.extend(_render_domain_section(domain, by_domain.get(domain, [])))
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -86,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         path = write_standing_brief(args.repo_root, as_of=args.as_of)
         print(f"wrote: {path.relative_to(args.repo_root).as_posix()}")
         return 0
-    except (SchemaError, PathPolicyError, OSError) as exc:
+    except (OSError, PermissionError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 

@@ -22,7 +22,7 @@ _No landed observations yet._
   - evidence: pr:1403
 - **pr:1409** (provisional): x()    
   - evidence: pr:1409
-- **pr:1417** (provisional): x()   ww  
-  - evidence: pr:1417
 - **pr:1414** (provisional): x() y    w
   - evidence: pr:1414
+- **pr:1417** (provisional): x()   ww  
+  - evidence: pr:1417
