@@ -108,6 +108,7 @@ class TestCompoundSchema:
         assert "rebuild-reconciliation" in detect_domains_from_paths(["src/logic/reconciliation_engine.py"])
         assert "ci-guardrails" in detect_domains_from_paths([".github/workflows/ci.yml"])
         assert "deployment" in detect_domains_from_paths(["docs/staging-deployment-operating-baseline.md"])
+        assert detect_domains_from_paths(["vendor/api/client.py", "third_party/src/data/cache.py"]) == ("architecture",)
         multi = detect_domains_from_paths(["api/auth.py", "docs/adr/0001-production-architecture.md"])
         assert "api" in multi
         assert "architecture" in multi

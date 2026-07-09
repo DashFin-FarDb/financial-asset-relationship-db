@@ -288,7 +288,7 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     for raw in paths:
         normalized = normalize_repo_relative(raw)
         for prefix, domain in _PATH_DOMAIN_RULES:
-            if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
+            if normalized.startswith(prefix):
                 if domain not in found:
                     found.append(domain)
                 break
