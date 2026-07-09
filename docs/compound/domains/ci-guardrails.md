@@ -16,3 +16,5 @@ _No landed observations yet._
   - evidence: pr:1394
 - **pr:1398** (provisional): fix(ci): address compound scanner failures
   - evidence: pr:1398
+- **pr:1402** (provisional): fix: support Python 3.10 UTC timestamps
+  - evidence: pr:1402
