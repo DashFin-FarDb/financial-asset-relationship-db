@@ -19,6 +19,7 @@ from compound.schema import (  # noqa: E402
     PathPolicyError,
     SchemaError,
     assert_writable,
+    detect_domains_from_paths,
     is_allowlisted,
     is_denylisted,
     observation_from_mapping,
@@ -97,3 +98,16 @@ class TestCompoundSchema:
         """Paths outside allowlist are rejected even if not denylisted."""
         with pytest.raises(PathPolicyError, match="not allowlisted"):
             assert_writable("src/logic/asset_graph.py")
+
+    def test_detect_domains_from_paths(self) -> None:
+        """Changed paths map to compound domains; empty defaults to architecture."""
+        assert detect_domains_from_paths([]) == ("architecture",)
+        assert detect_domains_from_paths(["README.md"]) == ("architecture",)
+        assert "api" in detect_domains_from_paths(["api/main.py", "frontend/app/page.tsx"])
+        assert "persistence" in detect_domains_from_paths(["src/data/sample_data.py"])
+        assert "rebuild-reconciliation" in detect_domains_from_paths(["src/logic/reconciliation_engine.py"])
+        assert "ci-guardrails" in detect_domains_from_paths([".github/workflows/ci.yml"])
+        assert "deployment" in detect_domains_from_paths(["docs/staging-deployment-operating-baseline.md"])
+        multi = detect_domains_from_paths(["api/auth.py", "docs/adr/0001-production-architecture.md"])
+        assert "api" in multi
+        assert "architecture" in multi

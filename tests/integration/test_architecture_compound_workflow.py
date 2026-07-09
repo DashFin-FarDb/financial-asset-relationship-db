@@ -23,8 +23,26 @@ class TestArchitectureCompoundWorkflow:
         assert data["name"] == "Architecture Compound"
         assert "on" in data or True in data  # PyYAML may coerce `on` to bool True
         jobs = data["jobs"]
-        assert "observe" in jobs
         assert "synthesize" in jobs
+        assert "observe" not in jobs
+
+    def test_closed_merged_trigger_and_landed_promotion(self) -> None:
+        """Merged PR close is in trigger set and promotes status to landed (AE2)."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "closed" in text
+        assert "types: [opened, synchronize, reopened, labeled, closed]" in text
+        assert 'STATUS="landed"' in text
+        assert "pull_request.closed" in text
+        assert "github.event.pull_request.merged == true" in text
+
+    def test_pr_title_via_env_not_inline_expression(self) -> None:
+        """PR title must come from env (injection-safe); not interpolated into shell."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "PR_TITLE:" in text
+        assert "github.event.pull_request.title" in text
+        assert "'${{ github.event.pull_request.title }}'" not in text
+        assert '"${{ github.event.pull_request.title }}"' not in text
+        assert 'SUMMARY=$(jq -rn --arg t "$PR_TITLE"' in text
 
     def test_no_main_auto_merge(self) -> None:
         """Workflow must not merge to main or auto-merge PRs."""
@@ -44,3 +62,8 @@ class TestArchitectureCompoundWorkflow:
         assert top_perms.get("contents") == "read"
         synth_perms = data["jobs"]["synthesize"].get("permissions", {})
         assert synth_perms.get("contents") == "write"
+
+    def test_push_conflict_records_hybrid_backup(self) -> None:
+        """Failed knowledge-branch push records conflict for A12 hybrid backup."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "--record-push-conflict" in text

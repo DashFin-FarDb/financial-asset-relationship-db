@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -13,8 +14,8 @@ SCRIPTS_ROOT = REPO_ROOT / "scripts"
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
-from compound.append_observation import append_observation  # noqa: E402
-from compound.schema import ObservationSource, ObservationStatus  # noqa: E402
+from compound.append_observation import append_observation, record_push_conflict  # noqa: E402
+from compound.schema import ObservationSource, ObservationStatus, WriterMode  # noqa: E402
 
 
 @pytest.fixture
@@ -117,3 +118,23 @@ class TestAppendObservation:
         monkeypatch.setattr(mod, "REPO_ROOT", compound_repo)
         payload = json.dumps(_base_payload(observation_id="cli-1"))
         assert mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
+
+    def test_record_push_conflict_flips_at_threshold(self, compound_repo: Path) -> None:
+        """Three conflicts inside the window flip writer_mode to github_only (A12)."""
+        now = datetime(2026, 7, 9, 12, 0, tzinfo=timezone.utc)
+        assert record_push_conflict(compound_repo, now=now) is WriterMode.DUAL
+        assert record_push_conflict(compound_repo, now=now + timedelta(minutes=1)) is WriterMode.DUAL
+        assert record_push_conflict(compound_repo, now=now + timedelta(minutes=2)) is WriterMode.GITHUB_ONLY
+        runtime = (compound_repo / "docs/compound/runtime.yml").read_text(encoding="utf-8")
+        assert "writer_mode: github_only" in runtime
+        assert "conflict_count: 3" in runtime
+
+    def test_record_push_conflict_resets_outside_window(self, compound_repo: Path) -> None:
+        """Conflicts outside the window reset the counter."""
+        now = datetime(2026, 7, 9, 12, 0, tzinfo=timezone.utc)
+        record_push_conflict(compound_repo, now=now)
+        record_push_conflict(compound_repo, now=now + timedelta(minutes=1))
+        mode = record_push_conflict(compound_repo, now=now + timedelta(minutes=45))
+        assert mode is WriterMode.DUAL
+        runtime = (compound_repo / "docs/compound/runtime.yml").read_text(encoding="utf-8")
+        assert "conflict_count: 1" in runtime

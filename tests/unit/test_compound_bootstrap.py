@@ -83,3 +83,33 @@ class TestCompoundBootstrap:
         monkeypatch.setattr(mod, "_gh_json", lambda _args: None)
         messages = scrape_recent_prs(seed_repo)
         assert messages == ["PR scrape skipped: gh unavailable or failed"]
+
+    def test_scrape_maps_domains_from_pr_files(self, seed_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Bootstrap PR scrape classifies domains from changed file paths."""
+        from compound import bootstrap as mod
+
+        monkeypatch.setattr(
+            mod,
+            "_gh_json",
+            lambda _args: [
+                {
+                    "number": 99,
+                    "title": "API change",
+                    "state": "OPEN",
+                    "mergedAt": None,
+                    "files": [{"path": "api/main.py"}, {"path": "docs/adr/0001.md"}],
+                }
+            ],
+        )
+        messages = scrape_recent_prs(seed_repo)
+        assert any("pr:99" in message for message in messages)
+        ledger = seed_repo / "docs/compound/ledger/observations.jsonl"
+        domains: set[str] = set()
+        for line in ledger.read_text(encoding="utf-8").splitlines():
+            if not line.strip() or line.startswith("#"):
+                continue
+            obs = parse_observation_line(line)
+            if obs.primary_ref == "pr:99":
+                domains.update(obs.domains)
+        assert "api" in domains
+        assert "architecture" in domains

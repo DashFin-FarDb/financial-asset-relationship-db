@@ -78,6 +78,27 @@ class WriterMode(str, Enum):
 
 REQUIRED_WATCHED_SERIES_KEYS: frozenset[str] = frozenset({"version", "prs", "labels", "path_globs"})
 
+# Path-prefix → domain mapping for live PR / bootstrap classification.
+_PATH_DOMAIN_RULES: tuple[tuple[str, str], ...] = (
+    ("api/", "api"),
+    ("frontend/", "api"),
+    ("src/data/", "persistence"),
+    ("src/logic/rebuild", "rebuild-reconciliation"),
+    ("src/logic/reconciliation", "rebuild-reconciliation"),
+    ("src/logic/recovery", "rebuild-reconciliation"),
+    ("docs/graph-persistence", "persistence"),
+    ("docs/reconciliation", "rebuild-reconciliation"),
+    (".github/", "ci-guardrails"),
+    ("docs/PR_SCOPE", "ci-guardrails"),
+    ("docs/staging", "deployment"),
+    ("docs/release", "deployment"),
+    ("docs/enterprise-deployment", "deployment"),
+    ("scripts/check_hosted_readiness", "deployment"),
+    ("docs/adr/", "architecture"),
+    ("docs/compound/", "architecture"),
+    ("src/", "architecture"),
+)
+
 
 @dataclass(frozen=True)
 class Observation:
@@ -255,6 +276,22 @@ def normalize_repo_relative(path: str | Path) -> str:
     while text.startswith("./"):
         text = text[2:]
     return text.lstrip("/")
+
+
+def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
+    """Map changed file paths to compound domains.
+
+    Returns at least ``("architecture",)`` when no path matches a rule.
+    """
+    found: list[str] = []
+    for raw in paths:
+        normalized = normalize_repo_relative(raw)
+        for prefix, domain in _PATH_DOMAIN_RULES:
+            if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
+                if domain not in found:
+                    found.append(domain)
+                break
+    return tuple(found) if found else ("architecture",)
 
 
 def is_denylisted(path: str | Path) -> bool:

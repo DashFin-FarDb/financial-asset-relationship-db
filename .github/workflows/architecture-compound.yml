@@ -5,7 +5,7 @@ name: Architecture Compound
 
 "on":
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened, labeled, closed]
   push:
     branches: [main]
   workflow_dispatch:
@@ -21,74 +21,20 @@ name: Architecture Compound
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   group: architecture-compound-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  observe:
-    name: Append observation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Emit observation JSON
-        id: emit
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/compound
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            STATUS="provisional"
-            PRIMARY_REF="pr:${{ github.event.pull_request.number }}"
-            SUMMARY=$(jq -rn --arg t '${{ github.event.pull_request.title }}' '$t[:240]')
-            EVENT_TYPE="pull_request.${{ github.event.action }}"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            STATUS="landed"
-            PRIMARY_REF="sha:${GITHUB_SHA}"
-            SUMMARY="Merge/push to main ${GITHUB_SHA}"
-            EVENT_TYPE="push.main"
-          else
-            STATUS="landed"
-            PRIMARY_REF="manual:${GITHUB_RUN_ID}"
-            SUMMARY="Manual compound workflow_dispatch"
-            EVENT_TYPE="workflow_dispatch"
-          fi
-          jq -n \
-            --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
-            --arg source "github" \
-            --arg event_type "$EVENT_TYPE" \
-            --arg status "$STATUS" \
-            --arg primary_ref "$PRIMARY_REF" \
-            --arg summary "$SUMMARY" \
-            '{
-              observation_id: $id,
-              source: $source,
-              event_type: $event_type,
-              status: $status,
-              primary_ref: $primary_ref,
-              summary: $summary,
-              domains: ["architecture"],
-              refs: [$primary_ref],
-              evidence_pointers: [$primary_ref]
-            }' > /tmp/compound/observation.json
-          echo "event_hint=$EVENT_TYPE" >> "$GITHUB_OUTPUT"
-
-      - name: Append to ledger (workspace copy)
-        run: python scripts/compound/append_observation.py --file /tmp/compound/observation.json
-
   synthesize:
     name: Synthesize knowledge branch
-    needs: observe
     runs-on: ubuntu-latest
+    # Skip non-merged PR close events (only merged closes promote to landed).
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.action != 'closed' ||
+      github.event.pull_request.merged == true
     permissions:
       contents: write
       pull-requests: read
@@ -114,27 +60,50 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Re-append observation on knowledge branch
+      - name: Build and append observation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_TITLE: ${{ github.event.pull_request.title || '' }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_ACTION: ${{ github.event.action || '' }}
+          PR_MERGED: ${{ github.event.pull_request.merged || false }}
+          EVENT_NAME: ${{ github.event_name }}
+          FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
         shell: bash
         run: |
           set -euo pipefail
-          # Observe job validated payload shape; synthesize job owns knowledge-branch tip.
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            STATUS="provisional"
-            PRIMARY_REF="pr:${{ github.event.pull_request.number }}"
-            SUMMARY=$(jq -rn --arg t '${{ github.event.pull_request.title }}' '$t[:240]')
-            EVENT_TYPE="pull_request.${{ github.event.action }}"
-          elif [ "${{ github.event_name }}" = "push" ]; then
+          FORCE_SYNTH="false"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            if [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED" = "true" ]; then
+              STATUS="landed"
+              EVENT_TYPE="pull_request.closed"
+              FORCE_SYNTH="true"
+            else
+              STATUS="provisional"
+              EVENT_TYPE="pull_request.${PR_ACTION}"
+            fi
+            PRIMARY_REF="pr:${PR_NUMBER}"
+            SUMMARY=$(jq -rn --arg t "$PR_TITLE" '$t[:240]')
+            FILES_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --paginate -q '.[].filename' 2>/dev/null | jq -R -s -c 'split("\n")|map(select(length>0))' || echo '[]')
+          elif [ "$EVENT_NAME" = "push" ]; then
             STATUS="landed"
             PRIMARY_REF="sha:${GITHUB_SHA}"
             SUMMARY="Merge/push to main ${GITHUB_SHA}"
             EVENT_TYPE="push.main"
+            FORCE_SYNTH="true"
+            FILES_JSON=$(jq -c '[((.commits // [])[] | (.modified // [])[], (.added // [])[], (.removed // [])[])] | unique | map(select(. != null and . != ""))' "$GITHUB_EVENT_PATH" 2>/dev/null || echo '[]')
           else
             STATUS="landed"
             PRIMARY_REF="manual:${GITHUB_RUN_ID}"
             SUMMARY="Manual compound workflow_dispatch"
             EVENT_TYPE="workflow_dispatch"
+            FORCE_SYNTH="true"
+            FILES_JSON='[]'
           fi
+          if [ "$FORCE_INPUT" = "true" ]; then
+            FORCE_SYNTH="true"
+          fi
+          DOMAINS_JSON=$(FILES_JSON="$FILES_JSON" python -c 'import json,os,sys; sys.path.insert(0,"scripts"); from compound.schema import detect_domains_from_paths; print(json.dumps(list(detect_domains_from_paths(json.loads(os.environ["FILES_JSON"])))))')
           jq -n \
             --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
             --arg source "github" \
@@ -142,6 +111,7 @@ jobs:
             --arg status "$STATUS" \
             --arg primary_ref "$PRIMARY_REF" \
             --arg summary "$SUMMARY" \
+            --argjson domains "$DOMAINS_JSON" \
             '{
               observation_id: $id,
               source: $source,
@@ -149,23 +119,23 @@ jobs:
               status: $status,
               primary_ref: $primary_ref,
               summary: $summary,
-              domains: ["architecture"],
+              domains: $domains,
               refs: [$primary_ref],
               evidence_pointers: [$primary_ref]
             }' > /tmp/observation.json
           python scripts/compound/append_observation.py --file /tmp/observation.json
+          echo "FORCE_SYNTH=$FORCE_SYNTH" >> "$GITHUB_ENV"
+          echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"
 
       - name: Synthesize domain docs
-        env:
-          FORCE_SYNTH: ${{ github.event.inputs.force_synthesize || 'false' }}
         shell: bash
         run: |
           set -euo pipefail
           EXTRA=()
-          if [ "$FORCE_SYNTH" = "true" ] || [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${FORCE_SYNTH:-false}" = "true" ]; then
             EXTRA+=(--force)
           fi
-          python scripts/compound/synthesize.py --event-hint "${{ github.event_name }}" "${EXTRA[@]}"
+          python scripts/compound/synthesize.py --event-hint "${EVENT_HINT:-manual}" "${EXTRA[@]}"
           python scripts/compound/sync_agent_packs.py
           python scripts/compound/standing_brief.py
 
@@ -181,5 +151,9 @@ jobs:
             exit 0
           fi
           git commit -m "chore(compound): synthesize architecture memory"
-          git push origin HEAD:knowledge/architecture-expert
+          if ! git push origin HEAD:knowledge/architecture-expert; then
+            python scripts/compound/append_observation.py --record-push-conflict || true
+            echo "Push to knowledge branch failed; recorded conflict for hybrid backup"
+            exit 1
+          fi
           # Intentionally never merges into main (human promotion only).

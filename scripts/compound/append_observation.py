@@ -51,6 +51,90 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     return WriterMode.DUAL
 
 
+def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
+    """Parse the small runtime.yml key set without requiring PyYAML."""
+    data: dict[str, str | int | None] = {
+        "writer_mode": WriterMode.DUAL.value,
+        "conflict_count": 0,
+        "conflict_window_minutes": 30,
+        "last_conflict_at": None,
+    }
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or ":" not in stripped:
+            continue
+        key, value = stripped.split(":", 1)
+        key = key.strip()
+        value = value.strip()
+        if key == "writer_mode":
+            data[key] = value
+        elif key in {"conflict_count", "conflict_window_minutes"}:
+            data[key] = int(value)
+        elif key == "last_conflict_at":
+            data[key] = None if value in {"null", "~", ""} else value
+    return data
+
+
+def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
+    """Write runtime.yml with the fixed key set."""
+    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else "docs/compound/runtime.yml")
+    lines = [
+        "# Architecture-expert dual-writer runtime mode.",
+        "# writer_mode: dual | github_only",
+        "# Auto-flip to github_only after >=3 synthesize push conflicts or divergent",
+        "# ledger tips within conflict_window_minutes.",
+        f"writer_mode: {data.get('writer_mode', WriterMode.DUAL.value)}",
+        f"conflict_count: {int(data.get('conflict_count') or 0)}",
+        f"conflict_window_minutes: {int(data.get('conflict_window_minutes') or 30)}",
+        f"last_conflict_at: {data.get('last_conflict_at') if data.get('last_conflict_at') is not None else 'null'}",
+        "",
+    ]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+
+
+def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None = None) -> WriterMode:
+    """Increment conflict_count and flip to github_only when threshold is met.
+
+    Threshold: >=3 conflicts within conflict_window_minutes (plan A12).
+    """
+    root = repo_root or REPO_ROOT
+    runtime_path = _repo_path("docs/compound/runtime.yml", root)
+    assert_writable("docs/compound/runtime.yml")
+    current = datetime.now(timezone.utc) if now is None else now
+    if runtime_path.exists():
+        data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
+    else:
+        data = {
+            "writer_mode": WriterMode.DUAL.value,
+            "conflict_count": 0,
+            "conflict_window_minutes": 30,
+            "last_conflict_at": None,
+        }
+
+    window_minutes = int(data.get("conflict_window_minutes") or 30)
+    last_raw = data.get("last_conflict_at")
+    count = int(data.get("conflict_count") or 0)
+    if isinstance(last_raw, str) and last_raw not in {"null", ""}:
+        try:
+            last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
+            age_minutes = (current - last_at).total_seconds() / 60.0
+            if age_minutes > window_minutes:
+                count = 0
+        except ValueError:
+            count = 0
+    else:
+        count = 0
+
+    count += 1
+    data["conflict_count"] = count
+    data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
+    if count >= 3:
+        data["writer_mode"] = WriterMode.GITHUB_ONLY.value
+    _write_runtime_yaml(runtime_path, data)
+    return WriterMode(str(data["writer_mode"]))
+
+
 def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
     """Load dedupe keys already present in the ledger."""
     keys: set[tuple[str, str, str]] = set()
@@ -135,6 +219,16 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Repository root (defaults to detected root)",
     )
+    parser.add_argument(
+        "--record-push-conflict",
+        action="store_true",
+        help="Increment hybrid-backup conflict_count (plan A12)",
+    )
+    parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="Validate observation JSON without appending",
+    )
     return parser
 
 
@@ -142,16 +236,23 @@ def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint for appending a single observation."""
     parser = _build_parser()
     args = parser.parse_args(argv)
-    if bool(args.json) == bool(args.file):
-        parser.error("Provide exactly one of --json or --file")
-
     try:
+        if args.record_push_conflict:
+            mode = record_push_conflict(args.repo_root)
+            print(f"recorded push conflict; writer_mode={mode.value}")
+            return 0
+        if bool(args.json) == bool(args.file):
+            parser.error("Provide exactly one of --json or --file")
         if args.json:
             payload = json.loads(args.json)
         else:
             payload = json.loads(Path(args.file).read_text(encoding="utf-8"))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
+        if args.validate_only:
+            observation_from_mapping(payload)
+            print("validated")
+            return 0
         _, message = append_observation(payload, repo_root=args.repo_root)
         print(message)
         return 0

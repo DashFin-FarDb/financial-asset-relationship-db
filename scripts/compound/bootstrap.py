@@ -6,7 +6,7 @@ import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +15,13 @@ if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
 
 from compound.append_observation import append_observation  # noqa: E402
-from compound.schema import DOMAINS, ObservationSource, ObservationStatus, SchemaError  # noqa: E402
+from compound.schema import (  # noqa: E402
+    DOMAINS,
+    ObservationSource,
+    ObservationStatus,
+    SchemaError,
+    detect_domains_from_paths,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -89,8 +95,14 @@ def _gh_json(args: list[str]) -> Any | None:
         return None
 
 
-def scrape_recent_prs(repo_root: Path, *, limit: int = 50) -> list[str]:
-    """Bounded PR scrape via gh; non-fatal when gh is unavailable."""
+def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> list[str]:
+    """Bounded PR scrape via gh; non-fatal when gh is unavailable.
+
+    Prefers PRs updated within ``days`` (plan A9); falls back to last ``limit``
+    PRs when the search filter is unsupported.
+    """
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    json_fields = "number,title,state,mergedAt,updatedAt,labels,files"
     data = _gh_json(
         [
             "pr",
@@ -99,10 +111,25 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50) -> list[str]:
             "all",
             "--limit",
             str(limit),
+            "--search",
+            f"updated:>={cutoff}",
             "--json",
-            "number,title,state,mergedAt,updatedAt,labels,files",
+            json_fields,
         ]
     )
+    if data is None:
+        data = _gh_json(
+            [
+                "pr",
+                "list",
+                "--state",
+                "all",
+                "--limit",
+                str(limit),
+                "--json",
+                json_fields,
+            ]
+        )
     if data is None:
         return ["PR scrape skipped: gh unavailable or failed"]
 
@@ -115,6 +142,16 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50) -> list[str]:
         merged = bool(pr.get("mergedAt"))
         status = ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
         title = str(pr.get("title") or f"PR #{number}")
+        file_entries = pr.get("files") or []
+        paths: list[str] = []
+        for entry in file_entries:
+            if isinstance(entry, str):
+                paths.append(entry)
+            elif isinstance(entry, dict) and entry.get("path"):
+                paths.append(str(entry["path"]))
+            elif isinstance(entry, dict) and entry.get("filename"):
+                paths.append(str(entry["filename"]))
+        domains = list(detect_domains_from_paths(paths))
         payload = {
             "observation_id": f"bootstrap-pr-{number}",
             "source": ObservationSource.BOOTSTRAP.value,
@@ -122,7 +159,7 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50) -> list[str]:
             "status": status,
             "primary_ref": f"pr:{number}",
             "summary": title[:240],
-            "domains": ["architecture"],
+            "domains": domains,
             "refs": [f"pr:{number}"],
             "evidence_pointers": [f"github:pr:{number}"],
             "created_at": _now(),
