@@ -28,7 +28,6 @@ class TestArchitectureCompoundWorkflow:
     def test_pull_request_synthesis_is_skipped_for_token_safety(self) -> None:
         """Write-capable synthesis must not run from PR-controlled workflow code."""
         data = load_yaml_safe(WORKFLOW)
-        text = WORKFLOW.read_text(encoding="utf-8")
         triggers = data.get("on", data.get(True, {}))
         assert "pull_request" not in triggers
         assert "pull_request_target" not in triggers
