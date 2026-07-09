@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -178,13 +178,13 @@ class RebuildDriftEvaluator:
 
     def _parse_heartbeat_time(self, heartbeat_at: datetime | str | None) -> datetime | None:
         """
-        Convert a heartbeat timestamp (datetime, ISO 8601 string, or None) into a timezone-aware UTC datetime.
+        Convert a heartbeat timestamp (datetime, ISO 8601 string, or None) into a timezone-aware timezone.utc datetime.
 
         Parameters:
             heartbeat_at (datetime | str | None): Heartbeat value to normalize. Strings are parsed as ISO 8601.
 
         Returns:
-            datetime | None: A timezone-aware `datetime` in UTC when parsing succeeds,
+            datetime | None: A timezone-aware `datetime` in timezone.utc when parsing succeeds,
                 or `None` if `heartbeat_at` is `None` or cannot be parsed.
         """
         if heartbeat_at is None:
@@ -199,9 +199,9 @@ class RebuildDriftEvaluator:
                 )
                 heartbeat_time = datetime.fromisoformat(heartbeat_str)
             # Ensure timezone-aware
-            # Note: Assumes DB returns UTC-naive datetimes or timezone-aware UTC datetimes
+            # Note: Assumes DB returns timezone.utc-naive datetimes or timezone-aware timezone.utc datetimes
             if heartbeat_time.tzinfo is None:
-                heartbeat_time = heartbeat_time.replace(tzinfo=UTC)
+                heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
             return heartbeat_time
         except (ValueError, AttributeError, TypeError):
             # Unparseable heartbeat treated as None (caller will treat as stale).
@@ -231,7 +231,7 @@ class RebuildDriftEvaluator:
         if heartbeat_time is None:
             return True  # Missing or unparseable is considered stale
 
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
         return heartbeat_age_seconds >= self.lock_ttl_seconds
 

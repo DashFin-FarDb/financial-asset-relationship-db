@@ -575,7 +575,7 @@ def test_reset_blocks_fresh_remote_owner_as_stale_ownership(
     mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
 ):
     """A fresh heartbeat from a different worker should block as stale ownership, not orphaned running."""
-    from datetime import UTC, datetime
+    from datetime import datetime, timezone
 
     from src.data.db_models import RebuildJobStatus
 
@@ -591,7 +591,7 @@ def test_reset_blocks_fresh_remote_owner_as_stale_ownership(
         job_id="job-1",
         execution_id="exec-1",
         active_worker_id="remote-worker",
-        last_heartbeat_at=datetime.now(UTC),
+        last_heartbeat_at=datetime.now(timezone.utc),
     )
 
     mock_lock.holder_id = "current-worker"

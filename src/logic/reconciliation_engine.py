@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
@@ -341,7 +341,7 @@ class ReconciliationEngine:
                 # include a short sanitized message instead
                 "error_message": type(exc).__name__,
             },
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
 
     def _drift_to_plan(
@@ -384,7 +384,7 @@ class ReconciliationEngine:
                     safety_state=ExecutionSafety.WAIT_REQUIRED,
                     reason="No drift detected, but execution gated on lock acquisition",
                     metadata=metadata,
-                    created_at=datetime.now(UTC),
+                    created_at=datetime.now(timezone.utc),
                 )
 
             # Drift converged AND lock valid → SAFE to execute
@@ -397,7 +397,7 @@ class ReconciliationEngine:
                 safety_state=ExecutionSafety.CONVERGED,
                 reason="No drift detected, system is converged",
                 metadata=metadata,
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
         # Critical severity - always alert only (unsafe to execute)
@@ -412,7 +412,7 @@ class ReconciliationEngine:
                 safety_state=safety_state,
                 reason="Critical drift detected - execution is unsafe, manual intervention required",
                 metadata=metadata,
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
         # Map specific drift types to actions
@@ -506,7 +506,7 @@ class ReconciliationEngine:
                 safety_state=ExecutionSafety.UNSAFE_SPLIT_BRAIN,
                 reason="Zombie executor detected - potential split-brain condition",
                 metadata=metadata,
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
         # Unknown drift type - default to alert only
@@ -528,7 +528,7 @@ class ReconciliationEngine:
             safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
             reason=f"Unknown drift type: {drift_type}",
             metadata=metadata,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
 
     def _critical_safety_state(
@@ -603,7 +603,7 @@ class ReconciliationEngine:
             safety_state=ExecutionSafety.WAIT_REQUIRED,
             reason=reason,
             metadata=metadata,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
 
     # Explicit params preferred over dataclass for internal helper; Phase 2 may consolidate
@@ -633,5 +633,5 @@ class ReconciliationEngine:
             safety_state=ExecutionSafety.RESET_REQUIRED,
             reason=reason,
             metadata=metadata,
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )

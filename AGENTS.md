@@ -26,7 +26,7 @@ If branch/ref identity is unclear, stop and verify before proceeding.
 
 ## Quick orientation
 
-This repo contains a Python "asset relationship graph" core, exposed via two UIs:
+This repository contains a Python "asset relationship graph" core, exposed via two UIs:
 
 - **FastAPI + Next.js (PRODUCTION)**: FastAPI backend in `api/` (default `http://localhost:8000`) with Next.js frontend in `frontend/` (default `http://localhost:3000`).
 - **Gradio UI (NON-PRODUCTION)**: `app.py` (default `http://localhost:7860`) calls the graph/visualization code directly. For demos and testing only.
@@ -316,13 +316,16 @@ Configuration + persistence:
 - `frontend/app/lib/api.ts`: Axios client; base URL comes from `NEXT_PUBLIC_API_URL`.
 - `frontend/app/components/*`: presentation and Plotly rendering (client-side only for Plotly).
 
-## Repo-specific conventions to keep in mind
+## Repository-specific conventions to keep in mind
 
 - **Production architecture:** FastAPI + Next.js is the declared production stack. Prioritize work on this stack. See `.github/AUTOMATION_SCOPE_POLICY.md`.
 - **Enterprise Readiness:** The system is transitioning to an enterprise-grade posture. Refer to `docs/enterprise-readiness-index.md` for the audit, roadmap, and PR plan. Ensure work aligns with these plans, particularly the rule that **durable persistence is the gating dependency** for restart, promotion, and DR. SQLite compatibility must be preserved.
 - **PR scope guardrails:** All PRs must include Primary Objective, In Scope, Out of Scope, Files Expected to Change, Validation Commands, and Merge Criteria.
 - **High-risk work:** Database, auth, deployment, CI, security scanner config, and persistence changes require low-autonomy contracts. See "High-risk change control" in `.github/AI_AGENT_GUARDRAILS.md`.
-- **Runtime configuration:** use `src/config/settings.py` and `load_settings()` or `get_settings()` for centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`), CORS settings, and database URL resolution are centralized through the settings layer. Some legacy/runtime seams may still use direct `os.getenv()` access where migration has been intentionally deferred; do not assume full migration away from environment reads.
+- **Runtime configuration:** use `src/config/settings.py` and `load_settings()` or `get_settings()` for
+  centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`), CORS settings, and database URL resolution
+  are centralized through the settings layer. Some legacy/runtime seams may still use direct `os.getenv()`
+  access where migration has been intentionally deferred; do not assume full migration away from environment reads.
 - **Pre-commit hooks:** Run `pre-commit run --files <files>` before committing. Key checks: black (120 char lines), flake8-docstrings (D101/D102/D103), ruff, mypy.
 - **Plotting/visualization:** Standardized on **Plotly** (see `AI_RULES.md`).
 - When changing relationship semantics or graph-derived metrics, expect to update:
@@ -349,10 +352,19 @@ GitHub Actions (`.github/workflows/`) include, among others:
 Environment is Linux with Python 3.12 and Node 22. In Cursor Cloud, dependencies (Python `.venv` + `frontend/node_modules`) are refreshed automatically by the platform-managed startup/update process, so you normally only need to start services and run checks. Standard commands live in the "Common commands" section above and in `run-dev.sh`; the notes below only cover non-obvious cloud gotchas.
 
 - **`python` is not on PATH — only `python3`.** `run-dev.sh` and the docs invoke bare `python`, which fails here. Activate the project venv first (`source .venv/bin/activate`, which provides `python`) or substitute `python3`.
-- **SQLite `DATABASE_URL` gotcha (backend won't start otherwise):** this repo uses a **custom URL-to-path resolver** in `api/database.py` (`_resolve_file_path`), *not* SQLAlchemy's URL handling. Under that resolver the SQLAlchemy-style `sqlite:///./dev.db` used in the "Common commands" section resolves to the absolute path `/dev.db` (unwritable → `sqlite3.OperationalError: unable to open database file`); likewise `.env.example`'s `sqlite:///./asset_graph.db` → `/asset_graph.db`. So when starting the backend directly, prefer either an explicit writable absolute path (`DATABASE_URL=sqlite:////workspace/dev.db`), the rootless form `DATABASE_URL=sqlite:dev.db` (resolves relative to `$PWD`, i.e. `/workspace/dev.db` when run from the repo root — this is what `run-dev.sh` documents), or `DATABASE_URL=sqlite:///:memory:`.
+- **SQLite `DATABASE_URL` gotcha (backend won't start otherwise):** this repository uses a
+  **custom URL-to-path resolver** in `api/database.py` (`_resolve_file_path`), *not* SQLAlchemy's URL handling.
+  Under that resolver the SQLAlchemy-style `sqlite:///./dev.db` used in the "Common commands" section resolves
+  to the absolute path `/dev.db` (unwritable -> `sqlite3.OperationalError: unable to open database file`);
+  likewise `.env.example`'s `sqlite:///./asset_graph.db` -> `/asset_graph.db`. So when starting the backend
+  directly, prefer either an explicit writable absolute path (`DATABASE_URL=sqlite:////workspace/dev.db`), the
+  rootless form `DATABASE_URL=sqlite:dev.db` (resolves relative to `$PWD`, i.e. `/workspace/dev.db` when run from
+  the repository root -- this is what `run-dev.sh` documents), or `DATABASE_URL=sqlite:///:memory:`.
 - **Backend required env vars:** importing `api.main` needs `DATABASE_URL`, `SECRET_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` (see `run-dev.sh`). Example working start:
   `DATABASE_URL=sqlite:dev.db SECRET_KEY=$(openssl rand -hex 32) ADMIN_USERNAME=admin ADMIN_PASSWORD=$(openssl rand -base64 24) python3 -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000`
 - **Frontend → backend wiring:** start the frontend with `NEXT_PUBLIC_API_URL=http://localhost:8000` (defaults to that anyway). Public dashboard routes (visualization/metrics/assets) need no login; only `/token`, `/api/users/me`, and rebuild-admin endpoints require JWT.
 - **Backend serves sample data by default** (19 assets / 73 relationships); no external DB or `USE_REAL_DATA_FETCHER` needed for local E2E.
 - **`python3-venv` system package** is required to create the venv and is installed during environment setup (not part of the update script).
-- **Known pre-existing test failures (not environment issues):** `tests/unit/test_workflow_yaml_files.py` fails on `codeql.yml` (via `pytest.fail`) because `.github/workflows/codeql.yml` does not exist in the repo. The rest of the suite passes (~7777 passed).
+- **Known pre-existing test failures (not environment issues):** `tests/unit/test_workflow_yaml_files.py` fails on
+  `codeql.yml` (via `pytest.fail`) because `.github/workflows/codeql.yml` does not exist in the repository. The
+  rest of the suite passes (~7777 passed).

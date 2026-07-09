@@ -1,6 +1,6 @@
 """Clean restart-recovery path using the real lifecycle and persistence seams."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -22,7 +22,7 @@ pytestmark = pytest.mark.integration
 def _create_stale_running_job(session_factory, *, worker_id: str) -> str:
     """Create a running rebuild job with a heartbeat older than the lock TTL."""
     execution_id = f"{worker_id}-exec"
-    stale_heartbeat_at = datetime.now(UTC) - timedelta(seconds=helpers.LOCK_TTL + 30)
+    stale_heartbeat_at = datetime.now(timezone.utc) - timedelta(seconds=helpers.LOCK_TTL + 30)
     with session_scope(session_factory) as session:
         repo = AssetGraphRepository(session)
         job_id = repo.create_rebuild_job(requested_by=worker_id)
@@ -37,7 +37,7 @@ def _create_stale_running_job(session_factory, *, worker_id: str) -> str:
 
 def _expire_lock(session_factory) -> None:
     """Force the rebuild lock row to appear expired for the next owner."""
-    expired_at = datetime.now(UTC) - timedelta(seconds=1)
+    expired_at = datetime.now(timezone.utc) - timedelta(seconds=1)
     with session_scope(session_factory) as session:
         lock = session.get(DistributedLockORM, helpers.LOCK_NAME)
         assert lock is not None

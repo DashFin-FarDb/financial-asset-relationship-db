@@ -9,7 +9,7 @@ This module contains comprehensive unit tests for the database models including:
 - Model field validation and nullable constraints
 """
 
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy import create_engine, inspect
@@ -981,7 +981,7 @@ class TestRebuildJobORM:
 
     def test_rebuild_job_invalid_status_fails_db_check_constraint(self, db_session):
         """Test that invalid statuses are rejected by the database CHECK constraint."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         job = RebuildJobORM(
             job_id="invalid-status",
             requested_by="test_user",
@@ -996,7 +996,7 @@ class TestRebuildJobORM:
 
     def test_rebuild_job_cancel_statuses_round_trip(self, db_session):
         """Test that cancel-requested and cancelled statuses round-trip correctly."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         cancel_requested = RebuildJobORM(
             job_id="cancel-requested",
             requested_by="test_user",
@@ -1049,7 +1049,7 @@ class TestDistributedLockORM:
 
     def test_distributed_lock_crud_and_timestamp_round_trip(self, db_session):
         """Test distributed lock CRUD and timestamp persistence."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         lock = DistributedLockORM(
             lock_name="test-lock",
             holder_id="holder-1",

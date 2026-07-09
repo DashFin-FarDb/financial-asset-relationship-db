@@ -1,6 +1,6 @@
 """Tests for the Reconciliation Engine core abstraction."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import pytest
@@ -49,7 +49,7 @@ class TestReconciliationPlan:
             safety_state=ExecutionSafety.RESET_REQUIRED,
             reason="Test reason",
             metadata={"key": "value"},
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
 
         assert plan.drift_type == "test_drift"
@@ -69,7 +69,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
     def test_plan_noop_consistency(self) -> None:
@@ -84,7 +84,7 @@ class TestReconciliationPlan:
             safety_state=ExecutionSafety.CONVERGED,
             reason="No drift",
             metadata={},
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
         assert plan_valid.severity == Severity.NONE
 
@@ -99,7 +99,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
     def test_plan_rejects_invalid_action_types(self) -> None:
@@ -115,7 +115,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.RESET_REQUIRED,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
         # Test with mixed valid and invalid action types
@@ -129,7 +129,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.RESET_REQUIRED,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
 
@@ -454,9 +454,9 @@ class TestReconciliationEngine:
         evaluator = MockDriftEvaluator("none", Severity.NONE)
         engine = ReconciliationEngine(evaluator)
 
-        before = datetime.now(UTC)
+        before = datetime.now(timezone.utc)
         plan = engine.generate_reconciliation_plan()
-        after = datetime.now(UTC)
+        after = datetime.now(timezone.utc)
 
         assert before <= plan.created_at <= after
 
