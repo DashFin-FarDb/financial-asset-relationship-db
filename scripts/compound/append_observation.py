@@ -22,6 +22,7 @@ from compound.schema import (  # noqa: E402
     SchemaError,
     WriterMode,
     assert_writable,
+    normalize_repo_relative,
     observation_from_mapping,
     parse_observation_line,
 )
@@ -32,6 +33,19 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     root = repo_root or REPO_ROOT
     return root / Path(relative)
+
+
+def _read_repo_input_file(file_path: Path, repo_root: Path | None = None) -> str:
+    """Read an input file after proving it stays within the repository root."""
+    root = (repo_root or REPO_ROOT).resolve()
+    candidate = file_path if file_path.is_absolute() else root / file_path
+    resolved = candidate.resolve(strict=True)
+    try:
+        relative = resolved.relative_to(root)
+    except ValueError as exc:
+        raise PathPolicyError(f"Input file must stay within repository root: {file_path}") from exc
+    normalize_repo_relative(relative)
+    return resolved.read_text(encoding="utf-8")
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
@@ -243,7 +257,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else json.loads(Path(args.file).read_text(encoding="utf-8"))
+        payload = json.loads(args.json) if args.json else json.loads(_read_repo_input_file(args.file, args.repo_root))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:

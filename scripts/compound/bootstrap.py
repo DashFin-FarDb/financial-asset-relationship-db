@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -24,6 +26,7 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+GH_ARG_PATTERN = re.compile(r"^[A-Za-z0-9_./:>=,-]+$")
 
 # Seed docs → primary domain mapping (read-only inputs; never written).
 SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -46,6 +49,24 @@ SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
 
 def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _validated_gh_args(args: list[str]) -> list[str] | None:
+    """Return gh args only when they match the bounded PR-list contract."""
+    if args[:2] != ["pr", "list"]:
+        return None
+    for value in args:
+        if not GH_ARG_PATTERN.fullmatch(value):
+            return None
+    if "--limit" not in args or "--json" not in args or "--state" not in args:
+        return None
+    try:
+        limit = int(args[args.index("--limit") + 1])
+    except (IndexError, ValueError):
+        return None
+    if not 1 <= limit <= 100:
+        return None
+    return args
 
 
 def seed_from_docs(repo_root: Path) -> list[str]:
@@ -77,9 +98,15 @@ def seed_from_docs(repo_root: Path) -> list[str]:
 
 
 def _gh_json(args: list[str]) -> Any | None:
+    safe_args = _validated_gh_args(args)
+    if safe_args is None:
+        return None
+    gh_path = shutil.which("gh")
+    if gh_path is None:
+        return None
     try:
         completed = subprocess.run(
-            ["gh", *args],
+            [gh_path, *safe_args],
             check=False,
             capture_output=True,
             text=True,
