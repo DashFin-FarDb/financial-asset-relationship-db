@@ -11,6 +11,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1394**: fix(ci): harden architecture compound checks
 - [provisional] **pr:1398**: fix(ci): address compound scanner failures
 - [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
+- [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### api
 - [provisional] **pr:1398**: fix(ci): address compound scanner failures
@@ -20,6 +21,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
 - [provisional] **pr:1398**: fix(ci): address compound scanner failures
 - [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
+- [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### ci-guardrails
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
@@ -27,9 +29,10 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1394**: fix(ci): harden architecture compound checks
 - [provisional] **pr:1398**: fix(ci): address compound scanner failures
 - [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
+- [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### rebuild-reconciliation
-_No changes recorded._
+- [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
 _No changes recorded._

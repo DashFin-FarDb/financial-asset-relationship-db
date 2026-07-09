@@ -8,4 +8,5 @@ _No landed observations yet._
 
 ## Provisional
 
-_No provisional observations yet._
+- **pr:1403** (provisional): fix(ci): resolve compound workflow failures
+  - evidence: pr:1403
