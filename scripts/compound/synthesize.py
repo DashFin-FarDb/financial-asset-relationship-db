@@ -9,7 +9,6 @@ import argparse
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Mapping
 
 _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
@@ -41,15 +40,6 @@ DEPENDENCY_BOT_MARKERS = (
     "actions-dependencies",
 )
 
-DOMAIN_TITLES: dict[str, str] = {
-    "architecture": "Architecture & seams",
-    "api": "API contracts",
-    "persistence": "Persistence / SQL",
-    "ci-guardrails": "CI / guardrails",
-    "rebuild-reconciliation": "Rebuild / reconciliation",
-    "deployment": "Deployment / readiness",
-}
-
 
 def load_ledger(ledger_path: Path) -> list[Observation]:
     """Load all observations from a JSONL ledger."""
@@ -60,10 +50,7 @@ def load_ledger(ledger_path: Path) -> list[Observation]:
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
-        try:
-            observations.append(parse_observation_line(stripped))
-        except SchemaError:
-            continue
+        observations.append(parse_observation_line(stripped))
     return observations
 
 
@@ -109,18 +96,17 @@ def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]
     by_ref: dict[str, Observation] = {}
     for obs in observations:
         existing = by_ref.get(obs.primary_ref)
-        if existing is None or _should_replace_observation(existing, obs):
+        if existing is None:
+            by_ref[obs.primary_ref] = obs
+            continue
+        if obs.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
+            by_ref[obs.primary_ref] = obs
+            continue
+        if obs.created_at >= existing.created_at and not (
+            existing.status is ObservationStatus.LANDED and obs.status is ObservationStatus.PROVISIONAL
+        ):
             by_ref[obs.primary_ref] = obs
     return list(by_ref.values())
-
-
-def _should_replace_observation(existing: Observation, candidate: Observation) -> bool:
-    """Return True when candidate is the preferred observation for a primary_ref."""
-    if candidate.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
-        return True
-    if existing.status is ObservationStatus.LANDED and candidate.status is ObservationStatus.PROVISIONAL:
-        return False
-    return candidate.created_at >= existing.created_at
 
 
 def _render_section(title: str, items: list[Observation]) -> str:
@@ -139,7 +125,15 @@ def _render_section(title: str, items: list[Observation]) -> str:
 
 def render_domain_doc(domain: str, observations: list[Observation]) -> str:
     """Render one domain markdown document with Landed/Provisional sections."""
-    title = DOMAIN_TITLES.get(domain, domain)
+    titles = {
+        "architecture": "Architecture & seams",
+        "api": "API contracts",
+        "persistence": "Persistence / SQL",
+        "ci-guardrails": "CI / guardrails",
+        "rebuild-reconciliation": "Rebuild / reconciliation",
+        "deployment": "Deployment / readiness",
+    }
+    title = titles.get(domain, domain)
     relevant = [obs for obs in observations if domain in obs.domains]
     relevant = _latest_by_primary_ref(relevant)
     landed = [obs for obs in relevant if obs.status is ObservationStatus.LANDED]
@@ -194,24 +188,6 @@ def write_text(path: Path, content: str, *, repo_root: Path) -> None:
     path.write_text(content, encoding="utf-8", newline="\n")
 
 
-def _domain_doc_path(domain: str) -> str:
-    """Return a repo-relative compound domain doc path."""
-    return f"{DOMAINS_DIR.as_posix()}/{domain}.md"
-
-
-def _render_outputs(observations: list[Observation]) -> dict[str, str]:
-    """Render all synthesize output files."""
-    outputs = {_domain_doc_path(domain): render_domain_doc(domain, observations) for domain in DOMAINS}
-    outputs[INDEX_PATH.as_posix()] = render_index(observations)
-    return outputs
-
-
-def _write_outputs(outputs: Mapping[str, str], *, repo_root: Path) -> None:
-    """Write rendered synthesize outputs."""
-    for rel, content in outputs.items():
-        write_text(repo_root / rel, content, repo_root=repo_root)
-
-
 def synthesize(
     repo_root: Path,
     *,
@@ -228,11 +204,17 @@ def synthesize(
     if not should_hot_path_synthesize(observations, force=force, event_hint=event_hint):
         return {}
 
-    outputs = _render_outputs(observations)
+    outputs: dict[str, str] = {}
+    for domain in DOMAINS:
+        rel = f"{DOMAINS_DIR.as_posix()}/{domain}.md"
+        outputs[rel] = render_domain_doc(domain, observations)
+    outputs[INDEX_PATH.as_posix()] = render_index(observations)
+
     if dry_run:
         return outputs
 
-    _write_outputs(outputs, repo_root=repo_root)
+    for rel, content in outputs.items():
+        write_text(repo_root / rel, content, repo_root=repo_root)
     return outputs
 
 
