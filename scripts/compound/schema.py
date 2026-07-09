@@ -153,19 +153,25 @@ class PathPolicyError(PermissionError):
     """Raised when a write target violates allowlist/denylist policy."""
 
 
-def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
+def _as_str_list(value: Any, field_name: str) -> list[str]:
+    """Coerce an optional string/list field to a list of strings."""
     if value is None:
-        return ()
+        return []
     if isinstance(value, str):
-        return (value,)
+        return [value]
     if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
         items = []
         for item in value:
             if not isinstance(item, str):
                 raise SchemaError(f"{field_name} entries must be strings")
             items.append(item)
-        return tuple(items)
+        return items
     raise SchemaError(f"{field_name} must be a string or list of strings")
+
+
+def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
+    """Coerce an optional string/list field to a tuple of strings."""
+    return tuple(_as_str_list(value, field_name))
 
 
 def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:

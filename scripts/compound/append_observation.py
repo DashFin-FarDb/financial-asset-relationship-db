@@ -19,6 +19,7 @@ from compound.schema import (  # noqa: E402
     Observation,
     ObservationSource,
     PathPolicyError,
+    RUNTIME_PATH,
     SchemaError,
     WriterMode,
     assert_writable,
@@ -27,6 +28,17 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+RUNTIME_REL = RUNTIME_PATH.as_posix()
+
+
+def _default_runtime_data() -> dict[str, str | int | None]:
+    """Return default runtime.yml values."""
+    return {
+        "writer_mode": WriterMode.DUAL.value,
+        "conflict_count": 0,
+        "conflict_window_minutes": 30,
+        "last_conflict_at": None,
+    }
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
@@ -49,8 +61,8 @@ def _resolve_repo_file(file_path: Path, repo_root: Path | None = None) -> Path:
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
-    """Read dual-writer mode from docs/compound/runtime.yml."""
-    runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
+    """Read dual-writer mode from runtime.yml."""
+    runtime_path = _repo_path(RUNTIME_PATH, repo_root)
     if not runtime_path.exists():
         return WriterMode.DUAL
     text = runtime_path.read_text(encoding="utf-8")
@@ -67,12 +79,7 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
 
 def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
     """Parse the small runtime.yml key set without requiring PyYAML."""
-    data: dict[str, str | int | None] = {
-        "writer_mode": WriterMode.DUAL.value,
-        "conflict_count": 0,
-        "conflict_window_minutes": 30,
-        "last_conflict_at": None,
-    }
+    data = _default_runtime_data()
     for line in text.splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#") or ":" not in stripped:
@@ -91,7 +98,7 @@ def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     """Write runtime.yml with the fixed key set."""
-    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else "docs/compound/runtime.yml")
+    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else RUNTIME_REL)
     lines = [
         "# Architecture-expert dual-writer runtime mode.",
         "# writer_mode: dual | github_only",
@@ -113,18 +120,13 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     Threshold: >=3 conflicts within conflict_window_minutes (plan A12).
     """
     root = repo_root or REPO_ROOT
-    runtime_path = _repo_path("docs/compound/runtime.yml", root)
-    assert_writable("docs/compound/runtime.yml")
+    runtime_path = _repo_path(RUNTIME_PATH, root)
+    assert_writable(RUNTIME_REL)
     current = datetime.now(timezone.utc) if now is None else now
     if runtime_path.exists():
         data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
     else:
-        data = {
-            "writer_mode": WriterMode.DUAL.value,
-            "conflict_count": 0,
-            "conflict_window_minutes": 30,
-            "last_conflict_at": None,
-        }
+        data = _default_runtime_data()
 
     window_minutes = int(data.get("conflict_window_minutes") or 30)
     last_raw = data.get("last_conflict_at")

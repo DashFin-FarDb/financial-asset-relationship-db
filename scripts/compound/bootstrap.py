@@ -121,6 +121,44 @@ def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | Non
         return None
 
 
+def _observation_status_for_pr(pr: dict[str, Any]) -> str:
+    """Return landed for merged PRs and provisional for open/unmerged PRs."""
+    state = str(pr.get("state") or "").upper()
+    merged = bool(pr.get("mergedAt"))
+    return ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
+
+
+def _paths_from_pr_files(file_entries: Any) -> list[str]:
+    """Extract changed paths from gh's PR file payload variants."""
+    paths: list[str] = []
+    for entry in file_entries or []:
+        if isinstance(entry, str):
+            paths.append(entry)
+        elif isinstance(entry, dict):
+            path = entry.get("path") or entry.get("filename")
+            if path:
+                paths.append(str(path))
+    return paths
+
+
+def _payload_from_pr(pr: dict[str, Any], number: int) -> dict[str, Any]:
+    """Build a bootstrap observation payload from one gh PR item."""
+    title = str(pr.get("title") or f"PR #{number}")
+    paths = _paths_from_pr_files(pr.get("files"))
+    return {
+        "observation_id": f"bootstrap-pr-{number}",
+        "source": ObservationSource.BOOTSTRAP.value,
+        "event_type": "seed.pull_request",
+        "status": _observation_status_for_pr(pr),
+        "primary_ref": f"pr:{number}",
+        "summary": title[:240],
+        "domains": list(detect_domains_from_paths(paths)),
+        "refs": [f"pr:{number}"],
+        "evidence_pointers": [f"github:pr:{number}"],
+        "created_at": _now(),
+    }
+
+
 def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> list[str]:
     """Bounded PR scrape via gh; non-fatal when gh is unavailable.
 
@@ -139,32 +177,7 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
         number = pr.get("number")
         if not isinstance(number, int):
             continue
-        state = str(pr.get("state") or "").upper()
-        merged = bool(pr.get("mergedAt"))
-        status = ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
-        title = str(pr.get("title") or f"PR #{number}")
-        file_entries = pr.get("files") or []
-        paths: list[str] = []
-        for entry in file_entries:
-            if isinstance(entry, str):
-                paths.append(entry)
-            elif isinstance(entry, dict) and entry.get("path"):
-                paths.append(str(entry["path"]))
-            elif isinstance(entry, dict) and entry.get("filename"):
-                paths.append(str(entry["filename"]))
-        domains = list(detect_domains_from_paths(paths))
-        payload = {
-            "observation_id": f"bootstrap-pr-{number}",
-            "source": ObservationSource.BOOTSTRAP.value,
-            "event_type": "seed.pull_request",
-            "status": status,
-            "primary_ref": f"pr:{number}",
-            "summary": title[:240],
-            "domains": domains,
-            "refs": [f"pr:{number}"],
-            "evidence_pointers": [f"github:pr:{number}"],
-            "created_at": _now(),
-        }
+        payload = _payload_from_pr(pr, number)
         _, message = append_observation(payload, repo_root=repo_root)
         messages.append(f"pr:{number}: {message}")
     return messages
