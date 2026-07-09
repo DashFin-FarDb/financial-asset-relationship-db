@@ -61,32 +61,42 @@ def _updated_since_filter(cutoff: str) -> str:
     return f"updated:>={cutoff}"
 
 
+def _validate_seed_domains(domains: tuple[str, ...]) -> None:
+    """Validate seed document domain names."""
+    for domain in domains:
+        if domain not in DOMAINS:
+            raise SchemaError(f"Invalid seed domain {domain}")
+
+
+def _doc_seed_payload(rel_path: str, domains: tuple[str, ...]) -> dict[str, Any]:
+    """Build one landed bootstrap observation payload from a seed doc path."""
+    return {
+        "observation_id": f"bootstrap-doc-{Path(rel_path).stem}",
+        "source": ObservationSource.BOOTSTRAP.value,
+        "event_type": "seed.doc",
+        "status": ObservationStatus.LANDED.value,
+        "primary_ref": f"doc:{rel_path}",
+        "summary": f"Bootstrap seed from {rel_path}",
+        "domains": list(domains),
+        "refs": [rel_path],
+        "evidence_pointers": [rel_path],
+        "created_at": _now(),
+    }
+
+
+def _seed_doc(repo_root: Path, rel_path: str, domains: tuple[str, ...]) -> str:
+    """Append one seed-doc observation or return a skip message."""
+    path = repo_root / rel_path
+    if not path.exists():
+        return f"skip missing seed doc: {rel_path}"
+    _validate_seed_domains(domains)
+    _, message = append_observation(_doc_seed_payload(rel_path, domains), repo_root=repo_root)
+    return f"{rel_path}: {message}"
+
+
 def seed_from_docs(repo_root: Path) -> list[str]:
     """Emit landed bootstrap observations from existing allowlisted seed docs."""
-    messages: list[str] = []
-    for rel_path, domains in SEED_DOCS:
-        path = repo_root / rel_path
-        if not path.exists():
-            messages.append(f"skip missing seed doc: {rel_path}")
-            continue
-        for domain in domains:
-            if domain not in DOMAINS:
-                raise SchemaError(f"Invalid seed domain {domain}")
-        payload = {
-            "observation_id": f"bootstrap-doc-{Path(rel_path).stem}",
-            "source": ObservationSource.BOOTSTRAP.value,
-            "event_type": "seed.doc",
-            "status": ObservationStatus.LANDED.value,
-            "primary_ref": f"doc:{rel_path}",
-            "summary": f"Bootstrap seed from {rel_path}",
-            "domains": list(domains),
-            "refs": [rel_path],
-            "evidence_pointers": [rel_path],
-            "created_at": _now(),
-        }
-        _, message = append_observation(payload, repo_root=repo_root)
-        messages.append(f"{rel_path}: {message}")
-    return messages
+    return [_seed_doc(repo_root, rel_path, domains) for rel_path, domains in SEED_DOCS]
 
 
 def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | None:

@@ -174,6 +174,26 @@ def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
     return tuple(_as_str_list(value, field_name))
 
 
+def _as_int_list(value: Any, field_name: str) -> list[int]:
+    """Validate that a watched-series field is a list of integers."""
+    if not isinstance(value, list):
+        raise SchemaError(f"watched-series {field_name} must be a list")
+    items: list[int] = []
+    for item in value:
+        if not isinstance(item, int) or isinstance(item, bool):
+            raise SchemaError(f"watched-series {field_name} must be integers")
+        items.append(item)
+    return items
+
+
+def _as_required_str_list(data: Mapping[str, Any], key: str) -> list[str]:
+    """Validate that a required watched-series key is a list of strings."""
+    value = data[key]
+    if not isinstance(value, list):
+        raise SchemaError(f"watched-series {key} must be a list")
+    return _as_str_list(value, key)
+
+
 def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
     """Validate domain names against the fixed partition set."""
     normalized: list[str] = []
@@ -249,31 +269,12 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     if not isinstance(version, int) or isinstance(version, bool):
         raise SchemaError("watched-series version must be an integer")
 
-    prs_raw = data["prs"]
-    labels_raw = data["labels"]
-    globs_raw = data["path_globs"]
-    if not isinstance(prs_raw, list) or not isinstance(labels_raw, list) or not isinstance(globs_raw, list):
-        raise SchemaError("watched-series prs, labels, and path_globs must be lists")
-
-    prs: list[int] = []
-    for item in prs_raw:
-        if not isinstance(item, int) or isinstance(item, bool):
-            raise SchemaError("watched-series prs must be integers")
-        prs.append(item)
-
-    labels: list[str] = []
-    for item in labels_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series labels must be strings")
-        labels.append(item)
-
-    path_globs: list[str] = []
-    for item in globs_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series path_globs must be strings")
-        path_globs.append(item)
-
-    return WatchedSeries(version=version, prs=prs, labels=labels, path_globs=path_globs)
+    return WatchedSeries(
+        version=version,
+        prs=_as_int_list(data["prs"], "prs"),
+        labels=_as_required_str_list(data, "labels"),
+        path_globs=_as_required_str_list(data, "path_globs"),
+    )
 
 
 def normalize_repo_relative(path: str | Path) -> str:
@@ -315,19 +316,20 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     return tuple(found) if found else ("architecture",)
 
 
+def _matches_policy_prefix(normalized: str, prefix: str) -> bool:
+    """Return True when a normalized path matches a policy prefix."""
+    if prefix.endswith("/"):
+        return normalized.startswith(prefix) or normalized == prefix.rstrip("/")
+    return normalized == prefix
+
+
 def is_denylisted(path: str | Path) -> bool:
     """Return True if path matches the closed write denylist."""
     try:
         normalized = normalize_repo_relative(path)
     except PathPolicyError:
         return True
-    for prefix in WRITE_DENYLIST_PREFIXES:
-        if prefix.endswith("/"):
-            if normalized.startswith(prefix) or normalized == prefix.rstrip("/"):
-                return True
-        elif normalized == prefix:
-            return True
-    return False
+    return any(_matches_policy_prefix(normalized, prefix) for prefix in WRITE_DENYLIST_PREFIXES)
 
 
 def is_allowlisted(path: str | Path) -> bool:
@@ -336,13 +338,7 @@ def is_allowlisted(path: str | Path) -> bool:
         normalized = normalize_repo_relative(path)
     except PathPolicyError:
         return False
-    for prefix in WRITE_ALLOWLIST_PREFIXES:
-        if prefix.endswith("/"):
-            if normalized.startswith(prefix):
-                return True
-        elif normalized == prefix:
-            return True
-    return False
+    return any(_matches_policy_prefix(normalized, prefix) for prefix in WRITE_ALLOWLIST_PREFIXES)
 
 
 def assert_writable(path: str | Path) -> str:

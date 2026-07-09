@@ -53,46 +53,66 @@ def _extract_bullets(text: str, section: str) -> list[str]:
     return bullets
 
 
-def query_memory(repo_root: Path, question: str) -> str:
-    """Answer from INDEX + domain docs with provisional/landed labels."""
-    domains = select_domains(question)
+def _domain_doc_path(repo_root: Path, domain: str) -> Path:
+    """Return the canonical compound domain doc path."""
+    return repo_root / "docs" / "compound" / "domains" / f"{domain}.md"
+
+
+def _query_header(question: str, domains: list[str], repo_root: Path) -> list[str]:
+    """Render the fixed query answer header."""
     parts = [
         f"Question: {question}",
         f"Domains consulted: {', '.join(domains)}",
         "",
     ]
-    index = repo_root / INDEX_PATH
-    if index.exists():
-        parts.append(f"Index: `{INDEX_PATH.as_posix()}`")
-        parts.append("")
+    if (repo_root / INDEX_PATH).exists():
+        parts.extend([f"Index: `{INDEX_PATH.as_posix()}`", ""])
+    return parts
 
+
+def _append_domain_section(parts: list[str], domain: str, text: str) -> bool:
+    """Append one domain section and return True when observations were found."""
+    landed = _extract_bullets(text, "Landed")
+    provisional = _extract_bullets(text, "Provisional")
+    parts.append(f"### {domain}")
+    _append_labeled_items(parts, "Landed", landed)
+    _append_labeled_items(parts, "Provisional", provisional)
+    if not landed and not provisional:
+        parts.append("  _No observations yet in this domain._")
+    parts.append("")
+    return bool(landed or provisional)
+
+
+def _append_labeled_items(parts: list[str], label: str, items: list[str]) -> None:
+    """Append up to ten labeled bullet items to the answer."""
+    if not items:
+        return
+    parts.append(f"{label}:")
+    parts.extend(f"  {item}" for item in items[:10])
+
+
+def _append_empty_result(parts: list[str]) -> None:
+    """Append the standard no-observations guidance."""
+    parts.append(
+        "No compounded observations matched yet. "
+        "Run bootstrap/synthesize, or consult ADRs/seam docs directly "
+        "(cite only; do not rewrite policy)."
+    )
+
+
+def query_memory(repo_root: Path, question: str) -> str:
+    """Answer from INDEX + domain docs with provisional/landed labels."""
+    domains = select_domains(question)
+    parts = _query_header(question, domains, repo_root)
     found = False
     for domain in domains:
-        path = repo_root / "docs" / "compound" / "domains" / f"{domain}.md"
+        path = _domain_doc_path(repo_root, domain)
         if not path.exists():
             continue
-        text = path.read_text(encoding="utf-8")
-        landed = _extract_bullets(text, "Landed")
-        provisional = _extract_bullets(text, "Provisional")
-        parts.append(f"### {domain}")
-        if landed:
-            found = True
-            parts.append("Landed:")
-            parts.extend(f"  {item}" for item in landed[:10])
-        if provisional:
-            found = True
-            parts.append("Provisional:")
-            parts.extend(f"  {item}" for item in provisional[:10])
-        if not landed and not provisional:
-            parts.append("  _No observations yet in this domain._")
-        parts.append("")
+        found = _append_domain_section(parts, domain, path.read_text(encoding="utf-8")) or found
 
     if not found:
-        parts.append(
-            "No compounded observations matched yet. "
-            "Run bootstrap/synthesize, or consult ADRs/seam docs directly "
-            "(cite only; do not rewrite policy)."
-        )
+        _append_empty_result(parts)
     parts.append("Reminder: label claims as landed vs provisional; never rewrite ADRs/AGENTS.md/policy.")
     return "\n".join(parts).rstrip() + "\n"
 
