@@ -34,14 +34,14 @@ def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     return root / Path(relative)
 
 
-def _read_observation_file(file_path: Path) -> Any:
+def _read_observation_file(file_path: Path, repo_root: Path | None = None) -> Any:
     """Read a JSON observation file from an allowed local path."""
     candidate = file_path.resolve(strict=True)
-    allowed_roots = (REPO_ROOT.resolve(), Path("/tmp").resolve())
+    root = (repo_root or REPO_ROOT).resolve()
     if not candidate.is_file() or candidate.suffix.lower() != ".json":
         raise SchemaError("Observation file must be an existing .json file")
-    if not any(candidate.is_relative_to(root) for root in allowed_roots):
-        raise SchemaError("Observation file must be under the repository or /tmp")
+    if not candidate.is_relative_to(root):
+        raise SchemaError("Observation file must be under the repository")
     return json.loads(candidate.read_text(encoding="utf-8"))
 
 
@@ -64,26 +64,34 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
 
 def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
     """Parse the small runtime.yml key set without requiring PyYAML."""
-    data: dict[str, str | int | None] = {
-        "writer_mode": WriterMode.DUAL.value,
-        "conflict_count": 0,
-        "conflict_window_minutes": 30,
-        "last_conflict_at": None,
-    }
+    data = _default_runtime_data()
     for line in text.splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#") or ":" not in stripped:
             continue
         key, value = stripped.split(":", 1)
-        key = key.strip()
-        value = value.strip()
-        if key == "writer_mode":
-            data[key] = value
-        elif key in {"conflict_count", "conflict_window_minutes"}:
-            data[key] = int(value)
-        elif key == "last_conflict_at":
-            data[key] = None if value in {"null", "~", ""} else value
+        _assign_runtime_value(data, key.strip(), value.strip())
     return data
+
+
+def _default_runtime_data() -> dict[str, str | int | None]:
+    """Return the default runtime.yml data."""
+    return {
+        "writer_mode": WriterMode.DUAL.value,
+        "conflict_count": 0,
+        "conflict_window_minutes": 30,
+        "last_conflict_at": None,
+    }
+
+
+def _assign_runtime_value(data: dict[str, str | int | None], key: str, value: str) -> None:
+    """Assign a parsed runtime.yml value when the key is recognized."""
+    if key == "writer_mode":
+        data[key] = value
+    elif key in {"conflict_count", "conflict_window_minutes"}:
+        data[key] = int(value)
+    elif key == "last_conflict_at":
+        data[key] = None if value in {"null", "~", ""} else value
 
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
@@ -113,30 +121,15 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     runtime_path = _repo_path("docs/compound/runtime.yml", root)
     assert_writable("docs/compound/runtime.yml")
     current = datetime.now(timezone.utc) if now is None else now
-    if runtime_path.exists():
-        data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
-    else:
-        data = {
-            "writer_mode": WriterMode.DUAL.value,
-            "conflict_count": 0,
-            "conflict_window_minutes": 30,
-            "last_conflict_at": None,
-        }
+    data = (
+        _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
+        if runtime_path.exists()
+        else _default_runtime_data()
+    )
 
     window_minutes = int(data.get("conflict_window_minutes") or 30)
-    last_raw = data.get("last_conflict_at")
     count = int(data.get("conflict_count") or 0)
-    if isinstance(last_raw, str) and last_raw not in {"null", ""}:
-        try:
-            last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
-            age_minutes = (current - last_at).total_seconds() / 60.0
-            if age_minutes > window_minutes:
-                count = 0
-        except ValueError:
-            count = 0
-    else:
-        count = 0
-
+    count = _reset_count_if_window_expired(count, data.get("last_conflict_at"), current, window_minutes)
     count += 1
     data["conflict_count"] = count
     data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -144,6 +137,25 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
         data["writer_mode"] = WriterMode.GITHUB_ONLY.value
     _write_runtime_yaml(runtime_path, data)
     return WriterMode(str(data["writer_mode"]))
+
+
+def _reset_count_if_window_expired(
+    count: int,
+    last_raw: str | int | None,
+    current: datetime,
+    window_minutes: int,
+) -> int:
+    """Reset conflict count when the last conflict is outside the active window."""
+    if isinstance(last_raw, str) and last_raw not in {"null", ""}:
+        try:
+            last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
+            age_minutes = (current - last_at).total_seconds() / 60.0
+            if age_minutes > window_minutes:
+                return 0
+        except ValueError:
+            return 0
+        return count
+    return 0
 
 
 def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
@@ -254,7 +266,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else _read_observation_file(args.file)
+        payload = json.loads(args.json) if args.json else _read_observation_file(args.file, args.repo_root)
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:

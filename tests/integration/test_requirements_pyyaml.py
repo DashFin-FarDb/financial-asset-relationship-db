@@ -1,5 +1,6 @@
 """
 Comprehensive tests for PyYAML dependencies in requirements-dev.txt.
+
 Tests the addition of PyYAML and types-PyYAML dependencies.
 """
 
@@ -41,7 +42,7 @@ class TestPyYAMLDependencyAddition:
     @staticmethod
     def requirements_lines(requirements_content: str) -> list[str]:
         """
-        Extracts the non-empty, non-comment lines from the contents of a requirements file.
+        Extract the non-empty, non-comment lines from a requirements file.
 
         Parameters:
             requirements_content (str): Full text of a requirements file.
@@ -115,9 +116,9 @@ class TestPyYAMLDependencyAddition:
                     types_version = int(types_match.group(1))
 
         if pyyaml_version and types_version:
-            assert pyyaml_version == types_version, (
-                f"types-PyYAML version {types_version} should match PyYAML version {pyyaml_version}"
-            )
+            assert (
+                pyyaml_version == types_version
+            ), f"types-PyYAML version {types_version} should match PyYAML version {pyyaml_version}"
 
 
 class TestRequirementsDevYAMLUsage:

@@ -233,6 +233,31 @@ def parse_observation_line(line: str) -> Observation:
     return observation_from_mapping(payload)
 
 
+def _require_list(data: Mapping[str, Any], key: str) -> list[Any]:
+    value = data[key]
+    if not isinstance(value, list):
+        raise SchemaError("watched-series prs, labels, and path_globs must be lists")
+    return value
+
+
+def _int_list(items: list[Any], field_name: str) -> list[int]:
+    values: list[int] = []
+    for item in items:
+        if not isinstance(item, int) or isinstance(item, bool):
+            raise SchemaError(f"watched-series {field_name} must be integers")
+        values.append(item)
+    return values
+
+
+def _str_list(items: list[Any], field_name: str) -> list[str]:
+    values: list[str] = []
+    for item in items:
+        if not isinstance(item, str):
+            raise SchemaError(f"watched-series {field_name} must be strings")
+        values.append(item)
+    return values
+
+
 def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     """Validate watched-series YAML/JSON mapping."""
     missing = sorted(REQUIRED_WATCHED_SERIES_KEYS - set(data.keys()))
@@ -243,31 +268,12 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     if not isinstance(version, int) or isinstance(version, bool):
         raise SchemaError("watched-series version must be an integer")
 
-    prs_raw = data["prs"]
-    labels_raw = data["labels"]
-    globs_raw = data["path_globs"]
-    if not isinstance(prs_raw, list) or not isinstance(labels_raw, list) or not isinstance(globs_raw, list):
-        raise SchemaError("watched-series prs, labels, and path_globs must be lists")
-
-    prs: list[int] = []
-    for item in prs_raw:
-        if not isinstance(item, int) or isinstance(item, bool):
-            raise SchemaError("watched-series prs must be integers")
-        prs.append(item)
-
-    labels: list[str] = []
-    for item in labels_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series labels must be strings")
-        labels.append(item)
-
-    path_globs: list[str] = []
-    for item in globs_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series path_globs must be strings")
-        path_globs.append(item)
-
-    return WatchedSeries(version=version, prs=prs, labels=labels, path_globs=path_globs)
+    return WatchedSeries(
+        version=version,
+        prs=_int_list(_require_list(data, "prs"), "prs"),
+        labels=_str_list(_require_list(data, "labels"), "labels"),
+        path_globs=_str_list(_require_list(data, "path_globs"), "path_globs"),
+    )
 
 
 def normalize_repo_relative(path: str | Path) -> str:

@@ -21,7 +21,7 @@ Compounded architecture memory for this repository.
 
 ## Index excerpt
 
-# Architecture Expert Compound Index
+### Architecture Expert Compound Index
 
 Docs-first memory for architecture, seams, API, persistence/SQL, CI/guardrails,
 rebuild/reconciliation, and deployment/readiness.

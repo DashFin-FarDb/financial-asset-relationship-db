@@ -119,6 +119,18 @@ class TestAppendObservation:
         payload = json.dumps(_base_payload(observation_id="cli-1"))
         assert mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0  # nosec B101
 
+    def test_cli_file_round_trip_requires_repo_local_json(self, compound_repo: Path) -> None:
+        """CLI accepts repo-local JSON files and rejects files outside the repo root."""
+        from compound import append_observation as mod
+
+        payload_path = compound_repo / "observation.json"
+        payload_path.write_text(json.dumps(_base_payload(observation_id="cli-file-1")), encoding="utf-8")
+        outside_path = compound_repo.parent / "outside-observation.json"
+        outside_path.write_text(json.dumps(_base_payload(observation_id="outside")), encoding="utf-8")
+
+        assert mod.main(["--file", str(payload_path), "--repo-root", str(compound_repo)]) == 0  # nosec B101
+        assert mod.main(["--file", str(outside_path), "--repo-root", str(compound_repo)]) == 1  # nosec B101
+
     def test_record_push_conflict_flips_at_threshold(self, compound_repo: Path) -> None:
         """Three conflicts inside the window flip writer_mode to github_only (A12)."""
         now = datetime(2026, 7, 9, 12, 0, tzinfo=timezone.utc)

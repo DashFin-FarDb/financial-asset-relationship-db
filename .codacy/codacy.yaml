@@ -1,6 +1,9 @@
 runtimes:
     - node@22.2.0
     - python@3.11.11
+exclude_paths:
+    - asset_graph.db
+    - bin/deepsource
 tools:
     - eslint@8.57.0
     - lizard@1.17.31

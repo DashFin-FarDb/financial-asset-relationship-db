@@ -84,6 +84,18 @@ class TestCompoundBootstrap:
         messages = scrape_recent_prs(seed_repo)
         assert messages == ["PR scrape skipped: gh unavailable or failed"]  # nosec B101
 
+    def test_gh_json_rejects_unvalidated_arguments(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Invalid gh arguments are rejected before subprocess execution."""
+        from compound import bootstrap as mod
+
+        def fail_run(*_args: object, **_kwargs: object) -> None:
+            raise AssertionError("subprocess.run should not be called")
+
+        monkeypatch.setattr(mod.shutil, "which", lambda _name: "/usr/bin/gh")
+        monkeypatch.setattr(mod.subprocess, "run", fail_run)
+
+        assert mod._gh_json(["pr", "view", "1", "--json", "number"]) is None  # nosec B101, SLF001
+
     def test_scrape_maps_domains_from_pr_files(self, seed_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Bootstrap PR scrape classifies domains from changed file paths."""
         from compound import bootstrap as mod

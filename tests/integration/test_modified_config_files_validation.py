@@ -57,7 +57,8 @@ class TestPRAgentConfigChanges:
 
     def test_context_config_declared(self, config_data: dict[str, Any]):
         """
-        Assert that the agent configuration does not contain the context/chunking block
+        Assert that the agent config omits the context/chunking block.
+
         (which was removed as part of the PR agent simplification).
         """
         assert "agent" in config_data
@@ -95,9 +96,9 @@ class TestPRAgentConfigChanges:
         """
         limits = config_data.get("limits", {})
         max_execution_time = limits.get("max_execution_time")
-        assert isinstance(max_execution_time, int) and max_execution_time > 0, (
-            "limits.max_execution_time should be a positive integer"
-        )
+        assert (
+            isinstance(max_execution_time, int) and max_execution_time > 0
+        ), "limits.max_execution_time should be a positive integer"
 
     def test_quality_standards_preserved(self, config_data: dict[str, Any]):
         """
@@ -171,7 +172,9 @@ class TestWorkflowSimplifications:
 
     def test_greetings_workflow_has_messages(self, workflows_dir: Path):
         """
-        Ensure the greetings workflow contains a step referencing "first-interaction" and that
+        Ensure the greetings workflow has first-interaction messages.
+
+        Verifies a step references "first-interaction" and that
         both `issue-message` and `pr-message` in that step are non-empty.
         """
         workflow_file = workflows_dir / "greetings.yml"
@@ -207,7 +210,8 @@ class TestRetainedFilesState:
 
     def test_labeler_yml_present(self, repo_root: Path):
         """
-        Assert that .github/labeler.yml has been removed from the repository
+        Assert that .github/labeler.yml has been removed.
+
         (deleted as part of the workflow simplification).
         """
         labeler_file = repo_root / ".github" / "labeler.yml"
@@ -215,7 +219,8 @@ class TestRetainedFilesState:
 
     def test_context_chunker_deleted(self, repo_root: Path):
         """
-        Check that .github/scripts/context_chunker.py has been removed from the repository
+        Check that .github/scripts/context_chunker.py has been removed.
+
         (deleted as part of workflow simplification).
         """
         chunker_file = repo_root / ".github" / "scripts" / "context_chunker.py"
@@ -358,8 +363,7 @@ class TestCodacyInstructionsChanges:
     @staticmethod
     def test_codacy_instructions_simplified(codacy_instructions_path: Path):
         """
-        Verify the Codacy instructions are simplified and do not include problematic
-        repository-specific or prescriptive phrases.
+        Verify the Codacy instructions are simplified.
 
         If the instructions file is missing the test is skipped. If present, the test fails when
         the file contains either "git remote -v" or "unless really necessary".
@@ -374,9 +378,9 @@ class TestCodacyInstructionsChanges:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
-        assert "git remote -v" not in content and "unless really necessary" not in content, (
-            "Codacy instructions should be simplified"
-        )
+        assert (
+            "git remote -v" not in content and "unless really necessary" not in content
+        ), "Codacy instructions should be simplified"
 
     @staticmethod
     def test_codacy_critical_rules_present(codacy_instructions_path: Path):

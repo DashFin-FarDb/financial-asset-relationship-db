@@ -1,5 +1,6 @@
 """
 Additional validation tests for modified workflow files.
+
 Tests YAML structure, required fields, and GitHub Actions syntax.
 """
 
@@ -26,7 +27,9 @@ class TestWorkflowYAMLValidation:
 
     def test_workflows_are_valid_yaml(self, modified_workflows):
         """
-        Validate that each filename in `modified_workflows` exists under `WORKFLOW_DIR` and contains
+        Validate modified workflows are non-empty valid YAML.
+
+        Each filename in `modified_workflows` must exist under `WORKFLOW_DIR` and contain
         non-empty, valid YAML.
 
         Parameters:
@@ -66,9 +69,9 @@ class TestWorkflowYAMLValidation:
                     # PyYAML parses the unquoted `on` trigger key as the boolean True;
                     # accept both the string "on" and a key that is the boolean True.
                     if key == "on":
-                        assert "on" in workflow or any(existing_key is True for existing_key in workflow), (
-                            f"Workflow {workflow_file} missing required trigger key: on"
-                        )
+                        assert "on" in workflow or any(
+                            existing_key is True for existing_key in workflow
+                        ), f"Workflow {workflow_file} missing required trigger key: on"
                     else:
                         assert key in workflow, f"Workflow {workflow_file} missing required key: {key}"
             except yaml.YAMLError as e:
@@ -78,7 +81,9 @@ class TestWorkflowYAMLValidation:
 
     def test_pr_agent_workflow_simplified_correctly(self):
         """
-        Validate the pr-agent GitHub Actions workflow is simplified: it removes
+        Validate the pr-agent GitHub Actions workflow is simplified.
+
+        It removes
         chunking references and includes Python setup plus concrete test execution.
         """
         path = self.WORKFLOW_DIR / "pr-agent.yml"
