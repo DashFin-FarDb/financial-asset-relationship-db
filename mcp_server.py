@@ -86,7 +86,10 @@ def _register_mcp_handlers(mcp: FastMCP) -> None:
     """
     Register MCP handlers on the given FastMCP application.
 
-    Registers a tool that validates Equity data and, if the graph supports mutation, inserts the new Equity into the shared asset graph; and registers a resource at "graph://data/3d-layout" that serves the current 3D visualization payload as JSON.
+    Registers a tool that validates Equity data and, if the graph supports
+    mutation, inserts the new Equity into the shared asset graph. Also
+    registers a resource at "graph://data/3d-layout" that serves the current
+    3D visualization payload as JSON.
 
     Parameters:
         mcp (FastMCP): FastMCP application instance to attach the tool and resource to.
@@ -112,7 +115,8 @@ def _register_mcp_handlers(mcp: FastMCP) -> None:
         Returns:
             str: On success, returns either
                 - "Successfully added: {name} ({symbol})" if the equity was inserted into the shared graph, or
-                - "Successfully validated (Graph mutation not supported): {name} ({symbol})" if validation succeeded but the graph does not support mutation.
+                - "Successfully validated (Graph mutation not supported): {name} ({symbol})"
+                if validation succeeded but the graph does not support mutation.
                 If validation fails, returns "Validation Error: {error_message}" with the validation error details.
         """
         try:
