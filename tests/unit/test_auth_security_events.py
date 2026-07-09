@@ -6,7 +6,7 @@ UTC = timezone.utc
 
 # pylint: disable=import-error
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import patch
 
