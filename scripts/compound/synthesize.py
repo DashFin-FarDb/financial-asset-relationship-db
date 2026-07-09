@@ -90,7 +90,7 @@ def should_hot_path_synthesize(
 
 
 def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
-    """Keep the latest observation per primary_ref (landed preferred over provisional)."""
+    """Keep the latest observation per primary_ref (landed preferred over non-landed)."""
     by_ref: dict[str, Observation] = {}
     for obs in observations:
         existing = by_ref.get(obs.primary_ref)
@@ -101,9 +101,9 @@ def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]
 
 def _should_replace_observation(existing: Observation, candidate: Observation) -> bool:
     """Return True when candidate is the better latest observation for a ref."""
-    if candidate.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
+    if candidate.status is ObservationStatus.LANDED and existing.status is not ObservationStatus.LANDED:
         return True
-    if existing.status is ObservationStatus.LANDED and candidate.status is ObservationStatus.PROVISIONAL:
+    if existing.status is ObservationStatus.LANDED and candidate.status is not ObservationStatus.LANDED:
         return False
     return candidate.created_at >= existing.created_at
 
@@ -133,8 +133,8 @@ def render_domain_doc(domain: str, observations: list[Observation]) -> str:
         "deployment": "Deployment / readiness",
     }
     title = titles.get(domain, domain)
-    relevant = [obs for obs in observations if domain in obs.domains]
-    relevant = _latest_by_primary_ref(relevant)
+    latest = _latest_by_primary_ref(observations)
+    relevant = [obs for obs in latest if domain in obs.domains]
     landed = [obs for obs in relevant if obs.status is ObservationStatus.LANDED]
     provisional = [obs for obs in relevant if obs.status is ObservationStatus.PROVISIONAL]
     parts = [
@@ -153,6 +153,8 @@ def render_index(observations: list[Observation]) -> str:
     counts: dict[str, dict[str, int]] = defaultdict(lambda: {"landed": 0, "provisional": 0})
     latest = _latest_by_primary_ref(observations)
     for obs in latest:
+        if obs.status is ObservationStatus.RETIRED:
+            continue
         for domain in obs.domains:
             counts[domain][obs.status.value] += 1
     rows = []

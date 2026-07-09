@@ -54,10 +54,11 @@ WRITE_DENYLIST_PREFIXES: tuple[str, ...] = (
 
 
 class ObservationStatus(str, Enum):
-    """Landed vs provisional observation status."""
+    """Observation lifecycle status."""
 
     PROVISIONAL = "provisional"
     LANDED = "landed"
+    RETIRED = "retired"
 
 
 class ObservationSource(str, Enum):

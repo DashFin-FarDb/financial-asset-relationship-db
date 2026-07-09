@@ -32,9 +32,9 @@ from compound.schema import (  # noqa: E402
 class TestCompoundSchema:
     """Observation and watched-series schema validation."""
 
-    def test_provisional_and_landed_round_trip(self) -> None:
-        """Valid provisional and landed observations serialize and re-parse."""
-        for status in (ObservationStatus.PROVISIONAL, ObservationStatus.LANDED):
+    def test_status_round_trip(self) -> None:
+        """Valid observation statuses serialize and re-parse."""
+        for status in (ObservationStatus.PROVISIONAL, ObservationStatus.LANDED, ObservationStatus.RETIRED):
             raw = {
                 "observation_id": f"obs-{status.value}",
                 "source": "github",

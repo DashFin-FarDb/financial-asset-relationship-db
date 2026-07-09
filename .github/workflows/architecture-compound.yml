@@ -30,11 +30,7 @@ jobs:
   synthesize:
     name: Synthesize knowledge branch
     runs-on: ubuntu-latest
-    # Skip non-merged PR close events (only merged closes promote to landed).
-    if: >
-      github.event_name != 'pull_request' ||
-      github.event.action != 'closed' ||
-      github.event.pull_request.merged == true
+    # Closed-but-unmerged PRs still run so they can retire provisional claims.
     permissions:
       contents: write
       pull-requests: read
@@ -76,10 +72,15 @@ jobs:
           set -euo pipefail
           FORCE_SYNTH="false"
           if [ "$EVENT_NAME" = "pull_request" ]; then
-            if [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]; then
-              STATUS="landed"
-              EVENT_TYPE="pull_request.closed"
+            if [ "$PR_ACTION" = "closed" ]; then
               FORCE_SYNTH="true"
+              if [ "$PR_MERGED_JSON" = "true" ]; then
+                EVENT_TYPE="pull_request.closed"
+                STATUS="landed"
+              else
+                EVENT_TYPE="pull_request.closed_unmerged"
+                STATUS="retired"
+              fi
             else
               STATUS="provisional"
               EVENT_TYPE="pull_request.${PR_ACTION}"

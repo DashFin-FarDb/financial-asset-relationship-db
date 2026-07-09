@@ -120,6 +120,40 @@ class TestCompoundSynthesize:
         api_doc = outputs["docs/compound/domains/api.md"]
         assert api_doc.count("**pr:7**") == 1
 
+    def test_retired_pr_removes_prior_provisional(self, synth_repo: Path) -> None:
+        """Closed-unmerged PR observations retire earlier provisional claims."""
+        ledger = synth_repo / "docs/compound/ledger/observations.jsonl"
+        _write_obs(
+            ledger,
+            [
+                {
+                    "observation_id": "open",
+                    "source": "github",
+                    "event_type": "pull_request.opened",
+                    "status": "provisional",
+                    "primary_ref": "pr:50",
+                    "summary": "Propose API seam",
+                    "domains": ["api"],
+                    "created_at": "2026-07-01T00:00:00Z",
+                },
+                {
+                    "observation_id": "closed",
+                    "source": "github",
+                    "event_type": "pull_request.closed",
+                    "status": "retired",
+                    "primary_ref": "pr:50",
+                    "summary": "Closed without merge",
+                    "domains": [],
+                    "created_at": "2026-07-02T00:00:00Z",
+                },
+            ],
+        )
+        outputs = synthesize(synth_repo, force=True)
+        api_doc = outputs["docs/compound/domains/api.md"]
+        assert "Propose API seam" not in api_doc
+        assert "**pr:50**" not in api_doc
+        assert "| api | [domains/api.md](domains/api.md) | 0 | 0 |" in outputs["docs/compound/INDEX.md"]
+
     def test_dependabot_batches_without_force(self, synth_repo: Path) -> None:
         """Dependabot-only observations skip hot-path synthesize unless forced."""
         rows = [

@@ -26,17 +26,19 @@ class TestArchitectureCompoundWorkflow:
         assert "synthesize" in jobs
         assert "observe" not in jobs
 
-    def test_closed_merged_trigger_and_landed_promotion(self) -> None:
-        """Merged PR close is in trigger set and promotes status to landed (AE2)."""
+    def test_closed_pr_trigger_promotes_or_retires(self) -> None:
+        """Closed PR events promote merged PRs and retire unmerged PRs."""
         text = WORKFLOW.read_text(encoding="utf-8")
         assert "closed" in text
         assert "types: [opened, synchronize, reopened, labeled, closed]" in text
         assert 'STATUS="landed"' in text
+        assert 'STATUS="retired"' in text
         assert "pull_request.closed" in text
-        assert "github.event.pull_request.merged == true" in text
+        assert "pull_request.closed_unmerged" in text
         assert "PR_MERGED_JSON:" in text
         assert "toJson(github.event.pull_request.merged || false)" in text
-        assert '[ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]' in text
+        assert 'if [ "$PR_ACTION" = "closed" ]; then' in text
+        assert 'if [ "$PR_MERGED_JSON" = "true" ]; then' in text
 
     def test_pr_title_via_env_not_inline_expression(self) -> None:
         """PR title must come from env (injection-safe); not interpolated into shell."""
