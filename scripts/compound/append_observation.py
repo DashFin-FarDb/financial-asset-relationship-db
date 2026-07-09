@@ -171,12 +171,17 @@ def _current_conflict_count(data: Mapping[str, Any], current: datetime) -> int:
     return 0 if age_minutes > window_minutes else int(data.get("conflict_count") or 0)
 
 
+def _ledger_lines(ledger_path: Path) -> list[str]:
+    """Read ledger lines or return an empty set for a missing ledger."""
+    if not ledger_path.exists():
+        return []
+    return ledger_path.read_text(encoding="utf-8").splitlines()
+
+
 def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
     """Load dedupe keys already present in the ledger."""
     keys: set[tuple[str, str, str]] = set()
-    if not ledger_path.exists():
-        return keys
-    for line in ledger_path.read_text(encoding="utf-8").splitlines():
+    for line in _ledger_lines(ledger_path):
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
@@ -186,6 +191,55 @@ def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
             continue
         keys.add(obs.dedupe_key())
     return keys
+
+
+def _observation_payload(
+    data: Mapping[str, Any],
+    source_override: ObservationSource | None,
+) -> dict[str, Any]:
+    """Build a complete observation payload from caller data and defaults."""
+    payload = dict(data)
+    if source_override is not None:
+        payload["source"] = source_override.value
+    if not payload.get("observation_id"):
+        payload["observation_id"] = f"obs-{uuid4().hex[:12]}"
+    if not payload.get("created_at"):
+        payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return payload
+
+
+def _github_only_noop(
+    observation: Observation,
+    writer_mode: WriterMode,
+    *,
+    allow_cursor_when_github_only: bool,
+) -> bool:
+    """Return True when Cursor writes should no-op under github_only mode."""
+    return (
+        writer_mode is WriterMode.GITHUB_ONLY
+        and observation.source is ObservationSource.CURSOR
+        and not allow_cursor_when_github_only
+    )
+
+
+def _ensure_ledger_exists(ledger_path: Path) -> None:
+    """Create the append-only ledger with header comments when absent."""
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    if ledger_path.exists():
+        return
+    ledger_path.write_text(
+        "# Architecture Expert observation ledger (JSONL, append-only).\n"
+        "# schema_version=1 — see scripts/compound/schema.py\n",
+        encoding="utf-8",
+    )
+
+
+def _append_ledger_line(ledger_path: Path, observation: Observation) -> None:
+    """Append one observation JSON line to the ledger."""
+    _ensure_ledger_exists(ledger_path)
+    with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
+        handle.write(observation.to_json_line())
+        handle.write("\n")
 
 
 def append_observation(
@@ -204,21 +258,13 @@ def append_observation(
     assert_writable(ledger_rel)
     ledger_path = _repo_path(LEDGER_PATH, root)
 
-    payload = dict(data)
-    if source_override is not None:
-        payload["source"] = source_override.value
-    if not payload.get("observation_id"):
-        payload["observation_id"] = f"obs-{uuid4().hex[:12]}"
-    if not payload.get("created_at"):
-        payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    observation = observation_from_mapping(payload)
+    observation = observation_from_mapping(_observation_payload(data, source_override))
 
     writer_mode = read_writer_mode(root)
-    if (
-        writer_mode is WriterMode.GITHUB_ONLY
-        and observation.source is ObservationSource.CURSOR
-        and not allow_cursor_when_github_only
+    if _github_only_noop(
+        observation,
+        writer_mode,
+        allow_cursor_when_github_only=allow_cursor_when_github_only,
     ):
         return (
             None,
@@ -230,19 +276,30 @@ def append_observation(
     if observation.dedupe_key() in existing:
         return None, f"idempotent-no-op for {observation.dedupe_key()}"
 
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    if not ledger_path.exists():
-        ledger_path.write_text(
-            "# Architecture Expert observation ledger (JSONL, append-only).\n"
-            "# schema_version=1 — see scripts/compound/schema.py\n",
-            encoding="utf-8",
-        )
-
-    with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
-        handle.write(observation.to_json_line())
-        handle.write("\n")
-
+    _append_ledger_line(ledger_path, observation)
     return observation, f"appended {observation.observation_id}"
+
+
+def _payload_from_args(args: argparse.Namespace) -> Any:
+    """Load a JSON object from mutually exclusive CLI payload args."""
+    if bool(args.json) == bool(args.file):
+        raise SchemaError("Provide exactly one of --json or --file")
+    if args.json:
+        return json.loads(args.json)
+    observation_file = _resolve_observation_file(args.file, args.repo_root)
+    return json.loads(observation_file.read_text(encoding="utf-8"))
+
+
+def _run_append_command(args: argparse.Namespace) -> str:
+    """Validate or append the observation requested by CLI args."""
+    payload = _payload_from_args(args)
+    if not isinstance(payload, Mapping):
+        raise SchemaError("Observation payload must be a JSON object")
+    if args.validate_only:
+        observation_from_mapping(payload)
+        return "validated"
+    _, message = append_observation(payload, repo_root=args.repo_root)
+    return message
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -277,21 +334,7 @@ def main(argv: list[str] | None = None) -> int:
             mode = record_push_conflict(args.repo_root)
             print(f"recorded push conflict; writer_mode={mode.value}")
             return 0
-        if bool(args.json) == bool(args.file):
-            parser.error("Provide exactly one of --json or --file")
-        if args.json:
-            payload = json.loads(args.json)
-        else:
-            observation_file = _resolve_observation_file(args.file, args.repo_root)
-            payload = json.loads(observation_file.read_text(encoding="utf-8"))
-        if not isinstance(payload, Mapping):
-            raise SchemaError("Observation payload must be a JSON object")
-        if args.validate_only:
-            observation_from_mapping(payload)
-            print("validated")
-            return 0
-        _, message = append_observation(payload, repo_root=args.repo_root)
-        print(message)
+        print(_run_append_command(args))
         return 0
     except (SchemaError, PathPolicyError, json.JSONDecodeError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)

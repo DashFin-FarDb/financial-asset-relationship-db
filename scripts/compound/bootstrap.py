@@ -144,13 +144,23 @@ def _gh_pr_list(limit: int, *, updated_since: str | None = None) -> Any | None:
     return _select_recent_prs(data, limit=bounded_limit, updated_since=search_date)
 
 
+def _is_pr_mapping(item: Any) -> bool:
+    """Return True when gh returned a PR object shape."""
+    return isinstance(item, dict)
+
+
+def _updated_on_or_after(pr: dict[str, Any], updated_since: str | None) -> bool:
+    """Return True when the PR passes the optional YYYY-MM-DD updated filter."""
+    if updated_since is None:
+        return True
+    return str(pr.get("updatedAt") or "")[:10] >= updated_since
+
+
 def _select_recent_prs(data: list[Any], *, limit: int, updated_since: str | None = None) -> list[Any]:
     """Apply bounded PR scrape filters after gh returns JSON."""
     selected: list[Any] = []
     for item in data:
-        if not isinstance(item, dict):
-            continue
-        if updated_since is not None and str(item.get("updatedAt") or "")[:10] < updated_since:
+        if not _is_pr_mapping(item) or not _updated_on_or_after(item, updated_since):
             continue
         selected.append(item)
         if len(selected) >= limit:
@@ -165,17 +175,19 @@ def _pr_status(pr: dict[str, Any]) -> str:
     return ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
 
 
+def _path_from_file_entry(entry: Any) -> str | None:
+    """Normalize one gh file entry shape to a changed path."""
+    if isinstance(entry, str):
+        return entry
+    if not isinstance(entry, dict):
+        return None
+    path = entry.get("path") or entry.get("filename")
+    return str(path) if path else None
+
+
 def _pr_paths(pr: dict[str, Any]) -> list[str]:
     """Extract changed paths from gh's mixed file entry shapes."""
-    paths: list[str] = []
-    for entry in pr.get("files") or []:
-        if isinstance(entry, str):
-            paths.append(entry)
-        elif isinstance(entry, dict):
-            path = entry.get("path") or entry.get("filename")
-            if path:
-                paths.append(str(path))
-    return paths
+    return [path for entry in pr.get("files") or [] if (path := _path_from_file_entry(entry))]
 
 
 def _pr_payload(pr: dict[str, Any], number: int) -> dict[str, Any]:

@@ -150,16 +150,7 @@ def render_domain_doc(domain: str, observations: list[Observation]) -> str:
 
 def render_index(observations: list[Observation]) -> str:
     """Render the thin cross-seam index."""
-    counts: dict[str, dict[str, int]] = defaultdict(lambda: {"landed": 0, "provisional": 0})
-    latest = _latest_by_primary_ref(observations)
-    for obs in latest:
-        for domain in obs.domains:
-            counts[domain][obs.status.value] += 1
-    rows = []
-    for domain in DOMAINS:
-        landed = counts[domain]["landed"]
-        provisional = counts[domain]["provisional"]
-        rows.append(f"| {domain} | [domains/{domain}.md](domains/{domain}.md) | {landed} | {provisional} |")
+    rows = _domain_count_rows(_domain_counts(observations))
     body = "\n".join(rows)
     return (
         "# Architecture Expert Compound Index\n\n"
@@ -179,12 +170,44 @@ def render_index(observations: list[Observation]) -> str:
     )
 
 
+def _domain_counts(observations: list[Observation]) -> dict[str, dict[str, int]]:
+    """Count latest landed/provisional observations by domain."""
+    counts: dict[str, dict[str, int]] = defaultdict(lambda: {"landed": 0, "provisional": 0})
+    for obs in _latest_by_primary_ref(observations):
+        for domain in obs.domains:
+            counts[domain][obs.status.value] += 1
+    return counts
+
+
+def _domain_count_rows(counts: dict[str, dict[str, int]]) -> list[str]:
+    """Render index table rows from domain counts."""
+    rows: list[str] = []
+    for domain in DOMAINS:
+        landed = counts[domain]["landed"]
+        provisional = counts[domain]["provisional"]
+        rows.append(f"| {domain} | [domains/{domain}.md](domains/{domain}.md) | {landed} | {provisional} |")
+    return rows
+
+
 def write_text(path: Path, content: str, *, repo_root: Path) -> None:
     """Write content after path-policy checks."""
     rel = path.relative_to(repo_root).as_posix()
     assert_writable(rel)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="\n")
+
+
+def _render_outputs(observations: list[Observation]) -> dict[str, str]:
+    """Render all synthesized repo-relative outputs."""
+    outputs = {f"{DOMAINS_DIR.as_posix()}/{domain}.md": render_domain_doc(domain, observations) for domain in DOMAINS}
+    outputs[INDEX_PATH.as_posix()] = render_index(observations)
+    return outputs
+
+
+def _write_outputs(repo_root: Path, outputs: dict[str, str]) -> None:
+    """Write every synthesized output to disk."""
+    for rel, content in outputs.items():
+        write_text(repo_root / rel, content, repo_root=repo_root)
 
 
 def synthesize(
@@ -203,17 +226,10 @@ def synthesize(
     if not should_hot_path_synthesize(observations, force=force, event_hint=event_hint):
         return {}
 
-    outputs: dict[str, str] = {}
-    for domain in DOMAINS:
-        rel = f"{DOMAINS_DIR.as_posix()}/{domain}.md"
-        outputs[rel] = render_domain_doc(domain, observations)
-    outputs[INDEX_PATH.as_posix()] = render_index(observations)
+    outputs = _render_outputs(observations)
 
-    if dry_run:
-        return outputs
-
-    for rel, content in outputs.items():
-        write_text(repo_root / rel, content, repo_root=repo_root)
+    if not dry_run:
+        _write_outputs(repo_root, outputs)
     return outputs
 
 

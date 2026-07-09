@@ -284,6 +284,17 @@ def normalize_repo_relative(path: str | Path) -> str:
     return text.lstrip("/")
 
 
+def _path_matches_prefix(path: str, prefix: str) -> bool:
+    """Return True when a normalized path matches a rule prefix."""
+    return path.startswith(prefix) or f"/{prefix}" in f"/{path}"
+
+
+def _add_unique(items: list[str], item: str) -> None:
+    """Append item once while preserving discovery order."""
+    if item not in items:
+        items.append(item)
+
+
 def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     """Map changed file paths to compound domains.
 
@@ -292,36 +303,39 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     found: list[str] = []
     for raw in paths:
         normalized = normalize_repo_relative(raw)
-        for prefix, domain in _PATH_DOMAIN_RULES:
-            if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
-                if domain not in found:
-                    found.append(domain)
-                break
+        domain = _domain_for_path(normalized)
+        if domain is not None:
+            _add_unique(found, domain)
     return tuple(found) if found else ("architecture",)
+
+
+def _domain_for_path(normalized_path: str) -> str | None:
+    """Return the first compound domain matching a normalized path."""
+    for prefix, domain in _PATH_DOMAIN_RULES:
+        if _path_matches_prefix(normalized_path, prefix):
+            return domain
+    return None
+
+
+def _matches_policy_prefix(path: str | Path, prefixes: Iterable[str]) -> bool:
+    """Return True when a repo path matches an exact or directory policy prefix."""
+    normalized = normalize_repo_relative(path)
+    for prefix in prefixes:
+        if prefix.endswith("/") and (normalized.startswith(prefix) or normalized == prefix.rstrip("/")):
+            return True
+        if not prefix.endswith("/") and normalized == prefix:
+            return True
+    return False
 
 
 def is_denylisted(path: str | Path) -> bool:
     """Return True if path matches the closed write denylist."""
-    normalized = normalize_repo_relative(path)
-    for prefix in WRITE_DENYLIST_PREFIXES:
-        if prefix.endswith("/"):
-            if normalized.startswith(prefix) or normalized == prefix.rstrip("/"):
-                return True
-        elif normalized == prefix:
-            return True
-    return False
+    return _matches_policy_prefix(path, WRITE_DENYLIST_PREFIXES)
 
 
 def is_allowlisted(path: str | Path) -> bool:
     """Return True if path is under the write allowlist."""
-    normalized = normalize_repo_relative(path)
-    for prefix in WRITE_ALLOWLIST_PREFIXES:
-        if prefix.endswith("/"):
-            if normalized.startswith(prefix):
-                return True
-        elif normalized == prefix:
-            return True
-    return False
+    return _matches_policy_prefix(path, WRITE_ALLOWLIST_PREFIXES)
 
 
 def assert_writable(path: str | Path) -> str:
