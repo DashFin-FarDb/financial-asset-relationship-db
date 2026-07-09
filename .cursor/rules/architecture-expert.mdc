@@ -1,0 +1,66 @@
+---
+description: Architecture-expert compounded memory (generated from docs/compound)
+globs:
+  - "docs/compound/**"
+  - "api/**"
+  - "src/**"
+alwaysApply: false
+---
+# Architecture Expert (generated)
+
+Docs-first compounded memory. Prefer `docs/compound/` over inventing seams.
+
+## Mandatory branch/ref verification
+
+Before reviewing, editing, or summarizing repository state, verify the current
+branch, the branch/commit/PR referenced in the request, whether that branch has
+an open PR, and whether it differs from `main`.
+
+## Provisional vs landed
+
+- **Landed**: merged to `main` or explicitly promoted — treat as canon.
+- **Provisional**: open PR / watched series — label clearly; never present as landed.
+
+## Source of truth
+
+- Canonical docs: `docs/compound/INDEX.md` and domain docs under `docs/compound/domains/`.
+- ADRs and `.github` policy remain human-owned — cite or propose annotation only; never rewrite them as fact.
+- Never overwrite Dosu-maintained `AGENTS.md`.
+
+## Domains
+
+- `architecture`: see `docs/compound/domains/architecture.md`
+- `api`: see `docs/compound/domains/api.md`
+- `persistence`: see `docs/compound/domains/persistence.md`
+- `ci-guardrails`: see `docs/compound/domains/ci-guardrails.md`
+- `rebuild-reconciliation`: see `docs/compound/domains/rebuild-reconciliation.md`
+- `deployment`: see `docs/compound/domains/deployment.md`
+
+## Index excerpt
+
+# Architecture Expert Compound Index
+
+Docs-first memory for architecture, seams, API, persistence/SQL, CI/guardrails,
+rebuild/reconciliation, and deployment/readiness.
+
+- **Canon writer:** `scripts/compound/synthesize.py` only
+- **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)
+- **Knowledge branch:** `knowledge/architecture-expert` (human merge to `main`)
+- **Status:** Every claim is either **landed** (merged to `main` / explicit promotion)
+  or **provisional** (open PR / watched series)
+
+## Domains
+
+| Domain | Doc |
+|--------|-----|
+| Architecture & seams | [domains/architecture.md](domains/architecture.md) |
+| API contracts | [domains/api.md](domains/api.md) |
+| Persistence / SQL | [domains/persistence.md](domains/persistence.md) |
+| CI / guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) |
+| Rebuild / reconciliation | [domains/rebuild-reconciliation.md](domains/rebuild-reconciliation.md) |
+| Deployment / readiness | [domains/deployment.md](domains/deployment.md) |
+
+## Operator notes
+
+See [README.md](README.md) once present (U6). Watched series: [watched-series.yml](watched-series.yml).
+Runtime writer mode: [runtime.yml](runtime.yml).

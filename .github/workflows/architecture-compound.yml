@@ -1,0 +1,170 @@
+name: Architecture Compound
+
+# Observe PRs/merges and synthesize docs/compound onto knowledge/architecture-expert.
+# Never auto-merges to main. Emitters append; synthesize alone rewrites canon docs.
+
+"on":
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, closed]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_synthesize:
+        description: Force synthesize even for dependency-bot-only batches
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-compound-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  synthesize:
+    name: Synthesize knowledge branch
+    runs-on: ubuntu-latest
+    # Skip non-merged PR close events (only merged closes promote to landed).
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.action != 'closed' ||
+      github.event.pull_request.merged == true
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Checkout triggering ref
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Prepare knowledge branch and compound
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_TITLE: ${{ github.event.pull_request.title || '' }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_ACTION: ${{ github.event.action || '' }}
+          PR_MERGED_JSON: ${{ toJson(github.event.pull_request.merged || false) }}
+          EVENT_NAME: ${{ github.event_name }}
+          FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Keep compound scripts from the triggering commit; switch docs/ledger to knowledge tip.
+          TRIGGER_SHA="${GITHUB_SHA}"
+          if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
+            git fetch origin knowledge/architecture-expert
+            git checkout -B knowledge/architecture-expert origin/knowledge/architecture-expert
+          else
+            git checkout -B knowledge/architecture-expert
+          fi
+          git checkout "${TRIGGER_SHA}" -- scripts/compound
+
+          FORCE_SYNTH="false"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            if [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]; then
+              STATUS="landed"
+              EVENT_TYPE="pull_request.closed"
+              FORCE_SYNTH="true"
+            else
+              STATUS="provisional"
+              EVENT_TYPE="pull_request.${PR_ACTION}"
+            fi
+            PRIMARY_REF="pr:${PR_NUMBER}"
+            SUMMARY=$(jq -rn --arg t "$PR_TITLE" '$t|gsub("[\\u0000-\\u001f]";"")|.[0:240]')
+            if ! FILES_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --paginate -q '.[].filename' | jq -R -s -c 'split("\n")|map(select(length>0))'); then
+              echo "warn: gh api files failed; domains will default" >&2
+              FILES_JSON='[]'
+            fi
+          elif [ "$EVENT_NAME" = "push" ]; then
+            STATUS="landed"
+            PRIMARY_REF="sha:${GITHUB_SHA}"
+            SUMMARY="Merge/push to main ${GITHUB_SHA}"
+            EVENT_TYPE="push.main"
+            FORCE_SYNTH="true"
+            FILES_JSON=$(jq -c '[((.commits // [])[] | (.modified // [])[], (.added // [])[], (.removed // [])[])] | unique | map(select(. != null and . != ""))' "$GITHUB_EVENT_PATH" 2>/dev/null || echo '[]')
+          else
+            STATUS="landed"
+            PRIMARY_REF="manual:${GITHUB_RUN_ID}"
+            SUMMARY="Manual compound workflow_dispatch"
+            EVENT_TYPE="workflow_dispatch"
+            FORCE_SYNTH="true"
+            FILES_JSON='[]'
+          fi
+          if [ "$FORCE_INPUT" = "true" ]; then
+            FORCE_SYNTH="true"
+          fi
+          DOMAINS_JSON=$(FILES_JSON="$FILES_JSON" python -c 'import json,os,sys; sys.path.insert(0,"scripts"); from compound.schema import detect_domains_from_paths; print(json.dumps(list(detect_domains_from_paths(json.loads(os.environ["FILES_JSON"])))))')
+          jq -n \
+            --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --arg source "github" \
+            --arg event_type "$EVENT_TYPE" \
+            --arg status "$STATUS" \
+            --arg primary_ref "$PRIMARY_REF" \
+            --arg summary "$SUMMARY" \
+            --argjson domains "$DOMAINS_JSON" \
+            '{
+              observation_id: $id,
+              source: $source,
+              event_type: $event_type,
+              status: $status,
+              primary_ref: $primary_ref,
+              summary: $summary,
+              domains: $domains,
+              refs: [$primary_ref],
+              evidence_pointers: [$primary_ref]
+            }' > /tmp/observation.json
+          python scripts/compound/append_observation.py --file /tmp/observation.json
+          EXTRA=()
+          if [ "$FORCE_SYNTH" = "true" ]; then
+            EXTRA+=(--force)
+          fi
+          python scripts/compound/synthesize.py --event-hint "$EVENT_TYPE" "${EXTRA[@]}"
+          python scripts/compound/sync_agent_packs.py
+          python scripts/compound/standing_brief.py
+          echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"
+
+      - name: Commit and push knowledge branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/compound .cursor/rules/architecture-expert.mdc .cursor/rules/architecture-expert-query.mdc .openhands/microagents/architecture_expert.md
+          if git diff --cached --quiet; then
+            echo "No compound doc changes to commit"
+            exit 0
+          fi
+          git commit -m "chore(compound): synthesize architecture memory"
+          push_knowledge() {
+            git push origin HEAD:knowledge/architecture-expert
+          }
+          if push_knowledge; then
+            exit 0
+          fi
+          echo "Push failed; fetch/rebase once then retry"
+          git fetch origin knowledge/architecture-expert || true
+          git rebase origin/knowledge/architecture-expert || git rebase --abort || true
+          if push_knowledge; then
+            exit 0
+          fi
+          python scripts/compound/append_observation.py --record-push-conflict || true
+          git add docs/compound/runtime.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(compound): record knowledge-branch push conflict" || true
+            push_knowledge || true
+          fi
+          echo "Push to knowledge branch failed after retry; conflict recorded when possible"
+          exit 1
+          # Intentionally never merges into main (human promotion only).

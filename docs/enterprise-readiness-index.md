@@ -18,7 +18,7 @@
 | `docs/governance/state-machine-and-operating-authority.md`    | Current operational authority for rebuild/recovery state machines, invariants, ownership, and exception paths              |
 | `docs/adr/0006-release-and-deployment-automation.md`          | Release and Deployment automation strategy, GitHub actions constraints                                                     |
 | `docs/adr/0005-backup-restore-dr-strategy.md`                 | Backup, restore, DR strategy, data classification, RPO, and RTO                                                            |
-| `docs/runbooks/backup-restore-dr.md`                          | Operator procedures for backup verification, restore execution, and post-restore checks                                    |
+| `docs/compound/INDEX.md`                                      | Architecture-expert compounded memory index (provisional vs landed)                                                        |
 
 ## Executive Summary
 
@@ -52,7 +52,7 @@ Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **S
 | Satisfied - documented               | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model                                                                                                                                                                 |
 | Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence                                                                                                       |
 | Partially satisfied                  | Strict stale-owner restart composition is covered by integration tests; the operational evidence-capture framework and drill pack are documented; production-scale validation remains future operating-maturity work                                                                                |
-| Blocked                              | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence and release-commit security scanner/exception review are attached via `.github/workflows/release-evidence-verify.yml` (plus source workflows), and named operator sign-off + DR restore rehearsal evidence are attached or approved. |
+| Blocked                              | No repository source-of-truth reconciliation blocker remains after this update. Enterprise release sign-off remains blocked until hosted promotion evidence and release-commit security scanner/exception review are attached via `release-evidence-verify.yml` (plus source workflows), and named operator sign-off + DR restore rehearsal evidence are attached or approved. See also `docs/compound/INDEX.md`. |
 
 ## Recommended Reading Order
 
