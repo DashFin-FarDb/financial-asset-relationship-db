@@ -41,10 +41,10 @@ class TestStandingBrief:
         )
         path = write_standing_brief(tmp_path, as_of="2026-07-09")
         text = path.read_text(encoding="utf-8")
-        assert "### api" in text
-        assert "[provisional]" in text
-        assert "pr:10" in text
-        assert "ADR" not in text or "not rewritten" in text.lower()
+        assert "### api" in text  # nosec B101
+        assert "[provisional]" in text  # nosec B101
+        assert "pr:10" in text  # nosec B101
+        assert "ADR" not in text or "not rewritten" in text.lower()  # nosec B101
 
     def test_render_includes_status_labels(self) -> None:
         """Renderer includes landed/provisional markers."""
@@ -60,5 +60,5 @@ class TestStandingBrief:
             }
         )
         text = render_standing_brief([obs], as_of="2026-07-09")
-        assert "[landed]" in text
-        assert "architecture" in text
+        assert "[landed]" in text  # nosec B101
+        assert "architecture" in text  # nosec B101

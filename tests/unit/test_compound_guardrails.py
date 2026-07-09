@@ -33,7 +33,7 @@ class TestCompoundGuardrailHelpers:
             "writer_mode: github_only\nconflict_count: 3\nconflict_window_minutes: 30\nlast_conflict_at: null\n",
             encoding="utf-8",
         )
-        assert read_writer_mode(tmp_path) is WriterMode.GITHUB_ONLY
+        assert read_writer_mode(tmp_path) is WriterMode.GITHUB_ONLY  # nosec B101
         obs, message = append_observation(
             {
                 "observation_id": "c1",
@@ -46,5 +46,5 @@ class TestCompoundGuardrailHelpers:
             },
             repo_root=tmp_path,
         )
-        assert obs is None
-        assert "github_only" in message
+        assert obs is None  # nosec B101
+        assert "github_only" in message  # nosec B101

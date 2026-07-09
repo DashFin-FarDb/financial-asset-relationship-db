@@ -74,6 +74,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ ! -f "$COMPOUND_APPEND_OBSERVATION" ]; then
+            echo "Compound scripts are not available on this checkout; skipping"
+            echo "COMPOUND_SKIP=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
           FORCE_SYNTH="false"
           if [ "$EVENT_NAME" = "pull_request" ]; then
             if [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]; then
@@ -130,6 +135,7 @@ jobs:
           echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"
 
       - name: Synthesize domain docs
+        if: env.COMPOUND_SKIP != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -142,6 +148,7 @@ jobs:
           python scripts/compound/standing_brief.py
 
       - name: Commit and push knowledge branch
+        if: env.COMPOUND_SKIP != 'true'
         shell: bash
         run: |
           set -euo pipefail

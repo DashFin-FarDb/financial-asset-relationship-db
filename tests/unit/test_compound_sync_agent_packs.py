@@ -53,25 +53,25 @@ class TestSyncAgentPacks:
         """Sync writes both sidecar paths and leaves AGENTS.md bytes unchanged."""
         before = (pack_repo / "AGENTS.md").read_bytes()
         outputs = sync_agent_packs(pack_repo)
-        assert ".cursor/rules/architecture-expert.mdc" in outputs
-        assert ".cursor/rules/architecture-expert-query.mdc" in outputs
-        assert OPENHANDS_PATH.as_posix() in outputs
-        assert (pack_repo / "AGENTS.md").read_bytes() == before
-        assert (pack_repo / ".cursor/rules/architecture-expert.mdc").exists()
-        assert (pack_repo / OPENHANDS_PATH).exists()
+        assert ".cursor/rules/architecture-expert.mdc" in outputs  # nosec B101
+        assert ".cursor/rules/architecture-expert-query.mdc" in outputs  # nosec B101
+        assert OPENHANDS_PATH.as_posix() in outputs  # nosec B101
+        assert (pack_repo / "AGENTS.md").read_bytes() == before  # nosec B101
+        assert (pack_repo / ".cursor/rules/architecture-expert.mdc").exists()  # nosec B101
+        assert (pack_repo / OPENHANDS_PATH).exists()  # nosec B101
 
     def test_sanitize_strips_adr_rewrite_instructions(self) -> None:
         """Pack content that would rewrite an ADR becomes cite/propose-only."""
         raw = "Please rewrite ADR 0001 with the new seam."
         cleaned = _sanitize_pack_body(raw)
-        assert "rewrite" not in cleaned.lower() or "cite or propose" in cleaned.lower()
-        assert "cite or propose annotation" in cleaned.lower()
+        assert "rewrite" not in cleaned.lower() or "cite or propose" in cleaned.lower()  # nosec B101
+        assert "cite or propose annotation" in cleaned.lower()  # nosec B101
 
     def test_microagent_has_required_frontmatter(self, pack_repo: Path) -> None:
         """Generated microagent includes OpenHands frontmatter fields."""
         sync_agent_packs(pack_repo)
         text = (pack_repo / OPENHANDS_PATH).read_text(encoding="utf-8")
-        assert text.startswith("---\n")
-        assert "name: architecture-expert" in text
-        assert "type: knowledge" in text
-        assert "triggers:" in text
+        assert text.startswith("---\n")  # nosec B101
+        assert "name: architecture-expert" in text  # nosec B101
+        assert "type: knowledge" in text  # nosec B101
+        assert "triggers:" in text  # nosec B101

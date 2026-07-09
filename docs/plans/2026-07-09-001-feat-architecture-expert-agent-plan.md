@@ -10,11 +10,13 @@ topic: architecture-expert-agent
 product_contract_preservation: "Product Contract unchanged — planning resolved deferred layout/runtime forks only"
 ---
 
-# Architecture Expert Agent - Plan
+## Architecture Expert Agent Plan
 
 ## Goal Capsule
 
-- Objective: Compound durable, docs-first expertise on architecture, seams, boundary integrity, API, schema/SQL, and related enterprise surfaces from PRs, issues, and docs — then use that memory for chat, PR annotations, and standing briefs across a multi-branch PR swarm.
+- Objective: Compound durable, docs-first expertise on architecture, seams, boundary integrity, API,
+  schema/SQL, and related enterprise surfaces from PRs, issues, and docs — then use that memory for
+  chat, PR annotations, and standing briefs across a multi-branch PR swarm.
 - Product authority: Product Contract below; existing ADRs and `.github` policy docs remain human-owned canon for policy.
 - Open blockers: None. Deferred operational forks resolved in Planning Contract assumptions and KTDs.
 
@@ -22,16 +24,27 @@ product_contract_preservation: "Product Contract unchanged — planning resolved
 
 ### Summary
 
-Build a compounding architecture expert that continuously observes PRs, issues, and docs into an append-only observation ledger, then near-live synthesizes domain-partitioned durable docs on a dedicated knowledge branch, with agent packs synced from those docs. Cursor and GitHub both emit observations; synthesize owns canon. Primary use is knowledge compounding; secondary uses are PR review and PR-series co-pilot. Consumption weighting: durable docs 50%, chat 25%, PR annotations 20%, standing briefs 15%.
+Build a compounding architecture expert that continuously observes PRs, issues, and docs into an
+append-only observation ledger, then near-live synthesizes domain-partitioned durable docs on a
+dedicated knowledge branch, with agent packs synced from those docs. Cursor and GitHub both emit
+observations; synthesize owns canon. Primary use is knowledge compounding; secondary uses are PR
+review and PR-series co-pilot. Consumption weighting: durable docs 50%, chat 25%, PR annotations 20%,
+standing briefs 15%.
 
 ### Problem Frame
 
-The repo already has orientation (`AGENTS.md`), ADRs, enterprise-readiness docs, automation guardrails, PR Agent, and OpenHands microagents, but no durable agent that compounds architecture and seam knowledge from the live PR/issue stream. Work spans many branches at once (e.g. PR #1390 docstring baseline alongside formatting, env-setup, and dependency PRs), so generic reviewers and one-shot chat lack shared, provisional-vs-landed memory of seams, API contracts, persistence/SQL, rebuild/reconciliation, and CI/guardrails.
+The repository already has orientation (`AGENTS.md`), ADRs, enterprise-readiness docs, automation
+guardrails, PR Agent, and OpenHands microagents, but no durable agent that compounds architecture and
+seam knowledge from the live PR/issue stream. Work spans many branches at once (e.g. PR #1390 docstring
+baseline alongside formatting, env-setup, and dependency PRs), so generic reviewers and one-shot chat
+lack shared, provisional-vs-landed memory of seams, API contracts, persistence/SQL,
+rebuild/reconciliation, and CI/guardrails.
 
 ### Key Decisions
 
 - **Knowledge compounder first.** Reviewer and PR-series co-pilot are secondary modes that consume the same memory.
-- **Docs-first source of truth.** Human-readable docs under the repo docs tree are canonical; agent packs (rules/skills/orientation) are generated or synced from them.
+- **Docs-first source of truth.** Human-readable docs under the repository docs tree are canonical; agent
+  packs (rules/skills/orientation) are generated or synced from them.
 - **Continuous compound primary, bootstrap secondary.** A one-time bootstrap seeds history; ongoing updates are the default operating mode.
 - **All four update triggers.** Merge to `main` (landed canon), PR open/update (provisional), watched open series, and manual compound commands.
 - **Knowledge branch write path.** Synthesized docs and synced agent packs auto-commit to a dedicated knowledge branch; humans merge to `main`. Never auto-merge.
@@ -86,7 +99,8 @@ flowchart LR
 
 **Compounding and memory**
 
-- R1. The system compounds knowledge from PRs, issues, and docs into durable repo docs that cover the full enterprise surface listed in Key Decisions.
+- R1. The system compounds knowledge from PRs, issues, and docs into durable repository docs that cover
+  the full enterprise surface listed in Key Decisions.
 - R2. Observations are append-only and carry landed vs provisional status so open-PR knowledge cannot silently become canon.
 - R3. A synthesize step is the only writer of canonical domain docs, the index, and synced agent packs.
 - R4. Continuous compounding is the default; a bootstrap pass seeds initial memory from existing history.
@@ -102,7 +116,8 @@ flowchart LR
 
 - R9. Synthesized updates auto-commit to a dedicated knowledge branch; promotion to `main` is always human-driven.
 - R10. Cursor-native and GitHub-native both emit and consume; if dual ownership fails, fall back to GitHub continuous compound with Cursor consuming docs/packs.
-- R11. Near-live synthesize keeps memory fresh for the PR swarm without requiring emitters to edit the same markdown files.
+- R11. Near-live synthesize keeps memory fresh for the PR swarm without requiring emitters to edit the
+  same Markdown files.
 
 **Consumption modes**
 
@@ -156,7 +171,8 @@ flowchart LR
 - Existing orientation and policy remain inputs: `AGENTS.md`, `docs/adr/*`, `docs/enterprise-readiness-index.md`, `.github/AUTOMATION_SCOPE_POLICY.md`, `.github/AI_AGENT_GUARDRAILS.md`, seam docs such as `docs/graph-persistence-lifecycle-seam.md` and `docs/reconciliation-discovery-map.md`.
 - PR Agent / OpenHands / similar continue to operate independently.
 - Active multi-PR context includes at least PR #1390 (`codex/precommit-docstring-baseline`) among other open branches; the agent must tolerate parallel unrelated PRs.
-- `CONCEPTS.md` does not exist at repo root today; vocabulary capture into `CONCEPTS.md` is not required for this brainstorm artifact.
+- `CONCEPTS.md` does not exist at repository root today; vocabulary capture into `CONCEPTS.md` is not
+  required for this brainstorm artifact.
 
 ### Outstanding Questions
 
@@ -178,15 +194,29 @@ flowchart LR
 - A1. Knowledge branch name is `knowledge/architecture-expert`.
 - A2. Durable compound tree lives under `docs/compound/` (dedicated tree, not `docs/solutions/` and not rewriting enterprise spokes in place).
 - A3. Observation ledger is append-only JSONL under `docs/compound/ledger/observations.jsonl` (plus optional rotated shards if size warrants later).
-- A4. Domain partitions are: `architecture`, `api`, `persistence`, `ci-guardrails`, `rebuild-reconciliation`, `deployment` — each a markdown doc under `docs/compound/domains/`, plus `docs/compound/INDEX.md`.
+- A4. Domain partitions are: `architecture`, `api`, `persistence`, `ci-guardrails`,
+  `rebuild-reconciliation`, `deployment` — each a Markdown doc under `docs/compound/domains/`, plus
+  `docs/compound/INDEX.md`.
 - A5. Agent packs sync to sidecars only: `.cursor/rules/architecture-expert.mdc` and `.openhands/microagents/architecture_expert.md`. Never overwrite Dosu-maintained `AGENTS.md`.
-- A6. Standing briefs are durable markdown under `docs/compound/briefs/` on the knowledge branch (not chat-ephemeral).
+- A6. Standing briefs are durable Markdown under `docs/compound/briefs/` on the knowledge branch (not
+  chat-ephemeral).
 - A7. Watched series is configured in `docs/compound/watched-series.yml` (PR numbers and/or labels and/or path globs).
 - A8. Hot-path near-live synthesize: merges to `main`, watched-series events, manual `workflow_dispatch` / Cursor compound. Dependency-bot and similar bulk PRs append observations immediately but synthesize on a batch schedule (or when a merge/watched/manual event also fires).
 - A9. Bootstrap v1: (1) seed observations from existing ADRs, seam docs, enterprise-readiness index, and guardrail docs; (2) bounded scrape of recent open + recently merged PRs (default: last 30 days or last 50 PRs, whichever is smaller). Not an exhaustive archive.
 - A10. GitHub synthesize job alone has `contents: write` scoped to pushing `knowledge/architecture-expert`. Emitter/comment jobs stay `contents: read` (+ `pull-requests: write` only for annotations).
-- A11. Path allowlist for automated writes: `docs/compound/**`, `.cursor/rules/architecture-expert.mdc`, `.cursor/rules/architecture-expert-query.mdc`, `.openhands/microagents/architecture_expert.md`. Explicit denylist (closed list in shared constants): `docs/adr/**`, `AGENTS.md`, `.github/AUTOMATION_SCOPE_POLICY.md`, `.github/AI_AGENT_GUARDRAILS.md`, `.github/copilot-instructions.md`, `docs/PR_SCOPE_GUARDRAILS.md`, `docs/GOVERNANCE.md`, `docs/DEPENDENCY_POLICY.md`, `docs/lessons/**`.
-- A12. Dual-writer failure signal (hybrid backup): store mode in `docs/compound/runtime.yml` (`writer_mode: dual|github_only`). Auto-flip to `github_only` when synthesize records ≥3 push conflicts or divergent ledger tips within 30 minutes (counter in runtime.yml). In `github_only`, Cursor continuous emit no-ops with an explicit message; Cursor may still append only by opening a PR / `workflow_dispatch` that lands through GitHub; consume docs/packs from the knowledge branch.
+- A11. Path allowlist for automated writes: `docs/compound/**`,
+  `.cursor/rules/architecture-expert.mdc`, `.cursor/rules/architecture-expert-query.mdc`, and
+  `.openhands/microagents/architecture_expert.md`. Explicit denylist (closed list in shared constants):
+  `docs/adr/**`, `AGENTS.md`, `.github/AUTOMATION_SCOPE_POLICY.md`,
+  `.github/AI_AGENT_GUARDRAILS.md`, `.github/copilot-instructions.md`,
+  `docs/PR_SCOPE_GUARDRAILS.md`, `docs/GOVERNANCE.md`, `docs/DEPENDENCY_POLICY.md`, and
+  `docs/lessons/**`.
+- A12. Dual-writer failure signal (hybrid backup): store mode in `docs/compound/runtime.yml`
+  (`writer_mode: dual|github_only`). Auto-flip to `github_only` when synthesize records at least three
+  push conflicts or divergent ledger tips within 30 minutes (counter in runtime.yml). In
+  `github_only`, Cursor continuous emit no-ops with an explicit message; Cursor may still append only
+  by opening a PR or `workflow_dispatch` that lands through GitHub; consume docs/packs from the
+  knowledge branch.
 
 ### Key Technical Decisions
 
@@ -279,7 +309,8 @@ scripts/compound/
 
 - **Periodic synthesize only (Approach A)** — calmer knowledge branch, weaker PR-swarm freshness. Rejected in favor of near-live for watched/merge/manual.
 - **Agent-pack-first memory** — faster chat load, fights docs-first and Dosu `AGENTS.md`. Rejected.
-- **Direct dual editors of domain markdown** — simpler pipeline, recreates dual-writer corruption (see `docs/lessons/automation-scope-drift-recovery.md`). Rejected for ledger→synthesize.
+- **Direct dual editors of domain Markdown** — simpler pipeline, recreates dual-writer corruption (see
+  `docs/lessons/automation-scope-drift-recovery.md`). Rejected for ledger→synthesize.
 
 ### Risks & Dependencies
 
@@ -342,7 +373,13 @@ scripts/compound/
 - Create: `tests/unit/test_compound_append_observation.py`, `tests/unit/test_compound_bootstrap.py`
 - Modify: `docs/compound/ledger/observations.jsonl` (via scripts only)
 
-**Approach:** CLI/library append that never rewrites prior lines. Bootstrap phase 1 reads allowlisted seed docs (ADRs, seam docs, enterprise index, guardrails) into `source=bootstrap` landed observations with evidence pointers. Phase 2 uses `gh` when available for bounded recent PRs; marks open PRs provisional and merged PRs landed. Skip exhaustive history. Cursor continuous emit (v1): local `append_observation` against a checkout of `knowledge/architecture-expert`, then push that branch (or open a short-lived PR into it). When `runtime.yml` is `github_only`, Cursor append no-ops and instructs use of `workflow_dispatch` / PR-through-GitHub instead.
+**Approach:** CLI/library append that never rewrites prior lines. Bootstrap phase 1 reads allowlisted seed
+docs (ADRs, seam docs, enterprise index, guardrails) into `source=bootstrap` landed observations with
+evidence pointers. Phase 2 uses `gh` when available for bounded recent PRs; marks open PRs provisional
+and merged PRs landed. Skip exhaustive history. Cursor continuous emit (v1): local `append_observation`
+against a checkout of `knowledge/architecture-expert`, then push that branch (or open a short-lived PR
+into it). When `runtime.yml` is `github_only`, Cursor append no-ops and instructs use of
+`workflow_dispatch` / PR-through-GitHub instead.
 
 **Execution note:** Prefer characterization of append idempotency before expanding bootstrap sources.
 
@@ -370,7 +407,11 @@ scripts/compound/
 - Create: `tests/unit/test_compound_synthesize.py`, `tests/integration/test_architecture_compound_workflow.py`
 - Modify: `docs/compound/domains/*.md`, `docs/compound/INDEX.md` (via synthesize only)
 
-**Approach:** Synthesize reads ledger, partitions by domain, regenerates each domain doc with clear `## Landed` and `## Provisional` sections and source pointers. Rebuild `INDEX.md` as thin cross-seam hub (pattern: `docs/enterprise-readiness-index.md`). Hot-path events trigger synthesize immediately; dependency-bot authors/labels enqueue batch. Workflow: emitter job `contents: read`; synthesize job pushes to knowledge branch only. No step merges to `main`.
+**Approach:** Synthesize reads ledger, partitions by domain, regenerates each domain doc with clear
+`## Landed` and `## Provisional` sections and source pointers. Rebuild `INDEX.md` as thin cross-seam hub
+(pattern: `docs/enterprise-readiness-index.md`). Hot-path events trigger synthesize immediately;
+dependency-bot authors/labels enqueue batch. Workflow: emitter job `contents: read`; synthesize job
+pushes to knowledge branch only. No step merges to `main`.
 
 **Patterns to follow:** `.github/workflows/pr-copilot.yml` concurrency; Frogbot/autofix write-job split; `scripts/validate_manifest.py` path-locking spirit for compound paths.
 
@@ -426,7 +467,11 @@ scripts/compound/
 - Create: `tests/unit/test_compound_query_memory.py`, `tests/unit/test_compound_standing_brief.py`
 - Create: `tests/integration/test_compound_docs_validation.py`
 
-**Approach:** `query_memory` reads INDEX + domain docs (+ packs) and returns answers with provisional/landed labels and evidence pointers. Annotation job posts only on watched-series (or labeled) PRs, clearly branded, additive. Standing brief writer emits markdown under `docs/compound/briefs/` summarizing seam movement since last brief. Chat skill instructs agents to call query rather than invent seams.
+**Approach:** `query_memory` reads INDEX + domain docs (+ packs) and returns answers with
+provisional/landed labels and evidence pointers. Annotation job posts only on watched-series (or
+labeled) PRs, clearly branded, additive. Standing brief writer emits Markdown under
+`docs/compound/briefs/` summarizing seam movement since last brief. Chat skill instructs agents to call
+query rather than invent seams.
 
 **Test scenarios:**
 - Query for graph rebuild persistence ownership returns pointers into persistence/rebuild domains and labels provisional sources when present (Covers AE6).

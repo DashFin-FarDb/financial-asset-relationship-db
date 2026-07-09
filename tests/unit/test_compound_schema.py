@@ -45,10 +45,10 @@ class TestCompoundSchema:
                 "created_at": "2026-07-09T00:00:00Z",
             }
             obs = observation_from_mapping(raw)
-            assert obs.status is status
+            assert obs.status is status  # nosec B101
             rebuilt = observation_from_mapping(obs.to_dict())
-            assert rebuilt.dedupe_key() == obs.dedupe_key()
-            assert rebuilt.observation_id == obs.observation_id
+            assert rebuilt.dedupe_key() == obs.dedupe_key()  # nosec B101
+            assert rebuilt.observation_id == obs.observation_id  # nosec B101
 
     def test_duplicate_dedupe_key_identity(self) -> None:
         """Same source/event/primary_ref share one dedupe key for idempotent append."""
@@ -65,7 +65,7 @@ class TestCompoundSchema:
         other["summary"] = "two"
         first = observation_from_mapping(base)
         second = observation_from_mapping(other)
-        assert first.dedupe_key() == second.dedupe_key()
+        assert first.dedupe_key() == second.dedupe_key()  # nosec B101
 
     def test_watched_series_missing_keys_fails(self) -> None:
         """Watched-series YAML missing required keys raises SchemaError."""
@@ -77,18 +77,18 @@ class TestCompoundSchema:
         path = REPO_ROOT / "docs" / "compound" / "watched-series.yml"
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
         series = watched_series_from_mapping(data)
-        assert series.version == 1
+        assert series.version == 1  # nosec B101
 
     def test_allowlist_accepts_compound_domain_doc(self) -> None:
         """Allowlist accepts docs/compound domain paths."""
         path = "docs/compound/domains/api.md"
-        assert is_allowlisted(path)
-        assert assert_writable(path) == path
+        assert is_allowlisted(path)  # nosec B101
+        assert assert_writable(path) == path  # nosec B101
 
     def test_denylist_rejects_adr_and_agents(self) -> None:
         """Denylist rejects ADR paths and AGENTS.md."""
-        assert is_denylisted("docs/adr/0001-production-architecture.md")
-        assert is_denylisted("AGENTS.md")
+        assert is_denylisted("docs/adr/0001-production-architecture.md")  # nosec B101
+        assert is_denylisted("AGENTS.md")  # nosec B101
         with pytest.raises(PathPolicyError, match="denylist"):
             assert_writable("docs/adr/0001-production-architecture.md")
         with pytest.raises(PathPolicyError, match="denylist"):
@@ -101,13 +101,17 @@ class TestCompoundSchema:
 
     def test_detect_domains_from_paths(self) -> None:
         """Changed paths map to compound domains; empty defaults to architecture."""
-        assert detect_domains_from_paths([]) == ("architecture",)
-        assert detect_domains_from_paths(["README.md"]) == ("architecture",)
-        assert "api" in detect_domains_from_paths(["api/main.py", "frontend/app/page.tsx"])
-        assert "persistence" in detect_domains_from_paths(["src/data/sample_data.py"])
-        assert "rebuild-reconciliation" in detect_domains_from_paths(["src/logic/reconciliation_engine.py"])
-        assert "ci-guardrails" in detect_domains_from_paths([".github/workflows/ci.yml"])
-        assert "deployment" in detect_domains_from_paths(["docs/staging-deployment-operating-baseline.md"])
+        assert detect_domains_from_paths([]) == ("architecture",)  # nosec B101
+        assert detect_domains_from_paths(["README.md"]) == ("architecture",)  # nosec B101
+        assert "api" in detect_domains_from_paths(["api/main.py", "frontend/app/page.tsx"])  # nosec B101
+        assert "persistence" in detect_domains_from_paths(["src/data/sample_data.py"])  # nosec B101
+        assert "rebuild-reconciliation" in detect_domains_from_paths(
+            ["src/logic/reconciliation_engine.py"]
+        )  # nosec B101
+        assert "ci-guardrails" in detect_domains_from_paths([".github/workflows/ci.yml"])  # nosec B101
+        assert "deployment" in detect_domains_from_paths(
+            ["docs/staging-deployment-operating-baseline.md"]
+        )  # nosec B101
         multi = detect_domains_from_paths(["api/auth.py", "docs/adr/0001-production-architecture.md"])
-        assert "api" in multi
-        assert "architecture" in multi
+        assert "api" in multi  # nosec B101
+        assert "architecture" in multi  # nosec B101

@@ -52,7 +52,7 @@ class TestQueryMemory:
     def test_selects_persistence_domain(self) -> None:
         """Graph rebuild persistence questions map to persistence domain."""
         domains = select_domains("where does graph rebuild persistence ownership live?")
-        assert "persistence" in domains or "rebuild-reconciliation" in domains
+        assert "persistence" in domains or "rebuild-reconciliation" in domains  # nosec B101
 
     def test_answer_labels_provisional_and_landed(self, query_repo: Path) -> None:
         """Query returns pointers and provisional/landed labels."""
@@ -60,7 +60,7 @@ class TestQueryMemory:
             query_repo,
             "where does graph rebuild persistence ownership live?",
         )
-        assert "Landed:" in answer or "landed" in answer.lower()
-        assert "Provisional:" in answer or "provisional" in answer.lower()
-        assert "graph rebuild persistence" in answer.lower() or "persistence" in answer.lower()
-        assert "pr:99" in answer or "Propose new persistence seam" in answer
+        assert "Landed:" in answer or "landed" in answer.lower()  # nosec B101
+        assert "Provisional:" in answer or "provisional" in answer.lower()  # nosec B101
+        assert "graph rebuild persistence" in answer.lower() or "persistence" in answer.lower()  # nosec B101
+        assert "pr:99" in answer or "Propose new persistence seam" in answer  # nosec B101

@@ -34,6 +34,17 @@ def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     return root / Path(relative)
 
 
+def _read_observation_file(file_path: Path) -> Any:
+    """Read a JSON observation file from an allowed local path."""
+    candidate = file_path.resolve(strict=True)
+    allowed_roots = (REPO_ROOT.resolve(), Path("/tmp").resolve())
+    if not candidate.is_file() or candidate.suffix.lower() != ".json":
+        raise SchemaError("Observation file must be an existing .json file")
+    if not any(candidate.is_relative_to(root) for root in allowed_roots):
+        raise SchemaError("Observation file must be under the repository or /tmp")
+    return json.loads(candidate.read_text(encoding="utf-8"))
+
+
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     """Read dual-writer mode from docs/compound/runtime.yml."""
     runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
@@ -243,10 +254,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        if args.json:
-            payload = json.loads(args.json)
-        else:
-            payload = json.loads(Path(args.file).read_text(encoding="utf-8"))
+        payload = json.loads(args.json) if args.json else _read_observation_file(args.file)
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:

@@ -21,10 +21,10 @@ class TestCompoundDocsValidation:
 
     def test_compound_tree_exists(self) -> None:
         """Required compound paths exist."""
-        assert (COMPOUND / "INDEX.md").exists()
-        assert (COMPOUND / "watched-series.yml").exists()
-        assert (COMPOUND / "runtime.yml").exists()
-        assert (COMPOUND / "ledger" / "observations.jsonl").exists()
+        assert (COMPOUND / "INDEX.md").exists()  # nosec B101
+        assert (COMPOUND / "watched-series.yml").exists()  # nosec B101
+        assert (COMPOUND / "runtime.yml").exists()  # nosec B101
+        assert (COMPOUND / "ledger" / "observations.jsonl").exists()  # nosec B101
         for domain in (
             "architecture",
             "api",
@@ -33,12 +33,12 @@ class TestCompoundDocsValidation:
             "rebuild-reconciliation",
             "deployment",
         ):
-            assert (COMPOUND / "domains" / f"{domain}.md").exists()
+            assert (COMPOUND / "domains" / f"{domain}.md").exists()  # nosec B101
 
     def test_runtime_yml_has_writer_mode(self) -> None:
         """runtime.yml declares writer_mode."""
         data = yaml.safe_load((COMPOUND / "runtime.yml").read_text(encoding="utf-8"))
-        assert data["writer_mode"] in {"dual", "github_only"}
+        assert data["writer_mode"] in {"dual", "github_only"}  # nosec B101
 
 
 @pytest.mark.integration
@@ -50,14 +50,14 @@ class TestCompoundGuardrails:
         text = WORKFLOW.read_text(encoding="utf-8")
         code_only = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
         lowered = code_only.lower()
-        assert "gh pr merge" not in lowered
-        assert "auto-merge" not in lowered
+        assert "gh pr merge" not in lowered  # nosec B101
+        assert "auto-merge" not in lowered  # nosec B101
 
     def test_synthesize_job_has_contents_write(self) -> None:
         """Only synthesize elevates contents: write."""
-        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)
-        assert data["permissions"]["contents"] == "read"
-        assert data["jobs"]["synthesize"]["permissions"]["contents"] == "write"
+        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)  # nosec B506
+        assert data["permissions"]["contents"] == "read"  # nosec B101
+        assert data["jobs"]["synthesize"]["permissions"]["contents"] == "write"  # nosec B101
 
     def test_enterprise_index_links_compound_when_present(self) -> None:
         """If enterprise index mentions compound, the target exists."""
@@ -66,4 +66,4 @@ class TestCompoundGuardrails:
         text = ENTERPRISE_INDEX.read_text(encoding="utf-8")
         if "docs/compound" not in text and "compound/INDEX" not in text:
             pytest.skip("enterprise index not yet linked (U6 additive link)")
-        assert (COMPOUND / "INDEX.md").exists()
+        assert (COMPOUND / "INDEX.md").exists()  # nosec B101

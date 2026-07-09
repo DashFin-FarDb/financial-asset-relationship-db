@@ -59,10 +59,10 @@ class TestAppendObservation:
             _base_payload(observation_id="obs-2", summary="dup"),
             repo_root=compound_repo,
         )
-        assert first is not None
-        assert "appended" in msg1
-        assert second is None
-        assert "idempotent" in msg2
+        assert first is not None  # nosec B101
+        assert "appended" in msg1  # nosec B101
+        assert second is None  # nosec B101
+        assert "idempotent" in msg2  # nosec B101
         lines = [
             line
             for line in (compound_repo / "docs/compound/ledger/observations.jsonl")
@@ -70,13 +70,13 @@ class TestAppendObservation:
             .splitlines()
             if line.strip() and not line.startswith("#")
         ]
-        assert len(lines) == 1
+        assert len(lines) == 1  # nosec B101
 
     def test_open_pr_emits_provisional(self, compound_repo: Path) -> None:
         """Open PR fixture emits provisional status."""
         obs, _ = append_observation(_base_payload(), repo_root=compound_repo)
-        assert obs is not None
-        assert obs.status is ObservationStatus.PROVISIONAL
+        assert obs is not None  # nosec B101
+        assert obs.status is ObservationStatus.PROVISIONAL  # nosec B101
 
     def test_merged_pr_emits_landed(self, compound_repo: Path) -> None:
         """Merged PR fixture emits landed status."""
@@ -87,8 +87,8 @@ class TestAppendObservation:
             ),
             repo_root=compound_repo,
         )
-        assert obs is not None
-        assert obs.status is ObservationStatus.LANDED
+        assert obs is not None  # nosec B101
+        assert obs.status is ObservationStatus.LANDED  # nosec B101
 
     def test_cursor_noop_when_github_only(self, compound_repo: Path) -> None:
         """Cursor continuous emit no-ops under github_only writer mode."""
@@ -100,8 +100,8 @@ class TestAppendObservation:
             _base_payload(source=ObservationSource.CURSOR.value),
             repo_root=compound_repo,
         )
-        assert obs is None
-        assert "github_only" in message
+        assert obs is None  # nosec B101
+        assert "github_only" in message  # nosec B101
         lines = [
             line
             for line in (compound_repo / "docs/compound/ledger/observations.jsonl")
@@ -109,7 +109,7 @@ class TestAppendObservation:
             .splitlines()
             if line.strip() and not line.startswith("#")
         ]
-        assert lines == []
+        assert lines == []  # nosec B101
 
     def test_cli_json_round_trip(self, compound_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """CLI accepts --json and appends successfully."""
@@ -117,17 +117,19 @@ class TestAppendObservation:
 
         monkeypatch.setattr(mod, "REPO_ROOT", compound_repo)
         payload = json.dumps(_base_payload(observation_id="cli-1"))
-        assert mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
+        assert mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0  # nosec B101
 
     def test_record_push_conflict_flips_at_threshold(self, compound_repo: Path) -> None:
         """Three conflicts inside the window flip writer_mode to github_only (A12)."""
         now = datetime(2026, 7, 9, 12, 0, tzinfo=timezone.utc)
-        assert record_push_conflict(compound_repo, now=now) is WriterMode.DUAL
-        assert record_push_conflict(compound_repo, now=now + timedelta(minutes=1)) is WriterMode.DUAL
-        assert record_push_conflict(compound_repo, now=now + timedelta(minutes=2)) is WriterMode.GITHUB_ONLY
+        assert record_push_conflict(compound_repo, now=now) is WriterMode.DUAL  # nosec B101
+        assert record_push_conflict(compound_repo, now=now + timedelta(minutes=1)) is WriterMode.DUAL  # nosec B101
+        assert (
+            record_push_conflict(compound_repo, now=now + timedelta(minutes=2)) is WriterMode.GITHUB_ONLY
+        )  # nosec B101
         runtime = (compound_repo / "docs/compound/runtime.yml").read_text(encoding="utf-8")
-        assert "writer_mode: github_only" in runtime
-        assert "conflict_count: 3" in runtime
+        assert "writer_mode: github_only" in runtime  # nosec B101
+        assert "conflict_count: 3" in runtime  # nosec B101
 
     def test_record_push_conflict_resets_outside_window(self, compound_repo: Path) -> None:
         """Conflicts outside the window reset the counter."""
@@ -135,6 +137,6 @@ class TestAppendObservation:
         record_push_conflict(compound_repo, now=now)
         record_push_conflict(compound_repo, now=now + timedelta(minutes=1))
         mode = record_push_conflict(compound_repo, now=now + timedelta(minutes=45))
-        assert mode is WriterMode.DUAL
+        assert mode is WriterMode.DUAL  # nosec B101
         runtime = (compound_repo / "docs/compound/runtime.yml").read_text(encoding="utf-8")
-        assert "conflict_count: 1" in runtime
+        assert "conflict_count: 1" in runtime  # nosec B101

@@ -58,7 +58,7 @@ class TestCompoundBootstrap:
     def test_seed_docs_cover_all_domains(self, seed_repo: Path) -> None:
         """Bootstrap from fixture seed docs covers all six domains."""
         messages = seed_from_docs(seed_repo)
-        assert any("appended" in message or "idempotent" in message for message in messages)
+        assert any("appended" in message or "idempotent" in message for message in messages)  # nosec B101
         ledger = seed_repo / "docs/compound/ledger/observations.jsonl"
         domains_seen: set[str] = set()
         for line in ledger.read_text(encoding="utf-8").splitlines():
@@ -66,15 +66,15 @@ class TestCompoundBootstrap:
                 continue
             obs = parse_observation_line(line)
             domains_seen.update(obs.domains)
-            assert not str(obs.primary_ref).startswith("docs/adr/") or obs.source.value == "bootstrap"
-        assert domains_seen == set(DOMAINS)
+            assert not str(obs.primary_ref).startswith("docs/adr/") or obs.source.value == "bootstrap"  # nosec B101
+        assert domains_seen == set(DOMAINS)  # nosec B101
 
     def test_seed_does_not_write_denylisted_paths(self, seed_repo: Path) -> None:
         """Bootstrap only appends ledger; ADR bytes remain unchanged."""
         adr = seed_repo / "docs/adr/0001-production-architecture.md"
         before = adr.read_text(encoding="utf-8")
         seed_from_docs(seed_repo)
-        assert adr.read_text(encoding="utf-8") == before
+        assert adr.read_text(encoding="utf-8") == before  # nosec B101
 
     def test_gh_unavailable_is_nonfatal(self, seed_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """When gh is unavailable, PR scrape reports skipped and does not raise."""
@@ -82,7 +82,7 @@ class TestCompoundBootstrap:
 
         monkeypatch.setattr(mod, "_gh_json", lambda _args: None)
         messages = scrape_recent_prs(seed_repo)
-        assert messages == ["PR scrape skipped: gh unavailable or failed"]
+        assert messages == ["PR scrape skipped: gh unavailable or failed"]  # nosec B101
 
     def test_scrape_maps_domains_from_pr_files(self, seed_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Bootstrap PR scrape classifies domains from changed file paths."""
@@ -102,7 +102,7 @@ class TestCompoundBootstrap:
             ],
         )
         messages = scrape_recent_prs(seed_repo)
-        assert any("pr:99" in message for message in messages)
+        assert any("pr:99" in message for message in messages)  # nosec B101
         ledger = seed_repo / "docs/compound/ledger/observations.jsonl"
         domains: set[str] = set()
         for line in ledger.read_text(encoding="utf-8").splitlines():
@@ -111,5 +111,5 @@ class TestCompoundBootstrap:
             obs = parse_observation_line(line)
             if obs.primary_ref == "pr:99":
                 domains.update(obs.domains)
-        assert "api" in domains
-        assert "architecture" in domains
+        assert "api" in domains  # nosec B101
+        assert "architecture" in domains  # nosec B101

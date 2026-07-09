@@ -81,11 +81,11 @@ class TestCompoundSynthesize:
         )
         outputs = synthesize(synth_repo, force=True)
         persistence = outputs["docs/compound/domains/persistence.md"]
-        assert "Persistence seam merged" in persistence
-        assert "## Landed" in persistence
+        assert "Persistence seam merged" in persistence  # nosec B101
+        assert "## Landed" in persistence  # nosec B101
         # Provisional section should not still list the superseded provisional-only claim
         provisional_block = persistence.split("## Provisional", 1)[1]
-        assert "Propose persistence seam" not in provisional_block
+        assert "Propose persistence seam" not in provisional_block  # nosec B101
 
     def test_two_emitters_one_section(self, synth_repo: Path) -> None:
         """Two observations for one event collapse to one primary_ref section entry."""
@@ -117,7 +117,7 @@ class TestCompoundSynthesize:
         )
         outputs = synthesize(synth_repo, force=True)
         api_doc = outputs["docs/compound/domains/api.md"]
-        assert api_doc.count("**pr:7**") == 1
+        assert api_doc.count("**pr:7**") == 1  # nosec B101
 
     def test_dependabot_batches_without_force(self, synth_repo: Path) -> None:
         """Dependabot-only observations skip hot-path synthesize unless forced."""
@@ -138,14 +138,14 @@ class TestCompoundSynthesize:
 
         for row in rows:
             obs_list.append(observation_from_mapping(row))
-        assert should_hot_path_synthesize(obs_list) is False
-        assert should_hot_path_synthesize(obs_list, force=True) is True
-        assert should_hot_path_synthesize(obs_list, event_hint="push") is True
+        assert should_hot_path_synthesize(obs_list) is False  # nosec B101
+        assert should_hot_path_synthesize(obs_list, force=True) is True  # nosec B101
+        assert should_hot_path_synthesize(obs_list, event_hint="push") is True  # nosec B101
 
         ledger = synth_repo / "docs/compound/ledger/observations.jsonl"
         _write_obs(ledger, rows)
-        assert synthesize(synth_repo) == {}
-        assert synthesize(synth_repo, force=True)
+        assert synthesize(synth_repo) == {}  # nosec B101
+        assert synthesize(synth_repo, force=True)  # nosec B101
 
     def test_refuse_denylisted_write(self) -> None:
         """Path policy rejects ADR writes."""
