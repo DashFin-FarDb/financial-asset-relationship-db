@@ -17,6 +17,7 @@ if str(_SCRIPTS_ROOT) not in sys.path:
 
 from compound.schema import (  # noqa: E402
     LEDGER_PATH,
+    RUNTIME_PATH,
     Observation,
     ObservationSource,
     PathPolicyError,
@@ -57,7 +58,7 @@ def _resolve_observation_file(file_path: Path, repo_root: Path | None = None) ->
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     """Read dual-writer mode from docs/compound/runtime.yml."""
-    runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
+    runtime_path = _repo_path(RUNTIME_PATH, repo_root)
     if not runtime_path.exists():
         return WriterMode.DUAL
     text = runtime_path.read_text(encoding="utf-8")
@@ -98,7 +99,7 @@ def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     """Write runtime.yml with the fixed key set."""
-    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else "docs/compound/runtime.yml")
+    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else RUNTIME_PATH)
     lines = [
         "# Architecture-expert dual-writer runtime mode.",
         "# writer_mode: dual | github_only",
@@ -120,8 +121,8 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     Threshold: >=3 conflicts within conflict_window_minutes (plan A12).
     """
     root = repo_root or REPO_ROOT
-    runtime_path = _repo_path("docs/compound/runtime.yml", root)
-    assert_writable("docs/compound/runtime.yml")
+    runtime_path = _repo_path(RUNTIME_PATH, root)
+    assert_writable(RUNTIME_PATH)
     current = datetime.now(timezone.utc) if now is None else now
     if runtime_path.exists():
         data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))

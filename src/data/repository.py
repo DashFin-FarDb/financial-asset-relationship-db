@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, NoReturn, TypeAlias, TypedDict
 from uuid import uuid4
 
@@ -34,6 +34,8 @@ from .db_models import (
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
+
+UTC = timezone.utc
 
 
 @dataclass(frozen=True, slots=True)

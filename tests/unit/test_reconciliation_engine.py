@@ -1,6 +1,6 @@
 """Tests for the Reconciliation Engine core abstraction."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import pytest
@@ -14,6 +14,8 @@ from src.logic.reconciliation_engine import (
     Severity,
 )
 from src.models.financial_models import Asset, AssetClass
+
+UTC = timezone.utc
 
 
 class MockDriftEvaluator:
@@ -33,6 +35,14 @@ class MockDriftEvaluator:
     def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
         """Return predetermined drift evaluation."""
         return self.drift_type, self.severity, self.metadata
+
+
+class MinimalDriftEvaluator:
+    """Minimal protocol-compliant evaluator for engine compatibility tests."""
+
+    def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
+        """Return a no-drift result."""
+        return "minimal", Severity.NONE, {}
 
 
 class TestReconciliationPlan:
@@ -496,13 +506,7 @@ class TestDriftEvaluatorProtocol:
 
     def test_protocol_compatibility_with_engine(self) -> None:
         """Test that any DriftEvaluator implementation works with engine."""
-
-        # Create a minimal protocol-compliant evaluator
-        class MinimalEvaluator:
-            def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
-                return "minimal", Severity.NONE, {}
-
-        evaluator = MinimalEvaluator()
+        evaluator = MinimalDriftEvaluator()
         engine = ReconciliationEngine(evaluator)
 
         # Should work without errors

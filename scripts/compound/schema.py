@@ -154,10 +154,11 @@ class PathPolicyError(PermissionError):
 
 
 def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
+    """Normalize an optional string or sequence of strings into a tuple."""
     if value is None:
-        return ()
+        return tuple()
     if isinstance(value, str):
-        return (value,)
+        return tuple([value])
     if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
         items = []
         for item in value:

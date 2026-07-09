@@ -14,7 +14,9 @@ import sys
 import tempfile
 import traceback
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 
 try:
     from github import Github, GithubException
