@@ -182,7 +182,7 @@ def _has_invalid_path_chars(user_value: str) -> bool:
         user_value (str): The path string to inspect.
 
     Returns:
-        bool: `True` if `user_value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), `False` otherwise.
+        bool: True if user_value contains NUL, newline, or carriage return; False otherwise.
     """
     forbidden_chars = ("\x00", "\n", "\r")
     return any(char in user_value for char in forbidden_chars)

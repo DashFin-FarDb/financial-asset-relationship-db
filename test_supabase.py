@@ -4,14 +4,13 @@ Integration test for Supabase connectivity.
 Opt-in only: requires real credentials and network access.
 
 Enable explicitly by setting:
-  RUN_SUPABASE_TESTS=1
+    RUN_SUPABASE_TESTS=1
 and providing:
-  SUPABASE_URL
-  SUPABASE_KEY
+    SUPABASE_URL
+    SUPABASE_KEY
 
 Notes:
-- This test should not run in standard CI unless you explicitly configure
-  secrets.
+- This test should not run in standard CI unless secrets are configured.
 - We do not print secrets or raw URLs beyond a minimal redaction.
 """
 
@@ -76,8 +75,10 @@ def _read_supabase_credentials() -> tuple[str, str]:
     supabase_url = _get_env("SUPABASE_URL")
     supabase_key = _get_env("SUPABASE_KEY")
 
-    if not supabase_url or not supabase_key:
+    if supabase_url is None or supabase_key is None:
         pytest.skip("Missing SUPABASE_URL and/or SUPABASE_KEY")
+    # Narrow for type checkers that do not treat pytest.skip as NoReturn.
+    assert supabase_url is not None and supabase_key is not None
     if any(tok in supabase_key for tok in PLACEHOLDER_TOKENS):
         pytest.skip("SUPABASE_KEY appears to be a placeholder")
     return supabase_url, supabase_key

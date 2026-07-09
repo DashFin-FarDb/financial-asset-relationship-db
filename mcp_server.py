@@ -42,7 +42,7 @@ class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
             if callable(attr):
 
                 def _wrapped(*args, **kwargs):
-                    """Thread-safe wrapper for callable attributes that acquires the lock before invocation."""
+                    """Thread-safe wrapper that acquires the lock before calling the attribute."""
                     with self._lock:
                         return attr(*args, **kwargs)
 
@@ -86,7 +86,9 @@ def _register_mcp_handlers(mcp: FastMCP) -> None:
     """
     Register MCP handlers on the given FastMCP application.
 
-    Registers a tool that validates Equity data and, if the graph supports mutation, inserts the new Equity into the shared asset graph; and registers a resource at "graph://data/3d-layout" that serves the current 3D visualization payload as JSON.
+    Registers a tool that validates Equity data and, if the graph supports mutation,
+    inserts the new Equity into the shared asset graph; and registers a resource at
+    "graph://data/3d-layout" that serves the current 3D visualization payload as JSON.
 
     Parameters:
         mcp (FastMCP): FastMCP application instance to attach the tool and resource to.
@@ -111,9 +113,10 @@ def _register_mcp_handlers(mcp: FastMCP) -> None:
 
         Returns:
             str: On success, returns either
-                - "Successfully added: {name} ({symbol})" if the equity was inserted into the shared graph, or
-                - "Successfully validated (Graph mutation not supported): {name} ({symbol})" if validation succeeded but the graph does not support mutation.
-                If validation fails, returns "Validation Error: {error_message}" with the validation error details.
+                - "Successfully added: {name} ({symbol})" if inserted into the graph, or
+                - "Successfully validated (Graph mutation not supported): {name} ({symbol})"
+                  if validation succeeded but the graph does not support mutation.
+                If validation fails, returns "Validation Error: {error_message}".
         """
         try:
             new_equity = Equity(
