@@ -106,7 +106,7 @@ def mock_pr():
 
 def test_load_config_file_exists():
     """Test load_config when config file exists."""
-    config_data = "review_handling:\n" "  actionable_keywords:\n" "    - please\n" "    - should\n" "    - fix\n"
+    config_data = "review_handling:\n  actionable_keywords:\n    - please\n    - should\n    - fix\n"
     with (
         patch("builtins.open", mock_open(read_data=config_data)),
         patch(
