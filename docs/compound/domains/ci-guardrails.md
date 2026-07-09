@@ -12,3 +12,5 @@ _No landed observations yet._
   - evidence: pr:1395
 - **pr:1392** (provisional): () -x  w 
   - evidence: pr:1392
+- **pr:1394** (provisional): fix(ci): harden architecture compound checks
+  - evidence: pr:1394
