@@ -523,6 +523,7 @@ class TestArchitectureMdProductionLabels:
         assert "PRODUCTION" in content
         # The label should be near Next.js
         nextjs_pos = content.find("Next.js UI")
+        assert nextjs_pos != -1, "Next.js UI must appear in the documentation"
         production_label_pos = content.find("** PRODUCTION **")
         assert production_label_pos != -1, "PRODUCTION label must be present"
         # They should be close in the diagram
