@@ -16,25 +16,19 @@ if str(_SCRIPTS_ROOT) not in sys.path:
 
 from compound.schema import (  # noqa: E402
     LEDGER_PATH,
+    RUNTIME_PATH,
     Observation,
     ObservationSource,
     PathPolicyError,
     SchemaError,
     WriterMode,
     assert_writable,
-    normalize_repo_relative,
     observation_from_mapping,
     parse_observation_line,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-RUNTIME_REL_PATH = "docs/compound/runtime.yml"
-DEFAULT_RUNTIME_DATA: dict[str, str | int | None] = {
-    "writer_mode": WriterMode.DUAL.value,
-    "conflict_count": 0,
-    "conflict_window_minutes": 30,
-    "last_conflict_at": None,
-}
+RUNTIME_REL_PATH = RUNTIME_PATH.as_posix()
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
@@ -42,26 +36,23 @@ def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     return root / Path(relative)
 
 
-def _runtime_path(repo_root: Path | None = None) -> Path:
-    return _repo_path(RUNTIME_REL_PATH, repo_root)
-
-
-def _read_repo_input_file(file_path: Path, repo_root: Path | None = None) -> str:
-    """Read an input file after proving it stays within the repository root."""
+def _resolve_repo_file(file_path: Path, repo_root: Path | None = None) -> Path:
+    """Resolve a caller-supplied file path and require it to stay inside the repo."""
     root = (repo_root or REPO_ROOT).resolve()
     candidate = file_path if file_path.is_absolute() else root / file_path
-    resolved = candidate.resolve(strict=True)
+    resolved = candidate.resolve()
     try:
-        relative = resolved.relative_to(root)
+        resolved.relative_to(root)
     except ValueError as exc:
-        raise PathPolicyError(f"Input file must stay within repository root: {file_path}") from exc
-    normalize_repo_relative(relative)
-    return resolved.read_text(encoding="utf-8")
+        raise PathPolicyError("--file must point inside the repository root") from exc
+    if not resolved.is_file():
+        raise PathPolicyError(f"--file does not exist or is not a file: {file_path}")
+    return resolved
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
-    """Read dual-writer mode from docs/compound/runtime.yml."""
-    runtime_path = _runtime_path(repo_root)
+    """Read dual-writer mode from the runtime config."""
+    runtime_path = _repo_path(RUNTIME_PATH, repo_root)
     if not runtime_path.exists():
         return WriterMode.DUAL
     text = runtime_path.read_text(encoding="utf-8")
@@ -76,27 +67,36 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     return WriterMode.DUAL
 
 
+def _default_runtime_data() -> dict[str, str | int | None]:
+    return {
+        "writer_mode": WriterMode.DUAL.value,
+        "conflict_count": 0,
+        "conflict_window_minutes": 30,
+        "last_conflict_at": None,
+    }
+
+
+def _parse_runtime_value(key: str, value: str) -> str | int | None:
+    if key in {"conflict_count", "conflict_window_minutes"}:
+        return int(value)
+    if key == "last_conflict_at":
+        return None if value in {"null", "~", ""} else value
+    return value
+
+
 def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
     """Parse the small runtime.yml key set without requiring PyYAML."""
-    data = dict(DEFAULT_RUNTIME_DATA)
+    data = _default_runtime_data()
     for line in text.splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#") or ":" not in stripped:
             continue
-        _apply_runtime_entry(data, stripped)
+        key, value = stripped.split(":", 1)
+        key = key.strip()
+        value = value.strip()
+        if key in data:
+            data[key] = _parse_runtime_value(key, value)
     return data
-
-
-def _apply_runtime_entry(data: dict[str, str | int | None], line: str) -> None:
-    key, raw_value = line.split(":", 1)
-    key = key.strip()
-    value = raw_value.strip()
-    if key == "writer_mode":
-        data[key] = value
-    elif key in {"conflict_count", "conflict_window_minutes"}:
-        data[key] = int(value)
-    elif key == "last_conflict_at":
-        data[key] = None if value in {"null", "~", ""} else value
 
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
@@ -117,27 +117,29 @@ def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
-def _read_runtime_data(runtime_path: Path) -> dict[str, str | int | None]:
+def _load_runtime_data(runtime_path: Path) -> dict[str, str | int | None]:
     if runtime_path.exists():
         return _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
-    return dict(DEFAULT_RUNTIME_DATA)
+    return _default_runtime_data()
 
 
-def _reset_count_if_outside_window(
-    *,
-    count: int,
-    last_raw: str | int | None,
-    current: datetime,
-    window_minutes: int,
-) -> int:
+def _is_outside_conflict_window(last_raw: str | int | None, current: datetime, window_minutes: int) -> bool:
     if not isinstance(last_raw, str) or last_raw in {"null", ""}:
-        return 0
+        return True
     try:
         last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
     except ValueError:
-        return 0
+        return True
     age_minutes = (current - last_at).total_seconds() / 60.0
-    return 0 if age_minutes > window_minutes else count
+    return age_minutes > window_minutes
+
+
+def _next_conflict_count(data: Mapping[str, Any], current: datetime) -> int:
+    window_minutes = int(data.get("conflict_window_minutes") or 30)
+    count = int(data.get("conflict_count") or 0)
+    if _is_outside_conflict_window(data.get("last_conflict_at"), current, window_minutes):
+        return 1
+    return count + 1
 
 
 def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None = None) -> WriterMode:
@@ -146,19 +148,11 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     Threshold: >=3 conflicts within conflict_window_minutes (plan A12).
     """
     root = repo_root or REPO_ROOT
-    runtime_path = _runtime_path(root)
+    runtime_path = _repo_path(RUNTIME_PATH, root)
     assert_writable(RUNTIME_REL_PATH)
     current = datetime.now(timezone.utc) if now is None else now
-    data = _read_runtime_data(runtime_path)
-    window_minutes = int(data.get("conflict_window_minutes") or 30)
-    count = int(data.get("conflict_count") or 0)
-    count = _reset_count_if_outside_window(
-        count=count,
-        last_raw=data.get("last_conflict_at"),
-        current=current,
-        window_minutes=window_minutes,
-    )
-    count += 1
+    data = _load_runtime_data(runtime_path)
+    count = _next_conflict_count(data, current)
     data["conflict_count"] = count
     data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
     if count >= 3:
@@ -167,9 +161,9 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     return WriterMode(str(data["writer_mode"]))
 
 
-def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str, str]]:
+def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
     """Load dedupe keys already present in the ledger."""
-    keys: set[tuple[str, str, str, str]] = set()
+    keys: set[tuple[str, str, str]] = set()
     if not ledger_path.exists():
         return keys
     for line in ledger_path.read_text(encoding="utf-8").splitlines():
@@ -184,6 +178,49 @@ def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str, str
     return keys
 
 
+def _prepare_observation_payload(
+    data: Mapping[str, Any],
+    source_override: ObservationSource | None,
+) -> dict[str, Any]:
+    payload = dict(data)
+    if source_override is not None:
+        payload["source"] = source_override.value
+    if not payload.get("observation_id"):
+        payload["observation_id"] = f"obs-{uuid4().hex[:12]}"
+    if not payload.get("created_at"):
+        payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return payload
+
+
+def _cursor_write_blocked(
+    observation: Observation,
+    writer_mode: WriterMode,
+    allow_cursor_when_github_only: bool,
+) -> bool:
+    return (
+        writer_mode is WriterMode.GITHUB_ONLY
+        and observation.source is ObservationSource.CURSOR
+        and not allow_cursor_when_github_only
+    )
+
+
+def _ensure_ledger_exists(ledger_path: Path) -> None:
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    if ledger_path.exists():
+        return
+    ledger_path.write_text(
+        "# Architecture Expert observation ledger (JSONL, append-only).\n"
+        "# schema_version=1 — see scripts/compound/schema.py\n",
+        encoding="utf-8",
+    )
+
+
+def _append_ledger_line(ledger_path: Path, observation: Observation) -> None:
+    with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
+        handle.write(observation.to_json_line())
+        handle.write("\n")
+
+
 def append_observation(
     data: Mapping[str, Any],
     *,
@@ -193,29 +230,17 @@ def append_observation(
 ) -> tuple[Observation | None, str]:
     """Append one observation if new; return (observation_or_None, message).
 
-    Idempotent on Observation.dedupe_key(). Never rewrites prior lines.
+    Idempotent on (source, event_type, primary_ref). Never rewrites prior lines.
     """
     root = repo_root or REPO_ROOT
     ledger_rel = LEDGER_PATH.as_posix()
     assert_writable(ledger_rel)
     ledger_path = _repo_path(LEDGER_PATH, root)
 
-    payload = dict(data)
-    if source_override is not None:
-        payload["source"] = source_override.value
-    if not payload.get("observation_id"):
-        payload["observation_id"] = f"obs-{uuid4().hex[:12]}"
-    if not payload.get("created_at"):
-        payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    observation = observation_from_mapping(payload)
+    observation = observation_from_mapping(_prepare_observation_payload(data, source_override))
 
     writer_mode = read_writer_mode(root)
-    if (
-        writer_mode is WriterMode.GITHUB_ONLY
-        and observation.source is ObservationSource.CURSOR
-        and not allow_cursor_when_github_only
-    ):
+    if _cursor_write_blocked(observation, writer_mode, allow_cursor_when_github_only):
         return (
             None,
             "writer_mode=github_only: Cursor continuous emit no-ops; "
@@ -226,17 +251,8 @@ def append_observation(
     if observation.dedupe_key() in existing:
         return None, f"idempotent-no-op for {observation.dedupe_key()}"
 
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    if not ledger_path.exists():
-        ledger_path.write_text(
-            "# Architecture Expert observation ledger (JSONL, append-only).\n"
-            "# schema_version=1 — see scripts/compound/schema.py\n",
-            encoding="utf-8",
-        )
-
-    with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
-        handle.write(observation.to_json_line())
-        handle.write("\n")
+    _ensure_ledger_exists(ledger_path)
+    _append_ledger_line(ledger_path, observation)
 
     return observation, f"appended {observation.observation_id}"
 
@@ -275,7 +291,11 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else json.loads(_read_repo_input_file(args.file, args.repo_root))
+        if args.json:
+            payload = json.loads(args.json)
+        else:
+            input_file = _resolve_repo_file(args.file, args.repo_root)
+            payload = json.loads(input_file.read_text(encoding="utf-8"))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:

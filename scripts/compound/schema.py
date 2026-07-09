@@ -116,9 +116,9 @@ class Observation:
     created_at: str = ""
     schema_version: int = SCHEMA_VERSION
 
-    def dedupe_key(self) -> tuple[str, str, str, str]:
+    def dedupe_key(self) -> tuple[str, str, str]:
         """Return the idempotency key for this observation."""
-        return (self.source.value, self.event_type, self.primary_ref, self.observation_id)
+        return (self.source.value, self.event_type, self.primary_ref)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize for JSONL storage."""
@@ -154,12 +154,12 @@ class PathPolicyError(PermissionError):
 
 
 def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
-    items: list[str] = []
     if value is None:
-        pass
+        items: list[str] = []
     elif isinstance(value, str):
-        items.append(value)
+        items = [value]
     elif isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
+        items = []
         for item in value:
             if not isinstance(item, str):
                 raise SchemaError(f"{field_name} entries must be strings")
@@ -167,6 +167,27 @@ def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
     else:
         raise SchemaError(f"{field_name} must be a string or list of strings")
     return tuple(items)
+
+
+def _require_list(data: Mapping[str, Any], key: str) -> list[Any]:
+    value = data[key]
+    if not isinstance(value, list):
+        raise SchemaError(f"watched-series {key} must be a list")
+    return value
+
+
+def _require_int_list(data: Mapping[str, Any], key: str) -> list[int]:
+    items = _require_list(data, key)
+    if any(not isinstance(item, int) or isinstance(item, bool) for item in items):
+        raise SchemaError(f"watched-series {key} must be integers")
+    return list(items)
+
+
+def _require_str_list(data: Mapping[str, Any], key: str) -> list[str]:
+    items = _require_list(data, key)
+    if any(not isinstance(item, str) for item in items):
+        raise SchemaError(f"watched-series {key} must be strings")
+    return list(items)
 
 
 def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
@@ -180,8 +201,7 @@ def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
     return tuple(normalized)
 
 
-def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
-    """Parse and validate an observation mapping."""
+def _missing_required_observation_fields(data: Mapping[str, Any]) -> list[str]:
     required = (
         "observation_id",
         "source",
@@ -190,20 +210,34 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
         "primary_ref",
         "summary",
     )
-    missing = [key for key in required if key not in data or data[key] in (None, "")]
-    if missing:
-        raise SchemaError(f"Missing required observation fields: {', '.join(missing)}")
+    return [key for key in required if key not in data or data[key] in (None, "")]
 
+
+def _parse_observation_enums(data: Mapping[str, Any]) -> tuple[ObservationSource, ObservationStatus]:
     try:
         source = ObservationSource(str(data["source"]))
         status = ObservationStatus(str(data["status"]))
     except ValueError as exc:
         raise SchemaError(str(exc)) from exc
+    return source, status
 
-    domains = validate_domains(_as_str_tuple(data.get("domains"), "domains"))
+
+def _parse_schema_version(data: Mapping[str, Any]) -> int:
     schema_version = int(data.get("schema_version", SCHEMA_VERSION))
     if schema_version != SCHEMA_VERSION:
         raise SchemaError(f"Unsupported schema_version {schema_version}; expected {SCHEMA_VERSION}")
+    return schema_version
+
+
+def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
+    """Parse and validate an observation mapping."""
+    missing = _missing_required_observation_fields(data)
+    if missing:
+        raise SchemaError(f"Missing required observation fields: {', '.join(missing)}")
+
+    source, status = _parse_observation_enums(data)
+    domains = validate_domains(_as_str_tuple(data.get("domains"), "domains"))
+    schema_version = _parse_schema_version(data)
 
     return Observation(
         observation_id=str(data["observation_id"]),
@@ -244,31 +278,12 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     if not isinstance(version, int) or isinstance(version, bool):
         raise SchemaError("watched-series version must be an integer")
 
-    prs_raw = data["prs"]
-    labels_raw = data["labels"]
-    globs_raw = data["path_globs"]
-    if not isinstance(prs_raw, list) or not isinstance(labels_raw, list) or not isinstance(globs_raw, list):
-        raise SchemaError("watched-series prs, labels, and path_globs must be lists")
-
-    prs: list[int] = []
-    for item in prs_raw:
-        if not isinstance(item, int) or isinstance(item, bool):
-            raise SchemaError("watched-series prs must be integers")
-        prs.append(item)
-
-    labels: list[str] = []
-    for item in labels_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series labels must be strings")
-        labels.append(item)
-
-    path_globs: list[str] = []
-    for item in globs_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series path_globs must be strings")
-        path_globs.append(item)
-
-    return WatchedSeries(version=version, prs=prs, labels=labels, path_globs=path_globs)
+    return WatchedSeries(
+        version=version,
+        prs=_require_int_list(data, "prs"),
+        labels=_require_str_list(data, "labels"),
+        path_globs=_require_str_list(data, "path_globs"),
+    )
 
 
 def normalize_repo_relative(path: str | Path) -> str:
@@ -291,6 +306,13 @@ def normalize_repo_relative(path: str | Path) -> str:
     return "/".join(parts)
 
 
+def _domain_for_path(normalized: str) -> str | None:
+    for prefix, domain in _PATH_DOMAIN_RULES:
+        if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
+            return domain
+    return None
+
+
 def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     """Map changed file paths to compound domains.
 
@@ -302,11 +324,9 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
             normalized = normalize_repo_relative(raw)
         except PathPolicyError:
             continue
-        for prefix, domain in _PATH_DOMAIN_RULES:
-            if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
-                if domain not in found:
-                    found.append(domain)
-                break
+        domain = _domain_for_path(normalized)
+        if domain is not None and domain not in found:
+            found.append(domain)
     return tuple(found) if found else ("architecture",)
 
 
@@ -316,13 +336,7 @@ def is_denylisted(path: str | Path) -> bool:
         normalized = normalize_repo_relative(path)
     except PathPolicyError:
         return True
-    for prefix in WRITE_DENYLIST_PREFIXES:
-        if prefix.endswith("/"):
-            if normalized.startswith(prefix) or normalized == prefix.rstrip("/"):
-                return True
-        elif normalized == prefix:
-            return True
-    return False
+    return any(_matches_policy_prefix(normalized, prefix) for prefix in WRITE_DENYLIST_PREFIXES)
 
 
 def is_allowlisted(path: str | Path) -> bool:
@@ -331,13 +345,13 @@ def is_allowlisted(path: str | Path) -> bool:
         normalized = normalize_repo_relative(path)
     except PathPolicyError:
         return False
-    for prefix in WRITE_ALLOWLIST_PREFIXES:
-        if prefix.endswith("/"):
-            if normalized.startswith(prefix):
-                return True
-        elif normalized == prefix:
-            return True
-    return False
+    return any(_matches_policy_prefix(normalized, prefix) for prefix in WRITE_ALLOWLIST_PREFIXES)
+
+
+def _matches_policy_prefix(normalized: str, prefix: str) -> bool:
+    if prefix.endswith("/"):
+        return normalized.startswith(prefix) or normalized == prefix.rstrip("/")
+    return normalized == prefix
 
 
 def assert_writable(path: str | Path) -> str:
