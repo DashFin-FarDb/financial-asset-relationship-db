@@ -8,4 +8,5 @@ _No landed observations yet._
 
 ## Provisional
 
-_No provisional observations yet._
+- **pr:1398** (provisional): fix(ci): address compound scanner failures
+  - evidence: pr:1398

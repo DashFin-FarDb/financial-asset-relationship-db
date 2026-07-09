@@ -10,3 +10,5 @@ _No landed observations yet._
 
 - **pr:1395** (provisional): fix(ci): harden architecture compound workflow
   - evidence: pr:1395
+- **pr:1398** (provisional): fix(ci): address compound scanner failures
+  - evidence: pr:1398
