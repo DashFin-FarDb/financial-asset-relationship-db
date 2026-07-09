@@ -1,4 +1,4 @@
-"""Shared FastAPI dependency helpers for graph access."""
+"""Dependency utilities for API routers."""
 
 import threading
 

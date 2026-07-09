@@ -1,1 +1,1 @@
-"""Middleware package for the FastAPI application."""
+"""Middleware package for the API."""
