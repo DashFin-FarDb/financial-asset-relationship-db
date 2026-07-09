@@ -45,23 +45,38 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Check knowledge branch exists
+        id: knowledge_branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          set +e
+          git ls-remote --exit-code --heads "$REMOTE_URL" knowledge/architecture-expert >/dev/null
+          STATUS=$?
+          set -e
+          if [ "$STATUS" -eq 0 ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          elif [ "$STATUS" -eq 2 ]; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unable to verify knowledge branch existence" >&2
+            exit "$STATUS"
+          fi
+
       - name: Checkout knowledge branch
-        id: checkout_knowledge
+        if: steps.knowledge_branch.outputs.exists == 'true'
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: knowledge/architecture-expert
           path: knowledge
           fetch-depth: 0
           persist-credentials: false
-        continue-on-error: true
-
-      - name: Prepare knowledge branch fallback
-        if: steps.checkout_knowledge.outcome == 'failure'
-        shell: bash
-        run: rm -rf knowledge
 
       - name: Checkout main for new knowledge branch
-        if: steps.checkout_knowledge.outcome == 'failure'
+        if: steps.knowledge_branch.outputs.exists == 'false'
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: main
@@ -87,6 +102,7 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title || '' }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           PR_ACTION: ${{ github.event.action || '' }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
           PR_MERGED_JSON: ${{ toJson(github.event.pull_request.merged || false) }}
           EVENT_NAME: ${{ github.event_name }}
           FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
@@ -104,6 +120,9 @@ jobs:
             else
               STATUS="provisional"
               EVENT_TYPE="pull_request.${PR_ACTION}"
+              if [ "$PR_ACTION" = "synchronize" ] && [ -n "$PR_HEAD_SHA" ]; then
+                EVENT_TYPE="${EVENT_TYPE}.${PR_HEAD_SHA}"
+              fi
             fi
             PRIMARY_REF="pr:${PR_NUMBER}"
             SUMMARY=$(jq -rn --arg t "$PR_TITLE" '$t[:240]')

@@ -81,6 +81,21 @@ class TestArchitectureCompoundWorkflow:
         assert "python -m compound.synthesize \\" in text
         assert '--repo-root "$PWD"' in text
 
+    def test_knowledge_checkout_fallback_only_for_missing_branch(self) -> None:
+        """Transient checkout failures must not recreate the knowledge branch from main."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "git ls-remote --exit-code --heads" in text
+        assert "steps.knowledge_branch.outputs.exists == 'true'" in text
+        assert "steps.knowledge_branch.outputs.exists == 'false'" in text
+        assert "continue-on-error: true" not in text
+
+    def test_pr_synchronize_event_type_includes_head_sha(self) -> None:
+        """Distinct PR synchronize commits must append separate ledger observations."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "PR_HEAD_SHA:" in text
+        assert '[ "$PR_ACTION" = "synchronize" ] && [ -n "$PR_HEAD_SHA" ]' in text
+        assert 'EVENT_TYPE="${EVENT_TYPE}.${PR_HEAD_SHA}"' in text
+
     def test_push_conflict_records_hybrid_backup(self) -> None:
         """Failed knowledge-branch push records conflict for A12 hybrid backup."""
         text = WORKFLOW.read_text(encoding="utf-8")
