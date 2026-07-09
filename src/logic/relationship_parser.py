@@ -81,8 +81,9 @@ def _parse_single_relationship_arg(
     kwargs: dict[str, Any],
 ) -> tuple[Any, Any, bool]:
     """
-    Parse a single positional relationship argument given as a (rel_type, strength)
-    tuple and extract an optional "bidirectional" flag from kwargs.
+    Parse a positional relationship (rel_type, strength) tuple.
+
+    Also extract an optional "bidirectional" flag from kwargs.
 
     Parameters:
         relationship_arg (Any): A two-item tuple (rel_type, strength).
