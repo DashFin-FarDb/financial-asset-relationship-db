@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+UTC = timezone.utc
+
 # pylint: disable=import-error
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import patch
 

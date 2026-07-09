@@ -283,6 +283,23 @@ def normalize_repo_relative(path: str | Path) -> str:
     return text.lstrip("/")
 
 
+def _matches_domain_prefix(normalized: str, prefix: str) -> bool:
+    """Return True when a normalized path belongs to a domain prefix."""
+    return normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}"
+
+
+def _domain_for_path(path: str) -> str | None:
+    """Return the first configured domain for a path, if any."""
+    normalized = normalize_repo_relative(path)
+    return next((domain for prefix, domain in _PATH_DOMAIN_RULES if _matches_domain_prefix(normalized, prefix)), None)
+
+
+def _append_unique_domain(domains: list[str], domain: str | None) -> None:
+    """Append a detected domain once while preserving rule order."""
+    if domain is not None and domain not in domains:
+        domains.append(domain)
+
+
 def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     """Map changed file paths to compound domains.
 
@@ -290,12 +307,7 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     """
     found: list[str] = []
     for raw in paths:
-        normalized = normalize_repo_relative(raw)
-        for prefix, domain in _PATH_DOMAIN_RULES:
-            if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
-                if domain not in found:
-                    found.append(domain)
-                break
+        _append_unique_domain(found, _domain_for_path(raw))
     return tuple(found) if found else ("architecture",)
 
 

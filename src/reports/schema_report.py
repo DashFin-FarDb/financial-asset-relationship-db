@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, Protocol  # pylint: disable=no-name-in-module
+
+from src.config.settings import get_settings
+
+UTC = timezone.utc
 
 
 class GraphLike(Protocol):  # pylint: disable=too-few-public-methods
@@ -255,8 +259,6 @@ def _business_rules_lines() -> list[str]:
     Returns:
         list[str]: Ordered markdown lines for the "Business Rules & Constraints" section.
     """
-    from src.config.settings import get_settings  # pylint: disable=import-outside-toplevel
-
     settings = get_settings()
     return [
         "",

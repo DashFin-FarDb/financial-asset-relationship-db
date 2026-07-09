@@ -13,11 +13,13 @@ This module tests all functions in the suggest_fixes.py script including:
 
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
 from github import GithubException
+
+UTC = timezone.utc
 
 # Add the script directory to path before importing the script under test
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))

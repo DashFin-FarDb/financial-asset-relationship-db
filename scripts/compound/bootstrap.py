@@ -127,15 +127,17 @@ def _gh_pr_list_json(*, cutoff: str | None = None) -> Any | None:
 
 def _pr_file_paths(pr: dict[str, Any]) -> list[str]:
     """Extract changed paths from gh PR JSON across gh output shapes."""
-    paths: list[str] = []
-    for entry in pr.get("files") or []:
-        if isinstance(entry, str):
-            paths.append(entry)
-        elif isinstance(entry, dict):
-            path = entry.get("path") or entry.get("filename")
-            if path:
-                paths.append(str(path))
-    return paths
+    return [path for entry in pr.get("files") or [] if (path := _file_path_from_pr_entry(entry)) is not None]
+
+
+def _file_path_from_pr_entry(entry: Any) -> str | None:
+    """Return a path from one gh PR file entry shape."""
+    if isinstance(entry, str):
+        return entry
+    if not isinstance(entry, dict):
+        return None
+    path = entry.get("path") or entry.get("filename")
+    return str(path) if path else None
 
 
 def _pr_payload(pr: dict[str, Any]) -> dict[str, Any] | None:
