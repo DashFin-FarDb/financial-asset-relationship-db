@@ -19,7 +19,7 @@ jobs:
       # Fix lint errors
       - run: uvx ruff check --fix-only .
       # Format code with the same formatter enforced by pre-commit and CI.
-      - run: uvx black .
+      - run: uvx black@26.5.1 .
 
 
       - uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27
