@@ -130,7 +130,7 @@ jobs:
           if [ "$FORCE_SYNTH" = "true" ]; then
             EXTRA+=(--force)
           fi
-          python scripts/compound/synthesize.py --event-hint "$EVENT_TYPE" "${EXTRA[@]}"
+          python scripts/compound/synthesize.py --event-hint "$EVENT_TYPE" --primary-ref "$PRIMARY_REF" "${EXTRA[@]}"
           python scripts/compound/sync_agent_packs.py
           python scripts/compound/standing_brief.py
           echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"

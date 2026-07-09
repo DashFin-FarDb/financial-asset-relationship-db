@@ -52,7 +52,7 @@ class TestCompoundSchema:
             assert rebuilt.observation_id == obs.observation_id
 
     def test_duplicate_dedupe_key_identity(self) -> None:
-        """Same source/event/primary_ref share one dedupe key for idempotent append."""
+        """Same stable observation identity shares one dedupe key for idempotent append."""
         base = {
             "observation_id": "a",
             "source": ObservationSource.GITHUB.value,
@@ -62,11 +62,14 @@ class TestCompoundSchema:
             "summary": "one",
         }
         other = dict(base)
-        other["observation_id"] = "b"
         other["summary"] = "two"
         first = observation_from_mapping(base)
         second = observation_from_mapping(other)
         assert first.dedupe_key() == second.dedupe_key()
+
+        next_run = dict(base)
+        next_run["observation_id"] = "b"
+        assert first.dedupe_key() != observation_from_mapping(next_run).dedupe_key()
 
     def test_watched_series_missing_keys_fails(self) -> None:
         """Watched-series YAML missing required keys raises SchemaError."""

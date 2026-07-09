@@ -71,6 +71,7 @@ def should_hot_path_synthesize(
     *,
     force: bool = False,
     event_hint: str | None = None,
+    primary_ref: str | None = None,
 ) -> bool:
     """Decide whether synthesize should run immediately.
 
@@ -84,8 +85,11 @@ def should_hot_path_synthesize(
         return True
     if not observations:
         return True
-    # Gate on the triggering (newest) observation only — not the full historical ledger.
-    newest = max(observations, key=lambda obs: (obs.created_at or "", obs.observation_id))
+    candidates = [obs for obs in observations if obs.primary_ref == primary_ref] if primary_ref else observations
+    if not candidates:
+        return True
+    # Gate on the triggering ref when supplied — not an unrelated ledger-wide newest row.
+    newest = max(candidates, key=lambda obs: (obs.created_at or "", obs.observation_id))
     if is_dependency_bot_observation(newest):
         return False
     return True
@@ -221,6 +225,7 @@ def synthesize(
     dry_run: bool = False,
     force: bool = False,
     event_hint: str | None = None,
+    primary_ref: str | None = None,
 ) -> dict[str, str]:
     """Regenerate domain docs + index from the ledger.
 
@@ -228,7 +233,7 @@ def synthesize(
     """
     ledger_path = repo_root / LEDGER_PATH
     observations = load_ledger(ledger_path)
-    if not should_hot_path_synthesize(observations, force=force, event_hint=event_hint):
+    if not should_hot_path_synthesize(observations, force=force, event_hint=event_hint, primary_ref=primary_ref):
         return {}
 
     outputs = _render_outputs(observations)
@@ -247,6 +252,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true", help="Bypass dependency-bot batching")
     parser.add_argument("--event-hint", default=None)
+    parser.add_argument("--primary-ref", default=None)
     args = parser.parse_args(argv)
     try:
         outputs = synthesize(
@@ -254,6 +260,7 @@ def main(argv: list[str] | None = None) -> int:
             dry_run=args.dry_run,
             force=args.force,
             event_hint=args.event_hint,
+            primary_ref=args.primary_ref,
         )
         if not outputs:
             print("synthesize skipped (batched dependency-bot observations)")

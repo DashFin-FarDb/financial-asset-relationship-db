@@ -161,9 +161,9 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     return WriterMode(str(data["writer_mode"]))
 
 
-def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
+def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str, str]]:
     """Load dedupe keys already present in the ledger."""
-    keys: set[tuple[str, str, str]] = set()
+    keys: set[tuple[str, str, str, str]] = set()
     if not ledger_path.exists():
         return keys
     for line in ledger_path.read_text(encoding="utf-8").splitlines():
@@ -230,7 +230,7 @@ def append_observation(
 ) -> tuple[Observation | None, str]:
     """Append one observation if new; return (observation_or_None, message).
 
-    Idempotent on (source, event_type, primary_ref). Never rewrites prior lines.
+    Idempotent on a stable observation identity. Never rewrites prior lines.
     """
     root = repo_root or REPO_ROOT
     ledger_rel = LEDGER_PATH.as_posix()

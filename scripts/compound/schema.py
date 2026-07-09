@@ -116,9 +116,9 @@ class Observation:
     created_at: str = ""
     schema_version: int = SCHEMA_VERSION
 
-    def dedupe_key(self) -> tuple[str, str, str]:
+    def dedupe_key(self) -> tuple[str, str, str, str]:
         """Return the idempotency key for this observation."""
-        return (self.source.value, self.event_type, self.primary_ref)
+        return (self.source.value, self.event_type, self.primary_ref, self.observation_id)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize for JSONL storage."""

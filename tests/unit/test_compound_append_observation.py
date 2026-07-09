@@ -53,10 +53,10 @@ class TestAppendObservation:
     """Append idempotency and writer-mode gates."""
 
     def test_identical_event_keys_are_idempotent(self, compound_repo: Path) -> None:
-        """Appending two identical event keys results in one observation."""
+        """Appending the same stable observation identity results in one observation."""
         first, msg1 = append_observation(_base_payload(), repo_root=compound_repo)
         second, msg2 = append_observation(
-            _base_payload(observation_id="obs-2", summary="dup"),
+            _base_payload(summary="dup"),
             repo_root=compound_repo,
         )
         assert first is not None
@@ -71,6 +71,31 @@ class TestAppendObservation:
             if line.strip() and not line.startswith("#")
         ]
         assert len(lines) == 1
+
+    def test_later_pr_sync_appends_fresh_observation(self, compound_repo: Path) -> None:
+        """Later synchronize runs for the same PR append fresh evidence."""
+        first, _ = append_observation(
+            _base_payload(event_type="pull_request.synchronize"),
+            repo_root=compound_repo,
+        )
+        second, _ = append_observation(
+            _base_payload(
+                observation_id="obs-2",
+                event_type="pull_request.synchronize",
+                summary="Updated PR evidence",
+            ),
+            repo_root=compound_repo,
+        )
+        assert first is not None
+        assert second is not None
+        lines = [
+            line
+            for line in (compound_repo / "docs/compound/ledger/observations.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        assert len(lines) == 2
 
     def test_open_pr_emits_provisional(self, compound_repo: Path) -> None:
         """Open PR fixture emits provisional status."""

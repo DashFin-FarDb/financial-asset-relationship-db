@@ -147,8 +147,8 @@ class TestCompoundSynthesize:
         assert synthesize(synth_repo) == {}
         assert synthesize(synth_repo, force=True)
 
-    def test_dependabot_batching_ignores_historical_non_bot(self) -> None:
-        """Newest dependabot event still batches even if older non-bot rows exist."""
+    def test_dependabot_batching_scopes_to_trigger_ref(self) -> None:
+        """Dependency batching follows the triggering ref, not the global newest row."""
         from compound.schema import observation_from_mapping
 
         mixed = [
@@ -177,7 +177,9 @@ class TestCompoundSynthesize:
                 }
             ),
         ]
-        assert should_hot_path_synthesize(mixed) is False
+        assert should_hot_path_synthesize(mixed, primary_ref="pr:1366") is False
+        assert should_hot_path_synthesize(mixed, primary_ref="pr:1") is True
+        assert should_hot_path_synthesize(mixed, primary_ref="pr:missing") is True
 
     def test_refuse_denylisted_write(self) -> None:
         """Path policy rejects ADR writes."""
