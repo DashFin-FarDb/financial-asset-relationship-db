@@ -1,3 +1,5 @@
+"""Network and detail visualization helpers for formulaic analysis views."""
+
 from __future__ import annotations
 
 import html

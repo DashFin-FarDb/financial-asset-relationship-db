@@ -51,7 +51,8 @@ def _flush_current_section(
     Parameters:
         sections (List[Tuple[str, str]]): Mutable list of (heading, content) tuples to append to.
         current_heading (str | None): The heading for the current section; if `None` nothing is appended.
-        current_content (List[str]): Lines comprising the section body; joined with newline characters to form the stored content.
+        current_content (List[str]): Lines comprising the section body; joined with newline characters to form the
+        stored content.
     """
     if current_heading is None:
         return
@@ -62,7 +63,10 @@ def parse_manifest(content: str) -> tuple[str, list[tuple[str, str]]]:
     """
     Parse the manifest into a preamble and a list of level-2 sections.
 
-    The function treats lines beginning with "## " (level-2 headings) as section delimiters and ignores deeper headings (e.g., "###"). Text before the first level-2 heading is returned as the preamble. Each section is represented as a (heading, content) tuple where `heading` is the heading text (without the leading "##") and `content` is the text that follows that heading up to, but not including, the next level-2 heading. Section order is preserved.
+    The function treats lines beginning with "## " (level-2 headings) as section delimiters and ignores deeper headings
+    (e.g., "###"). Text before the first level-2 heading is returned as the preamble. Each section is represented as a
+    (heading, content) tuple where `heading` is the heading text (without the leading "##") and `content` is the text
+    that follows that heading up to, but not including, the next level-2 heading. Section order is preserved.
     Parameters:
         content (str): The full manifest text to parse.
 
@@ -113,7 +117,8 @@ def deduplicate_sections(
         sections (List[Tuple[str, str]]): Sequence of (heading, content) pairs representing sections in the manifest.
 
     Returns:
-        List[Tuple[str, str]]: Sections with duplicate headings removed; for each heading, the last occurrence from the input is kept and returned in the original input order.
+        List[Tuple[str, str]]: Sections with duplicate headings removed; for each heading, the last occurrence from the
+        input is kept and returned in the original input order.
     """
     seen: set[str] = set()
     out_reversed: list[tuple[str, str]] = []
@@ -134,7 +139,9 @@ def reconstruct_manifest(
     """
     Assembles manifest text from a preamble and an ordered list of level-2 sections.
 
-    Each section is rendered as a "## {heading}" header followed by its content. Sections (and the preamble, if present) are separated by a single blank line. If the resulting manifest is non-empty, it ends with a single trailing newline; otherwise an empty string is returned.
+    Each section is rendered as a "## {heading}" header followed by its content. Sections (and the preamble, if present)
+    are separated by a single blank line. If the resulting manifest is non-empty, it ends with a single trailing
+    newline; otherwise an empty string is returned.
 
     Parameters:
         preamble (str): Text that appears before the first section; may be empty.
@@ -182,7 +189,8 @@ def _has_invalid_path_chars(user_value: str) -> bool:
         user_value (str): The path string to inspect.
 
     Returns:
-        bool: `True` if `user_value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), `False` otherwise.
+        bool: `True` if `user_value` contains NUL (`\x00`), newline (`\n`), or
+        carriage return (`\r`), `False` otherwise.
     """
     forbidden_chars = ("\x00", "\n", "\r")
     return any(char in user_value for char in forbidden_chars)
@@ -190,14 +198,17 @@ def _has_invalid_path_chars(user_value: str) -> bool:
 
 def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Path]:
     """
-    Compute and return the absolute base directory and the resolved candidate path obtained by interpreting the given user path relative to the base directory.
+    Resolve a user path relative to a base directory.
+
+    Returns the absolute base directory and the resolved candidate path.
 
     Parameters:
         user_value (str): User-supplied filesystem path (may be relative).
         base_dir (Path): Base directory to resolve against.
 
     Returns:
-        tuple[Path, Path]: (base, resolved) where `base` is base_dir.resolve() and `resolved` is the absolute path of `base / user_value`.
+        tuple[Path, Path]: (base, resolved) where `base` is base_dir.resolve() and `resolved` is the absolute path of
+        `base / user_value`.
     """
     base = base_dir.resolve()
     resolved = (base / Path(user_value)).resolve()
@@ -219,7 +230,8 @@ def safe_path(user_value: str, base_dir: Path) -> Path:
     """
     Validate and resolve a user-supplied relative path so it stays inside the given base directory.
 
-    Performs character checks, rejects absolute paths, resolves the value against `base_dir`, and ensures the resulting path does not escape `base_dir`.
+    Performs character checks, rejects absolute paths, resolves the value against `base_dir`, and ensures the resulting
+    path does not escape `base_dir`.
 
     Parameters:
         user_value (str): User-provided path string to validate and resolve.
