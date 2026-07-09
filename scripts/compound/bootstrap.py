@@ -57,8 +57,8 @@ def _bounded_pr_limit(limit: int) -> int:
 
 
 def _updated_since_filter(cutoff: str) -> str:
-    datetime.strptime(cutoff, "%Y-%m-%d")
-    return f"updated:>={cutoff}"
+    sanitized_cutoff = datetime.strptime(cutoff, "%Y-%m-%d").date().isoformat()
+    return f"updated:>={sanitized_cutoff}"
 
 
 def _validate_seed_domains(domains: tuple[str, ...]) -> None:
@@ -100,6 +100,8 @@ def seed_from_docs(repo_root: Path) -> list[str]:
 
 
 def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | None:
+    bounded_limit = str(_bounded_pr_limit(limit))
+    search_filter = _updated_since_filter(updated_since) if updated_since is not None else None
     command = [
         "gh",
         "pr",
@@ -107,10 +109,10 @@ def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | Non
         "--state",
         "all",
         "--limit",
-        str(_bounded_pr_limit(limit)),
+        bounded_limit,
     ]
-    if updated_since is not None:
-        command.extend(["--search", _updated_since_filter(updated_since)])
+    if search_filter is not None:
+        command.extend(["--search", search_filter])
     command.extend(["--json", GH_PR_JSON_FIELDS])
 
     try:
@@ -120,6 +122,7 @@ def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | Non
             capture_output=True,
             text=True,
             timeout=60,
+            shell=False,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return None

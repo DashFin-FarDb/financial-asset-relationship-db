@@ -35,7 +35,7 @@ def _create_env_without_runner_temp(additional_vars: dict) -> dict:
 
     Returns:
         dict: Environment dictionary with all current env vars except RUNNER_TEMP,
-              plus any additional vars provided (additional_vars take precedence).
+        plus any additional vars provided (additional_vars take precedence).
     """
     # Start from the real environment, excluding RUNNER_TEMP
     env = {key: value for key, value in os.environ.items() if key != "RUNNER_TEMP"}
@@ -106,14 +106,17 @@ def mock_pr():
 
 def test_load_config_file_exists():
     """Test load_config when config file exists."""
-    config_data = """
-review_handling:
-  actionable_keywords:
-    - please
-    - should
-    - fix
-"""
-    with patch("builtins.open", mock_open(read_data=config_data)), patch("os.path.exists", return_value=True):
+    config_data = (
+        "review_handling:\n"
+        "  actionable_keywords:\n"
+        "    - please\n"
+        "    - should\n"
+        "    - fix\n"
+    )
+    with patch("builtins.open", mock_open(read_data=config_data)), patch(
+        "os.path.exists",
+        return_value=True,
+    ):
         config = suggest_fixes.load_config()
 
     assert "review_handling" in config
