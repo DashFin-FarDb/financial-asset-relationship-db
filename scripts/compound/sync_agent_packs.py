@@ -145,7 +145,6 @@ Compounded architecture memory for this repository.
 def sync_agent_packs(repo_root: Path, *, dry_run: bool = False) -> dict[str, str]:
     """Generate sidecar packs from INDEX + domain docs."""
     index_text = _read_text(repo_root / INDEX_PATH)
-
     outputs = {
         CURSOR_RULE_PATH.as_posix(): build_cursor_rule(index_text),
         CURSOR_QUERY_PATH.as_posix(): build_cursor_query_rule(),
