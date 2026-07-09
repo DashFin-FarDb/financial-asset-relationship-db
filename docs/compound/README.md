@@ -47,7 +47,7 @@ path_globs: ["api/**", "src/logic/**"]
 On a checkout of `knowledge/architecture-expert`:
 
 ```pwsh
-python scripts/compound/append_observation.py --file observation.json
+python scripts/compound/append_observation.py --json '<observation-json-object>'
 python scripts/compound/synthesize.py --force
 python scripts/compound/sync_agent_packs.py
 ```

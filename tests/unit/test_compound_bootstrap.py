@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+# nosec B101  # Pytest assertions are the intended style in this test module.
 import sys
 from pathlib import Path
 
@@ -80,7 +81,7 @@ class TestCompoundBootstrap:
         """When gh is unavailable, PR scrape reports skipped and does not raise."""
         from compound import bootstrap as mod
 
-        monkeypatch.setattr(mod, "_gh_json", lambda _args: None)
+        monkeypatch.setattr(mod, "_gh_pr_list_json", lambda **_kwargs: None)
         messages = scrape_recent_prs(seed_repo)
         assert messages == ["PR scrape skipped: gh unavailable or failed"]
 
@@ -90,8 +91,8 @@ class TestCompoundBootstrap:
 
         monkeypatch.setattr(
             mod,
-            "_gh_json",
-            lambda _args: [
+            "_gh_pr_list_json",
+            lambda **_kwargs: [
                 {
                     "number": 99,
                     "title": "API change",

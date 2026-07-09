@@ -212,7 +212,6 @@ def append_observation(
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", help="Observation JSON object string")
-    parser.add_argument("--file", type=Path, help="Path to JSON observation file")
     parser.add_argument(
         "--repo-root",
         type=Path,
@@ -241,12 +240,9 @@ def main(argv: list[str] | None = None) -> int:
             mode = record_push_conflict(args.repo_root)
             print(f"recorded push conflict; writer_mode={mode.value}")
             return 0
-        if bool(args.json) == bool(args.file):
-            parser.error("Provide exactly one of --json or --file")
-        if args.json:
-            payload = json.loads(args.json)
-        else:
-            payload = json.loads(Path(args.file).read_text(encoding="utf-8"))
+        if not args.json:
+            parser.error("Provide --json")
+        payload = json.loads(args.json)
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:

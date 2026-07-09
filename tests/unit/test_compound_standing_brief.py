@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+# nosec B101  # Pytest assertions are the intended style in this test module.
 import json
 import sys
 from pathlib import Path

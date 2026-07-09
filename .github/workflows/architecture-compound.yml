@@ -38,9 +38,11 @@ jobs:
     permissions:
       contents: write
       pull-requests: read
+    env:
+      PYTHONPATH: scripts
     steps:
       - name: Checkout knowledge branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           ref: knowledge/architecture-expert
           fetch-depth: 0
@@ -56,7 +58,7 @@ jobs:
           fi
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
 
@@ -103,8 +105,8 @@ jobs:
           if [ "$FORCE_INPUT" = "true" ]; then
             FORCE_SYNTH="true"
           fi
-          DOMAINS_JSON=$(FILES_JSON="$FILES_JSON" python -c 'import json,os,sys; sys.path.insert(0,"scripts"); from compound.schema import detect_domains_from_paths; print(json.dumps(list(detect_domains_from_paths(json.loads(os.environ["FILES_JSON"])))))')
-          jq -n \
+          DOMAINS_JSON=$(FILES_JSON="$FILES_JSON" python -c 'import json,os; from compound.schema import detect_domains_from_paths; print(json.dumps(list(detect_domains_from_paths(json.loads(os.environ["FILES_JSON"])))))')
+          OBSERVATION_JSON=$(jq -n \
             --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
             --arg source "github" \
             --arg event_type "$EVENT_TYPE" \
@@ -122,8 +124,8 @@ jobs:
               domains: $domains,
               refs: [$primary_ref],
               evidence_pointers: [$primary_ref]
-            }' > /tmp/observation.json
-          python scripts/compound/append_observation.py --file /tmp/observation.json
+            }')
+          python -m compound.append_observation --json "$OBSERVATION_JSON"
           echo "FORCE_SYNTH=$FORCE_SYNTH" >> "$GITHUB_ENV"
           echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"
 
@@ -135,9 +137,9 @@ jobs:
           if [ "${FORCE_SYNTH:-false}" = "true" ]; then
             EXTRA+=(--force)
           fi
-          python scripts/compound/synthesize.py --event-hint "${EVENT_HINT:-manual}" "${EXTRA[@]}"
-          python scripts/compound/sync_agent_packs.py
-          python scripts/compound/standing_brief.py
+          python -m compound.synthesize --event-hint "${EVENT_HINT:-manual}" "${EXTRA[@]}"
+          python -m compound.sync_agent_packs
+          python -m compound.standing_brief
 
       - name: Commit and push knowledge branch
         shell: bash
@@ -152,7 +154,7 @@ jobs:
           fi
           git commit -m "chore(compound): synthesize architecture memory"
           if ! git push origin HEAD:knowledge/architecture-expert; then
-            python scripts/compound/append_observation.py --record-push-conflict || true
+            python -m compound.append_observation --record-push-conflict || true
             echo "Push to knowledge branch failed; recorded conflict for hybrid backup"
             exit 1
           fi

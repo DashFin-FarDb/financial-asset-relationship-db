@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,11 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+GH_PR_JSON_FIELDS = "number,title,state,mergedAt,updatedAt,labels,files"
+MIN_PR_LIMIT = 1
+MAX_PR_LIMIT = 100
+MIN_LOOKBACK_DAYS = 1
+MAX_LOOKBACK_DAYS = 365
 
 # Seed docs → primary domain mapping (read-only inputs; never written).
 SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -76,15 +82,36 @@ def seed_from_docs(repo_root: Path) -> list[str]:
     return messages
 
 
-def _gh_json(args: list[str]) -> Any | None:
+def _bounded_int(value: int, *, minimum: int, maximum: int) -> int:
+    """Clamp CLI-influenced integer values before using them in external commands."""
+    return min(max(value, minimum), maximum)
+
+
+def _gh_pr_list_json(*, limit: int, cutoff: str | None = None) -> Any | None:
+    """Run the single allowlisted gh command used by bootstrap PR scraping."""
+    gh_path = shutil.which("gh")
+    if gh_path is None:
+        return None
+    command = [
+        gh_path,
+        "pr",
+        "list",
+        "--state",
+        "all",
+        "--limit",
+        str(_bounded_int(limit, minimum=MIN_PR_LIMIT, maximum=MAX_PR_LIMIT)),
+    ]
+    if cutoff is not None:
+        command.extend(["--search", f"updated:>={cutoff}"])
+    command.extend(["--json", GH_PR_JSON_FIELDS])
     try:
         completed = subprocess.run(
-            ["gh", *args],
+            command,
             check=False,
             capture_output=True,
             text=True,
             timeout=60,
-        )
+        )  # nosec B603 - command shape is allowlisted and args are clamped.
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return None
     if completed.returncode != 0:
@@ -101,35 +128,11 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
     Prefers PRs updated within ``days`` (plan A9); falls back to last ``limit``
     PRs when the search filter is unsupported.
     """
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
-    json_fields = "number,title,state,mergedAt,updatedAt,labels,files"
-    data = _gh_json(
-        [
-            "pr",
-            "list",
-            "--state",
-            "all",
-            "--limit",
-            str(limit),
-            "--search",
-            f"updated:>={cutoff}",
-            "--json",
-            json_fields,
-        ]
-    )
+    bounded_days = _bounded_int(days, minimum=MIN_LOOKBACK_DAYS, maximum=MAX_LOOKBACK_DAYS)
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=bounded_days)).strftime("%Y-%m-%d")
+    data = _gh_pr_list_json(limit=limit, cutoff=cutoff)
     if data is None:
-        data = _gh_json(
-            [
-                "pr",
-                "list",
-                "--state",
-                "all",
-                "--limit",
-                str(limit),
-                "--json",
-                json_fields,
-            ]
-        )
+        data = _gh_pr_list_json(limit=limit)
     if data is None:
         return ["PR scrape skipped: gh unavailable or failed"]
 
