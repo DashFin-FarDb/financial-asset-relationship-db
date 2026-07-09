@@ -29,27 +29,25 @@ class TestArchitectureCompoundWorkflow:
         """Write-capable synthesis must not run from PR-controlled workflow code."""
         data = load_yaml_safe(WORKFLOW)
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "closed" in text
-        assert "types: [opened, synchronize, reopened, labeled, closed]" in text
-        assert data["jobs"]["synthesize"].get("if") == "github.event_name != 'pull_request'"
+        triggers = data.get("on", data.get(True, {}))
+        assert "pull_request" not in triggers
+        assert "pull_request_target" not in triggers
+        assert data["jobs"]["synthesize"].get("if") is None
 
     def test_landed_status_mapping_is_retained_for_non_pr_events(self) -> None:
         """Merged/main/manual event mapping still promotes status to landed (AE2)."""
         text = WORKFLOW.read_text(encoding="utf-8")
         assert 'STATUS="landed"' in text
-        assert "pull_request.closed" in text
-        assert "PR_MERGED_JSON:" in text
-        assert "toJson(github.event.pull_request.merged || false)" in text
-        assert '[ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]' in text
+        assert "push.main" in text
+        assert "workflow_dispatch" in text
+        assert "pull_request.closed" not in text
 
-    def test_pr_title_via_env_not_inline_expression(self) -> None:
-        """PR title must come from env (injection-safe); not interpolated into shell."""
+    def test_push_summary_is_built_via_jq_not_inline_expression(self) -> None:
+        """Push summaries must be built through jq rather than raw shell interpolation."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "PR_TITLE:" in text
-        assert "github.event.pull_request.title" in text
-        assert "'${{ github.event.pull_request.title }}'" not in text
-        assert '"${{ github.event.pull_request.title }}"' not in text
-        assert 'SUMMARY=$(jq -rn --arg t "$PR_TITLE"' in text
+        assert "MERGED_PR_TITLE" in text
+        assert "github.event.pull_request.title" not in text
+        assert 'SUMMARY=$(jq -rn --arg t "$MERGED_PR_TITLE"' in text
 
     def test_no_main_auto_merge(self) -> None:
         """Workflow must not merge to main or auto-merge PRs."""
@@ -89,12 +87,12 @@ class TestArchitectureCompoundWorkflow:
         assert "steps.knowledge_branch.outputs.exists == 'false'" in text
         assert "continue-on-error: true" not in text
 
-    def test_pr_synchronize_event_type_includes_head_sha(self) -> None:
-        """Distinct PR synchronize commits must append separate ledger observations."""
+    def test_pr_target_state_is_not_reintroduced(self) -> None:
+        """PR-target-only state must stay out of the trusted synthesize workflow."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "PR_HEAD_SHA:" in text
-        assert '[ "$PR_ACTION" = "synchronize" ] && [ -n "$PR_HEAD_SHA" ]' in text
-        assert 'EVENT_TYPE="${EVENT_TYPE}.${PR_HEAD_SHA}"' in text
+        assert "PR_HEAD_SHA:" not in text
+        assert "PR_ACTION:" not in text
+        assert "pull_request_target" not in text
 
     def test_push_conflict_records_hybrid_backup(self) -> None:
         """Failed knowledge-branch push records conflict for A12 hybrid backup."""

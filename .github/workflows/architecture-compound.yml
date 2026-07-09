@@ -1,11 +1,9 @@
 name: Architecture Compound
 
-# Observe PRs/merges and synthesize docs/compound onto knowledge/architecture-expert.
+# Observe trusted main/manual events and synthesize docs/compound onto knowledge/architecture-expert.
 # Never auto-merges to main. Emitters append; synthesize alone rewrites canon docs.
 
 "on":
-  pull_request_target:
-    types: [opened, synchronize, reopened, labeled, closed]
   push:
     branches: [main]
   workflow_dispatch:
@@ -23,17 +21,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: architecture-compound-${{ github.event.pull_request.number || github.ref }}
+  group: architecture-compound-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   synthesize:
     name: Synthesize knowledge branch
     runs-on: ubuntu-latest
-    # Write-capable synthesis never runs on pull_request because PRs control
-    # the workflow file and scripts before they land on main. PR observation
-    # uses pull_request_target so trusted base-branch code appends the record.
-    if: github.event_name != 'pull_request'
+    # Write-capable synthesis only runs for trusted repository events.
     permissions:
       contents: write
       pull-requests: read
@@ -99,11 +94,6 @@ jobs:
       - name: Build and append observation
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_TITLE: ${{ github.event.pull_request.title || '' }}
-          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
-          PR_ACTION: ${{ github.event.action || '' }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
-          PR_MERGED_JSON: ${{ toJson(github.event.pull_request.merged || false) }}
           EVENT_NAME: ${{ github.event_name }}
           FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
         working-directory: knowledge
@@ -112,22 +102,7 @@ jobs:
           set -euo pipefail
           SOURCE_PYTHONPATH="${GITHUB_WORKSPACE}/source/scripts"
           FORCE_SYNTH="false"
-          if [ "$EVENT_NAME" = "pull_request" ] || [ "$EVENT_NAME" = "pull_request_target" ]; then
-            if [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]; then
-              STATUS="landed"
-              EVENT_TYPE="pull_request.closed"
-              FORCE_SYNTH="true"
-            else
-              STATUS="provisional"
-              EVENT_TYPE="pull_request.${PR_ACTION}"
-              if [ "$PR_ACTION" = "synchronize" ] && [ -n "$PR_HEAD_SHA" ]; then
-                EVENT_TYPE="${EVENT_TYPE}.${PR_HEAD_SHA}"
-              fi
-            fi
-            PRIMARY_REF="pr:${PR_NUMBER}"
-            SUMMARY=$(jq -rn --arg t "$PR_TITLE" '$t[:240]')
-            FILES_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --paginate -q '.[].filename' 2>/dev/null | jq -R -s -c 'split("\n")|map(select(length>0))' || echo '[]')
-          elif [ "$EVENT_NAME" = "push" ]; then
+          if [ "$EVENT_NAME" = "push" ]; then
             STATUS="landed"
             MERGED_PR_JSON=$(gh api -H "Accept: application/vnd.github+json" "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" 2>/dev/null || echo '[]')
             MERGED_PR_NUMBER=$(jq -r 'map(select(.merged_at != null)) | sort_by(.merged_at) | last | .number // empty' <<<"$MERGED_PR_JSON")
