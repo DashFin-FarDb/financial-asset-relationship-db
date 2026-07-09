@@ -330,7 +330,7 @@ def _append_once(items: list[str], value: str) -> None:
 
 def _matches_domain_prefix(normalized: str, prefix: str) -> bool:
     """Return True when a normalized path matches a domain prefix rule."""
-    return normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}"
+    return normalized.startswith(prefix)
 
 
 def _domain_for_path(normalized: str) -> str | None:

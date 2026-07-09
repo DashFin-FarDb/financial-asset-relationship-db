@@ -112,6 +112,7 @@ class TestCompoundSchema:
         multi = detect_domains_from_paths(["api/auth.py", "docs/adr/0001-production-architecture.md"])
         assert "api" in multi
         assert "architecture" in multi
+        assert detect_domains_from_paths(["docs/plans/api/contract.md"]) == ("architecture",)
 
     def test_path_traversal_rejected_by_policy(self) -> None:
         """``..`` segments cannot bypass allowlist/denylist checks."""
