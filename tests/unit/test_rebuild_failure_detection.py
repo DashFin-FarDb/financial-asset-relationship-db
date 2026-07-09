@@ -1,6 +1,6 @@
 """Unit tests for rebuild failure detection logic (Stage 5C.1)."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -17,7 +17,7 @@ from src.logic.rebuild_failure_detection import (
 @pytest.fixture
 def running_job():
     """Create a running rebuild job for testing."""
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     return RebuildJobORM(
         job_id="test-job-1",
         requested_by="operator@example.com",
@@ -31,7 +31,7 @@ def running_job():
 @pytest.fixture
 def pending_job():
     """Create a pending rebuild job for testing."""
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     return RebuildJobORM(
         job_id="test-job-2",
         requested_by="operator@example.com",
@@ -55,25 +55,25 @@ class TestDetectStaleOwnership:
 
     def test_returns_true_when_heartbeat_exceeds_ttl(self, running_job):
         """Running job with old heartbeat is stale."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.last_heartbeat_at = now - timedelta(seconds=400)
         assert detect_stale_ownership(running_job, ttl_seconds=300, now=now) is True
 
     def test_handles_naive_heartbeat_timestamp(self, running_job):
         """Naive SQLite heartbeat timestamps are normalized before comparison."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.last_heartbeat_at = (now - timedelta(seconds=400)).replace(tzinfo=None)
         assert detect_stale_ownership(running_job, ttl_seconds=300, now=now) is True
 
     def test_returns_false_when_heartbeat_within_ttl(self, running_job):
         """Running job with recent heartbeat is not stale."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.last_heartbeat_at = now - timedelta(seconds=100)
         assert detect_stale_ownership(running_job, ttl_seconds=300, now=now) is False
 
     def test_boundary_condition_at_exactly_ttl(self, running_job):
         """Heartbeat exactly at TTL threshold is not stale."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.last_heartbeat_at = now - timedelta(seconds=300)
         # At exactly TTL, age equals TTL, should NOT be stale (>= would make it stale)
         assert detect_stale_ownership(running_job, ttl_seconds=300, now=now) is False
@@ -121,7 +121,7 @@ class TestDetectCrashSuspicion:
 
     def test_returns_true_when_heartbeat_exceeds_threshold(self, running_job):
         """Worker with stale heartbeat indicates crash."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.active_worker_id = "worker-1"
         running_job.last_heartbeat_at = now - timedelta(seconds=120)
         assert (
@@ -135,14 +135,14 @@ class TestDetectCrashSuspicion:
 
     def test_handles_naive_heartbeat_timestamp(self, running_job):
         """Naive SQLite heartbeat timestamps are normalized before comparison."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.active_worker_id = "worker-1"
         running_job.last_heartbeat_at = (now - timedelta(seconds=120)).replace(tzinfo=None)
         assert detect_crash_suspicion(running_job, heartbeat_stale_threshold_seconds=60, now=now) is True
 
     def test_returns_false_when_heartbeat_fresh(self, running_job):
         """Worker with recent heartbeat is not crashed."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.active_worker_id = "worker-1"
         running_job.last_heartbeat_at = now - timedelta(seconds=30)
         assert (
@@ -218,7 +218,7 @@ class TestDetectRebuildInconsistency:
 
     def test_detects_crash_suspicion_when_heartbeat_stale(self, running_job):
         """Crash suspicion when heartbeat is stale."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.active_worker_id = "worker-1"
         running_job.last_heartbeat_at = now - timedelta(seconds=120)
 
@@ -248,7 +248,7 @@ class TestDetectRebuildInconsistency:
 
     def test_detects_stale_ownership_when_heartbeat_exceeds_ttl(self, running_job):
         """Stale ownership when heartbeat exceeds TTL."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.last_heartbeat_at = now - timedelta(seconds=400)
 
         inconsistency = detect_rebuild_inconsistency(
@@ -263,7 +263,7 @@ class TestDetectRebuildInconsistency:
 
     def test_returns_none_when_all_consistent(self, running_job):
         """No inconsistency when everything is consistent."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.active_worker_id = "worker-1"
         running_job.last_heartbeat_at = now - timedelta(seconds=30)
 
@@ -293,7 +293,7 @@ class TestDetectRebuildInconsistency:
 
     def test_priority_crash_over_stale(self, running_job):
         """Crash suspicion has higher priority than stale ownership."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         running_job.active_worker_id = "worker-1"
         running_job.last_heartbeat_at = now - timedelta(seconds=400)
 

@@ -10,7 +10,7 @@ import ast
 import functools
 import threading
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -118,7 +118,7 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
     monkeypatch.setattr(
         graph_admin,
         "_create_and_start_rebuild_job",
-        lambda *_args, **_kwargs: ("job-typed-ttl", datetime.now(UTC)),
+        lambda *_args, **_kwargs: ("job-typed-ttl", datetime.now(timezone.utc)),
     )
 
     @contextmanager

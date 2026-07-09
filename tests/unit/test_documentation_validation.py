@@ -10,7 +10,7 @@ This module tests markdown documentation files to ensure:
 """
 
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -575,7 +575,7 @@ class TestDocumentationConsistency:
 
         Checks the dependency matrix "Generated" timestamp and the system manifest "Last Updated" timestamp(expected as ISO 8601 with milliseconds and a trailing "Z"); if either timestamp is present and is more than one year old the test fails.
         """
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         one_year_ago = now - timedelta(days=365)
 
         # Check dependency matrix timestamp

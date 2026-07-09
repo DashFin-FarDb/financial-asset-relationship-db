@@ -1,6 +1,6 @@
 """Tests for RebuildDriftEvaluator integration with ReconciliationEngine."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, Mock
 
 import pytest
@@ -78,7 +78,7 @@ class TestRebuildDriftEvaluator:
                 job_id=f"test-job-{test_description}",
                 status=job_status,
                 active_worker_id="worker-456" if job_status == RebuildJobStatus.RUNNING else None,
-                heartbeat_at=datetime.now(UTC),
+                heartbeat_at=datetime.now(timezone.utc),
             )
             mock_repo.get_active_rebuild_state.return_value = job
 
@@ -104,7 +104,7 @@ class TestRebuildDriftEvaluator:
         session_factory, _ = mock_session_factory
         mock_lock.check_state.return_value = LockState.VALID
 
-        old_heartbeat = datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC)
+        old_heartbeat = datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
         job = mock_rebuild_job(
             job_id="test-job-stale",
             status=RebuildJobStatus.RUNNING,
@@ -135,7 +135,7 @@ class TestRebuildDriftEvaluator:
         session_factory, _ = mock_session_factory
         mock_lock.check_state.return_value = LockState.EXPIRED
 
-        old_heartbeat = datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC)
+        old_heartbeat = datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
         job = mock_rebuild_job(
             job_id="test-job-stale-owner",
             status=RebuildJobStatus.RUNNING,
@@ -187,7 +187,7 @@ class TestRebuildDriftEvaluator:
         session_factory, _ = mock_session_factory
         mock_lock.check_state.return_value = LockState.VALID
 
-        heartbeat_time = datetime.now(UTC)
+        heartbeat_time = datetime.now(timezone.utc)
         job = mock_rebuild_job(
             job_id="test-job-details",
             status=RebuildJobStatus.RUNNING,

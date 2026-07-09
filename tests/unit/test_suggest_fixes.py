@@ -13,7 +13,7 @@ This module tests all functions in the suggest_fixes.py script including:
 
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
@@ -76,7 +76,7 @@ def mock_comment():
     comment.path = "src/file.py"
     comment.original_line = 10
     comment.html_url = "https://github.com/owner/repo/pull/123#comment-1"
-    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
     return comment
 
 
@@ -88,7 +88,7 @@ def mock_review():
     review.user = Mock(login="reviewer2")
     review.body = "Please add more tests"
     review.state = "CHANGES_REQUESTED"
-    review.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC)
+    review.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
     review.html_url = "https://github.com/owner/repo/pull/123#review-100"
     return review
 
@@ -410,7 +410,7 @@ def test_parse_review_comments_multiple_comments(mock_pr):
     comment1.path = "file1.py"
     comment1.original_line = 10
     comment1.html_url = "url1"
-    comment1.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+    comment1.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 
     comment2 = Mock()
     comment2.id = 2
@@ -419,7 +419,7 @@ def test_parse_review_comments_multiple_comments(mock_pr):
     comment2.path = "file2.py"
     comment2.original_line = 20
     comment2.html_url = "url2"
-    comment2.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC)
+    comment2.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
 
     mock_pr.get_review_comments.return_value = [comment1, comment2]
     mock_pr.get_reviews.return_value = []
@@ -439,7 +439,7 @@ def test_parse_review_comments_filters_non_actionable(mock_pr):
     actionable.path = "file.py"
     actionable.original_line = 10
     actionable.html_url = "url"
-    actionable.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+    actionable.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 
     non_actionable = Mock()
     non_actionable.id = 2
@@ -448,7 +448,7 @@ def test_parse_review_comments_filters_non_actionable(mock_pr):
     non_actionable.path = "file.py"
     non_actionable.original_line = 20
     non_actionable.html_url = "url2"
-    non_actionable.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC)
+    non_actionable.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
 
     mock_pr.get_review_comments.return_value = [actionable, non_actionable]
     mock_pr.get_reviews.return_value = []
@@ -480,7 +480,7 @@ def test_parse_review_comments_only_changes_requested_reviews(mock_pr):
     review_approved.user = Mock(login="user1")
     review_approved.body = "Please fix something"
     review_approved.state = "APPROVED"
-    review_approved.submitted_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+    review_approved.submitted_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
     review_approved.html_url = "url1"
 
     review_changes = Mock()
@@ -488,7 +488,7 @@ def test_parse_review_comments_only_changes_requested_reviews(mock_pr):
     review_changes.user = Mock(login="user2")
     review_changes.body = "Please fix this issue"
     review_changes.state = "CHANGES_REQUESTED"
-    review_changes.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=UTC)
+    review_changes.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
     review_changes.html_url = "url2"
 
     mock_pr.get_review_comments.return_value = []
@@ -511,7 +511,7 @@ def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
     comment1.path = "file.py"
     comment1.original_line = 10
     comment1.html_url = "url1"
-    comment1.created_at = datetime(2024, 1, 2, 12, 0, 0, tzinfo=UTC)
+    comment1.created_at = datetime(2024, 1, 2, 12, 0, 0, tzinfo=timezone.utc)
 
     # Bug (priority 1), earlier date
     comment2 = Mock()
@@ -521,7 +521,7 @@ def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
     comment2.path = "file.py"
     comment2.original_line = 20
     comment2.html_url = "url2"
-    comment2.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+    comment2.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 
     # Improvement (priority 2)
     comment3 = Mock()
@@ -531,7 +531,7 @@ def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
     comment3.path = "file.py"
     comment3.original_line = 30
     comment3.html_url = "url3"
-    comment3.created_at = datetime(2024, 1, 3, 12, 0, 0, tzinfo=UTC)
+    comment3.created_at = datetime(2024, 1, 3, 12, 0, 0, tzinfo=timezone.utc)
 
     mock_pr.get_review_comments.return_value = [comment1, comment2, comment3]
     mock_pr.get_reviews.return_value = []
@@ -555,7 +555,7 @@ def test_parse_review_comments_includes_code_suggestions(mock_pr):
     comment.path = "file.py"
     comment.original_line = 10
     comment.html_url = "url"
-    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 
     mock_pr.get_review_comments.return_value = [comment]
     mock_pr.get_reviews.return_value = []
@@ -1166,7 +1166,7 @@ def test_main_with_no_actionable_items(mock_pr, capsys):
     non_actionable.id = 1
     non_actionable.user = Mock(login="user")
     non_actionable.body = "Looks good"
-    non_actionable.created_at = datetime.now(UTC)
+    non_actionable.created_at = datetime.now(timezone.utc)
 
     with patch.dict(os.environ, env, clear=True), patch("suggest_fixes.load_config") as mock_config:
         mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}

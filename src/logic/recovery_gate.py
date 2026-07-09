@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import exc as sqlalchemy_exc
@@ -127,7 +127,7 @@ class RecoveryGate:
             safety_state=ExecutionSafety.EVALUATION_FAILED,
             reason=reason,
             metadata={"error": exc_type, "context": error_context},
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
 
     def _map_plan_to_action(self, plan: ReconciliationPlan) -> str:
@@ -500,8 +500,8 @@ class RecoveryGate:
             return True
         heartbeat_time = active_job.last_heartbeat_at
         if heartbeat_time.tzinfo is None:
-            heartbeat_time = heartbeat_time.replace(tzinfo=UTC)
-        age = (datetime.now(UTC) - heartbeat_time).total_seconds()
+            heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
+        age = (datetime.now(timezone.utc) - heartbeat_time).total_seconds()
         return age >= self.lock_ttl_seconds
 
     def _reset_active_job(

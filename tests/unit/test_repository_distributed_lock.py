@@ -1,6 +1,6 @@
 """Unit tests for AssetGraphRepository distributed lock and latest job methods."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -28,10 +28,10 @@ from src.data.repository import (
 
 
 def _ensure_utc(dt: datetime) -> datetime:
-    """Ensure the datetime is timezone-aware and normalized to UTC."""
+    """Ensure the datetime is timezone-aware and normalized to timezone.utc."""
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=UTC)
-    return dt.astimezone(UTC)
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 @pytest.fixture
@@ -100,7 +100,7 @@ class TestDistributedLockRepository:
         assert snapshot.valid is True
         assert snapshot.holder_id == "holder1"
         assert snapshot.fencing_token == res.fencing_token
-        assert _ensure_utc(snapshot.expires_at) > datetime.now(UTC)
+        assert _ensure_utc(snapshot.expires_at) > datetime.now(timezone.utc)
 
     def test_acquire_lock_held_by_other(self, lock_repository_factory):
         """Test failing to acquire a lock held by another holder."""
@@ -129,13 +129,13 @@ class TestDistributedLockRepository:
         reader = lock_repository_factory()
         snapshot = reader.get_lock_state(lock_name="test_lock", holder_id="holder1")
 
-        expected_min_expiry = datetime.now(UTC) + timedelta(seconds=60)
+        expected_min_expiry = datetime.now(timezone.utc) + timedelta(seconds=60)
         assert _ensure_utc(snapshot.expires_at) > expected_min_expiry
 
     def test_acquire_lock_takeover_expired(self, lock_repository_factory):
         """Test taking over an expired lock."""
         repo = lock_repository_factory()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         expired_lock = DistributedLockORM(
             lock_name="test_lock",
@@ -202,7 +202,7 @@ class TestDistributedLockRepository:
     def test_get_lock_state_returns_invalid_for_stale_lock(self, lock_repository_factory):
         """Expired lock rows should be marked as valid=False."""
         repo = lock_repository_factory()
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
 
         repo.session.add(
             DistributedLockORM(
@@ -264,7 +264,7 @@ class TestLatestRebuildJobRepository:
 
         # Manually adjust completed_at for id1 to be older
         job1 = repo.session.get(RebuildJobORM, id1)
-        job1.completed_at = datetime.now(UTC) - timedelta(hours=1)
+        job1.completed_at = datetime.now(timezone.utc) - timedelta(hours=1)
         repo.session.commit()
 
         # 2. Newer failed job
@@ -314,7 +314,9 @@ class TestDistributedLockRetryLogic:
             side_effect=[
                 SQLAlchemyError("connection timeout"),
                 SQLAlchemyError("connection timeout"),
-                LockWriteResult(success=True, fencing_token=12345, updated_at=datetime.now(UTC), contention=False),
+                LockWriteResult(
+                    success=True, fencing_token=12345, updated_at=datetime.now(timezone.utc), contention=False
+                ),
             ]
         )
         monkeypatch.setattr(CoordinationLockRepository, "refresh_lock", mock_refresh_lock)
@@ -326,7 +328,7 @@ class TestDistributedLockRetryLogic:
         """Lock refresh should not retry when lock is held by another holder."""
         mock_refresh_lock = MagicMock(
             return_value=LockWriteResult(
-                success=False, fencing_token=12345, updated_at=datetime.now(UTC), contention=True
+                success=False, fencing_token=12345, updated_at=datetime.now(timezone.utc), contention=True
             )
         )
         monkeypatch.setattr(CoordinationLockRepository, "refresh_lock", mock_refresh_lock)
