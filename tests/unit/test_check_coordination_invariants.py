@@ -27,7 +27,9 @@ def rebuild_graph():
     # Recovery gate call: gate.ensure_safe_to_execute()
     return note
 """
-    assert coordination_invariants_module._contains_ensure_safe_to_execute_call(content) is False  # pylint: disable=protected-access
+    assert (
+        coordination_invariants_module._contains_ensure_safe_to_execute_call(content) is False
+    )  # pylint: disable=protected-access
 
 
 def test_contains_ensure_safe_to_execute_detects_real_call(coordination_invariants_module) -> None:
@@ -36,7 +38,9 @@ def test_contains_ensure_safe_to_execute_detects_real_call(coordination_invarian
 def rebuild_graph(gate):
     gate.ensure_safe_to_execute()
 """
-    assert coordination_invariants_module._contains_ensure_safe_to_execute_call(content) is True  # pylint: disable=protected-access
+    assert (
+        coordination_invariants_module._contains_ensure_safe_to_execute_call(content) is True
+    )  # pylint: disable=protected-access
 
 
 def test_scan_file_flags_missing_gate_call_even_with_string_literal(
