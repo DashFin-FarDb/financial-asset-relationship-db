@@ -12,7 +12,8 @@ SCRIPTS_ROOT = REPO_ROOT / "scripts"
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
-from compound.bootstrap import scrape_recent_prs, seed_from_docs  # noqa: E402
+from compound import bootstrap as bootstrap_mod  # noqa: E402
+from compound.bootstrap import _gh_pr_list, scrape_recent_prs, seed_from_docs  # noqa: E402
 from compound.schema import DOMAINS, parse_observation_line  # noqa: E402
 
 
@@ -78,18 +79,14 @@ class TestCompoundBootstrap:
 
     def test_gh_unavailable_is_nonfatal(self, seed_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """When gh is unavailable, PR scrape reports skipped and does not raise."""
-        from compound import bootstrap as mod
-
-        monkeypatch.setattr(mod, "_gh_pr_list", lambda _limit, updated_since=None: None)
+        monkeypatch.setattr(bootstrap_mod, "_gh_pr_list", lambda _limit, updated_since=None: None)
         messages = scrape_recent_prs(seed_repo)
         assert messages == ["PR scrape skipped: gh unavailable or failed"]
 
     def test_scrape_maps_domains_from_pr_files(self, seed_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Bootstrap PR scrape classifies domains from changed file paths."""
-        from compound import bootstrap as mod
-
         monkeypatch.setattr(
-            mod,
+            bootstrap_mod,
             "_gh_pr_list",
             lambda _limit, updated_since=None: [
                 {
@@ -113,3 +110,45 @@ class TestCompoundBootstrap:
                 domains.update(obs.domains)
         assert "api" in domains
         assert "architecture" in domains
+
+    def test_gh_pr_list_rejects_invalid_search_date(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Untrusted search strings are rejected before invoking gh."""
+        monkeypatch.setattr(bootstrap_mod.shutil, "which", lambda _name: "/usr/bin/gh")
+
+        def fail_run(*_args: object, **_kwargs: object) -> None:
+            pytest.fail("subprocess.run should not be called for an invalid updated_since value")
+
+        monkeypatch.setattr(bootstrap_mod.subprocess, "run", fail_run)
+        assert _gh_pr_list(10, updated_since="2026-07-09;rm -rf /") is None
+
+    def test_gh_pr_list_uses_validated_search_date(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Valid date filters are passed to gh as a single argv element."""
+        captured: dict[str, list[str]] = {}
+
+        class Completed:
+            """Minimal subprocess result for gh JSON output."""
+
+            returncode = 0
+            stdout = "[]"
+
+        def fake_run(command: list[str], **_kwargs: object) -> Completed:
+            captured["command"] = command
+            return Completed()
+
+        monkeypatch.setattr(bootstrap_mod.shutil, "which", lambda _name: "/usr/bin/gh")
+        monkeypatch.setattr(bootstrap_mod.subprocess, "run", fake_run)
+
+        assert _gh_pr_list(10, updated_since="2026-07-09") == []
+        assert captured["command"] == [
+            "/usr/bin/gh",
+            "pr",
+            "list",
+            "--state",
+            "all",
+            "--limit",
+            "10",
+            "--search",
+            "updated:>=2026-07-09",
+            "--json",
+            "number,title,state,mergedAt,updatedAt,labels,files",
+        ]
