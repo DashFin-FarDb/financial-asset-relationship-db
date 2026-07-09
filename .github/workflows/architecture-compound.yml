@@ -30,19 +30,20 @@ jobs:
   synthesize:
     name: Synthesize knowledge branch
     runs-on: ubuntu-latest
-    # Skip non-merged PR close events (only merged closes promote to landed).
+    # Skip fork PRs and non-merged PR close events (only merged closes promote to landed).
     if: >
       github.event_name != 'pull_request' ||
-      github.event.action != 'closed' ||
-      github.event.pull_request.merged == true
+      (github.event.pull_request.head.repo.fork == false &&
+      (github.event.action != 'closed' || github.event.pull_request.merged == true))
     permissions:
       contents: write
       pull-requests: read
     steps:
-      - name: Checkout triggering ref
+      - name: Checkout trusted script ref
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -58,18 +59,18 @@ jobs:
           PR_MERGED_JSON: ${{ toJson(github.event.pull_request.merged || false) }}
           EVENT_NAME: ${{ github.event_name }}
           FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
+          SCRIPT_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
         shell: bash
         run: |
           set -euo pipefail
-          # Keep compound scripts from the triggering commit; switch docs/ledger to knowledge tip.
-          TRIGGER_SHA="${GITHUB_SHA}"
+          # Keep compound scripts from a trusted ref; switch docs/ledger to knowledge tip.
           if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
             git fetch origin knowledge/architecture-expert
             git checkout -B knowledge/architecture-expert origin/knowledge/architecture-expert
           else
             git checkout -B knowledge/architecture-expert
           fi
-          git checkout "${TRIGGER_SHA}" -- scripts/compound
+          git checkout "${SCRIPT_SHA}" -- scripts/compound
 
           FORCE_SYNTH="false"
           if [ "$EVENT_NAME" = "pull_request" ]; then
