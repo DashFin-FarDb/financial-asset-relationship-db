@@ -24,6 +24,8 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+GH_PR_JSON_FIELDS = "number,title,state,mergedAt,updatedAt,labels,files"
+MAX_PR_SCRAPE_LIMIT = 100
 
 # Seed docs → primary domain mapping (read-only inputs; never written).
 SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -46,6 +48,17 @@ SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
 
 def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _bounded_pr_limit(limit: int) -> int:
+    if not 1 <= limit <= MAX_PR_SCRAPE_LIMIT:
+        raise ValueError(f"pr_limit must be between 1 and {MAX_PR_SCRAPE_LIMIT}")
+    return limit
+
+
+def _updated_since_filter(cutoff: str) -> str:
+    datetime.strptime(cutoff, "%Y-%m-%d")
+    return f"updated:>={cutoff}"
 
 
 def seed_from_docs(repo_root: Path) -> list[str]:
@@ -76,10 +89,23 @@ def seed_from_docs(repo_root: Path) -> list[str]:
     return messages
 
 
-def _gh_json(args: list[str]) -> Any | None:
+def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | None:
+    command = [
+        "gh",
+        "pr",
+        "list",
+        "--state",
+        "all",
+        "--limit",
+        str(_bounded_pr_limit(limit)),
+    ]
+    if updated_since is not None:
+        command.extend(["--search", _updated_since_filter(updated_since)])
+    command.extend(["--json", GH_PR_JSON_FIELDS])
+
     try:
         completed = subprocess.run(
-            ["gh", *args],
+            command,
             check=False,
             capture_output=True,
             text=True,
@@ -102,34 +128,9 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
     PRs when the search filter is unsupported.
     """
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
-    json_fields = "number,title,state,mergedAt,updatedAt,labels,files"
-    data = _gh_json(
-        [
-            "pr",
-            "list",
-            "--state",
-            "all",
-            "--limit",
-            str(limit),
-            "--search",
-            f"updated:>={cutoff}",
-            "--json",
-            json_fields,
-        ]
-    )
+    data = _fetch_pr_list(limit=limit, updated_since=cutoff)
     if data is None:
-        data = _gh_json(
-            [
-                "pr",
-                "list",
-                "--state",
-                "all",
-                "--limit",
-                str(limit),
-                "--json",
-                json_fields,
-            ]
-        )
+        data = _fetch_pr_list(limit=limit)
     if data is None:
         return ["PR scrape skipped: gh unavailable or failed"]
 

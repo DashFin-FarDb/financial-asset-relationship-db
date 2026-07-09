@@ -1,6 +1,6 @@
 """Unit tests for rebuild job-list API response contracts."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import pytest
 from pydantic import ValidationError
@@ -10,7 +10,7 @@ from api.api_models import RebuildJobListResponse, RebuildJobResponse, RebuildJo
 
 def _job_response(job_id: str) -> RebuildJobResponse:
     """Build a minimal rebuild job response for list model tests."""
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     return RebuildJobResponse(
         job_id=job_id,
         status=RebuildJobStatus.PENDING,

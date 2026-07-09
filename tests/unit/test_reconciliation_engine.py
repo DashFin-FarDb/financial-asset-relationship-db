@@ -1,6 +1,6 @@
 """Tests for the Reconciliation Engine core abstraction."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import pytest
@@ -35,6 +35,14 @@ class MockDriftEvaluator:
         return self.drift_type, self.severity, self.metadata
 
 
+class MinimalDriftEvaluator:
+    """Minimal drift evaluator for protocol compatibility tests."""
+
+    def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
+        """Return a no-op drift evaluation."""
+        return "minimal", Severity.NONE, {}
+
+
 class TestReconciliationPlan:
     """Tests for ReconciliationPlan data structure."""
 
@@ -49,7 +57,7 @@ class TestReconciliationPlan:
             safety_state=ExecutionSafety.RESET_REQUIRED,
             reason="Test reason",
             metadata={"key": "value"},
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
 
         assert plan.drift_type == "test_drift"
@@ -69,7 +77,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
     def test_plan_noop_consistency(self) -> None:
@@ -84,7 +92,7 @@ class TestReconciliationPlan:
             safety_state=ExecutionSafety.CONVERGED,
             reason="No drift",
             metadata={},
-            created_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
         )
         assert plan_valid.severity == Severity.NONE
 
@@ -99,7 +107,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.MANUAL_INVESTIGATION,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
     def test_plan_rejects_invalid_action_types(self) -> None:
@@ -115,7 +123,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.RESET_REQUIRED,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
         # Test with mixed valid and invalid action types
@@ -129,7 +137,7 @@ class TestReconciliationPlan:
                 safety_state=ExecutionSafety.RESET_REQUIRED,
                 reason="Test",
                 metadata={},
-                created_at=datetime.now(UTC),
+                created_at=datetime.now(timezone.utc),
             )
 
 
@@ -454,9 +462,9 @@ class TestReconciliationEngine:
         evaluator = MockDriftEvaluator("none", Severity.NONE)
         engine = ReconciliationEngine(evaluator)
 
-        before = datetime.now(UTC)
+        before = datetime.now(timezone.utc)
         plan = engine.generate_reconciliation_plan()
-        after = datetime.now(UTC)
+        after = datetime.now(timezone.utc)
 
         assert before <= plan.created_at <= after
 
@@ -496,13 +504,7 @@ class TestDriftEvaluatorProtocol:
 
     def test_protocol_compatibility_with_engine(self) -> None:
         """Test that any DriftEvaluator implementation works with engine."""
-
-        # Create a minimal protocol-compliant evaluator
-        class MinimalEvaluator:
-            def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
-                return "minimal", Severity.NONE, {}
-
-        evaluator = MinimalEvaluator()
+        evaluator = MinimalDriftEvaluator()
         engine = ReconciliationEngine(evaluator)
 
         # Should work without errors

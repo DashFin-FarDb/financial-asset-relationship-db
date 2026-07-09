@@ -10,7 +10,7 @@ This module provides extensive test coverage for api/auth.py including:
 - Error cases and edge conditions
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 import jwt
@@ -200,7 +200,7 @@ class TestCreateAccessToken:
 
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         exp_timestamp = payload["exp"]
-        now_timestamp = datetime.now(UTC).timestamp()
+        now_timestamp = datetime.now(timezone.utc).timestamp()
         assert exp_timestamp > now_timestamp
 
 
@@ -221,7 +221,7 @@ class TestGetCurrentUser:
     @pytest.mark.asyncio
     async def test_get_current_user_with_expired_token(self):
         """Test get_current_user with expired token."""
-        exp_time = datetime.now(UTC) - timedelta(minutes=10)
+        exp_time = datetime.now(timezone.utc) - timedelta(minutes=10)
         token_data = {"sub": "testuser", "exp": int(exp_time.timestamp())}
         token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -358,7 +358,7 @@ class TestDecodeUsernameFromToken:
 
         payload = {
             "sub": "alice",
-            "exp": (datetime.now(UTC) + timedelta(minutes=30)).timestamp(),
+            "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp(),
         }
         token = self._make_token(payload)
         cred_exc, exp_exc = self._make_exceptions()
@@ -374,7 +374,7 @@ class TestDecodeUsernameFromToken:
         """A token without a 'sub' claim raises the credentials exception."""
         from datetime import datetime, timedelta
 
-        payload = {"exp": (datetime.now(UTC) + timedelta(minutes=30)).timestamp()}
+        payload = {"exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
         token = self._make_token(payload)
         cred_exc, exp_exc = self._make_exceptions()
 
@@ -392,7 +392,7 @@ class TestDecodeUsernameFromToken:
 
         payload = {
             "sub": "bob",
-            "exp": (datetime.now(UTC) - timedelta(minutes=10)).timestamp(),
+            "exp": (datetime.now(timezone.utc) - timedelta(minutes=10)).timestamp(),
         }
         token = self._make_token(payload)
         cred_exc, exp_exc = self._make_exceptions()
@@ -421,7 +421,7 @@ class TestDecodeUsernameFromToken:
         """A token with an invalid signature raises the credentials exception."""
         from datetime import datetime, timedelta
 
-        payload = {"sub": "eve", "exp": (datetime.now(UTC) + timedelta(minutes=30)).timestamp()}
+        payload = {"sub": "eve", "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
         token = jwt.encode(payload, "wrong-secret-that-is-at-least-32-bytes-long", algorithm=ALGORITHM)
         cred_exc, exp_exc = self._make_exceptions()
 
@@ -437,7 +437,7 @@ class TestDecodeUsernameFromToken:
         """The return value is always a plain str."""
         from datetime import datetime, timedelta
 
-        payload = {"sub": "charlie", "exp": (datetime.now(UTC) + timedelta(minutes=30)).timestamp()}
+        payload = {"sub": "charlie", "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
         token = self._make_token(payload)
         cred_exc, exp_exc = self._make_exceptions()
 
@@ -565,7 +565,7 @@ class TestCreateOrUpdateUserNewSignature:
 
     @patch("api.auth.execute")
     def test_multiple_unexpected_keys_listed_in_error(self, mock_execute):
-        """TypeError message includes all unexpected key names."""
+        """Ensure type errors include all unexpected key names."""
         repo = UserRepository()
         with pytest.raises(TypeError) as exc_info:
             repo.create_or_update_user(
@@ -599,17 +599,17 @@ class TestUserProfileTypedDict:
     """Tests for UserRepository.UserProfile TypedDict (new in this PR)."""
 
     def test_user_profile_is_accessible_as_nested_class(self):
-        """UserProfile is accessible as UserRepository.UserProfile."""
+        """Ensure user profiles are accessible as UserRepository.UserProfile."""
         assert hasattr(UserRepository, "UserProfile")
 
     def test_user_profile_has_expected_fields(self):
-        """UserProfile TypedDict has user_email, user_full_name, is_disabled annotations."""
+        """Ensure user profile annotations include expected fields."""
         annotations = UserRepository.UserProfile.__annotations__
         assert "user_email" in annotations
         assert "user_full_name" in annotations
         assert "is_disabled" in annotations
 
     def test_user_profile_total_false_makes_all_keys_optional(self):
-        """UserProfile is declared with total=False making all keys optional."""
+        """Ensure user profile fields are optional."""
         # A TypedDict with total=False has __total__ attribute set to False.
         assert UserRepository.UserProfile.__total__ is False

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -201,7 +201,7 @@ class RebuildDriftEvaluator:
             # Ensure timezone-aware
             # Note: Assumes DB returns UTC-naive datetimes or timezone-aware UTC datetimes
             if heartbeat_time.tzinfo is None:
-                heartbeat_time = heartbeat_time.replace(tzinfo=UTC)
+                heartbeat_time = heartbeat_time.replace(tzinfo=timezone.utc)
             return heartbeat_time
         except (ValueError, AttributeError, TypeError):
             # Unparseable heartbeat treated as None (caller will treat as stale).
@@ -231,7 +231,7 @@ class RebuildDriftEvaluator:
         if heartbeat_time is None:
             return True  # Missing or unparseable is considered stale
 
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         heartbeat_age_seconds = (now - heartbeat_time).total_seconds()
         return heartbeat_age_seconds >= self.lock_ttl_seconds
 

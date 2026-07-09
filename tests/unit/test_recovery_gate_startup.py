@@ -1,6 +1,6 @@
 """Tests for startup reconciliation via RecoveryGate."""
 
-from datetime import UTC
+from datetime import timezone
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -39,10 +39,10 @@ def _make_orphaned_job(job_id: str) -> RebuildJobORM:
         job_id=job_id,
         requested_by="previous-worker",
         status=RebuildJobStatus.RUNNING,
-        created_at=datetime.now(UTC),
-        updated_at=datetime.now(UTC),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
         active_worker_id="dead-worker",
-        last_heartbeat_at=datetime(2020, 1, 1, tzinfo=UTC),
+        last_heartbeat_at=datetime(2020, 1, 1, tzinfo=timezone.utc),
     )
 
 
@@ -203,10 +203,10 @@ def test_startup_reconciliation_blocks_on_fresh_remote_heartbeat(mock_session_fa
         job_id="remote-job-1",
         requested_by="remote-worker",
         status=RebuildJobStatus.RUNNING,
-        created_at=datetime.now(UTC),
-        updated_at=datetime.now(UTC),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
         active_worker_id="remote-worker-id",  # Different from lock holder
-        last_heartbeat_at=datetime.now(UTC),  # Fresh heartbeat
+        last_heartbeat_at=datetime.now(timezone.utc),  # Fresh heartbeat
     )
 
     mock_repo = MagicMock()

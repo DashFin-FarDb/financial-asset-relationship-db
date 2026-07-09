@@ -80,7 +80,7 @@ class TestCompoundBootstrap:
         """When gh is unavailable, PR scrape reports skipped and does not raise."""
         from compound import bootstrap as mod
 
-        monkeypatch.setattr(mod, "_gh_json", lambda _args: None)
+        monkeypatch.setattr(mod, "_fetch_pr_list", lambda **_kwargs: None)
         messages = scrape_recent_prs(seed_repo)
         assert messages == ["PR scrape skipped: gh unavailable or failed"]
 
@@ -90,8 +90,8 @@ class TestCompoundBootstrap:
 
         monkeypatch.setattr(
             mod,
-            "_gh_json",
-            lambda _args: [
+            "_fetch_pr_list",
+            lambda **_kwargs: [
                 {
                     "number": 99,
                     "title": "API change",

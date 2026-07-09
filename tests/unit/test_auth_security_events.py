@@ -4,7 +4,7 @@ from __future__ import annotations
 
 # pylint: disable=import-error
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -51,7 +51,7 @@ def _logged_event(mock_log_event):
 def _valid_token(username: str) -> str:
     """Build a valid JWT for direct dependency tests."""
     return jwt.encode(
-        {"sub": username, "exp": datetime.now(UTC) + timedelta(minutes=5)},
+        {"sub": username, "exp": datetime.now(timezone.utc) + timedelta(minutes=5)},
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
@@ -83,7 +83,7 @@ def _assert_rebuild_operator_denial(
     [
         (
             lambda: jwt.encode(
-                {"sub": "alice", "exp": datetime.now(UTC) - timedelta(minutes=1)},
+                {"sub": "alice", "exp": datetime.now(timezone.utc) - timedelta(minutes=1)},
                 SECRET_KEY,
                 algorithm=ALGORITHM,
             ),
@@ -99,7 +99,7 @@ def _assert_rebuild_operator_denial(
         ),
         (
             lambda: jwt.encode(
-                {"exp": datetime.now(UTC) + timedelta(minutes=5)},
+                {"exp": datetime.now(timezone.utc) + timedelta(minutes=5)},
                 SECRET_KEY,
                 algorithm=ALGORITHM,
             ),
