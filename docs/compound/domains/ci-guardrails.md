@@ -30,3 +30,5 @@ _No landed observations yet._
   - evidence: pr:1421
 - **pr:1422** (provisional): fix(ci): repair autofix branch failures
   - evidence: pr:1422
+- **pr:1424** (provisional): fix(ci): clear compound workflow quality gates
+  - evidence: pr:1424
