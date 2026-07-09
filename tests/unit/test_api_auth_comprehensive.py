@@ -10,7 +10,7 @@ This module provides extensive test coverage for api/auth.py including:
 - Error cases and edge conditions
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 import jwt
@@ -32,6 +32,8 @@ from api.auth import (
     get_password_hash,
     verify_password,
 )
+
+UTC = timezone.utc
 
 
 @pytest.fixture

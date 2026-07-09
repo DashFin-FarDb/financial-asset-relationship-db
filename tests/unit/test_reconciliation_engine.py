@@ -1,6 +1,6 @@
 """Tests for the Reconciliation Engine core abstraction."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import pytest
@@ -14,6 +14,8 @@ from src.logic.reconciliation_engine import (
     Severity,
 )
 from src.models.financial_models import Asset, AssetClass
+
+UTC = timezone.utc
 
 
 class MockDriftEvaluator:

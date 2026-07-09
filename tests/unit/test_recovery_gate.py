@@ -1,14 +1,18 @@
 """Tests for the RecoveryGate component."""
 
+from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 
+from src.data.db_models import RebuildJobStatus
 from src.data.distributed_lock import DistributedLock, LockState
 from src.logic.rebuild_failure_detection import InconsistencyType
 from src.logic.rebuild_recovery import RecoveryAction
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+
+UTC = timezone.utc
 
 
 @pytest.fixture
@@ -575,10 +579,6 @@ def test_reset_blocks_fresh_remote_owner_as_stale_ownership(
     mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
 ):
     """A fresh heartbeat from a different worker should block as stale ownership, not orphaned running."""
-    from datetime import UTC, datetime
-
-    from src.data.db_models import RebuildJobStatus
-
     gate = RecoveryGate(session_factory=mock_session_factory, lock=mock_lock, enable_automatic_recovery=True)
     plan = _make_reset_required_plan(
         make_reconciliation_plan,

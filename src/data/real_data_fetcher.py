@@ -6,7 +6,7 @@ import math
 import threading
 from collections.abc import Callable
 from dataclasses import asdict
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, cast
@@ -25,6 +25,8 @@ from src.models.financial_models import (
 )
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
+
+UTC = timezone.utc
 
 logger = logging.getLogger(__name__)
 
