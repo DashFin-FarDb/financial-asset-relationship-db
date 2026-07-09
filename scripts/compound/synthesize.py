@@ -71,6 +71,7 @@ def should_hot_path_synthesize(
     *,
     force: bool = False,
     event_hint: str | None = None,
+    primary_ref: str | None = None,
 ) -> bool:
     """Decide whether synthesize should run immediately.
 
@@ -84,11 +85,22 @@ def should_hot_path_synthesize(
         return True
     if not observations:
         return True
-    # Gate on the triggering (newest) observation only — not the full historical ledger.
-    newest = max(observations, key=lambda obs: (obs.created_at or "", obs.observation_id))
+    candidates = [obs for obs in observations if obs.primary_ref == primary_ref] if primary_ref else observations
+    if not candidates:
+        return True
+    # Gate on the triggering ref when supplied — not an unrelated ledger-wide newest row.
+    newest = max(candidates, key=lambda obs: (obs.created_at or "", obs.observation_id))
     if is_dependency_bot_observation(newest):
         return False
     return True
+
+
+def _is_preferred_observation(candidate: Observation, existing: Observation) -> bool:
+    if candidate.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
+        return True
+    if existing.status is ObservationStatus.LANDED and candidate.status is ObservationStatus.PROVISIONAL:
+        return False
+    return candidate.created_at >= existing.created_at
 
 
 def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
@@ -96,18 +108,9 @@ def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]
     by_ref: dict[str, Observation] = {}
     for obs in observations:
         existing = by_ref.get(obs.primary_ref)
-        if existing is None or _should_replace_observation(existing, obs):
+        if existing is None or _is_preferred_observation(obs, existing):
             by_ref[obs.primary_ref] = obs
     return list(by_ref.values())
-
-
-def _should_replace_observation(existing: Observation, candidate: Observation) -> bool:
-    """Return True when candidate is the preferred observation for a primary_ref."""
-    if candidate.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
-        return True
-    if existing.status is ObservationStatus.LANDED and candidate.status is ObservationStatus.PROVISIONAL:
-        return False
-    return candidate.created_at >= existing.created_at
 
 
 def _render_section(title: str, items: list[Observation]) -> str:
@@ -137,8 +140,7 @@ def render_domain_doc(domain: str, observations: list[Observation]) -> str:
     title = titles.get(domain, domain)
     relevant = [obs for obs in observations if domain in obs.domains]
     relevant = _latest_by_primary_ref(relevant)
-    landed = [obs for obs in relevant if obs.status is ObservationStatus.LANDED]
-    provisional = [obs for obs in relevant if obs.status is ObservationStatus.PROVISIONAL]
+    landed, provisional = _split_by_status(relevant)
     parts = [
         f"# {title}",
         "",
@@ -150,8 +152,13 @@ def render_domain_doc(domain: str, observations: list[Observation]) -> str:
     return "\n".join(parts).rstrip() + "\n"
 
 
+def _split_by_status(observations: list[Observation]) -> tuple[list[Observation], list[Observation]]:
+    landed = [obs for obs in observations if obs.status is ObservationStatus.LANDED]
+    provisional = [obs for obs in observations if obs.status is ObservationStatus.PROVISIONAL]
+    return landed, provisional
+
+
 def _domain_status_counts(observations: list[Observation]) -> dict[str, dict[str, int]]:
-    """Count landed/provisional observations by domain."""
     counts: dict[str, dict[str, int]] = defaultdict(lambda: {"landed": 0, "provisional": 0})
     for obs in _latest_by_primary_ref(observations):
         for domain in obs.domains:
@@ -159,19 +166,19 @@ def _domain_status_counts(observations: list[Observation]) -> dict[str, dict[str
     return counts
 
 
-def _domain_index_rows(counts: dict[str, dict[str, int]]) -> str:
-    """Render the index table rows for all configured domains."""
+def _index_table_rows(counts: dict[str, dict[str, int]]) -> list[str]:
     rows: list[str] = []
     for domain in DOMAINS:
         landed = counts[domain]["landed"]
         provisional = counts[domain]["provisional"]
         rows.append(f"| {domain} | [domains/{domain}.md](domains/{domain}.md) | {landed} | {provisional} |")
-    return "\n".join(rows)
+    return rows
 
 
 def render_index(observations: list[Observation]) -> str:
     """Render the thin cross-seam index."""
-    body = _domain_index_rows(_domain_status_counts(observations))
+    rows = _index_table_rows(_domain_status_counts(observations))
+    body = "\n".join(rows)
     return (
         "# Architecture Expert Compound Index\n\n"
         "Docs-first memory for architecture, seams, API, persistence/SQL, CI/guardrails,\n"
@@ -199,14 +206,15 @@ def write_text(path: Path, content: str, *, repo_root: Path) -> None:
 
 
 def _render_outputs(observations: list[Observation]) -> dict[str, str]:
-    """Render every compound output path to its regenerated content."""
-    outputs = {f"{DOMAINS_DIR.as_posix()}/{domain}.md": render_domain_doc(domain, observations) for domain in DOMAINS}
+    outputs: dict[str, str] = {}
+    for domain in DOMAINS:
+        rel = f"{DOMAINS_DIR.as_posix()}/{domain}.md"
+        outputs[rel] = render_domain_doc(domain, observations)
     outputs[INDEX_PATH.as_posix()] = render_index(observations)
     return outputs
 
 
-def _write_outputs(outputs: dict[str, str], *, repo_root: Path) -> None:
-    """Write all rendered outputs through the path policy gate."""
+def _write_outputs(outputs: dict[str, str], repo_root: Path) -> None:
     for rel, content in outputs.items():
         write_text(repo_root / rel, content, repo_root=repo_root)
 
@@ -217,6 +225,7 @@ def synthesize(
     dry_run: bool = False,
     force: bool = False,
     event_hint: str | None = None,
+    primary_ref: str | None = None,
 ) -> dict[str, str]:
     """Regenerate domain docs + index from the ledger.
 
@@ -224,7 +233,7 @@ def synthesize(
     """
     ledger_path = repo_root / LEDGER_PATH
     observations = load_ledger(ledger_path)
-    if not should_hot_path_synthesize(observations, force=force, event_hint=event_hint):
+    if not should_hot_path_synthesize(observations, force=force, event_hint=event_hint, primary_ref=primary_ref):
         return {}
 
     outputs = _render_outputs(observations)
@@ -232,7 +241,7 @@ def synthesize(
     if dry_run:
         return outputs
 
-    _write_outputs(outputs, repo_root=repo_root)
+    _write_outputs(outputs, repo_root)
     return outputs
 
 
@@ -243,6 +252,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true", help="Bypass dependency-bot batching")
     parser.add_argument("--event-hint", default=None)
+    parser.add_argument("--primary-ref", default=None)
     args = parser.parse_args(argv)
     try:
         outputs = synthesize(
@@ -250,6 +260,7 @@ def main(argv: list[str] | None = None) -> int:
             dry_run=args.dry_run,
             force=args.force,
             event_hint=args.event_hint,
+            primary_ref=args.primary_ref,
         )
         if not outputs:
             print("synthesize skipped (batched dependency-bot observations)")
