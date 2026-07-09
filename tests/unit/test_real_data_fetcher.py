@@ -54,21 +54,25 @@ def _make_import_blocker(blocked_module: str):
         blocked_module (str): The module name that the returned import hook will block.
 
     Returns:
-        callable: A function with the same signature as builtins.__import__ which raises ImportError for `blocked_module` and delegates to the real import for other modules.
+        callable: A function with the same signature as builtins.__import__ which raises ImportError for
+        `blocked_module` and delegates to the real import for other modules.
     """
 
     def _blocking_import(name, *args, _real_import=__import__, **kwargs):
         """
-        Act as an import hook that blocks a specific module name by raising ModuleNotFoundError, otherwise delegates to the real import.
+        Act as an import hook that blocks a specific module name by raising ModuleNotFoundError, otherwise delegates to
+        the real import.
 
         Parameters:
             name (str): The top-level module name being imported.
             *args: Additional positional arguments forwarded to the real import function.
-            _real_import (callable): Import function to delegate to (defaults to built-in __import__); injected for testing/mocking.
+            _real_import (callable): Import function to delegate to (defaults to built-in __import__); injected for
+            testing/mocking.
             **kwargs: Additional keyword arguments forwarded to the real import function.
 
         Raises:
-            ImportError: If `name` equals the externally provided `blocked_module`, with message "Mocked: {blocked_module} is not installed".
+            ImportError: If `name` equals the externally provided `blocked_module`, with message "Mocked:
+            {blocked_module} is not installed".
         """
         if name == blocked_module:
             exc = ModuleNotFoundError(f"Mocked: {blocked_module} is not installed")
@@ -96,7 +100,8 @@ def _make_history_mock(
     Returns:
         Mock: A Mock object that:
             - has `.empty` and `.columns` attributes,
-            - supports indexing like `hist["Close"]` returning a series mock whose `.iloc[...]` access yields `close_value`.
+            - supports indexing like `hist["Close"]` returning a series mock whose `.iloc[...]` access yields
+            `close_value`.
     """
     hist = MagicMock()
     hist.empty = empty
@@ -149,7 +154,8 @@ class TestGetYfinanceLazyImport:
 
         def side_effect(name, *args, **kwargs):
             """
-            Mock import handler that simulates a failing import for the "yfinance" package and otherwise delegates to the real import.
+            Mock import handler that simulates a failing import for the "yfinance" package and otherwise delegates to
+            the real import.
 
             Parameters:
                 name (str): The module name being imported.
@@ -160,7 +166,8 @@ class TestGetYfinanceLazyImport:
                 Any: The result of the real import for modules other than "yfinance".
 
             Raises:
-                ImportError: Always raised with the message "Dependency conflict while importing yfinance" when `name` is "yfinance".
+                ImportError: Always raised with the message "Dependency conflict while importing yfinance" when `name`
+                is "yfinance".
             """
             if name == "yfinance":
                 raise ImportError("Dependency conflict while importing yfinance")
@@ -182,9 +189,14 @@ class TestGetYfinanceLazyImport:
         import importlib
         import sys
 
+        import src.data as data_pkg
+
         module_name = "src.data.real_data_fetcher"
         original = sys.modules.pop(module_name, None)
         yf_original = sys.modules.pop("yfinance", None)
+        # import_module also binds src.data.real_data_fetcher; restore that too so
+        # later patch("src.data.real_data_fetcher.*") targets stay consistent.
+        original_pkg_attr = getattr(data_pkg, "real_data_fetcher", None)
 
         try:
             with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
@@ -192,8 +204,11 @@ class TestGetYfinanceLazyImport:
         finally:
             if original is not None:
                 sys.modules[module_name] = original
+                setattr(data_pkg, "real_data_fetcher", original)
             else:
                 sys.modules.pop(module_name, None)
+                if original_pkg_attr is None and hasattr(data_pkg, "real_data_fetcher"):
+                    delattr(data_pkg, "real_data_fetcher")
 
             if yf_original is not None:
                 sys.modules["yfinance"] = yf_original
@@ -1111,9 +1126,11 @@ class TestGraphBuilding:
         mock_equity,
     ):
         """
-        Verifies that create_real_database constructs a non-empty set of asset relationships when multiple equities are present.
+        Verifies that create_real_database constructs a non-empty set of asset relationships when multiple equities are
+        present.
 
-        Sets up two equities (and no bonds, commodities, currencies, or events), builds the real database with network enabled, and asserts the resulting graph contains at least one relationship.
+        Sets up two equities (and no bonds, commodities, currencies, or events), builds the real database with network
+        enabled, and asserts the resulting graph contains at least one relationship.
         """
         mock_equity.return_value = [
             Equity(

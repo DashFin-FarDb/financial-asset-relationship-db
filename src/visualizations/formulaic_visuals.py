@@ -231,8 +231,7 @@ class FormulaicVisualizer:
         empirical_relationships: Mapping[str, Any],
     ) -> None:
         """
-        Add an empirical correlation heatmap to the provided subplot
-        figure when a valid correlation matrix is available.
+        Add an empirical correlation heatmap to the subplot figure.
 
         If ``empirical_relationships`` contains a
         ``correlation_matrix`` mapping of asset names to numeric
@@ -305,13 +304,20 @@ class FormulaicVisualizer:
         correlation_matrix: Mapping[str, Any],
     ) -> tuple[list[str], list[list[float]]]:
         """
-        Constructs ordered asset labels and a 2D correlation grid suitable for a heatmap from a flat pair-keyed correlation mapping.
+        Construct ordered asset labels and a 2D correlation grid.
+
+        Builds a heatmap-ready grid from a flat pair-keyed correlation mapping.
 
         Parameters:
-            correlation_matrix (Mapping[str, Any]): Mapping whose keys are pair-keys in the form "SOURCE-TARGET" and whose values are numeric correlations.
+            correlation_matrix (Mapping[str, Any]): Mapping whose keys are
+                pair-keys in the form "SOURCE-TARGET" and whose values are
+                numeric correlations.
 
         Returns:
-            tuple[list[str], list[list[float]]]: A tuple (assets, z) where `assets` is an ordered list of asset identifiers (up to eight) and `z` is a square numeric matrix (list of rows) such that z[i][j] is the correlation value between assets[i] and assets[j].
+            tuple[list[str], list[list[float]]]: A tuple (assets, z) where
+            `assets` is an ordered list of asset identifiers (up to eight)
+            and `z` is a square numeric matrix (list of rows) such that
+            z[i][j] is the correlation between assets[i] and assets[j].
         """
         assets = FormulaicVisualizer._collect_flat_assets(correlation_matrix)
         z = [
@@ -350,15 +356,20 @@ class FormulaicVisualizer:
         correlation_matrix: Mapping[str, Any],
     ) -> list[float]:
         """
-        Builds a row of correlation values for a source asset aligned with an ordered list of target assets.
+        Build a correlation row for a source asset against target assets.
 
         Parameters:
             source (str): Asset identifier used as the row source.
-            assets (list[str]): Ordered list of asset identifiers defining the column order.
-            correlation_matrix (Mapping[str, Any]): Mapping containing pair-keyed correlation values; missing or invalid entries are treated as absent.
+            assets (list[str]): Ordered list of asset identifiers defining
+                the column order.
+            correlation_matrix (Mapping[str, Any]): Mapping containing
+                pair-keyed correlation values; missing or invalid entries
+                are treated as absent.
 
         Returns:
-            list[float]: Correlation values in the same order as `assets`. The value for `source` vs itself is `1.0`; missing or non-numeric correlations are returned as `0.0`.
+            list[float]: Correlation values in the same order as `assets`.
+            The value for `source` vs itself is `1.0`; missing or
+            non-numeric correlations are returned as `0.0`.
         """
         return [
             FormulaicVisualizer._flat_correlation_value(
@@ -415,16 +426,20 @@ class FormulaicVisualizer:
         correlation_matrix: Mapping[str, Any],
     ) -> tuple[list[str], list[list[float]]]:
         """
-        Builds a square correlation grid from a nested mapping of asset → (asset → correlation).
+        Build a square correlation grid from a nested asset mapping.
 
         Parameters:
-            correlation_matrix (Mapping[str, Any]): Mapping where each key is an asset id and each value is a mapping
-                from target asset id to correlation value. Non-dict values are treated as empty mappings.
+            correlation_matrix (Mapping[str, Any]): Mapping where each key
+                is an asset id and each value is a mapping from target
+                asset id to correlation value. Non-dict values are treated
+                as empty mappings.
 
         Returns:
-            tuple[list[str], list[list[float]]]: A tuple (assets, z) where `assets` is a sorted list of up to 8 asset ids,
-            and `z` is a list of rows (one per asset in `assets`) containing float correlation values aligned to `assets`.
-            Missing or invalid entries are converted to 0.0.
+            tuple[list[str], list[list[float]]]: A tuple (assets, z) where
+            `assets` is a sorted list of up to 8 asset ids, and `z` is a
+            list of rows (one per asset in `assets`) containing float
+            correlation values aligned to `assets`. Missing or invalid
+            entries are converted to 0.0.
         """
         assets = sorted(correlation_matrix.keys())[:8]
         z: list[list[float]] = []
@@ -513,12 +528,11 @@ class FormulaicVisualizer:
         formulas: Any,
     ) -> None:
         """
-        Add a "Key Formula Examples" table to the figure showing the
-        top 10 formulas ranked by R-squared.
+        Add a key-formula examples table to the figure.
 
-        The table is placed at row 3, column 2 and lists each formula's
-        name, category, and formatted R-squared.
-        If `formulas` is falsy, no trace is added.
+        Shows the top 10 formulas ranked by R-squared. The table is placed
+        at row 3, column 2 and lists each formula's name, category, and
+        formatted R-squared. If `formulas` is falsy, no trace is added.
 
         Parameters:
             fig (go.Figure): Plotly Figure with a subplot grid to which
@@ -587,25 +601,20 @@ class FormulaicVisualizer:
         formulas: Any,
     ) -> tuple[list[str], list[str], list[str]]:
         """
-        Prepare parallel lists of formula display names, categories, and
-        formatted R-squared values for table rendering.
+        Prepare formula names, categories, and R-squared values for a table.
 
         Parameters:
-                formulas (Iterable): An iterable of objects
-                    (typically Formula instances)
-                    from which `name`, `category`, and
-                    `r_squared` attributes are read.
-                    Missing values are handled gracefully.
+            formulas (Iterable): An iterable of objects (typically Formula
+                instances) from which `name`, `category`, and `r_squared`
+                attributes are read. Missing values are handled gracefully.
 
         Returns:
-                tuple[list[str], list[str], list[str]]: Three lists in order:
-                        - names: Display-ready formula names
-                            (truncated with ellipsis when long or
-                             "N/A" if unavailable).
-                        - categories: Formula category strings
-                            or "N/A" if missing.
-                        - r_squared_values: R-squared values formatted as
-                            strings (four decimals) or "N/A" if not numeric.
+            tuple[list[str], list[str], list[str]]: Three lists in order:
+                - names: Display-ready formula names (truncated with
+                  ellipsis when long, or "N/A" if unavailable).
+                - categories: Formula category strings or "N/A" if missing.
+                - r_squared_values: R-squared values formatted as strings
+                  (four decimals) or "N/A" if not numeric.
         """
         names = [FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas]
         categories = [getattr(f, "category", "N/A") for f in formulas]
@@ -619,8 +628,7 @@ class FormulaicVisualizer:
     @staticmethod
     def create_formula_detail_view(formula: Formula) -> go.Figure:
         """
-        Builds an annotated Plotly figure
-        presenting full details for a Formula.
+        Build an annotated Plotly figure with full formula details.
 
         The figure contains a single annotation that displays the formula's
         mathematical expression, LaTeX representation, descriptive text,
@@ -676,7 +684,7 @@ class FormulaicVisualizer:
         empirical_relationships: Mapping[str, Any],
     ) -> go.Figure:
         """
-        Builds a network visualization of asset correlations.
+        Build a network visualization of asset correlations.
 
         Parameters:
             empirical_relationships (Mapping[str, Any]):
@@ -826,7 +834,7 @@ class FormulaicVisualizer:
         positions: dict[str, tuple[float, float]],
     ) -> list[go.Scatter]:
         """
-        Builds Plotly line traces for correlations between positioned assets.
+        Build Plotly line traces for correlations between positioned assets.
 
         Parameters:
             correlations (Any):
@@ -889,8 +897,7 @@ class FormulaicVisualizer:
         positions: dict[str, tuple[float, float]],
     ) -> go.Scatter:
         """
-        Create a Plotly scatter trace representing
-        asset nodes positioned on a plane.
+        Create a Plotly scatter trace for positioned asset nodes.
 
         Each asset is rendered as a labeled marker placed at the
         (x, y) coordinates from `positions`; markers include hover text and
