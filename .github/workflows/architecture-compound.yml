@@ -104,6 +104,8 @@ jobs:
             FORCE_SYNTH="true"
           fi
           DOMAINS_JSON=$(PYTHONPATH="$PWD/scripts" FILES_JSON="$FILES_JSON" python -c 'import json, os; from compound.schema import detect_domains_from_paths; print(json.dumps(list(detect_domains_from_paths(json.loads(os.environ["FILES_JSON"])))))')
+          OBSERVATION_FILE="$PWD/.compound-observation.json"
+          trap 'rm -f "$OBSERVATION_FILE"' EXIT
           jq -n \
             --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
             --arg source "github" \
@@ -122,8 +124,8 @@ jobs:
               domains: $domains,
               refs: [$primary_ref],
               evidence_pointers: [$primary_ref]
-            }' > /tmp/observation.json
-          PYTHONPATH="$PWD/scripts" python -m compound.append_observation --file /tmp/observation.json
+            }' > "$OBSERVATION_FILE"
+          PYTHONPATH="$PWD/scripts" python -m compound.append_observation --file "$OBSERVATION_FILE"
           echo "FORCE_SYNTH=$FORCE_SYNTH" >> "$GITHUB_ENV"
           echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"
 

@@ -205,7 +205,7 @@ class TestGitHubWorkflows:
             "ci.yml",
             "codacy.yml",
             "codeflash.yaml",
-            "codeql.yml",
+            "codecov.yaml",
             "contrast-scan.yml",
             "dependency-review.yml",
             "devskim.yml",

@@ -6,6 +6,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
+from typing import Any, cast
 from unittest.mock import patch
 
 import jwt
@@ -68,7 +69,11 @@ def _assert_rebuild_operator_denial(
     settings = SimpleNamespace(admin_username=admin_username)
 
     with patch("api.auth.log_event") as mock_log_event, pytest.raises(HTTPException) as exc_info:
-        get_current_rebuild_operator_user(user, settings, request=_request("/api/graph/rebuild"))  # type: ignore[arg-type]
+        get_current_rebuild_operator_user(
+            user,
+            cast(Any, settings),
+            request=_request("/api/graph/rebuild"),
+        )  # type: ignore[arg-type]
 
     assert exc_info.value.status_code == expected_status
     event = _logged_event(mock_log_event)
