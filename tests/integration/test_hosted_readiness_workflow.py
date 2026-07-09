@@ -113,9 +113,9 @@ class TestHostedReadinessWorkflowStructure:
 
     def test_workflow_name_is_correct(self, hosted_readiness_workflow):
         """Workflow name must be 'Hosted readiness smoke check'."""
-        assert (
-            hosted_readiness_workflow["name"] == "Hosted readiness smoke check"
-        ), "hosted-readiness.yml name must be 'Hosted readiness smoke check'"
+        assert hosted_readiness_workflow["name"] == "Hosted readiness smoke check", (
+            "hosted-readiness.yml name must be 'Hosted readiness smoke check'"
+        )
 
     def test_workflow_has_on_trigger(self, hosted_readiness_workflow):
         """Workflow must define event triggers."""
@@ -125,9 +125,9 @@ class TestHostedReadinessWorkflowStructure:
         """Workflow must trigger on workflow_dispatch only."""
         triggers = hosted_readiness_workflow["on"]
         assert isinstance(triggers, dict), "Workflow triggers must be a mapping"
-        assert set(triggers) == {
-            "workflow_dispatch"
-        }, "hosted-readiness.yml must define workflow_dispatch as its only trigger"
+        assert set(triggers) == {"workflow_dispatch"}, (
+            "hosted-readiness.yml must define workflow_dispatch as its only trigger"
+        )
 
     def test_workflow_does_not_trigger_on_push(self, hosted_readiness_workflow):
         """Workflow must not trigger on push events."""
@@ -137,9 +137,9 @@ class TestHostedReadinessWorkflowStructure:
     def test_workflow_does_not_trigger_on_pull_request(self, hosted_readiness_workflow):
         """Workflow must not trigger on pull_request events."""
         triggers = hosted_readiness_workflow["on"]
-        assert (
-            "pull_request" not in triggers
-        ), "hosted-readiness.yml must not trigger on 'pull_request' (manual-only workflow)"
+        assert "pull_request" not in triggers, (
+            "hosted-readiness.yml must not trigger on 'pull_request' (manual-only workflow)"
+        )
 
     def test_workflow_has_jobs(self, hosted_readiness_workflow):
         """Workflow must define at least one job."""
@@ -148,9 +148,9 @@ class TestHostedReadinessWorkflowStructure:
 
     def test_hosted_readiness_job_exists(self, hosted_readiness_workflow):
         """The 'hosted-readiness' job must be defined."""
-        assert (
-            "hosted-readiness" in hosted_readiness_workflow["jobs"]
-        ), "hosted-readiness.yml must contain a job named 'hosted-readiness'"
+        assert "hosted-readiness" in hosted_readiness_workflow["jobs"], (
+            "hosted-readiness.yml must contain a job named 'hosted-readiness'"
+        )
 
     def test_hosted_readiness_job_has_runs_on(self, hosted_readiness_workflow):
         """The 'hosted-readiness' job must specify a runner."""
@@ -233,34 +233,34 @@ class TestHostedReadinessWorkflowEnvironment:
         env = job.get("env", {})
         assert "HOSTED_READINESS_BASE_URL" in env, "Job must define HOSTED_READINESS_BASE_URL env var"
         assert "HOSTED_READINESS_TIMEOUT" in env, "Job must define HOSTED_READINESS_TIMEOUT env var"
-        assert (
-            "HOSTED_READINESS_REQUIRE_PERSISTENCE" in env
-        ), "Job must define HOSTED_READINESS_REQUIRE_PERSISTENCE env var"
+        assert "HOSTED_READINESS_REQUIRE_PERSISTENCE" in env, (
+            "Job must define HOSTED_READINESS_REQUIRE_PERSISTENCE env var"
+        )
 
     def test_base_url_comes_from_input_or_secret(self, hosted_readiness_workflow):
         """Base URL must come from inputs.base_url or secrets.HOSTED_READINESS_BASE_URL."""
         job = hosted_readiness_workflow["jobs"]["hosted-readiness"]
         env = job.get("env", {})
         base_url_expr = env.get("HOSTED_READINESS_BASE_URL")
-        assert (
-            base_url_expr == "${{ inputs.base_url || secrets.HOSTED_READINESS_BASE_URL }}"
-        ), "HOSTED_READINESS_BASE_URL must use only inputs.base_url with secrets.HOSTED_READINESS_BASE_URL fallback"
+        assert base_url_expr == "${{ inputs.base_url || secrets.HOSTED_READINESS_BASE_URL }}", (
+            "HOSTED_READINESS_BASE_URL must use only inputs.base_url with secrets.HOSTED_READINESS_BASE_URL fallback"
+        )
 
     def test_timeout_comes_from_input(self, hosted_readiness_workflow):
         """Timeout must come from inputs.timeout."""
         job = hosted_readiness_workflow["jobs"]["hosted-readiness"]
         env = job.get("env", {})
-        assert (
-            env.get("HOSTED_READINESS_TIMEOUT") == "${{ inputs.timeout }}"
-        ), "HOSTED_READINESS_TIMEOUT must use inputs.timeout"
+        assert env.get("HOSTED_READINESS_TIMEOUT") == "${{ inputs.timeout }}", (
+            "HOSTED_READINESS_TIMEOUT must use inputs.timeout"
+        )
 
     def test_require_persistence_comes_from_input(self, hosted_readiness_workflow):
         """Require persistence must come from inputs.require_persistence."""
         job = hosted_readiness_workflow["jobs"]["hosted-readiness"]
         env = job.get("env", {})
-        assert (
-            env.get("HOSTED_READINESS_REQUIRE_PERSISTENCE") == "${{ inputs.require_persistence }}"
-        ), "HOSTED_READINESS_REQUIRE_PERSISTENCE must use inputs.require_persistence"
+        assert env.get("HOSTED_READINESS_REQUIRE_PERSISTENCE") == "${{ inputs.require_persistence }}", (
+            "HOSTED_READINESS_REQUIRE_PERSISTENCE must use inputs.require_persistence"
+        )
 
 
 @pytest.mark.integration
@@ -300,9 +300,9 @@ class TestHostedReadinessWorkflowSteps:
         assert checkout_step is not None, "actions/checkout step not found"
         action_ref = checkout_step["uses"]
         sha_part = action_ref.split("@", 1)[-1].split()[0]  # Handle inline comments
-        assert re.match(
-            r"^[0-9a-f]{40}$", sha_part
-        ), f"actions/checkout must be pinned to a full commit SHA, got: {sha_part}"
+        assert re.match(r"^[0-9a-f]{40}$", sha_part), (
+            f"actions/checkout must be pinned to a full commit SHA, got: {sha_part}"
+        )
 
     def test_skip_step_exists(self, hosted_readiness_steps):
         """A step to skip when no base URL is configured must be present."""
@@ -354,9 +354,9 @@ class TestHostedReadinessWorkflowSteps:
         )
         assert run_check_step is not None
         run_script = run_check_step.get("run", "")
-        assert (
-            "scripts/check_hosted_readiness.py" in run_script
-        ), "Run check step must invoke scripts/check_hosted_readiness.py"
+        assert "scripts/check_hosted_readiness.py" in run_script, (
+            "Run check step must invoke scripts/check_hosted_readiness.py"
+        )
 
     def test_script_invocation_uses_env_var_not_hardcoded_url(self, hosted_readiness_steps):
         """The script invocation must use $HOSTED_READINESS_BASE_URL, not a hardcoded URL."""
@@ -366,9 +366,9 @@ class TestHostedReadinessWorkflowSteps:
         )
         assert run_check_step is not None
         run_script = run_check_step.get("run", "")
-        assert (
-            "$HOSTED_READINESS_BASE_URL" in run_script or "${HOSTED_READINESS_BASE_URL}" in run_script
-        ), "Script invocation must use $HOSTED_READINESS_BASE_URL env var"
+        assert "$HOSTED_READINESS_BASE_URL" in run_script or "${HOSTED_READINESS_BASE_URL}" in run_script, (
+            "Script invocation must use $HOSTED_READINESS_BASE_URL env var"
+        )
 
     def test_script_invocation_uses_timeout_env_var(self, hosted_readiness_steps):
         """The script invocation must use $HOSTED_READINESS_TIMEOUT for --timeout argument."""
@@ -379,9 +379,9 @@ class TestHostedReadinessWorkflowSteps:
         assert run_check_step is not None
         run_script = run_check_step.get("run", "")
         assert "--timeout" in run_script, "Script invocation must include --timeout argument"
-        assert (
-            "$HOSTED_READINESS_TIMEOUT" in run_script or "${HOSTED_READINESS_TIMEOUT}" in run_script
-        ), "Script invocation must use $HOSTED_READINESS_TIMEOUT env var"
+        assert "$HOSTED_READINESS_TIMEOUT" in run_script or "${HOSTED_READINESS_TIMEOUT}" in run_script, (
+            "Script invocation must use $HOSTED_READINESS_TIMEOUT env var"
+        )
 
     def test_script_invocation_uses_require_persistence_env_var(self, hosted_readiness_steps):
         """
@@ -397,9 +397,9 @@ class TestHostedReadinessWorkflowSteps:
         assert run_check_step is not None
         run_script = run_check_step.get("run", "")
         assert "--require-persistence" in run_script, "Script invocation must check/reference --require-persistence"
-        assert (
-            "HOSTED_READINESS_REQUIRE_PERSISTENCE" in run_script
-        ), "Script invocation must check HOSTED_READINESS_REQUIRE_PERSISTENCE"
+        assert "HOSTED_READINESS_REQUIRE_PERSISTENCE" in run_script, (
+            "Script invocation must check HOSTED_READINESS_REQUIRE_PERSISTENCE"
+        )
 
 
 @pytest.mark.integration
@@ -410,9 +410,9 @@ class TestHostedReadinessWorkflowSecurity:
         """Workflow must not contain hardcoded hosted URLs."""
         for line in hosted_readiness_workflow_raw.splitlines():
             content = _scannable_workflow_content(line)
-            assert not re.search(
-                r"https?://", content, re.IGNORECASE
-            ), f"Workflow must not contain hardcoded URLs in code: {line}"
+            assert not re.search(r"https?://", content, re.IGNORECASE), (
+                f"Workflow must not contain hardcoded URLs in code: {line}"
+            )
 
     def test_no_hardcoded_tokens(self, hosted_readiness_workflow_raw):
         """Workflow must not contain hardcoded tokens or API keys."""
@@ -430,21 +430,21 @@ class TestHostedReadinessWorkflowSecurity:
             content = _scannable_workflow_content(line)
             if not content:
                 continue
-            assert not sensitive_assignment.search(
-                content
-            ), f"Workflow may contain hardcoded token or API key in line: {line}"
+            assert not sensitive_assignment.search(content), (
+                f"Workflow may contain hardcoded token or API key in line: {line}"
+            )
             assert not bearer_literal.search(content), f"Workflow may contain hardcoded bearer token in line: {line}"
 
     def test_no_hardcoded_database_urls(self, hosted_readiness_workflow_raw):
         """Workflow must not contain hardcoded database URLs."""
         for line in hosted_readiness_workflow_raw.splitlines():
             content = _scannable_workflow_content(line)
-            assert not re.search(
-                r"postgres(ql)?://", content, re.IGNORECASE
-            ), f"Workflow must not contain hardcoded PostgreSQL URLs: {line}"
-            assert not re.search(
-                r"mysql://", content, re.IGNORECASE
-            ), f"Workflow must not contain hardcoded MySQL URLs: {line}"
+            assert not re.search(r"postgres(ql)?://", content, re.IGNORECASE), (
+                f"Workflow must not contain hardcoded PostgreSQL URLs: {line}"
+            )
+            assert not re.search(r"mysql://", content, re.IGNORECASE), (
+                f"Workflow must not contain hardcoded MySQL URLs: {line}"
+            )
 
     def test_no_hardcoded_credentials(self, hosted_readiness_workflow_raw):
         """Workflow must not contain hardcoded usernames or passwords."""
@@ -457,19 +457,19 @@ class TestHostedReadinessWorkflowSecurity:
             content = _scannable_workflow_content(line)
             if not content:
                 continue
-            assert not credential_assignment.search(
-                content
-            ), f"Workflow may contain hardcoded credential in line: {line}"
+            assert not credential_assignment.search(content), (
+                f"Workflow may contain hardcoded credential in line: {line}"
+            )
 
     def test_no_raw_endpoint_response_bodies(self, hosted_readiness_workflow_raw):
         """Workflow must not contain raw endpoint response bodies or example payloads."""
         # The workflow should not include example JSON payloads that could leak information
-        assert (
-            '{"status": "healthy"' not in hosted_readiness_workflow_raw
-        ), "Workflow must not contain example response bodies"
-        assert (
-            '"graph_initialized": true' not in hosted_readiness_workflow_raw
-        ), "Workflow must not contain example response bodies"
+        assert '{"status": "healthy"' not in hosted_readiness_workflow_raw, (
+            "Workflow must not contain example response bodies"
+        )
+        assert '"graph_initialized": true' not in hosted_readiness_workflow_raw, (
+            "Workflow must not contain example response bodies"
+        )
 
     def test_no_provider_specific_secrets(self, hosted_readiness_workflow_raw):
         """Workflow must not embed provider-specific credential names."""
@@ -477,9 +477,9 @@ class TestHostedReadinessWorkflowSecurity:
             _scannable_workflow_content(line) for line in hosted_readiness_workflow_raw.splitlines()
         )
         for secret_name in PROVIDER_SECRET_NAMES:
-            assert not re.search(
-                rf"\b{secret_name}\b", scannable_content
-            ), f"Workflow must not embed provider-specific secret '{secret_name}'"
+            assert not re.search(rf"\b{secret_name}\b", scannable_content), (
+                f"Workflow must not embed provider-specific secret '{secret_name}'"
+            )
 
 
 @pytest.mark.integration
@@ -490,9 +490,9 @@ class TestHostedReadinessWorkflowConcurrency:
         """Workflow must define the intended concurrency group."""
         assert "concurrency" in hosted_readiness_workflow, "Workflow must define 'concurrency'"
         concurrency = hosted_readiness_workflow["concurrency"]
-        assert (
-            concurrency.get("group") == "${{ github.workflow }}-${{ github.ref }}"
-        ), "Concurrency group must be scoped to workflow and ref"
+        assert concurrency.get("group") == "${{ github.workflow }}-${{ github.ref }}", (
+            "Concurrency group must be scoped to workflow and ref"
+        )
 
     def test_concurrency_cancel_in_progress_is_false(self, hosted_readiness_workflow):
         """Workflow concurrency must not cancel in-progress runs (manual workflow safety)."""
