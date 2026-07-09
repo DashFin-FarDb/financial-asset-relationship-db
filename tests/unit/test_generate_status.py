@@ -13,10 +13,12 @@ This module tests all functions in the generate_status.py script including:
 import importlib.util
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
+
+UTC = timezone.utc
 
 # Add the script directory to path so generate_status can be resolved
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
@@ -1429,9 +1431,9 @@ def test_pull_request_type_accessible_in_module():
     """
     # If the module imported successfully (it was imported at the top of this
     # test file), PullRequest should be accessible in the module's globals.
-    assert hasattr(generate_status, "PullRequest"), (
-        "generate_status module should expose PullRequest after importing it from github.PullRequest"
-    )
+    assert hasattr(
+        generate_status, "PullRequest"
+    ), "generate_status module should expose PullRequest after importing it from github.PullRequest"
 
     # Also verify we can independently import the same symbol
     from github.PullRequest import PullRequest as PR

@@ -1,6 +1,6 @@
 """Tests for RebuildDriftEvaluator integration with ReconciliationEngine."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, Mock
 
 import pytest
@@ -10,6 +10,8 @@ from src.data.db_models import RebuildJobStatus
 from src.data.distributed_lock import LockState
 from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
 from src.logic.reconciliation_engine import Severity
+
+UTC = timezone.utc
 
 
 class TestRebuildDriftEvaluator:
