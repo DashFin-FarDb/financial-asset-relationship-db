@@ -105,13 +105,13 @@ class TestCompoundSchema:
         assert detect_domains_from_paths(["README.md"]) == ("architecture",)  # nosec B101
         assert "api" in detect_domains_from_paths(["api/main.py", "frontend/app/page.tsx"])  # nosec B101
         assert "persistence" in detect_domains_from_paths(["src/data/sample_data.py"])  # nosec B101
-        assert "rebuild-reconciliation" in detect_domains_from_paths(
+        assert "rebuild-reconciliation" in detect_domains_from_paths(  # nosec B101
             ["src/logic/reconciliation_engine.py"]
-        )  # nosec B101
+        )
         assert "ci-guardrails" in detect_domains_from_paths([".github/workflows/ci.yml"])  # nosec B101
-        assert "deployment" in detect_domains_from_paths(
+        assert "deployment" in detect_domains_from_paths(  # nosec B101
             ["docs/staging-deployment-operating-baseline.md"]
-        )  # nosec B101
+        )
         multi = detect_domains_from_paths(["api/auth.py", "docs/adr/0001-production-architecture.md"])
         assert "api" in multi  # nosec B101
         assert "architecture" in multi  # nosec B101

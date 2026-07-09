@@ -124,9 +124,9 @@ class TestAppendObservation:
         now = datetime(2026, 7, 9, 12, 0, tzinfo=timezone.utc)
         assert record_push_conflict(compound_repo, now=now) is WriterMode.DUAL  # nosec B101
         assert record_push_conflict(compound_repo, now=now + timedelta(minutes=1)) is WriterMode.DUAL  # nosec B101
-        assert (
+        assert (  # nosec B101
             record_push_conflict(compound_repo, now=now + timedelta(minutes=2)) is WriterMode.GITHUB_ONLY
-        )  # nosec B101
+        )
         runtime = (compound_repo / "docs/compound/runtime.yml").read_text(encoding="utf-8")
         assert "writer_mode: github_only" in runtime  # nosec B101
         assert "conflict_count: 3" in runtime  # nosec B101
