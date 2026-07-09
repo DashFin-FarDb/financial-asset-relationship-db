@@ -13,7 +13,7 @@ SCRIPTS_ROOT = REPO_ROOT / "scripts"
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
-from compound.schema import observation_from_mapping  # noqa: E402
+from compound.schema import SchemaError, observation_from_mapping  # noqa: E402
 from compound.standing_brief import render_standing_brief, write_standing_brief  # noqa: E402
 
 
@@ -62,3 +62,21 @@ class TestStandingBrief:
         text = render_standing_brief([obs], as_of="2026-07-09")
         assert "[landed]" in text
         assert "architecture" in text
+
+    def test_main_reports_schema_errors(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """CLI reports schema failures without an unhandled traceback."""
+        from compound import standing_brief as mod
+
+        def raise_schema_error(repo_root: Path, *, as_of: str | None = None) -> Path:
+            raise SchemaError("bad ledger")
+
+        monkeypatch.setattr(mod, "write_standing_brief", raise_schema_error)
+
+        assert mod.main(["--repo-root", str(tmp_path)]) == 1
+        captured = capsys.readouterr()
+        assert captured.err == "error: bad ledger\n"

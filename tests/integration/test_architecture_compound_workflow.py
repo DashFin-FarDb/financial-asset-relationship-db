@@ -80,3 +80,10 @@ class TestArchitectureCompoundWorkflow:
         assert 'git checkout "${TRIGGER_SHA}" -- scripts/compound' in text
         assert "continue-on-error:" not in text
         assert "cancel-in-progress: false" in text
+
+    def test_observation_append_uses_inline_json(self) -> None:
+        """Workflow avoids outside-repo temp files rejected by append path policy."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "OBSERVATION_JSON=$(jq -n -c" in text
+        assert 'append_observation.py --json "$OBSERVATION_JSON"' in text
+        assert "/tmp/observation.json" not in text

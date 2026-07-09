@@ -15,6 +15,7 @@ if str(SCRIPTS_ROOT) not in sys.path:
 
 from compound.schema import PathPolicyError, assert_writable  # noqa: E402
 from compound.synthesize import (  # noqa: E402
+    load_ledger,
     should_hot_path_synthesize,
     synthesize,
 )
@@ -118,6 +119,35 @@ class TestCompoundSynthesize:
         outputs = synthesize(synth_repo, force=True)
         api_doc = outputs["docs/compound/domains/api.md"]
         assert api_doc.count("**pr:7**") == 1
+
+    def test_load_ledger_skips_malformed_lines(self, synth_repo: Path) -> None:
+        """Malformed ledger rows are ignored so synthesize can rebuild from valid observations."""
+        ledger = synth_repo / "docs/compound/ledger/observations.jsonl"
+        valid = {
+            "observation_id": "valid",
+            "source": "github",
+            "event_type": "pull_request.opened",
+            "status": "provisional",
+            "primary_ref": "pr:8",
+            "summary": "API change survives malformed row",
+            "domains": ["api"],
+            "created_at": "2026-07-01T00:00:00Z",
+        }
+        ledger.write_text(
+            "\n".join(
+                [
+                    "# schema_version=1",
+                    "{not-json",
+                    json.dumps(valid, sort_keys=True),
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        observations = load_ledger(ledger)
+        assert [obs.observation_id for obs in observations] == ["valid"]
+        assert "API change survives malformed row" in synthesize(synth_repo, force=True)["docs/compound/domains/api.md"]
 
     def test_dependabot_batches_without_force(self, synth_repo: Path) -> None:
         """Dependabot-only observations skip hot-path synthesize unless forced."""
