@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,8 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+GH_TIMEOUT_SECONDS = 60
+MAX_PR_LIMIT = 100
 
 # Seed docs → primary domain mapping (read-only inputs; never written).
 SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -46,6 +49,12 @@ SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
 
 def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _bounded_pr_limit(limit: int) -> int:
+    if limit < 1 or limit > MAX_PR_LIMIT:
+        raise SchemaError(f"pr_limit must be between 1 and {MAX_PR_LIMIT}")
+    return limit
 
 
 def seed_from_docs(repo_root: Path) -> list[str]:
@@ -76,14 +85,31 @@ def seed_from_docs(repo_root: Path) -> list[str]:
     return messages
 
 
-def _gh_json(args: list[str]) -> Any | None:
+def _gh_pr_list(limit: int, *, updated_since: str | None = None) -> Any | None:
+    bounded_limit = _bounded_pr_limit(limit)
+    gh_path = shutil.which("gh")
+    if gh_path is None:
+        return None
+    json_fields = "number,title,state,mergedAt,updatedAt,labels,files"
+    command = [
+        gh_path,
+        "pr",
+        "list",
+        "--state",
+        "all",
+        "--limit",
+        str(bounded_limit),
+    ]
+    if updated_since is not None:
+        command.extend(["--search", f"updated:>={updated_since}"])
+    command.extend(["--json", json_fields])
     try:
         completed = subprocess.run(
-            ["gh", *args],
+            command,
             check=False,
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=GH_TIMEOUT_SECONDS,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return None
@@ -102,34 +128,9 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
     PRs when the search filter is unsupported.
     """
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
-    json_fields = "number,title,state,mergedAt,updatedAt,labels,files"
-    data = _gh_json(
-        [
-            "pr",
-            "list",
-            "--state",
-            "all",
-            "--limit",
-            str(limit),
-            "--search",
-            f"updated:>={cutoff}",
-            "--json",
-            json_fields,
-        ]
-    )
+    data = _gh_pr_list(limit, updated_since=cutoff)
     if data is None:
-        data = _gh_json(
-            [
-                "pr",
-                "list",
-                "--state",
-                "all",
-                "--limit",
-                str(limit),
-                "--json",
-                json_fields,
-            ]
-        )
+        data = _gh_pr_list(limit)
     if data is None:
         return ["PR scrape skipped: gh unavailable or failed"]
 

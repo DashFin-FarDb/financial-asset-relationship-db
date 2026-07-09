@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
@@ -32,6 +33,26 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     root = repo_root or REPO_ROOT
     return root / Path(relative)
+
+
+def _is_relative_to(path: Path, base: Path) -> bool:
+    try:
+        path.relative_to(base)
+    except ValueError:
+        return False
+    return True
+
+
+def _resolve_observation_file(file_path: Path, repo_root: Path | None = None) -> Path:
+    """Resolve a CLI input file after constraining it to trusted roots."""
+    root = (repo_root or REPO_ROOT).resolve()
+    tmp_root = Path(tempfile.gettempdir()).resolve()
+    resolved = file_path.expanduser().resolve()
+    if not any(_is_relative_to(resolved, allowed) for allowed in (root, tmp_root)):
+        raise PathPolicyError("Observation file must be under the repository root or system temp directory")
+    if not resolved.is_file():
+        raise PathPolicyError("Observation file must be a regular file")
+    return resolved
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
@@ -246,7 +267,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             payload = json.loads(args.json)
         else:
-            payload = json.loads(Path(args.file).read_text(encoding="utf-8"))
+            observation_file = _resolve_observation_file(args.file, args.repo_root)
+            payload = json.loads(observation_file.read_text(encoding="utf-8"))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:
