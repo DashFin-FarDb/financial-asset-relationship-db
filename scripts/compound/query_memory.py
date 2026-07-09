@@ -53,6 +53,28 @@ def _extract_bullets(text: str, section: str) -> list[str]:
     return bullets
 
 
+def _domain_doc_path(repo_root: Path, domain: str) -> Path:
+    return repo_root / "docs" / "compound" / "domains" / f"{domain}.md"
+
+
+def _domain_answer_lines(path: Path, domain: str) -> tuple[list[str], bool]:
+    text = path.read_text(encoding="utf-8")
+    landed = _extract_bullets(text, "Landed")
+    provisional = _extract_bullets(text, "Provisional")
+    lines = [f"### {domain}"]
+    found = bool(landed or provisional)
+    if landed:
+        lines.append("Landed:")
+        lines.extend(f"  {item}" for item in landed[:10])
+    if provisional:
+        lines.append("Provisional:")
+        lines.extend(f"  {item}" for item in provisional[:10])
+    if not found:
+        lines.append("  _No observations yet in this domain._")
+    lines.append("")
+    return lines, found
+
+
 def query_memory(repo_root: Path, question: str) -> str:
     """Answer from INDEX + domain docs with provisional/landed labels."""
     domains = select_domains(question)
@@ -68,24 +90,12 @@ def query_memory(repo_root: Path, question: str) -> str:
 
     found = False
     for domain in domains:
-        path = repo_root / "docs" / "compound" / "domains" / f"{domain}.md"
+        path = _domain_doc_path(repo_root, domain)
         if not path.exists():
             continue
-        text = path.read_text(encoding="utf-8")
-        landed = _extract_bullets(text, "Landed")
-        provisional = _extract_bullets(text, "Provisional")
-        parts.append(f"### {domain}")
-        if landed:
-            found = True
-            parts.append("Landed:")
-            parts.extend(f"  {item}" for item in landed[:10])
-        if provisional:
-            found = True
-            parts.append("Provisional:")
-            parts.extend(f"  {item}" for item in provisional[:10])
-        if not landed and not provisional:
-            parts.append("  _No observations yet in this domain._")
-        parts.append("")
+        domain_lines, domain_found = _domain_answer_lines(path, domain)
+        parts.extend(domain_lines)
+        found = found or domain_found
 
     if not found:
         parts.append(

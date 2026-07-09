@@ -99,6 +99,11 @@ class TestCompoundSchema:
         with pytest.raises(PathPolicyError, match="not allowlisted"):
             assert_writable("src/logic/asset_graph.py")
 
+    def test_traversal_path_is_rejected(self) -> None:
+        """Path normalization rejects traversal before allowlist evaluation."""
+        with pytest.raises(PathPolicyError, match="traversal"):
+            assert_writable("docs/compound/../adr/0001.md")
+
     def test_detect_domains_from_paths(self) -> None:
         """Changed paths map to compound domains; empty defaults to architecture."""
         assert detect_domains_from_paths([]) == ("architecture",)

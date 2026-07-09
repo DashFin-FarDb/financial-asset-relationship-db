@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -27,6 +28,8 @@ from compound.schema import (  # noqa: E402
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GH_TIMEOUT_SECONDS = 60
 MAX_PR_LIMIT = 100
+GH_PR_JSON_FIELDS = "number,title,state,mergedAt,updatedAt,labels,files"
+GH_UPDATED_SEARCH_PATTERN = re.compile(r"\A\d{4}-\d{2}-\d{2}\Z")
 
 # Seed docs → primary domain mapping (read-only inputs; never written).
 SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -55,6 +58,31 @@ def _bounded_pr_limit(limit: int) -> int:
     if limit < 1 or limit > MAX_PR_LIMIT:
         raise SchemaError(f"pr_limit must be between 1 and {MAX_PR_LIMIT}")
     return limit
+
+
+def _validated_updated_since(updated_since: str | None) -> str | None:
+    if updated_since is None:
+        return None
+    if not GH_UPDATED_SEARCH_PATTERN.fullmatch(updated_since):
+        raise SchemaError("updated_since must be an ISO date (YYYY-MM-DD)")
+    return updated_since
+
+
+def _gh_pr_list_command(gh_path: str, limit: int, updated_since: str | None = None) -> list[str]:
+    command = [
+        gh_path,
+        "pr",
+        "list",
+        "--state",
+        "all",
+        "--limit",
+        str(_bounded_pr_limit(limit)),
+    ]
+    search_date = _validated_updated_since(updated_since)
+    if search_date is not None:
+        command.extend(["--search", f"updated:>={search_date}"])
+    command.extend(["--json", GH_PR_JSON_FIELDS])
+    return command
 
 
 def seed_from_docs(repo_root: Path) -> list[str]:
@@ -86,28 +114,19 @@ def seed_from_docs(repo_root: Path) -> list[str]:
 
 
 def _gh_pr_list(limit: int, *, updated_since: str | None = None) -> Any | None:
-    bounded_limit = _bounded_pr_limit(limit)
     gh_path = shutil.which("gh")
     if gh_path is None:
         return None
-    json_fields = "number,title,state,mergedAt,updatedAt,labels,files"
-    command = [
-        gh_path,
-        "pr",
-        "list",
-        "--state",
-        "all",
-        "--limit",
-        str(bounded_limit),
-    ]
-    if updated_since is not None:
-        command.extend(["--search", f"updated:>={updated_since}"])
-    command.extend(["--json", json_fields])
+    command = _gh_pr_list_command(gh_path, limit, updated_since)
     try:
+        # bearer:disable python_lang_os_command_injection
+        # The executable is resolved via shutil.which, dynamic args are bounded
+        # and allowlisted, and shell=False prevents shell expansion.
         completed = subprocess.run(
             command,
             check=False,
             capture_output=True,
+            shell=False,
             text=True,
             timeout=GH_TIMEOUT_SECONDS,
         )
@@ -119,6 +138,51 @@ def _gh_pr_list(limit: int, *, updated_since: str | None = None) -> Any | None:
         return json.loads(completed.stdout)
     except json.JSONDecodeError:
         return None
+
+
+def _pr_paths(pr: dict[str, Any]) -> list[str]:
+    paths: list[str] = []
+    for entry in pr.get("files") or []:
+        if isinstance(entry, str):
+            paths.append(entry)
+        elif isinstance(entry, dict) and entry.get("path"):
+            paths.append(str(entry["path"]))
+        elif isinstance(entry, dict) and entry.get("filename"):
+            paths.append(str(entry["filename"]))
+    return paths
+
+
+def _pr_status(pr: dict[str, Any]) -> str:
+    state = str(pr.get("state") or "").upper()
+    merged = bool(pr.get("mergedAt"))
+    if merged or state == "MERGED":
+        return ObservationStatus.LANDED.value
+    return ObservationStatus.PROVISIONAL.value
+
+
+def _pr_observation_payload(pr: dict[str, Any], number: int) -> dict[str, Any]:
+    title = str(pr.get("title") or f"PR #{number}")
+    domains = list(detect_domains_from_paths(_pr_paths(pr)))
+    return {
+        "observation_id": f"bootstrap-pr-{number}",
+        "source": ObservationSource.BOOTSTRAP.value,
+        "event_type": "seed.pull_request",
+        "status": _pr_status(pr),
+        "primary_ref": f"pr:{number}",
+        "summary": title[:240],
+        "domains": domains,
+        "refs": [f"pr:{number}"],
+        "evidence_pointers": [f"github:pr:{number}"],
+        "created_at": _now(),
+    }
+
+
+def _append_pr_observation(repo_root: Path, pr: dict[str, Any]) -> str | None:
+    number = pr.get("number")
+    if not isinstance(number, int):
+        return None
+    _, message = append_observation(_pr_observation_payload(pr, number), repo_root=repo_root)
+    return f"pr:{number}: {message}"
 
 
 def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> list[str]:
@@ -136,37 +200,9 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
 
     messages: list[str] = []
     for pr in data:
-        number = pr.get("number")
-        if not isinstance(number, int):
-            continue
-        state = str(pr.get("state") or "").upper()
-        merged = bool(pr.get("mergedAt"))
-        status = ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
-        title = str(pr.get("title") or f"PR #{number}")
-        file_entries = pr.get("files") or []
-        paths: list[str] = []
-        for entry in file_entries:
-            if isinstance(entry, str):
-                paths.append(entry)
-            elif isinstance(entry, dict) and entry.get("path"):
-                paths.append(str(entry["path"]))
-            elif isinstance(entry, dict) and entry.get("filename"):
-                paths.append(str(entry["filename"]))
-        domains = list(detect_domains_from_paths(paths))
-        payload = {
-            "observation_id": f"bootstrap-pr-{number}",
-            "source": ObservationSource.BOOTSTRAP.value,
-            "event_type": "seed.pull_request",
-            "status": status,
-            "primary_ref": f"pr:{number}",
-            "summary": title[:240],
-            "domains": domains,
-            "refs": [f"pr:{number}"],
-            "evidence_pointers": [f"github:pr:{number}"],
-            "created_at": _now(),
-        }
-        _, message = append_observation(payload, repo_root=repo_root)
-        messages.append(f"pr:{number}: {message}")
+        message = _append_pr_observation(repo_root, pr)
+        if message is not None:
+            messages.append(message)
     return messages
 
 

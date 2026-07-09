@@ -1,6 +1,6 @@
 """Tests for startup reconciliation via RecoveryGate."""
 
-from datetime import UTC
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -8,6 +8,8 @@ import pytest
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock, LockState
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+
+UTC = timezone.utc
 
 
 @pytest.fixture
@@ -33,8 +35,6 @@ def mock_lock():
 
 def _make_orphaned_job(job_id: str) -> RebuildJobORM:
     """Return a stale running rebuild job for startup fail-closed tests."""
-    from datetime import datetime
-
     return RebuildJobORM(
         job_id=job_id,
         requested_by="previous-worker",
@@ -196,8 +196,6 @@ def test_startup_reconciliation_blocks_on_db_error(mock_session_factory, mock_lo
 
 def test_startup_reconciliation_blocks_on_fresh_remote_heartbeat(mock_session_factory, mock_lock):
     """Test that startup reconciliation blocks when remote worker has fresh heartbeat."""
-    from datetime import datetime
-
     # Setup: RUNNING job with different worker but FRESH heartbeat
     remote_job = RebuildJobORM(
         job_id="remote-job-1",

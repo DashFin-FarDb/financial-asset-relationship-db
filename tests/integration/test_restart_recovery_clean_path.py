@@ -1,6 +1,6 @@
 """Clean restart-recovery path using the real lifecycle and persistence seams."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -17,6 +17,7 @@ from tests.integration.facade import (
 )
 
 pytestmark = pytest.mark.integration
+UTC = timezone.utc
 
 
 def _create_stale_running_job(session_factory, *, worker_id: str) -> str:

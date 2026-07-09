@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -16,17 +17,21 @@ from compound.schema import BRIEFS_DIR, DOMAINS, LEDGER_PATH, assert_writable  #
 from compound.synthesize import _latest_by_primary_ref, load_ledger  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+AS_OF_PATTERN = re.compile(r"\A\d{4}-\d{2}-\d{2}\Z")
+
+
+def _brief_stamp(as_of: str | None) -> str:
+    if as_of is None:
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if not AS_OF_PATTERN.fullmatch(as_of):
+        raise ValueError("as_of must be an ISO date (YYYY-MM-DD)")
+    return as_of
 
 
 def render_standing_brief(observations: list, *, as_of: str | None = None) -> str:
     """Render a standing brief markdown document."""
-    stamp = as_of or datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    latest = _latest_by_primary_ref(observations)
-    by_domain: dict[str, list] = defaultdict(list)
-    for obs in latest:
-        for domain in obs.domains:
-            by_domain[domain].append(obs)
-
+    stamp = _brief_stamp(as_of)
+    by_domain = _group_by_domain(observations)
     lines = [
         f"# Standing brief — {stamp}",
         "",
@@ -37,22 +42,32 @@ def render_standing_brief(observations: list, *, as_of: str | None = None) -> st
         "",
     ]
     for domain in DOMAINS:
-        items = by_domain.get(domain, [])
-        lines.append(f"### {domain}")
-        if not items:
-            lines.append("_No changes recorded._")
-            lines.append("")
-            continue
-        for obs in sorted(items, key=lambda item: item.created_at or item.observation_id)[:15]:
-            lines.append(f"- [{obs.status.value}] **{obs.primary_ref}**: {obs.summary}")
-        lines.append("")
+        lines.extend(_render_domain_lines(domain, by_domain.get(domain, [])))
     return "\n".join(lines).rstrip() + "\n"
+
+
+def _group_by_domain(observations: list) -> dict[str, list]:
+    by_domain: dict[str, list] = defaultdict(list)
+    for obs in _latest_by_primary_ref(observations):
+        for domain in obs.domains:
+            by_domain[domain].append(obs)
+    return by_domain
+
+
+def _render_domain_lines(domain: str, items: list) -> list[str]:
+    lines = [f"### {domain}"]
+    if not items:
+        return [*lines, "_No changes recorded._", ""]
+    for obs in sorted(items, key=lambda item: item.created_at or item.observation_id)[:15]:
+        lines.append(f"- [{obs.status.value}] **{obs.primary_ref}**: {obs.summary}")
+    lines.append("")
+    return lines
 
 
 def write_standing_brief(repo_root: Path, *, as_of: str | None = None) -> Path:
     """Write brief file under docs/compound/briefs/."""
     observations = load_ledger(repo_root / LEDGER_PATH)
-    stamp = as_of or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    stamp = _brief_stamp(as_of)
     rel = f"{BRIEFS_DIR.as_posix()}/{stamp}-standing-brief.md"
     assert_writable(rel)
     path = repo_root / rel
@@ -71,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
         path = write_standing_brief(args.repo_root, as_of=args.as_of)
         print(f"wrote: {path.relative_to(args.repo_root).as_posix()}")
         return 0
-    except (OSError, PermissionError) as exc:
+    except (OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 

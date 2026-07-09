@@ -1,6 +1,6 @@
 """Unit tests for AssetGraphRepository distributed lock and latest job methods."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -25,6 +25,8 @@ from src.data.repository import (
     RebuildFailureDetails,
     session_scope,
 )
+
+UTC = timezone.utc
 
 
 def _ensure_utc(dt: datetime) -> datetime:

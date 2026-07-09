@@ -62,3 +62,8 @@ class TestStandingBrief:
         text = render_standing_brief([obs], as_of="2026-07-09")
         assert "[landed]" in text
         assert "architecture" in text
+
+    def test_rejects_non_date_stamp(self) -> None:
+        """Renderer rejects path-like as_of values before building output paths."""
+        with pytest.raises(ValueError, match="YYYY-MM-DD"):
+            render_standing_brief([], as_of="../adr/0001")

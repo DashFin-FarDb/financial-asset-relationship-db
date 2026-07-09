@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Mapping, Sequence
 
 SCHEMA_VERSION = 1
@@ -154,17 +154,21 @@ class PathPolicyError(PermissionError):
 
 
 def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
+    return tuple(_as_str_items(value, field_name))
+
+
+def _as_str_items(value: Any, field_name: str) -> list[str]:
     if value is None:
-        return ()
+        return []
     if isinstance(value, str):
-        return (value,)
+        return [value]
     if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
         items = []
         for item in value:
             if not isinstance(item, str):
                 raise SchemaError(f"{field_name} entries must be strings")
             items.append(item)
-        return tuple(items)
+        return items
     raise SchemaError(f"{field_name} must be a string or list of strings")
 
 
@@ -233,6 +237,31 @@ def parse_observation_line(line: str) -> Observation:
     return observation_from_mapping(payload)
 
 
+def _list_value(data: Mapping[str, Any], key: str) -> list[Any]:
+    value = data[key]
+    if not isinstance(value, list):
+        raise SchemaError("watched-series prs, labels, and path_globs must be lists")
+    return value
+
+
+def _watched_int_list(data: Mapping[str, Any], key: str) -> list[int]:
+    items: list[int] = []
+    for item in _list_value(data, key):
+        if not isinstance(item, int) or isinstance(item, bool):
+            raise SchemaError(f"watched-series {key} must be integers")
+        items.append(item)
+    return items
+
+
+def _watched_str_list(data: Mapping[str, Any], key: str) -> list[str]:
+    items: list[str] = []
+    for item in _list_value(data, key):
+        if not isinstance(item, str):
+            raise SchemaError(f"watched-series {key} must be strings")
+        items.append(item)
+    return items
+
+
 def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     """Validate watched-series YAML/JSON mapping."""
     missing = sorted(REQUIRED_WATCHED_SERIES_KEYS - set(data.keys()))
@@ -243,31 +272,12 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     if not isinstance(version, int) or isinstance(version, bool):
         raise SchemaError("watched-series version must be an integer")
 
-    prs_raw = data["prs"]
-    labels_raw = data["labels"]
-    globs_raw = data["path_globs"]
-    if not isinstance(prs_raw, list) or not isinstance(labels_raw, list) or not isinstance(globs_raw, list):
-        raise SchemaError("watched-series prs, labels, and path_globs must be lists")
-
-    prs: list[int] = []
-    for item in prs_raw:
-        if not isinstance(item, int) or isinstance(item, bool):
-            raise SchemaError("watched-series prs must be integers")
-        prs.append(item)
-
-    labels: list[str] = []
-    for item in labels_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series labels must be strings")
-        labels.append(item)
-
-    path_globs: list[str] = []
-    for item in globs_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series path_globs must be strings")
-        path_globs.append(item)
-
-    return WatchedSeries(version=version, prs=prs, labels=labels, path_globs=path_globs)
+    return WatchedSeries(
+        version=version,
+        prs=_watched_int_list(data, "prs"),
+        labels=_watched_str_list(data, "labels"),
+        path_globs=_watched_str_list(data, "path_globs"),
+    )
 
 
 def normalize_repo_relative(path: str | Path) -> str:
@@ -275,7 +285,14 @@ def normalize_repo_relative(path: str | Path) -> str:
     text = str(path).replace("\\", "/")
     while text.startswith("./"):
         text = text[2:]
-    return text.lstrip("/")
+    parts: list[str] = []
+    for part in PurePosixPath(text.lstrip("/")).parts:
+        if part in {"", "."}:
+            continue
+        if part == "..":
+            raise PathPolicyError("Path traversal is not allowed")
+        parts.append(part)
+    return "/".join(parts)
 
 
 def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
@@ -285,7 +302,10 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     """
     found: list[str] = []
     for raw in paths:
-        normalized = normalize_repo_relative(raw)
+        try:
+            normalized = normalize_repo_relative(raw)
+        except PathPolicyError:
+            continue
         for prefix, domain in _PATH_DOMAIN_RULES:
             if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
                 if domain not in found:

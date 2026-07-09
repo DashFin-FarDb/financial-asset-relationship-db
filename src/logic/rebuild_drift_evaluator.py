@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -27,6 +27,8 @@ if TYPE_CHECKING:
     from src.data.db_models import RebuildJobORM
 
 logger = logging.getLogger(__name__)
+
+UTC = timezone.utc
 
 
 class RebuildDriftEvaluator:
