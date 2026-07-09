@@ -42,7 +42,7 @@ class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
             if callable(attr):
 
                 def _wrapped(*args, **kwargs):
-                    """Thread-safe wrapper for callable attributes."""
+                    """Wrap callable attribute calls in a lock for thread-safe access."""
                     with self._lock:
                         return attr(*args, **kwargs)
 
