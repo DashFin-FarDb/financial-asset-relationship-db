@@ -43,6 +43,7 @@ jobs:
         with:
           path: source
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Checkout knowledge branch
         id: checkout_knowledge
@@ -51,6 +52,7 @@ jobs:
           ref: knowledge/architecture-expert
           path: knowledge
           fetch-depth: 0
+          persist-credentials: false
         continue-on-error: true
 
       - name: Prepare knowledge branch fallback
@@ -65,6 +67,7 @@ jobs:
           ref: main
           path: knowledge
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Ensure knowledge branch exists
         working-directory: knowledge
@@ -185,6 +188,8 @@ jobs:
 
       - name: Commit and push knowledge branch
         working-directory: knowledge
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -196,7 +201,8 @@ jobs:
             exit 0
           fi
           git commit -m "chore(compound): synthesize architecture memory"
-          if ! git push origin HEAD:knowledge/architecture-expert; then
+          PUSH_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if ! git push "$PUSH_URL" HEAD:knowledge/architecture-expert; then
             PYTHONPATH="${GITHUB_WORKSPACE}/source/scripts" python -m compound.append_observation \
               --repo-root "$PWD" \
               --record-push-conflict || true
