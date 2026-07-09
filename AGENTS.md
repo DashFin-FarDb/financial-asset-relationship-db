@@ -342,17 +342,35 @@ GitHub Actions (`.github/workflows/`) include, among others:
 
 - `ci.yml` — primary CI pipeline
 - `hosted-readiness.yml` — manual (`workflow_dispatch`) hosted deployment smoke check (see "Hosted readiness smoke check" above)
-- A range of security/scanner workflows (CodeQL, Bandit, Bearer, Semgrep, Snyk, Trivy, etc.)
+- A range of security/scanner workflows (Bandit, Bearer, Semgrep, Snyk, Trivy, etc.)
 
 ## Cursor Cloud specific instructions
 
 Environment is Linux with Python 3.12 and Node 22 (Cursor Cloud images may update over time). In Cursor Cloud, dependencies (Python `.venv` + `frontend/node_modules`) are refreshed automatically by the platform-managed startup/update process, so you normally only need to start services and run checks. Standard commands live in the "Common commands" section above and in `run-dev.sh`; the notes below only cover non-obvious cloud gotchas.
 
-- **`python` is not on PATH — only `python3`.** `run-dev.sh` and the docs invoke bare `python`, which fails here. If `.venv` already exists, activate it first (`source .venv/bin/activate`, which provides `python`); if you need to create it manually, use `python3 -m venv .venv` (or substitute `python3` in commands).
-- **SQLite `DATABASE_URL` gotcha (backend won't start otherwise):** this repo uses a **custom URL-to-path resolver** in `api/database.py` (`_resolve_file_path`), *not* SQLAlchemy's URL handling. Under that resolver the SQLAlchemy-style `sqlite:///./dev.db` used in the "Common commands" section resolves to the absolute path `/dev.db` (unwritable → `sqlite3.OperationalError: unable to open database file`); likewise `.env.example`'s `sqlite:///./asset_graph.db` → `/asset_graph.db`. So when starting the backend directly, prefer either an explicit writable absolute path (`DATABASE_URL=sqlite:////workspace/dev.db`), the rootless form `DATABASE_URL=sqlite:dev.db` (resolves relative to `$PWD`, i.e. `/workspace/dev.db` when run from the repo root — this is what `run-dev.sh` documents), or `DATABASE_URL=sqlite:///:memory:`.
+- **`python` is not on PATH — only `python3`.** In Cursor Cloud, `run-dev.sh` and some docs invoke bare `python`, which fails unless your venv is activated (`source .venv/bin/activate` provides `python`). If `.venv` does not exist yet, create it first with `python3 -m venv .venv`; otherwise activate the venv or substitute `python3`.
+- **SQLite `DATABASE_URL` gotcha (backend won't start otherwise):** this repo uses a **custom URL-to-path resolver** in `api/database.py` (`_resolve_file_path`), *not* SQLAlchemy URL handling.
+  - **Problem:** SQLAlchemy-style `sqlite:///./dev.db` resolves to `/dev.db` under this resolver and is usually unwritable (`sqlite3.OperationalError: unable to open database file`).
+  - **Known-bad examples:** `sqlite:///./dev.db`, `sqlite:///./asset_graph.db`.
+  - **Recommended values:** `sqlite:dev.db` (repo-relative), `sqlite:///:memory:`, or an explicit writable absolute path such as `sqlite:////absolute/path/dev.db`.
 - **Backend startup env vars:** importing `api.main` needs `DATABASE_URL` and `SECRET_KEY`; if the auth DB is empty (typical for new SQLite files), also set `ADMIN_USERNAME` + `ADMIN_PASSWORD` to seed the first user (otherwise pre-populate the DB). Example working start:
-  `DATABASE_URL=sqlite:dev.db SECRET_KEY=$(openssl rand -hex 32) ADMIN_USERNAME=admin ADMIN_PASSWORD=$(openssl rand -base64 24) python3 -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000`
+  ```bash
+  DATABASE_URL=sqlite:dev.db \
+  SECRET_KEY="$(openssl rand -hex 32)" \
+  ADMIN_USERNAME=admin \
+  ADMIN_PASSWORD="$(openssl rand -base64 24)" \
+  python3 -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+  ```
+  If `openssl` is unavailable, use Python to generate secrets instead:
+  ```bash
+  python3 - <<PY
+  import secrets
+  print("SECRET_KEY=" + secrets.token_hex(32))
+  print("ADMIN_PASSWORD=" + secrets.token_urlsafe(24))
+  PY
+  ```
+  Avoid pasting generated secrets into shared logs/history; prefer a local uncommitted `.env`.
 - **Frontend → backend wiring:** start the frontend with `NEXT_PUBLIC_API_URL=http://localhost:8000` (defaults to that anyway). Public dashboard routes (visualization/metrics/assets) need no login; JWT is only needed for `/api/users/me` and rebuild-admin endpoints (use `/token` to obtain a JWT).
-- **Backend serves sample data by default** (19 assets / 73 relationships); no external DB or `USE_REAL_DATA_FETCHER` needed for local E2E.
-- **`python3-venv` system package** is required to create the venv and is installed during environment setup (not part of the update script).
-- **Known pre-existing test failures (not environment issues):** `tests/unit/test_workflow_yaml_files.py` fails on `codeql.yml` (via `pytest.fail`) because `.github/workflows/codeql.yml` does not exist in the repo. The rest of the suite passes (~7777 passed).
+- **Backend serves sample data by default**; no external DB or `USE_REAL_DATA_FETCHER` needed for local E2E.
+- **Venv package note:** this image uses Python 3.12 and normally has venv support preinstalled. If that changes or setup is skipped, install the versioned package (`python3.12-venv`) manually (for example: `sudo apt-get install python3.12-venv`).
+- **Known pre-existing test failure (not an environment issue):** `tests/unit/test_workflow_yaml_files.py` fails on `codeql.yml` (via `pytest.fail`) because `.github/workflows/codeql.yml` does not exist in the repo.
