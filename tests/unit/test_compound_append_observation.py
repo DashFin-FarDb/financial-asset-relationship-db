@@ -52,11 +52,11 @@ def _base_payload(**overrides: object) -> dict:
 class TestAppendObservation:
     """Append idempotency and writer-mode gates."""
 
-    def test_identical_event_keys_are_idempotent(self, compound_repo: Path) -> None:
-        """Appending two identical event keys results in one observation."""
+    def test_identical_observation_ids_are_idempotent(self, compound_repo: Path) -> None:
+        """Appending two identical observation IDs results in one observation."""
         first, msg1 = append_observation(_base_payload(), repo_root=compound_repo)
         second, msg2 = append_observation(
-            _base_payload(observation_id="obs-2", summary="dup"),
+            _base_payload(summary="dup"),
             repo_root=compound_repo,
         )
         assert first is not None
@@ -71,6 +71,39 @@ class TestAppendObservation:
             if line.strip() and not line.startswith("#")
         ]
         assert len(lines) == 1
+
+    def test_repeat_pr_syncs_with_distinct_observation_ids_append(self, compound_repo: Path) -> None:
+        """Later PR sync observations for the same PR update the ledger."""
+        first, _ = append_observation(
+            _base_payload(
+                observation_id="gh-1-1",
+                event_type="pull_request.synchronize",
+                summary="Initial sync",
+                domains=["api"],
+            ),
+            repo_root=compound_repo,
+        )
+        second, _ = append_observation(
+            _base_payload(
+                observation_id="gh-2-1",
+                event_type="pull_request.synchronize",
+                summary="Updated sync",
+                domains=["persistence"],
+            ),
+            repo_root=compound_repo,
+        )
+        assert first is not None
+        assert second is not None
+        lines = [
+            line
+            for line in (compound_repo / "docs/compound/ledger/observations.jsonl")
+            .read_text(encoding="utf-8")
+            .splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        assert len(lines) == 2
+        assert "Initial sync" in lines[0]
+        assert "Updated sync" in lines[1]
 
     def test_open_pr_emits_provisional(self, compound_repo: Path) -> None:
         """Open PR fixture emits provisional status."""
