@@ -32,6 +32,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1430**: x()   x 
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
 - [provisional] **pr:1427**: x()    
+- [provisional] **pr:1435**: x()  x  w -
 
 ### persistence
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
@@ -46,6 +47,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1430**: x()   x 
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
 - [provisional] **pr:1427**: x()    
+- [provisional] **pr:1435**: x()  x  w -
 
 ### ci-guardrails
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
@@ -72,6 +74,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1424**: fix(ci): clear compound workflow quality gates
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
 - [provisional] **pr:1427**: x()    
+- [provisional] **pr:1435**: x()  x  w -
 
 ### deployment
 _No changes recorded._
