@@ -6,21 +6,20 @@ rebuild/reconciliation, and deployment/readiness.
 - **Canon writer:** `scripts/compound/synthesize.py` only
 - **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)
 - **Knowledge branch:** `knowledge/architecture-expert` (human merge to `main`)
-- **Status:** Every claim is either **landed** (merged to `main` / explicit promotion)
-  or **provisional** (open PR / watched series)
+- **Status:** Every claim is either **landed** or **provisional**
 
 ## Domains
 
-| Domain | Doc |
-|--------|-----|
-| Architecture & seams | [domains/architecture.md](domains/architecture.md) |
-| API contracts | [domains/api.md](domains/api.md) |
-| Persistence / SQL | [domains/persistence.md](domains/persistence.md) |
-| CI / guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) |
-| Rebuild / reconciliation | [domains/rebuild-reconciliation.md](domains/rebuild-reconciliation.md) |
-| Deployment / readiness | [domains/deployment.md](domains/deployment.md) |
+| Domain | Doc | Landed | Provisional |
+|--------|-----|--------|-------------|
+| architecture | [domains/architecture.md](domains/architecture.md) | 0 | 1 |
+| api | [domains/api.md](domains/api.md) | 0 | 0 |
+| persistence | [domains/persistence.md](domains/persistence.md) | 0 | 0 |
+| ci-guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) | 0 | 1 |
+| rebuild-reconciliation | [domains/rebuild-reconciliation.md](domains/rebuild-reconciliation.md) | 0 | 0 |
+| deployment | [domains/deployment.md](domains/deployment.md) | 0 | 0 |
 
 ## Operator notes
 
-See [README.md](README.md) once present (U6). Watched series: [watched-series.yml](watched-series.yml).
+See [README.md](README.md). Watched series: [watched-series.yml](watched-series.yml).
 Runtime writer mode: [runtime.yml](runtime.yml).
