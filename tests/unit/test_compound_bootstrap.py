@@ -84,6 +84,17 @@ class TestCompoundBootstrap:
         messages = scrape_recent_prs(seed_repo)
         assert messages == ["PR scrape skipped: gh unavailable or failed"]
 
+    def test_gh_args_are_bounded_to_pr_listing(self) -> None:
+        """Only the expected bounded gh PR listing command shape is accepted."""
+        from compound import bootstrap as mod
+
+        valid = ["pr", "list", "--state", "all", "--limit", "50", "--json", "number,title"]
+        assert mod._validated_gh_args(valid) == valid  # pylint: disable=protected-access
+        assert mod._validated_gh_args(["api", "repos/example"]) is None  # pylint: disable=protected-access
+        assert (  # pylint: disable=protected-access
+            mod._validated_gh_args(["pr", "list", "--state", "all", "--limit", "101", "--json", "number"]) is None
+        )
+
     def test_scrape_maps_domains_from_pr_files(self, seed_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Bootstrap PR scrape classifies domains from changed file paths."""
         from compound import bootstrap as mod
