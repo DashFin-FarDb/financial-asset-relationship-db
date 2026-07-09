@@ -140,15 +140,17 @@ def _observation_status_for_pr(pr: dict[str, Any]) -> str:
 
 def _paths_from_pr_files(file_entries: Any) -> list[str]:
     """Extract changed paths from gh's PR file payload variants."""
-    paths: list[str] = []
-    for entry in file_entries or []:
-        if isinstance(entry, str):
-            paths.append(entry)
-        elif isinstance(entry, dict):
-            path = entry.get("path") or entry.get("filename")
-            if path:
-                paths.append(str(path))
-    return paths
+    return [path for entry in file_entries or [] if (path := _path_from_pr_file_entry(entry)) is not None]
+
+
+def _path_from_pr_file_entry(entry: Any) -> str | None:
+    """Extract one path from a gh PR file entry variant."""
+    if isinstance(entry, str):
+        return entry
+    if not isinstance(entry, dict):
+        return None
+    path = entry.get("path") or entry.get("filename")
+    return str(path) if path else None
 
 
 def _payload_from_pr(pr: dict[str, Any], number: int) -> dict[str, Any]:

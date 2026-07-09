@@ -77,6 +77,14 @@ class WriterMode(str, Enum):
 
 
 REQUIRED_WATCHED_SERIES_KEYS: frozenset[str] = frozenset({"version", "prs", "labels", "path_globs"})
+REQUIRED_OBSERVATION_FIELDS: tuple[str, ...] = (
+    "observation_id",
+    "source",
+    "event_type",
+    "status",
+    "primary_ref",
+    "summary",
+)
 
 # Path-prefix → domain mapping for live PR / bootstrap classification.
 _PATH_DOMAIN_RULES: tuple[tuple[str, str], ...] = (
@@ -205,39 +213,51 @@ def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
     return tuple(normalized)
 
 
-def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
-    """Parse and validate an observation mapping."""
-    required = (
-        "observation_id",
-        "source",
-        "event_type",
-        "status",
-        "primary_ref",
-        "summary",
-    )
-    missing = [key for key in required if key not in data or data[key] in (None, "")]
-    if missing:
-        raise SchemaError(f"Missing required observation fields: {', '.join(missing)}")
+def _missing_required_fields(data: Mapping[str, Any], required: Iterable[str]) -> list[str]:
+    """Return required keys that are absent or empty."""
+    return [key for key in required if key not in data or data[key] in (None, "")]
 
+
+def _observation_source(value: Any) -> ObservationSource:
+    """Validate and return an observation source enum."""
     try:
-        source = ObservationSource(str(data["source"]))
-        status = ObservationStatus(str(data["status"]))
+        return ObservationSource(str(value))
     except ValueError as exc:
         raise SchemaError(str(exc)) from exc
 
-    domains = validate_domains(_as_str_tuple(data.get("domains"), "domains"))
-    schema_version = int(data.get("schema_version", SCHEMA_VERSION))
+
+def _observation_status(value: Any) -> ObservationStatus:
+    """Validate and return an observation status enum."""
+    try:
+        return ObservationStatus(str(value))
+    except ValueError as exc:
+        raise SchemaError(str(exc)) from exc
+
+
+def _schema_version(value: Any) -> int:
+    """Validate and return the observation schema version."""
+    schema_version = int(value)
     if schema_version != SCHEMA_VERSION:
         raise SchemaError(f"Unsupported schema_version {schema_version}; expected {SCHEMA_VERSION}")
+    return schema_version
+
+
+def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
+    """Parse and validate an observation mapping."""
+    missing = _missing_required_fields(data, REQUIRED_OBSERVATION_FIELDS)
+    if missing:
+        raise SchemaError(f"Missing required observation fields: {', '.join(missing)}")
+
+    schema_version = _schema_version(data.get("schema_version", SCHEMA_VERSION))
 
     return Observation(
         observation_id=str(data["observation_id"]),
-        source=source,
+        source=_observation_source(data["source"]),
         event_type=str(data["event_type"]),
-        status=status,
+        status=_observation_status(data["status"]),
         primary_ref=str(data["primary_ref"]),
         summary=str(data["summary"]),
-        domains=domains,
+        domains=validate_domains(_as_str_tuple(data.get("domains"), "domains")),
         refs=_as_str_tuple(data.get("refs"), "refs"),
         evidence_pointers=_as_str_tuple(data.get("evidence_pointers"), "evidence_pointers"),
         created_at=str(data.get("created_at") or ""),
@@ -297,22 +317,44 @@ def normalize_repo_relative(path: str | Path) -> str:
     return "/".join(parts)
 
 
+def _append_once(items: list[str], value: str) -> None:
+    """Append a string only when it is not already present."""
+    if value not in items:
+        items.append(value)
+
+
+def _matches_domain_prefix(normalized: str, prefix: str) -> bool:
+    """Return True when a normalized path matches a domain prefix rule."""
+    return normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}"
+
+
+def _domain_for_path(normalized: str) -> str | None:
+    """Return the first configured domain for a normalized path."""
+    for prefix, domain in _PATH_DOMAIN_RULES:
+        if _matches_domain_prefix(normalized, prefix):
+            return domain
+    return None
+
+
+def _iter_normalized_domain_paths(paths: Iterable[str]) -> Iterable[str]:
+    """Yield normalized paths, skipping entries rejected by path policy."""
+    for raw in paths:
+        try:
+            yield normalize_repo_relative(raw)
+        except PathPolicyError:
+            continue
+
+
 def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     """Map changed file paths to compound domains.
 
     Returns at least ``("architecture",)`` when no path matches a rule.
     """
     found: list[str] = []
-    for raw in paths:
-        try:
-            normalized = normalize_repo_relative(raw)
-        except PathPolicyError:
-            continue
-        for prefix, domain in _PATH_DOMAIN_RULES:
-            if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
-                if domain not in found:
-                    found.append(domain)
-                break
+    for normalized in _iter_normalized_domain_paths(paths):
+        domain = _domain_for_path(normalized)
+        if domain is not None:
+            _append_once(found, domain)
     return tuple(found) if found else ("architecture",)
 
 

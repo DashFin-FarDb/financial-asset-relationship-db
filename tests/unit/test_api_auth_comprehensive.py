@@ -352,96 +352,64 @@ class TestDecodeUsernameFromToken:
         exp_exc = _build_expired_exception()
         return cred_exc, exp_exc
 
-    def test_valid_token_returns_username(self):
-        """A valid token with a 'sub' claim returns that claim value."""
-        from datetime import datetime, timedelta
+    def _exp_timestamp(self, *, minutes_from_now: int) -> float:
+        """Return an expiration timestamp relative to now."""
+        return (datetime.now(timezone.utc) + timedelta(minutes=minutes_from_now)).timestamp()
 
-        payload = {
-            "sub": "alice",
-            "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp(),
-        }
-        token = self._make_token(payload)
+    def _payload(self, username: str | None, *, minutes_from_now: int = 30) -> dict:
+        """Build a token payload with optional subject and relative expiration."""
+        payload = {"exp": self._exp_timestamp(minutes_from_now=minutes_from_now)}
+        if username is not None:
+            payload["sub"] = username
+        return payload
+
+    def _decode_payload(self, payload: dict) -> str:
+        """Encode and decode a payload through _decode_username_from_token."""
         cred_exc, exp_exc = self._make_exceptions()
-
-        username = _decode_username_from_token(
-            token=token,
+        return _decode_username_from_token(
+            token=self._make_token(payload),
             credentials_exception=cred_exc,
             expired_exception=exp_exc,
         )
-        assert username == "alice"
+
+    def _assert_decode_raises(self, token: str, expected_detail: str) -> None:
+        """Assert that token decoding raises the expected HTTPException detail."""
+        cred_exc, exp_exc = self._make_exceptions()
+        with pytest.raises(HTTPException) as exc_info:
+            _decode_username_from_token(
+                token=token,
+                credentials_exception=cred_exc,
+                expired_exception=exp_exc,
+            )
+        assert exc_info.value.detail == expected_detail
+
+    def test_valid_token_returns_username(self):
+        """A valid token with a 'sub' claim returns that claim value."""
+        assert self._decode_payload(self._payload("alice")) == "alice"
 
     def test_missing_sub_raises_credentials_exception(self):
         """A token without a 'sub' claim raises the credentials exception."""
-        from datetime import datetime, timedelta
-
-        payload = {"exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
-        token = self._make_token(payload)
-        cred_exc, exp_exc = self._make_exceptions()
-
-        with pytest.raises(HTTPException) as exc_info:
-            _decode_username_from_token(
-                token=token,
-                credentials_exception=cred_exc,
-                expired_exception=exp_exc,
-            )
-        assert exc_info.value.detail == "Could not validate credentials"
+        token = self._make_token(self._payload(None))
+        self._assert_decode_raises(token, "Could not validate credentials")
 
     def test_expired_token_raises_expired_exception(self):
         """An expired token raises the expired exception."""
-        from datetime import datetime, timedelta
-
-        payload = {
-            "sub": "bob",
-            "exp": (datetime.now(timezone.utc) - timedelta(minutes=10)).timestamp(),
-        }
-        token = self._make_token(payload)
-        cred_exc, exp_exc = self._make_exceptions()
-
-        with pytest.raises(HTTPException) as exc_info:
-            _decode_username_from_token(
-                token=token,
-                credentials_exception=cred_exc,
-                expired_exception=exp_exc,
-            )
-        assert exc_info.value.detail == "Token has expired"
+        token = self._make_token(self._payload("bob", minutes_from_now=-10))
+        self._assert_decode_raises(token, "Token has expired")
 
     def test_invalid_token_string_raises_credentials_exception(self):
         """A completely invalid token string raises the credentials exception."""
-        cred_exc, exp_exc = self._make_exceptions()
-
-        with pytest.raises(HTTPException) as exc_info:
-            _decode_username_from_token(
-                token="not.a.valid.jwt",
-                credentials_exception=cred_exc,
-                expired_exception=exp_exc,
-            )
-        assert exc_info.value.detail == "Could not validate credentials"
+        self._assert_decode_raises("not.a.valid.jwt", "Could not validate credentials")
 
     def test_tampered_token_raises_credentials_exception(self):
         """A token with an invalid signature raises the credentials exception."""
-        from datetime import datetime, timedelta
-
-        payload = {"sub": "eve", "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
+        payload = self._payload("eve")
         token = jwt.encode(payload, "wrong-secret-that-is-at-least-32-bytes-long", algorithm=ALGORITHM)
-        cred_exc, exp_exc = self._make_exceptions()
-
-        with pytest.raises(HTTPException) as exc_info:
-            _decode_username_from_token(
-                token=token,
-                credentials_exception=cred_exc,
-                expired_exception=exp_exc,
-            )
-        assert exc_info.value.detail == "Could not validate credentials"
+        self._assert_decode_raises(token, "Could not validate credentials")
 
     def test_return_type_is_string(self):
         """The return value is always a plain str."""
-        from datetime import datetime, timedelta
-
-        payload = {"sub": "charlie", "exp": (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()}
-        token = self._make_token(payload)
-        cred_exc, exp_exc = self._make_exceptions()
-
-        result = _decode_username_from_token(token=token, credentials_exception=cred_exc, expired_exception=exp_exc)
+        result = self._decode_payload(self._payload("charlie"))
         assert isinstance(result, str)
 
 
