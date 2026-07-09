@@ -39,7 +39,7 @@ jobs:
         run: pip install bandit[sarif]
       - name: Run Bandit Scan
         continue-on-error: true
-        run: bandit -r . -f sarif -o bandit-results.sarif
+        run: bandit -r . -c pyproject.toml -f sarif -o bandit-results.sarif
       - name: Upload artifact
         if: always()
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1

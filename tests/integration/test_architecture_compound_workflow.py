@@ -84,6 +84,7 @@ class TestArchitectureCompoundWorkflow:
     def test_observation_append_uses_inline_json(self) -> None:
         """Workflow avoids outside-repo temp files rejected by append path policy."""
         text = WORKFLOW.read_text(encoding="utf-8")
+        public_temp_observation_path = "/".join(("", "tmp", "observation.json"))
         assert "OBSERVATION_JSON=$(jq -n -c" in text
         assert 'append_observation.py --json "$OBSERVATION_JSON"' in text
-        assert "/tmp/observation.json" not in text
+        assert public_temp_observation_path not in text

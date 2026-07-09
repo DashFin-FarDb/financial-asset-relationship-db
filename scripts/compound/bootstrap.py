@@ -141,16 +141,23 @@ def _observation_status_for_pr(pr: dict[str, Any]) -> str:
     return ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
 
 
+def _path_from_pr_file_entry(entry: Any) -> str | None:
+    """Extract one repo path from a gh PR file payload entry."""
+    if isinstance(entry, str):
+        return entry
+    if not isinstance(entry, dict):
+        return None
+    path = entry.get("path") or entry.get("filename")
+    return str(path) if path else None
+
+
 def _paths_from_pr_files(file_entries: Any) -> list[str]:
     """Extract changed paths from gh's PR file payload variants."""
     paths: list[str] = []
     for entry in file_entries or []:
-        if isinstance(entry, str):
-            paths.append(entry)
-        elif isinstance(entry, dict):
-            path = entry.get("path") or entry.get("filename")
-            if path:
-                paths.append(str(path))
+        path = _path_from_pr_file_entry(entry)
+        if path is not None:
+            paths.append(path)
     return paths
 
 

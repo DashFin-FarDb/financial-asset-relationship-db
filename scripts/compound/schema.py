@@ -77,6 +77,14 @@ class WriterMode(str, Enum):
 
 
 REQUIRED_WATCHED_SERIES_KEYS: frozenset[str] = frozenset({"version", "prs", "labels", "path_globs"})
+REQUIRED_OBSERVATION_FIELDS: tuple[str, ...] = (
+    "observation_id",
+    "source",
+    "event_type",
+    "status",
+    "primary_ref",
+    "summary",
+)
 
 # Path-prefix → domain mapping for live PR / bootstrap classification.
 _PATH_DOMAIN_RULES: tuple[tuple[str, str], ...] = (
@@ -205,30 +213,36 @@ def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
     return tuple(normalized)
 
 
-def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
-    """Parse and validate an observation mapping."""
-    required = (
-        "observation_id",
-        "source",
-        "event_type",
-        "status",
-        "primary_ref",
-        "summary",
-    )
-    missing = [key for key in required if key not in data or data[key] in (None, "")]
-    if missing:
-        raise SchemaError(f"Missing required observation fields: {', '.join(missing)}")
+def _missing_required_observation_fields(data: Mapping[str, Any]) -> tuple[str, ...]:
+    """Return required observation fields absent from a mapping."""
+    return tuple(key for key in REQUIRED_OBSERVATION_FIELDS if key not in data or data[key] in (None, ""))
 
+
+def _observation_enums_from_mapping(data: Mapping[str, Any]) -> tuple[ObservationSource, ObservationStatus]:
+    """Parse observation enum fields."""
     try:
-        source = ObservationSource(str(data["source"]))
-        status = ObservationStatus(str(data["status"]))
+        return ObservationSource(str(data["source"])), ObservationStatus(str(data["status"]))
     except ValueError as exc:
         raise SchemaError(str(exc)) from exc
 
-    domains = validate_domains(_as_str_tuple(data.get("domains"), "domains"))
+
+def _schema_version_from_mapping(data: Mapping[str, Any]) -> int:
+    """Validate an observation schema version."""
     schema_version = int(data.get("schema_version", SCHEMA_VERSION))
     if schema_version != SCHEMA_VERSION:
         raise SchemaError(f"Unsupported schema_version {schema_version}; expected {SCHEMA_VERSION}")
+    return schema_version
+
+
+def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
+    """Parse and validate an observation mapping."""
+    missing = _missing_required_observation_fields(data)
+    if missing:
+        raise SchemaError(f"Missing required observation fields: {', '.join(missing)}")
+
+    source, status = _observation_enums_from_mapping(data)
+    domains = validate_domains(_as_str_tuple(data.get("domains"), "domains"))
+    schema_version = _schema_version_from_mapping(data)
 
     return Observation(
         observation_id=str(data["observation_id"]),
@@ -297,6 +311,21 @@ def normalize_repo_relative(path: str | Path) -> str:
     return "/".join(parts)
 
 
+def _domain_for_path(normalized_path: str) -> str | None:
+    """Return the first compound domain matched by a normalized repo path."""
+    normalized_with_slash = f"/{normalized_path}"
+    for prefix, domain in _PATH_DOMAIN_RULES:
+        if normalized_path.startswith(prefix) or f"/{prefix}" in normalized_with_slash:
+            return domain
+    return None
+
+
+def _append_domain_once(domains: list[str], domain: str | None) -> None:
+    """Append a domain to the accumulator if present and not already included."""
+    if domain is not None and domain not in domains:
+        domains.append(domain)
+
+
 def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     """Map changed file paths to compound domains.
 
@@ -308,11 +337,7 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
             normalized = normalize_repo_relative(raw)
         except PathPolicyError:
             continue
-        for prefix, domain in _PATH_DOMAIN_RULES:
-            if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
-                if domain not in found:
-                    found.append(domain)
-                break
+        _append_domain_once(found, _domain_for_path(normalized))
     return tuple(found) if found else ("architecture",)
 
 

@@ -174,6 +174,63 @@ def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
     return keys
 
 
+def _payload_with_defaults(
+    data: Mapping[str, Any],
+    source_override: ObservationSource | None,
+) -> dict[str, Any]:
+    """Copy an observation payload and fill generated fields."""
+    payload = dict(data)
+    if source_override is not None:
+        payload["source"] = source_override.value
+    if not payload.get("observation_id"):
+        payload["observation_id"] = f"obs-{uuid4().hex[:12]}"
+    if not payload.get("created_at"):
+        payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return payload
+
+
+def _writer_mode_blocks_cursor_emit(
+    writer_mode: WriterMode,
+    observation: Observation,
+    *,
+    allow_cursor_when_github_only: bool,
+) -> bool:
+    """Return True when github_only mode should no-op a Cursor observation."""
+    return (
+        writer_mode is WriterMode.GITHUB_ONLY
+        and observation.source is ObservationSource.CURSOR
+        and not allow_cursor_when_github_only
+    )
+
+
+def _github_only_message() -> str:
+    """Return the no-op message for cursor emits under github_only mode."""
+    return (
+        "writer_mode=github_only: Cursor continuous emit no-ops; "
+        "use workflow_dispatch or a PR that lands through GitHub"
+    )
+
+
+def _ensure_ledger_header(ledger_path: Path) -> None:
+    """Create a new ledger with its fixed header if needed."""
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    if ledger_path.exists():
+        return
+    ledger_path.write_text(
+        "# Architecture Expert observation ledger (JSONL, append-only).\n"
+        "# schema_version=1 — see scripts/compound/schema.py\n",
+        encoding="utf-8",
+    )
+
+
+def _append_ledger_line(ledger_path: Path, observation: Observation) -> None:
+    """Append one serialized observation line to the ledger."""
+    _ensure_ledger_header(ledger_path)
+    with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
+        handle.write(observation.to_json_line())
+        handle.write("\n")
+
+
 def append_observation(
     data: Mapping[str, Any],
     *,
@@ -190,44 +247,20 @@ def append_observation(
     assert_writable(ledger_rel)
     ledger_path = _repo_path(LEDGER_PATH, root)
 
-    payload = dict(data)
-    if source_override is not None:
-        payload["source"] = source_override.value
-    if not payload.get("observation_id"):
-        payload["observation_id"] = f"obs-{uuid4().hex[:12]}"
-    if not payload.get("created_at"):
-        payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    observation = observation_from_mapping(payload)
-
+    observation = observation_from_mapping(_payload_with_defaults(data, source_override))
     writer_mode = read_writer_mode(root)
-    if (
-        writer_mode is WriterMode.GITHUB_ONLY
-        and observation.source is ObservationSource.CURSOR
-        and not allow_cursor_when_github_only
+    if _writer_mode_blocks_cursor_emit(
+        writer_mode,
+        observation,
+        allow_cursor_when_github_only=allow_cursor_when_github_only,
     ):
-        return (
-            None,
-            "writer_mode=github_only: Cursor continuous emit no-ops; "
-            "use workflow_dispatch or a PR that lands through GitHub",
-        )
+        return None, _github_only_message()
 
     existing = load_existing_dedupe_keys(ledger_path)
     if observation.dedupe_key() in existing:
         return None, f"idempotent-no-op for {observation.dedupe_key()}"
 
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    if not ledger_path.exists():
-        ledger_path.write_text(
-            "# Architecture Expert observation ledger (JSONL, append-only).\n"
-            "# schema_version=1 — see scripts/compound/schema.py\n",
-            encoding="utf-8",
-        )
-
-    with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
-        handle.write(observation.to_json_line())
-        handle.write("\n")
-
+    _append_ledger_line(ledger_path, observation)
     return observation, f"appended {observation.observation_id}"
 
 
