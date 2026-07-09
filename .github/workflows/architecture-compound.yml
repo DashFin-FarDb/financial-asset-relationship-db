@@ -38,9 +38,11 @@ jobs:
     permissions:
       contents: write
       pull-requests: read
+    env:
+      COMPOUND_APPEND_OBSERVATION: scripts/compound/append_observation.py
     steps:
       - name: Checkout knowledge branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: knowledge/architecture-expert
           fetch-depth: 0
@@ -56,7 +58,7 @@ jobs:
           fi
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
 
@@ -123,7 +125,7 @@ jobs:
               refs: [$primary_ref],
               evidence_pointers: [$primary_ref]
             }' > /tmp/observation.json
-          python scripts/compound/append_observation.py --file /tmp/observation.json
+          python "$COMPOUND_APPEND_OBSERVATION" --file /tmp/observation.json
           echo "FORCE_SYNTH=$FORCE_SYNTH" >> "$GITHUB_ENV"
           echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"
 
@@ -152,7 +154,7 @@ jobs:
           fi
           git commit -m "chore(compound): synthesize architecture memory"
           if ! git push origin HEAD:knowledge/architecture-expert; then
-            python scripts/compound/append_observation.py --record-push-conflict || true
+            python "$COMPOUND_APPEND_OBSERVATION" --record-push-conflict || true
             echo "Push to knowledge branch failed; recorded conflict for hybrid backup"
             exit 1
           fi
