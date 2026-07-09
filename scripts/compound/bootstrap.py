@@ -26,8 +26,7 @@ from compound.schema import (  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 GH_PR_JSON_FIELDS = "number,title,state,mergedAt,updatedAt,labels,files"
-MIN_PR_LIMIT = 1
-MAX_PR_LIMIT = 100
+GH_PR_LIMIT = "50"
 MIN_LOOKBACK_DAYS = 1
 MAX_LOOKBACK_DAYS = 365
 
@@ -62,24 +61,28 @@ def seed_from_docs(repo_root: Path) -> list[str]:
         if not path.exists():
             messages.append(f"skip missing seed doc: {rel_path}")
             continue
-        for domain in domains:
-            if domain not in DOMAINS:
-                raise SchemaError(f"Invalid seed domain {domain}")
-        payload = {
-            "observation_id": f"bootstrap-doc-{Path(rel_path).stem}",
-            "source": ObservationSource.BOOTSTRAP.value,
-            "event_type": "seed.doc",
-            "status": ObservationStatus.LANDED.value,
-            "primary_ref": f"doc:{rel_path}",
-            "summary": f"Bootstrap seed from {rel_path}",
-            "domains": list(domains),
-            "refs": [rel_path],
-            "evidence_pointers": [rel_path],
-            "created_at": _now(),
-        }
-        _, message = append_observation(payload, repo_root=repo_root)
+        _, message = append_observation(_seed_doc_payload(rel_path, domains), repo_root=repo_root)
         messages.append(f"{rel_path}: {message}")
     return messages
+
+
+def _seed_doc_payload(rel_path: str, domains: tuple[str, ...]) -> dict[str, Any]:
+    """Build a landed seed-doc observation payload."""
+    invalid = [domain for domain in domains if domain not in DOMAINS]
+    if invalid:
+        raise SchemaError(f"Invalid seed domain {invalid[0]}")
+    return {
+        "observation_id": f"bootstrap-doc-{Path(rel_path).stem}",
+        "source": ObservationSource.BOOTSTRAP.value,
+        "event_type": "seed.doc",
+        "status": ObservationStatus.LANDED.value,
+        "primary_ref": f"doc:{rel_path}",
+        "summary": f"Bootstrap seed from {rel_path}",
+        "domains": list(domains),
+        "refs": [rel_path],
+        "evidence_pointers": [rel_path],
+        "created_at": _now(),
+    }
 
 
 def _bounded_int(value: int, *, minimum: int, maximum: int) -> int:
@@ -87,19 +90,19 @@ def _bounded_int(value: int, *, minimum: int, maximum: int) -> int:
     return min(max(value, minimum), maximum)
 
 
-def _gh_pr_list_json(*, limit: int, cutoff: str | None = None) -> Any | None:
+def _gh_pr_list_json(*, cutoff: str | None = None) -> Any | None:
     """Run the single allowlisted gh command used by bootstrap PR scraping."""
     gh_path = shutil.which("gh")
     if gh_path is None:
         return None
-    command = [
+    command: list[str] = [
         gh_path,
         "pr",
         "list",
         "--state",
         "all",
         "--limit",
-        str(_bounded_int(limit, minimum=MIN_PR_LIMIT, maximum=MAX_PR_LIMIT)),
+        GH_PR_LIMIT,
     ]
     if cutoff is not None:
         command.extend(["--search", f"updated:>={cutoff}"])
@@ -122,61 +125,70 @@ def _gh_pr_list_json(*, limit: int, cutoff: str | None = None) -> Any | None:
         return None
 
 
-def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> list[str]:
+def _pr_file_paths(pr: dict[str, Any]) -> list[str]:
+    """Extract changed paths from gh PR JSON across gh output shapes."""
+    paths: list[str] = []
+    for entry in pr.get("files") or []:
+        if isinstance(entry, str):
+            paths.append(entry)
+        elif isinstance(entry, dict):
+            path = entry.get("path") or entry.get("filename")
+            if path:
+                paths.append(str(path))
+    return paths
+
+
+def _pr_payload(pr: dict[str, Any]) -> dict[str, Any] | None:
+    """Build a bootstrap observation payload from one gh PR JSON object."""
+    number = pr.get("number")
+    if not isinstance(number, int):
+        return None
+    state = str(pr.get("state") or "").upper()
+    merged = bool(pr.get("mergedAt"))
+    status = ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
+    return {
+        "observation_id": f"bootstrap-pr-{number}",
+        "source": ObservationSource.BOOTSTRAP.value,
+        "event_type": "seed.pull_request",
+        "status": status,
+        "primary_ref": f"pr:{number}",
+        "summary": str(pr.get("title") or f"PR #{number}")[:240],
+        "domains": list(detect_domains_from_paths(_pr_file_paths(pr))),
+        "refs": [f"pr:{number}"],
+        "evidence_pointers": [f"github:pr:{number}"],
+        "created_at": _now(),
+    }
+
+
+def scrape_recent_prs(repo_root: Path, *, days: int = 30) -> list[str]:
     """Bounded PR scrape via gh; non-fatal when gh is unavailable.
 
-    Prefers PRs updated within ``days`` (plan A9); falls back to last ``limit``
+    Prefers PRs updated within ``days`` (plan A9); falls back to last fixed-limit
     PRs when the search filter is unsupported.
     """
     bounded_days = _bounded_int(days, minimum=MIN_LOOKBACK_DAYS, maximum=MAX_LOOKBACK_DAYS)
     cutoff = (datetime.now(timezone.utc) - timedelta(days=bounded_days)).strftime("%Y-%m-%d")
-    data = _gh_pr_list_json(limit=limit, cutoff=cutoff)
+    data = _gh_pr_list_json(cutoff=cutoff)
     if data is None:
-        data = _gh_pr_list_json(limit=limit)
+        data = _gh_pr_list_json()
     if data is None:
         return ["PR scrape skipped: gh unavailable or failed"]
 
     messages: list[str] = []
     for pr in data:
-        number = pr.get("number")
-        if not isinstance(number, int):
+        payload = _pr_payload(pr)
+        if payload is None:
             continue
-        state = str(pr.get("state") or "").upper()
-        merged = bool(pr.get("mergedAt"))
-        status = ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
-        title = str(pr.get("title") or f"PR #{number}")
-        file_entries = pr.get("files") or []
-        paths: list[str] = []
-        for entry in file_entries:
-            if isinstance(entry, str):
-                paths.append(entry)
-            elif isinstance(entry, dict) and entry.get("path"):
-                paths.append(str(entry["path"]))
-            elif isinstance(entry, dict) and entry.get("filename"):
-                paths.append(str(entry["filename"]))
-        domains = list(detect_domains_from_paths(paths))
-        payload = {
-            "observation_id": f"bootstrap-pr-{number}",
-            "source": ObservationSource.BOOTSTRAP.value,
-            "event_type": "seed.pull_request",
-            "status": status,
-            "primary_ref": f"pr:{number}",
-            "summary": title[:240],
-            "domains": domains,
-            "refs": [f"pr:{number}"],
-            "evidence_pointers": [f"github:pr:{number}"],
-            "created_at": _now(),
-        }
         _, message = append_observation(payload, repo_root=repo_root)
-        messages.append(f"pr:{number}: {message}")
+        messages.append(f"{payload['primary_ref']}: {message}")
     return messages
 
 
-def run_bootstrap(repo_root: Path, *, scrape_prs: bool = True, pr_limit: int = 50) -> list[str]:
+def run_bootstrap(repo_root: Path, *, scrape_prs: bool = True) -> list[str]:
     """Run doc seed then optional bounded PR scrape."""
     messages = seed_from_docs(repo_root)
     if scrape_prs:
-        messages.extend(scrape_recent_prs(repo_root, limit=pr_limit))
+        messages.extend(scrape_recent_prs(repo_root))
     return messages
 
 
@@ -185,10 +197,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
     parser.add_argument("--no-prs", action="store_true", help="Skip gh PR scrape")
-    parser.add_argument("--pr-limit", type=int, default=50)
     args = parser.parse_args(argv)
     try:
-        for line in run_bootstrap(args.repo_root, scrape_prs=not args.no_prs, pr_limit=args.pr_limit):
+        for line in run_bootstrap(args.repo_root, scrape_prs=not args.no_prs):
             print(line)
         return 0
     except (SchemaError, OSError) as exc:

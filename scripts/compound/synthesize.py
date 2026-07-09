@@ -94,17 +94,18 @@ def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]
     by_ref: dict[str, Observation] = {}
     for obs in observations:
         existing = by_ref.get(obs.primary_ref)
-        if existing is None:
-            by_ref[obs.primary_ref] = obs
-            continue
-        if obs.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
-            by_ref[obs.primary_ref] = obs
-            continue
-        if obs.created_at >= existing.created_at and not (
-            existing.status is ObservationStatus.LANDED and obs.status is ObservationStatus.PROVISIONAL
-        ):
+        if existing is None or _should_replace_observation(existing, obs):
             by_ref[obs.primary_ref] = obs
     return list(by_ref.values())
+
+
+def _should_replace_observation(existing: Observation, candidate: Observation) -> bool:
+    """Return True when candidate is the better latest observation for a ref."""
+    if candidate.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
+        return True
+    if existing.status is ObservationStatus.LANDED and candidate.status is ObservationStatus.PROVISIONAL:
+        return False
+    return candidate.created_at >= existing.created_at
 
 
 def _render_section(title: str, items: list[Observation]) -> str:

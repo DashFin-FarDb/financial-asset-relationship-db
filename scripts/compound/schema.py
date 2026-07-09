@@ -153,18 +153,19 @@ class PathPolicyError(PermissionError):
     """Raised when a write target violates allowlist/denylist policy."""
 
 
-def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
+def _as_str_list(value: Any, field_name: str) -> list[str]:
+    """Coerce a string or string sequence into a list."""
     if value is None:
-        return ()
+        return []
     if isinstance(value, str):
-        return (value,)
+        return [value]
     if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
         items = []
         for item in value:
             if not isinstance(item, str):
                 raise SchemaError(f"{field_name} entries must be strings")
             items.append(item)
-        return tuple(items)
+        return items
     raise SchemaError(f"{field_name} must be a string or list of strings")
 
 
@@ -199,7 +200,7 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
     except ValueError as exc:
         raise SchemaError(str(exc)) from exc
 
-    domains = validate_domains(_as_str_tuple(data.get("domains"), "domains"))
+    domains = validate_domains(_as_str_list(data.get("domains"), "domains"))
     schema_version = int(data.get("schema_version", SCHEMA_VERSION))
     if schema_version != SCHEMA_VERSION:
         raise SchemaError(f"Unsupported schema_version {schema_version}; expected {SCHEMA_VERSION}")
@@ -212,8 +213,8 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
         primary_ref=str(data["primary_ref"]),
         summary=str(data["summary"]),
         domains=domains,
-        refs=_as_str_tuple(data.get("refs"), "refs"),
-        evidence_pointers=_as_str_tuple(data.get("evidence_pointers"), "evidence_pointers"),
+        refs=tuple(_as_str_list(data.get("refs"), "refs")),
+        evidence_pointers=tuple(_as_str_list(data.get("evidence_pointers"), "evidence_pointers")),
         created_at=str(data.get("created_at") or ""),
         schema_version=schema_version,
     )
@@ -243,31 +244,35 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     if not isinstance(version, int) or isinstance(version, bool):
         raise SchemaError("watched-series version must be an integer")
 
-    prs_raw = data["prs"]
-    labels_raw = data["labels"]
-    globs_raw = data["path_globs"]
-    if not isinstance(prs_raw, list) or not isinstance(labels_raw, list) or not isinstance(globs_raw, list):
-        raise SchemaError("watched-series prs, labels, and path_globs must be lists")
+    return WatchedSeries(
+        version=version,
+        prs=_int_list(data["prs"], "prs"),
+        labels=_str_list(data["labels"], "labels"),
+        path_globs=_str_list(data["path_globs"], "path_globs"),
+    )
 
-    prs: list[int] = []
-    for item in prs_raw:
-        if not isinstance(item, int) or isinstance(item, bool):
-            raise SchemaError("watched-series prs must be integers")
-        prs.append(item)
 
-    labels: list[str] = []
-    for item in labels_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series labels must be strings")
-        labels.append(item)
+def _require_list(value: Any, field_name: str) -> list[Any]:
+    """Return a watched-series list field or raise a schema error."""
+    if not isinstance(value, list):
+        raise SchemaError(f"watched-series {field_name} must be a list")
+    return value
 
-    path_globs: list[str] = []
-    for item in globs_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series path_globs must be strings")
-        path_globs.append(item)
 
-    return WatchedSeries(version=version, prs=prs, labels=labels, path_globs=path_globs)
+def _int_list(value: Any, field_name: str) -> list[int]:
+    """Validate a watched-series integer list."""
+    items = _require_list(value, field_name)
+    if any(not isinstance(item, int) or isinstance(item, bool) for item in items):
+        raise SchemaError(f"watched-series {field_name} must be integers")
+    return [item for item in items if isinstance(item, int) and not isinstance(item, bool)]
+
+
+def _str_list(value: Any, field_name: str) -> list[str]:
+    """Validate a watched-series string list."""
+    items = _require_list(value, field_name)
+    if any(not isinstance(item, str) for item in items):
+        raise SchemaError(f"watched-series {field_name} must be strings")
+    return [item for item in items if isinstance(item, str)]
 
 
 def normalize_repo_relative(path: str | Path) -> str:
