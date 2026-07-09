@@ -166,6 +166,8 @@ jobs:
             EXTRA+=(--force)
           fi
           python scripts/compound/synthesize.py --event-hint "${{ github.event_name }}" "${EXTRA[@]}"
+          python scripts/compound/sync_agent_packs.py
+          python scripts/compound/standing_brief.py
 
       - name: Commit and push knowledge branch
         shell: bash
@@ -173,7 +175,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/compound
+          git add docs/compound .cursor/rules/architecture-expert.mdc .cursor/rules/architecture-expert-query.mdc .openhands/microagents/architecture_expert.md
           if git diff --cached --quiet; then
             echo "No compound doc changes to commit"
             exit 0

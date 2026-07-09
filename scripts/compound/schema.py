@@ -251,8 +251,10 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
 
 def normalize_repo_relative(path: str | Path) -> str:
     """Normalize a path to forward-slash repo-relative form."""
-    text = str(path).replace("\\", "/").lstrip("./")
-    return text
+    text = str(path).replace("\\", "/")
+    while text.startswith("./"):
+        text = text[2:]
+    return text.lstrip("/")
 
 
 def is_denylisted(path: str | Path) -> bool:

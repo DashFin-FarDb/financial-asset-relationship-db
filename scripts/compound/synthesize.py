@@ -10,7 +10,11 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from compound.schema import (
+_SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
+if str(_SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_ROOT))
+
+from compound.schema import (  # noqa: E402
     DOMAINS,
     DOMAINS_DIR,
     INDEX_PATH,

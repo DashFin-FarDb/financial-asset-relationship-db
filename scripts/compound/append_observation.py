@@ -10,7 +10,11 @@ from pathlib import Path
 from typing import Any, Mapping
 from uuid import uuid4
 
-from compound.schema import (
+_SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
+if str(_SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_ROOT))
+
+from compound.schema import (  # noqa: E402
     LEDGER_PATH,
     Observation,
     ObservationSource,

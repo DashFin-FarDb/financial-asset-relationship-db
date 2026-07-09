@@ -10,8 +10,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from compound.append_observation import append_observation
-from compound.schema import DOMAINS, ObservationSource, ObservationStatus, SchemaError
+_SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
+if str(_SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_ROOT))
+
+from compound.append_observation import append_observation  # noqa: E402
+from compound.schema import DOMAINS, ObservationSource, ObservationStatus, SchemaError  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
