@@ -345,7 +345,8 @@ def synchronize_runtime_graph(
 
         api_main = sys.modules.get("api.main")
         if api_main is not None and hasattr(api_main, "graph"):
-            api_main.graph = graph_instance
+            api_main_mirror: Any = api_main
+            api_main_mirror.graph = graph_instance
         return True
 
 
