@@ -13,7 +13,7 @@ This module tests all functions in the generate_status.py script including:
 import importlib.util
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
@@ -31,6 +31,8 @@ if importlib.util.find_spec("github") is None:
 # Import after path setup and skip check
 import generate_status  # noqa: E402 # pylint: disable=wrong-import-position
 from github import GithubException  # noqa: E402 # pylint: disable=wrong-import-position,import-error
+
+UTC = timezone.utc
 
 # --- Fixtures ---
 
@@ -1429,9 +1431,9 @@ def test_pull_request_type_accessible_in_module():
     """
     # If the module imported successfully (it was imported at the top of this
     # test file), PullRequest should be accessible in the module's globals.
-    assert hasattr(generate_status, "PullRequest"), (
-        "generate_status module should expose PullRequest after importing it from github.PullRequest"
-    )
+    assert hasattr(
+        generate_status, "PullRequest"
+    ), "generate_status module should expose PullRequest after importing it from github.PullRequest"
 
     # Also verify we can independently import the same symbol
     from github.PullRequest import PullRequest as PR

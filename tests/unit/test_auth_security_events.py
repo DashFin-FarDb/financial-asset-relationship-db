@@ -4,7 +4,7 @@ from __future__ import annotations
 
 # pylint: disable=import-error
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -33,6 +33,8 @@ from api.auth import (
 from api.models import User
 
 pytestmark = pytest.mark.unit
+
+UTC = timezone.utc
 
 
 def _request(path: str = "/api/secure"):

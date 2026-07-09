@@ -9,7 +9,7 @@ This module contains comprehensive unit tests for the database models including:
 - Model field validation and nullable constraints
 """
 
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy import create_engine, inspect
@@ -28,6 +28,8 @@ from src.data.db_models import (
 from tests.conftest import enable_sqlite_foreign_keys
 
 pytest.importorskip("sqlalchemy")
+
+UTC = timezone.utc
 
 
 @pytest.fixture

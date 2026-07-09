@@ -13,7 +13,7 @@ This module tests all functions in the suggest_fixes.py script including:
 
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
@@ -23,6 +23,8 @@ from github import GithubException
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
 
 import suggest_fixes  # noqa: E402
+
+UTC = timezone.utc
 
 # --- Fixtures ---
 

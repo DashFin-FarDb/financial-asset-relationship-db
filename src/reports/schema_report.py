@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, Protocol  # pylint: disable=no-name-in-module
+
+UTC = timezone.utc
 
 
 class GraphLike(Protocol):  # pylint: disable=too-few-public-methods

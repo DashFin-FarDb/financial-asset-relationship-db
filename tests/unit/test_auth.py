@@ -10,7 +10,7 @@ This module tests:
 """
 
 import os
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 
 import pytest
@@ -31,6 +31,8 @@ from api.auth import (
     verify_password,
 )
 from api.models import UserPublic
+
+UTC = timezone.utc
 
 
 class TestPasswordHashing:

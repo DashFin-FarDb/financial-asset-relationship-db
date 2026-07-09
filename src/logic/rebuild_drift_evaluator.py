@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -22,6 +22,8 @@ from src.logic.rebuild_failure_detection import InconsistencyType, detect_rebuil
 from src.logic.reconciliation_engine import Severity
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
+
+UTC = timezone.utc
 
 if TYPE_CHECKING:
     from src.data.db_models import RebuildJobORM

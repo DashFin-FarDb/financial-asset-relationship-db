@@ -13,13 +13,15 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Protocol
 
 from src.logic.rebuild_failure_detection import InconsistencyType
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 from src.utils.enum_compat import StrEnum
+
+UTC = timezone.utc
 
 logger = logging.getLogger(__name__)
 
