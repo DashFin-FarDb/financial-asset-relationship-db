@@ -152,7 +152,8 @@ def _parse_tuple_relationship(
 
     Parameters:
         relationship_tuple (tuple[Any, ...]): A tuple of (rel_type, strength); must have exactly two elements.
-        kwargs (dict[str, Any]): May contain a 'bidirectional' key; if present its value is removed from this dict and used.
+        kwargs (dict[str, Any]): May contain a 'bidirectional' key; if present its value is removed from this dict and
+        used.
 
     Returns:
         tuple[Any, Any, bool]: (rel_type, strength, bidirectional)
