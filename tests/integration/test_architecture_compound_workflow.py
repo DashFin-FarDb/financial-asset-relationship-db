@@ -25,14 +25,19 @@ class TestArchitectureCompoundWorkflow:
         assert "synthesize" in jobs
         assert "observe" not in jobs
 
-    def test_closed_merged_trigger_and_landed_promotion(self) -> None:
-        """Merged PR close is in trigger set and promotes status to landed (AE2)."""
+    def test_pull_request_synthesis_is_skipped_for_token_safety(self) -> None:
+        """Write-capable synthesis must not run from PR-controlled workflow code."""
+        data = load_yaml_safe(WORKFLOW)
         text = WORKFLOW.read_text(encoding="utf-8")
         assert "closed" in text
         assert "types: [opened, synchronize, reopened, labeled, closed]" in text
+        assert data["jobs"]["synthesize"].get("if") == "github.event_name != 'pull_request'"
+
+    def test_landed_status_mapping_is_retained_for_non_pr_events(self) -> None:
+        """Merged/main/manual event mapping still promotes status to landed (AE2)."""
+        text = WORKFLOW.read_text(encoding="utf-8")
         assert 'STATUS="landed"' in text
         assert "pull_request.closed" in text
-        assert "github.event.pull_request.merged == true" in text
         assert "PR_MERGED_JSON:" in text
         assert "toJson(github.event.pull_request.merged || false)" in text
         assert '[ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]' in text
@@ -64,6 +69,17 @@ class TestArchitectureCompoundWorkflow:
         assert top_perms.get("contents") == "read"
         synth_perms = data["jobs"]["synthesize"].get("permissions", {})
         assert synth_perms.get("contents") == "write"
+
+    def test_source_and_knowledge_checkouts_are_separate(self) -> None:
+        """Workflow runs current source scripts while mutating the knowledge branch."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "path: source" in text
+        assert "path: knowledge" in text
+        assert "working-directory: knowledge" in text
+        assert 'SOURCE_PYTHONPATH="${GITHUB_WORKSPACE}/source/scripts"' in text
+        assert "python -m compound.append_observation \\" in text
+        assert "python -m compound.synthesize \\" in text
+        assert '--repo-root "$PWD"' in text
 
     def test_push_conflict_records_hybrid_backup(self) -> None:
         """Failed knowledge-branch push records conflict for A12 hybrid backup."""
