@@ -218,6 +218,6 @@ First and only occurrence of TS dependencies.
 
         # Should return 0 (no duplicates)
         exit_code = check_duplicate_headings(manifest_path)
-        assert (
-            exit_code == 0
-        ), "systemManifest.md contains duplicate sections. Run 'python scripts/deduplicate_manifest.py' to fix."
+        assert exit_code == 0, (
+            "systemManifest.md contains duplicate sections. Run 'python scripts/deduplicate_manifest.py' to fix."
+        )
