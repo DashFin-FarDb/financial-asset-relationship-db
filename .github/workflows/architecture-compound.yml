@@ -124,8 +124,8 @@ jobs:
               domains: $domains,
               refs: [$primary_ref],
               evidence_pointers: [$primary_ref]
-            }' > /tmp/observation.json
-          python scripts/compound/append_observation.py --file /tmp/observation.json
+            }' > .compound-observation.json
+          python scripts/compound/append_observation.py --file .compound-observation.json
           EXTRA=()
           if [ "$FORCE_SYNTH" = "true" ]; then
             EXTRA+=(--force)
