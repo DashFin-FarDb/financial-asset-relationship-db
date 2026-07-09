@@ -1,0 +1,4 @@
+exclude_paths:
+  - "asset_graph.db"
+  - "bin/deepsource"
+  - ".qlty/**"
