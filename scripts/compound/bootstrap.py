@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
-import shutil
-import subprocess
+
+# gh is invoked with a fixed argv list and shell=False.
+import subprocess  # nosec B404
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -26,13 +26,8 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-GH_ARG_PATTERN = re.compile(r"^[A-Za-z0-9_./:>=,-]+$")
-CUTOFF_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 GH_PR_JSON_FIELDS = "number,title,state,mergedAt,updatedAt,labels,files"
-MIN_PR_LIMIT = 1
-MAX_PR_LIMIT = 100
-MIN_PR_LOOKBACK_DAYS = 1
-MAX_PR_LOOKBACK_DAYS = 365
+MAX_PR_SCRAPE_LIMIT = 100
 
 # Seed docs → primary domain mapping (read-only inputs; never written).
 SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
@@ -57,32 +52,26 @@ def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _validated_gh_args(args: list[str]) -> list[str] | None:
-    """Return gh args only when they match the bounded PR-list contract."""
-    if args[:2] != ["pr", "list"]:
-        return None
-    for value in args:
-        if not GH_ARG_PATTERN.fullmatch(value):
-            return None
-    if "--limit" not in args or "--json" not in args or "--state" not in args:
-        return None
-    try:
-        limit = int(args[args.index("--limit") + 1])
-    except (IndexError, ValueError):
-        return None
-    if not 1 <= limit <= 100:
-        return None
-    return args
+def _bounded_pr_limit(limit: int) -> int:
+    if not 1 <= limit <= MAX_PR_SCRAPE_LIMIT:
+        raise ValueError(f"pr_limit must be between 1 and {MAX_PR_SCRAPE_LIMIT}")
+    return limit
 
 
-def _validate_domains(domains: tuple[str, ...]) -> None:
+def _updated_since_filter(cutoff: str) -> str:
+    sanitized_cutoff = datetime.strptime(cutoff, "%Y-%m-%d").date().isoformat()
+    return f"updated:>={sanitized_cutoff}"
+
+
+def _validate_seed_domains(domains: tuple[str, ...]) -> None:
+    """Validate seed document domain names."""
     for domain in domains:
         if domain not in DOMAINS:
             raise SchemaError(f"Invalid seed domain {domain}")
 
 
-def _seed_payload(rel_path: str, domains: tuple[str, ...]) -> dict[str, Any]:
-    _validate_domains(domains)
+def _doc_seed_payload(rel_path: str, domains: tuple[str, ...]) -> dict[str, Any]:
+    """Build one landed bootstrap observation payload from a seed doc path."""
     return {
         "observation_id": f"bootstrap-doc-{Path(rel_path).stem}",
         "source": ObservationSource.BOOTSTRAP.value,
@@ -97,67 +86,46 @@ def _seed_payload(rel_path: str, domains: tuple[str, ...]) -> dict[str, Any]:
     }
 
 
+def _seed_doc(repo_root: Path, rel_path: str, domains: tuple[str, ...]) -> str:
+    """Append one seed-doc observation or return a skip message."""
+    path = repo_root / rel_path
+    if not path.exists():
+        return f"skip missing seed doc: {rel_path}"
+    _validate_seed_domains(domains)
+    _, message = append_observation(_doc_seed_payload(rel_path, domains), repo_root=repo_root)
+    return f"{rel_path}: {message}"
+
+
 def seed_from_docs(repo_root: Path) -> list[str]:
     """Emit landed bootstrap observations from existing allowlisted seed docs."""
-    messages: list[str] = []
-    for rel_path, domains in SEED_DOCS:
-        path = repo_root / rel_path
-        if not path.exists():
-            messages.append(f"skip missing seed doc: {rel_path}")
-            continue
-        _, message = append_observation(_seed_payload(rel_path, domains), repo_root=repo_root)
-        messages.append(f"{rel_path}: {message}")
-    return messages
+    return [_seed_doc(repo_root, rel_path, domains) for rel_path, domains in SEED_DOCS]
 
 
-def _bounded_int(value: int, *, name: str, minimum: int, maximum: int) -> int:
-    if isinstance(value, bool):
-        raise SchemaError(f"{name} must be an integer between {minimum} and {maximum}")
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError) as exc:
-        raise SchemaError(f"{name} must be an integer between {minimum} and {maximum}") from exc
-    if not minimum <= parsed <= maximum:
-        raise SchemaError(f"{name} must be between {minimum} and {maximum}")
-    return parsed
-
-
-def _cutoff_date(days: int) -> str:
-    safe_days = _bounded_int(
-        days,
-        name="days",
-        minimum=MIN_PR_LOOKBACK_DAYS,
-        maximum=MAX_PR_LOOKBACK_DAYS,
-    )
-    return (datetime.now(timezone.utc) - timedelta(days=safe_days)).strftime("%Y-%m-%d")
-
-
-def _gh_pr_list(*, limit: int, updated_since: str | None = None) -> Any | None:
-    safe_limit = _bounded_int(limit, name="limit", minimum=MIN_PR_LIMIT, maximum=MAX_PR_LIMIT)
-    if updated_since is not None and not CUTOFF_DATE_PATTERN.fullmatch(updated_since):
-        return None
-    gh_path = shutil.which("gh")
-    if gh_path is None:
-        return None
+def _fetch_pr_list(*, limit: int, updated_since: str | None = None) -> Any | None:
+    bounded_limit = str(_bounded_pr_limit(limit))
+    search_filter = _updated_since_filter(updated_since) if updated_since is not None else None
     command = [
-        gh_path,
+        "gh",
         "pr",
         "list",
         "--state",
         "all",
         "--limit",
-        str(safe_limit),
+        bounded_limit,
     ]
-    if updated_since is not None:
-        command.extend(["--search", f"updated:>={updated_since}"])
+    if search_filter is not None:
+        command.extend(["--search", search_filter])
     command.extend(["--json", GH_PR_JSON_FIELDS])
+
     try:
-        completed = subprocess.run(
+        # The command is fixed and caller-provided values are validated above.
+        completed = subprocess.run(  # nosec B603
             command,
             check=False,
             capture_output=True,
             text=True,
             timeout=60,
+            shell=False,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return None
@@ -169,34 +137,42 @@ def _gh_pr_list(*, limit: int, updated_since: str | None = None) -> Any | None:
         return None
 
 
-def _pr_status(pr: dict[str, Any]) -> str:
+def _observation_status_for_pr(pr: dict[str, Any]) -> str:
+    """Return landed for merged PRs and provisional for open/unmerged PRs."""
     state = str(pr.get("state") or "").upper()
     merged = bool(pr.get("mergedAt"))
     return ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
 
 
+def _path_from_pr_file_entry(entry: Any) -> str | None:
+    """Extract one repo path from a gh PR file payload entry."""
+    if isinstance(entry, str):
+        return entry
+    if not isinstance(entry, dict):
+        return None
+    path = entry.get("path") or entry.get("filename")
+    return str(path) if path else None
+
+
 def _paths_from_pr_files(file_entries: Any) -> list[str]:
-    if not isinstance(file_entries, list):
-        return []
+    """Extract changed paths from gh's PR file payload variants."""
     paths: list[str] = []
-    for entry in file_entries:
-        if isinstance(entry, str):
-            paths.append(entry)
-        elif isinstance(entry, dict):
-            path = entry.get("path") or entry.get("filename")
-            if path:
-                paths.append(str(path))
+    for entry in file_entries or []:
+        path = _path_from_pr_file_entry(entry)
+        if path is not None:
+            paths.append(path)
     return paths
 
 
-def _pr_payload(pr: dict[str, Any], number: int) -> dict[str, Any]:
-    paths = _paths_from_pr_files(pr.get("files"))
+def _payload_from_pr(pr: dict[str, Any], number: int) -> dict[str, Any]:
+    """Build a bootstrap observation payload from one gh PR item."""
     title = str(pr.get("title") or f"PR #{number}")
+    paths = _paths_from_pr_files(pr.get("files"))
     return {
         "observation_id": f"bootstrap-pr-{number}",
         "source": ObservationSource.BOOTSTRAP.value,
         "event_type": "seed.pull_request",
-        "status": _pr_status(pr),
+        "status": _observation_status_for_pr(pr),
         "primary_ref": f"pr:{number}",
         "summary": title[:240],
         "domains": list(detect_domains_from_paths(paths)),
@@ -212,21 +188,20 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
     Prefers PRs updated within ``days`` (plan A9); falls back to last ``limit``
     PRs when the search filter is unsupported.
     """
-    safe_limit = _bounded_int(limit, name="limit", minimum=MIN_PR_LIMIT, maximum=MAX_PR_LIMIT)
-    data = _gh_pr_list(limit=safe_limit, updated_since=_cutoff_date(days))
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+    data = _fetch_pr_list(limit=limit, updated_since=cutoff)
     if data is None:
-        data = _gh_pr_list(limit=safe_limit)
-    if not isinstance(data, list):
+        data = _fetch_pr_list(limit=limit)
+    if data is None:
         return ["PR scrape skipped: gh unavailable or failed"]
 
     messages: list[str] = []
     for pr in data:
-        if not isinstance(pr, dict):
-            continue
         number = pr.get("number")
         if not isinstance(number, int):
             continue
-        _, message = append_observation(_pr_payload(pr, number), repo_root=repo_root)
+        payload = _payload_from_pr(pr, number)
+        _, message = append_observation(payload, repo_root=repo_root)
         messages.append(f"pr:{number}: {message}")
     return messages
 

@@ -18,9 +18,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1421**: x()  ww v   
 - [provisional] **pr:1422**: fix(ci): repair autofix branch failures
 - [provisional] **pr:1424**: fix(ci): clear compound workflow quality gates
-- [provisional] **pr:1427**: x()    
 - [provisional] **pr:1430**: x()   x 
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
+- [provisional] **pr:1427**: x()    
 
 ### api
 - [provisional] **pr:1398**: fix(ci): address compound scanner failures
@@ -29,9 +29,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1421**: x()  ww v   
 - [provisional] **pr:1422**: fix(ci): repair autofix branch failures
 - [provisional] **pr:1424**: fix(ci): clear compound workflow quality gates
-- [provisional] **pr:1427**: x()    
 - [provisional] **pr:1430**: x()   x 
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
+- [provisional] **pr:1427**: x()    
 
 ### persistence
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
@@ -43,9 +43,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1421**: x()  ww v   
 - [provisional] **pr:1422**: fix(ci): repair autofix branch failures
 - [provisional] **pr:1424**: fix(ci): clear compound workflow quality gates
-- [provisional] **pr:1427**: x()    
 - [provisional] **pr:1430**: x()   x 
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
+- [provisional] **pr:1427**: x()    
 
 ### ci-guardrails
 - [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
@@ -60,9 +60,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1421**: x()  ww v   
 - [provisional] **pr:1422**: fix(ci): repair autofix branch failures
 - [provisional] **pr:1424**: fix(ci): clear compound workflow quality gates
-- [provisional] **pr:1427**: x()    
 - [provisional] **pr:1430**: x()   x 
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
+- [provisional] **pr:1427**: x()    
 
 ### rebuild-reconciliation
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
@@ -70,8 +70,8 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1421**: x()  ww v   
 - [provisional] **pr:1422**: fix(ci): repair autofix branch failures
 - [provisional] **pr:1424**: fix(ci): clear compound workflow quality gates
-- [provisional] **pr:1427**: x()    
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
+- [provisional] **pr:1427**: x()    
 
 ### deployment
 _No changes recorded._
