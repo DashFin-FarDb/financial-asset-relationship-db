@@ -81,7 +81,10 @@ def _parse_single_relationship_arg(
     kwargs: dict[str, Any],
 ) -> tuple[Any, Any, bool]:
     """
-    Parse a single positional relationship argument given as a (rel_type, strength) tuple and extract an optional "bidirectional" flag from kwargs.
+    Parse a single positional relationship argument.
+
+    The argument is given as a (rel_type, strength) tuple. This function
+    also extracts an optional "bidirectional" flag from kwargs.
 
     Parameters:
         relationship_arg (Any): A two-item tuple (rel_type, strength).
@@ -119,7 +122,9 @@ def _finalize_relationship_args(
     bidirectional: bool,
 ) -> tuple[str, float, bool]:
     """
-    Coerce and validate relationship inputs, returning a normalized (rel_type, strength, bidirectional) triple.
+    Coerce and validate relationship inputs.
+
+    Returns a normalized (rel_type, strength, bidirectional) triple.
 
     Parameters:
         rel_type: Relationship type; must be a string identifying the relationship.
