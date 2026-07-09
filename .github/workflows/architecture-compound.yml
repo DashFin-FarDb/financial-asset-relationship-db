@@ -1,0 +1,183 @@
+name: Architecture Compound
+
+# Observe PRs/merges and synthesize docs/compound onto knowledge/architecture-expert.
+# Never auto-merges to main. Emitters append; synthesize alone rewrites canon docs.
+
+"on":
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_synthesize:
+        description: Force synthesize even for dependency-bot-only batches
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: architecture-compound-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  observe:
+    name: Append observation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Emit observation JSON
+        id: emit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/compound
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            STATUS="provisional"
+            PRIMARY_REF="pr:${{ github.event.pull_request.number }}"
+            SUMMARY=$(jq -rn --arg t '${{ github.event.pull_request.title }}' '$t[:240]')
+            EVENT_TYPE="pull_request.${{ github.event.action }}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            STATUS="landed"
+            PRIMARY_REF="sha:${GITHUB_SHA}"
+            SUMMARY="Merge/push to main ${GITHUB_SHA}"
+            EVENT_TYPE="push.main"
+          else
+            STATUS="landed"
+            PRIMARY_REF="manual:${GITHUB_RUN_ID}"
+            SUMMARY="Manual compound workflow_dispatch"
+            EVENT_TYPE="workflow_dispatch"
+          fi
+          jq -n \
+            --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --arg source "github" \
+            --arg event_type "$EVENT_TYPE" \
+            --arg status "$STATUS" \
+            --arg primary_ref "$PRIMARY_REF" \
+            --arg summary "$SUMMARY" \
+            '{
+              observation_id: $id,
+              source: $source,
+              event_type: $event_type,
+              status: $status,
+              primary_ref: $primary_ref,
+              summary: $summary,
+              domains: ["architecture"],
+              refs: [$primary_ref],
+              evidence_pointers: [$primary_ref]
+            }' > /tmp/compound/observation.json
+          echo "event_hint=$EVENT_TYPE" >> "$GITHUB_OUTPUT"
+
+      - name: Append to ledger (workspace copy)
+        run: python scripts/compound/append_observation.py --file /tmp/compound/observation.json
+
+  synthesize:
+    name: Synthesize knowledge branch
+    needs: observe
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Checkout knowledge branch
+        uses: actions/checkout@v4
+        with:
+          ref: knowledge/architecture-expert
+          fetch-depth: 0
+        continue-on-error: true
+
+      - name: Ensure knowledge branch exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+            git fetch origin main
+            git checkout -B knowledge/architecture-expert origin/main
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Re-append observation on knowledge branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Observe job validated payload shape; synthesize job owns knowledge-branch tip.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            STATUS="provisional"
+            PRIMARY_REF="pr:${{ github.event.pull_request.number }}"
+            SUMMARY=$(jq -rn --arg t '${{ github.event.pull_request.title }}' '$t[:240]')
+            EVENT_TYPE="pull_request.${{ github.event.action }}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            STATUS="landed"
+            PRIMARY_REF="sha:${GITHUB_SHA}"
+            SUMMARY="Merge/push to main ${GITHUB_SHA}"
+            EVENT_TYPE="push.main"
+          else
+            STATUS="landed"
+            PRIMARY_REF="manual:${GITHUB_RUN_ID}"
+            SUMMARY="Manual compound workflow_dispatch"
+            EVENT_TYPE="workflow_dispatch"
+          fi
+          jq -n \
+            --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --arg source "github" \
+            --arg event_type "$EVENT_TYPE" \
+            --arg status "$STATUS" \
+            --arg primary_ref "$PRIMARY_REF" \
+            --arg summary "$SUMMARY" \
+            '{
+              observation_id: $id,
+              source: $source,
+              event_type: $event_type,
+              status: $status,
+              primary_ref: $primary_ref,
+              summary: $summary,
+              domains: ["architecture"],
+              refs: [$primary_ref],
+              evidence_pointers: [$primary_ref]
+            }' > /tmp/observation.json
+          python scripts/compound/append_observation.py --file /tmp/observation.json
+
+      - name: Synthesize domain docs
+        env:
+          FORCE_SYNTH: ${{ github.event.inputs.force_synthesize || 'false' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXTRA=()
+          if [ "$FORCE_SYNTH" = "true" ] || [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            EXTRA+=(--force)
+          fi
+          python scripts/compound/synthesize.py --event-hint "${{ github.event_name }}" "${EXTRA[@]}"
+
+      - name: Commit and push knowledge branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/compound
+          if git diff --cached --quiet; then
+            echo "No compound doc changes to commit"
+            exit 0
+          fi
+          git commit -m "chore(compound): synthesize architecture memory"
+          git push origin HEAD:knowledge/architecture-expert
+          # Intentionally never merges into main (human promotion only).
