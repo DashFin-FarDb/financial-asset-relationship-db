@@ -34,6 +34,9 @@ class TestArchitectureCompoundWorkflow:
         assert 'STATUS="landed"' in text
         assert "pull_request.closed" in text
         assert "github.event.pull_request.merged == true" in text
+        assert "PR_MERGED_JSON:" in text
+        assert "toJson(github.event.pull_request.merged || false)" in text
+        assert '[ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]' in text
 
     def test_pr_title_via_env_not_inline_expression(self) -> None:
         """PR title must come from env (injection-safe); not interpolated into shell."""

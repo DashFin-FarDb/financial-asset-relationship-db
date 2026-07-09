@@ -17,7 +17,6 @@ Compounded architecture memory for this repository.
 - Read `docs/compound/` before answering seam/API/persistence questions.
 - Distinguish provisional vs landed claims.
 - Cite or propose annotation for ADRs/policy; never rewrite them.
-- Do not cite or propose annotation for ADRs/policy (do not rewrite)`.
 - Additive to PR Agent / existing reviewers — do not disable them.
 
 ## Index excerpt
