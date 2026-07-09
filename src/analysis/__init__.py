@@ -1,1 +1,1 @@
-# Analysis module for formulaic financial analysis
+"""Analysis helpers for formulaic financial analysis."""

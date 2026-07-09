@@ -1,3 +1,5 @@
+"""Shared FastAPI dependency helpers for graph access."""
+
 import threading
 
 from api.main import _initialize_graph
