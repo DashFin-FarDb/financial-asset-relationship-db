@@ -14,3 +14,5 @@ _No landed observations yet._
   - evidence: pr:1414
 - **pr:1421** (provisional): x()  ww v   
   - evidence: pr:1421
+- **pr:1422** (provisional): fix(ci): repair autofix branch failures
+  - evidence: pr:1422
