@@ -8,4 +8,5 @@ _No landed observations yet._
 
 ## Provisional
 
-_No provisional observations yet._
+- **pr:1395** (provisional): fix(ci): harden architecture compound workflow
+  - evidence: pr:1395

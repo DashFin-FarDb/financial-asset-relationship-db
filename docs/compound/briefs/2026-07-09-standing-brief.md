@@ -7,15 +7,17 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 
 ### architecture
 - [provisional] **pr:1392**: () -x  w 
+- [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
 
 ### api
 _No changes recorded._
 
 ### persistence
-_No changes recorded._
+- [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
 
 ### ci-guardrails
 - [provisional] **pr:1392**: () -x  w 
+- [provisional] **pr:1395**: fix(ci): harden architecture compound workflow
 
 ### rebuild-reconciliation
 _No changes recorded._
