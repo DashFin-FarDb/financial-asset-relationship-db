@@ -286,7 +286,7 @@ def normalize_repo_relative(path: str | Path) -> str:
 
 def _path_matches_prefix(path: str, prefix: str) -> bool:
     """Return True when a normalized path matches a rule prefix."""
-    return path.startswith(prefix) or f"/{prefix}" in f"/{path}"
+    return path.startswith(prefix)
 
 
 def _add_unique(items: list[str], item: str) -> None:

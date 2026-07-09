@@ -111,3 +111,7 @@ class TestCompoundSchema:
         multi = detect_domains_from_paths(["api/auth.py", "docs/adr/0001-production-architecture.md"])
         assert "api" in multi
         assert "architecture" in multi
+
+    def test_detect_domains_from_paths_does_not_match_nested_prefix_segments(self) -> None:
+        """Domain prefixes only match repo-root paths, not same-named nested segments."""
+        assert detect_domains_from_paths(["scripts/compound/api/foo.py"]) == ("architecture",)
