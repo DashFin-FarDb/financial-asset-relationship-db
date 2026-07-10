@@ -5,8 +5,8 @@ rebuild/reconciliation, and deployment/readiness.
 
 - **Canon writer:** `scripts/compound/synthesize.py` only
 - **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)
-- **Knowledge branch:** `knowledge/architecture-expert` (human merge to `main`)
-- **Status:** Every claim is either **landed** or **provisional**
+- **Knowledge branch:** `knowledge/architecture-expert` (intended human promotion to `main`; verify before treating as current)
+- **Status:** Label every claim **landed** or **provisional** only after verifying branch/PR/ref state vs `main`
 
 ## Domains
 
