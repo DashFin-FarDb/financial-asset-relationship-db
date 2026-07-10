@@ -166,5 +166,7 @@ jobs:
           echo "warn: push failed; recording conflict (A12) and retrying" >&2
           python scripts/compound/append_observation.py --record-push-conflict || true
           git add docs/compound/runtime.yml
-          git commit -m "chore(compound): record knowledge-branch push conflict" || true
+          git commit -m "chore(compound): record knowledge-branch push conflict"
+          git fetch origin knowledge/architecture-expert
+          git merge --no-edit origin/knowledge/architecture-expert
           git push origin HEAD:knowledge/architecture-expert
