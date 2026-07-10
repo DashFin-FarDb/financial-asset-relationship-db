@@ -60,7 +60,7 @@ def seed_from_docs(repo_root: Path) -> list[str]:
             if domain not in DOMAINS:
                 raise SchemaError(f"Invalid seed domain {domain}")
         payload = {
-            "observation_id": f"bootstrap-doc-{Path(rel_path).stem}",
+            "observation_id": f"bootstrap-doc-{rel_path.replace('\\\\', '/').replace('/', '__').replace('.', '_')}",
             "source": ObservationSource.BOOTSTRAP.value,
             "event_type": "seed.doc",
             "status": ObservationStatus.LANDED.value,
