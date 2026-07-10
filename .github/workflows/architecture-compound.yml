@@ -5,6 +5,7 @@ name: Architecture Compound
 
 "on":
   pull_request:
+    branches: [main]
     types: [opened, synchronize, reopened, labeled, closed]
   push:
     branches: [main]
