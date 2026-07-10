@@ -144,7 +144,7 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
         title = str(pr.get("title") or f"PR #{number}")
         file_entries = pr.get("files") or []
         paths: list[str] = []
-for entry in file_entries:
+        for entry in file_entries:
             if isinstance(entry, dict):
                 paths.append(str(entry.get("filename") or entry.get("path", "")))
         domains = list(detect_domains_from_paths(paths))
