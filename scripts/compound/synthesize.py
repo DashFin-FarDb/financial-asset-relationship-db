@@ -91,7 +91,7 @@ def should_hot_path_synthesize(
     return True
 
 
-def latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
+def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
     """Keep the latest observation per primary_ref (landed preferred over provisional)."""
     by_ref: dict[str, Observation] = {}
     for obs in observations:
@@ -135,7 +135,7 @@ def render_domain_doc(domain: str, observations: list[Observation]) -> str:
     }
     title = titles.get(domain, domain)
     relevant = [obs for obs in observations if domain in obs.domains]
-    relevant = latest_by_primary_ref(relevant)
+    relevant = _latest_by_primary_ref(relevant)
     landed = [obs for obs in relevant if obs.status is ObservationStatus.LANDED]
     provisional = [obs for obs in relevant if obs.status is ObservationStatus.PROVISIONAL]
     parts = [
@@ -152,7 +152,7 @@ def render_domain_doc(domain: str, observations: list[Observation]) -> str:
 def render_index(observations: list[Observation]) -> str:
     """Render the thin cross-seam index."""
     counts: dict[str, dict[str, int]] = defaultdict(lambda: {"landed": 0, "provisional": 0})
-    latest = latest_by_primary_ref(observations)
+    latest = _latest_by_primary_ref(observations)
     for obs in latest:
         for domain in obs.domains:
             counts[domain][obs.status.value] += 1
