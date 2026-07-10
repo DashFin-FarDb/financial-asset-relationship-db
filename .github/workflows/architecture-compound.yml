@@ -56,13 +56,17 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title || '' }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           PR_ACTION: ${{ github.event.action || '' }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
           PR_MERGED_JSON: ${{ toJson(github.event.pull_request.merged || false) }}
           EVENT_NAME: ${{ github.event_name }}
           FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
         shell: bash
         run: |
-          set -euo pipefail
+          # Use trusted scripts from the PR base (main) on pull_request events.
           # Keep compound scripts from the triggering commit; switch docs/ledger to knowledge tip.
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ]; then
+            TRIGGER_SHA="$PR_BASE_SHA"
+          fi
           TRIGGER_SHA="${GITHUB_SHA}"
           if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
             git fetch origin knowledge/architecture-expert
@@ -70,7 +74,6 @@ jobs:
           else
             git checkout -B knowledge/architecture-expert
           fi
-          git checkout "${TRIGGER_SHA}" -- scripts/compound
 
           FORCE_SYNTH="false"
           if [ "$EVENT_NAME" = "pull_request" ]; then
