@@ -69,7 +69,10 @@ def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
         if key == "writer_mode":
             data[key] = value
         elif key in {"conflict_count", "conflict_window_minutes"}:
-            data[key] = int(value)
+            try:
+                data[key] = int(value)
+            except ValueError as exc:
+                raise SchemaError(f"Invalid {key}: {value}") from exc
         elif key == "last_conflict_at":
             data[key] = None if value in {"null", "~", ""} else value
     return data
