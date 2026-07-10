@@ -24,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: architecture-compound-${{ github.event.pull_request.number || github.ref }}
+  group: architecture-compound-knowledge
   cancel-in-progress: false
 
 jobs:
@@ -75,6 +75,9 @@ jobs:
             git checkout -B knowledge/architecture-expert
           fi
           git checkout "${TRIGGER_SHA}" -- scripts/compound || { echo "error: failed to checkout scripts/compound from ${TRIGGER_SHA}" >&2; exit 1; }
+          # Overlay scripts into the working tree only; do not leave them staged
+          # for the knowledge-branch commit (which should contain docs/packs only).
+          git restore --staged scripts/compound
 
           FORCE_SYNTH="false"
           if [ "$EVENT_NAME" = "pull_request" ]; then
@@ -139,6 +142,7 @@ jobs:
           python scripts/compound/sync_agent_packs.py
           python scripts/compound/standing_brief.py
           echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"
+          echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"
 
       - name: Commit and push knowledge branch
         shell: bash
@@ -156,14 +160,26 @@ jobs:
             echo "No knowledge changes to commit"
             exit 0
           fi
-
-          git commit -m "chore(compound): update architecture compound"
-
-          if git push origin HEAD:knowledge/architecture-expert; then
+          git commit -m "chore(compound): synthesize architecture memory"
+          push_knowledge() {
+            git push origin HEAD:knowledge/architecture-expert
+          }
+          if push_knowledge; then
             exit 0
           fi
-
-          echo "warn: push failed; recording conflict (A12) and retrying" >&2
+          echo "Push failed; fetch/rebase once then retry"
+          # Clear dirty TRIGGER_SHA script overlay so rebase is not blocked by local edits.
+          git restore --source=HEAD --worktree --staged -- scripts/compound || true
+          git fetch origin knowledge/architecture-expert || true
+          git rebase origin/knowledge/architecture-expert || git rebase --abort || true
+          if push_knowledge; then
+            exit 0
+          fi
+          # Re-apply triggering scripts for conflict recording, then unstage again.
+          if [ -n "${TRIGGER_SHA:-}" ]; then
+            git checkout "${TRIGGER_SHA}" -- scripts/compound
+            git restore --staged scripts/compound
+          fi
           python scripts/compound/append_observation.py --record-push-conflict || true
           git add docs/compound/runtime.yml
           git commit -m "chore(compound): record knowledge-branch push conflict"

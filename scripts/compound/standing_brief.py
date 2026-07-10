@@ -12,8 +12,14 @@ _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
 
-from compound.schema import BRIEFS_DIR, DOMAINS, LEDGER_PATH, assert_writable  # noqa: E402
-from compound.synthesize import _latest_by_primary_ref, load_ledger  # noqa: E402
+from compound.schema import (  # noqa: E402
+    BRIEFS_DIR,
+    DOMAINS,
+    LEDGER_PATH,
+    SchemaError,
+    assert_writable,
+)
+from compound.synthesize import latest_by_primary_ref, load_ledger  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -21,7 +27,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def render_standing_brief(observations: list, *, as_of: str | None = None) -> str:
     """Render a standing brief markdown document."""
     stamp = as_of or datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    latest = _latest_by_primary_ref(observations)
+    latest = latest_by_primary_ref(observations)
     by_domain: dict[str, list] = defaultdict(list)
     for obs in latest:
         for domain in obs.domains:
@@ -30,7 +36,7 @@ def render_standing_brief(observations: list, *, as_of: str | None = None) -> st
     lines = [
         f"# Standing brief — {stamp}",
         "",
-        "Architecture-expert compound brief (durable on knowledge branch).",
+        "Architecture-expert compound brief (intended for docs/compound/briefs/).",
         "Claims are labeled landed vs provisional. ADRs/policy are not rewritten.",
         "",
         "## Seam movement by domain",
@@ -67,13 +73,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
     parser.add_argument("--as-of", default=None, help="YYYY-MM-DD stamp")
     args = parser.parse_args(argv)
-    from compound.schema import PathPolicyError, SchemaError
-
     try:
         path = write_standing_brief(args.repo_root, as_of=args.as_of)
         print(f"wrote: {path.relative_to(args.repo_root).as_posix()}")
         return 0
-    except (OSError, PermissionError, SchemaError, PathPolicyError) as exc:
+    except (SchemaError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 

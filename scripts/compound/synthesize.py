@@ -42,18 +42,26 @@ DEPENDENCY_BOT_MARKERS = (
 
 
 def load_ledger(ledger_path: Path) -> list[Observation]:
-    """Load all observations from a JSONL ledger."""
+    """Load all observations from a JSONL ledger.
+
+    Malformed lines are skipped so a single corrupt entry cannot permanently
+    block synthesize / standing-brief runs. Skips are reported on stderr.
+    """
     if not ledger_path.exists():
         return []
     observations: list[Observation] = []
-    for line in ledger_path.read_text(encoding="utf-8").splitlines():
+    for lineno, line in enumerate(ledger_path.read_text(encoding="utf-8").splitlines(), start=1):
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
         try:
             observations.append(parse_observation_line(stripped))
-        except SchemaError as exc:
-            print(f"warn: skipping invalid ledger line: {exc}", file=sys.stderr)
+        except (SchemaError, ValueError, TypeError) as exc:
+            print(
+                f"warning: skipping malformed ledger line {lineno}: {exc}",
+                file=sys.stderr,
+            )
+            continue
     return observations
 
 
@@ -94,7 +102,7 @@ def should_hot_path_synthesize(
     return True
 
 
-def _latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
+def latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
     """Keep the latest observation per primary_ref (landed preferred over provisional)."""
     by_ref: dict[str, Observation] = {}
     for obs in observations:
@@ -138,7 +146,7 @@ def render_domain_doc(domain: str, observations: list[Observation]) -> str:
     }
     title = titles.get(domain, domain)
     relevant = [obs for obs in observations if domain in obs.domains]
-    relevant = _latest_by_primary_ref(relevant)
+    relevant = latest_by_primary_ref(relevant)
     landed = [obs for obs in relevant if obs.status is ObservationStatus.LANDED]
     provisional = [obs for obs in relevant if obs.status is ObservationStatus.PROVISIONAL]
     parts = [
@@ -155,7 +163,7 @@ def render_domain_doc(domain: str, observations: list[Observation]) -> str:
 def render_index(observations: list[Observation]) -> str:
     """Render the thin cross-seam index."""
     counts: dict[str, dict[str, int]] = defaultdict(lambda: {"landed": 0, "provisional": 0})
-    latest = _latest_by_primary_ref(observations)
+    latest = latest_by_primary_ref(observations)
     for obs in latest:
         for domain in obs.domains:
             counts[domain][obs.status.value] += 1
@@ -171,8 +179,8 @@ def render_index(observations: list[Observation]) -> str:
         "rebuild/reconciliation, and deployment/readiness.\n\n"
         "- **Canon writer:** `scripts/compound/synthesize.py` only\n"
         "- **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)\n"
-        "- **Knowledge branch:** `knowledge/architecture-expert` (human merge to `main`)\n"
-        "- **Status:** Every claim is either **landed** or **provisional**\n\n"
+        "- **Knowledge branch:** `knowledge/architecture-expert` (intended human promotion to `main`; verify before treating as current)\n"
+        "- **Status:** Label every claim **landed** or **provisional** only after verifying branch/PR/ref state vs `main`\n\n"
         "## Domains\n\n"
         "| Domain | Doc | Landed | Provisional |\n"
         "|--------|-----|--------|-------------|\n"

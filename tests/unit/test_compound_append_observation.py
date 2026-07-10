@@ -14,8 +14,12 @@ SCRIPTS_ROOT = REPO_ROOT / "scripts"
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
-from compound.append_observation import append_observation, record_push_conflict  # noqa: E402
-from compound.schema import ObservationSource, ObservationStatus, WriterMode  # noqa: E402
+from compound.append_observation import (  # noqa: E402
+    _load_observation_payload,
+    append_observation,
+    record_push_conflict,
+)
+from compound.schema import ObservationSource, ObservationStatus, PathPolicyError, WriterMode  # noqa: E402
 
 
 @pytest.fixture
@@ -138,3 +142,18 @@ class TestAppendObservation:
         assert mode is WriterMode.DUAL
         runtime = (compound_repo / "docs/compound/runtime.yml").read_text(encoding="utf-8")
         assert "conflict_count: 1" in runtime
+
+    def test_load_observation_payload_rejects_outside_repo(self, compound_repo: Path) -> None:
+        """Absolute paths outside the repo and temp dir are rejected."""
+        forbidden = Path("/etc/hosts")
+        if not forbidden.is_file():
+            forbidden = Path("/var/empty/outside-payload.json")
+        with pytest.raises(PathPolicyError):
+            _load_observation_payload(forbidden, repo_root=compound_repo)
+
+    def test_load_observation_payload_allows_repo_relative(self, compound_repo: Path) -> None:
+        """Repo-relative observation files are accepted."""
+        payload_path = compound_repo / "docs" / "compound" / "payload.json"
+        payload_path.write_text(json.dumps(_base_payload()), encoding="utf-8")
+        loaded = _load_observation_payload(payload_path, repo_root=compound_repo)
+        assert loaded["observation_id"] == "obs-1"
