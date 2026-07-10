@@ -5,9 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import yaml
 
-from tests.integration.test_github_workflows import GitHubActionsYamlLoader
+from tests.integration.test_github_workflows import load_yaml_safe
 
 WORKFLOW = Path(__file__).resolve().parents[2] / ".github" / "workflows" / "architecture-compound.yml"
 
@@ -19,7 +18,7 @@ class TestArchitectureCompoundWorkflow:
     def test_workflow_loads(self) -> None:
         """Workflow YAML parses with GitHub Actions loader."""
         assert WORKFLOW.exists()
-        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)
+        data = load_yaml_safe(WORKFLOW)
         assert data["name"] == "Architecture Compound"
         assert "on" in data or True in data  # PyYAML may coerce `on` to bool True
         jobs = data["jobs"]
@@ -60,7 +59,7 @@ class TestArchitectureCompoundWorkflow:
 
     def test_permission_split(self) -> None:
         """Synthesize job elevates contents write; top-level defaults to read."""
-        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)
+        data = load_yaml_safe(WORKFLOW)
         top_perms = data.get("permissions", {})
         assert top_perms.get("contents") == "read"
         synth_perms = data["jobs"]["synthesize"].get("permissions", {})

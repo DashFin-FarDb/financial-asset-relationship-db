@@ -13,7 +13,7 @@ if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
 from compound.bootstrap import scrape_recent_prs, seed_from_docs  # noqa: E402
-from compound.schema import DOMAINS, parse_observation_line  # noqa: E402
+from compound.schema import DOMAINS, SchemaError, parse_observation_line  # noqa: E402
 
 
 @pytest.fixture
@@ -80,7 +80,7 @@ class TestCompoundBootstrap:
         """When gh is unavailable, PR scrape reports skipped and does not raise."""
         from compound import bootstrap as mod
 
-        monkeypatch.setattr(mod, "_gh_json", lambda _args: None)
+        monkeypatch.setattr(mod, "_gh_pr_list", lambda _limit, search=None: None)
         messages = scrape_recent_prs(seed_repo)
         assert messages == ["PR scrape skipped: gh unavailable or failed"]
 
@@ -90,8 +90,8 @@ class TestCompoundBootstrap:
 
         monkeypatch.setattr(
             mod,
-            "_gh_json",
-            lambda _args: [
+            "_gh_pr_list",
+            lambda _limit, search=None: [
                 {
                     "number": 99,
                     "title": "API change",
@@ -113,3 +113,10 @@ class TestCompoundBootstrap:
                 domains.update(obs.domains)
         assert "api" in domains
         assert "architecture" in domains
+
+    def test_gh_search_validation_rejects_unexpected_filters(self) -> None:
+        """gh subprocess wrapper only accepts generated updated-date searches."""
+        from compound import bootstrap as mod
+
+        with pytest.raises(SchemaError):
+            mod._validated_updated_search("--repo unsafe/repo")
