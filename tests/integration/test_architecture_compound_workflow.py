@@ -73,7 +73,7 @@ class TestArchitectureCompoundWorkflow:
         assert "docs/compound/runtime.yml" in text
         assert "record knowledge-branch push conflict" in text
         assert "push_knowledge()" in text
-        assert 'exit 0' in text
+        assert "exit 0" in text
         assert "Push still rejected after rebase retry" in text
 
     def test_workflow_dispatch_pins_scripts_to_origin_main(self) -> None:
