@@ -257,9 +257,7 @@ def _load_observation_payload(path: Path, *, repo_root: Path | None = None) -> M
     resolved = path.expanduser().resolve()
     temp_root = Path(tempfile.gettempdir()).resolve()
     if not (_is_under(resolved, root) or _is_under(resolved, temp_root)):
-        raise PathPolicyError(
-            f"Observation path must be under the repo or temp dir: {path}"
-        )
+        raise PathPolicyError(f"Observation path must be under the repo or temp dir: {path}")
     if not resolved.is_file():
         raise SchemaError(f"Observation file not found: {path}")
     payload = json.loads(resolved.read_text(encoding="utf-8"))
