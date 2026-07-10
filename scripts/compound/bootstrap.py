@@ -9,7 +9,7 @@ import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
@@ -145,6 +145,49 @@ def _gh_pr_list_args(*, limit: int, search: str | None = None) -> list[str]:
     return args
 
 
+def _paths_from_pr_files(file_entries: Any) -> list[str]:
+    """Extract changed file paths from a gh PR ``files`` payload."""
+    paths: list[str] = []
+    for entry in file_entries or []:
+        if isinstance(entry, str):
+            paths.append(entry)
+        elif isinstance(entry, dict):
+            raw = entry.get("path") or entry.get("filename")
+            if raw:
+                paths.append(str(raw))
+    return paths
+
+
+def _status_from_pr(pr: Mapping[str, Any]) -> str:
+    """Map gh PR state/mergedAt to landed vs provisional."""
+    state = str(pr.get("state") or "").upper()
+    merged = bool(pr.get("mergedAt"))
+    if merged or state == "MERGED":
+        return ObservationStatus.LANDED.value
+    return ObservationStatus.PROVISIONAL.value
+
+
+def _payload_from_pr(pr: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Build a bootstrap observation payload from one gh PR object."""
+    number = pr.get("number")
+    if not isinstance(number, int):
+        return None
+    title = str(pr.get("title") or f"PR #{number}")
+    domains = list(detect_domains_from_paths(_paths_from_pr_files(pr.get("files"))))
+    return {
+        "observation_id": f"bootstrap-pr-{number}",
+        "source": ObservationSource.BOOTSTRAP.value,
+        "event_type": "seed.pull_request",
+        "status": _status_from_pr(pr),
+        "primary_ref": f"pr:{number}",
+        "summary": title[:240],
+        "domains": domains,
+        "refs": [f"pr:{number}"],
+        "evidence_pointers": [f"github:pr:{number}"],
+        "created_at": _now(),
+    }
+
+
 def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> list[str]:
     """Bounded PR scrape via gh; non-fatal when gh is unavailable.
 
@@ -161,37 +204,13 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
 
     messages: list[str] = []
     for pr in data:
-        number = pr.get("number")
-        if not isinstance(number, int):
+        if not isinstance(pr, dict):
             continue
-        state = str(pr.get("state") or "").upper()
-        merged = bool(pr.get("mergedAt"))
-        status = ObservationStatus.LANDED.value if merged or state == "MERGED" else ObservationStatus.PROVISIONAL.value
-        title = str(pr.get("title") or f"PR #{number}")
-        file_entries = pr.get("files") or []
-        paths: list[str] = []
-        for entry in file_entries:
-            if isinstance(entry, str):
-                paths.append(entry)
-            elif isinstance(entry, dict) and entry.get("path"):
-                paths.append(str(entry["path"]))
-            elif isinstance(entry, dict) and entry.get("filename"):
-                paths.append(str(entry["filename"]))
-        domains = list(detect_domains_from_paths(paths))
-        payload = {
-            "observation_id": f"bootstrap-pr-{number}",
-            "source": ObservationSource.BOOTSTRAP.value,
-            "event_type": "seed.pull_request",
-            "status": status,
-            "primary_ref": f"pr:{number}",
-            "summary": title[:240],
-            "domains": domains,
-            "refs": [f"pr:{number}"],
-            "evidence_pointers": [f"github:pr:{number}"],
-            "created_at": _now(),
-        }
+        payload = _payload_from_pr(pr)
+        if payload is None:
+            continue
         _, message = append_observation(payload, repo_root=repo_root)
-        messages.append(f"pr:{number}: {message}")
+        messages.append(f"{payload['primary_ref']}: {message}")
     return messages
 
 

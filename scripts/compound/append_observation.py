@@ -28,6 +28,7 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+RUNTIME_YML_REL = "docs/compound/runtime.yml"
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
@@ -36,8 +37,8 @@ def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
-    """Read dual-writer mode from docs/compound/runtime.yml."""
-    runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
+    """Read dual-writer mode from runtime.yml."""
+    runtime_path = _repo_path(RUNTIME_YML_REL, repo_root)
     if not runtime_path.exists():
         return WriterMode.DUAL
     text = runtime_path.read_text(encoding="utf-8")
@@ -109,8 +110,8 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     Threshold: >=3 conflicts within conflict_window_minutes (plan A12).
     """
     root = repo_root or REPO_ROOT
-    runtime_path = _repo_path("docs/compound/runtime.yml", root)
-    assert_writable("docs/compound/runtime.yml")
+    runtime_path = _repo_path(RUNTIME_YML_REL, root)
+    assert_writable(RUNTIME_YML_REL)
     current = datetime.now(timezone.utc) if now is None else now
     if runtime_path.exists():
         data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
