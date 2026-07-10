@@ -1,6 +1,6 @@
 # Standing brief — 2026-07-10
 
-Architecture-expert compound brief (durable on knowledge branch).
+Architecture-expert compound brief (intended for docs/compound/briefs/).
 Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 
 ## Seam movement by domain
