@@ -42,7 +42,11 @@ DEPENDENCY_BOT_MARKERS = (
 
 
 def load_ledger(ledger_path: Path) -> list[Observation]:
-    """Load all observations from a JSONL ledger."""
+    """Load all observations from a JSONL ledger.
+
+    Malformed lines are skipped so a single corrupt entry cannot permanently
+    block synthesize / standing-brief runs.
+    """
     if not ledger_path.exists():
         return []
     observations: list[Observation] = []
@@ -50,7 +54,10 @@ def load_ledger(ledger_path: Path) -> list[Observation]:
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
-        observations.append(parse_observation_line(stripped))
+        try:
+            observations.append(parse_observation_line(stripped))
+        except SchemaError:
+            continue
     return observations
 
 
@@ -168,8 +175,8 @@ def render_index(observations: list[Observation]) -> str:
         "rebuild/reconciliation, and deployment/readiness.\n\n"
         "- **Canon writer:** `scripts/compound/synthesize.py` only\n"
         "- **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)\n"
-        "- **Knowledge branch:** `knowledge/architecture-expert` (human merge to `main`)\n"
-        "- **Status:** Every claim is either **landed** or **provisional**\n\n"
+        "- **Knowledge branch:** `knowledge/architecture-expert` (intended human promotion to `main`; verify before treating as current)\n"
+        "- **Status:** Label every claim **landed** or **provisional** only after verifying branch/PR/ref state vs `main`\n\n"
         "## Domains\n\n"
         "| Domain | Doc | Landed | Provisional |\n"
         "|--------|-----|--------|-------------|\n"

@@ -29,9 +29,8 @@ rebuild/reconciliation, and deployment/readiness.
 
 - **Canon writer:** `scripts/compound/synthesize.py` only
 - **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)
-- **Knowledge branch:** `knowledge/architecture-expert` (human merge to `main`)
-- **Status:** Every claim is either **landed** (merged to `main` / explicit promotion)
-  or **provisional** (open PR / watched series)
+- **Knowledge branch:** `knowledge/architecture-expert` (intended human promotion to `main`; verify before treating as current)
+- **Status:** Label every claim **landed** or **provisional** only after verifying branch/PR/ref state vs `main`
 
 ## Domains
 
@@ -46,5 +45,6 @@ rebuild/reconciliation, and deployment/readiness.
 
 ## Operator notes
 
-See [README.md](README.md) once present (U6). Watched series: [watched-series.yml](watched-series.yml).
+See [README.md](README.md). Watched series: [watched-series.yml](watched-series.yml).
 Runtime writer mode: [runtime.yml](runtime.yml).
+

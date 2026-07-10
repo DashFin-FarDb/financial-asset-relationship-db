@@ -60,7 +60,7 @@ def seed_from_docs(repo_root: Path) -> list[str]:
             if domain not in DOMAINS:
                 raise SchemaError(f"Invalid seed domain {domain}")
         payload = {
-            "observation_id": f"bootstrap-doc-{Path(rel_path).stem}",
+            "observation_id": f"bootstrap-doc-{rel_path.replace('/', '__')}",
             "source": ObservationSource.BOOTSTRAP.value,
             "event_type": "seed.doc",
             "status": ObservationStatus.LANDED.value,
@@ -95,6 +95,14 @@ def _gh_json(args: list[str]) -> Any | None:
         return None
 
 
+def _gh_pr_list_args(*, limit: int, json_fields: str, search: str | None = None) -> list[str]:
+    """Build ``gh pr list`` args shared by search and fallback paths."""
+    args = ["pr", "list", "--state", "all", "--limit", str(limit), "--json", json_fields]
+    if search:
+        args.extend(["--search", search])
+    return args
+
+
 def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> list[str]:
     """Bounded PR scrape via gh; non-fatal when gh is unavailable.
 
@@ -103,33 +111,9 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
     """
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
     json_fields = "number,title,state,mergedAt,updatedAt,labels,files"
-    data = _gh_json(
-        [
-            "pr",
-            "list",
-            "--state",
-            "all",
-            "--limit",
-            str(limit),
-            "--search",
-            f"updated:>={cutoff}",
-            "--json",
-            json_fields,
-        ]
-    )
+    data = _gh_json(_gh_pr_list_args(limit=limit, json_fields=json_fields, search=f"updated:>={cutoff}"))
     if data is None:
-        data = _gh_json(
-            [
-                "pr",
-                "list",
-                "--state",
-                "all",
-                "--limit",
-                str(limit),
-                "--json",
-                json_fields,
-            ]
-        )
+        data = _gh_json(_gh_pr_list_args(limit=limit, json_fields=json_fields))
     if data is None:
         return ["PR scrape skipped: gh unavailable or failed"]
 

@@ -23,7 +23,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: architecture-compound-${{ github.event.pull_request.number || github.ref }}
+  group: architecture-compound-knowledge
   cancel-in-progress: false
 
 jobs:
@@ -70,6 +70,9 @@ jobs:
             git checkout -B knowledge/architecture-expert
           fi
           git checkout "${TRIGGER_SHA}" -- scripts/compound
+          # Overlay scripts into the working tree only; do not leave them staged
+          # for the knowledge-branch commit (which should contain docs/packs only).
+          git restore --staged scripts/compound
 
           FORCE_SYNTH="false"
           if [ "$EVENT_NAME" = "pull_request" ]; then

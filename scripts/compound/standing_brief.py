@@ -12,7 +12,14 @@ _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
 
-from compound.schema import BRIEFS_DIR, DOMAINS, LEDGER_PATH, assert_writable  # noqa: E402
+from compound.schema import (  # noqa: E402
+    BRIEFS_DIR,
+    DOMAINS,
+    LEDGER_PATH,
+    PathPolicyError,
+    SchemaError,
+    assert_writable,
+)
 from compound.synthesize import latest_by_primary_ref, load_ledger  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -30,7 +37,7 @@ def render_standing_brief(observations: list, *, as_of: str | None = None) -> st
     lines = [
         f"# Standing brief — {stamp}",
         "",
-        "Architecture-expert compound brief (durable on knowledge branch).",
+        "Architecture-expert compound brief (intended for docs/compound/briefs/).",
         "Claims are labeled landed vs provisional. ADRs/policy are not rewritten.",
         "",
         "## Seam movement by domain",
@@ -71,7 +78,7 @@ def main(argv: list[str] | None = None) -> int:
         path = write_standing_brief(args.repo_root, as_of=args.as_of)
         print(f"wrote: {path.relative_to(args.repo_root).as_posix()}")
         return 0
-    except (OSError, PermissionError) as exc:
+    except (SchemaError, PathPolicyError, OSError, PermissionError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 

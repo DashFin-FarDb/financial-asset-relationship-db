@@ -12,13 +12,13 @@ SCRIPTS_ROOT = REPO_ROOT / "scripts"
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
-from compound.bootstrap import scrape_recent_prs, seed_from_docs  # noqa: E402
+from compound.bootstrap import SEED_DOCS, scrape_recent_prs, seed_from_docs  # noqa: E402
 from compound.schema import DOMAINS, parse_observation_line  # noqa: E402
 
 
 @pytest.fixture
 def seed_repo(tmp_path: Path) -> Path:
-    """Fixture repo with a subset of seed docs and empty ledger."""
+    """Fixture repo with seed docs derived from SEED_DOCS and empty ledger."""
     (tmp_path / "docs" / "compound" / "ledger").mkdir(parents=True)
     (tmp_path / "docs" / "compound" / "ledger" / "observations.jsonl").write_text(
         "# schema_version=1\n",
@@ -28,26 +28,10 @@ def seed_repo(tmp_path: Path) -> Path:
         "writer_mode: dual\nconflict_count: 0\nconflict_window_minutes: 30\nlast_conflict_at: null\n",
         encoding="utf-8",
     )
-    samples = {
-        "docs/adr/0001-production-architecture.md": "# ADR\n",
-        "docs/graph-persistence-lifecycle-seam.md": "# Seam\n",
-        "docs/tech_spec.md": "# API\n",
-        "docs/graph-persistence-design.md": "# Persistence\n",
-        ".github/AUTOMATION_SCOPE_POLICY.md": "# Policy\n",
-        ".github/AI_AGENT_GUARDRAILS.md": "# Guardrails\n",
-        "docs/PR_SCOPE_GUARDRAILS.md": "# PR scope\n",
-        "docs/reconciliation-discovery-map.md": "# Recon\n",
-        "docs/reconciliation-engine.md": "# Engine\n",
-        "docs/governance/state-machine-and-operating-authority.md": "# Authority\n",
-        "docs/staging-deployment-operating-baseline.md": "# Staging\n",
-        "docs/release-evidence-pack.md": "# Release\n",
-        "docs/enterprise-readiness-index.md": "# Enterprise\n",
-        "docs/phase-3-computation-layout-boundary-audit.md": "# Phase3\n",
-    }
-    for rel, body in samples.items():
+    for rel, _domains in SEED_DOCS:
         path = tmp_path / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(body, encoding="utf-8")
+        path.write_text(f"# {path.name}\n", encoding="utf-8")
     return tmp_path
 
 
