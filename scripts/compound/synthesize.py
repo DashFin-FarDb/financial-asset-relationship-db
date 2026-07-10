@@ -204,7 +204,8 @@ def synthesize(
     """
     ledger_path = repo_root / LEDGER_PATH
     observations = load_ledger(ledger_path)
-    if not should_hot_path_synthesize(observations, force=force, event_hint=event_hint):
+    decision_window = observations[-1:] if observations else []
+    if not should_hot_path_synthesize(decision_window, force=force, event_hint=event_hint):
         return {}
 
     outputs: dict[str, str] = {}
