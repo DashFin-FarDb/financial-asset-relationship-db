@@ -189,8 +189,8 @@ def _has_invalid_path_chars(user_value: str) -> bool:
         user_value (str): The path string to inspect.
 
     Returns:
-        bool: `True` if `user_value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), `False`
-        otherwise.
+        bool: `True` if `user_value` contains NUL (`\x00`), newline (`\n`), or
+        carriage return (`\r`), `False` otherwise.
     """
     forbidden_chars = ("\x00", "\n", "\r")
     return any(char in user_value for char in forbidden_chars)
@@ -198,10 +198,9 @@ def _has_invalid_path_chars(user_value: str) -> bool:
 
 def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Path]:
     """
-    Compute path resolution within the base directory.
+    Resolve a user path relative to a base directory.
 
-    Returns the absolute base directory and the resolved candidate path obtained by interpreting the given user path
-    relative to the base directory.
+    Returns the absolute base directory and the resolved candidate path.
 
     Parameters:
         user_value (str): User-supplied filesystem path (may be relative).

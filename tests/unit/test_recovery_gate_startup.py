@@ -1,6 +1,6 @@
 """Tests for startup reconciliation via RecoveryGate."""
 
-from datetime import UTC
+from datetime import timezone
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -8,6 +8,8 @@ import pytest
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock, LockState
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+
+UTC = timezone.utc
 
 
 @pytest.fixture

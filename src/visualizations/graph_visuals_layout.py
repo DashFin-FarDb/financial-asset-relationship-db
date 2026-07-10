@@ -1,11 +1,4 @@
-"""
-Module for generating dynamic titles and preparing layout configurations
-for 3D financial asset network visualizations.
-
-This module provides helper functions to generate dynamic titles,
-calculate visible relationships, and prepare layout configurations
-for financial asset network plots.
-"""
+"""Generate titles and layout configuration for 3D asset network plots."""
 
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 
@@ -54,10 +47,12 @@ def _calculate_visible_relationships(
     Estimate the number of visible relationships represented by a list of 3D scatter traces.
 
     Parameters:
-        relationship_traces (List[go.Scatter3d]): Scatter3d traces whose `x` coordinate arrays represent plotted points; traces missing `x` or with empty `x` are treated as having zero points.
+        relationship_traces (List[go.Scatter3d]): Scatter3d traces whose `x` coordinate arrays represent plotted points;
+        traces missing `x` or with empty `x` are treated as having zero points.
 
     Returns:
-        int: Estimated number of visible relationships, computed as the total plotted points across all traces divided by 3.
+        int: Estimated number of visible relationships, computed as the total plotted points across all traces divided
+        by 3.
     """
     total_points = sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces)
     return total_points // 3
@@ -70,15 +65,21 @@ def _prepare_layout_config(
     layout_options: dict[str, object] | None = None,
 ) -> tuple[str, dict[str, object]]:
     """
-    Create a dynamic plot title using the asset count and estimated visible relationships, and return that title with layout options.
+    Create a dynamic plot title and return it with layout options.
 
     Parameters:
-        relationship_traces: 3D scatter traces used to estimate visible relationships by counting their data points; traces with missing or empty `x` are treated as zero points.
-        base_title (str): Prefix for the generated title. Defaults to "Financial Asset Network".
-        layout_options (Optional[Dict[str, object]]): Layout configuration to return; an empty dict is returned if None.
+        relationship_traces: 3D scatter traces used to estimate visible
+            relationships by counting their data points; traces with missing
+            or empty `x` are treated as zero points.
+        base_title (str): Prefix for the generated title. Defaults to
+            "Financial Asset Network".
+        layout_options (Optional[Dict[str, object]]): Layout configuration to
+            return; an empty dict is returned if None.
 
     Returns:
-        Tuple[str, Dict[str, object]]: The generated title (e.g., "Financial Asset Network - 10 Assets, 5 Relationships") and the layout options dictionary (empty dict if none provided).
+        Tuple[str, Dict[str, object]]: The generated title (for example
+        "Financial Asset Network - 10 Assets, 5 Relationships") and the
+        layout options dictionary (empty dict if none provided).
     """
     num_relationships = _calculate_visible_relationships(relationship_traces)
     dynamic_title = _generate_dynamic_title(

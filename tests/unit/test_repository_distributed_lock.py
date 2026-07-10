@@ -1,6 +1,6 @@
 """Unit tests for AssetGraphRepository distributed lock and latest job methods."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -25,6 +25,8 @@ from src.data.repository import (
     RebuildFailureDetails,
     session_scope,
 )
+
+UTC = timezone.utc
 
 
 def _ensure_utc(dt: datetime) -> datetime:
@@ -453,7 +455,7 @@ class TestDistributedLockObservability:
         mock_metrics.inc.assert_any_call("lock_release_total", None)
 
     def test_refresh_transient_error_exponential_backoff_and_failed_state(self, monkeypatch, bound_session_factory):
-        """Test refresh event flows, state transition to LOST, and backoff sleep delays on transient error exhaustion."""
+        """Test refresh event flows, LOST transition, and backoff on transient errors."""
         mock_refresh_lock = MagicMock(side_effect=SQLAlchemyError("transient db error"))
         monkeypatch.setattr(CoordinationLockRepository, "refresh_lock", mock_refresh_lock)
 

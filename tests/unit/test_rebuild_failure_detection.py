@@ -1,6 +1,6 @@
 """Unit tests for rebuild failure detection logic (Stage 5C.1)."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -12,6 +12,8 @@ from src.logic.rebuild_failure_detection import (
     detect_rebuild_inconsistency,
     detect_stale_ownership,
 )
+
+UTC = timezone.utc
 
 
 @pytest.fixture

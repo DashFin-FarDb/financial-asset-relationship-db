@@ -9,7 +9,7 @@ This module contains comprehensive unit tests for the database models including:
 - Model field validation and nullable constraints
 """
 
-from datetime import UTC, datetime, timezone
+from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy import create_engine, inspect
@@ -27,6 +27,8 @@ from src.data.db_models import (
 )
 from tests.conftest import enable_sqlite_foreign_keys
 
+UTC = timezone.utc
+
 pytest.importorskip("sqlalchemy")
 
 
@@ -35,10 +37,10 @@ def db_session(tmp_path):
     """
     Create and yield a SQLAlchemy Session connected to a temporary SQLite database.
 
-    Initializes the database schema at tmp_path / "test.db", yields an active Session for tests, and ensures the session is closed and the engine disposed after use.
+    Initialize a temporary SQLite schema and yield an active Session.
 
     Parameters:
-        tmp_path (pathlib.Path): Temporary directory fixture; the SQLite database file will be created at `tmp_path / "test.db"`.
+        tmp_path (pathlib.Path): Temporary directory for the SQLite database.
 
     Returns:
         session (sqlalchemy.orm.Session): A Session bound to the temporary SQLite database.
