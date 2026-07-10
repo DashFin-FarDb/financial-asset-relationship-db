@@ -141,6 +141,8 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Ensure overlayed scripts/compound from the triggering SHA are not committed to the knowledge branch.
+          git restore --staged --worktree -- scripts/compound || true
           git add docs/compound .cursor/rules/architecture-expert.mdc .cursor/rules/architecture-expert-query.mdc .openhands/microagents/architecture_expert.md
           if git diff --cached --quiet; then
             echo "No compound doc changes to commit"
