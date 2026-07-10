@@ -23,7 +23,7 @@ CURSOR_QUERY_PATH = Path(".cursor/rules/architecture-expert-query.mdc")
 OPENHANDS_PATH = Path(".openhands/microagents/architecture_expert.md")
 
 FORBIDDEN_WRITE_INSTRUCTIONS = re.compile(
-    r"(?i)\b(rewrite|overwrite|edit|modify|update)\b.{0,40}\b(adr|agents\.md|policy)\b"
+    r"(?i)\b(rewrite|overwrite|edit|modify|update)\b[\s\S]{0,40}\b(adr|agents\.md|policy)\b"
 )
 
 
