@@ -148,11 +148,23 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Ensure overlayed scripts/compound from the triggering SHA are not committed to the knowledge branch.
           git restore --staged -- scripts/compound || true
-          git add docs/compound/runtime.yml
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(compound): record knowledge-branch push conflict" || true
-            push_knowledge || true
+
+          # Stage generated knowledge outputs.
+          git add docs/compound .cursor/rules .openhands/microagents/architecture_expert.md
+
+          if git diff --cached --quiet; then
+            echo "No knowledge changes to commit"
+            exit 0
           fi
-          echo "Push to knowledge branch failed after retry; conflict recorded when possible"
-          exit 1
-          # Intentionally never merges into main (human promotion only).
+
+          git commit -m "chore(compound): update architecture compound" || true
+
+          if git push origin HEAD:knowledge/architecture-expert; then
+            exit 0
+          fi
+
+          echo "warn: push failed; recording conflict (A12) and retrying" >&2
+          python scripts/compound/append_observation.py --record-push-conflict || true
+          git add docs/compound/runtime.yml
+          git commit -m "chore(compound): record knowledge-branch push conflict" || true
+          git push origin HEAD:knowledge/architecture-expert
