@@ -147,6 +147,8 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
         for entry in file_entries:
             if isinstance(entry, dict):
                 paths.append(str(entry.get("filename") or entry.get("path", "")))
+            elif isinstance(entry, str):
+                paths.append(entry)
         domains = list(detect_domains_from_paths(paths))
         payload = {
             "observation_id": f"bootstrap-pr-{number}",
