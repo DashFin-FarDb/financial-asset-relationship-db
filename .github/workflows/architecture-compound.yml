@@ -65,7 +65,7 @@ jobs:
           # Use trusted scripts from the PR base (main) on pull_request events.
           # Keep compound scripts from the triggering commit; switch docs/ledger to knowledge tip.
           TRIGGER_SHA="${GITHUB_SHA}"
-          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ]; then
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ] && git cat-file -e "${PR_BASE_SHA}:scripts/compound/schema.py" 2>/dev/null; then
             TRIGGER_SHA="$PR_BASE_SHA"
           fi
           if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
