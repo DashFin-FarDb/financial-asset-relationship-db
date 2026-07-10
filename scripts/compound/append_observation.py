@@ -77,7 +77,10 @@ def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     """Write runtime.yml with the fixed key set."""
-    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else "docs/compound/runtime.yml")
+    runtime_rel = "docs/compound/runtime.yml"
+    if not path.as_posix().endswith(runtime_rel):
+        raise PathPolicyError(f"Write denied (runtime path mismatch): {path}")
+    assert_writable(runtime_rel)
     lines = [
         "# Architecture-expert dual-writer runtime mode.",
         "# writer_mode: dual | github_only",
