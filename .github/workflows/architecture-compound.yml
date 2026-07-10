@@ -157,7 +157,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore(compound): update architecture compound" || true
+          git commit -m "chore(compound): update architecture compound"
 
           if git push origin HEAD:knowledge/architecture-expert; then
             exit 0
