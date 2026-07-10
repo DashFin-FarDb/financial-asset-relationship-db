@@ -15,6 +15,7 @@ if str(SCRIPTS_ROOT) not in sys.path:
 
 from compound.schema import PathPolicyError, assert_writable  # noqa: E402
 from compound.synthesize import (  # noqa: E402
+    load_ledger,
     should_hot_path_synthesize,
     synthesize,
 )
@@ -183,3 +184,36 @@ class TestCompoundSynthesize:
         """Path policy rejects ADR writes."""
         with pytest.raises(PathPolicyError):
             assert_writable("docs/adr/0001-production-architecture.md")
+
+    def test_load_ledger_skips_malformed_with_warning(
+        self, synth_repo: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Corrupt ledger lines are skipped and reported on stderr."""
+        ledger = synth_repo / "docs/compound/ledger/observations.jsonl"
+        ledger.write_text(
+            "\n".join(
+                [
+                    "# schema_version=1",
+                    "{not-json",
+                    json.dumps(
+                        {
+                            "observation_id": "ok",
+                            "source": "github",
+                            "event_type": "pull_request.opened",
+                            "status": "provisional",
+                            "primary_ref": "pr:1",
+                            "summary": "Valid row",
+                            "domains": ["architecture"],
+                            "created_at": "2026-07-01T00:00:00Z",
+                        }
+                    ),
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        observations = load_ledger(ledger)
+        assert len(observations) == 1
+        assert observations[0].primary_ref == "pr:1"
+        err = capsys.readouterr().err
+        assert "skipping malformed ledger line" in err

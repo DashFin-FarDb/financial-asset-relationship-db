@@ -5,6 +5,7 @@ name: Architecture Compound
 
 "on":
   pull_request:
+    branches: [main]
     types: [opened, synchronize, reopened, labeled, closed]
   push:
     branches: [main]
@@ -23,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: architecture-compound-${{ github.event.pull_request.number || github.ref }}
+  group: architecture-compound-knowledge
   cancel-in-progress: false
 
 jobs:
@@ -43,7 +44,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
-
+          ref: ${{ github.sha }}
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
@@ -55,21 +56,28 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title || '' }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           PR_ACTION: ${{ github.event.action || '' }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
           PR_MERGED_JSON: ${{ toJson(github.event.pull_request.merged || false) }}
           EVENT_NAME: ${{ github.event_name }}
           FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
         shell: bash
         run: |
-          set -euo pipefail
+          # Use trusted scripts from the PR base (main) on pull_request events.
           # Keep compound scripts from the triggering commit; switch docs/ledger to knowledge tip.
           TRIGGER_SHA="${GITHUB_SHA}"
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ] && git cat-file -e "${PR_BASE_SHA}:scripts/compound/schema.py" 2>/dev/null; then
+            TRIGGER_SHA="$PR_BASE_SHA"
+          fi
           if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
             git fetch origin knowledge/architecture-expert
             git checkout -B knowledge/architecture-expert origin/knowledge/architecture-expert
           else
             git checkout -B knowledge/architecture-expert
           fi
-          git checkout "${TRIGGER_SHA}" -- scripts/compound
+          git checkout "${TRIGGER_SHA}" -- scripts/compound || { echo "error: failed to checkout scripts/compound from ${TRIGGER_SHA}" >&2; exit 1; }
+          # Overlay scripts into the working tree only; do not leave them staged
+          # for the knowledge-branch commit (which should contain docs/packs only).
+          git restore --staged scripts/compound
 
           FORCE_SYNTH="false"
           if [ "$EVENT_NAME" = "pull_request" ]; then
@@ -134,6 +142,7 @@ jobs:
           python scripts/compound/sync_agent_packs.py
           python scripts/compound/standing_brief.py
           echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"
+          echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"
 
       - name: Commit and push knowledge branch
         shell: bash
@@ -141,9 +150,14 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/compound .cursor/rules/architecture-expert.mdc .cursor/rules/architecture-expert-query.mdc .openhands/microagents/architecture_expert.md
+          # Ensure overlayed scripts/compound from the triggering SHA are not committed to the knowledge branch.
+          git restore --staged -- scripts/compound || true
+
+          # Stage generated knowledge outputs.
+          git add docs/compound .cursor/rules .openhands/microagents/architecture_expert.md
+
           if git diff --cached --quiet; then
-            echo "No compound doc changes to commit"
+            echo "No knowledge changes to commit"
             exit 0
           fi
           git commit -m "chore(compound): synthesize architecture memory"
@@ -154,17 +168,21 @@ jobs:
             exit 0
           fi
           echo "Push failed; fetch/rebase once then retry"
+          # Clear dirty TRIGGER_SHA script overlay so rebase is not blocked by local edits.
+          git restore --source=HEAD --worktree --staged -- scripts/compound || true
           git fetch origin knowledge/architecture-expert || true
           git rebase origin/knowledge/architecture-expert || git rebase --abort || true
           if push_knowledge; then
             exit 0
           fi
+          # Re-apply triggering scripts for conflict recording, then unstage again.
+          if [ -n "${TRIGGER_SHA:-}" ]; then
+            git checkout "${TRIGGER_SHA}" -- scripts/compound
+            git restore --staged scripts/compound
+          fi
           python scripts/compound/append_observation.py --record-push-conflict || true
           git add docs/compound/runtime.yml
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(compound): record knowledge-branch push conflict" || true
-            push_knowledge || true
-          fi
-          echo "Push to knowledge branch failed after retry; conflict recorded when possible"
-          exit 1
-          # Intentionally never merges into main (human promotion only).
+          git commit -m "chore(compound): record knowledge-branch push conflict"
+          git fetch origin knowledge/architecture-expert
+          git merge --no-edit origin/knowledge/architecture-expert
+          git push origin HEAD:knowledge/architecture-expert

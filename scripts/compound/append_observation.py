@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
@@ -27,6 +28,7 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+RUNTIME_YML_REL = "docs/compound/runtime.yml"
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
@@ -35,8 +37,8 @@ def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
-    """Read dual-writer mode from docs/compound/runtime.yml."""
-    runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
+    """Read dual-writer mode from runtime.yml."""
+    runtime_path = _repo_path(RUNTIME_YML_REL, repo_root)
     if not runtime_path.exists():
         return WriterMode.DUAL
     text = runtime_path.read_text(encoding="utf-8")
@@ -69,15 +71,26 @@ def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
         if key == "writer_mode":
             data[key] = value
         elif key in {"conflict_count", "conflict_window_minutes"}:
-            data[key] = int(value)
+            try:
+                data[key] = int(value)
+            except ValueError as exc:
+                raise SchemaError(f"Invalid integer for {key}: {value}") from exc
         elif key == "last_conflict_at":
             data[key] = None if value in {"null", "~", ""} else value
     return data
 
 
-def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
+def _write_runtime_yaml(path: Path, data: Mapping[str, Any], *, repo_root: Path | None = None) -> None:
     """Write runtime.yml with the fixed key set."""
-    assert_writable(path.as_posix() if path.as_posix().startswith("docs/") else "docs/compound/runtime.yml")
+    root = (repo_root or REPO_ROOT).resolve()
+    resolved = path.resolve() if path.is_absolute() else (root / path).resolve()
+    try:
+        rel = resolved.relative_to(root).as_posix()
+    except ValueError as exc:
+        raise PathPolicyError(f"Runtime path outside repo: {path}") from exc
+    if rel != RUNTIME_YML_REL:
+        raise PathPolicyError(f"Write denied (runtime path mismatch): {path}")
+    assert_writable(rel)
     lines = [
         "# Architecture-expert dual-writer runtime mode.",
         "# writer_mode: dual | github_only",
@@ -99,8 +112,8 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     Threshold: >=3 conflicts within conflict_window_minutes (plan A12).
     """
     root = repo_root or REPO_ROOT
-    runtime_path = _repo_path("docs/compound/runtime.yml", root)
-    assert_writable("docs/compound/runtime.yml")
+    runtime_path = _repo_path(RUNTIME_YML_REL, root)
+    assert_writable(RUNTIME_YML_REL)
     current = datetime.now(timezone.utc) if now is None else now
     if runtime_path.exists():
         data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
@@ -131,7 +144,7 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
     if count >= 3:
         data["writer_mode"] = WriterMode.GITHUB_ONLY.value
-    _write_runtime_yaml(runtime_path, data)
+    _write_runtime_yaml(runtime_path, data, repo_root=root)
     return WriterMode(str(data["writer_mode"]))
 
 
@@ -232,6 +245,30 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _is_under(path: Path, root: Path) -> bool:
+    """Return True when ``path`` is inside ``root`` after resolve."""
+    try:
+        path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def _load_observation_payload(path: Path, *, repo_root: Path | None = None) -> Mapping[str, Any]:
+    """Load observation JSON from a path under the repo or system temp dir."""
+    root = (repo_root or REPO_ROOT).resolve()
+    resolved = path.expanduser().resolve()
+    temp_root = Path(tempfile.gettempdir()).resolve()
+    if not (_is_under(resolved, root) or _is_under(resolved, temp_root)):
+        raise PathPolicyError(f"Observation path must be under the repo or temp dir: {path}")
+    if not resolved.is_file():
+        raise SchemaError(f"Observation file not found: {path}")
+    payload = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(payload, Mapping):
+        raise SchemaError("Observation payload must be a JSON object")
+    return payload
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint for appending a single observation."""
     parser = _build_parser()
@@ -243,9 +280,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else json.loads(Path(args.file).read_text(encoding="utf-8"))
-        if not isinstance(payload, Mapping):
-            raise SchemaError("Observation payload must be a JSON object")
+        if args.json:
+            payload = json.loads(args.json)
+            if not isinstance(payload, Mapping):
+                raise SchemaError("Observation payload must be a JSON object")
+        else:
+            payload = _load_observation_payload(Path(args.file), repo_root=args.repo_root)
         if args.validate_only:
             observation_from_mapping(payload)
             print("validated")

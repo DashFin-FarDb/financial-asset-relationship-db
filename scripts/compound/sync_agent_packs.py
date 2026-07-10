@@ -23,7 +23,7 @@ CURSOR_QUERY_PATH = Path(".cursor/rules/architecture-expert-query.mdc")
 OPENHANDS_PATH = Path(".openhands/microagents/architecture_expert.md")
 
 FORBIDDEN_WRITE_INSTRUCTIONS = re.compile(
-    r"(?i)\b(rewrite|overwrite|edit|modify|update)\b.{0,40}\b(adr|agents\.md|policy)\b"
+    r"(?i)\b(rewrite|overwrite|edit|modify|update)\b[\s\S]{0,40}\b(adr|agents\.md|policy)\b"
 )
 
 
@@ -42,9 +42,16 @@ def _sanitize_pack_body(body: str) -> str:
     return FORBIDDEN_WRITE_INSTRUCTIONS.sub(_repl, body)
 
 
-def build_cursor_rule(index_text: str, domain_summaries: dict[str, str]) -> str:
+def build_cursor_rule(index_text: str) -> str:
     """Build Cursor rule markdown with frontmatter."""
     domain_lines = "\n".join(f"- `{domain}`: see `docs/compound/domains/{domain}.md`" for domain in DOMAINS)
+    excerpt = _sanitize_pack_body(index_text[:2000])
+    excerpt = (
+        excerpt.replace("(README.md)", "(docs/compound/README.md)")
+        .replace("(watched-series.yml)", "(docs/compound/watched-series.yml)")
+        .replace("(runtime.yml)", "(docs/compound/runtime.yml)")
+        .replace("(domains/", "(docs/compound/domains/")
+    )
     body = f"""# Architecture Expert (generated)
 
 Docs-first compounded memory. Prefer `docs/compound/` over inventing seams.
@@ -72,7 +79,7 @@ an open PR, and whether it differs from `main`.
 
 ## Index excerpt
 
-{_sanitize_pack_body(index_text[:2000])}
+{excerpt}
 """
     return (
         "---\n"
@@ -109,7 +116,14 @@ rebuild/reconciliation, or deployment/readiness:
 def build_openhands_microagent(index_text: str) -> str:
     """Build OpenHands microagent with required frontmatter."""
     # Sanitize only the index excerpt; leave static Rules unsanitized (matches Cursor packs).
-    excerpt = _sanitize_pack_body(index_text[:1500]).replace("\n# ", "\n## ")
+    excerpt = (
+        _sanitize_pack_body(index_text[:1500])
+        .replace("(README.md)", "(docs/compound/README.md)")
+        .replace("(watched-series.yml)", "(docs/compound/watched-series.yml)")
+        .replace("(runtime.yml)", "(docs/compound/runtime.yml)")
+        .replace("(domains/", "(docs/compound/domains/")
+        .replace("\n# ", "\n## ")
+    )
     if excerpt.startswith("# "):
         excerpt = "## " + excerpt[2:]
     body = f"""# Architecture Expert Microagent
@@ -145,12 +159,9 @@ Compounded architecture memory for this repository.
 def sync_agent_packs(repo_root: Path, *, dry_run: bool = False) -> dict[str, str]:
     """Generate sidecar packs from INDEX + domain docs."""
     index_text = _read_text(repo_root / INDEX_PATH)
-    domain_summaries: dict[str, str] = {}
-    for domain in DOMAINS:
-        domain_summaries[domain] = _read_text(repo_root / "docs" / "compound" / "domains" / f"{domain}.md")[:500]
 
     outputs = {
-        CURSOR_RULE_PATH.as_posix(): build_cursor_rule(index_text, domain_summaries),
+        CURSOR_RULE_PATH.as_posix(): build_cursor_rule(index_text),
         CURSOR_QUERY_PATH.as_posix(): build_cursor_query_rule(),
         OPENHANDS_PATH.as_posix(): build_openhands_microagent(index_text),
     }

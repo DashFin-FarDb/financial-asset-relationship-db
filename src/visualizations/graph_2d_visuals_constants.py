@@ -1,3 +1,5 @@
+"""Color constants for 2D asset relationship graph visualizations."""
+
 REL_TYPE_COLORS = {
     "same_sector": "#FF6B6B",
     "market_cap_similar": "#4ECDC4",

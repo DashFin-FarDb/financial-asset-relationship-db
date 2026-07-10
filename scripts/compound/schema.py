@@ -154,18 +154,21 @@ class PathPolicyError(PermissionError):
 
 
 def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
+    """Normalize a string or sequence of strings into a homogeneous tuple."""
+    items: list[str]
     if value is None:
-        return ()
-    if isinstance(value, str):
-        return (value,)
-    if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
+        items = []
+    elif isinstance(value, str):
+        items = [value]
+    elif isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
         items = []
         for item in value:
             if not isinstance(item, str):
                 raise SchemaError(f"{field_name} entries must be strings")
             items.append(item)
-        return tuple(items)
-    raise SchemaError(f"{field_name} must be a string or list of strings")
+    else:
+        raise SchemaError(f"{field_name} must be a string or list of strings")
+    return tuple(items)
 
 
 def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
@@ -200,7 +203,10 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
         raise SchemaError(str(exc)) from exc
 
     domains = validate_domains(_as_str_tuple(data.get("domains"), "domains"))
-    schema_version = int(data.get("schema_version", SCHEMA_VERSION))
+    raw_schema_version = data.get("schema_version", SCHEMA_VERSION)
+    if isinstance(raw_schema_version, bool):
+        raise SchemaError("schema_version must be an integer")
+    schema_version = int(raw_schema_version)
     if schema_version != SCHEMA_VERSION:
         raise SchemaError(f"Unsupported schema_version {schema_version}; expected {SCHEMA_VERSION}")
 

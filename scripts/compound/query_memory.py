@@ -11,7 +11,7 @@ _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
 
-from compound.schema import DOMAINS, INDEX_PATH  # noqa: E402
+from compound.schema import DOMAINS, DOMAINS_DIR, INDEX_PATH  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -68,7 +68,7 @@ def query_memory(repo_root: Path, question: str) -> str:
 
     found = False
     for domain in domains:
-        path = repo_root / "docs" / "compound" / "domains" / f"{domain}.md"
+        path = repo_root / DOMAINS_DIR / f"{domain}.md"
         if not path.exists():
             continue
         text = path.read_text(encoding="utf-8")

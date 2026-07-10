@@ -29,22 +29,21 @@ rebuild/reconciliation, and deployment/readiness.
 
 - **Canon writer:** `scripts/compound/synthesize.py` only
 - **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)
-- **Knowledge branch:** `knowledge/architecture-expert` (human merge to `main`)
-- **Status:** Every claim is either **landed** (merged to `main` / explicit promotion)
-  or **provisional** (open PR / watched series)
+- **Knowledge branch:** `knowledge/architecture-expert` (intended human promotion to `main`; verify before treating as current)
+- **Status:** Label every claim **landed** or **provisional** only after verifying branch/PR/ref state vs `main`
 
 ## Domains
 
 | Domain | Doc |
 |--------|-----|
-| Architecture & seams | [domains/architecture.md](domains/architecture.md) |
-| API contracts | [domains/api.md](domains/api.md) |
-| Persistence / SQL | [domains/persistence.md](domains/persistence.md) |
-| CI / guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) |
-| Rebuild / reconciliation | [domains/rebuild-reconciliation.md](domains/rebuild-reconciliation.md) |
-| Deployment / readiness | [domains/deployment.md](domains/deployment.md) |
+| Architecture & seams | [domains/architecture.md](docs/compound/domains/architecture.md) |
+| API contracts | [domains/api.md](docs/compound/domains/api.md) |
+| Persistence / SQL | [domains/persistence.md](docs/compound/domains/persistence.md) |
+| CI / guardrails | [domains/ci-guardrails.md](docs/compound/domains/ci-guardrails.md) |
+| Rebuild / reconciliation | [domains/rebuild-reconciliation.md](docs/compound/domains/rebuild-reconciliation.md) |
+| Deployment / readiness | [domains/deployment.md](docs/compound/domains/deployment.md) |
 
 ## Operator notes
 
-See [README.md](README.md) once present (U6). Watched series: [watched-series.yml](watched-series.yml).
-Runtime writer mode: [runtime.yml](runtime.yml).
+See [README.md](docs/compound/README.md). Watched series: [watched-series.yml](docs/compound/watched-series.yml).
+Runtime writer mode: [runtime.yml](docs/compound/runtime.yml).
