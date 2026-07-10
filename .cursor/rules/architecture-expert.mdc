@@ -62,5 +62,5 @@ rebuild/reconciliation, and deployment/readiness.
 
 ## Operator notes
 
-See [README.md](README.md) once present (U6). Watched series: [watched-series.yml](watched-series.yml).
-Runtime writer mode: [runtime.yml](runtime.yml).
+See [README.md](docs/compound/README.md). Watched series: [watched-series.yml](docs/compound/watched-series.yml).
+Runtime writer mode: [runtime.yml](docs/compound/runtime.yml).
