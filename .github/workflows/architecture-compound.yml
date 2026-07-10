@@ -106,6 +106,8 @@ jobs:
             FORCE_SYNTH="true"
           fi
           DOMAINS_JSON=$(FILES_JSON="$FILES_JSON" python -c 'import json,os,sys; sys.path.insert(0,"scripts"); from compound.schema import detect_domains_from_paths; print(json.dumps(list(detect_domains_from_paths(json.loads(os.environ["FILES_JSON"])))))')
+          OBSERVATION_FILE=".tmp/compound-observation.json"
+          mkdir -p "$(dirname "$OBSERVATION_FILE")"
           jq -n \
             --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
             --arg source "github" \
@@ -124,8 +126,8 @@ jobs:
               domains: $domains,
               refs: [$primary_ref],
               evidence_pointers: [$primary_ref]
-            }' > /tmp/observation.json
-          python scripts/compound/append_observation.py --file /tmp/observation.json
+            }' > "$OBSERVATION_FILE"
+          python scripts/compound/append_observation.py --file "$OBSERVATION_FILE"
           EXTRA=()
           if [ "$FORCE_SYNTH" = "true" ]; then
             EXTRA+=(--force)
