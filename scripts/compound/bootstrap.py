@@ -102,13 +102,7 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
     PRs when the search filter is unsupported.
     """
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
-    json_fields = "number,title,state,mergedAt,updatedAt,labels,files"
-    data = _gh_json(
-        [
-            "pr",
-            "list",
-            "--state",
-            "all",
+json_fields = "number,title,state,mergedAt,updatedAt,labels"
             "--limit",
             str(limit),
             "--search",
