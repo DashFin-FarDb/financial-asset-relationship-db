@@ -45,7 +45,7 @@ def _report_duplicates(
 
     Parameters:
         duplicates (Dict[str, List[int]]): Mapping from duplicated heading text to the list of 1-based line numbers
-        where each occurs.
+            where each occurs.
         manifest_path (Path): Path to the manifest file being validated.
 
     Returns:
