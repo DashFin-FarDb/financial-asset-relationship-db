@@ -19,7 +19,7 @@
 | `docs/adr/0006-release-and-deployment-automation.md`          | Release and Deployment automation strategy, GitHub actions constraints                                                     |
 | `docs/adr/0005-backup-restore-dr-strategy.md`                 | Backup, restore, DR strategy, data classification, RPO, and RTO                                                            |
 | `docs/runbooks/backup-restore-dr.md`                         | Operator procedures for backup verification, restore execution, and post-restore checks                                    |
-| `docs/compound/INDEX.md`                                      | Architecture-expert compounded memory index (provisional vs landed)                                                        |
+| `docs/compound/INDEX.md`                                      | Additive architecture-expert compounded memory index (provisional vs landed)                                              |
 
 ## Executive Summary
 
