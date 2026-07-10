@@ -200,7 +200,10 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
         raise SchemaError(str(exc)) from exc
 
     domains = validate_domains(_as_str_tuple(data.get("domains"), "domains"))
-    schema_version = int(data.get("schema_version", SCHEMA_VERSION))
+    raw_schema_version = data.get("schema_version", SCHEMA_VERSION)
+    if isinstance(raw_schema_version, bool):
+        raise SchemaError("schema_version must be an integer")
+    schema_version = int(raw_schema_version)
     if schema_version != SCHEMA_VERSION:
         raise SchemaError(f"Unsupported schema_version {schema_version}; expected {SCHEMA_VERSION}")
 
