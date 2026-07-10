@@ -72,6 +72,28 @@ class TestArchitectureCompoundWorkflow:
         assert "--record-push-conflict" in text
         assert "docs/compound/runtime.yml" in text
         assert "record knowledge-branch push conflict" in text
+        assert "push_knowledge()" in text
+        assert 'exit 0' in text
+        assert "Push still rejected after rebase retry" in text
+
+    def test_workflow_dispatch_pins_scripts_to_origin_main(self) -> None:
+        """Manual dispatch must run reviewed scripts from origin/main, not selected ref."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert 'elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then' in text
+        assert "git fetch --no-tags --depth=1 origin main" in text
+        assert 'TRIGGER_SHA="$(git rev-parse origin/main)"' in text
+        assert "never the selected non-main ref" in text
+
+    def test_commit_stages_allowlisted_sidecars_only(self) -> None:
+        """Commit step stages allowlisted outputs and fully restores scripts/compound."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "git add .cursor/rules" not in text
+        assert ".cursor/rules/architecture-expert.mdc" in text
+        assert ".cursor/rules/architecture-expert-query.mdc" in text
+        assert ".openhands/microagents/architecture_expert.md" in text
+        assert "git add docs/compound" in text
+        assert "git restore --source=HEAD --staged --worktree -- scripts/compound" in text
+        assert "git push origin" in text
 
     def test_actions_pinned_and_scripts_overlay(self) -> None:
         """Checkout/setup-python are SHA-pinned; scripts overlay from triggering SHA."""
@@ -80,7 +102,7 @@ class TestArchitectureCompoundWorkflow:
         assert "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065" in text
         assert 'git checkout "${TRIGGER_SHA}" -- scripts/compound' in text
         assert "git restore --staged scripts/compound" in text
-        assert "git restore --source=HEAD --worktree --staged -- scripts/compound" in text
+        assert "git restore --source=HEAD --staged --worktree -- scripts/compound" in text
         assert 'echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"' in text
         assert "continue-on-error:" not in text
         assert "cancel-in-progress: false" in text

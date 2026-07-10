@@ -40,6 +40,8 @@ jobs:
       contents: write
       pull-requests: read
     steps:
+      # Initial checkout uses the event SHA for history; compound scripts are always
+      # overlaid from a trusted TRIGGER_SHA (main / PR base / origin/main for dispatch).
       - name: Checkout triggering ref
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -62,11 +64,17 @@ jobs:
           FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
         shell: bash
         run: |
-          # Use trusted scripts from the PR base (main) on pull_request events.
-          # Keep compound scripts from the triggering commit; switch docs/ledger to knowledge tip.
+          set -euo pipefail
+          # Trusted scripts only (contents: write must not run unreviewed compound code):
+          # - pull_request: PR base SHA (main)
+          # - push: the pushed main SHA
+          # - workflow_dispatch: origin/main tip (never the selected non-main ref)
           TRIGGER_SHA="${GITHUB_SHA}"
           if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ] && git cat-file -e "${PR_BASE_SHA}:scripts/compound/schema.py" 2>/dev/null; then
             TRIGGER_SHA="$PR_BASE_SHA"
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            git fetch --no-tags --depth=1 origin main
+            TRIGGER_SHA="$(git rev-parse origin/main)"
           fi
           if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
             git fetch origin knowledge/architecture-expert
@@ -150,39 +158,62 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Ensure overlayed scripts/compound from the triggering SHA are not committed to the knowledge branch.
-          git restore --staged -- scripts/compound || true
+          KNOWLEDGE_BRANCH="knowledge/architecture-expert"
 
-          # Stage generated knowledge outputs.
-          git add docs/compound .cursor/rules .openhands/microagents/architecture_expert.md
+          # Fully restore scripts/compound (index + worktree) so overlay never ships
+          # and cannot interfere with rebase/push-retry against the remote branch.
+          git restore --source=HEAD --staged --worktree -- scripts/compound || true
+
+          # Stage only allowlisted generated outputs (never the whole .cursor/rules tree).
+          git add docs/compound \
+            .cursor/rules/architecture-expert.mdc \
+            .cursor/rules/architecture-expert-query.mdc \
+            .openhands/microagents/architecture_expert.md
 
           if git diff --cached --quiet; then
             echo "No knowledge changes to commit"
             exit 0
           fi
           git commit -m "chore(compound): synthesize architecture memory"
+
+          # Push with one rebase retry; record conflict only after both attempts fail.
           push_knowledge() {
-            git push origin HEAD:knowledge/architecture-expert
+            if git push origin "HEAD:refs/heads/${KNOWLEDGE_BRANCH}"; then
+              return 0
+            fi
+            echo "::warning::Push to ${KNOWLEDGE_BRANCH} rejected"
+            return 1
           }
+
           if push_knowledge; then
+            echo "Pushed knowledge updates to ${KNOWLEDGE_BRANCH}"
             exit 0
           fi
-          echo "Push failed; fetch/rebase once then retry"
-          # Clear dirty TRIGGER_SHA script overlay so rebase is not blocked by local edits.
-          git restore --source=HEAD --worktree --staged -- scripts/compound || true
-          git fetch origin knowledge/architecture-expert || true
-          git rebase origin/knowledge/architecture-expert || git rebase --abort || true
-          if push_knowledge; then
+
+          echo "::warning::Initial push failed; attempting rebase retry"
+          git restore --source=HEAD --staged --worktree -- scripts/compound || true
+          git fetch origin "${KNOWLEDGE_BRANCH}" || true
+          if ! git rebase "origin/${KNOWLEDGE_BRANCH}"; then
+            git rebase --abort || true
+            echo "::error::Rebase onto origin/${KNOWLEDGE_BRANCH} failed"
+          elif push_knowledge; then
+            echo "Pushed knowledge updates after rebase retry"
             exit 0
           fi
-          # Re-apply triggering scripts for conflict recording, then unstage again.
+
+          # Actual push failure path: briefly overlay reviewed scripts to record conflict,
+          # then fully restore before staging runtime.yml.
+          echo "::error::Push still rejected after rebase retry"
           if [ -n "${TRIGGER_SHA:-}" ]; then
             git checkout "${TRIGGER_SHA}" -- scripts/compound
             git restore --staged scripts/compound
           fi
           python scripts/compound/append_observation.py --record-push-conflict || true
+          git restore --source=HEAD --staged --worktree -- scripts/compound || true
           git add docs/compound/runtime.yml
-          git commit -m "chore(compound): record knowledge-branch push conflict"
-          git fetch origin knowledge/architecture-expert
-          git merge --no-edit origin/knowledge/architecture-expert
-          git push origin HEAD:knowledge/architecture-expert
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(compound): record knowledge-branch push conflict" || true
+            push_knowledge || true
+          fi
+          exit 1
+          # Intentionally never merges into main (human promotion only).
