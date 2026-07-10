@@ -109,7 +109,14 @@ rebuild/reconciliation, or deployment/readiness:
 def build_openhands_microagent(index_text: str) -> str:
     """Build OpenHands microagent with required frontmatter."""
     # Sanitize only the index excerpt; leave static Rules unsanitized (matches Cursor packs).
-    excerpt = _sanitize_pack_body(index_text[:1500]).replace("\n# ", "\n## ")
+    excerpt = (
+        _sanitize_pack_body(index_text[:1500])
+        .replace("(README.md)", "(docs/compound/README.md)")
+        .replace("(watched-series.yml)", "(docs/compound/watched-series.yml)")
+        .replace("(runtime.yml)", "(docs/compound/runtime.yml)")
+        .replace("(domains/", "(docs/compound/domains/")
+        .replace("\n# ", "\n## ")
+    )
     if excerpt.startswith("# "):
         excerpt = "## " + excerpt[2:]
     body = f"""# Architecture Expert Microagent
