@@ -45,18 +45,22 @@ def load_ledger(ledger_path: Path) -> list[Observation]:
     """Load all observations from a JSONL ledger.
 
     Malformed lines are skipped so a single corrupt entry cannot permanently
-    block synthesize / standing-brief runs.
+    block synthesize / standing-brief runs. Skips are reported on stderr.
     """
     if not ledger_path.exists():
         return []
     observations: list[Observation] = []
-    for line in ledger_path.read_text(encoding="utf-8").splitlines():
+    for lineno, line in enumerate(ledger_path.read_text(encoding="utf-8").splitlines(), start=1):
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
         try:
             observations.append(parse_observation_line(stripped))
-        except SchemaError:
+        except (SchemaError, ValueError, TypeError) as exc:
+            print(
+                f"warning: skipping malformed ledger line {lineno}: {exc}",
+                file=sys.stderr,
+            )
             continue
     return observations
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
@@ -241,11 +242,24 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _load_observation_payload(path: Path) -> Mapping[str, Any]:
-    """Load observation JSON from a path after rejecting traversal segments."""
-    if ".." in path.parts:
-        raise PathPolicyError(f"Path traversal rejected: {path}")
+def _is_under(path: Path, root: Path) -> bool:
+    """Return True when ``path`` is inside ``root`` after resolve."""
+    try:
+        path.resolve().relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def _load_observation_payload(path: Path, *, repo_root: Path | None = None) -> Mapping[str, Any]:
+    """Load observation JSON from a path under the repo or system temp dir."""
+    root = (repo_root or REPO_ROOT).resolve()
     resolved = path.expanduser().resolve()
+    temp_root = Path(tempfile.gettempdir()).resolve()
+    if not (_is_under(resolved, root) or _is_under(resolved, temp_root)):
+        raise PathPolicyError(
+            f"Observation path must be under the repo or temp dir: {path}"
+        )
     if not resolved.is_file():
         raise SchemaError(f"Observation file not found: {path}")
     payload = json.loads(resolved.read_text(encoding="utf-8"))
@@ -265,9 +279,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else _load_observation_payload(Path(args.file))
-        if args.json and not isinstance(payload, Mapping):
-            raise SchemaError("Observation payload must be a JSON object")
+        if args.json:
+            payload = json.loads(args.json)
+            if not isinstance(payload, Mapping):
+                raise SchemaError("Observation payload must be a JSON object")
+        else:
+            payload = _load_observation_payload(Path(args.file), repo_root=args.repo_root)
         if args.validate_only:
             observation_from_mapping(payload)
             print("validated")

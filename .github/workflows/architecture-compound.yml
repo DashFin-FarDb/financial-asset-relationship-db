@@ -137,6 +137,7 @@ jobs:
           python scripts/compound/sync_agent_packs.py
           python scripts/compound/standing_brief.py
           echo "EVENT_HINT=$EVENT_TYPE" >> "$GITHUB_ENV"
+          echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"
 
       - name: Commit and push knowledge branch
         shell: bash
@@ -157,10 +158,17 @@ jobs:
             exit 0
           fi
           echo "Push failed; fetch/rebase once then retry"
+          # Clear dirty TRIGGER_SHA script overlay so rebase is not blocked by local edits.
+          git restore --source=HEAD --worktree --staged -- scripts/compound || true
           git fetch origin knowledge/architecture-expert || true
           git rebase origin/knowledge/architecture-expert || git rebase --abort || true
           if push_knowledge; then
             exit 0
+          fi
+          # Re-apply triggering scripts for conflict recording, then unstage again.
+          if [ -n "${TRIGGER_SHA:-}" ]; then
+            git checkout "${TRIGGER_SHA}" -- scripts/compound
+            git restore --staged scripts/compound
           fi
           python scripts/compound/append_observation.py --record-push-conflict || true
           git add docs/compound/runtime.yml

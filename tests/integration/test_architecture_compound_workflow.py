@@ -80,6 +80,8 @@ class TestArchitectureCompoundWorkflow:
         assert "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065" in text
         assert 'git checkout "${TRIGGER_SHA}" -- scripts/compound' in text
         assert "git restore --staged scripts/compound" in text
+        assert "git restore --source=HEAD --worktree --staged -- scripts/compound" in text
+        assert 'echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"' in text
         assert "continue-on-error:" not in text
         assert "cancel-in-progress: false" in text
         assert "architecture-compound-knowledge" in text
