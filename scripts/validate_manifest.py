@@ -23,7 +23,7 @@ def _collect_headings(lines: list[str]) -> dict[str, list[int]]:
 
     Returns:
         Dict[str, List[int]]: Mapping from each level-2 heading text (the text following '##') to a list of 1-based line
-        numbers where that heading appears.
+            numbers where that heading appears.
     """
     occurrences: dict[str, list[int]] = {}
 
