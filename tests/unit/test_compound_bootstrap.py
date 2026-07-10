@@ -97,3 +97,24 @@ class TestCompoundBootstrap:
                 domains.update(obs.domains)
         assert "api" in domains
         assert "architecture" in domains
+
+    def test_validate_gh_args_rejects_unsafe_tokens(self) -> None:
+        """Unsafe gh argument tokens are rejected before subprocess."""
+        from compound.bootstrap import _validate_gh_args
+        from compound.schema import SchemaError
+
+        with pytest.raises(SchemaError):
+            _validate_gh_args(["pr", "list", "--search", "updated:>=2026-01-01; rm -rf /"])
+        with pytest.raises(SchemaError):
+            _validate_gh_args(["api", "repos"])
+        assert _validate_gh_args(["pr", "list", "--limit", "10"]) == ["pr", "list", "--limit", "10"]
+
+    def test_pr_limit_is_clamped(self) -> None:
+        """PR scrape limit is clamped to the safe range."""
+        from compound.bootstrap import _clamp_pr_limit, _gh_pr_list_args
+
+        assert _clamp_pr_limit(0) == 1
+        assert _clamp_pr_limit(500) == 100
+        args = _gh_pr_list_args(limit=500, search="updated:>=2026-07-01")
+        assert "--limit" in args and "100" in args
+        assert "updated:>=2026-07-01" in args
