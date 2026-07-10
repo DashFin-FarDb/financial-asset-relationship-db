@@ -74,7 +74,7 @@ jobs:
           else
             git checkout -B knowledge/architecture-expert
           fi
-          git checkout "${TRIGGER_SHA}" -- scripts/compound 2>/dev/null || true
+          git checkout "${TRIGGER_SHA}" -- scripts/compound || { echo "error: failed to checkout scripts/compound from ${TRIGGER_SHA}" >&2; exit 1; }
 
           FORCE_SYNTH="false"
           if [ "$EVENT_NAME" = "pull_request" ]; then
