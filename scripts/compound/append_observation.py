@@ -106,6 +106,36 @@ def _write_runtime_yaml(path: Path, data: Mapping[str, Any], *, repo_root: Path 
     path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
+def _default_runtime_data() -> dict[str, str | int | None]:
+    """Return the default runtime.yml payload."""
+    return {
+        "writer_mode": WriterMode.DUAL.value,
+        "conflict_count": 0,
+        "conflict_window_minutes": 30,
+        "last_conflict_at": None,
+    }
+
+
+def _conflicts_in_window(
+    *,
+    count: int,
+    last_raw: str | int | None,
+    window_minutes: int,
+    current: datetime,
+) -> int:
+    """Return conflict count still inside the hybrid-backup window."""
+    if not isinstance(last_raw, str) or last_raw in {"null", ""}:
+        return 0
+    try:
+        last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
+    except ValueError:
+        return 0
+    age_minutes = (current - last_at).total_seconds() / 60.0
+    if age_minutes > window_minutes:
+        return 0
+    return count
+
+
 def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None = None) -> WriterMode:
     """Increment conflict_count and flip to github_only when threshold is met.
 
@@ -118,34 +148,37 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     if runtime_path.exists():
         data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
     else:
-        data = {
-            "writer_mode": WriterMode.DUAL.value,
-            "conflict_count": 0,
-            "conflict_window_minutes": 30,
-            "last_conflict_at": None,
-        }
+        data = _default_runtime_data()
 
     window_minutes = int(data.get("conflict_window_minutes") or 30)
-    last_raw = data.get("last_conflict_at")
-    count = int(data.get("conflict_count") or 0)
-    if isinstance(last_raw, str) and last_raw not in {"null", ""}:
-        try:
-            last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
-            age_minutes = (current - last_at).total_seconds() / 60.0
-            if age_minutes > window_minutes:
-                count = 0
-        except ValueError:
-            count = 0
-    else:
-        count = 0
-
+    count = _conflicts_in_window(
+        count=int(data.get("conflict_count") or 0),
+        last_raw=data.get("last_conflict_at"),
+        window_minutes=window_minutes,
+        current=current,
+    )
     count += 1
     data["conflict_count"] = count
     data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
     if count >= 3:
         data["writer_mode"] = WriterMode.GITHUB_ONLY.value
     _write_runtime_yaml(runtime_path, data, repo_root=root)
-    return WriterMode(str(data["writer_mode"]))
+    try:
+        return WriterMode(str(data["writer_mode"]))
+    except ValueError as exc:
+        raise SchemaError(f"Invalid writer_mode after conflict record: {data['writer_mode']}") from exc
+
+
+def _cursor_emit_blocked(observation: Observation, writer_mode: WriterMode, *, allow_cursor: bool) -> str | None:
+    """Return a no-op message when Cursor emit is blocked by github_only mode."""
+    if writer_mode is not WriterMode.GITHUB_ONLY:
+        return None
+    if observation.source is not ObservationSource.CURSOR or allow_cursor:
+        return None
+    return (
+        "writer_mode=github_only: Cursor continuous emit no-ops; "
+        "use workflow_dispatch or a PR that lands through GitHub"
+    )
 
 
 def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
@@ -190,18 +223,13 @@ def append_observation(
         payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     observation = observation_from_mapping(payload)
-
-    writer_mode = read_writer_mode(root)
-    if (
-        writer_mode is WriterMode.GITHUB_ONLY
-        and observation.source is ObservationSource.CURSOR
-        and not allow_cursor_when_github_only
-    ):
-        return (
-            None,
-            "writer_mode=github_only: Cursor continuous emit no-ops; "
-            "use workflow_dispatch or a PR that lands through GitHub",
-        )
+    blocked = _cursor_emit_blocked(
+        observation,
+        read_writer_mode(root),
+        allow_cursor=allow_cursor_when_github_only,
+    )
+    if blocked is not None:
+        return None, blocked
 
     existing = load_existing_dedupe_keys(ledger_path)
     if observation.dedupe_key() in existing:

@@ -55,7 +55,7 @@ class TestCompoundGuardrails:
 
     def test_synthesize_job_has_contents_write(self) -> None:
         """Only synthesize elevates contents: write."""
-        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)
+        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)  # nosec B506
         assert data["permissions"]["contents"] == "read"
         assert data["jobs"]["synthesize"]["permissions"]["contents"] == "write"
 

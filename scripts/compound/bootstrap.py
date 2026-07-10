@@ -28,7 +28,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Allow only fixed gh subcommands/flags and bounded tokens (no shell metacharacters).
 _GH_SAFE_TOKEN = re.compile(r"^[A-Za-z0-9_.:>=,\-]+$")
-_GH_PR_JSON_FIELDS = "number,title,state,mergedAt,updatedAt,labels,files"
+_GH_PR_JSON_FIELDS = "number,title,state,mergedAt,updatedAt,labels"
 _PR_LIMIT_MIN = 1
 _PR_LIMIT_MAX = 100
 
@@ -59,29 +59,33 @@ def seed_from_docs(repo_root: Path) -> list[str]:
     """Emit landed bootstrap observations from existing allowlisted seed docs."""
     messages: list[str] = []
     for rel_path, domains in SEED_DOCS:
-        path = repo_root / rel_path
-        if not path.exists():
-            messages.append(f"skip missing seed doc: {rel_path}")
-            continue
-        for domain in domains:
-            if domain not in DOMAINS:
-                raise SchemaError(f"Invalid seed domain {domain}")
-        obs_slug = rel_path.replace("\\", "/").replace("/", "__")
-        payload = {
-            "observation_id": f"bootstrap-doc-{obs_slug}",
-            "source": ObservationSource.BOOTSTRAP.value,
-            "event_type": "seed.doc",
-            "status": ObservationStatus.LANDED.value,
-            "primary_ref": f"doc:{rel_path}",
-            "summary": f"Bootstrap seed from {rel_path}",
-            "domains": list(domains),
-            "refs": [rel_path],
-            "evidence_pointers": [rel_path],
-            "created_at": _now(),
-        }
-        _, message = append_observation(payload, repo_root=repo_root)
-        messages.append(f"{rel_path}: {message}")
+        messages.append(_seed_one_doc(repo_root, rel_path, domains))
     return messages
+
+
+def _seed_one_doc(repo_root: Path, rel_path: str, domains: tuple[str, ...]) -> str:
+    """Seed a single allowlisted doc into the ledger."""
+    path = repo_root / rel_path
+    if not path.exists():
+        return f"skip missing seed doc: {rel_path}"
+    for domain in domains:
+        if domain not in DOMAINS:
+            raise SchemaError(f"Invalid seed domain {domain}")
+    obs_slug = rel_path.replace("\\", "/").replace("/", "__")
+    payload = {
+        "observation_id": f"bootstrap-doc-{obs_slug}",
+        "source": ObservationSource.BOOTSTRAP.value,
+        "event_type": "seed.doc",
+        "status": ObservationStatus.LANDED.value,
+        "primary_ref": f"doc:{rel_path}",
+        "summary": f"Bootstrap seed from {rel_path}",
+        "domains": list(domains),
+        "refs": [rel_path],
+        "evidence_pointers": [rel_path],
+        "created_at": _now(),
+    }
+    _, message = append_observation(payload, repo_root=repo_root)
+    return f"{rel_path}: {message}"
 
 
 def _clamp_pr_limit(limit: int) -> int:
@@ -168,13 +172,24 @@ def _status_from_pr(pr: Mapping[str, Any]) -> str:
     return ObservationStatus.PROVISIONAL.value
 
 
+def _fetch_pr_files(number: int) -> list[str]:
+    """Fetch changed paths for one PR via ``gh pr view --json files``."""
+    data = _gh_json(["pr", "view", str(number), "--json", "files"])
+    if not isinstance(data, dict):
+        return []
+    return _paths_from_pr_files(data.get("files"))
+
+
 def _payload_from_pr(pr: Mapping[str, Any]) -> dict[str, Any] | None:
     """Build a bootstrap observation payload from one gh PR object."""
     number = pr.get("number")
     if not isinstance(number, int):
         return None
     title = str(pr.get("title") or f"PR #{number}")
-    domains = list(detect_domains_from_paths(_paths_from_pr_files(pr.get("files"))))
+    file_paths = _paths_from_pr_files(pr.get("files"))
+    if not file_paths:
+        file_paths = _fetch_pr_files(number)
+    domains = list(detect_domains_from_paths(file_paths))
     return {
         "observation_id": f"bootstrap-pr-{number}",
         "source": ObservationSource.BOOTSTRAP.value,

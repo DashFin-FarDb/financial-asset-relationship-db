@@ -72,19 +72,21 @@ class TestCompoundBootstrap:
         """Bootstrap PR scrape classifies domains from changed file paths."""
         from compound import bootstrap as mod
 
-        monkeypatch.setattr(
-            mod,
-            "_gh_json",
-            lambda _args: [
-                {
-                    "number": 99,
-                    "title": "API change",
-                    "state": "OPEN",
-                    "mergedAt": None,
-                    "files": [{"path": "api/main.py"}, {"path": "docs/adr/0001.md"}],
-                }
-            ],
-        )
+        def fake_gh(args: list[str]):
+            if args[:2] == ["pr", "list"]:
+                return [
+                    {
+                        "number": 99,
+                        "title": "API change",
+                        "state": "OPEN",
+                        "mergedAt": None,
+                    }
+                ]
+            if args[:3] == ["pr", "view", "99"]:
+                return {"files": [{"path": "api/main.py"}, {"path": "docs/adr/0001.md"}]}
+            return None
+
+        monkeypatch.setattr(mod, "_gh_json", fake_gh)
         messages = scrape_recent_prs(seed_repo)
         assert any("pr:99" in message for message in messages)
         ledger = seed_repo / "docs/compound/ledger/observations.jsonl"

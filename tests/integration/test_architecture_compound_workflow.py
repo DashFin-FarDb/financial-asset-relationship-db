@@ -19,7 +19,7 @@ class TestArchitectureCompoundWorkflow:
     def test_workflow_loads(self) -> None:
         """Workflow YAML parses with GitHub Actions loader."""
         assert WORKFLOW.exists()
-        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)
+        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)  # nosec B506
         assert data["name"] == "Architecture Compound"
         assert "on" in data or True in data  # PyYAML may coerce `on` to bool True
         jobs = data["jobs"]
@@ -37,6 +37,8 @@ class TestArchitectureCompoundWorkflow:
         assert "PR_MERGED_JSON:" in text
         assert "toJson(github.event.pull_request.merged || false)" in text
         assert '[ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]' in text
+        assert "PR_HEAD_SHA:" in text
+        assert "pull_request.${PR_ACTION}.${HEAD_SHORT}" in text
 
     def test_pr_title_via_env_not_inline_expression(self) -> None:
         """PR title must come from env (injection-safe); not interpolated into shell."""
@@ -60,7 +62,7 @@ class TestArchitectureCompoundWorkflow:
 
     def test_permission_split(self) -> None:
         """Synthesize job elevates contents write; top-level defaults to read."""
-        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)
+        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)  # nosec B506
         top_perms = data.get("permissions", {})
         assert top_perms.get("contents") == "read"
         synth_perms = data["jobs"]["synthesize"].get("permissions", {})

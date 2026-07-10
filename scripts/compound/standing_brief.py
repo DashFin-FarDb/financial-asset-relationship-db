@@ -43,16 +43,21 @@ def render_standing_brief(observations: list, *, as_of: str | None = None) -> st
         "",
     ]
     for domain in DOMAINS:
-        items = by_domain.get(domain, [])
-        lines.append(f"### {domain}")
-        if not items:
-            lines.append("_No changes recorded._")
-            lines.append("")
-            continue
-        for obs in sorted(items, key=lambda item: item.created_at or item.observation_id)[:15]:
-            lines.append(f"- [{obs.status.value}] **{obs.primary_ref}**: {obs.summary}")
-        lines.append("")
+        lines.extend(_domain_brief_lines(domain, by_domain.get(domain, [])))
     return "\n".join(lines).rstrip() + "\n"
+
+
+def _domain_brief_lines(domain: str, items: list) -> list[str]:
+    """Render one domain section; newest observations first (cap 15)."""
+    lines = [f"### {domain}"]
+    if not items:
+        lines.extend(["_No changes recorded._", ""])
+        return lines
+    newest = sorted(items, key=lambda item: item.created_at or item.observation_id, reverse=True)[:15]
+    for obs in newest:
+        lines.append(f"- [{obs.status.value}] **{obs.primary_ref}**: {obs.summary}")
+    lines.append("")
+    return lines
 
 
 def write_standing_brief(repo_root: Path, *, as_of: str | None = None) -> Path:

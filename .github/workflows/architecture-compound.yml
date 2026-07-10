@@ -59,6 +59,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           PR_ACTION: ${{ github.event.action || '' }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
           PR_MERGED_JSON: ${{ toJson(github.event.pull_request.merged || false) }}
           EVENT_NAME: ${{ github.event_name }}
           FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
@@ -95,7 +96,13 @@ jobs:
               FORCE_SYNTH="true"
             else
               STATUS="provisional"
-              EVENT_TYPE="pull_request.${PR_ACTION}"
+              # Include head SHA so repeated synchronize events are not deduped away.
+              HEAD_SHORT="${PR_HEAD_SHA:0:12}"
+              if [ -n "$HEAD_SHORT" ]; then
+                EVENT_TYPE="pull_request.${PR_ACTION}.${HEAD_SHORT}"
+              else
+                EVENT_TYPE="pull_request.${PR_ACTION}"
+              fi
             fi
             PRIMARY_REF="pr:${PR_NUMBER}"
             SUMMARY=$(jq -rn --arg t "$PR_TITLE" '$t|gsub("[\\u0000-\\u001f]";"")|.[0:240]')

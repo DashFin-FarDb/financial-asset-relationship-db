@@ -36,14 +36,15 @@ rebuild/reconciliation, and deployment/readiness.
 
 | Domain | Doc |
 |--------|-----|
-| Architecture & seams | [domains/architecture.md](docs/compound/domains/architecture.md) |
-| API contracts | [domains/api.md](docs/compound/domains/api.md) |
-| Persistence / SQL | [domains/persistence.md](docs/compound/domains/persistence.md) |
-| CI / guardrails | [domains/ci-guardrails.md](docs/compound/domains/ci-guardrails.md) |
-| Rebuild / reconciliation | [domains/rebuild-reconciliation.md](docs/compound/domains/rebuild-reconciliation.md) |
-| Deployment / readiness | [domains/deployment.md](docs/compound/domains/deployment.md) |
+| Architecture & seams | [docs/compound/domains/architecture.md](docs/compound/domains/architecture.md) |
+| API contracts | [docs/compound/domains/api.md](docs/compound/domains/api.md) |
+| Persistence / SQL | [docs/compound/domains/persistence.md](docs/compound/domains/persistence.md) |
+| CI / guardrails | [docs/compound/domains/ci-guardrails.md](docs/compound/domains/ci-guardrails.md) |
+| Rebuild / reconciliation | [docs/compound/domains/rebuild-reconciliation.md](docs/compound/domains/rebuild-reconciliation.md) |
+| Deployment / readiness | [docs/compound/domains/deployment.md](docs/compound/domains/deployment.md) |
 
 ## Operator notes
 
 See [README.md](docs/compound/README.md). Watched series: [watched-series.yml](docs/compound/watched-series.yml).
 Runtime writer mode: [runtime.yml](docs/compound/runtime.yml).
+
