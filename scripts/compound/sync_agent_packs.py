@@ -45,6 +45,13 @@ def _sanitize_pack_body(body: str) -> str:
 def build_cursor_rule(index_text: str) -> str:
     """Build Cursor rule markdown with frontmatter."""
     domain_lines = "\n".join(f"- `{domain}`: see `docs/compound/domains/{domain}.md`" for domain in DOMAINS)
+    excerpt = _sanitize_pack_body(index_text[:2000])
+    excerpt = (
+        excerpt.replace("(README.md)", "(docs/compound/README.md)")
+        .replace("(watched-series.yml)", "(docs/compound/watched-series.yml)")
+        .replace("(runtime.yml)", "(docs/compound/runtime.yml)")
+        .replace("(domains/", "(docs/compound/domains/")
+    )
     body = f"""# Architecture Expert (generated)
 
 Docs-first compounded memory. Prefer `docs/compound/` over inventing seams.
