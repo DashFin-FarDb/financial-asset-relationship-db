@@ -66,14 +66,28 @@ def query_memory(repo_root: Path, question: str) -> str:
         parts.append(f"Index: `{INDEX_PATH.as_posix()}`")
         parts.append("")
 
-    found_any = False
+    found = False
     for domain in domains:
-        section, found_domain = _render_domain_query(repo_root, domain)
-        if section:
-            parts.extend(section)
-            found_any = found_any or found_domain
+        path = repo_root / "docs" / "compound" / "domains" / f"{domain}.md"
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        landed = _extract_bullets(text, "Landed")
+        provisional = _extract_bullets(text, "Provisional")
+        parts.append(f"### {domain}")
+        if landed:
+            found = True
+            parts.append("Landed:")
+            parts.extend(f"  {item}" for item in landed[:10])
+        if provisional:
+            found = True
+            parts.append("Provisional:")
+            parts.extend(f"  {item}" for item in provisional[:10])
+        if not landed and not provisional:
+            parts.append("  _No observations yet in this domain._")
+        parts.append("")
 
-    if not found_any:
+    if not found:
         parts.append(
             "No compounded observations matched yet. "
             "Run bootstrap/synthesize, or consult ADRs/seam docs directly "
@@ -81,31 +95,6 @@ def query_memory(repo_root: Path, question: str) -> str:
         )
     parts.append("Reminder: label claims as landed vs provisional; never rewrite ADRs/AGENTS.md/policy.")
     return "\n".join(parts).rstrip() + "\n"
-
-
-def _render_domain_query(repo_root: Path, domain: str) -> tuple[list[str], bool]:
-    """Render one domain section for a query response."""
-    path = repo_root / "docs" / "compound" / "domains" / f"{domain}.md"
-    if not path.exists():
-        return [], False
-    text = path.read_text(encoding="utf-8")
-    landed = _extract_bullets(text, "Landed")
-    provisional = _extract_bullets(text, "Provisional")
-    lines = [f"### {domain}"]
-    _append_bullet_group(lines, "Landed", landed)
-    _append_bullet_group(lines, "Provisional", provisional)
-    if not landed and not provisional:
-        lines.append("  _No observations yet in this domain._")
-    lines.append("")
-    return lines, bool(landed or provisional)
-
-
-def _append_bullet_group(lines: list[str], title: str, bullets: list[str]) -> None:
-    """Append at most ten bullets under a named status group."""
-    if not bullets:
-        return
-    lines.append(f"{title}:")
-    lines.extend(f"  {item}" for item in bullets[:10])
 
 
 def main(argv: list[str] | None = None) -> int:
