@@ -68,7 +68,7 @@ def query_memory(repo_root: Path, question: str) -> str:
 
     found = False
     for domain in domains:
-        path = repo_root / "docs" / "compound" / "domains" / f"{domain}.md"
+        path = repo_root / INDEX_PATH.parent / "domains" / f"{domain}.md"
         if not path.exists():
             continue
         text = path.read_text(encoding="utf-8")
