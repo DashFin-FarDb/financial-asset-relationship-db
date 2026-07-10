@@ -50,11 +50,11 @@ class FormulaicVisualizer:
         Parameters:
             analysis_results (Dict[str, Any]): Analysis payload expected to contain:
                 - "formulas": an iterable of formula-like objects (with attributes such as
-                `name`, `category`, and `r_squared`) used to populate category, reliability,
-                sector, and example tables.
+                  `name`, `category`, and `r_squared`) used to populate category, reliability,
+                  sector, and example tables.
                 - "empirical_relationships": a mapping that may include correlation data
-                (e.g., a "correlation_matrix" or "strongest_correlations") used for the
-                empirical correlation heatmap and correlation network.
+                  (e.g., a "correlation_matrix" or "strongest_correlations") used for the
+                  empirical correlation heatmap and correlation network.
 
         Returns:
             go.Figure: A Plotly Figure containing a 3x2 dashboard of visualizations:

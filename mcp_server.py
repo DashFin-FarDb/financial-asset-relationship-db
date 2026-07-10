@@ -116,7 +116,7 @@ def _register_mcp_handlers(mcp: FastMCP) -> None:
             str: On success, returns either
                 - "Successfully added: {name} ({symbol})" if the equity was inserted into the shared graph, or
                 - "Successfully validated (Graph mutation not supported): {name} ({symbol})" if validation succeeded but
-                the graph does not support mutation.
+                  the graph does not support mutation.
                 If validation fails, returns "Validation Error: {error_message}" with the validation error details.
         """
         try:

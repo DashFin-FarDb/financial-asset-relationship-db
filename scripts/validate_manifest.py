@@ -86,11 +86,11 @@ def check_duplicate_headings(manifest_path: Path) -> int:
 
     Parameters:
         manifest_path (Path): Path to the systemManifest.md file to validate; must resolve to the repository's expected
-        manifest location.
+            manifest location.
 
     Returns:
         int: Exit code where `0` indicates no duplicate level-2 headings were found, and `1` indicates a missing or
-        unexpected path, a read/validation failure, or that duplicates were detected.
+            unexpected path, a read/validation failure, or that duplicates were detected.
     """
     if not manifest_path.exists():
         print(f"Error: {manifest_path} not found", file=sys.stderr)
