@@ -50,7 +50,10 @@ def load_ledger(ledger_path: Path) -> list[Observation]:
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
-        observations.append(parse_observation_line(stripped))
+        try:
+            observations.append(parse_observation_line(stripped))
+        except SchemaError as exc:
+            print(f"warn: skipping invalid ledger line: {exc}", file=sys.stderr)
     return observations
 
 
