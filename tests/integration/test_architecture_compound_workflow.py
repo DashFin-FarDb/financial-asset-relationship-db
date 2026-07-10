@@ -77,6 +77,8 @@ class TestArchitectureCompoundWorkflow:
         text = WORKFLOW.read_text(encoding="utf-8")
         assert "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5" in text
         assert "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065" in text
+        assert 'git cat-file -e "${TRIGGER_SHA}^{commit}"' in text
+        assert "refs/pull/${PR_NUMBER}/merge" in text
         assert 'git checkout "${TRIGGER_SHA}" -- scripts/compound' in text
         assert "continue-on-error:" not in text
         assert "cancel-in-progress: false" in text

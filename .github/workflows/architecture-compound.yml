@@ -64,6 +64,11 @@ jobs:
         run: |
           # Keep compound scripts from the triggering commit; switch docs/ledger to knowledge tip.
           TRIGGER_SHA="${GITHUB_SHA}"
+          if ! git cat-file -e "${TRIGGER_SHA}^{commit}" 2>/dev/null; then
+            if [ "$EVENT_NAME" = "pull_request" ] && [ -n "$PR_NUMBER" ]; then
+              git fetch origin "+refs/pull/${PR_NUMBER}/merge:refs/remotes/origin/pull/${PR_NUMBER}/merge"
+            fi
+          fi
           if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
             git fetch origin knowledge/architecture-expert
             git checkout -B knowledge/architecture-expert origin/knowledge/architecture-expert

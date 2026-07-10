@@ -28,6 +28,7 @@ from compound.schema import (  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 OBSERVATION_INPUT_FILE = Path("/tmp/observation.json")
+CURSOR_OBSERVATION_INPUT_FILE = Path("observation.json")
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
@@ -97,11 +98,16 @@ def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
-def _read_observation_file(path: Path) -> str:
-    """Read the fixed workflow observation file."""
-    if path != OBSERVATION_INPUT_FILE:
-        raise PathPolicyError(f"Observation file must be {OBSERVATION_INPUT_FILE}")
-    return OBSERVATION_INPUT_FILE.read_text(encoding="utf-8")
+def _read_observation_file(path: Path, repo_root: Path | None = None) -> str:
+    """Read an allowlisted observation input file."""
+    root = repo_root or REPO_ROOT
+    cursor_path = (root / CURSOR_OBSERVATION_INPUT_FILE).resolve()
+    candidate = path if path.is_absolute() else (root / path)
+    if path == OBSERVATION_INPUT_FILE:
+        return OBSERVATION_INPUT_FILE.read_text(encoding="utf-8")
+    if candidate.resolve() == cursor_path:
+        return candidate.read_text(encoding="utf-8")
+    raise PathPolicyError(f"Observation file must be {OBSERVATION_INPUT_FILE} or {CURSOR_OBSERVATION_INPUT_FILE}")
 
 
 def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None = None) -> WriterMode:
@@ -254,7 +260,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else json.loads(_read_observation_file(args.file))
+        payload = json.loads(args.json) if args.json else json.loads(_read_observation_file(args.file, args.repo_root))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:
