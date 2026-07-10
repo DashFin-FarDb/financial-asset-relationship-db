@@ -42,7 +42,7 @@ def _sanitize_pack_body(body: str) -> str:
     return FORBIDDEN_WRITE_INSTRUCTIONS.sub(_repl, body)
 
 
-def build_cursor_rule(index_text: str, domain_summaries: dict[str, str]) -> str:
+def build_cursor_rule(index_text: str) -> str:
     """Build Cursor rule markdown with frontmatter."""
     domain_lines = "\n".join(f"- `{domain}`: see `docs/compound/domains/{domain}.md`" for domain in DOMAINS)
     body = f"""# Architecture Expert (generated)
