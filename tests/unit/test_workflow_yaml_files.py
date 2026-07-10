@@ -500,7 +500,6 @@ class TestYAMLSyntaxAllFiles:
             ".github/workflows/ci.yml",
             ".github/workflows/codacy.yml",
             ".github/workflows/codeflash.yaml",
-            ".github/workflows/codeql.yml",
             ".github/workflows/contrast-scan.yml",
             ".github/workflows/dependency-review.yml",
             ".github/workflows/devskim.yml",
