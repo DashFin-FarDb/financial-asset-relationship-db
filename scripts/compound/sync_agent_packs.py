@@ -79,7 +79,7 @@ an open PR, and whether it differs from `main`.
 
 ## Index excerpt
 
-{_sanitize_pack_body(index_text[:2000])}
+{excerpt}
 """
     return (
         "---\n"
