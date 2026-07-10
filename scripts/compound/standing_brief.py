@@ -13,7 +13,7 @@ if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
 
 from compound.schema import BRIEFS_DIR, DOMAINS, LEDGER_PATH, assert_writable  # noqa: E402
-from compound.synthesize import _latest_by_primary_ref, load_ledger  # noqa: E402
+from compound.synthesize import latest_by_primary_ref, load_ledger  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -21,7 +21,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 def render_standing_brief(observations: list, *, as_of: str | None = None) -> str:
     """Render a standing brief markdown document."""
     stamp = as_of or datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    latest = _latest_by_primary_ref(observations)
+    latest = latest_by_primary_ref(observations)
     by_domain: dict[str, list] = defaultdict(list)
     for obs in latest:
         for domain in obs.domains:
