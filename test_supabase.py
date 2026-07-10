@@ -4,14 +4,13 @@ Integration test for Supabase connectivity.
 Opt-in only: requires real credentials and network access.
 
 Enable explicitly by setting:
-  RUN_SUPABASE_TESTS=1
+    RUN_SUPABASE_TESTS=1
 and providing:
-  SUPABASE_URL
-  SUPABASE_KEY
+    SUPABASE_URL
+    SUPABASE_KEY
 
 Notes:
-- This test should not run in standard CI unless you explicitly configure
-  secrets.
+- This test should not run in standard CI unless secrets are configured.
 - We do not print secrets or raw URLs beyond a minimal redaction.
 """
 
@@ -50,9 +49,7 @@ def _get_env(name: str) -> str | None:
 
 
 def _redact(value: str) -> str:
-    """
-    Redact a secret value for logs, preserving first/last 4 chars.
-    """
+    """Redact a secret value for logs, preserving first/last 4 chars."""
     if len(value) <= 8:
         return "***"
     return f"{value[:4]}***{value[-4:]}"
@@ -80,8 +77,10 @@ def _read_supabase_credentials() -> tuple[str, str]:
 
     if not supabase_url or not supabase_key:
         pytest.skip("Missing SUPABASE_URL and/or SUPABASE_KEY")
+        raise RuntimeError("pytest.skip returned unexpectedly")
     if any(tok in supabase_key for tok in PLACEHOLDER_TOKENS):
         pytest.skip("SUPABASE_KEY appears to be a placeholder")
+        raise RuntimeError("pytest.skip returned unexpectedly")
     return supabase_url, supabase_key
 
 
