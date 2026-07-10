@@ -34,6 +34,16 @@ def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     return root / Path(relative)
 
 
+def _runtime_defaults() -> dict[str, str | int | None]:
+    """Return runtime.yml defaults."""
+    return {
+        "writer_mode": WriterMode.DUAL.value,
+        "conflict_count": 0,
+        "conflict_window_minutes": 30,
+        "last_conflict_at": None,
+    }
+
+
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     """Read dual-writer mode from docs/compound/runtime.yml."""
     runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
@@ -53,26 +63,30 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
 
 def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
     """Parse the small runtime.yml key set without requiring PyYAML."""
-    data: dict[str, str | int | None] = {
-        "writer_mode": WriterMode.DUAL.value,
-        "conflict_count": 0,
-        "conflict_window_minutes": 30,
-        "last_conflict_at": None,
-    }
+    data = _runtime_defaults()
     for line in text.splitlines():
         stripped = line.strip()
-        if not stripped or stripped.startswith("#") or ":" not in stripped:
-            continue
-        key, value = stripped.split(":", 1)
-        key = key.strip()
-        value = value.strip()
-        if key == "writer_mode":
+        key_value = _parse_runtime_line(stripped)
+        if key_value is not None:
+            key, value = key_value
             data[key] = value
-        elif key in {"conflict_count", "conflict_window_minutes"}:
-            data[key] = int(value)
-        elif key == "last_conflict_at":
-            data[key] = None if value in {"null", "~", ""} else value
     return data
+
+
+def _parse_runtime_line(stripped: str) -> tuple[str, str | int | None] | None:
+    """Parse one runtime.yml line into a known key/value pair."""
+    if not stripped or stripped.startswith("#") or ":" not in stripped:
+        return None
+    key, raw_value = stripped.split(":", 1)
+    key = key.strip()
+    value = raw_value.strip()
+    if key == "writer_mode":
+        return key, value
+    if key in {"conflict_count", "conflict_window_minutes"}:
+        return key, int(value)
+    if key == "last_conflict_at":
+        return key, None if value in {"null", "~", ""} else value
+    return None
 
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
@@ -102,37 +116,42 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     runtime_path = _repo_path("docs/compound/runtime.yml", root)
     assert_writable("docs/compound/runtime.yml")
     current = datetime.now(timezone.utc) if now is None else now
-    if runtime_path.exists():
-        data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
-    else:
-        data = {
-            "writer_mode": WriterMode.DUAL.value,
-            "conflict_count": 0,
-            "conflict_window_minutes": 30,
-            "last_conflict_at": None,
-        }
-
-    window_minutes = int(data.get("conflict_window_minutes") or 30)
-    last_raw = data.get("last_conflict_at")
-    count = int(data.get("conflict_count") or 0)
-    if isinstance(last_raw, str) and last_raw not in {"null", ""}:
-        try:
-            last_at = datetime.fromisoformat(last_raw.replace("Z", "+00:00"))
-            age_minutes = (current - last_at).total_seconds() / 60.0
-            if age_minutes > window_minutes:
-                count = 0
-        except ValueError:
-            count = 0
-    else:
-        count = 0
-
-    count += 1
+    data = _read_runtime_data(runtime_path)
+    count = _next_conflict_count(data, current)
     data["conflict_count"] = count
     data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
     if count >= 3:
         data["writer_mode"] = WriterMode.GITHUB_ONLY.value
     _write_runtime_yaml(runtime_path, data)
     return WriterMode(str(data["writer_mode"]))
+
+
+def _read_runtime_data(runtime_path: Path) -> dict[str, str | int | None]:
+    """Read runtime state or return defaults when absent."""
+    if runtime_path.exists():
+        return _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
+    return _runtime_defaults()
+
+
+def _next_conflict_count(data: Mapping[str, str | int | None], current: datetime) -> int:
+    """Compute the next conflict count within the configured window."""
+    window_minutes = int(data.get("conflict_window_minutes") or 30)
+    last_at = _parse_last_conflict_at(data.get("last_conflict_at"))
+    if last_at is None:
+        return 1
+    age_minutes = (current - last_at).total_seconds() / 60.0
+    previous_count = int(data.get("conflict_count") or 0)
+    return previous_count + 1 if age_minutes <= window_minutes else 1
+
+
+def _parse_last_conflict_at(value: str | int | None) -> datetime | None:
+    """Parse last conflict timestamp, treating invalid values as absent."""
+    if not isinstance(value, str) or value in {"null", ""}:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
 
 
 def load_existing_dedupe_keys(ledger_path: Path) -> set[tuple[str, str, str]]:
@@ -232,6 +251,33 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _read_payload_from_file(file_path: Path, repo_root: Path | None) -> Mapping[str, Any]:
+    """Read a JSON observation file after constraining it to the repository."""
+    root = (repo_root or REPO_ROOT).resolve()
+    candidate = file_path if file_path.is_absolute() else root / file_path
+    resolved = candidate.resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
+        raise PathPolicyError(f"Observation file must stay under repository root: {file_path}") from exc
+    payload = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(payload, Mapping):
+        raise SchemaError("Observation payload must be a JSON object")
+    return payload
+
+
+def _read_payload(json_text: str | None, file_path: Path | None, repo_root: Path | None) -> Mapping[str, Any]:
+    """Read payload from exactly one CLI input source."""
+    if json_text is not None:
+        payload = json.loads(json_text)
+        if not isinstance(payload, Mapping):
+            raise SchemaError("Observation payload must be a JSON object")
+        return payload
+    if file_path is None:
+        raise SchemaError("Observation file is required")
+    return _read_payload_from_file(file_path, repo_root)
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint for appending a single observation."""
     parser = _build_parser()
@@ -243,9 +289,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else json.loads(Path(args.file).read_text(encoding="utf-8"))
-        if not isinstance(payload, Mapping):
-            raise SchemaError("Observation payload must be a JSON object")
+        payload = _read_payload(args.json, args.file, args.repo_root)
         if args.validate_only:
             observation_from_mapping(payload)
             print("validated")
