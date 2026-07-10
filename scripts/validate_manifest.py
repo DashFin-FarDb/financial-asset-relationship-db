@@ -22,7 +22,8 @@ def _collect_headings(lines: list[str]) -> dict[str, list[int]]:
         lines (List[str]): Lines of a Markdown document in order; lines may include line endings.
 
     Returns:
-        Dict[str, List[int]]: Mapping from each level-2 heading text (the text following '##') to a list of 1-based line numbers where that heading appears.
+        Dict[str, List[int]]: Mapping from each level-2 heading text (the text following '##') to a list of 1-based line
+            numbers where that heading appears.
     """
     occurrences: dict[str, list[int]] = {}
 
@@ -43,7 +44,8 @@ def _report_duplicates(
     Print a formatted MD024 violation report for duplicated level-2 headings to stderr.
 
     Parameters:
-        duplicates (Dict[str, List[int]]): Mapping from duplicated heading text to the list of 1-based line numbers where each occurs.
+        duplicates (Dict[str, List[int]]): Mapping from duplicated heading text to the list of 1-based line numbers
+            where each occurs.
         manifest_path (Path): Path to the manifest file being validated.
 
     Returns:
@@ -78,13 +80,17 @@ def check_duplicate_headings(manifest_path: Path) -> int:
     """
     Check that the repository's systemManifest.md contains no duplicate level-2 Markdown headings.
 
-    Verifies that manifest_path resolves to the repository's .elastic-copilot/memory/systemManifest.md, reads the file, and detects duplicate level-2 headings (lines starting with "## " but not "### "). When duplicates are found or validation fails, a formatted report is written to stderr.
+    Verifies that manifest_path resolves to the repository's .elastic-copilot/memory/systemManifest.md, reads the file,
+    and detects duplicate level-2 headings (lines starting with "## " but not "### "). When duplicates are found or
+    validation fails, a formatted report is written to stderr.
 
     Parameters:
-        manifest_path (Path): Path to the systemManifest.md file to validate; must resolve to the repository's expected manifest location.
+        manifest_path (Path): Path to the systemManifest.md file to validate; must resolve to the repository's expected
+            manifest location.
 
     Returns:
-        int: Exit code where `0` indicates no duplicate level-2 headings were found, and `1` indicates a missing or unexpected path, a read/validation failure, or that duplicates were detected.
+        int: Exit code where `0` indicates no duplicate level-2 headings were found, and `1` indicates a missing or
+            unexpected path, a read/validation failure, or that duplicates were detected.
     """
     if not manifest_path.exists():
         print(f"Error: {manifest_path} not found", file=sys.stderr)
