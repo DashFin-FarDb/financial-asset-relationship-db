@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from tests.integration.test_github_workflows import GitHubActionsYamlLoader
+from tests.integration.test_github_workflows import load_yaml_safe
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = REPO_ROOT / ".github" / "workflows" / "architecture-compound.yml"
@@ -55,7 +55,7 @@ class TestCompoundGuardrails:
 
     def test_synthesize_job_has_contents_write(self) -> None:
         """Only synthesize elevates contents: write."""
-        data = yaml.load(WORKFLOW.read_text(encoding="utf-8"), Loader=GitHubActionsYamlLoader)
+        data = load_yaml_safe(WORKFLOW)
         assert data["permissions"]["contents"] == "read"
         assert data["jobs"]["synthesize"]["permissions"]["contents"] == "write"
 

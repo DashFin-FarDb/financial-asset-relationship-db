@@ -27,6 +27,7 @@ from compound.schema import (  # noqa: E402
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+OBSERVATION_INPUT_FILE = Path("/tmp/observation.json")
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
@@ -94,6 +95,13 @@ def _write_runtime_yaml(path: Path, data: Mapping[str, Any]) -> None:
     ]
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+
+
+def _read_observation_file(path: Path) -> str:
+    """Read the fixed workflow observation file."""
+    if path != OBSERVATION_INPUT_FILE:
+        raise PathPolicyError(f"Observation file must be {OBSERVATION_INPUT_FILE}")
+    return OBSERVATION_INPUT_FILE.read_text(encoding="utf-8")
 
 
 def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None = None) -> WriterMode:
@@ -246,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else json.loads(Path(args.file).read_text(encoding="utf-8"))
+        payload = json.loads(args.json) if args.json else json.loads(_read_observation_file(args.file))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:

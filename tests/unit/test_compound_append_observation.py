@@ -14,6 +14,7 @@ SCRIPTS_ROOT = REPO_ROOT / "scripts"
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
+from compound import append_observation as append_observation_module  # noqa: E402
 from compound.append_observation import append_observation, record_push_conflict  # noqa: E402
 from compound.schema import ObservationSource, ObservationStatus, WriterMode  # noqa: E402
 
@@ -113,11 +114,16 @@ class TestAppendObservation:
 
     def test_cli_json_round_trip(self, compound_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """CLI accepts --json and appends successfully."""
-        from compound import append_observation as mod
-
-        monkeypatch.setattr(mod, "REPO_ROOT", compound_repo)
+        monkeypatch.setattr(append_observation_module, "REPO_ROOT", compound_repo)
         payload = json.dumps(_base_payload(observation_id="cli-1"))
-        assert mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
+        assert append_observation_module.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
+
+    def test_cli_file_rejects_untrusted_path(self, tmp_path: Path) -> None:
+        """CLI --file only accepts the workflow-owned observation path."""
+        payload_path = tmp_path / "observation.json"
+        payload_path.write_text(json.dumps(_base_payload(observation_id="cli-file-1")), encoding="utf-8")
+
+        assert append_observation_module.main(["--file", str(payload_path)]) == 1
 
     def test_record_push_conflict_flips_at_threshold(self, compound_repo: Path) -> None:
         """Three conflicts inside the window flip writer_mode to github_only (A12)."""
