@@ -67,11 +67,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
     parser.add_argument("--as-of", default=None, help="YYYY-MM-DD stamp")
     args = parser.parse_args(argv)
+    from compound.schema import PathPolicyError, SchemaError
+
     try:
         path = write_standing_brief(args.repo_root, as_of=args.as_of)
         print(f"wrote: {path.relative_to(args.repo_root).as_posix()}")
         return 0
-    except (OSError, PermissionError) as exc:
+    except (OSError, PermissionError, SchemaError, PathPolicyError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
