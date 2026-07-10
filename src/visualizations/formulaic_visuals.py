@@ -143,10 +143,8 @@ class FormulaicVisualizer:
         """
         Aggregate formula counts and average R-squared grouped by category.
 
-        For each formula, the category is read from its `category` attribute (defaults to "Unknown" when missing or
-        falsy)
-        and the R-squared value is read from its `r_squared` attribute (defaults to 0.0 when missing or
-        non-convertible).
+        For each formula, the category is read from its `category` attribute (defaults to "Unknown" when missing or falsy)
+        and the R-squared value is read from its `r_squared` attribute (defaults to 0.0 when missing or non-convertible).
         Returns a mapping from category name to a dictionary containing:
         - `count` (float): number of formulas in the category,
         - `total_r2` (float): sum of R-squared values for the category,
