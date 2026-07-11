@@ -105,6 +105,16 @@ def should_hot_path_synthesize(
 
 def latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
     """Keep the latest observation per primary_ref (landed preferred over provisional)."""
+    from datetime import datetime, timezone
+
+    def _dt(value: str) -> datetime:
+        if not value:
+            return datetime.min.replace(tzinfo=timezone.utc)
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return datetime.min.replace(tzinfo=timezone.utc)
+
     by_ref: dict[str, Observation] = {}
     for obs in observations:
         existing = by_ref.get(obs.primary_ref)
@@ -114,7 +124,7 @@ def latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
         if obs.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
             by_ref[obs.primary_ref] = obs
             continue
-        if obs.created_at >= existing.created_at and not (
+        if _dt(obs.created_at) >= _dt(existing.created_at) and not (
             existing.status is ObservationStatus.LANDED and obs.status is ObservationStatus.PROVISIONAL
         ):
             by_ref[obs.primary_ref] = obs
