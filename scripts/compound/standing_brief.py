@@ -12,7 +12,14 @@ _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
 
-from compound.schema import BRIEFS_DIR, DOMAINS, LEDGER_PATH, assert_writable  # noqa: E402
+from compound.schema import (  # noqa: E402
+    BRIEFS_DIR,
+    DOMAINS,
+    LEDGER_PATH,
+    PathPolicyError,
+    SchemaError,
+    assert_writable,
+)
 from compound.synthesize import _latest_by_primary_ref, load_ledger  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -71,7 +78,7 @@ def main(argv: list[str] | None = None) -> int:
         path = write_standing_brief(args.repo_root, as_of=args.as_of)
         print(f"wrote: {path.relative_to(args.repo_root).as_posix()}")
         return 0
-    except (OSError, PermissionError, ValueError) as exc:
+    except (SchemaError, PathPolicyError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
