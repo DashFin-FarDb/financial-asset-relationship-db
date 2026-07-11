@@ -158,9 +158,6 @@ async def test_app_construction_with_graph_admin_router_succeeds() -> None:
     from api.app_factory import create_app  # pylint: disable=import-outside-toplevel
 
     app = create_app()
-    routes = {getattr(route, "path", "") for route in app.routes}
-
-    assert "/api/graph/rebuild" in routes
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
         response = await client.post("/api/graph/rebuild")

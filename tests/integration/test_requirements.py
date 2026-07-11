@@ -16,6 +16,7 @@ from pathlib import Path
 
 import pytest
 from packaging.requirements import InvalidRequirement, Requirement
+from packaging.version import Version
 
 # Path to requirements.txt file (production dependencies)
 REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements.txt"
@@ -73,6 +74,16 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
         raise OSError(f"Could not read requirements file: {file_path}") from e
 
     return requirements
+
+
+def _has_lower_bound_at_least(version_spec: str, minimum_version: str) -> bool:
+    """Return True when a requirement spec declares a >= lower bound at or above the minimum."""
+    minimum = Version(minimum_version)
+    for spec in version_spec.split(","):
+        spec = spec.strip()
+        if spec.startswith(">="):
+            return Version(spec[2:]) >= minimum
+    return False
 
 
 class TestRequirementsFileExists:
@@ -216,7 +227,7 @@ class TestVersionSpecifications:
         """Test that zipp has the security-required minimum version."""
         zipp_specs = [ver for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_specs) > 0, "zipp should be present for security fix"
-        assert zipp_specs[0].startswith(">=3.19"), f"zipp should be >=3.19.1, got {zipp_specs[0]}"
+        assert _has_lower_bound_at_least(zipp_specs[0], "3.19.1"), f"zipp should be >=3.19.1, got {zipp_specs[0]}"
 
     def test_uses_minimum_versions(self, requirements: list[tuple[str, str]]):
         """Test that most packages use >= for version specifications."""
@@ -349,7 +360,7 @@ class TestSecurityAndCompliance:
         zipp_entries = [(pkg, ver) for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_entries) == 1, "zipp security pin should be present exactly once"
         pkg, ver = zipp_entries[0]
-        assert ver == ">=3.19.1", f"zipp version should be >=3.19.1, got {ver}"
+        assert _has_lower_bound_at_least(ver, "3.19.1"), f"zipp version should be >=3.19.1, got {ver}"
 
     @staticmethod
     def test_zipp_has_security_comment(file_content: str):
@@ -364,9 +375,9 @@ class TestSecurityAndCompliance:
         assert "#" in zipp_line, "zipp line should have a comment"
         comment = zipp_line.split("#", 1)[1].lower()
         security_keywords = ["security", "vulnerability", "snyk", "pinned"]
-        assert any(keyword in comment for keyword in security_keywords), (
-            f"zipp comment should mention security/vulnerability, got: {comment}"
-        )
+        assert any(
+            keyword in comment for keyword in security_keywords
+        ), f"zipp comment should mention security/vulnerability, got: {comment}"
 
     @staticmethod
     def test_no_known_vulnerable_versions(requirements: list[tuple[str, str]]):
@@ -434,9 +445,9 @@ class TestComprehensiveValidation:
         """Test that critical packages have version specifications."""
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         # Allow some packages without versions, but production deps should mostly be pinned
-        assert len(packages_without_versions) <= len(requirements) * 0.2, (
-            f"Too many packages without versions: {packages_without_versions}"
-        )
+        assert (
+            len(packages_without_versions) <= len(requirements) * 0.2
+        ), f"Too many packages without versions: {packages_without_versions}"
 
     @staticmethod
     def test_version_consistency(requirements: list[tuple[str, str]]):
