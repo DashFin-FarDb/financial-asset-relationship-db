@@ -31,8 +31,6 @@ os.environ["ADMIN_DISABLED"] = "false"
 
 from datetime import timezone  # noqa: E402
 
-UTC = timezone.utc
-
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
     AssetClass,
@@ -43,6 +41,8 @@ from src.models.financial_models import (  # noqa: E402
     RegulatoryActivity,
     RegulatoryEvent,
 )
+
+UTC = timezone.utc
 
 
 @pytest.fixture

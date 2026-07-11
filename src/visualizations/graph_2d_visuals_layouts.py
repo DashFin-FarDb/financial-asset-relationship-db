@@ -1,7 +1,4 @@
-"""
-This module provides layout algorithms for positioning assets in 2D
-visualizations, including circular, grid, and spring layouts.
-"""
+"""Provide layout algorithms for positioning assets in 2D visualizations."""
 
 import math
 
@@ -10,7 +7,7 @@ def _create_circular_layout(
     asset_ids: list[str],
 ) -> dict[str, tuple[float, float]]:
     """
-    Assigns each asset ID to an evenly spaced point on the unit circle.
+    Assign each asset ID to an evenly spaced point on the unit circle.
 
     If `asset_ids` is empty, returns an empty dict.
 
@@ -35,13 +32,15 @@ def _create_grid_layout(
     """
     Generate grid positions for the given assets arranged in row-major order.
 
-    Positions are placed on a grid with cols = ceil(sqrt(n)). For each asset in the input list, the x coordinate is the column index (i % cols) and the y coordinate is the row index (i // cols); both coordinates are returned as floats.
+    Positions are placed on a grid with cols = ceil(sqrt(n)). For each asset in the input list, the x coordinate is the
+    column index (i % cols) and the y coordinate is the row index (i // cols); both coordinates are returned as floats.
 
     Parameters:
         asset_ids (List[str]): Asset identifiers in the order they should be placed.
 
     Returns:
-        Dict[str, Tuple[float, float]]: Mapping from asset ID to its (x, y) grid coordinates, where x is column and y is row.
+        Dict[str, Tuple[float, float]]: Mapping from asset ID to its (x, y) grid coordinates, where x is column and y is
+        row.
     """
     if not asset_ids:
         return {}
@@ -60,7 +59,8 @@ def _create_spring_layout_2d(
     Convert selected 3D positions to 2D coordinates by taking the first two components (X, Y).
 
     Parameters:
-        positions_3d (Dict[str, Tuple[float, float, float]]): Mapping from asset ID to a 3-element position. Entries that are missing or not indexable are ignored.
+        positions_3d (Dict[str, Tuple[float, float, float]]): Mapping from asset ID to a 3-element position. Entries
+        that are missing or not indexable are ignored.
         asset_ids (List[str]): Asset IDs to include in the output, iterated in input order.
 
     Returns:
