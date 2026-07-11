@@ -54,67 +54,16 @@ runs:
       if: ${{ inputs.install != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      env:
-        SCRIPT_CONTENT: ${{ toJSON(inputs.install) }}
-      run: |
-        set -euo pipefail
-        # Write commands to a temporary script file to prevent injection
-        SCRIPT_FILE="$(mktemp)"
-        trap 'rm -f "$SCRIPT_FILE"' EXIT
-        # Decode JSON-encoded content using jq (always available on GitHub-hosted runners)
-        printf '%s' "$SCRIPT_CONTENT" | jq -r '.' > "$SCRIPT_FILE" || {
-          echo "Error: Failed to decode script content" >&2
-          exit 1
-        }
-        # Trim whitespace and exit early if the script body is effectively empty
-        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
-          exit 0
-        fi
-        # Execute the script file with proper error handling
-        bash -euo pipefail "$SCRIPT_FILE"
+      run: ${{ inputs.install }}
 
     - name: Build
       if: ${{ inputs.build != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      env:
-        SCRIPT_CONTENT: ${{ toJSON(inputs.build) }}
-      run: |
-        set -euo pipefail
-        # Write commands to a temporary script file to prevent injection
-        SCRIPT_FILE="$(mktemp)"
-        trap 'rm -f "$SCRIPT_FILE"' EXIT
-        # Decode JSON-encoded content using jq (always available on GitHub-hosted runners)
-        printf '%s' "$SCRIPT_CONTENT" | jq -r '.' > "$SCRIPT_FILE" || {
-          echo "Error: Failed to decode script content" >&2
-          exit 1
-        }
-        # Trim whitespace and exit early if the script body is effectively empty
-        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
-          exit 0
-        fi
-        # Execute the script file with proper error handling
-        bash -euo pipefail "$SCRIPT_FILE"
+      run: ${{ inputs.build }}
 
     - name: Test
       if: ${{ inputs.test != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      env:
-        SCRIPT_CONTENT: ${{ toJSON(inputs.test) }}
-      run: |
-        set -euo pipefail
-        # Write commands to a temporary script file to prevent injection
-        SCRIPT_FILE="$(mktemp)"
-        trap 'rm -f "$SCRIPT_FILE"' EXIT
-        # Decode JSON-encoded content using jq (always available on GitHub-hosted runners)
-        printf '%s' "$SCRIPT_CONTENT" | jq -r '.' > "$SCRIPT_FILE" || {
-          echo "Error: Failed to decode script content" >&2
-          exit 1
-        }
-        # Trim whitespace and exit early if the script body is effectively empty
-        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
-          exit 0
-        fi
-        # Execute the script file with proper error handling
-        bash -euo pipefail "$SCRIPT_FILE"
+      run: ${{ inputs.test }}
