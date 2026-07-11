@@ -49,8 +49,9 @@ def _exclusive_lock(lock_path: Path) -> Iterator[None]:
     """Cross-process exclusive lock for compound writer critical sections."""
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open("a+", encoding="utf-8") as handle:
-        if fcntl is not None:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        if fcntl is None:
+            raise OSError("compound writers require POSIX fcntl locking")
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
         try:
             yield
         finally:
