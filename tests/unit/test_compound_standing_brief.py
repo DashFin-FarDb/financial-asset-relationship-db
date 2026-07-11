@@ -13,7 +13,7 @@ SCRIPTS_ROOT = REPO_ROOT / "scripts"
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
-from compound.schema import SchemaError, observation_from_mapping  # noqa: E402
+from compound.schema import PathPolicyError, SchemaError, observation_from_mapping  # noqa: E402
 from compound.standing_brief import main, render_standing_brief, write_standing_brief  # noqa: E402
 
 
