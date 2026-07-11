@@ -222,6 +222,17 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
     if schema_version != SCHEMA_VERSION:
         raise SchemaError(f"Unsupported schema_version {schema_version}; expected {SCHEMA_VERSION}")
 
+    created_at = str(data.get("created_at") or "")
+    if created_at:
+        from datetime import datetime
+
+        try:
+            datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise SchemaError(
+                f"created_at must be ISO-8601 (e.g. 2026-07-09T00:00:00Z): {created_at!r}"
+            ) from exc
+
     return Observation(
         observation_id=str(data["observation_id"]),
         source=source,
@@ -232,7 +243,7 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
         domains=domains,
         refs=_as_str_tuple(data.get("refs"), "refs"),
         evidence_pointers=_as_str_tuple(data.get("evidence_pointers"), "evidence_pointers"),
-        created_at=str(data.get("created_at") or ""),
+        created_at=created_at,
         schema_version=schema_version,
     )
 
