@@ -67,10 +67,10 @@ class TestStandingBrief:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """CLI maps PathPolicyError to a clean error: diagnostic."""
-    
+
         def _raise_path_policy_error(*_args, **_kwargs):
             raise PathPolicyError("policy violation")
-    
+
         monkeypatch.setattr("compound.standing_brief.write_standing_brief", _raise_path_policy_error)
         assert main(["--repo-root", str(tmp_path)]) == 1
         captured = capsys.readouterr()
