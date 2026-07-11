@@ -166,7 +166,6 @@ jobs:
           python scripts/compound/synthesize.py --event-hint "$EVENT_TYPE" "${EXTRA[@]}"
           python scripts/compound/sync_agent_packs.py
           python scripts/compound/standing_brief.py
-          echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"
 
       - name: Commit and push knowledge branch
         shell: bash
