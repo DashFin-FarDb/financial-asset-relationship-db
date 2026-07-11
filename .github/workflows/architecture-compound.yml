@@ -180,6 +180,7 @@ jobs:
           git restore --source=HEAD --staged --worktree -- scripts/compound || true
 
           # Stage only allowlisted generated outputs (never the whole .cursor/rules tree).
+          rm -f docs/compound/runtime.yml.lock docs/compound/ledger/observations.jsonl.lock || true
           git add docs/compound \
             .cursor/rules/architecture-expert.mdc \
             .cursor/rules/architecture-expert-query.mdc \
