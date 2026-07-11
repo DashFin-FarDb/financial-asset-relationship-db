@@ -132,12 +132,22 @@ def latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
 
 
 def _render_section(title: str, items: list[Observation]) -> str:
+    from datetime import datetime, timezone
+
+    def _dt(value: str) -> datetime:
+        if not value:
+            return datetime.min.replace(tzinfo=timezone.utc)
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return datetime.min.replace(tzinfo=timezone.utc)
+
     lines = [f"## {title}", ""]
     if not items:
         lines.append(f"_No {title.lower()} observations yet._")
         lines.append("")
         return "\n".join(lines)
-    for obs in sorted(items, key=lambda item: item.created_at or item.observation_id):
+    for obs in sorted(items, key=lambda item: (_dt(item.created_at), item.observation_id)):
         evidence = ", ".join(obs.evidence_pointers) if obs.evidence_pointers else obs.primary_ref
         lines.append(f"- **{obs.primary_ref}** ({obs.status.value}): {obs.summary}")
         lines.append(f"  - evidence: {evidence}")
