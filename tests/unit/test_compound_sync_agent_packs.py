@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from compound.sync_agent_packs import (  # noqa: E402
     OPENHANDS_PATH,
     _sanitize_pack_body,

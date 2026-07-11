@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from compound.schema import observation_from_mapping  # noqa: E402
 from compound.standing_brief import render_standing_brief, write_standing_brief  # noqa: E402
 

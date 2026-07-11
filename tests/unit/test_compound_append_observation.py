@@ -7,7 +7,6 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
-
 from compound.append_observation import (
     _load_observation_payload,
     _parse_runtime_yaml,

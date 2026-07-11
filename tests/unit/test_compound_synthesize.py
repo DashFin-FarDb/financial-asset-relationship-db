@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from compound.schema import PathPolicyError, assert_writable  # noqa: E402
 from compound.synthesize import (  # noqa: E402
     load_ledger,

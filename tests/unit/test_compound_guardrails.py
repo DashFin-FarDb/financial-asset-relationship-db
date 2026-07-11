@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from compound.append_observation import append_observation, read_writer_mode  # noqa: E402
 from compound.schema import ObservationSource, PathPolicyError, WriterMode, assert_writable  # noqa: E402
 
