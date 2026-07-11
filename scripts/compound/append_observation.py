@@ -36,6 +36,15 @@ def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     return root / Path(relative)
 
 
+def _resolve_repo_root(repo_root: Path | None = None) -> Path:
+    """Return the trusted repository root for CLI path policy checks."""
+    root = (repo_root or REPO_ROOT).resolve()
+    expected = REPO_ROOT.resolve()
+    if root != expected:
+        raise PathPolicyError(f"Repository root must resolve to {expected}")
+    return root
+
+
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     """Read dual-writer mode from docs/compound/runtime.yml."""
     runtime_path = _repo_path("docs/compound/runtime.yml", repo_root)
@@ -254,20 +263,21 @@ def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
+        repo_root = _resolve_repo_root(args.repo_root)
         if args.record_push_conflict:
-            mode = record_push_conflict(args.repo_root)
+            mode = record_push_conflict(repo_root)
             print(f"recorded push conflict; writer_mode={mode.value}")
             return 0
         if bool(args.json) == bool(args.file):
             parser.error("Provide exactly one of --json or --file")
-        payload = json.loads(args.json) if args.json else json.loads(_read_observation_file(args.file, args.repo_root))
+        payload = json.loads(args.json) if args.json else json.loads(_read_observation_file(args.file, repo_root))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:
             observation_from_mapping(payload)
             print("validated")
             return 0
-        _, message = append_observation(payload, repo_root=args.repo_root)
+        _, message = append_observation(payload, repo_root=repo_root)
         print(message)
         return 0
     except (SchemaError, PathPolicyError, json.JSONDecodeError, OSError) as exc:

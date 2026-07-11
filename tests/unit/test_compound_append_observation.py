@@ -118,12 +118,27 @@ class TestAppendObservation:
         payload = json.dumps(_base_payload(observation_id="cli-1"))
         assert append_observation_module.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
 
-    def test_cli_file_accepts_repo_root_cursor_path(self, compound_repo: Path) -> None:
+    def test_cli_file_accepts_repo_root_cursor_path(self, compound_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """CLI --file accepts the documented Cursor observation path."""
+        monkeypatch.setattr(append_observation_module, "REPO_ROOT", compound_repo)
         payload_path = compound_repo / "observation.json"
         payload_path.write_text(json.dumps(_base_payload(observation_id="cli-file-1")), encoding="utf-8")
 
         assert append_observation_module.main(["--file", "observation.json", "--repo-root", str(compound_repo)]) == 0
+
+    def test_cli_file_rejects_forged_repo_root(
+        self, compound_repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """CLI --repo-root cannot redefine which observation.json is trusted."""
+        monkeypatch.setattr(append_observation_module, "REPO_ROOT", compound_repo)
+        forged_root = tmp_path / "forged"
+        forged_root.mkdir()
+        (forged_root / "observation.json").write_text(
+            json.dumps(_base_payload(observation_id="cli-file-1")),
+            encoding="utf-8",
+        )
+
+        assert append_observation_module.main(["--file", "observation.json", "--repo-root", str(forged_root)]) == 1
 
     def test_cli_file_rejects_untrusted_path(self, tmp_path: Path) -> None:
         """CLI --file rejects paths outside the fixed observation inputs."""
