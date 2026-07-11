@@ -52,3 +52,5 @@ _No landed observations yet._
   - evidence: pr:1392
 - **pr:1393** (provisional): fix(ci): harden architecture compound workflows
   - evidence: pr:1393
+- **pr:1447** (provisional): fix(compound): handle SchemaError in standing_brief CLI
+  - evidence: pr:1447
