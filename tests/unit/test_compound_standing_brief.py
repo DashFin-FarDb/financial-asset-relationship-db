@@ -75,3 +75,16 @@ class TestStandingBrief:
         assert main(["--repo-root", str(tmp_path)]) == 1
         captured = capsys.readouterr()
         assert captured.err.startswith("error: policy violation")
+
+    def test_main_prints_error_on_schema_error(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """CLI maps SchemaError to a clean error: diagnostic."""
+
+        def _raise_schema_error(*_args, **_kwargs):
+            raise SchemaError("schema violation")
+
+        monkeypatch.setattr("compound.standing_brief.write_standing_brief", _raise_schema_error)
+        assert main(["--repo-root", str(tmp_path)]) == 1
+        captured = capsys.readouterr()
+        assert captured.err.startswith("error: schema violation")
