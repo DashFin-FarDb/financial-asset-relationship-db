@@ -50,20 +50,54 @@ runs:
         cache: 'npm'
         cache-dependency-path: ${{ inputs.dependency-paths }}
 
+    # Pass command inputs via env (not run: ${{ inputs.* }}) so GitHub does not
+    # splice untrusted expressions into the shell script body (Semgrep GHA injection).
+    # Write to a temp file and exec that file — avoids the fragile jq/JSON encode path
+    # that previously exited 64 before any CI commands ran.
     - name: Install dependencies
       if: ${{ inputs.install != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: ${{ inputs.install }}
+      env:
+        SCRIPT_CONTENT: ${{ inputs.install }}
+      run: |
+        set -euo pipefail
+        SCRIPT_FILE="$(mktemp)"
+        trap 'rm -f "$SCRIPT_FILE"' EXIT
+        printf '%s\n' "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
+        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
+          exit 0
+        fi
+        bash -euo pipefail "$SCRIPT_FILE"
 
     - name: Build
       if: ${{ inputs.build != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: ${{ inputs.build }}
+      env:
+        SCRIPT_CONTENT: ${{ inputs.build }}
+      run: |
+        set -euo pipefail
+        SCRIPT_FILE="$(mktemp)"
+        trap 'rm -f "$SCRIPT_FILE"' EXIT
+        printf '%s\n' "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
+        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
+          exit 0
+        fi
+        bash -euo pipefail "$SCRIPT_FILE"
 
     - name: Test
       if: ${{ inputs.test != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: ${{ inputs.test }}
+      env:
+        SCRIPT_CONTENT: ${{ inputs.test }}
+      run: |
+        set -euo pipefail
+        SCRIPT_FILE="$(mktemp)"
+        trap 'rm -f "$SCRIPT_FILE"' EXIT
+        printf '%s\n' "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
+        if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
+          exit 0
+        fi
+        bash -euo pipefail "$SCRIPT_FILE"
