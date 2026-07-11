@@ -78,7 +78,7 @@ def main(argv: list[str] | None = None) -> int:
         path = write_standing_brief(args.repo_root, as_of=args.as_of)
         print(f"wrote: {path.relative_to(args.repo_root).as_posix()}")
         return 0
-    except (SchemaError, PathPolicyError, OSError) as exc:
+    except (SchemaError, PathPolicyError, OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
