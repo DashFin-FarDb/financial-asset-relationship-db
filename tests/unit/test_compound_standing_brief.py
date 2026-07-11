@@ -13,8 +13,8 @@ SCRIPTS_ROOT = REPO_ROOT / "scripts"
 if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
-from compound.schema import observation_from_mapping  # noqa: E402
-from compound.standing_brief import render_standing_brief, write_standing_brief  # noqa: E402
+from compound.schema import PathPolicyError, SchemaError, observation_from_mapping  # noqa: E402
+from compound.standing_brief import main, render_standing_brief, write_standing_brief  # noqa: E402
 
 
 @pytest.mark.unit
@@ -62,3 +62,29 @@ class TestStandingBrief:
         text = render_standing_brief([obs], as_of="2026-07-09")
         assert "[landed]" in text
         assert "architecture" in text
+
+    def test_main_prints_error_on_path_policy_error(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """CLI maps PathPolicyError to a clean error: diagnostic."""
+
+        def _raise_path_policy_error(*_args, **_kwargs):
+            raise PathPolicyError("policy violation")
+
+        monkeypatch.setattr("compound.standing_brief.write_standing_brief", _raise_path_policy_error)
+        assert main(["--repo-root", str(tmp_path)]) == 1
+        captured = capsys.readouterr()
+        assert captured.err.startswith("error: policy violation")
+
+    def test_main_prints_error_on_schema_error(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """CLI maps SchemaError to a clean error: diagnostic."""
+
+        def _raise_schema_error(*_args, **_kwargs):
+            raise SchemaError("schema violation")
+
+        monkeypatch.setattr("compound.standing_brief.write_standing_brief", _raise_schema_error)
+        assert main(["--repo-root", str(tmp_path)]) == 1
+        captured = capsys.readouterr()
+        assert captured.err.startswith("error: schema violation")
