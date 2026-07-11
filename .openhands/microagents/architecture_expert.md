@@ -47,4 +47,3 @@ rebuild/reconciliation, and deployment/readiness.
 
 See [README.md](/docs/compound/README.md). Watched series: [watched-series.yml](/docs/compound/watched-series.yml).
 Runtime writer mode: [runtime.yml](/docs/compound/runtime.yml).
-
