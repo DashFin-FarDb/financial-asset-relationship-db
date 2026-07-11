@@ -95,8 +95,9 @@ def should_hot_path_synthesize(
         return True
     if not observations:
         return True
-    # Gate on the triggering (newest) observation only — not the full historical ledger.
-    newest = max(observations, key=lambda obs: (obs.created_at or "", obs.observation_id))
+    # Gate on the triggering observation: last ledger row (append order), not max timestamp.
+    # Append-only ledgers may contain out-of-order or custom created_at values.
+    newest = observations[-1]
     if is_dependency_bot_observation(newest):
         return False
     return True

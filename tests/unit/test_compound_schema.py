@@ -2,16 +2,10 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
 import yaml
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS_ROOT = REPO_ROOT / "scripts"
-if str(SCRIPTS_ROOT) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_ROOT))
 
 from compound.schema import (  # noqa: E402
     ObservationSource,
@@ -26,6 +20,8 @@ from compound.schema import (  # noqa: E402
     observation_from_mapping,
     watched_series_from_mapping,
 )
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 @pytest.mark.unit
@@ -121,3 +117,12 @@ class TestCompoundSchema:
             assert_writable("docs/compound/../../AGENTS.md")
         assert is_denylisted("docs/compound/../../AGENTS.md")
         assert not is_allowlisted("docs/compound/../../AGENTS.md")
+
+    def test_denylist_paths_exist(self) -> None:
+        """Denylist entries map to real repo paths so policy cannot silently drift."""
+        from compound.schema import WRITE_DENYLIST_PREFIXES
+
+        repo_root = Path(__file__).resolve().parents[2]
+        for entry in WRITE_DENYLIST_PREFIXES:
+            target = repo_root / entry.rstrip("/")
+            assert target.exists(), f"denylist entry missing from repo: {entry}"

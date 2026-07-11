@@ -43,14 +43,16 @@ def _sanitize_pack_body(body: str) -> str:
 
 
 def _rewrite_compound_links(excerpt: str) -> str:
-    """Rewrite relative compound links so sidecars resolve from repo root."""
+    """Rewrite relative compound links to repo-root-absolute paths for sidecars."""
     return (
-        excerpt.replace("(README.md)", "(docs/compound/README.md)")
-        .replace("(watched-series.yml)", "(docs/compound/watched-series.yml)")
-        .replace("(runtime.yml)", "(docs/compound/runtime.yml)")
-        .replace("(domains/", "(docs/compound/domains/")
-        .replace("[domains/", "[docs/compound/domains/")
-        .replace("](domains/", "](docs/compound/domains/")
+        excerpt.replace("(README.md)", "(/docs/compound/README.md)")
+        .replace("(watched-series.yml)", "(/docs/compound/watched-series.yml)")
+        .replace("(runtime.yml)", "(/docs/compound/runtime.yml)")
+        .replace("(domains/", "(/docs/compound/domains/")
+        .replace("[domains/", "[/docs/compound/domains/")
+        .replace("](domains/", "](/docs/compound/domains/")
+        .replace("(docs/compound/", "(/docs/compound/")
+        .replace("[docs/compound/", "[/docs/compound/")
     )
 
 

@@ -3,15 +3,9 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import pytest
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS_ROOT = REPO_ROOT / "scripts"
-if str(SCRIPTS_ROOT) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_ROOT))
 
 from compound.schema import PathPolicyError, assert_writable  # noqa: E402
 from compound.synthesize import (  # noqa: E402
@@ -179,6 +173,38 @@ class TestCompoundSynthesize:
             ),
         ]
         assert should_hot_path_synthesize(mixed) is False
+
+    def test_hot_path_uses_append_order_not_max_timestamp(self) -> None:
+        """Trigger gate uses the last ledger row even if an older row has a newer timestamp."""
+        from compound.schema import observation_from_mapping
+
+        rows = [
+            observation_from_mapping(
+                {
+                    "observation_id": "stale-ts",
+                    "source": "github",
+                    "event_type": "pull_request.opened",
+                    "status": "provisional",
+                    "primary_ref": "pr:1",
+                    "summary": "Architecture seam change",
+                    "domains": ["architecture"],
+                    "created_at": "2026-12-01T00:00:00Z",
+                }
+            ),
+            observation_from_mapping(
+                {
+                    "observation_id": "appended-last",
+                    "source": "github",
+                    "event_type": "pull_request.synchronize",
+                    "status": "provisional",
+                    "primary_ref": "pr:1366",
+                    "summary": "chore(deps): bump the python-dependencies group",
+                    "domains": ["ci-guardrails"],
+                    "created_at": "2026-01-01T00:00:00Z",
+                }
+            ),
+        ]
+        assert should_hot_path_synthesize(rows) is False
 
     def test_refuse_denylisted_write(self) -> None:
         """Path policy rejects ADR writes."""

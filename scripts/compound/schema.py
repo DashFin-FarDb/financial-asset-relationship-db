@@ -40,6 +40,18 @@ WRITE_ALLOWLIST_PREFIXES: tuple[str, ...] = (
     ".openhands/microagents/architecture_expert.md",
 )
 
+# Closed write denylist — human-owned policy/ADR surfaces compound must never rewrite.
+# Keep entries aligned with real repo paths (validated by test_denylist_paths_exist).
+# Reasons:
+# - docs/adr/: architecture decision records (human-owned canon)
+# - AGENTS.md: Dosu-maintained agent instructions
+# - .github/AUTOMATION_SCOPE_POLICY.md: automation scope policy
+# - .github/AI_AGENT_GUARDRAILS.md: agent guardrail policy
+# - .github/copilot-instructions.md: Copilot instruction policy
+# - docs/PR_SCOPE_GUARDRAILS.md: PR scope policy
+# - docs/GOVERNANCE.md: governance policy
+# - docs/DEPENDENCY_POLICY.md: dependency policy
+# - docs/lessons/: durable lessons (human-curated)
 WRITE_DENYLIST_PREFIXES: tuple[str, ...] = (
     "docs/adr/",
     "AGENTS.md",

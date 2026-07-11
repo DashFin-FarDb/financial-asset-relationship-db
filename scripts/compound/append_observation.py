@@ -6,10 +6,16 @@ import argparse
 import json
 import sys
 import tempfile
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Iterator, Mapping
 from uuid import uuid4
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - non-POSIX CI is not supported for compound writers
+    fcntl = None  # type: ignore[assignment]
 
 _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
 if str(_SCRIPTS_ROOT) not in sys.path:
@@ -29,11 +35,27 @@ from compound.schema import (  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RUNTIME_YML_REL = "docs/compound/runtime.yml"
+_RUNTIME_LOCK_NAME = "runtime.yml.lock"
+_LEDGER_LOCK_NAME = "observations.jsonl.lock"
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
     root = repo_root or REPO_ROOT
     return root / Path(relative)
+
+
+@contextmanager
+def _exclusive_lock(lock_path: Path) -> Iterator[None]:
+    """Cross-process exclusive lock for compound writer critical sections."""
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+", encoding="utf-8") as handle:
+        if fcntl is not None:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            if fcntl is not None:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
@@ -45,6 +67,7 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     for line in text.splitlines():
         stripped = line.strip()
         if stripped.startswith("writer_mode:"):
+            # split(..., 1) preserves timestamp values that contain additional colons.
             value = stripped.split(":", 1)[1].strip()
             try:
                 return WriterMode(value)
@@ -54,7 +77,11 @@ def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
 
 
 def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
-    """Parse the small runtime.yml key set without requiring PyYAML."""
+    """Parse the small runtime.yml key set without requiring PyYAML.
+
+    Values may contain colons (ISO-8601 timestamps); keys are split on the
+    first ``:`` only via ``str.split(":", 1)``.
+    """
     data: dict[str, str | int | None] = {
         "writer_mode": WriterMode.DUAL.value,
         "conflict_count": 0,
@@ -140,33 +167,36 @@ def record_push_conflict(repo_root: Path | None = None, *, now: datetime | None 
     """Increment conflict_count and flip to github_only when threshold is met.
 
     Threshold: >=3 conflicts within conflict_window_minutes (plan A12).
+    Updates are serialized with an exclusive lock on the runtime sidecar.
     """
     root = repo_root or REPO_ROOT
     runtime_path = _repo_path(RUNTIME_YML_REL, root)
     assert_writable(RUNTIME_YML_REL)
     current = datetime.now(timezone.utc) if now is None else now
-    if runtime_path.exists():
-        data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
-    else:
-        data = _default_runtime_data()
+    lock_path = runtime_path.parent / _RUNTIME_LOCK_NAME
+    with _exclusive_lock(lock_path):
+        if runtime_path.exists():
+            data = _parse_runtime_yaml(runtime_path.read_text(encoding="utf-8"))
+        else:
+            data = _default_runtime_data()
 
-    window_minutes = int(data.get("conflict_window_minutes") or 30)
-    count = _conflicts_in_window(
-        count=int(data.get("conflict_count") or 0),
-        last_raw=data.get("last_conflict_at"),
-        window_minutes=window_minutes,
-        current=current,
-    )
-    count += 1
-    data["conflict_count"] = count
-    data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
-    if count >= 3:
-        data["writer_mode"] = WriterMode.GITHUB_ONLY.value
-    _write_runtime_yaml(runtime_path, data, repo_root=root)
-    try:
-        return WriterMode(str(data["writer_mode"]))
-    except ValueError as exc:
-        raise SchemaError(f"Invalid writer_mode after conflict record: {data['writer_mode']}") from exc
+        window_minutes = int(data.get("conflict_window_minutes") or 30)
+        count = _conflicts_in_window(
+            count=int(data.get("conflict_count") or 0),
+            last_raw=data.get("last_conflict_at"),
+            window_minutes=window_minutes,
+            current=current,
+        )
+        count += 1
+        data["conflict_count"] = count
+        data["last_conflict_at"] = current.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if count >= 3:
+            data["writer_mode"] = WriterMode.GITHUB_ONLY.value
+        _write_runtime_yaml(runtime_path, data, repo_root=root)
+        try:
+            return WriterMode(str(data["writer_mode"]))
+        except ValueError as exc:
+            raise SchemaError(f"Invalid writer_mode after conflict record: {data['writer_mode']}") from exc
 
 
 def _cursor_emit_blocked(observation: Observation, writer_mode: WriterMode, *, allow_cursor: bool) -> str | None:
@@ -208,6 +238,7 @@ def append_observation(
     """Append one observation if new; return (observation_or_None, message).
 
     Idempotent on (source, event_type, primary_ref). Never rewrites prior lines.
+    Dedupe-check + append is serialized with an exclusive ledger lock.
     """
     root = repo_root or REPO_ROOT
     ledger_rel = LEDGER_PATH.as_posix()
@@ -231,21 +262,23 @@ def append_observation(
     if blocked is not None:
         return None, blocked
 
-    existing = load_existing_dedupe_keys(ledger_path)
-    if observation.dedupe_key() in existing:
-        return None, f"idempotent-no-op for {observation.dedupe_key()}"
+    lock_path = ledger_path.parent / _LEDGER_LOCK_NAME
+    with _exclusive_lock(lock_path):
+        existing = load_existing_dedupe_keys(ledger_path)
+        if observation.dedupe_key() in existing:
+            return None, f"idempotent-no-op for {observation.dedupe_key()}"
 
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
-    if not ledger_path.exists():
-        ledger_path.write_text(
-            "# Architecture Expert observation ledger (JSONL, append-only).\n"
-            "# schema_version=1 — see scripts/compound/schema.py\n",
-            encoding="utf-8",
-        )
+        ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        if not ledger_path.exists():
+            ledger_path.write_text(
+                "# Architecture Expert observation ledger (JSONL, append-only).\n"
+                "# schema_version=1 — see scripts/compound/schema.py\n",
+                encoding="utf-8",
+            )
 
-    with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
-        handle.write(observation.to_json_line())
-        handle.write("\n")
+        with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
+            handle.write(observation.to_json_line())
+            handle.write("\n")
 
     return observation, f"appended {observation.observation_id}"
 
