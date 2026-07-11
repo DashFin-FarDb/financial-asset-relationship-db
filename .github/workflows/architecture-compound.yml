@@ -70,12 +70,18 @@ jobs:
           # - pull_request: PR base SHA (main)
           # - push: the pushed main SHA
           # - workflow_dispatch: origin/main tip (never the selected non-main ref)
-          TRIGGER_SHA="${GITHUB_SHA}"
-          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ] && git cat-file -e "${PR_BASE_SHA}:scripts/compound/schema.py" 2>/dev/null; then
-            TRIGGER_SHA="$PR_BASE_SHA"
+          TRIGGER_SHA=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            TRIGGER_SHA="${PR_BASE_SHA:-}"
           elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             git fetch --no-tags --depth=1 origin main
             TRIGGER_SHA="$(git rev-parse origin/main)"
+          else
+            TRIGGER_SHA="${GITHUB_SHA}"
+          fi
+          if [ -z "${TRIGGER_SHA}" ] || ! git cat-file -e "${TRIGGER_SHA}:scripts/compound/schema.py" 2>/dev/null; then
+            echo "error: trusted scripts/compound not found at TRIGGER_SHA=${TRIGGER_SHA:-<empty>}" >&2
+            exit 1
           fi
           if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
             git fetch origin knowledge/architecture-expert
