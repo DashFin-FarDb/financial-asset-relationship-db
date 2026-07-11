@@ -128,7 +128,10 @@ jobs:
           if [ "$FORCE_INPUT" = "true" ]; then
             FORCE_SYNTH="true"
           fi
-          DOMAINS_JSON=$(FILES_JSON="$FILES_JSON" python -c 'import json,os,sys; sys.path.insert(0,"scripts"); from compound.schema import detect_domains_from_paths; print(json.dumps(list(detect_domains_from_paths(json.loads(os.environ["FILES_JSON"])))))')
+          if ! DOMAINS_JSON=$(FILES_JSON="$FILES_JSON" python -c 'import json,os,sys; sys.path.insert(0,"scripts"); from compound.schema import detect_domains_from_paths; print(json.dumps(list(detect_domains_from_paths(json.loads(os.environ["FILES_JSON"])))))'); then
+            echo "warn: domain detection failed; defaulting to architecture" >&2
+            DOMAINS_JSON='["architecture"]'
+          fi
           jq -n \
             --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
             --arg source "github" \
