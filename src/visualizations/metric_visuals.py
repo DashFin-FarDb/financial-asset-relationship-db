@@ -32,7 +32,8 @@ def _apply_asset_class_layout(fig: go.Figure) -> None:
     """
     Set titles and axis labels for an asset class distribution figure.
 
-    Modifies the provided Plotly Figure in place to set the chart title to "Asset Class Distribution", the x-axis title to "Asset Class", and the y-axis title to "Count".
+    Modifies the provided Plotly Figure in place to set the chart title to "Asset Class Distribution", the x-axis title
+    to "Asset Class", and the y-axis title to "Count".
 
     Parameters:
         fig (go.Figure): Figure whose layout will be updated in place.
@@ -46,7 +47,7 @@ def _apply_asset_class_layout(fig: go.Figure) -> None:
 
 def _relationship_distribution(distribution: dict) -> go.Figure:
     """
-    Creates a bar chart of counts per relationship type.
+    Create a bar chart of counts per relationship type.
 
     Parameters:
         distribution (dict): Mapping of relationship type names (str) to counts (int).
@@ -119,7 +120,8 @@ def _apply_regulatory_events_layout(fig: go.Figure) -> None:
     """
     Apply layout settings for the regulatory events timeline figure.
 
-    Sets the figure title to "Regulatory Events Timeline", the x-axis title to "Date", and the y-axis title to "Impact Score" in place.
+    Sets the figure title to "Regulatory Events Timeline", the x-axis title to "Date", and the y-axis title to "Impact
+    Score" in place.
     """
     fig.update_layout(
         title="Regulatory Events Timeline",
