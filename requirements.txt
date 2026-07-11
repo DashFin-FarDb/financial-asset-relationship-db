@@ -42,4 +42,4 @@ structlog>=24.1.0
 # Security override pins (not directly imported; pinned to satisfy vulnerability advisories)
 urllib3>=2.6.3  # pinned by Snyk advisory; transitive dep of requests/httpx
 zipp>=3.19.1  # pinned by Snyk advisory; transitive dep of several packages
-starlette>=1.0.1  # CVE-2026-48710 / Safety 99546; requires fastapi>=0.133 (no starlette upper bound)
+starlette>=0.40.0  # CVE-2026-48710 / Safety 99546; matches fastapi==0.133.0 dependency
