@@ -36,15 +36,15 @@ rebuild/reconciliation, and deployment/readiness.
 
 | Domain | Doc | Landed | Provisional |
 |--------|-----|--------|-------------|
-| architecture | [docs/compound/domains/architecture.md](docs/compound/domains/architecture.md) | 0 | 20 |
-| api | [docs/compound/domains/api.md](docs/compound/domains/api.md) | 0 | 11 |
-| persistence | [docs/compound/domains/persistence.md](docs/compound/domains/persistence.md) | 0 | 17 |
-| ci-guardrails | [docs/compound/domains/ci-guardrails.md](docs/compound/domains/ci-guardrails.md) | 0 | 20 |
-| rebuild-reconciliation | [docs/compound/domains/rebuild-reconciliation.md](docs/compound/domains/rebuild-reconciliation.md) | 0 | 9 |
-| deployment | [docs/compound/domains/deployment.md](docs/compound/domains/deployment.md) | 0 | 0 |
+| architecture | [/docs/compound/domains/architecture.md](/docs/compound/domains/architecture.md) | 0 | 20 |
+| api | [/docs/compound/domains/api.md](/docs/compound/domains/api.md) | 0 | 11 |
+| persistence | [/docs/compound/domains/persistence.md](/docs/compound/domains/persistence.md) | 0 | 17 |
+| ci-guardrails | [/docs/compound/domains/ci-guardrails.md](/docs/compound/domains/ci-guardrails.md) | 0 | 20 |
+| rebuild-reconciliation | [/docs/compound/domains/rebuild-reconciliation.md](/docs/compound/domains/rebuild-reconciliation.md) | 0 | 9 |
+| deployment | [/docs/compound/domains/deployment.md](/docs/compound/domains/deployment.md) | 0 | 0 |
 
 ## Operator notes
 
-See [README.md](docs/compound/README.md). Watched series: [watched-series.yml](docs/compound/watched-series.yml).
-Runtime writer mode: [runtime.yml](docs/compound/runtime.yml).
+See [README.md](/docs/compound/README.md). Watched series: [watched-series.yml](/docs/compound/watched-series.yml).
+Runtime writer mode: [runtime.yml](/docs/compound/runtime.yml).
 
