@@ -56,12 +56,11 @@ def _exclusive_lock(lock_path: Path) -> Iterator[None]:
         finally:
             if fcntl is not None:
                 fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
-    # Best-effort cleanup so lock artifacts don't accumulate or get committed.
-    try:
-        lock_path.unlink()
-    except OSError:
-        # Ignore cleanup failures (e.g., lock file already removed or transient FS issue).
-        pass
+    # NOTE: Do not delete the lock file after releasing the flock.
+    # Unlinking can break exclusivity if another process acquires the lock between
+    # unlock/close and unlink, allowing a third process to create a new inode and
+    # enter the critical section concurrently.
+    # Keep the lock file in place; ensure it is gitignored / removed before staging.
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
