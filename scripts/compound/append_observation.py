@@ -62,6 +62,7 @@ def _exclusive_lock(lock_path: Path) -> Iterator[None]:
     except OSError:
         pass
 
+
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     """Read dual-writer mode from runtime.yml."""
     runtime_path = _repo_path(RUNTIME_YML_REL, repo_root)
