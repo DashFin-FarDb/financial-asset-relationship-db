@@ -12,7 +12,7 @@ numpy>=1.26.0
 pandas>=1.5.0
 dataclasses-json>=0.5.7
 yfinance>=0.2.51
-fastapi==0.127.0  # pinned for API compatibility and stability
+fastapi==0.133.0  # >=0.133 allows starlette>=1.0.1 (CVE-2026-48710); was 0.127 with starlette<0.51
 uvicorn[standard]>=0.24.0
 pydantic==2.12.5  # pinned for FastAPI compatibility
 h11==0.16.0  # pinned for compatibility with uvicorn/httpx
@@ -42,3 +42,4 @@ structlog>=24.1.0
 # Security override pins (not directly imported; pinned to satisfy vulnerability advisories)
 urllib3>=2.6.3  # pinned by Snyk advisory; transitive dep of requests/httpx
 zipp>=3.19.1  # pinned by Snyk advisory; transitive dep of several packages
+starlette>=0.40.0  # CVE-2026-48710 / Safety 99546; matches fastapi==0.133.0 dependency

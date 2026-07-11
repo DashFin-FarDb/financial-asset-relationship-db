@@ -50,6 +50,10 @@ runs:
         cache: 'npm'
         cache-dependency-path: ${{ inputs.dependency-paths }}
 
+    # Pass command inputs via env (not run: ${{ inputs.* }}) so GitHub does not
+    # splice untrusted expressions into the shell script body (Semgrep GHA injection).
+    # Write to a temp file and exec that file — avoids the fragile jq/JSON encode path
+    # that previously exited 64 before any CI commands ran.
     - name: Install dependencies
       if: ${{ inputs.install != '' }}
       shell: bash
