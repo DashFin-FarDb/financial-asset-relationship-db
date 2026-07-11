@@ -83,6 +83,7 @@ jobs:
             echo "error: trusted scripts/compound not found at TRIGGER_SHA=${TRIGGER_SHA:-<empty>}" >&2
             exit 1
           fi
+          echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"
           if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
             git fetch origin knowledge/architecture-expert
             git checkout -B knowledge/architecture-expert origin/knowledge/architecture-expert
