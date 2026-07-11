@@ -291,6 +291,7 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
                 if domain not in found:
                     found.append(domain)
                 break
+    return tuple(found) if found else ("architecture",)
 
 
 def is_denylisted(path: str | Path) -> bool:
