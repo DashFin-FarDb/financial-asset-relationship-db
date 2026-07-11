@@ -29,22 +29,22 @@ rebuild/reconciliation, and deployment/readiness.
 
 - **Canon writer:** `scripts/compound/synthesize.py` only
 - **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)
-- **Knowledge branch:** `knowledge/architecture-expert` (intended human promotion to `main`; verify before treating as current)
-- **Status:** Label every claim **landed** or **provisional** only after verifying branch/PR/ref state vs `main`
+- **Knowledge branch:** `knowledge/architecture-expert` (human merge to `main`)
+- **Status:** Every claim is either **landed** or **provisional**
 
 ## Domains
 
 | Domain | Doc | Landed | Provisional |
 |--------|-----|--------|-------------|
-| architecture | [/docs/compound/domains/architecture.md](/docs/compound/domains/architecture.md) | 0 | 20 |
-| api | [/docs/compound/domains/api.md](/docs/compound/domains/api.md) | 0 | 11 |
-| persistence | [/docs/compound/domains/persistence.md](/docs/compound/domains/persistence.md) | 0 | 17 |
-| ci-guardrails | [/docs/compound/domains/ci-guardrails.md](/docs/compound/domains/ci-guardrails.md) | 0 | 20 |
-| rebuild-reconciliation | [/docs/compound/domains/rebuild-reconciliation.md](/docs/compound/domains/rebuild-reconciliation.md) | 0 | 9 |
-| deployment | [/docs/compound/domains/deployment.md](/docs/compound/domains/deployment.md) | 0 | 0 |
+| architecture | [domains/architecture.md](domains/architecture.md) | 0 | 21 |
+| api | [domains/api.md](domains/api.md) | 0 | 11 |
+| persistence | [domains/persistence.md](domains/persistence.md) | 0 | 17 |
+| ci-guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) | 0 | 21 |
+| rebuild-reconciliation | [domains/rebuild-reconciliation.md](domains/rebuild-reconciliation.md) | 0 | 9 |
+| deployment | [domains/deployment.md](domains/deployment.md) | 0 | 0 |
 
 ## Operator notes
 
-See [README.md](/docs/compound/README.md). Watched series: [watched-series.yml](/docs/compound/watched-series.yml).
-Runtime writer mode: [runtime.yml](/docs/compound/runtime.yml).
+See [README.md](README.md). Watched series: [watched-series.yml](watched-series.yml).
+Runtime writer mode: [runtime.yml](runtime.yml).
 

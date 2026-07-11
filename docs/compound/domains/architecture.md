@@ -50,3 +50,5 @@ _No landed observations yet._
   - evidence: pr:1444
 - **pr:1392** (provisional): () -x  w 
   - evidence: pr:1392
+- **pr:1393** (provisional): fix(ci): harden architecture compound workflows
+  - evidence: pr:1393
