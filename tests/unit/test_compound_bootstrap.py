@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 from compound.bootstrap import SEED_DOCS, scrape_recent_prs, seed_from_docs  # noqa: E402
-from compound.schema import DOMAINS, parse_observation_line  # noqa: E402
+from compound.schema import parse_observation_line  # noqa: E402
 
 
 @pytest.fixture
