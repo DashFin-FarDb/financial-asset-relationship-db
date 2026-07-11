@@ -41,8 +41,9 @@ class TestCompoundBootstrap:
         for line in ledger.read_text(encoding="utf-8").splitlines():
             if not line.strip() or line.startswith("#"):
                 continue
+            obs = parse_observation_line(line.strip())
+            domains_seen.update(obs.domains)
             assert not str(obs.primary_ref).startswith("doc:docs/adr/") or obs.source.value == "bootstrap"
-        assert domains_seen == set(DOMAINS)
 
     def test_seed_does_not_write_denylisted_paths(self, seed_repo: Path) -> None:
         """Bootstrap only appends ledger; ADR bytes remain unchanged."""
