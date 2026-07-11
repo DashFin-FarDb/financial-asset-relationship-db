@@ -56,7 +56,11 @@ def _exclusive_lock(lock_path: Path) -> Iterator[None]:
         finally:
             if fcntl is not None:
                 fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
-
+    # Best-effort cleanup so lock artifacts don't accumulate or get committed.
+    try:
+        lock_path.unlink()
+    except OSError:
+        pass
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
     """Read dual-writer mode from runtime.yml."""
