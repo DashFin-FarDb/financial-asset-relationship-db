@@ -229,9 +229,7 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
         try:
             datetime.fromisoformat(created_at.replace("Z", "+00:00"))
         except ValueError as exc:
-            raise SchemaError(
-                f"created_at must be ISO-8601 (e.g. 2026-07-09T00:00:00Z): {created_at!r}"
-            ) from exc
+            raise SchemaError(f"created_at must be ISO-8601 (e.g. 2026-07-09T00:00:00Z): {created_at!r}") from exc
 
     return Observation(
         observation_id=str(data["observation_id"]),
