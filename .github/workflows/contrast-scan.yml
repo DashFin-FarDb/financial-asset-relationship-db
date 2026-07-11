@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     # check out project
     steps:
-    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
     # -name: Build Project
     # ...
     # Scan Artifact
@@ -107,7 +107,7 @@ jobs:
         echo "run_scan=true" >> "$GITHUB_OUTPUT"
     - name: Contrast Scan Action
       if: steps.contrast_preflight.outputs.run_scan == 'true'
-      uses: Contrast-Security-OSS/contrastscan-action@7352a45d9678ec8a434cf061b07ffb51c1e351a1
+      uses: Contrast-Security-OSS/contrastscan-action@339c87f4614b05aae7373929c56573c1bf362c02
       with:
         artifact: ${{ steps.contrast_preflight.outputs.artifact_path }}
         apiKey: ${{ secrets.CONTRAST_API_KEY }}
@@ -116,6 +116,6 @@ jobs:
     #Upload the results to GitHub
     - name: Upload SARIF file
       if: steps.contrast_preflight.outputs.run_scan == 'true'
-      uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
+      uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v3
       with:
         sarif_file: results.sarif # The file name must be 'results.sarif', as this is what the Github Action will output
