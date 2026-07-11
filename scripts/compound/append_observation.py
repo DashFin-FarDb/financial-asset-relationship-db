@@ -60,6 +60,7 @@ def _exclusive_lock(lock_path: Path) -> Iterator[None]:
     try:
         lock_path.unlink()
     except OSError:
+        # Ignore cleanup failures (e.g., lock file already removed or transient FS issue).
         pass
 
 
