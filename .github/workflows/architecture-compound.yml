@@ -80,6 +80,11 @@ jobs:
             TRIGGER_SHA="${GITHUB_SHA}"
           fi
           if [ -z "${TRIGGER_SHA}" ] || ! git cat-file -e "${TRIGGER_SHA}:scripts/compound/schema.py" 2>/dev/null; then
+            if [ "$EVENT_NAME" = "pull_request" ]; then
+              echo "scripts/compound not present at PR base ${TRIGGER_SHA:-<empty>}; skipping compound run for this PR."
+              echo "COMPOUND_SKIP=true" >> "$GITHUB_ENV"
+              exit 0
+            fi
             echo "error: trusted scripts/compound not found at TRIGGER_SHA=${TRIGGER_SHA:-<empty>}" >&2
             exit 1
           fi
@@ -168,6 +173,7 @@ jobs:
           python scripts/compound/standing_brief.py
 
       - name: Commit and push knowledge branch
+        if: env.COMPOUND_SKIP != 'true'
         shell: bash
         run: |
           set -euo pipefail
