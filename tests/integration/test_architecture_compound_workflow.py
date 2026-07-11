@@ -70,3 +70,12 @@ class TestArchitectureCompoundWorkflow:
         """Failed knowledge-branch push records conflict for A12 hybrid backup."""
         text = WORKFLOW.read_text(encoding="utf-8")
         assert "--record-push-conflict" in text
+
+    def test_checkout_handles_only_missing_knowledge_branch(self) -> None:
+        """Knowledge branch recovery must not swallow all checkout failures."""
+        text = WORKFLOW.read_text(encoding="utf-8")
+        assert "continue-on-error: true" not in text
+        assert "git ls-remote --exit-code --heads origin knowledge/architecture-expert" in text
+        assert 'if [ "$status" -eq 2 ]; then' in text
+        assert "git checkout -B knowledge/architecture-expert origin/main" in text
+        assert 'exit "$status"' in text

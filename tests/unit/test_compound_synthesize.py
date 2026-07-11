@@ -15,6 +15,7 @@ if str(SCRIPTS_ROOT) not in sys.path:
 
 from compound.schema import PathPolicyError, assert_writable  # noqa: E402
 from compound.synthesize import (  # noqa: E402
+    load_ledger,
     should_hot_path_synthesize,
     synthesize,
 )
@@ -146,6 +147,28 @@ class TestCompoundSynthesize:
         _write_obs(ledger, rows)
         assert synthesize(synth_repo) == {}
         assert synthesize(synth_repo, force=True)
+
+    def test_load_ledger_skips_malformed_rows(self, synth_repo: Path) -> None:
+        """Malformed ledger rows do not block valid observations."""
+        ledger = synth_repo / "docs/compound/ledger/observations.jsonl"
+        row = {
+            "observation_id": "valid",
+            "source": "github",
+            "event_type": "pull_request.opened",
+            "status": "provisional",
+            "primary_ref": "pr:1393",
+            "summary": "Valid row survives a malformed neighbor",
+            "domains": ["ci-guardrails"],
+            "created_at": "2026-07-09T00:00:00Z",
+        }
+        ledger.write_text(
+            "\n".join(["# schema_version=1", "{not-json", json.dumps(row, sort_keys=True), ""]) + "\n",
+            encoding="utf-8",
+        )
+
+        observations = load_ledger(ledger)
+
+        assert [obs.observation_id for obs in observations] == ["valid"]
 
     def test_refuse_denylisted_write(self) -> None:
         """Path policy rejects ADR writes."""

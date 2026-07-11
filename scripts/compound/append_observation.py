@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
@@ -30,8 +31,22 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
-    root = repo_root or REPO_ROOT
-    return root / Path(relative)
+    root = (repo_root or REPO_ROOT).resolve()
+    candidate = (root / Path(relative)).resolve()
+    try:
+        candidate.relative_to(root)
+    except ValueError as exc:
+        raise PathPolicyError(f"Path escapes repository root: {relative}") from exc
+    return candidate
+
+
+def _safe_observation_file(file_path: Path, repo_root: Path) -> Path:
+    candidate = file_path.resolve()
+    repo_root = repo_root.resolve()
+    workflow_payload = Path(tempfile.gettempdir()).resolve() / "observation.json"
+    if candidate.is_relative_to(repo_root) or candidate == workflow_payload:
+        return candidate
+    raise PathPolicyError("Observation file must be under the repository root or the workflow observation temp file")
 
 
 def read_writer_mode(repo_root: Path | None = None) -> WriterMode:
@@ -246,7 +261,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             payload = json.loads(args.json)
         else:
-            payload = json.loads(Path(args.file).read_text(encoding="utf-8"))
+            payload_path = _safe_observation_file(args.file, args.repo_root or REPO_ROOT)
+            payload = json.loads(payload_path.read_text(encoding="utf-8"))
         if not isinstance(payload, Mapping):
             raise SchemaError("Observation payload must be a JSON object")
         if args.validate_only:

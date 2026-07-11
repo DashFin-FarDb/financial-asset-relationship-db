@@ -119,6 +119,20 @@ class TestAppendObservation:
         payload = json.dumps(_base_payload(observation_id="cli-1"))
         assert mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
 
+    def test_cli_rejects_file_outside_allowed_roots(
+        self,
+        compound_repo: Path,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """CLI refuses arbitrary file reads outside the repo/temp roots."""
+        from compound import append_observation as mod
+
+        assert mod.main(["--file", "/etc/passwd", "--repo-root", str(compound_repo)]) == 1
+        assert (
+            "Observation file must be under the repository root or the workflow observation temp file"
+            in capsys.readouterr().err
+        )
+
     def test_record_push_conflict_flips_at_threshold(self, compound_repo: Path) -> None:
         """Three conflicts inside the window flip writer_mode to github_only (A12)."""
         now = datetime(2026, 7, 9, 12, 0, tzinfo=timezone.utc)
