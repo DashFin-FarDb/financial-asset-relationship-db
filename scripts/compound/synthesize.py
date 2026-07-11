@@ -46,11 +46,20 @@ def load_ledger(ledger_path: Path) -> list[Observation]:
     if not ledger_path.exists():
         return []
     observations: list[Observation] = []
-    for line in ledger_path.read_text(encoding="utf-8").splitlines():
+    skipped = 0
+    for lineno, line in enumerate(ledger_path.read_text(encoding="utf-8").splitlines(), start=1):
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue
-        observations.append(parse_observation_line(stripped))
+        try:
+            observations.append(parse_observation_line(stripped))
+        except SchemaError as exc:
+            skipped += 1
+            if skipped <= 5:
+                print(f"warning: skipping malformed ledger line {lineno}: {exc}", file=sys.stderr)
+            continue
+    if skipped > 5:
+        print(f"warning: skipped {skipped} malformed ledger lines", file=sys.stderr)
     return observations
 
 

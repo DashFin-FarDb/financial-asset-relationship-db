@@ -41,18 +41,19 @@ jobs:
     env:
       COMPOUND_APPEND_OBSERVATION: scripts/compound/append_observation.py
     steps:
-      - name: Checkout knowledge branch
+      - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          ref: knowledge/architecture-expert
           fetch-depth: 0
-        continue-on-error: true
 
-      - name: Ensure knowledge branch exists
+      - name: Checkout knowledge branch (create if missing)
         shell: bash
         run: |
           set -euo pipefail
-          if ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+          if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
+            git fetch origin knowledge/architecture-expert
+            git checkout -B knowledge/architecture-expert FETCH_HEAD
+          else
             git fetch origin main
             git checkout -B knowledge/architecture-expert origin/main
           fi

@@ -22,5 +22,5 @@ rebuild/reconciliation, and deployment/readiness.
 
 ## Operator notes
 
-See [README.md](README.md) once present (U6). Watched series: [watched-series.yml](watched-series.yml).
+See [README.md](README.md). Watched series: [watched-series.yml](watched-series.yml).
 Runtime writer mode: [runtime.yml](runtime.yml).
