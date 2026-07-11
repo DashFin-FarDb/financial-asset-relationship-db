@@ -77,6 +77,11 @@ class TestArchitectureCompoundWorkflow:
         assert "push_knowledge()" in text
         assert "exit 0" in text
         assert "Push still rejected after rebase retry" in text
+        # Conflict counter must be committed and pushed (not only written locally).
+        assert "if python scripts/compound/append_observation.py --record-push-conflict; then" in text
+        assert 'git commit -m "chore(compound): record knowledge-branch push conflict"' in text
+        assert "Failed to push conflict-counter update" in text
+        assert "record-push-conflict failed; hybrid-backup counter not updated" in text
 
     def test_workflow_dispatch_pins_scripts_to_origin_main(self) -> None:
         """Manual dispatch must run reviewed scripts from origin/main, not selected ref."""

@@ -6,8 +6,8 @@ import json
 from pathlib import Path
 
 import pytest
-from compound.schema import observation_from_mapping  # noqa: E402
-from compound.standing_brief import render_standing_brief, write_standing_brief  # noqa: E402
+from compound.schema import SchemaError, observation_from_mapping  # noqa: E402
+from compound.standing_brief import main, render_standing_brief, write_standing_brief  # noqa: E402
 
 
 @pytest.mark.unit
@@ -55,3 +55,45 @@ class TestStandingBrief:
         text = render_standing_brief([obs], as_of="2026-07-09")
         assert "[landed]" in text
         assert "architecture" in text
+
+    def test_render_lists_newest_first(self) -> None:
+        """Domain sections prefer newest observations when capping output."""
+        older = observation_from_mapping(
+            {
+                "observation_id": "old",
+                "source": "github",
+                "event_type": "pull_request.opened",
+                "status": "provisional",
+                "primary_ref": "pr:1",
+                "summary": "Older seam",
+                "domains": ["api"],
+                "created_at": "2026-07-01T00:00:00Z",
+            }
+        )
+        newer = observation_from_mapping(
+            {
+                "observation_id": "new",
+                "source": "github",
+                "event_type": "pull_request.synchronize",
+                "status": "provisional",
+                "primary_ref": "pr:2",
+                "summary": "Newer seam",
+                "domains": ["api"],
+                "created_at": "2026-07-09T00:00:00Z",
+            }
+        )
+        text = render_standing_brief([older, newer], as_of="2026-07-09")
+        assert text.index("Newer seam") < text.index("Older seam")
+
+    def test_main_prints_error_on_schema_error(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """CLI maps SchemaError to a clean error: diagnostic."""
+
+        def _raise_schema_error(*_args, **_kwargs):
+            raise SchemaError("malformed ledger line")
+
+        monkeypatch.setattr("compound.standing_brief.write_standing_brief", _raise_schema_error)
+        assert main(["--repo-root", str(tmp_path)]) == 1
+        captured = capsys.readouterr()
+        assert captured.err.startswith("error: malformed ledger line")

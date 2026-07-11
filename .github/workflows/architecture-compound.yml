@@ -224,18 +224,30 @@ jobs:
           fi
 
           # Actual push failure path: briefly overlay reviewed scripts to record conflict,
-          # then fully restore before staging runtime.yml.
+          # then fully restore before staging/committing/pushing runtime.yml so the
+          # hybrid-backup counter accumulates across runs (A12).
           echo "::error::Push still rejected after rebase retry"
           if [ -n "${TRIGGER_SHA:-}" ]; then
             git checkout "${TRIGGER_SHA}" -- scripts/compound
             git restore --staged scripts/compound
           fi
-          python scripts/compound/append_observation.py --record-push-conflict || true
-          git restore --source=HEAD --staged --worktree -- scripts/compound || true
-          git add docs/compound/runtime.yml
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(compound): record knowledge-branch push conflict" || true
-            push_knowledge || true
+          if python scripts/compound/append_observation.py --record-push-conflict; then
+            git restore --source=HEAD --staged --worktree -- scripts/compound || true
+            git add docs/compound/runtime.yml
+            if ! git diff --cached --quiet; then
+              if git commit -m "chore(compound): record knowledge-branch push conflict"; then
+                if ! push_knowledge; then
+                  echo "::warning::Failed to push conflict-counter update to ${KNOWLEDGE_BRANCH}"
+                fi
+              else
+                echo "::warning::Failed to commit conflict-counter update"
+              fi
+            else
+              echo "::warning::record-push-conflict produced no runtime.yml diff"
+            fi
+          else
+            echo "::warning::record-push-conflict failed; hybrid-backup counter not updated"
+            git restore --source=HEAD --staged --worktree -- scripts/compound || true
           fi
           exit 1
           # Intentionally never merges into main (human promotion only).
