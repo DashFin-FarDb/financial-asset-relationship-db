@@ -113,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         print(query_memory(args.repo_root, args.question))
         return 0
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
