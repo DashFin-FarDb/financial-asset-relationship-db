@@ -48,6 +48,7 @@ class TestCompoundBootstrap:
         assert domains_seen.issuperset(
             {"architecture", "api", "persistence", "ci-guardrails", "rebuild-reconciliation", "deployment"}
         )
+
     def test_seed_does_not_write_denylisted_paths(self, seed_repo: Path) -> None:
         """Bootstrap only appends ledger; ADR bytes remain unchanged."""
         adr = seed_repo / "docs/adr/0001-production-architecture.md"
