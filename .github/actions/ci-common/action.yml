@@ -60,7 +60,11 @@ runs:
         set -euo pipefail
         SCRIPT_FILE="$(mktemp)"
         trap 'rm -f "$SCRIPT_FILE"' EXIT
-        printf '%s\n' "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
+        printf '%s' "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
+        case "$SCRIPT_CONTENT" in
+          *$'\n') ;;
+          *) printf '\n' >> "$SCRIPT_FILE" ;;
+        esac
         if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
         fi
@@ -76,7 +80,11 @@ runs:
         set -euo pipefail
         SCRIPT_FILE="$(mktemp)"
         trap 'rm -f "$SCRIPT_FILE"' EXIT
-        printf '%s\n' "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
+        printf '%s' "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
+        case "$SCRIPT_CONTENT" in
+          *$'\n') ;;
+          *) printf '\n' >> "$SCRIPT_FILE" ;;
+        esac
         if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
         fi
@@ -92,7 +100,11 @@ runs:
         set -euo pipefail
         SCRIPT_FILE="$(mktemp)"
         trap 'rm -f "$SCRIPT_FILE"' EXIT
-        printf '%s\n' "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
+        printf '%s' "$SCRIPT_CONTENT" > "$SCRIPT_FILE"
+        case "$SCRIPT_CONTENT" in
+          *$'\n') ;;
+          *) printf '\n' >> "$SCRIPT_FILE" ;;
+        esac
         if ! grep -q '[^[:space:]]' "$SCRIPT_FILE"; then
           exit 0
         fi
