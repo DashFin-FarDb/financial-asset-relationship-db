@@ -129,8 +129,8 @@ def _write_runtime_yaml(path: Path, data: Mapping[str, Any], *, repo_root: Path 
         f"last_conflict_at: {data.get('last_conflict_at') if data.get('last_conflict_at') is not None else 'null'}",
         "",
     ]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+    resolved.parent.mkdir(parents=True, exist_ok=True)
+    resolved.write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
 def _default_runtime_data() -> dict[str, str | int | None]:
