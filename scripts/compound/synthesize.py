@@ -111,7 +111,8 @@ def latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
         if not value:
             return datetime.min.replace(tzinfo=timezone.utc)
         try:
-            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
         except ValueError:
             return datetime.min.replace(tzinfo=timezone.utc)
 
