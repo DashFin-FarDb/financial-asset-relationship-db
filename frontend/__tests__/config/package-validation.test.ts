@@ -508,6 +508,13 @@ describe("Package.json Validation", () => {
       expect(packageJson.dependencies["react-plotly.js"]).toBeDefined();
     });
 
+    it("should use react-plotly.js v4 or newer for bundled types", () => {
+      const reactPlotlyVersion = packageJson.dependencies["react-plotly.js"];
+      const majorVersion = parseInt(reactPlotlyVersion.match(/\d+/)?.[0] || "0", 10);
+
+      expect(majorVersion).toBeGreaterThanOrEqual(4);
+    });
+
     it("should have recharts for dashboard charts", () => {
       expect(packageJson.dependencies.recharts).toBeDefined();
     });
