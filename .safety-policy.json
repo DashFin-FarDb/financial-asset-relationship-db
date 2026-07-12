@@ -1,10 +1,9 @@
 {
   "security": {
-    "ignore-vulnerabilities": [
-      {
-        "id": "72086",
+    "ignore-vulnerabilities": {
+      "72086": {
         "reason": "Disputed vulnerability - supplier disputes this because the report is about a user attacking himself. CVE-2024-39236 is not a real security risk in our use case."
       }
-    ]
+    }
   }
 }
