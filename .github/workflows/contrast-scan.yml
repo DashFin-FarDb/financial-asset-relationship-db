@@ -86,7 +86,7 @@ jobs:
         CONTRAST_API_KEY: ${{ secrets.CONTRAST_API_KEY }}
         CONTRAST_ORGANIZATION_ID: ${{ secrets.CONTRAST_ORGANIZATION_ID }}
         CONTRAST_AUTH_HEADER: ${{ secrets.CONTRAST_AUTH_HEADER }}
-        CONTRAST_ARTIFACT_PATH: ${{ secrets.CONTRAST_ARTIFACT_PATH }}
+        CONTRAST_ARTIFACT_PATH: ${{ vars.CONTRAST_ARTIFACT_PATH || secrets.CONTRAST_ARTIFACT_PATH }}
       run: |
         if [ -z "${CONTRAST_API_KEY}" ] || [ -z "${CONTRAST_ORGANIZATION_ID}" ] || [ -z "${CONTRAST_AUTH_HEADER}" ]; then
           echo "Contrast secrets are not configured; skipping scan."

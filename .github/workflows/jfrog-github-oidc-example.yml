@@ -15,7 +15,7 @@ jobs:
       - name: Check JFrog configuration
         id: check-jfrog
         env:
-          JF_URL: ${{ secrets.JF_URL }}
+          JF_URL: ${{ vars.JF_URL || secrets.JF_URL }}
         run: |
           if [ -n "$JF_URL" ]; then
             echo "has_jfrog=true" >> "$GITHUB_OUTPUT"
@@ -26,7 +26,7 @@ jobs:
         if: steps.check-jfrog.outputs.has_jfrog == 'true'
         uses: jfrog/setup-jfrog-cli@deda456d982fc5e9a7a020b63eb0d2968aedd33e # v5.1.0
         env:
-          JF_URL: ${{ secrets.JF_URL }}
+          JF_URL: ${{ vars.JF_URL || secrets.JF_URL }}
         with:
           oidc-provider-name: mohavro/financial-asset-relationship-db@github
 
