@@ -28,7 +28,8 @@ ignore =
 
 per-file-ignores =
     __init__.py:F401,F403
-    tests/*:F401,F403,F811
+    # Test modules prioritize behavior over docstring completeness.
+    tests/*:F401,F403,F811,D100,D101,D102,D103,D104,D105,D107,D200,D202,D205,D400,D401,D403
     src/data/database.py:F841
     src/visualizations/graph_visuals.py:C901
 

@@ -1,6 +1,6 @@
 """Tests for the RecoveryGate component."""
 
-from datetime import datetime, timezone
+from datetime import timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -578,6 +578,7 @@ def test_reset_blocks_fresh_remote_owner_as_stale_ownership(
     mock_session_factory, mock_lock, monkeypatch, make_reconciliation_plan
 ):
     """A fresh heartbeat from a different worker should block as stale ownership, not orphaned running."""
+    from datetime import datetime
 
     from src.data.db_models import RebuildJobStatus
 

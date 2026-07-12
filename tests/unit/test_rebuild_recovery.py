@@ -12,7 +12,7 @@ UTC = timezone.utc
 
 @pytest.fixture
 def current_time():
-    """Current timestamp for testing."""
+    """Return the current timestamp for testing."""
     return datetime.now(UTC)
 
 

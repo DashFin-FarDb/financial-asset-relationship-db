@@ -18,6 +18,14 @@ from src.models.financial_models import Asset, AssetClass
 UTC = timezone.utc
 
 
+class _MinimalDriftEvaluator:
+    """Minimal DriftEvaluator protocol stand-in for engine compatibility tests."""
+
+    def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
+        """Return a no-op drift evaluation result."""
+        return "minimal", Severity.NONE, {}
+
+
 class MockDriftEvaluator:
     """Mock drift evaluator for testing."""
 
@@ -498,16 +506,8 @@ class TestDriftEvaluatorProtocol:
 
     def test_protocol_compatibility_with_engine(self) -> None:
         """Test that any DriftEvaluator implementation works with engine."""
-
-        # Create a minimal protocol-compliant evaluator
-        class MinimalEvaluator:
-            def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
-                return "minimal", Severity.NONE, {}
-
-        evaluator = MinimalEvaluator()
+        evaluator = _MinimalDriftEvaluator()
         engine = ReconciliationEngine(evaluator)
-
-        # Should work without errors
         plan = engine.generate_reconciliation_plan()
         assert plan is not None
         assert isinstance(plan, ReconciliationPlan)

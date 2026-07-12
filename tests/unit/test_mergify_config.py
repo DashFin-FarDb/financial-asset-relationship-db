@@ -526,7 +526,7 @@ class TestMergifyContentLabels:
 
     def _find_rule(self, name_fragment):
         """
-        Finds the first pull request rule whose name contains the given fragment (case-insensitive).
+        Find the first pull request rule whose name contains the given fragment (case-insensitive).
 
         Parameters:
             name_fragment (str): Substring to search for in each rule's `name` field; matching is case-insensitive.
@@ -616,6 +616,16 @@ class TestMergifyReviewAutomation:
                 conditions = " ".join(str(c) for c in rule.get("conditions", []))
                 assert "-draft" in conditions, f"Review-request rule '{rule['name']}' should exclude drafts"
 
+    def test_review_request_requires_no_pending_review_requests(self):
+        """Test that the review-request rule only fires when no review requests are pending."""
+        rules = self._load_rules()
+        for rule in rules:
+            if "request_reviews" in rule.get("actions", {}):
+                conditions = " ".join(str(c) for c in rule.get("conditions", []))
+                assert (
+                    "#review-requested=0" in conditions
+                ), f"Review-request rule '{rule['name']}' should require no pending review requests"
+
     def test_dismiss_stale_reviews_rule_exists(self):
         """Test that a dismiss_reviews rule exists."""
         rules = self._load_rules()
@@ -649,10 +659,10 @@ class TestMergifyAutoMerge:
 
     def _get_auto_merge_rules(self):
         """
-        Selects pull request rules that define a merge action.
+        Return pull request rules that define a merge action.
 
         Returns:
-                list: A list of rule dictionaries that include a 'merge' key in their `actions` mapping.
+            list: A list of rule dictionaries that include a 'merge' key in their `actions` mapping.
         """
         return [r for r in self._load_rules() if "merge" in r.get("actions", {})]
 
@@ -818,7 +828,7 @@ class TestMergifyBoundaryConditions:
 
         conditions = " ".join(str(c) for c in dep_rule.get("conditions", []))
         assert (
-            "#changed-files <= 5" in conditions or "#changed-files<=5" in conditions
+            "#files <= 5" in conditions or "#files<=5" in conditions
         ), "Dependabot auto-merge should limit to 5 changed files"
 
     def test_stale_threshold_is_14_days(self):

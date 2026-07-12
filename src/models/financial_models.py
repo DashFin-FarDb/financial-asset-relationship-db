@@ -32,7 +32,7 @@ class RegulatoryActivity(Enum):
 
 @dataclass
 class Asset:
-    """Base asset class"""
+    """Base asset class."""
 
     id: str
     symbol: str
@@ -132,7 +132,7 @@ class Asset:
 
 @dataclass
 class Equity(Asset):
-    """Equity asset"""
+    """Equity asset."""
 
     pe_ratio: float | None = None
     dividend_yield: float | None = None
@@ -142,7 +142,7 @@ class Equity(Asset):
 
 @dataclass
 class Bond(Asset):
-    """Fixed income asset"""
+    """Fixed income asset."""
 
     yield_to_maturity: float | None = None
     coupon_rate: float | None = None
@@ -153,7 +153,7 @@ class Bond(Asset):
 
 @dataclass
 class Commodity(Asset):
-    """Commodity asset"""
+    """Commodity asset."""
 
     contract_size: float | None = None
     delivery_date: str | None = None
@@ -162,7 +162,7 @@ class Commodity(Asset):
 
 @dataclass
 class Currency(Asset):
-    """Currency asset"""
+    """Currency asset."""
 
     exchange_rate: float | None = None
     country: str | None = None
@@ -171,7 +171,7 @@ class Currency(Asset):
 
 @dataclass
 class RegulatoryEvent:
-    """Regulatory and corporate events"""
+    """Regulatory and corporate events."""
 
     id: str
     asset_id: str

@@ -1,3 +1,5 @@
+"""Dependency utilities for API routers."""
+
 import threading
 
 from api.main import _initialize_graph

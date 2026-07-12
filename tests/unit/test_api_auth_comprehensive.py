@@ -58,7 +58,7 @@ def sample_user():
     Create a reusable sample UserInDB instance for tests.
 
     Returns:
-        UserInDB: A UserInDB populated with username "testuser", email "test@example.com", full_name "Test User", disabled False, and a placeholder hashed_password.
+        UserInDB: A UserInDB for username "testuser".
     """
     return UserInDB(
         username="testuser",
@@ -567,7 +567,7 @@ class TestCreateOrUpdateUserNewSignature:
 
     @patch("api.auth.execute")
     def test_multiple_unexpected_keys_listed_in_error(self, mock_execute):
-        """TypeError message includes all unexpected key names."""
+        """Ensure TypeError message includes all unexpected key names."""
         repo = UserRepository()
         with pytest.raises(TypeError) as exc_info:
             repo.create_or_update_user(
@@ -601,17 +601,17 @@ class TestUserProfileTypedDict:
     """Tests for UserRepository.UserProfile TypedDict (new in this PR)."""
 
     def test_user_profile_is_accessible_as_nested_class(self):
-        """UserProfile is accessible as UserRepository.UserProfile."""
+        """Ensure UserProfile is accessible as UserRepository.UserProfile."""
         assert hasattr(UserRepository, "UserProfile")
 
     def test_user_profile_has_expected_fields(self):
-        """UserProfile TypedDict has user_email, user_full_name, is_disabled annotations."""
+        """Ensure UserProfile TypedDict has expected optional annotations."""
         annotations = UserRepository.UserProfile.__annotations__
         assert "user_email" in annotations
         assert "user_full_name" in annotations
         assert "is_disabled" in annotations
 
     def test_user_profile_total_false_makes_all_keys_optional(self):
-        """UserProfile is declared with total=False making all keys optional."""
+        """Ensure UserProfile is declared with total=False."""
         # A TypedDict with total=False has __total__ attribute set to False.
         assert UserRepository.UserProfile.__total__ is False

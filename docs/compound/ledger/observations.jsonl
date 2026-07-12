@@ -1,0 +1,2 @@
+# Architecture Expert observation ledger (JSONL, append-only).
+# schema_version=1 — see scripts/compound/schema.py
