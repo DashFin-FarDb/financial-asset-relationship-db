@@ -30,7 +30,7 @@ mcp>=1.23.0  # >=1.9.4 for DoS fix, >=1.23.0 for DNS rebinding protection fix
 fastmcp>=0.1.0
 
 # Auth / rate-limiting dependencies
-PyJWT>=2.13.0
+PyJWT>=2.13.0  # CVE-2026-48526 / GHSA-xgmm-8j9v-c9wx security floor
 passlib[bcrypt]>=1.7.4
 slowapi>=0.1.4
 
