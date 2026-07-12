@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0' # actions/checkout@v4
+        uses: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0' # actions/checkout@v4  # guardrails-disable-line
 
       # Configure Workload Identity Federation and generate an access token.
       #
@@ -58,7 +58,7 @@ jobs:
       # including authenticating via a JSON credentials file.
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # google-github-actions/auth@v2
+        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # google-github-actions/auth@v2  # guardrails-disable-line
         with:
           workload_identity_provider: '${{ env.WORKLOAD_IDENTITY_PROVIDER }}'
 
@@ -66,7 +66,7 @@ jobs:
       #
       # If you already have a container image, you can omit these steps.
       - name: 'Docker Auth'
-        uses: 'docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0' # docker/login-action@v3
+        uses: 'docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0' # docker/login-action@v3  # guardrails-disable-line
         with:
           username: 'oauth2accesstoken'
           password: '${{ steps.auth.outputs.auth_token }}'
@@ -81,7 +81,7 @@ jobs:
 
         # END - Docker auth and build
 
-        uses: 'google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d' # google-github-actions/deploy-cloudrun@v2
+        uses: 'google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d' # google-github-actions/deploy-cloudrun@v2  # guardrails-disable-line
         with:
           service: '${{ env.SERVICE }}'
           region: '${{ env.REGION }}'
