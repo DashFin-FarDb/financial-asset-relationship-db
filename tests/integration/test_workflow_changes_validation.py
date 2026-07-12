@@ -8,10 +8,36 @@ Tests specific changes made to workflow files, including:
 - APISec scan workflow modifications
 """
 
+import re
 from pathlib import Path
 
 import pytest
 import yaml
+
+WORKFLOW_PATH_PATTERNS = (
+    r"working-directory:\s+(.+)",
+    r'path:\s+["\']([^"\']+)["\']',
+)
+
+
+def _extract_referenced_paths(content: str) -> list[str]:
+    """Extract candidate file paths from workflow YAML text."""
+    referenced_paths: list[str] = []
+    for pattern in WORKFLOW_PATH_PATTERNS:
+        referenced_paths.extend(match.strip() for match in re.findall(pattern, content))
+    return referenced_paths
+
+
+def _normalize_workflow_path(path: str) -> str:
+    """Normalize workflow paths so they can be resolved from the repository root."""
+    if path.startswith("./"):
+        return path[2:]
+    return path
+
+
+def _is_dynamic_or_runtime_path(path: str) -> bool:
+    """Return True for paths created at runtime or containing shell/glob expansion."""
+    return path == "release-source" or path.startswith("release-source/") or "$" in path or "*" in path
 
 
 class TestPRAgentWorkflowChanges:
@@ -331,30 +357,15 @@ class TestWorkflowIntegration:
         repo_root = Path(".")
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file) as f:
-                content = f.read()
+            content = workflow_file.read_text()
 
-            # Common path patterns to check
-            import re
+            for path in _extract_referenced_paths(content):
+                path = _normalize_workflow_path(path)
+                if _is_dynamic_or_runtime_path(path):
+                    continue
 
-            path_patterns = [
-                r"working-directory:\s+(.+)",
-                r'path:\s+["\']([^"\']+)["\']',
-            ]
-
-            for pattern in path_patterns:
-                matches = re.findall(pattern, content)
-                for match in matches:
-                    path = match.strip()
-                    if path.startswith("./"):
-                        path = path[2:]
-                    if path == "release-source" or path.startswith("release-source/"):
-                        # actions/checkout creates this directory at runtime for release verification.
-                        continue
-                    # Skip variables and wildcards
-                    if "$" not in path and "*" not in path:
-                        full_path = repo_root / path
-                        assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
+                full_path = repo_root / path
+                assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
 
 
 class TestDependencyCheckWorkflowPresence:

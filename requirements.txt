@@ -5,7 +5,7 @@ gradio>=6.13.0  # >=6.6.0 for SSRF fix, >=6.7.0 for path traversal fix on Window
 Markdown>=3.4,<4.0
 bleach>=6.1.0
 curl-cffi>=0.7.0  # >=0.7.0 required; libcurl vulnerability in <=0.6.4
-requests>=2.32.2
+requests>=2.32.4
 websockets>=13.0
 plotly>=5.0.0
 numpy>=1.26.0
@@ -31,7 +31,7 @@ mcp>=1.23.0  # >=1.9.4 for DoS fix, >=1.23.0 for DNS rebinding protection fix
 fastmcp>=0.1.0
 
 # Auth / rate-limiting dependencies
-PyJWT>=2.8.0
+PyJWT>=2.13.0
 passlib[bcrypt]>=1.7.4
 slowapi>=0.1.4
 
