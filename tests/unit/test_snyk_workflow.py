@@ -546,9 +546,5 @@ class TestSnykContainerWorkflow:
     def test_no_hard_fail_sarif_verification_step(self, container_job):
         """Workflow must not fail when Snyk cannot produce a SARIF artifact."""
         steps = container_job["steps"]
-        verifier_steps = [
-            s
-            for s in steps
-            if s.get("run") and "snyk.sarif" in s["run"] and "exit 1" in s["run"]
-        ]
+        verifier_steps = [s for s in steps if s.get("run") and "snyk.sarif" in s["run"] and "exit 1" in s["run"]]
         assert verifier_steps == []
