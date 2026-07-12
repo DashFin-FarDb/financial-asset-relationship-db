@@ -35,6 +35,8 @@ from .db_models import (
     RegulatoryEventORM,
 )
 
+UTC = timezone.utc
+
 
 @dataclass(frozen=True, slots=True)
 class LockRecord:
