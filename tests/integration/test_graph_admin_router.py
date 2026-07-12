@@ -162,6 +162,7 @@ async def test_app_construction_with_graph_admin_router_succeeds() -> None:
     async with httpx.AsyncClient(transport=transport, base_url="https://testserver") as client:
         response = await client.post("/api/graph/rebuild")
 
+    # 401 (not 404) implicitly verifies the /api/graph/rebuild route is registered.
     assert response.status_code == 401
 
 

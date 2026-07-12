@@ -114,7 +114,9 @@ class TestPRAgentWorkflowChanges:
         """
         Validate the pr-agent-action job uses a single Python dependency installation step and does not install PyYAML.
 
-        Finds a step whose name includes "Install Python dependencies", asserts exactly one such step exists, and verifies the step's run script contains no references to "pyyaml" or "PyYAML".
+        Finds a step whose name includes "Install Python dependencies", asserts
+        exactly one such step exists, and verifies the step's run script contains
+        no references to "pyyaml" or "PyYAML".
         """
         pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = pr_agent_job["steps"]
@@ -152,7 +154,8 @@ class TestPRAgentWorkflowChanges:
         """
         Verify the PR Agent workflow exposes minimal permissions.
 
-        Asserts the workflow top-level 'permissions' sets 'contents' to 'read' and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
+        Asserts the workflow top-level 'permissions' sets 'contents' to 'read'
+        and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
         """
         # Top-level permissions
         assert pr_agent_workflow.get("permissions", {}).get("contents") == "read"
@@ -275,7 +278,9 @@ class TestWorkflowSecurityBestPractices:
         """
         Ensure workflow steps that use actions specify a pinned version and do not use 'latest' or 'master'.
 
-        Asserts that every step with a `uses` reference includes a version specifier (contains '@') and that the specified version is not '@latest' or '@master' (case-insensitive).
+        Asserts that every step with a `uses` reference includes a version
+        specifier (contains '@') and that the specified version is not '@latest'
+        or '@master' (case-insensitive).
         """
         workflows_dir = Path(".github/workflows")
 
@@ -341,7 +346,8 @@ class TestWorkflowYAMLValidity:
         """
         Ensure every workflow in .github/workflows defines top-level 'name', 'on', and 'jobs' keys.
 
-        Asserts that each .yml file contains 'name', 'on', and 'jobs'; a failing assertion includes the workflow filename and the missing key.
+        Asserts that each .yml file contains 'name', 'on', and 'jobs'; a failing
+        assertion includes the workflow filename and the missing key.
         """
         workflows_dir = Path(".github/workflows")
 
@@ -386,7 +392,12 @@ class TestWorkflowIntegration:
         """
         Verify that file paths referenced in workflow YAML files exist in the repository.
 
-        Scans .github/workflows/*.yml for path-like references (for example `working-directory` and `path`), normalizes leading `./`, ignores references containing variables (`$`) or wildcards (`*`), skips directories that are dynamically created by `actions/checkout` steps (i.e. checkout `path:` destinations), and asserts that each remaining referenced path exists.
+        Scans .github/workflows/*.yml for path-like references (for example
+        `working-directory` and `path`), normalizes leading `./`, ignores
+        references containing variables (`$`) or wildcards (`*`), skips
+        directories that are dynamically created by `actions/checkout` steps
+        (i.e. checkout `path:` destinations), and asserts that each remaining
+        referenced path exists.
         """
         workflows_dir = Path(".github/workflows")
         repo_root = Path(".")

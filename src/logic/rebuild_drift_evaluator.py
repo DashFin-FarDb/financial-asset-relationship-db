@@ -28,8 +28,6 @@ UTC = timezone.utc
 if TYPE_CHECKING:
     from src.data.db_models import RebuildJobORM
 
-UTC = timezone.utc
-
 logger = logging.getLogger(__name__)
 
 
