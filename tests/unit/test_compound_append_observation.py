@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
+from compound import append_observation as append_observation_mod
 from compound.append_observation import (
     _load_observation_payload,
     _parse_runtime_yaml,
@@ -105,11 +106,9 @@ class TestAppendObservation:
 
     def test_cli_json_round_trip(self, compound_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """CLI accepts --json and appends successfully."""
-        from compound import append_observation as mod
-
-        monkeypatch.setattr(mod, "REPO_ROOT", compound_repo)
+        monkeypatch.setattr(append_observation_mod, "REPO_ROOT", compound_repo)
         payload = json.dumps(_base_payload(observation_id="cli-1"))
-        assert mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
+        assert append_observation_mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
 
     def test_record_push_conflict_flips_at_threshold(self, compound_repo: Path) -> None:
         """Three conflicts inside the window flip writer_mode to github_only (A12)."""

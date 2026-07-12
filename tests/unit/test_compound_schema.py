@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 import yaml
 from compound.schema import (  # noqa: E402
+    WRITE_DENYLIST_PREFIXES,
     ObservationSource,
     ObservationStatus,
     PathPolicyError,
@@ -119,8 +120,6 @@ class TestCompoundSchema:
 
     def test_denylist_paths_exist(self) -> None:
         """Denylist entries map to real repo paths so policy cannot silently drift."""
-        from compound.schema import WRITE_DENYLIST_PREFIXES
-
         repo_root = Path(__file__).resolve().parents[2]
         for entry in WRITE_DENYLIST_PREFIXES:
             target = repo_root / entry.rstrip("/")

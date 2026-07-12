@@ -95,22 +95,39 @@ def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
         "last_conflict_at": None,
     }
     for line in text.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or ":" not in stripped:
-            continue
-        key, value = stripped.split(":", 1)
-        key = key.strip()
-        value = value.strip()
-        if key == "writer_mode":
-            data[key] = value
-        elif key in {"conflict_count", "conflict_window_minutes"}:
-            try:
-                data[key] = int(value)
-            except ValueError as exc:
-                raise SchemaError(f"Invalid integer for {key}: {value}") from exc
-        elif key == "last_conflict_at":
-            data[key] = None if value in {"null", "~", ""} else value
+        _merge_runtime_entry(data, line)
     return data
+
+
+def _merge_runtime_entry(data: dict[str, str | int | None], line: str) -> None:
+    """Parse and merge one supported runtime.yml line."""
+    parsed = _split_runtime_line(line)
+    if parsed is None:
+        return
+    key, value = parsed
+    if key == "writer_mode":
+        data[key] = value
+    elif key in {"conflict_count", "conflict_window_minutes"}:
+        data[key] = _parse_runtime_int(key, value)
+    elif key == "last_conflict_at":
+        data[key] = None if value in {"null", "~", ""} else value
+
+
+def _split_runtime_line(line: str) -> tuple[str, str] | None:
+    """Return a key/value pair for non-comment YAML lines."""
+    stripped = line.strip()
+    if not stripped or stripped.startswith("#") or ":" not in stripped:
+        return None
+    key, value = stripped.split(":", 1)
+    return key.strip(), value.strip()
+
+
+def _parse_runtime_int(key: str, value: str) -> int:
+    """Parse a runtime integer field with SchemaError context."""
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise SchemaError(f"Invalid integer for {key}: {value}") from exc
 
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any], *, repo_root: Path | None = None) -> None:

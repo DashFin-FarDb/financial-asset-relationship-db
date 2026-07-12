@@ -97,14 +97,21 @@ def _clamp_pr_limit(limit: int) -> int:
 
 def _validate_gh_args(args: list[str]) -> list[str]:
     """Reject unsafe tokens before invoking ``gh`` (Sonar S8705)."""
-    if not args or args[0] != "pr":
+    if not _is_allowed_gh_command(args):
         raise SchemaError("Only `gh pr ...` invocations are allowed")
-    validated: list[str] = []
-    for arg in args:
-        if not isinstance(arg, str) or not arg or not _GH_SAFE_TOKEN.fullmatch(arg):
-            raise SchemaError(f"Rejected unsafe gh argument: {arg!r}")
-        validated.append(arg)
-    return validated
+    return [_validate_gh_token(arg) for arg in args]
+
+
+def _is_allowed_gh_command(args: list[str]) -> bool:
+    """Return True for the supported ``gh pr ...`` command family."""
+    return bool(args) and args[0] == "pr"
+
+
+def _validate_gh_token(arg: str) -> str:
+    """Validate one bounded gh token."""
+    if not isinstance(arg, str) or not arg or not _GH_SAFE_TOKEN.fullmatch(arg):
+        raise SchemaError(f"Rejected unsafe gh argument: {arg!r}")
+    return arg
 
 
 def _gh_json(args: list[str]) -> Any | None:
@@ -154,13 +161,20 @@ def _paths_from_pr_files(file_entries: Any) -> list[str]:
     """Extract changed file paths from a gh PR ``files`` payload."""
     paths: list[str] = []
     for entry in file_entries or []:
-        if isinstance(entry, str):
-            paths.append(entry)
-        elif isinstance(entry, dict):
-            raw = entry.get("path") or entry.get("filename")
-            if raw:
-                paths.append(str(raw))
+        path = _path_from_pr_file(entry)
+        if path is not None:
+            paths.append(path)
     return paths
+
+
+def _path_from_pr_file(entry: Any) -> str | None:
+    """Return one changed path from a gh PR file entry."""
+    if isinstance(entry, str):
+        return entry
+    if isinstance(entry, dict):
+        raw = entry.get("path") or entry.get("filename")
+        return str(raw) if raw else None
+    return None
 
 
 def _status_from_pr(pr: Mapping[str, Any]) -> str:
