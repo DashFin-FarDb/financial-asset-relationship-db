@@ -66,8 +66,13 @@ jobs:
       with:
         image: your/image-to-test
         args: --file=Dockerfile
+    - name: Verify Snyk SARIF output
+      run: |
+        if [ ! -s snyk.sarif ]; then
+          echo "::error::Snyk scan did not produce snyk.sarif; container scan results will not be published."
+          exit 1
+        fi
     - name: Upload result to GitHub Code Scanning
-      if: hashFiles('snyk.sarif') != ''
       uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
       with:
         sarif_file: snyk.sarif
