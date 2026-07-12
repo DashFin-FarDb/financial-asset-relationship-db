@@ -129,3 +129,7 @@ s
 
 # Ignore windsurf AI rules
 .windsurfrules
+
+# Compound lock files (created by fcntl.flock; must not be committed)
+docs/compound/*.lock
+docs/compound/ledger/*.lock
