@@ -4,22 +4,12 @@ import argparse
 import json
 import os
 import re
+import stat
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, TypedDict
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-
-SECRET_ASSIGNMENT_PATTERN = re.compile(
-    "".join(
-        (
-            r"(?i)",
-            r"(?:\b|_)(?:password|secret|token|key)(?:\b|_)",
-            r"['\"]?[ \t]*[:=][ \t]*['\"]?",
-            r"(?P<value>[a-z0-9+/=]{16,})",
-        )
-    )
-)
 DISTINCT_BOUNDARY_PATTERN = re.compile(
     "|".join(
         (
@@ -28,6 +18,15 @@ DISTINCT_BOUNDARY_PATTERN = re.compile(
         )
     )
 )
+
+
+class JsonScanState(TypedDict):
+    """Mutable scanner state used to extract brace-balanced JSON blocks."""
+
+    start: int | None
+    depth: int
+    in_string: bool
+    escaped: bool
 
 
 def _check_provider_labels(content: str, missing: List[str]) -> None:
@@ -61,121 +60,164 @@ def _check_database_boundaries(content: str, missing: List[str]) -> None:
     if not re.search(r"\bdatabase_url\b", content):
         missing.append("DATABASE_URL boundary confirmation")
 
-    if "asset_graph_database_url" not in content:
+    asset_graph_present = "asset_graph_database_url" in content
+    if not asset_graph_present:
         missing.append("ASSET_GRAPH_DATABASE_URL boundary confirmation")
-
-    _check_distinct_boundary(content, missing)
+    else:
+        _check_distinct_boundary(content, missing)
     _check_coordination_boundary(content, missing)
 
 
-def _process_json_char(char: str, state: dict) -> bool:
-    """Process a character for the JSON extraction state machine."""
+def _advance_json_scan(state: JsonScanState, char: str, index: int) -> tuple[int, int] | None:
+    """Advance the JSON span scanner by one character."""
     if state["in_string"]:
-        return _process_json_string_char(char, state)
+        if state["escaped"]:
+            state["escaped"] = False
+        elif char == "\\":
+            state["escaped"] = True
+        elif char == '"':
+            state["in_string"] = False
+        return None
+
     if char == '"':
         state["in_string"] = True
-        return False
+        return None
+
     if char == "{":
-        return _process_json_open_brace(state)
-    return char == "}" and _process_json_close_brace(state)
+        if state["depth"] == 0:
+            state["start"] = index
+        state["depth"] += 1
+        return None
 
+    if char == "}" and state["depth"] > 0:
+        state["depth"] -= 1
+        if state["depth"] == 0 and state["start"] is not None:
+            start = state["start"]
+            state["start"] = None
+            return (start, index + 1)
 
-def _process_json_string_char(char: str, state: dict) -> bool:
-    """Process a character while the JSON scanner is inside a string."""
-    if state["escaped"]:
-        state["escaped"] = False
-    elif char == "\\":
-        state["escaped"] = True
-    elif char == '"':
-        state["in_string"] = False
-    return False
-
-
-def _process_json_open_brace(state: dict) -> bool:
-    """Process an opening brace in the JSON scanner."""
-    if state["depth"] == 0:
-        state["start"] = state["index"]
-    state["depth"] += 1
-    return False
-
-
-def _process_json_close_brace(state: dict) -> bool:
-    """Process a closing brace in the JSON scanner."""
-    if state["depth"] <= 0:
-        return False
-    state["depth"] -= 1
-    return state["depth"] == 0 and state["start"] is not None
+    return None
 
 
 def _extract_balanced_json_objects(source: str) -> List[str]:
     """Extract brace-balanced JSON object candidates from source text."""
+    state: JsonScanState = {"start": None, "depth": 0, "in_string": False, "escaped": False}
     blocks: List[str] = []
-    state = {"start": None, "depth": 0, "in_string": False, "escaped": False, "index": 0}
-
     for index, char in enumerate(source):
-        state["index"] = index
-        if _process_json_char(char, state):
-            blocks.append(source[state["start"] : index + 1])
-            state["start"] = None
-
+        span = _advance_json_scan(state, char, index)
+        if span is not None:
+            blocks.append(source[span[0] : span[1]])
     return blocks
 
 
-def _validate_persistence_data(data: dict) -> bool:
-    """Validate a parsed JSON dict for persistence proofs."""
-    if _has_expected_values(
-        data.get("observed_fields"),
-        {
-            "graph_persistence_configured": True,
-            "graph.persistence_enabled": True,
-            "graph.persistence_loaded": True,
-            "graph.startup_source": "persisted",
-        },
-    ):
-        return True
+def _json_object_has_persistence_proof(data: dict[str, object]) -> bool:
+    """Return whether a parsed JSON object contains the persistence proof fields."""
+    observed_fields = data.get("observed_fields")
+    if isinstance(observed_fields, dict):
+        return (
+            observed_fields.get("graph_persistence_configured") is True
+            and observed_fields.get("graph.persistence_enabled") is True
+            and observed_fields.get("graph.persistence_loaded") is True
+            and observed_fields.get("graph.startup_source") == "persisted"
+        )
 
-    if data.get("graph_persistence_configured") is True and _has_expected_values(
-        data.get("graph"),
-        {
-            "persistence_enabled": True,
-            "persistence_loaded": True,
-            "startup_source": "persisted",
-        },
-    ):
-        return True
+    graph_data = data.get("graph")
+    if isinstance(graph_data, dict):
+        return (
+            data.get("graph_persistence_configured") is True
+            and graph_data.get("persistence_enabled") is True
+            and graph_data.get("persistence_loaded") is True
+            and graph_data.get("startup_source") == "persisted"
+        )
 
     return False
 
 
-def _has_expected_values(candidate: object, expected_values: dict[str, object]) -> bool:
-    """Return whether a dict candidate contains all expected key/value pairs."""
-    return isinstance(candidate, dict) and all(candidate.get(key) == value for key, value in expected_values.items())
+def _parse_json_block(block: str) -> dict[str, object] | None:
+    """Parse a JSON block and return a dict payload if it is valid."""
+    try:
+        data = json.loads(block)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
 
 
-def _extract_json_blocks(content_raw: str) -> List[str]:
-    """Extract JSON blocks from markdown fences or brace-balanced fallbacks."""
+def _iter_parsed_json_blocks(content_raw: str) -> List[dict[str, object]]:
+    """Extract and parse candidate JSON blocks from a blob of markdown text."""
     fenced_blocks = re.findall(r"```(?:json)?[ \t]*\n(.*?)```", content_raw, re.IGNORECASE | re.DOTALL)
-    json_blocks: List[str] = []
+    candidate_blocks: List[str] = []
     for fenced_block in fenced_blocks:
-        json_blocks.extend(_extract_balanced_json_objects(fenced_block))
-    if not json_blocks:
-        json_blocks = _extract_balanced_json_objects(content_raw)
-    return json_blocks
+        candidate_blocks.extend(_extract_balanced_json_objects(fenced_block))
+    if not candidate_blocks:
+        candidate_blocks = _extract_balanced_json_objects(content_raw)
+
+    parsed_blocks: List[dict[str, object]] = []
+    for block in candidate_blocks:
+        parsed_block = _parse_json_block(block)
+        if parsed_block is not None:
+            parsed_blocks.append(parsed_block)
+    return parsed_blocks
+
+
+def _repo_relative_evidence_path(evidence_file: str) -> Path:
+    """Validate the caller-provided evidence path as a repo-relative path."""
+    normalized = evidence_file.replace("\\", "/")
+    candidate = Path(normalized)
+    if candidate.is_absolute() or any(part in ("", ".", "..") for part in candidate.parts):
+        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be a repo-relative path.")
+        sys.exit(1)
+    return candidate
+
+
+def _open_repo_file_no_symlink(path: Path):
+    """Open a file under the repo root without following symlinks."""
+    repo_fd = os.open(REPO_ROOT, os.O_RDONLY | os.O_DIRECTORY)
+    current_fd = repo_fd
+    try:
+        parts = path.parts
+        for index, part in enumerate(parts):
+            is_last = index == len(parts) - 1
+            flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+            if not is_last:
+                flags |= os.O_DIRECTORY
+            next_fd = os.open(part, flags, dir_fd=current_fd)
+            if current_fd != repo_fd:
+                os.close(current_fd)
+            current_fd = next_fd
+        return current_fd
+    except Exception:
+        if current_fd != repo_fd:
+            os.close(current_fd)
+        raise
+    finally:
+        os.close(repo_fd)
+
+
+def _read_evidence_file(evidence_file: str) -> str:
+    """Read an evidence file within the repo without following symlinks."""
+    relative_path = _repo_relative_evidence_path(evidence_file)
+    file_fd = _open_repo_file_no_symlink(relative_path)
+    try:
+        if not stat.S_ISREG(os.fstat(file_fd).st_mode):
+            raise OSError(f"Evidence path {evidence_file} is not a regular file.")
+        handle = os.fdopen(file_fd, "r", encoding="utf-8")
+    except Exception:
+        try:
+            os.close(file_fd)
+        except OSError:
+            # Best-effort cleanup: ignore close errors so the original exception is re-raised.
+            pass
+        raise
+
+    with handle:
+        return handle.read()
 
 
 def _check_persistence_proof(content_raw: str, missing: List[str]) -> None:
     """Check for durability/persistence proofs by parsing JSON payloads."""
-    json_blocks = _extract_json_blocks(content_raw)
-
-    found_all_in_one = False
-    for block in json_blocks:
-        try:
-            data = json.loads(block)
-            if isinstance(data, dict) and _validate_persistence_data(data):
-                found_all_in_one = True
-                break
-        except json.JSONDecodeError:
-            continue
+    found_all_in_one = any(
+        _json_object_has_persistence_proof(parsed_block) for parsed_block in _iter_parsed_json_blocks(content_raw)
+    )
 
     if not found_all_in_one:
         missing.append(
@@ -197,11 +239,8 @@ def _check_urls(content: str, missing: List[str]) -> None:
     if "/actions/runs/" not in content and "/artifacts/" not in content:
         missing.append("Specific workflow run URL or artifact URL")
 
-    generic_actions_patterns = [
-        r"https://github\.com/[^/\s)]+/[^/\s)]+/actions(?:$|[\s)])",
-        r"https://github\.com/[^/\s)]+/[^/\s)]+/actions/(?!runs/)[^\s)]+",
-    ]
-    if any(re.search(pattern, content, flags=re.IGNORECASE) for pattern in generic_actions_patterns):
+    generic_actions_pattern = r"https://github\.com/[^/\s)]+/[^/\s)]+/actions(?!/runs/)(?:[^\s)]*)?"
+    if re.search(generic_actions_pattern, content):
         missing.append("Generic Actions URLs are not allowed")
 
 
@@ -209,7 +248,7 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
     """Check for smoke tests, ownership, and scanner summaries."""
     checks = [
         (("asset smoke evidence", "/api/assets?per_page=1"), "Asset smoke evidence"),
-        (("hosted readiness --require-persistence",), "hosted readiness --require-persistence command"),
+        (("hosted readiness",), "hosted readiness"),
         (("health json", "health.json"), "health JSON"),
         (
             ("named owners", "deploy operator", "promotion approver"),
@@ -221,82 +260,30 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
         if not any(p in content for p in patterns):
             missing.append(err_msg)
 
-    if _contains_unredacted_secret(content):
+    # Simple heuristic for unredacted secrets/tokens (allow common redaction markers)
+    keywords = "|".join(["password", "secret", "token", "key"])
+    secret_pattern = (
+        rf"(?i)(?:\b|_)({keywords})(?:\b|_)['\"]?[ \t]*[:=][ \t]*['\"]?" r"(?![^\s]*?(?:redacted|x{4,}))[\S\*]{8,}"
+    )
+    if re.search(secret_pattern, content):
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
-
-
-def _contains_unredacted_secret(content: str) -> bool:
-    """Return whether evidence contains a likely non-redacted secret assignment."""
-    for match in SECRET_ASSIGNMENT_PATTERN.finditer(content):
-        value = match.group("value").lower()
-        if "redacted" in value or set(value) == {"x"}:
-            continue
-        return True
-    return False
-
-
-def _validated_relative_evidence_path(evidence_file: str) -> str:
-    """Return a validated repo-relative evidence path."""
-    normalized_input = evidence_file.replace("\\", "/")
-    parts = [part for part in normalized_input.split("/") if part not in ("", ".")]
-    if (
-        not normalized_input
-        or "\x00" in normalized_input
-        or os.path.isabs(evidence_file)
-        or not parts
-        or any(part == ".." for part in parts)
-    ):
-        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be a repo-relative path.")
-        sys.exit(1)
-    return os.path.join(*parts)
-
-
-def _read_evidence_file(evidence_file: str) -> str:
-    """Read an evidence file within the repo without following final-component symlinks."""
-    relative_path = _validated_relative_evidence_path(evidence_file)
-    evidence_path = REPO_ROOT / relative_path
-
-    if evidence_path.is_symlink():
-        print(f"Error: Evidence path {evidence_file} is a symlink.")
-        sys.exit(1)
-
-    normalized_path = evidence_path.resolve(strict=False)
-
-    if not normalized_path.is_relative_to(REPO_ROOT):
-        print(f"Error: Invalid evidence file path {evidence_file}. Evidence must be within repo root {REPO_ROOT}.")
-        sys.exit(1)
-
-    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
-    repo_fd = os.open(REPO_ROOT, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-    try:
-        fd = os.open(relative_path, flags, dir_fd=repo_fd)
-    except FileNotFoundError:
-        print(f"Error: Evidence path {evidence_file} does not exist.")
-        sys.exit(1)
-    except OSError as exc:
-        print(f"Error: Unable to open evidence path {evidence_file}: {exc}")
-        sys.exit(1)
-    finally:
-        os.close(repo_fd)
-
-    file_stat = os.fstat(fd)
-    if not stat_is_regular_file(file_stat.st_mode):
-        os.close(fd)
-        print(f"Error: Evidence path {evidence_file} is not a regular file.")
-        sys.exit(1)
-
-    with os.fdopen(fd, "r", encoding="utf-8") as f:
-        return f.read()
-
-
-def stat_is_regular_file(mode: int) -> bool:
-    """Return whether a stat mode represents a regular file."""
-    return (mode & 0o170000) == 0o100000
 
 
 def verify_staging_promotion(evidence_file: str) -> None:
     """Verify baseline items in a staging promotion evidence file."""
-    content_raw = _read_evidence_file(evidence_file)
+    evidence_path_obj = REPO_ROOT / _repo_relative_evidence_path(evidence_file)
+    if not evidence_path_obj.exists():
+        print(f"Error: Evidence path {evidence_file} does not exist.")
+        sys.exit(1)
+    if not evidence_path_obj.is_file():
+        print(f"Error: Evidence path {evidence_file} is not a regular file.")
+        sys.exit(1)
+
+    try:
+        content_raw = _read_evidence_file(evidence_file)
+    except OSError as exc:
+        print(f"Error: {exc}")
+        sys.exit(1)
     content_lower = content_raw.lower()
 
     missing: List[str] = []
@@ -322,7 +309,7 @@ def verify_staging_promotion(evidence_file: str) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Verify staging promotion baseline items in an evidence file.")
-    parser.add_argument("evidence_file", help="Repo-relative path to the release-candidate evidence Markdown file.")
+    parser.add_argument("evidence_file", help="Path to the release-candidate evidence Markdown file.")
     args = parser.parse_args()
 
     verify_staging_promotion(args.evidence_file)

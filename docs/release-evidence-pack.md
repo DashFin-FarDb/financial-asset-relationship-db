@@ -13,6 +13,10 @@ operator artifacts, and remaining work. It is the auditable companion to the
 For the evidence formatting and review rules that keep artifacts from overstating or understating their claim, see
 [Operational Evidence Capture Framework](operations/operational-evidence-capture-framework.md).
 
+The manual **Release Evidence Verify** workflow run (`.github/workflows/release-evidence-verify.yml`) is the single
+reproducible mechanism for generating the JUnit/readiness artifacts and gate summary used by this pack's evidence
+status model.
+
 The document distinguishes:
 
 - **implemented:** runtime or operational capability exists;
@@ -46,7 +50,13 @@ traces to release evidence.
 | Governance          | Satisfied - documented               | Governance policy, state-machine authority, release checklist, ADRs, and PR scope guardrails.                                                                            | Named operator ownership for deploy, rollback, restore, and persistence verification.                                                                       | Yes, if owner/sign-off is missing for enterprise release.                          | Attach named release operator and approver sign-off.                                                                                                                                                 |
 | Disaster Recovery   | Satisfied - manual evidence required | Backup/restore/DR runbook, ADR 0005, and deployment operating model.                                                                                                     | Restore rehearsal log, selected restore point, database-boundary topology, and post-restore smoke evidence.                                                 | Yes, before final enterprise release sign-off.                                     | DR restore rehearsal remains manual evidence until an actual rehearsal artefact is attached.                                                                                                         |
 
-Current RC1 / Objective 2 follow-up live record: [issue #1330](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1330). The committed companion record is [docs/evidence-records/rc1-objective-2-follow-up.md](evidence-records/rc1-objective-2-follow-up.md). The live record has been fully verified, executed, and approved for its objective-scope items; several release gates (DR, Promotion, Security) still require manual evidence per their respective blocking rules.
+Current RC1 / Objective 2 follow-up live record:
+[issue #1330](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1330).
+The committed companion record is
+[docs/evidence-records/rc1-objective-2-follow-up.md](evidence-records/rc1-objective-2-follow-up.md).
+The live record has been fully verified, executed, and approved for its objective-scope items;
+several release gates (DR, Promotion, Security) still require manual evidence per their respective
+blocking rules.
 
 ## Gate Evidence Details
 
@@ -92,6 +102,11 @@ Manual release attachment:
 - Confirmation that `ASSET_GRAPH_DATABASE_URL` is configured for the target environment.
 - Redacted provider/database boundary evidence proving the graph persistence store is durable.
 
+Workflow evidence:
+
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (Durable Persistence)` step and `release-evidence`
+  artifact).
+
 ### 3. Restart / Reload Gate
 
 Required proof:
@@ -118,6 +133,11 @@ Manual release attachment:
 - Restart/redeploy log or smoke output showing `graph.persistence_loaded == true` and
   `graph.startup_source == "persisted"` after persistence is written.
 
+Workflow evidence:
+
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (Restart/Reload)` step and `release-evidence`
+  artifact).
+
 ### 4. Promotion Gate
 
 Required proof:
@@ -135,6 +155,8 @@ curl -fsS "<base_url>/api/assets?per_page=1"
 
 Workflow evidence:
 
+- `.github/workflows/release-evidence-verify.yml` (`Check Hosted Readiness` step with `--json` and optional
+  `--require-persistence`, plus gate summary output).
 - `.github/workflows/hosted-readiness.yml` run for the target environment when configured.
 
 Manual release attachment:
@@ -179,6 +201,11 @@ Manual release attachment:
 
 - CI run or local validation summary showing backend and frontend API contract checks executed for the release commit.
 
+Workflow evidence:
+
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (API Contract)` step and `release-evidence`
+  artifact).
+
 ### 6. Recovery / Rebuild Gate
 
 Required proof:
@@ -195,11 +222,17 @@ pytest tests/unit/test_recovery_gate.py -q
 pytest tests/unit/test_recovery_gate_startup.py -q
 pytest tests/integration/test_recovery_gate_integration.py -q
 pytest tests/integration/test_lock_refresh_flow.py -q
-pytest tests/integration/test_distributed_hosting_failure_modes.py -q
 ```
+
+Note:
+
+- `tests/integration/test_distributed_hosting_failure_modes.py` is exercised in the Restart / Reload gate to avoid
+  duplicate runtime and duplicate failure signaling across gates.
 
 Workflow evidence:
 
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (Recovery/Rebuild)` step and `release-evidence`
+  artifact).
 - `.github/workflows/ci-gate-spec.yaml` coordination safety gate run, where enabled.
 
 Manual release attachment:
@@ -225,6 +258,8 @@ pytest tests/integration/test_graph_admin_router.py -q
 
 Workflow evidence:
 
+- `.github/workflows/release-evidence-verify.yml` (`Run Gate Tests (Security)` step and `release-evidence`
+  artifact).
 - Relevant GitHub security workflows, including CodeQL, Bandit, Bearer, Semgrep, Snyk, Trivy, dependency review, and
   workflow scanners where configured for the release branch.
 

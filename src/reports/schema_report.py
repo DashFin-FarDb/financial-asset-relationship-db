@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, Protocol  # pylint: disable=no-name-in-module
+
+UTC = timezone.utc
 
 
 class GraphLike(Protocol):  # pylint: disable=too-few-public-methods
@@ -348,8 +350,7 @@ def generate_schema_report(graph: GraphLike) -> str:
         - Relationship type distribution and network statistics
         - Asset class distribution and top relationships
         - Business, regulatory, and valuation rules
-        - Data quality score, density-based recommendations,
-          and implementation notes
+        - Data quality score, density-based recommendations, and notes
     """
     metrics: dict[str, Any] = graph.calculate_metrics()
 

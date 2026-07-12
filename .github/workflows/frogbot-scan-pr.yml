@@ -31,9 +31,9 @@ jobs:
     # Only run if JF_URL secret is configured (will be empty/unavailable for forked PRs)
     if: secrets.JF_URL != ''
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: jfrog/frogbot@5d9c42c30f1169d8be4ba5510b40e75ffcbbc2a9  # v2.21.2
+      - uses: jfrog/frogbot@d0954eb10d96da4c83188975452b19609eabb41a  # v3.2.2
         env:
           # [Mandatory if the two conditions below are met]
           # 1. The project uses npm, yarn 2, NuGet or .NET to download its dependencies

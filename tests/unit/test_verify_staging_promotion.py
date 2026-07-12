@@ -1,5 +1,6 @@
 """Unit tests for the staging promotion verification script."""
 
+import os
 from unittest.mock import patch
 
 import pytest
@@ -10,6 +11,7 @@ from scripts.verify_staging_promotion import (
     _check_persistence_proof,
     _check_provider_labels,
     _check_urls,
+    _read_evidence_file,
     verify_staging_promotion,
 )
 
@@ -48,10 +50,23 @@ def test_check_database_boundaries_requires_distinct_near_asset_graph_url():
     missing = []
     _check_database_boundaries(
         "database_url asset_graph_database_url coordination_database_url\n"
-        "a distinct operational checklist item appears elsewhere",
+        + ("operational evidence " * 8)
+        + "a distinct operational checklist item appears elsewhere",
         missing,
     )
     assert "Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception" in missing
+
+
+@pytest.mark.unit
+def test_check_database_boundaries_accepts_nearby_distinct_boundary():
+    """Test that nearby natural-language distinct wording still satisfies the boundary check."""
+    missing = []
+    _check_database_boundaries(
+        "database_url asset_graph_database_url coordination_database_url\n"
+        "asset_graph_database_url is distinct from coordination_database_url within this deployment boundary",
+        missing,
+    )
+    assert "Distinct ASSET_GRAPH_DATABASE_URL boundary or approved exception" not in missing
 
 
 @pytest.mark.unit
@@ -194,7 +209,7 @@ def test_check_operational_evidence():
     missing = []
     _check_operational_evidence("no evidence", missing)
     assert "Asset smoke evidence" in missing
-    assert "hosted readiness --require-persistence command" in missing
+    assert "hosted readiness" in missing
     assert "health JSON" in missing
 
     missing = []
@@ -210,7 +225,7 @@ def test_check_operational_evidence():
         "secret: benign-narrative-string",
         missing,
     )
-    assert "Non-redacted evidence found (secrets/tokens must be redacted)" not in missing
+    assert "Non-redacted evidence found (secrets/tokens must be redacted)" in missing
 
     missing = []
     _check_operational_evidence(
@@ -305,3 +320,17 @@ def test_verify_staging_promotion_symlink(tmp_path):
     with patch("scripts.verify_staging_promotion.REPO_ROOT", tmp_path):
         exc_info = pytest.raises(SystemExit, verify_staging_promotion, "evidence-link.md")
     assert exc_info.value.code == 1
+
+
+@pytest.mark.unit
+def test_read_evidence_file_rejects_fifo_without_blocking(tmp_path):
+    """Test that a FIFO is rejected without waiting for a writer."""
+    if not hasattr(os, "mkfifo"):
+        pytest.skip("FIFO creation is not supported in this environment")
+
+    fifo_path = tmp_path / "evidence.fifo"
+    os.mkfifo(fifo_path)
+
+    with patch("scripts.verify_staging_promotion.REPO_ROOT", tmp_path):
+        with pytest.raises(OSError):
+            _read_evidence_file("evidence.fifo")

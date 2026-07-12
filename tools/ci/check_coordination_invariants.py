@@ -1,4 +1,4 @@
-# tools/ci/check_coordination_invariants.py
+"""Static checks for distributed coordination safety invariants."""
 
 from __future__ import annotations
 
@@ -55,6 +55,7 @@ OWNERSHIP_MUTATION_ALLOWED_WRITERS = {
 
 
 def iter_python_files(root: Path) -> Iterable[Path]:
+    """Yield Python files under root, skipping allowed exception paths."""
     for path in root.rglob("*.py"):
         rel = path.relative_to(root).as_posix()
         if any(rel.startswith(exc.rstrip("/")) for exc in ALLOWED_PATH_EXCEPTIONS):
@@ -63,6 +64,7 @@ def iter_python_files(root: Path) -> Iterable[Path]:
 
 
 def scan_file(path: Path) -> list[str]:
+    """Scan a Python file for coordination invariant violations."""
     try:
         content = path.read_text(encoding="utf-8")
     except Exception as e:
@@ -140,6 +142,7 @@ def _iter_assignment_target_names(target: ast.expr) -> Iterable[str]:
 
 
 def main() -> None:
+    """Run coordination invariant checks and exit non-zero on violations."""
     missing_roots = [root.as_posix() for root in SCAN_ROOT_DIRS if not root.exists()]
     if missing_roots:
         print(f"Required scan root(s) not found: {', '.join(missing_roots)} — failing invariant check.")

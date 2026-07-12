@@ -1,0 +1,8 @@
+# Architecture-expert dual-writer runtime mode.
+# writer_mode: dual | github_only
+# Auto-flip to github_only after >=3 synthesize push conflicts or divergent
+# ledger tips within conflict_window_minutes.
+writer_mode: dual
+conflict_count: 0
+conflict_window_minutes: 30
+last_conflict_at: null
