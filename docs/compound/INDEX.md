@@ -5,14 +5,14 @@ rebuild/reconciliation, and deployment/readiness.
 
 - **Canon writer:** `scripts/compound/synthesize.py` only
 - **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)
-- **Knowledge branch:** `knowledge/architecture-expert` (human merge to `main`)
-- **Status:** Every claim is either **landed** or **provisional**
+- **Knowledge branch:** `knowledge/architecture-expert` (intended human promotion to `main`; verify before treating as current)
+- **Status:** Label every claim **landed** or **provisional** only after verifying branch/PR/ref state vs `main`
 
 ## Domains
 
 | Domain | Doc | Landed | Provisional |
 |--------|-----|--------|-------------|
-| architecture | [domains/architecture.md](domains/architecture.md) | 1 | 22 |
+| architecture | [domains/architecture.md](domains/architecture.md) | 2 | 22 |
 | api | [domains/api.md](domains/api.md) | 0 | 11 |
 | persistence | [domains/persistence.md](domains/persistence.md) | 0 | 17 |
 | ci-guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) | 0 | 22 |
