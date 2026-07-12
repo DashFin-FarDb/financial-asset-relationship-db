@@ -1,0 +1,253 @@
+name: Architecture Compound
+
+# Observe PRs/merges and synthesize docs/compound onto knowledge/architecture-expert.
+# Never auto-merges to main. Emitters append; synthesize alone rewrites canon docs.
+
+"on":
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, closed]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_synthesize:
+        description: Force synthesize even for dependency-bot-only batches
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-compound-knowledge
+  cancel-in-progress: false
+
+jobs:
+  synthesize:
+    name: Synthesize knowledge branch
+    runs-on: ubuntu-latest
+    # Skip non-merged PR close events (only merged closes promote to landed).
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.action != 'closed' ||
+      github.event.pull_request.merged == true
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      # Initial checkout uses the event SHA for history; compound scripts are always
+      # overlaid from a trusted TRIGGER_SHA (main / PR base / origin/main for dispatch).
+      - name: Checkout triggering ref
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Prepare knowledge branch and compound
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_TITLE: ${{ github.event.pull_request.title || '' }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_ACTION: ${{ github.event.action || '' }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
+          PR_MERGED_JSON: ${{ toJson(github.event.pull_request.merged || false) }}
+          EVENT_NAME: ${{ github.event_name }}
+          FORCE_INPUT: ${{ github.event.inputs.force_synthesize || 'false' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Trusted scripts only (contents: write must not run unreviewed compound code):
+          # - pull_request: PR base SHA (main)
+          # - push: the pushed main SHA
+          # - workflow_dispatch: origin/main tip (never the selected non-main ref)
+          TRIGGER_SHA=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            TRIGGER_SHA="${PR_BASE_SHA:-}"
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            git fetch --no-tags --depth=1 origin main
+            TRIGGER_SHA="$(git rev-parse origin/main)"
+          else
+            TRIGGER_SHA="${GITHUB_SHA}"
+          fi
+          if [ -z "${TRIGGER_SHA}" ] || ! git cat-file -e "${TRIGGER_SHA}:scripts/compound/schema.py" 2>/dev/null; then
+            if [ "$EVENT_NAME" = "pull_request" ]; then
+              echo "scripts/compound not present at PR base ${TRIGGER_SHA:-<empty>}; skipping compound run for this PR."
+              echo "COMPOUND_SKIP=true" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            echo "error: trusted scripts/compound not found at TRIGGER_SHA=${TRIGGER_SHA:-<empty>}" >&2
+            exit 1
+          fi
+          echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"
+          if git ls-remote --exit-code --heads origin knowledge/architecture-expert >/dev/null 2>&1; then
+            git fetch origin knowledge/architecture-expert
+            git checkout -B knowledge/architecture-expert origin/knowledge/architecture-expert
+          else
+            git checkout -B knowledge/architecture-expert
+          fi
+          git checkout "${TRIGGER_SHA}" -- scripts/compound || { echo "error: failed to checkout scripts/compound from ${TRIGGER_SHA}" >&2; exit 1; }
+          # Overlay scripts into the working tree only; do not leave them staged
+          # for the knowledge-branch commit (which should contain docs/packs only).
+          git restore --staged scripts/compound
+
+          FORCE_SYNTH="false"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            if [ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]; then
+              STATUS="landed"
+              EVENT_TYPE="pull_request.closed"
+              FORCE_SYNTH="true"
+            else
+              STATUS="provisional"
+              # Include head SHA so repeated synchronize events are not deduped away.
+              HEAD_SHORT="${PR_HEAD_SHA:0:12}"
+              if [ -n "$HEAD_SHORT" ]; then
+                EVENT_TYPE="pull_request.${PR_ACTION}.${HEAD_SHORT}"
+              else
+                EVENT_TYPE="pull_request.${PR_ACTION}"
+              fi
+            fi
+            PRIMARY_REF="pr:${PR_NUMBER}"
+            SUMMARY=$(jq -rn --arg t "$PR_TITLE" '$t|gsub("[\\u0000-\\u001f]";"")|.[0:240]')
+            if ! FILES_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --paginate -q '.[].filename' | jq -R -s -c 'split("\n")|map(select(length>0))'); then
+              echo "warn: gh api files failed; domains will default" >&2
+              FILES_JSON='[]'
+            fi
+          elif [ "$EVENT_NAME" = "push" ]; then
+            STATUS="landed"
+            PRIMARY_REF="sha:${GITHUB_SHA}"
+            SUMMARY="Merge/push to main ${GITHUB_SHA}"
+            EVENT_TYPE="push.main"
+            FORCE_SYNTH="true"
+            FILES_JSON=$(jq -c '[((.commits // [])[] | (.modified // [])[], (.added // [])[], (.removed // [])[])] | unique | map(select(. != null and . != ""))' "$GITHUB_EVENT_PATH" 2>/dev/null || echo '[]')
+          else
+            STATUS="landed"
+            PRIMARY_REF="manual:${GITHUB_RUN_ID}"
+            SUMMARY="Manual compound workflow_dispatch"
+            EVENT_TYPE="workflow_dispatch"
+            FORCE_SYNTH="true"
+            FILES_JSON='[]'
+          fi
+          if [ "$FORCE_INPUT" = "true" ]; then
+            FORCE_SYNTH="true"
+          fi
+          if ! DOMAINS_JSON=$(FILES_JSON="$FILES_JSON" python -c 'import json,os,sys; sys.path.insert(0,"scripts"); from compound.schema import detect_domains_from_paths; print(json.dumps(list(detect_domains_from_paths(json.loads(os.environ["FILES_JSON"])))))'); then
+            echo "warn: domain detection failed; defaulting to architecture" >&2
+            DOMAINS_JSON='["architecture"]'
+          fi
+          jq -n \
+            --arg id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --arg source "github" \
+            --arg event_type "$EVENT_TYPE" \
+            --arg status "$STATUS" \
+            --arg primary_ref "$PRIMARY_REF" \
+            --arg summary "$SUMMARY" \
+            --argjson domains "$DOMAINS_JSON" \
+            '{
+              observation_id: $id,
+              source: $source,
+              event_type: $event_type,
+              status: $status,
+              primary_ref: $primary_ref,
+              summary: $summary,
+              domains: $domains,
+              refs: [$primary_ref],
+              evidence_pointers: [$primary_ref]
+            }' > /tmp/observation.json
+          python scripts/compound/append_observation.py --file /tmp/observation.json
+          EXTRA=()
+          if [ "$FORCE_SYNTH" = "true" ]; then
+            EXTRA+=(--force)
+          fi
+          python scripts/compound/synthesize.py --event-hint "$EVENT_TYPE" "${EXTRA[@]}"
+          python scripts/compound/sync_agent_packs.py
+          python scripts/compound/standing_brief.py
+
+      - name: Commit and push knowledge branch
+        if: env.COMPOUND_SKIP != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          KNOWLEDGE_BRANCH="knowledge/architecture-expert"
+
+          # Fully restore scripts/compound (index + worktree) so overlay never ships
+          # and cannot interfere with rebase/push-retry against the remote branch.
+          git restore --source=HEAD --staged --worktree -- scripts/compound || true
+
+          # Stage only allowlisted generated outputs (never the whole .cursor/rules tree).
+          rm -f docs/compound/runtime.yml.lock docs/compound/ledger/observations.jsonl.lock || true
+          git add docs/compound \
+            .cursor/rules/architecture-expert.mdc \
+            .cursor/rules/architecture-expert-query.mdc \
+            .openhands/microagents/architecture_expert.md
+
+          if git diff --cached --quiet; then
+            echo "No knowledge changes to commit"
+            exit 0
+          fi
+          git commit -m "chore(compound): synthesize architecture memory"
+
+          # Push with one rebase retry; record conflict only after both attempts fail.
+          push_knowledge() {
+            if git push origin "HEAD:refs/heads/${KNOWLEDGE_BRANCH}"; then
+              return 0
+            fi
+            echo "::warning::Push to ${KNOWLEDGE_BRANCH} rejected"
+            return 1
+          }
+
+          if push_knowledge; then
+            echo "Pushed knowledge updates to ${KNOWLEDGE_BRANCH}"
+            exit 0
+          fi
+
+          echo "::warning::Initial push failed; attempting rebase retry"
+          git restore --source=HEAD --staged --worktree -- scripts/compound || true
+          git fetch origin "${KNOWLEDGE_BRANCH}" || true
+          if ! git rebase "origin/${KNOWLEDGE_BRANCH}"; then
+            git rebase --abort || true
+            echo "::error::Rebase onto origin/${KNOWLEDGE_BRANCH} failed"
+          elif push_knowledge; then
+            echo "Pushed knowledge updates after rebase retry"
+            exit 0
+          fi
+
+          # Actual push failure path: briefly overlay reviewed scripts to record conflict,
+          # then fully restore before staging/committing/pushing runtime.yml so the
+          # hybrid-backup counter accumulates across runs (A12).
+          echo "::error::Push still rejected after rebase retry"
+          if [ -n "${TRIGGER_SHA:-}" ]; then
+            git checkout "${TRIGGER_SHA}" -- scripts/compound
+            git restore --staged scripts/compound
+          fi
+          if python scripts/compound/append_observation.py --record-push-conflict; then
+            git restore --source=HEAD --staged --worktree -- scripts/compound || true
+            git add docs/compound/runtime.yml
+            if ! git diff --cached --quiet; then
+              if git commit -m "chore(compound): record knowledge-branch push conflict"; then
+                if ! push_knowledge; then
+                  echo "::warning::Failed to push conflict-counter update to ${KNOWLEDGE_BRANCH}"
+                fi
+              else
+                echo "::warning::Failed to commit conflict-counter update"
+              fi
+            else
+              echo "::warning::record-push-conflict produced no runtime.yml diff"
+            fi
+          else
+            echo "::warning::record-push-conflict failed; hybrid-backup counter not updated"
+            git restore --source=HEAD --staged --worktree -- scripts/compound || true
+          fi
+          exit 1
+          # Intentionally never merges into main (human promotion only).

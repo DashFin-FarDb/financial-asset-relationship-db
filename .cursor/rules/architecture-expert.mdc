@@ -1,0 +1,65 @@
+---
+description: Architecture-expert compounded memory (generated from docs/compound)
+globs:
+  - "docs/compound/**"
+  - "api/**"
+  - "src/**"
+alwaysApply: false
+---
+# Architecture Expert (generated)
+
+Docs-first compounded memory. Prefer `docs/compound/` over inventing seams.
+
+## Mandatory branch/ref verification
+
+Before reviewing, editing, or summarizing repository state, verify the current
+branch, the branch/commit/PR referenced in the request, whether that branch has
+an open PR, and whether it differs from `main`.
+
+## Provisional vs landed
+
+- **Landed**: merged to `main` or explicitly promoted — treat as canon.
+- **Provisional**: open PR / watched series — label clearly; never present as landed.
+
+## Source of truth
+
+- Canonical docs: `docs/compound/INDEX.md` and domain docs under `docs/compound/domains/`.
+- ADRs and `.github` policy remain human-owned — cite or propose annotation only; never rewrite them as fact.
+- Never overwrite Dosu-maintained `AGENTS.md`.
+
+## Domains
+
+- `architecture`: see `docs/compound/domains/architecture.md`
+- `api`: see `docs/compound/domains/api.md`
+- `persistence`: see `docs/compound/domains/persistence.md`
+- `ci-guardrails`: see `docs/compound/domains/ci-guardrails.md`
+- `rebuild-reconciliation`: see `docs/compound/domains/rebuild-reconciliation.md`
+- `deployment`: see `docs/compound/domains/deployment.md`
+
+## Index excerpt
+
+# Architecture Expert Compound Index
+
+Docs-first memory for architecture, seams, API, persistence/SQL, CI/guardrails,
+rebuild/reconciliation, and deployment/readiness.
+
+- **Canon writer:** `scripts/compound/synthesize.py` only
+- **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)
+- **Knowledge branch:** `knowledge/architecture-expert` (intended human promotion to `main`; verify before treating as current)
+- **Status:** Label every claim **landed** or **provisional** only after verifying branch/PR/ref state vs `main`
+
+## Domains
+
+| Domain | Doc |
+|--------|-----|
+| Architecture & seams | [/docs/compound/domains/architecture.md](/docs/compound/domains/architecture.md) |
+| API contracts | [/docs/compound/domains/api.md](/docs/compound/domains/api.md) |
+| Persistence / SQL | [/docs/compound/domains/persistence.md](/docs/compound/domains/persistence.md) |
+| CI / guardrails | [/docs/compound/domains/ci-guardrails.md](/docs/compound/domains/ci-guardrails.md) |
+| Rebuild / reconciliation | [/docs/compound/domains/rebuild-reconciliation.md](/docs/compound/domains/rebuild-reconciliation.md) |
+| Deployment / readiness | [/docs/compound/domains/deployment.md](/docs/compound/domains/deployment.md) |
+
+## Operator notes
+
+See [README.md](/docs/compound/README.md). Watched series: [watched-series.yml](/docs/compound/watched-series.yml).
+Runtime writer mode: [runtime.yml](/docs/compound/runtime.yml).
