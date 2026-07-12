@@ -515,3 +515,40 @@ class TestSnykWorkflowComments:
         # SHA-1 is 40 hex characters
         assert len(sha) == 40, f"SHA should be 40 characters, got {len(sha)}"
         assert all(c in "0123456789abcdef" for c in sha.lower()), "SHA should only contain hex characters"
+
+
+@pytest.mark.unit
+class TestSnykContainerWorkflow:
+    """Regression tests for .github/workflows/snyk-container.yml SARIF configuration."""
+
+    @pytest.fixture
+    def container_job(self) -> dict:
+        """Return the snyk job from the container workflow."""
+        workflow_path = Path(".github/workflows/snyk-container.yml")
+        with open(workflow_path) as f:
+            workflow = yaml.safe_load(f)
+        return workflow["jobs"]["snyk"]
+
+    def test_docker_scan_requests_sarif_output(self, container_job):
+        """Snyk Docker scan must set sarif: true so snyk.sarif is written on success."""
+        steps = container_job["steps"]
+        docker_steps = [s for s in steps if "uses" in s and "snyk/actions/docker@" in s["uses"]]
+        assert len(docker_steps) == 1
+        assert docker_steps[0]["with"]["sarif"] is True
+
+    def test_upload_skips_when_sarif_missing(self, container_job):
+        """Upload should be conditional so optional scan failures do not fail the job."""
+        steps = container_job["steps"]
+        upload_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        assert len(upload_steps) == 1
+        assert upload_steps[0]["if"] == "hashFiles('snyk.sarif') != ''"
+
+    def test_no_hard_fail_sarif_verification_step(self, container_job):
+        """Workflow must not fail when Snyk cannot produce a SARIF artifact."""
+        steps = container_job["steps"]
+        verifier_steps = [
+            s
+            for s in steps
+            if s.get("run") and "snyk.sarif" in s["run"] and "exit 1" in s["run"]
+        ]
+        assert verifier_steps == []
