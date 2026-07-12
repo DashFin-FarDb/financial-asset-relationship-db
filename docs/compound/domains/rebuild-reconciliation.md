@@ -28,3 +28,5 @@ _No landed observations yet._
   - evidence: pr:1439
 - **pr:1455** (provisional): x    y 
   - evidence: pr:1455
+- **pr:1471** (provisional): x   ww v 
+  - evidence: pr:1471
