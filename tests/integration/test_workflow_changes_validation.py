@@ -112,9 +112,11 @@ class TestPRAgentWorkflowChanges:
 
     def test_pr_agent_python_setup_simplified(self, pr_agent_workflow):
         """
-        Validate the pr-agent-action job uses a single Python dependency installation step and does not install PyYAML.
+        Validate the pr-agent-action job uses one Python dependency installation step and does not install PyYAML.
 
-        Finds a step whose name includes "Install Python dependencies", asserts exactly one such step exists, and verifies the step's run script contains no references to "pyyaml" or "PyYAML".
+        Finds a step whose name includes "Install Python dependencies", asserts
+        exactly one such step exists, and verifies the step's run script contains
+        no references to "pyyaml" or "PyYAML".
         """
         pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = pr_agent_job["steps"]
@@ -152,7 +154,8 @@ class TestPRAgentWorkflowChanges:
         """
         Verify the PR Agent workflow exposes minimal permissions.
 
-        Asserts the workflow top-level 'permissions' sets 'contents' to 'read' and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
+        Asserts the workflow top-level 'permissions' sets 'contents' to 'read'
+        and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
         """
         # Top-level permissions
         assert pr_agent_workflow.get("permissions", {}).get("contents") == "read"
@@ -275,7 +278,8 @@ class TestWorkflowSecurityBestPractices:
         """
         Ensure workflow steps that use actions specify a pinned version and do not use 'latest' or 'master'.
 
-        Asserts that every step with a `uses` reference includes a version specifier (contains '@') and that the specified version is not '@latest' or '@master' (case-insensitive).
+        Asserts that every step with a `uses` reference includes a version
+        specifier and that the specified version is not '@latest' or '@master'.
         """
         workflows_dir = Path(".github/workflows")
 
