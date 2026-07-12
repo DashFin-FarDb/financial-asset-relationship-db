@@ -23,7 +23,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1430**: x()   x 
 
 ### api
-- [provisional] **pr:1465**: x()  -y. v w  y
+- [landed] **pr:1465**: x()  -y. v w  y
 - [provisional] **pr:1439**: x() v   
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
 - [provisional] **pr:1430**: x()   x 
