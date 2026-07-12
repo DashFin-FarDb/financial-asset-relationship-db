@@ -277,31 +277,33 @@ def append_observation(
         payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     observation = observation_from_mapping(payload)
-    blocked = _cursor_emit_blocked(
-        observation,
-        read_writer_mode(root),
-        allow_cursor=allow_cursor_when_github_only,
-    )
-    if blocked is not None:
-        return None, blocked
+    runtime_lock_path = _repo_path(RUNTIME_YML_REL, root).parent / _RUNTIME_LOCK_NAME
+    ledger_lock_path = ledger_path.parent / _LEDGER_LOCK_NAME
+    with _exclusive_lock(runtime_lock_path):
+        blocked = _cursor_emit_blocked(
+            observation,
+            read_writer_mode(root),
+            allow_cursor=allow_cursor_when_github_only,
+        )
+        if blocked is not None:
+            return None, blocked
 
-    lock_path = ledger_path.parent / _LEDGER_LOCK_NAME
-    with _exclusive_lock(lock_path):
-        existing = load_existing_dedupe_keys(ledger_path)
-        if observation.dedupe_key() in existing:
-            return None, f"idempotent-no-op for {observation.dedupe_key()}"
+        with _exclusive_lock(ledger_lock_path):
+            existing = load_existing_dedupe_keys(ledger_path)
+            if observation.dedupe_key() in existing:
+                return None, f"idempotent-no-op for {observation.dedupe_key()}"
 
-        ledger_path.parent.mkdir(parents=True, exist_ok=True)
-        if not ledger_path.exists():
-            ledger_path.write_text(
-                "# Architecture Expert observation ledger (JSONL, append-only).\n"
-                "# schema_version=1 — see scripts/compound/schema.py\n",
-                encoding="utf-8",
-            )
+            ledger_path.parent.mkdir(parents=True, exist_ok=True)
+            if not ledger_path.exists():
+                ledger_path.write_text(
+                    "# Architecture Expert observation ledger (JSONL, append-only).\n"
+                    "# schema_version=1 — see scripts/compound/schema.py\n",
+                    encoding="utf-8",
+                )
 
-        with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
-            handle.write(observation.to_json_line())
-            handle.write("\n")
+            with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
+                handle.write(observation.to_json_line())
+                handle.write("\n")
 
     return observation, f"appended {observation.observation_id}"
 

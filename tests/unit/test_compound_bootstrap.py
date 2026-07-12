@@ -14,7 +14,7 @@ from compound.bootstrap import (  # noqa: E402
     scrape_recent_prs,
     seed_from_docs,
 )
-from compound.schema import SchemaError, parse_observation_line  # noqa: E402
+from compound.schema import PathPolicyError, SchemaError, parse_observation_line  # noqa: E402
 
 
 @pytest.fixture
@@ -116,3 +116,20 @@ class TestCompoundBootstrap:
         args = _gh_pr_list_args(limit=500, search="updated:>=2026-07-01")
         assert "--limit" in args and "100" in args
         assert "updated:>=2026-07-01" in args
+
+    def test_main_maps_domain_and_value_errors_to_clean_exit(
+        self, seed_repo: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Bootstrap CLI reports expected domain failures without tracebacks."""
+
+        def raise_expected(exc: Exception):
+            def _raise_expected(*_args: object, **_kwargs: object) -> list[str]:
+                raise exc
+
+            return _raise_expected
+
+        for exc in (PathPolicyError("denied"), ValueError("bad value")):
+            monkeypatch.setattr(bootstrap_mod, "run_bootstrap", raise_expected(exc))
+
+            assert bootstrap_mod.main(["--repo-root", str(seed_repo), "--no-prs"]) == 1
+            assert f"error: {exc}" in capsys.readouterr().err

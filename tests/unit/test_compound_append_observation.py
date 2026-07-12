@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import threading
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -103,6 +104,70 @@ class TestAppendObservation:
         assert obs is None
         assert "github_only" in message
         assert _observation_lines(compound_repo) == []
+
+    def test_append_serializes_writer_mode_check_with_conflict_recording(
+        self, compound_repo: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A conflict recorder cannot flip writer mode between the Cursor gate and append."""
+        (compound_repo / "docs/compound/runtime.yml").write_text(
+            "writer_mode: dual\n"
+            "conflict_count: 2\n"
+            "conflict_window_minutes: 30\n"
+            "last_conflict_at: 2026-07-09T12:00:00Z\n",
+            encoding="utf-8",
+        )
+        entered_ledger_load = threading.Event()
+        release_ledger_load = threading.Event()
+        conflict_recorded = threading.Event()
+        append_result = {}
+        append_errors: list[BaseException] = []
+        conflict_errors: list[BaseException] = []
+        original_load = append_observation_mod.load_existing_dedupe_keys
+
+        def blocking_load(ledger_path: Path) -> set[tuple[str, str, str]]:
+            entered_ledger_load.set()
+            assert release_ledger_load.wait(timeout=1.0)
+            return original_load(ledger_path)
+
+        def run_append() -> None:
+            try:
+                append_result["result"] = append_observation(
+                    _base_payload(source=ObservationSource.CURSOR.value),
+                    repo_root=compound_repo,
+                )
+            except BaseException as exc:  # pragma: no cover - re-raised by the parent test thread
+                append_errors.append(exc)
+
+        def run_conflict_record() -> None:
+            try:
+                record_push_conflict(compound_repo, now=datetime(2026, 7, 9, 12, 1, tzinfo=timezone.utc))
+                conflict_recorded.set()
+            except BaseException as exc:  # pragma: no cover - re-raised by the parent test thread
+                conflict_errors.append(exc)
+
+        monkeypatch.setattr(append_observation_mod, "load_existing_dedupe_keys", blocking_load)
+        append_thread = threading.Thread(target=run_append)
+        conflict_thread = threading.Thread(target=run_conflict_record)
+        append_thread.start()
+        try:
+            assert entered_ledger_load.wait(timeout=1.0)
+            conflict_thread.start()
+            assert not conflict_recorded.wait(timeout=0.2)
+        finally:
+            release_ledger_load.set()
+        append_thread.join(timeout=1.0)
+        if conflict_thread.ident is not None:
+            conflict_thread.join(timeout=1.0)
+
+        assert not append_thread.is_alive()
+        assert conflict_thread.ident is not None
+        assert not conflict_thread.is_alive()
+        assert not append_errors
+        assert not conflict_errors
+        assert conflict_recorded.is_set()
+        obs, message = append_result["result"]
+        assert obs is not None
+        assert "appended" in message
 
     def test_cli_json_round_trip(self, compound_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """CLI accepts --json and appends successfully."""

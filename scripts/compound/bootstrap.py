@@ -20,6 +20,7 @@ from compound.schema import (  # noqa: E402
     DOMAINS,
     ObservationSource,
     ObservationStatus,
+    PathPolicyError,
     SchemaError,
     detect_domains_from_paths,
 )
@@ -270,7 +271,7 @@ def main(argv: list[str] | None = None) -> int:
         for line in run_bootstrap(args.repo_root, scrape_prs=not args.no_prs, pr_limit=args.pr_limit):
             print(line)
         return 0
-    except (SchemaError, OSError) as exc:
+    except (SchemaError, PathPolicyError, OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
