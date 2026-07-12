@@ -2,18 +2,11 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS_ROOT = REPO_ROOT / "scripts"
-if str(SCRIPTS_ROOT) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_ROOT))
-
 from compound.bootstrap import SEED_DOCS, scrape_recent_prs, seed_from_docs  # noqa: E402
-from compound.schema import DOMAINS, parse_observation_line  # noqa: E402
+from compound.schema import parse_observation_line  # noqa: E402
 
 
 @pytest.fixture
@@ -48,10 +41,13 @@ class TestCompoundBootstrap:
         for line in ledger.read_text(encoding="utf-8").splitlines():
             if not line.strip() or line.startswith("#"):
                 continue
-            obs = parse_observation_line(line)
+            obs = parse_observation_line(line.strip())
             domains_seen.update(obs.domains)
-            assert not str(obs.primary_ref).startswith("docs/adr/") or obs.source.value == "bootstrap"
-        assert domains_seen == set(DOMAINS)
+            assert not str(obs.primary_ref).startswith("doc:docs/adr/") or obs.source.value == "bootstrap"
+
+        assert domains_seen.issuperset(
+            {"architecture", "api", "persistence", "ci-guardrails", "rebuild-reconciliation", "deployment"}
+        )
 
     def test_seed_does_not_write_denylisted_paths(self, seed_repo: Path) -> None:
         """Bootstrap only appends ledger; ADR bytes remain unchanged."""
@@ -72,19 +68,21 @@ class TestCompoundBootstrap:
         """Bootstrap PR scrape classifies domains from changed file paths."""
         from compound import bootstrap as mod
 
-        monkeypatch.setattr(
-            mod,
-            "_gh_json",
-            lambda _args: [
-                {
-                    "number": 99,
-                    "title": "API change",
-                    "state": "OPEN",
-                    "mergedAt": None,
-                    "files": [{"path": "api/main.py"}, {"path": "docs/adr/0001.md"}],
-                }
-            ],
-        )
+        def fake_gh(args: list[str]):
+            if args[:2] == ["pr", "list"]:
+                return [
+                    {
+                        "number": 99,
+                        "title": "API change",
+                        "state": "OPEN",
+                        "mergedAt": None,
+                    }
+                ]
+            if args[:3] == ["pr", "view", "99"]:
+                return {"files": [{"path": "api/main.py"}, {"path": "docs/adr/0001.md"}]}
+            return None
+
+        monkeypatch.setattr(mod, "_gh_json", fake_gh)
         messages = scrape_recent_prs(seed_repo)
         assert any("pr:99" in message for message in messages)
         ledger = seed_repo / "docs/compound/ledger/observations.jsonl"

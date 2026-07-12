@@ -40,6 +40,18 @@ WRITE_ALLOWLIST_PREFIXES: tuple[str, ...] = (
     ".openhands/microagents/architecture_expert.md",
 )
 
+# Closed write denylist — human-owned policy/ADR surfaces compound must never rewrite.
+# Keep entries aligned with real repo paths (validated by test_denylist_paths_exist).
+# Reasons:
+# - docs/adr/: architecture decision records (human-owned canon)
+# - AGENTS.md: Dosu-maintained agent instructions
+# - .github/AUTOMATION_SCOPE_POLICY.md: automation scope policy
+# - .github/AI_AGENT_GUARDRAILS.md: agent guardrail policy
+# - .github/copilot-instructions.md: Copilot instruction policy
+# - docs/PR_SCOPE_GUARDRAILS.md: PR scope policy
+# - docs/GOVERNANCE.md: governance policy
+# - docs/DEPENDENCY_POLICY.md: dependency policy
+# - docs/lessons/: durable lessons (human-curated)
 WRITE_DENYLIST_PREFIXES: tuple[str, ...] = (
     "docs/adr/",
     "AGENTS.md",
@@ -210,6 +222,15 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
     if schema_version != SCHEMA_VERSION:
         raise SchemaError(f"Unsupported schema_version {schema_version}; expected {SCHEMA_VERSION}")
 
+    created_at = str(data.get("created_at") or "")
+    if created_at:
+        from datetime import datetime
+
+        try:
+            datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise SchemaError(f"created_at must be ISO-8601 (e.g. 2026-07-09T00:00:00Z): {created_at!r}") from exc
+
     return Observation(
         observation_id=str(data["observation_id"]),
         source=source,
@@ -220,7 +241,7 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
         domains=domains,
         refs=_as_str_tuple(data.get("refs"), "refs"),
         evidence_pointers=_as_str_tuple(data.get("evidence_pointers"), "evidence_pointers"),
-        created_at=str(data.get("created_at") or ""),
+        created_at=created_at,
         schema_version=schema_version,
     )
 
@@ -239,6 +260,18 @@ def parse_observation_line(line: str) -> Observation:
     return observation_from_mapping(payload)
 
 
+def _require_typed_list(raw: Any, *, field: str, item_type: type, type_label: str) -> list:
+    """Validate a watched-series list field and return typed items."""
+    if not isinstance(raw, list):
+        raise SchemaError(f"watched-series {field} must be a list")
+    items: list = []
+    for item in raw:
+        if isinstance(item, bool) or not isinstance(item, item_type):
+            raise SchemaError(f"watched-series {field} must be {type_label}")
+        items.append(item)
+    return items
+
+
 def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     """Validate watched-series YAML/JSON mapping."""
     missing = sorted(REQUIRED_WATCHED_SERIES_KEYS - set(data.keys()))
@@ -249,31 +282,12 @@ def watched_series_from_mapping(data: Mapping[str, Any]) -> WatchedSeries:
     if not isinstance(version, int) or isinstance(version, bool):
         raise SchemaError("watched-series version must be an integer")
 
-    prs_raw = data["prs"]
-    labels_raw = data["labels"]
-    globs_raw = data["path_globs"]
-    if not isinstance(prs_raw, list) or not isinstance(labels_raw, list) or not isinstance(globs_raw, list):
-        raise SchemaError("watched-series prs, labels, and path_globs must be lists")
-
-    prs: list[int] = []
-    for item in prs_raw:
-        if not isinstance(item, int) or isinstance(item, bool):
-            raise SchemaError("watched-series prs must be integers")
-        prs.append(item)
-
-    labels: list[str] = []
-    for item in labels_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series labels must be strings")
-        labels.append(item)
-
-    path_globs: list[str] = []
-    for item in globs_raw:
-        if not isinstance(item, str):
-            raise SchemaError("watched-series path_globs must be strings")
-        path_globs.append(item)
-
-    return WatchedSeries(version=version, prs=prs, labels=labels, path_globs=path_globs)
+    return WatchedSeries(
+        version=version,
+        prs=_require_typed_list(data["prs"], field="prs", item_type=int, type_label="integers"),
+        labels=_require_typed_list(data["labels"], field="labels", item_type=str, type_label="strings"),
+        path_globs=_require_typed_list(data["path_globs"], field="path_globs", item_type=str, type_label="strings"),
+    )
 
 
 def normalize_repo_relative(path: str | Path) -> str:
@@ -302,6 +316,7 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     Returns at least ``("architecture",)`` when no path matches a rule.
     """
     found: list[str] = []
+    found_set: set[str] = set()
     for raw in paths:
         try:
             normalized = normalize_repo_relative(raw)
@@ -309,8 +324,9 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
             continue
         for prefix, domain in _PATH_DOMAIN_RULES:
             if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
-                if domain not in found:
+                if domain not in found_set:
                     found.append(domain)
+                    found_set.add(domain)
                 break
     return tuple(found) if found else ("architecture",)
 

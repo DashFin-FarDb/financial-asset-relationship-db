@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import sys
 from collections import defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 
 _SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
@@ -39,6 +40,21 @@ DEPENDENCY_BOT_MARKERS = (
     "python-dependencies",
     "actions-dependencies",
 )
+
+
+def _parse_created_at(value: str) -> datetime:
+    """Parse an ISO-8601 ``created_at`` string into a timezone-aware datetime.
+
+    Returns ``datetime.min`` (UTC) for empty or unparseable values so callers
+    can use this safely as a sort key without additional error handling.
+    """
+    if not value:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
+    except ValueError:
+        return datetime.min.replace(tzinfo=timezone.utc)
 
 
 def load_ledger(ledger_path: Path) -> list[Observation]:
@@ -95,8 +111,9 @@ def should_hot_path_synthesize(
         return True
     if not observations:
         return True
-    # Gate on the triggering (newest) observation only — not the full historical ledger.
-    newest = max(observations, key=lambda obs: (obs.created_at or "", obs.observation_id))
+    # Gate on the triggering observation: last ledger row (append order), not max timestamp.
+    # Append-only ledgers may contain out-of-order or custom created_at values.
+    newest = observations[-1]
     if is_dependency_bot_observation(newest):
         return False
     return True
@@ -113,7 +130,7 @@ def latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
         if obs.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
             by_ref[obs.primary_ref] = obs
             continue
-        if obs.created_at >= existing.created_at and not (
+        if _parse_created_at(obs.created_at) >= _parse_created_at(existing.created_at) and not (
             existing.status is ObservationStatus.LANDED and obs.status is ObservationStatus.PROVISIONAL
         ):
             by_ref[obs.primary_ref] = obs
@@ -126,7 +143,7 @@ def _render_section(title: str, items: list[Observation]) -> str:
         lines.append(f"_No {title.lower()} observations yet._")
         lines.append("")
         return "\n".join(lines)
-    for obs in sorted(items, key=lambda item: item.created_at or item.observation_id):
+    for obs in sorted(items, key=lambda item: (_parse_created_at(item.created_at), item.observation_id)):
         evidence = ", ".join(obs.evidence_pointers) if obs.evidence_pointers else obs.primary_ref
         lines.append(f"- **{obs.primary_ref}** ({obs.status.value}): {obs.summary}")
         lines.append(f"  - evidence: {evidence}")
@@ -179,8 +196,10 @@ def render_index(observations: list[Observation]) -> str:
         "rebuild/reconciliation, and deployment/readiness.\n\n"
         "- **Canon writer:** `scripts/compound/synthesize.py` only\n"
         "- **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)\n"
-        "- **Knowledge branch:** `knowledge/architecture-expert` (intended human promotion to `main`; verify before treating as current)\n"
-        "- **Status:** Label every claim **landed** or **provisional** only after verifying branch/PR/ref state vs `main`\n\n"
+        "- **Knowledge branch:** `knowledge/architecture-expert` "
+        "(intended human promotion to `main`; verify before treating as current)\n"
+        "- **Status:** Label every claim **landed** or **provisional** only after "
+        "verifying branch/PR/ref state vs `main`\n\n"
         "## Domains\n\n"
         "| Domain | Doc | Landed | Provisional |\n"
         "|--------|-----|--------|-------------|\n"

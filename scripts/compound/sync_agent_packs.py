@@ -23,7 +23,7 @@ CURSOR_QUERY_PATH = Path(".cursor/rules/architecture-expert-query.mdc")
 OPENHANDS_PATH = Path(".openhands/microagents/architecture_expert.md")
 
 FORBIDDEN_WRITE_INSTRUCTIONS = re.compile(
-    r"(?i)\b(rewrite|overwrite|edit|modify|update)\b[\s\S]{0,40}\b(adr|agents\.md|policy)\b"
+    r"(?i)\b(rewrite|overwrite|edit|modify|update)\b[\s\S]{0,40}\b(adrs?|agents\.md|policy)\b"
 )
 
 
@@ -42,16 +42,24 @@ def _sanitize_pack_body(body: str) -> str:
     return FORBIDDEN_WRITE_INSTRUCTIONS.sub(_repl, body)
 
 
+def _rewrite_compound_links(excerpt: str) -> str:
+    """Rewrite relative compound links to repo-root-absolute paths for sidecars."""
+    return (
+        excerpt.replace("(README.md)", "(/docs/compound/README.md)")
+        .replace("(watched-series.yml)", "(/docs/compound/watched-series.yml)")
+        .replace("(runtime.yml)", "(/docs/compound/runtime.yml)")
+        .replace("(domains/", "(/docs/compound/domains/")
+        .replace("[domains/", "[/docs/compound/domains/")
+        .replace("](domains/", "](/docs/compound/domains/")
+        .replace("(docs/compound/", "(/docs/compound/")
+        .replace("[docs/compound/", "[/docs/compound/")
+    )
+
+
 def build_cursor_rule(index_text: str) -> str:
     """Build Cursor rule markdown with frontmatter."""
     domain_lines = "\n".join(f"- `{domain}`: see `docs/compound/domains/{domain}.md`" for domain in DOMAINS)
-    excerpt = _sanitize_pack_body(index_text[:2000])
-    excerpt = (
-        excerpt.replace("(README.md)", "(docs/compound/README.md)")
-        .replace("(watched-series.yml)", "(docs/compound/watched-series.yml)")
-        .replace("(runtime.yml)", "(docs/compound/runtime.yml)")
-        .replace("(domains/", "(docs/compound/domains/")
-    )
+    excerpt = _rewrite_compound_links(_sanitize_pack_body(index_text[:2000]))
     body = f"""# Architecture Expert (generated)
 
 Docs-first compounded memory. Prefer `docs/compound/` over inventing seams.
@@ -116,14 +124,7 @@ rebuild/reconciliation, or deployment/readiness:
 def build_openhands_microagent(index_text: str) -> str:
     """Build OpenHands microagent with required frontmatter."""
     # Sanitize only the index excerpt; leave static Rules unsanitized (matches Cursor packs).
-    excerpt = (
-        _sanitize_pack_body(index_text[:1500])
-        .replace("(README.md)", "(docs/compound/README.md)")
-        .replace("(watched-series.yml)", "(docs/compound/watched-series.yml)")
-        .replace("(runtime.yml)", "(docs/compound/runtime.yml)")
-        .replace("(domains/", "(docs/compound/domains/")
-        .replace("\n# ", "\n## ")
-    )
+    excerpt = _rewrite_compound_links(_sanitize_pack_body(index_text[:1500])).replace("\n# ", "\n## ")
     if excerpt.startswith("# "):
         excerpt = "## " + excerpt[2:]
     body = f"""# Architecture Expert Microagent

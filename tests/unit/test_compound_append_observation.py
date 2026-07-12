@@ -3,23 +3,25 @@
 from __future__ import annotations
 
 import json
-import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS_ROOT = REPO_ROOT / "scripts"
-if str(SCRIPTS_ROOT) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_ROOT))
-
-from compound.append_observation import (  # noqa: E402
+from compound.append_observation import (
     _load_observation_payload,
+    _parse_runtime_yaml,
     append_observation,
     record_push_conflict,
 )
-from compound.schema import ObservationSource, ObservationStatus, PathPolicyError, WriterMode  # noqa: E402
+from compound.schema import ObservationSource, ObservationStatus, PathPolicyError, SchemaError, WriterMode
+
+
+def _observation_lines(repo: Path) -> list[str]:
+    """Return non-comment ledger observation lines."""
+    ledger = repo / "docs/compound/ledger/observations.jsonl"
+    return [
+        line for line in ledger.read_text(encoding="utf-8").splitlines() if line.strip() and not line.startswith("#")
+    ]
 
 
 @pytest.fixture
@@ -67,14 +69,7 @@ class TestAppendObservation:
         assert "appended" in msg1
         assert second is None
         assert "idempotent" in msg2
-        lines = [
-            line
-            for line in (compound_repo / "docs/compound/ledger/observations.jsonl")
-            .read_text(encoding="utf-8")
-            .splitlines()
-            if line.strip() and not line.startswith("#")
-        ]
-        assert len(lines) == 1
+        assert len(_observation_lines(compound_repo)) == 1
 
     def test_open_pr_emits_provisional(self, compound_repo: Path) -> None:
         """Open PR fixture emits provisional status."""
@@ -106,14 +101,7 @@ class TestAppendObservation:
         )
         assert obs is None
         assert "github_only" in message
-        lines = [
-            line
-            for line in (compound_repo / "docs/compound/ledger/observations.jsonl")
-            .read_text(encoding="utf-8")
-            .splitlines()
-            if line.strip() and not line.startswith("#")
-        ]
-        assert lines == []
+        assert _observation_lines(compound_repo) == []
 
     def test_cli_json_round_trip(self, compound_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """CLI accepts --json and appends successfully."""
@@ -142,6 +130,20 @@ class TestAppendObservation:
         assert mode is WriterMode.DUAL
         runtime = (compound_repo / "docs/compound/runtime.yml").read_text(encoding="utf-8")
         assert "conflict_count: 1" in runtime
+
+    def test_parse_runtime_preserves_timestamp_colons(self) -> None:
+        """ISO-8601 last_conflict_at values keep colons after the first key split."""
+        parsed = _parse_runtime_yaml(
+            "writer_mode: dual\nconflict_count: 2\nconflict_window_minutes: 30\n"
+            "last_conflict_at: 2026-07-09T07:18:22Z\n"
+        )
+        assert parsed["last_conflict_at"] == "2026-07-09T07:18:22Z"
+        assert parsed["conflict_count"] == 2
+
+    def test_parse_runtime_rejects_non_integer_counts(self) -> None:
+        """Non-integer conflict fields raise SchemaError, not bare ValueError."""
+        with pytest.raises(SchemaError, match="Invalid integer for conflict_count"):
+            _parse_runtime_yaml("writer_mode: dual\nconflict_count: three\n")
 
     def test_load_observation_payload_rejects_outside_repo(self, compound_repo: Path) -> None:
         """Absolute paths outside the repo and temp dir are rejected."""

@@ -53,6 +53,26 @@ def _extract_bullets(text: str, section: str) -> list[str]:
     return bullets
 
 
+def _append_domain_section(parts: list[str], domain: str, text: str) -> bool:
+    """Append landed/provisional bullets for one domain; return True if any found."""
+    landed = _extract_bullets(text, "Landed")
+    provisional = _extract_bullets(text, "Provisional")
+    parts.append(f"### {domain}")
+    found = False
+    if landed:
+        found = True
+        parts.append("Landed:")
+        parts.extend(f"  {item}" for item in landed[:10])
+    if provisional:
+        found = True
+        parts.append("Provisional:")
+        parts.extend(f"  {item}" for item in provisional[:10])
+    if not landed and not provisional:
+        parts.append("  _No observations yet in this domain._")
+    parts.append("")
+    return found
+
+
 def query_memory(repo_root: Path, question: str) -> str:
     """Answer from INDEX + domain docs with provisional/landed labels."""
     domains = select_domains(question)
@@ -71,21 +91,8 @@ def query_memory(repo_root: Path, question: str) -> str:
         path = repo_root / DOMAINS_DIR / f"{domain}.md"
         if not path.exists():
             continue
-        text = path.read_text(encoding="utf-8")
-        landed = _extract_bullets(text, "Landed")
-        provisional = _extract_bullets(text, "Provisional")
-        parts.append(f"### {domain}")
-        if landed:
+        if _append_domain_section(parts, domain, path.read_text(encoding="utf-8")):
             found = True
-            parts.append("Landed:")
-            parts.extend(f"  {item}" for item in landed[:10])
-        if provisional:
-            found = True
-            parts.append("Provisional:")
-            parts.extend(f"  {item}" for item in provisional[:10])
-        if not landed and not provisional:
-            parts.append("  _No observations yet in this domain._")
-        parts.append("")
 
     if not found:
         parts.append(
@@ -106,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         print(query_memory(args.repo_root, args.question))
         return 0
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 

@@ -2,16 +2,9 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS_ROOT = REPO_ROOT / "scripts"
-if str(SCRIPTS_ROOT) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_ROOT))
-
 from compound.sync_agent_packs import (  # noqa: E402
     OPENHANDS_PATH,
     _sanitize_pack_body,
@@ -64,8 +57,23 @@ class TestSyncAgentPacks:
         """Pack content that would rewrite an ADR becomes cite/propose-only."""
         raw = "Please rewrite ADR 0001 with the new seam."
         cleaned = _sanitize_pack_body(raw)
-        assert "rewrite" not in cleaned.lower() or "cite or propose" in cleaned.lower()
+        assert "rewrite ADR" not in cleaned.lower()
         assert "cite or propose annotation" in cleaned.lower()
+        assert "do not rewrite" in cleaned.lower()
+
+    def test_sync_rewrites_excerpt_links_to_repo_root(self, pack_repo: Path) -> None:
+        """INDEX excerpt links become repo-root absolute paths in sidecars."""
+        (pack_repo / "docs/compound/INDEX.md").write_text(
+            "# Index\n\nSee [domains/api.md](domains/api.md) and (README.md).\n",
+            encoding="utf-8",
+        )
+        sync_agent_packs(pack_repo)
+        cursor = (pack_repo / ".cursor/rules/architecture-expert.mdc").read_text(encoding="utf-8")
+        openhands = (pack_repo / OPENHANDS_PATH).read_text(encoding="utf-8")
+        assert "(/docs/compound/domains/api.md)" in cursor
+        assert "(/docs/compound/README.md)" in cursor
+        assert "(domains/api.md)" not in cursor
+        assert "(/docs/compound/domains/api.md)" in openhands
 
     def test_microagent_has_required_frontmatter(self, pack_repo: Path) -> None:
         """Generated microagent includes OpenHands frontmatter fields."""

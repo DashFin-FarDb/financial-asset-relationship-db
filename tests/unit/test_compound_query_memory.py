@@ -2,16 +2,9 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS_ROOT = REPO_ROOT / "scripts"
-if str(SCRIPTS_ROOT) not in sys.path:
-    sys.path.insert(0, str(SCRIPTS_ROOT))
-
 from compound.query_memory import query_memory, select_domains  # noqa: E402
 
 
@@ -60,7 +53,8 @@ class TestQueryMemory:
             query_repo,
             "where does graph rebuild persistence ownership live?",
         )
-        assert "Landed:" in answer or "landed" in answer.lower()
-        assert "Provisional:" in answer or "provisional" in answer.lower()
-        assert "graph rebuild persistence" in answer.lower() or "persistence" in answer.lower()
-        assert "pr:99" in answer or "Propose new persistence seam" in answer
+        assert "Landed:" in answer
+        assert "Provisional:" in answer
+        assert "graph rebuild persistence" in answer.lower()
+        assert "pr:99" in answer
+        assert "Propose new persistence seam" in answer
