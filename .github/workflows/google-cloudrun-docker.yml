@@ -78,6 +78,7 @@ jobs:
           docker build --tag "${DOCKER_TAG}" .
           docker push "${DOCKER_TAG}"
       - name: 'Deploy to Cloud Run'
+        id: deploy
 
         # END - Docker auth and build
 
@@ -92,4 +93,4 @@ jobs:
       - name: 'Show output'
         run: |2-
 
-          echo ${{ steps.deploy.outputs.url }}
+          echo "${{ steps.deploy.outputs.url }}"

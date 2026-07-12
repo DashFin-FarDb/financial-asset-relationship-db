@@ -171,7 +171,8 @@ class TestWorkflowStructure:
         """
         Verify the workflow YAML defines a non-empty top-level name.
 
-        Asserts that the top-level "name" key is present and its value is a non-empty string; failure messages include the workflow filename for context.
+        Asserts that the top-level "name" key is present and its value is a non-empty string.
+        Failure messages include the workflow filename for context.
         """
         config = load_yaml_safe(workflow_file)
         assert "name" in config, f"Workflow {workflow_file.name} missing 'name' field"

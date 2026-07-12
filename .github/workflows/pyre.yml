@@ -23,9 +23,8 @@ name: Pyre
       - '**/*.py'
       - 'requirements*.txt'
       - '.github/workflows/pyre.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+      - '!**/*.md'
+      - '!docs/**'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [ "main" ]
@@ -33,9 +32,8 @@ name: Pyre
       - '**/*.py'
       - 'requirements*.txt'
       - '.github/workflows/pyre.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+      - '!**/*.md'
+      - '!docs/**'
 
 permissions:
     contents: read

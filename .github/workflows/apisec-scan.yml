@@ -90,9 +90,9 @@ jobs:
             echo "⚠️ APIsec credentials not configured. Skipping scan."
             echo "To enable APIsec scanning, register at https://cloud.apisec.ai/#/signup"
             echo "and configure the required repository secrets."
-            echo "has_credentials=false" >> $GITHUB_OUTPUT
+            echo "has_credentials=false" >> "$GITHUB_OUTPUT"
           else
-            echo "has_credentials=true" >> $GITHUB_OUTPUT
+            echo "has_credentials=true" >> "$GITHUB_OUTPUT"
           fi
       - name: APIsec scan
         if: steps.check-creds.outputs.has_credentials == 'true'

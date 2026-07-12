@@ -29,11 +29,21 @@ jobs:
     # Maintainers can manually trigger scans for approved external contributions using workflow_dispatch
     # or by requesting the contributor to open the PR from a branch in the main repository.
     # Only run if JF_URL secret is configured (will be empty/unavailable for forked PRs)
-    if: secrets.JF_URL != ''
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Check JFrog configuration
+        id: check-jfrog
+        env:
+          JF_URL: ${{ secrets.JF_URL }}
+        run: |
+          if [ -n "$JF_URL" ]; then
+            echo "has_jfrog=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_jfrog=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: jfrog/frogbot@d0954eb10d96da4c83188975452b19609eabb41a  # v3.2.2
+        if: steps.check-jfrog.outputs.has_jfrog == 'true'
         env:
           # [Mandatory if the two conditions below are met]
           # 1. The project uses npm, yarn 2, NuGet or .NET to download its dependencies

@@ -10,9 +10,8 @@ permissions:
       - '**/*.py'
       - 'requirements*.txt'
       - '.github/workflows/pylint.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+      - '!**/*.md'
+      - '!docs/**'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [ "main" ]
@@ -20,9 +19,8 @@ permissions:
       - '**/*.py'
       - 'requirements*.txt'
       - '.github/workflows/pylint.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+      - '!**/*.md'
+      - '!docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

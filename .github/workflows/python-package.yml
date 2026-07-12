@@ -7,9 +7,8 @@ on:
       - "**/*.py"
       - "requirements*.txt"
       - ".github/workflows/python-package.yml"
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
     branches: ["main"]
@@ -17,9 +16,8 @@ on:
       - "**/*.py"
       - "requirements*.txt"
       - ".github/workflows/python-package.yml"
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
+      - "!**/*.md"
+      - "!docs/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
