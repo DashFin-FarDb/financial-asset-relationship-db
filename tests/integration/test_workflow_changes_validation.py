@@ -341,7 +341,8 @@ class TestWorkflowYAMLValidity:
         """
         Ensure every workflow in .github/workflows defines top-level 'name', 'on', and 'jobs' keys.
 
-        Asserts that each .yml file contains 'name', 'on', and 'jobs'; a failing assertion includes the workflow filename and the missing key.
+        Asserts that each .yml file contains 'name', 'on', and 'jobs';
+        a failing assertion includes the workflow filename and the missing key.
         """
         workflows_dir = Path(".github/workflows")
 
@@ -363,7 +364,8 @@ class TestWorkflowYAMLValidity:
         """
         Ensure every job in every GitHub Actions workflow specifies its runner with the 'runs-on' key.
 
-        If a job is missing 'runs-on', the test fails with an assertion identifying the job name and workflow filename.
+        If a job is missing 'runs-on', the test fails with an assertion identifying
+        the job name and workflow filename.
         """
         workflows_dir = Path(".github/workflows")
 
@@ -386,7 +388,9 @@ class TestWorkflowIntegration:
         """
         Verify that file paths referenced in workflow YAML files exist in the repository.
 
-        Scans .github/workflows/*.yml for path-like references (for example `working-directory` and `path`), normalizes leading `./`, ignores references containing variables (`$`) or wildcards (`*`), skips directories that are dynamically created by `actions/checkout` steps (i.e. checkout `path:` destinations), and asserts that each remaining referenced path exists.
+        Scans .github/workflows/*.yml for path-like references, normalizes leading
+        `./`, ignores references containing variables or wildcards, skips dynamic
+        `actions/checkout` destinations, and asserts that each remaining path exists.
         """
         workflows_dir = Path(".github/workflows")
         repo_root = Path(".")
