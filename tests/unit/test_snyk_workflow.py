@@ -536,15 +536,23 @@ class TestSnykContainerWorkflow:
         assert len(docker_steps) == 1
         assert docker_steps[0]["with"]["sarif"] is True
 
-    def test_upload_skips_when_sarif_missing(self, container_job):
-        """Upload should be conditional so optional scan failures do not fail the job."""
+    def test_job_fails_when_sarif_missing(self, container_job):
+        """Workflow must fail when Snyk does not produce the expected SARIF artifact."""
+        steps = container_job["steps"]
+        verifier_steps = [
+            s
+            for s in steps
+            if s.get("run") and "snyk.sarif" in s["run"] and "exit 1" in s["run"]
+        ]
+        assert len(verifier_steps) == 1
+
+    def test_upload_requires_verified_sarif(self, container_job):
+        """Upload must not silently skip when snyk.sarif is absent."""
         steps = container_job["steps"]
         upload_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         assert len(upload_steps) == 1
-        assert upload_steps[0]["if"] == "hashFiles('snyk.sarif') != ''"
+        assert "if" not in upload_steps[0]
 
-    def test_no_hard_fail_sarif_verification_step(self, container_job):
-        """Workflow must not fail when Snyk cannot produce a SARIF artifact."""
-        steps = container_job["steps"]
-        verifier_steps = [s for s in steps if s.get("run") and "snyk.sarif" in s["run"] and "exit 1" in s["run"]]
-        assert verifier_steps == []
+    def test_job_does_not_continue_on_error(self, container_job):
+        """Missing SARIF or upload failures must fail the workflow."""
+        assert "continue-on-error" not in container_job
