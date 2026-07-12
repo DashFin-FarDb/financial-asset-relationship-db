@@ -79,11 +79,9 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
 def _has_lower_bound_at_least(version_spec: str, minimum_version: str) -> bool:
     """Return True when a requirement spec declares a >= lower bound at or above the minimum."""
     minimum = Version(minimum_version)
-    for spec in version_spec.split(","):
-        spec = spec.strip()
-        if spec.startswith(">="):
-            return Version(spec[2:]) >= minimum
-    return False
+    return any(
+        Version(spec.strip()[2:]) >= minimum for spec in version_spec.split(",") if spec.strip().startswith(">=")
+    )
 
 
 class TestRequirementsFileExists:
@@ -229,6 +227,10 @@ class TestVersionSpecifications:
         assert len(zipp_specs) > 0, "zipp should be present for security fix"
         if not _has_lower_bound_at_least(zipp_specs[0], "3.19.1"):
             pytest.fail(f"zipp should be >=3.19.1, got {zipp_specs[0]}")
+
+    def test_lower_bound_checks_all_gte_comparators(self):
+        """Test later >= comparators can satisfy a required security floor."""
+        assert _has_lower_bound_at_least(">=3.0,>=3.19.1", "3.19.1")
 
     def test_uses_minimum_versions(self, requirements: list[tuple[str, str]]):
         """Test that most packages use >= for version specifications."""
