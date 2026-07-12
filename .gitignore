@@ -133,3 +133,9 @@ s
 # Compound lock files (created by fcntl.flock; must not be committed)
 docs/compound/*.lock
 docs/compound/ledger/*.lock
+
+# Local SQLite DB artifact (runtime); never commit
+asset_graph.db
+
+# Accidentally committed DeepSource CLI binary
+bin/deepsource

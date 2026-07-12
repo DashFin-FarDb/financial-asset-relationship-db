@@ -96,7 +96,7 @@ jobs:
           fi
       - name: APIsec scan
         if: steps.check-creds.outputs.has_credentials == 'true'
-        uses: apisec-inc/apisec-run-scan@025432089674a28ba8fb55f8ab06c10215e772ea
+        uses: apisec-inc/apisec-run-scan@8f66ce948afb779712a1d57ecb0a528d7ded5a45
         with:
           # The APIsec username with which the scans will be executed
           apisec-username: ${{ secrets.apisec_username }}
@@ -108,6 +108,6 @@ jobs:
           sarif-result-file: "apisec-results.sarif"
       - name: Import results
         if: steps.check-creds.outputs.has_credentials == 'true'
-        uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: ./apisec-results.sarif
