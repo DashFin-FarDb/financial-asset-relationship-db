@@ -72,6 +72,15 @@ def _is_runtime_checkout_path(path: str, dynamic_dirs: set[str]) -> bool:
     return bool(path_parts and path_parts[0] in dynamic_dirs)
 
 
+def _assert_referenced_path_exists(path: str, dynamic_dirs: set[str], repo_root: Path, workflow_file_name: str) -> None:
+    if _is_runtime_checkout_path(path, dynamic_dirs):
+        return
+
+    full_path = repo_root / path
+    if not full_path.exists():
+        pytest.fail(f"Path {path} referenced in {workflow_file_name} doesn't exist")
+
+
 class TestPRAgentWorkflowChanges:
     """Test PR agent workflow simplification changes."""
 
@@ -388,11 +397,7 @@ class TestWorkflowIntegration:
             dynamic_dirs = _checkout_dynamic_dirs(workflow_yaml)
 
             for path in _referenced_workflow_paths(content):
-                if _is_runtime_checkout_path(path, dynamic_dirs):
-                    continue
-                full_path = repo_root / path
-                if not full_path.exists():
-                    pytest.fail(f"Path {path} referenced in {workflow_file.name} doesn't exist")
+                _assert_referenced_path_exists(path, dynamic_dirs, repo_root, workflow_file.name)
 
 
 class TestDependencyCheckWorkflowPresence:
