@@ -47,7 +47,7 @@ dependencies = [
     "sqlalchemy>=2.0.0",
     "mcp>=1.23.0",
     "fastmcp>=0.1.0",
-    "PyJWT==2.13.0",
+    "PyJWT>=2.13.0",
     "passlib[bcrypt]>=1.7.4",
     "slowapi>=0.1.4",
     "structlog>=24.1.0",
