@@ -41,4 +41,4 @@ structlog>=24.1.0
 
 # Security override pins (not directly imported; pinned to satisfy vulnerability advisories)
 urllib3>=2.7.0  # pinned by Snyk advisory; transitive dep of requests/httpx
-zipp>=3.19.1  # pinned by Snyk advisory; transitive dep of several packages
+zipp>=4.1.0  # pinned by Snyk advisory; transitive dep of several packages
