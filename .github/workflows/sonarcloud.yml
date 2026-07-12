@@ -39,11 +39,10 @@ name: SonarCloud analysis
       - '**/*.jsx'
       - 'frontend/**'
       - '.github/workflows/sonarcloud.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - '**/*.png'
-      - '**/*.jpg'
+      - '!**/*.md'
+      - '!docs/**'
+      - '!**/*.png'
+      - '!**/*.jpg'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [ "main" ]
@@ -55,11 +54,6 @@ name: SonarCloud analysis
       - '**/*.jsx'
       - 'frontend/**'
       - '.github/workflows/sonarcloud.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - '**/*.png'
-      - '**/*.jpg'
   workflow_dispatch:
 
 concurrency:

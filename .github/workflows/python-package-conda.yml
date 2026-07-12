@@ -10,9 +10,8 @@ permissions:
       - '**/*.py'
       - 'environment.yml'
       - '.github/workflows/python-package-conda.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+      - '!**/*.md'
+      - '!docs/**'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [ "main" ]
@@ -20,9 +19,6 @@ permissions:
       - '**/*.py'
       - 'environment.yml'
       - '.github/workflows/python-package-conda.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -43,7 +39,7 @@ jobs:
     - name: Add conda to system path
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
+        echo "$CONDA/bin" >> "$GITHUB_PATH"
     - name: Install dependencies
       run: |
         conda env update --file environment.yml --name base
