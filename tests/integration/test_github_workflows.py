@@ -605,10 +605,11 @@ class TestWorkflowEdgeCases:
         with open(workflow_file, encoding="utf-8") as f:
             content = f.read()
 
-        assert "\t" not in content, (
-            f"Workflow {workflow_file.name} contains tab characters. "
-            "YAML files should use spaces for indentation, not tabs."
-        )
+        if "\t" in content:
+            pytest.fail(
+                f"Workflow {workflow_file.name} contains tab characters. "
+                "YAML files should use spaces for indentation, not tabs."
+            )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_consistent_indentation(self, workflow_file: Path):
@@ -1162,17 +1163,18 @@ class TestAutoAssignWorkflow:
         """Test that the upgraded v4 action pin uses its validated input contract."""
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
         steps = run_job.get("steps", [])
-        assert len(steps) > 0, "Job should have at least one step"
+        if not steps:
+            pytest.fail("Job should have at least one step")
         step = steps[0]
 
-        assert step["uses"] == (
-            "pozil/auto-assign-issue@af6beea6bdf1e8eb373f061c5bc168681fc6d011"
-        ), "Auto-assign should stay pinned to the validated v4.0.1 action SHA"
-        assert step.get("with") == {
+        if step["uses"] != "pozil/auto-assign-issue@af6beea6bdf1e8eb373f061c5bc168681fc6d011":
+            pytest.fail("Auto-assign should stay pinned to the validated v4.0.1 action SHA")
+        if step.get("with") != {
             "repo-token": "${{ secrets.GITHUB_TOKEN }}",
             "assignees": "mohavro",
             "numOfAssignee": 1,
-        }
+        }:
+            pytest.fail("Auto-assign should keep the validated v4.0.1 input contract")
 
     def test_auto_assign_configuration_has_with_block(self, auto_assign_workflow: dict[str, Any]):
         """Test that the step has a 'with' configuration block."""
