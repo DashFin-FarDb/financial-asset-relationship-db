@@ -9,27 +9,23 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Resolve JF_URL once at job scope so steps inherit it without echoing secrets.
+    env:
+      JF_URL: ${{ vars.JF_URL || secrets.JF_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Check JFrog configuration
         id: check-jfrog
-        env:
-          JF_URL: ${{ vars.JF_URL || secrets.JF_URL }}
         run: |
           if [ -n "$JF_URL" ]; then
-            {
-              echo "has_jfrog=true"
-              echo "jf_url=$JF_URL"
-            } >> "$GITHUB_OUTPUT"
+            echo "has_jfrog=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_jfrog=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Setup JFrog CLI
         if: steps.check-jfrog.outputs.has_jfrog == 'true'
         uses: jfrog/setup-jfrog-cli@deda456d982fc5e9a7a020b63eb0d2968aedd33e # v5.1.0
-        env:
-          JF_URL: ${{ steps.check-jfrog.outputs.jf_url }}
         with:
           oidc-provider-name: mohavro/financial-asset-relationship-db@github
 
