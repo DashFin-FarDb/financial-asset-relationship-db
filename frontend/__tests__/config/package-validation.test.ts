@@ -297,13 +297,8 @@ describe("Package.json Validation", () => {
 
   describe("TypeScript Configuration Consistency", () => {
     it("should have TypeScript type definitions for dependencies that need them", () => {
-      const depsNeedingTypes = [
-        "react",
-        "react-dom",
-        "node",
-        "plotly.js",
-        "react-plotly.js",
-      ];
+      // react-plotly.js >=4 ships its own declarations; omit @types/react-plotly.js.
+      const depsNeedingTypes = ["react", "react-dom", "node", "plotly.js"];
 
       depsNeedingTypes.forEach((dep) => {
         const typesDep = `@types/${dep}`;
@@ -518,10 +513,12 @@ describe("Package.json Validation", () => {
     });
 
     it("should have type definitions for plotly", () => {
+      // react-plotly.js >=4 ships its own TypeScript declarations; do not
+      // also require @types/react-plotly.js (DefinitelyTyped) or types diverge.
       expect(packageJson.devDependencies["@types/plotly.js"]).toBeDefined();
       expect(
         packageJson.devDependencies["@types/react-plotly.js"],
-      ).toBeDefined();
+      ).toBeUndefined();
     });
   });
 

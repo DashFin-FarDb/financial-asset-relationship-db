@@ -1142,6 +1142,22 @@ class TestAutoAssignWorkflow:
         assert "uses" in step, "Step should use an action"
         assert step["uses"].startswith("pozil/auto-assign-issue"), "Step should use the pozil/auto-assign-issue action"
 
+    def test_auto_assign_configuration_matches_v4_contract(self, auto_assign_workflow: dict[str, Any]):
+        """Test that the upgraded v4 action pin uses its validated input contract."""
+        run_job = auto_assign_workflow["jobs"]["auto-assign"]
+        steps = run_job.get("steps", [])
+        assert len(steps) > 0, "Job should have at least one step"
+        step = steps[0]
+
+        assert step["uses"] == (
+            "pozil/auto-assign-issue@af6beea6bdf1e8eb373f061c5bc168681fc6d011"
+        ), "Auto-assign should stay pinned to the validated v4.0.1 action SHA"
+        assert step.get("with") == {
+            "repo-token": "${{ secrets.GITHUB_TOKEN }}",
+            "assignees": "mohavro",
+            "numOfAssignee": 1,
+        }
+
     def test_auto_assign_configuration_has_with_block(self, auto_assign_workflow: dict[str, Any]):
         """Test that the step has a 'with' configuration block."""
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
