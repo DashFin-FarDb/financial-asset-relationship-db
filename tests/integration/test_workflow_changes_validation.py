@@ -186,8 +186,9 @@ class TestGreetingsWorkflowChanges:
         step = job["steps"][0]
 
         # Should use simple placeholder messages, not complex templates
-        assert "issue_message" in step["with"]
-        assert "pr_message" in step["with"]
+        missing_message_keys = {"issue_message", "pr_message"} - step["with"].keys()
+        if missing_message_keys:
+            pytest.fail(f"Missing greetings workflow message keys: {sorted(missing_message_keys)}")
 
         issue_msg = step["with"]["issue_message"]
         pr_msg = step["with"]["pr_message"]
