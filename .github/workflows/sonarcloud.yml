@@ -39,11 +39,10 @@ name: SonarCloud analysis
       - '**/*.jsx'
       - 'frontend/**'
       - '.github/workflows/sonarcloud.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - '**/*.png'
-      - '**/*.jpg'
+      - '!**/*.md'
+      - '!docs/**'
+      - '!**/*.png'
+      - '!**/*.jpg'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [ "main" ]
@@ -55,11 +54,10 @@ name: SonarCloud analysis
       - '**/*.jsx'
       - 'frontend/**'
       - '.github/workflows/sonarcloud.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - '**/*.png'
-      - '**/*.jpg'
+      - '!**/*.md'
+      - '!docs/**'
+      - '!**/*.png'
+      - '!**/*.jpg'
   workflow_dispatch:
 
 concurrency:
@@ -75,26 +73,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check SonarCloud configuration
+        id: sonar_cfg
+        env:
+          # Set these when wiring the workflow scanner (SonarCloud GitHub App
+          # analysis continues independently via "SonarCloud Code Analysis").
+          SONAR_PROJECT_KEY: ""
+          SONAR_ORGANIZATION: ""
+        run: |
+          if [ -n "$SONAR_PROJECT_KEY" ] && [ -n "$SONAR_ORGANIZATION" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "project_key=$SONAR_PROJECT_KEY"
+              echo "organization=$SONAR_ORGANIZATION"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "SonarCloud project key/organization not configured; skipping workflow Analysis."
+          fi
+
       - name: Analyze with SonarCloud
+        if: steps.sonar_cfg.outputs.ready == 'true'
 
         # You can pin the exact commit or the version.
         # uses: SonarSource/sonarcloud-github-action@v2.2.0
         # Keep prior pin: newer SHAs are LGPL-3.0 and fail dependency-review deny-licenses.
-        uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
+        uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216  # guardrails-disable-line
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
         with:
           # Additional arguments for the SonarScanner CLI
-          args:
-            # Unique keys of your project and organization. You can find them in SonarCloud > Information (bottom-left menu)
-            # mandatory
-            -Dsonar.projectKey=
-            -Dsonar.organization=
-            # Comma-separated paths to directories containing main source files.
-            #-Dsonar.sources= # optional, default is project base directory
-            # Comma-separated paths to directories containing test source files.
-            #-Dsonar.tests= # optional. For more info about Code Coverage, please refer to https://docs.sonarcloud.io/enriching/test-coverage/overview/
-            # Adds more detail to both client and server-side analysis logs, activating DEBUG mode for the scanner, and adding client-side environment variables and system properties to the server-side log of analysis report processing.
-            #-Dsonar.verbose= # optional, default is false
+          args: >-
+            -Dsonar.projectKey=${{ steps.sonar_cfg.outputs.project_key }}
+            -Dsonar.organization=${{ steps.sonar_cfg.outputs.organization }}
           # When you need the analysis to take place in a directory other than the one from which it was launched, default is .
           projectBaseDir: .

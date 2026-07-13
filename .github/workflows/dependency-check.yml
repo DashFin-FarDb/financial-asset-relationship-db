@@ -1,5 +1,10 @@
 name: Dependency Check
 
+# Per docs/ci-required-checks-policy.md this is a scheduled / push-to-main
+# quality gate. It also runs on pull_request with a lean OS matrix so PRs
+# still validate installability without multiplying action-resolution flakes
+# across windows/macos runners (Set up job Internal Server Error / 503).
+
 on:
   schedule:
     - cron: "0 0 * * *"
@@ -12,17 +17,40 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
+  select-matrix:
+    name: Select Dependency Check Matrix
+    runs-on: ubuntu-latest
+    # No checkout; deny contents at job scope (S8264: prefer job-level permissions).
+    permissions:
+      contents: none
+    outputs:
+      runtime-os: ${{ steps.select.outputs.runtime-os }}
+      dev-os: ${{ steps.select.outputs.dev-os }}
+    steps:
+      - name: Choose OS matrix for event
+        id: select
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # Lean PR matrix: fewer runners => fewer transient action-download failures.
+            echo 'runtime-os=["ubuntu-latest"]' >> "$GITHUB_OUTPUT"
+            echo 'dev-os=["ubuntu-latest"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'runtime-os=["ubuntu-latest","windows-latest","macos-latest"]' >> "$GITHUB_OUTPUT"
+            echo 'dev-os=["ubuntu-latest","windows-latest"]' >> "$GITHUB_OUTPUT"
+          fi
+
   test-runtime-deps:
+    # Keep the historical check name (no OS suffix) so required-status contexts stay stable.
     name: Test Runtime Dependencies (Python ${{ matrix.python-version }})
+    needs: select-matrix
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: ${{ fromJSON(needs.select-matrix.outputs.runtime-os) }}
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
@@ -72,12 +100,16 @@ jobs:
           python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None)); print('app.py entrypoint validated')"
 
   test-dev-deps:
+    # Keep the historical check name (no OS suffix) so required-status contexts stay stable.
     name: Test Full Dev Tooling (Python ${{ matrix.python-version }})
+    needs: select-matrix
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: ${{ fromJSON(needs.select-matrix.outputs.dev-os) }}
         python-version: ["3.10", "3.12"]
 
     steps:
@@ -113,6 +145,8 @@ jobs:
   test-pyproject-dev-extra:
     name: Test pyproject dev extra
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code

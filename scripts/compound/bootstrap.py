@@ -20,6 +20,7 @@ from compound.schema import (  # noqa: E402
     DOMAINS,
     ObservationSource,
     ObservationStatus,
+    PathPolicyError,
     SchemaError,
     detect_domains_from_paths,
 )
@@ -88,28 +89,35 @@ def _seed_one_doc(repo_root: Path, rel_path: str, domains: tuple[str, ...]) -> s
     return f"{rel_path}: {message}"
 
 
-def _clamp_pr_limit(limit: int) -> int:
+def clamp_pr_limit(limit: int) -> int:
     """Clamp PR scrape limit to a safe positive range."""
     if not isinstance(limit, int) or isinstance(limit, bool):
         raise SchemaError(f"pr limit must be an int, got {type(limit).__name__}")
     return max(_PR_LIMIT_MIN, min(_PR_LIMIT_MAX, limit))
 
 
-def _validate_gh_args(args: list[str]) -> list[str]:
+def validate_gh_args(args: list[str]) -> list[str]:
     """Reject unsafe tokens before invoking ``gh`` (Sonar S8705)."""
-    if not args or args[0] != "pr":
+    if not _is_allowed_gh_command(args):
         raise SchemaError("Only `gh pr ...` invocations are allowed")
-    validated: list[str] = []
-    for arg in args:
-        if not isinstance(arg, str) or not arg or not _GH_SAFE_TOKEN.fullmatch(arg):
-            raise SchemaError(f"Rejected unsafe gh argument: {arg!r}")
-        validated.append(arg)
-    return validated
+    return [_validate_gh_token(arg) for arg in args]
+
+
+def _is_allowed_gh_command(args: list[str]) -> bool:
+    """Return True for the supported ``gh pr ...`` command family."""
+    return bool(args) and args[0] == "pr"
+
+
+def _validate_gh_token(arg: str) -> str:
+    """Validate one bounded gh token."""
+    if not isinstance(arg, str) or not arg or not _GH_SAFE_TOKEN.fullmatch(arg):
+        raise SchemaError(f"Rejected unsafe gh argument: {arg!r}")
+    return arg
 
 
 def _gh_json(args: list[str]) -> Any | None:
     try:
-        safe_args = _validate_gh_args(args)
+        safe_args = validate_gh_args(args)
     except SchemaError:
         return None
     try:
@@ -130,9 +138,9 @@ def _gh_json(args: list[str]) -> Any | None:
         return None
 
 
-def _gh_pr_list_args(*, limit: int, search: str | None = None) -> list[str]:
+def gh_pr_list_args(*, limit: int, search: str | None = None) -> list[str]:
     """Build ``gh pr list`` args shared by search and fallback paths."""
-    safe_limit = _clamp_pr_limit(limit)
+    safe_limit = clamp_pr_limit(limit)
     args = [
         "pr",
         "list",
@@ -154,13 +162,20 @@ def _paths_from_pr_files(file_entries: Any) -> list[str]:
     """Extract changed file paths from a gh PR ``files`` payload."""
     paths: list[str] = []
     for entry in file_entries or []:
-        if isinstance(entry, str):
-            paths.append(entry)
-        elif isinstance(entry, dict):
-            raw = entry.get("path") or entry.get("filename")
-            if raw:
-                paths.append(str(raw))
+        path = _path_from_pr_file(entry)
+        if path is not None:
+            paths.append(path)
     return paths
+
+
+def _path_from_pr_file(entry: Any) -> str | None:
+    """Return one changed path from a gh PR file entry."""
+    if isinstance(entry, str):
+        return entry
+    if isinstance(entry, dict):
+        raw = entry.get("path") or entry.get("filename")
+        return str(raw) if raw else None
+    return None
 
 
 def _status_from_pr(pr: Mapping[str, Any]) -> str:
@@ -210,11 +225,11 @@ def scrape_recent_prs(repo_root: Path, *, limit: int = 50, days: int = 30) -> li
     Prefers PRs updated within ``days`` (plan A9); falls back to last ``limit``
     PRs when the search filter is unsupported.
     """
-    safe_limit = _clamp_pr_limit(limit)
+    safe_limit = clamp_pr_limit(limit)
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
-    data = _gh_json(_gh_pr_list_args(limit=safe_limit, search=f"updated:>={cutoff}"))
+    data = _gh_json(gh_pr_list_args(limit=safe_limit, search=f"updated:>={cutoff}"))
     if data is None:
-        data = _gh_json(_gh_pr_list_args(limit=safe_limit))
+        data = _gh_json(gh_pr_list_args(limit=safe_limit))
     if data is None:
         return ["PR scrape skipped: gh unavailable or failed"]
 
@@ -234,7 +249,7 @@ def run_bootstrap(repo_root: Path, *, scrape_prs: bool = True, pr_limit: int = 5
     """Run doc seed then optional bounded PR scrape."""
     messages = seed_from_docs(repo_root)
     if scrape_prs:
-        messages.extend(scrape_recent_prs(repo_root, limit=_clamp_pr_limit(pr_limit)))
+        messages.extend(scrape_recent_prs(repo_root, limit=clamp_pr_limit(pr_limit)))
     return messages
 
 
@@ -256,7 +271,7 @@ def main(argv: list[str] | None = None) -> int:
         for line in run_bootstrap(args.repo_root, scrape_prs=not args.no_prs, pr_limit=args.pr_limit):
             print(line)
         return 0
-    except (SchemaError, OSError) as exc:
+    except (SchemaError, PathPolicyError, OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
