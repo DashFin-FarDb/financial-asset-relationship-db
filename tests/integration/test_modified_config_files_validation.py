@@ -172,7 +172,7 @@ class TestWorkflowSimplifications:
     def test_greetings_workflow_has_messages(self, workflows_dir: Path):
         """
         Ensure the greetings workflow contains a step referencing "first-interaction" and that
-        both `issue-message` and `pr-message` in that step are non-empty.
+        both `issue_message` and `pr_message` in that step are non-empty.
         """
         workflow_file = workflows_dir / "greetings.yml"
         assert workflow_file.exists()
@@ -184,8 +184,8 @@ class TestWorkflowSimplifications:
         first_interaction_step = next((s for s in steps if "first-interaction" in str(s)), None)
 
         assert first_interaction_step is not None
-        issue_msg = first_interaction_step["with"].get("issue-message", "")
-        pr_msg = first_interaction_step["with"].get("pr-message", "")
+        issue_msg = first_interaction_step["with"].get("issue_message", "")
+        pr_msg = first_interaction_step["with"].get("pr_message", "")
 
         # Messages must be non-empty and not whitespace-only.
         assert isinstance(issue_msg, str) and issue_msg.strip(), "Issue message must not be empty"
