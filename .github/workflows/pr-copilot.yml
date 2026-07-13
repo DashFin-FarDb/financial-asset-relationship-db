@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: Detect trigger type and set flags
         id: detect
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const eventName = context.eventName;
@@ -163,14 +163,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0 guardrails-disable-line
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0  # guardrails-disable-line
       - name: Configure welcome message
         id: config
         run: |
           echo "config_exists=false" >> "$GITHUB_OUTPUT"
 
       - name: Post welcome message
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -219,7 +219,7 @@ jobs:
     steps:
       - name: Analyze PR scope
         id: analyze
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -261,7 +261,7 @@ jobs:
 
       - name: Post scope warning if needed
         if: steps.analyze.outputs.should_warn == 'true'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -296,9 +296,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0 guardrails-disable-line
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0  # guardrails-disable-line
       - name: Setup Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0 guardrails-disable-line
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0  # guardrails-disable-line
         with:
           python-version: '3.11'
 
@@ -314,7 +314,7 @@ jobs:
           python .github/pr-copilot/scripts/generate_status.py
 
       - name: Post status update
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const fs = require('fs');
@@ -391,7 +391,7 @@ jobs:
     steps:
       - name: Analyze review comments
         id: analyze
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -453,7 +453,7 @@ jobs:
 
       - name: Acknowledge actionable feedback
         if: steps.analyze.outputs.has_actionable == 'true'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -484,7 +484,7 @@ jobs:
     steps:
       - name: Evaluate merge eligibility
         id: evaluate
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -544,7 +544,7 @@ jobs:
 
       - name: Post merge eligibility status
         if: steps.evaluate.outputs.is_eligible == 'true'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -571,7 +571,7 @@ jobs:
 
       - name: Post merge blockers if not eligible
         if: steps.evaluate.outputs.is_eligible == 'false'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -613,7 +613,7 @@ jobs:
     steps:
       - name: Check for conflicts
         id: check
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -634,7 +634,7 @@ jobs:
 
       - name: Notify about conflicts
         if: steps.check.outputs.has_conflicts == 'true'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0 guardrails-disable-line
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
