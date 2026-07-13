@@ -30,6 +30,8 @@ permissions:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/node.js.yml'
+      - '!**/*.md'
+      - '!docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -46,13 +48,16 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
     - name: Node CI common (${{ matrix.node-version }})
       uses: ./.github/actions/ci-common
       with:
         language: node
         node-version: ${{ matrix.node-version }}
+        working-directory: frontend
         dependency-paths: |
-          package-lock.json
+          frontend/package-lock.json
         install: |
           npm ci
         build: |
