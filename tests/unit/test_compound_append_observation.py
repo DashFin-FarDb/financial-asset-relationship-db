@@ -12,6 +12,8 @@ from compound import append_observation as append_observation_mod
 from compound.append_observation import (
     _load_observation_payload,
     _parse_runtime_yaml,
+    _repo_path,
+    _write_runtime_yaml,
     append_observation,
     record_push_conflict,
 )
@@ -225,6 +227,18 @@ class TestAppendObservation:
             forbidden = Path("/var/empty/outside-payload.json")
         with pytest.raises(PathPolicyError):
             _load_observation_payload(forbidden, repo_root=compound_repo)
+
+    def test_repo_path_rejects_traversal_outside_repo(self, compound_repo: Path) -> None:
+        """Repo-relative path resolution rejects parent traversal."""
+        with pytest.raises(PathPolicyError):
+            _repo_path("../outside-runtime.yml", repo_root=compound_repo)
+
+    def test_write_runtime_yaml_rejects_absolute_path_outside_repo(self, compound_repo: Path) -> None:
+        """Runtime writes cannot target an absolute path outside the repo."""
+        outside_path = compound_repo.parent / "outside-runtime.yml"
+        with pytest.raises(PathPolicyError):
+            _write_runtime_yaml(outside_path, {}, repo_root=compound_repo)
+        assert not outside_path.exists()
 
     def test_load_observation_payload_allows_repo_relative(self, compound_repo: Path) -> None:
         """Repo-relative observation files are accepted."""

@@ -139,11 +139,8 @@ def _parse_runtime_int(key: str, value: str) -> int:
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any], *, repo_root: Path | None = None) -> None:
     """Write runtime.yml with the fixed key set."""
     root = (repo_root or REPO_ROOT).resolve()
-    resolved = path.resolve() if path.is_absolute() else (root / path).resolve()
-    try:
-        rel = resolved.relative_to(root).as_posix()
-    except ValueError as exc:
-        raise PathPolicyError(f"Runtime path outside repo: {path}") from exc
+    resolved = _repo_path(path, root)
+    rel = resolved.relative_to(root).as_posix()
     if rel != RUNTIME_YML_REL:
         raise PathPolicyError(f"Write denied (runtime path mismatch): {path}")
     assert_writable(rel)
