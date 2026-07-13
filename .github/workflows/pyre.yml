@@ -89,18 +89,42 @@ jobs:
           pyre --noninteractive --output=sarif check > pyre-results.sarif
           status=$?
           set -e
-          if ! python3 -c 'import json,sys; json.load(open("pyre-results.sarif", encoding="utf-8"))'; then
-            printf '%s\n' \
-              '{' \
-              '  "version": "2.1.0",' \
-              '  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",' \
-              '  "runs": [{' \
-              '    "tool": {"driver": {"name": "Pyre", "informationUri": "https://pyre-check.org", "rules": []}},' \
-              '    "results": [],' \
-              '    "invocations": [{"executionSuccessful": true}]' \
-              '  }]' \
-              '}' > pyre-results.sarif
-          fi
+          # Write a valid empty SARIF if pyre produced non-JSON output.
+          # Use a Python heredoc so shellcheck does not treat SARIF "$schema" as a shell var.
+          python3 <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("pyre-results.sarif")
+          try:
+              json.loads(path.read_text(encoding="utf-8"))
+          except (OSError, json.JSONDecodeError, ValueError):
+              path.write_text(
+                  json.dumps(
+                      {
+                          "version": "2.1.0",
+                          "$schema": (
+                              "https://raw.githubusercontent.com/oasis-tcs/"
+                              "sarif-spec/master/Schemata/sarif-schema-2.1.0.json"
+                          ),
+                          "runs": [
+                              {
+                                  "tool": {
+                                      "driver": {
+                                          "name": "Pyre",
+                                          "informationUri": "https://pyre-check.org",
+                                          "rules": [],
+                                      }
+                                  },
+                                  "results": [],
+                                  "invocations": [{"executionSuccessful": True}],
+                              }
+                          ],
+                      }
+                  ),
+                  encoding="utf-8",
+              )
+          PY
           exit "$status"
 
       - name: Upload Pyre SARIF artifact
