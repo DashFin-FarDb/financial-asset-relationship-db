@@ -68,12 +68,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Start your service
         run: ./your-service.sh &                  # ✏️ Update this to run your own service to be scanned
 
       - name: Run HawkScan
-        uses: stackhawk/hawkscan-action@4c3258cd62248dac6d9fe91dd8d45928c697dee0
+        uses: stackhawk/hawkscan-action@f73954d54f3ba2d6d342f936e2282c886bad5d95
         continue-on-error: true                   # ✏️ Set to false to break your build on scan errors
         with:
           apiKey: ${{ secrets.HAWK_API_KEY }}
