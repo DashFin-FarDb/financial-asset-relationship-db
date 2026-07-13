@@ -1,5 +1,8 @@
 name: "CI Common"
-description: "Shared steps for setting up Python/Node, caching, and running install/build/test"
+description: >-
+  Shared steps for setting up Python/Node, caching, and running install/build/test.
+  Callers MUST run actions/checkout before invoking this local composite action;
+  GitHub cannot resolve ./.github/actions/ci-common until the repository is checked out.
 inputs:
   language:
     description: "Runtime language: python or node"
