@@ -54,6 +54,10 @@ name: SonarCloud analysis
       - '**/*.jsx'
       - 'frontend/**'
       - '.github/workflows/sonarcloud.yml'
+      - '!**/*.md'
+      - '!docs/**'
+      - '!**/*.png'
+      - '!**/*.jpg'
   workflow_dispatch:
 
 concurrency:
