@@ -43,3 +43,28 @@ Update branch protection rules in GitHub settings to require:
 - `Frontend CI / build`
 - `CI / test`
 - `Production Container / build-and-smoke-test`
+
+## Local composite action guardrail (`ci-common`)
+
+Jobs that use the local composite action `./.github/actions/ci-common` must run
+`actions/checkout` first. Without checkout, the workflow fails before the job
+can execute because local actions are resolved from the checked-out workspace.
+
+Enforcement:
+
+- `tests/unit/test_ci_common_checkout.py::test_ci_common_callers_checkout_first`
+
+When editing workflow YAML that references `ci-common`, validate with:
+
+```bash
+pytest tests/unit/test_ci_common_checkout.py -v
+```
+
+## Workflow maintenance troubleshooting
+
+- CI fails with "uses ci-common without a preceding actions/checkout":
+  - Add an `actions/checkout@...` step before the `uses: ./.github/actions/ci-common` step in the affected job.
+- Security/code scanning signal missing from Pyre workflow:
+  - Ensure `.github/workflows/pyre.yml` still includes SARIF output and upload (`github/codeql-action/upload-sarif@...`).
+- Required check names changed after workflow refactors:
+  - Reconcile GitHub branch protection required-check names with this document and the active workflow job names.

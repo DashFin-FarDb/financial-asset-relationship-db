@@ -21,6 +21,45 @@ python scripts/compound/synthesize.py --force
 python scripts/compound/sync_agent_packs.py
 ```
 
+## Interface contracts (verified from code)
+
+### Observation payload contract (`append_observation.py` + `schema.py`)
+
+Required fields:
+
+- `observation_id`
+- `source` (`github`, `cursor`, `manual`, `bootstrap`)
+- `event_type`
+- `status` (`provisional` or `landed`)
+- `primary_ref`
+- `summary`
+
+Optional fields:
+
+- `domains` (must be one of: `architecture`, `api`, `persistence`, `ci-guardrails`, `rebuild-reconciliation`, `deployment`)
+- `refs`
+- `evidence_pointers`
+- `created_at` (ISO-8601 when provided)
+- `schema_version` (must match current schema version)
+
+Idempotency is enforced by the tuple `(source, event_type, primary_ref)`.
+
+### Watched-series contract (`watched-series.yml`)
+
+The file must include all required keys:
+
+- `version` (integer)
+- `prs` (list of integers)
+- `labels` (list of strings)
+- `path_globs` (list of strings)
+
+### Write-safety policy
+
+- Appenders only write to the observation ledger.
+- `synthesize.py` is the canonical writer for `docs/compound/domains/*.md` and `docs/compound/INDEX.md`.
+- Policy/ADR surfaces are denylisted (for example `docs/adr/`, `AGENTS.md`, and selected `.github` policy files).
+- Path traversal (`..`) is rejected by path normalization before write checks.
+
 ## Continuous compound
 
 GitHub workflow: `.github/workflows/architecture-compound.yml`
@@ -55,6 +94,32 @@ python scripts/compound/sync_agent_packs.py
 If `runtime.yml` has `writer_mode: github_only`, Cursor continuous emit no-ops;
 use `workflow_dispatch` or a PR that lands through GitHub.
 
+## Operator workflow (recommended order)
+
+1. Bootstrap baseline observations:
+
+   ```pwsh
+   python scripts/compound/bootstrap.py --no-prs
+   ```
+
+2. Regenerate the docs projection:
+
+   ```pwsh
+   python scripts/compound/synthesize.py --force
+   ```
+
+3. Query memory to confirm expected landed/provisional sections:
+
+   ```pwsh
+   python scripts/compound/query_memory.py --question "what changed in ci guardrails?"
+   ```
+
+4. Sync agent packs only after synthesize output looks correct:
+
+   ```pwsh
+   python scripts/compound/sync_agent_packs.py
+   ```
+
 ## Consumers
 
 ```pwsh
@@ -81,3 +146,16 @@ Do **not** overwrite Dosu-maintained `AGENTS.md`.
 
 Auto-flip criteria (plan A12): ≥3 synthesize push conflicts or divergent ledger
 tips within 30 minutes → set `writer_mode: github_only` in `runtime.yml`.
+
+## Troubleshooting and common pitfalls
+
+- `error: watched-series missing required keys`:
+  - Fix `docs/compound/watched-series.yml` so it includes `version`, `prs`, `labels`, and `path_globs` with the expected types.
+- `error: Rejected unsafe gh argument ...`:
+  - `bootstrap.py` only accepts bounded `gh pr ...` arguments/tokens; remove shell metacharacters and unsupported subcommands.
+- `writer_mode=github_only: Cursor continuous emit no-ops ...`:
+  - Continuous Cursor writes are intentionally blocked. Use `workflow_dispatch` or let GitHub-driven events write observations.
+- `warning: skipping malformed ledger line ...` during synthesize:
+  - Fix the malformed JSON line in `docs/compound/ledger/observations.jsonl`; malformed entries are skipped to keep synthesis running.
+- Query responses show "No compounded observations matched yet":
+  - Seed the ledger first (`bootstrap.py --no-prs`) and rerun `synthesize.py --force`.
