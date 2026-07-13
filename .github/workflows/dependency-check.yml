@@ -17,13 +17,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
   select-matrix:
     name: Select Dependency Check Matrix
     runs-on: ubuntu-latest
+    # No checkout; deny contents at job scope (S8264: prefer job-level permissions).
+    permissions:
+      contents: none
     outputs:
       runtime-os: ${{ steps.select.outputs.runtime-os }}
       dev-os: ${{ steps.select.outputs.dev-os }}
@@ -45,6 +45,8 @@ jobs:
     name: Test Runtime Dependencies (Python ${{ matrix.python-version }})
     needs: select-matrix
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -102,6 +104,8 @@ jobs:
     name: Test Full Dev Tooling (Python ${{ matrix.python-version }})
     needs: select-matrix
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -141,6 +145,8 @@ jobs:
   test-pyproject-dev-extra:
     name: Test pyproject dev extra
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
