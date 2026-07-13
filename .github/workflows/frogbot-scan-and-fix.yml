@@ -19,12 +19,24 @@ permissions:
   security-events: write
 jobs:
   create-fix-pull-requests:
-    # Only run if JF_URL is configured
-    if: secrets.JF_URL != ''
     runs-on: ubuntu-latest
     steps:
+      - name: Check JFrog credentials
+        id: check-jf
+        env:
+          JF_URL: ${{ secrets.JF_URL }}
+        run: |
+          if [ -z "${JF_URL}" ]; then
+            echo "JFrog credentials are not configured; skipping Frogbot."
+            echo "run_frogbot=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_frogbot=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: jfrog/frogbot@d0954eb10d96da4c83188975452b19609eabb41a  # v3.2.2
+        if: steps.check-jf.outputs.run_frogbot == 'true'
+      - uses: jfrog/frogbot@9ed6b65f3147992357cd1b27a9a95ecd5094c2d6  # v3.3.1
+        if: steps.check-jf.outputs.run_frogbot == 'true'
+
         env:
           # [Mandatory if the two conditions below are met]
           # 1. The project uses npm, yarn 2, NuGet or .NET to download its dependencies
