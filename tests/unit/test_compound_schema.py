@@ -81,10 +81,12 @@ class TestCompoundSchema:
         path = "docs/compound/domains/api.md"
         assert is_allowlisted(path)
         assert assert_writable(path) == path
+        assert not is_allowlisted("docs/compound")
 
     def test_denylist_rejects_adr_and_agents(self) -> None:
         """Denylist rejects ADR paths and AGENTS.md."""
         assert is_denylisted("docs/adr/0001-production-architecture.md")
+        assert is_denylisted("docs/adr")
         assert is_denylisted("AGENTS.md")
         with pytest.raises(PathPolicyError, match="denylist"):
             assert_writable("docs/adr/0001-production-architecture.md")

@@ -343,10 +343,25 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     return tuple(found) if found else ("architecture",)
 
 
-def _matches_policy_prefix(normalized: str, prefix: str) -> bool:
-    """Return True when a normalized path matches an exact or directory policy."""
+def _matches_denylist_prefix(normalized: str, prefix: str) -> bool:
+    """Return True when a normalized path matches a denylist entry.
+
+    Directory prefixes also match the bare directory name (``docs/adr`` for
+    ``docs/adr/``) so policy cannot be bypassed by omitting the trailing slash.
+    """
     if prefix.endswith("/"):
         return normalized.startswith(prefix) or normalized == prefix.rstrip("/")
+    return normalized == prefix
+
+
+def _matches_allowlist_prefix(normalized: str, prefix: str) -> bool:
+    """Return True when a normalized path matches an allowlist entry.
+
+    Directory prefixes require a path under the directory (``startswith``), not
+    equality with the bare directory name.
+    """
+    if prefix.endswith("/"):
+        return normalized.startswith(prefix)
     return normalized == prefix
 
 
@@ -356,7 +371,7 @@ def is_denylisted(path: str | Path) -> bool:
         normalized = normalize_repo_relative(path)
     except PathPolicyError:
         return True
-    return any(_matches_policy_prefix(normalized, prefix) for prefix in WRITE_DENYLIST_PREFIXES)
+    return any(_matches_denylist_prefix(normalized, prefix) for prefix in WRITE_DENYLIST_PREFIXES)
 
 
 def is_allowlisted(path: str | Path) -> bool:
@@ -365,7 +380,7 @@ def is_allowlisted(path: str | Path) -> bool:
         normalized = normalize_repo_relative(path)
     except PathPolicyError:
         return False
-    return any(_matches_policy_prefix(normalized, prefix) for prefix in WRITE_ALLOWLIST_PREFIXES)
+    return any(_matches_allowlist_prefix(normalized, prefix) for prefix in WRITE_ALLOWLIST_PREFIXES)
 
 
 def assert_writable(path: str | Path) -> str:

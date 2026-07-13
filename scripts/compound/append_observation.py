@@ -40,8 +40,14 @@ _LEDGER_LOCK_NAME = "observations.jsonl.lock"
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
-    root = repo_root or REPO_ROOT
-    return root / Path(relative)
+    """Resolve a repo-relative path and reject traversal outside the root."""
+    root = (repo_root or REPO_ROOT).resolve()
+    candidate = (root / Path(relative)).resolve()
+    try:
+        candidate.relative_to(root)
+    except ValueError as exc:
+        raise PathPolicyError(f"Path outside repo: {relative}") from exc
+    return candidate
 
 
 @contextmanager
