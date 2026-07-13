@@ -27,16 +27,13 @@ concurrency:
 jobs:
   build-linux:
     runs-on: ubuntu-latest
+    # Only run when a conda environment definition exists.
+    if: ${{ hashFiles('environment.yml') != '' }}
     strategy:
       max-parallel: 5
 
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-    - name: Require environment.yml
-      if: hashFiles('environment.yml') == ''
-      run: |
-        echo "environment.yml is required for this workflow."
-        exit 1
     - name: Set up Python 3.10
       uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
       with:
