@@ -34,9 +34,9 @@ jobs:
       id: check-go
       run: |
         if [ -f "go.mod" ]; then
-          echo "has_go=true" >> $GITHUB_OUTPUT
+          echo "has_go=true" >> "$GITHUB_OUTPUT"
         else
-          echo "has_go=false" >> $GITHUB_OUTPUT
+          echo "has_go=false" >> "$GITHUB_OUTPUT"
           echo "No go.mod found, skipping Go build"
         fi
 

@@ -108,7 +108,7 @@ jobs:
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
-          file: ./coverage.xml
+          files: ./coverage.xml
           fail_ci_if_error: false
           verbose: true
         continue-on-error: true
@@ -132,10 +132,14 @@ jobs:
           install: |
             python -m pip install --upgrade pip
             pip install -r requirements.txt
+            # Freeze resolved runtime packages (direct + transitive) before
+            # installing CI security tooling, so Safety can scan the installed
+            # runtime set without also covering safety/bandit toolchains.
+            pip freeze > .ci-runtime-freeze.txt
             pip install safety bandit
           test: |
             echo "===== Safety ====="
-            safety check --json
+            safety check -r .ci-runtime-freeze.txt --policy-file .safety-policy.json --json
 
             echo "===== Bandit ====="
             bandit -r src/ -ll

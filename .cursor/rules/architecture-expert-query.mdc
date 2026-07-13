@@ -1,0 +1,14 @@
+---
+description: Query architecture-expert compounded memory via docs/compound
+alwaysApply: false
+---
+# Architecture Expert Query
+
+When asked about architecture, seams, API, persistence/SQL, CI/guardrails,
+rebuild/reconciliation, or deployment/readiness:
+
+1. Read `docs/compound/INDEX.md` then the relevant `docs/compound/domains/*.md`.
+2. Prefer `python scripts/compound/query_memory.py --question "..."` when available.
+3. Label every claim as **landed** or **provisional**.
+4. Cite evidence pointers; do not invent seams.
+5. Never rewrite ADRs, policy docs, or `AGENTS.md`.

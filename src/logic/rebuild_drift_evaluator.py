@@ -23,10 +23,10 @@ from src.logic.reconciliation_engine import Severity
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
+UTC = timezone.utc
+
 if TYPE_CHECKING:
     from src.data.db_models import RebuildJobORM
-
-UTC = timezone.utc
 
 logger = logging.getLogger(__name__)
 

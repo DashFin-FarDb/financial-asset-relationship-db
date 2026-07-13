@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import sys
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -11,6 +12,11 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+
+# Make scripts/ importable for compound unit tests (shared bootstrap; avoid per-module sys.path).
+_SCRIPTS_ROOT = Path(__file__).resolve().parents[1] / "scripts"
+if str(_SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_ROOT))
 
 if TYPE_CHECKING:
     from src.logic.reconciliation_engine import ReconciliationPlan

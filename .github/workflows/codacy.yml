@@ -80,7 +80,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Run Codacy Analysis CLI
-        uses: codacy/codacy-analysis-cli-action@562ee3e92b8e92df8b67e0a5ff8aa8e261919c08
+        # Codacy CLI can still crash in SARIF post-process (MalformedInputException)
+        # even on a clean UTF-8 tree; keep continue-on-error so upload can still run
+        # when a partial SARIF was written, then fail visibly if nothing was produced.
+        id: codacy
+        continue-on-error: true
+        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
         with:
           # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
           # You can also omit the token and run the tools that support default configurations
@@ -96,6 +101,14 @@ jobs:
 
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
-        uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v3
+        if: hashFiles('results.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: results.sarif
+
+      - name: Fail when Codacy produced no SARIF
+        if: steps.codacy.outcome == 'failure' && hashFiles('results.sarif') == ''
+        run: |
+          echo "::error::Codacy analysis failed without producing results.sarif"
+          exit 1

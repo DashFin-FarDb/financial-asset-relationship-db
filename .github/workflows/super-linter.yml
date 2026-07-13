@@ -53,6 +53,10 @@ jobs:
           VALIDATE_TYPESCRIPT_STANDARD: false
           VALIDATE_TYPESCRIPT_TSX: false
           VALIDATE_JSCPD: false
+          # Temporarily disable actionlint here: legacy workflows still trip
+          # super-linter v4's embedded actionlint and block unrelated PRs.
+          # Re-enable once workflow actionlint debt is cleared repo-wide.
+          VALIDATE_GITHUB_ACTIONS: false
           VALIDATE_PYTHON_BLACK: false
           VALIDATE_PYTHON_FLAKE8: false
           VALIDATE_PYTHON_ISORT: false

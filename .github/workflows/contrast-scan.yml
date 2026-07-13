@@ -86,24 +86,27 @@ jobs:
         CONTRAST_API_KEY: ${{ secrets.CONTRAST_API_KEY }}
         CONTRAST_ORGANIZATION_ID: ${{ secrets.CONTRAST_ORGANIZATION_ID }}
         CONTRAST_AUTH_HEADER: ${{ secrets.CONTRAST_AUTH_HEADER }}
-        CONTRAST_ARTIFACT_PATH: ${{ vars.CONTRAST_ARTIFACT_PATH }}
+        # Path is non-sensitive; prefer vars with secrets fallback (PR scanner-config fix).
+        # Local env name differs from the secret name so shell echoes cannot
+        # accidentally log the secret identifier.
+        SCAN_ARTIFACT_PATH: ${{ vars.CONTRAST_ARTIFACT_PATH || secrets.CONTRAST_ARTIFACT_PATH }}
       run: |
         if [ -z "${CONTRAST_API_KEY}" ] || [ -z "${CONTRAST_ORGANIZATION_ID}" ] || [ -z "${CONTRAST_AUTH_HEADER}" ]; then
           echo "Contrast secrets are not configured; skipping scan."
           echo "run_scan=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        if [ -z "${CONTRAST_ARTIFACT_PATH}" ]; then
-          echo "Contrast artifact path is not configured (vars.CONTRAST_ARTIFACT_PATH); skipping scan."
+        if [ -z "${SCAN_ARTIFACT_PATH}" ]; then
+          echo "Contrast artifact path is not configured; skipping scan."
           echo "run_scan=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        if [ ! -f "${CONTRAST_ARTIFACT_PATH}" ]; then
-          echo "Contrast artifact not found at ${CONTRAST_ARTIFACT_PATH}; skipping scan."
+        if [ ! -f "${SCAN_ARTIFACT_PATH}" ]; then
+          echo "Contrast artifact file was not found; skipping scan."
           echo "run_scan=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        echo "artifact_path=${CONTRAST_ARTIFACT_PATH}" >> "$GITHUB_OUTPUT"
+        echo "artifact_path=${SCAN_ARTIFACT_PATH}" >> "$GITHUB_OUTPUT"
         echo "run_scan=true" >> "$GITHUB_OUTPUT"
     - name: Contrast Scan Action
       if: steps.contrast_preflight.outputs.run_scan == 'true'
@@ -116,6 +119,6 @@ jobs:
     #Upload the results to GitHub
     - name: Upload SARIF file
       if: steps.contrast_preflight.outputs.run_scan == 'true'
-      uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v3
+      uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
       with:
         sarif_file: results.sarif # The file name must be 'results.sarif', as this is what the Github Action will output
