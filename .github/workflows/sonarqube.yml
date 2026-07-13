@@ -80,7 +80,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           if [ -z "$SONAR_HOST_URL" ] || [ -z "$SONAR_TOKEN" ]; then
-            echo "SONAR_HOST_URL/SONAR_TOKEN not configured; skipping SonarQube analysis."
+            echo "SonarQube host/token not configured; skipping analysis."
             exit 0
           fi
           echo "sonar_ready=true" >> "$GITHUB_ENV"
